@@ -172,7 +172,8 @@ export class AppEffects {
   @Effect({ dispatch: false })
   setSelectedGeos$ = this.actions$.pipe(
     ofType<SetAppReady>(SharedActionTypes.SetAppReady),
-    withLatestFrom(this.store$.select(state => state)),
+    withLatestFrom(this.fullStore$.select(state => state)),
+    tap(([action, state]) => this.appLayerService.updateLabels(state)),
     tap(([action, state]) => this.appLayerService.shadeBySite(state)),
     tap(([action, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state.rfpUiEdit))),
     tap(([action, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state.rfpUiEdit), state.shared.radius)),
