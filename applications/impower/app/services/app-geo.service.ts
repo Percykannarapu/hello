@@ -67,7 +67,7 @@ export class AppGeoService {
     this.setupMapClickEventHandler();
 
     // Detect changes in must covers list and call ensureMustCovers
-    this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable()
+    this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
     this.allMustCovers$.subscribe(mustCovers => {
        //mustCovers.forEach(mustCover => console.debug("### APP-GEO-SERVICE - allMustCoverObs - ", mustCover));
        this.ensureMustCovers();
@@ -82,6 +82,11 @@ export class AppGeoService {
        // Clear must covers
        this.impGeoService.clearMustCovers();
     });
+  }
+
+  clearAll() : void {
+    this.impGeoService.clearAll();
+    this.impAttributeService.clearAll();
   }
 
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
@@ -249,7 +254,7 @@ export class AppGeoService {
             const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
 
             // Add the must covers to geosToPersist
-            this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), tradeAreaSet, geosToPersist).subscribe(results => {
+            this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), geosToPersist).subscribe(results => {
                results.forEach(result => {
                   console.log('Added ', results.length, ' must cover geos');
                   geosToPersist.push(result);
@@ -448,10 +453,9 @@ export class AppGeoService {
    * The observable will return an array of ImpGeofootprintGeos.
    *
    * @param locations Array of locations that must cover geos can get assigned to
-   * @param tradeAreaSet Set of trade areas, which new must cover TAs can get added to
    * @param geos Array of existing geos to be compared against the must cover list
    */
-   public ensureMustCoversObs(locations: ImpGeofootprintLocation[], tradeAreaSet: Set<ImpGeofootprintTradeArea>, geos: ImpGeofootprintGeo[]) : Observable<ImpGeofootprintGeo[]> {
+   public ensureMustCoversObs(locations: ImpGeofootprintLocation[], geos: ImpGeofootprintGeo[]) : Observable<ImpGeofootprintGeo[]> {
       if (this.processingMustCovers)
          return Observable.create(async observer => observer.complete());
 
@@ -479,10 +483,6 @@ export class AppGeoService {
       // If no locations provided, pull them all
       if (locations == null || locations.length === 0)
          locations = this.locationService.get();
-
-      // If no trade areas are provided, pull them all
-      if (tradeAreaSet == null || tradeAreaSet.size === 0)
-         tradeAreaSet = new Set(this.tradeAreaService.get());
 
       // Determine which must covers are not in the list of geos
       const diff = this.impGeoService.mustCovers.filter(x => !geos.map(geo => geo.geocode).includes(x));
@@ -595,7 +595,7 @@ export class AppGeoService {
       const key = 'ensureMustCovers';
       this.store$.dispatch(new StartBusyIndicator({ key: key, message: 'Ensuring Must Covers' }));
       // Add the must covers to geosToPersist
-      this.ensureMustCoversObs(null, null, null).subscribe(results => {
+      this.ensureMustCoversObs(null, null).subscribe(results => {
          //console.debug("### ensureMustCovers is pushing " + ((results != null) ? results.length : 0) + " geos");
          results.forEach(result => geosToPersist.push(result));
       }

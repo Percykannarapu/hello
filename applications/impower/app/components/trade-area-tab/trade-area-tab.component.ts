@@ -187,23 +187,23 @@ export class TradeAreaTabComponent implements OnInit {
     if (!run) return;
     this.audienceTradeareaService.createAudienceTradearea(this.audienceTradeareaService.getAudienceTAConfig())
     .subscribe(createTASuccessful => {
-      let geosToPersist: Array<ImpGeofootprintGeo> = [];
+      const geosToPersist: Array<ImpGeofootprintGeo> = [];
       if (createTASuccessful) {
          // Add the must covers to geosToPersist
-         this.appGeoService.ensureMustCoversObs(this.locationService.get(), new Set(this.tradeAreaService.cachedTradeAreas), null).subscribe(results=> {
+         this.appGeoService.ensureMustCoversObs(this.locationService.get(), null).subscribe(results => {
             results.forEach(result => geosToPersist.push(result));
          }
-         ,err => {
-            console.log("ERROR occurred ensuring must covers: ", err);
+         , err => {
+            console.log('ERROR occurred ensuring must covers: ', err);
             this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating must covers for the Audience Trade Area' }));
          }
-         ,() => {
+         , () => {
             if (geosToPersist.length > 0) {
-               console.log("Adding ", geosToPersist.length, " must covers for audience TA");
+               console.log('Adding ', geosToPersist.length, ' must covers for audience TA');
                this.geoService.add(geosToPersist);               
             }
             else
-               console.log("No must covers for audience TA");
+               console.log('No must covers for audience TA');
          });
       }
     },      

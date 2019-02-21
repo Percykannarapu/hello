@@ -378,6 +378,7 @@ export class EsriRendererService {
   }
 
   public clearHighlight() : void {
+    console.log('Clearing Highlights');
     if (this.highlightHandler != null) this.highlightHandler.remove();
   }
 }

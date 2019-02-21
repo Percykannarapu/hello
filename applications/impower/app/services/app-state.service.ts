@@ -68,8 +68,8 @@ export class AppStateService {
 
   constructor(private projectService: AppProjectService,
               private locationService: ImpGeofootprintLocationService,
-              private geoService: ImpGeofootprintGeoService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
+              private geoService: ImpGeofootprintGeoService,
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
               private esriQueryService: EsriQueryService,
@@ -103,7 +103,6 @@ export class AppStateService {
   }
 
   public clearUserInterface() : void {
-    // this.store$.dispatch(new ClearAllNotifications());
     this.clearUI.next();
   }
 
@@ -130,10 +129,11 @@ export class AppStateService {
       filter(project => project != null && project.impGeofootprintMasters != null && project.impGeofootprintMasters.length > 0),
       map(project => project.impGeofootprintMasters[0]),
     ).subscribe(this.currentMaster$ as BehaviorSubject<ImpGeofootprintMaster>);
-    this.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => project.methAnalysis),
+
+    this.projectService.currentNullableProject$.pipe(
+      map(project => project == null ? null : project.methAnalysis),
       distinctUntilChanged(),
+      filter(analysisLevel => analysisLevel != null),
       tap(analysisLevel => this.store$.dispatch(new ChangeAnalysisLevel({analysisLevel: analysisLevel})))
     ).subscribe(this.analysisLevel$ as BehaviorSubject<string>);
 

@@ -40,12 +40,22 @@ export class ImpProjectService extends DataStore<ImpProject>
       super(restDataService, dataUrl, transactionManager, 'ImpProject');
    }
 
+   startTx() : void {
+     this.transactionManager.startTransaction();
+   }
+
+   stopTx() : void {
+     this.transactionManager.stopTransaction();
+   }
+
    load(items: ImpProject[]) : void {
      // load the data stores
+     this.transactionManager.startTransaction();
      super.load(items);
      this.impProjectPrefService.load(simpleFlatten(items.map(p => p.impProjectPrefs)));
      this.impProjectVarService.load(simpleFlatten(items.map(p => p.impProjectVars)));
      this.impGeofootprintMasterService.load(simpleFlatten(items.map(p => p.impGeofootprintMasters)));
+     this.transactionManager.stopTransaction();
    }
 
    loadFromServer(id: number) : Observable<number> {

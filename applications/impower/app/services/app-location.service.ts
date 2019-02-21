@@ -79,8 +79,6 @@ export class AppLocationService {
   public totalCount$: Observable<number>;
   public hasFailures$: Observable<boolean>;
   public cachedTradeAreas: ImpGeofootprintTradeArea[];
- 
-  
 
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
@@ -225,6 +223,12 @@ export class AppLocationService {
 
   public notifySiteChanges() : void {
     this.impLocationService.makeDirty();
+  }
+
+  clearAll() : void {
+    this.cachedTradeAreas = [];
+    this.impLocationService.clearAll();
+    this.impLocAttributeService.clearAll();
   }
 
   public geocode(data: ValGeocodingRequest[], siteType: string) : Observable<ImpGeofootprintLocation[]> {

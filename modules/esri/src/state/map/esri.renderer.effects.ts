@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { EsriMapActionTypes } from './esri.map.actions';
 import { SetSelectedGeos, EsriRendererActionTypes, SetShadingData } from './esri.renderer.actions';
 import { EsriApi } from '../../core/esri-api.service';
 import { EsriQueryService } from '../../services/esri-query.service';
@@ -67,7 +68,7 @@ export class EsriRendererEffects {
 
   @Effect({ dispatch: false })
   handleClearGeos$ = this.actions$.pipe(
-    ofType(EsriRendererActionTypes.ClearSelectedGeos),
+    ofType(EsriRendererActionTypes.ClearSelectedGeos, EsriMapActionTypes.ResetMapState),
     tap(() => this.rendererService.clearHighlight())
   );
 

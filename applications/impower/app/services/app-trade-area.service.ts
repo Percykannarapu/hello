@@ -14,7 +14,7 @@ import { AppStateService } from './app-state.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { AppLoggingService } from './app-logging.service';
-import { distinctUntilArrayContentsChanged, toUniversalCoordinates, isNumber } from '@val/common';
+import { toUniversalCoordinates, isNumber } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { calculateStatistics, filterArray, groupBy, simpleFlatten } from '@val/common';
 
@@ -29,8 +29,8 @@ export class AppTradeAreaService {
   private mergeSpecs = new Map<(SuccessfulLocationTypeCodes), BehaviorSubject<TradeAreaMergeTypeCodes>>();
   public siteTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public competitorTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
-  public cachedTradeAreas: ImpGeofootprintTradeArea[];
   public tradeareaType: string = '';
+
   constructor(private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impLocationService: ImpGeofootprintLocationService,
               private impGeoService:  ImpGeofootprintGeoService,
@@ -65,10 +65,12 @@ export class AppTradeAreaService {
     );
     const siteTradeAreas$ = radiusTradeAreas$.pipe(
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'),
+      filter(ta => ta.length > 0)
       // distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
     );
     const competitorTradeAreas$ = radiusTradeAreas$.pipe(
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
+      filter(ta => ta.length > 0)
       // distinctUntilArrayContentsChanged(ta => ({ radius: ta.taRadius, isActive: ta.isActive }))
     );
 
@@ -112,7 +114,7 @@ export class AppTradeAreaService {
       filter(([analysisLevel, geos, isReady]) => isReady),
       // halt the sequence if there are no geos
       filter(([analysisLevel, geos]) => geos != null && geos.length > 0),
-    ).subscribe(() => this.clearAll());
+    ).subscribe(() => this.clearGeos());
   }
 
   public onLocationsWithoutRadius(locations: ImpGeofootprintLocation[]) : void{
@@ -150,6 +152,15 @@ export class AppTradeAreaService {
     }
   }
 
+  clearAll() : void {
+    this.mergeSpecs.set(ImpClientLocationTypeCodes.Site, new BehaviorSubject<TradeAreaMergeTypeCodes>(DEFAULT_MERGE_TYPE));
+    this.mergeSpecs.set(ImpClientLocationTypeCodes.Competitor, new BehaviorSubject<TradeAreaMergeTypeCodes>(DEFAULT_MERGE_TYPE));
+    this.currentDefaults.set(ImpClientLocationTypeCodes.Site, []);
+    this.currentDefaults.set(ImpClientLocationTypeCodes.Competitor, []);
+    this.impTradeAreaService.clearAll();
+    this.impVarService.clearAll();
+  }
+
   private applyRadiusTradeAreaOnAnalysisChange(data: ImpGeofootprintLocation[]) : void{
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
 
@@ -172,11 +183,10 @@ export class AppTradeAreaService {
       }
       newTradeAreas.push(...this.createRadiusTradeAreasForLocations(tradeAreas, [l], false));
     });
-    this.cachedTradeAreas = newTradeAreas;
-    this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
-              this.insertTradeAreas(this.cachedTradeAreas);
-              this.zoomToTradeArea();
-              this.cachedTradeAreas = [];
+
+    newTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
+    this.insertTradeAreas(newTradeAreas);
+    this.zoomToTradeArea();
   }
 
   public deleteTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {
@@ -294,7 +304,7 @@ export class AppTradeAreaService {
     }
   }
 
-  private clearAll() : void {
+  private clearGeos() : void {
     const allTradeAreas = this.impTradeAreaService.get();
     this.deleteTradeAreas(allTradeAreas);
   }

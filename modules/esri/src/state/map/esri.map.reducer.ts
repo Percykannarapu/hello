@@ -56,7 +56,10 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
   switch (action.type) {
     case EsriMapActionTypes.ResetMapState:
       return {
-        ...initialState
+        ...initialState,
+        containerHeight: state.containerHeight,
+        mapViewpoint: state.mapViewpoint,
+        mapIsReady: state.mapIsReady
       };
     // Initialization/startup actions
     case EsriMapActionTypes.InitializeMap:

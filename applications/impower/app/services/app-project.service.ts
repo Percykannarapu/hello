@@ -2,9 +2,12 @@ import { Injectable } from '@angular/core';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
+import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { AppLoggingService } from './app-logging.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
@@ -14,16 +17,22 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 export class AppProjectService {
 
   public currentProject$: Observable<ImpProject>;
+  public currentNullableProject$: Observable<ImpProject>;
 
   constructor(private impProjectService: ImpProjectService,
+              private impProjectPrefService: ImpProjectPrefService,
+              private impProjectVarService: ImpProjectVarService,
+              private impMasterService: ImpGeofootprintMasterService,
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
               private restService: RestDataService,
               private impLocationService: ImpGeofootprintLocationService,
               private store$: Store<LocalAppState>) {
-    this.currentProject$ = this.impProjectService.storeObservable.pipe(
-      filter(projects => projects != null && projects.length > 0 && projects[0] != null),
-      map(projects => projects[0]),
+    this.currentNullableProject$ = this.impProjectService.storeObservable.pipe(
+      map(projects => projects == null || projects.length === 0 ? null : projects[0])
+    );
+    this.currentProject$ = this.currentNullableProject$.pipe(
+      filter(project => project != null)
     );
   }
 
@@ -46,6 +55,18 @@ export class AppProjectService {
     const newProject = this.domainFactory.createProject();
     this.impProjectService.load([newProject]);
     return newProject.projectId;
+  }
+
+  clearAll() : void {
+    this.impProjectService.startTx();
+    this.impProjectService.clearAll();
+    this.impProjectPrefService.clearAll();
+    this.impProjectVarService.clearAll();
+    this.impMasterService.clearAll();
+  }
+
+  finalizeClear() : void {
+    this.impProjectService.stopTx();
   }
 
   validateProject(impProject: ImpProject) : string[] {
