@@ -152,7 +152,8 @@
       }
     }
     stage('Run Tests') {
-     // when {branch 'dev'}
+      // disabled due to test scripts are not in good place for automation testing
+      when {branch 'disable'}
       steps {
         script {
           try {
