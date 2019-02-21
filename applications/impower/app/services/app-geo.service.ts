@@ -151,7 +151,7 @@ export class AppGeoService {
       // keep locations that have a home geocode identified
       map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
       // keep locations that have not had a home geocoding error
-      map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y').length === 0)),
+      //map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y').length === 0)),
       // keep locations that have trade areas defined
       map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType))).length > 0)),
       // keep sites that do not already have their home geo selected
