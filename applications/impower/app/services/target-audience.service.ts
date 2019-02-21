@@ -361,11 +361,11 @@ export class TargetAudienceService implements OnDestroy {
 
   private getShadingData(analysisLevel: string, geos: string[], audience: AudienceDataDefinition) {
     const key = 'SHADING_DATA';
-    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving shading data' }));
     console.log('get shading data called');
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const source = this.audienceSources.get(sourceId);
     if (source != null) {
+      this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving shading data' }));
       const currentShadingData = this.shadingData.getValue();
       // this is an http call, no need for an unsub
       if (audience.audienceSourceName === 'Audience-TA') {
