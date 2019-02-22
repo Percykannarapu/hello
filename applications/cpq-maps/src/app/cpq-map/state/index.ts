@@ -15,7 +15,7 @@ import { ObjectiveState } from './objective/objective.reducer';
 import { PpToWrapPageState } from './ppToWrapPage/pp-to-wrap-page.reducer';
 import { ProductAllocationState } from './productAllocation/product-allocation.reducer';
 import { TargetAudienceState } from './targetAudience/target-audience.reducer';
-import { createSelector } from '@ngrx/store';
+import { createSelector, createFeatureSelector } from '@ngrx/store';
 import { RfpUiEditDetailState } from './rfpUiEditDetail/rfp-ui-edit-detail.reducer';
 import { RfpUiReviewState } from './rfpUiReview/rfp-ui-review.reducer';
 import { RfpUiEditState } from './rfpUiEdit/rfp-ui-edit.reducer';
@@ -46,13 +46,15 @@ export interface LocalState {
    rfpUiEdit: RfpUiEditState;
    rfpUiEditWrap: RfpUiEditWrapState;
 }
-
-const getSharedState = (state: LocalState) => state.shared;
-const getEntitiesLoading = createSelector(getSharedState, state => state.entitiesLoading);
-const getAppReady = createSelector(getSharedState, state => state.appReady);
+const getState = (state: LocalState) => state;
+const getSharedState = createSelector(getState, state => state.shared);
+const getEntitiesLoading = createSelector(getState, state => state.shared.entitiesLoading);
+const getAppReady = createSelector(getState, state => state.shared.appReady);
+const getRfpUiEditDetails = createSelector(getState, state => state.rfpUiEditDetail);
 
 export const localSelectors = {
    getSharedState,
    getEntitiesLoading,
-   getAppReady
+   getAppReady,
+   getRfpUiEditDetails
 };

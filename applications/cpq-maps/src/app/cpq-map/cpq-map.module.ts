@@ -26,6 +26,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MapControlsComponent } from './components/map-controls/map-controls.component';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { CheckboxModule } from 'primeng/checkbox';
+import { AdditionalToolbarGroupComponent } from './components/additional-toolbar-group/additional-toolbar-group.component';
 
 
 @NgModule({
@@ -58,7 +59,7 @@ import { CheckboxModule } from 'primeng/checkbox';
       logOnly: environment.production,
     }),
   ],
-  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent],
+  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, AdditionalToolbarGroupComponent],
   exports: [CpqMapComponent],
   providers: [RestDataService, AppConfig]
 })
