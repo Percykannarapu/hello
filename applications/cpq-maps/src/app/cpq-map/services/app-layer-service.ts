@@ -163,6 +163,36 @@ export class AppLayerService {
    }
 
    public updateLabels(state: FullState) {
+      if (state.shared.isDistrQtyEnabled) {
+         this.showDistrQty(state);
+      } else {
+         this.restoreDefaultLabels(state);
+      }
+   }
+
+   private restoreDefaultLabels(state: FullState) {
+      let newExpression: string = '';
+      let updateId: string = '';
+      switch (state.shared.analysisLevel) {
+         case 'zip':
+            updateId = this.configService.layers['zip'].boundaries.id;
+            newExpression = this.configService.layers['zip'].boundaries.labelExpression;
+            break;
+         case 'atz':
+            updateId = this.configService.layers['atz'].boundaries.id;
+            newExpression = this.configService.layers['atz'].boundaries.labelExpression;
+            break;
+         case 'wrap':
+            updateId = this.configService.layers['zip'].boundaries.id; // yes, we update the zip labels if we are at wrap level
+            newExpression = this.configService.layers['zip'].boundaries.labelExpression;
+            break;
+      }
+      const layerExpressions: any = state.esri.map.layerExpressions;
+      layerExpressions[updateId].expression = newExpression;
+      this.store$.dispatch(new SetLayerLabelExpressions({ expressions: layerExpressions }));
+   }
+
+   private showDistrQty(state: FullState) {
       let newExpression: string = '';
       let updateId: string = '';
       switch (state.shared.analysisLevel) {
@@ -171,7 +201,7 @@ export class AppLayerService {
             newExpression = `var geoData = ${this.createArcadeDictionary(state)};
                              var distrQty = "";
                              if(hasKey(geoData, $feature.geocode)) {
-                               distrQty = "DistrQty: " + geoData[$feature.geocode];
+                               distrQty = geoData[$feature.geocode] + " HH";
                              }
                              return Concatenate([$feature.geocode, distrQty], TextFormatting.NewLine);`;
             break;
@@ -181,7 +211,7 @@ export class AppLayerService {
                              var id = iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "");
                              var distrQty = "";
                              if(hasKey(geoData, $feature.geocode)) {
-                               distrQty = "DistrQty: " + geoData[$feature.geocode];
+                               distrQty = geoData[$feature.geocode] + " HH";
                              }
                              return Concatenate([id, distrQty], TextFormatting.NewLine);`;
             break;
@@ -190,7 +220,7 @@ export class AppLayerService {
             newExpression = `var geoData = ${this.createArcadeDictionary(state)};
                              var distrQty = "";
                              if(hasKey(geoData, $feature.geocode)) {
-                               distrQty = "DistrQty: " + geoData[$feature.geocode];
+                               distrQty = geoData[$feature.geocode] + " HH";
                              }
                              return Concatenate([$feature.geocode, distrQty], TextFormatting.NewLine);`;
             break;

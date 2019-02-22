@@ -21,7 +21,9 @@
       <val-grid [smallSizeTable]=false></val-grid>
    </div>
    <div style="overflow: hidden;">
-      <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="true"></val-esri-map-panel>
+      <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="true">
+         <additional-toolbar-group></additional-toolbar-group>
+      </val-esri-map-panel>
    </div>
 </div>
 
@@ -31,4 +33,5 @@
 
 <p-sidebar [(visible)]="rightSidebarVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
    <val-dev-tools></val-dev-tools>
+   <val-map-controls></val-map-controls>
 </p-sidebar>

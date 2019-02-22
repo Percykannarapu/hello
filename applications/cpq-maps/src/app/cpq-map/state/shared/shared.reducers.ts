@@ -12,6 +12,7 @@ export interface SharedState {
    radius: number;
    analysisLevel: string;
    isWrap: boolean;
+   isDistrQtyEnabled: boolean;
 }
 
 const initialState: SharedState = {
@@ -25,11 +26,14 @@ const initialState: SharedState = {
    activeMediaPlanId: null,
    radius: null,
    analysisLevel: null,
-   isWrap: false
+   isWrap: false,
+   isDistrQtyEnabled: false
 };
 
 export function sharedReducer(state = initialState, action: SharedActions) : SharedState {
    switch (action.type) {
+      case SharedActionTypes.SetIsDistrQtyEnabled:
+         return { ...state, isDistrQtyEnabled: action.payload.isDistrQtyEnabled };
       case SharedActionTypes.SetIsWrap:
          return { ...state, isWrap: action.payload.isWrap };
       case SharedActionTypes.SetAnalysisLevel:
