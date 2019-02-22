@@ -11,7 +11,8 @@
   </div>
 
   <div #gridRoot id= "locGrid" class="ui-g-12">
-     <p-table #locGrid
+   <p-table #locGrid
+              dataKey="fgId"
               class="val-table"
               [columns]="flatSiteGridColumns"
               [globalFilters]="flatSiteGridColumns"
@@ -19,7 +20,6 @@
               [selection]="flatActiveSites$ | async"
               [resizableColumns]="true" columnResizeMode="expand"
               [reorderableColumns]="true"
-              scrollable="true" scrollWidth="100%"
               sortMode="multiple"
               [responsive]="true"
               [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50,100,200,500,1000]"
@@ -28,14 +28,14 @@
               (onRowSelect)="onRowSelect($event, true)"
               (onFilter)="onFilter($event)">
 
-        <ng-template pTemplate="colgroup" let-columns>
+        <ng-template pTemplate="colgroup" let-columns> 
            <colgroup>
               <!-- <col style="width: 30px"> -->
               <!--<col style="width: 4em">-->
               <col style="width: 4em">
               <col style="width: 4em">
               <col *ngFor="let col of selectedColumns" [style.width]="col.width">
-           </colgroup>
+           </colgroup> 
         </ng-template>
 
         <ng-template pTemplate="caption">
