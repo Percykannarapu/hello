@@ -23,10 +23,15 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { GridComponent } from './components/grid/grid.component';
 import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
+import { MapControlsComponent } from './components/map-controls/map-controls.component';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { CheckboxModule } from 'primeng/checkbox';
 
 
 @NgModule({
   imports: [
+    CheckboxModule,
+    InputSwitchModule,
     TableModule,
     RadioButtonModule,
     CardModule,
@@ -53,7 +58,7 @@ import { InputTextModule } from 'primeng/inputtext';
       logOnly: environment.production,
     }),
   ],
-  declarations: [CpqMapComponent, DevToolsComponent, GridComponent],
+  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent],
   exports: [CpqMapComponent],
   providers: [RestDataService, AppConfig]
 })

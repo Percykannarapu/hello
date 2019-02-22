@@ -14,7 +14,13 @@ export enum SharedActionTypes {
   SetActiveMediaPlanId = '[Shared Actions] Set Active Media Plan',
   SetRadius = '[Shared Actions] Set Radius',
   SetAnalysisLevel = '[Shared Actions] Set Analysis Level',
-  SetIsWrap = '[Shared Actions] Set isWrap'
+  SetIsWrap = '[Shared Actions] Set isWrap',
+  SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled'
+}
+
+export class SetIsDistrQtyEnabled implements Action {
+  readonly type = SharedActionTypes.SetIsDistrQtyEnabled;
+  constructor(public payload: { isDistrQtyEnabled: boolean }) { }
 }
 
 export class RfpUiEditWrapLoaded implements Action {
@@ -90,4 +96,5 @@ export type SharedActions =
   | SetRadius
   | SetAnalysisLevel
   | SetIsWrap
+  | SetIsDistrQtyEnabled
   ;

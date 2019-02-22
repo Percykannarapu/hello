@@ -52,6 +52,7 @@ const getEntitiesLoading = createSelector(getSharedState, state => state.entitie
 const getAppReady = createSelector(getSharedState, state => state.appReady);
 
 export const localSelectors = {
+   getSharedState,
    getEntitiesLoading,
    getAppReady
 };
