@@ -29347,7 +29347,7 @@ body .ui-table .ui-table-loading-content .pi-spin {
 body .ui-table .ui-sortable-column {
   color: #212121; }
   body .ui-table .ui-sortable-column a, body .ui-table .ui-sortable-column a:hover {
-    color: #757575; }
+    color: white; }
   body .ui-table .ui-sortable-column:not(.ui-state-highlight):hover {
     background-color: #5b99c9;
     border-top-color: #000000;
@@ -29355,7 +29355,7 @@ body .ui-table .ui-sortable-column {
     color: #000000; }
     body .ui-table .ui-sortable-column:not(.ui-state-highlight):hover a, body .ui-table .ui-sortable-column:not(.ui-state-highlight):hover a:hover {
       background-color: #5b99c9;
-      color: #000000; }
+      color: #ffffff; }
   body .ui-table .ui-sortable-column.ui-state-highlight {
     background-color: #b3d4ed;
     color: #212121;
