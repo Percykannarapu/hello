@@ -10,6 +10,9 @@ export class ValGeocodingResponse {
   Market: string;
   Description: string;
   Group: string;
+  RADIUS1: number;
+  RADIUS2: number;
+  RADIUS3: number;
   'Market Code': string;
   'Original Address': string;
   'Original City': string;

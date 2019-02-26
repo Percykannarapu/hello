@@ -17,6 +17,9 @@ import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ManualEntryComponent } from './manual-entry/manual-entry.component';
+import { AppEditSiteService } from '../../services/app-editsite.service';
+import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 
 @Component({
   selector: 'val-add-locations-tab',
@@ -30,6 +33,7 @@ export class AddLocationsTabComponent implements OnInit {
 
   isProd: boolean = environment.production;
   businessSearchLimit: number = 20000;
+  private customTradeAreaBuffer: string; 
 
   hasFailures$: Observable<boolean>;
   totalCount$: Observable<number>;
@@ -45,10 +49,25 @@ export class AddLocationsTabComponent implements OnInit {
               private impGeofootprintLocationService: ImpGeofootprintLocationService,
               private geocoderService: AppGeocodingService,
               private businessSearchService: AppBusinessSearchService,
+              private appTradeAreaService: AppTradeAreaService,
+              private audienceTradeAreaService: ValAudienceTradeareaService,
               private appStateService: AppStateService,
-              private store$: Store<LocalAppState>) {}
+              private store$: Store<LocalAppState>,
+              private appEditSiteService: AppEditSiteService) {}
 
   ngOnInit() {
+    this.appEditSiteService.editLocationData$.subscribe(message => {
+      if (message != undefined && message != null) {     
+        this.manuallyGeocode(message.siteData, message.type, message.isEdit);
+      }   
+    });
+    
+    this.appEditSiteService.customData$.subscribe(message => {
+      if (message != undefined && message['data'] != undefined && message != null) {
+        this.customTradeAreaBuffer = message['data'];
+      }
+    });
+
     this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
       map(([sites, competitors]) => [...sites, ...competitors])
     );
@@ -90,7 +109,23 @@ export class AddLocationsTabComponent implements OnInit {
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
   }
 
-  manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes){
+  private tradeAreaApplyOnEdit() {
+   if (this.customTradeAreaBuffer != undefined && this.customTradeAreaBuffer != null && this.customTradeAreaBuffer != '') {
+      this.appEditSiteService.customTradeArea({'data': this.customTradeAreaBuffer});
+   }
+   
+   if (this.appTradeAreaService.tradeareaType == 'audience') {
+     this.audienceTradeAreaService.createAudienceTradearea(this.audienceTradeAreaService.getAudienceTAConfig())
+     .subscribe(null,
+     error => {
+       console.error('Error while creating audience tradearea', error);
+       this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
+       this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
+     });
+   } 
+  }
+
+  manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, isEdit?: boolean){
     //validate Manually added geocodes
     const locations = this.impGeofootprintLocationService.get();
     //const locations = this.appStateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations;
@@ -101,13 +136,13 @@ export class AddLocationsTabComponent implements OnInit {
       const mktValue = site.Market != null ? `~Market=${site.Market}` : '';
       const metricsText = `Number=${site.number}~Name=${site.name}~Street=${site.street}~City=${site.city}~State=${site.state}~ZIP=${site.zip}${mktValue}`;
       this.store$.dispatch(new CreateLocationUsageMetric('single-site', 'add', metricsText));
-      this.processSiteRequests(site,  siteType);
+      this.processSiteRequests(site,  siteType, isEdit);
       if (siteType !== ImpClientLocationTypeCodes.Competitor)
             this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
     }
   }
 
-  processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes) {
+  processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
     console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
     const pluralize = sites.length > 1 ? 's' : '';
@@ -121,6 +156,9 @@ export class AddLocationsTabComponent implements OnInit {
         this.appLocationService.persistLocationsAndAttributes(locationCache);
         if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
         this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+        if (isEdit == true) {
+          this.tradeAreaApplyOnEdit();
+        }
       }
     );
   }

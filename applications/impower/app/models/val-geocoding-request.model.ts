@@ -16,6 +16,9 @@ export class ValGeocodingRequest {
   city: string;
   state: string;
   zip: string;
+  RADIUS1?: number;
+  RADIUS2?: number;
+  RADIUS3?: number;
   latitude?: string | null;
   longitude?: string | null;
   previousAddress1?: string;
@@ -79,6 +82,9 @@ export class ValGeocodingRequest {
       Number: this.number,
       Latitude: this.latitude,
       Longitude: this.longitude,
+      RADIUS1: this.RADIUS1,
+      RADIUS2: this.RADIUS2,
+      RADIUS3: this.RADIUS3,
       'Geocode Status': status,
       'Home ATZ' : this['Home ATZ'],
       'Home Zip Code' : this['Home Zip Code'],

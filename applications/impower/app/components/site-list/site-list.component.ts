@@ -301,7 +301,10 @@ export class SiteListComponent implements OnInit {
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
    }
 
-   manuallyGeocode(site: ValGeocodingRequest, siteType){
+   manuallyGeocode(site: ValGeocodingRequest, siteType){  
+     site.RADIUS1 = this.selectedRowData.radius1;
+     site.RADIUS2 = this.selectedRowData.radius2;
+     site.RADIUS3 = this.selectedRowData.radius3; 
      site.previousAddress1 = this.selectedRowData.origAddress1;
      site.previousCity = this.selectedRowData.origCity;
      site.previousState = this.selectedRowData.origState;

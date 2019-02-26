@@ -148,6 +148,7 @@ import { EditLocationsComponent } from './components/edit-locations/edit-locatio
 import { UploadMustCoverComponent } from './components/target-audience/upload-must-cover/upload-must-cover.component';
 import { EsriModule } from '@val/esri';
 import { EnvironmentData } from '../environments/environment';
+import { AppEditSiteService } from './services/app-editsite.service';
 
 @NgModule({
     imports: [
@@ -288,7 +289,8 @@ import { EnvironmentData } from '../environments/environment';
       AppBusinessSearchService, AppConfig, AppProjectService, AppMessagingService, AppRendererService,
       AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
       AppLayerService, AppGeocodingService, AppTradeAreaService,
-      AppMapService, ValMetricsService, ValAudienceTradeareaService
+      AppMapService, ValMetricsService, ValAudienceTradeareaService,
+      AppEditSiteService
     ],
     bootstrap: [AppComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]

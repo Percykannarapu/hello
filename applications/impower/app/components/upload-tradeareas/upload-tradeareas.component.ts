@@ -23,6 +23,7 @@ import { EsriQueryService, EsriUtils } from '@val/esri';
 import { mapBy } from '@val/common';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { AppGeoService } from './../../services/app-geo.service';
+import { AppEditSiteService } from '../../services/app-editsite.service';
 
 interface TradeAreaDefinition {
   store: string;
@@ -68,6 +69,7 @@ export class UploadTradeAreasComponent implements OnInit {
     private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
     private domainFactory: ImpDomainFactoryService,
     private confirmationService: ConfirmationService,
+    private appEditSiteService: AppEditSiteService,
     private store$: Store<LocalAppState>) {
     this.currentAnalysisLevel$ = this.stateService.analysisLevel$;
   }
@@ -77,7 +79,12 @@ export class UploadTradeAreasComponent implements OnInit {
     this.stateService.currentProject$.subscribe(project => {
       this.isCustomTAExists = project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0));
     });
-    
+
+    this.appEditSiteService.customTradeAreaData$.subscribe(message => {
+      if (message != undefined && message != null) {     
+        this.parseCsvFile(message.data);
+      }    
+    });
   }
 
   public onResubmit(data: TradeAreaDefinition) {
