@@ -228,8 +228,8 @@ export class AppGeoService {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
     this.logger.debug('Select and Persist Radius Geos', tradeAreas);
     const key = 'selectAndPersistRadiusGeos';
-    const allLocations = tradeAreas.map(ta => ta.impGeofootprintLocation);
-    const locationChunks = this.partitionLocations(allLocations);
+    const allLocations = new Set(tradeAreas.map(ta => ta.impGeofootprintLocation));
+    const locationChunks = this.partitionLocations(Array.from(allLocations));
     const queries: Observable<Map<ImpGeofootprintLocation, AttributeDistance[]>>[] = [];
     const tradeAreaSet = new Set(tradeAreas);
     const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
@@ -252,6 +252,7 @@ export class AppGeoService {
         },
         () => {
             const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
+            this.finalizeTradeAreas(tradeAreas);
 
             // Add the must covers to geosToPersist
             this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), geosToPersist).subscribe(results => {
@@ -262,7 +263,6 @@ export class AppGeoService {
             }
             , err => {console.log('ERROR occurred ensuring must covers: ', err); }
             , () => {
-               this.finalizeTradeAreas(tradeAreas);
                this.impGeoService.add(geosToPersist);
                this.store$.dispatch(new StopBusyIndicator({ key }));
             });
