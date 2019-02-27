@@ -386,7 +386,6 @@ export class AppGeoService {
   private finalizeTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {
     // mark trade areas as completed, so Home Geo query can pick it up
     tradeAreas.forEach(ta => {
-      console.log(`Setting isComplete flag for ${ta.impGeofootprintLocation.locationNumber} - ${ta.taName}`);
       if (!ta.hasOwnProperty('isComplete')) {
         Object.defineProperty(ta, 'isComplete', {
           enumerable: false,
