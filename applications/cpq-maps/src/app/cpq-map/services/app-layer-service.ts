@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions } from '@val/esri';
+import { ColorPallete, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
 import { calculateStatistics } from '@val/common';
 import { Store } from '@ngrx/store';
@@ -123,7 +123,7 @@ export class AppLayerService {
          shadingGroups.push({ groupName: siteName, ids: geos });
       }
       this.esriLayerService.createClientGroup('Shading', true, true);
-      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Shading', layer: 'Selected Geos', groups: shadingGroups }));
+      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Shading', layer: 'Selected Geos', colorPallete: ColorPallete.CPQMAPS, groups: shadingGroups }));
       this.store$.dispatch(new SetSelectedGeos(selectedGeos));
    }
 

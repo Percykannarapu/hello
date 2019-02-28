@@ -17,11 +17,8 @@ import { FullState } from './state';
 })
 export class CpqMapComponent implements OnInit {
 
-  rightSidebarVisible = false;
-  leftSidebarVisible = false;
-  panelSize: 'small' | 'large' | 'none' = 'none';
-
   private layersWithPOBs = new Set(['ZIP Boundaries', 'ATZ Boundaries', 'Digital ATZ Boundaries', 'PCR Boundaries']);
+  public panelSize = 'small';
 
   constructor(private layerService: EsriLayerService,
               private mapService: EsriMapService,
@@ -125,5 +122,9 @@ export class CpqMapComponent implements OnInit {
       layerObservables.push(current);
     });
     return layerObservables;
+  }
+
+  public onPanelChange(event: any) {
+    this.panelSize = event;
   }
 }

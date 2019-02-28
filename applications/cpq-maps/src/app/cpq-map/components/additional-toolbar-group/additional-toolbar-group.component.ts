@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, EventEmitter, Output, ViewChild } from '@angular/core';
 import { Store, select } from '@ngrx/store';
 import { LocalState, localSelectors } from '../../state';
 import { tap } from 'rxjs/operators';
@@ -11,8 +11,13 @@ import { RfpUiEditDetailState } from '../../state/rfpUiEditDetail/rfp-ui-edit-de
 })
 export class AdditionalToolbarGroupComponent implements OnInit {
 
+  @Output() onPanelChange = new EventEmitter<'small' | 'large' | 'none'>();
+
   public totalDistribution: string = '0';
   public totalInvestment: string = '$0';
+  public rightSidebarVisible = false;
+  public leftSidebarVisible = false;
+  public panelSize: 'small' | 'large' | 'none' = 'small';
 
   constructor(private store$: Store<LocalState>) { }
 
@@ -22,6 +27,7 @@ export class AdditionalToolbarGroupComponent implements OnInit {
     ).subscribe(state => {
       this.calcMetrics(state);
     });
+    this.onPanelChange.emit('small');
   }
 
   private calcMetrics(state: RfpUiEditDetailState) {
@@ -36,4 +42,10 @@ export class AdditionalToolbarGroupComponent implements OnInit {
     totalInvestment = Number(totalInvestment.toFixed(2));
     this.totalInvestment = `$${totalInvestment.toLocaleString()}`;
   }
+
+  public updatePanelSize(event: any ) {
+    console.warn('ARG: ', event);
+    this.onPanelChange.emit(event);
+  }
+
 }

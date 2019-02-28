@@ -1,18 +1,3 @@
-<div class="ui-g">
-   <div class="ui-g-1 ui-g-nopad">
-         <p-radioButton name="panel size" value="small"  label="Show small panel" [(ngModel)]="panelSize"></p-radioButton>
-   </div>
-   <div class="ui-g-1 ui-g-nopad">
-         <p-radioButton name="panel size" value="large" label="Show large panel" [(ngModel)]="panelSize"></p-radioButton>
-   </div>
-   <div class="ui-g-1 ui-g-nopad">
-         <p-radioButton name="panel size" value="none" label="Hide panel" [(ngModel)]="panelSize"></p-radioButton>
-   </div>
-   <div class="ui-g-9 ui-g-nopad">
-      <button pbutton type="text"  (click)="rightSidebarVisible = !rightSidebarVisible" pButton icon="pi pi-angle-left" style="float: right;"></button>
-   </div>
-</div>
-
 <div style="overflow: hidden;">
    <div *ngIf="panelSize === 'small'" style="width: 20%; float: left; height: 750px;">
       <val-grid [smallSizeTable]=true></val-grid>
@@ -22,16 +7,7 @@
    </div>
    <div style="overflow: hidden;">
       <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="true">
-         <additional-toolbar-group></additional-toolbar-group>
+         <additional-toolbar-group (onPanelChange)="onPanelChange($event)"></additional-toolbar-group>
       </val-esri-map-panel>
    </div>
 </div>
-
-<p-sidebar [(visible)]="leftSidebarVisible" position="left" [modal]="true" styleClass="ui-sidebar-md">
-   Content
-</p-sidebar>
-
-<p-sidebar [(visible)]="rightSidebarVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
-   <val-dev-tools></val-dev-tools>
-   <val-map-controls></val-map-controls>
-</p-sidebar>

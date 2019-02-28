@@ -1,5 +1,6 @@
 import { EsriMapActionTypes, ResetMapState } from './esri.map.actions';
 import { EsriRendererActions, EsriRendererActionTypes } from './esri.renderer.actions';
+import { ColorPallete } from '../../models/ColorPalletes';
 
 export interface ShadingData {
   [geocode: string] : string | number;
@@ -31,6 +32,7 @@ export interface EsriRendererState {
   highlightLayer: string;
   highlightLayerGroup: string;
   shadingGroups: { groupName: string, ids: string[] }[];
+  colorPallete: ColorPallete;
 }
 
 const initialState: EsriRendererState = {
@@ -42,7 +44,8 @@ const initialState: EsriRendererState = {
   highlightMode: HighlightMode.OUTLINE,
   highlightLayer: null,
   highlightLayerGroup: null,
-  shadingGroups: null
+  shadingGroups: null,
+  colorPallete: ColorPallete.RANDOM
 };
 
 type ReducerActions = EsriRendererActions | ResetMapState;
@@ -78,7 +81,8 @@ export function rendererReducer(state = initialState, action: ReducerActions) : 
         highlightMode: action.payload.higlightMode, 
         highlightLayerGroup: action.payload.layerGroup, 
         highlightLayer: action.payload.layer,
-        shadingGroups: action.payload.groups
+        shadingGroups: action.payload.groups,
+        colorPallete: action.payload.colorPallete
       };
     case EsriRendererActionTypes.ClearSelectedGeos:
       return {

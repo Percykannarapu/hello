@@ -62,7 +62,7 @@ export class EsriRendererEffects {
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
     filter(([query, state]) => state.renderer.highlightMode === HighlightMode.SHADE_GROUPS),
     switchMap(([query, state]) => this.queryService.executeQuery(state.map.selectedLayerId, query, true, 'geocode').pipe(
-      tap(features => this.rendererService.shadeGroups(features, state.renderer.highlightLayerGroup, state.renderer.highlightLayer, state.renderer.shadingGroups))
+      tap(features => this.rendererService.shadeGroups(features, state.renderer.highlightLayerGroup, state.renderer.highlightLayer, state.renderer.shadingGroups, state.renderer.colorPallete))
     ))
   );
 

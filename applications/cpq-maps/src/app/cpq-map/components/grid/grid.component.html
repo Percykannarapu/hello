@@ -2,9 +2,10 @@
     <p-table #dt [columns]="columns" [value]="rows" [scrollable]="true" scrollWidth="100%" scrollHeight="100%" [style]="{'font-size':'1em'}"
         [resizableColumns]="true" columnResizeMode="expand">
         <ng-template pTemplate="caption">
-            <div style="text-align: left">
-                <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
-                <input type="text" pInputText size="50" placeholder="Search" (input)="dt.filterGlobal($event.target.value, 'contains')">
+            <div class="ui-g" style="text-align: left">
+                <div class="ui-g-12">
+                    <input type="text" size="25" pInputText placeholder="Search" (input)="dt.filterGlobal($event.target.value, 'contains')">
+                </div>
             </div>
         </ng-template>
         <ng-template pTemplate="colgroup" let-columns>
