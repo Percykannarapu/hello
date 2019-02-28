@@ -1,4 +1,20 @@
-<p-card>
-    Show Distribution Quantity &nbsp;&nbsp;
-    <p-checkbox [(ngModel)]="distryQtyEnabled" binary="true" (onChange)="onDistryQtyChange($event)"></p-checkbox>
+<div style="padding-top: 10px">
+  <p-card>
+    <p style="text-align: center; font-size: large;">Map Controls</p>
+    <div class="ui-g">
+      <div class="ui-g-12">
+        <p-radioButton name="panel size" value="small" label="Small Grid" [(ngModel)]="panelSize" (onClick)="updatePanelSize('small')"></p-radioButton>
+      </div>
+      <div class="ui-g-12">
+        <p-radioButton name="panel size" value="large" label="Large Grid" [(ngModel)]="panelSize" (onClick)="updatePanelSize('large')"></p-radioButton>
+      </div>
+      <div class="ui-g-12">
+        <p-radioButton name="panel size" value="none" label="No Grid" [(ngModel)]="panelSize" (onClick)="updatePanelSize('none')"></p-radioButton>
+      </div>
+      <div class="ui-g-12">
+        <p-checkbox [(ngModel)]="distryQtyEnabled" binary="true" (onChange)="onDistryQtyChange($event)"></p-checkbox>
+        &nbsp;Show Distribution Quantity
+      </div>
+    </div>
   </p-card>
+</div>

@@ -1,18 +1,9 @@
 <div style="padding-left: 5em">
   <div class="ui-g">
-    <div class="ui-g-1">
-      <p-radioButton #panelSmallButton name="panel size" value="small" label="Small Grid" [(ngModel)]="panelSize" (onClick)="updatePanelSize('small')"></p-radioButton>&nbsp;&nbsp;
-    </div>
-    <div class="ui-g-1">
-      <p-radioButton #panelLargeButton name="panel size" value="large" label="Large Grid" [(ngModel)]="panelSize" (onClick)="updatePanelSize('large')"></p-radioButton>&nbsp;&nbsp;
-    </div>
-    <div class="ui-g-1">
-      <p-radioButton #panelNoneButton name="panel size" value="none" label="No Grid" [(ngModel)]="panelSize" (onClick)="updatePanelSize('none')"></p-radioButton>&nbsp;&nbsp;
-    </div>
-    <div class="ui-g-3">
+    <div class="ui-g-6">
       Total Distribution: {{totalDistribution}} &nbsp;&nbsp; Total Investment: {{totalInvestment}}
     </div>
-    <div class="ui-g-1 ui-g-nopad ui-g-offset-5">
+    <div class="ui-g-6">
       <button pbutton type="text" (click)="rightSidebarVisible = !rightSidebarVisible" pButton icon="pi pi-angle-left"
         style="float: right;"></button>
     </div>
@@ -22,5 +13,5 @@
 
 <p-sidebar [(visible)]="rightSidebarVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
   <val-dev-tools></val-dev-tools>
-  <val-map-controls></val-map-controls>
+  <val-map-controls (onPanelChange)="updatePanelSize($event)"></val-map-controls>
 </p-sidebar>

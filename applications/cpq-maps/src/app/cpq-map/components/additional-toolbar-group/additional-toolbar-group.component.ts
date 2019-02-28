@@ -44,7 +44,6 @@ export class AdditionalToolbarGroupComponent implements OnInit {
   }
 
   public updatePanelSize(event: any ) {
-    console.warn('ARG: ', event);
     this.onPanelChange.emit(event);
   }
 
