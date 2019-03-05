@@ -20,6 +20,7 @@ import { ManualEntryComponent } from './manual-entry/manual-entry.component';
 import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
+import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
 
 @Component({
   selector: 'val-add-locations-tab',
@@ -145,9 +146,9 @@ export class AddLocationsTabComponent implements OnInit {
   processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
     console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
-    const pluralize = sites.length > 1 ? 's' : '';
-    this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
-    const locationCache: ImpGeofootprintLocation[] = [];
+    //this.store$.dispatch(new StartBusyIndicatorx({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
+    this.store$.dispatch(new Geocode({sites, siteType}));
+    /*const locationCache: ImpGeofootprintLocation[] = [];
     this.appLocationService.geocode(sites, siteType).subscribe(
       locations => locationCache.push(...locations),
       err => this.handleError('Geocoding Error', 'There was an error geocoding the provided sites', err),
@@ -160,7 +161,7 @@ export class AddLocationsTabComponent implements OnInit {
           this.tradeAreaApplyOnEdit();
         }
       }
-    );
+    );*/
   }
 
   onAddBusiness(event: { siteType: string; businesses: BusinessSearchResponse[] }) {
