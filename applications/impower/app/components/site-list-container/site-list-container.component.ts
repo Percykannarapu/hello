@@ -155,7 +155,7 @@ export class SiteListContainerComponent implements OnInit {
         newLocation.ycoord = Number(siteOrSites['latitude']);
         // const result = new ImpGeofootprintLocation(newLocation);
         const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
-        this.appLocationService.queryAllHomeGeos([newLocation], currentAnalysisLevel);
+        //this.appLocationService.queryAllHomeGeos([newLocation], currentAnalysisLevel);
       }
       this.impGeofootprintLocationService.update(oldData, newLocation);
       this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
