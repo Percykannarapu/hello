@@ -25,6 +25,8 @@ import { filter } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
+import { InTransaction } from './../val-modules/common/services/datastore.service';
+import { ImpProjectVarService } from './../val-modules/targeting/services/ImpProjectVar.service';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -242,6 +244,34 @@ export class ValAudienceTradeareaService {
     this.fetchData = true;
 
     if (this.fetchData) {
+
+/*  this.varService.get().forEach(pv => console.log("### BEFORE: projectVar: ", pv));
+    // this.varService.clearAll(false);  // TODO: Attempting to just clear them all
+    this.varService.remove(this.varService.get().filter(pv => pv.varSource === "Online_Audience-TA" || pv.isCustom));
+
+    console.log("### projectVars after remove: " + this.varService.get().length);
+    this.varService.get().forEach(pv => console.log("### AFTER: projectVar: ", pv));
+    console.log("### Current project, project vars before: ");
+    this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.log("### project project var: ", pv));
+    this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.source !== "Online_Audience-TA" && !pv.isCustom)
+    //this.stateService.currentProject$.getValue().impProjectVars = [];
+    //tradeAreas.forEach(ta => ta.impGeofootprintGeos = ta.impGeofootprintGeos.filter(g => !geoSet.has(g)));
+    console.log("### Current project, project vars after remove: ");
+    this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.log("### project project var: ", pv));*/
+
+      //this.projectVarService.get().forEach(pv => console.debug("### BEFORE: projectVarService: source: " + pv.source + ", name: " + pv.fieldname + ", isCustom: " + pv.isCustom + ", inGrid: " + pv.isIncludedInGeoGrid));
+      this.projectVarService.remove(this.projectVarService.get().filter(pv => pv.source === "Online_Audience-TA" /*&& !pv.fieldname.includes("Index Value")*/ || pv.isCustom), InTransaction.silent);
+      //this.projectVarService.get().forEach(pv => console.debug("### AFTER:  projectVarService: source: " + pv.source + ", name: " + pv.fieldname + ", isCustom: " + pv.isCustom + ", inGrid: " + pv.isIncludedInGeoGrid));
+
+      //this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.debug("### BEFORE: Hierarchy source: " + pv.source + ", name: " + pv.fieldname + ", isCustom: " + pv.isCustom + ", inGrid: " + pv.isIncludedInGeoGrid));
+      this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => /*(*/pv.source !== "Online_Audience-TA"  /*|| pv.fieldname.includes("Index Value"))*/ && !pv.isCustom);
+      //this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.debug("### AFTER:  Hierarchy source: " + pv.source + ", name: " + pv.fieldname + ", isCustom: " + pv.isCustom + ", inGrid: " + pv.isIncludedInGeoGrid));
+
+      this.varService.remove(this.varService.get().filter(pv => pv.varSource === "Online_Audience-TA" || pv.isCustom), InTransaction.silent);
+
+      this.stateService.currentProject$.getValue().getImpGeofootprintTradeAreas().forEach(ta => ta.impGeofootprintVars = ta.impGeofootprintVars.filter(gv => gv.varSource !== "Online_Audience-TA" && !gv.isCustom));
+         // = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => /*(*/pv.source !== "Online_Audience-TA"  /*|| pv.fieldname.includes("Index Value"))*/ && !pv.isCustom);
+
       this.sendRequest(this.audienceTAConfig).subscribe(response => {
         try {
           this.parseResponse(response, audienceTAConfig.audienceName);
@@ -261,8 +291,8 @@ export class ValAudienceTradeareaService {
           const newTradeAreas: ImpGeofootprintTradeArea[] = [];
           for (const location of allLocations) {
             this.createGeos(audienceTAConfig, location);
-          }     
-          
+          }
+
           const geocodeValues = this.geoCache.map(val => val.geocode);
           const repeatValues = [];
           const uniqueValues = [];
@@ -298,7 +328,7 @@ export class ValAudienceTradeareaService {
             const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
             const newTradeArea = this.createTradeArea(locationGeos, location);
             if (newTradeArea != null) newTradeAreas.push(newTradeArea);
-          }          
+          }
           if (this.failedLocations.length > 0) {
             let warningMessage = 'Unable to find data for the following locations:\n';
             for (const failedLoc of this.failedLocations) {
@@ -380,8 +410,8 @@ export class ValAudienceTradeareaService {
       try {
         for (const location of this.locationService.get()) {
           this.createGeos(audienceTAConfig, location);
-        }     
-        
+        }
+
         const geocodeValues = this.geoCache.map(val => val.geocode);
         const repeatValues = [];
         const uniqueValues = [];
@@ -662,6 +692,7 @@ export class ValAudienceTradeareaService {
    * The Constructor will build out mock data until there is a REST service available that can deliver this data back to the application
    */
   constructor(private varService: ImpGeofootprintVarService,
+              private projectVarService: ImpProjectVarService,
               private stateService: AppStateService,
               private appTradeAreaService: AppTradeAreaService,
               private locationService: ImpGeofootprintLocationService,

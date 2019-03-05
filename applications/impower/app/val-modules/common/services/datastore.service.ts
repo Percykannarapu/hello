@@ -218,7 +218,7 @@ export class DataStore<T>
          removeData['baseStatus'] = DAOBaseStatus.DELETE;
          if (this.dbRemoves == null)
             this.dbRemoves = new Array<T>();
-         
+
          // If the db removes list doesn't already have this item
          // TODO: Does altering the transients dirty and baseStatus affect this?
          if (!this.dbRemoves.includes(removeData))
@@ -283,13 +283,13 @@ export class DataStore<T>
    public filterBy (filterOp: (T, number) => boolean, treeRemoveCountOp: ([T]) => number, includeNormal: boolean = true, includeDBRemoves: Boolean = false, includeIfChildRemoves: boolean = false) : T[]
    {
       let results: T[] = [];
-      
+
       if (includeNormal)
          results = this.get().filter(filterOp);
 
       if (includeDBRemoves)
          results = results.concat(this.dbRemoves.filter(filterOp));
-      
+
       // Conditionally check for a remove in the tree
       if (includeIfChildRemoves)
       {
@@ -326,17 +326,17 @@ export class DataStore<T>
    {
       console.log(this.storeName + '.service.postDBRemoves - fired');
       const postUrl: string = apiVersion.toLowerCase() + '/' + domain.toLowerCase() + '/base/' + model.toLowerCase() + '/saveList';
-      
+
       let resultObs: Observable<number>;
       try
       {
          const numRemoves: number = (removes != null) ? removes.length : 0;
          console.log('   ', numRemoves + ' ' + model + 's will be deleted');
-         
+
          if (numRemoves > 0)
          {
             const payload: string = JSON.stringify(removes);
-      
+
             console.log(this.storeName, 'payload');
             console.log(payload);
             console.log('Posting to: ' + postUrl);
@@ -543,7 +543,7 @@ export class DataStore<T>
    public replace(dataArray: T[], preOperation?: callbackElementType<T>, postOperation?: callbackSuccessType<T>, inTransaction: InTransaction = InTransaction.true)
    {
       console.log (this.storeName, 'datastore.replace - fired');
-      this.clearAll(false);
+      this.clearAll(false, InTransaction.true, false);
       this.add(dataArray, preOperation, postOperation, inTransaction);
    }
 
@@ -741,17 +741,18 @@ export class DataStore<T>
    }
 
    /**
-    * Will empty the dataStore, reset the currStoreId and optionally notify observers
+    * Will empty the dataStore, optionally reset the currStoreId and optionally notify observers
     * @param notifySubscribers If false it won't notify observers; allowing a clear and load to be observed as one transaction
     * @param inTransaction If true, the clear is participating in a transaction if there is one
     */
-   public clearAll(notifySubscribers = true, inTransaction: InTransaction = InTransaction.true)
+   public clearAll(notifySubscribers = true, inTransaction: InTransaction = InTransaction.true, resetIds: Boolean = false)
    {
       if (this._dataStore != null) // && this._dataStore.length > 0)
          console.log(this.storeName, 'clearing datastore of ', this._dataStore.length, ' rows.');
       this._dataStore.length = 0;       // Recommended way, but UI doesn't recognize the change
       this._dataStore = new Array<T>(); // This definitely updates the UI
-      this.currStoreId = 1;
+      if (resetIds)
+         this.currStoreId = 1;
 
       // There are times where you want to clear as part of transaction and notify at the end
       if (notifySubscribers)
@@ -761,6 +762,16 @@ export class DataStore<T>
          else
             this.transactionManager.push(this._storeSubject, this._dataStore);
       }
+   }
+
+   /**
+    * Will empty the dataStore, always reset the currStoreId and optionally notify observers
+    * @param notifySubscribers If false it won't notify observers; allowing a clear and load to be observed as one transaction
+    * @param inTransaction If true, the clear is participating in a transaction if there is one
+    */
+   public reset(notifySubscribers = true, inTransaction: InTransaction = InTransaction.true)
+   {
+      this.clearAll(notifySubscribers, inTransaction, true);
    }
 
    public jsonp(url: string, callbackParam: string)

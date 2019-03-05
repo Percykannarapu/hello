@@ -6,21 +6,21 @@
        "type": "chrome",
        "request": "launch",
        "url": "http://localhost:4200/#",
-       "webRoot": "${workspaceRoot}"
+       "webRoot": "${workspaceRoot}/applications/impower"
      },
      {
        "name": "Attach Chrome",
        "type": "chrome",
        "request": "attach",
        "url": "http://localhost:4200/#",
-       "webRoot": "${workspaceRoot}"
+       "webRoot": "${workspaceRoot}/applications/impower"
      },
      {
        "name": "Launch Chrome (Test)",
        "type": "chrome",
        "request": "launch",
        "url": "http://localhost:9876/debug.html",
-       "webRoot": "${workspaceRoot}"
+       "webRoot": "${workspaceRoot}/applications/impower"
      },
      {
        "name": "Launch Chrome (E2E)",

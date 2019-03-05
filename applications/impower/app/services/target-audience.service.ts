@@ -62,6 +62,8 @@ export class TargetAudienceService implements OnDestroy {
 
   private geosRequested = new Set<string>();
 
+  private persistGeoVarCache: ImpGeofootprintVar[] = [];
+
   constructor(private appStateService: AppStateService,
               private varService: ImpGeofootprintVarService,
               private restService: RestDataService,
@@ -96,14 +98,15 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   public addAudience(audience: AudienceDataDefinition, sourceRefresh: audienceSource, nationalRefresh?: nationalSource, id?: number) : void {
-    const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
+    let sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
+    //console.debug("addAudience - target-audience.service - sourceId: " + sourceId + ", audienceName: " + ((audience != null) ? audience.audienceName : "") + ", audienceSourceName: " + ((audience != null) ? audience.audienceSourceName:""));
     this.audienceSources.set(sourceId, sourceRefresh);
     if (audience.audienceSourceName === 'Audience-TA') {
       this.audienceMap.set(`/${sourceId}-${audience.secondaryId}`, audience);
     } else {
       this.audienceMap.set(audienceId, audience);
-    }    
+    }
     if (nationalRefresh != null) this.nationalSources.set(sourceId, nationalRefresh);
     const projectVar = this.createProjectVar(audience, id);
     // protect against adding dupes to the data store
@@ -161,11 +164,13 @@ export class TargetAudienceService implements OnDestroy {
     }
     const currentProject = this.appStateService.currentProject$.getValue();
     const varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : newId;
+    //console.debug("createProjectVar varPk: " + varPk + ", newId: " + newId + ", audienceSourceName: " + audience.audienceSourceName + ", audienceSourceType: " + audience.audienceSourceType + ", audienceName: " + audience.audienceName);
     const projectVar = this.domainFactory.createProjectVar(currentProject, varPk, audience);
     return projectVar;
   }
 
   public updateProjectVars(audience: AudienceDataDefinition) {
+    //console.debug("updateProjectVars fired: audience.audienceIdentifier: " + audience.audienceIdentifier);
     const newProjectVar = this.createProjectVar(audience);
     newProjectVar.baseStatus = DAOBaseStatus.UPDATE;
     for (const projectVar of this.projectVarService.get()) {
@@ -173,7 +178,7 @@ export class TargetAudienceService implements OnDestroy {
         //if (projectVar.pvId) newProjectVar.pvId = projectVar.pvId;
         this.projectVarService.update(projectVar, newProjectVar);
       }
-    }    
+    }
     if (audience.showOnMap) {
       const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
       for (const pv of otherVars) {
@@ -199,8 +204,6 @@ export class TargetAudienceService implements OnDestroy {
     const sourceType = projectVar.source.split('_')[0];
     const sourceName = projectVar.source.split('_')[1];
     const id = audience.audienceSourceType === 'Custom' ? projectVar.fieldname : projectVar.varPk;
-    // console.log("### matchProjectVar - pv sourceType: ", sourceType, ", sourceName: ", sourceName, ", id: ", id);
-    // console.log("### matchProjectVar - au sourceType: ", audience.audienceSourceType, ", sourceName: ", audience.audienceSourceName, ", id: ", audience.audienceIdentifier);
     if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audience.audienceIdentifier) {
       return true;
     }
@@ -215,7 +218,7 @@ export class TargetAudienceService implements OnDestroy {
         this.projectVarService.addDbRemove(projectVar);
         this.projectVarService.remove(projectVar);
         let hierarchyVars = this.appStateService.currentProject$.getValue().impProjectVars;
-        hierarchyVars = hierarchyVars.filter(hv => !(hv.source === source && hv.varPk.toString() === audienceIdentifier)); 
+        hierarchyVars = hierarchyVars.filter(hv => !(hv.source === source && hv.varPk.toString() === audienceIdentifier));
         this.appStateService.currentProject$.getValue().impProjectVars = [];
         this.appStateService.currentProject$.getValue().impProjectVars.push(...hierarchyVars);
       }
@@ -302,7 +305,8 @@ export class TargetAudienceService implements OnDestroy {
 
   private clearVars() {
     const project = this.appStateService.currentProject$.getValue();
-    const tas = project.getImpGeofootprintTradeAreas();
+    const tas = (project != null) ? project.getImpGeofootprintTradeAreas() : [];
+
     for (const ta of tas) {
       ta.impGeofootprintVars = [];
     }
@@ -342,7 +346,11 @@ export class TargetAudienceService implements OnDestroy {
       // set up a watch process
       this.selectedSub = combineLatest(this.appStateService.analysisLevel$, this.newSelectedGeos$)
         .subscribe(
-          ([analysisLevel, geos]) => this.persistGeoVarData(analysisLevel, geos, selectedAudiences)
+          ([analysisLevel, geos]) => {
+            this.persistGeoVarCache = [];
+            this.persistGeoVarData(analysisLevel, geos, selectedAudiences);
+            this.persistGeoVarCache = [];
+          }
         );
     }
   }
@@ -398,39 +406,88 @@ export class TargetAudienceService implements OnDestroy {
     const key = this.spinnerKey;
     const sources = new Set(selectedAudiences.map(a => this.createKey(a.audienceSourceType, a.audienceSourceName)));
     const observables: Observable<ImpGeofootprintVar[]>[] = [];
+    const doneAudienceTAs: Set<string> = new Set<string>();
+
+    let audienceSourceType: string;
+    let audienceSourceName: string;
+
     sources.forEach(s => {
+      //console.log("audienceSource.get of " + s);
       const sourceRefresh = this.audienceSources.get(s);
       if (sourceRefresh != null) {
         let ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName) === s).map(a => a.audienceIdentifier);
-        if (s.split('/')[0] === 'Custom') {
-          ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName)).map(a => a.audienceIdentifier);
-        }
-        const taAudiences = selectedAudiences.filter(a => a.audienceSourceName === 'Audience-TA');
-        if (taAudiences.length > 0) {
-          const doneAudienceTAs: Set<string> = new Set<string>();
-          for (const taAudience of taAudiences) {
-            if (!doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
-              observables.push(sourceRefresh(analysisLevel, ids, geos, false, taAudience));
-              doneAudienceTAs.add(taAudience.audienceIdentifier.split('-')[0]);
-            }
+        //if (s.split('/')[0] === 'Custom') {
+        //  ids = selectedAudiences.filter(a => this.createKey(a.audienceSourceType, a.audienceSourceName)).map(a => a.audienceIdentifier);
+        //}
+
+        const sAudiences = selectedAudiences.filter(a => a.audienceSourceType === s.split('/')[0] && a.audienceSourceName === s.split('/')[1]);
+//        const doneAudienceTAs: Set<string> = new Set<string>();
+
+//        sAudiences.forEach(taAudience => {
+          audienceSourceType = s.split('/')[0];
+          audienceSourceName = s.split('/')[1];
+          const taAudiences = selectedAudiences.filter(a => a.audienceSourceName === 'Audience-TA');
+//        console.log("persistGeoVarData processing sourceName: ", taAudience.audienceSourceName, " - type: ", taAudience.audienceSourceType, ", id: ", taAudience.audienceIdentifier, " - ", taAudience.audienceName);
+          console.log("persistGeoVarData processing sourceName: ", audienceSourceName, " - type: ", audienceSourceType, ", ids: ", ids, " - ", audienceSourceName);
+          if (audienceSourceName === 'Audience-TA') {
+            const taAudiences = selectedAudiences.filter(a => a.audienceSourceType === s.split('/')[0] && a.audienceSourceName === s.split('/')[1] && a.audienceSourceName === 'Audience-TA');
+            taAudiences.forEach(taAudience => {
+              if (!doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
+                  //  observables.push(sourceRefresh(analysisLevel, [taAudience.audienceIdentifier.split('-')[0]], geos, false));
+                observables.push(sourceRefresh(analysisLevel, ids, geos, false, taAudience));
+                doneAudienceTAs.add(taAudience.audienceIdentifier.split('-')[0]);
+              }
+            });
           }
-        } else {
-          observables.push(sourceRefresh(analysisLevel, ids, geos, false));
-        }
+          else
+          {
+//            if (!doneAudienceTAs.has(taAudience.audienceIdentifier)) {
+            observables.push(sourceRefresh(analysisLevel, ids, geos, false));
+//              doneAudienceTAs.add(taAudience.audienceIdentifier);
+//            }
+          }
+//        }
+//        );
       }
     });
+    //console.debug("persistGeoVarData Observable count: ", observables.length);
     const accumulator: ImpGeofootprintVar[] = [];
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving audience data' }));
-    merge(...observables, 4).subscribe(
-      vars => accumulator.push(...vars),
+    merge(...observables, 6).subscribe(
+      vars => {
+        vars = vars.filter(gv => this.varService.get().findIndex(gvar => gvar.geocode === gv.geocode && gvar.varPk === gv.varPk && gvar.impGeofootprintLocation.locationNumber === gv.impGeofootprintLocation.locationNumber) === -1);
+        vars = vars.filter(gv => this.persistGeoVarCache.findIndex(gvar => gvar.geocode === gv.geocode && gvar.varPk === gv.varPk && gvar.impGeofootprintLocation.locationNumber === gv.impGeofootprintLocation.locationNumber) === -1);
+
+        if (vars.length > 0) {
+          console.log("persistGeoVarData vars (New: ", vars.length, ", Current: ", accumulator.length, ", Total: ", (vars.length + accumulator.length), ", In Store:", this.varService.get().length,")");
+          // Debug version that shows the variables in a collapsable group
+          //console.groupCollapsed("persistGeoVarData vars (New: ", vars.length, ", Current: ", accumulator.length, ", Total: ", (vars.length + accumulator.length), ", In Store:", this.varService.get().length,"): ");
+          //console.debug(vars);
+          //console.groupEnd();
+          accumulator.push(...vars)
+          this.persistGeoVarCache.push(...vars);
+        }},
       err => {
         console.error('There was an error retrieving audience data', err);
         this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Error', message: 'There was an error retrieving audience data' }));
         this.store$.dispatch(new StopBusyIndicator({ key }));
       },
       () => {
-        console.log('persist complete', accumulator);
-        this.varService.add(accumulator);
+        /* // Debug print new geoVars grouped by id, name
+        console.log("persistGeoVarData complete - Added", accumulator.length, "new geo vars");
+        let variablePkCounts:Map<string,ImpGeofootprintVar[]> = groupByExtended(accumulator, (i) => i.varPk + ", " + i.customVarExprDisplay);
+        if (variablePkCounts != null && variablePkCounts.size > 0)
+          console.table(Array.from(variablePkCounts.keys()).map(v => { return {Variable: v, Count: variablePkCounts.get(v).length}}));*/
+
+          // Add the newly created geo vars to the data store
+          if (accumulator.length > 0) {
+            this.varService.add(accumulator.filter(gv => this.varService.get().findIndex(gvar => gvar.geocode === gv.geocode && gvar.varPk === gv.varPk && gvar.impGeofootprintLocation.locationNumber === gv.impGeofootprintLocation.locationNumber) === -1));
+        }
+        /* // Debug print datastore geoVars grouped by id, name (NOTE: let variablePkCounts:Map<string,ImpGeofootprintVar[]> defined above)
+        console.log("persistGeoVarData - Current Geo Vars:");
+        variablePkCounts = groupByExtended(this.varService.get(), (i) => i.varPk + ", " + i.customVarExprDisplay);
+        console.table(Array.from(variablePkCounts.keys()).map(v => { return {Variable: v, Count: variablePkCounts.get(v).length}}));*/
+
         this.store$.dispatch(new StopBusyIndicator({ key }));
       }
     );

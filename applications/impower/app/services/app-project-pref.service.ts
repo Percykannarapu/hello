@@ -54,10 +54,19 @@ export class AppProjectPrefService {
       const currentProject = this.appStateService.currentProject$.getValue();
 
       let impProjectPref: ImpProjectPref = this.domainFactory.createProjectPref(currentProject, group, pref, type, value);
+
+      // Add the new pref to the project
       if (currentProject.impProjectPrefs.filter(p => p.prefGroup === group || p.pref === pref).length === 0)
       {
          //console.debug("### Added pref: ", impProjectPref);
          currentProject.impProjectPrefs.push(impProjectPref);
+      }
+
+      // Add the new pref to the ImpProjectPref data store
+      if (this.impProjectPrefService.get().filter(p => p.prefGroup === group || p.pref === pref).length === 0)
+      {
+         //console.debug("### Added pref: ", impProjectPref);
+         this.impProjectPrefService.add([impProjectPref]);
       }
    }
 
@@ -74,6 +83,28 @@ export class AppProjectPrefService {
       console.log("### getPrefVal: Test Project JSON ", this.getPrefVal("Test Project JSON", false));
    }
 
+   public getAllPrefs(mustBeActive: boolean = true): ImpProjectPref[] {
+      let prefs: ImpProjectPref[];
+      try
+      {
+         prefs = this.impProjectPrefService.get();
+         if (prefs === undefined)
+            prefs = null;
+      }
+      catch(e)
+      {
+         this.logger.error(e);
+         prefs = null;
+      }
+      finally
+      {
+         if (prefs === null)
+            this.logger.warn("Could not find " + (mustBeActive ? "active" : "") + " preferences");
+      }
+
+      return prefs;
+   }
+
    public getPrefsByGroup(prefGroup: string, mustBeActive: boolean = true): ImpProjectPref[] {
       let prefs: ImpProjectPref[];
       try
@@ -83,6 +114,7 @@ export class AppProjectPrefService {
                                                            && (mustBeActive === false || (mustBeActive && p.isActive)));
          if (prefs === undefined)
             prefs = null;
+         // this.impProjectPrefService.get().forEach(pref => console.debug("### prefservice: " + pref));
       }
       catch(e)
       {
@@ -141,4 +173,8 @@ export class AppProjectPrefService {
       return prefVal;
    }
 
+   public debugShowPrefs()
+   {
+      this.impProjectPrefService.debugLogStore("Project Prefs");
+   }
 }

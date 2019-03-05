@@ -43,8 +43,8 @@ export class ImpProjectService extends DataStore<ImpProject>
    load(items: ImpProject[]) : void {
      // load the data stores
      super.load(items);
-     this.impProjectPrefService.load(simpleFlatten(items.map(p => p.impProjectPrefs)));
      this.impProjectVarService.load(simpleFlatten(items.map(p => p.impProjectVars)));
+     this.impProjectPrefService.load(simpleFlatten(items.map(p => p.impProjectPrefs)));
      this.impGeofootprintMasterService.load(simpleFlatten(items.map(p => p.impGeofootprintMasters)));
    }
 
@@ -128,7 +128,7 @@ export class ImpProjectService extends DataStore<ImpProject>
             impProjectRemoves = impProjectRemoves.concat(this.dbRemoves.filter(removeProject => removeProject.projectId === project.projectId));
          else
             impProjectRemoves.push(project);
-         
+
          // Parent is being removed, all children must be removed as well
          if (parentRemove)
          {
@@ -159,7 +159,7 @@ export class ImpProjectService extends DataStore<ImpProject>
                   observer.next(postResultCode);
                }
                , err => observer.error(err)
-               , ()  => observer.complete()); 
+               , ()  => observer.complete());
          });
       }
       else

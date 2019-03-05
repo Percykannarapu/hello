@@ -323,7 +323,7 @@ export class TargetAudienceOnlineService {
     const numericIds = identifiers.map(i => Number(i));
     const chunks = chunkArray(geocodes, this.config.maxGeosPerGeoInfoQuery);
     const observables: Observable<OnlineBulkDataResponse[]>[] = [];
-    const inputDataList = [];
+    let c:number = 0;
     for (const chunk of chunks) {
       const inputData = {
         geoType: serviceAnalysisLevel,
@@ -331,26 +331,35 @@ export class TargetAudienceOnlineService {
         geocodes: chunk,
         digCategoryIds: numericIds
       };
-      inputDataList.push(inputData);
       if (inputData.geocodes.length > 0 && inputData.digCategoryIds.length > 0) {
-        
+        c++;
+        const chunkNum: number = c;
         observables.push(
-            this.restService.post('v1/targeting/base/geoinfo/digitallookup', inputDataList).pipe(
-              map(response => this.validateFuseResponse(inputData, response, isForShading)),
-              catchError( () => throwError('No Data was returned for the selected audiences'))
+          this.restService.post('v1/targeting/base/geoinfo/digitallookup', [inputData]).pipe(
+              map(response => this.validateFuseResponse(inputData, response, isForShading, chunkNum, chunks.length)),
+              catchError( () => {
+                console.error('Error posting to v1/targeting/base/geoinfo/digitallookup with payload:');
+                console.error('payload:\n{\n'+
+                              '   geoType: ', inputData.geoType, '\n',
+                              '   source:  ', inputData.source, '\n',
+                              '   geocodes: ', inputData.geocodes.toString(), '\n',
+                              '   digCategoryIds:', inputData.digCategoryIds.toString(), '\n}'
+                             );
+                return throwError('No Data was returned for the selected audiences');})
           ));
         }
     }
+    console.log("### apioDataRefresh pushing ", observables.length, "observables for ", geocodes.length, "geocodes in ", chunks.length, "chunks, ids:", identifiers);
     return observables;
   }
 
-  private validateFuseResponse(inputData: any, response: RestResponse, isForShading: boolean) {
+  private validateFuseResponse(inputData: any, response: RestResponse, isForShading: boolean, chunk:number, maxChunks:number) {
     const newArray = this.audienceService.convertFuseResponse(response);
     const audiences = Array.from(this.audienceService.audienceMap.values());
     audiences.filter(roe => roe.audienceIdentifier);
     const audMap = mapBy(audiences, 'audienceIdentifier');
     const responseArray = [];
-    
+
     inputData.digCategoryIds.forEach(id => {
       const audience = audMap.get(id.toString());
       const sourceName = audience.audienceSourceName != null && audience.audienceSourceName.toLowerCase() === 'in-market' ? 'in_market' : audience.audienceSourceName;
@@ -377,8 +386,7 @@ export class TargetAudienceOnlineService {
          this.store$.dispatch(new WarningNotification({ message: 'No data was returned within your geofootprint for the following selected online audiences: ' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning'}));
       }
     }
-  // }
-    this.logger.info('Online Audience Response:::', responseArray);
+    //console.debug('Online Audience Response:::', chunk, "/", maxChunks, 'Chunks', responseArray.length, "rows"); // , responseArray); // See response
     return responseArray;
   }
 

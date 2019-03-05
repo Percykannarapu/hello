@@ -42,7 +42,7 @@ export class CustomAudienceComponent {
           } finally {
             this.store$.dispatch(new StopBusyIndicator({ key }));
             if (csvData != null)
-               this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, "Custom Var Upload: " + name, csvData);
+               this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, name, csvData);
           }
         };
       } else {
@@ -55,7 +55,7 @@ export class CustomAudienceComponent {
           } finally {
             this.store$.dispatch(new StopBusyIndicator({ key }));
             if (reader.result != null)
-               this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, "Custom Var Upload: " + name, reader.result.toString());
+               this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, name, reader.result.toString());
           }
         };
       }

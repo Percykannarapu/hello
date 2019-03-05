@@ -13,7 +13,7 @@ import { Table } from 'primeng/table';
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { MultiSelect, SortMeta } from 'primeng/primeng';
-import { distinctArray, filterArray, groupBy, mapArray, resolveFieldData, roundTo } from '@val/common';
+import { distinctArray, filterArray, groupBy, groupByExtended, mapArray, resolveFieldData, roundTo } from '@val/common';
 
 export interface FlatGeo {
    fgId: number;
@@ -417,7 +417,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * Initializes various state variables
     */
    initializeState() {
-      console.log('geoGrid - initializeState - fired');
+      //console.debug('geoGrid - initializeState - fired');
       //this.gridStats = {
          //numLocsActive: 0,
          this.gridStats.numGeos = 0;
@@ -436,7 +436,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.distanceRanges = [null, null];
       this.cpmRanges = [null, null];
 
-      console.log(this._geoGrid);
+      //console.debug(this._geoGrid);
       this._geoGrid.reset();
       this._varColOrder = {...this._varColOrder};
 
@@ -450,7 +450,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     *  Initializes the accumulators for the totals located at the bottom of the column
     */
    initializeGridTotals() {
-      console.log('initializeGridTotals - fired');
+      //console.debug('initializeGridTotals - fired');
       this.gridTotals = new Map<string, ColMetric>();
       this.gridTotals.set('hhc',             {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
       this.gridTotals.set('allocHhc',        {tot: 0, cnt: 0, min: 99999999, max: 0, avg: 0});
@@ -461,12 +461,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    debugLogGridTotals() {
-      console.log('total distance:             ', this.gridTotals.get('distance'));
-      console.log('total hhc:                  ', this.gridTotals.get('hhc'));
-      console.log('total allocated hhc:        ', this.gridTotals.get('allocHhc'));
-      console.log('total investment:           ', this.gridTotals.get('investment'));
-      console.log('total allocated investment: ', this.gridTotals.get('allocInvestment'));
-      console.log('total cpm:                  ', this.gridTotals.get('cpm'));
+      console.debug('total distance:             ', this.gridTotals.get('distance'));
+      console.debug('total hhc:                  ', this.gridTotals.get('hhc'));
+      console.debug('total allocated hhc:        ', this.gridTotals.get('allocHhc'));
+      console.debug('total investment:           ', this.gridTotals.get('investment'));
+      console.debug('total allocated investment: ', this.gridTotals.get('allocInvestment'));
+      console.debug('total cpm:                  ', this.gridTotals.get('cpm'));
    }
 
    /**
@@ -479,16 +479,33 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     */
    createComposite(project: ImpProject, projectVars: ImpProjectVar[], geos: ImpGeofootprintGeo[], mustCovers: string[], geoAttributes: ImpGeofootprintGeoAttrib[], geoVars: ImpGeofootprintVar[], varColOrder: Map<string, number>) : FlatGeo[]
    {
-      console.log('createComposite: projectVars: ', (projectVars != null) ? projectVars.length : null,
-                   ', geos: ', (geos != null) ? geos.length : null
-                  ,', must covers: ', (mustCovers != null) ? mustCovers.length : null
-                  ,', geo attributes: ', (geoAttributes != null) ? geoAttributes.length : null
-                  ,', geo vars: ', (geoVars != null) ? geoVars.length : null
-                  ,', smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
       if (geos == null || geos.length === 0) {
-         this.initializeGridTotals();
-         return [];
+        this.initializeGridTotals();
+        return [];
       }
+      //let uniqueGeos = (geos != null) ? new Set(geos.map(geo => geo.geocode)) : new Set();
+      console.log('createComposite:'
+                 ,' geos:' , ((geos != null) ? geos.length : null)
+                //  ,' unique geos:' , ((uniqueGeos != null) ? uniqueGeos.size: null)
+                 ,' must covers:' , ((mustCovers != null) ? mustCovers.length : null)
+                 ,' geo attributes:' , ((geoAttributes != null) ? geoAttributes.length : null)
+                 ,' projectVars: ', ((projectVars != null) ? projectVars.length : null)
+                 ,' geo vars:' , ((geoVars != null) ? geoVars.length : null)
+                 ,' geo vars custom:' , ((geoVars != null) ? geoVars.filter(gv => gv.isCustom).length : null));
+      // DEBUG: See additional parameters
+      // console.log('createComposite: varColOrder: ', varColOrder
+      //            ,' project: ', project
+      //            ,' smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
+
+      // DEBUG: Print the geoVar counts
+      let variablePkCounts:Map<string,ImpGeofootprintVar[]> = groupByExtended(geoVars, (i) => i.varPk + ", " + i.customVarExprDisplay);
+      if (variablePkCounts != null && variablePkCounts.size > 0)
+      {
+        console.groupCollapsed("createComposite - geoVar Counts:",variablePkCounts.size);
+        console.table(Array.from(variablePkCounts.keys()).map(v => { return {Variable: v, Count: variablePkCounts.get(v).length}}));
+        console.groupEnd();
+      }
+      variablePkCounts = null;
 
       let min: number;
       let max: number;
@@ -497,7 +514,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.flatGeoGridExtraColumns = [];
 
       // Get all of the attributes for the geo
-      const  attributeMap = new Map<string, ImpGeofootprintGeoAttrib[]>();
+      const attributeMap = new Map<string, ImpGeofootprintGeoAttrib[]>();
       if (geoAttributes != null)
          geoAttributes.forEach(attribute => {if (attribute.attributeCode === 'pob'
                                              ||  attribute.attributeCode === 'owner_group_primary'
@@ -519,7 +536,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Get only geo variables that are flagged as usable
       const usableGeoVars = geoVars.filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
-
       //const varsInData = new Set(usableGeoVars.map(gv => this.getGeoVarFieldName(gv)));
 
       // Get the missing geoVars with no scores
@@ -528,7 +544,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
        // Create a cache of geo variables, grouped by geocode
       const varCache = groupBy(usableGeoVars, 'geocode');
-      console.log('Var caches', { usableVars, usableGeoVars, varCache });
+      //console.debug('createComposite: varCache', { usableVars, usableGeoVars, varCache });
       // Populate the unique values for text variables, keyed by variable pk
       this.uniqueTextVals = new Map<string, SelectItem[]>();
       const distinctVarPks: number[] = Array.from(new Set(usableGeoVars.filter(gv => gv.fieldconte === 'CHAR').map(v => v.varPk)));
@@ -545,10 +561,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       const distinctNumVarPks: number[] = Array.from(new Set(usableGeoVars.filter(gv => gv.fieldconte !== 'CHAR').map(v => v.varPk)));
       distinctNumVarPks.forEach(varPk => {
-         console.log('processing variable: ', varPk);
+         // console.debug('processing variable: ', varPk);
          // Filter out the variables for this pk
          const pkVars: ImpGeofootprintVar[] = usableGeoVars.filter(gv => gv.varPk === varPk);
-         console.log ('pkVars.length = ', (pkVars != null) ? pkVars.length : null);
+         // console.debug ('pkVars.length = ', (pkVars != null) ? pkVars.length : null);
 
          // Reduce the geo vars to just the min / max values
          //min = geoGridData.reduce((min, p:FlatGeo) => p['geo.hhc'] < min ? (p['geo.hhc'] != "" ? p['geo.hhc'] : 0) : min, (geoGridData != null && geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
@@ -560,7 +576,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          min = (min != null) ? Math.trunc(min) : null; // Number(min.toFixed(0)) : null;
          max = (max != null) ? Math.round(max) : null;
 
-         console.log('   min: ', min, ', max: ', max);
+         // console.debug('   min: ', min, ', max: ', max);
          // Store the min / max range values in a map keyed by the variable pk
          this.variableRanges.set(varPk.toString(), [min, max, min, max]);
       });
@@ -668,10 +684,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          this.dupeMsg = (this.dedupeGrid) ? 'Filtered Dupe Geos' : 'Total Dupe Geos';
 
          const currentVars = varCache.get(geo.geocode) || [];
-         currentVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null && geoVar.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation)
+         currentVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null
+                         && geoVar.impGeofootprintTradeArea.impGeofootprintLocation != null
+                         && geoVar.impGeofootprintTradeArea.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber)
             .forEach(geovar => {
             if (geovar.isString)
-                  gridGeo[geovar.varPk.toString()] = geovar.valueString !== 'null' ? geovar.valueString : '';
+               gridGeo[geovar.varPk.toString()] = geovar.valueString !== 'null' ? geovar.valueString : '';
             else
             {
                // Format them
@@ -718,7 +736,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   break;
               }
 
-              //console.debug("this.flatGeoGridExtraColumns adding ", geovar.varPk + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumbeR: " + geovar.isNumber);
+              // console.debug("this.flatGeoGridExtraColumns adding ", geovar.varPk + " - " + geovar.customVarExprDisplay + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumber: " + geovar.isNumber);
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: geovar.customVarExprDisplay, width: colWidth + 'px'
                                                 ,fieldname: geovar.fieldname
                                                 ,matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(geovar.fieldconte)) ? 'numeric' : 'text'
@@ -896,7 +914,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    // toggleRowWithCheckbox from turbotable src (currently unused, experimental)
    gridToggleRowWithCheckbox(event, rowData: any) {
-      console.log('gridToggleRowWithCheckbox - rowData: ', rowData);
+      //console.debug('gridToggleRowWithCheckbox - rowData: ', rowData);
       this._geoGrid.selection = this._geoGrid.selection || [];
       const selected = this._geoGrid.isSelected(rowData);
       const dataKeyValue = this._geoGrid.dataKey ? String(this._geoGrid.objectUtils.resolveFieldData(rowData, this._geoGrid.dataKey)) : null;
@@ -925,7 +943,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    // Currently Experimental (Enable debug button in template)
    syncGridSelection() {
-      console.log('syncGridSelection - fired ');
+      //console.debug('syncGridSelection - fired ');
 
       let diffCount: number = 0;
       let matchCount: number = 0;
@@ -951,7 +969,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
             // If that row is selected, filter it out of selection
             if (geo.isActive === 1) {
-               console.log('setting unselected row to selected');
+               //console.debug('setting unselected row to selected');
                const selectionIndex = this._geoGrid.findIndexInSelection(geo);
                this._geoGrid._selection = this._geoGrid.selection.filter((val, i) => i != selectionIndex);
                this._geoGrid.selectionChange.emit(this._geoGrid.selection);
@@ -963,7 +981,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             else
             // The row was not selected, add it into selection
             {
-               console.log('setting selected row to unselected');
+               //console.debug('setting selected row to unselected');
                this._geoGrid._selection = this._geoGrid.selection ? [...this._geoGrid.selection, geo] : [geo];
                this._geoGrid.selectionChange.emit(this._geoGrid.selection);
          //    this._geoGrid.onRowSelect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
@@ -981,13 +999,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 //      if (diffCount > 0)
          this._geoGrid.tableService.onSelectionChange();
 
-         console.log('slicing');
          const newSelection = this._geoGrid.selection.map(x => Object.assign({}, x));
          this._geoGrid._selection = newSelection;
 
          this._geoGrid.value = this._geoGrid.value.map(x => Object.assign({}, x));
 // Works, but overkill         this.impGeofootprintGeoService.makeDirty();
-      console.log('sync finished - matches: ', matchCount, ', differences: ', diffCount);
+      //console.debug('sync finished - matches: ', matchCount, ', differences: ', diffCount);
    }
 
 /* Just to document original process
@@ -1028,7 +1045,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    // Experimental enable as replacement for p-tableHeaderCheckbox in template
    onToggleFilteredGeocodes(checked: boolean) {
-         console.log('onToggleFilteredGeocodes - All Geos isActive set to: ', checked);
+         //console.debug('onToggleFilteredGeocodes - All Geos isActive set to: ', checked);
          let toggleCount: number = 0;
          //this.impGeofootprintGeoService.setActive(this.impGeofootprintGeoService.get(), event.checked);
          if (this._geoGrid != null)
@@ -1041,7 +1058,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   geo.isActive = (checked) ? 1 : 0;
                   this._geoGrid.toggleRowWithCheckbox(event, geo);
                });
-               console.log('filtered set ' + toggleCount + ' geos');
+               //console.debug('filtered set ' + toggleCount + ' geos');
             }
             else
             {
@@ -1051,11 +1068,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   geo.isActive = (checked) ? 1 : 0;
                   this._geoGrid.toggleRowWithCheckbox(event, geo);
                });
-               console.log('all set ' + toggleCount + ' geos');
+               //console.debug('all set ' + toggleCount + ' geos');
             }
          }
          else
-            console.log('No geos to set');
+            console.debug('No geos to set');
    }
 
    onClickDedupeToggle(event: any, geoGrid)
@@ -1093,14 +1110,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    onRemoveFilter(filterName: string) {
-      console.log('-'.padEnd(80, '-'));
-      console.log('onRemoveFilter: ', filterName);
-      console.log('-'.padEnd(80, '-'));
-      console.log('before: ', this._geoGrid.filters);
+      console.debug('-'.padEnd(80, '-'));
+      console.debug('onRemoveFilter: ', filterName);
+      console.debug('-'.padEnd(80, '-'));
+      console.debug('before: ', this._geoGrid.filters);
       delete this._geoGrid.filters[filterName];
       this.onForceRedraw.emit();
-      console.log('after: ', this._geoGrid.filters);
-      console.log('-'.padEnd(80, '-'));
+      console.debug('after: ', this._geoGrid.filters);
+      console.debug('-'.padEnd(80, '-'));
       this._geoGrid.tableService.onSelectionChange();
    }
 
@@ -1136,7 +1153,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (this._geoGrid == null || this._geoGrid._value == null || this._geoGrid._value.length === 0)
          return;
 
-      console.log('setGridTotals - Fired');
+      //console.debug('setGridTotals - Fired');
 
       // Initialize totals
       this.initializeGridTotals();
@@ -1146,7 +1163,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       {
          if (flatGeos != null && flatGeos.length > 0)
          {
-            console.log('setGridTotals - using flatGeos');
+            //console.debug('setGridTotals - using flatGeos');
 
             flatGeos.forEach(element => {
                if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
@@ -1158,8 +1175,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          {
             if (this._geoGrid.filteredValue != null && this._geoGrid.filteredValue.length > 0)
             {
-               console.log('setGridTotals - using filtered list');
-               console.log('this.geoGrid: ', this._geoGrid);
+               //console.log('setGridTotals - using filtered list');
+               //console.log('this.geoGrid: ', this._geoGrid);
 
                this._geoGrid.filteredValue.forEach(element => {
                   if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
@@ -1169,7 +1186,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             }
             else
             {
-               console.log('setGridTotals - using normal list - numRows: ', this._geoGrid._value.length);
+               //console.debug('setGridTotals - using normal list - numRows: ', this._geoGrid._value.length);
 
                this._geoGrid._value.forEach(element => {
                   if (element.geo.isActive && (this.dedupeGrid === false || (this.dedupeGrid && element.geo.isDeduped === 1))) {
@@ -1229,7 +1246,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    debugPrintGrid() {
-      console.log('Grid: ', this._geoGrid);
+      console.debug('Grid: ', this._geoGrid);
    }
 
    debugPrintInputs() {

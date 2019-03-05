@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, EMPTY } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { AudienceDataDefinition, AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
@@ -16,7 +16,8 @@ import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProje
 import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
-import { mapByExtended } from '@val/common';
+import { mapByExtended, groupByExtended } from '@val/common';
+import { InTransaction } from '../val-modules/common/services/datastore.service';
 
 interface AudienceTradeareaResponse {
   maxRadius: number;
@@ -174,7 +175,7 @@ export class TargetAudienceAudienceTA {
 
 
   public addAudiences(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>, digCategoryId, audienceTAConfig: AudienceTradeAreaConfig) {
-
+    //console.debug("addAudiences - target-audience-audienceta - fired - audienceTAConfig: ", audienceTAConfig);
     for (const key of Array.from(this.geoVarMap.keys())) {
       const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
       this.audienceService.addAudience(
@@ -188,14 +189,15 @@ export class TargetAudienceAudienceTA {
         (al, pk) => this.nationalRefreshCallback(source, al, pk)
     );*/
     this.createGeofootprintVars(taResponseCache);
-
   }
 
   private createGeofootprintVars(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>) : ImpGeofootprintVar[] {
+    //console.debug("target-audience-audienceta - createGeofootprintVars - Locs: " + taResponseCache.size + ", taResponseCache: ", taResponseCache);
     let varPk = null;
-    const geofootprintVars: ImpGeofootprintVar[] = [];
+    let geofootprintVars: ImpGeofootprintVar[] = [];
     const taByLocationNum = mapByExtended(this.tradeAreaService.get().filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Audience), item => item.impGeofootprintLocation.locationNumber);
     for (const location of Array.from(taResponseCache.keys())) {
+      //console.log("target-audience-audienceta - createGeofootprintVars - processing location:", location);
       const geoResponses: Map<number, AudienceTradeareaResponse> = taResponseCache.get(location);
       const geoResponseKeys = Array.from(geoResponses.keys());
       if (geoResponseKeys.length > 0 && !taByLocationNum.has(location)) {
@@ -208,21 +210,41 @@ export class TargetAudienceAudienceTA {
           if (this.varPkCache.has(geoVarKey)) {
             varPk = this.varPkCache.get(geoVarKey);
           } else {
+            // Get a new varPk, ensuring that it is bigger than max already used
             varPk = this.varService.getNextStoreId();
-            this.varPkCache.set(geoVarKey, varPk);
+            let maxVarPk = Math.max.apply(Math, Array.from(this.varPkCache.values()));
+            while (varPk <= maxVarPk)
+              varPk = this.varService.getNextStoreId();
           }
+          this.varPkCache.set(geoVarKey, varPk);
+
           const geoResponse: AudienceTradeareaResponse = geoResponses.get(geoResponseId);
           let geoVar: ImpGeofootprintVar;
-          if (this.geoVarMap.get(geoVarKey) === 'string') {
-            geoVar = this.createGeoVar(currentTradeArea, varPk, geoResponse.geocode, 'string', geoVarKey, geoResponse.categoryName, geoResponse[this.geoVarFieldMap.get(geoVarKey)]);
-          } else {
-            geoVar = this.createGeoVar(currentTradeArea, varPk, geoResponse.geocode, 'number', geoVarKey, geoResponse.categoryName, null, geoResponse[this.geoVarFieldMap.get(geoVarKey)], 'index');
+
+          if (this.varService.get().findIndex(gvar => gvar.geocode === geoResponse.geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === location) === -1
+          &&       geofootprintVars.findIndex(gvar => gvar.geocode === geoResponse.geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === location) === -1)
+          {
+            if (this.geoVarMap.get(geoVarKey) === 'string') {
+              geoVar = this.createGeoVar(currentTradeArea, varPk, geoResponse.geocode, 'string', geoVarKey, geoResponse.categoryName, geoResponse[this.geoVarFieldMap.get(geoVarKey)]);
+            } else {
+              geoVar = this.createGeoVar(currentTradeArea, varPk, geoResponse.geocode, 'number', geoVarKey, geoResponse.categoryName, null, geoResponse[this.geoVarFieldMap.get(geoVarKey)], 'index');
+            }
+            geofootprintVars.push(geoVar);
           }
-          geofootprintVars.push(geoVar);
         }
       }
     }
-    this.varService.add(geofootprintVars);
+
+    // Filter out any dupes
+    geofootprintVars = (geofootprintVars.filter(gv => this.varService.get().findIndex(gvar => gvar.geocode === gv.geocode && gvar.varPk === gv.varPk && gvar.impGeofootprintLocation.locationNumber === gv.impGeofootprintLocation.locationNumber) === -1));
+    if (geofootprintVars.length > 0)
+      this.varService.add(geofootprintVars);//, null, null, InTransaction.silent);
+    console.log("target-audience-audienceta - createGeofootprintVars - Added:", geofootprintVars.length, "new geo vars");
+    // DEBUG: Print variable counts
+    // console.log("target-audience-audienceta - current geo vars");
+    // let variablePkCounts:Map<string,ImpGeofootprintVar[]> = groupByExtended(this.varService.get(), (i) => i.varPk + ", " + i.customVarExprDisplay);
+    // if (variablePkCounts != null && variablePkCounts.size > 0)
+    //   console.table(Array.from(variablePkCounts.keys()).map(v => { return {Variable: v, Count: variablePkCounts.get(v).length}}));
     return geofootprintVars;
   }
 
@@ -279,19 +301,27 @@ export class TargetAudienceAudienceTA {
   }
 
     private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
-        if (!audience) return new Observable<Array<ImpGeofootprintVar>>();
-        const payload = audience.audienceTAConfig;
-        const localAudienceName = audience.audienceName.replace(audience.secondaryId, '').trim();
-        delete payload.includeMustCover;
-        delete payload.audienceName;
-        if (payload.analysisLevel) payload.analysisLevel = payload.analysisLevel.toLowerCase();
-        if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
-            payload.analysisLevel = 'dtz';
-        }
+      //console.debug("addAudience - target-audience-audienceta - dataRefreshCallback, audience: ", audience);
+      if (!audience) return EMPTY;
 
-    //DE2057: If the digCategoryId is null get it from the project
-    if (payload.digCategoryId == null) {
-      payload.digCategoryId = this.appStateService.currentProject$.getValue().audTaVarPk;
+      // Update the ta config
+      audience.audienceTAConfig = this.reloadAudienceTaConfig();
+
+      const payload = audience.audienceTAConfig;
+      const localAudienceName = audience.audienceName.replace(audience.secondaryId, '').trim();
+      delete payload.includeMustCover;
+      delete payload.audienceName;
+
+      if (payload.analysisLevel)
+        payload.analysisLevel = payload.analysisLevel.toLowerCase();
+
+      if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
+        payload.analysisLevel = 'dtz';
+      }
+
+      //DE2057: If the digCategoryId is null get it from the project
+      if (payload.digCategoryId == null) {
+        payload.digCategoryId = this.appStateService.currentProject$.getValue().audTaVarPk;
     }
 
     const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');

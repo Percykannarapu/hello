@@ -17,6 +17,7 @@ import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { chunkArray, groupBy, simpleFlatten } from '@val/common';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -88,6 +89,7 @@ export class TargetAudienceTdaService {
     private restService: RestDataService,
     private audienceService: TargetAudienceService,
     private domainFactory: ImpDomainFactoryService,
+    private varService: ImpGeofootprintVarService,
     private stateService: AppStateService,
     private store$: Store<LocalAppState>,
     private logger: AppLoggingService) {
@@ -144,7 +146,7 @@ export class TargetAudienceTdaService {
 
   private createGeofootprintVar(geocode: string, varPk: number, value: string, rawData: TdaVariableResponse, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {
     const fullId = `Offline/TDA/${varPk}`;
-    const results: ImpGeofootprintVar[] = [];
+    let results: ImpGeofootprintVar[] = [];
     const numberAttempt = Number(value);
     let fieldType: FieldContentTypeCodes;
     let fieldName: string;
@@ -166,15 +168,21 @@ export class TargetAudienceTdaService {
       if (fieldType == null) fieldType = FieldContentTypeCodes.Index;
     }
     if (isForShading) {
-      const currentResult = this.domainFactory.createGeoVar(null, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
-      if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
-      results.push(currentResult);
+      if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1
+                     && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1) {
+        const currentResult = this.domainFactory.createGeoVar(null, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
+        if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+        results.push(currentResult);
+      }
     } else {
       if (geoCache.has(geocode)) {
         geoCache.get(geocode).forEach(geo => {
-          const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
-          if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
-          results.push(currentResult);
+          if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1
+                         && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1) {
+            const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
+            if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+            results.push(currentResult);
+          }
         });
       }
     }
@@ -264,9 +272,9 @@ export class TargetAudienceTdaService {
       });
       if (!isForShading){
           this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
-      } 
       }
-    this.logger.info('Offline Audience Response:::', responseArray);
+      }
+    //this.logger.info("Offline Audience Response::: ", responseArray.length, " rows"); // , responseArray);
     return responseArray;
   }
 

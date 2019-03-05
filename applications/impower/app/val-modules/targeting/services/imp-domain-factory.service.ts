@@ -367,7 +367,7 @@ export class ImpDomainFactoryService {
       customVarExprQuery: fullId,
       isNumber: false,
       isString: false,
-      isCustom: false,
+      isCustom:  (fullId.includes("Custom")) ? true : false,
       fieldconte: fieldType,
       customVarExprDisplay: fieldDescription,
       fieldname: fieldName,
@@ -385,6 +385,7 @@ export class ImpDomainFactoryService {
       const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
       if (existingVar == null) {
         result.impGeofootprintTradeArea = parent;
+        result.impGeofootprintLocation = parent.impGeofootprintLocation; // DPG
         parent.impGeofootprintVars.push(result);
       } else {
         if (overwriteDuplicates) {
