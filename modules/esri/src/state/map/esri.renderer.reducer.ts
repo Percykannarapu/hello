@@ -1,7 +1,16 @@
+import { EsriMapActionTypes, ResetMapState } from './esri.map.actions';
 import { EsriRendererActions, EsriRendererActionTypes } from './esri.renderer.actions';
+import { ColorPallete } from '../../models/ColorPalletes';
 
 export interface ShadingData {
   [geocode: string] : string | number;
+}
+
+export enum HighlightMode {
+  OUTLINE,
+  SHADE,
+  OUTLINE_GROUPS,
+  SHADE_GROUPS
 }
 
 export interface Statistics {
@@ -19,6 +28,11 @@ export interface EsriRendererState {
   selectedGeocodes: Array<string>;
   statistics: Statistics;
   enableShading: boolean;
+  highlightMode: HighlightMode;
+  highlightLayer: string;
+  highlightLayerGroup: string;
+  shadingGroups: { groupName: string, ids: string[] }[];
+  colorPallete: ColorPallete;
 }
 
 const initialState: EsriRendererState = {
@@ -26,11 +40,22 @@ const initialState: EsriRendererState = {
   isNumericData: false,
   selectedGeocodes: new Array<string>(),
   statistics: null,
-  enableShading: false
+  enableShading: false,
+  highlightMode: HighlightMode.OUTLINE,
+  highlightLayer: null,
+  highlightLayerGroup: null,
+  shadingGroups: null,
+  colorPallete: ColorPallete.RANDOM
 };
 
-export function rendererReducer(state = initialState, action: EsriRendererActions) : EsriRendererState {
+type ReducerActions = EsriRendererActions | ResetMapState;
+
+export function rendererReducer(state = initialState, action: ReducerActions) : EsriRendererState {
   switch (action.type) {
+    case EsriMapActionTypes.ResetMapState:
+      return {
+        ...initialState
+      };
     case EsriRendererActionTypes.SetShadingData:
       return {
         ...state,
@@ -49,7 +74,16 @@ export function rendererReducer(state = initialState, action: EsriRendererAction
       };
 
     case EsriRendererActionTypes.SetSelectedGeos:
-      return {...state, selectedGeocodes: action.payload};
+      return { ...state, selectedGeocodes: action.payload };
+    case EsriRendererActionTypes.SetHighlightOptions:
+      return { 
+        ...state, 
+        highlightMode: action.payload.higlightMode, 
+        highlightLayerGroup: action.payload.layerGroup, 
+        highlightLayer: action.payload.layer,
+        shadingGroups: action.payload.groups,
+        colorPallete: action.payload.colorPallete
+      };
     case EsriRendererActionTypes.ClearSelectedGeos:
       return {
         ...state,

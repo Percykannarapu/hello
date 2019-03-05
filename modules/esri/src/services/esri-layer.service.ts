@@ -1,13 +1,9 @@
 import { Injectable } from '@angular/core';
-import { SetLabelConfiguration } from '../state/map/esri.map.actions';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
+import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
 import { EsriMapService } from './esri-map.service';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { select, Store } from '@ngrx/store';
-import { AppState, internalSelectors } from '../state/esri.selectors';
-import { filter, share } from 'rxjs/operators';
-import { EsriLabelConfiguration } from '../state/map/esri.map.reducer';
 import { UniversalCoordinates } from '../../../common';
 import { MapSymbols } from '../models/map-symbols';
 
@@ -28,18 +24,7 @@ export class EsriLayerService {
   private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public layersReady$: Observable<boolean> = this.layersReady.asObservable();
 
-  constructor(private mapService: EsriMapService,
-              private store$: Store<AppState>) {
-
-    const sharedStore$ = this.store$.pipe(share());
-
-    // Pipe to update labels based on label config changes from the dropdown above the map
-    sharedStore$.pipe(
-      select(internalSelectors.getEsriLabelConfiguration),
-      filter(labelConfig => labelConfig != null),
-    ).subscribe(labelConfig => this.addLabels(labelConfig.font, labelConfig.size, labelConfig.enabled, labelConfig.pobEnabled));
-
-  }
+  constructor(private mapService: EsriMapService) {}
 
   public clearClientLayers() : void {
     const layers = Array.from(this.layerRefs.values());
@@ -97,8 +82,8 @@ export class EsriLayerService {
     }
   }
 
-  public createPortalGroup(groupName: string, isVisible: boolean) : void {
-    if (this.portalGroupRefs.has(groupName)) return;
+  public createPortalGroup(groupName: string, isVisible: boolean) : __esri.GroupLayer {
+    if (this.portalGroupRefs.has(groupName)) return this.portalGroupRefs.get(groupName);
     const group = new EsriApi.GroupLayer({
       title: groupName,
       listMode: 'show-children',
@@ -106,16 +91,22 @@ export class EsriLayerService {
     });
     this.mapService.mapView.map.layers.unshift(group);
     this.portalGroupRefs.set(groupName, group);
+    return group;
   }
 
-  private createClientGroup(groupName: string, isVisible: boolean) : void {
+  public createClientGroup(groupName: string, isVisible: boolean, bottom: boolean = false) : void {
     if (this.groupRefs.has(groupName)) return;
     const group = new EsriApi.GroupLayer({
       title: groupName,
       listMode: 'show-children',
       visible: isVisible
     });
-    this.mapService.mapView.map.layers.add(group);
+    if (bottom) {
+      this.mapService.mapView.map.layers.add(group, 0);
+    } else {
+      this.mapService.mapView.map.layers.add(group);
+    }
+    
     this.groupRefs.set(groupName, group);
   }
 
@@ -136,10 +127,6 @@ export class EsriLayerService {
         subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason });
       });
     });
-  }
-
-  private instanceOfUniversalCoordinates(object: any) : object is UniversalCoordinates {
-    return 'x' in object && 'y' in object;
   }
 
   private coordinatesToGraphics(coordinates: UniversalCoordinates[], symbol?: MapSymbols) : __esri.Graphic[] {
@@ -284,47 +271,41 @@ export class EsriLayerService {
     }
     if (loaded) {
       this.layersReady.next(true);
-      const labelConfig: EsriLabelConfiguration = { font: 'sans-serif', size: 10, enabled: true, pobEnabled: false };
-      this.store$.dispatch(new SetLabelConfiguration({labelConfiguration: labelConfig}));
-      /*if (!layer.title.toLowerCase().includes('centroid')) {
-        this.addLabels(<__esri.FeatureLayer> layer);
-      }*/
     }
   }
 
-  private addLabels(fontName: string, fontSize: number, enabled: boolean, pobEnabled: boolean) {
+  public setLabels(labelConfig: EsriLabelConfiguration, layerExpressions: { [layerId: string] : EsriLabelLayerOptions }) : void {
+    const layers = this.mapService.mapView.map.allLayers.toArray();
+    layers.forEach(l => {
+      if (EsriUtils.layerIsPortalFeature(l)) {
+        l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions[l.portalItem.id]);
+        l.labelsVisible = labelConfig.enabled;
+      }
+    });
+  }
+
+  private createLabelConfig(layer: __esri.FeatureLayer, fontName: string, fontSize: number, layerOptions: EsriLabelLayerOptions) : __esri.LabelClass[] {
+    if (layerOptions == null) return null;
     const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
-    const font = new EsriApi.Font({ family: fontName, size: fontSize, weight: 'normal' });
-    textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-    //textSymbol.haloColor = new EsriApi.Color({a: 1, r: 142, g: 227, b: 237});
-    textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    const offset = layerOptions.fontSizeOffset || 0;
+    const font = new EsriApi.Font({ family: fontName, size: (fontSize + offset), weight: 'bold' });
+    if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol) && EsriUtils.symbolIsSimpleLine(layer.renderer.symbol.outline)) {
+      textSymbol.color = layer.renderer.symbol.outline.color;
+    } else {
+      textSymbol.color = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    }
+    if (layerOptions.colorOverride != null) {
+      textSymbol.color = new EsriApi.Color(layerOptions.colorOverride);
+    }
+    textSymbol.haloColor = new EsriApi.Color({ r: 255, g: 255, b: 255, a: 1 });
     textSymbol.haloSize = 1;
     textSymbol.font = font;
-    const arcade = pobEnabled ? '$feature.geocode' : 'IIF ($feature.pob == "B", " " , $feature.geocode)';
-      const labelConfig: __esri.LabelClass = new EsriApi.LabelClass({
-        labelPlacement: 'always-horizontal',
-        labelExpressionInfo: {
-            expression: arcade     
-        },
-        symbol: textSymbol
-      });
-    const layers = this.mapService.mapView.map.allLayers.toArray();  
-    if (!enabled) {
-      for (const layer of layers) {
-        if (layer instanceof EsriApi.FeatureLayer && !layer.title.toLocaleLowerCase().includes('centroid')) {
-          layer.labelingInfo = null;
-        }
-      }
-      return;
-    }
-
-    for (const layer of layers) {
-      if (layer instanceof EsriApi.FeatureLayer && !layer.title.toLocaleLowerCase().includes('centroid')) {
-        layer.labelingInfo = [labelConfig];
-      }
-      if (layer instanceof EsriApi.FeatureLayer && layer.title.toLocaleLowerCase().includes('boundaries')){
-        layer.labelingInfo = [labelConfig];
-      }
-    }
+    return [new EsriApi.LabelClass({
+      labelPlacement: 'always-horizontal',
+      labelExpressionInfo: {
+        expression: layerOptions.expression
+      },
+      symbol: textSymbol
+    })];
   }
 }

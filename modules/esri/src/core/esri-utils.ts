@@ -60,6 +60,10 @@ export class EsriUtils {
     return s != null && s.type === 'simple-fill';
   }
 
+  public static symbolIsSimpleLine(s: __esri.Symbol) : s is __esri.SimpleLineSymbol {
+    return s != null && s.type === 'simple-line';
+  }
+
   public static itemIsPoint(p: any) : p is __esri.Point {
     return p != null && p.type != null && p.type === 'point';
   }

@@ -5,12 +5,17 @@ import {Component} from '@angular/core';
     template: `
         <div class="footer">
             <div class="card clearfix">
-                <span class="footer-text-left">Copyright Valassis, 2018</span>
+                <span class="footer-text-left">Copyright {{currentYear}} Valassis</span>
                 <span class="footer-text-right"><span class="ui-icon ui-icon-copyright"></span>  <span>All Rights Reserved</span></span>
             </div>
         </div>
     `
 })
 export class AppFooterComponent {
+  currentYear: string;
 
+  constructor() {
+    const today = new Date();
+    this.currentYear = today.getFullYear().toString();
+  }
 }

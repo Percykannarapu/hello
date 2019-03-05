@@ -1127,10 +1127,12 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * @param newValue The value to store in the map
     */
    private setGridTotal(totalStr: string, newValue: number) {
-      this.gridTotals.set(totalStr, {tot: this.gridTotals.get(totalStr).tot + newValue
-                                    , min: (newValue < this.gridTotals.get(totalStr).min) ? newValue : this.gridTotals.get(totalStr).min
-                                    , max: (newValue > this.gridTotals.get(totalStr).max) ? newValue : this.gridTotals.get(totalStr).max
-                                    });
+   if (newValue == null) newValue = 0;
+     const val = (+this.gridTotals.get(totalStr).tot) + (+newValue);
+     this.gridTotals.set(totalStr, {tot: val
+                                   ,min: (newValue < this.gridTotals.get(totalStr).min) ? newValue : this.gridTotals.get(totalStr).min
+                                   ,max: (newValue > this.gridTotals.get(totalStr).max) ? newValue : this.gridTotals.get(totalStr).max
+                                   });
    }
 
    private setGridTotalSet (hhc: number, cpm: number, investment: number, distance: number, isDeduped: number) {

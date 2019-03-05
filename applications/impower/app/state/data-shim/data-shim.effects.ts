@@ -15,7 +15,7 @@ import {
 import { catchError, concatMap, map, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AppDataShimService } from '../../services/app-data-shim.service';
-import { ClearSelectedGeos } from '@val/esri';
+import { ResetMapState } from '@val/esri';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimEffects {
@@ -72,7 +72,7 @@ export class DataShimEffects {
   @Effect()
   clearGeos$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectLoad, DataShimActionTypes.ProjectCreateNew),
-    map(() => new ClearSelectedGeos())
+    map(() => new ResetMapState())
   );
 
   @Effect({ dispatch: false })
@@ -82,17 +82,17 @@ export class DataShimEffects {
   );
 
   // These are for the NgRx store
-  @Effect()
-  loadSecondaryStore$ = this.actions$.pipe(
-    ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
-    map(action => new LoadEntitiesFromServer({ projectId: action.payload.projectId }))
-  );
-
-  @Effect()
-  newSecondaryStore$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectCreateNew),
-    map(() => new CreateNewEntities())
-  );
+  // @Effect()
+  // loadSecondaryStore$ = this.actions$.pipe(
+  //   ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
+  //   map(action => new LoadEntitiesFromServer({ projectId: action.payload.projectId }))
+  // );
+  //
+  // @Effect()
+  // newSecondaryStore$ = this.actions$.pipe(
+  //   ofType(DataShimActionTypes.ProjectCreateNew),
+  //   map(() => new CreateNewEntities())
+  // );
 
   constructor(private actions$: Actions,
               private appDataShimService: AppDataShimService) {}

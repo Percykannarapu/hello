@@ -21,7 +21,7 @@
       <div class="ui-g-2"></div>
       <div class="ui-g-10 p-t-15">
         <span class="md-inputfield">
-          <input pInputText id="streetInput" class="ui-g-12" formControlName="locAddress" autocomplete="off" />
+          <input pInputText id="streetInput" class="ui-g-12" formControlName="locAddress" autocomplete="off" (change)="formEdited()" />
           <label for="streetInput">Street</label>
         </span>
       </div>
@@ -29,19 +29,19 @@
       <div class="ui-g-12" style="padding: 0">
           <div class="ui-g-6 p-t-15">
               <span class="md-inputfield">
-                <input pInputText id="cityInput" class="ui-g-12" formControlName="locCity" autocomplete="off" />
+                <input pInputText id="cityInput" class="ui-g-12" formControlName="locCity" autocomplete="off" (change)="formEdited()"/>
                 <label for="cityInput">City</label>
               </span>
             </div>
             <div class="ui-g-2 p-t-15">
               <span class="md-inputfield">
-                <input pInputText id="stateInput" class="ui-g-12" formControlName="locState" maxlength="2" style="text-transform: uppercase" autocomplete="off" />
+                <input pInputText id="stateInput" class="ui-g-12" formControlName="locState" maxlength="2" style="text-transform: uppercase" autocomplete="off" (change)="formEdited()"/>
                 <label for="stateInput">State</label>
               </span>
             </div>
             <div class="ui-g-2 p-t-15">
               <span class="md-inputfield">
-                <input pInputText id="zipInput" class="ui-g-12" formControlName="locZip" maxlength="10" autocomplete="off" />
+                <input pInputText id="zipInput" class="ui-g-12" formControlName="locZip" maxlength="10" autocomplete="off" (change)="formEdited()"/>
                 <label for="zipInput">ZIP Code</label>
               </span>
             </div>

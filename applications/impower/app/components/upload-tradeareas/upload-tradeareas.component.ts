@@ -1,6 +1,6 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { FileService, Parser, ParseResponse, ParseRule } from '../../val-modules/common/services/file.service';
-import { FileUpload } from 'primeng/primeng';
+import { FileUpload, ConfirmationService } from 'primeng/primeng';
 import * as XLSX from 'xlsx';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -14,7 +14,7 @@ import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/ser
 import { AppStateService } from '../../services/app-state.service';
 import { filter, map, take } from 'rxjs/operators';
 import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../state/app.interfaces';
@@ -23,6 +23,7 @@ import { EsriQueryService, EsriUtils } from '@val/esri';
 import { mapBy } from '@val/common';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { AppGeoService } from './../../services/app-geo.service';
+import { AppEditSiteService } from '../../services/app-editsite.service';
 
 interface TradeAreaDefinition {
   store: string;
@@ -43,13 +44,17 @@ const tradeAreaUpload: Parser<TradeAreaDefinition> = {
   templateUrl: './upload-tradeareas.component.html',
   styleUrls: ['./upload-tradeareas.component.css']
 })
-export class UploadTradeAreasComponent {
+export class UploadTradeAreasComponent implements OnInit {
   public listType1: string = 'Site';
   public impGeofootprintLocations: ImpGeofootprintLocation[];
   public uploadFailures: TradeAreaDefinition[] = [];
   public totalUploadedRowCount = 0;
-
+  public isCustomTAExists: boolean;
   public currentAnalysisLevel$: Observable<string>;
+  public deleteFlag: boolean = false;
+
+  public deleteConfirmFlag$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  
 
   @ViewChild('tradeAreaUpload') private fileUploadEl: FileUpload;
 
@@ -63,8 +68,23 @@ export class UploadTradeAreasComponent {
     private impGeoService: ImpGeofootprintGeoService,
     private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
     private domainFactory: ImpDomainFactoryService,
+    private confirmationService: ConfirmationService,
+    private appEditSiteService: AppEditSiteService,
     private store$: Store<LocalAppState>) {
     this.currentAnalysisLevel$ = this.stateService.analysisLevel$;
+  }
+
+  ngOnInit() {
+    
+    this.stateService.currentProject$.subscribe(project => {
+      this.isCustomTAExists = project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0));
+    });
+
+    this.appEditSiteService.customTradeAreaData$.subscribe(message => {
+      if (message != undefined && message != null) {     
+        this.parseCsvFile(message.data);
+      }    
+    });
   }
 
   public onResubmit(data: TradeAreaDefinition) {
@@ -127,7 +147,7 @@ export class UploadTradeAreasComponent {
     if (header.split(/,/).length == 2) {
       const uniqueRows: string[] = [];
       const duplicateRows: string[] = [];
-      for (let i = 0; i < rows.length; i++) {
+      for (let i = 0; i < rows.length; i++) {      
         if (uniqueRows.indexOf(rows[i]) == -1) {
           uniqueRows.push(rows[i]);
         } else {
@@ -148,7 +168,8 @@ export class UploadTradeAreasComponent {
               this.messageService.add({summary: 'Upload Error', detail: `There were ${failedCount} rows that could not be parsed. See the F12 console for more details.`});
               console.error('Failed Trade Area Upload Rows:', data.failedRows);
             }
-            if (successCount > 0) {
+            if (successCount > 0) {            
+              this.isCustomTAExists = true;
               this.processUploadedTradeArea(data.parsedData);
             }
             this.store$.dispatch(new StopBusyIndicator({ key}));
@@ -235,5 +256,29 @@ export class UploadTradeAreasComponent {
         this.impGeofootprintTradeAreaService.add(tradeAreasToAdd);
         this.appGeoService.ensureMustCovers();
       });
+  }
+
+  public deleteCustomTradeArea() : void {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to delete your custom trade area?',
+      header: 'Delete Custom TA',
+      key: 'delete',
+      accept: () => {
+        this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' || ta.taType === 'HOMEGEO'));
+        this.appGeoService.ensureMustCovers();
+        this.isCustomTAExists = false;
+        if (this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL' && ta.impGeofootprintGeos.length > 0).length > 0) {  
+          this.confirmationService.confirm({
+            message: 'Would you like to also delete the manually selected geos?',
+            header: 'Delete Manual Geos',
+            accept: () => {          
+                this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL'));                  
+                this.appGeoService.ensureMustCovers();
+            }
+          });              
+        }  
+        this.uploadFailures = [];
+      }
+    }); 
   }
 }

@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@
 import { SelectItem } from 'primeng/api';
 import { Store, select } from '@ngrx/store';
 import { SetLabelConfiguration } from '../../../state/map/esri.map.actions';
-import { AppState, internalSelectors } from '../../../state/esri.selectors';
+import { AppState, internalSelectors, selectors } from '../../../state/esri.selectors';
 import { EsriLabelConfiguration } from '../../../state/map/esri.map.reducer';
 import { filter } from 'rxjs/operators';
 
@@ -53,7 +53,7 @@ export class EsriLabelConfigComponent implements OnInit {
 
   ngOnInit() {
     this.store$.pipe(
-      select(internalSelectors.getEsriLabelConfiguration),
+      select(selectors.getEsriLabelConfiguration),
       filter(labelConfig => labelConfig != null && labelConfig.enabled != null && labelConfig.pobEnabled != null && labelConfig.font != null && labelConfig.size != null)
     ).subscribe(labelConfig => this.onLabelConfigChanged(labelConfig));
   }
@@ -83,12 +83,14 @@ export class EsriLabelConfigComponent implements OnInit {
   }
 
   onEnabledChanged(event: any) {
+    this.pobEnabled = event.checked ? this.pobEnabled : false;
     const labelConfig: EsriLabelConfiguration = { enabled: event.checked, font: this.selectedFont, size: this.selectedSize, pobEnabled: this.pobEnabled };
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
   
   onPOBEnabledChanged(event: any) {
-    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: this.selectedFont, size: this.selectedSize, pobEnabled: event.checked };
+    this.pobEnabled = (!this.enabled && event.checked) ? false : event.checked && this.enabled;
+    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: this.selectedFont, size: this.selectedSize, pobEnabled: this.pobEnabled};
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
 

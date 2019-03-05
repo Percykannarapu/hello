@@ -16,6 +16,9 @@ export class ValGeocodingRequest {
   city: string;
   state: string;
   zip: string;
+  RADIUS1?: number;
+  RADIUS2?: number;
+  RADIUS3?: number;
   latitude?: string | null;
   longitude?: string | null;
   previousAddress1?: string;
@@ -26,8 +29,8 @@ export class ValGeocodingRequest {
   clientIdentifierId: string;  // Mandatory DB field
   clientLocationId: number;    // Mandatory DB field
   'Home ATZ' : string;
-  'Home ZIP' : string;
-  'Home PCR' : string;
+  'Home Zip Code' : string;
+  'Home Carrier Route' : string;
   'Home Digital ATZ' : string;
   'Home County' : string;
   'Home DMA' : string;
@@ -69,7 +72,7 @@ export class ValGeocodingRequest {
 
   public toGeocodingResponse(status: 'PROVIDED' | 'BAD XY') : ValGeocodingResponse {
     const nonAttributeProps = ['name', 'number', 'Market', 'Market Code', 'Description', 'Group',
-                               'street', 'city', 'state', 'zip', 'latitude', 'longitude', 'Home ZIP', 'Home ATZ', 'Home PCR', 'Home Digital ATZ', 'Home County', 'Home DMA'];
+                               'street', 'city', 'state', 'zip', 'latitude', 'longitude', 'Home Zip Code','Home ATZ', 'Home Carrier Route', 'Home Digital ATZ', 'Home County', 'Home DMA'];
     const result = new ValGeocodingResponse({
       Name: this.name,
       Market: this.Market,
@@ -79,14 +82,16 @@ export class ValGeocodingRequest {
       Number: this.number,
       Latitude: this.latitude,
       Longitude: this.longitude,
+      RADIUS1: this.RADIUS1,
+      RADIUS2: this.RADIUS2,
+      RADIUS3: this.RADIUS3,
       'Geocode Status': status,
       'Home ATZ' : this['Home ATZ'],
-      'Home ZIP' : this['Home ZIP'],
-      'Home PCR' : this['Home PCR'],
+      'Home Zip Code' : this['Home Zip Code'],
+      'Home Carrier Route' : this['Home Carrier Route'],
       'Home Digital ATZ': this['Home Digital ATZ'],
       'Home County' : this['Home County'],
-      'Home DMA' : this['Home DMA']
-    
+      'Home DMA' : this['Home DMA'],   
     });
     if (status === 'PROVIDED') {
       result.Address = this.street;

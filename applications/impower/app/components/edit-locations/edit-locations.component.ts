@@ -112,4 +112,9 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       }
     };
   }
+
+  public formEdited() : void {
+      this.editLocationsForm['controls']['coord'].setValue('');
+  }
+  
 }

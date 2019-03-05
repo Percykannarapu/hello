@@ -145,7 +145,7 @@ export class OnlineAudienceApioComponent implements OnInit {
       distinctUntilChanged()
     );
     combineLatest(search$, this.includeFolder$).subscribe(([term, includeFolders]) => this.filterNodes(term, includeFolders));
-    this.stateSetvice.clearUI$.subscribe(() => this.clearSelections());
+    // this.stateSetvice.clearUI$.subscribe(() => this.clearSelections());
 
     this.parentAudienceService.audiences$.pipe(
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && (a.audienceSourceName === SourceTypes.Interest || a.audienceSourceName === SourceTypes.InMarket)))

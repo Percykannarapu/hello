@@ -1,0 +1,17 @@
+<div style="padding-left: 5em">
+  <div class="ui-g">
+    <div class="ui-g-6">
+      Total Distribution: {{totalDistribution}} &nbsp;&nbsp; Total Investment: {{totalInvestment}}
+    </div>
+    <div class="ui-g-6">
+      <button pbutton type="text" (click)="rightSidebarVisible = !rightSidebarVisible" pButton icon="pi pi-angle-left"
+        style="float: right;"></button>
+    </div>
+  </div>
+</div>
+
+
+<p-sidebar [(visible)]="rightSidebarVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
+  <val-dev-tools></val-dev-tools>
+  <val-map-controls (onPanelChange)="updatePanelSize($event)"></val-map-controls>
+</p-sidebar>

@@ -8,10 +8,12 @@ import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operator
 import { AppConfig } from '../app.config';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { LocalAppState } from '../state/app.interfaces';
+import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
@@ -22,10 +24,8 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
-import { AppStateService, Season } from './app-state.service';
 import { AppProjectPrefService } from './app-project-pref.service';
-import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
-import { InTransaction } from '../val-modules/common/services/datastore.service';
+import { AppStateService, Season } from './app-state.service';
 
 const boundaryAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
@@ -67,7 +67,7 @@ export class AppGeoService {
     this.setupMapClickEventHandler();
 
     // Detect changes in must covers list and call ensureMustCovers
-    this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable()
+    this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
     this.allMustCovers$.subscribe(mustCovers => {
        //mustCovers.forEach(mustCover => console.debug("### APP-GEO-SERVICE - allMustCoverObs - ", mustCover));
        this.ensureMustCovers();
@@ -82,6 +82,11 @@ export class AppGeoService {
        // Clear must covers
        this.impGeoService.clearMustCovers();
     });
+  }
+
+  clearAll() : void {
+    this.impGeoService.clearAll();
+    this.impAttributeService.clearAll();
   }
 
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
@@ -111,11 +116,11 @@ export class AppGeoService {
     // remove from data stores
     const attributes = simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs));
     geos.forEach(geo => geo.impGeofootprintGeoAttribs = []);
-    this.impGeoService.remove(geos);
     if (attributes.length > 0) {
       attributes.forEach(a => a.impGeofootprintGeo = null);
       this.impAttributeService.remove(attributes);
     }
+    this.impGeoService.remove(geos);
   }
 
   /**
@@ -151,7 +156,7 @@ export class AppGeoService {
       // keep locations that have a home geocode identified
       map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
       // keep locations that have not had a home geocoding error
-      map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y').length === 0)),
+      //map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y').length === 0)),
       // keep locations that have trade areas defined
       map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType))).length > 0)),
       // keep sites that do not already have their home geo selected
@@ -223,8 +228,8 @@ export class AppGeoService {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
     this.logger.debug('Select and Persist Radius Geos', tradeAreas);
     const key = 'selectAndPersistRadiusGeos';
-    const allLocations = tradeAreas.map(ta => ta.impGeofootprintLocation);
-    const locationChunks = this.partitionLocations(allLocations);
+    const allLocations = new Set(tradeAreas.map(ta => ta.impGeofootprintLocation));
+    const locationChunks = this.partitionLocations(Array.from(allLocations));
     const queries: Observable<Map<ImpGeofootprintLocation, AttributeDistance[]>>[] = [];
     const tradeAreaSet = new Set(tradeAreas);
     const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
@@ -247,9 +252,10 @@ export class AppGeoService {
         },
         () => {
             const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
+            this.finalizeTradeAreas(tradeAreas);
 
             // Add the must covers to geosToPersist
-            this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), tradeAreaSet, geosToPersist).subscribe(results => {
+            this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), geosToPersist).subscribe(results => {
                results.forEach(result => {
                   console.log('Added ', results.length, ' must cover geos');
                   geosToPersist.push(result);
@@ -257,7 +263,6 @@ export class AppGeoService {
             }
             , err => {console.log('ERROR occurred ensuring must covers: ', err); }
             , () => {
-               this.finalizeTradeAreas(tradeAreas);
                this.impGeoService.add(geosToPersist);
                this.store$.dispatch(new StopBusyIndicator({ key }));
             });
@@ -448,10 +453,9 @@ export class AppGeoService {
    * The observable will return an array of ImpGeofootprintGeos.
    *
    * @param locations Array of locations that must cover geos can get assigned to
-   * @param tradeAreaSet Set of trade areas, which new must cover TAs can get added to
    * @param geos Array of existing geos to be compared against the must cover list
    */
-   public ensureMustCoversObs(locations: ImpGeofootprintLocation[], tradeAreaSet: Set<ImpGeofootprintTradeArea>, geos: ImpGeofootprintGeo[]) : Observable<ImpGeofootprintGeo[]> {
+   public ensureMustCoversObs(locations: ImpGeofootprintLocation[], geos: ImpGeofootprintGeo[]) : Observable<ImpGeofootprintGeo[]> {
       if (this.processingMustCovers)
          return Observable.create(async observer => observer.complete());
 
@@ -479,10 +483,6 @@ export class AppGeoService {
       // If no locations provided, pull them all
       if (locations == null || locations.length === 0)
          locations = this.locationService.get();
-
-      // If no trade areas are provided, pull them all
-      if (tradeAreaSet == null || tradeAreaSet.size === 0)
-         tradeAreaSet = new Set(this.tradeAreaService.get());
 
       // Determine which must covers are not in the list of geos
       const diff = this.impGeoService.mustCovers.filter(x => !geos.map(geo => geo.geocode).includes(x));
@@ -595,7 +595,7 @@ export class AppGeoService {
       const key = 'ensureMustCovers';
       this.store$.dispatch(new StartBusyIndicator({ key: key, message: 'Ensuring Must Covers' }));
       // Add the must covers to geosToPersist
-      this.ensureMustCoversObs(null, null, null).subscribe(results => {
+      this.ensureMustCoversObs(null, null).subscribe(results => {
          //console.debug("### ensureMustCovers is pushing " + ((results != null) ? results.length : 0) + " geos");
          results.forEach(result => geosToPersist.push(result));
       }
@@ -676,15 +676,17 @@ export class AppGeoService {
   private filterGeosImpl(geos: ImpGeofootprintGeo[]) {
     console.log('Filtering Geos Based on Flags');
     const currentProject = this.appStateService.currentProject$.getValue();
-    if (currentProject == null || geos == null || geos.length === 0) return;
+    // filter out geos belonging to audience trade areas
+    const currentGeos = geos.filter(g => TradeAreaTypeCodes.parse(g.impGeofootprintTradeArea.taType) !== TradeAreaTypeCodes.Audience);
+    if (currentProject == null || currentGeos == null || currentGeos.length === 0) return;
 
     const includeValassis = currentProject.isIncludeValassis;
     const includeAnne = currentProject.isIncludeAnne;
     const includeSolo = currentProject.isIncludeSolo;
     const includePob = !currentProject.isExcludePob;
-    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
 
     if (ownerGroupGeosMap.has('VALASSIS')) {
       ownerGroupGeosMap.get('VALASSIS').forEach(geo => {

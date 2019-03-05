@@ -232,7 +232,7 @@ export class ImpDomainFactoryService {
         if (key.toLowerCase().startsWith('home')) {
           switch (analysisLevel) {
             case 'ZIP': {
-              if (key.toLowerCase().match('zip')) {
+              if (key.toLowerCase().match('zip') && key.toLowerCase().match('code')) {
                 result.homeGeocode = res[key];
               }
               break;

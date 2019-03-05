@@ -10,6 +10,9 @@ export class ValGeocodingResponse {
   Market: string;
   Description: string;
   Group: string;
+  RADIUS1: number;
+  RADIUS2: number;
+  RADIUS3: number;
   'Market Code': string;
   'Original Address': string;
   'Original City': string;
@@ -20,8 +23,8 @@ export class ValGeocodingResponse {
   'Match Quality': string;
   'CarrierRoute': string;
   'Home ATZ' : string;
-  'Home ZIP' : string;
-  'Home PCR' : string;
+  'Home Zip Code':string;
+  'Home Carrier Route': string; 
   'Home Digital ATZ' : string;
   'Home County' : string;
   'Home DMA' : string;

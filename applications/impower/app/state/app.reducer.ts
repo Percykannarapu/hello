@@ -4,11 +4,13 @@ import { environment } from '../../environments/environment';
 import { LocalAppState } from './app.interfaces';
 import { dataShimReducer } from './data-shim/data-shim.reducer';
 import { menuReducer } from './menu/menu.reducer';
+import { homeGeoReducer } from './homeGeocode/homeGeo.reducer';
 
 export const appReducer: ActionReducerMap<LocalAppState> = {
   router: routerReducer,
   dataShim: dataShimReducer,
-  menu: menuReducer
+  menu: menuReducer,
+  homeGeo: homeGeoReducer
 };
 
 export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<LocalAppState> {

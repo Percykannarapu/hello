@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { AppLocationService } from './app-location.service';
 import { AppProjectService } from './app-project.service';
 import { TargetAudienceService } from './target-audience.service';
 import { AppStateService } from './app-state.service';
@@ -23,11 +24,12 @@ import { TargetAudienceCustomService } from './target-audience-custom.service';
 export class AppDataShimService {
 
   constructor(private appProjectService: AppProjectService,
-              private appStateService: AppStateService,
+              private appLocationService: AppLocationService,
               private appTradeAreaService: AppTradeAreaService,
+              private appGeoService: AppGeoService,
+              private appStateService: AppStateService,
               private targetAudienceService: TargetAudienceService,
               private targetAudienceCustomService: TargetAudienceCustomService,
-              private appGeoService: AppGeoService,
               private store$: Store<LocalAppState>) { }
 
   save() : Observable<number> {
@@ -35,6 +37,7 @@ export class AppDataShimService {
   }
 
   load(id: number) : Observable<number> {
+    this.clearAll();
     this.targetAudienceService.clearAll();
     this.appStateService.clearUserInterface();
     return this.appProjectService.load(id);
@@ -48,6 +51,7 @@ export class AppDataShimService {
   }
 
   createNew() : number {
+    this.clearAll();
     this.targetAudienceService.clearAll();
     this.appStateService.clearUserInterface();
     return this.appProjectService.createNew();
@@ -60,5 +64,13 @@ export class AppDataShimService {
       return false;
     }
     return true;
+  }
+
+  clearAll() : void {
+    this.appProjectService.clearAll();
+    this.appLocationService.clearAll();
+    this.appTradeAreaService.clearAll();
+    this.appGeoService.clearAll();
+    this.appProjectService.finalizeClear();
   }
 }

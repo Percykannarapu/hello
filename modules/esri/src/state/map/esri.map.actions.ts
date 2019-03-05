@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 import { ElementRef } from '@angular/core';
 import { EsriMapToolbarButtonActions } from './esri.map-button.actions';
-import { EsriLabelConfiguration } from './esri.map.reducer';
+import { EsriLabelConfiguration, EsriLabelLayerOptions } from './esri.map.reducer';
 
 export enum EsriMapActionTypes {
   InitializeMap = '[Esri Map] Initialize',
@@ -13,7 +13,11 @@ export enum EsriMapActionTypes {
   MapClicked = '[Esri Map] Click Event',
   FeaturesSelected = '[Esri Map] Features Selected',
   SetSelectedLayer = '[Esri Map] Set Selected Layer Id',
-  SetLabelConfiguration = '[Esri Map] Set Label Configuration'
+  SetLabelConfiguration = '[Esri Map] Set Label Configuration',
+
+  SetLayerLabelExpressions = '[Esri Map] Set Layer Label Expressions',
+
+  ResetMapState = '[Esri Map] Reset State'
 }
 
 export class InitializeMap implements Action {
@@ -65,6 +69,15 @@ export class SetLabelConfiguration implements Action {
   constructor(public payload: { labelConfiguration: EsriLabelConfiguration }){}
 }
 
+export class SetLayerLabelExpressions implements Action {
+  readonly type = EsriMapActionTypes.SetLayerLabelExpressions;
+  constructor(public payload: { expressions: { [layerId: string] : EsriLabelLayerOptions } }) {}
+}
+
+export class ResetMapState implements Action {
+    readonly type = EsriMapActionTypes.ResetMapState;
+}
+
 export type EsriMapActions =
   InitializeMap
   | InitializeMapSuccess
@@ -77,4 +90,6 @@ export type EsriMapActions =
   | EsriMapToolbarButtonActions
   | SetSelectedLayer
   | SetLabelConfiguration
+  | SetLayerLabelExpressions
+  | ResetMapState
   ;

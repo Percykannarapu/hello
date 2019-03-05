@@ -28,9 +28,13 @@
     <move todir="${DIST_ROOT}/sfdc-deploy/main-js">
       <fileset dir="${CPQ_MAPS_DIST}">
         <include name="main.*"/>
-        <include name="primeicons.*"/>
-        <include name="open-sans-*.*"/>
         <include name="assets/*"/>
+        <include name="assets/fonts/*"/>
+        <include name="assets/images/*"/>
+        <include name="assets/themes/base/images/*"/>
+        <include name="assets/themes/base/icons/fonts/*"/>
+        <include name="assets/themes/base/fonts/avenir-next/*"/>
+        <include name="assets/themes/dgrid/css/images/*"/>
       </fileset>
     </move>
     <zip destfile="${DIST_ROOT}/sfdc-deploy/main-js.zip" basedir="${DIST_ROOT}/sfdc-deploy/main-js" level="9"/>

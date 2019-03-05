@@ -7,7 +7,7 @@ import { SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { EsriMapService } from '../../services/esri-map.service';
-import { AppState, internalSelectors } from '../esri.selectors';
+import { AppState, internalSelectors, selectors } from '../esri.selectors';
 import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, SetPopupVisibility } from './esri.map.actions';
 
 @Injectable()
@@ -34,6 +34,13 @@ export class EsriMapEffects {
   handlePopupVisibilityChange$ = this.actions$.pipe(
     ofType<SetPopupVisibility>(EsriMapActionTypes.SetPopupVisibility),
     tap(action => this.layerService.setAllPopupStates(action.payload.isVisible))
+  );
+
+  @Effect({ dispatch: false })
+  handleLabels$ = this.actions$.pipe(
+    ofType(EsriMapActionTypes.SetLabelConfiguration, EsriMapActionTypes.SetLayerLabelExpressions),
+    withLatestFrom(this.store$.pipe(select(selectors.getEsriLabelConfiguration)), this.store$.pipe(select(internalSelectors.getEsriLayerLabelExpressions))),
+    tap(([action, labelConfig, layerConfig]) => this.layerService.setLabels(labelConfig, layerConfig))
   );
 
   constructor(private actions$: Actions,

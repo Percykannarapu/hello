@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
-import { Statistics, ShadingData } from './esri.renderer.reducer';
+import { Statistics, ShadingData, HighlightMode } from './esri.renderer.reducer';
+import { ColorPallete } from '../../models/ColorPalletes';
 
 export enum EsriRendererActionTypes {
   SetShadingData = '[Esri Renderer] Set Shading Data',
@@ -7,6 +8,12 @@ export enum EsriRendererActionTypes {
 
   SetSelectedGeos = '[Esri Renderer] Set Selected Geos',
   ClearSelectedGeos = '[Esri Renderer] Clear Selected Geos',
+  SetHighlightOptions = '[Esri Renderer] Set highlight options',
+}
+
+export class SetHighlightOptions implements Action {
+  readonly type = EsriRendererActionTypes.SetHighlightOptions;
+  constructor(public payload: { higlightMode: HighlightMode, layerGroup: string, layer: string, colorPallete: ColorPallete, groups?: { groupName: string, ids: string[] }[] }){}
 }
 
 export class SetShadingData implements Action {
@@ -32,4 +39,5 @@ export type EsriRendererActions =
   | ClearShadingData
   | SetSelectedGeos
   | ClearSelectedGeos
+  | SetHighlightOptions
   ;

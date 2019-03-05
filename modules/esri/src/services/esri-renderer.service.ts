@@ -4,7 +4,8 @@ import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapState } from '../state/map/esri.map.reducer';
-import { ShadingData, Statistics } from '../state/map/esri.renderer.reducer';
+import { ShadingData, Statistics, HighlightMode } from '../state/map/esri.renderer.reducer';
+import { ColorPallete, getColorPallete } from '../models/ColorPalletes';
 
 export enum SmartMappingTheme {
   HighToLow = 'high-to-low',
@@ -328,6 +329,52 @@ export class EsriRendererService {
     return result;
   }
 
+  public shadeSelection(featureSet: __esri.FeatureSet, groupName: string, layerName: string) {
+    const graphics: Array<__esri.Graphic> = [];
+    for (const feature of featureSet.features) {
+      const symbol = EsriRendererService.createSymbol([0, 255, 0, 0.65], [0, 0, 0, 0.65], 1);
+      const graphic: __esri.Graphic = new EsriApi.Graphic();
+      graphic.symbol = symbol;
+      graphic.geometry = feature.geometry;
+      graphics.push(graphic);
+    }
+    if (this.layerService.getAllLayerNames().filter(name => name === layerName).length > 0) {
+      this.layerService.removeLayer(layerName);
+    }
+    this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+  }
+
+  public shadeGroups(featureSet: __esri.FeatureSet, groupName: string, layerName: string, shadingGroups: { groupName: string, ids: string[] }[], colorPallete = ColorPallete.RANDOM) {
+    const colors: Array<__esri.Color> = EsriRendererService.getRandomColors(null, shadingGroups.length);
+    const graphics: Array<__esri.Graphic> = [];
+    const shadedFeatures: Set<string> = new Set<string>();
+    for (let i = 0; i < shadingGroups.length; i++) {
+      const idSet: Set<string> = new Set(shadingGroups[i].ids);
+      const siteGraphics: Array<__esri.Graphic> = [];
+      for (const feature of featureSet.features) {
+        if (idSet.has(feature.getAttribute('geocode')) && !shadedFeatures.has(feature.getAttribute('geocode'))) {
+          let symbol: __esri.Symbol = null;
+          if (colorPallete === ColorPallete.RANDOM) {
+            symbol = EsriRendererService.createSymbol(colors[i], [0, 0, 0, 0], 1);
+          } else {
+            const pallete: number [][] = getColorPallete(colorPallete);
+            symbol = EsriRendererService.createSymbol(pallete[i % pallete.length], [0, 0, 0, 0], 1);
+          }
+          const graphic: __esri.Graphic = new EsriApi.Graphic();
+          graphic.symbol = symbol;
+          graphic.geometry = feature.geometry;
+          siteGraphics.push(graphic);
+          shadedFeatures.add(feature.getAttribute('geocode'));
+        }
+      }
+      graphics.push(...siteGraphics);
+    }
+    if (this.layerService.getAllLayerNames().filter(name => name === layerName).length > 0) {
+      this.layerService.removeLayer(layerName);
+    }
+    this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+  }
+
   public highlightSelection(layerId: string, objectIds: number[]) {
     if (!layerId) return;
     const layerView = this.getLayerView(layerId);
@@ -338,6 +385,7 @@ export class EsriRendererService {
   }
 
   public clearHighlight() : void {
+    console.log('Clearing Highlights');
     if (this.highlightHandler != null) this.highlightHandler.remove();
   }
 }

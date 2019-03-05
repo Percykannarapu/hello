@@ -48,10 +48,11 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.dma.boundary,
         name: 'DMA Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
         popupTitle: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
         minScale: undefined,
-        popUpFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long']
+        popUpFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long'],
+        labelExpression: '$feature.dma_code',
+        labelFontSizeOffset: 6
       }
     },
     counties: {
@@ -63,10 +64,11 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.counties.boundary,
         name: 'County Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
         popupTitle: 'County: {COUNTY_NAM}, {STATE_ABBR}',
         minScale: undefined,
-        popUpFields: ['gdt_id', 'county_nam', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN']
+        popUpFields: ['gdt_id', 'county_nam', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN'],
+        labelExpression: 'TEXT($feature.state_fips, "00") + TEXT($feature.county_fip, "000") + TextFormatting.NewLine + $feature.county_nam',
+        labelFontSizeOffset: 4
       }
     },
     wrap: {
@@ -78,10 +80,11 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.wrap.boundary,
         name: 'Wrap Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
         minScale: 4622342,
-        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
+        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
+        labelExpression: '$feature.geocode',
+        labelFontSizeOffset: 2
       }
     },
     zip: {
@@ -93,23 +96,26 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.zip.centroid,
         name: 'ZIP Centroids',
         defaultVisibility: false,
-        isBoundary: false,
+        sortOrder: 1,
         popupTitle: '',
         minScale: 1155600,
-        popUpFields: []
+        popUpFields: [],
+        labelExpression: null
       },
       boundaries: { // ZIP Top Vars
         id: EnvironmentData.layerIds.zip.boundary,
         name: 'ZIP Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
+        sortOrder: 0,
         popupTitle: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
-        }
+        },
+        labelExpression: '$feature.geocode',
+        labelFontSizeOffset: 2
       }
     },
     atz: {
@@ -121,23 +127,26 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.atz.centroid,
         name: 'ATZ Centroids',
         defaultVisibility: false,
-        isBoundary: false,
+        sortOrder: 1,
         popupTitle: '',
         minScale: 1155600,
-        popUpFields: []
+        popUpFields: [],
+        labelExpression: null
       },
       boundaries: { // ATZ_Top_Vars
         id: EnvironmentData.layerIds.atz.boundary,
         name: 'ATZ Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
+        sortOrder: 0,
         popupTitle: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
-        }
+        },
+        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
+        labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
       }
     },
     digital_atz: {
@@ -149,23 +158,26 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.dtz.centroid,
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
-        isBoundary: false,
+        sortOrder: 1,
         popupTitle: '',
         minScale: 577790,
-        popUpFields: []
+        popUpFields: [],
+        labelExpression: null
       },
       boundaries: { // DIG_ATZ_Top_Vars
         id: EnvironmentData.layerIds.dtz.boundary,
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
+        sortOrder: 0,
         popupTitle: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 577790,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
-        }
+        },
+        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
+        labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
       }
     },
     pcr: {
@@ -177,23 +189,26 @@ export class AppConfig implements LoggingConfiguration {
         id: EnvironmentData.layerIds.pcr.centroid,
         name: 'PCR Centroids',
         defaultVisibility: false,
-        isBoundary: false,
+        sortOrder: 1,
         popupTitle: '',
         minScale: 577790, // turn on at scale level 10
-        popUpFields: []
+        popUpFields: [],
+        labelExpression: null
       },
       boundaries: {
         id: EnvironmentData.layerIds.pcr.boundary,
         name: 'PCR Boundaries',
         defaultVisibility: true,
-        isBoundary: true,
+        sortOrder: 0,
         popupTitle: 'PCR: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 577790,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00', 'language']
-        }
+        },
+        labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
+        labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
       }
     }
   };

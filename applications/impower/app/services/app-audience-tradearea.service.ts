@@ -35,7 +35,7 @@ export enum SmartTile {
   AVERAGE = 'Average',
   BELOW_AVERAGE = 'Below Average',
   LOW = 'Low',
-  EXTREMELY_LOW = 'Extrememly Low'
+  EXTREMELY_LOW = 'Extremely Low'
 }
 
 interface AudienceTradeareaResponse {
@@ -293,6 +293,11 @@ export class ValAudienceTradeareaService {
             this.createGeos(audienceTAConfig, location);
           }
 
+          const selectedGeocodes = new Set(this.geoCache.filter(g => g.isActive).map(g => g.geocode));
+          this.geoCache.forEach(g => {
+            if (selectedGeocodes.has(g.geocode)) g.isActive = true;
+          });
+/*
           const geocodeValues = this.geoCache.map(val => val.geocode);
           const repeatValues = [];
           const uniqueValues = [];
@@ -323,7 +328,7 @@ export class ValAudienceTradeareaService {
               }
             }
           }
-
+*/
           for (const location of allLocations) {
             const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
             const newTradeArea = this.createTradeArea(locationGeos, location);
@@ -342,6 +347,7 @@ export class ValAudienceTradeareaService {
           this.appTradeAreaService.zoomToTradeArea();
           this.targetAudienceTAService.addAudiences(this.taResponses, audienceTAConfig.digCategoryId, this.audienceTAConfig);
           this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
+          //console.log('Geos before finalizing Audience TA', this.geoCache.map(g => ({ geocode: g.geocode, isActive: g.isActive })));
           this.geoCache = new Array<ImpGeofootprintGeo>();
           this.audienceTaSubject.next(true);
           this.store$.dispatch(new StopBusyIndicator({ key }));
@@ -398,12 +404,6 @@ export class ValAudienceTradeareaService {
   /**
    * Recreate trade areas without requesting data again from the Fuse service
    * We can do this as long as no locations have changed since the last run
-   * @param minRadius The minimum, must cover radius, for the trade areas
-   * @param maxRadius The maximum radius for the trade areas
-   * @param tiles The currently active smart tile values selected by the user
-   * @param digCategoryId The digital category ID seledcted by the user
-   * @param weight The weight of the selected variable vs the distance
-   * @param scoreType The score type, DMA or National
    */
   private rerunTradearea(audienceTAConfig: AudienceTradeAreaConfig) : Observable<boolean> {
     return Observable.create(obs => {
@@ -412,6 +412,11 @@ export class ValAudienceTradeareaService {
           this.createGeos(audienceTAConfig, location);
         }
 
+        const selectedGeocodes = new Set(this.geoCache.filter(g => g.isActive).map(g => g.geocode));
+        this.geoCache.forEach(g => {
+          if (selectedGeocodes.has(g.geocode)) g.isActive = true;
+        });
+/*
         const geocodeValues = this.geoCache.map(val => val.geocode);
         const repeatValues = [];
         const uniqueValues = [];
@@ -442,7 +447,7 @@ export class ValAudienceTradeareaService {
             }
           }
         }
-
+*/
         for (const location of this.locationService.get()) {
           const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
           this.createTradeArea(locationGeos, location);
@@ -625,6 +630,7 @@ export class ValAudienceTradeareaService {
     const audiences = this.targetAudienceService.getAudiences();
     const audience = audiences.filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === audienceTAConfig.digCategoryId)[0];
 
+    //console.log('taResponses', taResponseMap);
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
       const taResponse = taResponseMap.get(i);

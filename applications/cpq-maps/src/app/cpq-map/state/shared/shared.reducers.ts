@@ -6,10 +6,13 @@ export interface SharedState {
    entitiesLoading: boolean;
    rfpUiReviewLoaded: boolean;
    rfpUiEditLoaded: boolean;
+   rfpUiEditWrapLoaded: boolean;
    rfpUiEditDetailLoaded: boolean;
    activeMediaPlanId: number;
    radius: number;
    analysisLevel: string;
+   isWrap: boolean;
+   isDistrQtyEnabled: boolean;
 }
 
 const initialState: SharedState = {
@@ -18,14 +21,21 @@ const initialState: SharedState = {
    entitiesLoading: false,
    rfpUiReviewLoaded: false,
    rfpUiEditLoaded: false,
+   rfpUiEditWrapLoaded: false,
    rfpUiEditDetailLoaded: false,
    activeMediaPlanId: null,
    radius: null,
-   analysisLevel: null
+   analysisLevel: null,
+   isWrap: false,
+   isDistrQtyEnabled: false
 };
 
 export function sharedReducer(state = initialState, action: SharedActions) : SharedState {
    switch (action.type) {
+      case SharedActionTypes.SetIsDistrQtyEnabled:
+         return { ...state, isDistrQtyEnabled: action.payload.isDistrQtyEnabled };
+      case SharedActionTypes.SetIsWrap:
+         return { ...state, isWrap: action.payload.isWrap };
       case SharedActionTypes.SetAnalysisLevel:
          return { ...state, analysisLevel: action.payload.analysisLevel };
       case SharedActionTypes.SetRadius:
@@ -34,6 +44,8 @@ export function sharedReducer(state = initialState, action: SharedActions) : Sha
          return { ...state, activeMediaPlanId: action.payload.mediaPlanId };
       case SharedActionTypes.RfpUiEditLoaded:
          return { ...state, rfpUiEditLoaded: action.payload.rfpUiEditLoaded };
+      case SharedActionTypes.RfpUiEditWrapLoaded:
+         return { ...state, rfpUiEditWrapLoaded: action.payload.rfpUiEditWrapLoaded };
       case SharedActionTypes.RfpUiEditDetailLoaded:
          return { ...state, rfpUiEditDetailLoaded: action.payload.rfpUiEditDetailLoaded };
       case SharedActionTypes.RfpUiReviewLoaded:

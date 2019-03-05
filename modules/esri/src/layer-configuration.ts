@@ -7,9 +7,12 @@ interface LayerBase {
   id: string;
   name: string;
   defaultVisibility: boolean;
-  isBoundary: boolean;
+  sortOrder?: number;
   popupTitle: string;
   minScale: number;
+  labelExpression?: string;
+  labelFontSizeOffset?: number;
+  labelColorOverride?: { a: number, r: number, g: number, b: number };
 }
 
 interface StandardPopUpLayer extends LayerBase {

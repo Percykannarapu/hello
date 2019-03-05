@@ -43,16 +43,13 @@ export class MediaPlanGroupLoaderService {
     mediaPlanGroup.mediaPlans = payload.mediaPlans.map(m => m.mediaPlanId);
     return {
       mediaPlanGroup: mediaPlanGroup,
-      
-      // We are not using the rest of these entities right now
-      /*mediaPlans: this.normalizeMediaPlans(payload),
+      mediaPlans: this.normalizeMediaPlans(payload),
       commonMbus: this.normalizeCommonMbus(payload),
       lines: this.normalizeLines(payload),
       productAllocations: this.normalizeProductAllocations(payload),
       targetAudiencePrefs: this.normalizeTargetAudiencePrefs(payload),
       advertiserInfos: this.normalizeAdvertiserInfos(payload),
-      reports: this.normalizeReports(payload)*/
-      
+      reports: this.normalizeReports(payload)
     };
   }
 

@@ -8,11 +8,29 @@ export enum SharedActionTypes {
   LoadEntityGraph = '[Shared Actions] Load Entity Graph',
   EntitiesLoading = '[Shared Actions] Entities Loading',
   RfpUiEditLoaded = '[Shared Actions] RfpUiEdit Loaded',
+  RfpUiEditWrapLoaded = '[Shared Actions] RfpUiEditWrap Loaded',
   RfpUiEditDetailLoaded = '[Shared Actions] RfpUiEditDetail Loaded',
   RfpUiReviewLoaded = '[Shared Actions] RfpUiReview Loaded',
   SetActiveMediaPlanId = '[Shared Actions] Set Active Media Plan',
   SetRadius = '[Shared Actions] Set Radius',
-  SetAnalysisLevel = '[Shared Actions] Set Analysis Level'
+  SetAnalysisLevel = '[Shared Actions] Set Analysis Level',
+  SetIsWrap = '[Shared Actions] Set isWrap',
+  SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled'
+}
+
+export class SetIsDistrQtyEnabled implements Action {
+  readonly type = SharedActionTypes.SetIsDistrQtyEnabled;
+  constructor(public payload: { isDistrQtyEnabled: boolean }) { }
+}
+
+export class RfpUiEditWrapLoaded implements Action {
+  readonly type = SharedActionTypes.RfpUiEditWrapLoaded;
+  constructor(public payload: { rfpUiEditWrapLoaded: boolean }) { }
+}
+
+export class SetIsWrap implements Action {
+  readonly type = SharedActionTypes.SetIsWrap;
+  constructor(public payload: { isWrap: boolean }) { }
 }
 
 export class SetAnalysisLevel implements Action {
@@ -71,8 +89,12 @@ export type SharedActions =
   | LoadEntityGraph
   | EntitiesLoading
   | RfpUiEditLoaded
+  | RfpUiEditWrapLoaded
   | RfpUiEditDetailLoaded
   | RfpUiReviewLoaded
   | SetActiveMediaPlanId
   | SetRadius
-  | SetAnalysisLevel;
+  | SetAnalysisLevel
+  | SetIsWrap
+  | SetIsDistrQtyEnabled
+  ;

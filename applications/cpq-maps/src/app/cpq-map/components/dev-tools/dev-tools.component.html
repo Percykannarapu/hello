@@ -6,6 +6,7 @@
 <br>
 <br>
 <p-card>
+    <p style="text-align: center; font-size: large;">Developer Controls</p>
   <div *ngIf="groupId != null">
     <p>Current Media Plan Group ID: {{groupId}}</p>
     <p>Current Media Plan ID: {{currentMediaPlanId}}</p>
@@ -17,7 +18,7 @@
   <br>
   <div *ngIf="mediaPlanIds.length > 0">
     <p-dropdown #mpIds [options]="mediaPlanIds" id="mpIds"></p-dropdown>&nbsp;&nbsp;
-    <button pButton type="button" label="Update Selected Media Plan" (click)="setActiveMediaPlan()" style="color: black"></button>
+    <button pButton type="button" label="Update Selected Media Plan" (click)="setActiveMediaPlan()"></button>
   </div>
   
 </p-card>

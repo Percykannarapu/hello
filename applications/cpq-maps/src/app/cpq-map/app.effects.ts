@@ -1,23 +1,20 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { SharedActionTypes, SetAppReady, SetGroupId, EntitiesLoading, RfpUiEditDetailLoaded, RfpUiEditLoaded, RfpUiReviewLoaded, SetActiveMediaPlanId } from './state/shared/shared.actions';
-import { tap, filter, switchMap, map, catchError, delay, withLatestFrom, mergeMap } from 'rxjs/operators';
+import { SharedActionTypes, SetAppReady, SetGroupId, EntitiesLoading, RfpUiEditDetailLoaded, RfpUiEditLoaded, RfpUiReviewLoaded, SetActiveMediaPlanId, RfpUiEditWrapLoaded, SetIsDistrQtyEnabled } from './state/shared/shared.actions';
+import { tap, filter, switchMap, map, catchError, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { LocalState, FullState } from './state';
 import { MediaPlanGroupLoaderService } from './services/mediaplanGroup-loader-service';
-import { ClearSelectedGeos, SetSelectedGeos } from '@val/esri';
-import { RfpUiEditDetailLoaderService } from './services/RfpUiEditDetail-loader-service';
-import { RfpUiReviewLoaderService } from './services/rfpUiReview-loader-service';
-import { AddRfpUiEditDetails, ClearRfpUiEditDetails } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { AddRfpUiReviews, ClearRfpUiReviews } from './state/rfpUiReview/rfp-ui-review.actions';
-import { RfpUiEditLoaderService } from './services/rfpUiEdit-loader-service';
-import { AddRfpUiEdits, ClearRfpUiEdits } from './state/rfpUiEdit/rfp-ui-edit.actions';
-import { RfpUiEditDetailState } from './state/rfpUiEditDetail/rfp-ui-edit-detail.reducer';
+import { ClearSelectedGeos } from '@val/esri';
+import { ClearRfpUiEditDetails } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { ClearRfpUiReviews } from './state/rfpUiReview/rfp-ui-review.actions';
+import { ClearRfpUiEdits } from './state/rfpUiEdit/rfp-ui-edit.actions';
 import { AddMediaPlanGroup, MediaPlanGroupActionTypes, ClearMediaPlanGroups } from './state/mediaPlanGroup/media-plan-group.actions';
 import { AppLayerService } from './services/app-layer-service';
 import { UniversalCoordinates } from '@val/common';
 import { RfpUiEditState } from './state/rfpUiEdit/rfp-ui-edit.reducer';
+import { EntityHelper } from './services/entity-helper-service';
 
 @Injectable()
 export class AppEffects {
@@ -25,11 +22,9 @@ export class AppEffects {
   constructor(private actions$: Actions, 
     private store$: Store<LocalState>, 
     private mediaPlanGroupLoader: MediaPlanGroupLoaderService,
-    private rfpUiEditDetailLoader: RfpUiEditDetailLoaderService,
-    private rfpUiReviewLoader: RfpUiReviewLoaderService,
-    private rfpUiEditLoader: RfpUiEditLoaderService,
     private appLayerService: AppLayerService,
-    private fullStore$: Store<FullState>) { }
+    private fullStore$: Store<FullState>,
+    private entityHelper: EntityHelper) { }
 
   // When a new active media plan is selected we need to clear the data stores
   // of previous data, we also clear the locations layer on the map to get rid
@@ -39,7 +34,8 @@ export class AppEffects {
   mediaPlanIdSet$ = this.actions$.pipe(
     ofType<SetActiveMediaPlanId>(SharedActionTypes.SetActiveMediaPlanId),
     filter((action) => action.payload != null),
-    tap((action) => this.appLayerService.removeLocationsLayer('Sites', 'Project Sites')),
+    tap((action) => this.appLayerService.removeLayer('Sites', 'Project Sites')),
+    tap((action) => this.appLayerService.removeLayer('Sites', 'Selected Geos')),
     tap((action) => this.fullStore$.dispatch(new ClearSelectedGeos())), 
     switchMap((action) => [
       new RfpUiEditLoaded({ rfpUiEditLoaded: false }),
@@ -58,7 +54,8 @@ export class AppEffects {
   @Effect()
   mediaPlanGroupCleared = this.actions$.pipe(
     ofType<ClearMediaPlanGroups>(MediaPlanGroupActionTypes.ClearMediaPlanGroups),
-    tap((action) => this.appLayerService.removeLocationsLayer('Sites', 'Project Sites')),
+    tap((action) => this.appLayerService.removeLayer('Sites', 'Project Sites')),
+    tap((action) => this.appLayerService.removeLayer('Sites', 'Selected Geos')),
     tap((action) => this.fullStore$.dispatch(new ClearSelectedGeos())),
     switchMap((action) => [
       new RfpUiEditLoaded({ rfpUiEditLoaded: false }),
@@ -95,52 +92,13 @@ export class AppEffects {
     ))
   );
 
-  // After the entities loading flag is set to true load the RfpUiEdit entity
-  @Effect()
-  loadRfpUiEdit$ = this.actions$.pipe(
+  // After the entities loading flag is set to true load the entities
+  @Effect({ dispatch: false })
+  loadEntities$ = this.actions$.pipe(
     ofType<EntitiesLoading>(SharedActionTypes.EntitiesLoading),
-    withLatestFrom(this.store$.select(state => state.shared)),
+    withLatestFrom(this.store$.select(state => state)),
     filter(([action, state]) => action.payload.entitiesLoading === true),
-    switchMap(([action, state]) => this.rfpUiEditLoader.loadRfpUiEdit(state.activeMediaPlanId).pipe(
-      map(fuseResult => this.rfpUiEditLoader.normalize(fuseResult)),
-      mergeMap(normalizedEntities => [
-        new AddRfpUiEdits({ rfpUiEdits: normalizedEntities.rfpUiEdits }),
-        new RfpUiEditLoaded({ rfpUiEditLoaded: true })
-      ]),
-      catchError(err => of(console.error(err)))
-    ))
-  );
-
-  // After the entities loading flag is set to true load the RfpUiEditDetails entity
-  @Effect()
-  loadRfpUiEditDetail$ = this.actions$.pipe(
-    ofType<EntitiesLoading>(SharedActionTypes.EntitiesLoading),
-    withLatestFrom(this.store$.select(state => state.shared)),
-    filter(([action, state]) => action.payload.entitiesLoading === true),
-    switchMap(([action, state]) => this.rfpUiEditDetailLoader.loadRfpUiEditDetail(state.activeMediaPlanId).pipe(
-      map(fuseResult => this.rfpUiEditDetailLoader.normalize(fuseResult)),
-      mergeMap(normalizedEntities => [
-        new AddRfpUiEditDetails({ rfpUiEditDetails: normalizedEntities.rfpUiEditDetails }),
-        new RfpUiEditDetailLoaded({ rfpUiEditDetailLoaded: true })
-      ]),
-      catchError(err => of(console.error(err)))
-    ))
-  );
-
-  // After the entities loading flag is set to true load the RfpUiReview entity
-  @Effect()
-  loadRfpUiReview$ = this.actions$.pipe(
-    ofType<EntitiesLoading>(SharedActionTypes.EntitiesLoading),
-    withLatestFrom(this.store$.select(state => state.shared)),
-    filter(([action, state]) => action.payload.entitiesLoading === true),
-    switchMap(([action, state]) => this.rfpUiReviewLoader.loadRfpUiReview(state.activeMediaPlanId).pipe(
-      map(fuseResult => this.rfpUiReviewLoader.normalize(fuseResult)),
-      mergeMap(normalizedEntities => [
-        new AddRfpUiReviews({ rfpUiReviews: normalizedEntities.rfpUiReviews }),
-        new RfpUiReviewLoaded({ rfpUiReviewLoaded: true })
-      ]),
-      catchError(err => of(console.error(err)))
-    ))
+    tap(([action, state]) => this.entityHelper.loadEntities(state))
   );
 
   // This effect uses the ESRI state, so I had to dispatch actions manually using the store
@@ -149,53 +107,30 @@ export class AppEffects {
   @Effect({ dispatch: false })
   setSelectedGeos$ = this.actions$.pipe(
     ofType<SetAppReady>(SharedActionTypes.SetAppReady),
-    withLatestFrom(this.store$.select(state => state)),
-    tap(([action, state]) => this.fullStore$.dispatch(new SetSelectedGeos(this.parseGeocodes(state.rfpUiEditDetail)))),
+    withLatestFrom(this.fullStore$.select(state => state)),
+    tap(([action, state]) => this.appLayerService.updateLabels(state)),
+    tap(([action, state]) => this.appLayerService.shadeBySite(state)),
     tap(([action, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state.rfpUiEdit))),
     tap(([action, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state.rfpUiEdit), state.shared.radius)),
     tap(([action, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state.rfpUiEdit))),
   );
 
-  // After RfpUiReview is loaded check to see if the other entities have finished loading
-  // if they have finished we can set the AppReady flag to true
-  @Effect()
-  rfpUiReviewLoaded$ = this.actions$.pipe(
-    ofType<RfpUiReviewLoaded>(SharedActionTypes.RfpUiReviewLoaded),
-    withLatestFrom(this.store$.select(state => state.shared)),
-    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true),
-    switchMap(([action, state]) => [
-      new EntitiesLoading({ entitiesLoading: false }),
-      new SetAppReady(true)
-    ]),
-    catchError(err => of(console.error(err)))
+  // As the entities are loaded we need to check the loading status across
+  // the 4 different types, if everything is loaded up we say the app is ready
+  @Effect({ dispatch: false })
+  entitiesLoaded$ = this.actions$.pipe(
+    ofType<RfpUiReviewLoaded | RfpUiEditLoaded | RfpUiEditDetailLoaded | RfpUiEditWrapLoaded>(SharedActionTypes.RfpUiReviewLoaded, SharedActionTypes.RfpUiEditLoaded, SharedActionTypes.RfpUiEditDetailLoaded, SharedActionTypes.RfpUiEditWrapLoaded),
+    withLatestFrom(this.store$.select(state => state)),
+    tap(([action, state]) => this.entityHelper.checkLoadingStatus(state))
   );
 
-  // After RfpUiEdit is loaded check to see if the other entities have finished loading
-  // if they have finished we can set the AppReady flag to true
-  @Effect()
-  rfpUiEditLoaded$ = this.actions$.pipe(
-    ofType<RfpUiEditLoaded>(SharedActionTypes.RfpUiEditLoaded),
-    withLatestFrom(this.store$.select(state => state.shared)),
-    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true),
-    switchMap(([action, state]) => [
-      new EntitiesLoading({ entitiesLoading: false }),
-      new SetAppReady(true)
-    ]),
-    catchError(err => of(console.error(err)))
-  );
-
-  // After RfpUiEditDetail is loaded check to see if the other entities have finished loading
-  // if they have finished we can set the AppReady flag to true
-  @Effect()
-  rfpUiEditDetailLoaded$ = this.actions$.pipe(
-    ofType<RfpUiEditDetailLoaded>(SharedActionTypes.RfpUiEditDetailLoaded),
-    withLatestFrom(this.store$.select(state => state.shared)),
-    filter(([action, state]) => state.rfpUiEditLoaded === true && state.rfpUiEditDetailLoaded === true && state.rfpUiReviewLoaded === true),
-    switchMap(([action, state]) => [
-      new EntitiesLoading({ entitiesLoading: false }),
-      new SetAppReady(true)
-    ]),
-    catchError(err => of(console.error(err)))
+  // If the isDistrQtyEnabled flag is changed we need to enable
+  // or disable the labels on the map
+  @Effect({ dispatch: false })
+  isDistryQtyEnabled$ = this.actions$.pipe(
+    ofType<SetIsDistrQtyEnabled>(SharedActionTypes.SetIsDistrQtyEnabled),
+    withLatestFrom(this.fullStore$.select(state => state)),
+    tap(([action, state]) => this.appLayerService.updateLabels(state))
   );
 
   private parseLocations(state: RfpUiEditState) : UniversalCoordinates[] {
@@ -204,13 +139,5 @@ export class AppEffects {
       coordinates.push({ x: state.entities[id].siteLong, y: state.entities[id].siteLat });
     }
     return coordinates;
-  }
-
-  private parseGeocodes(state: RfpUiEditDetailState) {
-    const geocodes: Array<string> = [];
-    for (const id of state.ids) {
-      geocodes.push(state.entities[id].geocode);
-    }
-    return geocodes;
   }
 }

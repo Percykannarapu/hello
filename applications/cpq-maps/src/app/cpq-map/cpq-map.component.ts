@@ -1,7 +1,8 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
 import { merge, Observable } from 'rxjs';
-import { EsriApi, EsriLayerService, EsriMapService, LayerDefinition, selectors } from '@val/esri';
-import { filter, take, tap, withLatestFrom } from 'rxjs/operators';
+import { EsriApi, EsriLayerService, EsriMapService, LayerDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
+import { distinctUntilChanged, filter, finalize, map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { ConfigService } from './services/config.service';
 import { select, Store } from '@ngrx/store';
 import { FullState } from './state';
@@ -16,9 +17,8 @@ import { FullState } from './state';
 })
 export class CpqMapComponent implements OnInit {
 
-  rightSidebarVisible = false;
-  leftSidebarVisible = false;
-  panelSize: 'small' | 'large' | 'none' = 'none';
+  private layersWithPOBs = new Set(['ZIP Boundaries', 'ATZ Boundaries', 'Digital ATZ Boundaries', 'PCR Boundaries']);
+  public panelSize = 'small';
 
   constructor(private layerService: EsriLayerService,
               private mapService: EsriMapService,
@@ -64,7 +64,36 @@ export class CpqMapComponent implements OnInit {
       const layerObservables = this.setupLayerGroup(key, value.filter(l => l != null));
       results.push(...layerObservables);
     });
-    return merge(...results, 2);
+    return merge(...results, 2).pipe(
+      finalize(() => {
+        this.updateLabelExpressions(false);
+        // set up sub for future label expression changes
+        this.store$.pipe(
+          select(selectors.getEsriLabelConfiguration),
+          map(config => config.pobEnabled),
+          distinctUntilChanged()
+        ).subscribe(showPOBs => this.updateLabelExpressions(showPOBs));
+      })
+    );
+  }
+
+  private updateLabelExpressions(showPOBs: boolean) : void {
+    const groupDefs = Object.values(this.config.layers);
+    const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
+    const labelLayerMap = mapByExtended(allLayers, l => l.id, l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset }));
+    this.store$.dispatch(new SetLayerLabelExpressions({ expressions: mapToEntity(labelLayerMap) }));
+  }
+
+  private getLabelExpression(l: LayerDefinition, showPOBs: boolean) : string {
+    if (this.layersWithPOBs.has(l.name)) {
+      if (showPOBs) {
+        return l.labelExpression;
+      } else {
+        return `IIF($feature.pob == "B", "", ${l.labelExpression})`;
+      }
+    } else {
+      return l.labelExpression;
+    }
   }
 
   private setupPortalGroup(groupName: string, analysisLevelName: string, state: FullState) : void {
@@ -93,5 +122,9 @@ export class CpqMapComponent implements OnInit {
       layerObservables.push(current);
     });
     return layerObservables;
+  }
+
+  public onPanelChange(event: any) {
+    this.panelSize = event;
   }
 }

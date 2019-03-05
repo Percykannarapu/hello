@@ -104,22 +104,7 @@
         }
       }
     }
-    stage('Run Tests') {
-      when {branch 'dev'}
-      steps {
-        echo 'run unit tests'
-        /*
-        sh '''
-            node --max-old-space-size=8192  ./node_modules/.bin/ng test
-            '''
-        echo 'run end to end tests'
-        sh '''
-            node --max-old-space-size=8192  ./node_modules/.bin/ng serve
-            node --max-old-space-size=8192  ./node_modules/.bin/ng e2e
-            '''
-         */
-      }
-    }
+    
     stage('Deploy to QA') {
       when {
         branch 'qa'
@@ -162,6 +147,73 @@
             sh '''
               /data/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=cpq-maps-angular -Dsonar.sources=applications/cpq-maps/src -Dsonar.host.url=http://valjenkins.valassis.com:9000 -Dsonar.login=d9215b9638829d52e61057f089badcbe482c34a9 -Dsonar.working.directory=.sonar-cpq-maps
               '''
+          }
+        }
+      }
+    }
+    stage('Run Tests') {
+      // disabled due to test scripts are not in good place for automation testing
+      when {branch 'disable'}
+      steps {
+        script {
+          try {
+            echo 'run unit tests'
+            def color
+            if (env.BRANCH_NAME == 'qa'){
+                  echo 'Automation test cases for QA'
+                  sh '''
+                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
+                    git pull
+                    git checkout qa
+                    git pull
+                  '''
+            }
+            else if (env.BRANCH_NAME == 'dev'){
+                  echo 'Automation test cases for Dev'
+                  sh '''
+                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
+                    git pull
+                    git checkout dev
+                    git pull
+                  '''
+            }
+            sh '''
+              xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
+              '''
+            color = '#BDFFC3'  
+          }
+          catch (Exception ex){
+            echo 'exception in test cases'
+            echo "current build number: ${currentBuild.number} ${env.JOB_NAME}"
+            sh '''
+              cd /robotTestcases/jenkins/reportLogs
+            '''
+            color = '#FFFE89'
+            emailext attachmentsPattern: 'log.html', 
+                     body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
+                     mimeType: 'text/html', attachLog: true, 
+                     subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed", 
+                     to: 'amcirillo@valassis.com GegenheiD@valassis.com ClawsonK@valassis.com reddyn@valassis.com KannarapuP@valassis.com PalathinkaraJ@valassis.com MadhukR@valassis.com CurmiN@valassis.com PeerE@valassis.com'
+            echo 'Test completed'
+          }
+          finally{
+            echo 'finally publish reports'
+            /*temporarily suspended , until test scripts corrected*/
+            /*step(
+              [
+                $class : 'RobotPublisher',
+                outputPath : '/robotTestcases/jenkins/reportLogs',
+                outputFileName : "output.xml",
+                disableArchiveOutput : false,
+                passThreshold : 100,
+                unstableThreshold: 95.0,
+                otherFiles : "*.png",
+              ]
+            )*/
+            echo 'send slack notifications'
+            slackSend channel: '#impower_test_results',
+                      color: color,
+                      message: "Job: ${env.JOB_NAME} build: ${env.BUILD_NUMBER} Result: ${currentBuild.currentResult}\nMore info at: ${env.BUILD_URL}"
           }
         }
       }
