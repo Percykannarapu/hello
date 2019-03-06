@@ -23,6 +23,7 @@ import { EsriMapService } from '@val/esri';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { AppEditSiteService } from '../../services/app-editsite.service';
+import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
 
 @Component({
   selector: 'val-site-list-container',
@@ -144,7 +145,7 @@ export class SiteListContainerComponent implements OnInit {
         this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
 
     } else {
-      const newLocation = oldData;
+      const newLocation: ValGeocodingRequest = oldData;
       newLocation.locationNumber = siteOrSites['number'];
       newLocation.locationName = siteOrSites['name'];
       newLocation.marketName = siteOrSites['Market'];
@@ -153,11 +154,10 @@ export class SiteListContainerComponent implements OnInit {
         newLocation.recordStatusCode = 'PROVIDED';
         newLocation.xcoord = Number(siteOrSites['longitude']);
         newLocation.ycoord = Number(siteOrSites['latitude']);
-        // const result = new ImpGeofootprintLocation(newLocation);
-        const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
-        //this.appLocationService.queryAllHomeGeos([newLocation], currentAnalysisLevel);
+        const sites = [newLocation] ;
+       this.store$.dispatch(new Geocode({sites, siteType}));
       }
-      this.impGeofootprintLocationService.update(oldData, newLocation);
+      //this.impGeofootprintLocationService.update(oldData, newLocation);
       this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
     }
   }

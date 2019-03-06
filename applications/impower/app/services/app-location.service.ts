@@ -29,6 +29,7 @@ import { mergeMap } from 'rxjs/internal/operators/mergeMap';
 import { reduce } from 'rxjs/internal/operators/reduce';
 import { concat } from 'rxjs/internal/observable/concat';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
+import { empty } from 'rxjs/internal/observable/empty';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
@@ -816,73 +817,19 @@ export class AppLocationService {
             switchMap(attrList => {
               return this.validateHomeGeoAttributes(attrList, locationsMap.get('needtoPipLocations'));
             })
-        );
+          );
       }
       if (locationsMap.get('initialAttributeList').length > 0){
-
         initialAttributesObs = of(locationsMap.get('initialAttributeList'));
-
       }
       if (locationsMap.get('dmaAndCountyLoc').length > 0){
         const attributesList = [];
        // let resp: any = null;
-
-       locationsMap.get('dmaAndCountyLoc').forEach(loc => {
-        const attrMap = {};
-        loc.impGeofootprintLocAttribs.forEach(attr => {
-          if (homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null){
-            attrMap[attr.attributeCode] = attr.attributeValue;
-          }
-        });
-
-        attributesList.push({
-          'homeZip'     :  attrMap['Home Zip Code'],
-          'homeCounty'  :  attrMap['Home County'],
-          'homeDma'     :  attrMap['Home DMA'],
-          'homePcr'     :  attrMap['Home Carrier Route'],
-          'homeAtz'     :  attrMap['Home ATZ'],
-          'homeDtz'     :  attrMap['Home Digital ATZ'], 
-          'siteNumber'  :  loc.locationNumber,
-          'abZip'       :  loc.locZip.substring(0, 5) 
-          });
-        });
-        dmaAndCountyObservble = of(attributesList);
-
-
-        // dmaAndCountyObservble = this.getDmaAndCounty(locationsMap.get('dmaAndCountyLoc')).pipe(
-        //   map(result => {
-        //     return result;
-        //   })
-        // );
-        //this.getDmaAndCounty(locationsMap.get('dmaAndCountyLoc')
-       /* this.getDmaAndCounty(locationsMap.get('dmaAndCountyLoc')).pipe(
-          map(dmaAndcountyResponse => {
-            console.log('dmaAndcountyResponse::', dmaAndcountyResponse);
-            resp = dmaAndcountyResponse;
-          })
-        ).subscribe(null, null, () => {
-          console.log('processing dmaAndcountyResponse::', resp);
-        });
-        locationsMap.get('dmaAndCountyLoc').forEach(loc => {
-          const attrMap = {};
-          loc.impGeofootprintLocAttribs.forEach(attr => {
-            if (homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null){
-              attrMap[attr.attributeCode] = attr.attributeValue;
-            }
-          });
-
-          attributesList.push({
-            'homeZip'     :  attrMap['Home Zip Code'],
-            'homeCounty'  :  attrMap['Home County'],
-            'homeDma'     :  attrMap['Home DMA'],
-            'homePcr'     :  attrMap['Home Carrier Route'],
-            'homeAtz'     :  attrMap['Home ATZ'],
-            'homeDtz'     :  attrMap['Home Digital ATZ'], 
-            'siteNumber'  :  loc.locationNumber,
-            'abZip'       :  loc.locZip.substring(0, 5) 
-          });
-        });
-        dmaAndCountyObservble = of(attributesList);*/
+       dmaAndCountyObservble = this.getDmaAndCounty(locationsMap.get('dmaAndCountyLoc')).pipe(
+         switchMap(res => {
+          return res;
+         })
+       );
       }
 
       return merge(dmaAndCountyObservble, pipObservble, initialAttributesObs).pipe(
@@ -892,39 +839,38 @@ export class AppLocationService {
   }
 
   public  getDmaAndCounty(locations: ImpGeofootprintLocation[]) : Observable<any>{
-
-    const zipLocDictemp: Map<string, any> = new Map<string, any>();
-    const attributesList = [];
+    const zipLocDictemp = {};
+    const attributesList: any[] = [];
     locations.forEach(loc => {
       zipLocDictemp[loc.locZip.substring(0, 5)] = loc;
     });
 
     return this.determineHomeGeos(Object.keys(zipLocDictemp), null, 'CL_ZIPTAB14', 'geocode, ZIP, DMA, COUNTY').pipe(
-        switchMap(response => {
+        map(response => {
           return  response.payload;
         }),
         reduce((acc, result) => [...acc, ...result], []),
         map(result => {
           result.forEach(row => {
-            if (zipLocDictemp.has(row['geocode'])){
-
+            if (row['geocode'] in zipLocDictemp){
               const attrMap = {};
-              zipLocDictemp.get(row['geocode']).impGeofootprintLocAttribs.forEach(attr => {
+              zipLocDictemp[(row['geocode'])].impGeofootprintLocAttribs.forEach(attr => {
                 if (homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null){
                   attrMap[attr.attributeCode] = attr.attributeValue;
                 }
-                const county = attrMap['Home County'] !== '' || attrMap['Home County'] != null ? attrMap['Home County'] : row['homeCounty'];
-                const dma = attrMap['Home DMA'] !== '' || attrMap['Home DMA'] != null ? attrMap['Home DMA'] : row['homeDma'];
+              });  
+                const county = attrMap['Home County'] !== '' && attrMap['Home County'] != null ? attrMap['Home County'] : row['homeCounty'];
+                const dma = attrMap['Home DMA'] !== '' && attrMap['Home DMA'] != null ? attrMap['Home DMA'] : row['homeDma'];
                 attributesList.push({
                   'homeZip'     :  attrMap['Home Zip Code'],
                   'homePcr'     :  attrMap['Home Carrier Route'],
                   'homeAtz'     :  attrMap['Home ATZ'],
-                  'homeCounty'  :  attrMap['Home County'],
-                  'homeDma'     :  attrMap['Home DMA'],
-                  'siteNumber'  :  zipLocDictemp.get(row['geocode']).locationNumber,
-                  'abZip'       :  zipLocDictemp.get(row['geocode']).locZip.substring(0, 5) 
+                  'homeCounty'  :  county,
+                  'homeDma'     :  dma,
+                  'homeDtz'     :  attrMap['Home Digital ATZ'], 
+                  'siteNumber'  :  zipLocDictemp[row['geocode']].locationNumber,
+                  'abZip'       :  zipLocDictemp[row['geocode']].locZip.substring(0, 5) 
                 });
-              });
             }
           });
           return attributesList;
