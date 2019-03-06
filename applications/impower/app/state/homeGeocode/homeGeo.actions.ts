@@ -11,6 +11,7 @@ export enum HomeGeoActionTypes {
    PersistGeos = '[Application Geocode] Persist Geos to Datastore',
    ZoomtoLocations = '[Application Geocode] Zoom to Locations',
    DetermineDTZHomeGeos = '[Application Geocode] Determine Digital ATZ',
+   ProcessHomeGeoAttributes = '[Application Geocode] Flag Homegeo Attributes',
 }
 
 export class Geocode implements Action {
@@ -39,8 +40,14 @@ export class DetermineDTZHomeGeos implements Action{
    constructor(public payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>}){}
 }
 
+export class ProcessHomeGeoAttributes implements Action{
+  readonly type = HomeGeoActionTypes.ProcessHomeGeoAttributes;
+  constructor(public payload: {attributes: any}){}
+}
+
 export type HomeGeoActions = Geocode | 
                              HomeGeocode | 
                              PersistGeos |
                              DetermineDTZHomeGeos |
+                             ProcessHomeGeoAttributes|
                              ZoomtoLocations;

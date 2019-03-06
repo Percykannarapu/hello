@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistGeos, ZoomtoLocations, DetermineDTZHomeGeos} from './homeGeo.actions';
+import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistGeos, ZoomtoLocations, DetermineDTZHomeGeos, ProcessHomeGeoAttributes} from './homeGeo.actions';
 import { Actions, ofType, Effect} from '@ngrx/effects';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
@@ -44,12 +44,19 @@ export class HomeGeoEffects {
    determineDTZHomeGeos$ = this.actions$.pipe(
       ofType<DetermineDTZHomeGeos>(HomeGeoActionTypes.DetermineDTZHomeGeos),
       switchMap(action => this.appHomeGeocodingService.determineHomeDTZ(action.payload).pipe(
-        map(attributes => this.appHomeGeocodingService.processHomeGeoAttributes(attributes, action.payload.locationsMap)),
+       // map(attributes => new ProcessHomeGeoAttributes({attributes})),
         concatMap(attributes => [
+          new ProcessHomeGeoAttributes({attributes}),
           new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
           new StopBusyIndicator({ key: 'HomeGeoCalcKey' })
         ])
       ))
+   );
+
+   @Effect({dispatch: false})
+   processHomeGeoAttributes$ = this.actions$.pipe(
+     ofType<ProcessHomeGeoAttributes>(HomeGeoActionTypes.ProcessHomeGeoAttributes),
+     map(action => this.appHomeGeocodingService.processHomeGeoAttributes(action.payload))
    );
 
    @Effect({ dispatch: false })

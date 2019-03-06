@@ -48,9 +48,9 @@ import { reduce } from 'rxjs/internal/operators/reduce';
      return this.appLocationService.determineDtzHomegeos(payload.attributes, this.impLocationService.get());
    }
 
-   processHomeGeoAttributes(attributes: any[], locationsMap: Map<string, ImpGeofootprintLocation[]>){
-    console.log('process geo attributes:::', attributes, this.impLocationService.get());
-     this.appLocationService.processHomeGeoAttributes(attributes, this.impLocationService.get());
+   processHomeGeoAttributes(payload: {attributes: any[]}){
+    console.log('process geo attributes:::', payload.attributes, this.impLocationService.get());
+     this.appLocationService.processHomeGeoAttributes(payload.attributes, this.impLocationService.get());
      this.appLocationService.flagHomeGeos(this.impLocationService.get(), null);
    }
 
