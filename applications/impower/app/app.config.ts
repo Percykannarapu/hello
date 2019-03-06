@@ -26,7 +26,7 @@ export class AppConfig implements LoggingConfiguration {
    public valServiceBase = `${EnvironmentData.fuseBaseUrl}`;
    public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
    public maxBufferRadius = 50;
-   public maxGeosPerGeoInfoQuery = 1000;
+   public maxGeosPerGeoInfoQuery = 400;
    public maxValGeocodingReqSize = 50;
    public maxRadiusTradeAreas = 3;
    //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
