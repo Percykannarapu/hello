@@ -154,7 +154,8 @@ export class SiteListContainerComponent implements OnInit {
         newLocation.recordStatusCode = 'PROVIDED';
         newLocation.xcoord = Number(siteOrSites['longitude']);
         newLocation.ycoord = Number(siteOrSites['latitude']);
-        const sites = [newLocation] ;
+        const sites = [siteOrSites] ;
+       // const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
        this.store$.dispatch(new Geocode({sites, siteType}));
       }
       //this.impGeofootprintLocationService.update(oldData, newLocation);
