@@ -6,8 +6,11 @@
       <a class="val-spacer-left"></a>
       <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
    </div>
-   <div class="ui-g-6 ui-g-nopad">
+   <div class="ui-g-3 ui-g-nopad">
       <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
+   </div>
+   <div class="ui-g-3 ui-g-nopad">
+    <button pButton type="button" label="Calc Home Geocodes" (click)="calcHomeGeocode()"></button>
    </div>
  
    <div #gridRoot id= "locGrid" class="ui-g-12">

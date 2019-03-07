@@ -43,7 +43,11 @@ export function homeGeoReducer(state = initialState, action: HomeGeoActions) : H
        case HomeGeoActionTypes.DetermineDTZHomeGeos:
          return state;  
        case HomeGeoActionTypes.ProcessHomeGeoAttributes:
-         return state;  
+         return state;
+       case HomeGeoActionTypes.ReCalcHomeGeos:
+         return state;
+       case HomeGeoActionTypes.UpdateLocations:
+         return state;      
        default:
          return state;   
     }

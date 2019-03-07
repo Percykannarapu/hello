@@ -448,7 +448,7 @@ export class AppLocationService {
         }
     });
     const attributesByHomePcr: Map<any, any> = mapByExtended(attributes.filter(attr => attr['homePcr'] !== ''), item => item['homePcr']);
-    return this.determineHomeGeos(geocodeList, null, 'CL_PCRTAB14', 'geocode,ZIP , ATZ, DMA, COUNTY').pipe(
+    return this.determineHomeGeos(geocodeList, null, 'CL_PCRTAB14', 'geocode,ZIP , ZIP_ATZ, DMA, COUNTY').pipe(
       map(response => {
         return  response.payload;
       }),

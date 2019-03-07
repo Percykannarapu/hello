@@ -12,6 +12,8 @@ export enum HomeGeoActionTypes {
    ZoomtoLocations = '[Application Geocode] Zoom to Locations',
    DetermineDTZHomeGeos = '[Application Geocode] Determine Digital ATZ',
    ProcessHomeGeoAttributes = '[Application Geocode] Flag Homegeo Attributes',
+   ReCalcHomeGeos = '[Application Geocode] Re Calculate Homegeos',
+   UpdateLocations = '[Application Geocode] Update existing Locations', 
 }
 
 export class Geocode implements Action {
@@ -45,9 +47,21 @@ export class ProcessHomeGeoAttributes implements Action{
   constructor(public payload: {attributes: any}){}
 }
 
+export class ReCalcHomeGeos implements Action{
+  readonly type = HomeGeoActionTypes.ReCalcHomeGeos;
+  constructor(public payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes}){}
+}
+
+export class UpdateLocations implements Action {
+  readonly type = HomeGeoActionTypes.UpdateLocations;
+  constructor(public payload: {locations: ImpGeofootprintLocation[]}){}
+}
+
 export type HomeGeoActions = Geocode | 
                              HomeGeocode | 
                              PersistGeos |
                              DetermineDTZHomeGeos |
                              ProcessHomeGeoAttributes|
+                             ReCalcHomeGeos |
+                             UpdateLocations |
                              ZoomtoLocations;

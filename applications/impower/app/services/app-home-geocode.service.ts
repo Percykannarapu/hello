@@ -22,7 +22,6 @@ import { reduce } from 'rxjs/internal/operators/reduce';
                private impLocationService: ImpGeofootprintLocationService ){}
 
    geocode(payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes}) : Observable<ImpGeofootprintLocation[]>{
-      console.log('geocode to be constructed', payload);
       const pluralize = payload.sites.length > 1 ? 's' : '';
       this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: `Geocoding ${payload.sites.length} ${payload.siteType}${pluralize}` }));
       const locationCache: ImpGeofootprintLocation[] = [];
@@ -56,6 +55,14 @@ import { reduce } from 'rxjs/internal/operators/reduce';
 
    persistGeos(payload: {locations: ImpGeofootprintLocation[]}){
       this.appLocationService.persistLocationsAndAttributes(payload.locations);
+      //this.impLocationService.update()
+   }
+
+   updateLocations(payload: {locations: ImpGeofootprintLocation[]}){
+    const oldData = this.impLocationService.get();
+    //  this.impLocationService.update(oldData, payload.locations);
+    this.impLocationService.clearAll();
+    this.appLocationService.persistLocationsAndAttributes(payload.locations);
    }
 
    zoomToLocations(payload: {locations: ImpGeofootprintLocation[]}){

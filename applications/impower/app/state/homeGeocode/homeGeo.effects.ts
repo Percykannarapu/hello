@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistGeos, ZoomtoLocations, DetermineDTZHomeGeos, ProcessHomeGeoAttributes} from './homeGeo.actions';
+import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistGeos, ZoomtoLocations, DetermineDTZHomeGeos, ProcessHomeGeoAttributes, ReCalcHomeGeos, UpdateLocations} from './homeGeo.actions';
 import { Actions, ofType, Effect} from '@ngrx/effects';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
@@ -14,7 +14,6 @@ import { of } from 'rxjs/internal/observable/of';
 
 @Injectable({ providedIn: 'root' })
 export class HomeGeoEffects {
-   // tap(() => this.appDataShimService.onLoadSuccess())
    @Effect()
    geocoding$ = this.actions$.pipe(
       ofType<Geocode>(HomeGeoActionTypes.Geocode),
@@ -28,6 +27,20 @@ export class HomeGeoEffects {
            new HomeGeocode({locations}),
         ])
      ))
+   );
+
+   @Effect()
+   reCalcHomeGeos$ = this.actions$.pipe(
+      ofType<ReCalcHomeGeos>(HomeGeoActionTypes.ReCalcHomeGeos),
+      switchMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
+        concatMap(locations => [
+          new UpdateLocations({locations}),
+          new ZoomtoLocations({locations}),
+          new StopBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER' }),
+          new StartBusyIndicator({ key: 'HomeGeoCalcKey', message: 'Calculating Home Geos'}),
+          new HomeGeocode({locations}),
+       ])
+      ))
    );
 
    @Effect()
@@ -63,6 +76,12 @@ export class HomeGeoEffects {
    persistGeos$ = this.actions$.pipe(
       ofType<PersistGeos>(HomeGeoActionTypes.PersistGeos),
       map(action => this.appHomeGeocodingService.persistGeos(action.payload))
+   );
+
+   @Effect({ dispatch: false })
+   updateLocations$ = this.actions$.pipe(
+      ofType<UpdateLocations>(HomeGeoActionTypes.UpdateLocations),
+      map(action => this.appHomeGeocodingService.updateLocations(action.payload))
    );
 
    @Effect({ dispatch: false })

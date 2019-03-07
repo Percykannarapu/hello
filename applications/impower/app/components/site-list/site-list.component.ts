@@ -9,11 +9,13 @@ import { ConfirmationService, MultiSelect, SelectItem } from 'primeng/primeng';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { Geocode, ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
 
 export class FlatSite {
   fgId: number;
@@ -192,6 +194,8 @@ export class SiteListComponent implements OnInit {
       private appLocationService: AppLocationService,
       private confirmationService: ConfirmationService,
       private cd: ChangeDetectorRef,
+      private impLocationService: ImpGeofootprintLocationService,
+      //private valGeocodingRequest: ValGeocodingRequest,
       private store$: Store<LocalAppState>) {}
 
    ngOnInit() {
@@ -489,6 +493,44 @@ export class SiteListComponent implements OnInit {
             this.selectedColumns.splice(this.flatSiteGridColumnsLength, Number(this.selectedColumns.length - this.flatSiteGridColumnsLength));
          }
       });
+   }
+   /**
+    * To force recalculate all homegeocodes
+    */
+   public calcHomeGeocode(){
+     if ( this.impLocationService.get().length > 0){
+
+      this.confirmationService.confirm({
+        message: 'Are you sure you want to calculate home geocodes for all your sites?' + '<br>' + 'All customization will be lost and trade areas will be reapplied',
+        header: 'Calc Home Geocodes',
+        accept: () => {
+          const valGeosites: ValGeocodingRequest[] = [];
+          const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+          
+          this.impLocationService.get().forEach(loc => {
+               loc.impGeofootprintLocAttribs.forEach(attr => {
+                 if (homeGeoColumnsSet.has(attr.attributeCode)){
+                   attr.attributeValue = '';
+                 }
+               });
+               if (loc.recordStatusCode === 'SUCCESS'){
+                 loc.xcoord = null;
+                 loc.ycoord = null;
+               }
+               valGeosites.push(new ValGeocodingRequest(loc, true));
+          });
+ 
+         const sites = Array.isArray(valGeosites) ? valGeosites : [valGeosites];
+         const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.impLocationService.get()[0].clientLocationTypeCode));
+         this.store$.dispatch(new ReCalcHomeGeos({sites, siteType}));
+        },
+        reject: () => {
+         console.log('calcHomeGeocode aborted');
+        }
+      });
+     }
+     
+
    }
 
    /**
