@@ -27,6 +27,7 @@ import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 import { InTransaction } from './../val-modules/common/services/datastore.service';
 import { ImpProjectVarService } from './../val-modules/targeting/services/ImpProjectVar.service';
+import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -94,6 +95,7 @@ export class ValAudienceTradeareaService {
   private lastWeight: number;
   private duplicateGeos: any;
   private geoCache: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();
+  private geoAttribCache: ImpGeofootprintGeoAttrib[] = new Array<ImpGeofootprintGeoAttrib>();;
   private failedLocations: ImpGeofootprintLocation[] = [];
 
   /**
@@ -183,7 +185,7 @@ export class ValAudienceTradeareaService {
     if (Number(this.audienceTAConfig.maxRadius) <= Number(this.audienceTAConfig.minRadius)) {
       errors.push('The maximum radius must be larger than the minimum radius ');
     }
-    if(this.audienceTAConfig.maxRadius > 100){
+    if (this.audienceTAConfig.maxRadius > 100){
       errors.push('Maximum Radius must be <= 100');
     }
     if (this.audienceTAConfig.weight == null) {
@@ -244,7 +246,7 @@ export class ValAudienceTradeareaService {
     this.fetchData = true;
 
     if (this.fetchData) {
-
+      
 /*  this.varService.get().forEach(pv => console.log("### BEFORE: projectVar: ", pv));
     // this.varService.clearAll(false);  // TODO: Attempting to just clear them all
     this.varService.remove(this.varService.get().filter(pv => pv.varSource === "Online_Audience-TA" || pv.isCustom));
@@ -291,13 +293,13 @@ export class ValAudienceTradeareaService {
           const newTradeAreas: ImpGeofootprintTradeArea[] = [];
           for (const location of allLocations) {
             this.createGeos(audienceTAConfig, location);
-          }
+          }     
 
           const selectedGeocodes = new Set(this.geoCache.filter(g => g.isActive).map(g => g.geocode));
           this.geoCache.forEach(g => {
             if (selectedGeocodes.has(g.geocode)) g.isActive = true;
           });
-/*
+          /*
           const geocodeValues = this.geoCache.map(val => val.geocode);
           const repeatValues = [];
           const uniqueValues = [];
@@ -333,7 +335,7 @@ export class ValAudienceTradeareaService {
             const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
             const newTradeArea = this.createTradeArea(locationGeos, location);
             if (newTradeArea != null) newTradeAreas.push(newTradeArea);
-          }
+          }          
           if (this.failedLocations.length > 0) {
             let warningMessage = 'Unable to find data for the following locations:\n';
             for (const failedLoc of this.failedLocations) {
@@ -344,6 +346,7 @@ export class ValAudienceTradeareaService {
           }
           this.appTradeAreaService.insertTradeAreas(newTradeAreas);
           this.geoService.add(this.geoCache);
+          this.geoAttribService.add(this.geoAttribCache);
           this.appTradeAreaService.zoomToTradeArea();
           this.targetAudienceTAService.addAudiences(this.taResponses, audienceTAConfig.digCategoryId, this.audienceTAConfig);
           this.drawRadiusRings(audienceTAConfig.minRadius, audienceTAConfig.maxRadius);
@@ -416,7 +419,7 @@ export class ValAudienceTradeareaService {
         this.geoCache.forEach(g => {
           if (selectedGeocodes.has(g.geocode)) g.isActive = true;
         });
-/*
+        /*
         const geocodeValues = this.geoCache.map(val => val.geocode);
         const repeatValues = [];
         const uniqueValues = [];
@@ -448,6 +451,7 @@ export class ValAudienceTradeareaService {
           }
         }
 */
+
         for (const location of this.locationService.get()) {
           const locationGeos = this.geoCache.filter((val) => val.impGeofootprintLocation.locationNumber == location.locationNumber);
           this.createTradeArea(locationGeos, location);
@@ -633,6 +637,9 @@ export class ValAudienceTradeareaService {
     //console.log('taResponses', taResponseMap);
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
+      let newAttribute: any;
+      const newAttributes: ImpGeofootprintGeoAttrib[] = [];
+
       const taResponse = taResponseMap.get(i);
       if (!taResponse || !taResponse.geocode) {
         console.warn('Unable to find valid audience TA response for location: ', location);
@@ -643,19 +650,25 @@ export class ValAudienceTradeareaService {
       newGeo.isActive = false;
       newGeo.distance = taResponse.distance;
       if (taResponse.distance <= audienceTAConfig.minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
-        newGeo.isActive = true;
+       newGeo.isActive = true;
+       newAttribute = this.geoService.createAudAttribs(newGeo);
       }
       if (audienceTAConfig.includeMustCover && taResponse.distance <= audienceTAConfig.minRadius) {
         newGeo.isActive = true;
+        newAttribute = this.geoService.createAudAttribs(newGeo);
       }
       if (taResponse.distance > audienceTAConfig.minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
         newGeo.isActive = true;
+        newAttribute = this.geoService.createAudAttribs(newGeo);
       }
       if (!newGeo.isActive) {
         const filterReasons: string[] = [];
         filterReasons.push('Under Audience TA threshold');
         newGeo['filterReasons'] = filterReasons;
+        newAttribute = this.geoService.createAudAttribs(newGeo);
       }
+      if(newAttribute != null) newAttributes.push(newAttribute);
+      this.geoAttribService.add(newAttributes);
 
       if (!this.locationsWithNoScores.has(location)) {
         this.locationsWithNoScores.set(location, taResponse.indexValue != null);
@@ -675,7 +688,7 @@ export class ValAudienceTradeareaService {
     this.geoCache.push(...newGeos);
     return newGeos;
   }
-
+  
   private searchVarId(fieldDisplay: string) : number {
     for (const geoVar of this.varService.get()) {
       if (geoVar.customVarExprDisplay === fieldDisplay) {

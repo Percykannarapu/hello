@@ -25,6 +25,8 @@ import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
 import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
 import { groupBy, simpleFlatten, roundTo } from '@val/common';
+import { ImpDomainFactoryService } from './imp-domain-factory.service';
+import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -61,7 +63,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
                private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
-               private store$: Store<LocalAppState>)
+               private store$: Store<LocalAppState>,
+               private domainFactory: ImpDomainFactoryService)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
    }
@@ -77,6 +80,19 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.impGeofootprintGeoAttribService.load(simpleFlatten(items.map(geo => geo.impGeofootprintGeoAttribs)));
       super.load(items);
    }
+
+   public createAllAudAttribs(){
+      this.get().forEach(geo => {
+         if(geo.impGeofootprintTradeArea.taType === 'AUDIENCE')
+         return this.createAudAttribs(geo);
+      });
+    }
+   
+   public createAudAttribs(newGeo: ImpGeofootprintGeo) : ImpGeofootprintGeoAttrib{
+   let newAttribute: any;
+   return newAttribute = (newGeo.isActive) ? this.domainFactory.createGeoAttribute(newGeo, 'preSelectedForAudience', 'true') 
+                                          : this.domainFactory.createGeoAttribute(newGeo, 'preSelectedForAudience', 'false');
+    }
 
    // -----------------------------------------------------------
    // UTILITY METHODS

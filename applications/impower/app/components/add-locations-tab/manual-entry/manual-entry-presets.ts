@@ -27,8 +27,6 @@ export const Tecumseh = {
   state: 'MI',
   zip: '49286',
   Market: 'Test Market',
-  latitude: '42.004672',
-  longitude: '-83.939051'
 };
 
 export const Madison = {

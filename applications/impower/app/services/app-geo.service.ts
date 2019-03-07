@@ -4,7 +4,7 @@ import { groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '
 import { EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, withLatestFrom, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { LocalAppState } from '../state/app.interfaces';
@@ -26,6 +26,7 @@ import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService, Season } from './app-state.service';
+import { Geocode } from '../state/homeGeocode/homeGeo.actions';
 
 const boundaryAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
@@ -167,6 +168,7 @@ export class AppGeoService {
       filter(locations => locations.length > 0)
     ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
+  // map(([geos])=>geos.attributes.filter(a => boundaryAttributes.contains(a.type)).length === 0)
 
   /**
    * Sets up an observable sequence that fires when any geocode is added to the data store
@@ -176,12 +178,12 @@ export class AppGeoService {
       .pipe(
         // halt the sequence if the project is loading
         filter(([geos, isReady]) => isReady),
-        map(([geos]) => geos.filter(g => g.impGeofootprintGeoAttribs.length === 0)),
+        map(([geos]) => geos.filter(g => g.impGeofootprintGeoAttribs.filter(a => boundaryAttributes.includes(a.attributeCode)).length === 0)),
         filter(geos => geos.length > 0),
         withLatestFrom(this.validAnalysisLevel$)
       ).subscribe(
         ([geos, analysisLevel]) => this.updateAttributesFromLayer(geos, analysisLevel)
-      );
+        );
   }
 
   private setupMapClickEventHandler() {
@@ -212,6 +214,7 @@ export class AppGeoService {
         this.store$.dispatch(new StopBusyIndicator({ key }));
       },
       () => {
+        this.impGeoService.createAllAudAttribs();
         this.filterGeosImpl(geos);
         this.store$.dispatch(new StopBusyIndicator({ key }));
       });
@@ -676,41 +679,84 @@ export class AppGeoService {
   private filterGeosImpl(geos: ImpGeofootprintGeo[]) {
     console.log('Filtering Geos Based on Flags');
     const currentProject = this.appStateService.currentProject$.getValue();
-    // filter out geos belonging to audience trade areas
-    const currentGeos = geos.filter(g => TradeAreaTypeCodes.parse(g.impGeofootprintTradeArea.taType) !== TradeAreaTypeCodes.Audience);
-    if (currentProject == null || currentGeos == null || currentGeos.length === 0) return;
+    if (currentProject == null || geos == null || geos.length === 0) return;
 
     const includeValassis = currentProject.isIncludeValassis;
     const includeAnne = currentProject.isIncludeAnne;
     const includeSolo = currentProject.isIncludeSolo;
     const includePob = !currentProject.isExcludePob;
-    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-
+    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const audGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'preSelectedForAudience' && a.attributeValue === 'true'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const geoSet: Set<string> = new Set<string>();
+     if(audGeosMap.has('true')) {
+       audGeosMap.get('true').forEach(geo => geoSet.add(geo.geocode));
+     }
+    console.log('filtered Audience Geos:::', geoSet);
     if (ownerGroupGeosMap.has('VALASSIS')) {
       ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
-        geo.isActive = includeValassis;
-        if (geo.isActive === false) {
+        if(includeValassis){
+          if(audGeosMap.size > 0 ){
+          if(geoSet.has(geo.geocode)){
+            geo.isActive = true;
+            geo['filterReasons'] = null;
+          } else{
+            geo.isActive = false;
+            geo['filterReasons'] = 'Under Audience TA threshold ';
+          } 
+        } else{
+          geo.isActive = includeValassis;
+          geo['filterReasons'] = null;
+        }
+        } else {
+          geo.isActive = false;
           geo['filterReasons'] = 'Filtered because: VALASSIS';
-        } else geo['filterReasons'] = null;
+        } 
       });
     }
     if (ownerGroupGeosMap.has('ANNE')) {
       ownerGroupGeosMap.get('ANNE').forEach(geo => {
-        geo.isActive = includeAnne;
-        if (geo.isActive === false) {
-          geo['filterReasons'] = 'Filtered because: ANNE';
-        } else geo['filterReasons'] = null;
-      });
+        if(includeAnne){
+          if(audGeosMap.size > 0){
+          if(geoSet.has(geo.geocode)){
+          geo.isActive = true;
+          geo['filterReasons'] = null;
+        } else{
+          geo['filterReasons'] = 'Under Audience TA threshold';
+          geo.isActive = false;
+          }
+          
+        } else{
+          geo.isActive = includeAnne;
+          geo['filterReasons'] = null;
+        }
+      } else {
+        geo.isActive = false;
+        geo['filterReasons'] = 'Filtered because: ANNE';
+      } 
+    });
     }
     if (soloGeosMap.has('Solo')) {
       soloGeosMap.get('Solo').forEach(geo => {
-        geo.isActive = includeSolo;
-        if (geo.isActive === false) {
-          geo['filterReasons'] = 'Filtered because: SOLO';
-        } else geo['filterReasons'] = null;
-      });
+        if(includeSolo){
+          if(audGeosMap.size > 0){
+          if(geoSet.has(geo.geocode)){
+          geo.isActive = true;
+          geo['filterReasons'] = null;
+        } else{
+          geo['filterReasons'] = 'Under Audience TA threshold';
+          geo.isActive = false;
+          }
+        } else{
+          geo.isActive = includeSolo;
+          geo['filterReasons'] = null;
+        }
+      } else {
+        geo.isActive = false;
+        geo['filterReasons'] = 'Filtered because: SOLO';
+      } 
+    });
     }
 
     if (!includePob && (pobGeosMap.has(1) || pobGeosMap.has('B'))) {
@@ -720,12 +766,25 @@ export class AppGeoService {
       const allPobs = [...centroidPobs, ...topVarPobs];
 
       allPobs.forEach(geo => {
-        geo.isActive = includePob;
-        if (geo.isActive === false) {
-          geo['filterReasons'] = 'Filtered because: POB';
-        } else geo['filterReasons'] = null;
-      });
 
+      if(!includePob){
+        if(audGeosMap.size > 0){
+          if(geoSet.has(geo.geocode)){
+          geo.isActive = true;
+          geo['filterReasons'] = null;
+          } else{
+          geo['filterReasons'] = 'Under Audience TA threshold';
+          geo.isActive = false;
+          }
+        } else{
+          geo.isActive = includePob;
+          geo['filterReasons'] = null;
+          }
+      } else {
+        geo.isActive = false;
+        geo['filterReasons'] = 'Filtered because: POB';
+        } 
+      });
     }
   }
 
