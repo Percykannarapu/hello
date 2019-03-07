@@ -61,8 +61,9 @@ import { reduce } from 'rxjs/internal/operators/reduce';
    updateLocations(payload: {locations: ImpGeofootprintLocation[]}){
     const oldData = this.impLocationService.get();
     //  this.impLocationService.update(oldData, payload.locations);
-    this.impLocationService.clearAll();
-    this.appLocationService.persistLocationsAndAttributes(payload.locations);
+    //this.impLocationService.clearAll();
+    this.impLocationService.replace(payload.locations);
+   // this.appLocationService.persistLocationsAndAttributes(payload.locations);
    }
 
    zoomToLocations(payload: {locations: ImpGeofootprintLocation[]}){

@@ -517,7 +517,7 @@ export class SiteListComponent implements OnInit {
                  loc.xcoord = null;
                  loc.ycoord = null;
                }
-               valGeosites.push(new ValGeocodingRequest(loc, true));
+               valGeosites.push(new ValGeocodingRequest(loc, false));
           });
  
          const sites = Array.isArray(valGeosites) ? valGeosites : [valGeosites];
