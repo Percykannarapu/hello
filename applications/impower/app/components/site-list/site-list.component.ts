@@ -16,6 +16,9 @@ import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/Imp
 import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Geocode, ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
+import { ExportGeofootprint } from '../../state/menu/menu.actions';
+import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
+import { AppProjectService } from '../../services/app-project.service';
 
 export class FlatSite {
   fgId: number;
@@ -193,6 +196,7 @@ export class SiteListComponent implements OnInit {
    constructor(
       private appLocationService: AppLocationService,
       private confirmationService: ConfirmationService,
+      private appProjectService: AppProjectService,
       private cd: ChangeDetectorRef,
       private impLocationService: ImpGeofootprintLocationService,
       //private valGeocodingRequest: ValGeocodingRequest,
@@ -533,6 +537,22 @@ export class SiteListComponent implements OnInit {
 
    }
 
+      /**
+    * When the user clicks the "HGC Issues Log" button, 
+    */
+   public onHGCIssuesLog() {
+     
+    const site : SuccessfulLocationTypeCodes = ImpClientLocationTypeCodes.Site;
+    this.confirmationService.confirm({
+       message: 'Do you want to export Home Geocode Issues report ?',
+       header: 'Home Geocode Issues report',
+       accept: () => {
+        this.store$.dispatch(new ExportHGCIssuesLog({locationType: site}))
+        // this.store$.dispatch(new ExportLocations({ locationType }));
+
+          }
+    });
+ }
    /**
     * When the user clicks the "Magnifying glass" icon, this will zoom the map to that location
     * @param loc The location that to zoom the map to

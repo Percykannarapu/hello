@@ -11,6 +11,7 @@ import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeof
 import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actions';
 import { TargetAudienceService } from './target-audience.service';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
+import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for exporting data
@@ -25,6 +26,7 @@ export class AppExportService {
   constructor(private impGeofootprintLocationService: ImpGeofootprintLocationService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private targetAudienceService: TargetAudienceService,
+              private impProjectService: ImpProjectService,
               private config: AppConfig) { }
 
   exportGeofootprint(selectedOnly: boolean, currentProject: ImpProject) : Observable<Action> {
@@ -51,6 +53,21 @@ export class AppExportService {
         const pluralType = `${siteType}s`;
         const filename = this.impGeofootprintLocationService.getFileName(currentProject.projectId, pluralType);
         const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, filename, currentProject);
+        observer.next(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, metricValue));
+        observer.complete();
+      } catch (err) {
+        observer.error(err);
+      }
+    });
+  }
+
+  exportHomeGeoReport(siteType: SuccessfulLocationTypeCodes) : Observable<CreateUsageMetric> {
+    const currentProject = this.impProjectService.get();
+    return Observable.create((observer: Subject<CreateUsageMetric>) => {
+      try {
+        const pluralType = `${siteType}s`;
+        const filename = 'Home Geo Issues Log.csv'
+        const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues, filename, currentProject[0]);
         observer.next(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, metricValue));
         observer.complete();
       } catch (err) {
@@ -91,6 +108,7 @@ export class AppExportService {
     const storeFilter: (loc: ImpGeofootprintLocation) => boolean = loc => loc.clientLocationTypeCode === siteType;
     const pluralType = `${siteType}s`;
     const isDigital = exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital;
+    
     this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, isDigital, storeFilter, pluralType.toUpperCase());
     return this.impGeofootprintLocationService.get().filter(storeFilter).length;
   }

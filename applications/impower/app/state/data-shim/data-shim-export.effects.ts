@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { AppExportService } from '../../services/app-export.service';
-import { DataShimActionTypes, ExportApioNationalData, ExportGeofootprint, ExportLocations } from './data-shim.actions';
+import { DataShimActionTypes, ExportApioNationalData, ExportGeofootprint,ExportHGCIssuesLog, ExportLocations } from './data-shim.actions';
 import { catchError, filter, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ErrorNotification, MessagingActionTypes } from '@val/messaging';
@@ -35,6 +35,15 @@ export class DataShimExportEffects {
     toPayload(),
     filter(p => !p.isDigitalExport),
     switchMap(p => this.appExportService.exportLocations(p.locationType, p.currentProject).pipe(
+      catchError(err => of(this.processError(err))),
+    )),
+  );
+
+  @Effect()
+  exportHGCIssuesLog$ = this.actions$.pipe(
+    ofType<ExportHGCIssuesLog>(DataShimActionTypes.ExportHGCIssuesLog),
+    toPayload(),
+    switchMap(p => this.appExportService.exportHomeGeoReport(p.locationType).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );

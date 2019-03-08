@@ -18,6 +18,7 @@ export enum DataShimActionTypes {
   ProjectSaveAndReload = '[Application Data Shim] Project Save and Reload',
 
   ExportGeofootprint = '[Application Data Shim] Export Geofootprint',
+  ExportHGCIssuesLog = '[Application Data Shim] Export ExportHGCIssuesLog',
   ExportLocations = '[Application Data Shim] Export Locations',
   ExportApioNationalData = '[Application Data Shim] Export National Online Data',
 }
@@ -75,6 +76,11 @@ export class ExportGeofootprint implements Action {
   constructor(public payload: { selectedOnly: boolean, currentProject: ImpProject }) {}
 }
 
+export class ExportHGCIssuesLog implements Action {
+  readonly type = DataShimActionTypes.ExportHGCIssuesLog;
+  constructor(public payload: {locationType: SuccessfulLocationTypeCodes}) {}
+}
+
 // note: passing currentProject like this is an anti-pattern for ngrx, but we're doing it as a transitional stop-gap until it's in the Store
 export class ExportLocations implements Action {
   readonly type = DataShimActionTypes.ExportLocations;
@@ -100,4 +106,5 @@ export type DataShimActions =
   CreateNewProjectComplete |
   ExportGeofootprint |
   ExportLocations |
-  ExportApioNationalData;
+  ExportApioNationalData |
+  ExportHGCIssuesLog ;
