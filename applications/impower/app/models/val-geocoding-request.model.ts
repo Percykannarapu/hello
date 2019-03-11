@@ -124,8 +124,8 @@ export class ValGeocodingRequest {
     this.city = useOriginal ? loc.origCity : loc.locCity;
     this.state = useOriginal ? loc.origState : loc.locState;
     this.zip = useOriginal ? loc.origPostalCode : loc.locZip;
-    this.latitude = loc.ycoord == null ? null : loc.ycoord.toLocaleString();
-    this.longitude = loc.xcoord == null ? null : loc.xcoord.toLocaleString();
+    this.latitude = loc.ycoord == null ? null : loc.ycoord.toString();
+    this.longitude = loc.xcoord == null ? null : loc.xcoord.toString();
     if (loc.impGeofootprintLocAttribs != null) {
       loc.impGeofootprintLocAttribs.forEach(attribute => {
         this[attribute.attributeCode] = attribute.attributeValue;
