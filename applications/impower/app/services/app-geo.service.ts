@@ -156,8 +156,8 @@ export class AppGeoService {
       map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
       // keep locations that have a home geocode identified
       map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
-      // keep locations that have not had a home geocoding error
-      //map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y').length === 0)),
+      // keep locations that have not had a home geo selection error
+      map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0)),
       // keep locations that have trade areas defined
       map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType))).length > 0)),
       // keep sites that do not already have their home geo selected
@@ -435,8 +435,10 @@ export class AppGeoService {
     } else {
       const newLocationAttributes = [];
       locations.forEach(l => {
-          const attr = this.domainFactory.createLocationAttribute(l, 'Home Geocode Issue', 'Y');
-          if (attr != null) newLocationAttributes.push(attr);
+          const attr1 = this.domainFactory.createLocationAttribute(l, 'Home Geocode Issue', 'Y');
+          const attr2 = this.domainFactory.createLocationAttribute(l, 'Invalid Home Geo', 'Y');
+          if (attr1 != null) newLocationAttributes.push(attr1);
+          if (attr2 != null) newLocationAttributes.push(attr2);
       });
       if (locations.length > 0){
         this.locationAttrService.add(newLocationAttributes);
