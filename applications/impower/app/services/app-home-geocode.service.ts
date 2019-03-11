@@ -10,6 +10,8 @@ import { StopBusyIndicator, ErrorNotification, StartBusyIndicator } from '@val/m
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 //import { HomeGeocode } from 'applications/impower/app/state/homeGeocode/homeGeo.actions';
 import { reduce } from 'rxjs/internal/operators/reduce';
+import { simpleFlatten } from '@val/common';
+import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 
 @Injectable({
    providedIn: 'root'
@@ -19,7 +21,8 @@ import { reduce } from 'rxjs/internal/operators/reduce';
    private homeGeokey = 'HomeGeoCalcKey';
    constructor(private store$: Store<LocalAppState>,
                private appLocationService: AppLocationService,
-               private impLocationService: ImpGeofootprintLocationService ){}
+               private impLocationService: ImpGeofootprintLocationService,
+               private impLocAttributeService: ImpGeofootprintLocAttribService ){}
 
    geocode(payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes}) : Observable<ImpGeofootprintLocation[]>{
       const pluralize = payload.sites.length > 1 ? 's' : '';
@@ -32,7 +35,7 @@ import { reduce } from 'rxjs/internal/operators/reduce';
    }
 
    validateLocations(payload: {locations: ImpGeofootprintLocation[]}){
-      console.log('validateLocations:::', payload);
+      console.log('validateLocations:::');
       const mapLoc = this.appLocationService.validateLocactionsforpip(payload.locations);
       return mapLoc;
    }
@@ -48,7 +51,7 @@ import { reduce } from 'rxjs/internal/operators/reduce';
    }
 
    processHomeGeoAttributes(payload: {attributes: any[]}){
-    console.log('process geo attributes:::', payload.attributes, this.impLocationService.get());
+    console.log('process geo attributes:::');
      this.appLocationService.processHomeGeoAttributes(payload.attributes, this.impLocationService.get());
      this.appLocationService.flagHomeGeos(this.impLocationService.get(), null);
    }
@@ -59,11 +62,18 @@ import { reduce } from 'rxjs/internal/operators/reduce';
    }
 
    updateLocations(payload: {locations: ImpGeofootprintLocation[]}){
-    const oldData = this.impLocationService.get();
-    //  this.impLocationService.update(oldData, payload.locations);
-    //this.impLocationService.clearAll();
-    this.impLocationService.replace(payload.locations);
-   // this.appLocationService.persistLocationsAndAttributes(payload.locations);
+   // 
+    //console.log('update locations', payload.locations);
+    //this.impLocationService.replace(payload.locations);
+    const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
+    this.impLocationService.removeAll();
+    this.impLocAttributeService.removeAll();
+    const locations = payload.locations;
+    locations.push(...failedLoc);
+    //this.appLocationService.persistLocationsAndAttributes(locations);
+    //this.appLocationService.persistLocationsAndAttributes(payload.locations);
+    this.impLocationService.add(locations);
+    this.impLocAttributeService.add(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));
    }
 
    zoomToLocations(payload: {locations: ImpGeofootprintLocation[]}){

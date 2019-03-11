@@ -512,16 +512,18 @@ export class SiteListComponent implements OnInit {
           const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
           
           this.impLocationService.get().forEach(loc => {
-               loc.impGeofootprintLocAttribs.forEach(attr => {
-                 if (homeGeoColumnsSet.has(attr.attributeCode)){
-                   attr.attributeValue = '';
-                 }
-               });
-               if (loc.recordStatusCode === 'SUCCESS'){
-                 loc.xcoord = null;
-                 loc.ycoord = null;
-               }
-               valGeosites.push(new ValGeocodingRequest(loc, false));
+            if (loc.recordStatusCode !== 'CENTROID'){
+              loc.impGeofootprintLocAttribs.forEach(attr => {
+                if (homeGeoColumnsSet.has(attr.attributeCode)){
+                  attr.attributeValue = '';
+                }
+              });
+              if (loc.recordStatusCode === 'SUCCESS'){
+                loc.xcoord = null;
+                loc.ycoord = null;
+              }
+              valGeosites.push(new ValGeocodingRequest(loc, false));
+            }
           });
  
          const sites = Array.isArray(valGeosites) ? valGeosites : [valGeosites];
