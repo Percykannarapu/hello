@@ -1,12 +1,4 @@
 <p-tabView class="val-child-tabs">
-  <p-tabPanel header="Audience">
-    <val-audience-tradearea [currentAudienceTAConfig]="(audienceTAConfig$ | async)"
-                            [currentAudiences]="(currentAudiences$ | async)"
-                            [currentLocationsCount]="(currentLocationsCount$ | async)"
-                            (updatedFormData)="onUpdatedAudienceTAData($event)"
-                            (runAudienceTA)="onRunAudienceTA($event)">
-      Loading Audience Trade Areas...</val-audience-tradearea>
-  </p-tabPanel>
   <p-tabPanel header="Distance">
     <val-site-type-selector label="Define for:">
       <site-content>
@@ -33,6 +25,14 @@
       </competitor-content>
     </val-site-type-selector>
   </p-tabPanel>
+  <p-tabPanel header="Audience">
+      <val-audience-tradearea [currentAudienceTAConfig]="(audienceTAConfig$ | async)"
+                              [currentAudiences]="(currentAudiences$ | async)"
+                              [currentLocationsCount]="(currentLocationsCount$ | async)"
+                              (updatedFormData)="onUpdatedAudienceTAData($event)"
+                              (runAudienceTA)="onRunAudienceTA($event)">
+        Loading Audience Trade Areas...</val-audience-tradearea>
+    </p-tabPanel>
   <p-tabPanel header="Custom">
     <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
   </p-tabPanel>
