@@ -298,7 +298,7 @@ export class AppGeoService {
     }
     if (invalidLocations.length > 0) {
       this.flagLocationsWithInvalidHomeGeos(invalidLocations);
-      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message: `There were ${locations.length} location(s) that have an empty Home Geocode`, additionalErrorInfo: locations}));
+      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message: `There were ${invalidLocations.length} location(s) that have an empty Home Geocode`, additionalErrorInfo: locations}));
     }
   }
 
