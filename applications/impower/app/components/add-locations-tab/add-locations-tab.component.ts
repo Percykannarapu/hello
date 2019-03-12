@@ -20,7 +20,7 @@ import { ManualEntryComponent } from './manual-entry/manual-entry.component';
 import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
-import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
+import { Geocode, HomeGeocode } from '../../state/homeGeocode/homeGeo.actions';
 
 @Component({
   selector: 'val-add-locations-tab',

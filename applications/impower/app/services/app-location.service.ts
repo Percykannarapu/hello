@@ -754,8 +754,7 @@ export class AppLocationService {
         
       });
 
-      if (!loc.clientLocationTypeCode.startsWith('Failed ') &&
-          loc['homeGeoFound'] == null &&
+      if (loc['homeGeoFound'] == null &&
           (loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0)){
           if ( attrMap['Home ATZ'] == null || attrMap['Home ATZ'] === '' ||  attrMap['Home Zip Code'] == null || attrMap['Home Zip Code'] === '' || attrMap['Home Carrier Route'] == null || attrMap['Home Carrier Route'] === ''){
               needtoPipLocations.push(loc);
