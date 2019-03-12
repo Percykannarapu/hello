@@ -155,7 +155,7 @@ export class AppGeoService {
       // keep only locations identified as sites
       map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
       // keep locations that have a home geocode identified
-      map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
+      // map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
       // keep locations that have not had a home geo selection error
       map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0)),
       // keep locations that have trade areas defined
@@ -277,22 +277,29 @@ export class AppGeoService {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
     const allSelectedData: __esri.Graphic[] = [];
     const key = 'selectAndPersistHomeGeos';
-    const allHomeGeos = locations.map(loc => loc.homeGeocode);
-    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Trade Areas...' }));
-    this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, centroidAttributes)
-      .subscribe(
-        selections => allSelectedData.push(...selections),
-        err => {
-          console.error(err);
-          this.store$.dispatch(new StopBusyIndicator({ key }));
-        },
-        () => {
-          const homeGeocodes = this.createHomeGeos(allSelectedData, locations);
-          if (homeGeocodes.length > 0) {
-            this.impGeoService.add(homeGeocodes);
-          }
-          this.store$.dispatch(new StopBusyIndicator({ key }));
-        });
+    const validLocations = locations.filter(l => l.homeGeocode != null && l.homeGeocode.length > 0);
+    const invalidLocations = locations.filter(l => l.homeGeocode == null || l.homeGeocode.length === 0);
+    if (validLocations.length > 0) {
+      this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Trade Areas...' }));
+      this.queryService.queryAttributeIn(layerId, 'geocode', validLocations.map(l => l.homeGeocode), false, centroidAttributes)
+        .subscribe(
+          selections => allSelectedData.push(...selections),
+          err => {
+            console.error(err);
+            this.store$.dispatch(new StopBusyIndicator({ key }));
+          },
+          () => {
+            const homeGeocodes = this.createHomeGeos(allSelectedData, locations);
+            if (homeGeocodes.length > 0) {
+              this.impGeoService.add(homeGeocodes);
+            }
+            this.store$.dispatch(new StopBusyIndicator({ key }));
+          });
+    }
+    if (invalidLocations.length > 0) {
+      this.flagLocationsWithInvalidHomeGeos(invalidLocations);
+      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message: `There were ${locations.length} location(s) that have an empty Home Geocode`, additionalErrorInfo: locations}));
+    }
   }
 
   public clearAllGeos(keepRadiusGeos: boolean, keepAudienceGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
@@ -433,21 +440,25 @@ export class AppGeoService {
         }
       });
     } else {
-      const newLocationAttributes = [];
-      locations.forEach(l => {
-          const attr1 = this.domainFactory.createLocationAttribute(l, 'Home Geocode Issue', 'Y');
-          const attr2 = this.domainFactory.createLocationAttribute(l, 'Invalid Home Geo', 'Y');
-          if (attr1 != null) newLocationAttributes.push(attr1);
-          if (attr2 != null) newLocationAttributes.push(attr2);
-      });
-      if (locations.length > 0){
-        this.locationAttrService.add(newLocationAttributes);
-        this.locationService.makeDirty();
-        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message: `There were ${locations.length} location(s) that could not find their Home Geocode`, additionalErrorInfo: locations}));
-      }
+      this.flagLocationsWithInvalidHomeGeos(locations);
+      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message: `There were ${locations.length} location(s) that have invalid Home Geocodes`, additionalErrorInfo: locations}));
     }
     if (newTradeAreas.length > 0) this.tradeAreaService.add(newTradeAreas);
     return homeGeosToAdd;
+  }
+
+  private flagLocationsWithInvalidHomeGeos(locations: ImpGeofootprintLocation[]) : void {
+    const newLocationAttributes = [];
+    locations.forEach(l => {
+      const attr1 = this.domainFactory.createLocationAttribute(l, 'Home Geocode Issue', 'Y');
+      const attr2 = this.domainFactory.createLocationAttribute(l, 'Invalid Home Geo', 'Y');
+      if (attr1 != null) newLocationAttributes.push(attr1);
+      if (attr2 != null) newLocationAttributes.push(attr2);
+    });
+    if (locations.length > 0){
+      this.locationAttrService.add(newLocationAttributes);
+      this.locationService.makeDirty();
+    }
   }
 
   /**

@@ -166,7 +166,10 @@ export class AppLocationService {
 
     combineLatest(this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$).pipe(
       filter(([level, isReady]) => level != null && level.length > 0 && isReady)
-    ).subscribe(([]) => this.appTradeAreaService.onAnalysisLevelChange());
+    ).subscribe(() => {
+      this.clearInvalidHomeGeoAttributes();
+      this.appTradeAreaService.onAnalysisLevelChange();
+    });
     
   }
 
@@ -876,5 +879,14 @@ export class AppLocationService {
           return attributesList;
         })
     );
+  }
+
+  private clearInvalidHomeGeoAttributes() {
+    const locations = this.impLocationService.get();
+    locations.forEach(l => {
+      l.impGeofootprintLocAttribs = l.impGeofootprintLocAttribs.filter(a => a.attributeCode !== 'Invalid Home Geo');
+    });
+    const attrs = this.impLocAttributeService.get().filter(a => a.attributeCode === 'Invalid Home Geo');
+    this.impLocAttributeService.remove(attrs);
   }
 }
