@@ -67,7 +67,7 @@ export class AppExportService {
       try {
         const pluralType = `${siteType}s`;
         const filename = 'Home Geo Issues Log.csv'
-        const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues, filename, currentProject[0]);
+        const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues, filename, currentProject[0], true);
         observer.next(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, metricValue));
         observer.complete();
       } catch (err) {
@@ -104,8 +104,9 @@ export class AppExportService {
     });
   }
 
-  private locationExportImpl(siteType: SuccessfulLocationTypeCodes, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filename: string, currentProject: ImpProject) : number {
-    const storeFilter: (loc: ImpGeofootprintLocation) => boolean = loc => loc.clientLocationTypeCode === siteType;
+  private locationExportImpl(siteType: SuccessfulLocationTypeCodes, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filename: string, currentProject: ImpProject, homeGeoIssueOnly: boolean = false) : number {
+    const storeFilter: (loc: ImpGeofootprintLocation) => boolean = 
+            loc => loc.clientLocationTypeCode === siteType && (!homeGeoIssueOnly || loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y').length > 0);
     const pluralType = `${siteType}s`;
     const isDigital = exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital;
     

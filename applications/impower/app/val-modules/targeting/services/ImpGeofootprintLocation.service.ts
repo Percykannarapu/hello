@@ -279,25 +279,57 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
     return ''; 
     }
 
-    public exportHomeGeoissue(loc: ImpGeofootprintLocation) : string { 
+    public exportHomeGeoissueAtz(loc: ImpGeofootprintLocation) : string { 
 
-      let homeAtzVal = '' ; 
-      let homeZipVal = '' ; 
-      let homeDigATZVal = '' ; 
-      let homePcrVal = '' ; 
+      const homeZipVal = this.exportHomeGeoAttribute(loc, 'Zip Code');
+      const homeAtzVal = this.exportHomeGeoAttribute(loc, 'ATZ');
       
-      if((loc.homeAtz != null && loc.homeAtz.length > 0) && (loc.homeZip != null && loc.homeZip.length > 0) && (loc.homeAtz.substr(0,5)===loc.homeZip.substr(0,5))){
-            return 'Y';
-    } else if((loc.homeDigitalAtz != null && loc.homeDigitalAtz.length > 0) && (loc.homeZip != null && loc.homeZip.length > 0) && (loc.homeDigitalAtz.substr(0,5)===loc.homeZip.substr(0,5))){
-            return 'Y';
-    } else if((loc.homePcr != null && loc.homePcr.length > 0) && (loc.homeZip != null && loc.homeZip.length > 0) && (loc.homePcr.substr(0,5)===loc.homeZip.substr(0,5))){
-            return 'Y';
-    } else if(loc.homePcr != null && loc.homePcr.length === 5 && loc.homePcr === loc.locZip ) {
-            return 'Y';
-    } else return 'N' ;
-    }
+      if(homeZipVal != null && homeZipVal.length > 0){
+      if(homeAtzVal == null || homeAtzVal.length == 0 || (homeAtzVal.substr(0,5) !== homeZipVal.substr(0,5))){
+      
+      return 'Y';
+      } 
+      else return 'N' ;
+        }else return 'Y' ;
+        }
 
-     // -----------------------------------------------------------
+    public exportHomeGeoissueDigAtz(loc: ImpGeofootprintLocation) : string { 
+
+      const homeZipVal = this.exportHomeGeoAttribute(loc, 'Zip Code');
+      const homeDigATZVal = this.exportHomeGeoAttribute(loc, 'Digital ATZ');
+
+      if(homeZipVal != null && homeZipVal.length > 0){
+          if(homeDigATZVal == null || homeDigATZVal.length == 0 || (homeDigATZVal.substr(0,5) !== homeZipVal.substr(0,5))){
+            return 'Y';
+          } 
+          else return 'N' ;
+            }else return 'Y' ;
+            }
+
+    public exportHomeGeoissuePcr(loc: ImpGeofootprintLocation) : string { 
+
+       const homeZipVal = this.exportHomeGeoAttribute(loc, 'Zip Code');
+       const homePcrVal = this.exportHomeGeoAttribute(loc, 'Carrier Route');
+ 
+       if(homeZipVal != null && homeZipVal.length > 0){
+          if(homePcrVal == null || homePcrVal.length == 0 || (homePcrVal.substr(0,5) !== homeZipVal.substr(0,5))){
+              return 'Y';
+              } 
+              else return 'N' ;
+                }else return 'Y' ;
+                }
+
+     public exportHomeGeoissuePcrZip(loc: ImpGeofootprintLocation) : string { 
+
+        const homePcrVal = this.exportHomeGeoAttribute(loc, 'Carrier Route');
+     
+          if(homePcrVal == null || homePcrVal.length == 0 || (homePcrVal.length != null && homePcrVal.length != 5)){
+            return 'N';
+                  } 
+                  else return 'Y' ;
+                    }
+
+    // -----------------------------------------------------------
    // EXPORT METHODS
    // -----------------------------------------------------------
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, project: ImpProject, isDigital?: boolean, filter?: (loc: ImpGeofootprintLocation) => boolean, exportType?: string)
@@ -315,11 +347,13 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
           if (isDigital === false) {
             const attributeCodeBlackList = new Set(exportColumns.map(c => c.header));
             const attributeCodes = new Set(allAttributes.map(attribute => attribute.attributeCode));
-            attributeCodes.forEach(code => {
-              if (code != null && !attributeCodeBlackList.has(code)) {
-                exportColumns.push({ header: code, row: (state, data) => state.exportAttribute(data, code)});
-              }
-            });
+            if (exportFormat !== EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues) {
+              attributeCodes.forEach(code => {
+                if (code != null && !attributeCodeBlackList.has(code)) {
+                  exportColumns.push({ header: code, row: (state, data) => state.exportAttribute(data, code)});
+                }
+              });
+            }
             this.downloadExport(filename, this.prepareCSV(exportColumns, locations));
           } else {
             const csvData = this.prepareCSV(exportColumns, locations);
@@ -459,10 +493,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
            exportColumns.push({ header: 'Home DMA',           row: (state, data) => state.exportHomeGeoAttribute(data, 'DMA')});
            exportColumns.push({ header: 'Final ZIP not equal Orig. ZIP',     row: (state, data) =>  (data.locZip != null && data.locZip.substr(0,5)) === (data.origPostalCode != null && data.origPostalCode.substr(0,5)) ? 'N' :'Y'});
            exportColumns.push({ header: 'Final ZIP not equal Home ZIP',      row: (state, data) =>  (data.locZip != null && data.locZip.substr(0,5)) === state.exportHomeGeoAttribute(data, 'Zip Code') ? 'N' :'Y'});
-           exportColumns.push({ header: 'Null Home ATZ or not in Home ZIP',  row: (state, data) => (state.exportHomeGeoissue(data))});
-           exportColumns.push({ header: 'Null Home DTZ or not in Home ZIP',           row: (state, data) => (state.exportHomeGeoissue(data))});
-           exportColumns.push({ header: 'Null Home PCR or not in Home ZIP',           row: (state, data) => (state.exportHomeGeoissue(data))});
-           exportColumns.push({ header: 'PCR is entire ZIP',           row: (state, data) => (state.exportHomeGeoissue(data))});
+           exportColumns.push({ header: 'Null Home ATZ or not in Home ZIP',  row: (state, data) => (state.exportHomeGeoissueAtz(data))});
+           exportColumns.push({ header: 'Null Home DTZ or not in Home ZIP',  row: (state, data) => (state.exportHomeGeoissueDigAtz(data))});
+           exportColumns.push({ header: 'Null Home PCR or not in Home ZIP',  row: (state, data) => (state.exportHomeGeoissuePcr(data))});
+           exportColumns.push({ header: 'PCR is entire ZIP',                 row: (state, data) => (state.exportHomeGeoissuePcrZip(data))});
           
            break;
 
