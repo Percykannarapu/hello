@@ -99,6 +99,12 @@ export class AddLocationsTabComponent implements OnInit {
   }
 
   resubmit(site: ImpGeofootprintLocation) {
+    const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+    site.impGeofootprintLocAttribs.forEach(attr => {
+      if (homeGeoColumnsSet.has(attr.attributeCode)){
+        attr.attributeValue = '';
+      }
+    });
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
     const newRequest = new ValGeocodingRequest(site, true);
@@ -146,8 +152,10 @@ export class AddLocationsTabComponent implements OnInit {
   processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
     console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
+    const reCalculateHomeGeos = false;
+    const isLocationEdit =  isEdit;
     //this.store$.dispatch(new StartBusyIndicatorx({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
-    this.store$.dispatch(new Geocode({sites, siteType}));
+    this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
     /*const locationCache: ImpGeofootprintLocation[] = [];
     this.appLocationService.geocode(sites, siteType).subscribe(
       locations => locationCache.push(...locations),

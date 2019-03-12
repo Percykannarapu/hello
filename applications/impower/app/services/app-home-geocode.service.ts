@@ -5,10 +5,11 @@ import { SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.
 import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { AppLocationService } from './app-location.service';
+import { AppTradeAreaService } from './app-trade-area.service';
+import { ValAudienceTradeareaService } from './app-audience-tradearea.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { StopBusyIndicator, ErrorNotification, StartBusyIndicator } from '@val/messaging';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-//import { HomeGeocode } from 'applications/impower/app/state/homeGeocode/homeGeo.actions';
 import { reduce } from 'rxjs/internal/operators/reduce';
 import { simpleFlatten } from '@val/common';
 import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
@@ -22,6 +23,8 @@ import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/servi
    constructor(private store$: Store<LocalAppState>,
                private appLocationService: AppLocationService,
                private impLocationService: ImpGeofootprintLocationService,
+               private appTradeAreaService: AppTradeAreaService,
+              private audienceTradeAreaService: ValAudienceTradeareaService,
                private impLocAttributeService: ImpGeofootprintLocAttribService ){}
 
    geocode(payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes}) : Observable<ImpGeofootprintLocation[]>{
@@ -56,24 +59,37 @@ import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/servi
      this.appLocationService.flagHomeGeos(this.impLocationService.get(), null);
    }
 
-   persistGeos(payload: {locations: ImpGeofootprintLocation[]}){
-      this.appLocationService.persistLocationsAndAttributes(payload.locations);
+   persistLocations(payload: {locations: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
+     // const reCalculateHomegeos = true;
+      if (payload.reCalculateHomeGeos){
+        //this.impLocationService.replace(payload.locations);
+        const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
+        this.impLocationService.removeAll();
+        this.impLocAttributeService.removeAll();
+        const locations = payload.locations;
+        locations.push(...failedLoc);
+        this.impLocationService.add(locations);
+        this.impLocAttributeService.add(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));
+      }else{
+        this.appLocationService.persistLocationsAndAttributes(payload.locations);
+      }
+      if (payload.isLocationEdit){
+        this.tradeAreaApplyOnEdit();
+      }
+      
       //this.impLocationService.update()
    }
 
    updateLocations(payload: {locations: ImpGeofootprintLocation[]}){
-   // 
-    //console.log('update locations', payload.locations);
-    //this.impLocationService.replace(payload.locations);
-    const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
+    /*const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
     this.impLocationService.removeAll();
     this.impLocAttributeService.removeAll();
     const locations = payload.locations;
     locations.push(...failedLoc);
-    //this.appLocationService.persistLocationsAndAttributes(locations);
-    //this.appLocationService.persistLocationsAndAttributes(payload.locations);
     this.impLocationService.add(locations);
-    this.impLocAttributeService.add(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));
+    this.impLocAttributeService.add(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));*/
+    this.impLocationService.replace(payload.locations);
+    
    }
 
    zoomToLocations(payload: {locations: ImpGeofootprintLocation[]}){
@@ -82,7 +98,23 @@ import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/servi
       if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
    }   
 
-   private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
+   private tradeAreaApplyOnEdit() {
+    // if (this.customTradeAreaBuffer != undefined && this.customTradeAreaBuffer != null && this.customTradeAreaBuffer != '') {
+    //    this.appEditSiteService.customTradeArea({'data': this.customTradeAreaBuffer});
+    // }
+    
+    if (this.appTradeAreaService.tradeareaType == 'audience') {
+      this.audienceTradeAreaService.createAudienceTradearea(this.audienceTradeAreaService.getAudienceTAConfig())
+      .subscribe(null,
+      error => {
+        console.error('Error while creating audience tradearea', error);
+        this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
+        this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
+      });
+    } 
+   }
+
+   public handleError(errorHeader: string, errorMessage: string, errorObject: any) {
       this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
       this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
       console.error(errorMessage, errorObject);

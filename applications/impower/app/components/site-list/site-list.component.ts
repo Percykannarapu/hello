@@ -15,7 +15,7 @@ import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofoo
 import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { Geocode, ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
+import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
 import { ExportGeofootprint } from '../../state/menu/menu.actions';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { AppProjectService } from '../../services/app-project.service';
@@ -528,7 +528,9 @@ export class SiteListComponent implements OnInit {
  
          const sites = Array.isArray(valGeosites) ? valGeosites : [valGeosites];
          const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.impLocationService.get()[0].clientLocationTypeCode));
-         this.store$.dispatch(new ReCalcHomeGeos({sites, siteType}));
+         const reCalculateHomeGeos = true;
+         const isLocationEdit =  false;
+         this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
         },
         reject: () => {
          console.log('calcHomeGeocode aborted');

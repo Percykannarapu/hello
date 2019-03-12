@@ -156,7 +156,9 @@ export class SiteListContainerComponent implements OnInit {
         newLocation.ycoord = Number(siteOrSites['latitude']);
         const sites = [siteOrSites] ;
        // const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
-       this.store$.dispatch(new Geocode({sites, siteType}));
+       const reCalculateHomeGeos = false;
+       const isLocationEdit =  true;
+       this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
       }
       //this.impGeofootprintLocationService.update(oldData, newLocation);
       this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));

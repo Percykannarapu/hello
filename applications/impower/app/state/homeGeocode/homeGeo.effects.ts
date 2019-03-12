@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistGeos, ZoomtoLocations, DetermineDTZHomeGeos, ProcessHomeGeoAttributes, ReCalcHomeGeos, UpdateLocations} from './homeGeo.actions';
+import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistLocations, ZoomtoLocations, 
+         DetermineDTZHomeGeos, ProcessHomeGeoAttributes, UpdateLocations} from './homeGeo.actions';
 import { Actions, ofType, Effect} from '@ngrx/effects';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
@@ -20,27 +21,11 @@ export class HomeGeoEffects {
       //this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
      switchMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
         concatMap(locations => [
-           new PersistGeos({locations}),
-           new ZoomtoLocations({locations}),
-           new StopBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER' }),
+           new PersistLocations({locations, reCalculateHomeGeos: action.payload.reCalculateHomeGeos, isLocationEdit: action.payload.isLocationEdit}),
            new StartBusyIndicator({ key: 'HomeGeoCalcKey', message: 'Calculating Home Geos'}),
            new HomeGeocode({locations}),
         ])
      ))
-   );
-
-   @Effect()
-   reCalcHomeGeos$ = this.actions$.pipe(
-      ofType<ReCalcHomeGeos>(HomeGeoActionTypes.ReCalcHomeGeos),
-      switchMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
-        concatMap(locations => [
-          new UpdateLocations({locations}),
-          new ZoomtoLocations({locations}),
-          new StopBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER' }),
-          new StartBusyIndicator({ key: 'HomeGeoCalcKey', message: 'Calculating Home Geos'}),
-          new HomeGeocode({locations}),
-       ])
-      ))
    );
 
    @Effect()
@@ -57,7 +42,6 @@ export class HomeGeoEffects {
    determineDTZHomeGeos$ = this.actions$.pipe(
       ofType<DetermineDTZHomeGeos>(HomeGeoActionTypes.DetermineDTZHomeGeos),
       switchMap(action => this.appHomeGeocodingService.determineHomeDTZ(action.payload).pipe(
-       // map(attributes => new ProcessHomeGeoAttributes({attributes})),
         concatMap(attributes => [
           new ProcessHomeGeoAttributes({attributes}),
           new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
@@ -72,10 +56,14 @@ export class HomeGeoEffects {
      map(action => this.appHomeGeocodingService.processHomeGeoAttributes(action.payload))
    );
 
-   @Effect({ dispatch: false })
-   persistGeos$ = this.actions$.pipe(
-      ofType<PersistGeos>(HomeGeoActionTypes.PersistGeos),
-      map(action => this.appHomeGeocodingService.persistGeos(action.payload))
+   @Effect()
+   persistLocations$ = this.actions$.pipe(
+      ofType<PersistLocations>(HomeGeoActionTypes.PersistLocations),
+      tap(action => this.appHomeGeocodingService.persistLocations(action.payload)),
+      concatMap(action => [
+        new ZoomtoLocations(action.payload),
+        new StopBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER' }),
+      ])
    );
 
    @Effect({ dispatch: false })
