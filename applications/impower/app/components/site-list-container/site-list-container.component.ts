@@ -125,6 +125,7 @@ export class SiteListContainerComponent implements OnInit {
    private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData, resubmit?: boolean) {
     console.log('Processing requests:', siteOrSites);
     const locationCache: ImpGeofootprintLocation[] = [];
+    const newLocation: ValGeocodingRequest = oldData;
     if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street'])) {
       siteOrSites['latitude'] = null;
       siteOrSites['longitude'] = null;
@@ -144,13 +145,8 @@ export class SiteListContainerComponent implements OnInit {
         this.siteListService.deleteLocations(matchingLocation);
         this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
 
-    } else {
-      const newLocation: ValGeocodingRequest = oldData;
-      newLocation.locationNumber = siteOrSites['number'];
-      newLocation.locationName = siteOrSites['name'];
-      newLocation.marketName = siteOrSites['Market'];
-      newLocation.marketCode = siteOrSites['Market Code'];
-      if (newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude']) {
+    } else if (newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude']){
+      // const newLocation: ValGeocodingRequest = oldData; 
         newLocation.recordStatusCode = 'PROVIDED';
         newLocation.xcoord = Number(siteOrSites['longitude']);
         newLocation.ycoord = Number(siteOrSites['latitude']);
@@ -159,10 +155,15 @@ export class SiteListContainerComponent implements OnInit {
        const reCalculateHomeGeos = false;
        const isLocationEdit =  true;
        this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
-      }
-      //this.impGeofootprintLocationService.update(oldData, newLocation);
-      this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-    }
+       this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+    } else {
+      const editedLocation: ImpGeofootprintLocation = oldData;
+      editedLocation.locationNumber = siteOrSites['number'];
+      editedLocation.locationName = siteOrSites['name'];
+      editedLocation.marketName = siteOrSites['Market'];
+      editedLocation.marketCode = siteOrSites['Market Code'];
+      this.impGeofootprintLocationService.update(oldData, editedLocation);
+    } 
   }
 
   private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
