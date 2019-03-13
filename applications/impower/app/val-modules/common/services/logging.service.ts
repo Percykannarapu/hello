@@ -16,48 +16,53 @@ export interface LoggingConfiguration {
 
 export const LoggingConfigurationToken = new InjectionToken<LoggingConfiguration>('logging-config-options');
 
+const noop = () : any => undefined;
+
 @Injectable({
   providedIn: 'root'
 })
 export class LoggingService {
 
-  constructor(@Inject(LoggingConfigurationToken) protected cfg: LoggingConfiguration) { }
-
-  private log(level: LogLevels, message: string, ...data: any[]) {
-    if (level >= this.cfg.logLevel) {
-      switch (level) {
-        case LogLevels.DEBUG:
-        case LogLevels.INFO:
-          console.log(message, ...data);
-          break;
-        case LogLevels.WARN:
-          console.warn(message, ...data);
-          break;
-        case LogLevels.ERROR:
-        case LogLevels.FATAL:
-          console.error(message, ...data);
-          break;
-      }
+  get debug() {
+    if (LogLevels.DEBUG >= this.cfg.logLevel) {
+      return console.log.bind(console);
+    } else {
+      return noop;
     }
   }
 
-  debug(message: string, ...data: any[]) {
-    this.log(LogLevels.DEBUG, `DEBUG: ${message}`, ...data);
+  get info() {
+    if (LogLevels.INFO >= this.cfg.logLevel) {
+      return console.log.bind(console);
+    } else {
+      return noop;
+    }
   }
 
-  info(message: string, ...data: any[]) {
-    this.log(LogLevels.INFO, `INFO: ${message}`, ...data);
+  get warn() {
+    if (LogLevels.WARN >= this.cfg.logLevel) {
+      return console.warn.bind(console);
+    } else {
+      return noop;
+    }
   }
 
-  warn(message: string, ...data: any[]) {
-    this.log(LogLevels.WARN, `WARN: ${message}`, ...data);
+  get error() {
+    if (LogLevels.ERROR >= this.cfg.logLevel) {
+      return console.error.bind(console);
+    } else {
+      return noop;
+    }
   }
 
-  error(message: string, ...data: any[]) {
-    this.log(LogLevels.ERROR, `ERROR: ${message}`, ...data);
+  get fatal() {
+    if (LogLevels.FATAL >= this.cfg.logLevel) {
+      return console.error.bind(console);
+    } else {
+      return noop;
+    }
   }
 
-  fatal(message: string, ...data: any[]) {
-    this.log(LogLevels.FATAL, `FATAL: ${message}`, ...data);
-  }
+  constructor(@Inject(LoggingConfigurationToken) protected cfg: LoggingConfiguration) { }
+
 }
