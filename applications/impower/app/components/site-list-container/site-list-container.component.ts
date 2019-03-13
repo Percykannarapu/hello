@@ -124,25 +124,11 @@ export class SiteListContainerComponent implements OnInit {
 
    private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData, resubmit?: boolean) {
     console.log('Processing requests:', siteOrSites);
-    const locationCache: ImpGeofootprintLocation[] = [];
-    const newLocation: ValGeocodingRequest = oldData;
+    const newLocation: ValGeocodingRequest = oldData;   
     if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street'])) {
       siteOrSites['latitude'] = null;
       siteOrSites['longitude'] = null;
-     const matchingLocation = this.impGeofootprintLocationService.get().filter(l => l.locationNumber == oldData.locationNumber);
-     const customTradeAreaCheck = this.tradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length;
-     let databuffer: string = '';
-     if ( customTradeAreaCheck != undefined && customTradeAreaCheck != null && customTradeAreaCheck > 0) {
-          const customTradeAreaGeos = (matchingLocation[0].impGeofootprintTradeAreas[0].impGeofootprintGeos);
-          const locationNumber = matchingLocation[0].locationNumber;
-          console.log(customTradeAreaGeos);
-          databuffer = 'Store,Geo';
-          for (let i = 0; i < customTradeAreaGeos.length; i++) {
-            databuffer = databuffer + '\n' + locationNumber + ',' + customTradeAreaGeos[i].geocode;
-          }
-          this.appEditSiteService.sendCustomData({'data': databuffer});
-      }
-        this.siteListService.deleteLocations(matchingLocation);
+      this.handleCustomTradeAreaIfExistAndEdit(oldData);
         this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
 
     } else if (newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude']){
@@ -152,9 +138,11 @@ export class SiteListContainerComponent implements OnInit {
         newLocation.ycoord = Number(siteOrSites['latitude']);
         const sites = [siteOrSites] ;
        // const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
-       const reCalculateHomeGeos = false;
-       const isLocationEdit =  true;
-       this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
+      //  const reCalculateHomeGeos = false;
+      //  const isLocationEdit =  true;
+       this.handleCustomTradeAreaIfExistAndEdit(oldData);
+       this.appEditSiteService.sendEditLocationData({'siteData': sites, 'type': siteType, 'isEdit': true});
+      //  this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
     } else {
       const editedLocation: ImpGeofootprintLocation = oldData;
@@ -164,6 +152,23 @@ export class SiteListContainerComponent implements OnInit {
       editedLocation.marketCode = siteOrSites['Market Code'];
       this.impGeofootprintLocationService.update(oldData, editedLocation);
     } 
+  }
+
+  private handleCustomTradeAreaIfExistAndEdit(oldData: ImpGeofootprintLocation) : void {
+    const matchingLocation = this.impGeofootprintLocationService.get().filter(l => l.locationNumber == oldData.locationNumber);
+    const customTradeAreaCheck = this.tradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length;
+    let databuffer: string = '';
+    if ( customTradeAreaCheck != undefined && customTradeAreaCheck != null && customTradeAreaCheck > 0) {
+         const customTradeAreaGeos = (matchingLocation[0].impGeofootprintTradeAreas[0].impGeofootprintGeos);
+         const locationNumber = matchingLocation[0].locationNumber;
+         console.log(customTradeAreaGeos);
+         databuffer = 'Store,Geo';
+         for (let i = 0; i < customTradeAreaGeos.length; i++) {
+           databuffer = databuffer + '\n' + locationNumber + ',' + customTradeAreaGeos[i].geocode;
+         }
+         this.appEditSiteService.sendCustomData({'data': databuffer});
+     }
+     this.siteListService.deleteLocations(matchingLocation);
   }
 
   private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
