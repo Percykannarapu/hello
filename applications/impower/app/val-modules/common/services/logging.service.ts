@@ -25,7 +25,7 @@ export class LoggingService {
 
   get debug() {
     if (LogLevels.DEBUG >= this.cfg.logLevel) {
-      return console.log.bind(console);
+      return console.log.bind(console, 'DEBUG - ');
     } else {
       return noop;
     }
@@ -33,7 +33,7 @@ export class LoggingService {
 
   get info() {
     if (LogLevels.INFO >= this.cfg.logLevel) {
-      return console.log.bind(console);
+      return console.log.bind(console, 'INFO - ');
     } else {
       return noop;
     }
@@ -41,7 +41,7 @@ export class LoggingService {
 
   get warn() {
     if (LogLevels.WARN >= this.cfg.logLevel) {
-      return console.warn.bind(console);
+      return console.warn.bind(console, 'WARN - ');
     } else {
       return noop;
     }
@@ -49,7 +49,7 @@ export class LoggingService {
 
   get error() {
     if (LogLevels.ERROR >= this.cfg.logLevel) {
-      return console.error.bind(console);
+      return console.error.bind(console, 'ERROR - ');
     } else {
       return noop;
     }
@@ -57,7 +57,7 @@ export class LoggingService {
 
   get fatal() {
     if (LogLevels.FATAL >= this.cfg.logLevel) {
-      return console.error.bind(console);
+      return console.error.bind(console, 'FATAL - ');
     } else {
       return noop;
     }

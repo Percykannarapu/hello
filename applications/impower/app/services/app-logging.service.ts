@@ -15,7 +15,7 @@ export class AppLoggingService extends LoggingService {
   get fatal() {
     this.store$.dispatch(new CrashStopBusyIndicator());
     if (LogLevels.FATAL >= this.cfg.logLevel) {
-      return console.error.bind(console);
+      return console.error.bind(console, 'FATAL - ');
     } else {
       return noop;
     }
