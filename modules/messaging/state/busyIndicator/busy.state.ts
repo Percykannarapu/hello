@@ -15,6 +15,8 @@ const initialState: BusyState = {
 enum BusyStateActionTypes {
   StartBusyIndicator = '[Messaging - Busy] Start Indicator',
   StopBusyIndicator = '[Messaging - Busy] Stop Indicator',
+
+  CrashStopBusyIndicator = '[Messaging - Busy] Crash Stop'
 }
 
 export class StartBusyIndicator implements Action {
@@ -27,10 +29,16 @@ export class StopBusyIndicator implements Action {
   constructor(public payload: { key: string }){}
 }
 
-export type BusyActions = StartBusyIndicator | StopBusyIndicator;
+export class CrashStopBusyIndicator implements Action {
+  readonly type = BusyStateActionTypes.CrashStopBusyIndicator;
+}
+
+export type BusyActions = StartBusyIndicator | StopBusyIndicator | CrashStopBusyIndicator;
 
 export function busyReducer(state = initialState, action: BusyActions) : BusyState {
   switch (action.type) {
+    case BusyStateActionTypes.CrashStopBusyIndicator:
+      return initialState;
     case BusyStateActionTypes.StartBusyIndicator:
       return {
         keys: [ ...state.keys, action.payload.key ],
