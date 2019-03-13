@@ -493,6 +493,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
            exportColumns.push({ header: 'Home DMA',           row: (state, data) => state.exportHomeGeoAttribute(data, 'DMA')});
            exportColumns.push({ header: 'Final ZIP not equal Orig. ZIP',     row: (state, data) =>  (data.locZip != null && data.locZip.substr(0,5)) === (data.origPostalCode != null && data.origPostalCode.substr(0,5)) ? 'N' :'Y'});
            exportColumns.push({ header: 'Final ZIP not equal Home ZIP',      row: (state, data) =>  (data.locZip != null && data.locZip.substr(0,5)) === state.exportHomeGeoAttribute(data, 'Zip Code') ? 'N' :'Y'});
+           exportColumns.push({ header: 'ZIP or ZIP+4 Centroid',             row: (state, data) => ((data.geocoderMatchCode != null && data.geocoderMatchCode.toLowerCase().includes('z'))||(data.geocoderLocationCode != null && data.geocoderLocationCode.toLowerCase().includes('z'))) ? 'Y' : 'N'});
            exportColumns.push({ header: 'Null Home ATZ or not in Home ZIP',  row: (state, data) => (state.exportHomeGeoissueAtz(data))});
            exportColumns.push({ header: 'Null Home DTZ or not in Home ZIP',  row: (state, data) => (state.exportHomeGeoissueDigAtz(data))});
            exportColumns.push({ header: 'Null Home PCR or not in Home ZIP',  row: (state, data) => (state.exportHomeGeoissuePcr(data))});
