@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, withLatestFrom, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { LocalAppState } from '../state/app.interfaces';
@@ -21,12 +21,11 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService, Season } from './app-state.service';
-import { Geocode } from '../state/homeGeocode/homeGeo.actions';
 
 const boundaryAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
@@ -145,8 +144,23 @@ export class AppGeoService {
    * Sets up an observable sequence that fires when a location is missing its home geo in any trade area
    */
   private setupHomeGeoSelectionObservable() : void {
-    // The root sequence is locations, but I also want to fire when geos change, though I never use them directly
-    const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radius, TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
+
+    const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
+    // const locationsReadyForCheck$ = this.locationService.storeObservable.pipe(
+    //   filterArray(loc => ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site &&
+    //                           loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
+    //                                                                   (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
+    //                           loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
+    //                           loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)
+    // );
+    // this.impGeoService.storeObservable.pipe(
+    //   withLatestFrom(this.appStateService.applicationIsReady$),
+    //   filter(([geo, isReady]) => isReady),
+    //   withLatestFrom(locationsReadyForCheck$),
+    //   filter(([[geo, isReady], locs]) => locs.length > 0),
+    //   map(([[geo, isReady], locs]) => locs)
+    // ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
+
     combineLatest(this.locationService.storeObservable,
       this.impGeoService.storeObservable,
       this.appStateService.applicationIsReady$).pipe(
