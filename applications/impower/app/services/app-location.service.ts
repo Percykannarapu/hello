@@ -853,10 +853,16 @@ export class AppLocationService {
         }),
         reduce((acc, result) => [...acc, ...result], []),
         map(result => {
-          result.forEach(row => {
-            if (row['geocode'] in zipLocDictemp){
+          const dmaCounResponseMap = {};
+          result.forEach(res => {
+            dmaCounResponseMap[res['geocode']] = res;
+          });
+          locations.forEach(loc => {
+            const zip = loc.locZip.substring(0, 5);
+            const row = dmaCounResponseMap[zip];
+            if (zip in dmaCounResponseMap){
               const attrMap = {};
-              zipLocDictemp[(row['geocode'])].impGeofootprintLocAttribs.forEach(attr => {
+              loc.impGeofootprintLocAttribs.forEach(attr => {
                 if (homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null){
                   attrMap[attr.attributeCode] = attr.attributeValue;
                 }
@@ -870,8 +876,8 @@ export class AppLocationService {
                   'homeCounty'  :  county,
                   'homeDma'     :  dma,
                   'homeDtz'     :  attrMap['Home Digital ATZ'], 
-                  'siteNumber'  :  zipLocDictemp[row['geocode']].locationNumber,
-                  'abZip'       :  zipLocDictemp[row['geocode']].locZip.substring(0, 5) 
+                  'siteNumber'  :  loc.locationNumber,
+                  'abZip'       :  loc.locZip.substring(0, 5) 
                 });
             }
           });
