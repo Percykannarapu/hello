@@ -13,6 +13,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { reduce } from 'rxjs/internal/operators/reduce';
 import { simpleFlatten } from '@val/common';
 import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 @Injectable({
    providedIn: 'root'
@@ -23,6 +24,7 @@ import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/servi
    constructor(private store$: Store<LocalAppState>,
                private appLocationService: AppLocationService,
                private impLocationService: ImpGeofootprintLocationService,
+               private impTradeAreaService: ImpGeofootprintTradeAreaService,
                private appTradeAreaService: AppTradeAreaService,
               private audienceTradeAreaService: ValAudienceTradeareaService,
                private impLocAttributeService: ImpGeofootprintLocAttribService ){}
@@ -62,10 +64,11 @@ import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/servi
    persistLocations(payload: {locations: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
      // const reCalculateHomegeos = true;
       if (payload.reCalculateHomeGeos){
-        //this.impLocationService.replace(payload.locations);
         const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
-        this.impLocationService.removeAll();
-        this.impLocAttributeService.removeAll();
+        this.appTradeAreaService.deleteTradeAreas(this.impTradeAreaService.get());
+        this.appLocationService.deleteLocations(this.impLocationService.get());
+        this.appTradeAreaService.clearAll();
+        
         const locations = payload.locations;
         locations.push(...failedLoc);
         this.impLocationService.add(locations);
