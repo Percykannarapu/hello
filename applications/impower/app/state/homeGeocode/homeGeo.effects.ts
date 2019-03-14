@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistLocations, ZoomtoLocations, 
-         DetermineDTZHomeGeos, ProcessHomeGeoAttributes, UpdateLocations} from './homeGeo.actions';
+         DetermineDTZHomeGeos, ProcessHomeGeoAttributes, UpdateLocations, ApplyTradeAreaOnEdit} from './homeGeo.actions';
 import { Actions, ofType, Effect} from '@ngrx/effects';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
@@ -24,10 +24,17 @@ export class HomeGeoEffects {
            new PersistLocations({locations, reCalculateHomeGeos: action.payload.reCalculateHomeGeos, isLocationEdit: action.payload.isLocationEdit}),
            new StartBusyIndicator({ key: 'HomeGeoCalcKey', message: 'Calculating Home Geos'}),
            new HomeGeocode({locations}),
+           new ApplyTradeAreaOnEdit({ isLocationEdit: action.payload.isLocationEdit })
         ])
      ))
    );
 
+   @Effect({ dispatch: false })
+   applyTradeAreaonEdit$ = this.actions$.pipe(
+      ofType<ApplyTradeAreaOnEdit>(HomeGeoActionTypes.ApplyTradeAreaOnEdit),
+      map(action => this.appHomeGeocodingService.applyTradeAreaOnEdit(action.payload))
+   );
+   
    @Effect()
    homeGeocode$ = this.actions$.pipe(
       ofType<HomeGeocode>(HomeGeoActionTypes.HomeGeocode),

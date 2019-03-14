@@ -9,6 +9,7 @@ export enum HomeGeoActionTypes {
    Geocode = '[Application Geocode] Geocoding Request to Fuse',
    HomeGeocode = '[Application Geocode] HomeGeocode and PIP',
    PersistLocations = '[Application Geocode] Persist Geos to Datastore',
+   ApplyTradeAreaOnEdit = '[Application Geocode] Apply TradeArea after Edit',
    ZoomtoLocations = '[Application Geocode] Zoom to Locations',
    DetermineDTZHomeGeos = '[Application Geocode] Determine Digital ATZ',
    ProcessHomeGeoAttributes = '[Application Geocode] Flag Homegeo Attributes',
@@ -30,6 +31,11 @@ export class HomeGeocode implements Action {
 export class PersistLocations implements Action {
    readonly type = HomeGeoActionTypes.PersistLocations;
    constructor(public payload: {locations: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){}
+}
+
+export class ApplyTradeAreaOnEdit implements Action {
+   readonly type = HomeGeoActionTypes.ApplyTradeAreaOnEdit;
+   constructor(public payload: {isLocationEdit: boolean}){}
 }
 
 export class ZoomtoLocations implements Action {
@@ -56,6 +62,7 @@ export class UpdateLocations implements Action {
 export type HomeGeoActions = Geocode | 
                              HomeGeocode | 
                              PersistLocations |
+                             ApplyTradeAreaOnEdit |
                              DetermineDTZHomeGeos |
                              ProcessHomeGeoAttributes|
                              UpdateLocations |

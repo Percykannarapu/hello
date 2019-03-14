@@ -14,20 +14,30 @@ import { reduce } from 'rxjs/internal/operators/reduce';
 import { simpleFlatten } from '@val/common';
 import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-
+import { AppEditSiteService } from './app-editsite.service';
 @Injectable({
    providedIn: 'root'
  })
  export class AppHomeGeocodingService {
    private spinnerKey = 'ADD_LOCATION_TAB_SPINNER';
    private homeGeokey = 'HomeGeoCalcKey';
+   private customTradeAreaBuffer: string;
    constructor(private store$: Store<LocalAppState>,
                private appLocationService: AppLocationService,
                private impLocationService: ImpGeofootprintLocationService,
                private impTradeAreaService: ImpGeofootprintTradeAreaService,
                private appTradeAreaService: AppTradeAreaService,
-              private audienceTradeAreaService: ValAudienceTradeareaService,
-               private impLocAttributeService: ImpGeofootprintLocAttribService ){}
+               private audienceTradeAreaService: ValAudienceTradeareaService,
+               private impLocAttributeService: ImpGeofootprintLocAttribService,
+               private appEditSiteService: AppEditSiteService ){
+                 
+                this.appEditSiteService.customData$.subscribe(message => {
+                  if (message != undefined && message['data'] != undefined && message != null) {
+                    this.customTradeAreaBuffer = message['data'];
+                  }
+                });
+
+               }
 
    geocode(payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes}) : Observable<ImpGeofootprintLocation[]>{
       const pluralize = payload.sites.length > 1 ? 's' : '';
@@ -76,6 +86,14 @@ import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/servic
       }else{
         this.appLocationService.persistLocationsAndAttributes(payload.locations);
       }
+      // if (payload.isLocationEdit){
+      //   this.tradeAreaApplyOnEdit();
+      // }
+      
+      //this.impLocationService.update()
+   }
+
+   applyTradeAreaOnEdit(payload: {isLocationEdit: boolean}) {
       if (payload.isLocationEdit){
         this.tradeAreaApplyOnEdit();
       }
@@ -102,9 +120,9 @@ import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/servic
    }   
 
    private tradeAreaApplyOnEdit() {
-    // if (this.customTradeAreaBuffer != undefined && this.customTradeAreaBuffer != null && this.customTradeAreaBuffer != '') {
-    //    this.appEditSiteService.customTradeArea({'data': this.customTradeAreaBuffer});
-    // }
+    if (this.customTradeAreaBuffer != undefined && this.customTradeAreaBuffer != null && this.customTradeAreaBuffer != '') {
+       this.appEditSiteService.customTradeArea({'data': this.customTradeAreaBuffer});
+    }
     
     if (this.appTradeAreaService.tradeareaType == 'audience') {
       this.audienceTradeAreaService.createAudienceTradearea(this.audienceTradeAreaService.getAudienceTAConfig())
