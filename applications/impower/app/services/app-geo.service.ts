@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates, accumulateArrays } from '@val/common';
 import { EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, withLatestFrom, tap, reduce } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { LocalAppState } from '../state/app.interfaces';
@@ -156,8 +156,6 @@ export class AppGeoService {
                               loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)
     ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
-  // map(([geos])=>geos.attributes.filter(a => boundaryAttributes.contains(a.type)).length === 0)
-
   /**
    * Sets up an observable sequence that fires when any geocode is added to the data store
    */
@@ -191,19 +189,18 @@ export class AppGeoService {
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Getting Attributes' }));
     const geocodes = new Set(queryableGeos.map(g => g.geocode));
     const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    this.queryService.queryAttributeIn(portalId, 'geocode', Array.from(geocodes), false, boundaryAttributes).subscribe(
-      graphics => {
-        const attributesForUpdate = graphics.map(g => g.attributes);
-        this.updateGeoAttributes(attributesForUpdate);
+    this.queryService.queryAttributeIn(portalId, 'geocode', Array.from(geocodes), false, boundaryAttributes).pipe(
+      map(graphics => this.updateGeoAttributes(graphics.map(g => g.attributes))),
+      reduce((acc, curr) => accumulateArrays(acc, curr))
+    ).subscribe(
+      attributes => {
+        this.filterGeosOnFlags(geos.filter(geo => geo.impGeofootprintTradeArea != null && geo.impGeofootprintTradeArea.taType === 'RADIUS'));
+        this.impAttributeService.add(attributes);
+        this.store$.dispatch(new StopBusyIndicator({ key }));
       },
       err => {
         console.error(err);
         this.store$.dispatch(new ErrorNotification({ message: 'There was an error during geo selection' }));
-        this.store$.dispatch(new StopBusyIndicator({ key }));
-      },
-      () => {
-        this.impGeoService.createAllAudAttribs();
-        this.filterGeosImpl(geos);
         this.store$.dispatch(new StopBusyIndicator({ key }));
       });
   }
@@ -694,7 +691,7 @@ export class AppGeoService {
      if(audGeosMap.has('true')) {
        audGeosMap.get('true').forEach(geo => geoSet.add(geo.geocode));
      }
-    console.log('filtered Audience Geos:::', geoSet);
+    console.log('Filtered Audience Geos:::', geoSet);
     if (ownerGroupGeosMap.has('VALASSIS')) {
       ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
         if(includeValassis){
@@ -795,7 +792,7 @@ export class AppGeoService {
     //this.impAttributeService.makeDirty();
   }
 
-  private updateGeoAttributes(layerAttribute: any[], geos?: ImpGeofootprintGeo[]) {
+  private updateGeoAttributes(layerAttribute: any[], geos?: ImpGeofootprintGeo[]) : ImpGeofootprintGeoAttrib[] {
     const currentGeos = geos || this.impGeoService.get();
     const isSummer = this.appStateService.season$.getValue() === Season.Summer;
     const geoMap: Map<string, ImpGeofootprintGeo[]> = groupBy(currentGeos, 'geocode');
@@ -820,8 +817,7 @@ export class AppGeoService {
         });
       }
     }
-    if (newAttributes.length > 0)
-       this.impAttributeService.add(newAttributes);
+    return newAttributes;
   }
 
   private deselectGeosByGeocode(geocode: string) : void {
@@ -876,24 +872,24 @@ export class AppGeoService {
       filter(project => project != null),
       map(project => project.isIncludeValassis),
       distinctUntilChanged()
-    );
+      );
     const anneFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),
       map(project => project.isIncludeAnne),
       distinctUntilChanged()
-    );
+      );
     const soloFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),
       map(project => project.isIncludeSolo),
       distinctUntilChanged()
-    );
+   );
     const pobFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),
       map(project => project.isExcludePob),
       distinctUntilChanged()
-    );
+      );
     combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$)
-      .pipe(tap(([v, a, s, p]) => console.log('Valassis, Anne, Solo, POB: ', v, a, s, p)))
-      .subscribe(() => this.filterGeosOnFlags(this.impGeoService.get()));
+      // .pipe(tap(([v, a, s, p]) => console.log('Valassis, Anne, Solo, POB: ', v, a, s, !p)))
+      .subscribe(() => this.filterGeosOnFlags(this.impGeoService.get().filter(g => g.impGeofootprintTradeArea.taType === 'RADIUS' || g.impGeofootprintTradeArea.taType === 'AUDIENCE' )));
   }
 }
