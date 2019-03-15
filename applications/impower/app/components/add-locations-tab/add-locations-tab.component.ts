@@ -33,8 +33,7 @@ export class AddLocationsTabComponent implements OnInit {
   @ViewChild('manualCompetitorEntry') manualCompetitorEntry: ManualEntryComponent;
 
   isProd: boolean = environment.production;
-  businessSearchLimit: number = 20000;
-  private customTradeAreaBuffer: string; 
+  businessSearchLimit: number = 20000; 
 
   hasFailures$: Observable<boolean>;
   totalCount$: Observable<number>;
@@ -61,12 +60,6 @@ export class AddLocationsTabComponent implements OnInit {
       if (message != undefined && message != null) {     
         this.manuallyGeocode(message.siteData, message.type, message.isEdit);
       }   
-    });
-    
-    this.appEditSiteService.customData$.subscribe(message => {
-      if (message != undefined && message['data'] != undefined && message != null) {
-        this.customTradeAreaBuffer = message['data'];
-      }
     });
 
     this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
@@ -114,22 +107,6 @@ export class AddLocationsTabComponent implements OnInit {
     this.processSiteRequests(newRequest, newSiteType);
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
-  }
-
-  private tradeAreaApplyOnEdit() {
-   if (this.customTradeAreaBuffer != undefined && this.customTradeAreaBuffer != null && this.customTradeAreaBuffer != '') {
-      this.appEditSiteService.customTradeArea({'data': this.customTradeAreaBuffer});
-   }
-   
-   if (this.appTradeAreaService.tradeareaType == 'audience') {
-     this.audienceTradeAreaService.createAudienceTradearea(this.audienceTradeAreaService.getAudienceTAConfig())
-     .subscribe(null,
-     error => {
-       console.error('Error while creating audience tradearea', error);
-       this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
-       this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
-     });
-   } 
   }
 
   manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, isEdit?: boolean){
