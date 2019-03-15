@@ -49,15 +49,15 @@ import { AppEditSiteService } from './app-editsite.service';
       );
    }
 
-   validateLocations(payload: {locations: ImpGeofootprintLocation[]}){
+   validateLocations(payload: {locations: ImpGeofootprintLocation[], isLocationEdit: boolean}){
       console.log('validateLocations:::');
       const mapLoc = this.appLocationService.validateLocactionsforpip(payload.locations);
-      return mapLoc;
+      return { LocMap: mapLoc, isLocationEdit: payload.isLocationEdit };
    }
 
-   queryHomeGeocode(payload: Map<string, ImpGeofootprintLocation[]>){
+   queryHomeGeocode(payload: { LocMap: Map<string, ImpGeofootprintLocation[]>, isLocationEdit: boolean}){
      console.log('queryHomeGeocode for PIP');
-     return this.appLocationService.queryAllHomeGeos(payload);
+    return this.appLocationService.queryAllHomeGeos(payload.LocMap);
    }
 
    determineHomeDTZ(payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>}){
