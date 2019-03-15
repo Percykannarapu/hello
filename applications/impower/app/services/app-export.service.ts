@@ -113,7 +113,7 @@ export class AppExportService {
     const pluralType = `${siteType}s`;
     const isDigital = exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital;
     const metricCount =  this.impGeofootprintLocationService.get().filter(storeFilter).length;
-   if(metricCount === 0){
+   if(metricCount === 0 && exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues ){
     this.store$.dispatch(new ErrorNotification({ message: 'There are no home geocoding issues to report.', notificationTitle: 'Home Geocode Issues Log' }));    
     } else {
     this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, isDigital, storeFilter, pluralType.toUpperCase());
