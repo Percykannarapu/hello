@@ -28,6 +28,7 @@ import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotifi
 import { InTransaction } from './../val-modules/common/services/datastore.service';
 import { ImpProjectVarService } from './../val-modules/targeting/services/ImpProjectVar.service';
 import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
+import { AppGeoService } from './app-geo.service';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -686,6 +687,7 @@ export class ValAudienceTradeareaService {
       this.failedLocations.push(location);
     }
     this.geoCache.push(...newGeos);
+    this.appGeoService.filterGeosOnFlags(newGeos);
     return newGeos;
   }
   
@@ -724,6 +726,7 @@ export class ValAudienceTradeareaService {
               private targetAudienceService: TargetAudienceService,
               private targetAudienceTAService: TargetAudienceAudienceTA,
               private domainFactory: ImpDomainFactoryService,
+              private appGeoService: AppGeoService,
               private store$: Store<LocalAppState>) {
       this.audienceTAConfig = {
         analysisLevel: null,

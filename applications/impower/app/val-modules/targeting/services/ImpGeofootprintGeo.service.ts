@@ -81,13 +81,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       super.load(items);
    }
 
-   public createAllAudAttribs(){
-      this.get().forEach(geo => {
-         if(geo.impGeofootprintTradeArea.taType === 'AUDIENCE')
-         return this.createAudAttribs(geo);
-      });
-    }
-   
    public createAudAttribs(newGeo: ImpGeofootprintGeo) : ImpGeofootprintGeoAttrib{
    let newAttribute: any;
    return newAttribute = (newGeo.isActive) ? this.domainFactory.createGeoAttribute(newGeo, 'preSelectedForAudience', 'true') 
