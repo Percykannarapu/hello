@@ -549,15 +549,16 @@ export class SiteListComponent implements OnInit {
    public onHGCIssuesLog() {
      
     const site : SuccessfulLocationTypeCodes = ImpClientLocationTypeCodes.Site;
-    this.confirmationService.confirm({
-       message: 'Do you want to export Home Geocode Issues report ?',
-       header: 'Home Geocode Issues report',
-       accept: () => {
-        this.store$.dispatch(new ExportHGCIssuesLog({locationType: site}))
-        // this.store$.dispatch(new ExportLocations({ locationType }));
+    //this.confirmationService.confirm({
+    //   message: 'Home Geocode Issues Log',
+    //   header: 'There are no home geocoding issues to report',
+    //   accept: () => {
+    //    this.store$.dispatch(new ExportHGCIssuesLog({locationType: site}))
+    //    // this.store$.dispatch(new ExportLocations({ locationType }));
 
-          }
-    });
+    //      }
+    //});
+    this.store$.dispatch(new ExportHGCIssuesLog({locationType: site}));
  }
    /**
     * When the user clicks the "Magnifying glass" icon, this will zoom the map to that location
