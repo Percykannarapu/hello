@@ -6,7 +6,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { AppGeocodingService } from './app-geocoding.service';
 import { combineLatest, merge, Observable, EMPTY, of } from 'rxjs';
-import { filter, map, pairwise, startWith, tap } from 'rxjs/operators';
+import { filter, map, pairwise, startWith, tap, withLatestFrom } from 'rxjs/operators';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { AppConfig } from '../app.config';
 import { AppStateService } from './app-state.service';
@@ -147,8 +147,13 @@ export class AppLocationService {
     this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
     this.appStateService.analysisLevel$
-      .pipe(filter(al => al != null && al.length > 0))
-      .subscribe(analysisLevel => this.setPrimaryHomeGeocode(analysisLevel));
+      .pipe(
+        withLatestFrom(this.appStateService.applicationIsReady$),
+        filter(([level, isReady]) => level != null && level.length > 0 && isReady)
+      ).subscribe(([analysisLevel]) => {
+        this.setPrimaryHomeGeocode(analysisLevel);
+        this.appTradeAreaService.onAnalysisLevelChange();
+    });
 
     /*combineLatest(locationsNeedingHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$).pipe(
       filter(([locations, level, isReady]) => locations.length > 0 && level != null && level.length > 0 && isReady)
@@ -164,13 +169,6 @@ export class AppLocationService {
       filter(([locations, isReady]) => locations.length > 0 && isReady)
     ).subscribe(([locations]) => this.appTradeAreaService.onLocationsWithoutRadius(locations));
 
-    combineLatest(this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$).pipe(
-      filter(([level, isReady]) => level != null && level.length > 0 && isReady)
-    ).subscribe(() => {
-      this.clearInvalidHomeGeoAttributes();
-      this.appTradeAreaService.onAnalysisLevelChange();
-    });
-    
   }
 
   public static createMetricTextForLocation(site: ImpGeofootprintLocation) : string {
@@ -884,14 +882,5 @@ export class AppLocationService {
           return attributesList;
         })
     );
-  }
-
-  private clearInvalidHomeGeoAttributes() {
-    const locations = this.impLocationService.get();
-    locations.forEach(l => {
-      l.impGeofootprintLocAttribs = l.impGeofootprintLocAttribs.filter(a => a.attributeCode !== 'Invalid Home Geo');
-    });
-    const attrs = this.impLocAttributeService.get().filter(a => a.attributeCode === 'Invalid Home Geo');
-    this.impLocAttributeService.remove(attrs);
   }
 }

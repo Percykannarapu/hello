@@ -4,13 +4,13 @@ import { EsriMapService, EsriQueryService } from '@val/esri';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, pairwise, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
@@ -34,6 +34,7 @@ export class AppTradeAreaService {
 
   constructor(private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impLocationService: ImpGeofootprintLocationService,
+              private impLocAttrService: ImpGeofootprintLocAttribService,
               private impGeoService:  ImpGeofootprintGeoService,
               private impGeoAttributeService: ImpGeofootprintGeoAttribService,
               private impVarService: ImpGeofootprintVarService,
@@ -313,9 +314,15 @@ export class AppTradeAreaService {
       ta.impGeofootprintVars = [];
       if (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius) ta['isComplete'] = undefined;
     });
+    const allLocations = this.impLocationService.get();
+    allLocations.forEach(l => {
+      l.impGeofootprintLocAttribs = l.impGeofootprintLocAttribs.filter(a => a.attributeCode !== 'Invalid Home Geo');
+    });
+    const attrs = this.impLocAttrService.get().filter(a => a.attributeCode === 'Invalid Home Geo');
     const tradeAreasToRemove = new Set([TradeAreaTypeCodes.HomeGeo, TradeAreaTypeCodes.Manual, TradeAreaTypeCodes.MustCover]);
     this.logger.debug('Clearing all Geos');
     this.impTradeAreaService.startTx();
+    this.impLocAttrService.remove(attrs);
     this.impVarService.clearAll();
     this.impGeoService.clearAll();
     this.impGeoAttributeService.clearAll();
