@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Action } from '@ngrx/store';
+import { Action, Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -12,6 +12,8 @@ import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actio
 import { TargetAudienceService } from './target-audience.service';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
+import { LocalAppState } from '../state/app.interfaces';
+import { ErrorNotification } from '@val/messaging';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for exporting data
@@ -27,6 +29,7 @@ export class AppExportService {
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private targetAudienceService: TargetAudienceService,
               private impProjectService: ImpProjectService,
+              private store$: Store<LocalAppState>,
               private config: AppConfig) { }
 
   exportGeofootprint(selectedOnly: boolean, currentProject: ImpProject) : Observable<Action> {
@@ -109,11 +112,16 @@ export class AppExportService {
             loc => loc.clientLocationTypeCode === siteType && (!homeGeoIssueOnly || loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y').length > 0);
     const pluralType = `${siteType}s`;
     const isDigital = exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital;
-    
+    const metricCount =  this.impGeofootprintLocationService.get().filter(storeFilter).length;
+   if(metricCount === 0){
+    this.store$.dispatch(new ErrorNotification({ message: 'There are no home geocoding issues to report.', notificationTitle: 'Home Geocode Issues Log' }));    
+    } else {
     this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, isDigital, storeFilter, pluralType.toUpperCase());
-    return this.impGeofootprintLocationService.get().filter(storeFilter).length;
+    }
+    return metricCount;
   }
 
+    
   private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
     const message = `The project must be saved with a valid Project Tracker ID before ${exportDescription}`;
     if (currentProject.projectId == null || currentProject.projectTrackerId == null) {
