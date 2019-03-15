@@ -475,15 +475,15 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
            
            case EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues:
            console.log ('setExportFormat - HGCIssuesLog');
-           exportColumns.push({ header: 'NUMBER',             row: (state, data) => data.locationNumber});
-           exportColumns.push({ header: 'NAME',               row: (state, data) => data.locationName});
-           exportColumns.push({ header: 'Original Address',   row: (state, data) => data.origAddress1});
-           exportColumns.push({ header: 'Original CITY',      row: (state, data) => data.origCity});
-           exportColumns.push({ header: 'Original STATE',     row: (state, data) => data.origState});
-           exportColumns.push({ header: 'Original ZIP',       row: (state, data) => data.origPostalCode});
+           exportColumns.push({ header: 'Number',             row: (state, data) => data.locationNumber});
+           exportColumns.push({ header: 'Name',               row: (state, data) => data.locationName});
+           exportColumns.push({ header: 'Orig. Address',      row: (state, data) => data.origAddress1});
+           exportColumns.push({ header: 'Orig. City',         row: (state, data) => data.origCity});
+           exportColumns.push({ header: 'Orig. State',        row: (state, data) => data.origState});
+           exportColumns.push({ header: 'Orig. ZIP',          row: (state, data) => data.origPostalCode});
            exportColumns.push({ header: 'Final Address',      row: (state, data) => data.locAddress});
-           exportColumns.push({ header: 'Final CITY',         row: (state, data) => data.locCity});
-           exportColumns.push({ header: 'Final STATE',        row: (state, data) => data.locState});
+           exportColumns.push({ header: 'Final City',         row: (state, data) => data.locCity});
+           exportColumns.push({ header: 'Final State',        row: (state, data) => data.locState});
            exportColumns.push({ header: 'Final ZIP',          row: (state, data) => data.locZip});
            exportColumns.push({ header: 'Home ZIP',           row: (state, data) => state.exportHomeGeoAttribute(data, 'Zip Code')});
            exportColumns.push({ header: 'Home ATZ',           row: (state, data) => state.exportHomeGeoAttribute(data, 'ATZ')});
