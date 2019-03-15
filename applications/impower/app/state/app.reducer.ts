@@ -15,7 +15,7 @@ export const appReducer: ActionReducerMap<LocalAppState> = {
 
 export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<LocalAppState> {
   return function(state: LocalAppState, action: Action) : LocalAppState {
-    console.groupCollapsed(action.type);
+    console.groupCollapsed('%c' + action.type, 'color: #66666699');
     const nextState = reducer(state, action);
     console.log('%c prev state', 'color: #9E9E9E', state);
     console.log('%c action', 'color: #03A9F4', action);

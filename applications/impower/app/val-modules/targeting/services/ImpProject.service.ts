@@ -40,14 +40,6 @@ export class ImpProjectService extends DataStore<ImpProject>
       super(restDataService, dataUrl, transactionManager, 'ImpProject');
    }
 
-   startTx() : void {
-     this.transactionManager.startTransaction();
-   }
-
-   stopTx() : void {
-     this.transactionManager.stopTransaction();
-   }
-
    load(items: ImpProject[]) : void {
      // load the data stores
      this.transactionManager.startTransaction();

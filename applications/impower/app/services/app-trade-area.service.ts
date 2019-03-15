@@ -1,22 +1,23 @@
 import { Injectable } from '@angular/core';
+import { calculateStatistics, filterArray, groupBy, isNumber, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { EsriMapService, EsriQueryService } from '@val/esri';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, pairwise, take, withLatestFrom } from 'rxjs/operators';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { AppConfig } from '../app.config';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { AppConfig } from '../app.config';
+import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { AppLayerService } from './app-layer.service';
-import { AppStateService } from './app-state.service';
 import { AppGeoService } from './app-geo.service';
-import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { AppLayerService } from './app-layer.service';
 import { AppLoggingService } from './app-logging.service';
-import { toUniversalCoordinates, isNumber } from '@val/common';
-import { EsriMapService, EsriQueryService } from '@val/esri';
-import { calculateStatistics, filterArray, groupBy, simpleFlatten } from '@val/common';
+import { AppStateService } from './app-state.service';
 
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeTypeCodes = TradeAreaMergeTypeCodes.MergeEach;
 
@@ -34,6 +35,7 @@ export class AppTradeAreaService {
   constructor(private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impLocationService: ImpGeofootprintLocationService,
               private impGeoService:  ImpGeofootprintGeoService,
+              private impGeoAttributeService: ImpGeofootprintGeoAttribService,
               private impVarService: ImpGeofootprintVarService,
               private stateService: AppStateService,
               private layerService: AppLayerService,
@@ -287,7 +289,7 @@ export class AppTradeAreaService {
               }
             });
           },
-          err => { console.error('Error getting lats and longs from layer', err); },
+          err => { this.logger.error('Error getting lats and longs from layer', err); },
           () => this.calculateStatsAndZoom(latitudes, longitudes)
         );
       });
@@ -306,7 +308,19 @@ export class AppTradeAreaService {
 
   private clearGeos() : void {
     const allTradeAreas = this.impTradeAreaService.get();
-    this.deleteTradeAreas(allTradeAreas);
+    allTradeAreas.forEach(ta => {
+      ta.impGeofootprintGeos = [];
+      ta.impGeofootprintVars = [];
+      if (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius) ta['isComplete'] = undefined;
+    });
+    const tradeAreasToRemove = new Set([TradeAreaTypeCodes.HomeGeo, TradeAreaTypeCodes.Manual, TradeAreaTypeCodes.MustCover]);
+    this.logger.debug('Clearing all Geos');
+    this.impTradeAreaService.startTx();
+    this.impVarService.clearAll();
+    this.impGeoService.clearAll();
+    this.impGeoAttributeService.clearAll();
+    this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
+    this.impTradeAreaService.stopTx();
   }
 
   private calculateStatsAndZoom(latitudes: number[], longitudes: number[]) : void {

@@ -4,7 +4,7 @@ import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordin
 import { EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { LocalAppState } from '../state/app.interfaces';
@@ -21,7 +21,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
@@ -128,11 +128,12 @@ export class AppGeoService {
    */
   private setupRadiusSelectionObservable() : void {
     // The root sequence is Radius only trade areas for Sites (not competitors)
-    combineLatest(this.appStateService.siteTradeAreas$, this.appStateService.applicationIsReady$).pipe(
+    this.tradeAreaService.storeObservable.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
       // halt the sequence if the project is still loading
-      filter(([tradeAreaMap, isReady]) => isReady),
+      filter(([tradeAreas, isReady]) => isReady),
       // flatten the data to a 1-dimension array
-      map(([tradeAreaMap]) => simpleFlatten(Array.from(tradeAreaMap.values()))),
+      map(([tradeAreas]) => tradeAreas),
       // keep all trade areas that have no geos and has not been marked complete
       map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintGeos.length === 0 && ta['isComplete'] !== true)),
       // halt the sequence if there are no trade areas remaining at this point
@@ -144,42 +145,15 @@ export class AppGeoService {
    * Sets up an observable sequence that fires when a location is missing its home geo in any trade area
    */
   private setupHomeGeoSelectionObservable() : void {
-
     const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
-    // const locationsReadyForCheck$ = this.locationService.storeObservable.pipe(
-    //   filterArray(loc => ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site &&
-    //                           loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
-    //                                                                   (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
-    //                           loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
-    //                           loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)
-    // );
-    // this.impGeoService.storeObservable.pipe(
-    //   withLatestFrom(this.appStateService.applicationIsReady$),
-    //   filter(([geo, isReady]) => isReady),
-    //   withLatestFrom(locationsReadyForCheck$),
-    //   filter(([[geo, isReady], locs]) => locs.length > 0),
-    //   map(([[geo, isReady], locs]) => locs)
-    // ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
-
-    combineLatest(this.locationService.storeObservable,
-      this.impGeoService.storeObservable,
-      this.appStateService.applicationIsReady$).pipe(
-      // halt the sequence if the project is still loading
-      filter(([locations, geos, isReady]) => isReady),
-      // keep only locations identified as sites
-      map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
-      // keep locations that have a home geocode identified
-      // map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
-      // keep locations that have not had a home geo selection error
-      map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0)),
-      // keep locations that have trade areas defined
-      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType))).length > 0)),
-      // keep sites that do not already have their home geo selected
-      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
-      // keep locations where finished radius count matches all radius count
-      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
-      // halt the sequence if there are no locations remaining
-      filter(locations => locations.length > 0)
+    this.impGeoService.storeObservable.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$, this.appStateService.allClientLocations$),
+      filter(([geo, isReady, locs]) => isReady && locs.length > 0),
+      map(([geo, isReady, locs]) => locs),
+      filterArray(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
+                                                                      (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
+                              loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
+                              loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)
     ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
   // map(([geos])=>geos.attributes.filter(a => boundaryAttributes.contains(a.type)).length === 0)
@@ -919,7 +893,7 @@ export class AppGeoService {
       distinctUntilChanged()
     );
     combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$)
-      // .pipe(tap(([v, a, s, p]) => console.log('Valassis, Anne, Solo, POB: ', v, a, s, p)))
+      .pipe(tap(([v, a, s, p]) => console.log('Valassis, Anne, Solo, POB: ', v, a, s, p)))
       .subscribe(() => this.filterGeosOnFlags(this.impGeoService.get()));
   }
 }

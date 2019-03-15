@@ -16,48 +16,48 @@ export interface LoggingConfiguration {
 
 export const LoggingConfigurationToken = new InjectionToken<LoggingConfiguration>('logging-config-options');
 
-const noop = () : any => undefined;
+const noop = () : void => {};
 
 @Injectable({
   providedIn: 'root'
 })
 export class LoggingService {
 
-  get debug() {
+  get debug() : (message?: any, ...optionalParams: any[]) => void {
     if (LogLevels.DEBUG >= this.cfg.logLevel) {
-      return console.log.bind(console, 'DEBUG - ');
+      return console.log.bind(console, '%cDEBUG', 'color: #03A9F4', '-');
     } else {
       return noop;
     }
   }
 
-  get info() {
+  get info() : (message?: any, ...optionalParams: any[]) => void {
     if (LogLevels.INFO >= this.cfg.logLevel) {
-      return console.log.bind(console, 'INFO - ');
+      return console.log.bind(console, '%cINFO', 'color: #4CAF50', '-');
     } else {
       return noop;
     }
   }
 
-  get warn() {
+  get warn() : (message?: any, ...optionalParams: any[]) => void {
     if (LogLevels.WARN >= this.cfg.logLevel) {
-      return console.warn.bind(console, 'WARN - ');
+      return console.warn.bind(console, '%cWARN', 'color: %a0895b', '-');
     } else {
       return noop;
     }
   }
 
-  get error() {
+  get error() : (message?: any, ...optionalParams: any[]) => void {
     if (LogLevels.ERROR >= this.cfg.logLevel) {
-      return console.error.bind(console, 'ERROR - ');
+      return console.error.bind(console, '%cERROR', 'color: red', '-');
     } else {
       return noop;
     }
   }
 
-  get fatal() {
+  get fatal() : (message?: any, ...optionalParams: any[]) => void {
     if (LogLevels.FATAL >= this.cfg.logLevel) {
-      return console.error.bind(console, 'FATAL - ');
+      return console.error.bind(console, '%cFATAL', 'color: red', '-');
     } else {
       return noop;
     }

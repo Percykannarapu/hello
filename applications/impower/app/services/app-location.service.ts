@@ -676,7 +676,7 @@ export class AppLocationService {
         }
       }
     }
-    this.impLocationService.makeDirty();
+    //this.impLocationService.makeDirty();
   }
 
   private setCounts(count: number, siteType: string) {
