@@ -10,8 +10,8 @@
     <div class="ui-g-7 ui-g-nopad">
      <br>
      <button pButton type="button" label="Calc Home Geocodes" (click)="calcHomeGeocode()"></button>&nbsp;&nbsp;
-      <button pButton type="button" label="HGC Issues Log" (click)="onHGCIssuesLog()"></button>&nbsp;&nbsp;
-       <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
+     <button pButton type="button" label="HGC Issues Log" (click)="onHGCIssuesLog()" [disabled] ="selectedListType === 'Competitor'"></button>&nbsp;&nbsp;
+     <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
     </div>
 
   
