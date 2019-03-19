@@ -121,7 +121,7 @@ export class AppTradeAreaService {
   }
 
   public onLocationsWithoutRadius(locations: ImpGeofootprintLocation[]) : void{
-    const currentLocations = locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
+    const currentLocations = locations.filter(loc => loc.baseStatus === 'INSERT' && loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
     const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
     const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');    
     if (newSites.length > 0) {

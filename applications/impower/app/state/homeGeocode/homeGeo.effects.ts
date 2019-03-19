@@ -23,7 +23,7 @@ export class HomeGeoEffects {
         concatMap(locations => [
            new PersistLocations({locations, reCalculateHomeGeos: action.payload.reCalculateHomeGeos, isLocationEdit: action.payload.isLocationEdit}),
            new StartBusyIndicator({ key: 'HomeGeoCalcKey', message: 'Calculating Home Geos'}),
-           new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit}),
+           new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
         ])
      ))
    );
@@ -39,7 +39,7 @@ export class HomeGeoEffects {
       ofType<HomeGeocode>(HomeGeoActionTypes.HomeGeocode),
       map(action => this.appHomeGeocodingService.validateLocations(action.payload)),
       switchMap(locMap => this.appHomeGeocodingService.queryHomeGeocode(locMap).pipe(
-        map(attributes => new DetermineDTZHomeGeos({attributes, locationsMap: locMap.LocMap, isLocationEdit: locMap.isLocationEdit})),
+        map(attributes => new DetermineDTZHomeGeos({attributes, locationsMap: locMap.LocMap, isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos})),
         catchError(err => of(new ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo'})))
       )) 
    );
@@ -52,7 +52,7 @@ export class HomeGeoEffects {
           new ProcessHomeGeoAttributes({attributes}),
           new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
           new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
-          new ApplyTradeAreaOnEdit({ isLocationEdit: action.payload.isLocationEdit})
+          new ApplyTradeAreaOnEdit({ isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos})
         ])
       ))
    );
@@ -73,11 +73,7 @@ export class HomeGeoEffects {
       ])
    );
 
-   @Effect({ dispatch: false })
-   updateLocations$ = this.actions$.pipe(
-      ofType<UpdateLocations>(HomeGeoActionTypes.UpdateLocations),
-      map(action => this.appHomeGeocodingService.updateLocations(action.payload))
-   );
+   
 
    @Effect({ dispatch: false })
    zoomtoLocations$ = this.actions$.pipe(

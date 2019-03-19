@@ -25,7 +25,7 @@ export class Geocode implements Action {
 
 export class HomeGeocode implements Action {
    readonly type = HomeGeoActionTypes.HomeGeocode;
-   constructor(public payload: {locations: ImpGeofootprintLocation[], isLocationEdit: boolean}){}
+   constructor(public payload: {locations: ImpGeofootprintLocation[], isLocationEdit: boolean, reCalculateHomeGeos: boolean}){}
 }
 
 export class PersistLocations implements Action {
@@ -35,7 +35,7 @@ export class PersistLocations implements Action {
 
 export class ApplyTradeAreaOnEdit implements Action {
    readonly type = HomeGeoActionTypes.ApplyTradeAreaOnEdit;
-   constructor(public payload: {isLocationEdit: boolean}){}
+   constructor(public payload: {isLocationEdit: boolean, reCalculateHomeGeos: boolean}){}
 }
 
 export class ZoomtoLocations implements Action {
@@ -46,7 +46,10 @@ export class ZoomtoLocations implements Action {
 export class DetermineDTZHomeGeos implements Action{
    readonly type = HomeGeoActionTypes.DetermineDTZHomeGeos;
    //, locationsMap: Map<string, ImpGeofootprintLocation[]>
-   constructor(public payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>, isLocationEdit: boolean}){}
+   constructor(public payload: {attributes: any , 
+                                locationsMap: Map<string, ImpGeofootprintLocation[]>, 
+                                isLocationEdit: boolean, 
+                                reCalculateHomeGeos: boolean}){}
 }
 
 export class ProcessHomeGeoAttributes implements Action{

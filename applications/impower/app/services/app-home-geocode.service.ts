@@ -15,6 +15,8 @@ import { simpleFlatten } from '@val/common';
 import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppEditSiteService } from './app-editsite.service';
+import { AppStateService } from './app-state.service';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 @Injectable({
    providedIn: 'root'
  })
@@ -29,7 +31,8 @@ import { AppEditSiteService } from './app-editsite.service';
                private appTradeAreaService: AppTradeAreaService,
                private audienceTradeAreaService: ValAudienceTradeareaService,
                private impLocAttributeService: ImpGeofootprintLocAttribService,
-               private appEditSiteService: AppEditSiteService ){
+               private appEditSiteService: AppEditSiteService,
+               private stateService: AppStateService ){
                  
                 this.appEditSiteService.customData$.subscribe(message => {
                   if (message != undefined && message['data'] != undefined && message != null) {
@@ -49,10 +52,10 @@ import { AppEditSiteService } from './app-editsite.service';
       );
    }
 
-   validateLocations(payload: {locations: ImpGeofootprintLocation[], isLocationEdit: boolean}){
+   validateLocations(payload: {locations: ImpGeofootprintLocation[], isLocationEdit: boolean, reCalculateHomeGeos: boolean}){
       console.log('validateLocations:::');
       const mapLoc = this.appLocationService.validateLocactionsforpip(payload.locations);
-      return { LocMap: mapLoc, isLocationEdit: payload.isLocationEdit };
+      return { LocMap: mapLoc, isLocationEdit: payload.isLocationEdit, reCalculateHomeGeos: payload.reCalculateHomeGeos };
    }
 
    queryHomeGeocode(payload: { LocMap: Map<string, ImpGeofootprintLocation[]>, isLocationEdit: boolean}){
@@ -75,42 +78,31 @@ import { AppEditSiteService } from './app-editsite.service';
      // const reCalculateHomegeos = true;
       if (payload.reCalculateHomeGeos){
         const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
+        
         this.appTradeAreaService.deleteTradeAreas(this.impTradeAreaService.get());
-        this.appLocationService.deleteLocations(this.impLocationService.get());
         this.appTradeAreaService.clearAll();
+        //this.impTradeAreaService.removeAll();
+        //this.appLocationService.deleteLocations(this.impLocationService.get());
+       
+        this.impLocationService.removeAll();
+        this.impLocAttributeService.removeAll();
         
         const locations = payload.locations;
         locations.push(...failedLoc);
-        this.impLocationService.add(locations);
-        this.impLocAttributeService.add(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));
+        this.appLocationService.persistLocationsAndAttributes(payload.locations);
+        // this.impLocationService.add(locations);
+        // this.impLocAttributeService.add(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));
       }else{
         this.appLocationService.persistLocationsAndAttributes(payload.locations);
       }
-      // if (payload.isLocationEdit){
-      //   this.tradeAreaApplyOnEdit();
-      // }
-      
-      //this.impLocationService.update()
    }
 
-   applyTradeAreaOnEdit(payload: {isLocationEdit: boolean}) {
-      if (payload.isLocationEdit){
+   applyTradeAreaOnEdit(payload: {isLocationEdit: boolean, reCalculateHomeGeos: boolean}) {
+      if (payload.isLocationEdit || payload.reCalculateHomeGeos){
         this.tradeAreaApplyOnEdit();
       }
       
       //this.impLocationService.update()
-   }
-
-   updateLocations(payload: {locations: ImpGeofootprintLocation[]}){
-    /*const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
-    this.impLocationService.removeAll();
-    this.impLocAttributeService.removeAll();
-    const locations = payload.locations;
-    locations.push(...failedLoc);
-    this.impLocationService.add(locations);
-    this.impLocAttributeService.add(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));*/
-    this.impLocationService.replace(payload.locations);
-    
    }
 
    zoomToLocations(payload: {locations: ImpGeofootprintLocation[]}){
@@ -132,7 +124,7 @@ import { AppEditSiteService } from './app-editsite.service';
         this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
         this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
       });
-    } 
+    }
    }
 
    public handleError(errorHeader: string, errorMessage: string, errorObject: any) {

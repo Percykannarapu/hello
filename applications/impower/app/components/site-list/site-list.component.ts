@@ -524,7 +524,7 @@ export class SiteListComponent implements OnInit {
                 loc.xcoord = null;
                 loc.ycoord = null;
               }
-              valGeosites.push(new ValGeocodingRequest(loc, false));
+              valGeosites.push(new ValGeocodingRequest(loc, false, true));
             }
           });
  
