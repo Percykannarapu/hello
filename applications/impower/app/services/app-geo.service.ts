@@ -788,13 +788,13 @@ export class AppGeoService {
      if(audGeosMap.has('true')) {
        audGeosMap.get('true').forEach(geo => geoSet.add(geo.geocode));
      }
-
-    if (!includePob && (pobGeosMap.has(1) || pobGeosMap.has('B'))) {
+     
+     if (pobGeosMap.has('B') || pobGeosMap.has('1')) {
       const centroidPobs = pobGeosMap.get(1) || [];
       const topVarPobs = pobGeosMap.get('B') || [];
       const allPobs = [...centroidPobs, ...topVarPobs];
       allPobs.forEach(geo => {
-      if(!includePob){
+      if(includePob){
         if(audGeosMap.size > 0){
           if(geoSet.has(geo.geocode)){
           geo.isActive = true;
@@ -954,5 +954,5 @@ export class AppGeoService {
             this.filterPobGeos(geos);
             this.impGeoService.makeDirty();
       });
-  }
+    }
 }
