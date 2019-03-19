@@ -719,6 +719,7 @@ export class AppGeoService {
      if(audGeosMap.has('true')) {
        audGeosMap.get('true').forEach(geo => geoSet.add(geo.geocode));
      }
+     
      if (ownerGroupGeosMap.has('ANNE')) {
       ownerGroupGeosMap.get('ANNE').forEach(geo => {
         if(includeAnne){
@@ -912,8 +913,14 @@ export class AppGeoService {
 
     const geos$ = this.impGeoService.storeObservable.pipe(
       filter(geos => geos != null && geos.length > 0),
-      map(geos => geos.filter(geo => geo.impGeofootprintTradeArea.taType === 'RADIUS' || geo.impGeofootprintTradeArea.taType === 'AUDIENCE'))
+      map(geos => geos.filter(geo => geo.impGeofootprintTradeArea.taType === 'RADIUS' || geo.impGeofootprintTradeArea.taType === 'AUDIENCE')),
       );
+
+    this.impAttributeService.storeObservable.pipe(
+      filter(attribs => attribs != null && attribs.length > 0),
+      filter( attribs => attribs.some(a => a.attributeCode === 'owner_group_primary' || a.attributeCode === 'cov_frequency' || a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob')),
+      withLatestFrom(geos$)  
+      ).subscribe(([attributes, geos]) => this.filterGeosOnFlags(geos));
     
     const valassisFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),

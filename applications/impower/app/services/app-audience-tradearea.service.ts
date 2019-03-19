@@ -687,7 +687,6 @@ export class ValAudienceTradeareaService {
       this.failedLocations.push(location);
     }
     this.geoCache.push(...newGeos);
-    this.appGeoService.filterGeosOnFlags(newGeos);
     return newGeos;
   }
   
