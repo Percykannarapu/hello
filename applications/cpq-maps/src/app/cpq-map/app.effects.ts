@@ -113,6 +113,7 @@ export class AppEffects {
     tap(([action, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state.rfpUiEdit))),
     tap(([action, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state.rfpUiEdit), state.shared.radius)),
     tap(([action, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state.rfpUiEdit))),
+    tap(([action, state]) => this.appLayerService.setPopupData(state))
   );
 
   // As the entities are loaded we need to check the loading status across

@@ -241,4 +241,51 @@ export class AppLayerService {
       dictionary = `${dictionary}}`;
       return dictionary;
    }
+
+   public setPopupData(state: FullState) {
+      const layerNames = ['zip', 'atz'];
+      layerNames.forEach(name => {
+         const template: __esri.PopupTemplate = new EsriApi.PopupTemplate();
+         template.title = '{geocode}';
+         const layerId = this.configService.layers[name].boundaries.id;
+         const layer = this.esriLayerService.getPortalLayerById(layerId);
+         layer.popupTemplate = template;
+         let fields: Array<__esri.PopupTemplateFieldInfos> = [];
+         fields = [...this.createStandardPopupFields()];
+         template.content = [{
+            type: 'fields',
+            fieldInfos: fields
+         }]; 
+      });
+   }
+
+   private createStandardPopupFields() : __esri.PopupTemplateFieldInfos[] {
+      const fields: Array<__esri.PopupTemplateFieldInfos> = [];
+      fields.push(this.createPopupField('zip', 'Zip'));
+      fields.push(this.createPopupField('pricing_name', 'Pricing Market'));
+      fields.push(this.createPopupField('sdm_name', 'Shared Distribution Market'));
+      fields.push(this.createPopupField('wrap', 'Redplum Wrap Zone'));
+      fields.push(this.createPopupField('county', 'DMA Code'));
+      fields.push(this.createPopupField('county', 'County FIPS Code'));
+      fields.push(this.createPopupField('cl0c00', '% CY HHs Familes With Related Children < 18 Yrs'));
+      fields.push(this.createPopupField('cl2i0r', '% CY HHs w/HH Inc $50K +'));
+      fields.push(this.createPopupField('cl2i0p', '% CY HHs w/HH Inc $75,000 +'));
+      fields.push(this.createPopupField('cl0utw', '% CY Owner Occupied Housing Units'));
+      fields.push(this.createPopupField('cl2prb', '% Pop White Alone Non-Hisp'));
+      fields.push(this.createPopupField('cl2prw', '% Pop White Alone Non-Hisp'));
+      fields.push(this.createPopupField('null', '% Population Growth 2018-2023'));
+      fields.push(this.createPopupField('cl2i00', 'CY Median Household Income'));
+      fields.push(this.createPopupField('cl2hwv', 'CY Median Value, Owner OCC Housing Units'));
+      fields.push(this.createPopupField('hhld_w', 'HouseHolds, Winter'));
+      fields.push(this.createPopupField('hhld_s', 'HouseHolds, Summer'));
+      return fields;
+   }
+
+   private createPopupField(fieldName: string, fieldLabel: string) : __esri.PopupTemplateFieldInfos {
+      const field: __esri.PopupTemplateFieldInfos = {
+         fieldName: fieldName,
+         label: fieldLabel
+      };
+      return field;
+   }
 }
