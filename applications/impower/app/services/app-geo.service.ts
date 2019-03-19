@@ -674,24 +674,17 @@ export class AppGeoService {
       });
    }
 
-  private filterGeosImpl(geos: ImpGeofootprintGeo[]) {
-    console.log('Filtering Geos Based on Flags');
+  private filterValassisGeos(geos: ImpGeofootprintGeo[]) {
+    console.log('Filtering Valassis Geos');
     const currentProject = this.appStateService.currentProject$.getValue();
     if (currentProject == null || geos == null || geos.length === 0) return;
-
     const includeValassis = currentProject.isIncludeValassis;
-    const includeAnne = currentProject.isIncludeAnne;
-    const includeSolo = currentProject.isIncludeSolo;
-    const includePob = !currentProject.isExcludePob;
     const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const audGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'preSelectedForAudience' && a.attributeValue === 'true'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const geoSet: Set<string> = new Set<string>();
      if(audGeosMap.has('true')) {
        audGeosMap.get('true').forEach(geo => geoSet.add(geo.geocode));
      }
-    console.log('Filtered Audience Geos:::', geoSet);
     if (ownerGroupGeosMap.has('VALASSIS')) {
       ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
         if(includeValassis){
@@ -713,7 +706,20 @@ export class AppGeoService {
         } 
       });
     }
-    if (ownerGroupGeosMap.has('ANNE')) {
+  }
+
+  private filterAnneGeos(geos: ImpGeofootprintGeo[]){
+    console.log('Filtering ANNE Geos');
+    const currentProject = this.appStateService.currentProject$.getValue();
+    if (currentProject == null || geos == null || geos.length === 0) return;
+    const includeAnne = currentProject.isIncludeAnne;
+    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const audGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'preSelectedForAudience' && a.attributeValue === 'true'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const geoSet: Set<string> = new Set<string>();
+     if(audGeosMap.has('true')) {
+       audGeosMap.get('true').forEach(geo => geoSet.add(geo.geocode));
+     }
+     if (ownerGroupGeosMap.has('ANNE')) {
       ownerGroupGeosMap.get('ANNE').forEach(geo => {
         if(includeAnne){
           if(audGeosMap.size > 0){
@@ -735,7 +741,20 @@ export class AppGeoService {
       } 
     });
     }
-    if (soloGeosMap.has('Solo')) {
+  }
+
+  private filterSoloGeos(geos: ImpGeofootprintGeo[]){
+    console.log('Filtering SOLO Geos');
+    const currentProject = this.appStateService.currentProject$.getValue();
+    if (currentProject == null || geos == null || geos.length === 0) return;
+    const includeSolo = currentProject.isIncludeSolo;
+    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const audGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'preSelectedForAudience' && a.attributeValue === 'true'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const geoSet: Set<string> = new Set<string>();
+     if(audGeosMap.has('true')) {
+       audGeosMap.get('true').forEach(geo => geoSet.add(geo.geocode));
+     }
+     if (soloGeosMap.has('Solo')) {
       soloGeosMap.get('Solo').forEach(geo => {
         if(includeSolo){
           if(audGeosMap.size > 0){
@@ -756,15 +775,25 @@ export class AppGeoService {
       } 
     });
     }
+  }
+  
+  private filterPobGeos(geos: ImpGeofootprintGeo[]){
+    console.log('Filtering POB Geos');
+    const currentProject = this.appStateService.currentProject$.getValue();
+    if (currentProject == null || geos == null || geos.length === 0) return;
+    const includePob = !currentProject.isExcludePob;
+    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const audGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'preSelectedForAudience' && a.attributeValue === 'true'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
+    const geoSet: Set<string> = new Set<string>();
+     if(audGeosMap.has('true')) {
+       audGeosMap.get('true').forEach(geo => geoSet.add(geo.geocode));
+     }
 
     if (!includePob && (pobGeosMap.has(1) || pobGeosMap.has('B'))) {
-
       const centroidPobs = pobGeosMap.get(1) || [];
       const topVarPobs = pobGeosMap.get('B') || [];
       const allPobs = [...centroidPobs, ...topVarPobs];
-
       allPobs.forEach(geo => {
-
       if(!includePob){
         if(audGeosMap.size > 0){
           if(geoSet.has(geo.geocode)){
@@ -784,6 +813,18 @@ export class AppGeoService {
         } 
       });
     }
+
+  }
+
+  private filterGeosImpl(geos: ImpGeofootprintGeo[]) {
+    console.log('Filtering Geos Based on Flags');
+    const currentProject = this.appStateService.currentProject$.getValue();
+    if (currentProject == null || geos == null || geos.length === 0) return;
+    this.filterValassisGeos(geos);
+    this.filterAnneGeos(geos);
+    this.filterSoloGeos(geos);
+    this.filterPobGeos(geos);
+    
   }
 
   public filterGeosOnFlags(geos: ImpGeofootprintGeo[]) {
@@ -868,28 +909,50 @@ export class AppGeoService {
   }
 
   private setupFilterGeosObservable() : void {
+
+    const geos$ = this.impGeoService.storeObservable.pipe(
+      filter(geos => geos != null && geos.length > 0),
+      map(geos => geos.filter(geo => geo.impGeofootprintTradeArea.taType === 'RADIUS' || geo.impGeofootprintTradeArea.taType === 'AUDIENCE'))
+      );
+    
     const valassisFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),
       map(project => project.isIncludeValassis),
-      distinctUntilChanged()
-      );
+      distinctUntilChanged(),
+      withLatestFrom(geos$)
+      ).subscribe(([flag, geos]) => {
+            this.filterValassisGeos(geos);
+            this.impGeoService.makeDirty();
+      });
+
     const anneFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),
       map(project => project.isIncludeAnne),
-      distinctUntilChanged()
-      );
+      distinctUntilChanged(),
+      withLatestFrom(geos$)
+      ).subscribe(([flag, geos]) => {
+            this.filterAnneGeos(geos);
+            this.impGeoService.makeDirty();
+       });
+
     const soloFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),
       map(project => project.isIncludeSolo),
-      distinctUntilChanged()
-   );
+      distinctUntilChanged(),
+      withLatestFrom(geos$)
+    ).subscribe(([flag, geos]) => {
+          this.filterSoloGeos(geos);
+          this.impGeoService.makeDirty();
+    });
+    
     const pobFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),
       map(project => project.isExcludePob),
-      distinctUntilChanged()
-      );
-    combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$)
-      // .pipe(tap(([v, a, s, p]) => console.log('Valassis, Anne, Solo, POB: ', v, a, s, !p)))
-      .subscribe(() => this.filterGeosOnFlags(this.impGeoService.get().filter(g => g.impGeofootprintTradeArea.taType === 'RADIUS' || g.impGeofootprintTradeArea.taType === 'AUDIENCE' )));
+      distinctUntilChanged(),
+      withLatestFrom(geos$)
+      ).subscribe(([flag, geos]) => {
+            this.filterPobGeos(geos);
+            this.impGeoService.makeDirty();
+      });
   }
 }
