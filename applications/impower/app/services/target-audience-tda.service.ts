@@ -106,7 +106,7 @@ export class TargetAudienceTdaService {
       audienceSourceType: 'Offline',
       audienceSourceName: 'TDA',
       exportInGeoFootprint: true,
-      showOnGrid: true,
+      showOnGrid: false,
       showOnMap: false,
       exportNationally: false,
       allowNationalExport: false,
