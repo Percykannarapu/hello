@@ -86,7 +86,11 @@ export class AddLocationsTabComponent implements OnInit {
 
   accept(site: ImpGeofootprintLocation) {
     site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
-    this.appLocationService.notifySiteChanges();
+    if (site.recordStatusCode === 'PROVIDED'){
+      this.resubmit(site);
+    }
+    else
+      this.appLocationService.notifySiteChanges();
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
   }

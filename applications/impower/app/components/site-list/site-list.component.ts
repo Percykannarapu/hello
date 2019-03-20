@@ -304,7 +304,11 @@ export class SiteListComponent implements OnInit {
 
    accept(site: ImpGeofootprintLocation) {
     site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
-    this.appLocationService.notifySiteChanges();
+    if (site.recordStatusCode === 'PROVIDED'){
+      this.reSubmit(site);
+    }
+    else
+      this.appLocationService.notifySiteChanges();
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
    }
