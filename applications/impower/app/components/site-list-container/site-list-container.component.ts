@@ -92,6 +92,12 @@ export class SiteListContainerComponent implements OnInit {
    // -----------------------------------------------------------
 
   resubmit(site: ImpGeofootprintLocation) {
+    const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+    site.impGeofootprintLocAttribs.forEach(attr => {
+      if (homeGeoColumnsSet.has(attr.attributeCode)){
+        attr.attributeValue = '';
+      }
+    });
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
     const newRequest = new ValGeocodingRequest(site, true);
