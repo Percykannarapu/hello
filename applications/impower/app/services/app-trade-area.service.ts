@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { calculateStatistics, filterArray, groupBy, isNumber, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriMapService, EsriQueryService } from '@val/esri';
+import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, pairwise, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
@@ -18,6 +18,14 @@ import { AppGeoService } from './app-geo.service';
 import { AppLayerService } from './app-layer.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
+import { mapBy } from '@val/common';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+
+interface TradeAreaDefinition {
+  store: string;
+  geocode: string;
+  message: string;
+}
 
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeTypeCodes = TradeAreaMergeTypeCodes.MergeEach;
 
@@ -393,5 +401,66 @@ export class AppTradeAreaService {
         this.currentDefaults.set(siteType, taValues);
       }
     }
+  }
+
+  public applyCustomTradeArea(data: TradeAreaDefinition[]){
+    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+    const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+    const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
+    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
+    const matchedTradeAreas = new Set<TradeAreaDefinition>();
+
+    // make sure we can find an associated location for each uploaded data row
+    data.forEach(taDef => {
+      if (locationsByNumber.has(taDef.store)){
+        matchedTradeAreas.add(taDef);
+      } else {
+        taDef.message = 'Site number not found';
+        //this.uploadFailures = [...this.uploadFailures, taDef];
+      }
+    });
+
+    const outfields = ['geocode', 'latitude', 'longitude'];
+    const queryResult = new Map<string, {latitude: number, longitude: number}>();
+    const geosToQuery = new Set(Array.from(matchedTradeAreas).map(ta => ta.geocode));
+
+    this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(geosToQuery), false, outfields).pipe(
+      map(graphics => graphics.map(g => g.attributes)),
+      map(attrs => attrs.map(a => ({ geocode: a.geocode, latitude: Number(a.latitude), longitude: Number(a.longitude) })))
+    ).subscribe(
+      results => results.forEach(r => queryResult.set(r.geocode, { latitude: r.latitude, longitude: r.longitude })),
+      err => console.log('There was an error querying the ArcGIS layer', err),
+      () => {
+        const geosToAdd: ImpGeofootprintGeo[] = [];
+        const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
+        matchedTradeAreas.forEach(ta => {
+          // make sure the query returned a geocode+lat+lon for each of the uploaded data rows
+          if (!queryResult.has(ta.geocode)) {
+            ta.message = 'Geocode not found';
+            //this.uploadFailures = [...this.uploadFailures, ta];
+          } else {
+            const loc = locationsByNumber.get(ta.store);
+            const layerData = queryResult.get(ta.geocode);
+            // make sure the lat/lon data from the layer is valid
+            if (Number.isNaN(layerData.latitude) || Number.isNaN(layerData.longitude)) {
+              console.error(`Invalid Layer Data found for geocode ${ta.geocode}`, layerData);
+            } else {
+              // finally build the tradeArea (if necessary) and geo
+              const distance = EsriUtils.getDistance(layerData.longitude, layerData.latitude, loc.xcoord, loc.ycoord);
+              let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
+              if (currentTradeArea == null) {
+                currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
+                tradeAreasToAdd.push(currentTradeArea);
+              }
+              const newGeo = this.domainFactory.createGeo(currentTradeArea, ta.geocode, layerData.longitude, layerData.latitude, distance);
+              geosToAdd.push(newGeo);
+            }
+          }
+        });
+        // stuff all the results into appropriate data stores
+        this.impGeoService.add(geosToAdd);
+        this.impTradeAreaService.add(tradeAreasToAdd);
+        this.appGeoService.ensureMustCovers();
+      });
   }
 }

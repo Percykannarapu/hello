@@ -94,10 +94,10 @@ export class SiteListContainerComponent implements OnInit {
   resubmit(site: ImpGeofootprintLocation) {
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
-    const newRequest = new ValGeocodingRequest(site, false);
+    const newRequest = new ValGeocodingRequest(site, true);
     delete newRequest['latitude'];
     delete newRequest['longitude'];
-    this.processEditRequests(newRequest, newSiteType, this.oldData, true);
+    this.processEditRequests(newRequest, newSiteType, site, true);
     this.appLocationService.deleteLocations([site]);
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
@@ -128,9 +128,10 @@ export class SiteListContainerComponent implements OnInit {
     if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street'])) {
       siteOrSites['latitude'] = null;
       siteOrSites['longitude'] = null;
-      this.handleCustomTradeAreaIfExistAndEdit(oldData);
+      if (oldData != null){
+        this.handleCustomTradeAreaIfExistAndEdit(oldData);
         this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
-
+      }
     } else if (newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude']){
       // const newLocation: ValGeocodingRequest = oldData; 
         newLocation.recordStatusCode = 'PROVIDED';

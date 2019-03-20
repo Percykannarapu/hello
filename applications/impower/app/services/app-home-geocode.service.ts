@@ -11,12 +11,20 @@ import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeof
 import { StopBusyIndicator, ErrorNotification, StartBusyIndicator } from '@val/messaging';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { reduce } from 'rxjs/internal/operators/reduce';
-import { simpleFlatten } from '@val/common';
+import { simpleFlatten, mapBy } from '@val/common';
 import { ImpGeofootprintLocAttribService } from '..//val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppEditSiteService } from './app-editsite.service';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+
+interface TradeAreaDefinition {
+  store: string;
+  geocode: string;
+  message: string;
+}
+
 @Injectable({
    providedIn: 'root'
  })
@@ -32,6 +40,7 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
                private audienceTradeAreaService: ValAudienceTradeareaService,
                private impLocAttributeService: ImpGeofootprintLocAttribService,
                private appEditSiteService: AppEditSiteService,
+               private impGeoService: ImpGeofootprintGeoService,
                private stateService: AppStateService ){
                  
                 this.appEditSiteService.customData$.subscribe(message => {
@@ -70,26 +79,41 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
 
    processHomeGeoAttributes(payload: {attributes: any[]}){
     console.log('process geo attributes:::');
-     this.appLocationService.processHomeGeoAttributes(payload.attributes, this.impLocationService.get());
-     this.appLocationService.flagHomeGeos(this.impLocationService.get(), null);
+    const attributesBySiteNumber: Map<any, any> = mapBy(payload.attributes, 'siteNumber');
+    const locs = this.impLocationService.get().filter(loc => attributesBySiteNumber.has(loc.locationNumber));
+   // const loc = payload.attributes.
+     this.appLocationService.processHomeGeoAttributes(payload.attributes, locs);
+     this.appLocationService.flagHomeGeos(locs, null);
    }
 
    persistLocations(payload: {locations: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
      // const reCalculateHomegeos = true;
       if (payload.reCalculateHomeGeos){
         const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
+        const customTAList: TradeAreaDefinition[] = []; 
+        if (this.impTradeAreaService.get()[0].taType === 'CUSTOM'){
+          this.impGeoService.get().forEach(geo => {
+            const customTa: TradeAreaDefinition = {
+                store: geo.impGeofootprintLocation.locationNumber, 
+                geocode: geo.geocode,
+                message: ''
+            };
+            customTAList.push(customTa);
+          
+          });
+        }
         
         this.appTradeAreaService.deleteTradeAreas(this.impTradeAreaService.get());
         this.appTradeAreaService.clearAll();
-        //this.impTradeAreaService.removeAll();
-        //this.appLocationService.deleteLocations(this.impLocationService.get());
-       
         this.impLocationService.removeAll();
         this.impLocAttributeService.removeAll();
         
         const locations = payload.locations;
         locations.push(...failedLoc);
         this.appLocationService.persistLocationsAndAttributes(payload.locations);
+        if (customTAList.length > 0){
+          this.appTradeAreaService.applyCustomTradeArea(customTAList);
+        }
         // this.impLocationService.add(locations);
         // this.impLocAttributeService.add(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));
       }else{
