@@ -162,7 +162,7 @@ export class TargetAudienceAudienceTA {
       audienceSourceType: 'Online',
       audienceSourceName: 'Audience-TA',
       exportInGeoFootprint: true,
-      showOnGrid: false,
+      showOnGrid: true,
       showOnMap: false,
       allowNationalExport: false,
       exportNationally: false,
