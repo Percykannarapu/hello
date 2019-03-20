@@ -22,7 +22,6 @@ export class HomeGeoEffects {
      switchMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
         concatMap(locations => [
            new PersistLocations({locations, reCalculateHomeGeos: action.payload.reCalculateHomeGeos, isLocationEdit: action.payload.isLocationEdit}),
-           new StartBusyIndicator({ key: 'HomeGeoCalcKey', message: 'Calculating Home Geos'}),
            new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
         ])
      ))

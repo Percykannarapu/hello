@@ -15,7 +15,7 @@ import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofoo
 import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
+import { Geocode, HomeGeocode } from '../../state/homeGeocode/homeGeo.actions';
 import { ExportGeofootprint } from '../../state/menu/menu.actions';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { AppProjectService } from '../../services/app-project.service';
@@ -305,7 +305,17 @@ export class SiteListComponent implements OnInit {
    accept(site: ImpGeofootprintLocation) {
     site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
     if (site.recordStatusCode === 'PROVIDED'){
-      this.reSubmit(site);
+      const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+      site.impGeofootprintLocAttribs.forEach(attr => {
+        if (homeGeoColumnsSet.has(attr.attributeCode)){
+          attr.attributeValue = '';
+        }
+      });
+      site['homeGeoFound'] = null;
+      const reCalculateHomeGeos = false;
+      const isLocationEdit =  false;
+      const locations = [site];
+      this.store$.dispatch(new HomeGeocode({locations, isLocationEdit, reCalculateHomeGeos}));
     }
     else
       this.appLocationService.notifySiteChanges();

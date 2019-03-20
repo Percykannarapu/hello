@@ -87,7 +87,17 @@ export class AddLocationsTabComponent implements OnInit {
   accept(site: ImpGeofootprintLocation) {
     site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
     if (site.recordStatusCode === 'PROVIDED'){
-      this.resubmit(site);
+      const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+      site.impGeofootprintLocAttribs.forEach(attr => {
+        if (homeGeoColumnsSet.has(attr.attributeCode)){
+          attr.attributeValue = '';
+        }
+      });
+      site['homeGeoFound'] = null;
+      const reCalculateHomeGeos = false;
+      const isLocationEdit =  false;
+      const locations = [site];
+      this.store$.dispatch(new HomeGeocode({locations, isLocationEdit, reCalculateHomeGeos}));
     }
     else
       this.appLocationService.notifySiteChanges();
@@ -131,7 +141,7 @@ export class AddLocationsTabComponent implements OnInit {
   }
 
   processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
-    console.log('Processing requests:', siteOrSites);
+    //console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
     const reCalculateHomeGeos = false;
     const isLocationEdit =  isEdit;

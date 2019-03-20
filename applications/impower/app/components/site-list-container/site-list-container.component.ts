@@ -129,7 +129,7 @@ export class SiteListContainerComponent implements OnInit {
    }
 
    private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData, resubmit?: boolean) {
-    console.log('Processing requests:', siteOrSites);
+    //console.log('Processing requests:', siteOrSites);
     const newLocation: ValGeocodingRequest = oldData;   
     if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street'])) {
       siteOrSites['latitude'] = null;
