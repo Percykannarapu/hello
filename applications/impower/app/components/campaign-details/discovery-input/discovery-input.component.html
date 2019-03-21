@@ -70,10 +70,15 @@
                 <p-selectButton id="seasonsSelect" [options]="allSeasons" formControlName="selectedSeason"></p-selectButton>
              </div>
           </div>
+          <br>
           <div class="ui-g-12" style="padding-top: 2em">
-             <label>Apply Geography Filters</label>
+            <label>Apply Geography Filters</label>
+         </div>
+          <div class="ui-g-12" style="padding-top: 2em">
+             <b><font color="red">The filters are temporarily disabled!</font></b>
           </div>
-          <div class="ui-g-11 ui-g-offset-1">
+          <!-- Commented out for US9472 -->
+          <!-- <div class="ui-g-11 ui-g-offset-1">
              <div class="ui-g-12">
                 <p-inputSwitch formControlName="includePob"></p-inputSwitch>
                 <a class="val-spacer-left-half"></a>
@@ -97,7 +102,7 @@
                 <a class="val-spacer-left-half"></a>
                 <label>Include Solo geographies?</label>
              </div>
-          </div>
+          </div> -->
           </div>
     
           <div class="card ui-g-6">

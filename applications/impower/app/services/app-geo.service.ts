@@ -63,7 +63,7 @@ export class AppGeoService {
     this.setupRadiusSelectionObservable();
     this.setupHomeGeoSelectionObservable();
     this.setupGeoAttributeUpdateObservable();
-    this.setupFilterGeosObservable();
+    // this.setupFilterGeosObservable();
     this.setupMapClickEventHandler();
 
     // Detect changes in must covers list and call ensureMustCovers
@@ -194,7 +194,7 @@ export class AppGeoService {
       reduce((acc, curr) => accumulateArrays(acc, curr))
     ).subscribe(
       attributes => {
-        this.filterGeosOnFlags(geos.filter(geo => geo.impGeofootprintTradeArea != null && geo.impGeofootprintTradeArea.taType === 'RADIUS'));
+        // this.filterGeosOnFlags(geos.filter(geo => geo.impGeofootprintTradeArea != null && geo.impGeofootprintTradeArea.taType === 'RADIUS'));
         this.impAttributeService.add(attributes);
         this.store$.dispatch(new StopBusyIndicator({ key }));
       },
@@ -712,6 +712,7 @@ export class AppGeoService {
     console.log('Filtering ANNE Geos');
     const currentProject = this.appStateService.currentProject$.getValue();
     if (currentProject == null || geos == null || geos.length === 0) return;
+
     const includeAnne = currentProject.isIncludeAnne;
     const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
     const audGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'preSelectedForAudience' && a.attributeValue === 'true'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
@@ -916,11 +917,11 @@ export class AppGeoService {
       map(geos => geos.filter(geo => geo.impGeofootprintTradeArea.taType === 'RADIUS' || geo.impGeofootprintTradeArea.taType === 'AUDIENCE')),
       );
 
-    this.impAttributeService.storeObservable.pipe(
-      filter(attribs => attribs != null && attribs.length > 0),
-      filter( attribs => attribs.some(a => a.attributeCode === 'owner_group_primary' || a.attributeCode === 'cov_frequency' || a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob')),
-      withLatestFrom(geos$)  
-      ).subscribe(([attributes, geos]) => this.filterGeosOnFlags(geos));
+    // this.impAttributeService.storeObservable.pipe(
+    //   filter(attribs => attribs != null && attribs.length > 0),
+    //   filter( attribs => attribs.some(a => a.attributeCode === 'owner_group_primary' || a.attributeCode === 'cov_frequency' || a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob')),
+    //   withLatestFrom(geos$)  
+    //   ).subscribe(([attributes, geos]) => this.filterGeosOnFlags(geos));
     
     const valassisFlag$ = this.appStateService.currentProject$.pipe(
       filter(project => project != null),
