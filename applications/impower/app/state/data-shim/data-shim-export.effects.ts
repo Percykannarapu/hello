@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
+import { AppDataShimService } from '../../services/app-data-shim.service';
 import { AppExportService } from '../../services/app-export.service';
-import { DataShimActionTypes, ExportApioNationalData, ExportGeofootprint,ExportHGCIssuesLog, ExportLocations } from './data-shim.actions';
-import { catchError, filter, switchMap } from 'rxjs/operators';
+import { DataShimActionTypes, ExportApioNationalData, ExportGeofootprint, ExportHGCIssuesLog, ExportLocations } from './data-shim.actions';
+import { catchError, filter, switchMap, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ErrorNotification, MessagingActionTypes } from '@val/messaging';
 import { toPayload } from '@val/common';
@@ -14,7 +15,8 @@ export class DataShimExportEffects {
   exportGeofootprint$ = this.actions$.pipe(
     ofType<ExportGeofootprint>(DataShimActionTypes.ExportGeofootprint),
     toPayload(),
-    switchMap(p => this.appExportService.exportGeofootprint(p.selectedOnly, p.currentProject).pipe(
+    withLatestFrom(this.dataShimService.currentProject$),
+    switchMap(([payload, project]) => this.appExportService.exportGeofootprint(payload.selectedOnly, project).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );
@@ -24,7 +26,8 @@ export class DataShimExportEffects {
     ofType<ExportLocations>(DataShimActionTypes.ExportLocations),
     toPayload(),
     filter(p => p.isDigitalExport),
-    switchMap(p => this.appExportService.exportValassisDigital(p.currentProject).pipe(
+    withLatestFrom(this.dataShimService.currentProject$),
+    switchMap(([payload, project]) => this.appExportService.exportValassisDigital(project).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );
@@ -34,7 +37,8 @@ export class DataShimExportEffects {
     ofType<ExportLocations>(DataShimActionTypes.ExportLocations),
     toPayload(),
     filter(p => !p.isDigitalExport),
-    switchMap(p => this.appExportService.exportLocations(p.locationType, p.currentProject).pipe(
+    withLatestFrom(this.dataShimService.currentProject$),
+    switchMap(([payload, project]) => this.appExportService.exportLocations(payload.locationType, project).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );
@@ -51,12 +55,14 @@ export class DataShimExportEffects {
   @Effect({ dispatch: false })
   exportNationalExtract$ = this.actions$.pipe(
     ofType<ExportApioNationalData>(DataShimActionTypes.ExportApioNationalData),
-    switchMap(action => this.appExportService.exportNationalExtract(action.payload.currentProject).pipe(
+    withLatestFrom(this.dataShimService.currentProject$),
+    switchMap(([a, project]) => this.appExportService.exportNationalExtract(project).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );
 
   constructor(private actions$: Actions,
+              private dataShimService: AppDataShimService,
               private appExportService: AppExportService) {}
 
   private processError(err: any) : ErrorNotification {

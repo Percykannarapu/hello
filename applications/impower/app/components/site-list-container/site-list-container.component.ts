@@ -1,4 +1,3 @@
-import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { AppLocationService } from '../../services/app-location.service';
@@ -9,7 +8,6 @@ import { map } from 'rxjs/operators';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -18,12 +16,11 @@ import { Store } from '@ngrx/store';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { EsriMapService } from '@val/esri';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { AppEditSiteService } from '../../services/app-editsite.service';
-import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
 
 @Component({
   selector: 'val-site-list-container',
@@ -36,7 +33,6 @@ export class SiteListContainerComponent implements OnInit {
    public  allLocations$: Observable<ImpGeofootprintLocation[]>;
    public  allAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
    public  allGeos$: Observable<ImpGeofootprintGeo[]>;
-   public  allGeoAttributes$: Observable<ImpGeofootprintGeoAttrib[]>;
 
    private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
    public oldData: any;
@@ -50,7 +46,6 @@ export class SiteListContainerComponent implements OnInit {
       private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
       private tradeAreaService: ImpGeofootprintTradeAreaService,
       private impGeofootprintGeoService: ImpGeofootprintGeoService,
-      private geoAttributeService: ImpGeofootprintGeoAttribService,
       private appLocationService: AppLocationService,
       private geocoderService: AppGeocodingService,
       private appStateService: AppStateService,
@@ -80,10 +75,6 @@ export class SiteListContainerComponent implements OnInit {
 //                             ,tap(geos => console.debug("SITE-LIST-CONTAINER - allGeos$ fired", geos))
                                );
 
-      this.allGeoAttributes$ = this.geoAttributeService.storeObservable
-                                   .pipe(map(geoAttrs => Array.from(geoAttrs))
-//                                      ,tap(geoAttrs => console.log("SITE-LIST-CONTAINER - allGeoAttributes$ fired - #", (geoAttrs != null) ? geoAttrs.length : null))
-                                        );
    }
 
 
@@ -211,7 +202,6 @@ export class SiteListContainerComponent implements OnInit {
       // console.debug("-".padEnd(80, "-"));
       // console.debug("SITE LIST CONTAINER - onMakeDirty");
       // console.debug("-".padEnd(80, "-"));
-      this.geoAttributeService.makeDirty();
       this.impGeofootprintGeoService.makeDirty();
       this.tradeAreaService.makeDirty();
       this.impGeofootprintLocAttribService.makeDirty();

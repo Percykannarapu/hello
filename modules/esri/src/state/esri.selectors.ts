@@ -26,7 +26,7 @@ const getEsriFeatureReady = createSelector(getEsriApiState, getEsriAuthState, (a
 const getEsriViewpointState = createSelector(getEsriMapState, state => state != null ? state.mapViewpoint : null);
 const getEsriLabelConfiguration = createSelector(getEsriMapState, state => state.labelConfiguration);
 const getEsriLayerLabelExpressions = createSelector(getEsriMapState, state => state.layerExpressions);
-const getEsriSelectedLayer = createSelector(getEsriMapState, state => state != null ? state.selectedLayerId : null);
+const getEsriSelectedLayer = createSelector(getEsriMapState, state => state.selectedLayerId);
 const getEsriMapButtonState = createSelector(getEsriMapState, state => state.selectedButton);
 const getEsriMapHeight = createSelector(getEsriMapState, state => state.containerHeight);
 const getEsriSketchViewModel = createSelector(getEsriMapState, state => state.sketchView);
@@ -39,7 +39,8 @@ export const selectors = {
   getMapReady,
   getEsriFeaturesSelected,
   getEsriLabelConfiguration,
-  getEsriViewpointState
+  getEsriViewpointState,
+  getEsriSelectedLayer
 };
 
 export const internalSelectors = {
@@ -49,6 +50,5 @@ export const internalSelectors = {
   getEsriSketchViewModel,
   getEsriMapHeight,
   getEsriLayerLabelExpressions,
-  getEsriRendererState,
-  getEsriSelectedLayer
+  getEsriRendererState
 };

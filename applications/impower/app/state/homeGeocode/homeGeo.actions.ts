@@ -19,7 +19,7 @@ export enum HomeGeoActionTypes {
 
 export class Geocode implements Action {
    readonly type = HomeGeoActionTypes.Geocode;
-   constructor(public payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, 
+   constructor(public payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes,
                                 reCalculateHomeGeos: boolean, isLocationEdit: boolean} ){}
 }
 

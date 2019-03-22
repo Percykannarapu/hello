@@ -1,4 +1,3 @@
-import { filter } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { AppConfig } from '../../../app.config';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
@@ -12,7 +11,6 @@ import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
 import { ImpProjectPref } from '../models/ImpProjectPref';
-import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { ImpProjectVar } from '../models/ImpProjectVar';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
@@ -320,7 +318,7 @@ export class ImpDomainFactoryService {
     const existingTradeAreas = new Set(parent.impGeofootprintTradeAreas.map(ta => ta.taNumber));
 
     // Determine the ta number to use
-    let taNumber:number = 4;
+    let taNumber: number = 4;
     if (tradeAreaType === TradeAreaTypeCodes.Radius)
        taNumber = index + 1;
     else
@@ -367,7 +365,7 @@ export class ImpDomainFactoryService {
       customVarExprQuery: fullId,
       isNumber: false,
       isString: false,
-      isCustom:  (fullId.includes("Custom")) ? true : false,
+      isCustom:  (fullId.includes('Custom')),
       fieldconte: fieldType,
       customVarExprDisplay: fieldDescription,
       fieldname: fieldName,
@@ -434,39 +432,5 @@ export class ImpDomainFactoryService {
     }
     parent.impGeofootprintGeos.push(result);
     return result;
-  }
-
-  createGeoAttribute(parent: ImpGeofootprintGeo, code: string, value: string, isActive: boolean = true, duplicateCodesOverwrite: boolean = true) : ImpGeofootprintGeoAttrib {
-    if (parent == null) throw new Error('Geo Attribute factory requires a valid ImpGeofootprintGeo instance');
-    // if (value == null) throw new Error('Geo Attributes cannot have a null value');
-    const existingAttribute = parent.impGeofootprintGeoAttribs.find(la => la.attributeCode === code);
-    if (existingAttribute == null) {
-      const result = new ImpGeofootprintGeoAttrib({
-        dirty: true,
-        baseStatus: DAOBaseStatus.INSERT,
-        createDate: new Date(Date.now()),
-        createUser: this.userService.getUser().userId,
-        modifyDate: new Date(Date.now()),
-        modifyUser: this.userService.getUser().userId,
-        attributeCode: code,
-        attributeValue: value,
-        impGeofootprintGeo: parent,
-        isActive: isActive
-      });
-      parent.impGeofootprintGeoAttribs.push(result);
-      return result;
-    } else {
-      if (duplicateCodesOverwrite) {
-        existingAttribute.dirty = true;
-        existingAttribute.attributeValue = value;
-        existingAttribute.isActive = isActive;
-        existingAttribute.modifyDate = new Date(Date.now());
-        existingAttribute.modifyUser = this.userService.getUser().userId;
-        if (existingAttribute.baseStatus === DAOBaseStatus.UNCHANGED) existingAttribute.baseStatus = DAOBaseStatus.UPDATE;
-        return null;
-      } else {
-        throw new Error('A duplicate Geo Attribute code addition was attempted');
-      }
-    }
   }
 }

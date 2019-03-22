@@ -12,11 +12,9 @@ import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.act
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Geocode, HomeGeocode } from '../../state/homeGeocode/homeGeo.actions';
-import { ExportGeofootprint } from '../../state/menu/menu.actions';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { AppProjectService } from '../../services/app-project.service';
 
@@ -68,13 +66,7 @@ export class SiteListComponent implements OnInit {
    @Input('impGeofootprintGeos')
    set impGeofootprintGeos(val: ImpGeofootprintGeo[]) {
 //    console.log("SITE-LIST COMPONENT GOT GEOS: ", val);
-      this.impGeofootprintGeosBS$.next(val);// || []);
-   }
-
-   @Input('impGeofootprintGeoAttribs')
-   set impGeofootprintGeoAttribs(val: ImpGeofootprintGeoAttrib[]) {
-//    console.log("SITE-LIST COMPONENT GOT GEO ATTRIBS: ", val);
-      this.impGeofootprintGeoAttribsBS$.next(val);// || []);
+      this.impGeofootprintGeosBS$.next(val); // || []);
    }
 
    @Output()
@@ -96,7 +88,7 @@ export class SiteListComponent implements OnInit {
     resubmitFailedGrid = new EventEmitter();
    
    // Get grid filter components to clear them
-   @ViewChildren('filterMs') msFilters:QueryList<MultiSelect>;
+   @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
    
    // Input Behavior subjects
    private allLocationsBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
@@ -106,7 +98,6 @@ export class SiteListComponent implements OnInit {
    private allCompetitorLocationsBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
    private activeCompetitorLocationsBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
    private impGeofootprintGeosBS$ = new BehaviorSubject<ImpGeofootprintGeo[]>([]);
-   private impGeofootprintGeoAttribsBS$ = new BehaviorSubject<ImpGeofootprintGeoAttrib[]>([]);
 
    // Data store observables
    private allLocations$: Observable<ImpGeofootprintLocation[]>;
@@ -123,11 +114,7 @@ export class SiteListComponent implements OnInit {
    failures$: Observable<ImpGeofootprintLocation[]>;
    totalCount$: Observable<number>;
 
-   public currentAllAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
-   public currentActiveAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
-
    public allGeos$: Observable<ImpGeofootprintGeo[]>;
-   public allGeoAttribs$: Observable<ImpGeofootprintGeoAttrib[]>;
 
    // Observables for flattened rows of locations and attributes
    public flatAllSites$: Observable<FlatSite[]>;
@@ -189,10 +176,6 @@ export class SiteListComponent implements OnInit {
 
    public showDialog: boolean = false;
 
-   siteTypes = ImpClientLocationTypeCodes;
-
-   private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
-
    constructor(
       private appLocationService: AppLocationService,
       private confirmationService: ConfirmationService,
@@ -205,7 +188,6 @@ export class SiteListComponent implements OnInit {
    ngOnInit() {
       // Observe the behavior subjects on the input parameters
       this.allGeos$ = this.impGeofootprintGeosBS$.asObservable().pipe(startWith(null));
-      this.allGeoAttribs$ = this.impGeofootprintGeoAttribsBS$.asObservable().pipe(startWith(null));
 
       this.allLocations$ = this.allLocationsBS$.asObservable();
       this.allLocationAttribs$ = this.allLocationAttribsBS$.asObservable();
@@ -360,7 +342,7 @@ export class SiteListComponent implements OnInit {
       // this.flatAllSites$ = this.currentAllSites$.pipe(withLatestFrom(this.allGeos$)
       //                                                ,map(([locs, geos]) => this.createComposite(locs, geos)));
 
-      this.flatAllSites$ = combineLatest(this.currentAllSites$, this.allGeos$, this.allGeoAttribs$)
+      this.flatAllSites$ = combineLatest(this.currentAllSites$, this.allGeos$)
                                         .pipe(map(([locs, geos]) => this.createComposite(locs, geos)));
 
 /*
@@ -397,56 +379,56 @@ export class SiteListComponent implements OnInit {
 
       // Create an observable for unique cities (By hand method)
       this.uniqueCity$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                   ,map(locs => Array.from(new Set(locs.map(loc => loc.locCity)))
+                                                   , map(locs => Array.from(new Set(locs.map(loc => loc.locCity)))
                                                    .map(str => new Object({ label: str, value: str}) as SelectItem)));
 
       // Create an observable for unique states (By helper methods)
       this.uniqueState$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                    ,mapArray(loc => loc.locState)
-                                                    ,distinctArray()
-                                                    ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                    , mapArray(loc => loc.locState)
+                                                    , distinctArray()
+                                                    , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique market names
       this.uniqueMarket$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                     ,mapArray(loc => loc.marketName)
-                                                     ,distinctArray()
-                                                     ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                     , mapArray(loc => loc.marketName)
+                                                     , distinctArray()
+                                                     , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique market codes
       this.uniqueMarketCode$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                         ,mapArray(loc => loc.marketCode)
-                                                         ,distinctArray()
-                                                         ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                         , mapArray(loc => loc.marketCode)
+                                                         , distinctArray()
+                                                         , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique market codes
       this.uniqueRecStatuses$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                          ,mapArray(loc => loc.recordStatusCode)
-                                                          ,distinctArray()
-                                                          ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                          , mapArray(loc => loc.recordStatusCode)
+                                                          , distinctArray()
+                                                          , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique geocoder match codes
       this.uniqueMatchCodes$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                         ,mapArray(loc => loc.geocoderMatchCode)
-                                                         ,distinctArray()
-                                                         ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                         , mapArray(loc => loc.geocoderMatchCode)
+                                                         , distinctArray()
+                                                         , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique geocoder match qualities
       this.uniqueMatchQualities$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                             ,mapArray(loc => loc.geocoderLocationCode)
-                                                             ,distinctArray()
-                                                             ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                             , mapArray(loc => loc.geocoderLocationCode)
+                                                             , distinctArray()
+                                                             , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique original cities
       this.uniqueOrigCity$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                       ,mapArray(loc => loc.origCity)
-                                                       ,distinctArray()
-                                                       ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                       , mapArray(loc => loc.origCity)
+                                                       , distinctArray()
+                                                       , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       // Create an observable for unique original states
       this.uniqueOrigState$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true)
-                                                        ,mapArray(loc => loc.origState)
-                                                        ,distinctArray()
-                                                        ,mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                        , mapArray(loc => loc.origState)
+                                                        , distinctArray()
+                                                        , mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
       this.setCounts();
    }
@@ -562,7 +544,7 @@ export class SiteListComponent implements OnInit {
     */
    public onHGCIssuesLog() {
      
-    const site : SuccessfulLocationTypeCodes = ImpClientLocationTypeCodes.Site;
+    const site: SuccessfulLocationTypeCodes = ImpClientLocationTypeCodes.Site;
     //this.confirmationService.confirm({
     //   message: 'Home Geocode Issues Log',
     //   header: 'There are no home geocoding issues to report',
@@ -590,7 +572,6 @@ export class SiteListComponent implements OnInit {
       }
 
       location.loc.getImpGeofootprintGeos().forEach(geo => {
-         geo.impGeofootprintGeoAttribs.forEach(attr => attr.isActive = isActive);
          geo.isActive = isActive;
       });
       location.loc.impGeofootprintTradeAreas.forEach(ta => ta.isActive = isActive);
@@ -610,27 +591,20 @@ export class SiteListComponent implements OnInit {
       this.activeSiteCount$ = this.currentActiveSites$.pipe(map(s => s.length));
    }
 
-   public resolveFieldData(data: any, field: any) : any 
-   {
-      return resolveFieldData(data, field);
-   }
-
    createComposite(locs: ImpGeofootprintLocation[], geos?: ImpGeofootprintGeo[]) : FlatSite[] 
    {
-      const UnselLocCount: number = locs.filter(loc => loc.isActive === false).length;
       // console.log("-".padEnd(80, "-"));
       // console.log("SITE-LIST - createComposite - Locs: ", (locs != null) ? locs.length : null, ", Geos: ", (geos != null) ? geos.length : null);
       // console.log("-".padEnd(80, "-"));
       // This shows that at the time this fires, the new "Home" location attributes are not on the location
-      //console.log("locs", locs.toString());
+      // console.log("locs", locs.toString());
 
       let fgId = 0;
       const siteGridData: FlatSite[] = [];
-      const attributeCols: any[] = [];
 
       // Calculate totals per site
-      let hhcMap: Map<string, number> = new Map<string, number>();
-      let allocHhcMap: Map<string, number> = new Map<string, number>();
+      const hhcMap: Map<string, number> = new Map<string, number>();
+      const allocHhcMap: Map<string, number> = new Map<string, number>();
 
       if (geos != null) {
 //         console.log("SITE-LIST - createComposite - processing geos: ", geos.length);
@@ -648,7 +622,7 @@ export class SiteListComponent implements OnInit {
                   allocHhcMap.set(geo.impGeofootprintLocation.locationNumber, (allocHhcMap.get(geo.impGeofootprintLocation.locationNumber) || 0) + geo.hhc);
                }
             }
-         })
+         });
 //         console.log("SITE-LIST - createComposite - finished geos: ", hhcMap);
       }
 
@@ -677,7 +651,6 @@ export class SiteListComponent implements OnInit {
             // If the column isn't already in the list, add it
             if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode)) 
             {
-               attributeCols.push(column);
                this.flatSiteGridColumns.push(column);
                this.columnOptions.push({ label: column.header, value: column });
                this.selectedColumns.push(column);

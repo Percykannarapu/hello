@@ -8,20 +8,20 @@
  **
  ** ImpGeofootprintGeoAttrib.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-import { TransactionManager } from '../../common/services/TransactionManager.service';
-import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
-import { RestDataService } from '../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
-import { Injectable } from '@angular/core';
-
-const dataUrl = 'v1/targeting/base/impgeofootprintgeoattrib/search?q=impGeofootprintGeoAttrib';
-
-@Injectable()
-export class ImpGeofootprintGeoAttribService extends DataStore<ImpGeofootprintGeoAttrib>
-{
-   constructor(restDataService: RestDataService,
-               projectTransactionManager: TransactionManager)
-   {
-      super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeoAttrib');
-   }
-}
+// import { TransactionManager } from '../../common/services/TransactionManager.service';
+// import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
+// import { RestDataService } from '../../common/services/restdata.service';
+// import { DataStore } from '../../common/services/datastore.service';
+// import { Injectable } from '@angular/core';
+//
+// const dataUrl = 'v1/targeting/base/impgeofootprintgeoattrib/search?q=impGeofootprintGeoAttrib';
+//
+// @Injectable()
+// export class ImpGeofootprintGeoAttribService extends DataStore<ImpGeofootprintGeoAttrib>
+// {
+//    constructor(restDataService: RestDataService,
+//                projectTransactionManager: TransactionManager)
+//    {
+//       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeoAttrib');
+//    }
+// }

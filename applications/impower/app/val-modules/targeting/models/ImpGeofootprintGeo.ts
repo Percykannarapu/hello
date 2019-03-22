@@ -2,12 +2,11 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, transient } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
 import { ImpProject } from './ImpProject';
-import { ImpGeofootprintGeoAttrib } from './ImpGeofootprintGeoAttrib';
 
 export class ImpGeofootprintGeo extends BaseModel
 {
@@ -30,7 +29,7 @@ export class ImpGeofootprintGeo extends BaseModel
    public isDeduped:     number;         /// 1 = deduped, 0 = not deduped
    public rank:          number;         /// Rank used to calculate dupes
 
-   @transient public impGeofootprintGeoAttribs: Array<ImpGeofootprintGeoAttrib> = new Array<ImpGeofootprintGeoAttrib>();
+   //@transient public impGeofootprintGeoAttribs: Array<ImpGeofootprintGeoAttrib> = new Array<ImpGeofootprintGeoAttrib>();
 
    // -------------------------------------------
    // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS

@@ -211,3 +211,7 @@ export function isFunction (obj: any) : obj is Function {
 export function isNumber(value: any) : value is number {
   return value != null && value !== '' && !Number.isNaN(Number(value));
 }
+
+export function dedupeSimpleSet<T>(newValues: Set<T>, previousValues: Set<T>) : Set<T> {
+  return new Set(Array.from(newValues).filter(v => !previousValues.has(v)));
+}

@@ -1,6 +1,7 @@
 import { routerReducer } from '@ngrx/router-store';
 import { Action, ActionReducer, ActionReducerMap, MetaReducer } from '@ngrx/store';
 import { environment } from '../../environments/environment';
+import { masterDataStoreReducer } from '../impower-datastore/state/impower-datastore.interfaces';
 import { LocalAppState } from './app.interfaces';
 import { dataShimReducer } from './data-shim/data-shim.reducer';
 import { menuReducer } from './menu/menu.reducer';
@@ -10,7 +11,8 @@ export const appReducer: ActionReducerMap<LocalAppState> = {
   router: routerReducer,
   dataShim: dataShimReducer,
   menu: menuReducer,
-  homeGeo: homeGeoReducer
+  homeGeo: homeGeoReducer,
+  datastore: masterDataStoreReducer
 };
 
 export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<LocalAppState> {

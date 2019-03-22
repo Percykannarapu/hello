@@ -39,7 +39,6 @@ export class AppMapService implements OnDestroy {
               private queryService: EsriQueryService,
               private layerService: EsriLayerService,
               private mapService: EsriMapService,
-              private metricsService: ValMetricsService,
               private logger: AppLoggingService,
               private config: AppConfig,
               private store$: Store<LocalAppState>) {

@@ -8,7 +8,6 @@ import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeof
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
@@ -44,7 +43,6 @@ export class AppTradeAreaService {
               private impLocationService: ImpGeofootprintLocationService,
               private impLocAttrService: ImpGeofootprintLocAttribService,
               private impGeoService:  ImpGeofootprintGeoService,
-              private impGeoAttributeService: ImpGeofootprintGeoAttribService,
               private impVarService: ImpGeofootprintVarService,
               private stateService: AppStateService,
               private layerService: AppLayerService,
@@ -332,8 +330,7 @@ export class AppTradeAreaService {
     this.impTradeAreaService.startTx();
     this.impLocAttrService.remove(attrs);
     this.impVarService.clearAll();
-    this.impGeoService.clearAll();
-    this.impGeoAttributeService.clearAll();
+    this.appGeoService.clearAll();
     this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
     this.impTradeAreaService.stopTx();
   }
