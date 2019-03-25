@@ -33,6 +33,7 @@ export class EsriDomainFactoryService {
     if (currentMapView == null) throw new Error('The SketchViewModel factory requires a valid MapView instance.');
     const result = new EsriApi.widgets.SketchViewModel({
       view: currentMapView,
+      layer: new EsriApi.GraphicsLayer({}),
       pointSymbol: {
         type: 'simple-marker',
         style: 'square',
