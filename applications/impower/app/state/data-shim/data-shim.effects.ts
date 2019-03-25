@@ -4,7 +4,7 @@ import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComplete, RequestAttributesComplete } from '../../impower-datastore/state/geo-attributes/geo-attributes.actions';
+import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComplete } from '../../impower-datastore/state/geo-attributes/geo-attributes.actions';
 import { selectGeoAttributeEntities } from '../../impower-datastore/state/impower-datastore.selectors';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
@@ -50,9 +50,9 @@ export class DataShimEffects {
   @Effect()
   projectLoad$ = this.actions$.pipe(
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
-    withLatestFrom(this.appDataShimService.currentGeocodeSet$),
-    switchMap(([action, geocodes]) => this.appDataShimService.load(action.payload.projectId).pipe(
-      map(() => new RehydrateAttributes({ ...action.payload, geocodes })),
+    switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
+      withLatestFrom(this.appDataShimService.currentGeocodeSet$),
+      map(([projectId, geocodes]) => new RehydrateAttributes({ ...action.payload, geocodes })),
       catchError(err => of(new ProjectLoadFailure({ err, isReload: false }))),
     )),
   );
