@@ -7,6 +7,7 @@ import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs
 import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComplete } from '../../impower-datastore/state/geo-attributes/geo-attributes.actions';
 import { selectGeoAttributeEntities } from '../../impower-datastore/state/impower-datastore.selectors';
 import { AppDataShimService } from '../../services/app-data-shim.service';
+import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { FullAppState } from '../app.interfaces';
 import {
@@ -87,7 +88,7 @@ export class DataShimEffects {
     ofType(GeoAttributeActionTypes.RequestAttributesComplete),
     withLatestFrom(this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
     tap(([a, attrs, geos, project]) => this.appDataShimService.prepGeoFields(geos, attrs, project)),
-    map(() => new FiltersChanged())
+    map(() => new FiltersChanged({ filterChanged: null }))
   );
 
   @Effect()
@@ -108,15 +109,11 @@ export class DataShimEffects {
 
   @Effect()
   filtersChanged$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.FiltersChanged),
-    withLatestFrom(this.appDataShimService.currentGeos$),
-    // filters only apply to geos from the trade areas identified in this.tradeAreasToFilter
-    map(([a, geos]) => geos.filter(g => this.tradeAreasToFilter.has(TradeAreaTypeCodes.parse(g.impGeofootprintTradeArea.taType)))),
-    withLatestFrom(this.appDataShimService.currentHomeGeocodes$, this.appDataShimService.currentMustCovers$),
-    // filters should not affect any home geos or must covers, so remove them from consideration
-    map(([geos, homeGeos, mustCovers]) => geos.filter(geo => !homeGeos.has(geo.geocode) && !mustCovers.has(geo.geocode))),
+    ofType<FiltersChanged>(DataShimActionTypes.FiltersChanged),
+    withLatestFrom(this.appDataShimService.currentGeos$, this.appDataShimService.currentHomeGeocodes$, this.appDataShimService.currentMustCovers$),
+    map(([a, geos, homeGeos, mustCovers]) => [a, geos.filter(g => this.tradeAreasToFilter.has(TradeAreaTypeCodes.parse(g.impGeofootprintTradeArea.taType)) && !homeGeos.has(g.geocode) && !mustCovers.has(g.geocode))] as [ FiltersChanged, ImpGeofootprintGeo[]]),
     withLatestFrom(this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentProject$),
-    tap(([geos, attributes, project]) => this.appDataShimService.filterGeos(geos, attributes, project)),
+    tap(([[action, geos], attributes, project]) => this.appDataShimService.filterGeos(geos, attributes, project, action.payload.filterChanged)),
     map(() => new CalculateMetrics())
   );
 

@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import { ProjectFilterChanged } from '../../models/ui-enums';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 export enum DataShimActionTypes {
@@ -93,7 +94,8 @@ export class ExportApioNationalData implements Action {
 }
 
 export class FiltersChanged implements Action {
-    readonly type = DataShimActionTypes.FiltersChanged;
+  readonly type = DataShimActionTypes.FiltersChanged;
+  constructor(public payload: { filterChanged?: ProjectFilterChanged }) {}
 }
 
 export class CalculateMetrics implements Action {
