@@ -35,7 +35,7 @@ export class AppEffects {
     ofType<SetActiveMediaPlanId>(SharedActionTypes.SetActiveMediaPlanId),
     filter((action) => action.payload != null),
     tap((action) => this.appLayerService.removeLayer('Sites', 'Project Sites')),
-    tap((action) => this.appLayerService.removeLayer('Sites', 'Selected Geos')),
+    tap((action) => this.appLayerService.removeLayer('Sites', 'Trade Areas')),
     tap((action) => this.fullStore$.dispatch(new ClearSelectedGeos())), 
     switchMap((action) => [
       new RfpUiEditLoaded({ rfpUiEditLoaded: false }),
@@ -55,7 +55,7 @@ export class AppEffects {
   mediaPlanGroupCleared = this.actions$.pipe(
     ofType<ClearMediaPlanGroups>(MediaPlanGroupActionTypes.ClearMediaPlanGroups),
     tap((action) => this.appLayerService.removeLayer('Sites', 'Project Sites')),
-    tap((action) => this.appLayerService.removeLayer('Sites', 'Selected Geos')),
+    tap((action) => this.appLayerService.removeLayer('Sites', 'Trade Areas')),
     tap((action) => this.fullStore$.dispatch(new ClearSelectedGeos())),
     switchMap((action) => [
       new RfpUiEditLoaded({ rfpUiEditLoaded: false }),

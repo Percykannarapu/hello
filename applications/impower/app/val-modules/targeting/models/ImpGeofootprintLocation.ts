@@ -238,6 +238,9 @@ export class ImpGeofootprintLocation extends BaseModel
     *
     * @returns A string containing the class data.
     */
-   public toString = () => JSON.stringify(this, null, '   ');
+   // public toString = () => JSON.stringify(this, null, '   ');
+   public toString() {
+      return JSON.stringify(this, null, '   ');
+   }
 
 }

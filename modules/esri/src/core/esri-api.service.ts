@@ -14,6 +14,7 @@ export class EsriApi {
     'esri/renderers/smartMapping/creators/color',
     'esri/renderers/smartMapping/symbology/color',
     'esri/renderers/smartMapping/statistics/histogram',
+    'esri/renderers/visualVariables/support/ColorStop',
     'esri/renderers/UniqueValueRenderer',
     'esri/renderers/SimpleRenderer',
     'esri/core/lang',
@@ -37,10 +38,12 @@ export class EsriApi {
     'esri/tasks/Geoprocessor',
     'esri/tasks/support/FeatureSet',
     'esri/layers/support/Field',
+    'esri/support/FieldInfo',
     'esri/layers/support/LabelClass',
     'esri/symbols/TextSymbol',
     'esri/symbols/Font',
-    'esri/symbols/SimpleLineSymbol'
+    'esri/symbols/SimpleLineSymbol',
+    'esri/layers/GraphicsLayer'
 ];
 
   public static config: __esri.config;
@@ -53,6 +56,7 @@ export class EsriApi {
   public static colorRendererCreator: __esri.color;
   public static symbologyColor: __esri.symbologyColor;
   public static histogram: __esri.histogram;
+  public static ColorStop: __esri.ColorStopConstructor;
   public static UniqueValueRenderer: __esri.UniqueValueRendererConstructor;
   public static SimpleRenderer: __esri.SimpleRendererConstructor;
   public static lang: __esri.lang;
@@ -76,10 +80,12 @@ export class EsriApi {
   public static Geoprocessor: __esri.GeoprocessorConstructor;
   public static FeatureSet: __esri.FeatureSetConstructor;
   public static Field: __esri.FieldConstructor;
+  public static FieldInfo: __esri.FieldInfoConstructor;
   public static LabelClass: __esri.LabelClassConstructor;
   public static TextSymbol: __esri.TextSymbolConstructor;
   public static Font: __esri.FontConstructor;
   public static SimpleLineSymbol: __esri.SimpleLineSymbolConstructor;
+  public static GraphicsLayer: __esri.GraphicsLayerConstructor;
 
   public static widgets: EsriWidgets;
 
@@ -114,6 +120,7 @@ export class EsriApi {
       EsriApi.colorRendererCreator,
       EsriApi.symbologyColor,
       EsriApi.histogram,
+      EsriApi.ColorStop,
       EsriApi.UniqueValueRenderer,
       EsriApi.SimpleRenderer,
       EsriApi.lang,
@@ -137,10 +144,12 @@ export class EsriApi {
       EsriApi.Geoprocessor,
       EsriApi.FeatureSet,
       EsriApi.Field,
+      EsriApi.FieldInfo,
       EsriApi.LabelClass,
       EsriApi.TextSymbol,
       EsriApi.Font,
-      EsriApi.SimpleLineSymbol
+      EsriApi.SimpleLineSymbol,
+      EsriApi.GraphicsLayer
     ] = modules;
 
     EsriApi.widgets = new EsriWidgets();

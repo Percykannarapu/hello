@@ -6,7 +6,7 @@ import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/m
 import { combineLatest, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { ClearGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
+import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { LocalAppState } from '../state/app.interfaces';
@@ -113,10 +113,12 @@ export class AppGeoService {
 
     const tradeAreas = new Set<ImpGeofootprintTradeArea>(geos.map(g => g.impGeofootprintTradeArea));
     const geoSet = new Set<ImpGeofootprintGeo>(geos);
+    const geocodes = new Set<string>(geos.map(g => g.geocode));
     // remove entities from the hierarchy
     tradeAreas.forEach(ta => ta.impGeofootprintGeos = ta.impGeofootprintGeos.filter(g => !geoSet.has(g)));
     geos.forEach(g => g.impGeofootprintTradeArea = null);
     // remove from data stores
+    this.store$.dispatch(new DeleteGeoAttributes({ ids: Array.from(geocodes) }));
     this.impGeoService.remove(geos);
   }
 

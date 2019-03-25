@@ -42,7 +42,7 @@ export class AppComponentGeneratorService {
     this.appStateService.refreshDynamicContent$.subscribe(() => this.updateDynamicComponents());
   }
 
-  public geographyPopupFactory(feature: __esri.Feature, fields: __esri.PopupTemplateFieldInfos[], popupDefinition: CustomPopUpDefinition) : HTMLElement {
+  public geographyPopupFactory(feature: __esri.Feature, fields: __esri.FieldInfo[], popupDefinition: CustomPopUpDefinition) : HTMLElement {
     const requestedGeocode = feature.graphic.attributes.geocode;
     this.logger.info(`Building popup for geocode ${requestedGeocode}`);
     if (this.cachedGeoPopup == null) {
@@ -66,7 +66,7 @@ export class AppComponentGeneratorService {
     this.cachedGeoPopup = factory.create(this.injector);
   }
 
-  private populateGeographyPopupData(geocode: any, feature: __esri.Feature, fields: __esri.PopupTemplateFieldInfos[], popupDefinition: CustomPopUpDefinition) : void {
+  private populateGeographyPopupData(geocode: any, feature: __esri.Feature, fields: __esri.FieldInfo[], popupDefinition: CustomPopUpDefinition) : void {
     this.logger.debug('Setting popup values', geocode, feature.graphic.attributes, fields, popupDefinition);
     if (this.shadingSub) this.shadingSub.unsubscribe();
     this.shadingSub = this.targetAudienceService.shadingData$.pipe(
@@ -90,7 +90,7 @@ export class AppComponentGeneratorService {
     fields.forEach(fild => fieldNames.push(fild.fieldName));
 
     if (!fieldNames.includes('Investment')) {
-      const attr = {} as  __esri.PopupTemplateFieldInfos;
+      const attr = {} as  __esri.FieldInfo;
       attr.fieldName = 'Investment';
       attr.label = 'Investment';
       fields.push(attr);
