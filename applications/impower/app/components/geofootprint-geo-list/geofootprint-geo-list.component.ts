@@ -668,7 +668,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   case 'COUNT':
                   case 'MEDIAN':
                   case 'INDEX':
-                     gridGeo[geovar.varPk.toString()] = geovar.valueNumber;
+                     gridGeo[geovar.varPk.toString()] = Math.round(geovar.valueNumber);
                      break;
 
                   case 'PERCENT':
