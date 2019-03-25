@@ -108,11 +108,8 @@ export class AppDataShimService {
     this.appProjectService.finalizeClear();
   }
 
-  // we have to do several one-time processes after a load since we're
-  // now hiding the attribute re hydration step inside the isReady gate
-  preProcessGeos(geos: ImpGeofootprintGeo[], attributes: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {
-    const geocodes = this.prepGeoFields(geos, attributes, project);
-    const result = this.metricService.updateDefinitions(attributes, Array.from(geocodes), project);
+  calcMetrics(geocodes: string[], attribute: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {
+    const result = this.metricService.updateDefinitions(attribute, geocodes, project);
     this.metricService.onMetricsChanged(result);
   }
 
