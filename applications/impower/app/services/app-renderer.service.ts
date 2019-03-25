@@ -66,6 +66,7 @@ export class AppRendererService {
     if (Object.keys(newData).length > 0) {
       const newAction = new SetShadingData({ data: result, isNumericData: isNumericData });
       if (isNumericData) newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
+      //US9347 - Variable Title in the Legend
       const audiences = Array.from(this.dataService.audienceMap.values()).filter(a => a.showOnMap === true);
       let legendText = null;
       if (audiences[0].audienceSourceType === "Online"){
