@@ -158,9 +158,9 @@ export class EsriRendererService {
     }
   }
 
-  public setShadingRenderer(mapState: EsriMapState, data: ShadingData, isNumericData: boolean, statistics?: Statistics) : void {
+  public setShadingRenderer(mapState: EsriMapState, data: ShadingData, isNumericData: boolean, statistics?: Statistics,legend?: string) : void {
     if (isNumericData) {
-      this.createMultiVariateRenderer(data, mapState, statistics);
+      this.createMultiVariateRenderer(data, mapState, statistics,legend);
     } else {
       this.createClassBreaksRenderer(data, mapState);
     }
@@ -239,11 +239,14 @@ export class EsriRendererService {
     }
   }
 
-  private createMultiVariateRenderer(data: ShadingData, mapState: EsriMapState, statistics: Statistics) {
+  private createMultiVariateRenderer(data: ShadingData, mapState: EsriMapState, statistics: Statistics,legend?:string) {
     const arcade = this.generateArcade(data, true);
     const setup = this.createRendererSetup(mapState);
     const baseRenderer = this.createBaseRenderer(setup.symbol, setup.rendererSetup.outline);
     const themeColors = EsriRendererService.getThemeColors(setup.rendererSetup);
+    if (legend != null) {
+      setup.rendererSetup.rampLabel = legend;
+    }
     const colorVariable: any = {
       type: 'color',
       valueExpression: arcade,
@@ -257,7 +260,7 @@ export class EsriRendererService {
       lv.layer.renderer = baseRenderer.clone();
     } else {
       lv.layer.renderer = this.simpleRenderer.clone();
-      setTimeout(() => this.createMultiVariateRenderer(data, mapState, statistics), 0);
+      setTimeout(() => this.createMultiVariateRenderer(data, mapState, statistics,legend), 0);
     }
   }
 

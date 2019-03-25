@@ -66,7 +66,23 @@ export class AppRendererService {
     if (Object.keys(newData).length > 0) {
       const newAction = new SetShadingData({ data: result, isNumericData: isNumericData });
       if (isNumericData) newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
-      this.store$.dispatch(newAction);
+      const audiences = Array.from(this.dataService.audienceMap.values()).filter(a => a.showOnMap === true);
+      let legendText = null;
+      if (audiences[0].audienceSourceType === "Online"){
+        const legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
+        
+        if ((audiences[0].audienceSourceName === 'VLH')||(audiences[0].audienceSourceName === 'Pixel')){
+          legendText = audiences[0].audienceName+ " " +  legendOption.label;}
+        else {
+          legendText = audiences[0].audienceName+ " "+ audiences[0].audienceSourceName + " " + legendOption.label;
+          }
+      }else {
+          legendText = audiences[0].audienceName;
+      } 
+      if(legendText != null){
+        newAction.payload.legend = legendText;
+      }
+        this.store$.dispatch(newAction);
     } else {
       this.store$.dispatch(new ClearShadingData());
     }
