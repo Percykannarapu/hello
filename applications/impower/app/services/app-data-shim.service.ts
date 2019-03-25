@@ -1,21 +1,22 @@
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
+import { ErrorNotification } from '@val/messaging';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
+import { ProjectFilterChanged } from '../models/ui-enums';
+import { LocalAppState } from '../state/app.interfaces';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { AppGeoService } from './app-geo.service';
 import { AppLocationService } from './app-location.service';
 import { ValMetricsService } from './app-metrics.service';
 import { AppProjectService } from './app-project.service';
-import { TargetAudienceService } from './target-audience.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
-import { AppGeoService } from './app-geo.service';
-import { Observable } from 'rxjs';
-import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { LocalAppState } from '../state/app.interfaces';
-import { Store } from '@ngrx/store';
-import { ErrorNotification } from '@val/messaging';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
+import { TargetAudienceService } from './target-audience.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -124,7 +125,7 @@ export class AppDataShimService {
     return geocodes;
   }
 
-  filterGeos(geos: ImpGeofootprintGeo[], geoAttributes: { [geocode: string] : GeoAttribute }, currentProject: ImpProject) : void {
+  filterGeos(geos: ImpGeofootprintGeo[], geoAttributes: { [geocode: string] : GeoAttribute }, currentProject: ImpProject, filterType?: ProjectFilterChanged) : void {
     if (currentProject == null || geoAttributes == null || geos == null || geos.length === 0) return;
     const includeValassis = currentProject.isIncludeValassis;
     const includeAnne = currentProject.isIncludeAnne;
@@ -137,13 +138,16 @@ export class AppDataShimService {
       if (currentAttribute != null) {
         const audiencePreSelected = currentAttribute.hasOwnProperty('preSelectedForAudience') ? currentAttribute['preSelectedForAudience'] as boolean : true;
         const filterReasons: string[] = [];
+        let ignore: boolean = (filterType != null);
         let state: boolean;
         switch (currentAttribute['owner_group_primary']) {
           case 'VALASSIS':
+            if (filterType === ProjectFilterChanged.Valassis) ignore = false;
             if (!includeValassis) filterReasons.push('VALASSIS');
             state = includeValassis;
             break;
           case 'ANNE':
+            if (filterType === ProjectFilterChanged.Anne) ignore = false;
             if (!includeAnne) filterReasons.push('ANNE');
             state = includeAnne;
             break;
@@ -151,17 +155,21 @@ export class AppDataShimService {
             state = true;
         }
         if (currentAttribute['cov_frequency'] === 'Solo') {
+          if (filterType === ProjectFilterChanged.Solo) ignore = false;
           if (!includeSolo) filterReasons.push('SOLO');
           state = state && includeSolo;
         }
         if (currentAttribute['pob'] === 'B') {
+          if (filterType === ProjectFilterChanged.Pob) ignore = false;
           if (!includePob) filterReasons.push('POB');
           state = state && includePob;
         }
-        currentGeos.forEach(g => {
-          g.isActive = state && audiencePreSelected;
-          g['filterReasons'] = state ? (audiencePreSelected ? null : 'Under Audience TA threshold') : `Filtered because: ${filterReasons.join(', ')}`;
-        });
+        if (!ignore) {
+          currentGeos.forEach(g => {
+            g.isActive = state && audiencePreSelected;
+            g['filterReasons'] = state ? (audiencePreSelected ? null : 'Under Audience TA threshold') : `Filtered because: ${filterReasons.join(', ')}`;
+          });
+        }
       }
     });
 

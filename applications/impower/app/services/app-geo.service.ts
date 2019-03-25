@@ -3,12 +3,13 @@ import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { combineLatest, merge, Observable } from 'rxjs';
+import { merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
 import { LocationQuadTree } from '../models/location-quad-tree';
+import { ProjectFilterChanged } from '../models/ui-enums';
 import { LocalAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
@@ -684,33 +685,32 @@ export class AppGeoService {
   }
 
   private setupFilterGeosObservable() : void {
-    const valassisFlag$ = this.appStateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => project.isIncludeValassis),
-      distinctUntilChanged(),
-    );
-
-    const anneFlag$ = this.appStateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => project.isIncludeAnne),
-      distinctUntilChanged(),
-    );
-
-    const soloFlag$ = this.appStateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => project.isIncludeSolo),
-      distinctUntilChanged(),
-    );
-
-    const pobFlag$ = this.appStateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => project.isExcludePob),
-      distinctUntilChanged(),
-    );
-
-    combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$).pipe(
+    this.appStateService.currentProject$.pipe(
       withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([flags, isReady]) => isReady)
-    ).subscribe(() => this.store$.dispatch(new FiltersChanged()));
+      filter(([project, isReady]) => project != null && isReady),
+      map(([project]) => project.isIncludeValassis),
+      distinctUntilChanged(),
+    ).subscribe(() => this.store$.dispatch(new FiltersChanged({ filterChanged: ProjectFilterChanged.Valassis })));
+
+    this.appStateService.currentProject$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([project, isReady]) => project != null && isReady),
+      map(([project]) => project.isIncludeAnne),
+      distinctUntilChanged(),
+    ).subscribe(() => this.store$.dispatch(new FiltersChanged({ filterChanged: ProjectFilterChanged.Anne })));
+
+    this.appStateService.currentProject$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([project, isReady]) => project != null && isReady),
+      map(([project]) => project.isIncludeSolo),
+      distinctUntilChanged(),
+    ).subscribe(() => this.store$.dispatch(new FiltersChanged({ filterChanged: ProjectFilterChanged.Solo })));
+
+    this.appStateService.currentProject$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([project, isReady]) => project != null && isReady),
+      map(([project]) => project.isExcludePob),
+      distinctUntilChanged(),
+    ).subscribe(() => this.store$.dispatch(new FiltersChanged({ filterChanged: ProjectFilterChanged.Pob })));
   }
 }
