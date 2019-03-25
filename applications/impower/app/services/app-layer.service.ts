@@ -74,7 +74,9 @@ export class AppLayerService {
     const layerName = `Project ${groupName}`;
     const points: __esri.Graphic[] = sites.map(site => this.createSiteGraphic(site));
     if (points.length > 0) {
-      if (!this.layerService.layerExists(layerName) || !this.layerService.groupExists(groupName)) {
+      if (!(!this.layerService.layerExists(layerName) || !this.layerService.groupExists(groupName))) {
+        this.layerService.removeLayer(layerName);
+      }
         const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
         const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true);
         layer.popupTemplate = new EsriApi.PopupTemplate({
@@ -91,9 +93,26 @@ export class AppLayerService {
             path: starPath
           })
         });
-      } else {
-        this.layerService.replaceGraphicsOnLayer(layerName, points);
-      }
+        const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
+        const font = new EsriApi.Font({ family: 'sans-serif', size: 12, weight: 'bold' });
+        textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+        textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+        const siteColor = new EsriApi.Color({a: 1, r: 35, g: 93, b: 186});
+        const competitorColor = new EsriApi.Color({a: 1, r: 255, g: 0, b: 0});
+        textSymbol.color = siteType.toLowerCase() === 'site' ? siteColor : competitorColor;
+        textSymbol.haloSize = 1;
+        textSymbol.font = font;
+        const labelClass: __esri.LabelClass = new EsriApi.LabelClass({ 
+          symbol: textSymbol,
+          labelPlacement: 'below-center',
+          labelExpressionInfo: {
+              expression: '$feature.locationNumber'
+          }
+        });
+        layer.labelingInfo = [labelClass];
+      // else {
+        // this.layerService.replaceGraphicsOnLayer(layerName, points);
+      // }
     } else {
       this.layerService.removeLayer(layerName);
     }
@@ -127,15 +146,15 @@ export class AppLayerService {
     const colorVal = (siteType === 'Site') ? [0, 0, 255] : [255, 0, 0];
     const color = new EsriApi.Color(colorVal);
     const transparent = new EsriApi.Color([0, 0, 0, 0]);
-    const symbol = new EsriApi.SimpleFillSymbol({
-      style: 'solid',
-      color: transparent,
-      outline: {
-        style: 'solid',
-        color: color,
-        width: 2
-      }
-    });
+    // const symbol = new EsriApi.SimpleFillSymbol({
+    //   style: 'solid',
+    //   color: transparent,
+    //   outline: {
+    //     style: 'solid',
+    //     color: color,
+    //     width: 2
+    //   }
+    // });
     let layersToRemove: string[] = [];
     if (taType === TradeAreaTypeCodes.Audience) {
       layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.includes('Audience'));
@@ -152,14 +171,27 @@ export class AppLayerService {
         const graphics = geometry.map(g => {
           return new EsriApi.Graphic({
             geometry: g,
-            symbol: symbol,
+            // symbol: symbol,
             attributes: { parentId: (++layerId).toString() }
           });
         });
         const groupName = `${siteType}s`;
         const layerName = `${siteType} - ${name}`;
         this.layerService.removeLayer(layerName);
-        this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+        //this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+        const renderer = new EsriApi.SimpleRenderer({
+          symbol: new EsriApi.SimpleFillSymbol({
+            style: 'solid',
+          color: transparent,
+          outline: {
+            style: 'solid',
+            color: color,
+            width: 2
+          }
+          })
+        });
+        const layer =  this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+        layer.renderer = renderer;
       });
     });
   }
@@ -213,13 +245,22 @@ export class AppLayerService {
     layerDefinitions.forEach(layerDef => {
       const layerSortIndex = layerDef.sortOrder || 0;
       const layerPipeline = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
-        tap(layer => this.setupLayerPopup(layer, layerDef)),
-        tap(layer => this.addVisibilityWatch(layer)),
+        tap(layer => this.setupIndividualLayer(layer, layerDef)),
         tap(layer => group.add(layer, layerSortIndex)),
       );
       layerObservables.push(layerPipeline);
     });
     return layerObservables;
+  }
+
+  private setupIndividualLayer(layer: __esri.FeatureLayer, layerDef: LayerDefinition) : void {
+    this.setupLayerPopup(layer, layerDef);
+    this.addVisibilityWatch(layer);
+    layer.when(currentLayer => {
+      const revisedRenderer = (currentLayer.renderer as __esri.SimpleRenderer).clone();
+      revisedRenderer.symbol.color = new EsriApi.Color([ 128, 128, 128, 0.01 ]);
+      currentLayer.renderer = revisedRenderer;
+    });
   }
 
   private updateLabelExpressions(showPOBs: boolean) : void {
@@ -250,7 +291,7 @@ export class AppLayerService {
   private setupLayerPopup(newLayer: __esri.FeatureLayer, layerDef: LayerDefinition) : void {
     const popupEnabled = (layerDef.useCustomPopUp === true) || (layerDef.popUpFields.length > 0);
     if (popupEnabled) {
-      newLayer.on('layerview-create', e => {
+      newLayer.when(e => {
         const localLayer = (e.layerView.layer as __esri.FeatureLayer);
         localLayer.popupTemplate = this.createPopupTemplate(localLayer, layerDef);
       });
@@ -275,16 +316,20 @@ export class AppLayerService {
       layerDef.popUpFields;
     const fieldsToUse = new Set<string>(definedFields);
     const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
-    const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => ({ fieldName: f.name, label: f.alias }));
+    const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new EsriApi.FieldInfo({ fieldName: f.name, label: f.alias }));
+    // const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => ({ fieldName: f.name, label: f.alias }));
     fieldInfos.sort(byDefinedFieldIndex);
     const result = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction] });
     if (layerDef.useCustomPopUp === true) {
       result.content = (feature: any) => this.generator.geographyPopupFactory(feature, fieldInfos, layerDef.customPopUpDefinition);
+      return result;
     } else {
-      result.fieldInfos = fieldInfos;
-      result.content = [{ type: 'fields' }];
+      const resultTest = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction], fieldInfos: fieldInfos, content: [{ type: 'fields' }] });
+      //result.fieldInfos = fieldInfos;
+     // result.content = [{ type: 'fields' }];
+     return resultTest;
     }
-    return result;
+   // return result;
   }
 
   private createSiteGraphic(site: ImpGeofootprintLocation) : __esri.Graphic {
@@ -297,6 +342,7 @@ export class AppLayerService {
       visible: site.isActive
     });
     for (const [field, value] of Object.entries(site)) {
+      if (Array.isArray(value)) continue;
       graphic.attributes[field] = value;
     }
     return graphic;
