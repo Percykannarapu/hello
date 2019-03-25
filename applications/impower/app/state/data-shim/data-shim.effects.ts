@@ -9,7 +9,19 @@ import { selectGeoAttributeEntities } from '../../impower-datastore/state/impowe
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { FullAppState } from '../app.interfaces';
-import { CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged, ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess } from './data-shim.actions';
+import {
+  CalculateMetrics,
+  CreateNewProject,
+  CreateNewProjectComplete,
+  DataShimActionTypes,
+  FiltersChanged,
+  ProjectLoad,
+  ProjectLoadFailure,
+  ProjectLoadSuccess,
+  ProjectSaveAndLoad,
+  ProjectSaveFailure,
+  ProjectSaveSuccess
+} from './data-shim.actions';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimEffects {
@@ -82,8 +94,8 @@ export class DataShimEffects {
   rehydrateSuccess$ = this.actions$.pipe(
     ofType<RehydrateAttributesComplete>(GeoAttributeActionTypes.RehydrateAttributesComplete),
     withLatestFrom(this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
-    tap(([a, attrs, geos, project]) => this.appDataShimService.preProcessGeos(geos, attrs, project)),
-    map(([action]) => new ProjectLoadSuccess(action.payload))
+    tap(([a, attrs, geos, project]) => this.appDataShimService.prepGeoFields(geos, attrs, project)),
+    concatMap(([action]) => [new CalculateMetrics(), new ProjectLoadSuccess(action.payload)])
   );
 
   @Effect({ dispatch: false })
@@ -94,7 +106,7 @@ export class DataShimEffects {
 
   tradeAreasToFilter: Set<TradeAreaTypeCodes> = new Set([ TradeAreaTypeCodes.Radius, TradeAreaTypeCodes.Audience ]);
 
-  @Effect({ dispatch: false })
+  @Effect()
   filtersChanged$ = this.actions$.pipe(
     ofType(DataShimActionTypes.FiltersChanged),
     withLatestFrom(this.appDataShimService.currentGeos$),
@@ -104,7 +116,15 @@ export class DataShimEffects {
     // filters should not affect any home geos or must covers, so remove them from consideration
     map(([geos, homeGeos, mustCovers]) => geos.filter(geo => !homeGeos.has(geo.geocode) && !mustCovers.has(geo.geocode))),
     withLatestFrom(this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentProject$),
-    tap(([geos, attributes, project]) => this.appDataShimService.filterGeos(geos, attributes, project))
+    tap(([geos, attributes, project]) => this.appDataShimService.filterGeos(geos, attributes, project)),
+    map(() => new CalculateMetrics())
+  );
+
+  @Effect({ dispatch: false })
+  calculateMetrics$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.CalculateMetrics),
+    withLatestFrom(this.appDataShimService.currentActiveGeocodeSet$, this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentProject$),
+    tap(([a, geocodes, attrs, project]) => this.appDataShimService.calcMetrics(Array.from(geocodes), attrs, project))
   );
 
   // These are for the NgRx store

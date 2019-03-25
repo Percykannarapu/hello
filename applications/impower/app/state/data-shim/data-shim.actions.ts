@@ -21,7 +21,9 @@ export enum DataShimActionTypes {
   ExportLocations = '[Application Data Shim] Export Locations',
   ExportApioNationalData = '[Application Data Shim] Export National Online Data',
 
-  FiltersChanged = '[Application Data Shim] Project Filters Changed'
+  FiltersChanged = '[Application Data Shim] Project Filters Changed',
+
+  CalculateMetrics = '[Application Data Shim] Calculate Color box metrics'
 }
 
 export class ProjectSaveAndNew implements Action {
@@ -94,6 +96,10 @@ export class FiltersChanged implements Action {
     readonly type = DataShimActionTypes.FiltersChanged;
 }
 
+export class CalculateMetrics implements Action {
+  readonly type = DataShimActionTypes.CalculateMetrics;
+}
+
 export type DataShimActions =
   ProjectSaveAndNew |
   ProjectSaveAndLoad |
@@ -109,4 +115,5 @@ export type DataShimActions =
   ExportLocations |
   ExportApioNationalData |
   ExportHGCIssuesLog |
-  FiltersChanged;
+  FiltersChanged |
+  CalculateMetrics;

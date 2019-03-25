@@ -30,9 +30,7 @@ export class ValMetricsService implements OnDestroy {
   private currentProject: ImpProject;
   private isWinter: boolean;
   private geoCpmMismatch: boolean;
-
-  public metrics$: Observable<MetricDefinition<any>[]>;
-  public mismatch$: Observable<boolean>;
+  private mismatch$: Observable<boolean>;
 
   constructor(private config: AppConfig,
               private metricService: MetricService,
@@ -43,14 +41,9 @@ export class ValMetricsService implements OnDestroy {
       filter(isReady => isReady),
       take(1)
     ).subscribe(() => {
-      this.metrics$ = this.getMetricObservable();
-      this.mismatch$ = this.getMismatchObservable();
-      this.metricSub = combineLatest(this.mismatch$, this.metrics$).subscribe(
-        ([mismatch, metrics]) => {
-          this.geoCpmMismatch = mismatch;
-          this.onMetricsChanged(metrics);
-        });
       this.stateService.currentProject$.subscribe(project => this.currentProject = project);
+      this.mismatch$ = this.getMismatchObservable();
+      this.mismatch$.subscribe(mismatch => this.geoCpmMismatch = mismatch);
     });
   }
 
