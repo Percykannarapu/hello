@@ -27,7 +27,7 @@ export class HomeGeoEffects {
         ]),
         catchError(err => 
           //this.store$.dispatch(new StartBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER', message: `Geocoding Error Geocoding please retry` }))
-          of(new ErrorNotification({message: 'Error Geocoding please retry', notificationTitle: 'Geocoding'}),
+          of(new ErrorNotification({message: 'System encountered an error processing your request.  Please try again', notificationTitle: 'Geocoding'}),
              new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'}) 
             )
         )
