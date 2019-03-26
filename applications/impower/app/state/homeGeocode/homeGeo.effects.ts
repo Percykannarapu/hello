@@ -24,7 +24,13 @@ export class HomeGeoEffects {
         concatMap(locations => [
            new PersistLocations({locations, reCalculateHomeGeos: action.payload.reCalculateHomeGeos, isLocationEdit: action.payload.isLocationEdit}),
            new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
-        ])
+        ]),
+        catchError(err => 
+          //this.store$.dispatch(new StartBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER', message: `Geocoding Error Geocoding please retry` }))
+          of(new ErrorNotification({message: 'Error Geocoding please retry', notificationTitle: 'Geocoding'}),
+             new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'}) 
+            )
+        )
      ))
    );
 
@@ -40,7 +46,10 @@ export class HomeGeoEffects {
       map(action => this.appHomeGeocodingService.validateLocations(action.payload)),
       switchMap(locMap => this.appHomeGeocodingService.queryHomeGeocode(locMap).pipe(
         map(attributes => new DetermineDTZHomeGeos({attributes, locationsMap: locMap.LocMap, isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos})),
-        catchError(err => of(new ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo'})))
+        catchError(err => of(
+          new ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo'}),
+          new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
+        ))
       )) 
    );
 
