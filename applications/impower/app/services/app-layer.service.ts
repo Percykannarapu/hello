@@ -292,8 +292,8 @@ export class AppLayerService {
     const popupEnabled = (layerDef.useCustomPopUp === true) || (layerDef.popUpFields.length > 0);
     if (popupEnabled) {
       newLayer.when(e => {
-        const localLayer = (e.layerView.layer as __esri.FeatureLayer);
-        localLayer.popupTemplate = this.createPopupTemplate(localLayer, layerDef);
+        // const localLayer = (e.layerView.layer as __esri.FeatureLayer);
+        newLayer.popupTemplate = this.createPopupTemplate(newLayer, layerDef);
       });
     } else {
       newLayer.popupEnabled = false;
@@ -317,14 +317,16 @@ export class AppLayerService {
     const fieldsToUse = new Set<string>(definedFields);
     const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
     const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new EsriApi.FieldInfo({ fieldName: f.name, label: f.alias }));
+    console.log('fieldInfos::::::', fieldInfos);
     // const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => ({ fieldName: f.name, label: f.alias }));
     fieldInfos.sort(byDefinedFieldIndex);
+    console.log('fieldInfos::::::', fieldInfos);
     const result = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction] });
     if (layerDef.useCustomPopUp === true) {
       result.content = (feature: any) => this.generator.geographyPopupFactory(feature, fieldInfos, layerDef.customPopUpDefinition);
       return result;
     } else {
-      const resultTest = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction], fieldInfos: fieldInfos, content: [{ type: 'fields' }] });
+      const resultTest = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction], content: [{ type: 'fields', fieldInfos: fieldInfos }] });
       //result.fieldInfos = fieldInfos;
      // result.content = [{ type: 'fields' }];
      return resultTest;
