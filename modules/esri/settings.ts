@@ -41,7 +41,8 @@ export const defaultEsriAppSettings: EsriAppSettings = {
     zoom: 4,
     highlightOptions : {
       color: [0, 255, 0, 1],
-      fillOpacity: 0.1,
+      fillOpacity: 0.17,
+      haloOpacity: 0
     },
     spatialReference: {
       wkid: 102100
