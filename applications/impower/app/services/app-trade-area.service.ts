@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { calculateStatistics, filterArray, groupBy, isNumber, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, from, of } from 'rxjs';
 import { distinctUntilChanged, filter, map, pairwise, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -38,6 +38,9 @@ export class AppTradeAreaService {
   public siteTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public competitorTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public tradeareaType: string = '';
+  public uploadFailures: TradeAreaDefinition[] = [];
+  private uploadFailuresSub: BehaviorSubject<TradeAreaDefinition[]> = new BehaviorSubject<TradeAreaDefinition[]>([]);
+  public uploadFailuresObs$: Observable<TradeAreaDefinition[]> = this.uploadFailuresSub.asObservable();
 
   constructor(private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impLocationService: ImpGeofootprintLocationService,
@@ -413,7 +416,7 @@ export class AppTradeAreaService {
         matchedTradeAreas.add(taDef);
       } else {
         taDef.message = 'Site number not found';
-        //this.uploadFailures = [...this.uploadFailures, taDef];
+        this.uploadFailures = [...this.uploadFailures, taDef];
       }
     });
 
@@ -434,7 +437,7 @@ export class AppTradeAreaService {
           // make sure the query returned a geocode+lat+lon for each of the uploaded data rows
           if (!queryResult.has(ta.geocode)) {
             ta.message = 'Geocode not found';
-            //this.uploadFailures = [...this.uploadFailures, ta];
+            this.uploadFailures = [...this.uploadFailures, ta];
           } else {
             const loc = locationsByNumber.get(ta.store);
             const layerData = queryResult.get(ta.geocode);
@@ -458,6 +461,8 @@ export class AppTradeAreaService {
         this.impGeoService.add(geosToAdd);
         this.impTradeAreaService.add(tradeAreasToAdd);
         this.appGeoService.ensureMustCovers();
+       // this.uploadFailuresObs$ = of(this.uploadFailures);
+       this.uploadFailuresSub.next(this.uploadFailures);
       });
   }
 }
