@@ -7,9 +7,9 @@ import { Store } from '@ngrx/store';
 import { LocalState, FullState } from './state';
 import { MediaPlanGroupLoaderService } from './services/mediaplanGroup-loader-service';
 import { ClearSelectedGeos } from '@val/esri';
-import { ClearRfpUiEditDetails } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { ClearRfpUiEditDetails, UpsertRfpUiEditDetail, RfpUiEditDetailActionTypes } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { ClearRfpUiReviews } from './state/rfpUiReview/rfp-ui-review.actions';
-import { ClearRfpUiEdits } from './state/rfpUiEdit/rfp-ui-edit.actions';
+import { ClearRfpUiEdits, RfpUiEditActionTypes } from './state/rfpUiEdit/rfp-ui-edit.actions';
 import { AddMediaPlanGroup, MediaPlanGroupActionTypes, ClearMediaPlanGroups } from './state/mediaPlanGroup/media-plan-group.actions';
 import { AppLayerService } from './services/app-layer-service';
 import { UniversalCoordinates } from '@val/common';
@@ -132,6 +132,15 @@ export class AppEffects {
     ofType<SetIsDistrQtyEnabled>(SharedActionTypes.SetIsDistrQtyEnabled),
     withLatestFrom(this.fullStore$.select(state => state)),
     tap(([action, state]) => this.appLayerService.updateLabels(state))
+  );
+
+  // If RfpUiEditDetails are changed we have to reshade the map
+  @Effect({ dispatch: false })
+  rfpUiEditDetailsUpserted$ = this.actions$.pipe(
+    ofType<UpsertRfpUiEditDetail>(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail),
+    withLatestFrom(this.fullStore$.select(state => state)),
+    tap(([action, state]) => this.appLayerService.removeLayer('Shading', 'Selected Geos')),
+    tap(([action, state]) => this.appLayerService.shadeBySite(state))
   );
 
   private parseLocations(state: RfpUiEditState) : UniversalCoordinates[] {
