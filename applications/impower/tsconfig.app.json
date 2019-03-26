@@ -1,23 +1,7 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "target": "es5",
-    "lib": [
-      "es2017",
-      "dom"
-    ],
-    "outDir": "../../out-tsc/impower-app",
-    "module": "es2015",
-    "paths": {
-      "@val/esri": ["../../modules/esri"],
-      "@val/common": ["../../modules/common"],
-      "@val/messaging": ["../../modules/messaging"]
-    }
+    "outDir": "../../out-tsc/impower-app"
   },
   "exclude": [
     "test.ts",
