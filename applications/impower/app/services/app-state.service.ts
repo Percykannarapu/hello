@@ -190,9 +190,9 @@ export class AppStateService {
     ).subscribe(this.uniqueSelectedGeocodes$ as BehaviorSubject<string[]>);
 
     const uniqueGeos$ = this.geoService.storeObservable.pipe(
-      withLatestFrom(this.applicationIsReady$),
-      filter(([geos, isReady]) => isReady),
-      map(([geos]) => geos),
+      //withLatestFrom(this.applicationIsReady$),
+      //filter(([geos, isReady]) => isReady),
+      //map(([geos]) => geos),
       mapArray(geo => geo.geocode),
       map(geocodes => new Set(geocodes))
     );
