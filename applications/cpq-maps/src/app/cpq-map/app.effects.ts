@@ -139,8 +139,9 @@ export class AppEffects {
   rfpUiEditDetailsUpserted$ = this.actions$.pipe(
     ofType<UpsertRfpUiEditDetail>(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail),
     withLatestFrom(this.fullStore$.select(state => state)),
-    tap(([action, state]) => this.appLayerService.removeLayer('Shading', 'Selected Geos')),
-    tap(([action, state]) => this.appLayerService.shadeBySite(state))
+    //tap(([action, state]) => this.appLayerService.removeLayer('Shading', 'Selected Geos')),
+    //tap(([action, state]) => this.appLayerService.shadeBySite(state))
+    tap(([action, state]) => this.appLayerService.toggleSingleGeoShading(action.payload.rfpUiEditDetail, state))
   );
 
   private parseLocations(state: RfpUiEditState) : UniversalCoordinates[] {
