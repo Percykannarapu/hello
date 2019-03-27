@@ -77,7 +77,8 @@ export class AppLayerService {
       if (!(!this.layerService.layerExists(layerName) || !this.layerService.groupExists(groupName))) {
         this.layerService.removeLayer(layerName);
       }
-        const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
+      // const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
+        const color = siteType.toLowerCase() === 'site' ? [0, 0, 255] : [255, 0, 0];
         const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true);
         layer.popupTemplate = new EsriApi.PopupTemplate({
           title: '{clientLocationTypeCode}: {locationName}',
@@ -94,10 +95,10 @@ export class AppLayerService {
           })
         });
         const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
-        const font = new EsriApi.Font({ family: 'sans-serif', size: 8, weight: 'bold' });
+        const font = new EsriApi.Font({ family: 'sans-serif', size: 10, weight: 'bold' });
         textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
         textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-        const siteColor = new EsriApi.Color({a: 1, r: 35, g: 93, b: 186});
+        const siteColor = new EsriApi.Color({a: 1, r: 0, g: 0, b: 255});
         const competitorColor = new EsriApi.Color({a: 1, r: 255, g: 0, b: 0});
         textSymbol.color = siteType.toLowerCase() === 'site' ? siteColor : competitorColor;
         textSymbol.haloSize = 1;
