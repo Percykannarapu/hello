@@ -1,27 +1,26 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "",
+    "baseUrl": "./",
     "rootDir": "./",
-    "outDir": "../out-tsc/app",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es5",
+    "module": "es2015",
     "lib": [
       "es2017",
       "dom"
     ],
     "paths": {
-      "@val/common": ["./modules/common"],
-      "@val/esri": ["./modules/esri"],
-      "@val/messaging": ["./modules/messaging"],
-      "@impower/*": ["./applications/impower"]
+      "@val/esri": ["../../modules/esri"],
+      "@val/common": ["../../modules/common"],
+      "@val/messaging": ["../../modules/messaging"]
     }
   },
   "exclude": [
-    "to-be-deleted"
+    "../../node_modules"
   ]
 }
