@@ -145,25 +145,24 @@ export class AppLayerService {
    }
 
    public toggleSingleGeoShading(editDetail: RfpUiEditDetail, state: FullState) {
-    const query: __esri.Query = new EsriApi.Query();
-    query.where = `geocode = '${editDetail.geocode}'`;
-    this.queryService.executeQuery(this.configService.layers[state.shared.analysisLevel].boundaries.id, query, true).subscribe(res => {
-      const graphic: __esri.Graphic = new EsriApi.Graphic();
-      const symbol = new EsriApi.SimpleFillSymbol({ color: this.shadingMap.get(editDetail.fkSite) });
-      graphic.symbol = symbol;
-      graphic.geometry = res.features[0].geometry;
-      graphic.setAttribute('geocode', editDetail.geocode);
-      const graphics: __esri.Collection = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics;
-      const existingGraphic: __esri.Graphic = graphics.find(g => {
+      const existingGraphic: __esri.Graphic = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.find(g => {
          const equal = g.getAttribute('geocode') === editDetail.geocode;
          return equal;
       });
       if (existingGraphic) {
          this.esriLayerService.getGraphicsLayer('Selected Geos').remove(existingGraphic);
-      } else {
-         this.esriLayerService.getGraphicsLayer('Selected Geos').add(graphic);
+         return;
       }
-    });
+      const query: __esri.Query = new EsriApi.Query();
+      query.where = `geocode = '${editDetail.geocode}'`;
+      this.queryService.executeQuery(this.configService.layers[state.shared.analysisLevel].boundaries.id, query, true).subscribe(res => {
+         const graphic: __esri.Graphic = new EsriApi.Graphic();
+         const symbol = new EsriApi.SimpleFillSymbol({ color: this.shadingMap.get(editDetail.fkSite) });
+         graphic.symbol = symbol;
+         graphic.geometry = res.features[0].geometry;
+         graphic.setAttribute('geocode', editDetail.geocode);
+         this.esriLayerService.getGraphicsLayer('Selected Geos').add(graphic);
+      });
    }
 
    private getWrapShadingGroups(state: FullState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[] } {
