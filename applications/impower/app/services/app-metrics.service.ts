@@ -5,6 +5,7 @@ import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attr
 import { selectGeoAttributeEntities, selectGeoAttributes } from '../impower-datastore/state/impower-datastore.selectors';
 import { FullAppState } from '../state/app.interfaces';
 import { Subscription, Observable, combineLatest } from 'rxjs';
+import { CalculateMetrics } from '../state/data-shim/data-shim.actions';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -42,6 +43,7 @@ export class ValMetricsService implements OnDestroy {
       take(1)
     ).subscribe(() => {
       this.stateService.currentProject$.subscribe(project => this.currentProject = project);
+      this.stateService.uniqueSelectedGeocodes$.subscribe(() => this.store$.dispatch(new CalculateMetrics()));
       this.mismatch$ = this.getMismatchObservable();
       this.mismatch$.subscribe(mismatch => this.geoCpmMismatch = mismatch);
     });
