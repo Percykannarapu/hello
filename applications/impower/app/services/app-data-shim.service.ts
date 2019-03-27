@@ -47,13 +47,10 @@ export class AppDataShimService {
               private store$: Store<LocalAppState>) {
     this.currentProject$ = this.appProjectService.currentProject$;
     this.currentGeos$ = this.appGeoService.currentGeos$;
-    this.currentGeocodeSet$ = this.currentGeos$.pipe(
-      mapArray(geo => geo.geocode),
+    this.currentGeocodeSet$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
       map(geos => new Set(geos))
     );
-    this.currentActiveGeocodeSet$ = this.currentGeos$.pipe(
-      filterArray(geo => geo.isActive),
-      mapArray(geo => geo.geocode),
+    this.currentActiveGeocodeSet$ = this.appStateService.uniqueSelectedGeocodes$.pipe(
       map(geos => new Set(geos))
     );
     this.currentHomeGeocodes$ = this.appLocationService.allClientLocations$.pipe(
