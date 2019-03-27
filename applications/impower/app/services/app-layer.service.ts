@@ -94,7 +94,7 @@ export class AppLayerService {
           })
         });
         const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
-        const font = new EsriApi.Font({ family: 'sans-serif', size: 12, weight: 'bold' });
+        const font = new EsriApi.Font({ family: 'sans-serif', size: 8, weight: 'bold' });
         textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
         textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
         const siteColor = new EsriApi.Color({a: 1, r: 35, g: 93, b: 186});

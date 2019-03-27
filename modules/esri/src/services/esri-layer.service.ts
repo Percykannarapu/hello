@@ -339,6 +339,9 @@ export class EsriLayerService {
         l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions[l.portalItem.id]);
         l.labelsVisible = labelConfig.enabled;
       }
+      if (EsriUtils.layerIsFeature(l) && l.title == 'Project Sites') {
+        l.labelsVisible = labelConfig.siteEnabled;
+      }
     });
   }
 
