@@ -366,6 +366,7 @@ export class EsriRendererService {
           const graphic: __esri.Graphic = new EsriApi.Graphic();
           graphic.symbol = symbol;
           graphic.geometry = feature.geometry;
+          graphic.setAttribute('geocode', feature.getAttribute('geocode'));
           graphic.setAttribute('SHADING_GROUP', shadingGroups[i].groupName);
           siteGraphics.push(graphic);
           shadedFeatures.add(feature.getAttribute('geocode'));

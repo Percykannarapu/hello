@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ColorPallete, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions } from '@val/esri';
+import { ColorPallete, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions, EsriQueryService, EsriRendererService, getColorPallete } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
 import { calculateStatistics } from '@val/common';
 import { Store } from '@ngrx/store';
@@ -7,6 +7,7 @@ import { HighlightMode } from '@val/esri';
 import { LocalState, FullState } from '../state';
 import { ConfigService } from './config.service';
 import { Observable } from 'rxjs';
+import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 
 @Injectable({
    providedIn: 'root'
@@ -16,9 +17,11 @@ export class AppLayerService {
    constructor(private esriLayerService: EsriLayerService,
       private esriMapService: EsriMapService,
       private store$: Store<FullState>,
-      private configService: ConfigService) { }
+      private configService: ConfigService,
+      private queryService: EsriQueryService) { }
 
    private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
+   private shadingMap: Map<number, number[]> = new Map<number, number[]>();
 
    public addLocationsLayer(groupName: string, layerName: string, coordinates: UniversalCoordinates[]) {
       const renderer = new EsriApi.SimpleRenderer({
@@ -119,10 +122,13 @@ export class AppLayerService {
    public shadeBySite(state: FullState) {
       const shadingGroups: Array<{ groupName: string, ids: string[] }> = [];
       const selectedGeos: Array<string> = [];
+      let count = 0;
       for (const site of state.rfpUiEdit.ids) {
          const geos: Array<string> = [];
          const siteId = state.rfpUiEdit.entities[site].siteId;
          const siteName = state.rfpUiEdit.entities[site].siteName;
+         const pallete: number [][] = getColorPallete(ColorPallete.CPQMAPS);
+         this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, pallete[count % pallete.length]);
          for (const detail of state.rfpUiEditDetail.ids) {
             if (!state.rfpUiEditDetail.entities[detail].isSelected) continue;
             if (siteId === state.rfpUiEditDetail.entities[detail].fkSite) {
@@ -131,10 +137,32 @@ export class AppLayerService {
             }
          }
          shadingGroups.push({ groupName: siteName, ids: geos });
+         count++;
       }
       this.esriLayerService.createClientGroup('Shading', true, true);
       this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Shading', layer: 'Selected Geos', colorPallete: ColorPallete.CPQMAPS, groups: shadingGroups }));
       this.store$.dispatch(new SetSelectedGeos(selectedGeos));
+   }
+
+   public toggleSingleGeoShading(editDetail: RfpUiEditDetail, state: FullState) {
+      const existingGraphic: __esri.Graphic = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.find(g => {
+         const equal = g.getAttribute('geocode') === editDetail.geocode;
+         return equal;
+      });
+      if (existingGraphic) {
+         this.esriLayerService.getGraphicsLayer('Selected Geos').remove(existingGraphic);
+         return;
+      }
+      const query: __esri.Query = new EsriApi.Query();
+      query.where = `geocode = '${editDetail.geocode}'`;
+      this.queryService.executeQuery(this.configService.layers[state.shared.analysisLevel].boundaries.id, query, true).subscribe(res => {
+         const graphic: __esri.Graphic = new EsriApi.Graphic();
+         const symbol = new EsriApi.SimpleFillSymbol({ color: this.shadingMap.get(editDetail.fkSite) });
+         graphic.symbol = symbol;
+         graphic.geometry = res.features[0].geometry;
+         graphic.setAttribute('geocode', editDetail.geocode);
+         this.esriLayerService.getGraphicsLayer('Selected Geos').add(graphic);
+      });
    }
 
    private getWrapShadingGroups(state: FullState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[] } {

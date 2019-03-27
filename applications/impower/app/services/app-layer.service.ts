@@ -77,7 +77,8 @@ export class AppLayerService {
       if (!(!this.layerService.layerExists(layerName) || !this.layerService.groupExists(groupName))) {
         this.layerService.removeLayer(layerName);
       }
-        const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
+      // const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
+        const color = siteType.toLowerCase() === 'site' ? [0, 0, 255] : [255, 0, 0];
         const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true);
         layer.popupTemplate = new EsriApi.PopupTemplate({
           title: '{clientLocationTypeCode}: {locationName}',
@@ -94,10 +95,10 @@ export class AppLayerService {
           })
         });
         const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
-        const font = new EsriApi.Font({ family: 'sans-serif', size: 12, weight: 'bold' });
+        const font = new EsriApi.Font({ family: 'sans-serif', size: 10, weight: 'bold' });
         textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
         textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-        const siteColor = new EsriApi.Color({a: 1, r: 35, g: 93, b: 186});
+        const siteColor = new EsriApi.Color({a: 1, r: 0, g: 0, b: 255});
         const competitorColor = new EsriApi.Color({a: 1, r: 255, g: 0, b: 0});
         textSymbol.color = siteType.toLowerCase() === 'site' ? siteColor : competitorColor;
         textSymbol.haloSize = 1;
@@ -292,8 +293,8 @@ export class AppLayerService {
     const popupEnabled = (layerDef.useCustomPopUp === true) || (layerDef.popUpFields.length > 0);
     if (popupEnabled) {
       newLayer.when(e => {
-        const localLayer = (e.layerView.layer as __esri.FeatureLayer);
-        localLayer.popupTemplate = this.createPopupTemplate(localLayer, layerDef);
+        // const localLayer = (e.layerView.layer as __esri.FeatureLayer);
+        newLayer.popupTemplate = this.createPopupTemplate(newLayer, layerDef);
       });
     } else {
       newLayer.popupEnabled = false;
@@ -324,7 +325,7 @@ export class AppLayerService {
       result.content = (feature: any) => this.generator.geographyPopupFactory(feature, fieldInfos, layerDef.customPopUpDefinition);
       return result;
     } else {
-      const resultTest = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction], fieldInfos: fieldInfos, content: [{ type: 'fields' }] });
+      const resultTest = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction], content: [{ type: 'fields', fieldInfos: fieldInfos }] });
       //result.fieldInfos = fieldInfos;
      // result.content = [{ type: 'fields' }];
      return resultTest;

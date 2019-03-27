@@ -4,6 +4,8 @@ import { Store } from '@ngrx/store';
 import { LocalState } from '../../state';
 import { filter } from 'rxjs/operators';
 import { RfpUiEditWrap } from '../../../val-modules/mediaexpress/models/RfpUiEditWrap';
+import { UpdateRfpUiEditDetail, UpsertRfpUiEditDetail } from '../../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { UpsertRfpUiEditWrap } from '../../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 class CompositeRow extends RfpUiEditDetail {
   public siteName?: string;
 }
@@ -26,6 +28,7 @@ export class GridComponent implements OnInit, OnChanges {
   smallSizeTable: boolean;
 
   rows: Array<CompositeRow | WrapCompositeRow> = [];
+  selectedRows: Array<CompositeRow | WrapCompositeRow> = [];
   isWrap: boolean = true;
 
   constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
@@ -77,6 +80,7 @@ export class GridComponent implements OnInit, OnChanges {
 
   private createNonWrapRows(state: LocalState) {
     this.rows = []; // reset the rows
+    this.selectedRows = [];
     this.createColumns(this.smallSizeTable, false);
     const newRows: Array<CompositeRow> = [];
     let var1: boolean, var2: boolean, var3: boolean;
@@ -90,8 +94,12 @@ export class GridComponent implements OnInit, OnChanges {
       heading1 = state.rfpUiEditDetail.entities[id].var1Name;
       heading2 = state.rfpUiEditDetail.entities[id].var2Name;
       heading3 = state.rfpUiEditDetail.entities[id].var3Name;
-      newRow.distance = Number(state.rfpUiEditDetail.entities[id].distance.toFixed(2));
-      newRow.investment = Number(state.rfpUiEditDetail.entities[id].investment.toFixed(2));
+      if (state.rfpUiEditDetail.entities[id].distance)
+        newRow.distance = Number(state.rfpUiEditDetail.entities[id].distance.toFixed(2));
+      if (state.rfpUiEditDetail.entities[id].investment)  
+        newRow.investment = Number(state.rfpUiEditDetail.entities[id].investment.toFixed(2));
+      if (newRow.isSelected)
+        this.selectedRows.push(newRow);
       for (const j of state.rfpUiEdit.ids) {
         if (state.rfpUiEdit.entities[j].siteId === siteId) {
           newRow.siteName = state.rfpUiEdit.entities[j].siteName;
@@ -102,8 +110,21 @@ export class GridComponent implements OnInit, OnChanges {
     if (!this.smallSizeTable && (var1 || var2 || var3)) {
       this.addVariableColumns(var1, var2, var3, heading1, heading2, heading3);
     }
-    this.rows = [...newRows];
+    this.rows = newRows;
     this.cd.markForCheck();
+  }
+
+  public onChangeRowSelection(event: any) {
+    const row = event.data;
+    if (row.geocode) {
+      const rowUpdate: RfpUiEditDetail = Object.assign({}, row);
+      rowUpdate.isSelected = !rowUpdate.isSelected;
+      this.store$.dispatch(new UpsertRfpUiEditDetail({ rfpUiEditDetail: <RfpUiEditDetail> rowUpdate }));
+    } else {
+      const rowUpdate: RfpUiEditWrap = Object.assign({}, row);
+      rowUpdate.isSelected = !rowUpdate.isSelected;
+      this.store$.dispatch(new UpsertRfpUiEditWrap({ rfpUiEditWrap: <RfpUiEditWrap> rowUpdate }));
+    }
   }
 
   private createWrapRows(state: LocalState) {

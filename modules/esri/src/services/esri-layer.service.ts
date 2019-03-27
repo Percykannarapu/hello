@@ -162,6 +162,10 @@ export class EsriLayerService {
     return layer;
   }
 
+  public getGraphicsLayer(layerName: string) : __esri.GraphicsLayer {
+    return <__esri.GraphicsLayer> this.layerRefs.get(layerName);
+  }
+
   public createClientLayer(groupName: string, layerName: string, sourceGraphics?: __esri.Graphic[], layerType?: layerGeometryType, popupEnabled?: boolean, popupContent?: string, renderer?: __esri.Renderer) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
 
@@ -334,6 +338,9 @@ export class EsriLayerService {
       if (EsriUtils.layerIsPortalFeature(l)) {
         l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions[l.portalItem.id]);
         l.labelsVisible = labelConfig.enabled;
+      }
+      if (EsriUtils.layerIsFeature(l) && l.title == 'Project Sites') {
+        l.labelsVisible = labelConfig.siteEnabled;
       }
     });
   }
