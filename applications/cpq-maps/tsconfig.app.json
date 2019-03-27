@@ -1,29 +1,10 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "target": "es5",
-    "lib": [
-      "es2017",
-      "dom"
-    ],
-    "outDir": "../../out-tsc/cpq-maps-app",
-    "target": "es5",
-    "lib": [
-      "es2017",
-      "dom"
-    ],
-    "paths": {
-      "@val/esri": ["../../modules/esri"],
-      "@val/common": ["../../modules/common"]
-    }
+    "outDir": "../../out-tsc/cpq-maps-app"
   },
   "exclude": [
-    "src/test.ts",
+    "test.ts",
     "**/*.spec.ts"
   ]
 }
