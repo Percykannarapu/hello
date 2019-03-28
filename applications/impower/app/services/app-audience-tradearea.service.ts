@@ -518,7 +518,6 @@ export class ValAudienceTradeareaService {
     const taResponseMap = this.taResponses.get(location.locationNumber);
     const newAttributes: GeoAttribute[] = [];
 
-    //console.log('taResponses', taResponseMap);
     for (let i = 0; i < taResponseMap.size; i++) {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
       const taResponse = taResponseMap.get(i);
@@ -528,17 +527,9 @@ export class ValAudienceTradeareaService {
       }
       newGeo.geocode = taResponse.geocode;
       newGeo.impGeofootprintLocation = location;
-      newGeo.isActive = false;
       newGeo.distance = taResponse.distance;
-      if (taResponse.distance <= audienceTAConfig.minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
-        newGeo.isActive = true;
-      }
-      if (audienceTAConfig.includeMustCover && taResponse.distance <= audienceTAConfig.minRadius) {
-        newGeo.isActive = true;
-      }
-      if (taResponse.distance > audienceTAConfig.minRadius && this.sortMap.get(taResponse.combinedIndexTileName) <= 4) {
-        newGeo.isActive = true;
-      }
+
+      newGeo.isActive = this.targetAudienceTAService.setActiveGeos(taResponse.combinedIndexTile, audienceTAConfig, taResponse.distance);
       if (!newGeo.isActive) {
         const filterReasons: string[] = [];
         filterReasons.push('Under Audience TA threshold');
@@ -568,7 +559,7 @@ export class ValAudienceTradeareaService {
     this.geoCache.push(...newGeos);
     return newGeos;
   }
-  
+
   private searchVarId(fieldDisplay: string) : number {
     for (const geoVar of this.varService.get()) {
       if (geoVar.customVarExprDisplay === fieldDisplay) {

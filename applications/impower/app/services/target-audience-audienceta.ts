@@ -16,8 +16,14 @@ import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProje
 import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
-import { mapByExtended, groupByExtended } from '@val/common';
+import { mapByExtended, groupByExtended, groupBy } from '@val/common';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
+import { AppGeoService } from './app-geo.service';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { tap } from 'rxjs/internal/operators/tap';
+import { FullAppState } from 'app/state/app.interfaces';
+import { Store } from '@ngrx/store';
+import { UpsertGeoAttributes } from 'app/impower-datastore/state/geo-attributes/geo-attributes.actions';
 
 interface AudienceTradeareaResponse {
   maxRadius: number;
@@ -67,7 +73,9 @@ export class TargetAudienceAudienceTA {
 
   constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
               private appStateService: AppStateService, private varService: ImpGeofootprintVarService, private factory: ImpDomainFactoryService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService, private httpClient: HttpClient) {
+              private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService, private httpClient: HttpClient,
+              private impGeoService: ImpGeofootprintGeoService,
+              private store$: Store<FullAppState>) {
     this.geoVarMap.set('Index Value', 'number');
     this.geoVarMap.set('Combined Index', 'number');
     this.geoVarMap.set('Combined Tile Name', 'string');
@@ -220,7 +228,7 @@ export class TargetAudienceAudienceTA {
 
           const geoResponse: AudienceTradeareaResponse = geoResponses.get(geoResponseId);
           let geoVar: ImpGeofootprintVar;
-
+ 
           if (this.varService.get().findIndex(gvar => gvar.geocode === geoResponse.geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === location) === -1
           &&       geofootprintVars.findIndex(gvar => gvar.geocode === geoResponse.geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === location) === -1)
           {
@@ -270,6 +278,11 @@ export class TargetAudienceAudienceTA {
       }
     }
     return result;
+  }
+
+  public setActiveGeos(combinedIndexTile: number, audienceTAConfig: AudienceTradeAreaConfig, distance: number): boolean{
+    return ((combinedIndexTile != null && combinedIndexTile !== 0 && combinedIndexTile <= 4) ||
+        (audienceTAConfig.includeMustCover && distance <= audienceTAConfig.minRadius));
   }
 
   /**
