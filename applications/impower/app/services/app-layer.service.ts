@@ -258,9 +258,11 @@ export class AppLayerService {
     this.setupLayerPopup(layer, layerDef);
     this.addVisibilityWatch(layer);
     layer.when(currentLayer => {
-      const revisedRenderer = (currentLayer.renderer as __esri.SimpleRenderer).clone();
-      revisedRenderer.symbol.color = new EsriApi.Color([ 128, 128, 128, 0.01 ]);
-      currentLayer.renderer = revisedRenderer;
+      if (!currentLayer.title.endsWith('Centroids')) {
+        const revisedRenderer = (currentLayer.renderer as __esri.SimpleRenderer).clone();
+        revisedRenderer.symbol.color = new EsriApi.Color([ 128, 128, 128, 0.01 ]);
+        currentLayer.renderer = revisedRenderer;
+      }
     });
   }
 
