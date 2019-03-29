@@ -193,6 +193,7 @@ export class AppLayerService {
         });
         const layer =  this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
         layer.renderer = renderer;
+        layer.legendEnabled = false;
       });
     });
   }
