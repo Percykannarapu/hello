@@ -92,7 +92,7 @@ interface TradeAreaDefinition {
       if (payload.reCalculateHomeGeos){
         const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
         const customTAList: TradeAreaDefinition[] = []; 
-        if (this.impTradeAreaService.get()[0].taType === 'CUSTOM'){
+        if (this.impTradeAreaService.get().length > 0 && this.impTradeAreaService.get()[0].taType === 'CUSTOM'){
           this.impGeoService.get().forEach(geo => {
             const customTa: TradeAreaDefinition = {
                 store: geo.impGeofootprintLocation.locationNumber, 

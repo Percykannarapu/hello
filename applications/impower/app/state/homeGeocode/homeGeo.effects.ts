@@ -26,7 +26,6 @@ export class HomeGeoEffects {
            new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
         ]),
         catchError(err => 
-          //this.store$.dispatch(new StartBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER', message: `Geocoding Error Geocoding please retry` }))
           of(new ErrorNotification({message: 'System encountered an error processing your request.  Please try again', notificationTitle: 'Geocoding'}),
              new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'}) 
             )
@@ -79,7 +78,12 @@ export class HomeGeoEffects {
       concatMap(action => [
         new ZoomtoLocations(action.payload),
         new StopBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER' }),
-      ])
+      ]),
+      catchError(err => 
+        of(new ErrorNotification({message: 'System encountered an error processing your request.  Please try again', notificationTitle: 'Geocoding'}),
+           new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'}) 
+          )
+      )
    );
 
    
