@@ -210,8 +210,9 @@ export class AppStateService {
       filter(geoSet => geoSet.size > 0),
       withLatestFrom(completeAttributes$),
       map(([requestedGeos, currentGeos]) => dedupeSimpleSet(requestedGeos, new Set(currentGeos))),
-      filter(newGeos => newGeos.size > 0),
-    ).subscribe(geoSet => this.store$.dispatch(new RequestAttributes({ geocodes: geoSet })));
+      withLatestFrom(this.applicationIsReady$),
+      filter(([newGeos, isReady]) => newGeos.size > 0 && isReady),
+    ).subscribe(([geoSet]) => this.store$.dispatch(new RequestAttributes({ geocodes: geoSet })));
   }
 
   private setupTradeAreaObservables() : void {
