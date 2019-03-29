@@ -87,6 +87,9 @@ export class AppProjectService {
     localProject.getImpGeofootprintTradeAreas().forEach(ta => {
       ta.impGeofootprintVars = [];
     });
+    localProject.getImpGeofootprintGeos().forEach(geo => {
+      delete geo['filterReasons'];
+    })
   }
 
 }

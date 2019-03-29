@@ -106,8 +106,8 @@ export class ValAudienceTradeareaService {
     this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
     project.audTaIndexBase = this.audienceTAConfig.scoreType;
     project.audTaIsMustCover = this.audienceTAConfig.includeMustCover ? 1 : 0;
-    project.audTaMaxRadiu = this.audienceTAConfig.maxRadius;
-    project.audTaMinRadiu = this.audienceTAConfig.minRadius;
+    project.audTaMaxRadiu = Number(this.audienceTAConfig.maxRadius);
+    project.audTaMinRadiu = Number(this.audienceTAConfig.minRadius);
     project.audTaVarPk = this.audienceTAConfig.digCategoryId;
     project.audTaVarWeight = this.audienceTAConfig.weight;
     project.audTaVarSource = this.audienceTAConfig.audienceName;
