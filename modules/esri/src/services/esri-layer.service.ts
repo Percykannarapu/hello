@@ -263,7 +263,7 @@ export class EsriLayerService {
     if (this.layerRefs.has(layerName)) {
      // this.layerRefs.get(layerName).source.removeMany(graphics);
      const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
-     layer.applyEdits({ addFeatures: graphics });
+     layer.applyEdits({ deleteFeatures: graphics });
     }
   }
 
