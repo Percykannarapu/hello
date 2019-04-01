@@ -6,6 +6,7 @@ import { filter } from 'rxjs/operators';
 import { SetActiveMediaPlanId, SetGroupId } from '../../state/shared/shared.actions';
 import { ClearMediaPlanGroups } from '../../state/mediaPlanGroup/media-plan-group.actions';
 import { Dropdown } from 'primeng/primeng';
+import { AppPrintingService } from '../../services/app-printing-service';
 
 @Component({
   selector: 'val-dev-tools',
@@ -23,7 +24,8 @@ export class DevToolsComponent implements OnInit {
   groupId = null;
 
   constructor(private store$: Store<FullState>,
-    private cd: ChangeDetectorRef) { }
+    private cd: ChangeDetectorRef,
+    private printingService: AppPrintingService) { }
 
   ngOnInit() {
 
@@ -64,6 +66,10 @@ export class DevToolsComponent implements OnInit {
 
   public setActiveMediaPlan() {
     this.store$.dispatch(new SetActiveMediaPlanId({ mediaPlanId: Number(this.mediaPlanIdDropdown.selectedOption.value) }));
+  }
+
+  public onPrint() {
+    this.printingService.createFeatureSet();
   }
 
 }
