@@ -43,7 +43,9 @@ export class EsriApi {
     'esri/symbols/TextSymbol',
     'esri/symbols/Font',
     'esri/symbols/SimpleLineSymbol',
-    'esri/layers/GraphicsLayer'
+    'esri/layers/GraphicsLayer',
+    'esri/geometry/projection',
+    'esri/geometry/SpatialReference'
 ];
 
   public static config: __esri.config;
@@ -86,6 +88,8 @@ export class EsriApi {
   public static Font: __esri.FontConstructor;
   public static SimpleLineSymbol: __esri.SimpleLineSymbolConstructor;
   public static GraphicsLayer: __esri.GraphicsLayerConstructor;
+  public static projection: __esri.projection;
+  public static SpatialReference: __esri.SpatialReferenceConstructor;
 
   public static widgets: EsriWidgets;
 
@@ -149,7 +153,9 @@ export class EsriApi {
       EsriApi.TextSymbol,
       EsriApi.Font,
       EsriApi.SimpleLineSymbol,
-      EsriApi.GraphicsLayer
+      EsriApi.GraphicsLayer,
+      EsriApi.projection,
+      EsriApi.SpatialReference
     ] = modules;
 
     EsriApi.widgets = new EsriWidgets();

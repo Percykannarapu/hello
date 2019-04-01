@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
 import { merge, Observable } from 'rxjs';
-import { EsriApi, EsriLayerService, EsriMapService, LayerDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, LayerDefinition, selectors, SetLayerLabelExpressions, EsriUtils, WatchResult } from '@val/esri';
 import { distinctUntilChanged, filter, finalize, map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { ConfigService } from './services/config.service';
 import { select, Store } from '@ngrx/store';
@@ -51,6 +51,7 @@ export class CpqMapComponent implements OnInit {
         const popup = this.mapService.mapView.popup;
         popup.highlightEnabled = false;
       });
+      EsriApi.projection.load();
   }
 
   public initializeLayers(state: FullState) : Observable<__esri.FeatureLayer> {
@@ -116,12 +117,21 @@ export class CpqMapComponent implements OnInit {
       const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
         tap(newLayer => {
           newLayer.popupEnabled = false;
+          EsriUtils.setupWatch(newLayer, 'loaded').pipe(
+            tap(l => this.setupLayerOpacity(l))
+          );
           group.add(newLayer);
         })
       );
       layerObservables.push(current);
     });
     return layerObservables;
+  }
+
+  private setupLayerOpacity(watchResult: WatchResult<__esri.FeatureLayer, 'loaded'>) {
+    const renderer: __esri.SimpleRenderer = <__esri.SimpleRenderer> EsriUtils.clone(watchResult.target.renderer);
+    renderer.symbol.color = new EsriApi.Color([128, 128, 128, 0.01]);
+    watchResult.target.renderer = renderer;
   }
 
   public onPanelChange(event: any) {

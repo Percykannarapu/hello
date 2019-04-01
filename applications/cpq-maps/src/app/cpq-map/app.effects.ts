@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { SharedActionTypes, SetAppReady, SetGroupId, EntitiesLoading, RfpUiEditDetailLoaded, RfpUiEditLoaded, RfpUiReviewLoaded, SetActiveMediaPlanId, RfpUiEditWrapLoaded, SetIsDistrQtyEnabled } from './state/shared/shared.actions';
+import { SharedActionTypes, SetAppReady, SetGroupId, EntitiesLoading, RfpUiEditDetailLoaded, RfpUiEditLoaded, RfpUiReviewLoaded, SetActiveMediaPlanId, RfpUiEditWrapLoaded, SetIsDistrQtyEnabled, PopupGeoToggle } from './state/shared/shared.actions';
 import { tap, filter, switchMap, map, catchError, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { Store } from '@ngrx/store';
@@ -11,7 +11,7 @@ import { ClearRfpUiEditDetails, UpsertRfpUiEditDetail, RfpUiEditDetailActionType
 import { ClearRfpUiReviews } from './state/rfpUiReview/rfp-ui-review.actions';
 import { ClearRfpUiEdits, RfpUiEditActionTypes } from './state/rfpUiEdit/rfp-ui-edit.actions';
 import { AddMediaPlanGroup, MediaPlanGroupActionTypes, ClearMediaPlanGroups } from './state/mediaPlanGroup/media-plan-group.actions';
-import { AppLayerService } from './services/app-layer-service';
+import { AppLayerService, SiteInformation } from './services/app-layer-service';
 import { UniversalCoordinates } from '@val/common';
 import { RfpUiEditState } from './state/rfpUiEdit/rfp-ui-edit.reducer';
 import { EntityHelper } from './services/entity-helper-service';
@@ -110,9 +110,9 @@ export class AppEffects {
     withLatestFrom(this.fullStore$.select(state => state)),
     tap(([action, state]) => this.appLayerService.updateLabels(state)),
     tap(([action, state]) => this.appLayerService.shadeBySite(state)),
-    tap(([action, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state.rfpUiEdit))),
-    tap(([action, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state.rfpUiEdit), state.shared.radius)),
-    tap(([action, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state.rfpUiEdit))),
+    tap(([action, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state), state.shared.analysisLevel)),
+    tap(([action, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state), state.shared.radius)),
+    tap(([action, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state))),
     tap(([action, state]) => this.appLayerService.setPopupData(state))
   );
 
@@ -144,10 +144,23 @@ export class AppEffects {
     tap(([action, state]) => this.appLayerService.toggleSingleGeoShading(action.payload.rfpUiEditDetail, state))
   );
 
-  private parseLocations(state: RfpUiEditState) : UniversalCoordinates[] {
-    const coordinates: Array<UniversalCoordinates> = [];
-    for (const id of state.ids) {
-      coordinates.push({ x: state.entities[id].siteLong, y: state.entities[id].siteLat });
+  // Handle the map popup button to toggle geos on and off
+  @Effect({dispatch: false})
+  popupGeoToggle$ = this.actions$.pipe(
+    ofType<PopupGeoToggle>(SharedActionTypes.PopupGeoToggle),
+    withLatestFrom(this.fullStore$.select(state => state)),
+    tap(([action, state]) => this.appLayerService.onPopupToggleAction(action.payload.eventName, state))
+  )
+
+  private parseLocations(state: FullState) : SiteInformation[] {
+    const coordinates: Array<SiteInformation> = [];
+    for (const id of state.rfpUiEdit.ids) {
+      coordinates.push({ 
+        coordinates: { x: state.rfpUiEdit.entities[id].siteLong, y: state.rfpUiEdit.entities[id].siteLat },
+        name: state.rfpUiEdit.entities[id].siteName,
+        radius: state.shared.radius,
+        siteId: state.rfpUiEdit.entities[id].siteId
+      });
     }
     return coordinates;
   }

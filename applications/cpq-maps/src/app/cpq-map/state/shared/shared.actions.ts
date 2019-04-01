@@ -15,7 +15,13 @@ export enum SharedActionTypes {
   SetRadius = '[Shared Actions] Set Radius',
   SetAnalysisLevel = '[Shared Actions] Set Analysis Level',
   SetIsWrap = '[Shared Actions] Set isWrap',
-  SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled'
+  SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled',
+  PopupGeoToggle = '[Shared Actions] Toggle Geo Through Map Popup'
+}
+
+export class PopupGeoToggle implements Action {
+  readonly type = SharedActionTypes.PopupGeoToggle;
+  constructor(public payload: { eventName: string }) { }
 }
 
 export class SetIsDistrQtyEnabled implements Action {
@@ -97,4 +103,5 @@ export type SharedActions =
   | SetAnalysisLevel
   | SetIsWrap
   | SetIsDistrQtyEnabled
+  | PopupGeoToggle
   ;

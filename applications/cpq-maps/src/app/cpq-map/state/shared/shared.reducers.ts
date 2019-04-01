@@ -13,6 +13,7 @@ export interface SharedState {
    analysisLevel: string;
    isWrap: boolean;
    isDistrQtyEnabled: boolean;
+   popupGeoToggle: number;
 }
 
 const initialState: SharedState = {
@@ -27,7 +28,8 @@ const initialState: SharedState = {
    radius: null,
    analysisLevel: null,
    isWrap: false,
-   isDistrQtyEnabled: false
+   isDistrQtyEnabled: false,
+   popupGeoToggle: 0
 };
 
 export function sharedReducer(state = initialState, action: SharedActions) : SharedState {
@@ -56,6 +58,8 @@ export function sharedReducer(state = initialState, action: SharedActions) : Sha
          return { ...state, groupId: action.payload };
       case SharedActionTypes.SetAppReady:
          return { ...state, appReady: action.payload };
+      case SharedActionTypes.PopupGeoToggle:
+         return { ...state, popupGeoToggle: state.popupGeoToggle + 1 };
       default:
          return state;
    }
