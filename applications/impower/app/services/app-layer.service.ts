@@ -76,6 +76,7 @@ export class AppLayerService {
     if (points.length > 0) {
       if (!(!this.layerService.layerExists(layerName) || !this.layerService.groupExists(groupName))) {
         this.layerService.removeLayer(layerName);
+        this.layerService.clearClientLayers();
       }
       // const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
         const color = siteType.toLowerCase() === 'site' ? [0, 0, 255] : [255, 0, 0];
