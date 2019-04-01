@@ -374,7 +374,6 @@ export class AppLayerService {
        const p: __esri.Point = <__esri.Point> gr.geometry;
        return p.x === nearestPoint.coordinate.x && p.y === nearestPoint.coordinate.y;
      });
-     console.warn('CLOSEST SITE IS: ', sitesGraphic.getItemAt(0).getAttribute('SHADING_GROUP'));
      return sitesGraphic.getItemAt(0);
    }
 
