@@ -24,7 +24,7 @@ export class SharedEffects {
     ofType<MapSetupComplete>(SharedActionTypes.MapSetupComplete),
     tap(() => this.appMapService.updateLabelExpressions(false)),
     concatMap(action => [
-      new StartBusyIndicator({ key: this.config.ApplicationBusyKey, message: 'Loading Media Plans...' }),
+      new StartBusyIndicator({ key: this.config.ApplicationBusyKey, message: 'Loading Media Plan...' }),
       new GetMapData({ ...action.payload })
     ])
   );
