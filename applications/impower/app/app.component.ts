@@ -4,10 +4,6 @@ import { AppConfig } from './app.config';
 import { Observable } from 'rxjs';
 import { ImpProject } from './val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
-import { LocalAppState } from './state/app.interfaces';
-import { select, Store } from '@ngrx/store';
-import { selectors } from '@val/messaging';
-import { CreateNewProject } from './state/data-shim/data-shim.actions';
 
 enum MenuOrientation {
     STATIC,
@@ -66,20 +62,15 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     @ViewChild('layoutMenuScroller') layoutMenuScrollerViewChild: ElementRef;
 
-    public currentSpinnerMessage$: Observable<string>;
-    public currentSpinnerState$: Observable<boolean>;
 
     currentProject$: Observable<ImpProject>;
 
     constructor(private config: AppConfig,
                 private domainFactory: ImpDomainFactoryService,
-                private stateService: AppStateService,
-                private store$: Store<LocalAppState>) { }
+                private stateService: AppStateService) { }
 
     ngOnInit() {
         console.log('app.component.ngOnInit - Fired');
-        this.currentSpinnerMessage$ = this.store$.pipe(select(selectors.busyIndicatorMessage));
-        this.currentSpinnerState$ = this.store$.pipe(select(selectors.showBusyIndicator));
         this.currentProject$ = this.stateService.currentProject$;
     }
 

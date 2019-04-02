@@ -1,9 +1,11 @@
-import { Component, Input, ElementRef, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { SetGroupId, SetRadius, SetAnalysisLevel } from './cpq-map/state/shared/shared.actions';
+import { Component, ElementRef, OnInit } from '@angular/core';
+import { Store, select } from '@ngrx/store';
+import { ApplicationStartup } from './cpq-map/state/shared/shared.actions';
 import { FullState } from './cpq-map/state';
-import { SetSelectedLayer } from '@val/esri';
+import { selectors, SetSelectedLayer } from '@val/esri';
 import { ConfigService } from './cpq-map/services/config.service';
+import { filter } from 'rxjs/internal/operators/filter';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'cpq-root',
@@ -13,17 +15,24 @@ import { ConfigService } from './cpq-map/services/config.service';
 export class AppComponent implements OnInit {
 
   constructor(private elementRef: ElementRef,
-    private store$: Store<FullState>,
-    private configService: ConfigService) {}
+              private store$: Store<FullState>,
+              private configService: ConfigService) {}
 
   ngOnInit() {
-    const groupId = Number(this.elementRef.nativeElement.getAttribute('groupId'));
-    this.store$.dispatch(new SetGroupId(groupId));
-    const analysisLevel: string = this.elementRef.nativeElement.getAttribute('analysisLevel') || 'atz';
-    this.store$.dispatch(new SetAnalysisLevel({ analysisLevel: analysisLevel.toLowerCase() }));
-    this.store$.dispatch(new SetSelectedLayer({ layerId: this.configService.layers[analysisLevel.toLowerCase()].boundaries.id }));
-    const radius = Number(this.elementRef.nativeElement.getAttribute('radius'));
-    this.store$.dispatch(new SetRadius({ radius: radius }));
+    const el = this.elementRef.nativeElement;
+    const groupId = Number(el.getAttribute('groupId'));
+    const mediaPlanId = Number(el.getAttribute('mediaPlanId'));
+    const analysisLevel: string = el.getAttribute('analysisLevel') || 'atz';
+    const radius = Number(el.getAttribute('radius'));
+
+    this.store$.pipe(
+      select(selectors.getMapReady),
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.store$.dispatch(new ApplicationStartup({ groupId, mediaPlanId, radius, analysisLevel }));
+      this.store$.dispatch(new SetSelectedLayer({ layerId: this.configService.layers[analysisLevel.toLowerCase()].boundaries.id }));
+    });
   }
 
 }

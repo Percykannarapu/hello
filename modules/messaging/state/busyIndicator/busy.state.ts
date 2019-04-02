@@ -45,11 +45,12 @@ export function busyReducer(state = initialState, action: BusyActions) : BusySta
         messages: { ...state.messages, [action.payload.key]: action.payload.message }
       };
     case BusyStateActionTypes.StopBusyIndicator:
-      delete state.messages[action.payload.key];
-      return {
+      const newState = {
         keys: state.keys.filter(key => key !== action.payload.key),
         messages: { ...state.messages }
       };
+      delete newState.messages[action.payload.key];
+      return newState;
     default:
       return state;
   }
