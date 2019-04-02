@@ -230,11 +230,11 @@ export class AppStateService {
   }
 
   private setupProvidedTaObservables() : void {
-    this.activeClientLocations$.pipe(
+    this.activeClientLocations$.pipe( distinctUntilChanged() &&
       filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)),
-      map(locs => locs.length > 0)
+      map(locs => locs.length > 0 )
     ).subscribe(flag => this.hasSiteProvidedTradeAreas.next(flag));
-    this.activeCompetitorLocations$.pipe(
+    this.activeCompetitorLocations$.pipe(distinctUntilChanged() &&
       filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)),
       map(locs => locs.length > 0)
     ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));

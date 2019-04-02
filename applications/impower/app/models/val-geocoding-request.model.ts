@@ -126,9 +126,9 @@ export class ValGeocodingRequest {
     this.zip = useOriginal ? loc.origPostalCode : loc.locZip;
     this.latitude = loc.ycoord == null ? null : loc.ycoord.toString();
     this.longitude = loc.xcoord == null ? null : loc.xcoord.toString();
-    this.RADIUS1 = setRadii && loc.impGeofootprintTradeAreas[0] != null ? loc.impGeofootprintTradeAreas[0].taRadius : null;
-    this.RADIUS2 = setRadii && loc.impGeofootprintTradeAreas[1] != null ? loc.impGeofootprintTradeAreas[1].taRadius : null;
-    this.RADIUS3 = setRadii && loc.impGeofootprintTradeAreas[2] != null ? loc.impGeofootprintTradeAreas[2].taRadius : null;
+    this.RADIUS1 = setRadii ? loc.radius1 : null;
+    this.RADIUS2 = setRadii ? loc.radius2 : null;
+    this.RADIUS3 = setRadii ? loc.radius3 : null;
     if (loc.impGeofootprintLocAttribs != null) {
       loc.impGeofootprintLocAttribs.forEach(attribute => {
         this[attribute.attributeCode] = attribute.attributeValue;

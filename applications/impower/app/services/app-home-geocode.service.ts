@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
-import { SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { SuccessfulLocationTypeCodes, ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { AppLocationService } from './app-location.service';
@@ -103,15 +103,31 @@ interface TradeAreaDefinition {
           
           });
         }
+        const tas = this.impTradeAreaService.get();
+        const locations = payload.locations;
+        locations.push(...failedLoc);
+        const newTradeAreas: ImpGeofootprintTradeArea[] = [];
         
-        this.appTradeAreaService.deleteTradeAreas(this.impTradeAreaService.get());
+        const tradeAreas = this.appTradeAreaService.currentDefaults.get(ImpClientLocationTypeCodes.Site);
+        const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.impLocationService.get()[0].clientLocationTypeCode));
+        console.log('current defaults:::', tradeAreas, siteType);
+
+        this.appTradeAreaService.deleteTradeAreas(tas);
         this.appTradeAreaService.clearAll();
         this.impLocationService.removeAll();
         this.impLocAttributeService.removeAll();
         
-        const locations = payload.locations;
-        locations.push(...failedLoc);
-        this.appLocationService.persistLocationsAndAttributes(payload.locations);
+        
+        if (locations[0].radius1 == null && locations[0].radius2 == null && locations[0].radius3 == null){
+         this.impLocationService.add(locations);
+         this.impLocAttributeService.add(simpleFlatten(locations.map(l => l.impGeofootprintLocAttribs)));
+         this.appTradeAreaService.applyRadiusTradeArea(tradeAreas, siteType);
+        }
+        else{
+          this.appLocationService.persistLocationsAndAttributes(payload.locations);
+        }
+         
+        
         if (customTAList.length > 0){
           this.appTradeAreaService.applyCustomTradeArea(customTAList);
         }

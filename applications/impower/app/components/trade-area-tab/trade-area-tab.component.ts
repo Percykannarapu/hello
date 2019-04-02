@@ -103,9 +103,7 @@ export class TradeAreaTabComponent implements OnInit {
       this.currentLocationsCount$.next(l.length);
     });
 
-    this.stateService.hasSiteProvidedTradeAreas$.pipe(
-      map(aud => distinctUntilChanged() && this.validateTA())
-    );
+    this.hasSiteProvidedTradeAreas$ = this.stateService.hasSiteProvidedTradeAreas$.pipe(distinctUntilChanged());
     this.hasCompetitorProvidedTradeAreas$ = this.stateService.hasCompetitorProvidedTradeAreas$.pipe(distinctUntilChanged());
   }
 
@@ -215,13 +213,5 @@ export class TradeAreaTabComponent implements OnInit {
       this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
    }
    );
-  }
-
-  public validateTA(){
-    const currentLocations = this.appLocationService.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
-    const isRadii = currentLocations.find(loc => loc.radius1 != null && loc.radius2 != null && loc.radius3 != null);
-    
-    
-    return isRadii != null ? true : false;
   }
 }

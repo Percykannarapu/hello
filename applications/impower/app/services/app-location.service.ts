@@ -301,9 +301,7 @@ export class AppLocationService {
   
 
   private confirmationBox() : void {
-    const currentLocations = this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
-    const isRadii = currentLocations.find(loc => loc.radius1 != null && loc.radius2 != null && loc.radius3 != null);
-    if (isRadii && this.cachedTradeAreas != null && this.cachedTradeAreas.length !== 0){
+    if (this.cachedTradeAreas != null && this.cachedTradeAreas.length !== 0){
       this.confirmationService.confirm({
         message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
         header: 'Define Trade Areas',
@@ -316,7 +314,7 @@ export class AppLocationService {
           this.appTradeAreaService.tradeareaType = 'distance';
         },
         reject: () => {
-          
+          const currentLocations = this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
           this.appTradeAreaService.tradeareaType = '';
           currentLocations.forEach(loc => {
             loc.radius1 = null;
@@ -327,13 +325,6 @@ export class AppLocationService {
           this.cachedTradeAreas = [];
         }
       });
-    }
-    else {
-      this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
-      this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);
-      this.appTradeAreaService.zoomToTradeArea();
-      this.cachedTradeAreas = [];
-      this.appTradeAreaService.tradeareaType = 'distance';
     }
   }
   public determineDtzHomegeos(attributes: any[], locations: ImpGeofootprintLocation[]) : Observable<any>{
