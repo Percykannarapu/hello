@@ -5,7 +5,7 @@ import { LocalState } from '../../state';
 import { filter } from 'rxjs/operators';
 import { RfpUiEditWrap } from '../../../val-modules/mediaexpress/models/RfpUiEditWrap';
 import { UpdateRfpUiEditDetail, UpsertRfpUiEditDetail } from '../../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { UpsertRfpUiEditWrap } from '../../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { UpsertRfpUiEditWrap, UpsertRfpUiEditWraps } from '../../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 class CompositeRow extends RfpUiEditDetail {
   public siteName?: string;
 }
@@ -115,20 +115,26 @@ export class GridComponent implements OnInit, OnChanges {
   }
 
   public onChangeRowSelection(event: any) {
-    const row = event.data;
-    if (row.geocode) {
-      const rowUpdate: RfpUiEditDetail = Object.assign({}, row);
+    if (event.data.geocode) {
+      const rowUpdate: RfpUiEditDetail = Object.assign({}, event.data);
       rowUpdate.isSelected = !rowUpdate.isSelected;
       this.store$.dispatch(new UpsertRfpUiEditDetail({ rfpUiEditDetail: <RfpUiEditDetail> rowUpdate }));
     } else {
-      const rowUpdate: RfpUiEditWrap = Object.assign({}, row);
-      rowUpdate.isSelected = !rowUpdate.isSelected;
-      this.store$.dispatch(new UpsertRfpUiEditWrap({ rfpUiEditWrap: <RfpUiEditWrap> rowUpdate }));
+      // for wrap we need to update all of the rows that have the same wrap zone
+      const rowUpdates: Array<RfpUiEditWrap> = [];
+      const matchedRows = this.rows.filter(row => row.wrapZone === event.data.wrapZone);
+      matchedRows.forEach(row => {
+        const rowUpdate: RfpUiEditWrap = Object.assign({}, <WrapCompositeRow> row);
+        rowUpdate.isSelected = !rowUpdate.isSelected;
+        rowUpdates.push(rowUpdate);
+      });
+      this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: rowUpdates }));
     }
   }
 
   private createWrapRows(state: LocalState) {
     this.rows = []; // reset the rows
+    this.selectedRows = [];
     this.isWrap = true;
     this.createColumns(this.smallSizeTable, true);
     const newRows: Array<WrapCompositeRow> = [];
@@ -141,6 +147,8 @@ export class GridComponent implements OnInit, OnChanges {
           newRow.distance = state.rfpUiEditDetail.entities[j].distance;
         }
       }
+      if (newRow.isSelected)
+        this.selectedRows.push(newRow);
       newRows.push(newRow);
     }
     this.rows = [...newRows];

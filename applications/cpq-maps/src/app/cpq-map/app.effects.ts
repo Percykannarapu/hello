@@ -9,15 +9,17 @@ import {
   GetMapData,
   LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle
 } from './state/shared/shared.actions';
-import { tap, filter, switchMap, map, catchError, withLatestFrom, concatMap } from 'rxjs/operators';
+import { tap, filter, switchMap, map, catchError, withLatestFrom, concatMap, debounce, debounceTime } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { Store, select } from '@ngrx/store';
 import { LocalState, FullState } from './state';
 import { SetSelectedLayer } from '@val/esri';
-import { UpsertRfpUiEditDetail, RfpUiEditDetailActionTypes } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { UpsertRfpUiEditDetail, RfpUiEditDetailActionTypes, UpsertRfpUiEditDetails } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { AppLayerService, SiteInformation } from './services/app-layer-service';
 import { EntityHelper } from './services/entity-helper-service';
 import { ConfigService } from './services/config.service';
+import { UpsertRfpUiEditWrap, RfpUiEditWrapActionTypes, UpsertRfpUiEditWraps } from './state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { RfpUiEditWrapService } from './services/rfpEditWrap-service';
 
 @Injectable()
 export class AppEffects {
@@ -28,7 +30,8 @@ export class AppEffects {
     private configService: ConfigService,
     private appLayerService: AppLayerService,
     private fullStore$: Store<FullState>,
-    private entityHelper: EntityHelper) { }
+    private entityHelper: EntityHelper,
+    private rfpUiEditWrapService: RfpUiEditWrapService) { }
 
   // After the page and map loads, we go get data for the current Media Plan
   @Effect()
@@ -82,12 +85,26 @@ export class AppEffects {
 
   // If RfpUiEditDetails are changed we have to reshade the map
   @Effect({ dispatch: false })
-  rfpUiEditDetailsUpserted$ = this.actions$.pipe(
+  rfpUiEditDetailUpserted$ = this.actions$.pipe(
     ofType<UpsertRfpUiEditDetail>(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
-    //tap(([action, state]) => this.appLayerService.removeLayer('Shading', 'Selected Geos')),
-    //tap(([action, state]) => this.appLayerService.shadeBySite(state))
-    tap(([action, state]) => this.appLayerService.toggleSingleGeoShading(action.payload.rfpUiEditDetail, state))
+    tap(([action, state]) => this.appLayerService.toggleGeoShading([action.payload.rfpUiEditDetail], state))
+  );
+
+  // If RfpUiEditDetails are changed we have to reshade the map
+  @Effect({ dispatch: false })
+  rfpUiEditDetailsUpserted$ = this.actions$.pipe(
+    ofType<UpsertRfpUiEditDetails>(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetails),
+    withLatestFrom(this.fullStore$.pipe(select(state => state))),
+    tap(([action, state]) => this.appLayerService.toggleGeoShading(action.payload.rfpUiEditDetails, state))
+  );
+
+  // If RfpUiEditWraps are changed we have to reshade the map
+  @Effect({ dispatch: false })
+  rfpUiEditWrapUpserted$ = this.actions$.pipe(
+    ofType<UpsertRfpUiEditWraps>(RfpUiEditWrapActionTypes.UpsertRfpUiEditWraps),
+    withLatestFrom(this.fullStore$.pipe(select(state => state))),
+    tap(([action, state]) => this.rfpUiEditWrapService.toggleWrapZoneGeos(action.payload.rfpUiEditWraps, state))
   );
 
   // Handle the map popup button to toggle geos on and off

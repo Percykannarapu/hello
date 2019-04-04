@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { UpsertRfpUiEditDetail, AddRfpUiEditDetail, AddRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { PopupGeoToggle } from '../state/shared/shared.actions';
+import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
 
 export interface SiteInformation {
   geocode?: string;
@@ -164,24 +165,50 @@ export class AppLayerService {
       this.store$.dispatch(new SetSelectedGeos(selectedGeos));
    }
 
-   public toggleSingleGeoShading(editDetail: RfpUiEditDetail, state: FullState) {
-      const existingGraphic: __esri.Graphic = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.find(g => {
-         const equal = g.getAttribute('geocode') === editDetail.geocode;
-         return equal;
+   public toggleGeoShading(editDetails: RfpUiEditDetail[], state: FullState) {
+      const selectedGeocodes: Set<string> = new Set<string>();
+      const fkSiteMap: Map<string, number> = new Map<string, number>();
+      const wrapZones: Set<string> = new Set<string>();
+      editDetails.forEach(ed => {
+         selectedGeocodes.add(ed.geocode);
+         fkSiteMap.set(ed.geocode, ed.fkSite);
+         wrapZones.add(ed.wrapZone);
       });
-      if (existingGraphic) {
-         this.esriLayerService.getGraphicsLayer('Selected Geos').remove(existingGraphic);
+      const existingGraphics: Array<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.filter(g => 
+         selectedGeocodes.has(g.getAttribute('geocode'))
+      ).toArray();
+      if (existingGraphics.length > 0) {
+         this.esriLayerService.getGraphicsLayer('Selected Geos').removeMany(existingGraphics);
          return;
       }
       const query: __esri.Query = new EsriApi.Query();
-      query.where = `geocode = '${editDetail.geocode}'`;
-      this.queryService.executeQuery(this.configService.layers[state.shared.analysisLevel].boundaries.id, query, true).subscribe(res => {
-         const graphic: __esri.Graphic = new EsriApi.Graphic();
-         const symbol = new EsriApi.SimpleFillSymbol({ color: this.shadingMap.get(editDetail.fkSite) });
-         graphic.symbol = symbol;
-         graphic.geometry = res.features[0].geometry;
-         graphic.setAttribute('geocode', editDetail.geocode);
-         this.esriLayerService.getGraphicsLayer('Selected Geos').add(graphic);
+      query.outFields = ['geocode'];
+      let analysisLevel = '';
+      if (state.shared.isWrap) {
+         query.where = `wrap_name in (`;
+         wrapZones.forEach(wz => query.where += `'${wz}',`);
+         query.where = query.where.substr(0, query.where.length - 1);
+         query.where += ')';
+         analysisLevel = 'zip'; 
+
+      } else {
+         analysisLevel = state.shared.analysisLevel;
+         query.where = `geocode in (`;
+         selectedGeocodes.forEach(sg => query.where += `'${sg}',`);
+         query.where = query.where.substr(0, query.where.length - 1);
+         query.where += ')';
+      }
+      this.queryService.executeQuery(this.configService.layers[analysisLevel].boundaries.id, query, true).subscribe(res => {
+         const graphics: Array<__esri.Graphic> = [];
+         res.features.forEach (feature => {
+            const graphic: __esri.Graphic = new EsriApi.Graphic();
+            const symbol = new EsriApi.SimpleFillSymbol({ color: this.shadingMap.get(fkSiteMap.get(feature.getAttribute('geocode'))) });
+            graphic.symbol = symbol;
+            graphic.geometry = feature.geometry;
+            graphic.setAttribute('geocode', feature.getAttribute('geocode'));
+            graphics.push(graphic);
+         });
+         this.esriLayerService.getGraphicsLayer('Selected Geos').addMany(graphics);
       });
    }
 
