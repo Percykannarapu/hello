@@ -17,7 +17,7 @@
 
 .header-names {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, auto);
   column-gap: 1em;
   margin-right: 1em;
 }
@@ -28,4 +28,8 @@
 
 .header-names > span:nth-child(even) {
   font-weight: bold;
+}
+
+.header-names > span:last-child {
+  grid-column-end: span 3;
 }
