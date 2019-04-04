@@ -243,7 +243,7 @@ export function formatMilli(a,k?,sub?,s?,m?,h?){
   return k=Math.trunc(a%1e3), sub=Math.floor((a%1e3-k)*1000)/1000, s=a/1e3%60|0, m=a/6e4%60|0, h=a/36e5%24|0,
     (h?h+'h ':'')+
     (m?m+'m ':'')+
-    (h || m || s >= 10 ? s+'s': (s >= 1 ? (s+k/1000) + 's' : '')) +
+    (h || m || s >= 10 ? s+'s': (s >= 1 ? (s+k/1000).toFixed(3) + 's' : '')) +
     (!h && !m && s == 0 && k >= 1 ? (k/1000) + 's' : '') +
     (!h && !m && !s && !k ? sub + 'ms' : '');
 }
