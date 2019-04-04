@@ -1,4 +1,3 @@
-import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { AppLocationService } from '../../services/app-location.service';
@@ -9,7 +8,6 @@ import { map } from 'rxjs/operators';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { AppStateService } from '../../services/app-state.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -18,12 +16,11 @@ import { Store } from '@ngrx/store';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { EsriMapService } from '@val/esri';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { AppEditSiteService } from '../../services/app-editsite.service';
-import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
 
 @Component({
   selector: 'val-site-list-container',
@@ -36,7 +33,6 @@ export class SiteListContainerComponent implements OnInit {
    public  allLocations$: Observable<ImpGeofootprintLocation[]>;
    public  allAttributes$: Observable<ImpGeofootprintLocAttrib[]>;
    public  allGeos$: Observable<ImpGeofootprintGeo[]>;
-   public  allGeoAttributes$: Observable<ImpGeofootprintGeoAttrib[]>;
 
    private spinnerKey = 'MANAGE_LOCATION_TAB_SPINNER';
    public oldData: any;
@@ -50,7 +46,6 @@ export class SiteListContainerComponent implements OnInit {
       private impGeofootprintLocAttribService: ImpGeofootprintLocAttribService,
       private tradeAreaService: ImpGeofootprintTradeAreaService,
       private impGeofootprintGeoService: ImpGeofootprintGeoService,
-      private geoAttributeService: ImpGeofootprintGeoAttribService,
       private appLocationService: AppLocationService,
       private geocoderService: AppGeocodingService,
       private appStateService: AppStateService,
@@ -80,10 +75,6 @@ export class SiteListContainerComponent implements OnInit {
 //                             ,tap(geos => console.debug("SITE-LIST-CONTAINER - allGeos$ fired", geos))
                                );
 
-      this.allGeoAttributes$ = this.geoAttributeService.storeObservable
-                                   .pipe(map(geoAttrs => Array.from(geoAttrs))
-//                                      ,tap(geoAttrs => console.log("SITE-LIST-CONTAINER - allGeoAttributes$ fired - #", (geoAttrs != null) ? geoAttrs.length : null))
-                                        );
    }
 
 
@@ -92,12 +83,18 @@ export class SiteListContainerComponent implements OnInit {
    // -----------------------------------------------------------
 
   resubmit(site: ImpGeofootprintLocation) {
+    const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+    site.impGeofootprintLocAttribs.forEach(attr => {
+      if (homeGeoColumnsSet.has(attr.attributeCode)){
+        attr.attributeValue = '';
+      }
+    });
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
-    const newRequest = new ValGeocodingRequest(site, false);
+    const newRequest = new ValGeocodingRequest(site, true);
     delete newRequest['latitude'];
     delete newRequest['longitude'];
-    this.processEditRequests(newRequest, newSiteType, this.oldData, true);
+    this.processEditRequests(newRequest, newSiteType, site, true);
     this.appLocationService.deleteLocations([site]);
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
@@ -123,43 +120,53 @@ export class SiteListContainerComponent implements OnInit {
    }
 
    private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData, resubmit?: boolean) {
-    console.log('Processing requests:', siteOrSites);
-    const locationCache: ImpGeofootprintLocation[] = [];
+    //console.log('Processing requests:', siteOrSites);
+    const newLocation: ValGeocodingRequest = oldData;   
     if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street'])) {
       siteOrSites['latitude'] = null;
       siteOrSites['longitude'] = null;
-     const matchingLocation = this.impGeofootprintLocationService.get().filter(l => l.locationNumber == oldData.locationNumber);
-     const customTradeAreaCheck = this.tradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length;
-     let databuffer: string = '';
-     if ( customTradeAreaCheck != undefined && customTradeAreaCheck != null && customTradeAreaCheck > 0) {
-          const customTradeAreaGeos = (matchingLocation[0].impGeofootprintTradeAreas[0].impGeofootprintGeos);
-          const locationNumber = matchingLocation[0].locationNumber;
-          console.log(customTradeAreaGeos);
-          databuffer = 'Store,Geo';
-          for (let i = 0; i < customTradeAreaGeos.length; i++) {
-            databuffer = databuffer + '\n' + locationNumber + ',' + customTradeAreaGeos[i].geocode;
-          }
-          this.appEditSiteService.sendCustomData({'data': databuffer});
-      }
-        this.siteListService.deleteLocations(matchingLocation);
+      if (oldData != null){
+        this.handleCustomTradeAreaIfExistAndEdit(oldData);
         this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
-
-    } else {
-      const newLocation: ValGeocodingRequest = oldData;
-      newLocation.locationNumber = siteOrSites['number'];
-      newLocation.locationName = siteOrSites['name'];
-      newLocation.marketName = siteOrSites['Market'];
-      newLocation.marketCode = siteOrSites['Market Code'];
-      if (newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude']) {
+      }
+    } else if (newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude']){
+      // const newLocation: ValGeocodingRequest = oldData; 
         newLocation.recordStatusCode = 'PROVIDED';
         newLocation.xcoord = Number(siteOrSites['longitude']);
         newLocation.ycoord = Number(siteOrSites['latitude']);
-        const sites = [newLocation] ;
-       this.store$.dispatch(new Geocode({sites, siteType}));
-      }
-      //this.impGeofootprintLocationService.update(oldData, newLocation);
-      this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-    }
+        const sites = [siteOrSites] ;
+       // const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
+      //  const reCalculateHomeGeos = false;
+      //  const isLocationEdit =  true;
+       this.handleCustomTradeAreaIfExistAndEdit(oldData);
+       this.appEditSiteService.sendEditLocationData({'siteData': sites, 'type': siteType, 'isEdit': true});
+      //  this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
+       this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+    } else {
+      const editedLocation: ImpGeofootprintLocation = oldData;
+      editedLocation.locationNumber = siteOrSites['number'];
+      editedLocation.locationName = siteOrSites['name'];
+      editedLocation.marketName = siteOrSites['Market'];
+      editedLocation.marketCode = siteOrSites['Market Code'];
+      this.impGeofootprintLocationService.update(oldData, editedLocation);
+    } 
+  }
+
+  private handleCustomTradeAreaIfExistAndEdit(oldData: ImpGeofootprintLocation) : void {
+    const matchingLocation = this.impGeofootprintLocationService.get().filter(l => l.locationNumber == oldData.locationNumber);
+    const customTradeAreaCheck = this.tradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length;
+    let databuffer: string = '';
+    if ( customTradeAreaCheck != undefined && customTradeAreaCheck != null && customTradeAreaCheck > 0) {
+         const customTradeAreaGeos = (matchingLocation[0].impGeofootprintTradeAreas[0].impGeofootprintGeos);
+         const locationNumber = matchingLocation[0].locationNumber;
+         console.log(customTradeAreaGeos);
+         databuffer = 'Store,Geo';
+         for (let i = 0; i < customTradeAreaGeos.length; i++) {
+           databuffer = databuffer + '\n' + locationNumber + ',' + customTradeAreaGeos[i].geocode;
+         }
+         this.appEditSiteService.sendCustomData({'data': databuffer});
+     }
+     this.siteListService.deleteLocations(matchingLocation);
   }
 
   private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
@@ -195,7 +202,6 @@ export class SiteListContainerComponent implements OnInit {
       // console.debug("-".padEnd(80, "-"));
       // console.debug("SITE LIST CONTAINER - onMakeDirty");
       // console.debug("-".padEnd(80, "-"));
-      this.geoAttributeService.makeDirty();
       this.impGeofootprintGeoService.makeDirty();
       this.tradeAreaService.makeDirty();
       this.impGeofootprintLocAttribService.makeDirty();

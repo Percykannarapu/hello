@@ -1,25 +1,49 @@
 import { Injectable } from '@angular/core';
-import { ColorPallete, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions } from '@val/esri';
+import { ColorPallete, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions, EsriQueryService, EsriRendererService, getColorPallete } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
 import { calculateStatistics } from '@val/common';
 import { Store } from '@ngrx/store';
 import { HighlightMode } from '@val/esri';
 import { LocalState, FullState } from '../state';
 import { ConfigService } from './config.service';
+import { Observable } from 'rxjs';
+import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
+import { UpsertRfpUiEditDetail, AddRfpUiEditDetail, AddRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { PopupGeoToggle } from '../state/shared/shared.actions';
+import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
+
+export interface SiteInformation {
+  geocode?: string;
+  name: string;
+  coordinates: UniversalCoordinates;
+  radius: number;
+  siteId: number;
+}
 
 @Injectable({
    providedIn: 'root'
 })
 export class AppLayerService {
 
-   constructor(private esriLayerService: EsriLayerService, 
+   constructor(private esriLayerService: EsriLayerService,
       private esriMapService: EsriMapService,
       private store$: Store<FullState>,
-      private configService: ConfigService) { }
+      private configService: ConfigService,
+      private queryService: EsriQueryService) { }
 
    private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
+   private shadingMap: Map<number, number[]> = new Map<number, number[]>();
+   private analysisLevel: string;
+   private newGeoId: number = 500000;
 
-   public addLocationsLayer(groupName: string, layerName: string, coordinates: UniversalCoordinates[]) {
+   public addLocationsLayer(groupName: string, layerName: string, siteInformation: SiteInformation[], analysisLevel: string) {
+      this.analysisLevel = analysisLevel;
+      const renderer = new EsriApi.SimpleRenderer({
+         symbol: new EsriApi.SimpleMarkerSymbol({
+            color: [0, 0, 255, 1],
+            path: MapSymbols.STAR
+         })
+      });
       if (this.currentLayerNames.has(groupName)) {
          for (const curName of this.currentLayerNames.get(groupName)) {
             if (layerName === curName) {
@@ -27,12 +51,20 @@ export class AppLayerService {
                return;
             }
          }
-         this.esriLayerService.createPointLayer(groupName, layerName, coordinates, MapSymbols.STAR);
          this.currentLayerNames.get(groupName).push(layerName);
       } else {
-         this.esriLayerService.createPointLayer(groupName, layerName, coordinates, MapSymbols.STAR);
          this.currentLayerNames.set(groupName, [layerName]);
       }
+      const graphics: Array<__esri.Graphic> = [];
+      siteInformation.forEach(s => {
+        const graphic: Array<__esri.Graphic> = this.esriLayerService.coordinatesToGraphics([s.coordinates]);
+        graphic[0].setAttribute('SHADING_GROUP', s.name);
+        graphic[0].setAttribute('radius', s.radius);
+        graphic[0].setAttribute('siteId', s.siteId);
+        graphics.push(...graphic);
+      });
+      //this.esriLayerService.createClientLayer(groupName, layerName, graphics, 'point', false, null, renderer);
+      this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics);
    }
 
    public removeLayer(groupName: string, layerName: string) {
@@ -63,43 +95,45 @@ export class AppLayerService {
       return false;
    }
 
-   public addTradeAreaRings(locations: UniversalCoordinates[], radius: number) {
-      const color = new EsriApi.Color([0, 0, 255, 1]);
-      const transparent = new EsriApi.Color([0, 0, 0, 0]);
-      const symbol = new EsriApi.SimpleFillSymbol({
-         style: 'solid',
-         color: transparent,
-         outline: {
-           style: 'solid',
-           color: color,
-           width: 2
-         }
-       });
+   public addTradeAreaRings(siteInformation: SiteInformation[], radius: number) {
+      this.esriLayerService.removeLayer('Trade Area');
+      const renderer = new EsriApi.SimpleRenderer({
+         symbol: new EsriApi.SimpleFillSymbol({
+            style: 'solid',
+            color: [0, 0, 0, 0],
+            outline: {
+               style: 'solid',
+               color: [0, 0, 255, 1],
+               width: 2
+            }
+          })
+      });
       const points: Array<__esri.Point> = [];
-      for (const location of locations) {
+      for (const siteInfo of siteInformation) {
          const point: __esri.Point = new EsriApi.Point();
-         point.x = location.x;
-         point.y = location.y;
+         point.x = siteInfo.coordinates.x;
+         point.y = siteInfo.coordinates.y;
          points.push(point);
       }
       EsriApi.geometryEngineAsync.geodesicBuffer(points, radius, 'miles', false).then(geoBuffer => {
          const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
          const graphics = geometry.map(g => {
-           return new EsriApi.Graphic({
-             geometry: g,
-             symbol: symbol,
-           });
+            return new EsriApi.Graphic({
+               geometry: g,
+               symbol: renderer.symbol,
+            });
          });
-         this.esriLayerService.addGraphicsToLayer('Project Sites', graphics);
+         //this.esriLayerService.createClientLayer('Sites', 'Trade Area', graphics, 'polygon', false, null, renderer);
+         this.esriLayerService.createGraphicsLayer('Sites', 'Trade Areas', graphics);
       });
    }
 
-   public zoomToTradeArea(locations: UniversalCoordinates[]) {
+   public zoomToTradeArea(siteInformation: SiteInformation[]) {
       const latitudes: Array<number> = [];
       const longitudes: Array<number> = [];
-      for (const location of locations) {
-         latitudes.push(location.y);
-         longitudes.push(location.x);
+      for (const siteInfo of siteInformation) {
+         latitudes.push(siteInfo.coordinates.y);
+         longitudes.push(siteInfo.coordinates.x);
       }
       const xStats = calculateStatistics(longitudes);
       const yStats = calculateStatistics(latitudes);
@@ -109,25 +143,76 @@ export class AppLayerService {
    public shadeBySite(state: FullState) {
       const shadingGroups: Array<{ groupName: string, ids: string[] }> = [];
       const selectedGeos: Array<string> = [];
+      let count = 0;
       for (const site of state.rfpUiEdit.ids) {
          const geos: Array<string> = [];
          const siteId = state.rfpUiEdit.entities[site].siteId;
          const siteName = state.rfpUiEdit.entities[site].siteName;
+         const pallete: number [][] = getColorPallete(ColorPallete.CPQMAPS);
+         this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, pallete[count % pallete.length]);
          for (const detail of state.rfpUiEditDetail.ids) {
             if (!state.rfpUiEditDetail.entities[detail].isSelected) continue;
             if (siteId === state.rfpUiEditDetail.entities[detail].fkSite) {
                geos.push(state.rfpUiEditDetail.entities[detail].geocode);
-               selectedGeos.push(state.rfpUiEditDetail.entities[detail].geocode); 
+               selectedGeos.push(state.rfpUiEditDetail.entities[detail].geocode);
             }
          }
          shadingGroups.push({ groupName: siteName, ids: geos });
+         count++;
       }
       this.esriLayerService.createClientGroup('Shading', true, true);
       this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Shading', layer: 'Selected Geos', colorPallete: ColorPallete.CPQMAPS, groups: shadingGroups }));
       this.store$.dispatch(new SetSelectedGeos(selectedGeos));
    }
 
-   private getWrapShadingGroups(state: FullState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[]} {
+   public toggleGeoShading(editDetails: RfpUiEditDetail[], state: FullState) {
+      const selectedGeocodes: Set<string> = new Set<string>();
+      const fkSiteMap: Map<string, number> = new Map<string, number>();
+      const wrapZones: Set<string> = new Set<string>();
+      editDetails.forEach(ed => {
+         selectedGeocodes.add(ed.geocode);
+         fkSiteMap.set(ed.geocode, ed.fkSite);
+         wrapZones.add(ed.wrapZone);
+      });
+      const existingGraphics: Array<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.filter(g => 
+         selectedGeocodes.has(g.getAttribute('geocode'))
+      ).toArray();
+      if (existingGraphics.length > 0) {
+         this.esriLayerService.getGraphicsLayer('Selected Geos').removeMany(existingGraphics);
+         return;
+      }
+      const query: __esri.Query = new EsriApi.Query();
+      query.outFields = ['geocode'];
+      let analysisLevel = '';
+      if (state.shared.isWrap) {
+         query.where = `wrap_name in (`;
+         wrapZones.forEach(wz => query.where += `'${wz}',`);
+         query.where = query.where.substr(0, query.where.length - 1);
+         query.where += ')';
+         analysisLevel = 'zip'; 
+
+      } else {
+         analysisLevel = state.shared.analysisLevel;
+         query.where = `geocode in (`;
+         selectedGeocodes.forEach(sg => query.where += `'${sg}',`);
+         query.where = query.where.substr(0, query.where.length - 1);
+         query.where += ')';
+      }
+      this.queryService.executeQuery(this.configService.layers[analysisLevel].boundaries.id, query, true).subscribe(res => {
+         const graphics: Array<__esri.Graphic> = [];
+         res.features.forEach (feature => {
+            const graphic: __esri.Graphic = new EsriApi.Graphic();
+            const symbol = new EsriApi.SimpleFillSymbol({ color: this.shadingMap.get(fkSiteMap.get(feature.getAttribute('geocode'))) });
+            graphic.symbol = symbol;
+            graphic.geometry = feature.geometry;
+            graphic.setAttribute('geocode', feature.getAttribute('geocode'));
+            graphics.push(graphic);
+         });
+         this.esriLayerService.getGraphicsLayer('Selected Geos').addMany(graphics);
+      });
+   }
+
+   private getWrapShadingGroups(state: FullState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[] } {
       const shadingGroups: Map<string, Set<string>> = new Map<string, Set<string>>();
       const selectedGeos: Set<string> = new Set<string>();
       for (const wrapId of state.rfpUiEditWrap.ids) {
@@ -142,7 +227,7 @@ export class AppLayerService {
                wrapZone = wrapZone.replace(new RegExp(/\//, 'g'), '');
                wrapZone = wrapZone.toUpperCase();
                wrapZone = wrapZone.substr(0, 8);
-               selectedGeos.add(wrapZone); 
+               selectedGeos.add(wrapZone);
                geos.add(wrapZone);
             }
          }
@@ -240,5 +325,112 @@ export class AppLayerService {
       dictionary = dictionary.substring(0, dictionary.length - 1);
       dictionary = `${dictionary}}`;
       return dictionary;
+   }
+
+   public setPopupData(state: FullState) {
+      const layerNames = ['zip', 'atz'];
+      layerNames.forEach(name => {
+         const layerId = this.configService.layers[name].boundaries.id;
+         const layer = this.esriLayerService.getPortalLayerById(layerId);
+         if (name !== state.shared.analysisLevel) {
+           layer.popupTemplate = null;
+           return;
+         }
+         let fields = [];
+         fields = [...this.createStandardPopupFields()];
+         const toggleAction: __esri.ActionButton = new EsriApi.ActionButton({
+          title: 'Toggle Selection',
+          id: 'toggle-selection',
+          className: 'esri-icon-plus-circled'
+         });
+         const template = new EsriApi.PopupTemplate({
+            title: '{geocode}',
+            content: [{
+               type: 'fields',
+               fieldInfos: fields
+            }],
+            actions: [toggleAction]
+         });     
+         layer.popupTemplate = template;
+      });
+      this.esriMapService.mapView.popup.on('trigger-action', (event) => this.store$.dispatch(new PopupGeoToggle({ eventName: 'toggle-selection' })));
+   }
+
+   public onPopupToggleAction(event: string, state: FullState) {
+     if (event !== 'toggle-selection') {
+       return;
+     }
+     const selectedFeature = this.esriMapService.mapView.popup.selectedFeature;
+     const geocode: string = selectedFeature.attributes.geocode;
+     let found: boolean = false;
+     for (const id of state.rfpUiEditDetail.ids) {
+       if (state.rfpUiEditDetail.entities[id].geocode === geocode) {
+         const editDetail = state.rfpUiEditDetail.entities[id];
+         editDetail.isSelected = !editDetail.isSelected;
+         this.store$.dispatch(new UpsertRfpUiEditDetail({ rfpUiEditDetail: editDetail }));
+         found = true;
+       }
+     }
+     if (!found) {
+       const screenPoint: __esri.Point = <__esri.Point> this.esriMapService.mapView.popup.location;
+       //let realPoint: __esri.Point = this.esriMapService.mapView.toMap(screenPoint);
+       const realPoint: __esri.Point = <__esri.Point> EsriApi.projection.project(screenPoint, { wkid: 4326 });
+       this.createNewRfpUiEditDetail(geocode, realPoint);
+     }
+   }
+
+   private createNewRfpUiEditDetail(geocode: string, point: any) {
+     const newDetail: RfpUiEditDetail = new RfpUiEditDetail();
+     const closestSite: __esri.Graphic = this.findClosestSite(point);
+     newDetail.geocode = geocode;
+     newDetail.isSelected = true;
+     newDetail.fkSite = closestSite.getAttribute('siteId');
+     newDetail['@ref'] = this.newGeoId;
+     this.newGeoId++;
+     this.store$.dispatch(new UpsertRfpUiEditDetail({ rfpUiEditDetail: newDetail }));
+   }
+
+   private findClosestSite(point: __esri.Point) : __esri.Graphic {
+     const geometry: __esri.Multipoint = new EsriApi.Multipoint();
+     this.esriLayerService.getGraphicsLayer('Project Sites').graphics.forEach(g => {
+       const p: __esri.Point = <__esri.Point> g.geometry;
+       geometry.addPoint([p.x, p.y]);
+     });
+     const nearestPoint = EsriApi.geometryEngine.nearestCoordinate(geometry, point);
+     const sitesGraphic: __esri.Collection<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Project Sites').graphics.filter(gr => {
+       const p: __esri.Point = <__esri.Point> gr.geometry;
+       return p.x === nearestPoint.coordinate.x && p.y === nearestPoint.coordinate.y;
+     });
+     return sitesGraphic.getItemAt(0);
+   }
+
+   private createStandardPopupFields() : __esri.FieldInfo[] {
+      const fields: Array<__esri.FieldInfo> = [];
+      fields.push(this.createPopupField('zip', 'Zip'));
+      fields.push(this.createPopupField('pricing_name', 'Pricing Market'));
+      fields.push(this.createPopupField('sdm_name', 'Shared Distribution Market'));
+      fields.push(this.createPopupField('wrap', 'Redplum Wrap Zone'));
+      fields.push(this.createPopupField('county', 'DMA Code'));
+      fields.push(this.createPopupField('county', 'County FIPS Code'));
+      fields.push(this.createPopupField('cl0c00', '% CY HHs Familes With Related Children < 18 Yrs'));
+      fields.push(this.createPopupField('cl2i0r', '% CY HHs w/HH Inc $50K +'));
+      fields.push(this.createPopupField('cl2i0p', '% CY HHs w/HH Inc $75,000 +'));
+      fields.push(this.createPopupField('cl0utw', '% CY Owner Occupied Housing Units'));
+      fields.push(this.createPopupField('cl2prb', '% Pop White Alone Non-Hisp'));
+      fields.push(this.createPopupField('cl2prw', '% Pop White Alone Non-Hisp'));
+      fields.push(this.createPopupField('null', '% Population Growth 2018-2023'));
+      fields.push(this.createPopupField('cl2i00', 'CY Median Household Income'));
+      fields.push(this.createPopupField('cl2hwv', 'CY Median Value, Owner OCC Housing Units'));
+      fields.push(this.createPopupField('hhld_w', 'HouseHolds, Winter'));
+      fields.push(this.createPopupField('hhld_s', 'HouseHolds, Summer'));
+      return fields;
+   }
+
+   private createPopupField(fieldName: string, fieldLabel: string) : __esri.FieldInfo {
+      const field: __esri.FieldInfo = new EsriApi.FieldInfo({
+         fieldName: fieldName,
+         label: fieldLabel
+      });
+      return field;
    }
 }

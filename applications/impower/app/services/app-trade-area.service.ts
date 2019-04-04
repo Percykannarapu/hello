@@ -1,38 +1,50 @@
 import { Injectable } from '@angular/core';
+import { calculateStatistics, filterArray, groupBy, isNumber, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { BehaviorSubject, Observable, from, of } from 'rxjs';
 import { distinctUntilChanged, filter, map, pairwise, take, withLatestFrom } from 'rxjs/operators';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { AppConfig } from '../app.config';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { AppConfig } from '../app.config';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { AppLayerService } from './app-layer.service';
-import { AppStateService } from './app-state.service';
 import { AppGeoService } from './app-geo.service';
-import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { AppLayerService } from './app-layer.service';
 import { AppLoggingService } from './app-logging.service';
-import { toUniversalCoordinates, isNumber } from '@val/common';
-import { EsriMapService, EsriQueryService } from '@val/esri';
-import { calculateStatistics, filterArray, groupBy, simpleFlatten } from '@val/common';
+import { AppStateService } from './app-state.service';
+import { mapBy } from '@val/common';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+
+interface TradeAreaDefinition {
+  store: string;
+  geocode: string;
+  message: string;
+}
 
 export const DEFAULT_MERGE_TYPE: TradeAreaMergeTypeCodes = TradeAreaMergeTypeCodes.MergeEach;
 
 @Injectable()
 export class AppTradeAreaService {
 
-  private currentDefaults = new Map<(SuccessfulLocationTypeCodes), { radius: number, selected: boolean }[]>();
+  public currentDefaults = new Map<(SuccessfulLocationTypeCodes), { radius: number, selected: boolean }[]>();
   private validAnalysisLevel$: Observable<string>;
 
   private mergeSpecs = new Map<(SuccessfulLocationTypeCodes), BehaviorSubject<TradeAreaMergeTypeCodes>>();
   public siteTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public competitorTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public tradeareaType: string = '';
+  public uploadFailures: TradeAreaDefinition[] = [];
+  private uploadFailuresSub: BehaviorSubject<TradeAreaDefinition[]> = new BehaviorSubject<TradeAreaDefinition[]>([]);
+  public uploadFailuresObs$: Observable<TradeAreaDefinition[]> = this.uploadFailuresSub.asObservable();
 
   constructor(private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impLocationService: ImpGeofootprintLocationService,
+              private impLocAttrService: ImpGeofootprintLocAttribService,
               private impGeoService:  ImpGeofootprintGeoService,
               private impVarService: ImpGeofootprintVarService,
               private stateService: AppStateService,
@@ -118,7 +130,7 @@ export class AppTradeAreaService {
   }
 
   public onLocationsWithoutRadius(locations: ImpGeofootprintLocation[]) : void{
-    const currentLocations = locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
+    const currentLocations = locations.filter(loc => loc.baseStatus === 'INSERT' && loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
     const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
     const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');    
     if (newSites.length > 0) {
@@ -287,7 +299,7 @@ export class AppTradeAreaService {
               }
             });
           },
-          err => { console.error('Error getting lats and longs from layer', err); },
+          err => { this.logger.error('Error getting lats and longs from layer', err); },
           () => this.calculateStatsAndZoom(latitudes, longitudes)
         );
       });
@@ -306,7 +318,24 @@ export class AppTradeAreaService {
 
   private clearGeos() : void {
     const allTradeAreas = this.impTradeAreaService.get();
-    this.deleteTradeAreas(allTradeAreas);
+    allTradeAreas.forEach(ta => {
+      ta.impGeofootprintGeos = [];
+      ta.impGeofootprintVars = [];
+      if (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius) ta['isComplete'] = undefined;
+    });
+    const allLocations = this.impLocationService.get();
+    allLocations.forEach(l => {
+      l.impGeofootprintLocAttribs = l.impGeofootprintLocAttribs.filter(a => a.attributeCode !== 'Invalid Home Geo');
+    });
+    const attrs = this.impLocAttrService.get().filter(a => a.attributeCode === 'Invalid Home Geo');
+    const tradeAreasToRemove = new Set([TradeAreaTypeCodes.HomeGeo, TradeAreaTypeCodes.Manual, TradeAreaTypeCodes.MustCover]);
+    this.logger.debug('Clearing all Geos');
+    this.impTradeAreaService.startTx();
+    this.impLocAttrService.remove(attrs);
+    this.impVarService.clearAll();
+    this.appGeoService.clearAll();
+    this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
+    this.impTradeAreaService.stopTx();
   }
 
   private calculateStatsAndZoom(latitudes: number[], longitudes: number[]) : void {
@@ -372,5 +401,68 @@ export class AppTradeAreaService {
         this.currentDefaults.set(siteType, taValues);
       }
     }
+  }
+
+  public applyCustomTradeArea(data: TradeAreaDefinition[]){
+    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+    const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+    const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
+    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
+    const matchedTradeAreas = new Set<TradeAreaDefinition>();
+
+    // make sure we can find an associated location for each uploaded data row
+    data.forEach(taDef => {
+      if (locationsByNumber.has(taDef.store)){
+        matchedTradeAreas.add(taDef);
+      } else {
+        taDef.message = 'Site number not found';
+        this.uploadFailures = [...this.uploadFailures, taDef];
+      }
+    });
+
+    const outfields = ['geocode', 'latitude', 'longitude'];
+    const queryResult = new Map<string, {latitude: number, longitude: number}>();
+    const geosToQuery = new Set(Array.from(matchedTradeAreas).map(ta => ta.geocode));
+
+    this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(geosToQuery), false, outfields).pipe(
+      map(graphics => graphics.map(g => g.attributes)),
+      map(attrs => attrs.map(a => ({ geocode: a.geocode, latitude: Number(a.latitude), longitude: Number(a.longitude) })))
+    ).subscribe(
+      results => results.forEach(r => queryResult.set(r.geocode, { latitude: r.latitude, longitude: r.longitude })),
+      err => console.log('There was an error querying the ArcGIS layer', err),
+      () => {
+        const geosToAdd: ImpGeofootprintGeo[] = [];
+        const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
+        matchedTradeAreas.forEach(ta => {
+          // make sure the query returned a geocode+lat+lon for each of the uploaded data rows
+          if (!queryResult.has(ta.geocode)) {
+            ta.message = 'Geocode not found';
+            this.uploadFailures = [...this.uploadFailures, ta];
+          } else {
+            const loc = locationsByNumber.get(ta.store);
+            const layerData = queryResult.get(ta.geocode);
+            // make sure the lat/lon data from the layer is valid
+            if (Number.isNaN(layerData.latitude) || Number.isNaN(layerData.longitude)) {
+              console.error(`Invalid Layer Data found for geocode ${ta.geocode}`, layerData);
+            } else {
+              // finally build the tradeArea (if necessary) and geo
+              const distance = EsriUtils.getDistance(layerData.longitude, layerData.latitude, loc.xcoord, loc.ycoord);
+              let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
+              if (currentTradeArea == null) {
+                currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
+                tradeAreasToAdd.push(currentTradeArea);
+              }
+              const newGeo = this.domainFactory.createGeo(currentTradeArea, ta.geocode, layerData.longitude, layerData.latitude, distance);
+              geosToAdd.push(newGeo);
+            }
+          }
+        });
+        // stuff all the results into appropriate data stores
+        this.impGeoService.add(geosToAdd);
+        this.impTradeAreaService.add(tradeAreasToAdd);
+        this.appGeoService.ensureMustCovers();
+       // this.uploadFailuresObs$ = of(this.uploadFailures);
+       this.uploadFailuresSub.next(this.uploadFailures);
+      });
   }
 }

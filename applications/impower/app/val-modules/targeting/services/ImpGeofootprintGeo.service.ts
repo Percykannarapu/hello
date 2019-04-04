@@ -8,6 +8,8 @@
  **
  ** ImpGeofootprintGeo.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
+import { GeoAttribute } from '../../../impower-datastore/state/geo-attributes/geo-attributes.model';
+import { selectGeoAttributeEntities } from '../../../impower-datastore/state/impower-datastore.selectors';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { RestDataService } from '../../common/services/restdata.service';
@@ -15,16 +17,14 @@ import { ColumnDefinition, DataStore } from '../../common/services/datastore.ser
 import { Injectable } from '@angular/core';
 import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
 import { TradeAreaTypeCodes } from '../targeting.enums';
-import { ImpGeofootprintGeoAttribService } from './ImpGeofootprintGeoAttribService';
-import { ImpGeofootprintGeoAttrib } from '../models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ImpProjectVar } from '../models/ImpProjectVar';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
 import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
-import { groupBy, simpleFlatten, roundTo } from '@val/common';
+import { groupBy, roundTo } from '@val/common';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -50,7 +50,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private analysisLevelForExport: string;
 
    // this is intended to be a cache of the attributes and geos used for the geofootprint export
-   private attributeCache: Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]> = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
+   private attributeCache: { [geocode: string] : GeoAttribute } = {};
    private varCache: Map<string, ImpGeofootprintVar[]> = new Map<string, ImpGeofootprintVar[]>();
 
    public  currentMustCoverFileName: string;
@@ -60,10 +60,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
-               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                private store$: Store<LocalAppState>)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
+      this.store$.pipe(select(selectGeoAttributeEntities)).subscribe(attributes => this.attributeCache = attributes);
    }
 
    load(items: ImpGeofootprintGeo[]) : void {
@@ -73,8 +73,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
         geo.impGeofootprintMaster = geo.impGeofootprintLocation.impGeofootprintMaster;
         geo.impProject = geo.impGeofootprintMaster.impProject;
       });
-      // load data stores
-      this.impGeofootprintGeoAttribService.load(simpleFlatten(items.map(geo => geo.impGeofootprintGeoAttribs)));
+      // load data store
       super.load(items);
    }
 
@@ -206,19 +205,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          if (a.distance === b.distance)
          {
             if (a.hhc === b.hhc)
-               if (a.impGeofootprintLocation != null && b.impGeofootprintLocation != null) {
                   // We need a tie breaker at this point, look to the address it belongs to next
-                  if (a.impGeofootprintLocation.locAddress = b.impGeofootprintLocation.locAddress)
-                     return 0;
-                  else {
-                     if (a.impGeofootprintLocation.locationIdDisplay > b.impGeofootprintLocation.locAddress)
-                        return 1;
-                     else
-                        return 1;
-                  }
-               }
-               else
-                  return 0;
+                if (a.impGeofootprintLocation.locAddress === b.impGeofootprintLocation.locAddress)
+                   return 0;
+                else {
+                   if (a.impGeofootprintLocation.locAddress > b.impGeofootprintLocation.locAddress)
+                      return 1;
+                   else
+                      return -1;
+                }
+
             else
                if (a.hhc > b.hhc)
                   return -1;
@@ -251,8 +247,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       if (a.geocode === b.geocode)
       {
-         let isHomeGeoA: boolean = (a.impGeofootprintLocation != null && a.geocode === a.impGeofootprintLocation.homeGeocode) ? true : false;
-         let isHomeGeoB: boolean = (b.impGeofootprintLocation != null && b.geocode === b.impGeofootprintLocation.homeGeocode) ? true : false;
+         const isHomeGeoA: boolean = (a.geocode === a.impGeofootprintLocation.homeGeocode);
+         const isHomeGeoB: boolean = (b.geocode === b.impGeofootprintLocation.homeGeocode);
 
          // If both a and b are home geos or both are not, disregard homegeo for comparison
          if ((isHomeGeoA && isHomeGeoB) || (!isHomeGeoA  && !isHomeGeoB))
@@ -313,8 +309,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
 
       // Partition within Geocode
-      return (p1 == null || p2 == null)
-             ? null : (p1.geocode != p2.geocode);
+      return (p1.geocode !== p2.geocode);
    }
 
    public pl(msg) {
@@ -353,7 +348,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    }
 
    public exportMustCoverFlag(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo ){
-    return  (state.mustCovers != null && state.mustCovers.includes(geo.geocode)) ? "1" : "0" ;
+    return  (state.mustCovers != null && state.mustCovers.includes(geo.geocode)) ? '1' : '0' ;
   }
 
   public exportVarStreetAddress(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
@@ -407,10 +402,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
       let result = '';
-      if (state.attributeCache.has(geo)) {
-         const attrs: Array<ImpGeofootprintGeoAttrib> = state.attributeCache.get(geo);
-         const attr = attrs.find(i => i.attributeCode === header);
-         result = attr != null ? attr.attributeValue : '';
+      const currentAttribute = state.attributeCache[geo.geocode];
+      if (currentAttribute != null) {
+         const value = currentAttribute[header];
+         result = value == null ? '' : value.toString();
       }
       if (result === '' && state.varCache.has(geo.geocode)) {
         const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
@@ -483,16 +478,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       let geos: ImpGeofootprintGeo[] = this.get();
       if (filter != null) geos = geos.filter(filter);
-      // Populate the attribute cache
-      this.attributeCache = new Map<ImpGeofootprintGeo, ImpGeofootprintGeoAttrib[]>();
-      for (const attr of this.impGeofootprintGeoAttribService.get()) {
-         if (this.attributeCache.has(attr.impGeofootprintGeo)) {
-               this.attributeCache.get(attr.impGeofootprintGeo).push(attr);
-            } else {
-                  this.attributeCache.set(attr.impGeofootprintGeo, [attr]);
-         }
-      }
-
       // DE1742: display an error message if attempting to export an empty data store
       if (geos.length === 0) {
          this.store$.dispatch(new ErrorNotification({ message: 'You must add sites and select geographies prior to exporting the geofootprint', notificationTitle: 'Error Exporting Geofootprint' }));
@@ -611,7 +596,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
             this.setMustCovers(Array.from(uniqueGeos), true);
 
-            console.log ("Uploaded ", this.mustCovers.length, " must cover geographies");
+            console.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
 
             this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Must Cover Upload'}));
 
@@ -624,10 +609,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return [];
    }
 
-   public parseMustCoverString(mustCoverCsv: string): string[] {
+   public parseMustCoverString(mustCoverCsv: string) : string[] {
       try
       {
-         if (mustCoverCsv != null && mustCoverCsv != "")
+         if (mustCoverCsv != null && mustCoverCsv != '')
          {
             return mustCoverCsv.split(new RegExp('\\s*,\\s*'));
 
@@ -639,7 +624,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          }
       }
       catch (e) {
-         console.error("### ERROR Parsing must cover string: " + mustCoverCsv);
+         console.error('### ERROR Parsing must cover string: ' + mustCoverCsv);
          console.error(e);
          return [];
       }
@@ -654,7 +639,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public setMustCovers(newMustCovers: string[], append: boolean = false)
    {
-      console.log("setMustCovers Fired - " + (newMustCovers != null ? newMustCovers.length : null) + " new must covers");
+      console.log('setMustCovers Fired - ' + (newMustCovers != null ? newMustCovers.length : null) + ' new must covers');
       if (newMustCovers != null && newMustCovers.length != 0)
       {
          // Reduce the list of geographies down to the distinct list

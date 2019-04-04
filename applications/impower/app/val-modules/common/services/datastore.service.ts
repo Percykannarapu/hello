@@ -83,6 +83,14 @@ export class DataStore<T>
       return DataStore.dataStoreServiceConfiguration;
    }
 
+  startTx() : void {
+    this.transactionManager.startTransaction();
+  }
+
+  stopTx() : void {
+    this.transactionManager.stopTransaction();
+  }
+
    public makeDirty()
    {
       this._storeSubject.next(this._dataStore);

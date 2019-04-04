@@ -8,6 +8,7 @@ import { AllLayerIds } from '@val/esri';
 
 export const environment = {
   production: false,
+  serverBuild: false,
   logLevel: LogLevels.INFO
 };
 

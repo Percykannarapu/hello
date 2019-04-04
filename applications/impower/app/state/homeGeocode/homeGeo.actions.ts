@@ -8,24 +8,34 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 export enum HomeGeoActionTypes {
    Geocode = '[Application Geocode] Geocoding Request to Fuse',
    HomeGeocode = '[Application Geocode] HomeGeocode and PIP',
-   PersistGeos = '[Application Geocode] Persist Geos to Datastore',
+   PersistLocations = '[Application Geocode] Persist Geos to Datastore',
+   ApplyTradeAreaOnEdit = '[Application Geocode] Apply TradeArea after Edit',
    ZoomtoLocations = '[Application Geocode] Zoom to Locations',
    DetermineDTZHomeGeos = '[Application Geocode] Determine Digital ATZ',
+   ProcessHomeGeoAttributes = '[Application Geocode] Flag Homegeo Attributes',
+  // ReCalcHomeGeos = '[Application Geocode] Re Calculate Homegeos',
+   UpdateLocations = '[Application Geocode] Update existing Locations', 
 }
 
 export class Geocode implements Action {
    readonly type = HomeGeoActionTypes.Geocode;
-   constructor(public payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes} ){}
+   constructor(public payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes,
+                                reCalculateHomeGeos: boolean, isLocationEdit: boolean} ){}
 }
 
 export class HomeGeocode implements Action {
    readonly type = HomeGeoActionTypes.HomeGeocode;
-   constructor(public payload: {locations: ImpGeofootprintLocation[]}){}
+   constructor(public payload: {locations: ImpGeofootprintLocation[], isLocationEdit: boolean, reCalculateHomeGeos: boolean}){}
 }
 
-export class PersistGeos implements Action {
-   readonly type = HomeGeoActionTypes.PersistGeos;
-   constructor(public payload: {locations: ImpGeofootprintLocation[]}){}
+export class PersistLocations implements Action {
+   readonly type = HomeGeoActionTypes.PersistLocations;
+   constructor(public payload: {locations: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){}
+}
+
+export class ApplyTradeAreaOnEdit implements Action {
+   readonly type = HomeGeoActionTypes.ApplyTradeAreaOnEdit;
+   constructor(public payload: {isLocationEdit: boolean, reCalculateHomeGeos: boolean}){}
 }
 
 export class ZoomtoLocations implements Action {
@@ -36,11 +46,27 @@ export class ZoomtoLocations implements Action {
 export class DetermineDTZHomeGeos implements Action{
    readonly type = HomeGeoActionTypes.DetermineDTZHomeGeos;
    //, locationsMap: Map<string, ImpGeofootprintLocation[]>
-   constructor(public payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>}){}
+   constructor(public payload: {attributes: any , 
+                                locationsMap: Map<string, ImpGeofootprintLocation[]>, 
+                                isLocationEdit: boolean, 
+                                reCalculateHomeGeos: boolean}){}
+}
+
+export class ProcessHomeGeoAttributes implements Action{
+  readonly type = HomeGeoActionTypes.ProcessHomeGeoAttributes;
+  constructor(public payload: {attributes: any}){}
+}
+
+export class UpdateLocations implements Action {
+  readonly type = HomeGeoActionTypes.UpdateLocations;
+  constructor(public payload: {locations: ImpGeofootprintLocation[]}){}
 }
 
 export type HomeGeoActions = Geocode | 
                              HomeGeocode | 
-                             PersistGeos |
+                             PersistLocations |
+                             ApplyTradeAreaOnEdit |
                              DetermineDTZHomeGeos |
+                             ProcessHomeGeoAttributes|
+                             UpdateLocations |
                              ZoomtoLocations;

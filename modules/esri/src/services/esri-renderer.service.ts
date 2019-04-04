@@ -158,9 +158,9 @@ export class EsriRendererService {
     }
   }
 
-  public setShadingRenderer(mapState: EsriMapState, data: ShadingData, isNumericData: boolean, statistics?: Statistics) : void {
+  public setShadingRenderer(mapState: EsriMapState, data: ShadingData, isNumericData: boolean, statistics?: Statistics,legend?: string) : void {
     if (isNumericData) {
-      this.createMultiVariateRenderer(data, mapState, statistics);
+      this.createMultiVariateRenderer(data, mapState, statistics,legend);
     } else {
       this.createClassBreaksRenderer(data, mapState);
     }
@@ -239,12 +239,15 @@ export class EsriRendererService {
     }
   }
 
-  private createMultiVariateRenderer(data: ShadingData, mapState: EsriMapState, statistics: Statistics) {
+  private createMultiVariateRenderer(data: ShadingData, mapState: EsriMapState, statistics: Statistics,legend?:string) {
     const arcade = this.generateArcade(data, true);
     const setup = this.createRendererSetup(mapState);
     const baseRenderer = this.createBaseRenderer(setup.symbol, setup.rendererSetup.outline);
     const themeColors = EsriRendererService.getThemeColors(setup.rendererSetup);
-    const colorVariable: Partial<__esri.ColorVisualVariable> = {
+    if (legend != null) {
+      setup.rendererSetup.rampLabel = legend;
+    }
+    const colorVariable: any = {
       type: 'color',
       valueExpression: arcade,
       stops: this.generateContinuousStops(themeColors, statistics),
@@ -257,7 +260,7 @@ export class EsriRendererService {
       lv.layer.renderer = baseRenderer.clone();
     } else {
       lv.layer.renderer = this.simpleRenderer.clone();
-      setTimeout(() => this.createMultiVariateRenderer(data, mapState, statistics), 0);
+      setTimeout(() => this.createMultiVariateRenderer(data, mapState, statistics,legend), 0);
     }
   }
 
@@ -288,8 +291,8 @@ export class EsriRendererService {
     return {rendererSetup: setup, symbol: symbol};
   }
 
-  private generateContinuousStops(themeStops: __esri.Color[], statistics: Statistics) : __esri.ColorVisualVariableStops[] {
-    const result: __esri.ColorVisualVariableStops[] = [];
+  private generateContinuousStops(themeStops: __esri.Color[], statistics: Statistics) : __esri.ColorStop[] {
+    const result: __esri.ColorStop[] = [];
     if (themeStops.length < 2) throw new Error('Themes must contain a minimum of 2 stops');
     const round = (n: number) => Math.round(n * 100) / 100;
     const mean = statistics.mean;
@@ -298,7 +301,7 @@ export class EsriRendererService {
     const stepSize = 2 / (themeCount - 1);
     const multipliers: number[] = new Array<number>(themeStops.length);
     multipliers[0] = -1;
-    result.push({ color: themeStops[0], value: mean - std, label: `< ${round(mean - std)}` });
+    result.push({ color: themeStops[0], value: mean - std, label: `< ${round(mean - std)}` }as __esri.ColorStop);
     for (let n = 1; n < themeCount; ++n) {
       multipliers[n] = multipliers[n - 1] + stepSize;
       const currentValue = mean + (std * multipliers[n]);
@@ -309,7 +312,7 @@ export class EsriRendererService {
       if (n === themeCount - 1) {
         currentLabel = `> ${round(currentValue)}`;
       }
-      result.push({ color: themeStops[n], value: currentValue, label: currentLabel });
+      result.push({ color: themeStops[n], value: currentValue, label: currentLabel }as __esri.ColorStop);
     }
     return result;
   }
@@ -363,6 +366,8 @@ export class EsriRendererService {
           const graphic: __esri.Graphic = new EsriApi.Graphic();
           graphic.symbol = symbol;
           graphic.geometry = feature.geometry;
+          graphic.setAttribute('geocode', feature.getAttribute('geocode'));
+          graphic.setAttribute('SHADING_GROUP', shadingGroups[i].groupName);
           siteGraphics.push(graphic);
           shadedFeatures.add(feature.getAttribute('geocode'));
         }
@@ -372,7 +377,7 @@ export class EsriRendererService {
     if (this.layerService.getAllLayerNames().filter(name => name === layerName).length > 0) {
       this.layerService.removeLayer(layerName);
     }
-    this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+    this.layerService.createGraphicsLayer(groupName, layerName, graphics, true);
   }
 
   public highlightSelection(layerId: string, objectIds: number[]) {

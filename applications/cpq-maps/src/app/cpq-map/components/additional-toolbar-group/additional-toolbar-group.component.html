@@ -10,8 +10,7 @@
   </div>
 </div>
 
-
 <p-sidebar [(visible)]="rightSidebarVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
-  <val-dev-tools></val-dev-tools>
   <val-map-controls (onPanelChange)="updatePanelSize($event)"></val-map-controls>
+  <val-dev-tools></val-dev-tools>
 </p-sidebar>

@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
+import { RequestAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
+import { selectGeoAttributes } from '../impower-datastore/state/impower-datastore.selectors';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -13,11 +15,11 @@ import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/servic
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectService } from './app-project.service';
 import { select, Store } from '@ngrx/store';
-import { LocalAppState } from '../state/app.interfaces';
+import { FullAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { AppLoggingService } from './app-logging.service';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
-import { distinctArray, filterArray, groupBy, mapArray, isNumber } from '@val/common';
+import { distinctArray, filterArray, groupBy, mapArray, isNumber, dedupeSimpleSet } from '@val/common';
 
 export enum Season {
   Summer = 'summer',
@@ -30,7 +32,7 @@ export enum Season {
 export class AppStateService {
 
   private refreshDynamicContent = new Subject<any>();
-  public refreshDynamicContent$: Observable<any> = this.refreshDynamicContent.asObservable();
+  public refreshDynamicContent$: Observable<any> = this.refreshDynamicContent.asObservable().pipe(throttleTime(500));
   public applicationIsReady$: Observable<boolean>;
 
   private closeOverlayPanel = new Subject<string>();
@@ -74,7 +76,7 @@ export class AppStateService {
               private esriLayerService: EsriLayerService,
               private esriQueryService: EsriQueryService,
               private logger: AppLoggingService,
-              private store$: Store<LocalAppState>) {
+              private store$: Store<FullAppState>) {
     this.setupApplicationReadyObservable();
     this.setupProjectObservables();
     this.setupLocationObservables();
@@ -187,10 +189,30 @@ export class AppStateService {
       distinctArray()
     ).subscribe(this.uniqueSelectedGeocodes$ as BehaviorSubject<string[]>);
 
-    this.geoService.storeObservable.pipe(
+    const uniqueGeos$ = this.geoService.storeObservable.pipe(
+      //withLatestFrom(this.applicationIsReady$),
+      //filter(([geos, isReady]) => isReady),
+      //map(([geos]) => geos),
       mapArray(geo => geo.geocode),
-      distinctArray()
+      map(geocodes => new Set(geocodes))
+    );
+
+    uniqueGeos$.pipe(
+      map(set => Array.from(set))
     ).subscribe(this.uniqueIdentifiedGeocodes$ as BehaviorSubject<string[]>);
+
+    const completeAttributes$ = this.store$.pipe(
+      select(selectGeoAttributes),
+      filterArray(e => e.hasOwnProperty('hhld_s') || e.hasOwnProperty('hhld_w')),
+      mapArray(e => e.geocode)
+    );
+    uniqueGeos$.pipe(
+      filter(geoSet => geoSet.size > 0),
+      withLatestFrom(completeAttributes$),
+      map(([requestedGeos, currentGeos]) => dedupeSimpleSet(requestedGeos, new Set(currentGeos))),
+      withLatestFrom(this.applicationIsReady$),
+      filter(([newGeos, isReady]) => newGeos.size > 0 && isReady),
+    ).subscribe(([geoSet]) => this.store$.dispatch(new RequestAttributes({ geocodes: geoSet })));
   }
 
   private setupTradeAreaObservables() : void {
@@ -208,11 +230,11 @@ export class AppStateService {
   }
 
   private setupProvidedTaObservables() : void {
-    this.activeClientLocations$.pipe(
+    this.activeClientLocations$.pipe( distinctUntilChanged() &&
       filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)),
-      map(locs => locs.length > 0)
+      map(locs => locs.length > 0 )
     ).subscribe(flag => this.hasSiteProvidedTradeAreas.next(flag));
-    this.activeCompetitorLocations$.pipe(
+    this.activeCompetitorLocations$.pipe(distinctUntilChanged() &&
       filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)),
       map(locs => locs.length > 0)
     ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));

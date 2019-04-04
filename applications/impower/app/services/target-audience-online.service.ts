@@ -138,7 +138,7 @@ export class TargetAudienceOnlineService {
       audienceSourceType: 'Online',
       audienceSourceName: source,
       exportInGeoFootprint: true,
-      showOnGrid: true,
+      showOnGrid: false,
       showOnMap: false,
       allowNationalExport: true,
       exportNationally: false,

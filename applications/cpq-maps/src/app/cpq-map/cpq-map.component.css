@@ -1,0 +1,21 @@
+.title-bar {
+  background-color: #2C832f;
+  flex-basis: 50px;
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+}
+
+.small-grid {
+  flex-basis: 20%;
+}
+
+.large-grid {
+  flex-basis: 33%;
+}
+
+.map-container {
+  flex: 1;
+}

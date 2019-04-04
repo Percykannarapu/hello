@@ -1,20 +1,28 @@
 // The file contents for the current environment will overwrite these during build.
 // The build system defaults to the dev environment which uses `environment.ts`, but if you do
-// `ng build --env=prod` then `environment.prod.ts` will be used instead.
-// The list of which env maps to which file can be found in `angular-cli.json`.
+// `ng build -c prod` then `environment.prod.ts` will be used instead.
+// The list of which env maps to which file can be found in `angular.json`
+// in the projects->esri-angular-first-look->architect->build->configurations section.
 
+/*
+ * In development mode, to ignore zone related error stack frames such as
+ * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
+ * import the following file, but please comment it out in production mode
+ * because it will have performance impact when throw error
+ */
+import 'zone.js/dist/zone-error'; // Included with Angular CLI.
 import { LogLevels } from '../app/val-modules/common/services/logging.service';
 import { AllLayerIds } from '@val/esri';
 
 export const environment = {
   production: false,
-  logLevel: LogLevels.INFO
+  serverBuild: true,
+  logLevel: LogLevels.DEBUG
 };
 
 export class EnvironmentData {
-
   // The name of the environment
-  public static environmentName = 'LOCAL';
+  public static environmentName = 'DEV';
 
   // OAuth information
   public static clientId = 'seUTFCqmugdQFDOyznekLaHmFoAa';
@@ -24,10 +32,11 @@ export class EnvironmentData {
   public static debugMode: boolean = true;
 
   // this variable controls whether a user is currently authenticated
-  // this must be set to false now for local environments so we get an OAUTH token
+  // this *MUST* be set to false for all environments other than local
   public static authenticated = false;
 
-  //public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services/';
+  //public static fuseBaseUrl = 'https://services.valassislab.com/services/';
+  // public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services/';
   public static fuseBaseUrl = 'https://servicesdev.valassislab.com/services/';
   public static impowerBaseUrl = 'https://impowerdev.val.vlss.local/';
 

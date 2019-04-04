@@ -31,7 +31,7 @@ export function homeGeoReducer(state = initialState, action: HomeGeoActions) : H
             homeGeocode: true,
             persistGeos: false, 
          };   
-       case HomeGeoActionTypes.PersistGeos:
+       case HomeGeoActionTypes.PersistLocations:
          return{
             ...state,
             geocode: false,
@@ -42,6 +42,12 @@ export function homeGeoReducer(state = initialState, action: HomeGeoActions) : H
          return state;
        case HomeGeoActionTypes.DetermineDTZHomeGeos:
          return state;  
+       case HomeGeoActionTypes.ProcessHomeGeoAttributes:
+         return state;
+       case HomeGeoActionTypes.UpdateLocations:
+         return state;  
+       case HomeGeoActionTypes.ApplyTradeAreaOnEdit:
+         return state;
        default:
          return state;   
     }

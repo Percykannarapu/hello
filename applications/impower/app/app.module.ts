@@ -93,7 +93,6 @@ import { ImpGeofootprintLocationService } from './val-modules/targeting/services
 import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from './val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { ImpGeofootprintGeoAttribService } from './val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { LoginComponent } from './components/login/login.component';
 import { AuthService } from './services/auth.service';
 import { TargetAudienceService } from './services/target-audience.service';
@@ -279,7 +278,7 @@ import { AppEditSiteService } from './services/app-editsite.service';
       {provide: LoggingConfigurationToken, useClass: AppConfig},
       ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
       ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
-      ImpGeofootprintLocAttribService, AppDiscoveryService, ImpGeofootprintGeoAttribService, ImpMetricNameService,
+      ImpGeofootprintLocAttribService, AppDiscoveryService, ImpMetricNameService,
       MetricService, RestDataService, TransactionManager,
       // from primeng
       MessageService, ConfirmationService,

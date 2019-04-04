@@ -1,7 +1,8 @@
-import { ModuleWithProviders, NgModule, Optional, SkipSelf, ChangeDetectionStrategy } from '@angular/core';
+import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { EsriModule } from '@val/esri';
+import { MessagingModule } from '@val/messaging';
 import { environment } from '../../environments/environment';
 import { CpqMapComponent } from './cpq-map.component';
 import { StoreModule } from '@ngrx/store';
@@ -26,11 +27,16 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MapControlsComponent } from './components/map-controls/map-controls.component';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
+import { SpinnerModule } from 'primeng/primeng';
 import { AdditionalToolbarGroupComponent } from './components/additional-toolbar-group/additional-toolbar-group.component';
+import { SharedEffects } from './state/shared/shared.effects';
 
 
 @NgModule({
   imports: [
+    DialogModule,
+    SpinnerModule,
     CheckboxModule,
     InputSwitchModule,
     TableModule,
@@ -45,18 +51,19 @@ import { AdditionalToolbarGroupComponent } from './components/additional-toolbar
     CommonModule,
     InputTextModule,
     HttpClientModule,
+    MessagingModule.forRoot(),
     StoreModule.forRoot(reducers, { metaReducers }),
-    EffectsModule.forRoot([AppEffects]),
+    EffectsModule.forRoot([ SharedEffects, AppEffects ]),
+    StoreDevtoolsModule.instrument({
+      name: 'CPQ Maps Application',
+      logOnly: environment.production,
+    }),
     EsriModule.forRoot(environment.esri.portalServer, {
       auth: {
         userName: environment.esri.username,
         password: environment.esri.password,
         referer: window.location.origin
       }
-    }),
-    StoreDevtoolsModule.instrument({
-      name: 'CPQ Maps Application',
-      logOnly: environment.production,
     }),
   ],
   declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, AdditionalToolbarGroupComponent],

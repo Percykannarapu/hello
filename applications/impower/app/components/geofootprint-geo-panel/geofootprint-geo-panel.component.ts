@@ -1,6 +1,8 @@
-import { ImpProjectVarService } from './../../val-modules/targeting/services/ImpProjectVar.service';
+import { GeoAttribute } from '../../impower-datastore/state/geo-attributes/geo-attributes.model';
+import { selectGeoAttributeEntities } from '../../impower-datastore/state/impower-datastore.selectors';
+import { ImpProjectVarService } from '../../val-modules/targeting/services/ImpProjectVar.service';
 import { Component, OnInit } from '@angular/core';
-import { Observable, from, BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { AppStateService } from '../../services/app-state.service';
@@ -8,16 +10,14 @@ import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofoo
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeoAttribService } from '../../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
-import { ImpGeofootprintGeoAttrib } from '../../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintVarService } from '../../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { ConfirmationService } from 'primeng/primeng';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from '../../state/app.interfaces';
+import { select, Store } from '@ngrx/store';
+import { FullAppState } from '../../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { EsriMapService } from '@val/esri';
 
@@ -38,7 +38,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    public  allLocations$: Observable<ImpGeofootprintLocation[]>;
    public  allGeos$: Observable<ImpGeofootprintGeo[]>;
    public  allMustCovers$: Observable<string[]>;
-   public  allAttributes$: Observable<ImpGeofootprintGeoAttrib[]>;
+   public  allAttributes$: Observable<{ [geocode: string] : GeoAttribute }>;
    public  allVars$: Observable<ImpGeofootprintVar[]>;
 
    public  allImpGeofootprintGeos$: Observable<FlatGeo[]>;
@@ -67,13 +67,12 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    constructor(private impProjectVarService: ImpProjectVarService,
                private impGeofootprintGeoService: ImpGeofootprintGeoService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
-               private impGeofootprintGeoAttribService: ImpGeofootprintGeoAttribService,
                private impGeofootprintVarService: ImpGeofootprintVarService,
                private appStateService: AppStateService,
                private targetAudienceService: TargetAudienceService,
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
-               private store$: Store<LocalAppState>
+               private store$: Store<FullAppState>
                ) { }
 
    ngOnInit() {
@@ -113,10 +112,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       // The geo grid watches this for changes in must covers to set the column
       this.allMustCovers$ = this.impGeofootprintGeoService.allMustCoverBS$.asObservable();
 
-      this.allAttributes$ = this.impGeofootprintGeoAttribService.storeObservable
-                                .pipe(map(attribs => Array.from(attribs))
-                                  // ,tap(data => console.log("OBSERVABLE FIRED: impGeofootprintGeoAttribService", data))
-                                     );
+      this.allAttributes$ = this.store$.pipe(select(selectGeoAttributeEntities));
 
       this.allVars$ = this.impGeofootprintVarService.storeObservable
                           .pipe(map(vars => Array.from(vars))
@@ -314,6 +310,6 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    }
 
    public onForceRedraw() {
-      this.impGeofootprintGeoAttribService.makeDirty();
+      this.impGeofootprintGeoService.makeDirty();
    }
 }

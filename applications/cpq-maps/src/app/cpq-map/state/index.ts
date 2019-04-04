@@ -1,4 +1,5 @@
 import * as fromEsri from '@val/esri';
+import * as fromMessaging from '@val/messaging';
 import { SharedState } from './shared/shared.reducers';
 import { AdvertiserInfoState } from './advertiserInfo/advertiser-info.reducer';
 import { CbxReportState } from './cbxReport/cbx-report.reducer';
@@ -15,14 +16,13 @@ import { ObjectiveState } from './objective/objective.reducer';
 import { PpToWrapPageState } from './ppToWrapPage/pp-to-wrap-page.reducer';
 import { ProductAllocationState } from './productAllocation/product-allocation.reducer';
 import { TargetAudienceState } from './targetAudience/target-audience.reducer';
-import { createSelector, createFeatureSelector } from '@ngrx/store';
+import { createSelector } from '@ngrx/store';
 import { RfpUiEditDetailState } from './rfpUiEditDetail/rfp-ui-edit-detail.reducer';
 import { RfpUiReviewState } from './rfpUiReview/rfp-ui-review.reducer';
 import { RfpUiEditState } from './rfpUiEdit/rfp-ui-edit.reducer';
 import { RfpUiEditWrapState } from './rfpUiEditWrap/rfp-ui-edit-wrap.reducer';
 
-
-export interface FullState extends LocalState, fromEsri.AppState {}
+export interface FullState extends LocalState, fromEsri.AppState, fromMessaging.AppState {}
 
 export interface LocalState {
    shared: SharedState;
@@ -47,14 +47,18 @@ export interface LocalState {
    rfpUiEditWrap: RfpUiEditWrapState;
 }
 const getState = (state: LocalState) => state;
+
 const getSharedState = createSelector(getState, state => state.shared);
-const getEntitiesLoading = createSelector(getState, state => state.shared.entitiesLoading);
-const getAppReady = createSelector(getState, state => state.shared.appReady);
 const getRfpUiEditDetails = createSelector(getState, state => state.rfpUiEditDetail);
+
+//const getEntitiesLoading = createSelector(getSharedState, state => state.entitiesLoading);
+const getAppReady = createSelector(getSharedState, state => state.appReady);
+const getSelectedAnalysisLevel = createSelector(getSharedState, state => state.analysisLevel);
 
 export const localSelectors = {
    getSharedState,
-   getEntitiesLoading,
+  // getEntitiesLoading,
    getAppReady,
-   getRfpUiEditDetails
+   getRfpUiEditDetails,
+   getSelectedAnalysisLevel
 };

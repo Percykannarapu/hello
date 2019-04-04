@@ -1,13 +1,17 @@
-<div style="overflow: hidden;">
-   <div *ngIf="panelSize === 'small'" style="width: 20%; float: left; height: 750px;">
+<!--<div class="title-bar">-->
+<!--  Title bar-->
+<!--</div>-->
+<div class="app-content">
+   <div *ngIf="panelSize === 'small'" class="small-grid">
       <val-grid [smallSizeTable]=true></val-grid>
    </div>
-   <div *ngIf="panelSize === 'large'" style="width: 33%; float: left; height: 750px;">
+   <div *ngIf="panelSize === 'large'" class="large-grid">
       <val-grid [smallSizeTable]=false></val-grid>
    </div>
-   <div style="overflow: hidden;">
+   <div class="map-container">
       <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="true">
          <additional-toolbar-group (onPanelChange)="onPanelChange($event)"></additional-toolbar-group>
       </val-esri-map-panel>
    </div>
 </div>
+<val-busy-indicator></val-busy-indicator>

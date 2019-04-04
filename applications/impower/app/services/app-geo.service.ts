@@ -1,22 +1,24 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { combineLatest, merge, Observable } from 'rxjs';
+import { merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
+import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
 import { LocationQuadTree } from '../models/location-quad-tree';
+import { ProjectFilterChanged } from '../models/ui-enums';
 import { LocalAppState } from '../state/app.interfaces';
+import { FiltersChanged } from '../state/data-shim/data-shim.actions';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintGeoAttrib } from '../val-modules/targeting/models/ImpGeofootprintGeoAttrib';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeoAttribService } from '../val-modules/targeting/services/ImpGeofootprintGeoAttribService';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
@@ -25,9 +27,8 @@ import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
-import { AppStateService, Season } from './app-state.service';
+import { AppStateService } from './app-state.service';
 
-const boundaryAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
 
 interface AttributeDistance {
@@ -40,9 +41,10 @@ interface AttributeDistance {
 })
 export class AppGeoService {
 
+  currentGeos$: Observable<ImpGeofootprintGeo[]>;
+
   private validAnalysisLevel$: Observable<string>;
   public  allMustCovers$: Observable<string[]>;
-  public  locMustCovers$: Observable<string[]>;
   private processingMustCovers: boolean = false;
 
   constructor(private appStateService: AppStateService,
@@ -52,7 +54,6 @@ export class AppGeoService {
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private varService: ImpGeofootprintVarService,
               private impGeoService: ImpGeofootprintGeoService,
-              private impAttributeService: ImpGeofootprintGeoAttribService,
               private appProjectPrefService: AppProjectPrefService,
               private queryService: EsriQueryService,
               private config: AppConfig,
@@ -60,20 +61,19 @@ export class AppGeoService {
               private store$: Store<LocalAppState>,
               private logger: AppLoggingService) {
     this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
+    this.currentGeos$ = this.impGeoService.storeObservable;
     this.setupRadiusSelectionObservable();
     this.setupHomeGeoSelectionObservable();
-    this.setupGeoAttributeUpdateObservable();
     this.setupFilterGeosObservable();
     this.setupMapClickEventHandler();
 
     // Detect changes in must covers list and call ensureMustCovers
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
-    this.allMustCovers$.subscribe(mustCovers => {
-       //mustCovers.forEach(mustCover => console.debug("### APP-GEO-SERVICE - allMustCoverObs - ", mustCover));
+    this.allMustCovers$.subscribe(() => {
        this.ensureMustCovers();
     });
 
-    this.locationService.storeObservable.subscribe(l => {
+    this.locationService.storeObservable.subscribe(() => {
        this.ensureMustCovers();
     });
 
@@ -86,7 +86,11 @@ export class AppGeoService {
 
   clearAll() : void {
     this.impGeoService.clearAll();
-    this.impAttributeService.clearAll();
+    this.store$.dispatch(new ClearGeoAttributes());
+  }
+
+  notify() : void {
+    this.impGeoService.makeDirty();
   }
 
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
@@ -110,16 +114,12 @@ export class AppGeoService {
 
     const tradeAreas = new Set<ImpGeofootprintTradeArea>(geos.map(g => g.impGeofootprintTradeArea));
     const geoSet = new Set<ImpGeofootprintGeo>(geos);
+    const geocodes = new Set<string>(geos.map(g => g.geocode));
     // remove entities from the hierarchy
     tradeAreas.forEach(ta => ta.impGeofootprintGeos = ta.impGeofootprintGeos.filter(g => !geoSet.has(g)));
     geos.forEach(g => g.impGeofootprintTradeArea = null);
     // remove from data stores
-    const attributes = simpleFlatten(geos.map(g => g.impGeofootprintGeoAttribs));
-    geos.forEach(geo => geo.impGeofootprintGeoAttribs = []);
-    if (attributes.length > 0) {
-      attributes.forEach(a => a.impGeofootprintGeo = null);
-      this.impAttributeService.remove(attributes);
-    }
+    this.store$.dispatch(new DeleteGeoAttributes({ ids: Array.from(geocodes) }));
     this.impGeoService.remove(geos);
   }
 
@@ -128,11 +128,12 @@ export class AppGeoService {
    */
   private setupRadiusSelectionObservable() : void {
     // The root sequence is Radius only trade areas for Sites (not competitors)
-    combineLatest(this.appStateService.siteTradeAreas$, this.appStateService.applicationIsReady$).pipe(
+    this.tradeAreaService.storeObservable.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
       // halt the sequence if the project is still loading
-      filter(([tradeAreaMap, isReady]) => isReady),
+      filter(([tradeAreas, isReady]) => isReady),
       // flatten the data to a 1-dimension array
-      map(([tradeAreaMap]) => simpleFlatten(Array.from(tradeAreaMap.values()))),
+      map(([tradeAreas]) => tradeAreas),
       // keep all trade areas that have no geos and has not been marked complete
       map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintGeos.length === 0 && ta['isComplete'] !== true)),
       // halt the sequence if there are no trade areas remaining at this point
@@ -144,44 +145,16 @@ export class AppGeoService {
    * Sets up an observable sequence that fires when a location is missing its home geo in any trade area
    */
   private setupHomeGeoSelectionObservable() : void {
-    // The root sequence is locations, but I also want to fire when geos change, though I never use them directly
-    const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radius, TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
-    combineLatest(this.locationService.storeObservable,
-      this.impGeoService.storeObservable,
-      this.appStateService.applicationIsReady$).pipe(
-      // halt the sequence if the project is still loading
-      filter(([locations, geos, isReady]) => isReady),
-      // keep only locations identified as sites
-      map(([locations]) => locations.filter(loc => loc.clientLocationTypeCode === 'Site')),
-      // keep locations that have a home geocode identified
-      map(locations => locations.filter(loc => loc.homeGeocode != null && loc.homeGeocode.length > 0)),
-      // keep locations that have not had a home geocoding error
-      //map(locations => locations.filter(loc => loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y').length === 0)),
-      // keep locations that have trade areas defined
-      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType))).length > 0)),
-      // keep sites that do not already have their home geo selected
-      map(locations => locations.filter(loc => loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)),
-      // keep locations where finished radius count matches all radius count
-      map(locations => locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS' && ta['isComplete'] !== true).length === 0)),
-      // halt the sequence if there are no locations remaining
-      filter(locations => locations.length > 0)
+    const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
+    this.impGeoService.storeObservable.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$, this.appStateService.allClientLocations$),
+      filter(([geo, isReady, locs]) => isReady && locs.length > 0),
+      map(([geo, isReady, locs]) => locs),
+      filterArray(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
+                                                                      (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
+                              loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
+                              loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)
     ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
-  }
-
-  /**
-   * Sets up an observable sequence that fires when any geocode is added to the data store
-   */
-  private setupGeoAttributeUpdateObservable() : void {
-    combineLatest(this.impGeoService.storeObservable, this.appStateService.applicationIsReady$)
-      .pipe(
-        // halt the sequence if the project is loading
-        filter(([geos, isReady]) => isReady),
-        map(([geos]) => geos.filter(g => g.impGeofootprintGeoAttribs.length === 0)),
-        filter(geos => geos.length > 0),
-        withLatestFrom(this.validAnalysisLevel$)
-      ).subscribe(
-        ([geos, analysisLevel]) => this.updateAttributesFromLayer(geos, analysisLevel)
-      );
   }
 
   private setupMapClickEventHandler() {
@@ -192,29 +165,6 @@ export class AppGeoService {
         this.toggleGeoSelection(event.geocode, event.geometry);
       });
     });
-  }
-
-  private updateAttributesFromLayer(geos: ImpGeofootprintGeo[], analysisLevel: string) {
-    const queryableGeos = geos.filter(g => g.impGeofootprintGeoAttribs.length < boundaryAttributes.length); // HACK: This is to detect anyone who hasn't gone through this particular query
-    if (queryableGeos.length === 0) return;
-    const key = 'GeoAttributeSelectionKey';
-    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Getting Attributes' }));
-    const geocodes = new Set(queryableGeos.map(g => g.geocode));
-    const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    this.queryService.queryAttributeIn(portalId, 'geocode', Array.from(geocodes), false, boundaryAttributes).subscribe(
-      graphics => {
-        const attributesForUpdate = graphics.map(g => g.attributes);
-        this.updateGeoAttributes(attributesForUpdate);
-      },
-      err => {
-        console.error(err);
-        this.store$.dispatch(new ErrorNotification({ message: 'There was an error during geo selection' }));
-        this.store$.dispatch(new StopBusyIndicator({ key }));
-      },
-      () => {
-        this.filterGeosImpl(geos);
-        this.store$.dispatch(new StopBusyIndicator({ key }));
-      });
   }
 
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
@@ -274,22 +224,29 @@ export class AppGeoService {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
     const allSelectedData: __esri.Graphic[] = [];
     const key = 'selectAndPersistHomeGeos';
-    const allHomeGeos = locations.map(loc => loc.homeGeocode);
-    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Trade Areas...' }));
-    this.queryService.queryAttributeIn(layerId, 'geocode', allHomeGeos, false, centroidAttributes)
-      .subscribe(
-        selections => allSelectedData.push(...selections),
-        err => {
-          console.error(err);
-          this.store$.dispatch(new StopBusyIndicator({ key }));
-        },
-        () => {
-          const homeGeocodes = this.createHomeGeos(allSelectedData, locations);
-          if (homeGeocodes.length > 0) {
-            this.impGeoService.add(homeGeocodes);
-          }
-          this.store$.dispatch(new StopBusyIndicator({ key }));
-        });
+    const validLocations = locations.filter(l => l.homeGeocode != null && l.homeGeocode.length > 0);
+    const invalidLocations = locations.filter(l => l.homeGeocode == null || l.homeGeocode.length === 0);
+    if (validLocations.length > 0) {
+      this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Trade Areas...' }));
+      this.queryService.queryAttributeIn(layerId, 'geocode', validLocations.map(l => l.homeGeocode), false, centroidAttributes)
+        .subscribe(
+          selections => allSelectedData.push(...selections),
+          err => {
+            console.error(err);
+            this.store$.dispatch(new StopBusyIndicator({ key }));
+          },
+          () => {
+            const homeGeocodes = this.createHomeGeos(allSelectedData, locations);
+            if (homeGeocodes.length > 0) {
+              this.impGeoService.add(homeGeocodes);
+            }
+            this.store$.dispatch(new StopBusyIndicator({ key }));
+          });
+    }
+    if (invalidLocations.length > 0) {
+      this.flagLocationsWithInvalidHomeGeos(invalidLocations);
+      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message: `There were ${invalidLocations.length} location(s) that have an empty Home Geocode`, additionalErrorInfo: locations}));
+    }
   }
 
   public clearAllGeos(keepRadiusGeos: boolean, keepAudienceGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
@@ -359,7 +316,7 @@ export class AppGeoService {
 
   private createGeosToPersist(locationMap: Map<ImpGeofootprintLocation, AttributeDistance[]>, tradeAreaSet: Set<ImpGeofootprintTradeArea>) : ImpGeofootprintGeo[] {
     const geosToSave: ImpGeofootprintGeo[] = [];
-    const allAttributes = [];
+    const allAttributes: GeoAttribute[] = [];
     locationMap.forEach((attributes, location) => {
       const currentTas = location.impGeofootprintTradeAreas.filter(ta => tradeAreaSet.has(ta));
       for (let i = 0; i < currentTas.length; ++i) {
@@ -379,7 +336,7 @@ export class AppGeoService {
       }
     });
     this.logger.debug('Total geo count:', geosToSave.length);
-    //this.updateGeoAttributes(allAttributes, geosToSave);
+    if (allAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({ geoAttributes: allAttributes }));
     return geosToSave;
   }
 
@@ -400,6 +357,7 @@ export class AppGeoService {
   private createHomeGeos(homeCentroids: __esri.Graphic[], locations: ImpGeofootprintLocation[]) : ImpGeofootprintGeo[] {
     const homeGeosToAdd: ImpGeofootprintGeo[] = [];
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+    const newGeoAttributes: GeoAttribute[] = [];
     const homeGeoMap: Map<string, ImpGeofootprintLocation[]> = groupBy(locations, 'homeGeocode');
     if (homeCentroids.length > 0 ) {
       homeCentroids.forEach(centroid => {
@@ -425,24 +383,32 @@ export class AppGeoService {
               });
               homeGeoTA[0].impGeofootprintGeos.push(newGeo);
               homeGeosToAdd.push(newGeo);
+              newGeoAttributes.push(centroid.attributes);
             }
           });
         }
       });
     } else {
-      const newLocationAttributes = [];
-      locations.forEach(l => {
-          const attr = this.domainFactory.createLocationAttribute(l, 'Home Geocode Issue', 'Y');
-          if (attr != null) newLocationAttributes.push(attr);
-      });
-      if (locations.length > 0){
-        this.locationAttrService.add(newLocationAttributes);
-        this.locationService.makeDirty();
-        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message: `There were ${locations.length} location(s) that could not find their Home Geocode`, additionalErrorInfo: locations}));
-      }
+      this.flagLocationsWithInvalidHomeGeos(locations);
+      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message: `There were ${locations.length} location(s) that have invalid Home Geocodes`, additionalErrorInfo: locations}));
     }
     if (newTradeAreas.length > 0) this.tradeAreaService.add(newTradeAreas);
+    if (newGeoAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({ geoAttributes: newGeoAttributes }));
     return homeGeosToAdd;
+  }
+
+  private flagLocationsWithInvalidHomeGeos(locations: ImpGeofootprintLocation[]) : void {
+    const newLocationAttributes = [];
+    locations.forEach(l => {
+      const attr1 = this.domainFactory.createLocationAttribute(l, 'Home Geocode Issue', 'Y');
+      const attr2 = this.domainFactory.createLocationAttribute(l, 'Invalid Home Geo', 'Y');
+      if (attr1 != null) newLocationAttributes.push(attr1);
+      if (attr2 != null) newLocationAttributes.push(attr2);
+    });
+    if (locations.length > 0){
+      this.locationAttrService.add(newLocationAttributes);
+      this.locationService.makeDirty();
+    }
   }
 
   /**
@@ -493,18 +459,18 @@ export class AppGeoService {
 
       return Observable.create(async observer => {
          try {
-            if (this.impGeoService.mustCovers == null || this.impGeoService.mustCovers.length === 0 || diff == null || diff.length == 0 || locations == null || locations.length == 0)
+            if (this.impGeoService.mustCovers == null || this.impGeoService.mustCovers.length === 0 || diff == null || diff.length === 0 || locations == null || locations.length === 0)
             {
-               console.debug('ensureMustCoversObs - Must cover criteria not met, ending observable');
-               // console.debug("### this.impGeoService.mustCovers: " + ((this.impGeoService.mustCovers != null) ? this.impGeoService.mustCovers.length : null));
-               // console.debug("### diff: " + ((diff != null) ? diff.length : null));
-               // console.debug("### locations: " + ((locations != null) ? locations.length : null));
+               console.log('ensureMustCoversObs - Must cover criteria not met, ending observable');
+               // console.log("### this.impGeoService.mustCovers: " + ((this.impGeoService.mustCovers != null) ? this.impGeoService.mustCovers.length : null));
+               // console.log("### diff: " + ((diff != null) ? diff.length : null));
+               // console.log("### locations: " + ((locations != null) ? locations.length : null));
                observer.complete();
                this.processingMustCovers = false;
             }
             else
             {
-               console.log("ensureMustCoverObs - " + ((diff != null) ? diff.length : 0) + " geos not covered.");
+               console.log('ensureMustCoverObs - ' + diff.length + ' geos not covered.');
                this.processingMustCovers = true;
                this.getGeoAttributesObs(diff).subscribe(
                   results => {
@@ -516,7 +482,7 @@ export class AppGeoService {
 
                         // Assign to the nearest location
                         let closestLocation: ImpGeofootprintLocation;
-                        let minDistance: number = 999999;
+                        let minDistance: number = Number.MAX_VALUE;
                         locations.forEach(loc => {
                            const distanceToSite = EsriUtils.getDistance(geoAttrib['longitude'], geoAttrib['latitude'], loc.xcoord, loc.ycoord);
                            if (distanceToSite < minDistance) {
@@ -590,7 +556,7 @@ export class AppGeoService {
          // console.debug("### mustCovers are already processing");
          return;
       }
-      console.debug("ensureMustCovers fired");
+      console.log('ensureMustCovers fired');
       const geosToPersist: Array<ImpGeofootprintGeo> = [];
       const key = 'ensureMustCovers';
       this.store$.dispatch(new StartBusyIndicator({ key: key, message: 'Ensuring Must Covers' }));
@@ -624,7 +590,7 @@ export class AppGeoService {
       //console.debug("### reloadMustCovers fired");
       let newMustCovers: string[] = [];
       try {
-         let prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup('MUSTCOVER');
+         const prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup('MUSTCOVER');
          //console.debug("### prefs.Count = " + ((prefs != null) ? prefs.length : null));
          if (prefs != null)
          {
@@ -636,7 +602,7 @@ export class AppGeoService {
          //this.impGeoService.mustCovers.forEach(mc => console.log("### MC: " + mc));
       }
       catch (e) {
-         console.error ("### Error loading must covers: " + e);
+         console.error ('### Error loading must covers: ' + e);
       }
    }
 
@@ -673,97 +639,6 @@ export class AppGeoService {
       });
    }
 
-  private filterGeosImpl(geos: ImpGeofootprintGeo[]) {
-    console.log('Filtering Geos Based on Flags');
-    const currentProject = this.appStateService.currentProject$.getValue();
-    // filter out geos belonging to audience trade areas
-    const currentGeos = geos.filter(g => TradeAreaTypeCodes.parse(g.impGeofootprintTradeArea.taType) !== TradeAreaTypeCodes.Audience);
-    if (currentProject == null || currentGeos == null || currentGeos.length === 0) return;
-
-    const includeValassis = currentProject.isIncludeValassis;
-    const includeAnne = currentProject.isIncludeAnne;
-    const includeSolo = currentProject.isIncludeSolo;
-    const includePob = !currentProject.isExcludePob;
-    const ownerGroupGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'owner_group_primary'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const soloGeosMap: Map<string, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'cov_frequency'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-    const pobGeosMap: Map<any, ImpGeofootprintGeo[]> = groupBy(simpleFlatten(currentGeos.map(g => g.impGeofootprintGeoAttribs.filter(a => a.attributeCode === 'is_pob_only' || a.attributeCode === 'pob'))), 'attributeValue', attrib => attrib.impGeofootprintGeo);
-
-    if (ownerGroupGeosMap.has('VALASSIS')) {
-      ownerGroupGeosMap.get('VALASSIS').forEach(geo => {
-        geo.isActive = includeValassis;
-        if (geo.isActive === false) {
-          geo['filterReasons'] = 'Filtered because: VALASSIS';
-        } else geo['filterReasons'] = null;
-      });
-    }
-    if (ownerGroupGeosMap.has('ANNE')) {
-      ownerGroupGeosMap.get('ANNE').forEach(geo => {
-        geo.isActive = includeAnne;
-        if (geo.isActive === false) {
-          geo['filterReasons'] = 'Filtered because: ANNE';
-        } else geo['filterReasons'] = null;
-      });
-    }
-    if (soloGeosMap.has('Solo')) {
-      soloGeosMap.get('Solo').forEach(geo => {
-        geo.isActive = includeSolo;
-        if (geo.isActive === false) {
-          geo['filterReasons'] = 'Filtered because: SOLO';
-        } else geo['filterReasons'] = null;
-      });
-    }
-
-    if (!includePob && (pobGeosMap.has(1) || pobGeosMap.has('B'))) {
-
-      const centroidPobs = pobGeosMap.get(1) || [];
-      const topVarPobs = pobGeosMap.get('B') || [];
-      const allPobs = [...centroidPobs, ...topVarPobs];
-
-      allPobs.forEach(geo => {
-        geo.isActive = includePob;
-        if (geo.isActive === false) {
-          geo['filterReasons'] = 'Filtered because: POB';
-        } else geo['filterReasons'] = null;
-      });
-
-    }
-  }
-
-  public filterGeosOnFlags(geos: ImpGeofootprintGeo[]) {
-    this.filterGeosImpl(geos);
-    this.impGeoService.makeDirty();
-    //this.impAttributeService.makeDirty();
-  }
-
-  private updateGeoAttributes(layerAttribute: any[], geos?: ImpGeofootprintGeo[]) {
-    const currentGeos = geos || this.impGeoService.get();
-    const isSummer = this.appStateService.season$.getValue() === Season.Summer;
-    const geoMap: Map<string, ImpGeofootprintGeo[]> = groupBy(currentGeos, 'geocode');
-    const attributesToIgnore = new Set(['geocode', 'geometry_type']);
-    const newAttributes: ImpGeofootprintGeoAttrib[] = [];
-    for (const attribute of layerAttribute) {
-      if (attribute.geocode && geoMap.has(attribute.geocode)) {
-        geoMap.get(attribute.geocode).forEach(geo => {
-          geo.hhc = Number(isSummer ? attribute.hhld_s : attribute.hhld_w);
-          Object.entries(attribute).forEach(([k, v]: [string, any]) => {
-            try {
-              if (!attributesToIgnore.has(k)) {
-                const newAttribute = this.domainFactory.createGeoAttribute(geo, k, v);
-                if (newAttribute != null) {
-                  newAttributes.push(newAttribute);
-                }
-              }
-            } catch (err) {
-              console.error('Error creating geo attribute: ', { err, geo, attribute });
-            }
-          });
-        });
-      }
-    }
-    if (newAttributes.length > 0)
-       this.impAttributeService.add(newAttributes);
-  }
-
   private deselectGeosByGeocode(geocode: string) : void {
     const geosToRemove = this.impGeoService.get().filter(geo => geo.geocode === geocode);
     const geosToDelete = new Set(geosToRemove.filter(geo => geo.impGeofootprintTradeArea.taType === 'MANUAL'));
@@ -771,7 +646,6 @@ export class AppGeoService {
     if (geosToDeactivate.length > 0) {
       geosToDeactivate.forEach(geo => geo.isActive = false);
       if (geosToDelete.size === 0) {
-        this.impAttributeService.makeDirty();
         this.impGeoService.makeDirty();
       }
     }
@@ -784,7 +658,6 @@ export class AppGeoService {
     this.impGeoService.get()
       .filter(geo => geo.geocode === geocode)
       .forEach(geo => {
-        geo.impGeofootprintGeoAttribs.forEach(a => a.isActive = true);
         geo.isActive = true;
       });
     this.impGeoService.update(null, null);
@@ -812,28 +685,32 @@ export class AppGeoService {
   }
 
   private setupFilterGeosObservable() : void {
-    const valassisFlag$ = this.appStateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => project.isIncludeValassis),
-      distinctUntilChanged()
-    );
-    const anneFlag$ = this.appStateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => project.isIncludeAnne),
-      distinctUntilChanged()
-    );
-    const soloFlag$ = this.appStateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => project.isIncludeSolo),
-      distinctUntilChanged()
-    );
-    const pobFlag$ = this.appStateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => project.isExcludePob),
-      distinctUntilChanged()
-    );
-    combineLatest(valassisFlag$, anneFlag$, soloFlag$, pobFlag$)
-      // .pipe(tap(([v, a, s, p]) => console.log('Valassis, Anne, Solo, POB: ', v, a, s, p)))
-      .subscribe(() => this.filterGeosOnFlags(this.impGeoService.get()));
+    this.appStateService.currentProject$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([project, isReady]) => project != null && isReady),
+      map(([project]) => project.isIncludeValassis),
+      distinctUntilChanged(),
+    ).subscribe(() => this.store$.dispatch(new FiltersChanged({ filterChanged: ProjectFilterChanged.Valassis })));
+
+    this.appStateService.currentProject$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([project, isReady]) => project != null && isReady),
+      map(([project]) => project.isIncludeAnne),
+      distinctUntilChanged(),
+    ).subscribe(() => this.store$.dispatch(new FiltersChanged({ filterChanged: ProjectFilterChanged.Anne })));
+
+    this.appStateService.currentProject$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([project, isReady]) => project != null && isReady),
+      map(([project]) => project.isIncludeSolo),
+      distinctUntilChanged(),
+    ).subscribe(() => this.store$.dispatch(new FiltersChanged({ filterChanged: ProjectFilterChanged.Solo })));
+
+    this.appStateService.currentProject$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([project, isReady]) => project != null && isReady),
+      map(([project]) => project.isExcludePob),
+      distinctUntilChanged(),
+    ).subscribe(() => this.store$.dispatch(new FiltersChanged({ filterChanged: ProjectFilterChanged.Pob })));
   }
 }

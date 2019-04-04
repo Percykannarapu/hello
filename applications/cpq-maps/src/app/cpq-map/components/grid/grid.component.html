@@ -1,6 +1,6 @@
 <div style="height: 100%;">
     <p-table #dt [columns]="columns" [value]="rows" [scrollable]="true" scrollWidth="100%" scrollHeight="100%" [style]="{'font-size':'1em'}"
-        [resizableColumns]="true" columnResizeMode="expand">
+        [resizableColumns]="true" columnResizeMode="expand" (onRowSelect)="onChangeRowSelection($event)" (onRowUnselect)="onChangeRowSelection($event)" [(selection)]="selectedRows">
         <ng-template pTemplate="caption">
             <div class="ui-g" style="text-align: left">
                 <div class="ui-g-12">
@@ -10,18 +10,24 @@
         </ng-template>
         <ng-template pTemplate="colgroup" let-columns>
             <colgroup>
-                <col *ngFor="let col of columns" [style.width]="col.width">
+                <col style="width: 30px;" />
+                <col *ngFor="let col of columns" [style.width]="col.width" />
             </colgroup>
         </ng-template>
         <ng-template pTemplate="header" let-columns style="width: 100%">
             <tr>
+                <th style="width: 30px; padding: 0%">
+                </th>
                 <th *ngFor="let col of columns" [pSortableColumn]="col.field">
                     {{col.header}}
                 </th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowData let-columns="columns">
-            <tr>
+            <tr [pSelectableRow]="rowData">
+                <td style="padding: 0%; width: 30px; border-style: solid; border-color: #c8c8c8; border-spacing: 2px; border-width: 1px; text-align: center">
+                    <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                </td>
                 <td *ngFor="let col of columns" style="border-style: solid; border-color: #c8c8c8; border-spacing: 2px; border-width: 1px">
                     {{rowData[col.field]}}
                 </td>

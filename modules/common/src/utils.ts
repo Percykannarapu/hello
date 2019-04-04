@@ -116,6 +116,23 @@ export function mergeArrayMaps<K, V>(newValues: Map<K, V[]>, accumulator: Map<K,
 }
 
 /**
+ * A helper function to allow succinct array accumulation without the need for spread syntax, which can error out with very large arrays.
+ * @param accumulator - The accumulator. If null, will be initialized with an empty array.
+ * @param currentData - The current array to concat into the accumulator. If null, will be ignored, and accumulator will simply pass through.
+ * @param eliminateNulls - Remove nulls and undefined values before accumulating (optional, defaults to true)
+ * @param allocateNewAccumulator - Allocate a new array reference for the accumulator (optional, defaults to false)
+ */
+export function accumulateArrays<T>(accumulator: T[], currentData: T[], eliminateNulls: boolean = true, allocateNewAccumulator: boolean = false) : T[] {
+  const newAccumulator: T[] = allocateNewAccumulator ? Array.from(accumulator || []) : accumulator || [];
+  if (currentData != null && currentData.length > 0) {
+    for (let i = 0; i < currentData.length; ++i) {
+      if (!eliminateNulls || currentData[i] != null) newAccumulator.push(currentData[i]);
+    }
+  }
+  return newAccumulator;
+}
+
+/**
  * Flattens a two dimensional array. Use completeFlatten() for an 3+ or arbitrary dimensional array
  * @param {T[][]} items
  * @returns {T[]}
@@ -229,4 +246,8 @@ export function formatMilli(a,k?,sub?,s?,m?,h?){
     (h || m || s >= 10 ? s+'s': (s >= 1 ? (s+k/1000) + 's' : '')) +
     (!h && !m && s == 0 && k >= 1 ? (k/1000) + 's' : '') +
     (!h && !m && !s && !k ? sub + 'ms' : '');
+}
+
+export function dedupeSimpleSet<T>(newValues: Set<T>, previousValues: Set<T>) : Set<T> {
+  return new Set(Array.from(newValues).filter(v => !previousValues.has(v)));
 }

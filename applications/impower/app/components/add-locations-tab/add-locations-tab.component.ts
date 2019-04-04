@@ -20,7 +20,7 @@ import { ManualEntryComponent } from './manual-entry/manual-entry.component';
 import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
-import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
+import { Geocode, HomeGeocode } from '../../state/homeGeocode/homeGeo.actions';
 
 @Component({
   selector: 'val-add-locations-tab',
@@ -33,8 +33,7 @@ export class AddLocationsTabComponent implements OnInit {
   @ViewChild('manualCompetitorEntry') manualCompetitorEntry: ManualEntryComponent;
 
   isProd: boolean = environment.production;
-  businessSearchLimit: number = 20000;
-  private customTradeAreaBuffer: string; 
+  businessSearchLimit: number = 20000; 
 
   hasFailures$: Observable<boolean>;
   totalCount$: Observable<number>;
@@ -62,12 +61,6 @@ export class AddLocationsTabComponent implements OnInit {
         this.manuallyGeocode(message.siteData, message.type, message.isEdit);
       }   
     });
-    
-    this.appEditSiteService.customData$.subscribe(message => {
-      if (message != undefined && message['data'] != undefined && message != null) {
-        this.customTradeAreaBuffer = message['data'];
-      }
-    });
 
     this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
       map(([sites, competitors]) => [...sites, ...competitors])
@@ -93,12 +86,32 @@ export class AddLocationsTabComponent implements OnInit {
 
   accept(site: ImpGeofootprintLocation) {
     site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
-    this.appLocationService.notifySiteChanges();
+    if (site.recordStatusCode === 'PROVIDED'){
+      const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+      site.impGeofootprintLocAttribs.forEach(attr => {
+        if (homeGeoColumnsSet.has(attr.attributeCode)){
+          attr.attributeValue = '';
+        }
+      });
+      site['homeGeoFound'] = null;
+      const reCalculateHomeGeos = false;
+      const isLocationEdit =  false;
+      const locations = [site];
+      this.store$.dispatch(new HomeGeocode({locations, isLocationEdit, reCalculateHomeGeos}));
+    }
+    else
+      this.appLocationService.notifySiteChanges();
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
   }
 
   resubmit(site: ImpGeofootprintLocation) {
+    const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+    site.impGeofootprintLocAttribs.forEach(attr => {
+      if (homeGeoColumnsSet.has(attr.attributeCode)){
+        attr.attributeValue = '';
+      }
+    });
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
     const newRequest = new ValGeocodingRequest(site, true);
@@ -108,22 +121,6 @@ export class AddLocationsTabComponent implements OnInit {
     this.processSiteRequests(newRequest, newSiteType);
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
-  }
-
-  private tradeAreaApplyOnEdit() {
-   if (this.customTradeAreaBuffer != undefined && this.customTradeAreaBuffer != null && this.customTradeAreaBuffer != '') {
-      this.appEditSiteService.customTradeArea({'data': this.customTradeAreaBuffer});
-   }
-   
-   if (this.appTradeAreaService.tradeareaType == 'audience') {
-     this.audienceTradeAreaService.createAudienceTradearea(this.audienceTradeAreaService.getAudienceTAConfig())
-     .subscribe(null,
-     error => {
-       console.error('Error while creating audience tradearea', error);
-       this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
-       this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
-     });
-   } 
   }
 
   manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, isEdit?: boolean){
@@ -144,10 +141,12 @@ export class AddLocationsTabComponent implements OnInit {
   }
 
   processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
-    console.log('Processing requests:', siteOrSites);
+    //console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
+    const reCalculateHomeGeos = false;
+    const isLocationEdit =  isEdit;
     //this.store$.dispatch(new StartBusyIndicatorx({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
-    this.store$.dispatch(new Geocode({sites, siteType}));
+    this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
     /*const locationCache: ImpGeofootprintLocation[] = [];
     this.appLocationService.geocode(sites, siteType).subscribe(
       locations => locationCache.push(...locations),

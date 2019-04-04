@@ -18,7 +18,7 @@ export class EsriLayerService {
 
   private groupRefs = new Map<string, __esri.GroupLayer>();
   private portalGroupRefs = new Map<string, __esri.GroupLayer>();
-  private layerRefs = new Map<string, __esri.FeatureLayer>();
+  private layerRefs = new Map<string, __esri.Layer>();
   private portalRefs = new Map<string, __esri.FeatureLayer>();
   private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
   private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
@@ -86,7 +86,7 @@ export class EsriLayerService {
     if (this.portalGroupRefs.has(groupName)) return this.portalGroupRefs.get(groupName);
     const group = new EsriApi.GroupLayer({
       title: groupName,
-      listMode: 'show-children',
+      listMode: 'show',
       visible: isVisible
     });
     this.mapService.mapView.map.layers.unshift(group);
@@ -94,11 +94,11 @@ export class EsriLayerService {
     return group;
   }
 
-  public createClientGroup(groupName: string, isVisible: boolean, bottom: boolean = false) : void {
+  public createClientGroup(groupName: string, isVisible: boolean, bottom: boolean = false) : __esri.GroupLayer {
     if (this.groupRefs.has(groupName)) return;
     const group = new EsriApi.GroupLayer({
       title: groupName,
-      listMode: 'show-children',
+      listMode: 'show',
       visible: isVisible
     });
     if (bottom) {
@@ -108,6 +108,7 @@ export class EsriLayerService {
     }
     
     this.groupRefs.set(groupName, group);
+    return group;
   }
 
   public createPortalLayer(portalId: string, layerTitle: string, minScale: number, defaultVisibility: boolean) : Observable<__esri.FeatureLayer> {
@@ -129,7 +130,7 @@ export class EsriLayerService {
     });
   }
 
-  private coordinatesToGraphics(coordinates: UniversalCoordinates[], symbol?: MapSymbols) : __esri.Graphic[] {
+  public coordinatesToGraphics(coordinates: UniversalCoordinates[], symbol?: MapSymbols) : __esri.Graphic[] {
     const graphics: Array<__esri.Graphic> = [];
     for (const coordinate of coordinates) {
       const point: __esri.Point = new EsriApi.Point();
@@ -145,12 +146,27 @@ export class EsriLayerService {
     return graphics;
   }
 
-  public createPointLayer(groupName: string, layerName: string, coordinates: UniversalCoordinates[], symbol?: MapSymbols) {
+  public createPointLayer(groupName: string, layerName: string, coordinates: UniversalCoordinates[], symbol?: MapSymbols, renderer?: __esri.Renderer) : __esri.FeatureLayer {
     const graphics = this.coordinatesToGraphics(coordinates, symbol);
-    this.createClientLayer(groupName, layerName, graphics, 'point');
+    return this.createClientLayer(groupName, layerName, graphics, 'point', null, null, renderer);
   }
 
-  public createClientLayer(groupName: string, layerName: string, sourceGraphics?: __esri.Graphic[], layerType?: layerGeometryType, popupEnabled?: boolean, popupContent?: string) : __esri.FeatureLayer {
+  public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], bottom: boolean = false) : __esri.GraphicsLayer {
+    if (!this.groupRefs.has(groupName)) {
+      this.createClientGroup(groupName, true, bottom);
+    }
+    const group = this.groupRefs.get(groupName);
+    const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
+    group.layers.unshift(layer);
+    this.layerRefs.set(layerName, layer);
+    return layer;
+  }
+
+  public getGraphicsLayer(layerName: string) : __esri.GraphicsLayer {
+    return <__esri.GraphicsLayer> this.layerRefs.get(layerName);
+  }
+
+  public createClientLayer(groupName: string, layerName: string, sourceGraphics?: __esri.Graphic[], layerType?: layerGeometryType, popupEnabled?: boolean, popupContent?: string, renderer?: __esri.Renderer) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
 
     if (!this.groupRefs.has(groupName)) {
@@ -161,10 +177,45 @@ export class EsriLayerService {
     if (sourceGraphics[0].attributes == null) {
       fields = [];
     } else {
-      fields = Object.keys(sourceGraphics[0].attributes).map(k => {
-        return { name: k, alias: k, type: 'string' };
-      });
+      fields = [{name: 'parentId', alias: 'parentId', type: 'oid'},
+      {name: 'dirty', alias: 'dirty', type: 'oid'},
+      {name: 'baseStatus', alias: 'baseStatus', type: 'string'},
+      {name: 'clientIdentifierId', alias: 'clientIdentifierId', type: 'oid'},
+      {name: 'locationName', alias: 'locationName', type: 'string'},
+      {name: 'marketName', alias: 'marketName', type: 'string'},
+      {name: 'marketCode', alias: 'marketCode', type: 'string'},
+      {name: 'description', alias: 'description', type: 'string'},
+      {name: 'groupName', alias: 'groupName', type: 'string'},
+      {name: 'locAddress', alias: 'locAddress', type: 'string'},
+      {name: 'locCity', alias: 'locCity', type: 'string'},
+      {name: 'locState', alias: 'locState', type: 'string'},
+      {name: 'locZip', alias: 'locZip', type: 'string'},
+      {name: 'xcoord', alias: 'xcoord', type: 'oid'},
+      {name: 'ycoord', alias: 'ycoord', type: 'oid'},
+      {name: 'origAddress1', alias: 'origAddress1', type: 'string'},
+      {name: 'origCity', alias: 'origCity', type: 'string'},
+      {name: 'origState', alias: 'origState', type: 'string'},
+      {name: 'origPostalCode', alias: 'origPostalCode', type: 'string'},
+      {name: 'recordStatusCode', alias: 'recordStatusCode', type: 'string'},
+      {name: 'geocoderMatchCode', alias: 'geocoderMatchCode', type: 'string'},
+      {name: 'geocoderLocationCode', alias: 'geocoderLocationCode', type: 'string'},
+      {name: 'clientIdentifierTypeCode', alias: 'clientIdentifierTypeCode', type: 'string'},
+      {name: 'radius1', alias: 'radius1', type: 'oid'},
+      {name: 'radius2', alias: 'radius2', type: 'oid'},
+      {name: 'radius3', alias: 'radius3', type: 'oid'},
+      {name: 'carrierRoute', alias: 'carrierRoute', type: 'string'},
+      {name: 'isActive', alias: 'isActive', type: 'oid'},
+      {name: 'clientLocationTypeCode', alias: 'clientLocationTypeCode', type: 'string'},
+      {name: 'locationNumber', alias: 'locationNumber', type: 'string'},
+      {name: 'homeGeoFound', alias: 'homeGeoFound', type: 'oid'},
+      {name: 'homeGeocode', alias: 'homeGeocode', type: 'string'}
+    ];
+      // fields = Object.keys(sourceGraphics[0].attributes).map(k => {
+      //   return { name: k, alias: k, type: 'string' };
+      // });
     }
+    const fieldsTest: any[] = [
+      {name: 'parentId', alias: 'parentId', type: 'oid'}];
     const layer = new EsriApi.FeatureLayer({
       source: sourceGraphics,
       objectIdField: 'parentId',
@@ -173,7 +224,8 @@ export class EsriLayerService {
       spatialReference: { wkid: 4326 },
       popupEnabled: popupEnabled,
       popupTemplate: new EsriApi.PopupTemplate({ content: (popupContent == null ? '{*}' : popupContent) }),
-      title: layerName
+      title: layerName,
+      renderer: renderer
     });
 
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
@@ -201,33 +253,39 @@ export class EsriLayerService {
 
   public addGraphicsToLayer(layerName: string, graphics: __esri.Graphic[]) : void {
     if (this.layerRefs.has(layerName)) {
-      this.layerRefs.get(layerName).source.addMany(graphics);
+      //this.layerRefs.get(layerName).source.addMany(graphics);
+      const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
+      layer.applyEdits({ addFeatures: graphics });
     }
   }
 
   public removeGraphicsFromLayer(layerName: string, graphics: __esri.Graphic[]) : void {
     if (this.layerRefs.has(layerName)) {
-      this.layerRefs.get(layerName).source.removeMany(graphics);
+     // this.layerRefs.get(layerName).source.removeMany(graphics);
+     const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
+     layer.applyEdits({ deleteFeatures: graphics });
     }
   }
 
   public replaceGraphicsOnLayer(layerName: string, graphics: __esri.Graphic[]) : void {
     if (this.layerRefs.has(layerName)) {
-      this.layerRefs.get(layerName).source.removeAll();
-      this.layerRefs.get(layerName).source.addMany(graphics);
+      // this.layerRefs.get(layerName).source.addMany(graphics);
+      const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
+      layer.source.removeAll();
+      layer.applyEdits({ addFeatures: graphics });
     }
   }
 
   public updateGraphicAttributes(layerName: string, graphics: __esri.Graphic[]) : void {
     if (this.layerRefs.has(layerName)) {
-      const layer = this.layerRefs.get(layerName);
+      const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
       layer.applyEdits({ updateFeatures: graphics });
     }
   }
 
   public setGraphicVisibility(layerName: string, graphics: __esri.Graphic[]) : void {
     if (this.layerRefs.has(layerName)) {
-      const layer = this.layerRefs.get(layerName);
+      const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
       for (const g of graphics) {
         const sourceGraphics = new Set(layer.source.toArray());
         if (g.visible) {
@@ -280,6 +338,9 @@ export class EsriLayerService {
       if (EsriUtils.layerIsPortalFeature(l)) {
         l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions[l.portalItem.id]);
         l.labelsVisible = labelConfig.enabled;
+      }
+      if (EsriUtils.layerIsFeature(l) && l.title == 'Project Sites') {
+        l.labelsVisible = labelConfig.siteEnabled;
       }
     });
   }

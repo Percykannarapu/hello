@@ -7,7 +7,7 @@ export const defaultEsriUrlFragments = {
 };
 
 export const defaultEsriConfig: EsriConfigOptions = {
-  url: 'https://js.arcgis.com/4.8/',
+  url: 'https://js.arcgis.com/4.10/',
   portalUrl:  null,
   request: {
     timeout: 120000
@@ -40,9 +40,9 @@ export const defaultEsriAppSettings: EsriAppSettings = {
     center: { longitude: -98.5795, latitude: 39.8282 },
     zoom: 4,
     highlightOptions : {
-      color: [0, 255, 0, 0.80],
-      fillOpacity: 0,
-      haloOpacity: 0.40
+      color: [0, 255, 0, 1],
+      fillOpacity: 0.17,
+      haloOpacity: 0
     },
     spatialReference: {
       wkid: 102100

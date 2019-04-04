@@ -37,11 +37,11 @@ export class ValGeocodingRequest {
 
   constructor();
   constructor(partial: Partial<ValGeocodingRequest>);
-  constructor(location: ImpGeofootprintLocation, useOriginalAddress?: boolean);
-  constructor(data?: ImpGeofootprintLocation | Partial<ValGeocodingRequest>, useOriginalAddress: boolean = false) {
+  constructor(location: ImpGeofootprintLocation, useOriginalAddress?: boolean, setRadii?: boolean);
+  constructor(data?: ImpGeofootprintLocation | Partial<ValGeocodingRequest>, useOriginalAddress: boolean = false, setRadii: boolean = false) {
     if (data != null) {
       if (data instanceof ImpGeofootprintLocation) {
-        this.fromLocation(data, useOriginalAddress);
+        this.fromLocation(data, useOriginalAddress, setRadii);
       } else {
         Object.assign(this, data);
       }
@@ -114,7 +114,7 @@ export class ValGeocodingRequest {
     return result;
   }
 
-  private fromLocation(loc: ImpGeofootprintLocation, useOriginal: boolean) {
+  private fromLocation(loc: ImpGeofootprintLocation, useOriginal: boolean, setRadii: boolean) {
     this.name = loc.locationName;
     this.number = loc.locationNumber;
     this.Market = loc.marketName;
@@ -124,8 +124,11 @@ export class ValGeocodingRequest {
     this.city = useOriginal ? loc.origCity : loc.locCity;
     this.state = useOriginal ? loc.origState : loc.locState;
     this.zip = useOriginal ? loc.origPostalCode : loc.locZip;
-    this.latitude = loc.ycoord == null ? null : loc.ycoord.toLocaleString();
-    this.longitude = loc.xcoord == null ? null : loc.xcoord.toLocaleString();
+    this.latitude = loc.ycoord == null ? null : loc.ycoord.toString();
+    this.longitude = loc.xcoord == null ? null : loc.xcoord.toString();
+    this.RADIUS1 = setRadii ? loc.radius1 : null;
+    this.RADIUS2 = setRadii ? loc.radius2 : null;
+    this.RADIUS3 = setRadii ? loc.radius3 : null;
     if (loc.impGeofootprintLocAttribs != null) {
       loc.impGeofootprintLocAttribs.forEach(attribute => {
         this[attribute.attributeCode] = attribute.attributeValue;

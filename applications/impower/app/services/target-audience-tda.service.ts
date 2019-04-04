@@ -109,7 +109,7 @@ export class TargetAudienceTdaService {
       audienceSourceType: 'Offline',
       audienceSourceName: 'TDA',
       exportInGeoFootprint: true,
-      showOnGrid: true,
+      showOnGrid: false,
       showOnMap: false,
       exportNationally: false,
       allowNationalExport: false,
@@ -221,21 +221,26 @@ export class TargetAudienceTdaService {
     return this.restService.get('v1/targeting/base/amtabledesc/search?q=amtabledesc').pipe(
       map(result => result.payload.rows as TdaCategoryResponse[]),
       map(data => data.map(d => new TdaAudienceDescription(d))),
-      mergeMap(audience => audience.map(a => this.getAudienceVariables(a)), 4),
-      mergeAll()
+      mergeMap(data => this.getAudienceVariables(data))
     );
   }
 
-  private getAudienceVariables(currentParent: TdaAudienceDescription) : Observable<TdaAudienceDescription> {
-    return this.restService.get(`v1/targeting/base/cldesctab/search?q=cldesctab&tablename=${currentParent.identifier}`).pipe(
-      map(result => result.payload.rows as TdaVariableResponse[]),
-      tap(data => data.forEach(d => this.rawAudienceData.set(d.pk, d))),
-      map(data => data.map(d => new TdaAudienceDescription(d))),
-      map(variables => {
-        currentParent.children.push(...variables);
-        return currentParent;
-      })
-    );
+  private getAudienceVariables(allParents: TdaAudienceDescription[]) : Observable<TdaAudienceDescription> {
+    const allObservables: Observable<TdaAudienceDescription>[] = [];
+    for (const currentParent of allParents) {
+      const currentObservable$ =
+        this.restService.get(`v1/targeting/base/cldesctab/search?q=cldesctab&tablename=${currentParent.identifier}`).pipe(
+          map(result => result.payload.rows as TdaVariableResponse[]),
+          tap(data => data.forEach(d => this.rawAudienceData.set(d.pk, d))),
+          map(data => data.map(d => new TdaAudienceDescription(d))),
+          map(variables => {
+            currentParent.children.push(...variables);
+            return currentParent;
+          })
+        );
+      allObservables.push(currentObservable$);
+    }
+    return merge(...allObservables, 4);
   }
 
   private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<ImpGeofootprintVar[]> {

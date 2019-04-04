@@ -6,7 +6,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { AppGeocodingService } from './app-geocoding.service';
 import { combineLatest, merge, Observable, EMPTY, of } from 'rxjs';
-import { filter, map, pairwise, startWith, tap } from 'rxjs/operators';
+import { filter, map, pairwise, startWith, tap, withLatestFrom } from 'rxjs/operators';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { AppConfig } from '../app.config';
 import { AppStateService } from './app-state.service';
@@ -147,8 +147,13 @@ export class AppLocationService {
     this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
     this.appStateService.analysisLevel$
-      .pipe(filter(al => al != null && al.length > 0))
-      .subscribe(analysisLevel => this.setPrimaryHomeGeocode(analysisLevel));
+      .pipe(
+        withLatestFrom(this.appStateService.applicationIsReady$),
+        filter(([level, isReady]) => level != null && level.length > 0 && isReady)
+      ).subscribe(([analysisLevel]) => {
+        this.setPrimaryHomeGeocode(analysisLevel);
+        this.appTradeAreaService.onAnalysisLevelChange();
+    });
 
     /*combineLatest(locationsNeedingHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$).pipe(
       filter(([locations, level, isReady]) => locations.length > 0 && level != null && level.length > 0 && isReady)
@@ -164,10 +169,6 @@ export class AppLocationService {
       filter(([locations, isReady]) => locations.length > 0 && isReady)
     ).subscribe(([locations]) => this.appTradeAreaService.onLocationsWithoutRadius(locations));
 
-    combineLatest(this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$).pipe(
-      filter(([level, isReady]) => level != null && level.length > 0 && isReady)
-    ).subscribe(([]) => this.appTradeAreaService.onAnalysisLevelChange());
-    
   }
 
   public static createMetricTextForLocation(site: ImpGeofootprintLocation) : string {
@@ -448,7 +449,7 @@ export class AppLocationService {
         }
     });
     const attributesByHomePcr: Map<any, any> = mapByExtended(attributes.filter(attr => attr['homePcr'] !== ''), item => item['homePcr']);
-    return this.determineHomeGeos(geocodeList, null, 'CL_PCRTAB14', 'geocode,ZIP , ATZ, DMA, COUNTY').pipe(
+    return this.determineHomeGeos(geocodeList, null, 'CL_PCRTAB14', 'geocode,ZIP , ZIP_ATZ, DMA, COUNTY').pipe(
       map(response => {
         return  response.payload;
       }),
@@ -673,7 +674,7 @@ export class AppLocationService {
         }
       }
     }
-    this.impLocationService.makeDirty();
+    //this.impLocationService.makeDirty();
   }
 
   private setCounts(count: number, siteType: string) {
@@ -751,8 +752,7 @@ export class AppLocationService {
         
       });
 
-      if (!loc.clientLocationTypeCode.startsWith('Failed ') &&
-          loc['homeGeoFound'] == null &&
+      if (loc['homeGeoFound'] == null &&
           (loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0)){
           if ( attrMap['Home ATZ'] == null || attrMap['Home ATZ'] === '' ||  attrMap['Home Zip Code'] == null || attrMap['Home Zip Code'] === '' || attrMap['Home Carrier Route'] == null || attrMap['Home Carrier Route'] === ''){
               needtoPipLocations.push(loc);
@@ -851,10 +851,16 @@ export class AppLocationService {
         }),
         reduce((acc, result) => [...acc, ...result], []),
         map(result => {
-          result.forEach(row => {
-            if (row['geocode'] in zipLocDictemp){
+          const dmaCounResponseMap = {};
+          result.forEach(res => {
+            dmaCounResponseMap[res['geocode']] = res;
+          });
+          locations.forEach(loc => {
+            const zip = loc.locZip.substring(0, 5);
+            const row = dmaCounResponseMap[zip];
+            if (zip in dmaCounResponseMap){
               const attrMap = {};
-              zipLocDictemp[(row['geocode'])].impGeofootprintLocAttribs.forEach(attr => {
+              loc.impGeofootprintLocAttribs.forEach(attr => {
                 if (homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null){
                   attrMap[attr.attributeCode] = attr.attributeValue;
                 }
@@ -868,8 +874,8 @@ export class AppLocationService {
                   'homeCounty'  :  county,
                   'homeDma'     :  dma,
                   'homeDtz'     :  attrMap['Home Digital ATZ'], 
-                  'siteNumber'  :  zipLocDictemp[row['geocode']].locationNumber,
-                  'abZip'       :  zipLocDictemp[row['geocode']].locZip.substring(0, 5) 
+                  'siteNumber'  :  loc.locationNumber,
+                  'abZip'       :  loc.locZip.substring(0, 5) 
                 });
             }
           });

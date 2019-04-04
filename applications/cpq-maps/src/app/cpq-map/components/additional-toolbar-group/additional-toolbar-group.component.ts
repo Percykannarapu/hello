@@ -35,6 +35,7 @@ export class AdditionalToolbarGroupComponent implements OnInit {
     let totalInvestment: number = 0;
     for (const id of state.ids) {
       if (!state.entities[id].isSelected) continue;
+      if (!state.entities[id].distribution || !state.entities[id].investment) continue;
       totalDistribution += state.entities[id].distribution;
       totalInvestment += state.entities[id].investment;
     }

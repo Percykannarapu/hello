@@ -1,6 +1,7 @@
 import { routerReducer } from '@ngrx/router-store';
 import { Action, ActionReducer, ActionReducerMap, MetaReducer } from '@ngrx/store';
 import { environment } from '../../environments/environment';
+import { masterDataStoreReducer } from '../impower-datastore/state/impower-datastore.interfaces';
 import { LocalAppState } from './app.interfaces';
 import { dataShimReducer } from './data-shim/data-shim.reducer';
 import { menuReducer } from './menu/menu.reducer';
@@ -10,12 +11,13 @@ export const appReducer: ActionReducerMap<LocalAppState> = {
   router: routerReducer,
   dataShim: dataShimReducer,
   menu: menuReducer,
-  homeGeo: homeGeoReducer
+  homeGeo: homeGeoReducer,
+  datastore: masterDataStoreReducer
 };
 
 export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<LocalAppState> {
   return function(state: LocalAppState, action: Action) : LocalAppState {
-    console.groupCollapsed(action.type);
+    console.groupCollapsed('%c' + action.type, 'color: #66666699');
     const nextState = reducer(state, action);
     console.log('%c prev state', 'color: #9E9E9E', state);
     console.log('%c action', 'color: #03A9F4', action);
@@ -25,6 +27,6 @@ export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<Lo
   };
 }
 
-export const appMetaReducers: MetaReducer<LocalAppState>[] = !environment.production
+export const appMetaReducers: MetaReducer<LocalAppState>[] = !environment.serverBuild
   ? [logger]
   : [];
