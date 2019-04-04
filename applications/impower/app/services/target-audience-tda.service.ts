@@ -263,9 +263,10 @@ export class TargetAudienceTdaService {
       if (transactionId != null && transactionId > 0 && inputData.categoryIds.length > 0) {
           c++;
         const chunkNum: number = c;
+        this.audienceService.timingMap.set("("+inputData.source.toLowerCase()+")", performance.now());
         observables.push(
           this.restService.post('v1/targeting/base/geoinfo/tdalookup', [inputData]).pipe(
-//          map(response => this.validateFuseResponse(inputData, response, isForShading, chunkNum, chunks.length)),
+            tap(response => this.audienceService.timingMap.set("("+inputData.source.toLowerCase()+")", performance.now()-this.audienceService.timingMap.get("("+inputData.source.toLowerCase()+")"))),
             map(response => this.validateFuseResponse(response, identifiers, isForShading)),
             catchError( () => {
                 console.error('Error posting to v1/targeting/base/geoinfo/tdalookup with payload:');

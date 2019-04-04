@@ -65,6 +65,8 @@ export class TargetAudienceService implements OnDestroy {
 
   private persistGeoVarCache: ImpGeofootprintVar[] = [];
 
+  public  timingMap: Map<string, number> = new Map<string, number>();
+
   constructor(private appStateService: AppStateService,
               private varService: ImpGeofootprintVarService,
               private restService: RestDataService,
@@ -484,7 +486,13 @@ console.log("### v2Filter filters took ", formatMilli(performance.now() - v2Filt
 */
             if (vars.length > 0) {
               let source = vars[0].customVarExprDisplay.match("\\(\\w+\\)$") != null ? vars[0].customVarExprDisplay.match("\\(\\w+\\)$")[0]: "(TDA)";
-              console.log("persistGeoVarData -", source.padEnd(10), "vars (New: ", vars.length, ", Current: ", accumulator.length, ", Total: ", (vars.length + accumulator.length), ", In Store:", this.varService.get().length,")","- REST calls took", formatMilli(performance.now() - startSubmitObs));
+              let restTime = this.timingMap.has(source.toLowerCase()) ? formatMilli(this.timingMap.get(source.toLowerCase())) : null;
+              console.log("persistGeoVarData -", source.padEnd(10), "vars (New: ", vars.length, ", Current: ", accumulator.length, ", Total: ", (vars.length + accumulator.length), ", In Store:", this.varService.get().length,")","- REST calls took", restTime); //formatMilli(performance.now() - startSubmitObs));
+
+              // Clear out the timer for this source
+              if (this.timingMap.has(source.toLowerCase()))
+                this.timingMap.delete(source.toLowerCase());
+
               // Debug version that shows the actual variables in a collapsable group
               //console.groupCollapsed("persistGeoVarData vars (New: ", vars.length, ", Current: ", accumulator.length, ", Total: ", (vars.length + accumulator.length), ", In Store:", this.varService.get().length,"): ");
               //console.debug(vars);

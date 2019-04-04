@@ -4,7 +4,7 @@ import { AppConfig } from '../app.config';
 import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition } from '../models/audience-data.model';
-import { catchError, filter, map, shareReplay } from 'rxjs/operators';
+import { catchError, filter, map, shareReplay, tap } from 'rxjs/operators';
 import { EMPTY, forkJoin, merge, Observable, throwError } from 'rxjs';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -349,8 +349,10 @@ export class TargetAudienceOnlineService {
       if (inputData.geocodes.length > 0 && inputData.digCategoryIds.length > 0) {
         c++;
         const chunkNum: number = c;
+        this.audienceService.timingMap.set("("+inputData.source.toLowerCase()+")", performance.now());
         observables.push(
           this.restService.post('v1/targeting/base/geoinfo/digitallookup', [inputData]).pipe(
+              tap(response => this.audienceService.timingMap.set("("+inputData.source.toLowerCase()+")", performance.now()-this.audienceService.timingMap.get("("+inputData.source.toLowerCase()+")"))),
               map(response => this.validateFuseResponse(inputData, response, isForShading, chunkNum, chunks.length)),
               catchError( () => {
                 console.error('Error posting to v1/targeting/base/geoinfo/digitallookup with payload:');
