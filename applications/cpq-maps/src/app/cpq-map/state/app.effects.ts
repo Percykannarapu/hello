@@ -21,6 +21,7 @@ import { EntityHelper } from '../services/entity-helper-service';
 import { ConfigService } from '../services/config.service';
 import { RfpUiEditWrapActionTypes, UpsertRfpUiEditWraps } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { RfpUiEditWrapService } from '../services/rfpEditWrap-service';
+import { AppMessagingService } from '../services/app-messaging.service';
 
 @Injectable()
 export class AppEffects {
@@ -33,7 +34,8 @@ export class AppEffects {
     private appMapService: AppMapService,
     private fullStore$: Store<FullState>,
     private entityHelper: EntityHelper,
-    private rfpUiEditWrapService: RfpUiEditWrapService) { }
+    private rfpUiEditWrapService: RfpUiEditWrapService,
+    private messagingService: AppMessagingService) { }
 
   // After the page and map loads, we go get data for the current Media Plan
   @Effect()
@@ -116,6 +118,20 @@ export class AppEffects {
     ofType<PopupGeoToggle>(SharedActionTypes.PopupGeoToggle),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([action, state]) => this.appLayerService.onPopupToggleAction(action.payload.eventName, state))
+  );
+
+  @Effect()
+  dataRetrievalFailure$ = this.actions$.pipe(
+    ofType(SharedActionTypes.GetMapDataFailed),
+    tap(() => this.messagingService.showErrorNotification('There was an error retrieving the Media Plan data.')),
+    map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))
+  );
+
+  @Effect()
+  mapInitFailure$ = this.actions$.pipe(
+    ofType(SharedActionTypes.MapSetupFailed),
+    tap(() => this.messagingService.showErrorNotification('There was an error initializing the map.')),
+    map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))
   );
 
   private parseLocations(state: FullState) : SiteInformation[] {

@@ -28,9 +28,11 @@ import { MapControlsComponent } from './components/map-controls/map-controls.com
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
-import { SpinnerModule } from 'primeng/primeng';
+import { MessageService, MessagesModule, SpinnerModule } from 'primeng/primeng';
 import { SharedEffects } from './state/shared/shared.effects';
 import { HeaderBarComponent } from './components/header-bar/header-bar.component';
+import { AppMessagingService } from './services/app-messaging.service';
+import { ToastModule } from 'primeng/toast';
 
 
 @NgModule({
@@ -51,9 +53,11 @@ import { HeaderBarComponent } from './components/header-bar/header-bar.component
     CommonModule,
     InputTextModule,
     HttpClientModule,
-    MessagingModule.forRoot(),
-    StoreModule.forRoot(reducers, { metaReducers }),
-    EffectsModule.forRoot([ SharedEffects, AppEffects ]),
+    MessagesModule,
+    ToastModule,
+    MessagingModule.forRoot(AppMessagingService),
+    StoreModule.forRoot(reducers, {metaReducers}),
+    EffectsModule.forRoot([SharedEffects, AppEffects]),
     StoreDevtoolsModule.instrument({
       name: 'CPQ Maps Application',
       logOnly: environment.production,
@@ -68,7 +72,7 @@ import { HeaderBarComponent } from './components/header-bar/header-bar.component
   ],
   declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent],
   exports: [CpqMapComponent],
-  providers: [RestDataService, AppConfig],
+  providers: [RestDataService, AppConfig, MessageService],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class CpqMapModule {
