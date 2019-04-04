@@ -4,10 +4,8 @@ import { EsriUtils } from '../core/esri-utils';
 import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
 import { EsriMapService } from './esri-map.service';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { UniversalCoordinates } from '../../../common';
+import { UniversalCoordinates } from '@val/common';
 import { MapSymbols } from '../models/map-symbols';
-
-export type layerGeometryType = 'point' | 'multipoint' | 'polyline' | 'polygon' | 'extent';
 
 const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data === 'string'  ? 'string' : 'double';
 
@@ -150,11 +148,6 @@ export class EsriLayerService {
     return graphics;
   }
 
-  public createPointLayer(groupName: string, layerName: string, coordinates: UniversalCoordinates[], symbol?: MapSymbols, renderer?: __esri.Renderer) : __esri.FeatureLayer {
-    const graphics = this.coordinatesToGraphics(coordinates, symbol);
-    return this.createClientLayer(groupName, layerName, graphics, 'point', null, null, renderer);
-  }
-
   public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], bottom: boolean = false) : __esri.GraphicsLayer {
     if (!this.groupRefs.has(groupName)) {
       this.createClientGroup(groupName, true, bottom);
@@ -170,56 +163,25 @@ export class EsriLayerService {
     return <__esri.GraphicsLayer> this.layerRefs.get(layerName);
   }
 
-  public createClientLayer(groupName: string, layerName: string, sourceGraphics?: __esri.Graphic[], layerType?: layerGeometryType, popupEnabled?: boolean, popupContent?: string, renderer?: __esri.Renderer) : __esri.FeatureLayer {
+  public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string, renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[]) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
 
     if (!this.groupRefs.has(groupName)) {
       this.createClientGroup(groupName, true);
     }
     const group = this.groupRefs.get(groupName);
+    const layerType = sourceGraphics[0].geometry.type;
+    const popupEnabled = popupTemplate != null;
+    const labelsVisible = labelInfo != null && labelInfo.length > 0;
+
     let fields: any[];
     if (sourceGraphics[0].attributes == null) {
       fields = [];
     } else {
-      fields = [{name: 'parentId', alias: 'parentId', type: 'oid'},
-      //{name: 'dirty', alias: 'dirty', type: 'integer'},
-      {name: 'baseStatus', alias: 'baseStatus', type: 'string'},
-      {name: 'clientIdentifierId', alias: 'clientIdentifierId', type: 'integer'},
-      {name: 'locationName', alias: 'locationName', type: 'string'},
-      {name: 'marketName', alias: 'marketName', type: 'string'},
-      {name: 'marketCode', alias: 'marketCode', type: 'string'},
-      {name: 'description', alias: 'description', type: 'string'},
-      {name: 'groupName', alias: 'groupName', type: 'string'},
-      {name: 'locAddress', alias: 'locAddress', type: 'string'},
-      {name: 'locCity', alias: 'locCity', type: 'string'},
-      {name: 'locState', alias: 'locState', type: 'string'},
-      {name: 'locZip', alias: 'locZip', type: 'string'},
-      {name: 'xcoord', alias: 'xcoord', type: 'double'},
-      {name: 'ycoord', alias: 'ycoord', type: 'double'},
-      {name: 'origAddress1', alias: 'origAddress1', type: 'string'},
-      {name: 'origCity', alias: 'origCity', type: 'string'},
-      {name: 'origState', alias: 'origState', type: 'string'},
-      {name: 'origPostalCode', alias: 'origPostalCode', type: 'string'},
-      {name: 'recordStatusCode', alias: 'recordStatusCode', type: 'string'},
-      {name: 'geocoderMatchCode', alias: 'geocoderMatchCode', type: 'string'},
-      {name: 'geocoderLocationCode', alias: 'geocoderLocationCode', type: 'string'},
-      {name: 'clientIdentifierTypeCode', alias: 'clientIdentifierTypeCode', type: 'string'},
-      {name: 'radius1', alias: 'radius1', type: 'double'},
-      {name: 'radius2', alias: 'radius2', type: 'double'},
-      {name: 'radius3', alias: 'radius3', type: 'double'},
-      {name: 'carrierRoute', alias: 'carrierRoute', type: 'string'},
-      //{name: 'isActive', alias: 'isActive', type: 'integer'},
-      {name: 'clientLocationTypeCode', alias: 'clientLocationTypeCode', type: 'string'},
-      {name: 'locationNumber', alias: 'locationNumber', type: 'string'},
-      //{name: 'homeGeoFound', alias: 'homeGeoFound', type: 'integer'},
-      {name: 'homeGeocode', alias: 'homeGeocode', type: 'string'}
-    ];
-      // fields = Object.keys(sourceGraphics[0].attributes).map(k => {
-      //   return { name: k, alias: k, type: 'string' };
-      // });
+      fields = Object.keys(sourceGraphics[0].attributes).map(k => {
+        return { name: k, alias: k, type: 'string' };
+      });
     }
-    const fieldsTest: any[] = [
-      {name: 'parentId', alias: 'parentId', type: 'oid'}];
     const layer = new EsriApi.FeatureLayer({
       source: sourceGraphics,
       objectIdField: 'parentId',
@@ -227,9 +189,11 @@ export class EsriLayerService {
       geometryType: layerType,
       spatialReference: { wkid: 4326 },
       popupEnabled: popupEnabled,
-      popupTemplate: new EsriApi.PopupTemplate({ content: (popupContent == null ? '{*}' : popupContent) }),
+      popupTemplate: popupTemplate,
       title: layerName,
-      renderer: renderer
+      renderer: renderer,
+      labelsVisible: labelsVisible,
+      labelingInfo: labelInfo
     });
 
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);

@@ -72,48 +72,47 @@ export class AppLayerService {
     console.log('Updating Site Layer Visuals', [siteType, sites]);
     const groupName = `${siteType}s`;
     const layerName = `Project ${groupName}`;
-    const points: __esri.Graphic[] = sites.map(site => this.createSiteGraphic(site));
+    const attributeFieldNames = ['clientLocationTypeCode', 'locationName', ...defaultLocationPopupFields.map(f => f.fieldName)];
+    const points: __esri.Graphic[] = sites.map(site => this.createSiteGraphic(site, attributeFieldNames));
     if (points.length > 0) {
       if (this.layerService.layerExists(layerName) && this.layerService.groupExists(groupName)) {
         this.layerService.clearClientLayers(groupName);
       }
       // const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
-        const color = siteType.toLowerCase() === 'site' ? [0, 0, 255] : [255, 0, 0];
-        const siteRenderer =  new EsriApi.SimpleRenderer({
-          symbol: new EsriApi.SimpleMarkerSymbol({
-            style: 'path',
-            size: 12,
-            outline: null,
-            color: color,
-            path: starPath
-          })
-        });
-        const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true, null, siteRenderer);
-        layer.popupTemplate = new EsriApi.PopupTemplate({
-          title: '{clientLocationTypeCode}: {locationName}',
-          content: [{ type: 'fields' }],
-          fieldInfos: defaultLocationPopupFields
-        });
-        const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
-        const font = new EsriApi.Font({ family: 'sans-serif', size: 12, weight: 'bold' });
-        textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-        textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-        const siteColor = new EsriApi.Color({a: 1, r: 0, g: 0, b: 255});
-        const competitorColor = new EsriApi.Color({a: 1, r: 255, g: 0, b: 0});
-        textSymbol.color = siteType.toLowerCase() === 'site' ? siteColor : competitorColor;
-        textSymbol.haloSize = 1;
-        textSymbol.font = font;
-        const labelClass: __esri.LabelClass = new EsriApi.LabelClass({ 
-          symbol: textSymbol,
-          labelPlacement: 'below-center',
-          labelExpressionInfo: {
-              expression: '$feature.locationNumber'
-          }
-        });
-        layer.labelingInfo = [labelClass];
-      // else {
-        // this.layerService.replaceGraphicsOnLayer(layerName, points);
-      // }
+      const color = siteType.toLowerCase() === 'site' ? [0, 0, 255] : [255, 0, 0];
+      const siteRenderer =  new EsriApi.SimpleRenderer({
+        symbol: new EsriApi.SimpleMarkerSymbol({
+          style: 'path',
+          size: 12,
+          outline: null,
+          color: color,
+          path: starPath
+        })
+      });
+      const popupTemplate = new EsriApi.PopupTemplate({
+        title: '{clientLocationTypeCode}: {locationName}',
+        content: [{ type: 'fields' }],
+        fieldInfos: defaultLocationPopupFields
+      });
+      const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
+      const font = new EsriApi.Font({ family: 'sans-serif', size: 12, weight: 'bold' });
+      textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+      textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+      const siteColor = new EsriApi.Color({a: 1, r: 0, g: 0, b: 255});
+      const competitorColor = new EsriApi.Color({a: 1, r: 255, g: 0, b: 0});
+      textSymbol.color = siteType.toLowerCase() === 'site' ? siteColor : competitorColor;
+      textSymbol.haloSize = 1;
+      textSymbol.font = font;
+      const labelClass: __esri.LabelClass = new EsriApi.LabelClass({
+        symbol: textSymbol,
+        labelPlacement: 'below-center',
+        labelExpressionInfo: {
+          expression: '$feature.locationNumber'
+        }
+      });
+
+      this.layerService.createClientLayer(groupName, layerName, points, 'parentId', siteRenderer, popupTemplate, [labelClass]);
+
     } else {
       this.layerService.removeLayer(layerName);
     }
@@ -320,7 +319,7 @@ export class AppLayerService {
    // return result;
   }
 
-  private createSiteGraphic(site: ImpGeofootprintLocation) : __esri.Graphic {
+  private createSiteGraphic(site: ImpGeofootprintLocation, attributeFieldNames: string[]) : __esri.Graphic {
     const graphic = new EsriApi.Graphic({
       geometry: new EsriApi.Point({
         x: site.xcoord,
@@ -329,9 +328,9 @@ export class AppLayerService {
       attributes: { parentId: ++AppLayerService.ObjectIdCache },
       visible: site.isActive
     });
-    for (const [field, value] of Object.entries(site)) {
-      if (Array.isArray(value)) continue;
-      graphic.attributes[field] = value;
+    for (const field of attributeFieldNames) {
+      const fieldValue = site[field];
+      graphic.attributes[field] = fieldValue == null ? '' : fieldValue.toString();
     }
     return graphic;
   }

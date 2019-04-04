@@ -344,7 +344,7 @@ export class EsriRendererService {
     if (this.layerService.getAllLayerNames().filter(name => name === layerName).length > 0) {
       this.layerService.removeLayer(layerName);
     }
-    this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
+    this.layerService.createGraphicsLayer(groupName, layerName, graphics, true);
   }
 
   public shadeGroups(featureSet: __esri.FeatureSet, groupName: string, layerName: string, shadingGroups: { groupName: string, ids: string[] }[], colorPallete = ColorPallete.RANDOM) {
