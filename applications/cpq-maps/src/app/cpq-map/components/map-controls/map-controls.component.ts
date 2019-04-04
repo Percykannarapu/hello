@@ -1,7 +1,6 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { Store, select } from '@ngrx/store';
-import { LocalState, localSelectors } from '../../state';
-import { tap } from 'rxjs/operators';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { LocalState } from '../../state';
 import { SetIsDistrQtyEnabled } from '../../state/shared/shared.actions';
 
 @Component({

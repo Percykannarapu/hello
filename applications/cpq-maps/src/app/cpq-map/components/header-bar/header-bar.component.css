@@ -1,0 +1,31 @@
+.header-spacer {
+  flex: 1;
+}
+
+.header-calc-values {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-items: center;
+  align-items: center;
+  column-gap: 3em;
+}
+
+.header-calc-values > span:nth-child(even) {
+  grid-row-start: 2;
+  font-weight: bold;
+}
+
+.header-names {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1em;
+  margin-right: 1em;
+}
+
+.header-names > span:nth-child(odd) {
+  justify-self: end;
+}
+
+.header-names > span:nth-child(even) {
+  font-weight: bold;
+}

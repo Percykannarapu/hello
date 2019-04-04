@@ -74,19 +74,12 @@ export class AppLayerService {
     const layerName = `Project ${groupName}`;
     const points: __esri.Graphic[] = sites.map(site => this.createSiteGraphic(site));
     if (points.length > 0) {
-      if (!(!this.layerService.layerExists(layerName) || !this.layerService.groupExists(groupName))) {
-        this.layerService.removeLayer(layerName);
-        this.layerService.clearClientLayers();
+      if (this.layerService.layerExists(layerName) && this.layerService.groupExists(groupName)) {
+        this.layerService.clearClientLayers(groupName);
       }
       // const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
         const color = siteType.toLowerCase() === 'site' ? [0, 0, 255] : [255, 0, 0];
-        const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true);
-        layer.popupTemplate = new EsriApi.PopupTemplate({
-          title: '{clientLocationTypeCode}: {locationName}',
-          content: [{ type: 'fields' }],
-          fieldInfos: defaultLocationPopupFields
-        });
-        layer.renderer = new EsriApi.SimpleRenderer({
+        const siteRenderer =  new EsriApi.SimpleRenderer({
           symbol: new EsriApi.SimpleMarkerSymbol({
             style: 'path',
             size: 12,
@@ -94,6 +87,12 @@ export class AppLayerService {
             color: color,
             path: starPath
           })
+        });
+        const layer = this.layerService.createClientLayer(groupName, layerName, points, 'point', true, null, siteRenderer);
+        layer.popupTemplate = new EsriApi.PopupTemplate({
+          title: '{clientLocationTypeCode}: {locationName}',
+          content: [{ type: 'fields' }],
+          fieldInfos: defaultLocationPopupFields
         });
         const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
         const font = new EsriApi.Font({ family: 'sans-serif', size: 12, weight: 'bold' });
@@ -148,15 +147,15 @@ export class AppLayerService {
     const colorVal = (siteType === 'Site') ? [0, 0, 255] : [255, 0, 0];
     const color = new EsriApi.Color(colorVal);
     const transparent = new EsriApi.Color([0, 0, 0, 0]);
-    // const symbol = new EsriApi.SimpleFillSymbol({
-    //   style: 'solid',
-    //   color: transparent,
-    //   outline: {
-    //     style: 'solid',
-    //     color: color,
-    //     width: 2
-    //   }
-    // });
+    const symbol = new EsriApi.SimpleFillSymbol({
+      style: 'solid',
+      color: transparent,
+      outline: {
+        style: 'solid',
+        color: color,
+        width: 2
+      }
+    });
     let layersToRemove: string[] = [];
     if (taType === TradeAreaTypeCodes.Audience) {
       layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.includes('Audience'));
@@ -164,7 +163,6 @@ export class AppLayerService {
       layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.includes('Radius'));
     }
     layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
-    let layerId = 0;
     pointMap.forEach((pointData, name) => {
       const points = pointData.map(pd => pd.p);
       const radii = pointData.map(pd => pd.r);
@@ -173,28 +171,13 @@ export class AppLayerService {
         const graphics = geometry.map(g => {
           return new EsriApi.Graphic({
             geometry: g,
-            // symbol: symbol,
-            attributes: { parentId: (++layerId).toString() }
+            symbol: symbol
           });
         });
         const groupName = `${siteType}s`;
         const layerName = `${siteType} - ${name}`;
         this.layerService.removeLayer(layerName);
-        //this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
-        const renderer = new EsriApi.SimpleRenderer({
-          symbol: new EsriApi.SimpleFillSymbol({
-            style: 'solid',
-          color: transparent,
-          outline: {
-            style: 'solid',
-            color: color,
-            width: 2
-          }
-          })
-        });
-        const layer =  this.layerService.createClientLayer(groupName, layerName, graphics, 'polygon', false);
-        layer.renderer = renderer;
-        layer.legendEnabled = false;
+        this.layerService.createGraphicsLayer(groupName, layerName, graphics);
       });
     });
   }
@@ -354,7 +337,8 @@ export class AppLayerService {
   }
 
   public clearClientLayers() {
-    this.layerService.clearClientLayers();
+    this.layerService.clearClientLayers('Sites');
+    this.layerService.clearClientLayers('Competitors');
   }
 
   /**

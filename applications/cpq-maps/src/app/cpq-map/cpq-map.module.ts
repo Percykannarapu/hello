@@ -1,4 +1,4 @@
-import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { EsriModule } from '@val/esri';
@@ -9,7 +9,7 @@ import { StoreModule } from '@ngrx/store';
 import { reducers, metaReducers } from './state/app.reducer';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects';
-import { AppEffects } from './app.effects';
+import { AppEffects } from './state/app.effects';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { AppConfig } from '../app.config';
 import { SidebarModule } from 'primeng/sidebar';
@@ -28,9 +28,11 @@ import { MapControlsComponent } from './components/map-controls/map-controls.com
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
-import { SpinnerModule } from 'primeng/primeng';
-import { AdditionalToolbarGroupComponent } from './components/additional-toolbar-group/additional-toolbar-group.component';
+import { MessageService, MessagesModule, SpinnerModule } from 'primeng/primeng';
 import { SharedEffects } from './state/shared/shared.effects';
+import { HeaderBarComponent } from './components/header-bar/header-bar.component';
+import { AppMessagingService } from './services/app-messaging.service';
+import { ToastModule } from 'primeng/toast';
 
 
 @NgModule({
@@ -51,9 +53,11 @@ import { SharedEffects } from './state/shared/shared.effects';
     CommonModule,
     InputTextModule,
     HttpClientModule,
-    MessagingModule.forRoot(),
-    StoreModule.forRoot(reducers, { metaReducers }),
-    EffectsModule.forRoot([ SharedEffects, AppEffects ]),
+    MessagesModule,
+    ToastModule,
+    MessagingModule.forRoot(AppMessagingService),
+    StoreModule.forRoot(reducers, {metaReducers}),
+    EffectsModule.forRoot([SharedEffects, AppEffects]),
     StoreDevtoolsModule.instrument({
       name: 'CPQ Maps Application',
       logOnly: environment.production,
@@ -66,9 +70,10 @@ import { SharedEffects } from './state/shared/shared.effects';
       }
     }),
   ],
-  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, AdditionalToolbarGroupComponent],
+  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent],
   exports: [CpqMapComponent],
-  providers: [RestDataService, AppConfig]
+  providers: [RestDataService, AppConfig, MessageService],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class CpqMapModule {
 

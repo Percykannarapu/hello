@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriUtils, LayerDefinition, SetLayerLabelExpressions } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, EsriUtils, LayerDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
 import { merge, Observable } from 'rxjs';
-import { tap, reduce, finalize } from 'rxjs/operators';
+import { tap, reduce, finalize, map, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { FullState } from '../state';
 import { ConfigService } from './config.service';
 
@@ -37,6 +37,14 @@ export class AppMapService {
         EsriApi.projection.load();
       })
     );
+  }
+
+  public setMapWatches() : void {
+    this.store$.pipe(
+      select(selectors.getEsriLabelConfiguration),
+      map(config => config.pobEnabled),
+      distinctUntilChanged(),
+    ).subscribe(showPOBs => this.updateLabelExpressions(showPOBs));
   }
 
   private initializeLayers(selectedAnalysisLevel: string) : Observable<__esri.FeatureLayer> {

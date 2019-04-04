@@ -26,16 +26,20 @@ export class EsriLayerService {
 
   constructor(private mapService: EsriMapService) {}
 
-  public clearClientLayers() : void {
-    const layers = Array.from(this.layerRefs.values());
-    const groups = Array.from(this.groupRefs.values());
-    layers.forEach(layer => {
-      const group: __esri.GroupLayer = (layer as any).parent;
-      group.remove(layer);
-    });
-    if (this.mapService.mapView != null) this.mapService.mapView.map.removeMany(groups);
-    this.layerRefs.clear();
-    this.groupRefs.clear();
+  public clearClientLayers(groupName: string) : void {
+    const currentGroup = this.groupRefs.get(groupName);
+    if (currentGroup != null) {
+      const layerSet = new Set(currentGroup.removeAll());
+      const keys = new Set<string>();
+      this.layerRefs.forEach((v, k) => {
+        if (layerSet.has(v)) {
+          keys.add(k);
+        }
+      });
+      keys.forEach(k => this.layerRefs.delete(k));
+      if (this.mapService.mapView != null) this.mapService.mapView.map.removeMany([currentGroup]);
+      this.groupRefs.delete(groupName);
+    }
   }
 
   public groupExists(groupName: string) : boolean {
@@ -178,9 +182,9 @@ export class EsriLayerService {
       fields = [];
     } else {
       fields = [{name: 'parentId', alias: 'parentId', type: 'oid'},
-      {name: 'dirty', alias: 'dirty', type: 'oid'},
+      //{name: 'dirty', alias: 'dirty', type: 'integer'},
       {name: 'baseStatus', alias: 'baseStatus', type: 'string'},
-      {name: 'clientIdentifierId', alias: 'clientIdentifierId', type: 'oid'},
+      {name: 'clientIdentifierId', alias: 'clientIdentifierId', type: 'integer'},
       {name: 'locationName', alias: 'locationName', type: 'string'},
       {name: 'marketName', alias: 'marketName', type: 'string'},
       {name: 'marketCode', alias: 'marketCode', type: 'string'},
@@ -190,8 +194,8 @@ export class EsriLayerService {
       {name: 'locCity', alias: 'locCity', type: 'string'},
       {name: 'locState', alias: 'locState', type: 'string'},
       {name: 'locZip', alias: 'locZip', type: 'string'},
-      {name: 'xcoord', alias: 'xcoord', type: 'oid'},
-      {name: 'ycoord', alias: 'ycoord', type: 'oid'},
+      {name: 'xcoord', alias: 'xcoord', type: 'double'},
+      {name: 'ycoord', alias: 'ycoord', type: 'double'},
       {name: 'origAddress1', alias: 'origAddress1', type: 'string'},
       {name: 'origCity', alias: 'origCity', type: 'string'},
       {name: 'origState', alias: 'origState', type: 'string'},
@@ -200,14 +204,14 @@ export class EsriLayerService {
       {name: 'geocoderMatchCode', alias: 'geocoderMatchCode', type: 'string'},
       {name: 'geocoderLocationCode', alias: 'geocoderLocationCode', type: 'string'},
       {name: 'clientIdentifierTypeCode', alias: 'clientIdentifierTypeCode', type: 'string'},
-      {name: 'radius1', alias: 'radius1', type: 'oid'},
-      {name: 'radius2', alias: 'radius2', type: 'oid'},
-      {name: 'radius3', alias: 'radius3', type: 'oid'},
+      {name: 'radius1', alias: 'radius1', type: 'double'},
+      {name: 'radius2', alias: 'radius2', type: 'double'},
+      {name: 'radius3', alias: 'radius3', type: 'double'},
       {name: 'carrierRoute', alias: 'carrierRoute', type: 'string'},
-      {name: 'isActive', alias: 'isActive', type: 'oid'},
+      //{name: 'isActive', alias: 'isActive', type: 'integer'},
       {name: 'clientLocationTypeCode', alias: 'clientLocationTypeCode', type: 'string'},
       {name: 'locationNumber', alias: 'locationNumber', type: 'string'},
-      {name: 'homeGeoFound', alias: 'homeGeoFound', type: 'oid'},
+      //{name: 'homeGeoFound', alias: 'homeGeoFound', type: 'integer'},
       {name: 'homeGeocode', alias: 'homeGeocode', type: 'string'}
     ];
       // fields = Object.keys(sourceGraphics[0].attributes).map(k => {

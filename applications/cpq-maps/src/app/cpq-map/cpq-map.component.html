@@ -1,17 +1,35 @@
-<!--<div class="title-bar">-->
-<!--  Title bar-->
-<!--</div>-->
-<div class="app-content">
-   <div *ngIf="panelSize === 'small'" class="small-grid">
+<div #appRoot class="app-root">
+
+  <cpq-header-bar class="title-bar"></cpq-header-bar>
+
+  <div class="app-content">
+
+    <div *ngIf="panelSize === 'small'" class="small-grid">
       <val-grid [smallSizeTable]=true></val-grid>
-   </div>
-   <div *ngIf="panelSize === 'large'" class="large-grid">
+    </div>
+
+    <div *ngIf="panelSize === 'large'" class="large-grid">
       <val-grid [smallSizeTable]=false></val-grid>
-   </div>
-   <div class="map-container">
+    </div>
+
+    <div class="map-container">
       <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="true">
-         <additional-toolbar-group (onPanelChange)="onPanelChange($event)"></additional-toolbar-group>
+        <additional-toolbar-group>
+          <div class="additional-toolbar-container">
+            <p-button icon="pi pi-angle-left" label="" (click)="sideNavVisible = !sideNavVisible"></p-button>
+          </div>
+        </additional-toolbar-group>
       </val-esri-map-panel>
-   </div>
+    </div>
+
+  </div>
+
+  <p-sidebar [appendTo]="appRoot" [(visible)]="sideNavVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
+    <val-map-controls (onPanelChange)="panelSize = $event"></val-map-controls>
+    <val-dev-tools></val-dev-tools>
+  </p-sidebar>
+
 </div>
+
 <val-busy-indicator></val-busy-indicator>
+<p-toast styleClass="val-toast-top-right"></p-toast>

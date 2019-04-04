@@ -2,12 +2,10 @@ import {
   Action,
   ActionReducer,
   ActionReducerMap,
-  createFeatureSelector,
-  createSelector,
   MetaReducer
 } from '@ngrx/store';
 import { environment } from '../../../environments/environment';
-import { FullState, LocalState } from './';
+import { LocalState } from './';
 import { sharedReducer } from './shared/shared.reducers';
 import { advertiserInfoReducer } from './advertiserInfo/advertiser-info.reducer';
 import { cbxReportReducer } from './cbxReport/cbx-report.reducer';
