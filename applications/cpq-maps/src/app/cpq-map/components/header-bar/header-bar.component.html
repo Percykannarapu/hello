@@ -1,0 +1,15 @@
+<div class="header-calc-values">
+  <span>Total Distribution</span>
+  <span>{{totalDistribution | number:'1.0-0'}}</span>
+  <span>Total Investment</span>
+  <span>{{totalInvestment | currency}}</span>
+</div>
+<div class="header-spacer"></div>
+<div class="header-names" *ngIf="appReady$ | async">
+  <span>RFP</span>
+  <span>{{rfpNumber}} ({{rfpName}})</span>
+  <span>MP</span>
+  <span>{{mediaPlanId}}</span>
+  <span>Product</span>
+  <span>{{productName}}</span>
+</div>

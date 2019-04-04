@@ -1,25 +1,26 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { StopBusyIndicator } from '@val/messaging';
-import { AppConfig } from '../app.config';
+import { AppConfig } from '../../app.config';
+import { AppMapService } from '../services/app-map.service';
 import {
   SharedActionTypes,
   SetAppReady,
   SetIsDistrQtyEnabled,
   GetMapData,
   LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle
-} from './state/shared/shared.actions';
-import { tap, filter, switchMap, map, catchError, withLatestFrom, concatMap, debounce, debounceTime } from 'rxjs/operators';
+} from './shared/shared.actions';
+import { tap, filter, switchMap, map, catchError, withLatestFrom, concatMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { Store, select } from '@ngrx/store';
-import { LocalState, FullState } from './state';
+import { LocalState, FullState } from './index';
 import { SetSelectedLayer } from '@val/esri';
-import { UpsertRfpUiEditDetail, RfpUiEditDetailActionTypes, UpsertRfpUiEditDetails } from './state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { AppLayerService, SiteInformation } from './services/app-layer-service';
-import { EntityHelper } from './services/entity-helper-service';
-import { ConfigService } from './services/config.service';
-import { UpsertRfpUiEditWrap, RfpUiEditWrapActionTypes, UpsertRfpUiEditWraps } from './state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
-import { RfpUiEditWrapService } from './services/rfpEditWrap-service';
+import { UpsertRfpUiEditDetail, RfpUiEditDetailActionTypes, UpsertRfpUiEditDetails } from './rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { AppLayerService, SiteInformation } from '../services/app-layer-service';
+import { EntityHelper } from '../services/entity-helper-service';
+import { ConfigService } from '../services/config.service';
+import { RfpUiEditWrapActionTypes, UpsertRfpUiEditWraps } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { RfpUiEditWrapService } from '../services/rfpEditWrap-service';
 
 @Injectable()
 export class AppEffects {
@@ -29,6 +30,7 @@ export class AppEffects {
     private appConfig: AppConfig,
     private configService: ConfigService,
     private appLayerService: AppLayerService,
+    private appMapService: AppMapService,
     private fullStore$: Store<FullState>,
     private entityHelper: EntityHelper,
     private rfpUiEditWrapService: RfpUiEditWrapService) { }
@@ -64,7 +66,8 @@ export class AppEffects {
     tap(([, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state), state.shared.analysisLevel)),
     tap(([, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state), state.shared.radius)),
     tap(([, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state))),
-    tap(([, state]) => this.appLayerService.setPopupData(state))
+    tap(([, state]) => this.appLayerService.setPopupData(state)),
+    tap(() => this.appMapService.setMapWatches())
   );
 
   @Effect()
