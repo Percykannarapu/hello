@@ -51,11 +51,11 @@ function isReadyforHomegeocoding(loc: ImpGeofootprintLocation) : boolean {
       attrMap[attr.attributeCode] = attr.attributeValue;
     }
   });
-  const pipLocationsnullHomeGeos = [];     
+  const pipLocationsnullHomeGeos = [];
   if (!loc.clientLocationTypeCode.startsWith('Failed ') &&
       loc['homeGeoFound'] == null &&
       (loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0) &&
-      (Object.keys(attrMap).length < 6 || attrMap['Home ATZ'] === '' || attrMap['Home Zip Code'] === '' || attrMap['Home Carrier Route'] === '' || attrMap['Home DMA'] === '' 
+      (Object.keys(attrMap).length < 6 || attrMap['Home ATZ'] === '' || attrMap['Home Zip Code'] === '' || attrMap['Home Carrier Route'] === '' || attrMap['Home DMA'] === ''
      || attrMap['Home Digital ATZ'] === '' || attrMap['Home County'] === '')) {
 
      return true;
@@ -107,7 +107,7 @@ export class AppLocationService {
       filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0),
       filterArray(loc => isReadyforHomegeocoding(loc)),
     );
-           
+
     const locationsWithHomeGeos$ = locationsWithType$.pipe(
       filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue.length > 0)),
       filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3) )
@@ -125,7 +125,10 @@ export class AppLocationService {
     this.totalCount$.pipe(
       pairwise(),
       filter(([prev, curr]) => prev > 0 && curr === 0)
-    ).subscribe(() => this.esriLayerService.clearClientLayers());
+    ).subscribe(() => {
+      this.esriLayerService.clearClientLayers("Sites");
+      this.esriLayerService.clearClientLayers("Competitors");
+    });
 
     this.failedClientLocations$ = locationsWithType$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode === 'Failed Site'))
@@ -281,7 +284,7 @@ export class AppLocationService {
       } else {
         this.impLocationService.add(data);
         this.impLocAttributeService.add(simpleFlatten(data.map(l => l.impGeofootprintLocAttribs)));
-      } 
+      }
     }
   }
 
@@ -298,7 +301,7 @@ export class AppLocationService {
     return result.filter(chunk => chunk && chunk.length > 0);
   }
 
-  
+
 
   private confirmationBox() : void {
     if (this.cachedTradeAreas != null && this.cachedTradeAreas.length !== 0){
@@ -357,7 +360,7 @@ export class AppLocationService {
             attribute['homeDigitalAtz'] = attr['geocode'];
           }
           else {
-            attribute['homeDigitalAtz'] = ''; 
+            attribute['homeDigitalAtz'] = '';
             remainingAttributes.push(attribute);
           }
         });
@@ -389,7 +392,7 @@ export class AppLocationService {
           if (attribute['homeAtz'] in atzResponseDict || attribute['homeDigitalAtz'] !== ''){
             /*const attr = atzResponseDict[attribute['homeAtz']];
             attribute['homeDigitalAtz'] = attr['geocode'];*/
-            attribute['homeDigitalAtz'] = attribute['homeDigitalAtz'] !== '' ? attribute['homeDigitalAtz'] : atzResponseDict[attribute['homeAtz']]['geocode']; 
+            attribute['homeDigitalAtz'] = attribute['homeDigitalAtz'] !== '' ? attribute['homeDigitalAtz'] : atzResponseDict[attribute['homeAtz']]['geocode'];
           }
           else {
             attribute['homeDigitalAtz'] = '';
@@ -524,12 +527,12 @@ export class AppLocationService {
               homeDma = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home DMA')[0];
               homeCounty = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home County')[0];
             }
-           
+
             attribute['homeZip'] = homeZip && homeZip.attributeValue !== '' ? homeZip.attributeValue : attr['ZIP'];
             attribute['homeDma'] = homeDma && homeDma.attributeValue !== '' ? homeDma.attributeValue : attr['homeDma'];
             attribute['homeCounty'] = homeCounty && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : attr['homeCounty'];
           }
-          else if (attribute['homeZip'] != null && attribute['homeZip'] !== '' &&  attribute['homeZip'].split(',').length > 1 
+          else if (attribute['homeZip'] != null && attribute['homeZip'] !== '' &&  attribute['homeZip'].split(',').length > 1
                   && attribute['homeZip'].includes(attribute['geocoderZip']) && attribute['geocoderZip'] in zipTab14ResponseDict){
             //if (attribute['homeZip'].includes(attribute['geocoderZip'])){
               const attr = zipTab14ResponseDict[attribute['geocoderZip']];
@@ -538,7 +541,7 @@ export class AppLocationService {
                 homeDma = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home DMA')[0];
                 homeCounty = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home County')[0];
               }
-             
+
               attribute['homeZip'] = homeZip && homeZip.attributeValue !== '' ? homeZip.attributeValue : attr['ZIP'];
               attribute['homeDma'] = homeDma && homeDma.attributeValue !== '' ? homeDma.attributeValue : attr['homeDma'];
               attribute['homeCounty'] = homeCounty && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : attr['homeCounty'];
@@ -566,7 +569,7 @@ export class AppLocationService {
             return  response.payload;
           }),
           reduce((acc, result) => [...acc, ...result], []),
-        ); 
+        );
       }),
       map(atzResponse => {
         const atzTab14ResponseDict = {};
@@ -596,7 +599,7 @@ export class AppLocationService {
         });
         return attributes;
       })
-    ); 
+    );
   }
 
   public processHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : void {
@@ -616,25 +619,25 @@ export class AppLocationService {
             // validate homegeo rules
 
             if (loc.origPostalCode != null && loc.origPostalCode.length > 0 && (loc.locZip.substr(0, 5) !== loc.origPostalCode.substr(0, 5))) {
-                  homeGeocodeIssue = 'Y';   
+                  homeGeocodeIssue = 'Y';
                   warningNotificationFlag = 'Y';
             }
-            if (newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County' 
+            if (newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County'
               && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && loc.locZip.length > 0 && firstHomeGeoValue.substr(0, 5) !== loc.locZip.substr(0, 5)))){
-                  homeGeocodeIssue = 'Y';   
+                  homeGeocodeIssue = 'Y';
                    warningNotificationFlag = 'Y';
             }
             if (currentAttributes['homePcr'] === currentAttributes['homeZip'] || (currentAttributes[key] == null
                 || loc.geocoderMatchCode != null && loc.geocoderMatchCode.startsWith('Z') || loc.geocoderLocationCode != null && loc.geocoderLocationCode.startsWith('Z'))){
-                homeGeocodeIssue = 'Y'; 
-                warningNotificationFlag = 'Y';  
+                homeGeocodeIssue = 'Y';
+                warningNotificationFlag = 'Y';
             }
             if (currentAttributes[key] != null && currentAttributes[key] != '')   {
               const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
               if (newAttribute != null)
                 impAttributesToAdd.push(newAttribute);
-            } 
-          } 
+            }
+          }
         });
       }
      const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'Home Geocode Issue', homeGeocodeIssue);
@@ -655,14 +658,14 @@ export class AppLocationService {
       currentLocations.forEach(l => l.homeGeocode = null);
     } else {
       let homeGeoKey = '';
-    
+
       if(analysisLevel === "ZIP"){
         homeGeoKey = getHomeGeoKey('Zip Code');
       } else if(analysisLevel === "PCR"){
         homeGeoKey = getHomeGeoKey('Carrier Route');
       } else{
         homeGeoKey = getHomeGeoKey(analysisLevel);
-      }      
+      }
       const currentAttributes = this.impLocAttributeService.get().filter(a => a.attributeCode === homeGeoKey && a.impGeofootprintLocation != null);
       const siteMap = mapByExtended(currentAttributes, a => a.impGeofootprintLocation.locationNumber);
       const currentLocations = this.impLocationService.get();
@@ -684,7 +687,7 @@ export class AppLocationService {
   public flagHomeGeos(locations: ImpGeofootprintLocation[], currentAnalysisLevel: string) : void {
     if (currentAnalysisLevel === null){
       currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
-    } 
+    }
     this.logger.debug('Setting custom flag to indicate locations have had home geo processing performed.');
     let homeKey = '';
     if(currentAnalysisLevel === "ZIP"){
@@ -729,7 +732,7 @@ export class AppLocationService {
       reqPayload['geocodeList'] = geoList;
       return this.getHomegeocodeData(reqPayload, 'v1/targeting/base/homegeo/homegeocode');
     });
-    
+
     return merge(...obs, 4);
   }
 
@@ -740,7 +743,7 @@ export class AppLocationService {
   public validateLocactionsforpip(locations: ImpGeofootprintLocation[]) : Map<string, ImpGeofootprintLocation[]>{
     const initialAttributeList: any[] = [];
     const needtoPipLocations: ImpGeofootprintLocation[] = [];
-    const dmaAncCountyLoc: ImpGeofootprintLocation[] = []; 
+    const dmaAncCountyLoc: ImpGeofootprintLocation[] = [];
     const locMap: Map<string, ImpGeofootprintLocation[]> = new Map<string, ImpGeofootprintLocation[]>();
     locations.forEach(loc => {
       const attrMap = {};
@@ -749,7 +752,7 @@ export class AppLocationService {
           attrMap[attr.attributeCode] = attr.attributeValue;
         }
         //
-        
+
       });
 
       if (loc['homeGeoFound'] == null &&
@@ -767,9 +770,9 @@ export class AppLocationService {
               'homeDma'     :  attrMap['Home DMA'],
               'homePcr'     :  attrMap['Home Carrier Route'],
               'homeAtz'     :  attrMap['Home ATZ'],
-              'homeDtz'     :  attrMap['Home Digital ATZ'], 
+              'homeDtz'     :  attrMap['Home Digital ATZ'],
               'siteNumber'  :  loc.locationNumber,
-              'abZip'       :  loc.locZip.substring(0, 5) 
+              'abZip'       :  loc.locZip.substring(0, 5)
               });
           }
       }
@@ -806,7 +809,7 @@ export class AppLocationService {
           const payloads = partitionedJobData.map(jobData => ({
             in_features: this.esriLayerService.createDataSet(jobData, 'parentId')
           })).filter(p => p.in_features != null);
-          
+
           const resultAttributes: any[] = [];
           this.logger.info('Home Geo service call initiated.');
 
@@ -864,7 +867,7 @@ export class AppLocationService {
                 if (homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null){
                   attrMap[attr.attributeCode] = attr.attributeValue;
                 }
-              });  
+              });
                 const county = attrMap['Home County'] !== '' && attrMap['Home County'] != null ? attrMap['Home County'] : row['homeCounty'];
                 const dma = attrMap['Home DMA'] !== '' && attrMap['Home DMA'] != null ? attrMap['Home DMA'] : row['homeDma'];
                 attributesList.push({
@@ -873,9 +876,9 @@ export class AppLocationService {
                   'homeAtz'     :  attrMap['Home ATZ'],
                   'homeCounty'  :  county,
                   'homeDma'     :  dma,
-                  'homeDtz'     :  attrMap['Home Digital ATZ'], 
+                  'homeDtz'     :  attrMap['Home Digital ATZ'],
                   'siteNumber'  :  loc.locationNumber,
-                  'abZip'       :  loc.locZip.substring(0, 5) 
+                  'abZip'       :  loc.locZip.substring(0, 5)
                 });
             }
           });
