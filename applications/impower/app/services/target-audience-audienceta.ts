@@ -105,9 +105,10 @@ export class TargetAudienceAudienceTA {
             audienceTAConfig: this.reloadAudienceTaConfig()
           };
           this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
+          let transactionId:number = -1;
           this.audienceService.addAudience(
             currentAudience,
-            (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),
+            (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(null, null, null, null, audience),
             null);
         }
       }
@@ -180,7 +181,7 @@ export class TargetAudienceAudienceTA {
       const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
       this.audienceService.addAudience(
         model,
-        (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),
+        (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(null, null, null, null, audience),
         null);
     }
     /*this.audienceService.addAudience(

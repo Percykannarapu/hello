@@ -194,3 +194,39 @@ export function isFunction (obj: any) : obj is Function {
 export function isNumber(value: any) : value is number {
   return value != null && value !== '' && !Number.isNaN(Number(value));
 }
+
+/**
+ *  Formats millisecond input into h:m:s.nnn
+ *
+ *  Usage:
+ *    let startTime = performance.now();
+ *    ...
+ *    let endTime = performance.now();
+ *    console.log("Process took", formatMilli(endTime - startTime));
+ *
+ * Milliseconds       Output      Notes
+ * -----------------  ----------  ----------------------------------------
+ * 99152612           3h 32m 32s  Handles Long running processes
+ * 1152612            19m 12s
+ * 152612             2m 32s      Anything above a minute rounds seconds
+ * 3125               3.125s      Anything under 10s shows sub second
+ * 2516               2.516s      A maxium of 3 decimals for sub seconds
+ * 2001               2.001s
+ * 1000               1s          If precision is < 3, it doesn't force it
+ * 612                0.612s      Can display sub millisecond values
+ * 45                 0.045s
+ * 10                 0.01s
+ * 9.664999786764383  0.009s      Handles output from performance.now
+ * 1.664999786764383  0.001s
+ * 1                  0.001s
+ * 0.001999786764383  0.001ms     Capped sub milliseconds to 3 decimals
+ * 0.000199786764383  0ms         Below sub milli 3 dec is just instant
+ */
+export function formatMilli(a,k?,sub?,s?,m?,h?){
+  return k=Math.trunc(a%1e3), sub=Math.floor((a%1e3-k)*1000)/1000, s=a/1e3%60|0, m=a/6e4%60|0, h=a/36e5%24|0,
+    (h?h+'h ':'')+
+    (m?m+'m ':'')+
+    (h || m || s >= 10 ? s+'s': (s >= 1 ? (s+k/1000) + 's' : '')) +
+    (!h && !m && s == 0 && k >= 1 ? (k/1000) + 's' : '') +
+    (!h && !m && !s && !k ? sub + 'ms' : '');
+}

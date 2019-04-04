@@ -29,6 +29,7 @@ export class AppConfig implements LoggingConfiguration {
    public maxGeosPerGeoInfoQuery = 400;
    public maxValGeocodingReqSize = 50;
    public maxRadiusTradeAreas = 3;
+   public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
    //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
 
    public serviceUrls = EnvironmentData.serviceUrls;

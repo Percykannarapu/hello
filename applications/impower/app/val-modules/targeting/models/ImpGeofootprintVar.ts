@@ -10,9 +10,9 @@ import { ImpProject } from './ImpProject';
 
 export class ImpGeofootprintVar extends BaseModel
 {
-   public gvId:                  number;         /// Primary key, uniquely identifying a geofootprint variable row
-   public cgmId:                 number;         /// Foreign key to imp_geofootprint_master.cgm_id
-   public glId:                  number;         /// Foreign key to imp_geofootprint_locations.gl_id
+    public gvId:                  number;         /// Primary key, uniquely identifying a geofootprint variable row
+  //  public cgmId:                 number;         /// Foreign key to imp_geofootprint_master.cgm_id
+  //  public glId:                  number;         /// Foreign key to imp_geofootprint_locations.gl_id
    public gtaId:                 number;         /// Foreign key to imp_geofootprint_trade_areas.gta_id
    public projectId:             number;         /// The IMPower Project ID
    public geocode:               string;         /// The geography the variable applies to
@@ -27,7 +27,7 @@ export class ImpGeofootprintVar extends BaseModel
    public valueString:           string;         /// Unindexed variable value if is_string = 1
    public valueNumber:           number;         /// Unindexed variable value if is_number = 1
    public fieldconte:            string;         /// Field contents, notably INDEX indicates an indexed value
-   public decimal:               string;         /// Decimal precision
+  //  public decimal:               string;         /// Decimal precision
    public indexValue:            number;         /// Variable indexed value
    public natlAvg:               string;         /// National average
    public isActive:              boolean;        /// Is Activee
@@ -39,14 +39,13 @@ export class ImpGeofootprintVar extends BaseModel
    @transient public impGeofootprintLocation:      ImpGeofootprintLocation;           /// Geofootprint Locations table
 
    /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public impGeofootprintMaster:        ImpGeofootprintMaster;             /// Geofootprint master table for IMPower.
+   //@transient public impGeofootprintMaster:        ImpGeofootprintMaster;             /// Geofootprint master table for IMPower.
 
    /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
    @transient public impGeofootprintTradeArea:     ImpGeofootprintTradeArea;          /// Geofootprint Trade Areas
 
    /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public impProject:                   ImpProject;                        /// Captures Project information from the UI
-
+   //@transient public impProject:                   ImpProject;                        /// Captures Project information from the UI
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<ImpGeofootprintVar>) {
@@ -76,7 +75,6 @@ export class ImpGeofootprintVar extends BaseModel
    // Convert JSON objects into Models
    public convertToModel()
    {
-
       // Set the isComplete flag indicating the load is complete
       this.setTreeProperty('isComplete', true);
    }
@@ -87,6 +85,7 @@ export class ImpGeofootprintVar extends BaseModel
     *
     * @returns Map<field, type>
     */
+/*
    public static getFields () : Map<string, string>
    {
       return new Map([
@@ -110,13 +109,14 @@ export class ImpGeofootprintVar extends BaseModel
          ['varSource',                     'string']
          ]);
    }
-
+*/
    /**
     * Produces a map of this classes relationships and data types.
     * Used instead of reflection, which has limitations.
     *
     * @returns Map<field, type>
     */
+   /*
    public static getRelationships () : Map<string, string>
    {
       return new Map([
@@ -133,12 +133,12 @@ export class ImpGeofootprintVar extends BaseModel
          ['impProject',                    'ImpProject'],
       ]);
    }
-
+*/
    /**
     * Returns the class as a string.
     *
     * @returns A string containing the class data.
     */
-   public toString = () => JSON.stringify(this, null, '   ');
+  // public toString = () => JSON.stringify(this, null, '   ');
 
 }

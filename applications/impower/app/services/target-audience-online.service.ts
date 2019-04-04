@@ -174,14 +174,16 @@ export class TargetAudienceOnlineService {
             secondaryId: projectVar.varPk.toString()
           };
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
+
+          let transactionId: number = -1;
           if (projectVar.source.toLowerCase().match('interest')) {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos, shading), (al, pk) => this.nationalRefreshCallback(SourceTypes.Interest, al, pk), null);
+            this.audienceService.addAudience(audience,(al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.Interest, al, pk, transactionId), null);
           } else if (projectVar.source.toLowerCase().match('in-market')) {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos, shading), (al, pk) => this.nationalRefreshCallback(SourceTypes.InMarket, al, pk), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.InMarket, al, pk, transactionId), null);
           } else if (projectVar.source.toLowerCase().match('vlh')) {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos, shading), (al, pk) => this.nationalRefreshCallback(SourceTypes.VLH, al, pk), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.VLH, al, pk, transactionId), null);
           } else {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos, shading), (al, pk) => this.nationalRefreshCallback(SourceTypes.Pixel, al, pk), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.Pixel, al, pk, transactionId), null);
           }
         }
       }
@@ -232,8 +234,8 @@ export class TargetAudienceOnlineService {
     console.log('Adding Audience', model);
     this.audienceService.addAudience(
       model,
-      (al, pks, geos, shading) => this.apioRefreshCallback(source, al, pks, geos, shading),
-      (al, pk) => this.nationalRefreshCallback(source, al, pk)
+      (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(source, al, pks, geos, shading, transactionId),
+      (al, pk, transactionId) => this.nationalRefreshCallback(source, al, pk, transactionId)
     );
   }
 
@@ -277,16 +279,16 @@ export class TargetAudienceOnlineService {
     return this.audienceCache$.get(resultKey);
   }
 
-  private apioRefreshCallback(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean) : Observable<ImpGeofootprintVar[]> {
+  private apioRefreshCallback(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<ImpGeofootprintVar[]> {
     if (analysisLevel == null || analysisLevel.length === 0 || identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
       return EMPTY;
     const numericIds = identifiers.map(i => Number(i));
     if (numericIds.filter(n => Number.isNaN(n)).length > 0)
       return throwError({ identifiers, msg: `Some identifiers were passed into the Apio ${source} Refresh function that weren't numeric pks` });
     const fullIds = identifiers.map(id => `Online/${source}/${id}`);
-    const observables = this.apioDataRefresh(source, analysisLevel, identifiers, geocodes, isForShading);
+    const observables = this.apioDataRefresh(source, analysisLevel, identifiers, geocodes, isForShading, transactionId);
     const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
-    console.log('Description Maps', descriptionMap);
+//  console.log('Description Maps', descriptionMap);
     descriptionMap.forEach(id => this.audDescription[id.audienceIdentifier] = id.audienceName);
     const currentProject = this.appStateService.currentProject$.getValue();
     const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
@@ -296,13 +298,14 @@ export class TargetAudienceOnlineService {
     );
   }
 
-  private nationalRefreshCallback(source: SourceTypes, analysisLevel: string, identifier: string) : Observable<any[]> {
+  //TODO Use ID instead of audienceName
+  private nationalRefreshCallback(source: SourceTypes, analysisLevel: string, identifier: string, transactionId: number) : Observable<any[]> {
     if (analysisLevel == null || analysisLevel.length === 0 || identifier == null || identifier.length === 0)
       return EMPTY;
     const numericId = Number(identifier);
     if (Number.isNaN(numericId))
       return throwError({ identifier, msg: `An identifier was passed into the Apio National Extract Refresh function that wasn't a numeric pk` });
-    const observables = this.apioDataRefresh(source, analysisLevel, [identifier], ['*'], false);
+    const observables = this.apioDataRefresh(source, analysisLevel, [identifier], ['*'], false, transactionId);
     const fullId = `Online/${source}/${identifier}`;
     const description = this.audienceService.getAudiences(fullId)[0];
     if (description == null)
@@ -318,18 +321,30 @@ export class TargetAudienceOnlineService {
     );
   }
 
-  private apioDataRefresh(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean) : Observable<OnlineBulkDataResponse[]>[] {
+  private apioDataRefresh(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<OnlineBulkDataResponse[]>[] {
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
-    const chunks = chunkArray(geocodes, this.config.maxGeosPerGeoInfoQuery);
+    const chunks = chunkArray(geocodes, 999999/*geocodes.length / 4*/); //this.config.maxGeosPerGeoInfoQuery);
     const observables: Observable<OnlineBulkDataResponse[]>[] = [];
     let c:number = 0;
+    const currentProject = this.appStateService.currentProject$.getValue();
+
+    let varTypes:string[] = [];
+    identifiers.forEach(id => {
+      let pv = currentProject.impProjectVars.filter(pv => pv.varPk.toString() === id);
+      if (varTypes != null)
+         varTypes.push((pv[0].indexBase.toUpperCase() == "NATIONALSCORE") ? "NATIONAL":"DMA");
+    });
+
     for (const chunk of chunks) {
       const inputData = {
         geoType: serviceAnalysisLevel,
         source: this.fuseSourceMapping.get(source),
         geocodes: chunk,
-        digCategoryIds: numericIds
+        digCategoryIds: numericIds,
+        varType: varTypes,
+        transactionId: transactionId,
+        chunks: this.config.geoInfoQueryChunks
       };
       if (inputData.geocodes.length > 0 && inputData.digCategoryIds.length > 0) {
         c++;
@@ -349,7 +364,7 @@ export class TargetAudienceOnlineService {
           ));
         }
     }
-    console.log("### apioDataRefresh pushing ", observables.length, "observables for ", geocodes.length, "geocodes in ", chunks.length, "chunks, ids:", identifiers);
+    // console.debug("### apioDataRefresh pushing ", observables.length, "observables for ", geocodes.length, "geocodes in ", chunks.length, "chunks, ids:", identifiers);
     return observables;
   }
 
@@ -363,8 +378,10 @@ export class TargetAudienceOnlineService {
     inputData.digCategoryIds.forEach(id => {
       const audience = audMap.get(id.toString());
       const sourceName = audience.audienceSourceName != null && audience.audienceSourceName.toLowerCase() === 'in-market' ? 'in_market' : audience.audienceSourceName;
-      const dmaKey = `${audience.audienceName}_${sourceName.toLowerCase()}_DMA`;
-      const nationalKey = `${audience.audienceName}_${sourceName.toLowerCase()}_NATIONAL`;
+      // const dmaKey = `${audience.audienceName}_${sourceName.toLowerCase()}_DMA`;
+      // const nationalKey = `${audience.audienceName}_${sourceName.toLowerCase()}_NATIONAL`;
+      const dmaKey = `${id}_${sourceName.toLowerCase()}_DMA`;
+      const nationalKey = `${id}_${sourceName.toLowerCase()}_NAT`;
       newArray.forEach(row => {
         responseArray.push({
             geocode : row.geocode,
@@ -374,8 +391,14 @@ export class TargetAudienceOnlineService {
           });
       });
     });
+
     const audData = new Set(responseArray.map(val => val.digCategoryId));
-    const missingCategoryIds = new Set(inputData.digCategoryIds.filter(id => !audData.has(id.toString())));
+
+    const emptyAudiences = new Set(Object.entries(response.payload.counts)
+      .filter((entry) => (entry[1] === 0 || entry[1] == null) && audData.has(entry[0]))
+      .map(e => e[0]));
+
+    const missingCategoryIds = new Set(inputData.digCategoryIds.filter(id => !audData.has(id.toString()) || emptyAudiences.has(id.toString()) ));
     if (missingCategoryIds.size > 0) {
       this.logger.info('Category Ids missing data::', missingCategoryIds);
       const audience = [];
@@ -383,7 +406,7 @@ export class TargetAudienceOnlineService {
         audience.push(this.audDescription[id.toString()]);
       });
       if (!isForShading){
-         this.store$.dispatch(new WarningNotification({ message: 'No data was returned within your geofootprint for the following selected online audiences: ' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning'}));
+         this.store$.dispatch(new WarningNotification({ message: 'No data was returned within your geofootprint for the following selected online audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning'}));
       }
     }
     //console.debug('Online Audience Response:::', chunk, "/", maxChunks, 'Chunks', responseArray.length, "rows"); // , responseArray); // See response
