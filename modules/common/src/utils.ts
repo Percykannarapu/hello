@@ -59,6 +59,30 @@ export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelec
 }
 
 /**
+ * Groups an array by the result of a keySelector function
+ * @param {T[]} items: The array to group
+ * @param {function} keySelector: A callback function that is used to generate the keys for the dictionary
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ */
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string) : { [key: string] : T[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number) : { [key: number] : T[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string, valueSelector: (item: T) => R) : { [key: string] : R[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number, valueSelector: (item: T) => R) : { [key: number] : R[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: ((item: T) => string) | ((item: T) => number), valueSelector: (item: T) => T | R = (i) => i) : { [key: string] : (T | R)[] } | { [key: number] : (T | R)[] } {
+  const result: { [k: string] : (T | R)[] } = {};
+  if (items == null || items.length === 0) return result;
+  for (const i of items) {
+    const currentKey = keySelector(i);
+    if (result[currentKey] == null) {
+      result[currentKey] = [valueSelector(i)];
+    } else {
+      result[currentKey].push(valueSelector(i));
+    }
+  }
+  return result;
+}
+
+/**
  * Converts Map<string | number, T> into an entity in the form of { [key: string | number] : T }
  */
 export function mapToEntity<T>(sourceMap: Map<string, T>) : { [key: string] : T };
@@ -102,6 +126,26 @@ export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, 
   items.forEach(i => {
     result.set(keySelector(i), tx(i));
   });
+  return result;
+}
+
+/**
+ * Maps an array by the result of a keySelector function
+ * Note this method assumes that there will only be one instance for each key value
+ * @param {T[]} items: The array to group
+ * @param {function} keySelector: A callback function that is used to generate the keys for the dictionary
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ */
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string) : { [key: string] : T };
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number) : { [key: number] : T };
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string, valueSelector: (item: T) => R) : { [key: string] : R };
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number, valueSelector: (item: T) => R) : { [key: number] : R };
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: ((item: T) => string) | ((item: T) => number), valueSelector: (item: T) => T | R = (i) => i) : { [key: string] : (T | R) } | { [key: number] : (T | R) } {
+  const result: { [k: string] : (T | R) } = {};
+  if (items == null || items.length === 0) return result;
+  for (const i of items) {
+    result[keySelector(i)] = valueSelector(i);
+  }
   return result;
 }
 
