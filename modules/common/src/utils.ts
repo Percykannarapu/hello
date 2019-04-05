@@ -226,9 +226,11 @@ export function isNumber(value: any) : value is number {
  * 99152612           3h 32m 32s  Handles Long running processes
  * 1152612            19m 12s
  * 152612             2m 32s      Anything above a minute rounds seconds
+ * 10500              10s         Anything above 10s truncates sub seconds
  * 3125               3.125s      Anything under 10s shows sub second
  * 2516               2.516s      A maxium of 3 decimals for sub seconds
  * 2001               2.001s
+ * 1118               1.118s      A number with a weird precision error
  * 1000               1s          If precision is < 3, it doesn't force it
  * 612                0.612s      Can display sub millisecond values
  * 45                 0.045s
@@ -239,11 +241,11 @@ export function isNumber(value: any) : value is number {
  * 0.001999786764383  0.001ms     Capped sub milliseconds to 3 decimals
  * 0.000199786764383  0ms         Below sub milli 3 dec is just instant
  */
-export function formatMilli(a,k?,sub?,s?,m?,h?){
-  return k=Math.trunc(a%1e3), sub=Math.floor((a%1e3-k)*1000)/1000, s=a/1e3%60|0, m=a/6e4%60|0, h=a/36e5%24|0,
+export function formatMilli(a,k?,sub?,s?,m?,h?,e?){
+  return k=Math.trunc(a%1e3), sub=Math.floor((a%1e3-k)*1000)/1000, s=a/1e3%60|0, e=(s+k/1000+"").length, m=a/6e4%60|0, h=a/36e5%24|0,
     (h?h+'h ':'')+
-    (m?m+'m ':'')+
-    (h || m || s >= 10 ? s+'s': (s >= 1 ? (s+k/1000).toFixed(3) + 's' : '')) +
+    (m?m+'m':'')+
+    (h || m || s >= 10 ? (s != 0 ? (m?' ':'')+s+'s':''): (s >= 1 ? (e <= 5 ? s+k/1000 : (s+k/1000).toFixed(3)) + 's' : '')) +
     (!h && !m && s == 0 && k >= 1 ? (k/1000) + 's' : '') +
     (!h && !m && !s && !k ? sub + 'ms' : '');
 }
