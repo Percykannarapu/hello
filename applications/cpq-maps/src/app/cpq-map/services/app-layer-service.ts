@@ -11,6 +11,7 @@ import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEdit
 import { UpsertRfpUiEditDetail, AddRfpUiEditDetail, AddRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { PopupGeoToggle } from '../state/shared/shared.actions';
 import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
+import { UpsertRfpUiEditWrap } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 
 export interface SiteInformation {
   geocode?: string;
@@ -364,7 +365,13 @@ export class AppLayerService {
      const geocode: string = selectedFeature.attributes.geocode;
      let found: boolean = false;
      for (const id of state.rfpUiEditDetail.ids) {
-       if (state.rfpUiEditDetail.entities[id].geocode === geocode) {
+        const currentRecord = state.rfpUiEditDetail.entities[id];
+       if (currentRecord.geocode === geocode && !state.shared.isWrap) {
+         const editDetail = state.rfpUiEditDetail.entities[id];
+         editDetail.isSelected = !editDetail.isSelected;
+         this.store$.dispatch(new UpsertRfpUiEditDetail({ rfpUiEditDetail: editDetail }));
+         found = true;
+       } else if (currentRecord.wrapZone === selectedFeature.attributes.wrap_name && state.shared.isWrap) {
          const editDetail = state.rfpUiEditDetail.entities[id];
          editDetail.isSelected = !editDetail.isSelected;
          this.store$.dispatch(new UpsertRfpUiEditDetail({ rfpUiEditDetail: editDetail }));
@@ -375,17 +382,51 @@ export class AppLayerService {
        const screenPoint: __esri.Point = <__esri.Point> this.esriMapService.mapView.popup.location;
        //let realPoint: __esri.Point = this.esriMapService.mapView.toMap(screenPoint);
        const realPoint: __esri.Point = <__esri.Point> EsriApi.projection.project(screenPoint, { wkid: 4326 });
-       this.createNewRfpUiEditDetail(geocode, realPoint);
+       if (!state.shared.isWrap) {
+         this.createNewRfpUiEditDetail(geocode, realPoint);
+       } else {
+          this.createNewRfpUiEditWrap(selectedFeature.attributes.wrap_name, realPoint);
+       }
+       
      }
    }
 
-   private createNewRfpUiEditDetail(geocode: string, point: any) {
+   private createNewRfpUiEditWrap(wrapZone: string, point: __esri.Point) {
+      const newWrap = new RfpUiEditWrap();
+      newWrap.wrapZone = wrapZone;
+      newWrap['@ref'] = this.newGeoId;
+      newWrap.isSelected = true;
+      this.newGeoId++;
+      this.store$.dispatch(new UpsertRfpUiEditWrap({ rfpUiEditWrap: newWrap }));
+      const query: __esri.Query = new EsriApi.Query();
+      query.outFields = ['geocode'];
+      query.where = `wrap_name = '${wrapZone}'`;
+      this.queryService.executeQuery(this.configService.layers['zip'].boundaries.id, query, false).subscribe(res => {
+         const wrapGeocodes: Array<string> = [];
+         res.features.forEach(f => wrapGeocodes.push(f.getAttribute('geocode')));
+         const pointQuery = new EsriApi.Query();
+         pointQuery.outFields = ['geocode'];
+         pointQuery.where = 'geocode IN (';
+         wrapGeocodes.forEach(wg => pointQuery.where += `'${wg}',`);
+         pointQuery.where = pointQuery.where.substr(0, pointQuery.where.length - 1);
+         pointQuery.where += ')';
+         this.queryService.executeQuery(this.configService.layers['zip'].centroids.id, pointQuery, true).subscribe(pointRes => {
+            pointRes.features.forEach(f => {
+               const centroid: __esri.Point = <__esri.Point> f.geometry;
+               this.createNewRfpUiEditDetail(f.getAttribute('geocode'), centroid, wrapZone);
+            });
+         });
+      });
+   }
+
+   private createNewRfpUiEditDetail(geocode: string, point: __esri.Point, wrapZone?: string) {
      const newDetail: RfpUiEditDetail = new RfpUiEditDetail();
      const closestSite: __esri.Graphic = this.findClosestSite(point);
      newDetail.geocode = geocode;
      newDetail.isSelected = true;
      newDetail.fkSite = closestSite.getAttribute('siteId');
      newDetail['@ref'] = this.newGeoId;
+     newDetail.wrapZone = wrapZone;
      this.newGeoId++;
      this.store$.dispatch(new UpsertRfpUiEditDetail({ rfpUiEditDetail: newDetail }));
    }

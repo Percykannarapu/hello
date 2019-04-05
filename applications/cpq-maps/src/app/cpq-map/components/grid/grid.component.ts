@@ -141,7 +141,8 @@ export class GridComponent implements OnInit, OnChanges {
     for (const id of state.rfpUiEditWrap.ids) {
       const newRow: WrapCompositeRow = state.rfpUiEditWrap.entities[id];
       const siteId: number = newRow.siteId;
-      newRow.investment = Number(state.rfpUiEditWrap.entities[id].investment.toFixed(2));
+      if (state.rfpUiEditWrap.entities[id].investment)
+        newRow.investment = Number(state.rfpUiEditWrap.entities[id].investment.toFixed(2));
       for (const j of state.rfpUiEdit.ids) {
         if (state.rfpUiEditDetail.entities[j].fkSite === siteId) {
           newRow.distance = state.rfpUiEditDetail.entities[j].distance;
