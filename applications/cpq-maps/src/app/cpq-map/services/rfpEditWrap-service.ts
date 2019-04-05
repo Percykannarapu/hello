@@ -5,6 +5,7 @@ import { FullState } from '../state';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { Store } from '@ngrx/store';
 import { UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 
 @Injectable({
   providedIn: 'root'
@@ -30,6 +31,18 @@ export class RfpUiEditWrapService {
       }
     }
     this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: recordUpdates }));
+  }
+
+  public toggleWrapZone(wrapZone: string, state: FullState) {
+    const editWraps: Array<RfpUiEditWrap> = [];
+    for (const id of state.rfpUiEditWrap.ids) {
+      const record = state.rfpUiEditWrap.entities[id];
+      if (record.wrapZone === wrapZone) {
+        record.isSelected = !record.isSelected;
+        editWraps.push(record);
+      }
+    }
+    this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: editWraps }));
   }
 
 }

@@ -6,13 +6,10 @@ export enum SharedActionTypes {
   ApplicationStartup = '[Shared Actions] Application Startup',
   MapSetupComplete = '[Shared Actions] Map Setup Complete',
   MapSetupFailed = '[Shared Actions] Map Setup Failed',
-
   GetMapData = '[Shared Actions] Get Map Data',
   GetMapDataFailed = '[Shared Actions] Get Map Data Failed',
   LoadEntityGraph = '[Shared Actions] Load Entity Graph',
-
   SetAppReady = '[Shared Actions] Set App Ready',
-
   SetIsWrap = '[Shared Actions] Set isWrap',
   SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled',
   PopupGeoToggle = '[Shared Actions] Toggle Geo Through Map Popup'
