@@ -1,22 +1,14 @@
 <div class="map-control-container">
-  <div class="ui-g-12">
-    <p-checkbox [(ngModel)]="distrQtyEnabled" binary="true" (onChange)="onDistryQtyChange($event)"></p-checkbox>
+  <div>
+    <p-checkbox [(ngModel)]="distributionQtyEnabled" binary="true" (onChange)="onDistributionQtyChange($event)"></p-checkbox>
     &nbsp;Show Distribution Quantity
   </div>
-  <div class="ui-g-12">
-    <p-card>
-      <p style="text-align: center; font-size: large;">Grid Controls</p>
-      <div class="ui-g">
-        <div class="ui-g-12">
-          <p-radioButton name="panel size" value="small" label="Show Partial Grid" [(ngModel)]="panelSize" (onClick)="updatePanelSize('small')"></p-radioButton>
-        </div>
-        <div class="ui-g-12">
-          <p-radioButton name="panel size" value="large" label="Show Full Grid" [(ngModel)]="panelSize" (onClick)="updatePanelSize('large')"></p-radioButton>
-        </div>
-        <div class="ui-g-12">
-          <p-radioButton name="panel size" value="none" label="Hide Grid" [(ngModel)]="panelSize" (onClick)="updatePanelSize('none')"></p-radioButton>
-        </div>
-      </div>
-    </p-card>
-  </div>
+  <p-card class="grid-control-container">
+    <div class="grid-controls">
+      <h4>Grid Controls</h4>
+      <p-radioButton name="grid size" value="small" label="Show Partial Grid" [(ngModel)]="gridSize" (onClick)="updateGridSize('small')"></p-radioButton>
+      <p-radioButton name="grid size" value="large" label="Show Full Grid" [(ngModel)]="gridSize" (onClick)="updateGridSize('large')"></p-radioButton>
+      <p-radioButton name="grid size" value="none" label="Hide Grid" [(ngModel)]="gridSize" (onClick)="updateGridSize('none')"></p-radioButton>
+    </div>
+  </p-card>
 </div>

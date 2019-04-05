@@ -21,9 +21,13 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   totalDistribution: number;
   totalInvestment: number;
   mediaPlanId: number;
+  mediaPlanGroupNumber: number;
   rfpNumber: string;
   rfpName: string;
   productName: string;
+  rfpId: string;
+
+  get reviewPageUrl() { return `/apex/RFP_Media_Plan_Display?rfpId=${this.rfpId}&displayAll=true&groupId=${this.mediaPlanGroupNumber}`; }
 
   constructor(private store$: Store<FullState>) { }
 
@@ -44,6 +48,8 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
       this.rfpNumber = headers.rfpNumber;
       this.rfpName = headers.rfpName;
       this.productName = headers.productName;
+      this.mediaPlanGroupNumber = headers.mediaPlanGroup;
+      this.rfpId = headers.rfpId;
     });
 
     this.appReady$ = this.store$.pipe(
@@ -53,6 +59,10 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() : void {
     this.componentDestroyed$.next();
+  }
+
+  onCancel() : void {
+    window.location.href = this.reviewPageUrl;
   }
 
   private calcMetrics(entities: RfpUiEditDetail[]) {

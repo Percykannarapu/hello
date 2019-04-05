@@ -12,8 +12,13 @@ import { FullState } from './state';
 export class CpqMapComponent implements OnInit, OnDestroy {
 
   private componentDestroyed = new Subject<void>();
-  public sideNavVisible = false;
-  public panelSize = 'small';
+
+  sideNavVisible = false;
+  gridSize = 'small';
+
+  get gridIsSmall() { return this.gridSize === 'small'; }
+  get gridIsLarge() { return this.gridSize === 'large'; }
+  get gridIsVisible() { return this.gridSize !== 'none'; }
 
   constructor(private store$: Store<FullState>) { }
 

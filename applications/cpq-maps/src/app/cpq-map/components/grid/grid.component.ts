@@ -1,11 +1,12 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, OnChanges } from '@angular/core';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
-import { Store } from '@ngrx/store';
+import { Store, select } from '@ngrx/store';
 import { LocalState } from '../../state';
 import { filter } from 'rxjs/operators';
 import { RfpUiEditWrap } from '../../../val-modules/mediaexpress/models/RfpUiEditWrap';
-import { UpdateRfpUiEditDetail, UpsertRfpUiEditDetail } from '../../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { UpsertRfpUiEditWrap, UpsertRfpUiEditWraps } from '../../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { UpsertRfpUiEditDetail } from '../../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { UpsertRfpUiEditWraps } from '../../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+
 class CompositeRow extends RfpUiEditDetail {
   public siteName?: string;
 }
@@ -19,34 +20,40 @@ class WrapCompositeRow extends RfpUiEditWrap {
   templateUrl: './grid.component.html',
   styleUrls: ['./grid.component.css']
 })
-export class GridComponent implements OnInit, OnChanges {
+export class GridComponent implements OnInit {
+
+  private currentState: LocalState;
+  private smallTableBackingVar: boolean;
 
   @Input()
   columns: Array<any> = [];
 
   @Input()
-  smallSizeTable: boolean;
+  set smallSizeTable(val: boolean) {
+    this.smallTableBackingVar = val;
+    this.refreshRows(this.currentState);
+  }
 
   rows: Array<CompositeRow | WrapCompositeRow> = [];
   selectedRows: Array<CompositeRow | WrapCompositeRow> = [];
   isWrap: boolean = true;
 
-  constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.smallSizeTable = changes.smallSizeTable.currentValue;
-  }
+  constructor(private store$: Store<LocalState>) { }
 
   ngOnInit() {
-    this.store$.select(state => state).pipe(
+    this.store$.pipe(select(state => state)).pipe(
       filter(state => state.shared.appReady === true)
-    ).subscribe(state => {
-      if (state.rfpUiEditDetail.entities[state.rfpUiEditDetail.ids[0]].productCd === 'WRAP') {
-        this.createWrapRows(state);
-      } else {
-        this.createNonWrapRows(state);
-      }
-    });
+    ).subscribe(state => this.refreshRows(state));
+  }
+
+  private refreshRows(state: LocalState) : void {
+    this.currentState = state;
+    if (state == null) return;
+    if (state.rfpUiEditDetail.entities[state.rfpUiEditDetail.ids[0]].productCd === 'WRAP') {
+      this.createWrapRows(state);
+    } else {
+      this.createNonWrapRows(state);
+    }
   }
 
   private createColumns(small: boolean, isWrap: boolean) {
@@ -81,7 +88,7 @@ export class GridComponent implements OnInit, OnChanges {
   private createNonWrapRows(state: LocalState) {
     this.rows = []; // reset the rows
     this.selectedRows = [];
-    this.createColumns(this.smallSizeTable, false);
+    this.createColumns(this.smallTableBackingVar, false);
     const newRows: Array<CompositeRow> = [];
     let var1: boolean, var2: boolean, var3: boolean;
     let heading1: string, heading2: string, heading3: string;
@@ -107,11 +114,10 @@ export class GridComponent implements OnInit, OnChanges {
       }
       newRows.push(state.rfpUiEditDetail.entities[id]);
     }
-    if (!this.smallSizeTable && (var1 || var2 || var3)) {
+    if (!this.smallTableBackingVar && (var1 || var2 || var3)) {
       this.addVariableColumns(var1, var2, var3, heading1, heading2, heading3);
     }
     this.rows = newRows;
-    this.cd.markForCheck();
   }
 
   public onChangeRowSelection(event: any) {
@@ -136,7 +142,7 @@ export class GridComponent implements OnInit, OnChanges {
     this.rows = []; // reset the rows
     this.selectedRows = [];
     this.isWrap = true;
-    this.createColumns(this.smallSizeTable, true);
+    this.createColumns(this.smallTableBackingVar, true);
     const newRows: Array<WrapCompositeRow> = [];
     for (const id of state.rfpUiEditWrap.ids) {
       const newRow: WrapCompositeRow = state.rfpUiEditWrap.entities[id];
@@ -153,7 +159,6 @@ export class GridComponent implements OnInit, OnChanges {
       newRows.push(newRow);
     }
     this.rows = [...newRows];
-    this.cd.markForCheck();
   }
 
 }
