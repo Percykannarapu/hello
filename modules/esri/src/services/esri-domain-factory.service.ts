@@ -69,4 +69,21 @@ export class EsriDomainFactoryService {
     });
     return result;
   }
+
+  createLabelClass(color: __esri.Color, expression: string) : __esri.LabelClass {
+    const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
+    const font = new EsriApi.Font({ family: 'sans-serif', size: 12, weight: 'bold' });
+    textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    textSymbol.color = color;
+    textSymbol.haloSize = 1;
+    textSymbol.font = font;
+    return new EsriApi.LabelClass({
+      symbol: textSymbol,
+      labelPlacement: 'below-center',
+      labelExpressionInfo: {
+        expression: expression
+      }
+    });
+  }
 }

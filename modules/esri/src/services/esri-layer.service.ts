@@ -132,20 +132,16 @@ export class EsriLayerService {
     });
   }
 
-  public coordinatesToGraphics(coordinates: UniversalCoordinates[], symbol?: MapSymbols) : __esri.Graphic[] {
-    const graphics: Array<__esri.Graphic> = [];
-    for (const coordinate of coordinates) {
-      const point: __esri.Point = new EsriApi.Point();
-      point.latitude = coordinate.y;
-      point.longitude = coordinate.x;
-      const marker: __esri.SimpleMarkerSymbol = new EsriApi.SimpleMarkerSymbol({ color: [0, 0, 255] });
-      symbol != null ? marker.path = symbol : marker.path = MapSymbols.STAR;
-      const graphic: __esri.Graphic = new EsriApi.Graphic();
-      graphic.geometry = point;
-      graphic.symbol = marker;
-      graphics.push(graphic);
-    }
-    return graphics;
+  public coordinateToGraphic(coordinate: UniversalCoordinates,  symbol?: MapSymbols) : __esri.Graphic {
+    const point: __esri.Point = new EsriApi.Point();
+    point.latitude = coordinate.y;
+    point.longitude = coordinate.x;
+    const marker: __esri.SimpleMarkerSymbol = new EsriApi.SimpleMarkerSymbol({ color: [0, 0, 255] });
+    symbol != null ? marker.path = symbol : marker.path = MapSymbols.STAR;
+    const graphic: __esri.Graphic = new EsriApi.Graphic();
+    graphic.geometry = point;
+    graphic.symbol = marker;
+    return graphic;
   }
 
   public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], bottom: boolean = false) : __esri.GraphicsLayer {
@@ -179,12 +175,12 @@ export class EsriLayerService {
       fields = [];
     } else {
       fields = Object.keys(sourceGraphics[0].attributes).map(k => {
-        return { name: k, alias: k, type: 'string' };
+        return { name: k, alias: k, type: k === oidFieldName ? 'oid' : 'string' };
       });
     }
     const layer = new EsriApi.FeatureLayer({
       source: sourceGraphics,
-      objectIdField: 'parentId',
+      objectIdField: oidFieldName,
       fields: fields,
       geometryType: layerType,
       spatialReference: { wkid: 4326 },

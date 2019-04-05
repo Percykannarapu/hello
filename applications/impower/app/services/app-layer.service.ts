@@ -1,20 +1,18 @@
 import { Inject, Injectable } from '@angular/core';
+import { select, Store } from '@ngrx/store';
+import { groupBy, mapByExtended, mapToEntity, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, MapSymbols, selectors, SetLayerLabelExpressions } from '@val/esri';
 import { combineLatest, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, finalize, map, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { FullAppState } from '../state/app.interfaces';
+import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
-import { select, Store } from '@ngrx/store';
-import { FullAppState } from '../state/app.interfaces';
-import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
-import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriLayerService, LayerDefinition, LayerGroupDefinition, selectors, SetLayerLabelExpressions, SetSelectedLayer } from '@val/esri';
-import { groupBy, mapToEntity, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
-
-const starPath: string = 'M16 4.588l2.833 8.719H28l-7.416 5.387 2.832 8.719L16 22.023l-7.417 5.389 2.833-8.719L4 13.307h9.167L16 4.588z';
 
 const defaultLocationPopupFields = [
   { fieldName: 'locationNumber', label: 'Location Number' },
@@ -49,6 +47,7 @@ export class AppLayerService {
   private layersWithPOBs = new Set(['ZIP Boundaries', 'ATZ Boundaries', 'Digital ATZ Boundaries', 'PCR Boundaries']);
 
   constructor(private layerService: EsriLayerService,
+              private esriFactory: EsriDomainFactoryService,
               private appStateService: AppStateService,
               private generator: AppComponentGeneratorService,
               private logger: AppLoggingService,
@@ -78,15 +77,14 @@ export class AppLayerService {
       if (this.layerService.layerExists(layerName) && this.layerService.groupExists(groupName)) {
         this.layerService.clearClientLayers(groupName);
       }
-      // const color = siteType.toLowerCase() === 'site' ? [35, 93, 186] : [255, 0, 0];
-      const color = siteType.toLowerCase() === 'site' ? [0, 0, 255] : [255, 0, 0];
+      const color = siteType === ImpClientLocationTypeCodes.Site ? [0, 0, 255] : [255, 0, 0];
       const siteRenderer =  new EsriApi.SimpleRenderer({
         symbol: new EsriApi.SimpleMarkerSymbol({
           style: 'path',
           size: 12,
           outline: null,
           color: color,
-          path: starPath
+          path: MapSymbols.STAR
         })
       });
       const popupTemplate = new EsriApi.PopupTemplate({
@@ -94,23 +92,8 @@ export class AppLayerService {
         content: [{ type: 'fields' }],
         fieldInfos: defaultLocationPopupFields
       });
-      const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
-      const font = new EsriApi.Font({ family: 'sans-serif', size: 12, weight: 'bold' });
-      textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-      textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
-      const siteColor = new EsriApi.Color({a: 1, r: 0, g: 0, b: 255});
-      const competitorColor = new EsriApi.Color({a: 1, r: 255, g: 0, b: 0});
-      textSymbol.color = siteType.toLowerCase() === 'site' ? siteColor : competitorColor;
-      textSymbol.haloSize = 1;
-      textSymbol.font = font;
-      const labelClass: __esri.LabelClass = new EsriApi.LabelClass({
-        symbol: textSymbol,
-        labelPlacement: 'below-center',
-        labelExpressionInfo: {
-          expression: '$feature.locationNumber'
-        }
-      });
-
+      const labelColor = new EsriApi.Color(color);
+      const labelClass: __esri.LabelClass = this.esriFactory.createLabelClass(labelColor, '$feature.locationNumber');
       this.layerService.createClientLayer(groupName, layerName, points, 'parentId', siteRenderer, popupTemplate, [labelClass]);
 
     } else {

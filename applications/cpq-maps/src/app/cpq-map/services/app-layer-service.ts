@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
-import { ColorPallete, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions, EsriQueryService, EsriRendererService, getColorPallete } from '@val/esri';
+import { ColorPallete, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions, EsriQueryService, getColorPallete, EsriDomainFactoryService } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
 import { calculateStatistics } from '@val/common';
 import { Store } from '@ngrx/store';
 import { HighlightMode } from '@val/esri';
-import { LocalState, FullState } from '../state';
+import { FullState } from '../state';
 import { ConfigService } from './config.service';
-import { Observable } from 'rxjs';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
-import { UpsertRfpUiEditDetail, AddRfpUiEditDetail, AddRfpUiEditDetails, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { PopupGeoToggle } from '../state/shared/shared.actions';
 import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
 import { UpsertRfpUiEditWrap } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
@@ -27,10 +26,11 @@ export interface SiteInformation {
 export class AppLayerService {
 
    constructor(private esriLayerService: EsriLayerService,
-      private esriMapService: EsriMapService,
-      private store$: Store<FullState>,
-      private configService: ConfigService,
-      private queryService: EsriQueryService) { }
+               private esriMapService: EsriMapService,
+               private queryService: EsriQueryService,
+               private esriFactory: EsriDomainFactoryService,
+               private store$: Store<FullState>,
+               private configService: ConfigService) { }
 
    private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
    private shadingMap: Map<number, number[]> = new Map<number, number[]>();
@@ -57,15 +57,17 @@ export class AppLayerService {
          this.currentLayerNames.set(groupName, [layerName]);
       }
       const graphics: Array<__esri.Graphic> = [];
+      let fakeOid = 0;
       siteInformation.forEach(s => {
-        const graphic: Array<__esri.Graphic> = this.esriLayerService.coordinatesToGraphics([s.coordinates]);
-        graphic[0].setAttribute('SHADING_GROUP', s.name);
-        graphic[0].setAttribute('radius', s.radius);
-        graphic[0].setAttribute('siteId', s.siteId);
-        graphics.push(...graphic);
+        const graphic = this.esriLayerService.coordinateToGraphic(s.coordinates);
+        graphic.setAttribute('OBJECTID', fakeOid++);
+        graphic.setAttribute('SHADING_GROUP', s.name);
+        graphic.setAttribute('radius', s.radius.toString());
+        graphic.setAttribute('siteId', s.siteId.toString());
+        graphics.push(graphic);
       });
-      //this.esriLayerService.createClientLayer(groupName, layerName, graphics, 'point', false, null, renderer);
-      this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics);
+      const label = this.esriFactory.createLabelClass(new EsriApi.Color([0, 0, 255, 1]), '$feature.SHADING_GROUP');
+      this.esriLayerService.createClientLayer(groupName, layerName, graphics, 'OBJECTID', renderer, null, [label]);
    }
 
    public removeLayer(groupName: string, layerName: string) {
@@ -98,16 +100,14 @@ export class AppLayerService {
 
    public addTradeAreaRings(siteInformation: SiteInformation[], radius: number) {
       this.esriLayerService.removeLayer('Trade Area');
-      const renderer = new EsriApi.SimpleRenderer({
-         symbol: new EsriApi.SimpleFillSymbol({
-            style: 'solid',
-            color: [0, 0, 0, 0],
-            outline: {
-               style: 'solid',
-               color: [0, 0, 255, 1],
-               width: 2
-            }
-          })
+      const symbol = new EsriApi.SimpleFillSymbol({
+        style: 'solid',
+        color: [0, 0, 0, 0],
+        outline: {
+          style: 'solid',
+          color: [0, 0, 255, 1],
+          width: 2
+        }
       });
       const points: Array<__esri.Point> = [];
       for (const siteInfo of siteInformation) {
@@ -121,10 +121,9 @@ export class AppLayerService {
          const graphics = geometry.map(g => {
             return new EsriApi.Graphic({
                geometry: g,
-               symbol: renderer.symbol,
+               symbol: symbol,
             });
          });
-         //this.esriLayerService.createClientLayer('Sites', 'Trade Area', graphics, 'polygon', false, null, renderer);
          this.esriLayerService.createGraphicsLayer('Sites', 'Trade Areas', graphics);
       });
    }
@@ -434,7 +433,7 @@ export class AppLayerService {
          this.newGeoId++;
          newDetails.push(newDetail);
      });
-     
+
      this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: newDetails }));
    }
 
