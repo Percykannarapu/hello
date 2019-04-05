@@ -8,7 +8,7 @@ import { LocalState, FullState } from '../state';
 import { ConfigService } from './config.service';
 import { Observable } from 'rxjs';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
-import { UpsertRfpUiEditDetail, AddRfpUiEditDetail, AddRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { UpsertRfpUiEditDetail, AddRfpUiEditDetail, AddRfpUiEditDetails, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { PopupGeoToggle } from '../state/shared/shared.actions';
 import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
 import { UpsertRfpUiEditWrap } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
@@ -383,7 +383,7 @@ export class AppLayerService {
        //let realPoint: __esri.Point = this.esriMapService.mapView.toMap(screenPoint);
        const realPoint: __esri.Point = <__esri.Point> EsriApi.projection.project(screenPoint, { wkid: 4326 });
        if (!state.shared.isWrap) {
-         this.createNewRfpUiEditDetail(geocode, realPoint);
+         this.createNewRfpUiEditDetails([{ geocode: geocode, point: realPoint }]);
        } else {
           this.createNewRfpUiEditWrap(selectedFeature.attributes.wrap_name, realPoint);
        }
@@ -411,24 +411,31 @@ export class AppLayerService {
          pointQuery.where = pointQuery.where.substr(0, pointQuery.where.length - 1);
          pointQuery.where += ')';
          this.queryService.executeQuery(this.configService.layers['zip'].centroids.id, pointQuery, true).subscribe(pointRes => {
+            const editDetailsInput: Array<{ geocode: string, point: __esri.Point, wrapZone: string }> = [];
             pointRes.features.forEach(f => {
                const centroid: __esri.Point = <__esri.Point> f.geometry;
-               this.createNewRfpUiEditDetail(f.getAttribute('geocode'), centroid, wrapZone);
+               editDetailsInput.push({ geocode: f.getAttribute('geocode'), point: centroid, wrapZone: wrapZone });
             });
+            this.createNewRfpUiEditDetails(editDetailsInput);
          });
       });
    }
 
-   private createNewRfpUiEditDetail(geocode: string, point: __esri.Point, wrapZone?: string) {
-     const newDetail: RfpUiEditDetail = new RfpUiEditDetail();
-     const closestSite: __esri.Graphic = this.findClosestSite(point);
-     newDetail.geocode = geocode;
-     newDetail.isSelected = true;
-     newDetail.fkSite = closestSite.getAttribute('siteId');
-     newDetail['@ref'] = this.newGeoId;
-     newDetail.wrapZone = wrapZone;
-     this.newGeoId++;
-     this.store$.dispatch(new UpsertRfpUiEditDetail({ rfpUiEditDetail: newDetail }));
+   private createNewRfpUiEditDetails(editDetailInput: { geocode: string, point: __esri.Point, wrapZone?: string }[]) {
+     const newDetails: Array<RfpUiEditDetail> = [];
+     editDetailInput.forEach(edi => {
+         const newDetail: RfpUiEditDetail = new RfpUiEditDetail();
+         const closestSite: __esri.Graphic = this.findClosestSite(edi.point);
+         newDetail.geocode = edi.geocode;
+         newDetail.isSelected = true;
+         newDetail.fkSite = closestSite.getAttribute('siteId');
+         newDetail['@ref'] = this.newGeoId;
+         newDetail.wrapZone = edi.wrapZone;
+         this.newGeoId++;
+         newDetails.push(newDetail);
+     });
+     
+     this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: newDetails }));
    }
 
    private findClosestSite(point: __esri.Point) : __esri.Graphic {
