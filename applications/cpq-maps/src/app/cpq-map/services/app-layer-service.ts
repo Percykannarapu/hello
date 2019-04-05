@@ -202,7 +202,7 @@ export class AppLayerService {
          const graphics: Array<__esri.Graphic> = [];
          res.features.forEach (feature => {
             const graphic: __esri.Graphic = new EsriApi.Graphic();
-            const symbol = new EsriApi.SimpleFillSymbol({ color: this.shadingMap.get(fkSiteMap.get(feature.getAttribute('geocode'))) });
+            const symbol = new EsriApi.SimpleFillSymbol({ color: this.shadingMap.get(Number(fkSiteMap.get(feature.getAttribute('geocode')))) });
             graphic.symbol = symbol;
             graphic.geometry = feature.geometry;
             graphic.setAttribute('geocode', feature.getAttribute('geocode'));
@@ -439,12 +439,13 @@ export class AppLayerService {
 
    private findClosestSite(point: __esri.Point) : __esri.Graphic {
      const geometry: __esri.Multipoint = new EsriApi.Multipoint();
-     this.esriLayerService.getGraphicsLayer('Project Sites').graphics.forEach(g => {
+     const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.esriLayerService.getClientLayer('Project Sites');
+     layer.source.forEach(g => {
        const p: __esri.Point = <__esri.Point> g.geometry;
        geometry.addPoint([p.x, p.y]);
      });
      const nearestPoint = EsriApi.geometryEngine.nearestCoordinate(geometry, point);
-     const sitesGraphic: __esri.Collection<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Project Sites').graphics.filter(gr => {
+     const sitesGraphic: __esri.Collection<__esri.Graphic> = layer.source.filter(gr => {
        const p: __esri.Point = <__esri.Point> gr.geometry;
        return p.x === nearestPoint.coordinate.x && p.y === nearestPoint.coordinate.y;
      });

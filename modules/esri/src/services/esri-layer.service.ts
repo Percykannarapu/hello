@@ -199,6 +199,10 @@ export class EsriLayerService {
     return layer;
   }
 
+  public getClientLayer(layerName: string) {
+    return this.layerRefs.get(layerName);
+  }
+
   public createDataSet(sourceGraphics: __esri.Graphic[], objectIdFieldName: string = 'OBJECTID') : __esri.FeatureSet {
     if (sourceGraphics.length === 0) return null;
     const fields = [];
