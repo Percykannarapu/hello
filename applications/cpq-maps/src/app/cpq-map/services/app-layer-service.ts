@@ -448,7 +448,7 @@ export class AppLayerService {
 
    private findClosestSite(point: __esri.Point) : __esri.Graphic {
      const geometry: __esri.Multipoint = new EsriApi.Multipoint();
-     const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.esriLayerService.getClientLayer('Project Sites');
+     const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.esriLayerService.getLayer('Project Sites');
      layer.source.forEach(g => {
        const p: __esri.Point = <__esri.Point> g.geometry;
        geometry.addPoint([p.x, p.y]);
