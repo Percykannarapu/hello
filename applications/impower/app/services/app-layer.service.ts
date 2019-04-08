@@ -3,7 +3,7 @@ import { select, Store } from '@ngrx/store';
 import { groupBy, mapByExtended, mapToEntity, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, MapSymbols, selectors, SetLayerLabelExpressions } from '@val/esri';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, finalize, map, tap, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, finalize, map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
@@ -54,19 +54,15 @@ export class AppLayerService {
               private appConfig: AppConfig,
               @Inject(EsriAppSettingsToken) private esriAppSettings: EsriAppSettings,
               private store$: Store<FullAppState>) {
-    this.appStateService.activeClientLocations$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([, isReady]) => isReady)
-    ).subscribe(([sites]) => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
-    this.appStateService.activeCompetitorLocations$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([, isReady]) => isReady)
-    ).subscribe(([competitors]) => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
-
-    this.appStateService.analysisLevel$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([, isReady]) => isReady)
-    ).subscribe(([al]) => this.setDefaultLayerVisibility(al));
+    this.store$.pipe(
+      select(selectors.getMapReady),
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.appStateService.activeClientLocations$.subscribe(sites => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
+      this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
+      this.appStateService.analysisLevel$.subscribe(al => this.setDefaultLayerVisibility(al));
+    });
 
     combineLatest(this.appStateService.applicationIsReady$, this.layerService.layersReady$).pipe(
       filter(([appIsReady, layersReady]) => !appIsReady && layersReady),
@@ -81,7 +77,7 @@ export class AppLayerService {
     const attributeFieldNames = ['clientLocationTypeCode', 'locationName', ...defaultLocationPopupFields.map(f => f.fieldName)];
     const points: __esri.Graphic[] = sites.map(site => this.createSiteGraphic(site, attributeFieldNames));
     if (points.length > 0) {
-      if (this.layerService.layerExists(layerName) && this.layerService.groupExists(groupName)) {
+      if (this.layerService.groupExists(groupName)) {
         this.layerService.clearClientLayers(groupName);
       }
       const color = siteType === ImpClientLocationTypeCodes.Site ? [0, 0, 255] : [255, 0, 0];
@@ -106,7 +102,7 @@ export class AppLayerService {
       const labelClass: __esri.LabelClass = this.esriFactory.createLabelClass(labelColor, '$feature.locationNumber');
       this.layerService.createClientLayer(groupName, layerName, points, 'parentId', siteRenderer, popupTemplate, [labelClass]);
     } else {
-      this.layerService.removeLayer(layerName);
+      this.layerService.clearClientLayers(groupName);
     }
   }
 
