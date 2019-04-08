@@ -13,11 +13,6 @@ const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data =
 export class EsriLayerService {
 
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
-
-  private groupRefs = new Map<string, __esri.GroupLayer>();
-  private portalGroupRefs = new Map<string, __esri.GroupLayer>();
-  private layerRefs = new Map<string, __esri.Layer>();
-  private portalRefs = new Map<string, __esri.FeatureLayer>();
   private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
   private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public layersReady$: Observable<boolean> = this.layersReady.asObservable();
@@ -25,47 +20,73 @@ export class EsriLayerService {
   constructor(private mapService: EsriMapService) {}
 
   public clearClientLayers(groupName: string) : void {
-    const currentGroup = this.groupRefs.get(groupName);
-    if (currentGroup != null) {
-      const layerSet = new Set(currentGroup.removeAll());
-      const keys = new Set<string>();
-      this.layerRefs.forEach((v, k) => {
-        if (layerSet.has(v)) {
-          keys.add(k);
-        }
-      });
-      keys.forEach(k => this.layerRefs.delete(k));
-      if (this.mapService.mapView != null) this.mapService.mapView.map.removeMany([currentGroup]);
-      this.groupRefs.delete(groupName);
+    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
+    if (EsriUtils.layerIsGroup(group)) {
+      group.layers.removeAll();
+      this.mapService.mapView.map.layers.remove(group);
     }
   }
 
   public groupExists(groupName: string) : boolean {
-    return this.groupRefs.has(groupName);
+    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
+    return EsriUtils.layerIsGroup(group);
   }
 
   public portalGroupExists(groupName: string) : boolean {
-    return this.portalGroupRefs.has(groupName);
+    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName && l.id === `portal-${groupName}`);
+    return EsriUtils.layerIsGroup(group);
   }
 
   public layerExists(layerName: string) : boolean {
-    return this.layerRefs.has(layerName);
-  }
-
-  public portalLayerExists(layerName: string) : boolean {
-    return this.portalRefs.has(layerName);
+    const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
+    return layer != null;
   }
 
   public getGroup(groupName: string) : __esri.GroupLayer {
-    return this.groupRefs.get(groupName);
+    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
+    if (EsriUtils.layerIsGroup(group)) {
+      return group;
+    }
+    return null;
   }
 
   public getPortalGroup(groupName: string) : __esri.GroupLayer {
-    return this.portalGroupRefs.get(groupName);
+    const group = this.mapService.mapView.map.layers.find(l => l.title === groupName && l.id === `portal-${groupName}`);
+    if (EsriUtils.layerIsGroup(group)) {
+      return group;
+    }
+    return null;
+  }
+
+  public getLayer(layerName: string) : __esri.Layer {
+    return this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
+  }
+
+  public getGraphicsLayer(layerName: string) : __esri.GraphicsLayer {
+    const layer = this.getLayer(layerName);
+    if (EsriUtils.layerIsGraphics(layer)) {
+      return layer;
+    }
+    return null;
+  }
+
+  public getPortalLayer(layerId: string) : __esri.FeatureLayer {
+    return this.mapService.mapView.map.allLayers.reduce((a, c) => {
+      if (a == null && EsriUtils.layerIsPortalFeature(c) && c.portalItem.id === layerId) {
+        return c;
+      } else {
+        return a;
+      }
+    }, null);
   }
 
   public getAllPortalGroups() : __esri.GroupLayer[] {
-    return Array.from(this.portalGroupRefs.values());
+    return this.mapService.mapView.map.layers.reduce((a, c) => {
+      if (c.id === `portal-${c.title}` && EsriUtils.layerIsGroup(c)) {
+        a.push(c);
+      }
+      return a;
+    }, []);
   }
 
   public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
@@ -77,27 +98,31 @@ export class EsriLayerService {
   }
 
   public removeLayer(layerName: string) : void {
-    if (this.layerRefs.has(layerName)) {
-      const group: __esri.GroupLayer = (this.layerRefs.get(layerName) as any).parent;
-      group.remove(this.layerRefs.get(layerName));
-      this.layerRefs.delete(layerName);
+    const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
+    if (layer != null) {
+      const parent = (layer as any).parent;
+      if (EsriUtils.layerIsGroup(parent)) {
+        parent.layers.remove(layer);
+      } else {
+        this.mapService.mapView.map.layers.remove(layer);
+      }
     }
   }
 
   public createPortalGroup(groupName: string, isVisible: boolean) : __esri.GroupLayer {
-    if (this.portalGroupRefs.has(groupName)) return this.portalGroupRefs.get(groupName);
+    if (this.portalGroupExists(groupName)) return this.getPortalGroup(groupName);
     const group = new EsriApi.GroupLayer({
+      id: `portal-${groupName}`,
       title: groupName,
       listMode: 'show',
       visible: isVisible
     });
     this.mapService.mapView.map.layers.unshift(group);
-    this.portalGroupRefs.set(groupName, group);
     return group;
   }
 
   public createClientGroup(groupName: string, isVisible: boolean, bottom: boolean = false) : __esri.GroupLayer {
-    if (this.groupRefs.has(groupName)) return;
+    if (this.groupExists(groupName)) return this.getGroup(groupName);
     const group = new EsriApi.GroupLayer({
       title: groupName,
       listMode: 'show',
@@ -108,8 +133,6 @@ export class EsriLayerService {
     } else {
       this.mapService.mapView.map.layers.add(group);
     }
-    
-    this.groupRefs.set(groupName, group);
     return group;
   }
 
@@ -122,7 +145,6 @@ export class EsriLayerService {
         currentLayer.visible = defaultVisibility;
         currentLayer.title = layerTitle;
         currentLayer.minScale = minScale;
-        this.portalRefs.set(portalId, currentLayer);
         EsriUtils.setupWatch(currentLayer, 'loaded').subscribe(result => this.determineLayerStatuses(result.target));
         subject.next(currentLayer);
         subject.complete();
@@ -145,27 +167,22 @@ export class EsriLayerService {
   }
 
   public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], bottom: boolean = false) : __esri.GraphicsLayer {
-    if (!this.groupRefs.has(groupName)) {
+    if (!this.groupExists(groupName)) {
       this.createClientGroup(groupName, true, bottom);
     }
-    const group = this.groupRefs.get(groupName);
+    const group = this.getGroup(groupName);
     const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
     group.layers.unshift(layer);
-    this.layerRefs.set(layerName, layer);
     return layer;
-  }
-
-  public getGraphicsLayer(layerName: string) : __esri.GraphicsLayer {
-    return <__esri.GraphicsLayer> this.layerRefs.get(layerName);
   }
 
   public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string, renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[]) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
 
-    if (!this.groupRefs.has(groupName)) {
+    if (!this.groupExists(groupName)) {
       this.createClientGroup(groupName, true);
     }
-    const group = this.groupRefs.get(groupName);
+    const group = this.getGroup(groupName);
     const layerType = sourceGraphics[0].geometry.type;
     const popupEnabled = popupTemplate != null;
     const labelsVisible = labelInfo != null && labelInfo.length > 0;
@@ -195,7 +212,6 @@ export class EsriLayerService {
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
 
     group.layers.unshift(layer);
-    this.layerRefs.set(layerName, layer);
     return layer;
   }
 
@@ -217,52 +233,6 @@ export class EsriLayerService {
       features: sourceGraphics,
       fields: fields
     });
-  }
-
-  public addGraphicsToLayer(layerName: string, graphics: __esri.Graphic[]) : void {
-    if (this.layerRefs.has(layerName)) {
-      //this.layerRefs.get(layerName).source.addMany(graphics);
-      const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
-      layer.applyEdits({ addFeatures: graphics });
-    }
-  }
-
-  public removeGraphicsFromLayer(layerName: string, graphics: __esri.Graphic[]) : void {
-    if (this.layerRefs.has(layerName)) {
-     // this.layerRefs.get(layerName).source.removeMany(graphics);
-     const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
-     layer.applyEdits({ deleteFeatures: graphics });
-    }
-  }
-
-  public replaceGraphicsOnLayer(layerName: string, graphics: __esri.Graphic[]) : void {
-    if (this.layerRefs.has(layerName)) {
-      // this.layerRefs.get(layerName).source.addMany(graphics);
-      const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
-      layer.source.removeAll();
-      layer.applyEdits({ addFeatures: graphics });
-    }
-  }
-
-  public updateGraphicAttributes(layerName: string, graphics: __esri.Graphic[]) : void {
-    if (this.layerRefs.has(layerName)) {
-      const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
-      layer.applyEdits({ updateFeatures: graphics });
-    }
-  }
-
-  public setGraphicVisibility(layerName: string, graphics: __esri.Graphic[]) : void {
-    if (this.layerRefs.has(layerName)) {
-      const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.layerRefs.get(layerName);
-      for (const g of graphics) {
-        const sourceGraphics = new Set(layer.source.toArray());
-        if (g.visible) {
-          if (!sourceGraphics.has(g)) layer.source.add(g);
-        } else {
-          layer.source.remove(g);
-        }
-      }
-    }
   }
 
   public getAllLayerNames() : string[] {

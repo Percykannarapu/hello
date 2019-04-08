@@ -44,7 +44,11 @@ export class AppLayerService {
       const renderer = new EsriApi.SimpleRenderer({
          symbol: new EsriApi.SimpleMarkerSymbol({
             color: [0, 0, 255, 1],
-            path: MapSymbols.STAR
+            path: MapSymbols.STAR,
+            outline: new EsriApi.SimpleLineSymbol({
+              color: [0, 0, 0, 0],
+              width: 0
+            })
          })
       });
       if (this.currentLayerNames.has(groupName)) {

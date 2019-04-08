@@ -3,7 +3,7 @@ import { select, Store } from '@ngrx/store';
 import { groupBy, mapByExtended, mapToEntity, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, MapSymbols, selectors, SetLayerLabelExpressions } from '@val/esri';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, finalize, map, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, finalize, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
@@ -54,12 +54,19 @@ export class AppLayerService {
               private appConfig: AppConfig,
               @Inject(EsriAppSettingsToken) private esriAppSettings: EsriAppSettings,
               private store$: Store<FullAppState>) {
-    this.appStateService.activeClientLocations$.subscribe(sites => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
-    this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
+    this.appStateService.activeClientLocations$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([, isReady]) => isReady)
+    ).subscribe(([sites]) => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
+    this.appStateService.activeCompetitorLocations$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([, isReady]) => isReady)
+    ).subscribe(([competitors]) => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
 
-    this.appStateService.analysisLevel$
-    //.pipe(filter(al => al != null && al.length > 0))
-      .subscribe(al => this.setDefaultLayerVisibility(al));
+    this.appStateService.analysisLevel$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([, isReady]) => isReady)
+    ).subscribe(([al]) => this.setDefaultLayerVisibility(al));
 
     combineLatest(this.appStateService.applicationIsReady$, this.layerService.layersReady$).pipe(
       filter(([appIsReady, layersReady]) => !appIsReady && layersReady),
@@ -81,10 +88,13 @@ export class AppLayerService {
       const siteRenderer =  new EsriApi.SimpleRenderer({
         symbol: new EsriApi.SimpleMarkerSymbol({
           style: 'path',
+          path: MapSymbols.STAR,
           size: 12,
-          outline: null,
           color: color,
-          path: MapSymbols.STAR
+          outline: new EsriApi.SimpleLineSymbol({
+            color: [0, 0, 0, 0],
+            width: 0
+          })
         })
       });
       const popupTemplate = new EsriApi.PopupTemplate({
@@ -95,7 +105,6 @@ export class AppLayerService {
       const labelColor = new EsriApi.Color(color);
       const labelClass: __esri.LabelClass = this.esriFactory.createLabelClass(labelColor, '$feature.locationNumber');
       this.layerService.createClientLayer(groupName, layerName, points, 'parentId', siteRenderer, popupTemplate, [labelClass]);
-
     } else {
       this.layerService.removeLayer(layerName);
     }
