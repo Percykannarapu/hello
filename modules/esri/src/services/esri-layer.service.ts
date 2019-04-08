@@ -21,7 +21,9 @@ export class EsriLayerService {
 
   public clearClientLayers(groupName: string) : void {
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
+    console.log('Clearing', groupName, 'layer');
     if (EsriUtils.layerIsGroup(group)) {
+      console.log('Group found, removing layers');
       group.layers.removeAll();
       this.mapService.mapView.map.layers.remove(group);
     }
@@ -62,22 +64,20 @@ export class EsriLayerService {
     return this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
   }
 
+  public getFeatureLayer(layerName: string) : __esri.FeatureLayer {
+    const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
+    if (EsriUtils.layerIsFeature(layer)) {
+      return layer;
+    }
+    return null;
+  }
+
   public getGraphicsLayer(layerName: string) : __esri.GraphicsLayer {
     const layer = this.getLayer(layerName);
     if (EsriUtils.layerIsGraphics(layer)) {
       return layer;
     }
     return null;
-  }
-
-  public getPortalLayer(layerId: string) : __esri.FeatureLayer {
-    return this.mapService.mapView.map.allLayers.reduce((a, c) => {
-      if (a == null && EsriUtils.layerIsPortalFeature(c) && c.portalItem.id === layerId) {
-        return c;
-      } else {
-        return a;
-      }
-    }, null);
   }
 
   public getAllPortalGroups() : __esri.GroupLayer[] {
@@ -129,9 +129,9 @@ export class EsriLayerService {
       visible: isVisible
     });
     if (bottom) {
-      this.mapService.mapView.map.layers.add(group, 0);
+      this.mapService.mapView.map.add(group, 0);
     } else {
-      this.mapService.mapView.map.layers.add(group);
+      this.mapService.mapView.map.add(group);
     }
     return group;
   }
@@ -178,11 +178,7 @@ export class EsriLayerService {
 
   public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string, renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[]) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
-
-    if (!this.groupExists(groupName)) {
-      this.createClientGroup(groupName, true);
-    }
-    const group = this.getGroup(groupName);
+    const group = this.createClientGroup(groupName, true);
     const layerType = sourceGraphics[0].geometry.type;
     const popupEnabled = popupTemplate != null;
     const labelsVisible = labelInfo != null && labelInfo.length > 0;
@@ -210,8 +206,8 @@ export class EsriLayerService {
     });
 
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
+    group.layers.push(layer);
 
-    group.layers.unshift(layer);
     return layer;
   }
 
