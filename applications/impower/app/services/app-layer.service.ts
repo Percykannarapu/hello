@@ -114,13 +114,21 @@ export class AppLayerService {
   }
 
   private updateSiteLayer(currentLayer: __esri.FeatureLayer, sites: ImpGeofootprintLocation[]) {
-    const currentGraphicIds = new Set<string>(currentLayer.source.toArray().map(g => g.attributes['locationNumber'].toString()));
-    const currentSiteIds = new Set<string>(sites.map(s => s.locationNumber));
-    const adds = sites.filter(s => !currentGraphicIds.has(s.locationNumber));
-    const deletes = currentLayer.source.filter(g => !currentSiteIds.has(g.attributes['locationNumber']));
-    currentLayer.applyEdits({
-      addFeatures: adds.map(l => this.createSiteGraphic(l, this.locationAttributeFieldNames)),
-      deleteFeatures: deletes.toArray()
+    currentLayer.queryFeatures().then(result => {
+      const currentGraphics: __esri.Graphic[] = result.features;
+      const currentGraphicIds = new Set<string>(currentGraphics.map(g => g.attributes['locationNumber'].toString()));
+      const currentSiteIds = new Set<string>(sites.map(s => s.locationNumber));
+      const adds = sites.filter(s => !currentGraphicIds.has(s.locationNumber));
+      const deletes = currentGraphics.filter(g => !currentSiteIds.has(g.attributes['locationNumber']));
+      console.log('Current Layer Graphics', currentGraphics);
+      console.log('Added Site Graphics', adds);
+      console.log('Removed Site Graphics', deletes);
+      const edits: __esri.FeatureLayerApplyEditsEdits = {};
+      if (adds.length > 0) edits.addFeatures = adds.map(l => this.createSiteGraphic(l, this.locationAttributeFieldNames));
+      if (deletes.length > 0) edits.deleteFeatures = deletes;
+      if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures')) {
+        currentLayer.applyEdits(edits);
+      }
     });
   }
 
