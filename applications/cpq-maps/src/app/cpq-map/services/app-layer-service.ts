@@ -10,7 +10,7 @@ import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEdit
 import { UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { PopupGeoToggle } from '../state/shared/shared.actions';
 import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
-import { UpsertRfpUiEditWrap } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { UpsertRfpUiEditWrap, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { RfpUiEditWrapService } from './rfpEditWrap-service';
 
 export interface SiteInformation {
@@ -172,6 +172,10 @@ export class AppLayerService {
    }
 
    public toggleGeoShading(editDetails: RfpUiEditDetail[], state: FullState) {
+      if (editDetails.length < 1) {
+         console.warn('attempted to toggle geo shading but no geos were provided');
+         return;
+      }
       const selectedGeocodes: Set<string> = new Set<string>();
       const fkSiteMap: Map<string, number> = new Map<string, number>();
       const wrapZones: Set<string> = new Set<string>();
@@ -386,8 +390,16 @@ export class AppLayerService {
          found = true;
        }
      }
-     if (found) {
-      this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: newEditDetails }));
+     if (found && !state.shared.isWrap) {
+       this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: newEditDetails }));
+     } else if (found && state.shared.isWrap) {
+       for (const id of state.rfpUiEditWrap.ids) {
+         const record = state.rfpUiEditWrap.entities[id];
+         if (record.wrapZone === selectedFeature.attributes.wrap_name) {
+            record.isSelected = !record.isSelected;
+            this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: [record] }));
+         }
+       }
      } else {
        const screenPoint: __esri.Point = <__esri.Point> this.esriMapService.mapView.popup.location;
        const realPoint: __esri.Point = <__esri.Point> EsriApi.projection.project(screenPoint, { wkid: 4326 });
@@ -405,7 +417,7 @@ export class AppLayerService {
       newWrap['@ref'] = this.newGeoId;
       newWrap.isSelected = true;
       this.newGeoId++;
-      this.store$.dispatch(new UpsertRfpUiEditWrap({ rfpUiEditWrap: newWrap }));
+      this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: [newWrap] }));
       const query: __esri.Query = new EsriApi.Query();
       query.outFields = ['geocode'];
       query.where = `wrap_name = '${wrapZone}'`;
