@@ -401,12 +401,16 @@ export class AppLayerService {
          }
        }
      } else {
-       const screenPoint: __esri.Point = <__esri.Point> this.esriMapService.mapView.popup.location;
-       const realPoint: __esri.Point = <__esri.Point> EsriApi.projection.project(screenPoint, { wkid: 4326 });
        if (!state.shared.isWrap) {
-         this.createNewRfpUiEditDetails([{ geocode: geocode, point: realPoint }]);
+         const query = new EsriApi.Query();
+         query.where = `geocode = '${selectedFeature.attributes.geocode}'`;
+         this.queryService.executeQuery(this.configService.layers[state.shared.analysisLevel].centroids.id, query, true).subscribe(res => {
+            this.createNewRfpUiEditDetails([{ geocode: geocode, point: <__esri.Point> res.features[0].geometry }]);   
+         });
        } else {
-          this.createNewRfpUiEditWrap(selectedFeature.attributes.wrap_name, realPoint);
+         const screenPoint: __esri.Point = <__esri.Point> this.esriMapService.mapView.popup.location;
+         const realPoint: __esri.Point = <__esri.Point> EsriApi.projection.project(screenPoint, { wkid: 4326 }); 
+         this.createNewRfpUiEditWrap(selectedFeature.attributes.wrap_name, realPoint);
        }
      }
    }
