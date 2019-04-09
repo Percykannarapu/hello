@@ -12,6 +12,7 @@ import { PopupGeoToggle } from '../state/shared/shared.actions';
 import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
 import { UpsertRfpUiEditWrap, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { RfpUiEditWrapService } from './rfpEditWrap-service';
+import { RfpUiEditDetailService } from './rfpUiEditDetail-service';
 
 export interface SiteInformation {
   geocode?: string;
@@ -32,7 +33,8 @@ export class AppLayerService {
                private esriFactory: EsriDomainFactoryService,
                private store$: Store<FullState>,
                private configService: ConfigService,
-               private wrapService: RfpUiEditWrapService) { }
+               private wrapService: RfpUiEditWrapService,
+               private editDetailService: RfpUiEditDetailService) { }
 
    private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
    private shadingMap: Map<number, number[]> = new Map<number, number[]>();
@@ -372,36 +374,20 @@ export class AppLayerService {
      }
      const selectedFeature = this.esriMapService.mapView.popup.selectedFeature;
      const geocode: string = selectedFeature.attributes.geocode;
-     let found: boolean = false;
-     const newEditDetails: Array<RfpUiEditDetail> = [];
-     const newWrapZones: Array<string> = [];
-     for (const id of state.rfpUiEditDetail.ids) {
-       const currentRecord = state.rfpUiEditDetail.entities[id];
-       if (currentRecord.geocode === geocode && !state.shared.isWrap) {
-         const editDetail = state.rfpUiEditDetail.entities[id];
-         editDetail.isSelected = !editDetail.isSelected;
-         newEditDetails.push(editDetail);
-         found = true;
-       } else if (currentRecord.wrapZone === selectedFeature.attributes.wrap_name && state.shared.isWrap) {
-         const editDetail = state.rfpUiEditDetail.entities[id];
-         editDetail.isSelected = !editDetail.isSelected;
-         newEditDetails.push(editDetail);
-         newWrapZones.push(editDetail.wrapZone);
-         found = true;
-       }
-     }
+     const wrapZone: string = selectedFeature.attributes.wrap_name;
+     const exisintgEditDetails: Array<RfpUiEditDetail> = this.editDetailService.getEditDetailsByGeocode(geocode, state).map(ed => {
+        ed.isSelected = !ed.isSelected;
+        return ed;
+     });
+     const found: boolean = exisintgEditDetails.length > 0;
      if (found && !state.shared.isWrap) {
-       this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: newEditDetails }));
+       this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: exisintgEditDetails }));
      } else if (found && state.shared.isWrap) {
-      const newEditWraps: Array<RfpUiEditWrap> = []; 
-      for (const id of state.rfpUiEditWrap.ids) {
-         const record = state.rfpUiEditWrap.entities[id];
-         if (record.wrapZone === selectedFeature.attributes.wrap_name) {
-            record.isSelected = !record.isSelected;
-            newEditWraps.push(record);
-         }
-       }
-       this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: newEditWraps }));
+       const existingEditWraps: Array<RfpUiEditWrap> = this.wrapService.getEditWrapZonesByZoneName(wrapZone, state).map(wz => {
+          wz.isSelected = !wz.isSelected;
+          return wz;
+       }); 
+       this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: existingEditWraps }));
      } else {
        if (!state.shared.isWrap) {
          const query = new EsriApi.Query();
@@ -410,7 +396,7 @@ export class AppLayerService {
             this.createNewRfpUiEditDetails([{ geocode: geocode, point: <__esri.Point> res.features[0].geometry }]);   
          });
        } else {
-         this.createNewRfpUiEditWrap(selectedFeature.attributes.wrap_name);
+         this.createNewRfpUiEditWrap(wrapZone);
        }
      }
    }
