@@ -90,10 +90,10 @@ interface TradeAreaDefinition {
    persistLocations(payload: {locations: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
      // const reCalculateHomegeos = true;
       if (payload.reCalculateHomeGeos){
-        const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
+        //const failedLoc = this.impLocationService.get().filter(loc => loc.recordStatusCode === 'CENTROID');
         const customTAList: TradeAreaDefinition[] = []; 
-        if (this.impTradeAreaService.get().length > 0 && this.impTradeAreaService.get()[0].taType === 'CUSTOM'){
-          this.impGeoService.get().forEach(geo => {
+        if (this.impTradeAreaService.get().length > 0 && this.impTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0){
+          this.impGeoService.get().filter(g => g.impGeofootprintTradeArea.taType === 'CUSTOM').forEach(geo => {
             const customTa: TradeAreaDefinition = {
                 store: geo.impGeofootprintLocation.locationNumber, 
                 geocode: geo.geocode,
@@ -105,11 +105,11 @@ interface TradeAreaDefinition {
         }
         const tas = this.impTradeAreaService.get();
         const locations = payload.locations;
-        locations.push(...failedLoc);
+        //locations.push(...failedLoc);
         const newTradeAreas: ImpGeofootprintTradeArea[] = [];
         
         const tradeAreas = this.appTradeAreaService.currentDefaults.get(ImpClientLocationTypeCodes.Site);
-        const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.impLocationService.get()[0].clientLocationTypeCode));
+        const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
         console.log('current defaults:::', tradeAreas, siteType);
 
         this.appTradeAreaService.deleteTradeAreas(tas);
