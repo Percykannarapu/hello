@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnChanges } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, ChangeDetectorRef } from '@angular/core';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { Store, select } from '@ngrx/store';
 import { LocalState } from '../../state';
@@ -38,7 +38,7 @@ export class GridComponent implements OnInit {
   selectedRows: Array<CompositeRow | WrapCompositeRow> = [];
   isWrap: boolean = true;
 
-  constructor(private store$: Store<LocalState>) { }
+  constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
 
   ngOnInit() {
     this.store$.pipe(select(state => state)).pipe(
@@ -54,6 +54,7 @@ export class GridComponent implements OnInit {
     } else {
       this.createNonWrapRows(state);
     }
+    this.cd.markForCheck();
   }
 
   private createColumns(small: boolean, isWrap: boolean) {
