@@ -393,13 +393,15 @@ export class AppLayerService {
      if (found && !state.shared.isWrap) {
        this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: newEditDetails }));
      } else if (found && state.shared.isWrap) {
-       for (const id of state.rfpUiEditWrap.ids) {
+      const newEditWraps: Array<RfpUiEditWrap> = []; 
+      for (const id of state.rfpUiEditWrap.ids) {
          const record = state.rfpUiEditWrap.entities[id];
          if (record.wrapZone === selectedFeature.attributes.wrap_name) {
             record.isSelected = !record.isSelected;
-            this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: [record] }));
+            newEditWraps.push(record);
          }
        }
+       this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: newEditWraps }));
      } else {
        if (!state.shared.isWrap) {
          const query = new EsriApi.Query();
