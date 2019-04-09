@@ -408,14 +408,12 @@ export class AppLayerService {
             this.createNewRfpUiEditDetails([{ geocode: geocode, point: <__esri.Point> res.features[0].geometry }]);   
          });
        } else {
-         const screenPoint: __esri.Point = <__esri.Point> this.esriMapService.mapView.popup.location;
-         const realPoint: __esri.Point = <__esri.Point> EsriApi.projection.project(screenPoint, { wkid: 4326 }); 
-         this.createNewRfpUiEditWrap(selectedFeature.attributes.wrap_name, realPoint);
+         this.createNewRfpUiEditWrap(selectedFeature.attributes.wrap_name);
        }
      }
    }
 
-   private createNewRfpUiEditWrap(wrapZone: string, point: __esri.Point) {
+   private createNewRfpUiEditWrap(wrapZone: string) {
       const newWrap = new RfpUiEditWrap();
       newWrap.wrapZone = wrapZone;
       newWrap['@ref'] = this.newGeoId;
