@@ -13,6 +13,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMerge
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
+import { mapArrayToEntity } from '@val/common';
 
 const defaultLocationPopupFields = [
   { fieldName: 'locationNumber', label: 'Location Number' },
@@ -116,6 +117,7 @@ export class AppLayerService {
   private updateSiteLayer(currentLayer: __esri.FeatureLayer, sites: ImpGeofootprintLocation[]) {
     currentLayer.queryFeatures().then(result => {
       const currentGraphics: __esri.Graphic[] = result.features;
+      const oidDictionary = mapArrayToEntity(currentGraphics, g => g.attributes['locationNumber'], g => g.attributes['parentId']);
       const currentGraphicIds = new Set<string>(currentGraphics.map(g => g.attributes['locationNumber'].toString()));
       const currentSiteIds = new Set<string>(sites.map(s => s.locationNumber));
       const adds = sites.filter(s => !currentGraphicIds.has(s.locationNumber));
@@ -124,7 +126,7 @@ export class AppLayerService {
       const edits: __esri.FeatureLayerApplyEditsEdits = {};
       if (adds.length > 0) edits.addFeatures = adds.map(l => this.createSiteGraphic(l, this.locationAttributeFieldNames));
       if (deletes.length > 0) edits.deleteFeatures = deletes;
-      if (updates.length > 0) edits.updateFeatures = updates.map(l => this.createSiteGraphic(l, this.locationAttributeFieldNames));
+      if (updates.length > 0) edits.updateFeatures = updates.map(l => this.createSiteGraphic(l, this.locationAttributeFieldNames, oidDictionary[l.locationNumber]));
       if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
         currentLayer.applyEdits(edits);
       }
@@ -332,13 +334,13 @@ export class AppLayerService {
    // return result;
   }
 
-  private createSiteGraphic(site: ImpGeofootprintLocation, attributeFieldNames: string[]) : __esri.Graphic {
+  private createSiteGraphic(site: ImpGeofootprintLocation, attributeFieldNames: string[], oid?: number) : __esri.Graphic {
     const graphic = new EsriApi.Graphic({
       geometry: new EsriApi.Point({
         x: site.xcoord,
         y: site.ycoord
       }),
-      attributes: { parentId: ++AppLayerService.ObjectIdCache },
+      attributes: { parentId: (oid == null ? ++AppLayerService.ObjectIdCache : oid) },
       visible: site.isActive
     });
     for (const field of attributeFieldNames) {
