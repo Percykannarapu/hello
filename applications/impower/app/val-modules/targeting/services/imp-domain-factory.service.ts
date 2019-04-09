@@ -92,10 +92,17 @@ export class ImpDomainFactoryService {
   createProjectVar(parent: ImpProject, varPk: number, audience: AudienceDataDefinition, isActive: boolean = true, duplicatePksOverwrite: boolean = true) : ImpProjectVar {
     if (parent == null) throw new Error('Project Var factory requires a valid Project instance');
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
-    const existingVar = parent.impProjectVars.find(pv => pv.varPk === varPk);
-    if (existingVar != null && !duplicatePksOverwrite) throw new Error('A duplicate Project Var addition was attempted');
-    const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
     const isCustom = audience.audienceSourceType === 'Custom';
+    const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
+    let existingVar;
+
+    if(isCustom) {
+      existingVar = parent.impProjectVars.find(pv => pv.fieldname === audience.audienceName);
+    } else{
+      existingVar = parent.impProjectVars.find(pv => pv.varPk === varPk);
+    }
+
+    if (existingVar != null && !duplicatePksOverwrite) throw new Error('A duplicate Project Var addition was attempted');
     if (existingVar == null) {
       const projectVar = new ImpProjectVar();
       projectVar.baseStatus = DAOBaseStatus.INSERT;
