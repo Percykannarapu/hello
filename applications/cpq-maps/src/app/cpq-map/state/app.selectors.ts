@@ -32,7 +32,7 @@ const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpU
   const targetingProfile = mediaPlan['targetingProfile'];
   const rfpNumber = targetingProfile == null ? null : targetingProfile['clientId'];
   const rfpName = targetingProfile == null ? null : targetingProfile['name'];
-  const productName = rfpUiReviews[0].sfdcProductName;
+  const productName = sharedState.isWrap ? 'SM Wrap' : rfpUiReviews[0].sfdcProductName;
   const rfpId = mpGroups[0].sfdcRfpId;
 
   return {
