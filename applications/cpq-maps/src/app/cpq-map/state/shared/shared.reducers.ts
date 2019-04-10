@@ -8,6 +8,7 @@ export interface SharedState {
    analysisLevel: string;
 
    appReady: boolean;
+   isSaving: boolean;
 
    isWrap: boolean;
    isDistrQtyEnabled: boolean;
@@ -24,6 +25,7 @@ const initialState: SharedState = {
    analysisLevel: null,
 
    appReady: false,
+   isSaving: false,
 
    isWrap: false,
    isDistrQtyEnabled: false,
@@ -37,6 +39,11 @@ type ReducerActions = SharedActions | UpsertRfpUiEditDetail | UpsertRfpUiEditDet
 
 export function sharedReducer(state = initialState, action: ReducerActions) : SharedState {
    switch (action.type) {
+     case SharedActionTypes.SaveMediaPlan:
+       return { ...state, isSaving: true };
+     case SharedActionTypes.SaveSucceeded:
+     case SharedActionTypes.SaveFailed:
+       return { ...state, isSaving: initialState.isSaving };
      case RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail:
        const update = {
          editedLineItemIds: [...state.editedLineItemIds],

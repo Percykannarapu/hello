@@ -15,7 +15,7 @@
   </div>
   <div class="header-buttons">
     <p-button label="Generate Maps" [disabled]="true" styleClass="ui-button-raised"></p-button>
-    <p-button label="Save" [disabled]="true" styleClass="ui-button-raised"></p-button>
+    <p-button label="Save & Return" (click)="onSave()" [disabled]="(isSaving$ | async) || isClean" styleClass="ui-button-raised"></p-button>
     <p-button label="Cancel" (click)="onCancel()" styleClass="ui-button-raised"></p-button>
   </div>
 </div>
