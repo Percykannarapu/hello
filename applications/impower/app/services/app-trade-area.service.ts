@@ -404,6 +404,7 @@ export class AppTradeAreaService {
   }
 
   public applyCustomTradeArea(data: TradeAreaDefinition[]){
+    this.uploadFailures = [];
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
