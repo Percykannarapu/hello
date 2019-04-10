@@ -17,6 +17,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { Geocode, HomeGeocode } from '../../state/homeGeocode/homeGeo.actions';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { AppProjectService } from '../../services/app-project.service';
+import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 
 export class FlatSite {
   fgId: number;
@@ -182,6 +183,7 @@ export class SiteListComponent implements OnInit {
       private appProjectService: AppProjectService,
       private cd: ChangeDetectorRef,
       private impLocationService: ImpGeofootprintLocationService,
+      private impLocAttributeService: ImpGeofootprintLocAttribService,
       //private valGeocodingRequest: ValGeocodingRequest,
       private store$: Store<LocalAppState>) {}
 
@@ -507,27 +509,34 @@ export class SiteListComponent implements OnInit {
         header: 'Calc Home Geocodes',
         accept: () => {
           const valGeosites: ValGeocodingRequest[] = [];
+          const locations = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite);
           const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+          const locAttrs: ImpGeofootprintLocAttrib[] = [];
+           
           
-          this.impLocationService.get().forEach(loc => {
-            if (loc.recordStatusCode !== 'CENTROID'){
+          locations.forEach(loc => {
+              locAttrs.push(...loc.impGeofootprintLocAttribs);
+           // if (loc.recordStatusCode !== 'CENTROID'){
               loc.impGeofootprintLocAttribs.forEach(attr => {
                 if (homeGeoColumnsSet.has(attr.attributeCode)){
                   attr.attributeValue = '';
                 }
               });
-              if (loc.recordStatusCode === 'SUCCESS'){
+              if (loc.recordStatusCode === 'SUCCESS' || loc.recordStatusCode === 'CENTROID'){
                 loc.xcoord = null;
                 loc.ycoord = null;
               }
               valGeosites.push(new ValGeocodingRequest(loc, false, true));
-            }
+           // }
           });
  
          const sites = Array.isArray(valGeosites) ? valGeosites : [valGeosites];
-         const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.impLocationService.get()[0].clientLocationTypeCode));
+         const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
          const reCalculateHomeGeos = true;
          const isLocationEdit =  false;
+         //ImpClientLocationTypeCodes.Site
+         this.impLocationService.remove(locations);
+         this.impLocAttributeService.remove(locAttrs);
          this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
         },
         reject: () => {

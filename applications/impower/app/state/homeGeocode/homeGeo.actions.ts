@@ -49,12 +49,13 @@ export class DetermineDTZHomeGeos implements Action{
    constructor(public payload: {attributes: any , 
                                 locationsMap: Map<string, ImpGeofootprintLocation[]>, 
                                 isLocationEdit: boolean, 
-                                reCalculateHomeGeos: boolean}){}
+                                reCalculateHomeGeos: boolean,
+                                totalLocs: ImpGeofootprintLocation[]}){}
 }
 
 export class ProcessHomeGeoAttributes implements Action{
   readonly type = HomeGeoActionTypes.ProcessHomeGeoAttributes;
-  constructor(public payload: {attributes: any}){}
+  constructor(public payload: {attributes: any, totalLocs: ImpGeofootprintLocation[], isLocationEdit: boolean, reCalculateHomeGeos: boolean}){}
 }
 
 export class UpdateLocations implements Action {
