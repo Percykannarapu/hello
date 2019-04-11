@@ -153,7 +153,6 @@
       }
     }
     stage('Run checkmarx') {
-      when { branch 'dev '}
       steps {
         echo 'Running checkmarx stage'
         script {
