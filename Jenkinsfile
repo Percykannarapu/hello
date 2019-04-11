@@ -169,6 +169,19 @@
           !**/*.htmls,   !**/*.ihtml,     !**/*.mht,      !**/*.mhtm,     !**/*.mhtml,   !**/*.ssi, !**/*.stm,
           !**/*.stml,    !**/*.ttml,      !**/*.txn,      !**/*.xhtm,     !**/*.xhtml,   !**/*.class, !**/*.iml, !Checkmarx/Reports/*.*''', fullScanCycle: 1000, groupId: '54765168-4478-41b2-8cb3-3714a1df4b4b', includeOpenSourceFolders: '', osaArchiveIncludePatterns: '*.zip, *.war, *.ear, *.tgz', osaInstallBeforeScan: false, password: '{AQAAABAAAAAQAtw2NIROwdWnClQnFbJAhswYkn/VGVX1gw7FaOJb67E=}', preset: '36', projectName: 'test-checkmarx', sastEnabled: true, serverUrl: 'http://sa1w-cxmngr-p1', sourceEncoding: '1', username: '', vulnerabilityThresholdResult: 'FAILURE', waitForResultsEnabled: true])
         }
+        post {
+          success {
+            // publish html
+            publishHTML target: [
+                allowMissing: false,
+                alwaysLinkToLastBuild: false,
+                keepAll: true,
+                reportDir: 'Checkmarx/Reports/',
+                reportFiles: 'Report_CxSAST.html',
+                reportName: 'Checkmarx Static Analysis Report'
+              ]
+          }
+        }
       }
     }
     stage('Run Tests') {
