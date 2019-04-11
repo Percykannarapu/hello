@@ -129,9 +129,9 @@ export class EsriLayerService {
       visible: isVisible
     });
     if (bottom) {
-      this.mapService.mapView.map.add(group, 0);
+      this.mapService.mapView.map.layers.unshift(group);
     } else {
-      this.mapService.mapView.map.add(group);
+      this.mapService.mapView.map.layers.push(group);
     }
     return group;
   }
@@ -167,10 +167,7 @@ export class EsriLayerService {
   }
 
   public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], bottom: boolean = false) : __esri.GraphicsLayer {
-    if (!this.groupExists(groupName)) {
-      this.createClientGroup(groupName, true, bottom);
-    }
-    const group = this.getGroup(groupName);
+    const group = this.createClientGroup(groupName, true, bottom);
     const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
     group.layers.unshift(layer);
     return layer;
