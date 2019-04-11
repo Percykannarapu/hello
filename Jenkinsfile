@@ -250,6 +250,15 @@
           reportFiles: 'Report_CxSAST.html',
           reportName: 'Checkmarx Static Analysis Report'
         ]
+      sh 'mv Checkmarx/Reports/*.pdf Checkmarx/Reports/report.pdf'
+      publishHTML target: [
+          allowMissing: false,
+          alwaysLinkToLastBuild: false,
+          keepAll: true,
+          reportDir: 'Checkmarx/Reports/',
+          reportFiles: 'CxSASTReport*.pdf',
+          reportName: 'Checkmarx Static Analysis Report - PDF'
+        ]
     }
   }
 }
