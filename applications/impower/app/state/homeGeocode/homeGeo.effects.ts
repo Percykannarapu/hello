@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { toPayload } from '../../../../../modules/common/src/rxjs';
 import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistLocations, ZoomtoLocations,
-         DetermineDTZHomeGeos, ProcessHomeGeoAttributes, UpdateLocations, ApplyTradeAreaOnEdit} from './homeGeo.actions';
+         DetermineDTZHomeGeos, ProcessHomeGeoAttributes, UpdateLocations, ApplyTradeAreaOnEdit, ReCalcHomeGeos} from './homeGeo.actions';
 import { Actions, ofType, Effect} from '@ngrx/effects';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
@@ -19,10 +19,8 @@ export class HomeGeoEffects {
    @Effect()
    geocoding$ = this.actions$.pipe(
       ofType<Geocode>(HomeGeoActionTypes.Geocode),
-      //this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
      switchMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
         concatMap(locations => [
-           //new PersistLocations({locations, reCalculateHomeGeos: action.payload.reCalculateHomeGeos, isLocationEdit: action.payload.isLocationEdit}),
            new ZoomtoLocations({locations}),
            new StopBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER' }),
            new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
@@ -33,6 +31,12 @@ export class HomeGeoEffects {
             )
         )
      ))
+   );
+
+   @Effect({ dispatch: false })
+   recalchomegeos$ = this.actions$.pipe(
+      ofType<ReCalcHomeGeos>(HomeGeoActionTypes.ReCalcHomeGeos),
+      map(action => this.appHomeGeocodingService.reCalcHomeGeos(action.payload))
    );
 
    @Effect({ dispatch: false })

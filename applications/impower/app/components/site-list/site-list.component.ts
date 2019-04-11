@@ -14,7 +14,7 @@ import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { Geocode, HomeGeocode } from '../../state/homeGeocode/homeGeo.actions';
+import { Geocode, HomeGeocode, ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { AppProjectService } from '../../services/app-project.service';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
@@ -503,49 +503,15 @@ export class SiteListComponent implements OnInit {
     */
    public calcHomeGeocode(){
      if ( this.impLocationService.get().length > 0){
-
-      this.confirmationService.confirm({
-        message: 'Are you sure you want to calculate home geocodes for all your sites?' + '<br>' + 'All customization will be lost and trade areas will be reapplied',
-        header: 'Calc Home Geocodes',
-        accept: () => {
-          const valGeosites: ValGeocodingRequest[] = [];
-          const locations = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite);
-          const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
-          const locAttrs: ImpGeofootprintLocAttrib[] = [];
-           
-          
-          locations.forEach(loc => {
-              locAttrs.push(...loc.impGeofootprintLocAttribs);
-           // if (loc.recordStatusCode !== 'CENTROID'){
-              loc.impGeofootprintLocAttribs.forEach(attr => {
-                if (homeGeoColumnsSet.has(attr.attributeCode)){
-                  attr.attributeValue = '';
-                }
-              });
-              if (loc.recordStatusCode === 'SUCCESS' || loc.recordStatusCode === 'CENTROID'){
-                loc.xcoord = null;
-                loc.ycoord = null;
-              }
-              valGeosites.push(new ValGeocodingRequest(loc, false, true));
-           // }
-          });
- 
-         const sites = Array.isArray(valGeosites) ? valGeosites : [valGeosites];
-         const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
-         const reCalculateHomeGeos = true;
-         const isLocationEdit =  false;
-         //ImpClientLocationTypeCodes.Site
-         this.impLocationService.remove(locations);
-         this.impLocAttributeService.remove(locAttrs);
-         this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
-        },
-        reject: () => {
-         console.log('calcHomeGeocode aborted');
-        }
-      });
+      const locations = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite);
+      const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
+      const reCalculateHomeGeos = true;
+      const isLocationEdit =  false;
+      this.store$.dispatch(new ReCalcHomeGeos({locations: locations, 
+                                               siteType: siteType, 
+                                               reCalculateHomeGeos: reCalculateHomeGeos, 
+                                               isLocationEdit: isLocationEdit}));
      }
-     
-
    }
 
       /**

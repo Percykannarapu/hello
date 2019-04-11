@@ -19,7 +19,9 @@ import { AppStateService } from './app-state.service';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
-import { PersistLocations } from 'app/state/homeGeocode/homeGeo.actions';
+import { PersistLocations, Geocode } from 'app/state/homeGeocode/homeGeo.actions';
+import { ConfirmationService } from 'primeng/primeng';
+import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 
 interface TradeAreaDefinition {
   store: string;
@@ -44,6 +46,7 @@ interface TradeAreaDefinition {
                private appEditSiteService: AppEditSiteService,
                private impGeoService: ImpGeofootprintGeoService,
                private impProjectService: ImpProjectService,
+               private confirmationService: ConfirmationService,
                private stateService: AppStateService ){
                  
                 this.appEditSiteService.customData$.subscribe(message => {
@@ -62,6 +65,48 @@ interface TradeAreaDefinition {
         //reduce((accumlatorLocs, locations) => { accumlatorLocs.push(...locations); return accumlatorLocs}, [] )
         reduce((accumlatorLocs , locations) => [...accumlatorLocs, ...locations], [])
       );
+   }
+
+   reCalcHomeGeos(payload: {locations: ImpGeofootprintLocation[], siteType: SuccessfulLocationTypeCodes, reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
+     console.log('=======recalculate HomeGeos============');
+     this.confirmationService.confirm({
+      message: 'Are you sure you want to calculate home geocodes for all your sites?' + '<br>' + 'All customization will be lost and trade areas will be reapplied',
+      header: 'Calc Home Geocodes',
+      accept: () => {
+        const valGeosites: ValGeocodingRequest[] = [];
+        const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
+        const locAttrs: ImpGeofootprintLocAttrib[] = [];
+         
+        
+        payload.locations.forEach(loc => {
+            locAttrs.push(...loc.impGeofootprintLocAttribs);
+            loc.impGeofootprintLocAttribs.forEach(attr => {
+              if (homeGeoColumnsSet.has(attr.attributeCode)){
+                attr.attributeValue = '';
+              }
+            });
+            if (loc.recordStatusCode === 'SUCCESS' || loc.recordStatusCode === 'CENTROID'){
+              loc.xcoord = null;
+              loc.ycoord = null;
+            }
+            valGeosites.push(new ValGeocodingRequest(loc, false, true));
+        });
+
+       const sites = Array.isArray(valGeosites) ? valGeosites : [valGeosites];
+       
+       this.impLocationService.remove(payload.locations);
+       this.impLocAttributeService.remove(locAttrs);
+       const siteType = payload.siteType;
+       const reCalculateHomeGeos = payload.reCalculateHomeGeos;
+       const isLocationEdit = payload.isLocationEdit;
+       this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
+      },
+      reject: () => {
+       console.log('calcHomeGeocode aborted');
+      }
+    });
+
+
    }
 
    validateLocations(payload: {locations: ImpGeofootprintLocation[], isLocationEdit: boolean, reCalculateHomeGeos: boolean}){
