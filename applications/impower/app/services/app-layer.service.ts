@@ -1,39 +1,19 @@
 import { Inject, Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { mapArrayToEntity, mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
-import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, MapSymbols, selectors, SetLayerLabelExpressions } from '@val/esri';
+import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
+import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
 import { combineLatest, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, finalize, map, take, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
+import { RenderLocations } from '../state/rendering/rendering.actions';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
 
-const defaultLocationPopupFields = [
-  { fieldName: 'locationNumber', label: 'Location Number' },
-  { fieldName: 'locAddress', label: 'Address' },
-  { fieldName: 'locCity', label: 'City' },
-  { fieldName: 'locState', label: 'State' },
-  { fieldName: 'locZip', label: 'Zip' },
-  { fieldName: 'recordStatusCode', label: 'Geocode Status' },
-  { fieldName: 'ycoord', label: 'Latitude' },
-  { fieldName: 'xcoord', label: 'Longitude' },
-  { fieldName: 'geocoderMatchCode', label: 'Match Code' },
-  { fieldName: 'geocoderLocationCode', label: 'Match Quality' },
-  { fieldName: 'origAddress1', label: 'Original Address' },
-  { fieldName: 'origCity', label: 'Original City' },
-  { fieldName: 'origState', label: 'Original State' },
-  { fieldName: 'origPostalCode', label: 'Original Zip' },
-];
-
 @Injectable()
 export class AppLayerService {
-
-  static ObjectIdCache = 0;
 
   private analysisLevelToGroupNameMap = {
     'ZIP': ['zip'],
@@ -42,7 +22,6 @@ export class AppLayerService {
     'PCR': ['pcr', 'zip']
   };
 
-  private locationAttributeFieldNames = ['clientLocationTypeCode', 'locationName', ...defaultLocationPopupFields.map(f => f.fieldName)];
   private pausableWatches: __esri.PausableWatchHandle[] = [];
   private layersWithPOBs = new Set(['ZIP Boundaries', 'ATZ Boundaries', 'Digital ATZ Boundaries', 'PCR Boundaries']);
 
@@ -59,8 +38,6 @@ export class AppLayerService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.appStateService.activeClientLocations$.subscribe(sites => this.manageSiteLayer(ImpClientLocationTypeCodes.Site, sites));
-      this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.manageSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
       this.appStateService.analysisLevel$.subscribe(al => this.setDefaultLayerVisibility(al));
     });
 
@@ -68,67 +45,6 @@ export class AppLayerService {
       filter(([appIsReady, layersReady]) => !appIsReady && layersReady),
       distinctUntilChanged()
     ).subscribe(() => this.clearClientLayers());
-  }
-
-  public manageSiteLayer(siteType: SuccessfulLocationTypeCodes, sites: ImpGeofootprintLocation[]) : void {
-    console.log('Updating Site Layer Visuals', [siteType, sites]);
-    const groupName = `${siteType}s`;
-    const layerName = `Project ${groupName}`;
-
-    if (sites.length === 0) {
-      this.layerService.clearClientLayers(groupName);
-    } else {
-      const currentLayer = this.layerService.getFeatureLayer(layerName);
-      if (currentLayer != null) {
-        this.updateSiteLayer(currentLayer, sites);
-      } else {
-        this.createNewSiteLayer(groupName, layerName, sites);
-      }
-    }
-  }
-
-  private createNewSiteLayer(groupName: string, layerName: string, sites: ImpGeofootprintLocation[]) {
-    const points: __esri.Graphic[] = sites.map(site => this.createSiteGraphic(site, this.locationAttributeFieldNames));
-    const color = groupName === 'Sites' ? [0, 0, 255] : [255, 0, 0];
-    const siteRenderer =  new EsriApi.SimpleRenderer({
-      symbol: new EsriApi.SimpleMarkerSymbol({
-        style: 'path',
-        path: MapSymbols.STAR,
-        size: 12,
-        color: color,
-        outline: new EsriApi.SimpleLineSymbol({
-          color: [0, 0, 0, 0],
-          width: 0
-        })
-      })
-    });
-    const popupTemplate = new EsriApi.PopupTemplate({
-      title: '{clientLocationTypeCode}: {locationName}',
-      content: [{ type: 'fields' }],
-      fieldInfos: defaultLocationPopupFields
-    });
-    const labelColor = new EsriApi.Color(color);
-    const labelClass: __esri.LabelClass = this.esriFactory.createLabelClass(labelColor, '$feature.locationNumber');
-    this.layerService.createClientLayer(groupName, layerName, points, 'parentId', siteRenderer, popupTemplate, [labelClass]);
-  }
-
-  private updateSiteLayer(currentLayer: __esri.FeatureLayer, sites: ImpGeofootprintLocation[]) {
-    currentLayer.queryFeatures().then(result => {
-      const currentGraphics: __esri.Graphic[] = result.features;
-      const oidDictionary = mapArrayToEntity(currentGraphics, g => g.attributes['locationNumber'], g => g.attributes['parentId']);
-      const currentGraphicIds = new Set<string>(currentGraphics.map(g => g.attributes['locationNumber'].toString()));
-      const currentSiteIds = new Set<string>(sites.map(s => s.locationNumber));
-      const adds = sites.filter(s => !currentGraphicIds.has(s.locationNumber));
-      const deletes = currentGraphics.filter(g => !currentSiteIds.has(g.attributes['locationNumber']));
-      const updates = sites.filter(s => currentGraphicIds.has(s.locationNumber));
-      const edits: __esri.FeatureLayerApplyEditsEdits = {};
-      if (adds.length > 0) edits.addFeatures = adds.map(l => this.createSiteGraphic(l, this.locationAttributeFieldNames));
-      if (deletes.length > 0) edits.deleteFeatures = deletes;
-      if (updates.length > 0) edits.updateFeatures = updates.map(l => this.createSiteGraphic(l, this.locationAttributeFieldNames, oidDictionary[l.locationNumber]));
-      if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
-        currentLayer.applyEdits(edits);
-      }
-    });
   }
 
   private setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
@@ -262,22 +178,6 @@ export class AppLayerService {
       result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
     }
    return new EsriApi.PopupTemplate(result);
-  }
-
-  private createSiteGraphic(site: ImpGeofootprintLocation, attributeFieldNames: string[], oid?: number) : __esri.Graphic {
-    const graphic = new EsriApi.Graphic({
-      geometry: new EsriApi.Point({
-        x: site.xcoord,
-        y: site.ycoord
-      }),
-      attributes: { parentId: (oid == null ? ++AppLayerService.ObjectIdCache : oid) },
-      visible: site.isActive
-    });
-    for (const field of attributeFieldNames) {
-      const fieldValue = site[field];
-      graphic.attributes[field] = fieldValue == null ? '' : fieldValue.toString();
-    }
-    return graphic;
   }
 
   public clearClientLayers() {

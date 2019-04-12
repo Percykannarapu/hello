@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { calculateStatistics, filterArray, groupBy, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
+import { filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { FullAppState } from '../state/app.interfaces';
+import { RenderTradeAreas } from '../state/rendering/rendering.actions';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
@@ -12,14 +16,10 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppGeoService } from './app-geo.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { FullAppState } from '../state/app.interfaces';
-import { Store } from '@ngrx/store';
-import { RenderTradeAreas } from '../state/rendering/rendering.actions';
 
 interface TradeAreaDefinition {
   store: string;
@@ -27,17 +27,12 @@ interface TradeAreaDefinition {
   message: string;
 }
 
-export const DEFAULT_MERGE_TYPE: TradeAreaMergeTypeCodes = TradeAreaMergeTypeCodes.MergeEach;
-
 @Injectable()
 export class AppTradeAreaService {
 
   public currentDefaults = new Map<(SuccessfulLocationTypeCodes), { radius: number, selected: boolean }[]>();
   private validAnalysisLevel$: Observable<string>;
 
-  private mergeSpecs = new Map<(SuccessfulLocationTypeCodes), BehaviorSubject<TradeAreaMergeTypeCodes>>();
-  public siteTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
-  public competitorTradeAreaMerge$: Observable<TradeAreaMergeTypeCodes>;
   public tradeareaType: string = '';
   public uploadFailures: TradeAreaDefinition[] = [];
   private uploadFailuresSub: BehaviorSubject<TradeAreaDefinition[]> = new BehaviorSubject<TradeAreaDefinition[]>([]);
@@ -56,38 +51,14 @@ export class AppTradeAreaService {
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
               private store$: Store<FullAppState>) {
-    this.mergeSpecs.set(ImpClientLocationTypeCodes.Site, new BehaviorSubject<TradeAreaMergeTypeCodes>(DEFAULT_MERGE_TYPE));
-    this.mergeSpecs.set(ImpClientLocationTypeCodes.Competitor, new BehaviorSubject<TradeAreaMergeTypeCodes>(DEFAULT_MERGE_TYPE));
     this.currentDefaults.set(ImpClientLocationTypeCodes.Site, []);
     this.currentDefaults.set(ImpClientLocationTypeCodes.Competitor, []);
     this.validAnalysisLevel$ = this.stateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
-    this.siteTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Site).asObservable().pipe(distinctUntilChanged());
-    this.competitorTradeAreaMerge$ = this.mergeSpecs.get(ImpClientLocationTypeCodes.Competitor).asObservable().pipe(distinctUntilChanged());
 
     this.impTradeAreaService.storeObservable.pipe(
       filter(ta => ta != null),
       filterArray(ta => ta.impGeofootprintLocation != null && ta.isActive && (ta.impGeofootprintGeos.length > 0 || ta['isComplete'])),
-      filter(ta => ta.length > 0),
-      withLatestFrom(this.siteTradeAreaMerge$),
-    ).subscribe(([tradeAreas, mergeType]) => {
-      const audienceTradeAreas = tradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Audience);
-      const radiusTradeAreas = tradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius);
-      this.store$.dispatch(new RenderTradeAreas({ audienceTradeAreas, radiusTradeAreas, mergeType }));
-    });
-
-    this.stateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => TradeAreaMergeTypeCodes.parse(project.taSiteMergeType)),
-      filter(mergeType => mergeType != null),
-      distinctUntilChanged()
-    ).subscribe(mt => this.mergeSpecs.get(ImpClientLocationTypeCodes.Site).next(mt));
-
-    this.stateService.currentProject$.pipe(
-      filter(project => project != null),
-      map(project => TradeAreaMergeTypeCodes.parse(project.taCompetitorMergeType)),
-      filter(mergeType => mergeType != null),
-      distinctUntilChanged()
-    ).subscribe(mt => this.mergeSpecs.get(ImpClientLocationTypeCodes.Competitor).next(mt));
+    ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
 
     this.setupAnalysisLevelGeoClearObservable();
 
@@ -141,8 +112,6 @@ export class AppTradeAreaService {
   }
 
   clearAll() : void {
-    this.mergeSpecs.set(ImpClientLocationTypeCodes.Site, new BehaviorSubject<TradeAreaMergeTypeCodes>(DEFAULT_MERGE_TYPE));
-    this.mergeSpecs.set(ImpClientLocationTypeCodes.Competitor, new BehaviorSubject<TradeAreaMergeTypeCodes>(DEFAULT_MERGE_TYPE));
     this.currentDefaults.set(ImpClientLocationTypeCodes.Site, []);
     this.currentDefaults.set(ImpClientLocationTypeCodes.Competitor, []);
     this.impTradeAreaService.clearAll();
@@ -211,22 +180,6 @@ export class AppTradeAreaService {
     this.deleteTradeAreas(currentTradeAreas);
     this.currentDefaults.set(siteType, tradeAreas); // reset the defaults that get applied to new locations
     this.applyRadiusTradeAreasToLocations(tradeAreas, currentLocations);
-  }
-
-  public updateMergeType(mergeType: TradeAreaMergeTypeCodes, siteType: SuccessfulLocationTypeCodes) : void {
-    if (mergeType == null) return;
-    // update project so merge type gets saved to DB
-    const currentProject = this.stateService.currentProject$.getValue();
-    switch (siteType) {
-      case ImpClientLocationTypeCodes.Competitor:
-        currentProject.taCompetitorMergeType = mergeType;
-        break;
-      case ImpClientLocationTypeCodes.Site:
-        currentProject.taSiteMergeType = mergeType;
-        break;
-    }
-    // notify the map service
-    this.mergeSpecs.get(siteType).next(mergeType);
   }
 
   public updateTradeAreaSelection(tradeAreas: { taNumber: number, isSelected: boolean }[], siteType: SuccessfulLocationTypeCodes) {

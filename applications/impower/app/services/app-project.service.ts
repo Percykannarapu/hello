@@ -8,6 +8,7 @@ import { RestDataService } from '../val-modules/common/services/restdata.service
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
@@ -18,6 +19,8 @@ export class AppProjectService {
 
   public currentProject$: Observable<ImpProject>;
   public currentNullableProject$: Observable<ImpProject>;
+
+  private currentProjectRef: ImpProject;
 
   constructor(private impProjectService: ImpProjectService,
               private impProjectPrefService: ImpProjectPrefService,
@@ -34,6 +37,8 @@ export class AppProjectService {
     this.currentProject$ = this.currentNullableProject$.pipe(
       filter(project => project != null)
     );
+
+    this.currentProject$.subscribe(project => this.currentProjectRef = project);
   }
 
   load(id: number) : Observable<number> {
@@ -89,7 +94,19 @@ export class AppProjectService {
     });
     localProject.getImpGeofootprintGeos().forEach(geo => {
       delete geo['filterReasons'];
-    })
+    });
   }
 
+  public updateMergeType(mergeType: TradeAreaMergeTypeCodes, siteType: SuccessfulLocationTypeCodes) : void {
+    if (mergeType == null) return;
+    switch (siteType) {
+      case ImpClientLocationTypeCodes.Competitor:
+        this.currentProjectRef.taCompetitorMergeType = mergeType;
+        break;
+      case ImpClientLocationTypeCodes.Site:
+        this.currentProjectRef.taSiteMergeType = mergeType;
+        break;
+    }
+    this.impProjectService.makeDirty();
+  }
 }

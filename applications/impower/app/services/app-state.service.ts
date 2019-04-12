@@ -1,25 +1,25 @@
 import { Injectable } from '@angular/core';
+import { select, Store } from '@ngrx/store';
+import { dedupeSimpleSet, distinctArray, filterArray, groupBy, isNumber, mapArray } from '@val/common';
+import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
 import { RequestAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
 import { selectGeoAttributes } from '../impower-datastore/state/impower-datastore.selectors';
 import { ChangeAnalysisLevel } from '../state/app.actions';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
-import { CachedObservable } from '../val-modules/api/models/CachedObservable';
-import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { AppProjectService } from './app-project.service';
-import { select, Store } from '@ngrx/store';
 import { FullAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { CachedObservable } from '../val-modules/api/models/CachedObservable';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
-import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
-import { distinctArray, filterArray, groupBy, mapArray, isNumber, dedupeSimpleSet } from '@val/common';
+import { AppProjectService } from './app-project.service';
 
 export enum Season {
   Summer = 'summer',
@@ -41,11 +41,13 @@ export class AppStateService {
   public currentProject$: CachedObservable<ImpProject> = new BehaviorSubject<ImpProject>(null);
   public currentMaster$: CachedObservable<ImpGeofootprintMaster> = new BehaviorSubject<ImpGeofootprintMaster>(null);
   public analysisLevel$: CachedObservable<string> = new BehaviorSubject<string>(null);
-  public taSiteMergeType$: CachedObservable<string> = new BehaviorSubject<string>(null);
-  public taCompetitorMergeType$: CachedObservable<string> = new BehaviorSubject<string>(null);
+  public taSiteMergeType$: CachedObservable<TradeAreaMergeTypeCodes> = new BehaviorSubject<TradeAreaMergeTypeCodes>(TradeAreaMergeTypeCodes.MergeEach);
+  public taCompetitorMergeType$: CachedObservable<TradeAreaMergeTypeCodes> = new BehaviorSubject<TradeAreaMergeTypeCodes>(TradeAreaMergeTypeCodes.MergeEach);
   public projectId$: CachedObservable<number> = new BehaviorSubject<number>(null);
   public season$: CachedObservable<Season> = new BehaviorSubject<Season>(null);
 
+  public allLocations$: Observable<ImpGeofootprintLocation[]>;
+  public activeLocations$: Observable<ImpGeofootprintLocation[]>;
   public allClientLocations$: Observable<ImpGeofootprintLocation[]>;
   public activeClientLocations$: Observable<ImpGeofootprintLocation[]>;
   public allCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
@@ -142,14 +144,14 @@ export class AppStateService {
     // Setup trade area merge type subscriptions
     this.currentProject$.pipe(
       filter(project => project != null && project.taSiteMergeType != null && project.taSiteMergeType.length > 0),
-      map(project => project.taSiteMergeType),
+      map(project => TradeAreaMergeTypeCodes.parse(project.taSiteMergeType)),
       distinctUntilChanged(),
-    ).subscribe(this.taSiteMergeType$ as BehaviorSubject<string>);
+    ).subscribe(this.taSiteMergeType$ as BehaviorSubject<TradeAreaMergeTypeCodes>);
     this.currentProject$.pipe(
       filter(project => project != null && project.taCompetitorMergeType != null && project.taCompetitorMergeType.length > 0),
-      map(project => project.taCompetitorMergeType),
+      map(project => TradeAreaMergeTypeCodes.parse(project.taCompetitorMergeType)),
       distinctUntilChanged(),
-    ).subscribe(this.taCompetitorMergeType$ as BehaviorSubject<string>);
+    ).subscribe(this.taCompetitorMergeType$ as BehaviorSubject<TradeAreaMergeTypeCodes>);
 
     this.currentProject$.pipe(
       filter(project => project != null),
@@ -164,14 +166,17 @@ export class AppStateService {
   }
 
   private setupLocationObservables() : void {
-    const locationsWithType$ = this.locationService.storeObservable.pipe(
+    this.allLocations$ = this.locationService.storeObservable.pipe(
       filter(locations => locations != null),
-      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0)
+      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0 && (l.clientLocationTypeCode === 'Site' || l.clientLocationTypeCode === 'Competitor'))
     );
-    this.allClientLocations$ = locationsWithType$.pipe(
+    this.activeLocations$ = this.allLocations$.pipe(
+      filterArray(l => l.isActive)
+    );
+    this.allClientLocations$ = this.allLocations$.pipe(
       filterArray(l => l.clientLocationTypeCode === 'Site')
     );
-    this.allCompetitorLocations$ = locationsWithType$.pipe(
+    this.allCompetitorLocations$ = this.allLocations$.pipe(
       filterArray(l => l.clientLocationTypeCode === 'Competitor')
     );
     this.activeClientLocations$ = this.allClientLocations$.pipe(

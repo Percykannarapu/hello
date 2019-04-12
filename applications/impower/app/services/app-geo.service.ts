@@ -127,18 +127,24 @@ export class AppGeoService {
    * Sets up an observable sequence that fires when a new, empty Radius trade area appears in the data store.
    */
   private setupRadiusSelectionObservable() : void {
-    // The root sequence is Radius only trade areas for Sites (not competitors)
-    this.tradeAreaService.storeObservable.pipe(
+    const root$ = this.tradeAreaService.storeObservable.pipe(
       withLatestFrom(this.appStateService.applicationIsReady$),
       // halt the sequence if the project is still loading
-      filter(([tradeAreas, isReady]) => isReady),
+      filter(([, isReady]) => isReady),
       // flatten the data to a 1-dimension array
       map(([tradeAreas]) => tradeAreas),
-      // keep all trade areas that have no geos and has not been marked complete
-      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintGeos.length === 0 && ta['isComplete'] !== true)),
-      // halt the sequence if there are no trade areas remaining at this point
+      filterArray(ta => ta.isActive && ta.impGeofootprintGeos.length === 0 && ta['isComplete'] !== true)
+    );
+
+    root$.pipe(
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'),
       filter(tradeAreas => tradeAreas.length > 0),
     ).subscribe(tradeAreas => this.selectAndPersistRadiusGeos(tradeAreas));
+
+    root$.pipe(
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
+      filter(tradeAreas => tradeAreas.length > 0)
+    ).subscribe(tradeAreas => this.finalizeTradeAreas(tradeAreas));
   }
 
   /**
@@ -153,7 +159,8 @@ export class AppGeoService {
       filterArray(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
                                                                       (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
                               loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
-                              loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)
+                              loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
+                              loc.clientLocationTypeCode === 'Site')
     ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
 
