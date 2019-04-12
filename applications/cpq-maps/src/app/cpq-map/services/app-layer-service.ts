@@ -369,6 +369,8 @@ export class AppLayerService {
       this.esriMapService.mapView.popup.on('trigger-action', (event) => this.store$.dispatch(new PopupGeoToggle({ eventName: 'toggle-selection' })));
    }
 
+   // TODO: This method should be refactored into two different methods,
+   // one for wrap and one for non-wrap, the logic in here is getting too complex
    public onPopupToggleAction(event: string, state: FullState) {
      if (event !== 'toggle-selection') {
        return;
@@ -377,7 +379,8 @@ export class AppLayerService {
      const geocode: string = selectedFeature.attributes.geocode;
      const wrapZone: string = selectedFeature.attributes.wrap_name;
      const exisintgEditDetails: Array<RfpUiEditDetail> = this.editDetailService.getEditDetailsByGeocode(geocode, state).map(ed => {
-        ed.isSelected = !ed.isSelected;
+        if (!state.shared.isWrap)
+          ed.isSelected = !ed.isSelected; //only toggle this state if we aren't using wrap
         return ed;
      });
      const found: boolean = exisintgEditDetails.length > 0;
