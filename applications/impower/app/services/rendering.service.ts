@@ -27,7 +27,9 @@ export class RenderingService {
 
   prepareRadiusTradeAreas(tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes) : TradeAreaDrawDefinition[] {
     const result: TradeAreaDrawDefinition[] = [];
-    const siteGroups = groupByExtended(tradeAreas, ta => ta.impGeofootprintLocation.clientLocationTypeCode);
+    const usableTradeAreas = tradeAreas.filter(ta => ta.impGeofootprintLocation != null); // This filter is already applied to the observable that starts this process,
+                                                                                                    // but the re-homegeocode process is breaking it somehow
+    const siteGroups = groupByExtended(usableTradeAreas, ta => ta.impGeofootprintLocation.clientLocationTypeCode);
     siteGroups.forEach((tas, siteType) => {
       const maxTaNum = Math.max(...tas.map(ta => ta.taNumber));
       const usableTas = mergeType === TradeAreaMergeTypeCodes.MergeAll ? tas.filter(ta => ta.taNumber === maxTaNum) : tas;
