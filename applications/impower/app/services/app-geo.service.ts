@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriQueryService, EsriUtils, selectors } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
-import { LocalAppState } from '../state/app.interfaces';
+import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -58,29 +58,36 @@ export class AppGeoService {
               private queryService: EsriQueryService,
               private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
-              private store$: Store<LocalAppState>,
+              private store$: Store<FullAppState>,
               private logger: AppLoggingService) {
     this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.currentGeos$ = this.impGeoService.storeObservable;
-    this.setupRadiusSelectionObservable();
-    this.setupHomeGeoSelectionObservable();
-    this.setupFilterGeosObservable();
-    this.setupMapClickEventHandler();
-
-    // Detect changes in must covers list and call ensureMustCovers
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
-    this.allMustCovers$.subscribe(() => {
-       this.ensureMustCovers();
-    });
 
-    this.locationService.storeObservable.subscribe(() => {
-       this.ensureMustCovers();
-    });
+    this.store$.pipe(
+      select(selectors.getMapReady),
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.setupRadiusSelectionObservable();
+      this.setupHomeGeoSelectionObservable();
+      this.setupFilterGeosObservable();
+      this.setupMapClickEventHandler();
 
-    // Detect new project
-    this.appStateService.clearUI$.subscribe(() => {
-       // Clear must covers
-       this.impGeoService.clearMustCovers();
+      // Detect changes in must covers list and call ensureMustCovers
+      this.allMustCovers$.subscribe(() => {
+        this.ensureMustCovers();
+      });
+
+      this.locationService.storeObservable.subscribe(() => {
+        this.ensureMustCovers();
+      });
+
+      // Detect new project
+      this.appStateService.clearUI$.subscribe(() => {
+        // Clear must covers
+        this.impGeoService.clearMustCovers();
+      });
     });
   }
 
