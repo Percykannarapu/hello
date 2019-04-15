@@ -317,7 +317,7 @@ export class SiteListComponent implements OnInit {
      site.previousCity = this.selectedRowData.origCity;
      site.previousState = this.selectedRowData.origState;
      site.previousZip = this.selectedRowData.origPostalCode;
-    this.editLocations.emit({site: site, siteType: siteType, oldData: this.selectedRowData});
+     this.editLocations.emit({site: site, siteType: siteType, oldData: this.selectedRowData});
    }
 
    public onListTypeChange(data: 'Site' | 'Competitor') {
@@ -440,6 +440,7 @@ export class SiteListComponent implements OnInit {
    }
 
    public onEdit(row: ImpGeofootprintLocation) {
+    const locAttribs = row['impGeofootprintLocAttribs'];
     this.displayData = {
       locationNumber: row.locationNumber,
       locationName: row.locationName,
@@ -449,7 +450,13 @@ export class SiteListComponent implements OnInit {
       locZip: row.locZip,
       marketName: row.marketName,
       marketCode: row.marketCode,
-      coord: row.ycoord + ',' + row.xcoord
+      coord: row.ycoord + ',' + row.xcoord,
+      homeZip: locAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue,
+      homeAtz: locAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue,
+      homeDigitalAtz: locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue,
+      homePcr: locAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue,
+      homeDmaCode: locAttribs.filter(la => la.attributeCode === 'Home DMA')[0].attributeValue,
+      homeCountyFip: locAttribs.filter(la => la.attributeCode === 'Home County')[0].attributeValue
     };
     this.selectedRowData = row;
     this.showDialog = true;
