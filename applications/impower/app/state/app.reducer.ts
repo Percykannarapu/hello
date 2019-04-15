@@ -6,13 +6,15 @@ import { LocalAppState } from './app.interfaces';
 import { dataShimReducer } from './data-shim/data-shim.reducer';
 import { menuReducer } from './menu/menu.reducer';
 import { homeGeoReducer } from './homeGeocode/homeGeo.reducer';
+import { renderingReducer } from './rendering/rendering.reducer';
 
 export const appReducer: ActionReducerMap<LocalAppState> = {
   router: routerReducer,
   dataShim: dataShimReducer,
   menu: menuReducer,
   homeGeo: homeGeoReducer,
-  datastore: masterDataStoreReducer
+  datastore: masterDataStoreReducer,
+  rendering: renderingReducer
 };
 
 export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<LocalAppState> {

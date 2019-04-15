@@ -6,7 +6,7 @@ import { EsriAppSettings, EsriAppSettingsToken, selectors } from '@val/esri';
 import { concatMap, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { FullAppState } from '../app.interfaces';
+import { FullAppState, getRenderingSlice } from '../app.interfaces';
 import { prepareLocations } from './location.transform';
 import { ClearTradeAreas, RenderAudienceTradeAreas, RenderingActionTypes, RenderLocations, RenderRadiusTradeAreas, RenderTradeAreas, ClearLocations } from './rendering.actions';
 import { RenderingService } from './rendering.service';
@@ -20,11 +20,12 @@ export class RenderingEffects {
   tradeAreaRender$ = this.actions$.pipe(
     ofType<RenderTradeAreas>(RenderingActionTypes.RenderTradeAreas),
     withLatestFrom(this.store$.pipe(select(selectors.getMapReady))),
-    filter(([, mapReady]) => mapReady),
-    tap(() => this.store$.dispatch(new ClearTradeAreas())),
-    filter(([action]) => action.payload.tradeAreas.length > 0),
+    filter(([action, mapReady]) => mapReady && action.payload.tradeAreas.length > 0),
     map(([action]) => groupByExtended(action.payload.tradeAreas, ta => TradeAreaTypeCodes.parse(ta.taType))),
-    concatMap(typeMap => [
+    withLatestFrom(this.store$.pipe(select(getRenderingSlice))),
+    filter(([typeMap, counts]) => (typeMap.get(TradeAreaTypeCodes.Radius) || []).length !== counts.lastRadiusRenderCount || (typeMap.get(TradeAreaTypeCodes.Audience) || []).length !== counts.lastAudienceRenderCount),
+    tap(() => this.store$.dispatch(new ClearTradeAreas())),
+    concatMap(([typeMap]) => [
       new RenderRadiusTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Radius) }),
       new RenderAudienceTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Audience) })
     ])
