@@ -9,16 +9,17 @@ import { TargetAudienceService } from './target-audience.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ValMetricsService } from './app-metrics.service';
 import { CustomPopUpDefinition, EsriGeographyPopupComponent, NodeVariable } from '@val/esri';
-import { filterArray, mapArray, mapBy } from '@val/common';
+import { filterArray, mapArray, mapBy, safe } from '@val/common';
 
 const convertToNodeVariable = (variable: ImpGeofootprintVar) : NodeVariable => {
-  const fieldType = (variable.fieldconte || '').toUpperCase();
+  let projectVarsDict = this.appStateService.projectVarsDict$.getValue();
+  const fieldType = ((projectVarsDict[variable.varPk]||safe).fieldconte || '').toUpperCase();
   const digits: number = fieldType === 'RATIO' || fieldType === 'PERCENT' ? 2 : 0;
   return {
-    value: variable.isNumber ? variable.valueNumber : variable.valueString,
+    value: variable.value, //(projectVarsDict[variable.varPk]||safe).isNumber ? variable.valueNumber : variable.valueString,
     digitRounding: digits,
-    isNumber: variable.isNumber,
-    name: variable.customVarExprDisplay
+    isNumber: (projectVarsDict[variable.varPk]||safe).isNumber,
+    name: (projectVarsDict[variable.varPk]||safe).customVarExprDisplay
   };
 };
 
@@ -82,7 +83,7 @@ export class AppComponentGeneratorService {
       map(allVars => Array.from(mapBy(allVars, 'varPk').values())),
       mapArray(v => convertToNodeVariable(v))
     ).subscribe(nodeData => this.cachedGeoPopup.instance.geoVars = nodeData);
-   
+
     const invest = this.calcInvestment(feature.graphic.attributes);
     feature.graphic.setAttribute('Investment', invest != null && invest !== '0.00' ? `$${invest}` : 'N/A');
 
@@ -95,7 +96,7 @@ export class AppComponentGeneratorService {
       attr.label = 'Investment';
       fields.push(attr);
       popupDefinition.rootFields.push('Investment');
-    } 
+    }
 
     this.cachedGeoPopup.instance.geocode = geocode;
     this.cachedGeoPopup.instance.attributes = feature.graphic.attributes;
@@ -116,6 +117,6 @@ export class AppComponentGeneratorService {
     investment = impProject.estimatedBlendedCpm != null ? impProject.estimatedBlendedCpm * hhc / 1000 :
                  ownerGroupCpm != null                  ? ownerGroupCpm * hhc / 1000 : null;
 
-    return investment.toFixed(2);       
+    return investment.toFixed(2);
   }
 }

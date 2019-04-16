@@ -8,7 +8,7 @@ import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { groupBy, filterArray } from '@val/common';
+import { groupBy, filterArray, safe } from '@val/common';
 import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { Store } from '@ngrx/store';
@@ -101,7 +101,8 @@ export class TargetAudienceCustomService {
       showOnMap: false,
       exportNationally: false,
       allowNationalExport: false,
-      audienceCounter: TargetAudienceService.audienceCounter
+      audienceCounter: TargetAudienceService.audienceCounter,
+      fieldconte: null
     };
     return audience;
   }
@@ -304,8 +305,9 @@ this.varPkCache.clear();
             this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.log("project project var: ", pv));
 */
 
-// Just clearing out custom
-            this.varService.remove(this.varService.get().filter(pv => pv.isCustom));
+            // Just clearing out custom
+            let projectVarsDict = this.stateService.projectVarsDict$;
+            this.varService.remove(this.varService.get().filter(pv => (projectVarsDict[pv.varPk]||safe).isCustom));
             this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => !pv.isCustom)
 
 // Clearing out online and custom

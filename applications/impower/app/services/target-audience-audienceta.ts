@@ -16,7 +16,7 @@ import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProje
 import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
-import { mapByExtended, groupByExtended, groupBy } from '@val/common';
+import { mapByExtended, groupByExtended, groupBy, safe } from '@val/common';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { AppGeoService } from './app-geo.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -71,9 +71,15 @@ export class TargetAudienceAudienceTA {
   private geoVarMap: Map<string, string> = new Map<string, string>();
   private geoVarFieldMap: Map<string, string> = new Map<string, string>();
 
-  constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
-              private appStateService: AppStateService, private varService: ImpGeofootprintVarService, private factory: ImpDomainFactoryService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService, private httpClient: HttpClient,
+  constructor(private config: AppConfig,
+              private restService: RestDataService,
+              private audienceService: TargetAudienceService,
+              private appStateService: AppStateService,
+              private varService: ImpGeofootprintVarService,
+              private factory: ImpDomainFactoryService,
+              private tradeAreaService: ImpGeofootprintTradeAreaService,
+              private projectVarService: ImpProjectVarService,
+              private httpClient: HttpClient,
               private impGeoService: ImpGeofootprintGeoService,
               private store$: Store<FullAppState>) {
     this.geoVarMap.set('Index Value', 'number');
@@ -89,7 +95,6 @@ export class TargetAudienceAudienceTA {
     this.geoVarFieldMap.set('In/Out', 'tradeareaLocation');
 
     this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
-
   }
 
   private onLoadProject() {
@@ -110,7 +115,8 @@ export class TargetAudienceAudienceTA {
             allowNationalExport: false,
             exportNationally: false,
             secondaryId: this.reloadSecondaryId(projectVar),
-            audienceTAConfig: this.reloadAudienceTaConfig()
+            audienceTAConfig: this.reloadAudienceTaConfig(),
+            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte)
           };
           this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
           let transactionId:number = -1;
@@ -177,7 +183,8 @@ export class TargetAudienceAudienceTA {
       exportNationally: false,
       secondaryId: `${name}`,
       audienceTAConfig: audienceTAConfig,
-      audienceCounter: TargetAudienceService.audienceCounter
+      audienceCounter: TargetAudienceService.audienceCounter,
+      fieldconte: null
     };
     return audience;
   }
@@ -271,7 +278,7 @@ export class TargetAudienceAudienceTA {
   }
 
   /**
-   * Create geoffotprint variables for the for the geos that are being selected
+   * Create geofootprint variables for the for the geos that are being selected
    * @param currentTradeArea The Trade Area object to attach this geovar to.
    * @param pk The primary key of the new
    * @param geocode The geocode of the new variable
@@ -284,13 +291,16 @@ export class TargetAudienceAudienceTA {
    */
   private createGeoVar(currentTradeArea: ImpGeofootprintTradeArea, pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, audienceName: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
     const value = valueString == null ? valueNumber : valueString;
-        const fieldType = type === 'string' ? FieldContentTypeCodes.Char : numberType === 'index' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Percent;
-        const result = this.factory.createGeoVar(currentTradeArea, geocode, pk, value, '', fieldDisplay, fieldType, audienceName);
-    for (const audience of this.audienceService.getAudiences()) {
-      if (result.fieldname != null && result.fieldname.replace(/\s/g, '') + result.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
-              result.varPosition = audience.audienceCounter;
+    const fieldType = type === 'string' ? FieldContentTypeCodes.Char : numberType === 'index' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Percent;
+    const result = this.factory.createGeoVar(currentTradeArea, geocode, pk, value, '', fieldDisplay, fieldType, audienceName);
+    let projectVarsDict = this.appStateService.projectVarsDict$.getValue();
+
+/*    for (const audience of this.audienceService.getAudiences()) {
+      let fieldname = (projectVarsDict[pk]||safe).fieldname;
+      if (fieldname != null && fieldname.replace(/\s/g, '') + result.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
+        result.varPosition = audience.audienceCounter;
       }
-    }
+    }*/
     return result;
   }
 
@@ -324,7 +334,7 @@ export class TargetAudienceAudienceTA {
         count++;
       }
       const geoVar: ImpGeofootprintVar = new ImpGeofootprintVar();
-      geoVar.valueString = taResponse.combinedIndexTileName;
+      geoVar.value = taResponse.combinedIndexTileName;
     }
     return taResponses;
   }

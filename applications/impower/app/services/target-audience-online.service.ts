@@ -51,6 +51,7 @@ export class OnlineAudienceDescription {
   taxonomyParsedName: string;
   categoryDescription: string;
   taxonomy: string;
+  fieldconte: FieldContentTypeCodes;
   get children() : OnlineAudienceDescription[] {
     return Array.from(this.childMap.values());
   }
@@ -145,7 +146,8 @@ export class TargetAudienceOnlineService {
       selectedDataSet: 'nationalScore',
       dataSetOptions: [{ label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' }],
       secondaryId: digId.toLocaleString(),
-      audienceCounter: TargetAudienceService.audienceCounter
+      audienceCounter: TargetAudienceService.audienceCounter,
+      fieldconte: FieldContentTypeCodes.Index
     };
     return audience;
   }
@@ -171,7 +173,8 @@ export class TargetAudienceOnlineService {
             showOnMap: projectVar.isShadedOnMap,
             selectedDataSet: projectVar.indexBase,
             audienceCounter: projectVar.sortOrder,
-            secondaryId: projectVar.varPk.toString()
+            secondaryId: projectVar.varPk.toString(),
+            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte)
           };
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
 
@@ -214,13 +217,13 @@ export class TargetAudienceOnlineService {
     }
     if (isForShading) {
       const currentResult = this.domainFactory.createGeoVar(null, response.geocode, varPk, fieldValue, fullId, fieldDescription, fieldType);
-      if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+      //if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
       results.push(currentResult);
     } else {
       if (geoCache.has(response.geocode)) {
         geoCache.get(response.geocode).forEach(geo => {
           const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, response.geocode, varPk, fieldValue, fullId, fieldDescription, fieldType);
-          if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+          //if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
           results.push(currentResult);
         });
       }
@@ -343,7 +346,7 @@ export class TargetAudienceOnlineService {
         geocodes: chunk,
         digCategoryIds: numericIds,
         varType: varTypes,
-        transactionId: transactionId,
+        transactionId: (transactionId != -1) ? transactionId : this.audienceService.geoTransactionId,
         chunks: this.config.geoInfoQueryChunks
       };
       if (inputData.geocodes.length > 0 && inputData.digCategoryIds.length > 0) {
@@ -356,6 +359,7 @@ export class TargetAudienceOnlineService {
               map(response => this.validateFuseResponse(inputData, response, isForShading, chunkNum, chunks.length)),
               catchError( () => {
                 console.error('Error posting to v1/targeting/base/geoinfo/digitallookup with payload:');
+                console.error("payload:", inputData);
                 console.error('payload:\n{\n'+
                               '   geoType: ', inputData.geoType, '\n',
                               '   source:  ', inputData.source, '\n',

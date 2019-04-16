@@ -32,7 +32,7 @@ export class AppRendererService {
   private dataSubscription: Subscription;
 
   constructor(private appStateService: AppStateService,
-              private dataService: TargetAudienceService, 
+              private dataService: TargetAudienceService,
               private esriRenderer: EsriRendererService,
               private store$: Store<LocalAppState>) {
     this.geoSubscription = this.appStateService.uniqueSelectedGeocodes$.pipe (
@@ -55,12 +55,9 @@ export class AppRendererService {
     const result: ShadingData = {};
     let isNumericData = false;
     Object.keys(newData).forEach(geocode => {
-      if (Number.isNaN(Number(newData[geocode].valueNumber)) || newData[geocode].valueNumber == null) {
-        result[geocode] = newData[geocode].valueString;
-      } else {
-        result[geocode] = newData[geocode].valueNumber;
-        isNumericData = true;
-      }
+      result[geocode] = newData[geocode].value;
+      if (!Number.isNaN(Number(newData[geocode].value)) && newData[geocode].value != null)
+         isNumericData = true;
     });
 
     if (Object.keys(newData).length > 0) {
@@ -71,7 +68,7 @@ export class AppRendererService {
       let legendText = null;
       if (audiences[0].audienceSourceType === "Online"){
         const legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
-        
+
         if ((audiences[0].audienceSourceName === 'VLH')||(audiences[0].audienceSourceName === 'Pixel')){
           legendText = audiences[0].audienceName+ " " +  legendOption.label;}
         else {
@@ -79,7 +76,7 @@ export class AppRendererService {
           }
       }else {
           legendText = audiences[0].audienceName;
-      } 
+      }
       if(legendText != null){
         newAction.payload.legend = legendText;
       }

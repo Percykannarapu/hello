@@ -28,15 +28,6 @@ export class ImpGeofootprintVarService extends DataStore<ImpGeofootprintVar>
       super(restDataService, dataUrl, transactionManager, 'ImpGeofootprintVar');
    }
 
-  // Get a count of DB removes from children of these parents
-   public getTreeRemoveCount(impGeofootprintVars: ImpGeofootprintVar[]) : number {
-      let count: number = 0;
-      impGeofootprintVars.forEach(impGeofootprintVar => {
-         count += this.dbRemoves.filter(remove => remove.gvId === impGeofootprintVar.gvId).length;
-      });
-      return count;
-   }
-   
    // After DB removes have be executed, complete them by removing them from the data stores delete list
    public completeDBRemoves(completes: ImpGeofootprintVar[]) {
       this.clearDBRemoves(completes);

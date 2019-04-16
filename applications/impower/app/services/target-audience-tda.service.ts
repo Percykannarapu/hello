@@ -63,6 +63,7 @@ interface TdaBulkDataResponse {
 export class TdaAudienceDescription {
   identifier: string;
   displayName: string;
+  fieldconte: FieldContentTypeCodes;
   additionalSearchField: string;
   sortOrder: number;
   children: TdaAudienceDescription[];
@@ -71,10 +72,12 @@ export class TdaAudienceDescription {
       this.displayName = response.tabledesc;
       this.identifier = response.tablename;
       this.sortOrder = response.sort;
+      this.fieldconte = FieldContentTypeCodes.Char;
       this.children = [];
     } else {
       this.displayName = response.fielddescr;
       this.identifier = response.pk;
+      this.fieldconte = FieldContentTypeCodes.parse(response.fieldconte);
       this.additionalSearchField = response.fieldname;
       this.sortOrder = 0;
     }
@@ -101,7 +104,7 @@ export class TargetAudienceTdaService {
     });
   }
 
-  private static createDataDefinition(name: string, pk: string) : AudienceDataDefinition {
+  private static createDataDefinition(name: string, pk: string, fieldconte: FieldContentTypeCodes) : AudienceDataDefinition {
    TargetAudienceService.audienceCounter++;
    const audience: AudienceDataDefinition = {
       audienceName: name,
@@ -113,7 +116,8 @@ export class TargetAudienceTdaService {
       showOnMap: false,
       exportNationally: false,
       allowNationalExport: false,
-      audienceCounter: TargetAudienceService.audienceCounter
+      audienceCounter: TargetAudienceService.audienceCounter,
+      fieldconte: fieldconte
     };
     return audience;
   }
@@ -134,7 +138,8 @@ export class TargetAudienceTdaService {
             showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
             allowNationalExport: false,
-            audienceCounter: projectVar.sortOrder
+            audienceCounter: projectVar.sortOrder,
+            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte)
           };
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
           if (projectVar.source.toLowerCase().match('tda')) {
@@ -179,7 +184,7 @@ export class TargetAudienceTdaService {
         if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1
                       && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1) {
           const currentResult = this.domainFactory.createGeoVar(null, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
-          if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+          //if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
           results.push(currentResult);
         }
       }
@@ -189,7 +194,7 @@ export class TargetAudienceTdaService {
             if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1
                           && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1) {
               const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
-              if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+              //if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
               results.push(currentResult);
             }
           });
@@ -202,7 +207,7 @@ export class TargetAudienceTdaService {
   public addAudience(audience: TdaAudienceDescription) {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
-      const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier);
+      const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte);
       this.audienceService.addAudience(model, (al, pks, geos, shading, transactionId) => this.audienceRefreshCallback(al, pks, geos, shading, transactionId));
       this.usageMetricCheckUncheckOffline('checked', model);
     }
@@ -212,7 +217,7 @@ export class TargetAudienceTdaService {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
       this.audienceService.removeAudience('Offline', 'TDA', audience.identifier);
-      const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier);
+      const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte);
       this.usageMetricCheckUncheckOffline('unchecked', model);
     }
   }
@@ -256,12 +261,12 @@ export class TargetAudienceTdaService {
         source: "tda",
 //      geocodes: chunk,
         categoryIds: numericIds,
-        transactionId: transactionId,
+        transactionId: (transactionId != -1) ? transactionId : this.audienceService.geoTransactionId,
         chunks: this.config.geoInfoQueryChunks
       };
 //      if (inputData.geocodes.length > 0 && inputData.categoryIds.length > 0) {
-      if (transactionId != null && transactionId > 0 && inputData.categoryIds.length > 0) {
-          c++;
+      if (inputData.categoryIds.length > 0) {
+        c++;
         const chunkNum: number = c;
         this.audienceService.timingMap.set("("+inputData.source.toLowerCase()+")", performance.now());
         observables.push(

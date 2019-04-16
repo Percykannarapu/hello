@@ -19,7 +19,8 @@ import { FullAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { AppLoggingService } from './app-logging.service';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
-import { distinctArray, filterArray, groupBy, mapArray, isNumber, dedupeSimpleSet } from '@val/common';
+import { distinctArray, filterArray, groupBy, mapArray, isNumber, dedupeSimpleSet, mapArrayToEntity } from '@val/common';
+import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 
 export enum Season {
   Summer = 'summer',
@@ -68,10 +69,13 @@ export class AppStateService {
   private hasCompetitorProvidedTradeAreas = new BehaviorSubject<boolean>(false);
   public hasCompetitorProvidedTradeAreas$: CachedObservable<boolean> = this.hasCompetitorProvidedTradeAreas;
 
+  public projectVarsDict$: CachedObservable<any> = new BehaviorSubject<any>(null);
+
   constructor(private projectService: AppProjectService,
               private locationService: ImpGeofootprintLocationService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private geoService: ImpGeofootprintGeoService,
+              private projectVarService: ImpProjectVarService,
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
               private esriQueryService: EsriQueryService,
@@ -83,6 +87,7 @@ export class AppStateService {
     this.setupGeocodeObservables();
     this.setupTradeAreaObservables();
     this.setupProvidedTaObservables();
+    this.setupProjectVarObservables();
   }
 
   public setProvidedTradeAreas(newValue: boolean, siteType: SuccessfulLocationTypeCodes) : void {
@@ -238,5 +243,12 @@ export class AppStateService {
       filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)),
       map(locs => locs.length > 0)
     ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));
+  }
+
+  private setupProjectVarObservables() : void {
+    this.projectVarService.storeObservable.pipe(
+      filterArray(pvar => pvar.isActive),
+      map(pvars => mapArrayToEntity(pvars,  pvar => pvar.varPk)),
+    ).subscribe(this.projectVarsDict$ as BehaviorSubject<any>);
   }
 }

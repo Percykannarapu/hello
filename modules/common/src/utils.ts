@@ -297,3 +297,5 @@ export function formatMilli(a,k?,sub?,s?,m?,h?,e?){
 export function dedupeSimpleSet<T>(newValues: Set<T>, previousValues: Set<T>) : Set<T> {
   return new Set(Array.from(newValues).filter(v => !previousValues.has(v)));
 }
+
+export const safe: any = {};

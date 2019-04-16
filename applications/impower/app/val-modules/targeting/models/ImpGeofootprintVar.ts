@@ -4,34 +4,35 @@
  **/
 import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
-import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
+//import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
-import { ImpProject } from './ImpProject';
+//import { ImpProject } from './ImpProject';
 
 export class ImpGeofootprintVar extends BaseModel
 {
-    public gvId:                  number;         /// Primary key, uniquely identifying a geofootprint variable row
-  //  public cgmId:                 number;         /// Foreign key to imp_geofootprint_master.cgm_id
-  //  public glId:                  number;         /// Foreign key to imp_geofootprint_locations.gl_id
-   public gtaId:                 number;         /// Foreign key to imp_geofootprint_trade_areas.gta_id
-   public projectId:             number;         /// The IMPower Project ID
+ //public gvId:                  number;         /// Primary key, uniquely identifying a geofootprint variable row
+ //public cgmId:                 number;         /// Foreign key to imp_geofootprint_master.cgm_id
+ //public glId:                  number;         /// Foreign key to imp_geofootprint_locations.gl_id
+ //public gtaId:                 number;         /// Foreign key to imp_geofootprint_trade_areas.gta_id
+ //public projectId:             number;         /// The IMPower Project ID
    public geocode:               string;         /// The geography the variable applies to
    public varPk:                 number;         /// Variable ID
-   public fieldname:             string;         /// Descriptive variable name
-   public varPosition:           number;         /// Order selected
-   public isCustom:              boolean;        /// 1 = Is a custom IMPower variable
-   public isString:              boolean;        /// 1 = Value is a string
-   public isNumber:              boolean;        /// 1 = Value is a number
-   public customVarExprDisplay:  string;         /// Custom variable displayed expression
-   public customVarExprQuery:    string;         /// Custom variable expression
-   public valueString:           string;         /// Unindexed variable value if is_string = 1
-   public valueNumber:           number;         /// Unindexed variable value if is_number = 1
-   public fieldconte:            string;         /// Field contents, notably INDEX indicates an indexed value
-  //  public decimal:               string;         /// Decimal precision
-   public indexValue:            number;         /// Variable indexed value
-   public natlAvg:               string;         /// National average
-   public isActive:              boolean;        /// Is Activee
-   public varSource:             string;         /// Data Source (ex: TDA, Interest, In-Market, Pixel, Polk, IMS, IRI Data)
+ //public fieldname:             string;         /// Descriptive variable name
+ //public varPosition:           number;         /// Order selected
+ //public isCustom:              boolean;        /// 1 = Is a custom IMPower variable
+ //public isString:              boolean;        /// 1 = Value is a string
+ //public isNumber:              boolean;        /// 1 = Value is a number
+ //public customVarExprDisplay:  string;         /// Custom variable displayed expression
+ //public customVarExprQuery:    string;         /// Custom variable expression
+   public value:                 number | string;
+ //public valueString:           string;         /// Unindexed variable value if is_string = 1
+ //public valueNumber:           number;         /// Unindexed variable value if is_number = 1
+ //public fieldconte:            string;         /// Field contents, notably INDEX indicates an indexed value
+ //public decimal:               string;         /// Decimal precision
+ //public indexValue:            number;         /// Variable indexed value
+ //public natlAvg:               string;         /// National average
+ //public isActive:              boolean;        /// Is Active
+ //public varSource:             string;         /// Data Source (ex: TDA, Interest, In-Market, Pixel, Polk, IMS, IRI Data)
    // -------------------------------------------
    // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
    // -------------------------------------------

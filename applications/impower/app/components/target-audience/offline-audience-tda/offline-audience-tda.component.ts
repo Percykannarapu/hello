@@ -56,7 +56,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
     const message = 'There was an error during retrieval of the Offline Audience descriptions. Please refresh your browser to try again.';
     this.audienceService.getAudienceDescriptions().subscribe(
       folder => this.allNodes.push(OfflineAudienceTdaComponent.asFolder(folder)),
-      () => this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'TDA Connection Error' })),
+      (err) => {
+        console.error(err);
+        this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'TDA Connection Error' }));
+      },
       () => {
         this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);
         this.currentNodes = Array.from(this.allNodes);
@@ -106,7 +109,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
   }
 
   private clearSelections(){
-     this.selectedVariables = []; 
+     this.selectedVariables = [];
      this.cd.markForCheck();
   }
 }

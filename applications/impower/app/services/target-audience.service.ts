@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { ClearShadingData } from '@val/esri';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge, throwError } from 'rxjs';
-import { map, tap, filter, startWith, debounceTime, catchError } from 'rxjs/operators';
+import { map, tap, filter, startWith, debounceTime, catchError, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition } from '../models/audience-data.model';
@@ -16,9 +16,10 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
-import { filterArray, roundTo, formatMilli } from '@val/common';
+import { filterArray, roundTo, formatMilli, safe } from '@val/common';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { RestResponse } from '../models/RestResponse';
+import { getOrSetAsInMap } from '@angular/animations/browser/src/render/shared';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string, transactionId: number) => Observable<any[]>;
@@ -314,13 +315,13 @@ export class TargetAudienceService implements OnDestroy {
       ta.impGeofootprintVars = [];
     }
     this.varService.clearAll();
-    this.geosRequested.clear();
   }
 
   public applyAudienceSelection() : void {
     const audiences = Array.from(this.audienceMap.values());
     const shadingAudience = audiences.filter(a => a.showOnMap);
     const selectedAudiences = audiences.filter(a => a.exportInGeoFootprint || a.showOnGrid);
+    console.log("applyAudienceSelection fired - # Audiences:", audiences.length, "selectedAudiences.length", selectedAudiences.length);
     this.unsubEverything();
     this.clearShadingData();
     this.clearVars();
@@ -348,14 +349,40 @@ export class TargetAudienceService implements OnDestroy {
     }
     if (selectedAudiences.length > 0) {
       // set up a watch process
-      this.selectedSub = combineLatest(this.appStateService.analysisLevel$, this.newSelectedGeos$)
+      this.selectedSub = this.newSelectedGeos$.pipe(debounceTime(3000))
         .subscribe(
-          ([analysisLevel, geos]) => {
-            this.persistGeoVarCache = [];
-            this.persistGeoVarData(analysisLevel, geos, selectedAudiences);
-            this.persistGeoVarCache = [];
+          geos => {
+            if (geos.length > 0)
+            {
+              this.persistGeoVarCache = [];
+              console.log("applyAudienceSelection observable: analysisLevel:", this.appStateService.analysisLevel$.getValue()," - geos.count",(geos != null ? geos.length : null));
+              this.varService.clearAll(false);
+              this.persistGeoVarData(this.appStateService.analysisLevel$.getValue(), geos, selectedAudiences);
+              this.persistGeoVarCache = [];
+            }
           }
         );
+
+      // this.selectedSub = this.newSelectedGeos$.pipe(
+      //   withLatestFrom(this.appStateService.analysisLevel$),
+      //   map(([geos, analysisLevel]) => {
+      //       this.persistGeoVarCache = [];
+      //       console.log("### applyAudienceSelection observable: analysisLevel:", analysisLevel,"geos.count",(geos != null ? geos.length : null));
+      //       this.persistGeoVarData(analysisLevel, geos, selectedAudiences);
+      //       this.persistGeoVarCache = [];
+      //     })
+      //   ).subscribe();
+
+      // this.selectedSub = combineLatest(this.appStateService.analysisLevel$, this.newSelectedGeos$).pipe(debounceTime(9000))
+      //   .subscribe(
+      //     ([analysisLevel, geos]) => {
+      //       this.persistGeoVarCache = [];
+      //       console.log("### applyAudienceSelection observable: analysisLevel:", analysisLevel,"geos.count",(geos != null ? geos.length : null));
+      //       this.varService.clearAll(false);
+      //       this.persistGeoVarData(analysisLevel, geos, selectedAudiences);
+      //       this.persistGeoVarCache = [];
+      //     }
+      //   );
     }
   }
 
@@ -376,6 +403,8 @@ export class TargetAudienceService implements OnDestroy {
     console.log('get shading data called');
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const source = this.audienceSources.get(sourceId);
+    const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
+
     if (source != null) {
       this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving shading data' }));
       const currentShadingData = this.shadingData.getValue();
@@ -384,7 +413,7 @@ export class TargetAudienceService implements OnDestroy {
       if (audience.audienceSourceName === 'Audience-TA') {
         source(analysisLevel, [audience.audienceIdentifier], geos, true, this.geoTransactionId, audience).subscribe(
           data => {
-            data = data.filter(gv => gv.customVarExprDisplay.includes(audience.secondaryId));
+            data = data.filter(gv => (projectVarsDict[gv.varPk]||safe).customVarExprDisplay.includes(audience.secondaryId));
             data.forEach(gv => currentShadingData.set(gv.geocode, gv));
           },
           err => console.error('There was an error retrieving audience data for map shading', err),
@@ -419,7 +448,6 @@ export class TargetAudienceService implements OnDestroy {
 
     // Post geofootprint and get a transactionId
     let startPopChunks = performance.now();
-
     this.geoTransactionId = -1;
     this.restService.post('v1/targeting/base/chunkedgeos/populateChunkedGeos', [{chunks: 5, geocodes: geos}]).subscribe
       (response => {
@@ -427,7 +455,6 @@ export class TargetAudienceService implements OnDestroy {
         // console.log("response.payload.transactionId:", response.payload.transactionId);
         this.geoTransactionId = response.payload.transactionId;
 
-        let startSubmitObs = performance.now();
         sources.forEach(s => {
           //console.log("audienceSource.get of " + s);
           const sourceRefresh = this.audienceSources.get(s);
@@ -444,7 +471,7 @@ export class TargetAudienceService implements OnDestroy {
               audienceSourceType = s.split('/')[0];
               audienceSourceName = s.split('/')[1];
               const taAudiences = selectedAudiences.filter(a => a.audienceSourceName === 'Audience-TA');
-              console.log("persistGeoVarData processing sourceName:", audienceSourceName.padEnd(8), " - type: ", audienceSourceType.padEnd(7), ", ids: ", ids);
+              console.log("persistGeoVarData staging:", audienceSourceName.padEnd(8), "type:", audienceSourceType.padEnd(7), " transactionId:", this.geoTransactionId, "ids: ", ids);
               if (audienceSourceName === 'Audience-TA') {
                 const taAudiences = selectedAudiences.filter(a => a.audienceSourceType === s.split('/')[0] && a.audienceSourceName === s.split('/')[1] && a.audienceSourceName === 'Audience-TA');
                 taAudiences.forEach(taAudience => {
@@ -457,13 +484,8 @@ export class TargetAudienceService implements OnDestroy {
               }
               else
               {
-    //            if (!doneAudienceTAs.has(taAudience.audienceIdentifier)) {
                 observables.push(sourceRefresh(analysisLevel, ids, geos, false, this.geoTransactionId));
-    //              doneAudienceTAs.add(taAudience.audienceIdentifier);
-    //            }
               }
-    //        }
-    //        );
           }
         });
         //console.debug("persistGeoVarData Observable count: ", observables.length);
@@ -471,9 +493,9 @@ export class TargetAudienceService implements OnDestroy {
         this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving audience data' }));
         merge(...observables, 4).subscribe(
           vars => {
-            let startVarsFilter = performance.now();
 // Not sure if these are necessary and the second one is expensive
 /*
+let startVarsFilter = performance.now();
 let v1Filter = performance.now();
 let varCount = vars.length;
             vars = vars.filter(gv => this.varService.get().findIndex(gvar => gvar.geocode === gv.geocode && gvar.varPk === gv.varPk && gvar.impGeofootprintLocation.locationNumber === gv.impGeofootprintLocation.locationNumber) === -1);
@@ -484,10 +506,12 @@ varCount = vars.length;
 console.log("### v2Filter filters took ", formatMilli(performance.now() - v2Filter), " Before:", varCount, ", After:", vars.length);
             console.log("### vars filters took ", formatMilli(performance.now() - startVarsFilter));
 */
+            const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
             if (vars.length > 0) {
-              let source = vars[0].customVarExprDisplay.match("\\(\\w+\\)$") != null ? vars[0].customVarExprDisplay.match("\\(\\w+\\)$")[0]: "(TDA)";
+              let source = (projectVarsDict[vars[0].varPk]||safe).customVarExprDisplay.match("\\(\\w+\\)$") != null ? (projectVarsDict[vars[0].varPk]||safe).customVarExprDisplay.match("\\(\\w+\\)$")[0]: "(TDA)";
               let restTime = this.timingMap.has(source.toLowerCase()) ? formatMilli(this.timingMap.get(source.toLowerCase())) : null;
-              console.log("persistGeoVarData -", source.padEnd(10), "vars (New: ", vars.length, ", Current: ", accumulator.length, ", Total: ", (vars.length + accumulator.length), ", In Store:", this.varService.get().length,")","- REST calls took", restTime); //formatMilli(performance.now() - startSubmitObs));
+              let pad = [6-vars.length.toString().length, 6-accumulator.length.toString().length, 6-(vars.length + accumulator.length).toString().length];
+              console.log("persistGeoVarData -", source.padEnd(10), "vars (New:"+"".padEnd(pad[0]), vars.length, ", Current:"+"".padEnd(pad[1]), accumulator.length, ", Total:"+"".padEnd(pad[2]), (vars.length + accumulator.length), ", In Store:", this.varService.get().length,")","- REST call took", restTime);
 
               // Clear out the timer for this source
               if (this.timingMap.has(source.toLowerCase()))
@@ -503,7 +527,6 @@ console.log("### v2Filter filters took ", formatMilli(performance.now() - v2Filt
                 accumulator.push(...vars.slice(i, i + size))
                 this.persistGeoVarCache.push(...vars.slice(i, i + size));
               }
-              //this.persistGeoVarCache.push(...vars);
             }},
           err => {
             console.error('There was an error retrieving audience data', err);
@@ -518,21 +541,29 @@ console.log("### v2Filter filters took ", formatMilli(performance.now() - v2Filt
               console.table(Array.from(variablePkCounts.keys()).map(v => { return {Variable: v, Count: variablePkCounts.get(v).length}}));*/
 
               // Add the newly created geo vars to the data store
+              //console.log("persistGeoVarData - adding", accumulator.length,"geo vars to the data store.  Existing store size: ", this.varService.get().length);
               if (accumulator.length > 0) {
-                this.varService.add(accumulator.filter(gv => this.varService.get().findIndex(gvar => gvar.geocode === gv.geocode && gvar.varPk === gv.varPk && gvar.impGeofootprintLocation.locationNumber === gv.impGeofootprintLocation.locationNumber) === -1));
-            }
+                this.varService.add(accumulator);
+                // This version avoids dupes but is slow.  this.varService.add(accumulator.filter(gv => this.varService.get().findIndex(gvar => gvar.geocode === gv.geocode && gvar.varPk === gv.varPk && gvar.impGeofootprintLocation.locationNumber === gv.impGeofootprintLocation.locationNumber) === -1));
+              }
             /* // Debug print datastore geoVars grouped by id, name (NOTE: let variablePkCounts:Map<string,ImpGeofootprintVar[]> defined above)
             console.log("persistGeoVarData - Current Geo Vars:");
             variablePkCounts = groupByExtended(this.varService.get(), (i) => i.varPk + ", " + i.customVarExprDisplay);
             console.table(Array.from(variablePkCounts.keys()).map(v => { return {Variable: v, Count: variablePkCounts.get(v).length}}));*/
 
+            // Delete the geocode chunks
             this.restService.delete('v1/targeting/base/chunkedgeos/deleteChunks/', this.geoTransactionId).subscribe
-            (response => {
-              console.log("deleteChunks response: ", response);
-            });
+              (response => {
+                console.log("deleteChunks response: ", response);
+              },
+              err => {
+                console.error("persistGeoVarData - Error deleting chunks:", err);
+              });
 
-            let endTime = performance.now();
-            console.log("*** persistGeoVarData completed in", formatMilli(endTime - startTime),"***");
+            // Done processing this set of geos
+            this.geosRequested.clear();
+
+            console.log("*** persistGeoVarData completed in", formatMilli(performance.now() - startTime),"***");
             this.store$.dispatch(new StopBusyIndicator({ key }));
           }
         );

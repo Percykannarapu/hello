@@ -24,7 +24,7 @@ import { select, Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
 import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
-import { groupBy, roundTo } from '@val/common';
+import { groupBy, roundTo, mapArrayToEntity, safe } from '@val/common';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -407,12 +407,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          const value = currentAttribute[header];
          result = value == null ? '' : value.toString();
       }
+      const projectVarsDict = mapArrayToEntity(geo.impGeofootprintLocation.impProject.impProjectVars,  v => v.varPk);
+
       if (result === '' && state.varCache.has(geo.geocode)) {
         const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
-        const currentVar = vars.find(v => v.customVarExprDisplay === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
-        if (currentVar != null) {
-          if (currentVar.isString) result = currentVar.valueString;
-          if (currentVar.isNumber) result = currentVar.valueNumber.toString();
+        const currentVar = vars.find(v => (projectVarsDict[v.varPk]||safe).customVarExprDisplay === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
+        if (currentVar != null && currentVar.value != null) {
+          // if (currentVar.isString) result = currentVar.valueString;
+          // if (currentVar.isNumber) result = currentVar.valueNumber.toString();
+          // We no longer have isString/isNumber, so use the field that has a value as only one will.
+          result = currentVar.value.toString(); //currentVar.valueNumber != null ? currentVar.valueNumber.toString() : currentVar.valueString;
         }
       }
       if (!result || result == 'null') result = '';
@@ -428,15 +432,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
      }
    }
 
-  private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
+  private getGeoVarFieldName(gv: ImpGeofootprintVar, projectVarsDict: any) : string {
     if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
-      if (gv.customVarExprQuery && gv.customVarExprQuery.includes('Offline')) {
-            return gv.customVarExprDisplay;
-      } else {
-            return gv.fieldname ? `${gv.fieldname} ${gv.customVarExprDisplay}` : gv.customVarExprDisplay;
+      if ((projectVarsDict[gv.varPk]||safe).customVarExprQuery && (projectVarsDict[gv.varPk]||safe).customVarExprQuery.includes('Offline')) {
+        return (projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
+      }
+      else {
+        return (projectVarsDict[gv.varPk]||safe).fieldname ? `${(projectVarsDict[gv.varPk]||safe).fieldname} ${(projectVarsDict[gv.varPk]||safe).customVarExprDisplay}` : (projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
       }
     } else {
-      return gv.customVarExprDisplay;
+      return (projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
     }
   }
 
@@ -449,10 +454,11 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const usableVars = new Set(currentProject.impProjectVars
                           .filter(pv => pv.isIncludedInGeofootprint)
                           .map(pv => this.getProjectVarFieldName(pv)));
-      let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
+      let projectVarsDict = mapArrayToEntity(currentProject.impProjectVars,  v => v.varPk);
+      let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv, projectVarsDict)));
       usableGeoVars = usableGeoVars.sort((a, b) => this.sortVars(a, b));
       this.varCache = groupBy(usableGeoVars, 'geocode');
-      const columnSet = new Set(usableGeoVars.map(gv => gv.customVarExprDisplay));
+      const columnSet = new Set(usableGeoVars.map(gv => (projectVarsDict[gv.varPk]||safe).customVarExprDisplay));
       const attributeNames = Array.from(columnSet);
       attributeNames.forEach(name => {
          exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
