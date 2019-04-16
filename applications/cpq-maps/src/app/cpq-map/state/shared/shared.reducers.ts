@@ -1,6 +1,13 @@
 import { RfpUiEditDetailActionTypes, UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { SharedActions, SharedActionTypes } from './shared.actions';
 
+export enum shadingType {
+  SITE,
+  ZIP,
+  WRAP_ZONE,
+  ATZ_DESIGNATOR,
+  VARIABLE
+}
 export interface SharedState {
    groupId: number;
    activeMediaPlanId: number;
@@ -16,6 +23,7 @@ export interface SharedState {
 
    editedLineItemIds: number[];
    newLineItemIds: number[];
+   shadingType: shadingType;
 }
 
 const initialState: SharedState = {
@@ -33,6 +41,7 @@ const initialState: SharedState = {
 
    editedLineItemIds: [],
    newLineItemIds: [],
+   shadingType: shadingType.SITE
 };
 
 type ReducerActions = SharedActions | UpsertRfpUiEditDetail | UpsertRfpUiEditDetails;
@@ -94,6 +103,8 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
          return { ...state, appReady: action.payload };
       case SharedActionTypes.PopupGeoToggle:
          return { ...state, popupGeoToggle: state.popupGeoToggle + 1 };
+      case SharedActionTypes.SetShadingType:
+         return { ...state, shadingType: action.payload.shadingType };
       default:
          return state;
    }

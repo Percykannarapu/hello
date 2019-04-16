@@ -1,0 +1,11 @@
+<div class="shading-config-container">
+  <p-card class="shading-controls-container">
+    <div class="shading-controls">
+      <h4>Shading Controls</h4>
+      <div>
+        Shade By: &nbsp;
+        <p-dropdown (onChange)="onShadingOptionChange($event)" [options]="shadingOptions" [(ngModel)]="selectOption"></p-dropdown>
+      </div>
+    </div>
+  </p-card>
+</div>

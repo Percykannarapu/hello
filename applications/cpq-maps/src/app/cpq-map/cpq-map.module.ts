@@ -33,6 +33,7 @@ import { SharedEffects } from './state/shared/shared.effects';
 import { HeaderBarComponent } from './components/header-bar/header-bar.component';
 import { AppMessagingService } from './services/app-messaging.service';
 import { ToastModule } from 'primeng/toast';
+import { ShadingConfigComponent } from './components/shading-config/shading-config.component';
 
 
 @NgModule({
@@ -70,7 +71,7 @@ import { ToastModule } from 'primeng/toast';
       }
     }),
   ],
-  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent],
+  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent],
   exports: [CpqMapComponent],
   providers: [RestDataService, AppConfig, MessageService],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

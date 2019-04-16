@@ -1,0 +1,17 @@
+.shading-config-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.shading-controls-container {
+  margin-top: 0.5em;
+}
+
+.shading-controls {
+  display: flex;
+  flex-direction: column;
+}
+
+.shading-controls>h4 {
+  align-self: center;
+}

@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
 import { NormalizedPayload } from '../../models/NormalizedPayload';
+import { shadingType } from './shared.reducers';
 
 
 export enum SharedActionTypes {
@@ -22,6 +23,12 @@ export enum SharedActionTypes {
   SaveFailed = '[Shared Actions] Save Failed',
 
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
+  SetShadingType = '[Shared Actions] Set Shading Type'
+}
+
+export class SetShadingType implements Action {
+  readonly type = SharedActionTypes.SetShadingType;
+  constructor(public payload: { shadingType: shadingType }) { }
 }
 
 export class PopupGeoToggle implements Action {
@@ -107,5 +114,6 @@ export type SharedActions =
   | SaveSucceeded
   | SaveFailed
   | NavigateToReviewPage
+  | SetShadingType
   ;
 

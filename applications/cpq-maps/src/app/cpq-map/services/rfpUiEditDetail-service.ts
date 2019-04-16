@@ -21,4 +21,15 @@ export class RfpUiEditDetailService {
     return rfpUiEditDetails;
   }
 
+  public getSelectedEditDetails(state: FullState) : Array<RfpUiEditDetail> {
+    const rfpUiEditDetails: Array<RfpUiEditDetail> = [];
+    for (const id of state.rfpUiEditDetail.ids) {
+      const record = state.rfpUiEditDetail.entities[id];
+      if (record.isSelected) {
+        rfpUiEditDetails.push(record);
+      }
+    }
+    return rfpUiEditDetails;
+  }
+
 }

@@ -60,5 +60,6 @@ export const localSelectors = {
   getAddIds,
   getHeaderInfo,
   getRfpUiEditDetailEntities,
-  getRfpUiEditDetailEntity
+  getRfpUiEditDetailEntity,
+  getSharedState
 };
