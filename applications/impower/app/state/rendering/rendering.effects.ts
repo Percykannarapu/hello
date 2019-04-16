@@ -16,16 +16,27 @@ import { select } from '@ngrx/store';
 @Injectable()
 export class RenderingEffects {
 
-  @Effect()
-  tradeAreaRender$ = this.actions$.pipe(
+  tradeAreaSplit$ = this.actions$.pipe(
     ofType<RenderTradeAreas>(RenderingActionTypes.RenderTradeAreas),
     withLatestFrom(this.store$.pipe(select(selectors.getMapReady))),
-    filter(([action, mapReady]) => mapReady && action.payload.tradeAreas.length > 0),
+    filter(([, mapReady]) => mapReady),
     map(([action]) => groupByExtended(action.payload.tradeAreas, ta => TradeAreaTypeCodes.parse(ta.taType))),
     withLatestFrom(this.store$.pipe(select(getRenderingSlice))),
     filter(([typeMap, counts]) => (typeMap.get(TradeAreaTypeCodes.Radius) || []).length !== counts.lastRadiusRenderCount || (typeMap.get(TradeAreaTypeCodes.Audience) || []).length !== counts.lastAudienceRenderCount),
-    tap(() => this.store$.dispatch(new ClearTradeAreas())),
-    concatMap(([typeMap]) => [
+    map(([typeMap]) => typeMap)
+  );
+
+  @Effect()
+  tradeAreaClear$ = this.tradeAreaSplit$.pipe(
+    filter(typeMap => typeMap.size === 0),
+    map(() => new ClearTradeAreas())
+  );
+
+  @Effect()
+  tradeAreaRender$ = this.tradeAreaSplit$.pipe(
+    filter(typeMap => typeMap.size > 0),
+    concatMap(typeMap => [
+      new ClearTradeAreas(),
       new RenderRadiusTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Radius) }),
       new RenderAudienceTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Audience) })
     ])
