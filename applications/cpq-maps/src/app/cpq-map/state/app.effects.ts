@@ -10,7 +10,7 @@ import {
   SetAppReady,
   SetIsDistrQtyEnabled,
   GetMapData,
-  LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle, SaveMediaPlan, SaveSucceeded, SaveFailed, NavigateToReviewPage
+  LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle, SaveMediaPlan, SaveSucceeded, SaveFailed, NavigateToReviewPage, SetShadingType
 } from './shared/shared.actions';
 import { tap, filter, switchMap, map, catchError, withLatestFrom, concatMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -67,12 +67,19 @@ export class AppEffects {
     ofType<SetAppReady>(SharedActionTypes.SetAppReady),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([, state]) => this.appLayerService.updateLabels(state)),
-    tap(([, state]) => this.appLayerService.shadeBySite(state)),
+    tap(([, state]) => this.appLayerService.shadeMap(state)),
     tap(([, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state), state.shared.analysisLevel)),
     tap(([, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state), state.shared.radius)),
     tap(([, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state))),
     tap(([, state]) => this.appLayerService.setPopupData(state)),
     tap(() => this.appMapService.setMapWatches())
+  );
+
+  @Effect({ dispatch: false })
+  setMapShading = this.actions$.pipe(
+    ofType<SetShadingType>(SharedActionTypes.SetShadingType),
+    withLatestFrom(this.fullStore$.pipe(select(state => state))),
+    tap(([, state]) => this.appLayerService.shadeMap(state)),
   );
 
   @Effect()
