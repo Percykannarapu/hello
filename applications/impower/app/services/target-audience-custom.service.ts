@@ -50,8 +50,8 @@ export class TargetAudienceCustomService {
               private targetAudienceService: TargetAudienceService,
               private geoService: ImpGeofootprintGeoService,
               private store$: Store<LocalAppState>) {
-    this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
 
+    this.stateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
     // Watch for trade area radius changes, but ignore changes to no trade areas
     this.tradeAreaService.storeObservable
       .pipe(filter(tas => tas != null && tas.length > 0)   // Don't do anything if there aren't any trade areas
@@ -107,53 +107,58 @@ export class TargetAudienceCustomService {
     return audience;
   }
 
-  private onLoadProject() {
-   this.dataCache = {};
-   this.varPkCache.clear();
-   return;  // This appeared to be only reloading custom vars, which is taken care of elsewhere
-/*
+  private onLoadProject(ready: boolean) {
+    if (!ready) return;
+    // this.dataCache = {};
+    // this.varPkCache.clear();
+    // return;  // This appeared to be only reloading custom vars, which is taken care of elsewhere
+
     try {
-console.debug("onLoadProject fired");
+      console.debug("onLoadProject fired");
       const project = this.stateService.currentProject$.getValue();
       if (project == null) return;
       const customProjectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom');
-console.debug("onLoadProject found " + customProjectVars.length + " custom vars");
-      this.dataCache = {};
-this.varPkCache.clear();
+      console.debug("onLoadProject found " + customProjectVars.length + " custom vars");
+      // this.dataCache = {};
+      // this.varPkCache.clear();
+      if(customProjectVars != null && customProjectVars.length > 0){
       for (const projectVar of customProjectVars) {
         const audience: AudienceDataDefinition = {
           audienceName: projectVar.fieldname,
-          audienceIdentifier: projectVar.fieldname,
+          audienceIdentifier: projectVar.varPk.toString(),
           audienceSourceType: 'Custom',
           audienceSourceName: projectVar.source.replace(/^Custom_/, ''),
           exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
           showOnGrid: projectVar.isIncludedInGeoGrid,
-          showOnMap: false,
+          showOnMap: projectVar.isShadedOnMap,
           exportNationally: false,
           allowNationalExport: false,
-          audienceCounter: projectVar.sortOrder
+          audienceCounter: projectVar.sortOrder,
+          fieldconte: null
         };
         this.currentFileName = audience.audienceSourceName;
-        if (!this.varPkCache.has(audience.audienceName)) // Added to not create duplicate varPkCache entries
-        this.varPkCache.set(audience.audienceName, this.varService.getNextStoreId());
+        // if (!this.varPkCache.has(audience.audienceName)) // Added to not create duplicate varPkCache entries
+        // this.varPkCache.set(audience.audienceName, this.varService.getNextStoreId());
         if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
-        const relatedGeoVars = project.getImpGeofootprintVars().filter(gv => gv.customVarExprDisplay === audience.audienceName);
-        for (const geoVar of relatedGeoVars) {
-          if (!this.dataCache.hasOwnProperty(geoVar.geocode)) {
-            this.dataCache[geoVar.geocode] = { geocode: geoVar.geocode };
-          }
-          if (geoVar.isString) {
-            this.dataCache[geoVar.geocode][geoVar.customVarExprDisplay] = geoVar.valueString;
-          } else {
-            this.dataCache[geoVar.geocode][geoVar.customVarExprDisplay] = geoVar.valueNumber.toLocaleString();
-          }
-        }
+        // const relatedGeoVars = project.getImpGeofootprintVars().filter(gv => gv.customVarExprDisplay === audience.audienceName);
+        // for (const geoVar of relatedGeoVars) {
+        //   if (!this.dataCache.hasOwnProperty(geoVar.geocode)) {
+        //     this.dataCache[geoVar.geocode] = { geocode: geoVar.geocode };
+        //   }
+        //   if (geoVar.isString) {
+        //     this.dataCache[geoVar.geocode][geoVar.customVarExprDisplay] = geoVar.valueString;
+        //   } else {
+        //     this.dataCache[geoVar.geocode][geoVar.customVarExprDisplay] = geoVar.valueNumber.toLocaleString();
+        //   }
+        // }
         console.debug("onLoadProject - addAudience " + projectVar.fieldname);
         this.audienceService.addAudience(audience, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
       }
+    }
     } catch (error) {
       console.error(error);
-    }*/
+    }
+  // }
   }
 
   private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<string, ImpGeofootprintGeo[]>) : ImpGeofootprintVar[] {
@@ -315,7 +320,7 @@ this.varPkCache.clear();
 //            this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.source !== "Online_Audience-TA" && !pv.isCustom)
 
             prefs.forEach(customVarPref => console.debug("reloadCustomVars - name: ", customVarPref.pref, ", Custom Var Pref: ", customVarPref));
-            prefs.forEach(customVarPref => this.parseFileData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref));
+            // prefs.forEach(customVarPref => this.parseFileData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref));
             this.targetAudienceService.applyAudienceSelection();
          }
       }

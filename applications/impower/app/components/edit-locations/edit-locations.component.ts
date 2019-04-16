@@ -45,7 +45,13 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       locZip: '',
       marketName: '',
       marketCode: '',
-      coord: ['', this.latLonValidator()]
+      coord: ['', this.latLonValidator()],
+      homeZip: '',
+      homeAtz: '',
+      homeDigitalAtz: '',
+      homePcr: '',
+      homeDmaCode: '',
+      homeCountyFip: ''
     });
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
   }
@@ -71,7 +77,13 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       state: data.locState, 
       zip: data.locZip, 
       latitude: data.coord.split(',')[0], 
-      longitude: data.coord.split(',')[1]
+      longitude: data.coord.split(',')[1],
+      'Home Zip Code': data.homeZip,
+      'Home ATZ': data.homeAtz,
+      'Home Digital ATZ': data.homeDigitalAtz,
+      'Home Carrier Route': data.homePcr,
+      'Home DMA': data.homeDmaCode,
+      'Home County': data.homeCountyFip
     };
     this.submitSite.emit(new ValGeocodingRequest(formData));
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-site', action: 'add' });
@@ -112,9 +124,9 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       }
     };
   }
-
-  public formEdited() : void {
-      this.editLocationsForm['controls']['coord'].setValue('');
-  }
   
+  public formEdited() : void {
+    this.editLocationsForm['controls']['coord'].setValue('');
+}
+
 }

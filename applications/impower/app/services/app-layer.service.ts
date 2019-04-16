@@ -1,40 +1,19 @@
 import { Inject, Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { groupBy, mapByExtended, mapToEntity, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, MapSymbols, selectors, SetLayerLabelExpressions } from '@val/esri';
+import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
+import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, finalize, map, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, finalize, map, take, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
+import { RenderLocations } from '../state/rendering/rendering.actions';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
 
-const defaultLocationPopupFields = [
-  { fieldName: 'locationNumber', label: 'Location Number' },
-  { fieldName: 'locAddress', label: 'Address' },
-  { fieldName: 'locCity', label: 'City' },
-  { fieldName: 'locState', label: 'State' },
-  { fieldName: 'locZip', label: 'Zip' },
-  { fieldName: 'recordStatusCode', label: 'Geocode Status' },
-  { fieldName: 'ycoord', label: 'Latitude' },
-  { fieldName: 'xcoord', label: 'Longitude' },
-  { fieldName: 'geocoderMatchCode', label: 'Match Code' },
-  { fieldName: 'geocoderLocationCode', label: 'Match Quality' },
-  { fieldName: 'origAddress1', label: 'Original Address' },
-  { fieldName: 'origCity', label: 'Original City' },
-  { fieldName: 'origState', label: 'Original State' },
-  { fieldName: 'origPostalCode', label: 'Original Zip' },
-];
-
 @Injectable()
 export class AppLayerService {
-
-  static ObjectIdCache = 0;
 
   private analysisLevelToGroupNameMap = {
     'ZIP': ['zip'],
@@ -54,12 +33,13 @@ export class AppLayerService {
               private appConfig: AppConfig,
               @Inject(EsriAppSettingsToken) private esriAppSettings: EsriAppSettings,
               private store$: Store<FullAppState>) {
-    this.appStateService.activeClientLocations$.subscribe(sites => this.updateSiteLayer(ImpClientLocationTypeCodes.Site, sites));
-    this.appStateService.activeCompetitorLocations$.subscribe(competitors => this.updateSiteLayer(ImpClientLocationTypeCodes.Competitor, competitors));
-
-    this.appStateService.analysisLevel$
-    //.pipe(filter(al => al != null && al.length > 0))
-      .subscribe(al => this.setDefaultLayerVisibility(al));
+    this.store$.pipe(
+      select(selectors.getMapReady),
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.appStateService.analysisLevel$.subscribe(al => this.setDefaultLayerVisibility(al));
+    });
 
     combineLatest(this.appStateService.applicationIsReady$, this.layerService.layersReady$).pipe(
       filter(([appIsReady, layersReady]) => !appIsReady && layersReady),
@@ -67,107 +47,12 @@ export class AppLayerService {
     ).subscribe(() => this.clearClientLayers());
   }
 
-  public updateSiteLayer(siteType: SuccessfulLocationTypeCodes, sites: ImpGeofootprintLocation[]) : void {
-    console.log('Updating Site Layer Visuals', [siteType, sites]);
-    const groupName = `${siteType}s`;
-    const layerName = `Project ${groupName}`;
-    const attributeFieldNames = ['clientLocationTypeCode', 'locationName', ...defaultLocationPopupFields.map(f => f.fieldName)];
-    const points: __esri.Graphic[] = sites.map(site => this.createSiteGraphic(site, attributeFieldNames));
-    if (points.length > 0) {
-      if (this.layerService.layerExists(layerName) && this.layerService.groupExists(groupName)) {
-        this.layerService.clearClientLayers(groupName);
-      }
-      const color = siteType === ImpClientLocationTypeCodes.Site ? [0, 0, 255] : [255, 0, 0];
-      const siteRenderer =  new EsriApi.SimpleRenderer({
-        symbol: new EsriApi.SimpleMarkerSymbol({
-          style: 'path',
-          size: 12,
-          outline: null,
-          color: color,
-          path: MapSymbols.STAR
-        })
-      });
-      const popupTemplate = new EsriApi.PopupTemplate({
-        title: '{clientLocationTypeCode}: {locationName}',
-        content: [{ type: 'fields' }],
-        fieldInfos: defaultLocationPopupFields
-      });
-      const labelColor = new EsriApi.Color(color);
-      const labelClass: __esri.LabelClass = this.esriFactory.createLabelClass(labelColor, '$feature.locationNumber');
-      this.layerService.createClientLayer(groupName, layerName, points, 'parentId', siteRenderer, popupTemplate, [labelClass]);
-
-    } else {
-      this.layerService.removeLayer(layerName);
-    }
-  }
-
-  public addToTradeAreaLayer(siteType: string, tradeAreas: ImpGeofootprintTradeArea[], mergeType: TradeAreaMergeTypeCodes, taType?: TradeAreaTypeCodes) : void {
-    const mergeBuffers = mergeType !== TradeAreaMergeTypeCodes.NoMerge || taType === TradeAreaTypeCodes.Audience;
-    tradeAreas.sort((a, b) => a.taName.localeCompare(b.taName));
-    let pointMap: Map<string, {p: __esri.Point, r: number}[]> = new Map<string, {p: __esri.Point, r: number}[]>();
-    if (taType === TradeAreaTypeCodes.Audience) {
-      for (const ta of tradeAreas) {
-        const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
-        const point = new EsriApi.Point({ spatialReference: { wkid: this.esriAppSettings.defaultSpatialRef }, x, y });
-        const minRadius = this.appStateService.currentProject$.getValue().audTaMinRadiu;
-        const maxRadius = this.appStateService.currentProject$.getValue().audTaMaxRadiu;
-        if (pointMap.has(`${ta.taName} - Min Radius`) && pointMap.has(`${ta.taName} - Max Radius`)) {
-          pointMap.get(`${ta.taName} - Min Radius`).push(...[{p: point, r: minRadius}]);
-          pointMap.get(`${ta.taName} - Max Radius`).push(...[{p: point, r: maxRadius}]);
-        } else {
-          pointMap.set(`${ta.taName} - Min Radius`, [{p: point, r: minRadius}]);
-          pointMap.set(`${ta.taName} - Max Radius`, [{p: point, r: maxRadius}]);
-        }
-      }
-    } else {
-      pointMap = groupBy(tradeAreas, 'taName', ta => {
-        const { x, y } = toUniversalCoordinates(ta.impGeofootprintLocation);
-        const point = new EsriApi.Point({ spatialReference: { wkid: this.esriAppSettings.defaultSpatialRef }, x, y });
-        return { p: point, r: ta.taRadius };
-      });
-    }
-    const colorVal = (siteType === 'Site') ? [0, 0, 255] : [255, 0, 0];
-    const color = new EsriApi.Color(colorVal);
-    const transparent = new EsriApi.Color([0, 0, 0, 0]);
-    const symbol = new EsriApi.SimpleFillSymbol({
-      style: 'solid',
-      color: transparent,
-      outline: {
-        style: 'solid',
-        color: color,
-        width: 2
-      }
-    });
-    let layersToRemove: string[] = [];
-    if (taType === TradeAreaTypeCodes.Audience) {
-      layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.includes('Audience'));
-    } else {
-      layersToRemove = this.layerService.getAllLayerNames().filter(name => name != null && name.startsWith(siteType) && name.includes('Radius'));
-    }
-    layersToRemove.forEach(layerName => this.layerService.removeLayer(layerName));
-    pointMap.forEach((pointData, name) => {
-      const points = pointData.map(pd => pd.p);
-      const radii = pointData.map(pd => pd.r);
-      EsriApi.geometryEngineAsync.geodesicBuffer(points, radii, 'miles', mergeBuffers).then(geoBuffer => {
-        const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
-        const graphics = geometry.map(g => {
-          return new EsriApi.Graphic({
-            geometry: g,
-            symbol: symbol
-          });
-        });
-        const groupName = `${siteType}s`;
-        const layerName = `${siteType} - ${name}`;
-        this.layerService.removeLayer(layerName);
-        this.layerService.createGraphicsLayer(groupName, layerName, graphics);
-      });
-    });
-  }
-
   private setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
     this.logger.info('Setting default layer visibility for', currentAnalysisLevel);
+   //
     this.layerService.getAllPortalGroups().forEach(g => g.visible = false);
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 ){
+      const portalId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
       const groupKeys: string[] = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
       this.logger.debug('New visible groups', groupKeys);
       if (groupKeys != null && groupKeys.length > 0) {
@@ -177,6 +62,9 @@ export class AppLayerService {
             if (this.layerService.portalGroupExists(layerGroup.group.name)) {
               this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
             }
+             if (layerGroup.boundaries.id !== portalId){
+               this.layerService.getPortalLayerById(layerGroup.boundaries.id).popupEnabled = false;
+             }
           });
         }
       }
@@ -261,7 +149,7 @@ export class AppLayerService {
   private setupLayerPopup(newLayer: __esri.FeatureLayer, layerDef: LayerDefinition) : void {
     const popupEnabled = (layerDef.useCustomPopUp === true) || (layerDef.popUpFields.length > 0);
     if (popupEnabled) {
-      newLayer.when(e => {
+      newLayer.when(() => {
         // const localLayer = (e.layerView.layer as __esri.FeatureLayer);
         newLayer.popupTemplate = this.createPopupTemplate(newLayer, layerDef);
       });
@@ -287,35 +175,14 @@ export class AppLayerService {
     const fieldsToUse = new Set<string>(definedFields);
     const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
     const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new EsriApi.FieldInfo({ fieldName: f.name, label: f.alias }));
-    // const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => ({ fieldName: f.name, label: f.alias }));
     fieldInfos.sort(byDefinedFieldIndex);
-    const result = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction] });
+    const result: __esri.PopupTemplateProperties = { title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction] };
     if (layerDef.useCustomPopUp === true) {
       result.content = (feature: any) => this.generator.geographyPopupFactory(feature, fieldInfos, layerDef.customPopUpDefinition);
-      return result;
     } else {
-      const resultTest = new EsriApi.PopupTemplate({ title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction], content: [{ type: 'fields', fieldInfos: fieldInfos }] });
-      //result.fieldInfos = fieldInfos;
-     // result.content = [{ type: 'fields' }];
-     return resultTest;
+      result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
     }
-   // return result;
-  }
-
-  private createSiteGraphic(site: ImpGeofootprintLocation, attributeFieldNames: string[]) : __esri.Graphic {
-    const graphic = new EsriApi.Graphic({
-      geometry: new EsriApi.Point({
-        x: site.xcoord,
-        y: site.ycoord
-      }),
-      attributes: { parentId: ++AppLayerService.ObjectIdCache },
-      visible: site.isActive
-    });
-    for (const field of attributeFieldNames) {
-      const fieldValue = site[field];
-      graphic.attributes[field] = fieldValue == null ? '' : fieldValue.toString();
-    }
-    return graphic;
+   return new EsriApi.PopupTemplate(result);
   }
 
   public clearClientLayers() {

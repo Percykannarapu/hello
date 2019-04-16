@@ -14,6 +14,9 @@ export namespace ImpClientLocationTypeCodes {
     if (result == null) throw new Error('Invalid Client Location Type Code');
     return result;
   }
+  export function parseAsSuccessful(code: string) : SuccessfulLocationTypeCodes {
+    return markSuccessful(parse(code));
+  }
   export function markSuccessful(code: ImpClientLocationTypeCodes) : SuccessfulLocationTypeCodes {
     switch (code) {
       case ImpClientLocationTypeCodes.Competitor:

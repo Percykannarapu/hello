@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { toPayload } from '../../../../../modules/common/src/rxjs';
 import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistLocations, ZoomtoLocations,
-         DetermineDTZHomeGeos, ProcessHomeGeoAttributes, UpdateLocations, ApplyTradeAreaOnEdit} from './homeGeo.actions';
+         DetermineDTZHomeGeos, ProcessHomeGeoAttributes, UpdateLocations, ApplyTradeAreaOnEdit, ReCalcHomeGeos} from './homeGeo.actions';
 import { Actions, ofType, Effect} from '@ngrx/effects';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
@@ -19,10 +19,10 @@ export class HomeGeoEffects {
    @Effect()
    geocoding$ = this.actions$.pipe(
       ofType<Geocode>(HomeGeoActionTypes.Geocode),
-      //this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Home Geos'}));
      switchMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
         concatMap(locations => [
-           new PersistLocations({locations, reCalculateHomeGeos: action.payload.reCalculateHomeGeos, isLocationEdit: action.payload.isLocationEdit}),
+           new ZoomtoLocations({locations}),
+           new StopBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER' }),
            new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
         ]),
         catchError(err => 
@@ -31,6 +31,12 @@ export class HomeGeoEffects {
             )
         )
      ))
+   );
+
+   @Effect({ dispatch: false })
+   recalchomegeos$ = this.actions$.pipe(
+      ofType<ReCalcHomeGeos>(HomeGeoActionTypes.ReCalcHomeGeos),
+      map(action => this.appHomeGeocodingService.reCalcHomeGeos(action.payload))
    );
 
    @Effect({ dispatch: false })
@@ -44,7 +50,11 @@ export class HomeGeoEffects {
       ofType<HomeGeocode>(HomeGeoActionTypes.HomeGeocode),
       map(action => this.appHomeGeocodingService.validateLocations(action.payload)),
       switchMap(locMap => this.appHomeGeocodingService.queryHomeGeocode(locMap).pipe(
-        map(attributes => new DetermineDTZHomeGeos({attributes, locationsMap: locMap.LocMap, isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos})),
+        map(attributes => new DetermineDTZHomeGeos({attributes, 
+                locationsMap: locMap.LocMap, 
+                isLocationEdit: locMap.isLocationEdit, 
+                reCalculateHomeGeos: locMap.reCalculateHomeGeos,
+                totalLocs: locMap.totalLocs})),
         catchError(err => of(
           new ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo'}),
           new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
@@ -57,7 +67,8 @@ export class HomeGeoEffects {
       ofType<DetermineDTZHomeGeos>(HomeGeoActionTypes.DetermineDTZHomeGeos),
       switchMap(action => this.appHomeGeocodingService.determineHomeDTZ(action.payload).pipe(
         concatMap(attributes => [
-          new ProcessHomeGeoAttributes({attributes}),
+          new ProcessHomeGeoAttributes({attributes, totalLocs: action.payload.totalLocs, 
+                                        isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
           new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
           new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
           new ApplyTradeAreaOnEdit({ isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos})
@@ -71,19 +82,10 @@ export class HomeGeoEffects {
      map(action => this.appHomeGeocodingService.processHomeGeoAttributes(action.payload))
    );
 
-   @Effect()
+   @Effect({dispatch: false})
    persistLocations$ = this.actions$.pipe(
       ofType<PersistLocations>(HomeGeoActionTypes.PersistLocations),
-      tap(action => this.appHomeGeocodingService.persistLocations(action.payload)),
-      concatMap(action => [
-        new ZoomtoLocations(action.payload),
-        new StopBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER' }),
-      ]),
-      catchError(err => 
-        of(new ErrorNotification({message: 'System encountered an error processing your request.  Please try again', notificationTitle: 'Geocoding'}),
-           new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'}) 
-          )
-      )
+      tap(action => this.appHomeGeocodingService.persistLocations(action.payload))
    );
 
    

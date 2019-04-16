@@ -30,7 +30,7 @@ const getEsriSelectedLayer = createSelector(getEsriMapState, state => state.sele
 const getEsriMapButtonState = createSelector(getEsriMapState, state => state.selectedButton);
 const getEsriMapHeight = createSelector(getEsriMapState, state => state.containerHeight);
 const getEsriSketchViewModel = createSelector(getEsriMapState, state => state.sketchView);
-const getMapReady = createSelector(getEsriMapState, state => state.mapIsReady);
+const getMapReady = createSelector(getEsriMapState, state => (state || {} as any).mapIsReady);
 const getEsriFeaturesSelected = createSelector(getEsriMapState, state => state.selectedFeatures);
 
 // These are the publicly available selectors

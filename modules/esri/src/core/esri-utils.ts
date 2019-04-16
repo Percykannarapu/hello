@@ -28,8 +28,16 @@ type mapViewEventResults =
 
 export class EsriUtils {
 
+  public static layerIsGroup(l: __esri.Layer) : l is __esri.GroupLayer {
+    return l != null && l.type === 'group';
+  }
+
   public static layerIsFeature(l: __esri.Layer) : l is __esri.FeatureLayer {
     return l != null && l.type === 'feature';
+  }
+
+  public static layerIsGraphics(l: __esri.Layer) : l is __esri.GraphicsLayer {
+    return l != null && l.type === 'graphics';
   }
 
   public static layerIsPortalFeature(l: __esri.Layer) : l is __esri.FeatureLayer {

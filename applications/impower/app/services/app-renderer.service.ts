@@ -66,16 +66,29 @@ export class AppRendererService {
       //US9347 - Variable Title in the Legend
       const audiences = Array.from(this.dataService.audienceMap.values()).filter(a => a.showOnMap === true);
       let legendText = null;
-      if (audiences[0].audienceSourceType === "Online"){
-        const legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
+      let legendOption =  null;
 
-        if ((audiences[0].audienceSourceName === 'VLH')||(audiences[0].audienceSourceName === 'Pixel')){
-          legendText = audiences[0].audienceName+ " " +  legendOption.label;}
-        else {
-          legendText = audiences[0].audienceName+ " "+ audiences[0].audienceSourceName + " " + legendOption.label;
+      if (audiences[0].audienceSourceType === "Online"){
+
+        if (audiences[0].audienceSourceName === 'Audience-TA'){
+          let scoreTypeLabel:string = null;
+          scoreTypeLabel = audiences[0].audienceTAConfig.scoreType;
+          if (scoreTypeLabel==='national'){
+            scoreTypeLabel = scoreTypeLabel.charAt(0).toUpperCase() + scoreTypeLabel.slice(1);
           }
-      }else {
-          legendText = audiences[0].audienceName;
+          legendText = audiences[0].audienceName+ " "+ audiences[0].audienceSourceName + " " + scoreTypeLabel;
+        }
+        else if ((audiences[0].audienceSourceName === 'VLH')||(audiences[0].audienceSourceName === 'Pixel')){
+          legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
+          legendText = audiences[0].audienceName+ " " +  legendOption.label;
+        }
+        else{
+          legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
+          legendText = audiences[0].audienceName+ " "+ audiences[0].audienceSourceName + " " + legendOption.label;
+        }
+      }
+      else{
+        legendText = audiences[0].audienceName;
       }
       if(legendText != null){
         newAction.payload.legend = legendText;

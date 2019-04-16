@@ -6,6 +6,7 @@ import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiE
 import { localSelectors } from '../../state/app.selectors';
 import { FullState } from '../../state';
 import { Observable, Subject } from 'rxjs';
+import { NavigateToReviewPage, SaveMediaPlan } from '../../state/shared/shared.actions';
 
 @Component({
   selector: 'cpq-header-bar',
@@ -14,9 +15,12 @@ import { Observable, Subject } from 'rxjs';
 })
 export class HeaderBarComponent implements OnInit, OnDestroy {
 
+  private updateIds: number[] = [];
+  private addIds: number[] = [];
   private componentDestroyed$ = new Subject();
 
   appReady$: Observable<boolean>;
+  isSaving$: Observable<boolean>;
 
   totalDistribution: number;
   totalInvestment: number;
@@ -27,7 +31,9 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   productName: string;
   rfpId: string;
 
-  get reviewPageUrl() { return `/apex/RFP_Media_Plan_Display?rfpId=${this.rfpId}&displayAll=true&groupId=${this.mediaPlanGroupNumber}`; }
+  get isClean() {
+    return this.updateIds.length === 0 && this.addIds.length === 0;
+  }
 
   constructor(private store$: Store<FullState>) { }
 
@@ -50,10 +56,15 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
       this.productName = headers.productName;
       this.mediaPlanGroupNumber = headers.mediaPlanGroup;
       this.rfpId = headers.rfpId;
+      this.addIds = headers.addIds;
+      this.updateIds = headers.updateIds;
     });
 
     this.appReady$ = this.store$.pipe(
       select(localSelectors.getAppReady)
+    );
+    this.isSaving$ = this.store$.pipe(
+      select(localSelectors.getIsSaving)
     );
   }
 
@@ -62,7 +73,11 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   }
 
   onCancel() : void {
-    window.location.href = this.reviewPageUrl;
+    this.store$.dispatch(new NavigateToReviewPage({ rfpId: this.rfpId, mediaPlanGroupNumber: this.mediaPlanGroupNumber }));
+  }
+
+  onSave() {
+    this.store$.dispatch(new SaveMediaPlan({ addIds: this.addIds, updateIds: this.updateIds }));
   }
 
   private calcMetrics(entities: RfpUiEditDetail[]) {

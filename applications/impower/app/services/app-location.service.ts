@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ClearLocations, RenderLocations } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeofootprintLocAttrib';
@@ -6,7 +7,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { AppGeocodingService } from './app-geocoding.service';
 import { combineLatest, merge, Observable, EMPTY, of } from 'rxjs';
-import { filter, map, pairwise, startWith, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, pairwise, startWith, tap, withLatestFrom, take } from 'rxjs/operators';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { AppConfig } from '../app.config';
 import { AppStateService } from './app-state.service';
@@ -18,11 +19,11 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
 import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { Store } from '@ngrx/store';
-import { LocalAppState } from '../state/app.interfaces';
+import { FullAppState, LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { toUniversalCoordinates, mapByExtended, isNumber } from '@val/common';
-import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService } from '@val/esri';
+import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService, selectors } from '@val/esri';
 import { calculateStatistics, filterArray, groupByExtended, mapBy, simpleFlatten } from '@val/common';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { mergeMap } from 'rxjs/internal/operators/mergeMap';
@@ -30,6 +31,7 @@ import { reduce } from 'rxjs/internal/operators/reduce';
 import { concat } from 'rxjs/internal/observable/concat';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { empty } from 'rxjs/internal/observable/empty';
+import { select } from '@ngrx/store';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
@@ -94,18 +96,26 @@ export class AppLocationService {
               private domainFactory: ImpDomainFactoryService,
               private confirmationService: ConfirmationService,
               private restService: RestDataService,
-              private store$: Store<LocalAppState>) {
+              private store$: Store<FullAppState>) {
+
+    this.allClientLocations$ = this.appStateService.allClientLocations$;
+    this.allCompetitorLocations$ = this.appStateService.allCompetitorLocations$;
+    this.activeClientLocations$ = this.appStateService.activeClientLocations$;
+    this.activeCompetitorLocations$ = this.appStateService.activeCompetitorLocations$;
+
+    this.store$.pipe(
+      select(selectors.getMapReady),
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => this.initializeSubscriptions());
+  }
+
+  private initializeSubscriptions() {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null)
     );
     const locationsWithType$ = allLocations$.pipe(
       filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0),
-    );
-    const locationsNeedingHomeGeos$ = locationsWithType$.pipe(
-      filterArray(loc => !loc.clientLocationTypeCode.startsWith('Failed ')),
-      filterArray(loc => loc['homeGeoFound'] == null),
-      filterArray(loc => loc.ycoord != null && loc.xcoord != null && loc.ycoord !== 0 && loc.xcoord !== 0),
-      filterArray(loc => isReadyforHomegeocoding(loc)),
     );
 
     const locationsWithHomeGeos$ = locationsWithType$.pipe(
@@ -122,13 +132,27 @@ export class AppLocationService {
       map(locations => locations.length)
     );
 
-    this.totalCount$.pipe(
+    const successfulLocations$ = locationsWithType$.pipe(
+      filterArray(loc => loc.clientLocationTypeCode === 'Site' || loc.clientLocationTypeCode === 'Competitor')
+    );
+    const siteCount$ = successfulLocations$.pipe(
+      filterArray(loc => loc.clientLocationTypeCode === 'Site'),
+      map(locs => locs.length)
+    );
+    const competitorCount$ = successfulLocations$.pipe(
+      filterArray(loc => loc.clientLocationTypeCode === 'Competitor'),
+      map(locs => locs.length)
+    );
+
+    successfulLocations$.subscribe(locations => this.store$.dispatch(new RenderLocations({ locations })));
+    siteCount$.pipe(
       pairwise(),
       filter(([prev, curr]) => prev > 0 && curr === 0)
-    ).subscribe(() => {
-      this.esriLayerService.clearClientLayers("Sites");
-      this.esriLayerService.clearClientLayers("Competitors");
-    });
+    ).subscribe(() => this.store$.dispatch(new ClearLocations({ type: ImpClientLocationTypeCodes.Site })));
+    competitorCount$.pipe(
+      pairwise(),
+      filter(([prev, curr]) => prev > 0 && curr === 0)
+    ).subscribe(() => this.store$.dispatch(new ClearLocations({ type: ImpClientLocationTypeCodes.Competitor })));
 
     this.failedClientLocations$ = locationsWithType$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode === 'Failed Site'))
@@ -142,11 +166,6 @@ export class AppLocationService {
     );
     this.hasFailures$ = this.failureCount$.pipe(map(count => count > 0));
 
-    this.allClientLocations$ = this.appStateService.allClientLocations$;
-    this.allCompetitorLocations$ = this.appStateService.allCompetitorLocations$;
-    this.activeClientLocations$ = this.appStateService.activeClientLocations$;
-    this.activeCompetitorLocations$ = this.appStateService.activeCompetitorLocations$;
-
     this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
     this.appStateService.analysisLevel$
@@ -154,24 +173,17 @@ export class AppLocationService {
         withLatestFrom(this.appStateService.applicationIsReady$),
         filter(([level, isReady]) => level != null && level.length > 0 && isReady)
       ).subscribe(([analysisLevel]) => {
-        this.setPrimaryHomeGeocode(analysisLevel);
-        this.appTradeAreaService.onAnalysisLevelChange();
+      this.setPrimaryHomeGeocode(analysisLevel);
+      this.appTradeAreaService.onAnalysisLevelChange();
     });
 
-    /*combineLatest(locationsNeedingHomeGeos$, this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$).pipe(
-      filter(([locations, level, isReady]) => locations.length > 0 && level != null && level.length > 0 && isReady)
-    ).subscribe(
-      ([locations, analysisLevel]) => this.queryAllHomeGeos(locations, analysisLevel)
-    );*/
-
-   combineLatest(locationsWithHomeGeos$, this.appStateService.applicationIsReady$).pipe(
+    combineLatest(locationsWithHomeGeos$, this.appStateService.applicationIsReady$).pipe(
       filter(([locations, isReady]) => locations.length > 0 && isReady)
     ).subscribe(() => this.confirmationBox());
 
     combineLatest(locationsWithoutRadius$, this.appStateService.applicationIsReady$).pipe(
       filter(([locations, isReady]) => locations.length > 0 && isReady)
     ).subscribe(([locations]) => this.appTradeAreaService.onLocationsWithoutRadius(locations));
-
   }
 
   public static createMetricTextForLocation(site: ImpGeofootprintLocation) : string {
@@ -352,8 +364,8 @@ export class AppLocationService {
         }
         attributes.forEach(attribute => {
           const homeDtz = locTempDict.get(attribute['siteNumber']) != null ? locTempDict.get(attribute['siteNumber']).impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home Digital ATZ')[0] : null;
-          if (locTempDict.get(attribute['siteNumber']) != null && homeDtz && homeDtz.attributeValue != ''){
-            attribute['homeDigitalAtz'] = homeDtz && homeDtz.attributeValue != '' ? homeDtz.attributeValue : '';
+          if (locTempDict.get(attribute['siteNumber']) != null && homeDtz && homeDtz.attributeValue !== ''){
+            attribute['homeDigitalAtz'] = homeDtz && homeDtz.attributeValue !== '' ? homeDtz.attributeValue : '';
           }
           else if (attribute['homeZip'] in zipResponseDict){
             const attr = zipResponseDict[attribute['homeZip']];
@@ -632,7 +644,7 @@ export class AppLocationService {
                 homeGeocodeIssue = 'Y';
                 warningNotificationFlag = 'Y';
             }
-            if (currentAttributes[key] != null && currentAttributes[key] != '')   {
+            if (currentAttributes[key] != null && currentAttributes[key] !== '')   {
               const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
               if (newAttribute != null)
                 impAttributesToAdd.push(newAttribute);
@@ -659,9 +671,9 @@ export class AppLocationService {
     } else {
       let homeGeoKey = '';
 
-      if(analysisLevel === "ZIP"){
+      if (analysisLevel === 'ZIP'){
         homeGeoKey = getHomeGeoKey('Zip Code');
-      } else if(analysisLevel === "PCR"){
+      } else if (analysisLevel === 'PCR'){
         homeGeoKey = getHomeGeoKey('Carrier Route');
       } else{
         homeGeoKey = getHomeGeoKey(analysisLevel);
@@ -690,9 +702,9 @@ export class AppLocationService {
     }
     this.logger.debug('Setting custom flag to indicate locations have had home geo processing performed.');
     let homeKey = '';
-    if(currentAnalysisLevel === "ZIP"){
+    if (currentAnalysisLevel === 'ZIP'){
        homeKey = getHomeGeoKey('Zip Code');
-    } else if(currentAnalysisLevel === "PCR"){
+    } else if (currentAnalysisLevel === 'PCR'){
        homeKey = getHomeGeoKey('Carrier Route');
     } else{
      homeKey = getHomeGeoKey(currentAnalysisLevel);

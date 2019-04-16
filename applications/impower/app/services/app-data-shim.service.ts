@@ -76,6 +76,7 @@ export class AppDataShimService {
 
   onLoadSuccess() : void {
     this.targetAudienceService.applyAudienceSelection();
+    this.appTradeAreaService.setCurrentDefaults();
     this.appTradeAreaService.zoomToTradeArea();
     this.appGeoService.reloadMustCovers();
     this.targetAudienceCustomService.reloadCustomVars();

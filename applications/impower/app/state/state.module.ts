@@ -16,6 +16,7 @@ import { DataShimUsageEffects } from './data-shim/data-shim-usage.effects';
 import { DataShimExportEffects } from './data-shim/data-shim-export.effects';
 import { DataShimBusyEffects } from './data-shim/data-shim-busy.effects';
 import { HomeGeoEffects } from './homeGeocode/homeGeo.effects';
+import { RenderingEffects } from './rendering/rendering.effects';
 
 @NgModule({
   imports: [
@@ -31,7 +32,8 @@ import { HomeGeoEffects } from './homeGeocode/homeGeo.effects';
       DataShimBusyEffects,
       DataShimNotificationEffects,
       DataShimUsageEffects,
-      HomeGeoEffects
+      HomeGeoEffects,
+      RenderingEffects
     ]),
     StoreRouterConnectingModule.forRoot(),
     StoreDevtoolsModule.instrument({

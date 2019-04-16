@@ -1,14 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { StopBusyIndicator } from '@val/messaging';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { AppConfig } from '../../app.config';
 import { AppMapService } from '../services/app-map.service';
+import { AppNavigationService } from '../services/app-navigation.service';
+import { localSelectors } from './app.selectors';
 import {
   SharedActionTypes,
   SetAppReady,
   SetIsDistrQtyEnabled,
   GetMapData,
-  LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle
+  LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle, SaveMediaPlan, SaveSucceeded, SaveFailed, NavigateToReviewPage
 } from './shared/shared.actions';
 import { tap, filter, switchMap, map, catchError, withLatestFrom, concatMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -35,7 +37,8 @@ export class AppEffects {
     private fullStore$: Store<FullState>,
     private entityHelper: EntityHelper,
     private rfpUiEditWrapService: RfpUiEditWrapService,
-    private messagingService: AppMessagingService) { }
+    private messagingService: AppMessagingService,
+    private navigateService: AppNavigationService) { }
 
   // After the page and map loads, we go get data for the current Media Plan
   @Effect()
@@ -131,6 +134,43 @@ export class AppEffects {
   mapInitFailure$ = this.actions$.pipe(
     ofType(SharedActionTypes.MapSetupFailed),
     tap(() => this.messagingService.showErrorNotification('There was an error initializing the map.')),
+    map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))
+  );
+
+  @Effect({ dispatch: false })
+  navigate$ = this.actions$.pipe(
+    ofType<NavigateToReviewPage>(SharedActionTypes.NavigateToReviewPage),
+    map(action => this.navigateService.getreviewPageUrl(action.payload.rfpId, action.payload.mediaPlanGroupNumber)),
+    tap(url => this.navigateService.navigateTo(url))
+  );
+
+  @Effect()
+  saveMediaPlans$ = this.actions$.pipe(
+    ofType<SaveMediaPlan>(SharedActionTypes.SaveMediaPlan),
+    tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.appConfig.ApplicationBusyKey, message: 'Saving Media Plan...' }))),
+    withLatestFrom(this.store$.pipe(select(localSelectors.getRfpUiEditDetailEntity))),
+    map(([action, entity]) => [action.payload.updateIds.map(u => entity[u]), action.payload.addIds.map(a => entity[a])]),
+    switchMap(([updates, adds]) => this.entityHelper.saveMediaPlan(updates, adds).pipe(
+      map(() => new SaveSucceeded()),
+      catchError(err => of(new SaveFailed({ err })))
+    ))
+  );
+
+  @Effect()
+  saveSucceeded$ = this.actions$.pipe(
+    ofType(SharedActionTypes.SaveSucceeded),
+    withLatestFrom(this.store$.pipe(select(localSelectors.getHeaderInfo))),
+    concatMap(([, headerInfo]) => [
+      new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }),
+      new NavigateToReviewPage({ rfpId: headerInfo.rfpId, mediaPlanGroupNumber: headerInfo.mediaPlanGroup })
+    ])
+  );
+
+  @Effect()
+  saveFailed$ = this.actions$.pipe(
+    ofType<SaveFailed>(SharedActionTypes.SaveFailed),
+    tap(action => console.log('Error Saving Media Plan', action.payload.err)),
+    tap(() => this.messagingService.showErrorNotification('There was an error saving the Media Plan')),
     map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))
   );
 

@@ -25,9 +25,8 @@ export class RfpUiEditWrapService {
     for (const id of state.rfpUiEditDetail.ids) {
       const record = state.rfpUiEditDetail.entities[id];
       if (wrapZones.has(record.wrapZone)) {
-        const recordUpdate: RfpUiEditDetail = Object.assign({}, record);
-        recordUpdate.isSelected = !recordUpdate.isSelected;
-        recordUpdates.push(recordUpdate);
+        record.isSelected = !record.isSelected;
+        recordUpdates.push(record);
       }
     }
     this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: recordUpdates }));
@@ -43,6 +42,17 @@ export class RfpUiEditWrapService {
       }
     }
     this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: editWraps }));
+  }
+
+  public getEditWrapZonesByZoneName(wrapZone: string, state: FullState) : Array<RfpUiEditWrap> {
+    const rfpUiEditWraps: Array<RfpUiEditWrap> = [];
+    for (const id of state.rfpUiEditWrap.ids) {
+      const record = state.rfpUiEditWrap.entities[id];
+      if (record.wrapZone === wrapZone) {
+        rfpUiEditWraps.push(record);
+      }
+    }
+    return rfpUiEditWraps;
   }
 
 }

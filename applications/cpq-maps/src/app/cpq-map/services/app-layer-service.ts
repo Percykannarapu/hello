@@ -10,8 +10,9 @@ import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEdit
 import { UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { PopupGeoToggle } from '../state/shared/shared.actions';
 import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
-import { UpsertRfpUiEditWrap } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { UpsertRfpUiEditWrap, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { RfpUiEditWrapService } from './rfpEditWrap-service';
+import { RfpUiEditDetailService } from './rfpUiEditDetail-service';
 
 export interface SiteInformation {
   geocode?: string;
@@ -32,7 +33,8 @@ export class AppLayerService {
                private esriFactory: EsriDomainFactoryService,
                private store$: Store<FullState>,
                private configService: ConfigService,
-               private wrapService: RfpUiEditWrapService) { }
+               private wrapService: RfpUiEditWrapService,
+               private editDetailService: RfpUiEditDetailService) { }
 
    private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
    private shadingMap: Map<number, number[]> = new Map<number, number[]>();
@@ -44,7 +46,11 @@ export class AppLayerService {
       const renderer = new EsriApi.SimpleRenderer({
          symbol: new EsriApi.SimpleMarkerSymbol({
             color: [0, 0, 255, 1],
-            path: MapSymbols.STAR
+            path: MapSymbols.STAR,
+            outline: new EsriApi.SimpleLineSymbol({
+              color: [0, 0, 0, 0],
+              width: 0
+            })
          })
       });
       if (this.currentLayerNames.has(groupName)) {
@@ -151,6 +157,7 @@ export class AppLayerService {
          const siteId = state.rfpUiEdit.entities[site].siteId;
          const siteName = state.rfpUiEdit.entities[site].siteName;
          const pallete: number [][] = getColorPallete(ColorPallete.CPQMAPS);
+         pallete.forEach(color => color.push(0.6));
          this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, pallete[count % pallete.length]);
          for (const detail of state.rfpUiEditDetail.ids) {
             if (!state.rfpUiEditDetail.entities[detail].isSelected) continue;
@@ -168,6 +175,10 @@ export class AppLayerService {
    }
 
    public toggleGeoShading(editDetails: RfpUiEditDetail[], state: FullState) {
+      if (editDetails.length < 1) {
+         console.warn('attempted to toggle geo shading but no geos were provided');
+         return;
+      }
       const selectedGeocodes: Set<string> = new Set<string>();
       const fkSiteMap: Map<string, number> = new Map<string, number>();
       const wrapZones: Set<string> = new Set<string>();
@@ -358,50 +369,49 @@ export class AppLayerService {
       this.esriMapService.mapView.popup.on('trigger-action', (event) => this.store$.dispatch(new PopupGeoToggle({ eventName: 'toggle-selection' })));
    }
 
+   // TODO: This method should be refactored into two different methods,
+   // one for wrap and one for non-wrap, the logic in here is getting too complex
    public onPopupToggleAction(event: string, state: FullState) {
      if (event !== 'toggle-selection') {
        return;
      }
      const selectedFeature = this.esriMapService.mapView.popup.selectedFeature;
      const geocode: string = selectedFeature.attributes.geocode;
-     let found: boolean = false;
-     const newEditDetails: Array<RfpUiEditDetail> = [];
-     const newWrapZones: Array<string> = [];
-     for (const id of state.rfpUiEditDetail.ids) {
-       const currentRecord = state.rfpUiEditDetail.entities[id];
-       if (currentRecord.geocode === geocode && !state.shared.isWrap) {
-         const editDetail = state.rfpUiEditDetail.entities[id];
-         editDetail.isSelected = !editDetail.isSelected;
-         newEditDetails.push(editDetail);
-         found = true;
-       } else if (currentRecord.wrapZone === selectedFeature.attributes.wrap_name && state.shared.isWrap) {
-         const editDetail = state.rfpUiEditDetail.entities[id];
-         editDetail.isSelected = !editDetail.isSelected;
-         newEditDetails.push(editDetail);
-         newWrapZones.push(editDetail.wrapZone);
-         found = true;
-       }
-     }
-     if (found) {
-      this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: newEditDetails }));
+     const wrapZone: string = selectedFeature.attributes.wrap_name;
+     const exisintgEditDetails: Array<RfpUiEditDetail> = this.editDetailService.getEditDetailsByGeocode(geocode, state).map(ed => {
+        if (!state.shared.isWrap)
+          ed.isSelected = !ed.isSelected; //only toggle this state if we aren't using wrap
+        return ed;
+     });
+     const found: boolean = exisintgEditDetails.length > 0;
+     if (found && !state.shared.isWrap) {
+       this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: exisintgEditDetails }));
+     } else if (found && state.shared.isWrap) {
+       const existingEditWraps: Array<RfpUiEditWrap> = this.wrapService.getEditWrapZonesByZoneName(wrapZone, state).map(wz => {
+          wz.isSelected = !wz.isSelected;
+          return wz;
+       }); 
+       this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: existingEditWraps }));
      } else {
-       const screenPoint: __esri.Point = <__esri.Point> this.esriMapService.mapView.popup.location;
-       const realPoint: __esri.Point = <__esri.Point> EsriApi.projection.project(screenPoint, { wkid: 4326 });
        if (!state.shared.isWrap) {
-         this.createNewRfpUiEditDetails([{ geocode: geocode, point: realPoint }]);
+         const query = new EsriApi.Query();
+         query.where = `geocode = '${selectedFeature.attributes.geocode}'`;
+         this.queryService.executeQuery(this.configService.layers[state.shared.analysisLevel].centroids.id, query, true).subscribe(res => {
+            this.createNewRfpUiEditDetails([{ geocode: geocode, point: <__esri.Point> res.features[0].geometry }]);   
+         });
        } else {
-          this.createNewRfpUiEditWrap(selectedFeature.attributes.wrap_name, realPoint);
+         this.createNewRfpUiEditWrap(wrapZone);
        }
      }
    }
 
-   private createNewRfpUiEditWrap(wrapZone: string, point: __esri.Point) {
+   private createNewRfpUiEditWrap(wrapZone: string) {
       const newWrap = new RfpUiEditWrap();
       newWrap.wrapZone = wrapZone;
       newWrap['@ref'] = this.newGeoId;
       newWrap.isSelected = true;
       this.newGeoId++;
-      this.store$.dispatch(new UpsertRfpUiEditWrap({ rfpUiEditWrap: newWrap }));
+      this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: [newWrap] }));
       const query: __esri.Query = new EsriApi.Query();
       query.outFields = ['geocode'];
       query.where = `wrap_name = '${wrapZone}'`;
@@ -444,7 +454,7 @@ export class AppLayerService {
 
    private findClosestSite(point: __esri.Point) : __esri.Graphic {
      const geometry: __esri.Multipoint = new EsriApi.Multipoint();
-     const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.esriLayerService.getClientLayer('Project Sites');
+     const layer: __esri.FeatureLayer = <__esri.FeatureLayer> this.esriLayerService.getLayer('Project Sites');
      layer.source.forEach(g => {
        const p: __esri.Point = <__esri.Point> g.geometry;
        geometry.addPoint([p.x, p.y]);

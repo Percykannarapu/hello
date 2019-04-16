@@ -12,6 +12,7 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../state/usage/targeting-usage.actions';
 import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { ErrorNotification } from '../../../../modules/messaging/state/messaging.actions';
 
 export interface GeoClickEvent {
   geocode: string;
@@ -184,13 +185,22 @@ export class AppMapService implements OnDestroy {
   }
 
   private selectThis() {
+    const portalId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), true);
     const selectedFeature = this.mapService.mapView.popup.selectedFeature;
     const geocode: string = selectedFeature.attributes.geocode;
     const geometry = {
       x: Number(selectedFeature.attributes.longitude),
       y: Number(selectedFeature.attributes.latitude)
     };
-    this.selectSingleGeocode(geocode, geometry);
+    if (EsriUtils.layerIsPortalFeature(selectedFeature.layer)) {
+        if (selectedFeature.layer.portalItem.id === portalId){
+          this.selectSingleGeocode(geocode, geometry);
+        }
+        else{
+          this.store$.dispatch(new ErrorNotification({message: 'The selected geo not avaliable', notificationTitle: 'Error Toggle Geo'}));
+        }
+    }
+    
     this.collectSelectionUsage(selectedFeature, 'popupAction');
   }
 

@@ -1,3 +1,4 @@
+import { RfpUiEditDetailActionTypes, UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { SharedActions, SharedActionTypes } from './shared.actions';
 
 export interface SharedState {
@@ -7,10 +8,14 @@ export interface SharedState {
    analysisLevel: string;
 
    appReady: boolean;
+   isSaving: boolean;
 
    isWrap: boolean;
    isDistrQtyEnabled: boolean;
    popupGeoToggle: number;
+
+   editedLineItemIds: number[];
+   newLineItemIds: number[];
 }
 
 const initialState: SharedState = {
@@ -20,15 +25,57 @@ const initialState: SharedState = {
    analysisLevel: null,
 
    appReady: false,
+   isSaving: false,
 
    isWrap: false,
    isDistrQtyEnabled: false,
-   popupGeoToggle: 0
+   popupGeoToggle: 0,
+
+   editedLineItemIds: [],
+   newLineItemIds: [],
 };
 
-export function sharedReducer(state = initialState, action: SharedActions) : SharedState {
+type ReducerActions = SharedActions | UpsertRfpUiEditDetail | UpsertRfpUiEditDetails;
+
+export function sharedReducer(state = initialState, action: ReducerActions) : SharedState {
    switch (action.type) {
-      case SharedActionTypes.ApplicationStartup:
+     case SharedActionTypes.SaveMediaPlan:
+       return { ...state, isSaving: true };
+     case SharedActionTypes.SaveSucceeded:
+     case SharedActionTypes.SaveFailed:
+       return { ...state, isSaving: initialState.isSaving };
+     case RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail:
+       const update = {
+         editedLineItemIds: [...state.editedLineItemIds],
+         newLineItemIds: [...state.newLineItemIds]
+       };
+       if (action.payload.rfpUiEditDetail.commonMbuId != null) {
+         update.editedLineItemIds.push(action.payload.rfpUiEditDetail['@ref']);
+       } else {
+         update.newLineItemIds.push(action.payload.rfpUiEditDetail['@ref']);
+       }
+       return {
+         ...state,
+         ...update
+       };
+     case RfpUiEditDetailActionTypes.UpsertRfpUiEditDetails:
+       const updates = {
+         editedLineItemIds: [...state.editedLineItemIds],
+         newLineItemIds: [...state.newLineItemIds]
+       };
+       const editedDetails = action.payload.rfpUiEditDetails.filter(d => d.commonMbuId != null);
+       const newDetails = action.payload.rfpUiEditDetails.filter(d => d.commonMbuId == null);
+       if (editedDetails.length > 0) {
+         updates.editedLineItemIds.push(...editedDetails.map(d => d['@ref']));
+       }
+       if (newDetails.length > 0) {
+         updates.newLineItemIds.push(...newDetails.map(d => d['@ref']));
+       }
+       return {
+         ...state,
+         ...updates
+       };
+     case SharedActionTypes.ApplicationStartup:
          return {
            ...state,
            groupId: action.payload.groupId,

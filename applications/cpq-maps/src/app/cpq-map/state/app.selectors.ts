@@ -18,11 +18,15 @@ const getMediaPlanGroupState = createSelector(cpqSlice, state => state.mediaPlan
 const getRfpUiReviewState = createSelector(cpqSlice, state => state.rfpUiReview);
 
 const getRfpUiEditDetailEntities = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectAll);
+const getRfpUiEditDetailEntity = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectEntities);
 const getMediaPlanEntities = createSelector(getMediaPlanState, fromMediaPlan.selectAll);
 const getMediaPlanGropuEntities = createSelector(getMediaPlanGroupState, fromMediaPlanGroup.selectAll);
 const getRfpUiReviewEntities = createSelector(getRfpUiReviewState, fromRfpUiReview.selectAll);
 
 const getAppReady = createSelector(getSharedState, state => state.appReady);
+const getIsSaving = createSelector(getSharedState, state => state.isSaving);
+const getUpdateIds = createSelector(getSharedState, state => state.editedLineItemIds);
+const getAddIds = createSelector(getSharedState, state => state.newLineItemIds);
 const getSelectedAnalysisLevel = createSelector(getSharedState, state => state.analysisLevel);
 
 const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpUiReviews: RfpUiReview[], mpGroups: MediaPlanGroup[]) => {
@@ -32,7 +36,7 @@ const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpU
   const targetingProfile = mediaPlan['targetingProfile'];
   const rfpNumber = targetingProfile == null ? null : targetingProfile['clientId'];
   const rfpName = targetingProfile == null ? null : targetingProfile['name'];
-  const productName = rfpUiReviews[0].sfdcProductName;
+  const productName = sharedState.isWrap ? 'SM Wrap' : rfpUiReviews[0].sfdcProductName;
   const rfpId = mpGroups[0].sfdcRfpId;
 
   return {
@@ -41,7 +45,9 @@ const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpU
     rfpName,
     productName,
     mediaPlanGroup: mediaPlan.mediaPlanGroupId,
-    rfpId
+    rfpId,
+    updateIds: sharedState.editedLineItemIds,
+    addIds: sharedState.newLineItemIds
   };
 };
 
@@ -49,6 +55,10 @@ const getHeaderInfo = createSelector(getSharedState, getMediaPlanEntities, getRf
 
 export const localSelectors = {
   getAppReady,
+  getIsSaving,
+  getUpdateIds,
+  getAddIds,
   getHeaderInfo,
-  getRfpUiEditDetailEntities
+  getRfpUiEditDetailEntities,
+  getRfpUiEditDetailEntity
 };

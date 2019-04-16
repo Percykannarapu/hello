@@ -3,6 +3,7 @@ import { Subject, Observable } from 'rxjs';
 import { filter, map, take, tap, distinctUntilChanged } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppLocationService } from '../../services/app-location.service';
+import { AppProjectService } from '../../services/app-project.service';
 import { AppStateService } from '../../services/app-state.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -60,6 +61,7 @@ export class TradeAreaTabComponent implements OnInit {
   private tradeAreaUiCache = new Map<SuccessfulLocationTypeCodes, TradeAreaModel[]>();
 
   constructor(private stateService: AppStateService,
+              private appProjectService: AppProjectService,
               private tradeAreaService: AppTradeAreaService,
               private appLocationService: AppLocationService,
               private config: AppConfig,
@@ -80,8 +82,8 @@ export class TradeAreaTabComponent implements OnInit {
     ).subscribe(count => this.siteCounts.set(ImpClientLocationTypeCodes.Competitor, count));
 
     // keep track of the merge flags
-    this.siteMergeType$ = this.tradeAreaService.siteTradeAreaMerge$;
-    this.competitorMergeType$ = this.tradeAreaService.competitorTradeAreaMerge$;
+    this.siteMergeType$ = this.stateService.taSiteMergeType$;
+    this.competitorMergeType$ = this.stateService.taCompetitorMergeType$;
 
     // keep track of trade areas
     this.siteTradeAreas$ = this.stateService.siteTradeAreas$.pipe(
@@ -153,7 +155,7 @@ export class TradeAreaTabComponent implements OnInit {
   }
 
   onDistanceMergeTypeChanged(newMergeType: TradeAreaMergeTypeCodes, siteType: SuccessfulLocationTypeCodes) : void {
-    this.tradeAreaService.updateMergeType(newMergeType, siteType);
+    this.appProjectService.updateMergeType(newMergeType, siteType);
   }
 
   onUpdatedAudienceTAData(form: any) {
