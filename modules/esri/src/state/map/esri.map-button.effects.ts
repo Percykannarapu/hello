@@ -7,6 +7,7 @@ import { ClearSketchView, EsriMapToolbarButtonActionTypes, SelectMultiPolySelect
 import { EsriGraphicTypeCodes } from '../../core/esri.enums';
 import { Action, select, Store } from '@ngrx/store';
 import { AppState, internalSelectors } from '../esri.selectors';
+import { EsriMapService } from '../../services/esri-map.service';
 import { FeaturesSelected, SetPopupVisibility } from './esri.map.actions';
 
 const allButtonTypes = [
@@ -24,14 +25,16 @@ export class EsriMapButtonEffects {
   handlePopupButton$ = this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.PopupButtonSelected),
     this.resetSketchViewGraphics(),
-    mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: true })])
+    mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: true })]),
+    tap(() => this.esriMapService.setMeasureWidget(null))
   );
 
   @Effect()
   handleSelectSinglePolyButton$ = this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.SelectSinglePolySelected),
     this.resetSketchViewGraphics(),
-    mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: false })])
+    mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: false })]),
+    tap(() => this.esriMapService.setMeasureWidget(null))
   );
 
   // the takeUntil bits are there if the user picks a different button after starting the sketch view
@@ -39,11 +42,11 @@ export class EsriMapButtonEffects {
   @Effect({ dispatch: false })
   handleMeasureDistanceButton$ = this.actions$.pipe(
     ofType(EsriMapToolbarButtonActionTypes.MeasureDistanceSelected),
-    tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
+    // tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
     this.resetSketchViewGraphics(),
-    mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Polyline).pipe(
-                          takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
-    tap(geometry => this.mapInteractionService.measurePolyLine(geometry))
+    mergeMap(() => [new ClearSketchView()]),
+    tap(() => this.esriMapService.setMeasureWidget(null)),
+    tap(() => this.esriMapService.setMeasureWidget('measure'))  
   );
 
   @Effect()
@@ -62,7 +65,8 @@ export class EsriMapButtonEffects {
   
   constructor(private actions$: Actions,
               private store$: Store<AppState>,
-              private mapInteractionService: EsriMapInteractionService) {}
+              private mapInteractionService: EsriMapInteractionService,
+              private esriMapService: EsriMapService) {}
 
   resetSketchViewGraphics<T extends Action>() : MonoTypeOperatorFunction<T> {
     return (source$: Observable<T>) : Observable<T> => {

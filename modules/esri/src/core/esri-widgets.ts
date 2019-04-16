@@ -11,7 +11,8 @@ export class EsriWidgets {
     'esri/widgets/Compass',
     'esri/widgets/BasemapGallery',
     'esri/widgets/Print',
-    'esri/widgets/Sketch/SketchViewModel'
+    'esri/widgets/Sketch/SketchViewModel',
+    'esri/widgets/DistanceMeasurement2D',
   ];
 
   public LayerList: __esri.LayerListConstructor;
@@ -26,6 +27,7 @@ export class EsriWidgets {
   public BaseMapGallery: __esri.BasemapGalleryConstructor;
   public Print: __esri.PrintConstructor;
   public SketchViewModel: __esri.SketchViewModelConstructor;
+  public DistanceMeasurement2D: __esri.DistanceMeasurement2DConstructor;
 
   constructor() {}
 
@@ -42,6 +44,7 @@ export class EsriWidgets {
       this.Compass,
       this.BaseMapGallery,
       this.Print,
-      this.SketchViewModel] = modules.slice(modules.length - EsriWidgets.moduleNames.length);
+      this.SketchViewModel,
+      this.DistanceMeasurement2D] = modules.slice(modules.length - EsriWidgets.moduleNames.length);
   }
 }
