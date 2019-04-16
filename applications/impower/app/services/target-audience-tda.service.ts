@@ -96,9 +96,7 @@ export class TargetAudienceTdaService {
     private stateService: AppStateService,
     private store$: Store<LocalAppState>,
     private logger: AppLoggingService) {
-    this.stateService.applicationIsReady$.subscribe(ready => {
-      this.onLoadProject(ready);
-    });
+    this.stateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
   }
 
   private static createDataDefinition(name: string, pk: string) : AudienceDataDefinition {
@@ -256,11 +254,11 @@ export class TargetAudienceTdaService {
         source: "tda",
 //      geocodes: chunk,
         categoryIds: numericIds,
-        transactionId: transactionId,
+        transactionId: (transactionId != -1) ? transactionId : this.audienceService.geoTransactionId, 
         chunks: this.config.geoInfoQueryChunks
       };
 //      if (inputData.geocodes.length > 0 && inputData.categoryIds.length > 0) {
-      if (transactionId != null && transactionId > 0 && inputData.categoryIds.length > 0) {
+      if (inputData.categoryIds.length > 0) {
           c++;
         const chunkNum: number = c;
         this.audienceService.timingMap.set("("+inputData.source.toLowerCase()+")", performance.now());
@@ -302,7 +300,7 @@ export class TargetAudienceTdaService {
 
 //    console.log("### apioDataRefresh pushing ", observables.length, "observables for ", geocodes.length, "geocodes in ", chunks.length, "chunks, ids:", identifiers);
 //    return observables;
-  }
+}
 
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean) {
     const responseArray: TdaBulkDataResponse[] = response.payload.rows;
@@ -327,8 +325,8 @@ export class TargetAudienceTdaService {
     const emptyAudiences = Object.entries(response.payload.counts)
       .filter((entry) => (entry[1] === 0 || entry[1] == null) && this.rawAudienceData.has(entry[0]))
       .map(e => this.rawAudienceData.get(e[0]).fielddescr);
-
-    if (emptyAudiences.length >0 &&!isForShading)
+    
+    if (emptyAudiences.length >0 && !isForShading)
       this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
 /*
       const missingCategoryIds = new Set(responseArray.filter(id => id.score === 'undefined'));
