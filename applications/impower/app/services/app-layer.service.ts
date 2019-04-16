@@ -49,8 +49,10 @@ export class AppLayerService {
 
   private setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
     this.logger.info('Setting default layer visibility for', currentAnalysisLevel);
+   //
     this.layerService.getAllPortalGroups().forEach(g => g.visible = false);
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 ){
+      const portalId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
       const groupKeys: string[] = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
       this.logger.debug('New visible groups', groupKeys);
       if (groupKeys != null && groupKeys.length > 0) {
@@ -60,6 +62,9 @@ export class AppLayerService {
             if (this.layerService.portalGroupExists(layerGroup.group.name)) {
               this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
             }
+             if (layerGroup.boundaries.id !== portalId){
+               this.layerService.getPortalLayerById(layerGroup.boundaries.id).popupEnabled = false;
+             }
           });
         }
       }
