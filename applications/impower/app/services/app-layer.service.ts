@@ -62,9 +62,11 @@ export class AppLayerService {
             if (this.layerService.portalGroupExists(layerGroup.group.name)) {
               this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
             }
+             /* comment for US9547
+
              if (layerGroup.boundaries.id !== portalId){
                this.layerService.getPortalLayerById(layerGroup.boundaries.id).popupEnabled = false;
-             }
+             }*/
           });
         }
       }
