@@ -20,6 +20,7 @@ import { select, Store } from '@ngrx/store';
 import { FullAppState } from '../../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { EsriMapService } from '@val/esri';
+import { AppGeoService } from '../../services/app-geo.service';
 
 export interface FlatGeo {
    fgId: number;
@@ -72,6 +73,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                private targetAudienceService: TargetAudienceService,
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
+               private appGeoService: AppGeoService,
                private store$: Store<FullAppState>
                ) { }
 
@@ -232,32 +234,43 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       {
          const commonGeos = this.impGeofootprintGeoService.get().filter(g => g.geocode === geo.geocode);
          const includesHomeGeo = commonGeos.some(g => g.impGeofootprintLocation != null && g.impGeofootprintLocation.homeGeocode === g.geocode);
-         if (includesHomeGeo && geo.isActive) {
-             this.confirmationService.confirm({
-                message: 'You are about to deselect a Home Geo for at least one of the sites.',
-                header: 'Home Geo selection',
-                acceptLabel: 'Continue',
-                rejectLabel: 'Cancel',
-                accept: () => {
-                      commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
-                      setTimeout(() => {
-                        this.impGeofootprintGeoService.makeDirty();
-                      }, 0);
-                      setTimeout(() => {
-                        this.impGeofootprintGeoService.makeDirty();
-                      }, 0);
-                },
-                reject: () => {
-                       geo.isActive = true;
-                       setTimeout(() => {
-                          this.impGeofootprintGeoService.makeDirty();
-                       }, 0);
-                       setTimeout(() => {
-                         this.impGeofootprintGeoService.makeDirty();
-                       }, 0);
-                }
-             });
-         } else {
+         if (includesHomeGeo && this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive )
+         {
+         this.appGeoService.confirmMustCover(geo, isSelected, true);
+
+         }
+         else if(this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive )
+         {
+          this.appGeoService.confirmMustCover(geo, isSelected, false);
+
+        }
+         else if(includesHomeGeo && geo.isActive) {
+          this.confirmationService.confirm({
+             message: 'You are about to deselect a Home Geo for at least one of the sites.',
+             header: 'Home Geo selection',
+             acceptLabel: 'Continue',
+             rejectLabel: 'Cancel',
+             accept: () => {
+                   commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+                   setTimeout(() => {
+                     this.impGeofootprintGeoService.makeDirty();
+                   }, 0);
+                   setTimeout(() => {
+                     this.impGeofootprintGeoService.makeDirty();
+                   }, 0);
+             },
+             reject: () => {
+                    geo.isActive = true;
+                    setTimeout(() => {
+                       this.impGeofootprintGeoService.makeDirty();
+                    }, 0);
+                    setTimeout(() => {
+                      this.impGeofootprintGeoService.makeDirty();
+                    }, 0);
+             }
+          });
+      }
+         else {
            commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
            setTimeout(() => {
              this.impGeofootprintGeoService.makeDirty();

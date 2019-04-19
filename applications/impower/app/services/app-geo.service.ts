@@ -28,6 +28,7 @@ import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { ConfirmationService } from 'primeng/primeng';
 
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
 
@@ -59,7 +60,8 @@ export class AppGeoService {
               private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
               private store$: Store<FullAppState>,
-              private logger: AppLoggingService) {
+              private logger: AppLoggingService,
+              private confirmationService: ConfirmationService) {
     this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.currentGeos$ = this.impGeoService.storeObservable;
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
@@ -666,6 +668,62 @@ export class AppGeoService {
     if (geosToDelete.size > 0) {
       this.deleteGeos(Array.from(geosToDelete));
     }
+  }
+
+  public confirmMustCover(geo: ImpGeofootprintGeo, isSelected: boolean, isHomeGeo: boolean ){
+    const commonGeos = this.impGeoService.get().filter(g => g.geocode === geo.geocode);;
+    if(isHomeGeo){
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to unselect a Must Cover & Home Geocode geography?',
+      header: 'Must Cover/Home Geocode selection',
+      acceptLabel: 'Yes',
+      rejectLabel: 'No',
+      accept: () => {
+            commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+            setTimeout(() => {
+              this.impGeoService.makeDirty();
+            }, 0);
+            setTimeout(() => {
+              this.impGeoService.makeDirty();
+            }, 0);
+      },
+      reject: () => {
+             geo.isActive = true;
+             setTimeout(() => {
+              this.impGeoService.makeDirty();
+             }, 0);
+             setTimeout(() => {
+              this.impGeoService.makeDirty();
+             }, 0);
+      }
+   });
+  } else{
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to unselect a Must Cover geography?',
+      header: 'Must Cover selection',
+      acceptLabel: 'Yes',
+      rejectLabel: 'No',
+      accept: () => {
+            commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+            setTimeout(() => {
+              this.impGeoService.makeDirty();
+            }, 0);
+            setTimeout(() => {
+              this.impGeoService.makeDirty();
+            }, 0);
+      },
+      reject: () => {
+             geo.isActive = true;
+             setTimeout(() => {
+                this.impGeoService.makeDirty();
+             }, 0);
+             setTimeout(() => {
+               this.impGeoService.makeDirty();
+             }, 0);
+      }
+   });
+
+  }
   }
 
   private reactivateGeosByGeocode(geocode: string) : void {
