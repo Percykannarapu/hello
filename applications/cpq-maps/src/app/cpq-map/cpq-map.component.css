@@ -8,7 +8,7 @@
 }
 
 .app-root.large {
-  grid-template-columns: 33% 67%;
+  grid-template-columns: 55% 45%;
 }
 
 .title-bar {
