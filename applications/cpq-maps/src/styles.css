@@ -14,3 +14,7 @@
 .cpq-maps h4 {
   font-weight: normal;
 }
+
+.cpq-maps th {
+  white-space: normal;
+}
