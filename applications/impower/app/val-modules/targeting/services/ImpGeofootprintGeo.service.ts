@@ -428,7 +428,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
        const sourceName = pv.source.split('_')[1];
        return `${pv.fieldname} (${sourceName})`;
      } else {
-       return pv.fieldname;
+       return `${pv.fieldname} (TDA)`;
      }
    }
 
