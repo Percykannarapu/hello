@@ -42,8 +42,8 @@ export class EnvironmentData {
 
   public static esri = {
     portalServer:  'https://vallomimpor1vm.val.vlss.local/',
-    userName: 'admin',
-    password: 'password'
+    userName: 'impower5',
+    password: 'impower123!'
   };
 
   public static oAuth = {
