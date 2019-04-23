@@ -174,7 +174,7 @@
     stage('Run Tests') {
       when {
         expression {
-          return branch == 'dev' || 'qa'
+          return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'qa'
         }
       }
       steps {
