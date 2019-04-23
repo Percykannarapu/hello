@@ -185,19 +185,13 @@
             if (env.BRANCH_NAME == 'qa'){
                   echo 'Automation test cases for QA'
                   sh '''
-                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
-                    git pull
-                    git checkout qa
-                    git pull
+                    cd /robotTestcases/jenkins/qa/impower_robot_regressionTestSuite
                   '''
             }
             else if (env.BRANCH_NAME == 'dev'){
                   echo 'Automation test cases for Dev'
                   sh '''
                     cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
-                    git pull
-                    git checkout dev
-                    git pull
                   '''
             }
             sh '''
