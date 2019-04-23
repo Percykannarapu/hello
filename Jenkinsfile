@@ -172,8 +172,11 @@
       }
     }
     stage('Run Tests') {
-      // disabled due to test scripts are not in good place for automation testing
-      when {branch 'disable'}
+      when {
+        expression {
+          return branch == 'dev' || 'qa'
+        }
+      }
       steps {
         script {
           try {
@@ -218,8 +221,8 @@
           }
           finally{
             echo 'finally publish reports'
-            /*temporarily suspended , until test scripts corrected*/
-            /*step(
+            
+            step(
               [
                 $class : 'RobotPublisher',
                 outputPath : '/robotTestcases/jenkins/reportLogs',
@@ -229,7 +232,7 @@
                 unstableThreshold: 95.0,
                 otherFiles : "*.png",
               ]
-            )*/
+            )
             echo 'send slack notifications'
             slackSend channel: '#impower_test_results',
                       color: color,
