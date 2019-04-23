@@ -294,13 +294,12 @@ export class AppLayerService {
    }
 
    private shadeBySite(state: FullState) {
-      const shadingGroups: Array<{ groupName: string, ids: string[] }> = [];
+      const shadingGroups: Map<string, number> = new Map<string, number>();
       const selectedGeos: Array<string> = [];
       let count = 0;
       for (const site of state.rfpUiEdit.ids) {
          const geos: Array<string> = [];
          const siteId = state.rfpUiEdit.entities[site].siteId;
-         const siteName = state.rfpUiEdit.entities[site].siteName;
          const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
          pallete.forEach(color => color.push(0.6));
          this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, pallete[count % pallete.length]);
@@ -309,14 +308,35 @@ export class AppLayerService {
             if (siteId === Number(state.rfpUiEditDetail.entities[detail].fkSite)) {
                geos.push(state.rfpUiEditDetail.entities[detail].geocode);
                selectedGeos.push(state.rfpUiEditDetail.entities[detail].geocode);
+               shadingGroups.set(state.rfpUiEditDetail.entities[detail].geocode, siteId);
             }
          }
-         shadingGroups.push({ groupName: siteName, ids: geos });
          count++;
       }
-      this.esriLayerService.createClientGroup('Shading', true, true);
-      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Shading', layer: 'Selected Geos', colorPallete: ColorPallete.Cpqmaps, groups: shadingGroups }));
-      this.store$.dispatch(new SetSelectedGeos(selectedGeos));
+      const analysisLevel = state.shared.analysisLevel;
+      const query: __esri.Query = new EsriApi.Query();
+      query.outFields = ['geocode, zip'];
+      query.where = 'geocode in (';
+      selectedGeos.forEach(sg => query.where += `'${sg}',`);
+      query.where = query.where.substr(0, query.where.length - 1);
+      query.where += ')';
+      this.queryService.executeQuery(this.configService.layers[analysisLevel].boundaries.id, query, true).subscribe(res => {
+         const graphics: Array<__esri.Graphic> = [];
+         for (const geo of res.features) {
+            const graphic: __esri.Graphic = new EsriApi.Graphic();
+            const symbol: __esri.Symbol = new EsriApi.SimpleFillSymbol({ color:  this.shadingMap.get(shadingGroups.get(geo.getAttribute('geocode')))});
+            graphic.symbol = symbol;
+            graphic.geometry = geo.geometry;
+            graphic.setAttribute('geocode', geo.getAttribute('geocode'));
+            graphics.push(graphic);
+         }
+         if (this.esriLayerService.getGraphicsLayer('Selected Geos') == null)
+            this.esriLayerService.createGraphicsLayer('Shading', 'Selected Geos', graphics, true);
+         else {
+            this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
+            this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
+         }
+      });
    }
 
    public toggleGeoShading(editDetails: RfpUiEditDetail[], state: FullState) {
