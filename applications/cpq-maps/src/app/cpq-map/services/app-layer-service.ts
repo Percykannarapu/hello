@@ -41,6 +41,8 @@ export class AppLayerService {
    private shadingMap: Map<number, number[]> = new Map<number, number[]>();
    private analysisLevel: string;
    private zipShadingMap: Map<string, number[]> = new Map<string, number[]>();
+   private atzShadingMap: Map<string, number[]> = new Map<string, number[]>();
+   private wrapShadingMap: Map<string, number[]> = new Map<string, number[]>();
    private newGeoId: number = 500000;
 
    public addLocationsLayer(groupName: string, layerName: string, siteInformation: SiteInformation[], analysisLevel: string) {
@@ -184,7 +186,7 @@ export class AppLayerService {
          }
          count++;
       }
-      const analysisLevel = state.shared.analysisLevel;
+      const analysisLevel: string = state.shared.analysisLevel;
       const query: __esri.Query = new EsriApi.Query();
       query.outFields = ['geocode, zip'];
       query.where = 'geocode in (';
@@ -205,12 +207,86 @@ export class AppLayerService {
       });
    }
 
+   private parseWrapZoneName(wrapZone) : string {
+      wrapZone = wrapZone.replace(new RegExp(/\ /, 'g'), '');
+      wrapZone = wrapZone.replace(new RegExp(/\//, 'g'), '');
+      wrapZone = wrapZone.toUpperCase();
+      wrapZone = wrapZone.substr(0, 8);
+      return wrapZone;
+   }
+
    private shadeByWrapZone(state: FullState) {
-      console.warn('WRAP ZONE SHADING NOT IMPLEMENTED YET');
+      this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
+      const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
+      let count: number = 0;
+      const wrapZones = this.editDetailService.getEditDetailsByWrapZone(state);
+      for (const wrapZone of Array.from(wrapZones.keys())) {
+         if (this.wrapShadingMap.has(this.parseWrapZoneName(wrapZone))) {
+            continue;
+         } else {
+            const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
+            pallete.forEach(color => color.push(0.6));
+            this.wrapShadingMap.set(this.parseWrapZoneName(wrapZone), pallete[count % pallete.length]);
+         }
+         count++;
+      }
+      const query: __esri.Query = new EsriApi.Query();
+      query.outFields = ['geocode, wrap_name'];
+      query.where = 'geocode in (';
+      selectedGeos.forEach(sg => query.where += `'${this.parseWrapZoneName(sg.wrapZone)}',`);
+      query.where = query.where.substr(0, query.where.length - 1);
+      query.where += ')';
+      this.queryService.executeQuery(this.configService.layers['wrap'].boundaries.id, query, true).subscribe(res => {
+         const graphics: Array<__esri.Graphic> = [];
+         for (const geo of res.features) {
+            const graphic: __esri.Graphic = new EsriApi.Graphic();
+            const symbol: __esri.Symbol = new EsriApi.SimpleFillSymbol({ color:  this.wrapShadingMap.get(geo.getAttribute('geocode')) });
+            graphic.symbol = symbol;
+            graphic.geometry = geo.geometry;
+            graphic.setAttribute('geocode', geo.getAttribute('geocode'));
+            graphic.setAttribute('wrapZone', geo.getAttribute('wrap_name'));
+            graphics.push(graphic);
+         }
+         this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
+      });
    }
 
    private shadeByATZDesignator(state: FullState) {
-      console.warn('ATZ DESIGNATOR SHADING NOT IMPLEMENTED YET');
+      this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
+      const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
+      let count: number = 0;
+      const designators = this.editDetailService.getEditDetailsByATZDesignator(state);
+      for (const designator of Array.from(designators.keys())) {
+         if (this.atzShadingMap.has(designator)) {
+            continue;
+         } else {
+            const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
+            pallete.forEach(color => color.push(0.6));
+            this.atzShadingMap.set(designator, pallete[count % pallete.length]);
+         }
+         count++;
+      }
+      const query: __esri.Query = new EsriApi.Query();
+      query.outFields = ['geocode, zip'];
+      query.where = 'geocode in (';
+      selectedGeos.forEach(sg => query.where += `'${sg.geocode}',`);
+      query.where = query.where.substr(0, query.where.length - 1);
+      query.where += ')';
+      this.queryService.executeQuery(this.configService.layers['atz'].boundaries.id, query, true).subscribe(res => {
+         const graphics: Array<__esri.Graphic> = [];
+         for (const geo of res.features) {
+            const graphic: __esri.Graphic = new EsriApi.Graphic();
+            let designator = geo.getAttribute('geocode');
+            if (designator.length > 5)
+               designator = designator.substring(5, designator.length);
+            const symbol: __esri.Symbol = new EsriApi.SimpleFillSymbol({ color:  this.atzShadingMap.get(designator)});
+            graphic.symbol = symbol;
+            graphic.geometry = geo.geometry;
+            graphic.setAttribute('geocode', geo.getAttribute('geocode'));
+            graphics.push(graphic);
+         }
+         this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
+      });
    }
 
    private shadeByVariable(state: FullState) {
@@ -230,7 +306,7 @@ export class AppLayerService {
          this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, pallete[count % pallete.length]);
          for (const detail of state.rfpUiEditDetail.ids) {
             if (!state.rfpUiEditDetail.entities[detail].isSelected) continue;
-            if (siteId === state.rfpUiEditDetail.entities[detail].fkSite) {
+            if (siteId === Number(state.rfpUiEditDetail.entities[detail].fkSite)) {
                geos.push(state.rfpUiEditDetail.entities[detail].geocode);
                selectedGeos.push(state.rfpUiEditDetail.entities[detail].geocode);
             }
@@ -257,14 +333,15 @@ export class AppLayerService {
          wrapZones.add(ed.wrapZone);
       });
       const existingGraphics: Array<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.filter(g => 
-         selectedGeocodes.has(g.getAttribute('geocode'))
+         selectedGeocodes.has(g.getAttribute('geocode')) || 
+         (state.shared.isWrap && g.getAttribute('wrapZone') != undefined && wrapZones.has(g.getAttribute('wrapZone')))
       ).toArray();
       if (existingGraphics.length > 0) {
          this.esriLayerService.getGraphicsLayer('Selected Geos').removeMany(existingGraphics);
          return;
       }
       const query: __esri.Query = new EsriApi.Query();
-      query.outFields = ['geocode'];
+      query.outFields = ['geocode, wrap_name'];
       let analysisLevel = '';
       if (state.shared.isWrap) {
          query.where = `wrap_name in (`;
@@ -280,18 +357,58 @@ export class AppLayerService {
          query.where = query.where.substr(0, query.where.length - 1);
          query.where += ')';
       }
+      if (state.shared.shadingType === shadingType.WRAP_ZONE)
+         analysisLevel = 'wrap'; // this is one of the only times we set analysis level to wrap
       this.queryService.executeQuery(this.configService.layers[analysisLevel].boundaries.id, query, true).subscribe(res => {
          const graphics: Array<__esri.Graphic> = [];
          res.features.forEach (feature => {
             const graphic: __esri.Graphic = new EsriApi.Graphic();
-            const symbol = new EsriApi.SimpleFillSymbol({ color: this.shadingMap.get(Number(fkSiteMap.get(feature.getAttribute('geocode')))) });
+            const color = this.getGeoColor(state, feature.getAttribute('geocode'), fkSiteMap);
+            const symbol = new EsriApi.SimpleFillSymbol({ color: color });
             graphic.symbol = symbol;
             graphic.geometry = feature.geometry;
             graphic.setAttribute('geocode', feature.getAttribute('geocode'));
+            graphic.setAttribute('wrapZone', feature.getAttribute('wrap_name'));
             graphics.push(graphic);
          });
          this.esriLayerService.getGraphicsLayer('Selected Geos').addMany(graphics);
       });
+   }
+
+   private getGeoColor(state: FullState, geocode: string, fkSiteMap?: Map<string, number>) : number[] {
+      const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
+      switch (state.shared.shadingType) {
+         case shadingType.SITE:
+            return this.shadingMap.get(Number(fkSiteMap.get(geocode)));
+         case shadingType.ZIP:
+            if (this.zipShadingMap.has(geocode))
+               return this.zipShadingMap.get(geocode);
+            const length = Array.from(this.zipShadingMap.keys()).length;
+            const nextColor = pallete[(length + 1) % pallete.length];
+            this.zipShadingMap.set(geocode, nextColor);
+            return nextColor;
+         case shadingType.ATZ_DESIGNATOR:
+            let designator = geocode;
+            if (designator.length > 5)
+               designator = designator.substring(5, designator.length);
+            if (this.atzShadingMap.has(designator))
+               return this.atzShadingMap.get(designator);
+            const atzMapLength = Array.from(this.atzShadingMap.keys()).length;
+            const nextATZColor = pallete[(atzMapLength + 1) % pallete.length];
+            this.atzShadingMap.set(designator, nextATZColor);
+            return nextATZColor;
+         case shadingType.WRAP_ZONE:
+            if (this.wrapShadingMap.has(geocode))
+               return this.wrapShadingMap.get(geocode);
+            const wrapMaplength = Array.from(this.wrapShadingMap.keys()).length;
+            const nextWrapColor = pallete[(wrapMaplength + 1) % pallete.length];
+            this.wrapShadingMap.set(geocode, nextColor);
+            return nextWrapColor;
+         case shadingType.VARIABLE:
+            return null;
+         default:
+            return null;
+      }
    }
 
    private getWrapShadingGroups(state: FullState) : { selectedGeos: Array<string>, shadingGroups: { groupName: string, ids: string[] }[] } {
@@ -464,9 +581,10 @@ export class AppLayerService {
      } else {
        if (!state.shared.isWrap) {
          const query = new EsriApi.Query();
+         query.outFields = ['geocode'];
          query.where = `geocode = '${selectedFeature.attributes.geocode}'`;
          this.queryService.executeQuery(this.configService.layers[state.shared.analysisLevel].centroids.id, query, true).subscribe(res => {
-            this.createNewRfpUiEditDetails([{ geocode: geocode, point: <__esri.Point> res.features[0].geometry }]);   
+            this.createNewRfpUiEditDetails([{ geocode: geocode, point: <__esri.Point> res.features[0].geometry, zip: geocode.substr(0, 5) }]);   
          });
        } else {
          this.createNewRfpUiEditWrap(wrapZone);
@@ -494,17 +612,17 @@ export class AppLayerService {
          pointQuery.where = pointQuery.where.substr(0, pointQuery.where.length - 1);
          pointQuery.where += ')';
          this.queryService.executeQuery(this.configService.layers['zip'].centroids.id, pointQuery, true).subscribe(pointRes => {
-            const editDetailsInput: Array<{ geocode: string, point: __esri.Point, wrapZone: string }> = [];
+            const editDetailsInput: Array<{ geocode: string, point: __esri.Point, wrapZone: string, zip: string }> = [];
             pointRes.features.forEach(f => {
                const centroid: __esri.Point = <__esri.Point> f.geometry;
-               editDetailsInput.push({ geocode: f.getAttribute('geocode'), point: centroid, wrapZone: wrapZone });
+               editDetailsInput.push({ geocode: f.getAttribute('geocode'), point: centroid, wrapZone: wrapZone, zip: f.getAttribute('geocode') });
             });
             this.createNewRfpUiEditDetails(editDetailsInput);
          });
       });
    }
 
-   private createNewRfpUiEditDetails(editDetailInput: { geocode: string, point: __esri.Point, wrapZone?: string }[]) {
+   private createNewRfpUiEditDetails(editDetailInput: { geocode: string, point: __esri.Point, wrapZone?: string, zip?: string }[]) {
      const newDetails: Array<RfpUiEditDetail> = [];
      editDetailInput.forEach(edi => {
          const newDetail: RfpUiEditDetail = new RfpUiEditDetail();
@@ -513,7 +631,10 @@ export class AppLayerService {
          newDetail.isSelected = true;
          newDetail.fkSite = closestSite.getAttribute('siteId');
          newDetail['@ref'] = this.newGeoId;
-         newDetail.wrapZone = edi.wrapZone;
+         if (edi.wrapZone != null)
+            newDetail.wrapZone = edi.wrapZone;
+         if (edi.zip != null)
+            newDetail.zip = edi.zip;
          this.newGeoId++;
          newDetails.push(newDetail);
      });
