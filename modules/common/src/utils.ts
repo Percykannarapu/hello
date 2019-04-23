@@ -298,4 +298,15 @@ export function dedupeSimpleSet<T>(newValues: Set<T>, previousValues: Set<T>) : 
   return new Set(Array.from(newValues).filter(v => !previousValues.has(v)));
 }
 
+export function setsAreEqual<T>(current: Set<T>, previous: Set<T>) : boolean {
+  if ((previous == null && current != null) || (current == null && previous != null)) return false;
+  if (current == null && previous == null) return true;
+  if (current.size !== previous.size) return false;
+  const currentItems = Array.from(current);
+  for (const item of currentItems) {
+    if (!previous.has(item)) return false;
+  }
+  return true;
+}
+
 export const safe: any = {};

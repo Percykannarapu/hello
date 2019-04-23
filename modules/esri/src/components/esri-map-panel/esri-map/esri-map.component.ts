@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { filter, take, withLatestFrom } from 'rxjs/operators';
+import { debounce, debounceTime, filter, map, pairwise, startWith, take, withLatestFrom } from 'rxjs/operators';
 import { EsriMapService } from '../../../services/esri-map.service';
 import { AppState, selectors } from '../../../state/esri.selectors';
 import { select, Store } from '@ngrx/store';
 import { InitializeMap } from '../../../state/map/esri.map.actions';
 import { EsriUtils, WatchResult } from '../../../core/esri-utils';
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'val-esri-map',
@@ -32,28 +33,34 @@ export class EsriMapComponent implements OnInit {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
+      this.viewChanged.emit(this.mapService.mapView); // one startup firing to get the initial viewpoint
       EsriUtils.handleMapViewEvent(this.mapService.mapView, 'immediate-click')
         .subscribe(e => this.mapClicked.emit(e));
-      EsriUtils.setupWatch(this.mapService.mapView, 'updating')
-      .pipe(
-        filter(result => !result.newValue),
-        withLatestFrom(this.store.pipe(select(selectors.getEsriViewpointState))),
-        filter(([result, viewpoint]) => this.compareViewpoints(result, viewpoint))
-      ).subscribe(result => this.viewChanged.emit(result[0].target));
+      const center$ = EsriUtils.setupWatch(this.mapService.mapView, 'center').pipe(
+        filter(result => this.compareCenters(result.newValue, result.oldValue))
+      );
+      const scale$ = EsriUtils.setupWatch(this.mapService.mapView, 'scale').pipe(
+        filter(result => result.oldValue !== result.newValue)
+      );
+      const updating$ = EsriUtils.setupWatch(this.mapService.mapView, 'updating').pipe(
+        map(result => result.newValue),
+        startWith(true)
+      );
+      const stationary$ = EsriUtils.setupWatch(this.mapService.mapView, 'stationary').pipe(
+        map(result => result.newValue),
+        startWith(false)
+      );
+      combineLatest(updating$, stationary$, center$, scale$).pipe(
+        filter(([u, s]) => !u && s)
+      ).subscribe(() => this.viewChanged.emit(this.mapService.mapView));
+
       this.mapService.mapView.map.allLayers.forEach(layer => EsriUtils.setupWatch(layer, 'visible').subscribe(result => {
         this.viewChanged.emit(this.mapService.mapView);
       }));
     });
   }
 
-  private compareViewpoints(result: WatchResult<__esri.MapView, 'updating'>, viewpoint: __esri.Viewpoint) : boolean {
-    let updated: boolean = false;
-    if (viewpoint == null) return true; //viewpoint will be null at startup
-    const resultGeom: __esri.Point = <__esri.Point> result.target.viewpoint.targetGeometry;
-    const viewpointGeom: __esri.Point = <__esri.Point> viewpoint.targetGeometry;
-    if (result.target.viewpoint.scale != viewpoint.scale) updated = true;
-    if (resultGeom.x != viewpointGeom.x) updated = true;
-    if (resultGeom.y != viewpointGeom.y) updated = true;
-    return updated;
+  private compareCenters(current: __esri.Point, previous: __esri.Point) {
+    return previous == null || current.x !== previous.x || current.y !== previous.y;
   }
 }

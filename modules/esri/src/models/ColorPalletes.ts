@@ -1,211 +1,212 @@
+/* tslint:disable:max-line-length */
 export enum ColorPallete {
-   RANDOM, // This is a special case where we want to generate random colors, there is no pallete for this defined below
-   CPQMAPS,
-   LIGHTYELLOW,
-   LIGHTBLUE,
-   LIGHTGREEN,
-   LIGHTRED,
-   TWOBLUES,
-   GREENBLUE,
-   TWOGREENS,
-   TWOPEACHES,
-   TWOREDS,
-   GREENYELLOW,
-   TWOYELLOWS,
-   YELLOWRED,
-   BLUEGREENYELLOWRED,
-   BIVARIATEBLUERED,
-   BIVARIATEGREENYELLOW,
-   BIVARIATEREDBLUE,
-   BIVARIATEYELLOWGREEN,
-   FOURBLUES,
-   FOURREDS,
-   FOURGREENS,
-   FOURORANGES,
-   ADVANTAGELIGHTER,
-   ADVANTAGEDARKER,
-   FOURBRIGHTCOLORS,
-   REDYELLOWGREEN,
-   FOURDGREENS,
-   FOURBLUES2,
-   FOURBRIGHTCOLORS2,
-   PEACH,
-   FOURREDS2,
-   BLUEGREENYELLOW,
-   REDORANGEYELLOW,
-   ADVANTAGELIGHTER2,
-   ADVANTAGEDARKER2,
-   BIVARIATEBLUERED2,
-   BIVARIATEREDBLUE2,
-   BIVARIATEGREENYELLOW2,
-   BIVARIATEYELLOWGREEN2,
-   FIVEGREENS,
-   FIVEBLUES,
-   FIVEORANGES,
-   FIVEREDS,
-   PASTELSHADES,
-   BRIGHTCOLORS2,
-   ADVANTAGELIGHTER3,
-   ADVANTAGEDARKER3,
-   BIVARIATEBLUERED3,
-   BIVARIATEREDBLUE3,
-   BIVARIATEGREENYELLOW3,
-   BIVARIATEYELLOWGREEN3,
-   GREEN,
-   BLUE,
-   ORANGE,
-   RED,
-   PASTELSHADES3,
-   BRIGHTCOLORS,
-   VALASSISRANGE3COLOR,
-   VALASSISRANGE4COLOR,
-   VALASSISRANK4COLOR,
-   MEDIAEXPRESSTHEMATIC,
-   PASTELSHADES4,
-   PASTELSHADES5,
-   LIGHTCOLORS1,
-   BLUETORED,
-   LIGHTCOLORS2,
-   DARKCOLORS
+   Random = 'Random',
+   Cpqmaps = 'Cpq Maps',
+   Lightyellow = 'Light yellow',
+   Lightblue = 'Light blue',
+   Lightgreen = 'Light green',
+   Lightred = 'Light red',
+   Twoblues = 'Two blues',
+   Greenblue = 'Green blue',
+   Twogreens = 'Two greens',
+   Twopeaches = 'Two peaches',
+   Tworeds = 'Two reds',
+   Greenyellow = 'Green yellow',
+   Twoyellows = 'Two yellows',
+   Yellowred = 'Yellow red',
+   Bluegreenyellowred = 'Blue green yellow red',
+   Bivariatebluered = 'Bi-variate blue red',
+   Bivariategreenyellow = 'Bi-variate green yellow',
+   Bivariateredblue = 'Bi-variate red blue',
+   Bivariateyellowgreen = 'Bi-variate yellow green',
+   Fourblues = 'Four blues',
+   Fourreds = 'Four reds',
+   Fourgreens = 'Four greens',
+   Fouroranges = 'Four oranges',
+   Advantagelighter = 'Advantage lighter',
+   Advantagedarker = 'Advantage darker',
+   Fourbrightcolors = 'Four bright colors',
+   Redyellowgreen = 'Red yellow green',
+   Fourgreens2 = 'Four greens 2',
+   Fourblues2 = 'Four blues 2',
+   Fourbrightcolors2 = 'Four bright colors 2',
+   Peach = 'Peach',
+   Fourreds2 = 'Four reds 2',
+   Bluegreenyellow = 'Blue green yellow',
+   Redorangeyellow = 'Red orange yellow',
+   Advantagelighter2 = 'Advantage lighter 2',
+   Advantagedarker2 = 'Advantage darker 2',
+   Bivariatebluered2 = 'Bi-variate blue red 2',
+   Bivariateredblue2 = 'Bi-variate red blue 2',
+   Bivariategreenyellow2 = 'Bi-variate green yellow 2',
+   Bivariateyellowgreen2 = 'Bi-variate yellow green 2',
+   Fivegreens = 'Five greens',
+   Fiveblues = 'Five blues',
+   Fiveoranges = 'Five oranges',
+   Fivereds = 'Five reds',
+   Pastelshades = 'Pastel shades',
+   Brightcolors2 = 'Bright colors 2',
+   Advantagelighter3 = 'Advantage lighter 3',
+   Advantagedarker3 = 'Advantage darker 3',
+   Bivariatebluered3 = 'Bi-variate blue red 3',
+   Bivariateredblue3 = 'Bi-variate red blue 3',
+   Bivariategreenyellow3 = 'Bi-variate green yellow 3',
+   Bivariateyellowgreen3 = 'Bi-variate yellow green 3',
+   Green = 'Green',
+   Blue = 'Blue',
+   Orange = 'Orange',
+   Red = 'Red',
+   Pastelshades3 = 'Pastel shades 3',
+   Brightcolors = 'Bright colors',
+   Valassisrange3color = 'Valassis range 3 color',
+   Valassisrange4color = 'Valassis range 4 color',
+   Valassisrank4color = 'Valassis rank 4 color',
+   Mediaexpressthematic = 'Media Express thematic',
+   Pastelshades4 = 'Pastel shades 4',
+   Pastelshades5 = 'Pastel shades 5',
+   Lightcolors1 = 'Light colors 1',
+   Bluetored = 'Blue to red',
+   Lightcolors2 = 'Light colors 2',
+   Darkcolors = 'Dark colors'
 }
 
 export function getColorPallete(pallete: ColorPallete) : number[][] {
    switch (pallete) {
-      case ColorPallete.RANDOM:
+      case ColorPallete.Random:
          return null; // Special case
-      case ColorPallete.CPQMAPS:
+      case ColorPallete.Cpqmaps:
          return cpqmaps;
-      case ColorPallete.LIGHTYELLOW:
+      case ColorPallete.Lightyellow:
          return LightYellow;
-      case ColorPallete.LIGHTBLUE:
+      case ColorPallete.Lightblue:
          return LightBlue;
-      case ColorPallete.LIGHTGREEN:
+      case ColorPallete.Lightgreen:
          return LightGreen;
-      case ColorPallete.LIGHTRED:
+      case ColorPallete.Lightred:
          return LightRed;
-      case ColorPallete.TWOBLUES:
+      case ColorPallete.Twoblues:
          return TwoBlues;
-      case ColorPallete.GREENBLUE:
+      case ColorPallete.Greenblue:
          return GreenBlue;
-      case ColorPallete.TWOGREENS:
+      case ColorPallete.Twogreens:
          return TwoGreens;
-      case ColorPallete.TWOPEACHES:
+      case ColorPallete.Twopeaches:
          return TwoPeaches;
-      case ColorPallete.TWOREDS:
+      case ColorPallete.Tworeds:
          return TwoReds;
-      case ColorPallete.GREENYELLOW:
+      case ColorPallete.Greenyellow:
          return GreenYellow;
-      case ColorPallete.TWOYELLOWS:
+      case ColorPallete.Twoyellows:
          return TwoYellows;
-      case ColorPallete.YELLOWRED:
+      case ColorPallete.Yellowred:
          return YellowRed;
-      case ColorPallete.BLUEGREENYELLOWRED:
+      case ColorPallete.Bluegreenyellowred:
          return BlueGreenYellowRed;
-      case ColorPallete.BIVARIATEBLUERED:
+      case ColorPallete.Bivariatebluered:
          return BivariateBlueRed;
-      case ColorPallete.BIVARIATEGREENYELLOW:
+      case ColorPallete.Bivariategreenyellow:
          return BivariateGreenYellow;
-      case ColorPallete.BIVARIATEREDBLUE:
+      case ColorPallete.Bivariateredblue:
          return BivariateRedBlue;
-      case ColorPallete.BIVARIATEYELLOWGREEN:
+      case ColorPallete.Bivariateyellowgreen:
          return BivariateYellowGreen;
-      case ColorPallete.FOURBLUES:
+      case ColorPallete.Fourblues:
          return FourBlues;
-      case ColorPallete.FOURREDS:
+      case ColorPallete.Fourreds:
          return FourReds;
-      case ColorPallete.FOURGREENS:
+      case ColorPallete.Fourgreens:
          return FourGreens;
-      case ColorPallete.FOURORANGES:
+      case ColorPallete.Fouroranges:
          return FourOranges;
-      case ColorPallete.ADVANTAGELIGHTER:
+      case ColorPallete.Advantagelighter:
          return AdvantageLighter;
-      case ColorPallete.ADVANTAGEDARKER:
+      case ColorPallete.Advantagedarker:
          return AdvantageDarker;
-      case ColorPallete.FOURBRIGHTCOLORS:
+      case ColorPallete.Fourbrightcolors:
          return FourBrightColors;
-      case ColorPallete.REDYELLOWGREEN:
+      case ColorPallete.Redyellowgreen:
          return RedYellowGreen;
-      case ColorPallete.FOURDGREENS:
+      case ColorPallete.Fourgreens2:
          return FourdGreens;
-      case ColorPallete.FOURBLUES2:
+      case ColorPallete.Fourblues2:
          return FourBlues2;
-      case ColorPallete.FOURBRIGHTCOLORS2:
+      case ColorPallete.Fourbrightcolors2:
          return FourBrightColors2;
-      case ColorPallete.PEACH:
+      case ColorPallete.Peach:
          return Peach;
-      case ColorPallete.FOURREDS2:
+      case ColorPallete.Fourreds2:
          return FourReds2;
-      case ColorPallete.BLUEGREENYELLOW:
+      case ColorPallete.Bluegreenyellow:
          return BlueGreenYellow;
-      case ColorPallete.REDORANGEYELLOW:
+      case ColorPallete.Redorangeyellow:
          return RedOrangeYellow;
-      case ColorPallete.ADVANTAGELIGHTER2:
+      case ColorPallete.Advantagelighter2:
          return AdvantageLighter2;
-      case ColorPallete.ADVANTAGEDARKER2:
+      case ColorPallete.Advantagedarker2:
          return AdvantageDarker2;
-      case ColorPallete.BIVARIATEBLUERED2:
+      case ColorPallete.Bivariatebluered2:
          return BivariateBlueRed2;
-      case ColorPallete.BIVARIATEREDBLUE2:
+      case ColorPallete.Bivariateredblue2:
          return BivariateRedBlue2;
-      case ColorPallete.BIVARIATEGREENYELLOW2:
+      case ColorPallete.Bivariategreenyellow2:
          return BivariateGreenYellow2;
-      case ColorPallete.BIVARIATEYELLOWGREEN2:
+      case ColorPallete.Bivariateyellowgreen2:
          return BivariateYellowGreen2;
-      case ColorPallete.FIVEGREENS:
+      case ColorPallete.Fivegreens:
          return FiveGreens;
-      case ColorPallete.FIVEBLUES:
+      case ColorPallete.Fiveblues:
          return FiveBlues;
-      case ColorPallete.FIVEORANGES:
+      case ColorPallete.Fiveoranges:
          return FiveOranges;
-      case ColorPallete.FIVEREDS:
+      case ColorPallete.Fivereds:
          return FiveReds;
-      case ColorPallete.PASTELSHADES:
+      case ColorPallete.Pastelshades:
          return PastelShades;
-      case ColorPallete.BRIGHTCOLORS2:
+      case ColorPallete.Brightcolors2:
          return BrightColors2;
-      case ColorPallete.ADVANTAGELIGHTER3:
+      case ColorPallete.Advantagelighter3:
          return AdvantageLighter3;
-      case ColorPallete.ADVANTAGEDARKER3:
+      case ColorPallete.Advantagedarker3:
          return AdvantageDarker3;
-      case ColorPallete.BIVARIATEBLUERED3:
+      case ColorPallete.Bivariatebluered3:
          return BivariateBlueRed3;
-      case ColorPallete.BIVARIATEREDBLUE3:
+      case ColorPallete.Bivariateredblue3:
          return BivariateRedBlue3;
-      case ColorPallete.BIVARIATEGREENYELLOW3:
+      case ColorPallete.Bivariategreenyellow3:
          return BivariateGreenYellow3;
-      case ColorPallete.BIVARIATEYELLOWGREEN3:
+      case ColorPallete.Bivariateyellowgreen3:
          return BivariateYellowGreen3;
-      case ColorPallete.GREEN:
+      case ColorPallete.Green:
          return Green;
-      case ColorPallete.BLUE:
+      case ColorPallete.Blue:
          return Blue;
-      case ColorPallete.ORANGE:
+      case ColorPallete.Orange:
          return Orange;
-      case ColorPallete.RED:
+      case ColorPallete.Red:
          return Red;
-      case ColorPallete.PASTELSHADES3:
+      case ColorPallete.Pastelshades3:
          return PastelShades3;
-      case ColorPallete.BRIGHTCOLORS:
+      case ColorPallete.Brightcolors:
          return BrightColors;
-      case ColorPallete.VALASSISRANGE3COLOR:
+      case ColorPallete.Valassisrange3color:
          return ValassisRange3color;
-      case ColorPallete.VALASSISRANGE4COLOR:
+      case ColorPallete.Valassisrange4color:
          return ValassisRange4color;
-      case ColorPallete.VALASSISRANK4COLOR:
+      case ColorPallete.Valassisrank4color:
          return ValassisRank4color;
-      case ColorPallete.MEDIAEXPRESSTHEMATIC:
+      case ColorPallete.Mediaexpressthematic:
          return MediaExpressThematic;
-      case ColorPallete.PASTELSHADES4:
+      case ColorPallete.Pastelshades4:
          return PastelShades4;
-      case ColorPallete.PASTELSHADES5:
+      case ColorPallete.Pastelshades5:
          return PastelShades5;
-      case ColorPallete.LIGHTCOLORS1:
+      case ColorPallete.Lightcolors1:
          return LightColors1;
-      case ColorPallete.BLUETORED:
+      case ColorPallete.Bluetored:
          return BluetoRed;
-      case ColorPallete.LIGHTCOLORS2:
+      case ColorPallete.Lightcolors2:
          return LightColors2;
-      case ColorPallete.DARKCOLORS:
+      case ColorPallete.Darkcolors:
          return DarkColors;
    }
 }

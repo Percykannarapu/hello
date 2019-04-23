@@ -77,7 +77,7 @@ export class MapComponent implements OnInit {
     const analysisLevel = this.appStateService.analysisLevel$.getValue();
     if (analysisLevel != null) {
       const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-      this.appStateService.setVisibleGeocodes(layerId, view.extent);
+      this.appStateService.setVisibleGeocodes(layerId);
     }
     this.saveMapViewData(view);
   }

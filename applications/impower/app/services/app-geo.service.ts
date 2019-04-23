@@ -671,8 +671,8 @@ export class AppGeoService {
   }
 
   public confirmMustCover(geo: ImpGeofootprintGeo, isSelected: boolean, isHomeGeo: boolean ){
-    const commonGeos = this.impGeoService.get().filter(g => g.geocode === geo.geocode);;
-    if(isHomeGeo){
+    const commonGeos = this.impGeoService.get().filter(g => g.geocode === geo.geocode);
+    if (isHomeGeo){
     this.confirmationService.confirm({
       message: 'Are you sure you want to unselect a Must Cover & Home Geocode geography?',
       header: 'Must Cover/Home Geocode selection',

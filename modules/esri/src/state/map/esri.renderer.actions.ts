@@ -18,7 +18,7 @@ export class SetHighlightOptions implements Action {
 
 export class SetShadingData implements Action {
     readonly type = EsriRendererActionTypes.SetShadingData;
-    constructor(public payload: { data: ShadingData, isNumericData: boolean, statistics?: Statistics,legend?: string }) {}
+    constructor(public payload: { data: ShadingData, isNumericData: boolean, statistics?: Statistics, legend?: string, theme?: ColorPallete }) {}
 }
 
 export class ClearShadingData implements Action {
