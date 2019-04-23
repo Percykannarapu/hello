@@ -102,7 +102,7 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   public addAudience(audience: AudienceDataDefinition, sourceRefresh: audienceSource, nationalRefresh?: nationalSource, id?: number) : void {
-    let sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
+    const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
     //console.debug("addAudience - target-audience.service - sourceId: " + sourceId + ", audienceName: " + ((audience != null) ? audience.audienceName : "") + ", audienceSourceName: " + ((audience != null) ? audience.audienceSourceName:""));
     this.audienceSources.set(sourceId, sourceRefresh);
@@ -321,7 +321,7 @@ export class TargetAudienceService implements OnDestroy {
     const audiences = Array.from(this.audienceMap.values());
     const shadingAudience = audiences.filter(a => a.showOnMap);
     const selectedAudiences = audiences.filter(a => a.exportInGeoFootprint || a.showOnGrid);
-    console.log("applyAudienceSelection fired - # Audiences:", audiences.length, "selectedAudiences.length", selectedAudiences.length);
+    console.log('applyAudienceSelection fired - # Audiences:', audiences.length, 'selectedAudiences.length', selectedAudiences.length);
     this.unsubEverything();
     this.clearShadingData();
     this.clearVars();
@@ -343,7 +343,7 @@ export class TargetAudienceService implements OnDestroy {
             if (geos.length > 0)
             {
               this.persistGeoVarCache = [];
-              console.log("applyAudienceSelection observable: analysisLevel:", this.appStateService.analysisLevel$.getValue()," - geos.count",(geos != null ? geos.length : null));
+              console.log('applyAudienceSelection observable: analysisLevel:', this.appStateService.analysisLevel$.getValue(), ' - geos.count', geos.length);
               this.varService.clearAll(false);
               this.persistGeoVarData(this.appStateService.analysisLevel$.getValue(), geos, selectedAudiences);
               this.persistGeoVarCache = [];
@@ -401,7 +401,7 @@ export class TargetAudienceService implements OnDestroy {
         if (audience.audienceSourceName === 'Audience-TA') {
           source(analysisLevel, [audience.audienceIdentifier], [], true, txId, audience).subscribe(
             data => {
-              data = data.filter(gv => (projectVarsDict[gv.varPk] || safe).customVarExprDisplay.includes(audience.secondaryId));
+              data = data.filter(gv => ((projectVarsDict[gv.varPk] || safe).customVarExprDisplay || '').includes(audience.secondaryId));
               data.forEach(gv => currentShadingData.set(gv.geocode, gv));
             },
             err => console.error('There was an error retrieving audience data for map shading', err),
