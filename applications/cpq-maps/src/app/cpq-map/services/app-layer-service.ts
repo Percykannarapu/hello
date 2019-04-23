@@ -178,7 +178,7 @@ export class AppLayerService {
          if (this.zipShadingMap.has(geo.zip)) {
             continue;
          } else {
-            const pallete: number [][] = getColorPallete(ColorPallete.CPQMAPS);
+            const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
             pallete.forEach(color => color.push(0.6));
             this.zipShadingMap.set(geo.zip, pallete[count % pallete.length]);
          }
@@ -225,7 +225,7 @@ export class AppLayerService {
          const geos: Array<string> = [];
          const siteId = state.rfpUiEdit.entities[site].siteId;
          const siteName = state.rfpUiEdit.entities[site].siteName;
-         const pallete: number [][] = getColorPallete(ColorPallete.CPQMAPS);
+         const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
          pallete.forEach(color => color.push(0.6));
          this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, pallete[count % pallete.length]);
          for (const detail of state.rfpUiEditDetail.ids) {
@@ -239,7 +239,7 @@ export class AppLayerService {
          count++;
       }
       this.esriLayerService.createClientGroup('Shading', true, true);
-      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Shading', layer: 'Selected Geos', colorPallete: ColorPallete.CPQMAPS, groups: shadingGroups }));
+      this.store$.dispatch(new SetHighlightOptions({ higlightMode: HighlightMode.SHADE_GROUPS, layerGroup: 'Shading', layer: 'Selected Geos', colorPallete: ColorPallete.Cpqmaps, groups: shadingGroups }));
       this.store$.dispatch(new SetSelectedGeos(selectedGeos));
    }
 
