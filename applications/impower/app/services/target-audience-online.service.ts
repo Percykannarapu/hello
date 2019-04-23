@@ -199,32 +199,25 @@ export class TargetAudienceOnlineService {
   private createGeofootprintVar(response: OnlineBulkDataResponse, source: SourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {
     const description = descriptionMap.get(response.digCategoryId);
     if (description == null) throw new Error(`A Fuse category was not found for the category id ${response.digCategoryId}`);
-
     const fullId = `Online/${source}/${response.digCategoryId}`;
     const results: ImpGeofootprintVar[] = [];
-    const numberAttempt = Number(response[description.selectedDataSet]);
+    const value = response[description.selectedDataSet];
+    const numberAttempt = value == null ? null : Number(value);
     const fieldDescription: string = `${description.audienceName} (${source})`;
-    const matchingAudience = this.audienceService.getAudiences()
-      .find(a => description.audienceSourceType === a.audienceSourceType && description.audienceSourceName === a.audienceSourceName && description.audienceName === a.audienceName);
     const varPk = Number(response.digCategoryId);
-    let fieldType: FieldContentTypeCodes;
     let fieldValue: string | number;
     if (Number.isNaN(numberAttempt)) {
-      fieldValue = response[description.selectedDataSet];
-      fieldType = FieldContentTypeCodes.Char;
+      fieldValue = value;
     } else {
       fieldValue = numberAttempt;
-      fieldType = FieldContentTypeCodes.Index;
     }
     if (isForShading) {
-      const currentResult = this.domainFactory.createGeoVar(null, response.geocode, varPk, fieldValue, fullId, fieldDescription, fieldType);
-      //if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+      const currentResult = this.domainFactory.createGeoVar(null, response.geocode, varPk, fieldValue, fullId, fieldDescription);
       results.push(currentResult);
     } else {
       if (geoCache.has(response.geocode)) {
         geoCache.get(response.geocode).forEach(geo => {
-          const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, response.geocode, varPk, fieldValue, fullId, fieldDescription, fieldType);
-          //if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+          const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, response.geocode, varPk, fieldValue, fullId, fieldDescription);
           results.push(currentResult);
         });
       }
@@ -284,7 +277,7 @@ export class TargetAudienceOnlineService {
   }
 
   private apioRefreshCallback(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<ImpGeofootprintVar[]> {
-    if (analysisLevel == null || analysisLevel.length === 0 || identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
+    if (analysisLevel == null || analysisLevel.length === 0 || identifiers == null || identifiers.length === 0)
       return EMPTY;
     const numericIds = identifiers.map(i => Number(i));
     if (numericIds.filter(n => Number.isNaN(n)).length > 0)
@@ -328,9 +321,7 @@ export class TargetAudienceOnlineService {
   private apioDataRefresh(source: SourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<OnlineBulkDataResponse[]>[] {
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
-    const chunks = chunkArray(geocodes, 999999/*geocodes.length / 4*/); //this.config.maxGeosPerGeoInfoQuery);
     const observables: Observable<OnlineBulkDataResponse[]>[] = [];
-    let c: number = 0;
     const currentProject = this.appStateService.currentProject$.getValue();
 
     const varTypes: string[] = [];
@@ -340,42 +331,38 @@ export class TargetAudienceOnlineService {
          varTypes.push((pv[0].indexBase.toUpperCase() == 'NATIONALSCORE') ? 'NATIONAL' : 'DMA');
     });
 
-    for (const chunk of chunks) {
       const inputData = {
         geoType: serviceAnalysisLevel,
         source: this.fuseSourceMapping.get(source),
-        geocodes: chunk,
+        // geocodes: chunk,
         digCategoryIds: numericIds,
         varType: varTypes,
-        //transactionId: (transactionId != -1) ? transactionId : this.audienceService.geoTransactionId,
+        transactionId: transactionId,
         chunks: this.config.geoInfoQueryChunks
       };
-      if (inputData.geocodes.length > 0 && inputData.digCategoryIds.length > 0) {
-        c++;
-        const chunkNum: number = c;
+      if (inputData.digCategoryIds.length > 0) {
         this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now());
         observables.push(
           this.restService.post('v1/targeting/base/geoinfo/digitallookup', [inputData]).pipe(
               tap(response => this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now() - this.audienceService.timingMap.get('(' + inputData.source.toLowerCase() + ')'))),
-              map(response => this.validateFuseResponse(inputData, response, isForShading, chunkNum, chunks.length)),
+              map(response => this.validateFuseResponse(inputData, response, isForShading)),
               catchError( () => {
                 console.error('Error posting to v1/targeting/base/geoinfo/digitallookup with payload:');
                 console.error('payload:', inputData);
                 console.error('payload:\n{\n' +
                               '   geoType: ', inputData.geoType, '\n',
                               '   source:  ', inputData.source, '\n',
-                              '   geocodes: ', inputData.geocodes.toString(), '\n',
+                              '   geocodes: ', geocodes.toString(), '\n',
                               '   digCategoryIds:', inputData.digCategoryIds.toString(), '\n}'
                              );
                 return throwError('No Data was returned for the selected audiences'); })
           ));
         }
-    }
     // console.debug("### apioDataRefresh pushing ", observables.length, "observables for ", geocodes.length, "geocodes in ", chunks.length, "chunks, ids:", identifiers);
     return observables;
   }
 
-  private validateFuseResponse(inputData: any, response: RestResponse, isForShading: boolean, chunk: number, maxChunks: number) {
+  private validateFuseResponse(inputData: any, response: RestResponse, isForShading: boolean) {
     const newArray = this.audienceService.convertFuseResponse(response);
     const audiences = Array.from(this.audienceService.audienceMap.values());
     audiences.filter(roe => roe.audienceIdentifier);
