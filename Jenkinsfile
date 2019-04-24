@@ -174,7 +174,7 @@
     stage('Run Tests') {
       when {
         expression {
-          return env.BRANCH_NAME == 'disable' || env.BRANCH_NAME == 'disable'
+          return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'qa'
         }
       }
       steps {
@@ -185,19 +185,16 @@
             if (env.BRANCH_NAME == 'qa'){
                   echo 'Automation test cases for QA'
                   sh '''
-                    cd /robotTestcases/jenkins/qa/impower_robot_regressionTestSuite
+                    xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/qa/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
             else if (env.BRANCH_NAME == 'dev'){
                   echo 'Automation test cases for Dev'
                   sh '''
-                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
+                    xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
-            sh '''
-              xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
-              '''
-            color = '#BDFFC3'  
+            color = '#BDFFC3'
           }
           catch (Exception ex){
             echo 'exception in test cases'
