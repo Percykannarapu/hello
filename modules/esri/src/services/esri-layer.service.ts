@@ -263,7 +263,7 @@ export class EsriLayerService {
     const layers = this.mapService.mapView.map.allLayers.toArray();
     layers.forEach(l => {
       if (EsriUtils.layerIsPortalFeature(l)) {
-        l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions[l.portalItem.id]);
+        l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions ? layerExpressions[l.portalItem.id] : null);
         l.labelsVisible = labelConfig.enabled;
       }
       if (EsriUtils.layerIsFeature(l) && l.title == 'Project Sites') {
