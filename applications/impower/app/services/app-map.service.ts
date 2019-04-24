@@ -197,7 +197,7 @@ export class AppMapService implements OnDestroy {
           this.selectSingleGeocode(geocode, geometry);
         }
         else{
-          this.store$.dispatch(new ErrorNotification({message: 'The selected geo not avaliable at the selected Analysis Level', notificationTitle: 'Error Toggle Geo'}));
+          this.store$.dispatch(new ErrorNotification({message: 'You are attempting to add or remove a geo at the wrong analysis level', notificationTitle: 'Invalid Add/Remove'}));
         }
     }
     
