@@ -11,15 +11,14 @@ import { ValMetricsService } from './app-metrics.service';
 import { CustomPopUpDefinition, EsriGeographyPopupComponent, NodeVariable } from '@val/esri';
 import { filterArray, mapArray, mapBy, safe } from '@val/common';
 
-const convertToNodeVariable = (variable: ImpGeofootprintVar) : NodeVariable => {
-  let projectVarsDict = this.appStateService.projectVarsDict$.getValue();
-  const fieldType = ((projectVarsDict[variable.varPk]||safe).fieldconte || '').toUpperCase();
+const convertToNodeVariable = (variable: ImpGeofootprintVar, projectVarsDict: any) : NodeVariable => {
+  const fieldType = ((projectVarsDict[variable.varPk] || safe).fieldconte || '').toUpperCase();
   const digits: number = fieldType === 'RATIO' || fieldType === 'PERCENT' ? 2 : 0;
   return {
     value: variable.value, //(projectVarsDict[variable.varPk]||safe).isNumber ? variable.valueNumber : variable.valueString,
     digitRounding: digits,
-    isNumber: (projectVarsDict[variable.varPk]||safe).isNumber,
-    name: (projectVarsDict[variable.varPk]||safe).customVarExprDisplay
+    isNumber: (projectVarsDict[variable.varPk] || safe).isNumber,
+    name: (projectVarsDict[variable.varPk] || safe).customVarExprDisplay
   };
 };
 
@@ -74,14 +73,14 @@ export class AppComponentGeneratorService {
       filter(dataDictionary => dataDictionary.has(geocode) && this.cachedGeoPopup != null),
       map(dataDictionary => dataDictionary.get(geocode)),
       distinctUntilChanged(),
-      map(variable => convertToNodeVariable(variable))
+      map(variable => convertToNodeVariable(variable, this.appStateService.projectVarsDict$.getValue()))
     ).subscribe(nodeData => this.cachedGeoPopup.instance.mapVar = nodeData);
     if (this.audienceSub) this.audienceSub.unsubscribe();
     this.audienceSub = this.impGeofootprintVarService.storeObservable.pipe(
       filter(() => this.cachedGeoPopup != null),
       filterArray(v => v.geocode === geocode),
       map(allVars => Array.from(mapBy(allVars, 'varPk').values())),
-      mapArray(v => convertToNodeVariable(v))
+      mapArray(v => convertToNodeVariable(v, this.appStateService.projectVarsDict$.getValue()))
     ).subscribe(nodeData => this.cachedGeoPopup.instance.geoVars = nodeData);
 
     const invest = this.calcInvestment(feature.graphic.attributes);
