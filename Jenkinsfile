@@ -174,7 +174,7 @@
     stage('Run Tests') {
       when {
         expression {
-          return env.BRANCH_NAME == 'disable' || env.BRANCH_NAME == 'disable'
+          return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'qa'
         }
       }
       steps {
