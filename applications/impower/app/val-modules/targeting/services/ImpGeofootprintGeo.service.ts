@@ -422,46 +422,17 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return result;
    }
 
-   private getProjectVarFieldName(pv: ImpProjectVar) : string {
-     if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
-       const sourceName = pv.source.split('_')[1];
-       return `${pv.fieldname} (${sourceName})`;
-     }
-     else
-        if (pv.isCustom)
-          return `${pv.fieldname}`;
-        else
-          return `${pv.fieldname} (TDA)`;
-   }
-/*
-  private getGeoVarFieldName(gv: ImpGeofootprintVar, projectVarsDict: any) : string {
-    if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
-      if ((projectVarsDict[gv.varPk]||safe).customVarExprQuery && (projectVarsDict[gv.varPk]||safe).customVarExprQuery.includes('Offline')) {
-        return (projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
-      }
-      else {
-        return (projectVarsDict[gv.varPk]||safe).fieldname ? `${(projectVarsDict[gv.varPk]||safe).fieldname} ${(projectVarsDict[gv.varPk]||safe).customVarExprDisplay}` : (projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
-      }
-    } else {
-      return (projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
-    }
-  }*/
-
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
       const aGeo = this.get()[0];
       if (aGeo == null) return;
       //  const currentProject = aGeo.impProject;
       const currentProject = aGeo.impGeofootprintLocation.impProject;  //DEFECT FIX : export feature - accessing project details from GeoFootPrintLocation
-      const usableVars = new Set(currentProject.impProjectVars
-                          .filter(pv => pv.isIncludedInGeofootprint)
-                          .map(pv => this.getProjectVarFieldName(pv)));
       const projectVarsDict = mapArrayToEntity(currentProject.impProjectVars,  v => v.varPk);
-//    let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv, projectVarsDict)));
-      let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getProjectVarFieldName((projectVarsDict[gv.varPk]||safe))));
-      usableGeoVars = usableGeoVars.sort((a, b) => this.sortVars(a, b));
+      const usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => projectVarsDict[gv.varPk] != null && projectVarsDict[gv.varPk].isIncludedInGeofootprint);
+      usableGeoVars.sort((a, b) => this.sortVars(a, b));
       this.varCache = groupBy(usableGeoVars, 'geocode');
-      const columnSet = new Set(usableGeoVars.map(gv => (projectVarsDict[gv.varPk]||safe).fieldname));
+      const columnSet = new Set(usableGeoVars.map(gv => (projectVarsDict[gv.varPk] || safe).fieldname));
       const attributeNames = Array.from(columnSet);
       attributeNames.forEach(name => {
         exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});

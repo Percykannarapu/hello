@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { catchError, filter, map, mergeAll, mergeMap, tap } from 'rxjs/operators';
-import { EMPTY, merge, Observable, throwError } from 'rxjs';
+import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { merge, Observable, throwError } from 'rxjs';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
@@ -16,7 +16,7 @@ import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
-import { chunkArray, groupBy, simpleFlatten } from '@val/common';
+import { groupBy } from '@val/common';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 
 interface TdaCategoryResponse {
@@ -141,7 +141,7 @@ export class TargetAudienceTdaService {
           };
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
           if (projectVar.source.toLowerCase().match('tda')) {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.audienceRefreshCallback(al, pks, geos, shading, -1), null, null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading, txId) => this.audienceRefreshCallback(al, pks, geos, shading, txId), null, true);
           }
         }
       }
@@ -239,12 +239,12 @@ export class TargetAudienceTdaService {
     const numericIds = identifiers.map(i => Number(i));
 //  const chunks = chunkArray(geocodes, 999999/*geocodes.length / 4*/); //this.config.maxGeosPerGeoInfoQuery);
     const observables: Observable<TdaBulkDataResponse[]>[] = [];
-    let c:number = 0;
+    let c: number = 0;
 
 //    for (const chunk of chunks) {
       const inputData = {
         geoType: serviceAnalysisLevel,
-        source: "tda",
+        source: 'tda',
 //      geocodes: chunk,
         categoryIds: numericIds,
         transactionId: transactionId,
@@ -254,14 +254,14 @@ export class TargetAudienceTdaService {
       if (inputData.categoryIds.length > 0) {
         c++;
         const chunkNum: number = c;
-        this.audienceService.timingMap.set("("+inputData.source.toLowerCase()+")", performance.now());
+        this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now());
         observables.push(
           this.restService.post('v1/targeting/base/geoinfo/tdalookup', [inputData]).pipe(
-            tap(response => this.audienceService.timingMap.set("("+inputData.source.toLowerCase()+")", performance.now()-this.audienceService.timingMap.get("("+inputData.source.toLowerCase()+")"))),
+            tap(response => this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now() - this.audienceService.timingMap.get('(' + inputData.source.toLowerCase() + ')'))),
             map(response => this.validateFuseResponse(response, identifiers, isForShading)),
             catchError( () => {
                 console.error('Error posting to v1/targeting/base/geoinfo/tdalookup with payload:');
-                console.error('payload:\n{\n '+
+                console.error('payload:\n{\n ' +
                               '   geoType:      ', inputData.geoType, '\n',
                               '   source:       ', inputData.source, '\n',
 //                            '   geocodes:     ', inputData.geocodes.toString(), '\n',
@@ -269,7 +269,7 @@ export class TargetAudienceTdaService {
                               '   chunks:       ', inputData.chunks, '\n',
                               '   categoryIds:  ', inputData.categoryIds.toString(), '\n}'
                              );
-                return throwError('No Data was returned for the selected audiences');})
+                return throwError('No Data was returned for the selected audiences'); })
           ));
         }
 //    }
@@ -280,9 +280,9 @@ export class TargetAudienceTdaService {
       filter(data => data != null),
 //      map(bulkData => simpleFlatten(bulkData.map(b => {this.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk), geoCache, isForShading))))
       map(bulkData => {
-        let geoVars: ImpGeofootprintVar[] = [];
+        const geoVars: ImpGeofootprintVar[] = [];
          //let rows = bulkData["rows"];
-       for (let i=0; i < bulkData.length; i++)
+       for (let i = 0; i < bulkData.length; i++)
        {
           // console.log("bulk geocode: ", bulkData[i].geocode, ", attrs: ", bulkData[i].attrs);
           geoVars.push(...this.createGeofootprintVars(bulkData[i].geocode, bulkData[i].attrs, geoCache, isForShading));
@@ -298,16 +298,16 @@ export class TargetAudienceTdaService {
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean) {
     const responseArray: TdaBulkDataResponse[] = response.payload.rows;
 
-    for (let r=0; r < responseArray.length; r++)
+    for (let r = 0; r < responseArray.length; r++)
     {
-      let vars: Map<string, string> = new Map<string, string>();
-      for (let i=0; i < identifiers.length; i++)
+      const vars: Map<string, string> = new Map<string, string>();
+      for (let i = 0; i < identifiers.length; i++)
         if (responseArray[r].attrs.hasOwnProperty(identifiers[i]))
            vars.set(identifiers[i], responseArray[r].attrs[identifiers[i]]);
       responseArray[r].attrs = vars;
     }
     // console.log("response.payload.counts:", response.payload.counts); // DEBUG see the REST response counts
-    let missingCategoryIds: number[] = [];
+    const missingCategoryIds: number[] = [];
     // let varCounts: Map<string, number> = new Map<string, number>();
     // for (let i=0; i < identifiers.length; i++)
     //    varCounts.set(identifiers[i], response.payload.counts.hasOwnProperty(identifiers[i]) ? response.payload.counts[identifiers[i]]:0);
@@ -319,7 +319,7 @@ export class TargetAudienceTdaService {
       .filter((entry) => (entry[1] === 0 || entry[1] == null) && this.rawAudienceData.has(entry[0]))
       .map(e => this.rawAudienceData.get(e[0]).fielddescr);
 
-    if (emptyAudiences.length >0 && !isForShading)
+    if (emptyAudiences.length > 0 && !isForShading)
       this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
 /*
       const missingCategoryIds = new Set(responseArray.filter(id => id.score === 'undefined'));

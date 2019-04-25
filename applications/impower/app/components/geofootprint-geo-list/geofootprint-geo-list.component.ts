@@ -9,7 +9,6 @@ import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofoo
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintVar } from '../../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
-import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { Table } from 'primeng/table';
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -71,7 +70,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    @Input('impGeofootprintVars')
    set geoVars(val: ImpGeofootprintVar[]) {
-      this.allVarsBS$.next(val);
+     this.allVarsBS$.next(val);
    }
 
    @Input('variableColOrder')
@@ -141,7 +140,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 // private varColOrder$: Observable<Map<string, number>>;
 
    // Project variables index lookup
-   private projectVarsDict: any;
+   private projectVarsDict: { [varpk: number] : ImpProjectVar };
 
    // Grid Observables for totals
    private gridValuesBS$ = new BehaviorSubject<any[]>([]);
@@ -396,29 +395,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       return result;
    }
 
-   private getProjectVarFieldName(pv: ImpProjectVar) : string {
-    return pv.customVarExprDisplay;
-/*      if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
-         const sourceName = pv.source.split('_')[1];
-         return `${pv.fieldname} (${sourceName})`;
-      } else {
-         return pv.customVarExprDisplay;// fieldname;
-      }*/
-   }
-
-   private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
-      if (gv.impGeofootprintTradeArea != null && TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
-         if ((this.projectVarsDict[gv.varPk]||safe).customVarExprQuery && (this.projectVarsDict[gv.varPk]||safe).customVarExprQuery.includes('Offline')) {
-            return (this.projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
-         } else {
-            return (this.projectVarsDict[gv.varPk]||safe).fieldname ? `${(this.projectVarsDict[gv.varPk]||safe).fieldname} ${(this.projectVarsDict[gv.varPk]||safe).customVarExprDisplay}`
-                                                                    : (this.projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
-         }
-      } else {
-         return (this.projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
-      }
-   }
-
    /**
     * Initializes various state variables
     */
@@ -491,19 +467,19 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       //let uniqueGeos = (geos != null) ? new Set(geos.map(geo => geo.geocode)) : new Set();
       console.log('createComposite:'
-                 , ' geos:' , ((geos != null) ? geos.length : null)
+                 , ' geos:' , (geos.length)
                 //  ,' unique geos:' , ((uniqueGeos != null) ? uniqueGeos.size: null)
                  , ' must covers:' , ((mustCovers != null) ? mustCovers.length : null)
                  , ' projectVars: ', ((projectVars != null) ? projectVars.length : null)
                  , ' geo vars:' , ((geoVars != null) ? geoVars.length : null)
-                 , ' geo vars custom:' , ((geoVars != null) ? geoVars.filter(gv => (this.projectVarsDict[gv.varPk]||safe).isCustom).length : null));
+                 , ' geo vars custom:' , ((geoVars != null) ? geoVars.filter(gv => (this.projectVarsDict[gv.varPk] || safe).isCustom).length : null));
       // DEBUG: See additional parameters
       // console.log('createComposite: varColOrder: ', varColOrder
       //            ,' project: ', project
       //            ,' smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
 
       // DEBUG: Print the geoVar counts
-      let variablePkCounts: Map<string, ImpGeofootprintVar[]> = groupByExtended(geoVars, (i) => i.varPk + ', ' + (this.projectVarsDict[i.varPk]||safe).customVarExprDisplay);
+      let variablePkCounts: Map<string, ImpGeofootprintVar[]> = groupByExtended(geoVars, (i) => i.varPk + ', ' + (this.projectVarsDict[i.varPk] || safe).customVarExprDisplay);
       if (variablePkCounts != null && variablePkCounts.size > 0)
       {
         console.groupCollapsed('createComposite - geoVar Counts:', variablePkCounts.size);
@@ -518,12 +494,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       const geoGridData: FlatGeo[] = [];
       this.flatGeoGridExtraColumns = [];
 
-      // Get all project variables that are flagged as isIncludedInGeoGrid
-      const usableVars = new Set(projectVars.filter(pv => pv.isIncludedInGeoGrid)
-                                            .map(pv => this.getProjectVarFieldName(pv)));
-
       // Get only geo variables that are flagged as usable
-      const usableGeoVars = geoVars.filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
+      const usableGeoVars = geoVars.filter(gv => this.projectVarsDict[gv.varPk] != null && this.projectVarsDict[gv.varPk].isIncludedInGeoGrid);
       //const varsInData = new Set(usableGeoVars.map(gv => this.getGeoVarFieldName(gv)));
 
       // Get the missing geoVars with no scores
@@ -656,7 +628,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          gridGeo['allocHhc'] = (gridGeo.geo.isDeduped === 1) ? gridGeo.geo.hhc : null;
          gridGeo['investment'] = (gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0;
          gridGeo['allocInvestment'] = (gridGeo.geo.isDeduped === 1) ? ((gridGeo['cpm'] != null) ? (gridGeo['cpm'] / 1000) * gridGeo.geo.hhc : 0) : null;
-         if (geo != null && geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null) {
+         if (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.impGeofootprintLocAttribs != null) {
             gridGeo['home_geo'] = (geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
          }
 

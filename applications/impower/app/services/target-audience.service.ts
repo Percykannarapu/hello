@@ -2,7 +2,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { ClearShadingData } from '@val/esri';
 import { BehaviorSubject, Observable, Subscription, combineLatest, merge, throwError } from 'rxjs';
-import { map, tap, filter, startWith, debounceTime, catchError, withLatestFrom, reduce } from 'rxjs/operators';
+import { map, tap, filter, startWith, debounceTime, catchError, withLatestFrom, reduce, pairwise } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AudienceDataDefinition } from '../models/audience-data.model';
@@ -17,11 +17,12 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
-import { filterArray, roundTo, formatMilli, safe, accumulateArrays } from '@val/common';
+import { filterArray, roundTo, formatMilli, safe, accumulateArrays, dedupeSimpleSet } from '@val/common';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { RestResponse } from '../models/RestResponse';
 import { getOrSetAsInMap } from '@angular/animations/browser/src/render/shared';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
+import { LoggingService } from '../val-modules/common/services/logging.service';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string, transactionId: number) => Observable<any[]>;
@@ -63,8 +64,6 @@ export class TargetAudienceService implements OnDestroy {
   public audiences$: Observable<AudienceDataDefinition[]> = this.audiences.asObservable();
   public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
-  private geosRequested = new Set<string>();
-
   private persistGeoVarCache: ImpGeofootprintVar[] = [];
 
   public  timingMap: Map<string, number> = new Map<string, number>();
@@ -75,6 +74,7 @@ export class TargetAudienceService implements OnDestroy {
               private config: AppConfig,
               private projectVarService: ImpProjectVarService,
               private domainFactory: ImpDomainFactoryService,
+              private logger: LoggingService,
               private store$: Store<LocalAppState>) {
     this.newVisibleGeos$ = this.appStateService.uniqueVisibleGeocodes$.pipe(
       tap(() => this.clearShadingData()),   // and clear the data cache
@@ -82,9 +82,12 @@ export class TargetAudienceService implements OnDestroy {
     );
 
     this.newSelectedGeos$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
-      debounceTime(500),
-      filterArray(geo => !this.geosRequested.has(geo)),
-      filter(geos => geos.length > 0),
+      map(geos => new Set(geos)),
+      startWith(new Set<string>()),
+      pairwise(),
+      map(([previous, current]) => dedupeSimpleSet(current, previous)),
+      filter(result => result.size > 0),
+      map(geoSet => Array.from(geoSet))
     );
   }
 
@@ -102,7 +105,7 @@ export class TargetAudienceService implements OnDestroy {
     this.audiences.next([]);
   }
 
-  public addAudience(audience: AudienceDataDefinition, sourceRefresh: audienceSource, nationalRefresh?: nationalSource, id?: number) : void {
+  public addAudience(audience: AudienceDataDefinition, sourceRefresh: audienceSource, nationalRefresh?: nationalSource, isReload: boolean = false) : void {
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
     //console.debug("addAudience - target-audience.service - sourceId: " + sourceId + ", audienceName: " + ((audience != null) ? audience.audienceName : "") + ", audienceSourceName: " + ((audience != null) ? audience.audienceSourceName:""));
@@ -114,15 +117,17 @@ export class TargetAudienceService implements OnDestroy {
     }
     if (nationalRefresh != null) this.nationalSources.set(sourceId, nationalRefresh);
 
-    if (audience.audienceSourceType === "Custom" && audience.fieldconte === null)
+    if (audience.audienceSourceType === 'Custom' && audience.fieldconte === null)
       audience.fieldconte = FieldContentTypeCodes.Char;
 
-    const projectVar = this.createProjectVar(audience, id);
-    // protect against adding dupes to the data store
-    if ( projectVar && (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0)) {
-      console.warn('refusing to add duplicate project var: ', projectVar, this.projectVarService.get());
-    } else {
-      if (projectVar) this.projectVarService.add([projectVar]);
+    if (!isReload) {
+      const projectVar = this.createProjectVar(audience);
+      // protect against adding dupes to the data store
+      if ( projectVar && (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0)) {
+        console.warn('refusing to add duplicate project var: ', projectVar, this.projectVarService.get());
+      } else {
+        if (projectVar) this.projectVarService.add([projectVar]);
+      }
     }
     const audienceList = Array.from(this.audienceMap.values());
     this.audiences.next(audienceList.sort((a, b) => this.compare(a, b)));
@@ -164,7 +169,7 @@ export class TargetAudienceService implements OnDestroy {
     }
   }
 
-  private createProjectVar(audience: AudienceDataDefinition, id?: number) : ImpProjectVar {
+  private createProjectVar(audience: AudienceDataDefinition) : ImpProjectVar {
     // Determine if we have a project var already
     let existingPVar = null;
     let varPk = null;
@@ -175,7 +180,7 @@ export class TargetAudienceService implements OnDestroy {
       existingPVar = this.projectVarService.get().filter(pv => pv.varPk === Number(audience.audienceIdentifier));
 
     if (existingPVar != null && existingPVar.length > 0) {
-      console.log("### createProjectVar - Existing project var found:", existingPVar[0]);
+      console.log('### createProjectVar - Existing project var found:', existingPVar[0]);
       varPk = existingPVar[0].varPk;
     }
     else {
@@ -386,7 +391,7 @@ export class TargetAudienceService implements OnDestroy {
             {
               this.persistGeoVarCache = [];
               console.log('applyAudienceSelection observable: analysisLevel:', this.appStateService.analysisLevel$.getValue(), ' - geos.count', geos.length);
-              this.varService.clearAll(false);
+              // this.varService.clearAll(false);
               this.persistGeoVarData(this.appStateService.analysisLevel$.getValue(), geos, selectedAudiences);
               this.persistGeoVarCache = [];
             }
@@ -434,8 +439,9 @@ export class TargetAudienceService implements OnDestroy {
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const source = this.audienceSources.get(sourceId);
     const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
+    const startPopChunks: number = performance.now();
 
-    this.cacheGeosOnServer(geos).subscribe(txId => {
+    this.cacheGeosOnServer(geos, startPopChunks).subscribe(txId => {
       if (source != null) {
         this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving shading data' }));
         const currentShadingData = this.shadingData.getValue();
@@ -448,7 +454,7 @@ export class TargetAudienceService implements OnDestroy {
             },
             err => console.error('There was an error retrieving audience data for map shading', err),
             () => {
-              this.removeServerGeoCache(txId).subscribe();
+              this.removeServerGeoCache(txId, startPopChunks).subscribe();
               this.shadingData.next(currentShadingData);
               this.store$.dispatch(new StopBusyIndicator({ key }));
             }
@@ -458,7 +464,7 @@ export class TargetAudienceService implements OnDestroy {
             data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
             err => console.error('There was an error retrieving audience data for map shading', err),
             () => {
-              this.removeServerGeoCache(txId).subscribe();
+              this.removeServerGeoCache(txId, startPopChunks).subscribe();
               this.shadingData.next(currentShadingData);
               this.store$.dispatch(new StopBusyIndicator({ key }));
             }
@@ -468,18 +474,21 @@ export class TargetAudienceService implements OnDestroy {
     });
   }
 
-  public cacheGeosOnServer(geocodes: string[]) : Observable<number> {
+  public cacheGeosOnServer(geocodes: string[], txStartTime: number) : Observable<number> {
     const chunks = this.config.geoInfoQueryChunks;
+    this.logger.info('Populating', geocodes.length, 'geo chunks on server');
     return this.restService.post('v1/targeting/base/chunkedgeos/populateChunkedGeos', [{chunks, geocodes}]).pipe(
+      tap(response => this.logger.info('populateChunkedGeos took ', formatMilli(performance.now() - txStartTime), ', Response:', response)),
       map(response => response.payload.transactionId)
     );
   }
 
-  public getDataForCachedGeos(analysisLevel: string, selectedAudiences: AudienceDataDefinition[], transactionId: number) : Observable<ImpGeofootprintVar[]> {
+  public getDataForCachedGeos(analysisLevel: string, selectedAudiences: AudienceDataDefinition[], transactionId: number, txStartTime: number) : Observable<ImpGeofootprintVar[]> {
     const sources = new Set(selectedAudiences.map(a => this.createKey(a.audienceSourceType, a.audienceSourceName)));
     const observables: Observable<ImpGeofootprintVar[]>[] = [];
     const doneAudienceTAs: Set<string> = new Set<string>();
 
+    const isolatedGetStart = performance.now();
     sources.forEach(s => {
       const sourceRefresh = this.audienceSources.get(s);
       if (sourceRefresh != null) {
@@ -489,37 +498,51 @@ export class TargetAudienceService implements OnDestroy {
           const taAudiences = selectedAudiences.filter(a => a.audienceSourceType === s.split('/')[0] && a.audienceSourceName === s.split('/')[1] && a.audienceSourceName === 'Audience-TA');
           taAudiences.forEach(taAudience => {
             if (!doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
-              observables.push(sourceRefresh(analysisLevel, ids, [], false, transactionId, taAudience));
+              observables.push(
+                sourceRefresh(analysisLevel, ids, [], false, transactionId, taAudience).pipe(
+                  tap(response => this.logger.info(`Retrieve GeoVar data for "${s}" took`, formatMilli(performance.now() - isolatedGetStart), ', Count:', response.length)),
+                )
+              );
               doneAudienceTAs.add(taAudience.audienceIdentifier.split('-')[0]);
             }
           });
         } else {
-          observables.push(sourceRefresh(analysisLevel, ids, [], false, transactionId));
+          observables.push(
+            sourceRefresh(analysisLevel, ids, [], false, transactionId).pipe(
+              tap(response => this.logger.info(`Retrieve GeoVar data for "${s}" took`, formatMilli(performance.now() - isolatedGetStart), ', Count:', response.length)),
+            )
+          );
         }
       }
     });
     return merge(...observables, 4).pipe(
-      reduce((a, c) => accumulateArrays(a, c), [])
+      reduce((a, c) => accumulateArrays(a, c), []),
+      tap(response => this.logger.info('Total GeoVar data retrieval took', formatMilli(performance.now() - isolatedGetStart), ', Total:', response.length)),
+      tap(() => this.logger.info('Total Populate & Retrieve time', formatMilli(performance.now() - txStartTime))),
     );
   }
 
-  public removeServerGeoCache(transactionId: number) : Observable<any> {
-    return this.restService.delete('v1/targeting/base/chunkedgeos/deleteChunks/', transactionId);
+  public removeServerGeoCache(transactionId: number, txStartTime: number) : Observable<any> {
+    const deleteStartTime = performance.now();
+    return this.restService.delete('v1/targeting/base/chunkedgeos/deleteChunks/', transactionId).pipe(
+      tap(response => this.logger.info('deleteChunks took ', formatMilli(performance.now() - deleteStartTime), ', Response:', response)),
+      tap(() => this.logger.info('Total Transaction time', formatMilli(performance.now() - txStartTime))),
+    );
   }
 
   private persistGeoVarData(analysisLevel: string, geos: string[], selectedAudiences: AudienceDataDefinition[]) {
     const key = this.spinnerKey;
     const notificationTitle = 'Audience Error';
     const errorMessage = 'There was an error retrieving audience data';
-    this.cacheGeosOnServer(geos).subscribe(txId => {
-
+    const startPopChunks: number = performance.now();
+    this.cacheGeosOnServer(geos, startPopChunks).subscribe(txId => {
       this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving audience data' }));
 
-      this.getDataForCachedGeos(analysisLevel, selectedAudiences, txId).subscribe(vars => {
+      this.getDataForCachedGeos(analysisLevel, selectedAudiences, txId, startPopChunks).subscribe(vars => {
         if (vars != null && vars.length > 0) {
           this.varService.add(vars);
         }
-        this.removeServerGeoCache(txId).subscribe(null, err => {
+        this.removeServerGeoCache(txId, startPopChunks).subscribe(null, err => {
           console.error('There was an error removing the data cache for transaction id', txId, 'Additional info:', err);
           this.store$.dispatch(new StopBusyIndicator({ key }));
           this.store$.dispatch(new ErrorNotification({ notificationTitle, message: errorMessage }));
@@ -538,7 +561,7 @@ export class TargetAudienceService implements OnDestroy {
     });
   }
 
-//   private persistGeoVarData(analysisLevel: string, geos: string[], selectedAudiences: AudienceDataDefinition[]) {
+//   private temp(analysisLevel: string, geos: string[], selectedAudiences: AudienceDataDefinition[]) {
 //     let startTime = performance.now();
 //     geos.forEach(geo => this.geosRequested.add(geo));
 //     const key = this.spinnerKey;

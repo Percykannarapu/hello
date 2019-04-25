@@ -181,13 +181,13 @@ export class TargetAudienceOnlineService {
 
           //let transactionId: number = -1;
           if (projectVar.source.toLowerCase().match('interest')) {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.Interest, al, pk, -1), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.Interest, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.Interest, al, pk, -1), true);
           } else if (projectVar.source.toLowerCase().match('in-market')) {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.InMarket, al, pk, -1), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.InMarket, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.InMarket, al, pk, -1), true);
           } else if (projectVar.source.toLowerCase().match('vlh')) {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.VLH, al, pk, -1), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.VLH, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.VLH, al, pk, -1), true);
           } else {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.Pixel, al, pk, -1), null);
+            this.audienceService.addAudience(audience, (al, pks, geos, shading, transactionId) => this.apioRefreshCallback(SourceTypes.Pixel, al, pks, geos, shading, transactionId), (al, pk) => this.nationalRefreshCallback(SourceTypes.Pixel, al, pk, -1), true);
           }
         }
       }

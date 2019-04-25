@@ -30,5 +30,5 @@ export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<Lo
 }
 
 export const appMetaReducers: MetaReducer<LocalAppState>[] = !environment.serverBuild
-  ? [] // logger
+  ? [logger]
   : [];
