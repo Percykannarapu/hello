@@ -185,12 +185,15 @@
             if (env.BRANCH_NAME == 'qa'){
                   echo 'Automation test cases for QA'
                   sh '''
+                    rm -rf /var/lib/jenkins/Downloads/*
                     xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/qa/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
             else if (env.BRANCH_NAME == 'dev'){
                   echo 'Automation test cases for Dev'
                   sh '''
+                    rm -rf /var/lib/jenkins/Downloads/*
+                    rm -rf /robotTestcases/jenkins/reportLogs/*
                     xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
@@ -203,11 +206,11 @@
               cd /robotTestcases/jenkins/reportLogs
             '''
             color = '#FFFE89'
-            emailext attachmentsPattern: 'log.html', 
+            /*emailext attachmentsPattern: 'log.html', 
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true, 
                      subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed", 
-                     to: 'reddyn@valassis.com KannarapuP@valassis.com'
+                     to: 'reddyn@valassis.com KannarapuP@valassis.com'*/
             echo 'Test completed'
           }
           finally{
