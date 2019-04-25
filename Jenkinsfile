@@ -172,8 +172,11 @@
       }
     }
     stage('Run Tests') {
-      // disabled due to test scripts are not in good place for automation testing
-      when {branch 'disable'}
+      when {
+        expression {
+          return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'qa'
+        }
+      }
       steps {
         script {
           try {
@@ -182,25 +185,16 @@
             if (env.BRANCH_NAME == 'qa'){
                   echo 'Automation test cases for QA'
                   sh '''
-                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
-                    git pull
-                    git checkout qa
-                    git pull
+                    xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/qa/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
             else if (env.BRANCH_NAME == 'dev'){
                   echo 'Automation test cases for Dev'
                   sh '''
-                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
-                    git pull
-                    git checkout dev
-                    git pull
+                    xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
-            sh '''
-              xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
-              '''
-            color = '#BDFFC3'  
+            color = '#BDFFC3'
           }
           catch (Exception ex){
             echo 'exception in test cases'
@@ -213,13 +207,13 @@
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true, 
                      subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed", 
-                     to: 'amcirillo@valassis.com GegenheiD@valassis.com ClawsonK@valassis.com reddyn@valassis.com KannarapuP@valassis.com PalathinkaraJ@valassis.com MadhukR@valassis.com CurmiN@valassis.com PeerE@valassis.com'
+                     to: 'reddyn@valassis.com KannarapuP@valassis.com'
             echo 'Test completed'
           }
           finally{
             echo 'finally publish reports'
-            /*temporarily suspended , until test scripts corrected*/
-            /*step(
+            
+            step(
               [
                 $class : 'RobotPublisher',
                 outputPath : '/robotTestcases/jenkins/reportLogs',
@@ -229,7 +223,7 @@
                 unstableThreshold: 95.0,
                 otherFiles : "*.png",
               ]
-            )*/
+            )
             echo 'send slack notifications'
             slackSend channel: '#impower_test_results',
                       color: color,

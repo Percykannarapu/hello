@@ -119,10 +119,9 @@ export class TargetAudienceAudienceTA {
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte)
           };
           this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
-          let transactionId:number = -1;
           this.audienceService.addAudience(
             currentAudience,
-            (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(null, null, null, null, audience),
+            (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(null, null, null, null, null, audience),
             null);
         }
       }
@@ -196,7 +195,7 @@ export class TargetAudienceAudienceTA {
       const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
       this.audienceService.addAudience(
         model,
-        (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(null, null, null, null, audience),
+        (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(null, null, null, null, null, audience),
         null);
     }
     /*this.audienceService.addAudience(
@@ -315,14 +314,14 @@ export class TargetAudienceAudienceTA {
    * Parse the response from Fuse and build the array of audienceTradeareaResponses
    * This method will also create the renderer data that is required for map shading
    */
-  private parseResponse(restResponse: RestResponse, alternateCategory: string) : Map<string, Map<number, AudienceTradeareaResponse>> {
-        const taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
-        let count: number = 0;
-        const rows: AudienceTradeareaResponse[] = restResponse.payload.rows;
+  private parseResponse(restResponse: RestResponse, alternateCategory: string): Map<string, Map<number, AudienceTradeareaResponse>> {
+    const taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
+    let count: number = 0;
+    const rows: AudienceTradeareaResponse[] = restResponse.payload.rows;
     for (const taResponse of rows) {
-            if (taResponse.categoryName == null) {
-              taResponse.categoryName = alternateCategory;
-            }
+      if (taResponse.categoryName == null) {
+        taResponse.categoryName = alternateCategory;
+      }
       if (taResponses.has(taResponse.locationName)) {
         taResponses.get(taResponse.locationName).set(count, taResponse);
         count++;
@@ -339,7 +338,7 @@ export class TargetAudienceAudienceTA {
     return taResponses;
   }
 
-    private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
+    private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, txId: number, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
       //console.debug("addAudience - target-audience-audienceta - dataRefreshCallback, audience: ", audience);
       if (!audience) return EMPTY;
 

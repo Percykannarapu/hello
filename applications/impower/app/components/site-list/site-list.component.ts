@@ -451,12 +451,12 @@ export class SiteListComponent implements OnInit {
       marketName: row.marketName,
       marketCode: row.marketCode,
       coord: row.ycoord + ',' + row.xcoord,
-      homeZip: locAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue,
-      homeAtz: locAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue,
-      homeDigitalAtz: locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue,
-      homePcr: locAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue,
-      homeDmaCode: locAttribs.filter(la => la.attributeCode === 'Home DMA')[0].attributeValue,
-      homeCountyFip: locAttribs.filter(la => la.attributeCode === 'Home County')[0].attributeValue
+      homeZip: locAttribs.filter(la => la.attributeCode === 'Home Zip Code').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue : '',
+      homeAtz: locAttribs.filter(la => la.attributeCode === 'Home ATZ').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue : '',
+      homeDigitalAtz: locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue : '',
+      homePcr: locAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue : '',
+      homeDmaCode: locAttribs.filter(la => la.attributeCode === 'Home DMA').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home DMA')[0].attributeValue : '',
+      homeCountyFip: locAttribs.filter(la => la.attributeCode === 'Home County').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home County')[0].attributeValue : ''
     };
     this.selectedRowData = row;
     this.showDialog = true;

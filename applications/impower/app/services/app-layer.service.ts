@@ -167,7 +167,7 @@ export class AppLayerService {
       className: 'esri-icon-share'
     });
     const selectThisAction = new EsriApi.ActionButton({
-      title: 'Select Polygon',
+      title: 'Add/Remove Geo',
       id: 'select-this',
       className: 'esri-icon-plus-circled'
     });
@@ -178,7 +178,7 @@ export class AppLayerService {
     const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
     const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new EsriApi.FieldInfo({ fieldName: f.name, label: f.alias }));
     fieldInfos.sort(byDefinedFieldIndex);
-    const result: __esri.PopupTemplateProperties = { title: layerDef.popupTitle, actions: [selectThisAction, measureThisAction] };
+    const result: __esri.PopupTemplateProperties = { title: layerDef.popupTitle, actions: [selectThisAction] };
     if (layerDef.useCustomPopUp === true) {
       result.content = (feature: any) => this.generator.geographyPopupFactory(feature, fieldInfos, layerDef.customPopUpDefinition);
     } else {

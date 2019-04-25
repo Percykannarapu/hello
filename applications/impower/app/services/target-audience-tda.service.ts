@@ -151,48 +151,36 @@ export class TargetAudienceTdaService {
   }
 
   private createGeofootprintVars(geocode: string, attrs: Map<string, string>, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {
-    let results: ImpGeofootprintVar[] = [];
+    const results: ImpGeofootprintVar[] = [];
     attrs.forEach((value: string, key: string) => {
-      let varPk: number = parseInt(key);//, value: string
-      let rawData: TdaVariableResponse = this.rawAudienceData.get(key);
-
+      const varPk: number = parseInt(key, 10); // value: string
+      const rawData: TdaVariableResponse = this.rawAudienceData.get(key);
       const fullId = `Offline/TDA/${varPk}`;
-      const numberAttempt = Number(value);
-      let fieldType: FieldContentTypeCodes;
-      let fieldName: string;
+      const numberAttempt = value == null ? null : Number(value);
       let fieldDescription: string;
-      let natlAvg: string;
       let fieldValue: string | number;
       if (rawData != null) {
         fieldDescription = rawData.fielddescr;
-        fieldName = rawData.fieldname;
-        natlAvg = rawData.natlAvg;
-        fieldType = FieldContentTypeCodes.parse(rawData.fieldconte);
       }
-      const matchingAudience = this.audienceService.getAudiences().find(a => a.audienceName === fieldDescription && a.audienceSourceName === 'TDA');
-      if (Number.isNaN(numberAttempt)) {
+      if (numberAttempt == null) {
+        fieldValue = null;
+      } else if (Number.isNaN(numberAttempt)) {
         fieldValue = value;
-        if (fieldType == null) fieldType = FieldContentTypeCodes.Char;
-      }
-      else {
+      } else {
         fieldValue = numberAttempt;
-        if (fieldType == null) fieldType = FieldContentTypeCodes.Index;
       }
       if (isForShading) {
         if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1
                       && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1) {
-          const currentResult = this.domainFactory.createGeoVar(null, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
-          //if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+          const currentResult = this.domainFactory.createGeoVar(null, geocode, varPk, fieldValue, fullId, fieldDescription);
           results.push(currentResult);
         }
-      }
-      else {
+      } else {
         if (geoCache.has(geocode)) {
           geoCache.get(geocode).forEach(geo => {
             if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1
                           && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1) {
-              const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, varPk, fieldValue, fullId, fieldDescription, fieldType, fieldName, natlAvg);
-              //if (matchingAudience != null) currentResult.varPosition = matchingAudience.audienceCounter;
+              const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, varPk, fieldValue, fullId, fieldDescription);
               results.push(currentResult);
             }
           });
@@ -259,7 +247,7 @@ export class TargetAudienceTdaService {
         source: "tda",
 //      geocodes: chunk,
         categoryIds: numericIds,
-        transactionId: (transactionId != -1) ? transactionId : this.audienceService.geoTransactionId,
+        transactionId: transactionId,
         chunks: this.config.geoInfoQueryChunks
       };
 //      if (inputData.geocodes.length > 0 && inputData.categoryIds.length > 0) {

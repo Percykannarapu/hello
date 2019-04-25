@@ -52,8 +52,8 @@ export function prepareRadiusTradeAreas(tradeAreas: ImpGeofootprintTradeArea[], 
 export function prepareAudienceTradeAreas(tradeAreas: ImpGeofootprintTradeArea[], currentProject: ImpProject, wkid: number) : TradeAreaDrawDefinition[] {
   const minRadius = currentProject.audTaMinRadiu;
   const maxRadius = currentProject.audTaMaxRadiu;
-  const minLayer = new TradeAreaDrawDefinition(ImpClientLocationTypeCodes.Site, 'Audience Min Radius', [0, 0, 255, 1], false);
-  const maxLayer = new TradeAreaDrawDefinition(ImpClientLocationTypeCodes.Site, 'Audience Max Radius', [0, 0, 255, 1], false);
+  const minLayer = new TradeAreaDrawDefinition(ImpClientLocationTypeCodes.Site, 'Audience Min Radius', [0, 0, 255, 1], true);
+  const maxLayer = new TradeAreaDrawDefinition(ImpClientLocationTypeCodes.Site, 'Audience Max Radius', [0, 0, 255, 1], true);
   tradeAreas.forEach(ta => {
     const currentPoint = toPoint(ta, wkid);
     minLayer.buffer.push(minRadius);

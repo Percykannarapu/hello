@@ -4,49 +4,25 @@ import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapState } from '../state/map/esri.map.reducer';
-import { ShadingData, Statistics, HighlightMode } from '../state/map/esri.renderer.reducer';
+import { ShadingData, Statistics } from '../state/map/esri.renderer.reducer';
 import { ColorPallete, getColorPallete } from '../models/ColorPalletes';
-
-export enum SmartMappingTheme {
-  HighToLow = 'high-to-low',
-  AboveAndBelow = 'above-and-below',
-  //CenteredOn = 'centered-on',
-  Extremes = 'extremes'
-}
 
 interface OutlineSetup {
   defaultWidth: number;
+  defaultColor: number[] | __esri.Color;
   selectedWidth: number;
   selectedColor: number[] | __esri.Color;
 }
 
-interface SmartRendererSetup {
+interface RendererSetup {
   rampLabel: string;
   outline: OutlineSetup;
-  smartTheme: {
-    baseMap: __esri.Basemap;
-    theme: SmartMappingTheme;
-  };
+  colors?: ColorPallete;
 }
-
-interface CustomRendererSetup {
-  rampLabel: string;
-  outline: OutlineSetup;
-  customColors?: number[][];
-}
-
-const tacticianDarkPalette = [
-  [114, 175, 216, 0.65],
-  [165, 219, 85, 0.65],
-  [241, 159, 39, 0.65],
-  [218, 49, 69, 0.65]
-];
 
 @Injectable()
 export class EsriRendererService {
 
-  public static currentDefaultTheme: SmartMappingTheme = SmartMappingTheme.HighToLow;
-  
   private static randomSeeds: Array<Array<number>> = [];
 
   private simpleSymbol: any = null;
@@ -78,50 +54,15 @@ export class EsriRendererService {
     });
   }
 
-  private static getThemeColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
-    const result = [];
-    if (this.rendererIsSmart(rendererSetup)) {
-      const smartTheme = rendererSetup.smartTheme.theme || this.currentDefaultTheme;
-      const theme = EsriApi.symbologyColor.getSchemes({
-        basemap: rendererSetup.smartTheme.baseMap,
-        geometryType: 'polygon',
-        theme: smartTheme
-      });
-      if (dataLength == null) {
-        result.push(...theme.primaryScheme.colors.map(c => {
-          c.a = 0.65;
-          return c;
-        }));
-      } else {
-        result.push(...theme.primaryScheme.colorsForClassBreaks.filter(cb => cb.numClasses === dataLength)[0].colors.map(c => {
-          c.a = 0.65;
-          return c;
-        }));
-      }
-    } else if (rendererSetup.customColors != null) {
-      result.push(...rendererSetup.customColors.map(rgba => new EsriApi.Color(rgba)));
-    } else {
-      result.push(...tacticianDarkPalette.map(rgba => new EsriApi.Color(rgba)));
+  private static getThemeColors(rendererSetup: RendererSetup, dataLength: number) : __esri.Color[] {
+    const colorPalette = getColorPallete(rendererSetup.colors);
+    if (colorPalette == null) {
+      return this.getRandomColors(dataLength);
     }
-    return result;
+    return colorPalette.map(rgb => new EsriApi.Color([...rgb, 0.65])) ;
   }
 
-  /*private static getThemeColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
-    const result: Array<__esri.Color> = [];
-    for (let i = 0; i < dataLength; i++ ) {
-      let red: number = Math.floor(Math.random() * 256) + 1;
-      let blue: number = Math.floor(Math.random() * 256) + 1;
-      let green: number = Math.floor(Math.random() * 256) + 1;
-      red = (red + 255) / 2;
-      green = (green + 255) / 2;
-      blue = (blue + 255) / 2;
-      const color: __esri.Color = new EsriApi.Color({ r: red, g: green, b: blue, a: 1 });
-      result.push(color);
-    }
-    return result;
-  }*/
-  
-  private static getRandomColors(rendererSetup: SmartRendererSetup | CustomRendererSetup, dataLength?: number) : __esri.Color[] {
+  private static getRandomColors(dataLength?: number) : __esri.Color[] {
     const result: Array<__esri.Color> = [];
     for (let i = 0; i < dataLength; i++ ) {
       let red: number = null;
@@ -147,10 +88,6 @@ export class EsriRendererService {
     return l != null && l.type === 'simple-line';
   }
 
-  private static rendererIsSmart(r: SmartRendererSetup | CustomRendererSetup) : r is SmartRendererSetup {
-    return r != null && r.hasOwnProperty('smartTheme');
-  }
-
   public restoreSimpleRenderer(mapState: EsriMapState) {
     if (this.simpleRenderer != null && EsriUtils.rendererIsSimple(this.simpleRenderer)) {
       const lv = this.getLayerView(mapState.selectedLayerId);
@@ -158,11 +95,11 @@ export class EsriRendererService {
     }
   }
 
-  public setShadingRenderer(mapState: EsriMapState, data: ShadingData, isNumericData: boolean, statistics?: Statistics,legend?: string) : void {
+  public setShadingRenderer(mapState: EsriMapState, data: ShadingData, isNumericData: boolean, statistics?: Statistics, legend?: string, theme?: ColorPallete) : void {
     if (isNumericData) {
-      this.createMultiVariateRenderer(data, mapState, statistics,legend);
+      this.createMultiVariateRenderer(data, mapState, statistics, legend, theme);
     } else {
-      this.createClassBreaksRenderer(data, mapState);
+      this.createClassBreaksRenderer(data, mapState, theme);
     }
   }
 
@@ -215,35 +152,36 @@ export class EsriRendererService {
     return newRenderer;
   }
 
-  private createClassBreaksRenderer(data: ShadingData, mapState: EsriMapState) {
+  private createClassBreaksRenderer(data: ShadingData, mapState: EsriMapState, theme?: ColorPallete) {
     const arcade = this.generateArcade(data, false);
     const dataValues: Set<string> = new Set<string>();
     for (const value of Object.values(data)) {
       if (value) dataValues.add(<string>value);
     }
-    const setup = this.createRendererSetup(mapState);
-    const uvi = this.generateClassBreaks(Array.from(dataValues), setup.rendererSetup);
-    const defaultSymbol = EsriRendererService.createSymbol([0, 0, 0, 0], [0, 0, 0, 1], 3);
+    const uniqueData = Array.from(dataValues);
+    uniqueData.sort();
+    const setup = this.createRendererSetup(mapState, theme);
+    const uvi = this.generateClassBreaks(uniqueData, setup.rendererSetup);
     const renderer: Partial<__esri.UniqueValueRenderer> = {
       type: 'unique-value',
       valueExpression: arcade,
       uniqueValueInfos: uvi,
-      defaultSymbol: defaultSymbol
+      defaultSymbol: setup.symbol
     };
     const lv = this.getLayerView(mapState.selectedLayerId);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = renderer as __esri.UniqueValueRenderer;
     } else {
       lv.layer.renderer = this.simpleRenderer.clone();
-      setTimeout(() => this.createClassBreaksRenderer(data, mapState), 0);
+      setTimeout(() => this.createClassBreaksRenderer(data, mapState, theme), 0);
     }
   }
 
-  private createMultiVariateRenderer(data: ShadingData, mapState: EsriMapState, statistics: Statistics,legend?:string) {
+  private createMultiVariateRenderer(data: ShadingData, mapState: EsriMapState, statistics: Statistics, legend?: string, theme?: ColorPallete) {
     const arcade = this.generateArcade(data, true);
-    const setup = this.createRendererSetup(mapState);
+    const setup = this.createRendererSetup(mapState, theme);
     const baseRenderer = this.createBaseRenderer(setup.symbol, setup.rendererSetup.outline);
-    const themeColors = EsriRendererService.getThemeColors(setup.rendererSetup);
+    const themeColors = EsriRendererService.getThemeColors(setup.rendererSetup, Object.keys(data).length);
     if (legend != null) {
       setup.rendererSetup.rampLabel = legend;
     }
@@ -253,19 +191,19 @@ export class EsriRendererService {
       stops: this.generateContinuousStops(themeColors, statistics),
       legendOptions: { showLegend: true, title: setup.rendererSetup.rampLabel}
     };
-    baseRenderer.visualVariables = [colorVariable];
-    baseRenderer.defaultSymbol = EsriRendererService.createSymbol([255, 255, 255, 0], [0, 0, 0, 1], 2);
     const lv = this.getLayerView(mapState.selectedLayerId);
+    baseRenderer.visualVariables = [colorVariable];
+    //baseRenderer.defaultSymbol = EsriRendererService.createSymbol([255, 255, 255, 0], [0, 0, 0, 1], 2);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = baseRenderer.clone();
     } else {
       lv.layer.renderer = this.simpleRenderer.clone();
-      setTimeout(() => this.createMultiVariateRenderer(data, mapState, statistics,legend), 0);
+      setTimeout(() => this.createMultiVariateRenderer(data, mapState, statistics, legend, theme), 0);
     }
   }
 
-  private createRendererSetup(mapState: EsriMapState) : { rendererSetup: SmartRendererSetup | CustomRendererSetup, symbol: __esri.SimpleFillSymbol} {
-    let setup: CustomRendererSetup | SmartRendererSetup;
+  private createRendererSetup(mapState: EsriMapState, theme: ColorPallete) : { rendererSetup: RendererSetup, symbol: __esri.SimpleFillSymbol} {
+    let setup: RendererSetup;
     const currentRenderer: __esri.Renderer = this.getLayerView(mapState.selectedLayerId).layer.renderer;
     let symbol: __esri.SimpleFillSymbol = new EsriApi.SimpleFillSymbol();
     if (EsriUtils.rendererIsSimple(currentRenderer) && EsriUtils.symbolIsSimpleFill(currentRenderer.symbol)) {
@@ -278,17 +216,14 @@ export class EsriRendererService {
     setup = {
       rampLabel: '',
       outline: {
-        //defaultWidth: symbol.outline.width,
-        defaultWidth: 2,
+        defaultWidth: symbol.outline.width,
+        defaultColor: symbol.outline.color,
         selectedWidth: 4,
         selectedColor: [0, 255, 0, 0.80]
       },
-      smartTheme: {
-        baseMap: this.mapService.mapView.map.basemap,
-        theme: null
-      }
+      colors: theme
     };
-    return {rendererSetup: setup, symbol: symbol};
+    return { rendererSetup: setup, symbol: symbol };
   }
 
   private generateContinuousStops(themeStops: __esri.Color[], statistics: Statistics) : __esri.ColorStop[] {
@@ -317,17 +252,15 @@ export class EsriRendererService {
     return result;
   }
 
-  private generateClassBreaks(dataValues: string[], setup: SmartRendererSetup | CustomRendererSetup) : __esri.UniqueValueRendererUniqueValueInfos[] {
+  private generateClassBreaks(dataValues: string[], setup: RendererSetup) : __esri.UniqueValueRendererUniqueValueInfos[] {
     if (dataValues == null || dataValues.length === 0) return [];
     const result: __esri.UniqueValueRendererUniqueValueInfos[] = [];
-    const themeColors: __esri.Color[] = EsriRendererService.getRandomColors(setup, dataValues.length);
-    if (dataValues.length > themeColors.length) throw new Error('The data being mapped has more values than the theme for mapping');
+    const themeColors: __esri.Color[] = EsriRendererService.getThemeColors(setup, dataValues.length);
     dataValues.forEach((value, i) => {
       result.push({
           value: value,
-          symbol: EsriRendererService.createSymbol(themeColors[i], [0, 0, 0, 1], setup.outline.defaultWidth)
+          symbol: EsriRendererService.createSymbol(themeColors[i % themeColors.length], setup.outline.defaultColor, setup.outline.defaultWidth)
         });
-      console.log('Class break value: "' + value + '"');
     });
     return result;
   }
@@ -347,8 +280,8 @@ export class EsriRendererService {
     this.layerService.createGraphicsLayer(groupName, layerName, graphics, true);
   }
 
-  public shadeGroups(featureSet: __esri.FeatureSet, groupName: string, layerName: string, shadingGroups: { groupName: string, ids: string[] }[], colorPallete = ColorPallete.RANDOM) {
-    const colors: Array<__esri.Color> = EsriRendererService.getRandomColors(null, shadingGroups.length);
+  public shadeGroups(featureSet: __esri.FeatureSet, groupName: string, layerName: string, shadingGroups: { groupName: string, ids: string[] }[], colorPallete = ColorPallete.Random) {
+    const colors: Array<__esri.Color> = EsriRendererService.getRandomColors(shadingGroups.length);
     const graphics: Array<__esri.Graphic> = [];
     const shadedFeatures: Set<string> = new Set<string>();
     for (let i = 0; i < shadingGroups.length; i++) {
@@ -357,7 +290,7 @@ export class EsriRendererService {
       for (const feature of featureSet.features) {
         if (idSet.has(feature.getAttribute('geocode')) && !shadedFeatures.has(feature.getAttribute('geocode'))) {
           let symbol: __esri.Symbol = null;
-          if (colorPallete === ColorPallete.RANDOM) {
+          if (colorPallete === ColorPallete.Random) {
             symbol = EsriRendererService.createSymbol(colors[i], [0, 0, 0, 0], 1);
           } else {
             const pallete: number [][] = getColorPallete(colorPallete);

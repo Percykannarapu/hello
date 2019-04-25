@@ -45,7 +45,7 @@ const initialState: EsriRendererState = {
   highlightLayer: null,
   highlightLayerGroup: null,
   shadingGroups: null,
-  colorPallete: ColorPallete.RANDOM
+  colorPallete: ColorPallete.Random
 };
 
 type ReducerActions = EsriRendererActions | ResetMapState;
@@ -62,6 +62,7 @@ export function rendererReducer(state = initialState, action: ReducerActions) : 
         shadingData: { ...action.payload.data },
         isNumericData: action.payload.isNumericData,
         statistics: { ...action.payload.statistics },
+        colorPallete: action.payload.theme,
         enableShading: true,
       };
     case EsriRendererActionTypes.ClearShadingData:
@@ -82,7 +83,6 @@ export function rendererReducer(state = initialState, action: ReducerActions) : 
         highlightLayerGroup: action.payload.layerGroup, 
         highlightLayer: action.payload.layer,
         shadingGroups: action.payload.groups,
-        colorPallete: action.payload.colorPallete
       };
     case EsriRendererActionTypes.ClearSelectedGeos:
       return {
