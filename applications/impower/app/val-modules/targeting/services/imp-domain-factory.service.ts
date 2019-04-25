@@ -114,7 +114,7 @@ export class ImpDomainFactoryService {
       projectVar.isNationalExtract = audience.exportNationally;
       projectVar.indexBase = audience.selectedDataSet;
       projectVar.fieldname = audience.audienceName;
-      projectVar.fieldconte = audience.fieldconte;
+      projectVar.fieldconte = (audience.fieldconte != null) ? audience.fieldconte : FieldContentTypeCodes.Char;
       projectVar.source = source;
       projectVar.isCustom = isCustom;
       projectVar.isString = false;

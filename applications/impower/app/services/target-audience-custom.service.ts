@@ -1,3 +1,4 @@
+import { ImpProjectVarService } from './../val-modules/targeting/services/ImpProjectVar.service';
 import { Injectable } from '@angular/core';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
@@ -45,6 +46,7 @@ export class TargetAudienceCustomService {
               private stateService: AppStateService,
               private domainFactory: ImpDomainFactoryService,
               private varService: ImpGeofootprintVarService,
+              private projectVarService: ImpProjectVarService,
               private appProjectPrefService: AppProjectPrefService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private targetAudienceService: TargetAudienceService,
@@ -89,11 +91,11 @@ export class TargetAudienceCustomService {
       });
   }
 
-  private static createDataDefinition(name: string, source: string) : AudienceDataDefinition {
+  private static createDataDefinition(name: string, source: string, id: string) : AudienceDataDefinition {
    TargetAudienceService.audienceCounter++;
    const audience: AudienceDataDefinition = {
       audienceName: name,
-      audienceIdentifier: name,
+      audienceIdentifier: id,
       audienceSourceType: 'Custom',
       audienceSourceName: source,
       exportInGeoFootprint: true,
@@ -162,24 +164,35 @@ export class TargetAudienceCustomService {
   }
 
   private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<string, ImpGeofootprintGeo[]>) : ImpGeofootprintVar[] {
-   const fullId = `Custom/${fileName}/${column}`;
-   let newVarPk = null;
-
+    const fullId = `Custom/${fileName}/${column}`;
+    let newVarPk = null;
+// if (column == null)
+// {
+//   console.error("### createGeofootprintVar - column was null, geocode:", geocode,", value:", value,", filename:", fileName,", geoCache:", geoCache);
+//   return [];
+// }
    // If we have a varPk defined for this column already, use it, if not create one
 // console.debug("createGeofootprintVar custom checking varPkCache(" + this.varPkCache.size + ") for " + column);
-   if (this.varPkCache.has(column)) {
-     newVarPk = this.varPkCache.get(column);
-     //console.debug("createGeofootprintVar custom varPkCache found " + column + ", varPk: " + newVarPk);
+    if (this.varPkCache.has(column)) {
+      newVarPk = this.varPkCache.get(column);
+      //console.debug("createGeofootprintVar custom varPkCache found " + column + ", varPk: " + newVarPk);
+      }
+    else {
+      // If there is a project var for this column, use the varPk from it.
+      const projectVar = this.projectVarService.get().filter(pv => pv.fieldname === column);
+      if (projectVar != null && projectVar.length > 0) {
+          newVarPk = projectVar[0].varPk;
+      }
+      else {
+        newVarPk = this.varService.getNextStoreId();
+        let maxVarPk = Math.max.apply(Math, Array.from(this.varPkCache.values()));
+        while (newVarPk <= maxVarPk) {
+          newVarPk = this.varService.getNextStoreId();
+        }
+      }
+      this.varPkCache.set(column, newVarPk);
+      //console.debug("createGeofootprintVar custom varPkCache did NOT find " + column + ", new varPk: " + newVarPk, ", varPkCache:", this.varPkCache);
     }
-   else {
-     newVarPk = this.varService.getNextStoreId();
-     let maxVarPk = Math.max.apply(Math, Array.from(this.varPkCache.values()));
-     while (newVarPk <= maxVarPk) {
-       newVarPk = this.varService.getNextStoreId();
-     }
-     this.varPkCache.set(column, newVarPk);
-     //console.debug("createGeofootprintVar custom varPkCache did NOT find " + column + ", new varPk: " + newVarPk, ", varPkCache:", this.varPkCache);
-   }
     const results: ImpGeofootprintVar[] = [];
     const numberAttempt = Number(value);
     const fieldDescription: string = `${column}`;
@@ -264,7 +277,16 @@ export class TargetAudienceCustomService {
           data.parsedData.forEach(d => this.dataCache[d.geocode] = d);
           const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
           for (const column of columnNames) {
-            const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName);
+            // Get existing varPk
+            const projectVars = this.projectVarService.get().filter(pv => pv.fieldname === column);
+            const varPk = (projectVars != null && projectVars.length > 0) ? projectVars[0].varPk.toString() : column;
+            let audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName, varPk);
+            if (projectVars != null && projectVars.length > 0)
+            {
+              audDataDefinition.showOnGrid = projectVars[0].isIncludedInGeoGrid;
+              audDataDefinition.showOnMap  = projectVars[0].isShadedOnMap;
+              audDataDefinition.exportInGeoFootprint = projectVars[0].isIncludedInGeofootprint;
+            }
             // console.debug("parseFileData - addAudience for " + column);
             this.audienceService.addAudience(audDataDefinition, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
             const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
@@ -289,7 +311,7 @@ export class TargetAudienceCustomService {
          let prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup(ProjectPrefGroupCodes.CustomVar);
          console.debug("custom var prefs.Count = " + ((prefs != null) ? prefs.length : null));
 
-         if (prefs != null)
+         if (prefs != null && prefs.length > 0)
          {
             // let removeVars:ImpProjectVar[] = this.varService.get().filter(pv => pv.source === "Online_Audience-TA" || pv.isCustom);
             //    console.log("addAudiences going to remove " + removeVars.length + " project vars");
@@ -320,7 +342,7 @@ export class TargetAudienceCustomService {
 //            this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.source !== "Online_Audience-TA" && !pv.isCustom)
 
             prefs.forEach(customVarPref => console.debug("reloadCustomVars - name: ", customVarPref.pref, ", Custom Var Pref: ", customVarPref));
-            // prefs.forEach(customVarPref => this.parseFileData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref));
+            prefs.forEach(customVarPref => this.parseFileData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref));
             this.targetAudienceService.applyAudienceSelection();
          }
       }
@@ -346,9 +368,11 @@ export class TargetAudienceCustomService {
     const geoCache = this.buildGeoCache();
     const observables: Observable<ImpGeofootprintVar[]>[] = [];
     let allNewVars = [];
+    let projectVarsDict = this.stateService.projectVarsDict$.getValue();
     geoSet.forEach(geo => {
       if (this.dataCache.hasOwnProperty(geo)) {
-        identifiers.forEach(column => {
+        identifiers.forEach(varPk => {
+          let column = (projectVarsDict[varPk]||safe).fieldname;
           const newVars = this.createGeofootprintVar(geo, column, this.dataCache[geo][column], this.currentFileName, geoCache);
           allNewVars.push(...newVars);
         });

@@ -327,7 +327,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public calculateGeoRanks()
    {
-      console.log('ImpGeofootprintGeo.service.addGeoRank - fired');
       const geos = this.get();
 
       console.log('Calculating geo ranks for ', (geos != null) ? geos.length : 0, ' rows');
@@ -347,7 +346,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
      return this.get().sort((a, b) => comparatorMethod(a, b));
    }
 
-   public exportMustCoverFlag(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo ){
+  public exportMustCoverFlag(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo) {
     return  (state.mustCovers != null && state.mustCovers.includes(geo.geocode)) ? '1' : '0' ;
   }
 
@@ -411,7 +410,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       if (result === '' && state.varCache.has(geo.geocode)) {
         const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
-        const currentVar = vars.find(v => (projectVarsDict[v.varPk]||safe).customVarExprDisplay === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
+        const currentVar = vars.find(v => (projectVarsDict[v.varPk]||safe).fieldname === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
         if (currentVar != null && currentVar.value != null) {
           // if (currentVar.isString) result = currentVar.valueString;
           // if (currentVar.isNumber) result = currentVar.valueNumber.toString();
@@ -427,11 +426,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
      if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
        const sourceName = pv.source.split('_')[1];
        return `${pv.fieldname} (${sourceName})`;
-     } else {
-       return `${pv.fieldname} (TDA)`;
      }
+     else
+        if (pv.isCustom)
+          return `${pv.fieldname}`;
+        else
+          return `${pv.fieldname} (TDA)`;
    }
-
+/*
   private getGeoVarFieldName(gv: ImpGeofootprintVar, projectVarsDict: any) : string {
     if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
       if ((projectVarsDict[gv.varPk]||safe).customVarExprQuery && (projectVarsDict[gv.varPk]||safe).customVarExprQuery.includes('Offline')) {
@@ -443,7 +445,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
     } else {
       return (projectVarsDict[gv.varPk]||safe).customVarExprDisplay;
     }
-  }
+  }*/
 
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
@@ -454,15 +456,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const usableVars = new Set(currentProject.impProjectVars
                           .filter(pv => pv.isIncludedInGeofootprint)
                           .map(pv => this.getProjectVarFieldName(pv)));
-      let projectVarsDict = mapArrayToEntity(currentProject.impProjectVars,  v => v.varPk);
-      let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv, projectVarsDict)));
+      const projectVarsDict = mapArrayToEntity(currentProject.impProjectVars,  v => v.varPk);
+//    let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv, projectVarsDict)));
+      let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getProjectVarFieldName((projectVarsDict[gv.varPk]||safe))));
       usableGeoVars = usableGeoVars.sort((a, b) => this.sortVars(a, b));
       this.varCache = groupBy(usableGeoVars, 'geocode');
-      const columnSet = new Set(usableGeoVars.map(gv => (projectVarsDict[gv.varPk]||safe).customVarExprDisplay));
+      const columnSet = new Set(usableGeoVars.map(gv => (projectVarsDict[gv.varPk]||safe).fieldname));
       const attributeNames = Array.from(columnSet);
       attributeNames.forEach(name => {
-         exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
-         });
+        exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
+      });
    }
 
    private sortVars(a, b) {

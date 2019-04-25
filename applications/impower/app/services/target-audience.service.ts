@@ -20,6 +20,7 @@ import { filterArray, roundTo, formatMilli, safe } from '@val/common';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { RestResponse } from '../models/RestResponse';
 import { getOrSetAsInMap } from '@angular/animations/browser/src/render/shared';
+import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string, transactionId: number) => Observable<any[]>;
@@ -112,6 +113,10 @@ export class TargetAudienceService implements OnDestroy {
       this.audienceMap.set(audienceId, audience);
     }
     if (nationalRefresh != null) this.nationalSources.set(sourceId, nationalRefresh);
+
+    if (audience.audienceSourceType === "Custom" && audience.fieldconte === null)
+      audience.fieldconte = FieldContentTypeCodes.Char;
+
     const projectVar = this.createProjectVar(audience, id);
     // protect against adding dupes to the data store
     if ( projectVar && (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0)) {
@@ -160,18 +165,55 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private createProjectVar(audience: AudienceDataDefinition, id?: number) : ImpProjectVar {
-    let newId = this.projectVarService.getNextStoreId();
-    if (newId <= this.projectVarService.get().length) {
-      for (const pv of this.projectVarService.get()) {
-        newId = this.projectVarService.getNextStoreId(); // avoid collisions with existing IDs
-      }
+    // Determine if we have a project var already
+    let existingPVar = null;
+    let varPk = null;
+    // If passed a custom variable name as the identifier, look up the variable by fieldname, otherwise, by varPk
+    if (Number.isNaN(Number(audience.audienceIdentifier)))
+      existingPVar = this.projectVarService.get().filter(pv => pv.fieldname === audience.audienceIdentifier);
+    else
+      existingPVar = this.projectVarService.get().filter(pv => pv.varPk === Number(audience.audienceIdentifier));
+
+    if (existingPVar != null && existingPVar.length > 0) {
+      console.log("### createProjectVar - Existing project var found:", existingPVar[0]);
+      varPk = existingPVar[0].varPk;
     }
+    else {
+      // If not, create a new id
+      if (Number.isNaN(Number(audience.audienceIdentifier))) {
+        varPk = this.projectVarService.getNextStoreId();
+        if (varPk <= this.projectVarService.get().length) {
+          for (const pv of this.projectVarService.get()) {
+            varPk = this.projectVarService.getNextStoreId(); // avoid collisions with existing IDs
+          }
+        }
+      }
+      else
+         varPk = Number(audience.audienceIdentifier);
+    }
+    audience.audienceIdentifier = varPk.toString();
     const currentProject = this.appStateService.currentProject$.getValue();
-    const varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : newId;
-    //console.debug("createProjectVar varPk: " + varPk + ", newId: " + newId + ", audienceSourceName: " + audience.audienceSourceName + ", audienceSourceType: " + audience.audienceSourceType + ", audienceName: " + audience.audienceName);
+    //console.log("createProjectVar varPk: " + varPk + ", audienceIdentifier:" + audience.audienceIdentifier + ", audienceSourceName: " + audience.audienceSourceName + ", audienceSourceType: " + audience.audienceSourceType + ", audienceName: " + audience.audienceName);
+
+    // This is misleading, createProjectVar will both create AND update a project var
     const projectVar = this.domainFactory.createProjectVar(currentProject, varPk, audience);
+
     return projectVar;
   }
+  // private createProjectVar(audience: AudienceDataDefinition, id?: number) : ImpProjectVar {
+  //   let newId = this.projectVarService.getNextStoreId();
+  //   if (newId <= this.projectVarService.get().length) {
+  //     for (const pv of this.projectVarService.get()) {
+  //       newId = this.projectVarService.getNextStoreId(); // avoid collisions with existing IDs
+  //     }
+  //   }
+  //   const currentProject = this.appStateService.currentProject$.getValue();
+  //   const varPk = !Number.isNaN(Number(audience.audienceIdentifier)) ? Number(audience.audienceIdentifier) : newId;
+  //   //console.debug("createProjectVar varPk: " + varPk + ", newId: " + newId + ", audienceSourceName: " + audience.audienceSourceName + ", audienceSourceType: " + audience.audienceSourceType + ", audienceName: " + audience.audienceName);
+  //   const projectVar = this.domainFactory.createProjectVar(currentProject, varPk, audience);
+  //   return projectVar;
+  // }
+
 
   public updateProjectVars(audience: AudienceDataDefinition) {
     //console.debug("updateProjectVars fired: audience.audienceIdentifier: " + audience.audienceIdentifier);
@@ -349,7 +391,7 @@ export class TargetAudienceService implements OnDestroy {
     }
     if (selectedAudiences.length > 0) {
       // set up a watch process
-      this.selectedSub = this.newSelectedGeos$.pipe(debounceTime(3000))
+      this.selectedSub = this.newSelectedGeos$.pipe(debounceTime(500))
         .subscribe(
           geos => {
             if (geos.length > 0)

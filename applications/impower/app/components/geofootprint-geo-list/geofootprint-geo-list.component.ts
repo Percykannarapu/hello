@@ -690,7 +690,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                      break;
 
                   default:
-console.log("### do not know fieldconte for varPk: ", geovar.varPk, "projectVarsDict:", this.projectVarsDict);
+                     console.log("### do not know fieldconte for varPk: ", geovar.varPk, "projectVarsDict:", this.projectVarsDict);
                      gridGeo[geovar.varPk.toString()] = (geovar.value != null) ? (geovar.value as number).toFixed(14) : null;
                      break;
                }
@@ -702,7 +702,7 @@ console.log("### do not know fieldconte for varPk: ", geovar.varPk, "projectVars
             // Create grid columns for the variables
             if (!this.flatGeoGridExtraColumns.find(f => f.field === geovar.varPk.toString()))
             {
-              const colWidth: number = Math.min(200, Math.max(60, ((this.projectVarsDict[geovar.varPk]||safe).customVarExprDisplay.length * 6) + 24));
+              const colWidth: number = Math.min(200, Math.max(60, ((this.projectVarsDict[geovar.varPk]||safe).fieldname.length * 6) + 24));
               const colStyleClass: string = ((this.projectVarsDict[geovar.varPk]||safe).isNumber) ? 'val-text-right' : '';
 
               // Let the fieldConte decide what the match operator will be on the numeric filter
@@ -717,8 +717,9 @@ console.log("### do not know fieldconte for varPk: ", geovar.varPk, "projectVars
                   break;
               }
 
-              // console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + " - " + geovar.customVarExprDisplay + ", colWidth: " + colWidth + 'px, styleClass: ' + colStyleClass + ", isNumber: " + geovar.isNumber);
-              this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: (this.projectVarsDict[geovar.varPk]||safe).customVarExprDisplay, width: colWidth + 'px'
+              //console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + " - Header:", header, ", colWidth:",colWidth,'px, styleClass: ', colStyleClass, ", isNumber: " + (this.projectVarsDict[geovar.varPk]||safe).isNumber, ", project Var:", this.projectVarsDict[geovar.varPk]);
+              const header = (this.projectVarsDict[geovar.varPk]||safe).isCustom ? (this.projectVarsDict[geovar.varPk]||safe).fieldname : (this.projectVarsDict[geovar.varPk]||safe).customVarExprDisplay;
+              this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: header, width: colWidth + 'px'
                                                 ,fieldname: (this.projectVarsDict[geovar.varPk]||safe).fieldname
                                                 ,matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes((this.projectVarsDict[geovar.varPk]||safe).fieldconte)) ? 'numeric' : 'text'
                                                 ,matchOper: matchOper
