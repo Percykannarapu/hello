@@ -235,7 +235,7 @@ export class TargetAudienceService implements OnDestroy {
       for (const pv of otherVars) {
         const newPv = Object.assign(pv);
         newPv.baseStatus = DAOBaseStatus.UPDATE;
-        pv.isShadedOnMap = false;
+        // pv.isShadedOnMap = false;
         this.projectVarService.update(pv, newPv);
       }
     }
