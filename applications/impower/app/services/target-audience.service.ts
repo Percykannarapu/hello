@@ -427,7 +427,7 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   public clearShadingData() : void {
-    console.log('clearing shading data cache');
+    this.logger.debug.log('clearing shading data cache');
     const current = this.shadingData.getValue();
     current.clear();
     // this.shadingData.next(current);
@@ -435,43 +435,40 @@ export class TargetAudienceService implements OnDestroy {
 
   private getShadingData(analysisLevel: string, geos: string[], audience: AudienceDataDefinition) {
     const key = 'SHADING_DATA';
-    console.log('get shading data called');
+    this.logger.debug.log('get shading data called');
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const source = this.audienceSources.get(sourceId);
-    const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
-    const startPopChunks: number = performance.now();
 
-    this.cacheGeosOnServer(geos, startPopChunks).subscribe(txId => {
-      if (source != null) {
-        this.store$.dispatch(new StartBusyIndicator({ key, message: 'Retrieving shading data' }));
-        const currentShadingData = this.shadingData.getValue();
-        // this is an http call, no need for an unsub
-        if (audience.audienceSourceName === 'Audience-TA') {
-          source(analysisLevel, [audience.audienceIdentifier], [], true, txId, audience).subscribe(
-            data => {
-              data = data.filter(gv => ((projectVarsDict[gv.varPk] || safe).customVarExprDisplay || '').includes(audience.secondaryId));
-              data.forEach(gv => currentShadingData.set(gv.geocode, gv));
-            },
-            err => console.error('There was an error retrieving audience data for map shading', err),
-            () => {
-              this.removeServerGeoCache(txId, startPopChunks).subscribe();
-              this.shadingData.next(currentShadingData);
-              this.store$.dispatch(new StopBusyIndicator({ key }));
-            }
-          );
-        } else {
+    if (source != null) {
+      const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
+      const currentShadingData = this.shadingData.getValue();
+      this.store$.dispatch(new StartBusyIndicator({key, message: 'Retrieving shading data'}));
+
+      if (audience.audienceSourceName === 'Audience-TA') {
+        source(analysisLevel, [audience.audienceIdentifier], [], true, null, audience).subscribe(
+          data => {
+            data = data.filter(gv => ((projectVarsDict[gv.varPk] || safe).customVarExprDisplay || '').includes(audience.secondaryId));
+            data.forEach(gv => currentShadingData.set(gv.geocode, gv));
+          },
+          err => this.logger.error.log('There was an error retrieving audience data for map shading', err),
+          () => {
+            this.shadingData.next(currentShadingData);
+            this.store$.dispatch(new StopBusyIndicator({key}));
+          });
+      } else {
+        const startPopChunks: number = performance.now();
+        this.cacheGeosOnServer(geos, startPopChunks).subscribe(txId => {
           source(analysisLevel, [audience.audienceIdentifier], [], true, txId).subscribe(
             data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
-            err => console.error('There was an error retrieving audience data for map shading', err),
+            err => this.logger.error.log('There was an error retrieving audience data for map shading', err),
             () => {
               this.removeServerGeoCache(txId, startPopChunks).subscribe();
               this.shadingData.next(currentShadingData);
-              this.store$.dispatch(new StopBusyIndicator({ key }));
-            }
-          );
-        }
+              this.store$.dispatch(new StopBusyIndicator({key}));
+            });
+        });
       }
-    });
+    }
   }
 
   public cacheGeosOnServer(geocodes: string[], txStartTime: number) : Observable<number> {

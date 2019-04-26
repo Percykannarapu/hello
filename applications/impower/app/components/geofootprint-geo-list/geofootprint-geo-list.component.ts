@@ -691,7 +691,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
               }
 
               //console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + " - Header:", header, ", colWidth:",colWidth,'px, styleClass: ', colStyleClass, ", isNumber: " + (this.projectVarsDict[geovar.varPk]||safe).isNumber, ", project Var:", this.projectVarsDict[geovar.varPk]);
-              const header = (this.projectVarsDict[geovar.varPk]||safe).isCustom ? (this.projectVarsDict[geovar.varPk]||safe).fieldname : (this.projectVarsDict[geovar.varPk]||safe).customVarExprDisplay;
+              // const header = (this.projectVarsDict[geovar.varPk]||safe).isCustom ? (this.projectVarsDict[geovar.varPk]||safe).fieldname : (this.projectVarsDict[geovar.varPk]||safe).customVarExprDisplay;
+              const header = (this.projectVarsDict[geovar.varPk] || safe).fieldname;
               this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: header, width: colWidth + 'px'
                                                 ,fieldname: (this.projectVarsDict[geovar.varPk]||safe).fieldname
                                                 ,matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes((this.projectVarsDict[geovar.varPk]||safe).fieldconte)) ? 'numeric' : 'text'
