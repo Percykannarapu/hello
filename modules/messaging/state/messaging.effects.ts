@@ -16,9 +16,9 @@ export class MessagingEffects {
     tap(p => this.notifications.showErrorNotification(p.message, p.notificationTitle, p.sticky)),
     tap(p => {
       if (p['additionalErrorInfo'] != null) {
-        this.logger.error.groupCollapsed('%cAdditional Error Info - ' + p.notificationTitle, 'color: red');
-        this.logger.error.log(p.message, p['additionalErrorInfo']);
-        this.logger.error.groupEnd();
+        console.groupCollapsed('%cAdditional Error Info - ' + p.notificationTitle, 'color: red');
+        console.error(p.message, p['additionalErrorInfo']);
+        console.groupEnd();
       }
     })
   );
@@ -51,6 +51,5 @@ export class MessagingEffects {
   );
 
   constructor(private actions$: Actions,
-              @Inject(NotificationProviderToken) private notifications: NotificationProvider,
-              private logger: LoggingService) { }
+              @Inject(NotificationProviderToken) private notifications: NotificationProvider) { }
 }
