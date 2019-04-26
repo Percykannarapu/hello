@@ -1,13 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { mapArray } from '@val/common';
 import { selectors } from '@val/esri';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, switchMap, withLatestFrom } from 'rxjs/operators';
-import { AppDataShimService } from '../../../services/app-data-shim.service';
 import { FullAppState } from '../../../state/app.interfaces';
-import { FiltersChanged } from '../../../state/data-shim/data-shim.actions';
 import { FeatureLoaderService } from '../../services/feature-loader.service';
 import {
   GeoAttributeActions,
