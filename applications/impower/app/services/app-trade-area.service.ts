@@ -370,13 +370,13 @@ export class AppTradeAreaService {
   public setCurrentDefaults(){
     const loc = this.impLocationService.get();
     const tradeAreas = this.impTradeAreaService.get();
-    const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(loc[0].clientLocationTypeCode));
-
+   
     const tas: { radius: number, selected: boolean }[] = [];
-    if (loc != null && loc[0].radius1 == null && loc[0].radius2 == null && loc[0].radius3 == null){
+    if (loc.length > 0 &&  loc != null && loc[0].radius1 == null && loc[0].radius2 == null && loc[0].radius3 == null){
+      const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(loc[0].clientLocationTypeCode));
       const radiusSet = new Set<Number>();
       tradeAreas.forEach(ta => radiusSet.add(ta.taRadius));
-      const radiusArray = Array.from(radiusSet).sort();
+      const radiusArray = Array.from(radiusSet).sort((a, b) => Number(a) - Number(b));
       if (radiusSet.size > 0){
         radiusArray.forEach(radius => {
           tas.push({radius: Number(radius), selected: true});
