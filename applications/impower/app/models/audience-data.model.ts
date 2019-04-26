@@ -1,4 +1,5 @@
-import { FieldContentTypeCodes } from './../impower-datastore/state/models/impower-model.enums';
+import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
+
 export interface AudienceDataDefinition {
   audienceName: string;
   audienceIdentifier: string;
@@ -17,6 +18,7 @@ export interface AudienceDataDefinition {
   audienceTAConfig?: AudienceTradeAreaConfig;
   audienceCounter?: number; // the number that will be used to maintain order in the audiences grid
   fieldconte: FieldContentTypeCodes;
+  requiresGeoPreCaching: boolean;
 }
 
 export interface AudienceTradeAreaConfig {

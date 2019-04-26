@@ -7,7 +7,6 @@ export interface LoggingConfiguration {
 
 export const LoggingConfigurationToken = new InjectionToken<LoggingConfiguration>('logging-config-options');
 
-
 @Injectable({
   providedIn: 'root'
 })

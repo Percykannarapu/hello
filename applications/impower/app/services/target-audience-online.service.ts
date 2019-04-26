@@ -148,7 +148,8 @@ export class TargetAudienceOnlineService {
       dataSetOptions: [{ label: 'National', value: 'nationalScore' }, { label: 'DMA', value: 'dmaScore' }],
       secondaryId: digId.toLocaleString(),
       audienceCounter: TargetAudienceService.audienceCounter,
-      fieldconte: FieldContentTypeCodes.Index
+      fieldconte: FieldContentTypeCodes.Index,
+      requiresGeoPreCaching: true
     };
     return audience;
   }
@@ -175,7 +176,8 @@ export class TargetAudienceOnlineService {
             selectedDataSet: projectVar.indexBase,
             audienceCounter: projectVar.sortOrder,
             secondaryId: projectVar.varPk.toString(),
-            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte)
+            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
+            requiresGeoPreCaching: true
           };
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
 

@@ -1,4 +1,4 @@
-import { ImpProjectVarService } from './../val-modules/targeting/services/ImpProjectVar.service';
+import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { Injectable } from '@angular/core';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
@@ -17,7 +17,7 @@ import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
-import { ProjectPrefGroupCodes } from './../val-modules/targeting/targeting.enums';
+import { ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { TradeAreaTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
@@ -104,7 +104,8 @@ export class TargetAudienceCustomService {
       exportNationally: false,
       allowNationalExport: false,
       audienceCounter: TargetAudienceService.audienceCounter,
-      fieldconte: null
+      fieldconte: null,
+      requiresGeoPreCaching: false
     };
     return audience;
   }
@@ -136,7 +137,8 @@ export class TargetAudienceCustomService {
           exportNationally: false,
           allowNationalExport: false,
           audienceCounter: projectVar.sortOrder,
-          fieldconte: null
+          fieldconte: null,
+          requiresGeoPreCaching: false
         };
         this.currentFileName = audience.audienceSourceName;
         // if (!this.varPkCache.has(audience.audienceName)) // Added to not create duplicate varPkCache entries
@@ -164,6 +166,7 @@ export class TargetAudienceCustomService {
   }
 
   private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<string, ImpGeofootprintGeo[]>) : ImpGeofootprintVar[] {
+    console.log('CreateGeofootprintVar called');
     const fullId = `Custom/${fileName}/${column}`;
     let newVarPk = null;
 // if (column == null)
@@ -217,7 +220,7 @@ export class TargetAudienceCustomService {
                      && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1) {
         let currentResult:ImpGeofootprintVar = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, newVarPk, fieldValue, fullId, fieldDescription, fieldType);
         currentResult.impGeofootprintLocation = geo.impGeofootprintLocation; // TODO: This should be part of the factory method
-        //console.debug("createGeofootprintVar custom - created a var: loc: " + currentResult.impGeofootprintLocation.locationNumber + ", geocode: " + currentResult.geocode + ", varPk: " + currentResult.varPk);
+        console.log("createGeofootprintVar custom - created a var: loc: " + currentResult.impGeofootprintLocation.locationNumber + ", geocode: " + currentResult.geocode + ", varPk: " + currentResult.varPk);
         results.push(currentResult);
       }
     });
@@ -361,7 +364,8 @@ export class TargetAudienceCustomService {
   }
 
   private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {
-    //console.debug("addAudience - target-audience-custom - audienceRefreshCallback fired - ");
+    console.log('Refresh callback', geocodes, identifiers);
+    // console.log("addAudience - target-audience-custom - audienceRefreshCallback fired - ");
     if (identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
       return EMPTY;
     const geoSet = new Set(geocodes);

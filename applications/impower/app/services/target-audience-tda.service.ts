@@ -115,7 +115,8 @@ export class TargetAudienceTdaService {
       exportNationally: false,
       allowNationalExport: false,
       audienceCounter: TargetAudienceService.audienceCounter,
-      fieldconte: fieldconte
+      fieldconte: fieldconte,
+      requiresGeoPreCaching: true
     };
     return audience;
   }
@@ -137,7 +138,8 @@ export class TargetAudienceTdaService {
             exportNationally: false,
             allowNationalExport: false,
             audienceCounter: projectVar.sortOrder,
-            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte)
+            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
+            requiresGeoPreCaching: true
           };
           if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
           if (projectVar.source.toLowerCase().match('tda')) {

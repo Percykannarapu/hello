@@ -16,7 +16,7 @@ import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProje
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
-import { mapByExtended } from '@val/common';
+import { mapByExtended, safe } from '@val/common';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { FullAppState } from 'app/state/app.interfaces';
 import { Store } from '@ngrx/store';
@@ -120,12 +120,13 @@ export class TargetAudienceAudienceTA {
             secondaryId: this.reloadSecondaryId(projectVar),
             audienceTAConfig: this.reloadAudienceTaConfig(),
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
-            audienceCounter: projectVar.sortOrder
+            audienceCounter: projectVar.sortOrder,
+            requiresGeoPreCaching: false
           };
           this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
           this.audienceService.addAudience(
             currentAudience,
-            (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(null, null, null, null, null, audience),
+            (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
             null, true);
         }
       }
@@ -186,7 +187,8 @@ export class TargetAudienceAudienceTA {
       secondaryId: `${name}`,
       audienceTAConfig: audienceTAConfig,
       audienceCounter: TargetAudienceService.audienceCounter++,
-      fieldconte: this.geoVarMap.get(name) === 'number' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Char
+      fieldconte: this.geoVarMap.get(name) === 'number' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Char,
+      requiresGeoPreCaching: false
     };
     return audience;
   }
@@ -197,7 +199,7 @@ export class TargetAudienceAudienceTA {
       const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
       this.audienceService.addAudience(
         model,
-        (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(null, null, null, null, null, audience),
+        (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
         null);
     }
     /*this.audienceService.addAudience(
@@ -339,6 +341,7 @@ export class TargetAudienceAudienceTA {
     private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, txId: number, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
       //console.debug("addAudience - target-audience-audienceta - dataRefreshCallback, audience: ", audience);
       if (!audience) return EMPTY;
+      const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
 
       // Update the ta config
       audience.audienceTAConfig = this.reloadAudienceTaConfig();
@@ -366,6 +369,13 @@ export class TargetAudienceAudienceTA {
     const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(payload), { headers: headers });
     return dataObs.pipe(
       map(res => this.createGeofootprintVars(this.parseResponse(res, localAudienceName))),
+      map(data => {
+        if (isForShading) {
+          return data.filter(gv => ((projectVarsDict[gv.varPk] || safe).customVarExprDisplay || '').includes(audience.secondaryId));
+        } else {
+          return data;
+        }
+      })
     );
   }
 }
