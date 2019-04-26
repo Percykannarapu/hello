@@ -1,5 +1,6 @@
 import { isString } from 'util';
 import { GeoAttribute } from '../../impower-datastore/state/geo-attributes/geo-attributes.model';
+import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
 import { Component, OnDestroy, OnInit, ViewChild, ViewChildren, QueryList, Input, ChangeDetectionStrategy, EventEmitter, Output } from '@angular/core';
 import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
@@ -235,7 +236,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor() { }
+   constructor(private logger: LoggingService) { }
 
    ngOnInit()
    {
@@ -482,9 +483,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       let variablePkCounts: Map<string, ImpGeofootprintVar[]> = groupByExtended(geoVars, (i) => i.varPk + ', ' + (this.projectVarsDict[i.varPk] || safe).customVarExprDisplay);
       if (variablePkCounts != null && variablePkCounts.size > 0)
       {
-        console.groupCollapsed('createComposite - geoVar Counts:', variablePkCounts.size);
-        console.table(Array.from(variablePkCounts.keys()).map(v => ({Variable: v, Count: variablePkCounts.get(v).length})));
-        console.groupEnd();
+        this.logger.info.groupCollapsed('createComposite - geoVar Counts:', variablePkCounts.size);
+        this.logger.info.table(Array.from(variablePkCounts.keys()).map(v => ({Variable: v, Count: variablePkCounts.get(v).length})));
+        this.logger.info.groupEnd();
       }
       variablePkCounts = null;
 

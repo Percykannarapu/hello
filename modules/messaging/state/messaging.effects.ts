@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { toPayload } from '@val/common';
 import { tap } from 'rxjs/operators';
+import { LoggingService } from '../../../applications/impower/app/val-modules/common/services/logging.service';
 import { NotificationProvider, NotificationProviderToken } from '../core/notification-provider.interface';
 import { ErrorNotification, InfoNotification, MessagingActionTypes, SuccessNotification, WarningNotification } from './messaging.actions';
 
@@ -15,9 +16,9 @@ export class MessagingEffects {
     tap(p => this.notifications.showErrorNotification(p.message, p.notificationTitle, p.sticky)),
     tap(p => {
       if (p['additionalErrorInfo'] != null) {
-        console.groupCollapsed('%cAdditional Error Info - ' + p.notificationTitle, 'color: red');
-        console.error(p.message, p['additionalErrorInfo']);
-        console.groupEnd();
+        this.logger.error.groupCollapsed('%cAdditional Error Info - ' + p.notificationTitle, 'color: red');
+        this.logger.error.log(p.message, p['additionalErrorInfo']);
+        this.logger.error.groupEnd();
       }
     })
   );
@@ -50,5 +51,6 @@ export class MessagingEffects {
   );
 
   constructor(private actions$: Actions,
-              @Inject(NotificationProviderToken) private notifications: NotificationProvider) { }
+              @Inject(NotificationProviderToken) private notifications: NotificationProvider,
+              private logger: LoggingService) { }
 }

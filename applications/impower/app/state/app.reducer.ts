@@ -1,11 +1,12 @@
 import { routerReducer } from '@ngrx/router-store';
 import { Action, ActionReducer, ActionReducerMap, MetaReducer } from '@ngrx/store';
+import { LogLevels } from '@val/common';
 import { environment } from '../../environments/environment';
 import { masterDataStoreReducer } from '../impower-datastore/state/impower-datastore.interfaces';
 import { LocalAppState } from './app.interfaces';
 import { dataShimReducer } from './data-shim/data-shim.reducer';
-import { menuReducer } from './menu/menu.reducer';
 import { homeGeoReducer } from './homeGeocode/homeGeo.reducer';
+import { menuReducer } from './menu/menu.reducer';
 import { renderingReducer } from './rendering/rendering.reducer';
 
 export const appReducer: ActionReducerMap<LocalAppState> = {
@@ -29,6 +30,4 @@ export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<Lo
   };
 }
 
-export const appMetaReducers: MetaReducer<LocalAppState>[] = !environment.serverBuild
-  ? [logger]
-  : [];
+export const appMetaReducers: MetaReducer<LocalAppState>[] = environment.logLevel <= LogLevels.ALL ? [logger] : [];
