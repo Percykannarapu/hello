@@ -50,7 +50,7 @@ export class AppProjectService {
     const saveUrl = 'v1/targeting/base/impproject/deleteSave';
     localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
     this.cleanupProject(localProject);
-    this.logger.info('Project being saved', JSON.stringify(localProject));
+    this.logger.info.log('Project being saved', JSON.stringify(localProject));
     return this.restService.post(saveUrl, localProject).pipe(
       map(response => Number(response.payload))
     );

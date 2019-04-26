@@ -89,7 +89,7 @@ export class AppMapService implements OnDestroy {
         });
 
         EsriUtils.setupWatch(popup, 'visible').pipe(debounceTime(1000)).subscribe(result => {
-          this.logger.debug('Popup visible watch fired', result);
+          this.logger.debug.log('Popup visible watch fired', result);
           if (result.newValue === false) {
             this.componentGenerator.cleanUpGeoPopup();
           }

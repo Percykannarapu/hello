@@ -11,7 +11,7 @@
  * because it will have performance impact when throw error
  */
 import 'zone.js/dist/zone-error'; // Included with Angular CLI.
-import { LogLevels } from '../app/val-modules/common/services/logging.service';
+import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
 
 export const environment = {

@@ -20,7 +20,7 @@ export class RenderingService {
   clearTradeAreas() : void {
     const layersToRemove = this.esriMapService.mapView.map.allLayers.toArray()
       .filter(l => l.title.toLowerCase().includes('audience') || l.title.toLowerCase().includes('radius'));
-    this.logger.debug('Removing', layersToRemove.length, 'layers');
+    this.logger.debug.log('Removing', layersToRemove.length, 'layers');
     layersToRemove.forEach(l => this.esriLayerService.removeLayer(l.title));
   }
 
@@ -29,7 +29,7 @@ export class RenderingService {
   }
 
   renderTradeAreas(defs: TradeAreaDrawDefinition[]) : void {
-    this.logger.debug('definitions for trade areas', defs);
+    this.logger.debug.log('definitions for trade areas', defs);
     defs.forEach(d => {
       const symbol = new EsriApi.SimpleFillSymbol({
         style: 'solid',
@@ -53,7 +53,7 @@ export class RenderingService {
   }
 
   renderLocations(defs: LocationDrawDefinition[]) : void {
-    this.logger.debug('definitions for locations', defs);
+    this.logger.debug.log('definitions for locations', defs);
     defs.forEach(d => {
       const currentLayer = this.esriLayerService.getFeatureLayer(d.layerName);
       if (currentLayer != null) {

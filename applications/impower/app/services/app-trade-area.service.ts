@@ -228,7 +228,7 @@ export class AppTradeAreaService {
               }
             });
           },
-          err => { this.logger.error('Error getting lats and longs from layer', err); },
+          err => { this.logger.error.log('Error getting lats and longs from layer', err); },
           () => this.calculateStatsAndZoom(latitudes, longitudes)
         );
       });
@@ -258,7 +258,7 @@ export class AppTradeAreaService {
     });
     const attrs = this.impLocAttrService.get().filter(a => a.attributeCode === 'Invalid Home Geo');
     const tradeAreasToRemove = new Set([TradeAreaTypeCodes.HomeGeo, TradeAreaTypeCodes.Manual, TradeAreaTypeCodes.MustCover]);
-    this.logger.debug('Clearing all Geos');
+    this.logger.debug.log('Clearing all Geos');
     this.impTradeAreaService.startTx();
     this.impLocAttrService.remove(attrs);
     this.impVarService.clearAll();

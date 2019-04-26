@@ -309,7 +309,7 @@ export class AppLocationService {
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
     const quadTree = new LocationQuadTree(locations);
     const result = quadTree.partition(1000);
-    this.logger.debug('QuadTree partitions', quadTree);
+    this.logger.debug.log('QuadTree partitions', quadTree);
     return result.filter(chunk => chunk && chunk.length > 0);
   }
 
@@ -664,7 +664,7 @@ export class AppLocationService {
   }
 
   private setPrimaryHomeGeocode(analysisLevel: string) {
-    this.logger.info(`Setting primary home geo for ${analysisLevel}`);
+    this.logger.info.log(`Setting primary home geo for ${analysisLevel}`);
     if (analysisLevel == null) {
       const currentLocations = this.impLocationService.get();
       currentLocations.forEach(l => l.homeGeocode = null);
@@ -700,7 +700,7 @@ export class AppLocationService {
     if (currentAnalysisLevel === null){
       currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     }
-    this.logger.debug('Setting custom flag to indicate locations have had home geo processing performed.');
+    this.logger.debug.log('Setting custom flag to indicate locations have had home geo processing performed.');
     let homeKey = '';
     if (currentAnalysisLevel === 'ZIP'){
        homeKey = getHomeGeoKey('Zip Code');
@@ -823,7 +823,7 @@ export class AppLocationService {
           })).filter(p => p.in_features != null);
 
           const resultAttributes: any[] = [];
-          this.logger.info('Home Geo service call initiated.');
+          this.logger.info.log('Home Geo service call initiated.');
 
           const observables = payloads.map(payload => this.esriGeoprocessingService.processJob<__esri.FeatureSet>(this.config.serviceUrls.homeGeocode, payload));
           pipObservble  = merge(...observables, 4).pipe(

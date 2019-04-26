@@ -1,4 +1,4 @@
-import { LogLevels } from '../app/val-modules/common/services/logging.service';
+import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
 
 export const environment = {

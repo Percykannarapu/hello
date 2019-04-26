@@ -476,9 +476,9 @@ export class TargetAudienceService implements OnDestroy {
 
   public cacheGeosOnServer(geocodes: string[], txStartTime: number) : Observable<number> {
     const chunks = this.config.geoInfoQueryChunks;
-    this.logger.info('Populating', geocodes.length, 'geo chunks on server');
+    this.logger.info.log('Populating', geocodes.length, 'geo chunks on server');
     return this.restService.post('v1/targeting/base/chunkedgeos/populateChunkedGeos', [{chunks, geocodes}]).pipe(
-      tap(response => this.logger.info('populateChunkedGeos took ', formatMilli(performance.now() - txStartTime), ', Response:', response)),
+      tap(response => this.logger.info.log('populateChunkedGeos took ', formatMilli(performance.now() - txStartTime), ', Response:', response)),
       map(response => response.payload.transactionId)
     );
   }
@@ -500,7 +500,7 @@ export class TargetAudienceService implements OnDestroy {
             if (!doneAudienceTAs.has(taAudience.audienceIdentifier.split('-')[0])) {
               observables.push(
                 sourceRefresh(analysisLevel, ids, [], false, transactionId, taAudience).pipe(
-                  tap(response => this.logger.info(`Retrieve GeoVar data for "${s}" took`, formatMilli(performance.now() - isolatedGetStart), ', Count:', response.length)),
+                  tap(response => this.logger.info.log(`Retrieve GeoVar data for "${s}" took`, formatMilli(performance.now() - isolatedGetStart), ', Count:', response.length)),
                 )
               );
               doneAudienceTAs.add(taAudience.audienceIdentifier.split('-')[0]);
@@ -509,7 +509,7 @@ export class TargetAudienceService implements OnDestroy {
         } else {
           observables.push(
             sourceRefresh(analysisLevel, ids, [], false, transactionId).pipe(
-              tap(response => this.logger.info(`Retrieve GeoVar data for "${s}" took`, formatMilli(performance.now() - isolatedGetStart), ', Count:', response.length)),
+              tap(response => this.logger.info.log(`Retrieve GeoVar data for "${s}" took`, formatMilli(performance.now() - isolatedGetStart), ', Count:', response.length)),
             )
           );
         }
@@ -517,16 +517,16 @@ export class TargetAudienceService implements OnDestroy {
     });
     return merge(...observables, 4).pipe(
       reduce((a, c) => accumulateArrays(a, c), []),
-      tap(response => this.logger.info('Total GeoVar data retrieval took', formatMilli(performance.now() - isolatedGetStart), ', Total:', response.length)),
-      tap(() => this.logger.info('Total Populate & Retrieve time', formatMilli(performance.now() - txStartTime))),
+      tap(response => this.logger.info.log('Total GeoVar data retrieval took', formatMilli(performance.now() - isolatedGetStart), ', Total:', response.length)),
+      tap(() => this.logger.info.log('Total Populate & Retrieve time', formatMilli(performance.now() - txStartTime))),
     );
   }
 
   public removeServerGeoCache(transactionId: number, txStartTime: number) : Observable<any> {
     const deleteStartTime = performance.now();
     return this.restService.delete('v1/targeting/base/chunkedgeos/deleteChunks/', transactionId).pipe(
-      tap(response => this.logger.info('deleteChunks took ', formatMilli(performance.now() - deleteStartTime), ', Response:', response)),
-      tap(() => this.logger.info('Total Transaction time', formatMilli(performance.now() - txStartTime))),
+      tap(response => this.logger.info.log('deleteChunks took ', formatMilli(performance.now() - deleteStartTime), ', Response:', response)),
+      tap(() => this.logger.info.log('Total Transaction time', formatMilli(performance.now() - txStartTime))),
     );
   }
 

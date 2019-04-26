@@ -44,7 +44,7 @@ export class AppComponentGeneratorService {
 
   public geographyPopupFactory(feature: __esri.Feature, fields: __esri.FieldInfo[], popupDefinition: CustomPopUpDefinition) : HTMLElement {
     const requestedGeocode = feature.graphic.attributes.geocode;
-    this.logger.info(`Building popup for geocode ${requestedGeocode}`);
+    this.logger.debug.log(`Building popup for geocode ${requestedGeocode}`);
     if (this.cachedGeoPopup == null) {
       this.createGeographyPopup();
     }
@@ -55,19 +55,19 @@ export class AppComponentGeneratorService {
   }
 
   public cleanUpGeoPopup() : void {
-    this.logger.info('Destroying popup instance');
+    this.logger.debug.log('Destroying popup instance');
     if (this.cachedGeoPopup != null) this.cachedGeoPopup.destroy();
     this.cachedGeoPopup = null;
   }
 
   private createGeographyPopup() : void {
     const factory = this.resolver.resolveComponentFactory(EsriGeographyPopupComponent);
-    this.logger.debug('Instantiating new popup component');
+    this.logger.debug.log('Instantiating new popup component');
     this.cachedGeoPopup = factory.create(this.injector);
   }
 
   private populateGeographyPopupData(geocode: any, feature: __esri.Feature, fields: __esri.FieldInfo[], popupDefinition: CustomPopUpDefinition) : void {
-    this.logger.debug('Setting popup values', geocode, feature.graphic.attributes, fields, popupDefinition);
+    this.logger.debug.log('Setting popup values', geocode, feature.graphic.attributes, fields, popupDefinition);
     if (this.shadingSub) this.shadingSub.unsubscribe();
     this.shadingSub = this.targetAudienceService.shadingData$.pipe(
       filter(dataDictionary => dataDictionary.has(geocode) && this.cachedGeoPopup != null),

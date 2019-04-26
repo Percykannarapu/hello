@@ -157,7 +157,7 @@ export class AppDiscoveryService {
           localCache.push(...data);
         },
         err => {
-          this.logger.error('There was an error retrieving the Rad Data Cache', err);
+          this.logger.error.log('There was an error retrieving the Rad Data Cache', err);
           this.radCacheRetrieved = true;
         },
         () => {
@@ -266,7 +266,7 @@ export class AppDiscoveryService {
           this.currentTrackerSuggestions.next(foundItems);
         }
       },
-      err => this.logger.error('There was an error retrieving the Project Tracker Data', err)
+      err => this.logger.error.log('There was an error retrieving the Project Tracker Data', err)
     );
   }
 

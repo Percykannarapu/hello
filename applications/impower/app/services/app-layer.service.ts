@@ -48,13 +48,13 @@ export class AppLayerService {
   }
 
   private setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
-    this.logger.info('Setting default layer visibility for', currentAnalysisLevel);
+    this.logger.info.log('Setting default layer visibility for', currentAnalysisLevel);
    //
     this.layerService.getAllPortalGroups().forEach(g => g.visible = false);
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 ){
       const portalId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
       const groupKeys: string[] = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
-      this.logger.debug('New visible groups', groupKeys);
+      this.logger.debug.log('New visible groups', groupKeys);
       if (groupKeys != null && groupKeys.length > 0) {
         const layerGroups = groupKeys.map(g => this.appConfig.layers[g]);
         if (layerGroups != null && layerGroups.length > 0) {

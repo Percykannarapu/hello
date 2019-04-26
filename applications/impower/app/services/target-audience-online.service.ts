@@ -394,7 +394,7 @@ export class TargetAudienceOnlineService {
 
     const missingCategoryIds = new Set(inputData.digCategoryIds.filter(id => !audData.has(id.toString()) || emptyAudiences.has(id.toString()) ));
     if (missingCategoryIds.size > 0) {
-      this.logger.info('Category Ids missing data::', missingCategoryIds);
+      this.logger.info.log('Category Ids missing data::', missingCategoryIds);
       const audience = [];
       missingCategoryIds.forEach(id => {
         audience.push(this.audDescription[id.toString()]);

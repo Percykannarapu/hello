@@ -186,13 +186,13 @@ export class AppGeoService {
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
     const quadTree = new LocationQuadTree(locations);
     const result = quadTree.partition(250, 500);
-    this.logger.debug('QuadTree partitions', quadTree);
+    this.logger.debug.log('QuadTree partitions', quadTree);
     return result.filter(chunk => chunk && chunk.length > 0);
   }
 
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
-    this.logger.debug('Select and Persist Radius Geos', tradeAreas);
+    this.logger.debug.log('Select and Persist Radius Geos', tradeAreas);
     const key = 'selectAndPersistRadiusGeos';
     const allLocations = new Set(tradeAreas.map(ta => ta.impGeofootprintLocation));
     const locationChunks = this.partitionLocations(Array.from(allLocations));
@@ -200,7 +200,7 @@ export class AppGeoService {
     const tradeAreaSet = new Set(tradeAreas);
     const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Trade Areas...' }));
-    this.logger.debug('Total number of location slices to process', locationChunks.length);
+    this.logger.debug.log('Total number of location slices to process', locationChunks.length);
     for (const currentChunk of locationChunks) {
       const currentTas = simpleFlatten(currentChunk.map(l => l.impGeofootprintTradeAreas)).filter(ta => tradeAreaSet.has(ta));
       const maxRadius = Math.max(...currentTas.map(ta => ta.taRadius));
@@ -351,7 +351,7 @@ export class AppGeoService {
         }
       }
     });
-    this.logger.debug('Total geo count:', geosToSave.length);
+    this.logger.debug.log('Total geo count:', geosToSave.length);
     if (allAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({ geoAttributes: allAttributes }));
     return geosToSave;
   }

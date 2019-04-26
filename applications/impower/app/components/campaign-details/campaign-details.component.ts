@@ -44,7 +44,7 @@ export class CampaignDetailsComponent implements OnInit {
         .pipe(
           filter(([appIsReady]) => appIsReady),
           map(([appIsReady, currentProject, selectedRad, selectedTracker]) => ValDiscoveryUIModel.createFromProject(currentProject, selectedRad, selectedTracker)),
-          tap(UIData => this.logger.debug('Discovery UI data changed', UIData))
+          tap(UIData => this.logger.debug.log('Discovery UI data changed', UIData))
         );
     this.currentRadSuggestions$ = this.appDiscoveryService.radSearchSuggestions$;
     this.currentProjectTrackerSuggestions$ = this.appDiscoveryService.trackerSearchSuggestions$;
