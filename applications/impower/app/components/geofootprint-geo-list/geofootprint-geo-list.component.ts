@@ -213,7 +213,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private tableWrapOff: string = 'val-table val-tbody-nowrap';
    public  tableWrapStyle: string = this.tableWrapOff;
    public  tableWrapIcon: string = 'fa fa-minus';
-   public  tableHdrSlice: boolean = true;
+   public  tableHdrSlice: boolean = false;
 
    // Private component variables
    private varCache: any;
@@ -1193,13 +1193,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       {
          this.tableWrapStyle = this.tableWrapOff;
          this.tableWrapIcon = 'fa fa-minus';
-         this.tableHdrSlice = true;
+         //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
       }
       else
       {
          this.tableWrapStyle = this.tableWrapOn;
          this.tableWrapIcon = 'fa fa-bars';
-         this.tableHdrSlice = false;
+         //this.tableHdrSlice = false;
       }
    }
 
