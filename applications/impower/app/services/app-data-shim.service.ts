@@ -17,6 +17,7 @@ import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
+import { AppLayerService } from './app-layer.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -41,6 +42,7 @@ export class AppDataShimService {
               private appTradeAreaService: AppTradeAreaService,
               private appGeoService: AppGeoService,
               private appStateService: AppStateService,
+              private appLayerService: AppLayerService,
               private targetAudienceService: TargetAudienceService,
               private targetAudienceCustomService: TargetAudienceCustomService,
               private metricService: ValMetricsService,
@@ -80,7 +82,7 @@ export class AppDataShimService {
     this.appTradeAreaService.zoomToTradeArea();
     this.appGeoService.reloadMustCovers();
     this.targetAudienceCustomService.reloadCustomVars();
-
+    this.appLayerService.updateLabelExpressions(false);
   }
 
   createNew() : number {

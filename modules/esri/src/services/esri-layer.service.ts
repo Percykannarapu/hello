@@ -260,16 +260,16 @@ export class EsriLayerService {
   }
 
   public setLabels(labelConfig: EsriLabelConfiguration, layerExpressions: { [layerId: string] : EsriLabelLayerOptions }) : void {
-    const layers = this.mapService.mapView.map.allLayers.toArray();
-    layers.forEach(l => {
-      if (EsriUtils.layerIsPortalFeature(l)) {
-        l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions ? layerExpressions[l.portalItem.id] : null);
-        l.labelsVisible = labelConfig.enabled;
-      }
-      if (EsriUtils.layerIsFeature(l) && l.title == 'Project Sites') {
-        l.labelsVisible = labelConfig.siteEnabled;
-      }
-    });
+      const layers = this.mapService.mapView.map.allLayers.toArray();
+      layers.forEach(l => {
+        if (EsriUtils.layerIsPortalFeature(l)) {
+          l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions[l.portalItem.id]);
+          l.labelsVisible = labelConfig.enabled;
+        }
+        if (EsriUtils.layerIsFeature(l) && l.title == 'Project Sites') {
+          l.labelsVisible = labelConfig.siteEnabled;
+        }
+      });
   }
 
   private createLabelConfig(layer: __esri.FeatureLayer, fontName: string, fontSize: number, layerOptions: EsriLabelLayerOptions) : __esri.LabelClass[] {
