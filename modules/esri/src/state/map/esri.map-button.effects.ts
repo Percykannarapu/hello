@@ -26,7 +26,7 @@ export class EsriMapButtonEffects {
     ofType(EsriMapToolbarButtonActionTypes.PopupButtonSelected),
     this.resetSketchViewGraphics(),
     mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: true })]),
-    tap(() => this.esriMapService.setMeasureWidget(null))
+    tap(() => this.esriMapService.setMeasureWidget('default'))
   );
 
   @Effect()
@@ -34,7 +34,7 @@ export class EsriMapButtonEffects {
     ofType(EsriMapToolbarButtonActionTypes.SelectSinglePolySelected),
     this.resetSketchViewGraphics(),
     mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: false })]),
-    tap(() => this.esriMapService.setMeasureWidget(null))
+    tap(() => this.esriMapService.setMeasureWidget('copy'))
   );
 
   // the takeUntil bits are there if the user picks a different button after starting the sketch view
@@ -45,8 +45,10 @@ export class EsriMapButtonEffects {
     // tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
     this.resetSketchViewGraphics(),
     mergeMap(() => [new ClearSketchView()]),
-    tap(() => this.esriMapService.setMeasureWidget(null)),
-    tap(() => this.esriMapService.setMeasureWidget('measure'))  
+    tap(() => {
+      this.esriMapService.setMeasureWidget(null);
+      this.esriMapService.setMeasureWidget('measure');
+    })
   );
 
   @Effect()
