@@ -570,7 +570,7 @@ export class AppLayerService {
           className: 'esri-icon-plus-circled'
          });
          const template = new EsriApi.PopupTemplate({
-            title: '{geocode}',
+            title: '{geocode} {city_name}',
             content: [{
                type: 'fields',
                fieldInfos: fields
@@ -689,16 +689,16 @@ export class AppLayerService {
       fields.push(this.createPopupField('zip', 'Zip'));
       fields.push(this.createPopupField('pricing_name', 'Pricing Market'));
       fields.push(this.createPopupField('sdm_name', 'Shared Distribution Market'));
-      fields.push(this.createPopupField('wrap', 'Redplum Wrap Zone'));
-      fields.push(this.createPopupField('county', 'DMA Code'));
+      fields.push(this.createPopupField('wrap_name', 'Redplum Wrap Zone'));
+      fields.push(this.createPopupField('dma_code', 'DMA Code'));
       fields.push(this.createPopupField('county', 'County FIPS Code'));
-      fields.push(this.createPopupField('cl0c00', '% CY HHs Familes With Related Children < 18 Yrs'));
-      fields.push(this.createPopupField('cl2i0r', '% CY HHs w/HH Inc $50K +'));
-      fields.push(this.createPopupField('cl2i0p', '% CY HHs w/HH Inc $75,000 +'));
-      fields.push(this.createPopupField('cl0utw', '% CY Owner Occupied Housing Units'));
-      fields.push(this.createPopupField('cl2prb', '% Pop White Alone Non-Hisp'));
-      fields.push(this.createPopupField('cl2prw', '% Pop White Alone Non-Hisp'));
-      fields.push(this.createPopupField('null', '% Population Growth 2018-2023'));
+      fields.push(this.createPopupField('cl0c00', '% CY HHs Familes With Related Children < 18 Yrs', 2));
+      fields.push(this.createPopupField('cl2i0r', '% CY HHs w/HH Inc $50K +', 2));
+      fields.push(this.createPopupField('cl2i0p', '% CY HHs w/HH Inc $75,000 +', 2));
+      fields.push(this.createPopupField('cl0utw', '% CY Owner Occupied Housing Units', 2));
+      fields.push(this.createPopupField('cl2prb', '% Pop White Alone Non-Hisp', 2));
+      fields.push(this.createPopupField('cl2prw', '% Pop White Alone Non-Hisp', 2));
+      fields.push(this.createPopupField('null', '% Population Growth 2018-2023', 2));
       fields.push(this.createPopupField('cl2i00', 'CY Median Household Income'));
       fields.push(this.createPopupField('cl2hwv', 'CY Median Value, Owner OCC Housing Units'));
       fields.push(this.createPopupField('hhld_w', 'HouseHolds, Winter'));
@@ -706,10 +706,13 @@ export class AppLayerService {
       return fields;
    }
 
-   private createPopupField(fieldName: string, fieldLabel: string) : __esri.FieldInfo {
+   private createPopupField(fieldName: string, fieldLabel: string, places?: number) : __esri.FieldInfo {
       const field: __esri.FieldInfo = new EsriApi.FieldInfo({
          fieldName: fieldName,
-         label: fieldLabel
+         label: fieldLabel,
+         format: {
+            places: places != null ? places : 0
+         }
       });
       return field;
    }
