@@ -698,7 +698,6 @@ export class AppLayerService {
       fields.push(this.createPopupField('cl0utw', '% CY Owner Occupied Housing Units', 2));
       fields.push(this.createPopupField('cl2prb', '% Pop White Alone Non-Hisp', 2));
       fields.push(this.createPopupField('cl2prw', '% Pop White Alone Non-Hisp', 2));
-      fields.push(this.createPopupField('null', '% Population Growth 2018-2023', 2));
       fields.push(this.createPopupField('cl2i00', 'CY Median Household Income'));
       fields.push(this.createPopupField('cl2hwv', 'CY Median Value, Owner OCC Housing Units'));
       fields.push(this.createPopupField('hhld_w', 'HouseHolds, Winter'));
