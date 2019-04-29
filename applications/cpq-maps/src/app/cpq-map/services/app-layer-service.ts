@@ -565,7 +565,7 @@ export class AppLayerService {
          let fields = [];
          fields = [...this.createStandardPopupFields()];
          const toggleAction: __esri.ActionButton = new EsriApi.ActionButton({
-          title: 'Toggle Selection',
+          title: 'Add/Remove Geo',
           id: 'toggle-selection',
           className: 'esri-icon-plus-circled'
          });
