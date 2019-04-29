@@ -221,26 +221,26 @@ export class AppLayerService {
       let count: number = 0;
       const wrapZones = this.editDetailService.getEditDetailsByWrapZone(state);
       for (const wrapZone of Array.from(wrapZones.keys())) {
-         if (this.wrapShadingMap.has(this.parseWrapZoneName(wrapZone))) {
+         if (this.wrapShadingMap.has(wrapZones.get(wrapZone)[0].wrapZone)) {
             continue;
          } else {
             const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
             pallete.forEach(color => color.push(0.6));
-            this.wrapShadingMap.set(this.parseWrapZoneName(wrapZone), pallete[count % pallete.length]);
+            this.wrapShadingMap.set(wrapZones.get(wrapZone)[0].wrapZone, pallete[count % pallete.length]);
          }
          count++;
       }
       const query: __esri.Query = new EsriApi.Query();
       query.outFields = ['geocode, wrap_name'];
-      query.where = 'geocode in (';
-      selectedGeos.forEach(sg => query.where += `'${this.parseWrapZoneName(sg.wrapZone)}',`);
+      query.where = 'wrap_name in (';
+      selectedGeos.forEach(sg => query.where += `'${sg.wrapZone}',`);
       query.where = query.where.substr(0, query.where.length - 1);
       query.where += ')';
       this.queryService.executeQuery(this.configService.layers['wrap'].boundaries.id, query, true).subscribe(res => {
          const graphics: Array<__esri.Graphic> = [];
          for (const geo of res.features) {
             const graphic: __esri.Graphic = new EsriApi.Graphic();
-            const symbol: __esri.Symbol = new EsriApi.SimpleFillSymbol({ color:  this.wrapShadingMap.get(geo.getAttribute('geocode')) });
+            const symbol: __esri.Symbol = new EsriApi.SimpleFillSymbol({ color:  this.wrapShadingMap.get(geo.getAttribute('wrap_name')) });
             graphic.symbol = symbol;
             graphic.geometry = geo.geometry;
             graphic.setAttribute('geocode', geo.getAttribute('geocode'));
@@ -345,11 +345,14 @@ export class AppLayerService {
          return;
       }
       const selectedGeocodes: Set<string> = new Set<string>();
-      const fkSiteMap: Map<string, number> = new Map<string, number>();
+      const fkSiteMap: Map<string, number | string> = new Map<string, number | string>();
       const wrapZones: Set<string> = new Set<string>();
       editDetails.forEach(ed => {
          selectedGeocodes.add(ed.geocode);
-         fkSiteMap.set(ed.geocode, ed.fkSite);
+         if (state.shared.shadingType === shadingType.WRAP_ZONE)
+            fkSiteMap.set(ed.geocode, ed.wrapZone);
+         else
+            fkSiteMap.set(ed.geocode, ed.fkSite);
          wrapZones.add(ed.wrapZone);
       });
       const existingGraphics: Array<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.filter(g => 
@@ -383,7 +386,11 @@ export class AppLayerService {
          const graphics: Array<__esri.Graphic> = [];
          res.features.forEach (feature => {
             const graphic: __esri.Graphic = new EsriApi.Graphic();
-            const color = this.getGeoColor(state, feature.getAttribute('geocode'), fkSiteMap);
+            let color = null;
+            if (state.shared.shadingType === shadingType.WRAP_ZONE)
+               color = this.getGeoColor(state, feature.getAttribute('wrap_name'), fkSiteMap);
+            else
+               color = this.getGeoColor(state, feature.getAttribute('geocode'), fkSiteMap);
             const symbol = new EsriApi.SimpleFillSymbol({ color: color });
             graphic.symbol = symbol;
             graphic.geometry = feature.geometry;
@@ -395,7 +402,7 @@ export class AppLayerService {
       });
    }
 
-   private getGeoColor(state: FullState, geocode: string, fkSiteMap?: Map<string, number>) : number[] {
+   private getGeoColor(state: FullState, geocode: string, fkSiteMap?: Map<string, number | string>) : number[] {
       const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
       switch (state.shared.shadingType) {
          case shadingType.SITE:
@@ -558,12 +565,12 @@ export class AppLayerService {
          let fields = [];
          fields = [...this.createStandardPopupFields()];
          const toggleAction: __esri.ActionButton = new EsriApi.ActionButton({
-          title: 'Toggle Selection',
+          title: 'Add/Remove Geo',
           id: 'toggle-selection',
           className: 'esri-icon-plus-circled'
          });
          const template = new EsriApi.PopupTemplate({
-            title: '{geocode}',
+            title: '{geocode} {city_name}',
             content: [{
                type: 'fields',
                fieldInfos: fields
@@ -682,16 +689,15 @@ export class AppLayerService {
       fields.push(this.createPopupField('zip', 'Zip'));
       fields.push(this.createPopupField('pricing_name', 'Pricing Market'));
       fields.push(this.createPopupField('sdm_name', 'Shared Distribution Market'));
-      fields.push(this.createPopupField('wrap', 'Redplum Wrap Zone'));
-      fields.push(this.createPopupField('county', 'DMA Code'));
+      fields.push(this.createPopupField('wrap_name', 'Redplum Wrap Zone'));
+      fields.push(this.createPopupField('dma_code', 'DMA Code'));
       fields.push(this.createPopupField('county', 'County FIPS Code'));
-      fields.push(this.createPopupField('cl0c00', '% CY HHs Familes With Related Children < 18 Yrs'));
-      fields.push(this.createPopupField('cl2i0r', '% CY HHs w/HH Inc $50K +'));
-      fields.push(this.createPopupField('cl2i0p', '% CY HHs w/HH Inc $75,000 +'));
-      fields.push(this.createPopupField('cl0utw', '% CY Owner Occupied Housing Units'));
-      fields.push(this.createPopupField('cl2prb', '% Pop White Alone Non-Hisp'));
-      fields.push(this.createPopupField('cl2prw', '% Pop White Alone Non-Hisp'));
-      fields.push(this.createPopupField('null', '% Population Growth 2018-2023'));
+      fields.push(this.createPopupField('cl0c00', '% CY HHs Familes With Related Children < 18 Yrs', 2));
+      fields.push(this.createPopupField('cl2i0r', '% CY HHs w/HH Inc $50K +', 2));
+      fields.push(this.createPopupField('cl2i0p', '% CY HHs w/HH Inc $75,000 +', 2));
+      fields.push(this.createPopupField('cl0utw', '% CY Owner Occupied Housing Units', 2));
+      fields.push(this.createPopupField('cl2prb', '% Pop White Alone Non-Hisp', 2));
+      fields.push(this.createPopupField('cl2prw', '% Pop White Alone Non-Hisp', 2));
       fields.push(this.createPopupField('cl2i00', 'CY Median Household Income'));
       fields.push(this.createPopupField('cl2hwv', 'CY Median Value, Owner OCC Housing Units'));
       fields.push(this.createPopupField('hhld_w', 'HouseHolds, Winter'));
@@ -699,10 +705,13 @@ export class AppLayerService {
       return fields;
    }
 
-   private createPopupField(fieldName: string, fieldLabel: string) : __esri.FieldInfo {
+   private createPopupField(fieldName: string, fieldLabel: string, places?: number) : __esri.FieldInfo {
       const field: __esri.FieldInfo = new EsriApi.FieldInfo({
          fieldName: fieldName,
-         label: fieldLabel
+         label: fieldLabel,
+         format: {
+            places: places != null ? places : 0
+         }
       });
       return field;
    }

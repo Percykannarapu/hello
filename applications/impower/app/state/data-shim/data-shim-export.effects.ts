@@ -27,7 +27,7 @@ export class DataShimExportEffects {
     toPayload(),
     filter(p => p.isDigitalExport),
     withLatestFrom(this.dataShimService.currentProject$),
-    switchMap(([payload, project]) => this.appExportService.exportValassisDigital(project).pipe(
+    switchMap(([, project]) => this.appExportService.exportValassisDigital(project).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );
@@ -56,7 +56,7 @@ export class DataShimExportEffects {
   exportNationalExtract$ = this.actions$.pipe(
     ofType<ExportApioNationalData>(DataShimActionTypes.ExportApioNationalData),
     withLatestFrom(this.dataShimService.currentProject$),
-    switchMap(([a, project]) => this.appExportService.exportNationalExtract(project).pipe(
+    switchMap(([, project]) => this.appExportService.exportNationalExtract(project).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );

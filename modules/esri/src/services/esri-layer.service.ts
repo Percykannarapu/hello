@@ -131,7 +131,7 @@ export class EsriLayerService {
     if (bottom) {
       this.mapService.mapView.map.layers.unshift(group);
     } else {
-      this.mapService.mapView.map.layers.push(group);
+      this.mapService.mapView.map.layers.add(group);
     }
     return group;
   }
@@ -203,7 +203,7 @@ export class EsriLayerService {
     });
 
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
-    group.layers.push(layer);
+    group.layers.add(layer);
 
     return layer;
   }

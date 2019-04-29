@@ -72,8 +72,8 @@ export class RenderingService {
         size: 12,
         color: definition.color,
         outline: new EsriApi.SimpleLineSymbol({
-          color: [0, 0, 0, 0],
-          width: 0
+          color: [255, 255, 255, 0.75],
+          width: 1
         })
       })
     });

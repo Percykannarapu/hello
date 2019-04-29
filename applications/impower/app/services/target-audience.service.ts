@@ -581,18 +581,17 @@ export class TargetAudienceService implements OnDestroy {
       const duplicateCategorys = reqInput.length > 0 ? reqInput.filter( inputMap => inputMap['source'] == audience.audienceSourceName) : [];
       if (duplicateCategorys.length > 0){
         duplicateCategorys[0]['digCategoryIds'].push(numericId);
-      }
-      else{
+      } else {
          inputData = {
           geoType: serviceAnalysisLevel,
           source: audience.audienceSourceName === 'In-Market' ? 'In_Market' : audience.audienceSourceName,
           geocodes: ['*'],
-          digCategoryIds: [numericId]
+          digCategoryIds: [numericId],
+          varType: ['ALL']
         };
         reqInput.push(inputData);
       }
     });
-    console.log('reqInput:::::::', JSON.stringify(reqInput));
     const observables: Observable<OnlineBulkDownloadDataResponse[]>[] = [];
     if (reqInput.length > 0){
       observables.push( this.restService.post('v1/targeting/base/geoinfo/digitallookup', reqInput).pipe(
