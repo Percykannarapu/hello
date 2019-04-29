@@ -3,11 +3,11 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { AppLocationService } from '../../services/app-location.service';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { map, startWith } from 'rxjs/operators';
+import { map, startWith, filter, take } from 'rxjs/operators';
 import { Table } from 'primeng/table';
 import { ConfirmationService, MultiSelect, SelectItem } from 'primeng/primeng';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from '../../state/app.interfaces';
+import { Store, select } from '@ngrx/store';
+import { LocalAppState, FullAppState } from '../../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
@@ -18,6 +18,7 @@ import { Geocode, HomeGeocode, ReCalcHomeGeos } from '../../state/homeGeocode/ho
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { AppProjectService } from '../../services/app-project.service';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { selectors } from '@val/esri';
 
 export class FlatSite {
   fgId: number;
@@ -185,7 +186,8 @@ export class SiteListComponent implements OnInit {
       private impLocationService: ImpGeofootprintLocationService,
       private impLocAttributeService: ImpGeofootprintLocAttribService,
       //private valGeocodingRequest: ValGeocodingRequest,
-      private store$: Store<LocalAppState>) {}
+      private store$: Store<LocalAppState>,
+      private fullStateStore$: Store<FullAppState>) {}
 
    ngOnInit() {
       // Observe the behavior subjects on the input parameters
@@ -195,11 +197,19 @@ export class SiteListComponent implements OnInit {
       this.allLocationAttribs$ = this.allLocationAttribsBS$.asObservable();
       
       this.onListTypeChange('Site');
-      this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
-        map(([sites, competitors]) => [...sites, ...competitors])
-      );
-      this.hasFailures$ = this.appLocationService.hasFailures$;
-      this.totalCount$ = this.appLocationService.totalCount$;
+
+      this.fullStateStore$.pipe(
+        select(selectors.getMapReady),
+        filter(ready => ready),
+        take(1)
+      ).subscribe(() => {
+        this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
+          map(([sites, competitors]) => [...sites, ...competitors])
+        );
+        this.hasFailures$ = this.appLocationService.hasFailures$;
+        this.totalCount$ = this.appLocationService.totalCount$;
+      });
+      
       for (const column of this.flatSiteGridColumns) {
          this.columnOptions.push({ label: column.header, value: column });
          this.selectedColumns.push(column);
