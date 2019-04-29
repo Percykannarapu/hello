@@ -8,6 +8,24 @@ import { environment } from '../../../environments/environment';
 export class ConfigService {
 
   public layers: AllLayers = {
+    wrap: {
+      group: {
+        name: 'Valassis WRAP',
+        sortOrder: 3,
+        analysisLevelName: 'wrap'
+      },
+      boundaries: { // WRAP_Top_Vars
+        id: environment.layerIds.wrap.boundary,
+        name: 'Wrap Boundaries',
+        defaultVisibility: true,
+        sortOrder: 0,
+        popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
+        minScale: 577790,
+        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
+        labelExpression: '$feature.wrap_name',
+        labelFontSizeOffset: 2
+      }
+    },
     zip: {
       group: {
         name: 'Valassis ZIP',
@@ -89,24 +107,6 @@ export class ConfigService {
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
-      }
-    },
-    wrap: {
-      group: {
-        name: 'Valassis WRAP',
-        sortOrder: 3,
-        analysisLevelName: 'wrap'
-      },
-      boundaries: { // WRAP_Top_Vars
-        id: environment.layerIds.wrap.boundary,
-        name: 'Wrap Boundaries',
-        defaultVisibility: true,
-        sortOrder: 0,
-        popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
-        minScale: 577790,
-        popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
-        labelExpression: '$feature.geocode',
-        labelFontSizeOffset: 2
       }
     }
   };
