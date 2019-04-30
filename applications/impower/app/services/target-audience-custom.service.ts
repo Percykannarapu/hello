@@ -22,6 +22,7 @@ import { AppProjectPrefService } from './app-project-pref.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { TradeAreaTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { AppProjectService } from './app-project.service';
 
 const audienceUpload: Parser<CustomAudienceData> = {
   columnParsers: [
@@ -48,6 +49,7 @@ export class TargetAudienceCustomService {
               private varService: ImpGeofootprintVarService,
               private projectVarService: ImpProjectVarService,
               private appProjectPrefService: AppProjectPrefService,
+              private appProjectService: AppProjectService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private targetAudienceService: TargetAudienceService,
               private geoService: ImpGeofootprintGeoService,
@@ -334,11 +336,11 @@ export class TargetAudienceCustomService {
             console.log("Current project, project vars after remove: ");
             this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.log("project project var: ", pv));
 */
-
             // Just clearing out custom
             let projectVarsDict = this.stateService.projectVarsDict$;
-            this.varService.remove(this.varService.get().filter(pv => (projectVarsDict[pv.varPk]||safe).isCustom));
-            this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => !pv.isCustom)
+            this.varService.remove(this.varService.get().filter(pv => (projectVarsDict[pv.varPk] || safe).isCustom));
+            const varsToDelete = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.isCustom);
+            this.appProjectService.deleteProjectVars(varsToDelete);
 
 // Clearing out online and custom
 //            this.varService.remove(this.varService.get().filter(pv => pv.varSource === "Online_Audience-TA" || pv.isCustom));

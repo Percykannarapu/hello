@@ -13,6 +13,7 @@ import { AppLoggingService } from './app-logging.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 
 @Injectable()
 export class AppProjectService {
@@ -108,5 +109,10 @@ export class AppProjectService {
         break;
     }
     this.impProjectService.makeDirty();
+  }
+
+  public deleteProjectVars(varsToDelete: ImpProjectVar[]) : void {
+    this.currentProjectRef.impProjectVars = this.currentProjectRef.impProjectVars.filter(v => !varsToDelete.includes(v));
+    this.impProjectVarService.remove(varsToDelete);
   }
 }
