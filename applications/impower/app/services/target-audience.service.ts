@@ -105,15 +105,19 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   public addAudience(audience: AudienceDataDefinition, sourceRefresh: audienceSource, nationalRefresh?: nationalSource, isReload: boolean = false) : void {
+    console.log('Adding audience', audience);
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
     //console.debug("addAudience - target-audience.service - sourceId: " + sourceId + ", audienceName: " + ((audience != null) ? audience.audienceName : "") + ", audienceSourceName: " + ((audience != null) ? audience.audienceSourceName:""));
     this.audienceSources.set(sourceId, sourceRefresh);
+    let audienceKey: string;
     if (audience.audienceSourceName === 'Audience-TA') {
-      this.audienceMap.set(`/${sourceId}-${audience.secondaryId}`, audience);
+      audienceKey = `/${sourceId}-${audience.secondaryId}`;
     } else {
-      this.audienceMap.set(audienceId, audience);
+      audienceKey = audienceId;
     }
+    if (!this.audienceMap.has(audienceKey)) this.audienceMap.set(audienceKey, audience);
+
     if (nationalRefresh != null) this.nationalSources.set(sourceId, nationalRefresh);
 
     if (audience.audienceSourceType === 'Custom' && audience.fieldconte === null)

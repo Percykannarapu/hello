@@ -4,7 +4,7 @@ import { FileService, Parser, ParseResponse } from '../val-modules/common/servic
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { EMPTY, Observable } from 'rxjs';
 import { TargetAudienceService } from './target-audience.service';
-import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
@@ -57,7 +57,10 @@ export class TargetAudienceCustomService {
     this.stateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
     // Watch for trade area radius changes, but ignore changes to no trade areas
     this.tradeAreaService.storeObservable
-      .pipe(filter(tas => tas != null && tas.length > 0)   // Don't do anything if there aren't any trade areas
+      .pipe(withLatestFrom(this.stateService.applicationIsReady$),
+            filter(([, isReady]) => isReady),
+            map(([tas]) => tas),
+            filter(tas => tas != null && tas.length > 0)   // Don't do anything if there aren't any trade areas
             , tap(tas => console.log('TAs changed, checking if we care: ', tas))
             , filterArray(ta => ta.impGeofootprintGeos != null && ta.impGeofootprintGeos.length > 0)
             , map(tas => tas.map(ta => {
@@ -167,7 +170,7 @@ export class TargetAudienceCustomService {
   }
 
   private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<string, ImpGeofootprintGeo[]>) : ImpGeofootprintVar[] {
-    console.log('CreateGeofootprintVar called');
+    // console.log('CreateGeofootprintVar called');
     const fullId = `Custom/${fileName}/${column}`;
     let newVarPk = null;
 // if (column == null)
@@ -336,15 +339,15 @@ export class TargetAudienceCustomService {
             // Just clearing out custom
             const projectVarsDict = this.stateService.projectVarsDict$;
             this.varService.remove(this.varService.get().filter(pv => (projectVarsDict[pv.varPk] || safe).isCustom));
-            const varsToDelete = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.isCustom);
-            this.appProjectService.deleteProjectVars(varsToDelete);
+            // const varsToDelete = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.isCustom);
+            // this.appProjectService.deleteProjectVars(varsToDelete);
 
 // Clearing out online and custom
 //            this.varService.remove(this.varService.get().filter(pv => pv.varSource === "Online_Audience-TA" || pv.isCustom));
 //            this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.source !== "Online_Audience-TA" && !pv.isCustom)
 
-            prefs.forEach(customVarPref => console.log('reloadCustomVars - name: ', customVarPref.pref, ', Custom Var Pref: ', customVarPref));
-            prefs.forEach(customVarPref => this.parseFileData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref));
+            // prefs.forEach(customVarPref => console.log('reloadCustomVars - name: ', customVarPref.pref, ', Custom Var Pref: ', customVarPref));
+            // prefs.forEach(customVarPref => this.parseFileData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref));
             this.targetAudienceService.applyAudienceSelection();
          }
       }
