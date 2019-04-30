@@ -4,11 +4,11 @@
 }
 
 .app-root.small {
-  grid-template-columns: 20% 80%;
+  grid-template-columns: 25% 75%;
 }
 
 .app-root.large {
-  grid-template-columns: 56% 44%;
+  grid-template-columns: 57% 43%;
 }
 
 .title-bar {

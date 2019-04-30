@@ -62,26 +62,26 @@ private createColumns(small: boolean, isWrap: boolean) {
   if (small) {
     if (isWrap) {
       this.columns.push({field: 'wrapZone', header: 'Wrap Zone', width: '10em', styleClass: 'val-text-left'});
-      this.columns.push({field: 'distribution', header: 'Distr Qty', width: '4em', styleClass: 'val-text-right'});
-      this.columns.push({field: 'investment', header: 'Investment', width: '6em', styleClass: 'val-text-right'});
+      this.columns.push({field: 'distribution', header: 'Distr Qty', width: '5em', styleClass: 'val-text-right'});
+      this.columns.push({field: 'investment', header: 'Investment', width: '6.5em', styleClass: 'val-text-right'});
     }
     else {
       this.columns.push({field: 'geocode', header: 'Geocode', width: '3.5em', styleClass: 'val-text-left'});
-      this.columns.push({field: 'distribution', header: 'Distr Qty', width: '4em', styleClass: 'val-text-right'});
+      this.columns.push({field: 'distribution', header: 'Distr Qty', width: '5em', styleClass: 'val-text-right'});
       this.columns.push({field: 'investment', header: 'Investment', width: '4.5em', styleClass: 'val-text-right'});
 
     }
   } else {
-    this.columns.push({field: 'siteName', header: 'Site Name', width: '10em', styleClass: 'val-text-left'});
+    this.columns.push({field: 'siteName', header: 'Site Name', width: '9em', styleClass: 'val-text-left'});
     if (isWrap) 
       this.columns.push({field: 'wrapZone', header: 'Wrap Zone', width: '10em', styleClass: 'val-text-left'});
     else {
       this.columns.push({field: 'geocode', header: 'Geocode', width: '5.5em', styleClass: 'val-text-left'});
-      this.columns.push({field: 'distance', header: 'Distance', width: '5em', styleClass: 'val-text-right'});  
+      this.columns.push({field: 'distance', header: 'Distance', width: '5.5em', styleClass: 'val-text-right'});  
     }
     this.columns.push({field: 'distribution', header: 'Distr Qty', width: '5em', styleClass: 'val-text-right'});
     this.columns.push({field: 'ownerGroup', header: 'Owner', width: '5em', styleClass: 'val-text-center'});
-    this.columns.push({field: 'investment', header: 'Investment', width: '6em', styleClass: 'val-text-right'});
+    this.columns.push({field: 'investment', header: 'Investment', width: '6.5em', styleClass: 'val-text-right'});
   }
 }
 
