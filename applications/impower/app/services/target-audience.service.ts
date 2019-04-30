@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 import { Injectable, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended } from '@val/common';
+import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended, isNumber, mapByExtended } from '@val/common';
 import { ClearShadingData } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
@@ -560,12 +560,25 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private getNationalData(audiences: AudienceDataDefinition[] , analysisLevel: string) : Observable<any[]> {
+    const sourceNameGen = (a: AudienceDataDefinition) => a.audienceSourceName.toUpperCase().replace(/-/g, '_');
+    const dmaAudiences = mapByExtended(audiences, a => `${a.audienceIdentifier}_${sourceNameGen(a)}_DMA`);
+    const natAudiences = mapByExtended(audiences, a => `${a.audienceIdentifier}_${sourceNameGen(a)}_NAT`);
     const observables: Observable<any[]>[] = this.nationalRefreshDownload(audiences , analysisLevel);
     return merge(...observables, 4).pipe(
       map(data => data.map(d => {
         const result = { Geocode: d.geocode };
         for (const key of Object.keys(d.attrs)) {
-          result[key] = Math.round(Number(d.attrs[key]));
+          if (dmaAudiences.has(key)) {
+            const audience = dmaAudiences.get(key);
+            const newKey = `${audience.audienceName} (${sourceNameGen(audience)} - DMA)`;
+            result[newKey] = isNumber(d.attrs[key]) ? Math.round(Number(d.attrs[key])) : d.attrs[key];
+          } else if (natAudiences.has(key)) {
+            const audience = natAudiences.get(key);
+            const newKey = `${audience.audienceName} (${sourceNameGen(audience)} - National)`;
+            result[newKey] = isNumber(d.attrs[key]) ? Math.round(Number(d.attrs[key])) : d.attrs[key];
+          } else {
+            result[key] = Math.round(Number(d.attrs[key]));
+          }
         }
         return result;
       }))
@@ -593,7 +606,7 @@ export class TargetAudienceService implements OnDestroy {
       }
     });
     const observables: Observable<OnlineBulkDownloadDataResponse[]>[] = [];
-    if (reqInput.length > 0){
+    if (reqInput.length > 0) {
       observables.push( this.restService.post('v1/targeting/base/geoinfo/digitallookup', reqInput).pipe(
        map(response => this.convertFuseResponse(response))
      ));
