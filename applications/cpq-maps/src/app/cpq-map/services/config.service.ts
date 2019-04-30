@@ -20,7 +20,7 @@ export class ConfigService {
         defaultVisibility: true,
         sortOrder: 0,
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
-        minScale: 577790,
+        minScale: 4622342,
         popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
         labelExpression: '$feature.wrap_name',
         labelFontSizeOffset: 2
