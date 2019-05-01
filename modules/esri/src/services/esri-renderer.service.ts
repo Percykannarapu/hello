@@ -116,7 +116,7 @@ export class EsriRendererService {
                       if(hasKey(geoData, $feature.geocode)) {
                         return geoData[$feature.geocode];
                       }
-                      return 0;`;
+                      return null;`;
       return arcade;
   }
 

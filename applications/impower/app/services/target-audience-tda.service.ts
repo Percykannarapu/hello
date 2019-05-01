@@ -172,8 +172,8 @@ export class TargetAudienceTdaService {
         fieldValue = numberAttempt;
       }
       if (isForShading) {
-        if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1
-                      && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1) {
+        // TODO: Not efficient - this is creating shading data that already exists as geodata, but it's the fastest way to fix defects 2299 and 2300
+        if (results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1) {
           const currentResult = this.domainFactory.createGeoVar(null, geocode, varPk, fieldValue, fullId, fieldDescription);
           results.push(currentResult);
         }
@@ -336,7 +336,6 @@ export class TargetAudienceTdaService {
             this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
         }
       }*/
-    //this.logger.info("Offline Audience Response::: ", responseArray.length, " rows"); // , responseArray);
     return responseArray;
   }
 

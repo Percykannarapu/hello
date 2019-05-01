@@ -451,6 +451,7 @@ export class TargetAudienceService implements OnDestroy {
             err => this.logger.error.log('There was an error retrieving audience data for map shading', err),
             () => {
               this.removeServerGeoCache(txId, startPopChunks).subscribe();
+              this.logger.debug.log('Shading Data after http call', currentShadingData);
               this.shadingData.next(currentShadingData);
               this.store$.dispatch(new StopBusyIndicator({key}));
             });
@@ -460,6 +461,7 @@ export class TargetAudienceService implements OnDestroy {
           data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
           err => this.logger.error.log('There was an error retrieving audience data for map shading', err),
           () => {
+            this.logger.debug.log('Shading Data after http call', currentShadingData);
             this.shadingData.next(currentShadingData);
             this.store$.dispatch(new StopBusyIndicator({key}));
           });

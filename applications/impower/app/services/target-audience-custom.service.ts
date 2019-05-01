@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { EMPTY, Observable } from 'rxjs';
+import { AppLoggingService } from './app-logging.service';
 import { TargetAudienceService } from './target-audience.service';
 import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../models/audience-data.model';
@@ -52,6 +53,7 @@ export class TargetAudienceCustomService {
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private targetAudienceService: TargetAudienceService,
               private geoService: ImpGeofootprintGeoService,
+              private logger: AppLoggingService,
               private store$: Store<LocalAppState>) {
 
     this.stateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
@@ -61,35 +63,26 @@ export class TargetAudienceCustomService {
             filter(([, isReady]) => isReady),
             map(([tas]) => tas),
             filter(tas => tas != null && tas.length > 0)   // Don't do anything if there aren't any trade areas
-            , tap(tas => console.log('TAs changed, checking if we care: ', tas))
+            , tap(tas => this.logger.debug.log('TAs changed, checking if we care: ', tas))
             , filterArray(ta => ta.impGeofootprintGeos != null && ta.impGeofootprintGeos.length > 0)
             , map(tas => tas.map(ta => {
               switch (ta.taType.toUpperCase()) {
                 case TradeAreaTypeCodes.Radius.toUpperCase():
-                    console.log('taType: ', ta.taType, ', radius: ', ta.taRadius);
+                    this.logger.debug.log('taType: ', ta.taType, ', radius: ', ta.taRadius);
                     return ta.taRadius;
 
                 default:
-                    console.log('taType: ', ta.taType, ', taNumber: ', ta.taNumber, ', num Geos: ', ta.impGeofootprintGeos.length);
+                    this.logger.debug.log('taType: ', ta.taType, ', taNumber: ', ta.taNumber, ', num Geos: ', ta.impGeofootprintGeos.length);
                     return ta.taNumber + '-' + ta.gtaId + '-' + ta.impGeofootprintGeos.length;
                 }}).join(','))  // Map to just a delimited list of radiuses
-//           ,tap(tas => console.log("ta string: " + tas))
+//           ,tap(tas => this.logger.debug.log("ta string: " + tas))
             , distinctUntilChanged((x, y) => {
-              console.log('x: ', x, ((x === y) ? '===' : '!==') + ' y: ', y, ', x.length: ', x.length, ', y.length: ', y.length, (y.length === 0 || x === y ? ' DID NOT FIND CHANGE' : ' FOUND CHANGE'));
+              this.logger.debug.log('x: ', x, ((x === y) ? '===' : '!==') + ' y: ', y, ', x.length: ', x.length, ', y.length: ', y.length, (y.length === 0 || x === y ? ' DID NOT FIND CHANGE' : ' FOUND CHANGE'));
               if (!(y.length === 0 || x === y))
                 this.varService.clearAll();
               return y.length === 0 || x === y;
             }))
       .subscribe(() => {
-/*        this.varService.get().forEach(pv => console.log("BEFORE: projectVar: ", pv));
-        this.varService.remove(this.varService.get().filter(pv => pv.varSource === "Online_Audience-TA" || pv.isCustom));
-        console.log("projectVars after remove: " + this.varService.get().length);
-        this.varService.get().forEach(pv => console.log("AFTER: projectVar: ", pv));
-        console.log("Current project, project vars before: ");
-        this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.log("project project var: ", pv));
-        this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.source !== "Online_Audience-TA" && !pv.isCustom)
-        console.log("Current project, project vars after remove: ");
-        this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.log("project project var: ", pv));*/
         this.reloadCustomVars();
         this.targetAudienceService.applyAudienceSelection();
       });
@@ -121,11 +114,11 @@ export class TargetAudienceCustomService {
     // return;  // This appeared to be only reloading custom vars, which is taken care of elsewhere
 
     try {
-      console.log('onLoadProject fired');
+      this.logger.debug.log('onLoadProject fired');
       const project = this.stateService.currentProject$.getValue();
       if (project == null) return;
       const customProjectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom');
-      console.log('onLoadProject found ' + customProjectVars.length + ' custom vars');
+      this.logger.debug.log('onLoadProject found ' + customProjectVars.length + ' custom vars');
       // this.dataCache = {};
       // this.varPkCache.clear();
       if (customProjectVars.length > 0){
@@ -159,8 +152,8 @@ export class TargetAudienceCustomService {
         //     this.dataCache[geoVar.geocode][geoVar.customVarExprDisplay] = geoVar.valueNumber.toLocaleString();
         //   }
         // }
-        console.log('onLoadProject - addAudience ' + projectVar.fieldname);
-        this.audienceService.addAudience(audience, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
+        this.logger.debug.log('onLoadProject - addAudience ' + projectVar.fieldname);
+        this.audienceService.addAudience(audience, (al, pks, geos, shading) => this.audienceRefreshCallback(al, pks, geos, shading));
       }
     }
     } catch (error) {
@@ -169,8 +162,8 @@ export class TargetAudienceCustomService {
   // }
   }
 
-  private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<string, ImpGeofootprintGeo[]>) : ImpGeofootprintVar[] {
-    // console.log('CreateGeofootprintVar called');
+  private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {
+    // this.logger.debug.log('CreateGeofootprintVar called');
     const fullId = `Custom/${fileName}/${column}`;
     let newVarPk = null;
 // if (column == null)
@@ -179,10 +172,10 @@ export class TargetAudienceCustomService {
 //   return [];
 // }
    // If we have a varPk defined for this column already, use it, if not create one
-// console.log("createGeofootprintVar custom checking varPkCache(" + this.varPkCache.size + ") for " + column);
+// this.logger.debug.log("createGeofootprintVar custom checking varPkCache(" + this.varPkCache.size + ") for " + column);
     if (this.varPkCache.has(column)) {
       newVarPk = this.varPkCache.get(column);
-      //console.log("createGeofootprintVar custom varPkCache found " + column + ", varPk: " + newVarPk);
+      //this.logger.debug.log("createGeofootprintVar custom varPkCache found " + column + ", varPk: " + newVarPk);
       }
     else {
       // If there is a project var for this column, use the varPk from it.
@@ -198,7 +191,7 @@ export class TargetAudienceCustomService {
         }
       }
       this.varPkCache.set(column, newVarPk);
-      //console.log("createGeofootprintVar custom varPkCache did NOT find " + column + ", new varPk: " + newVarPk, ", varPkCache:", this.varPkCache);
+      //this.logger.debug.log("createGeofootprintVar custom varPkCache did NOT find " + column + ", new varPk: " + newVarPk, ", varPkCache:", this.varPkCache);
     }
     const results: ImpGeofootprintVar[] = [];
     const numberAttempt = Number(value);
@@ -215,18 +208,27 @@ export class TargetAudienceCustomService {
       fieldType = FieldContentTypeCodes.Index;
     }
 
-    // For each geo matching this geocode, determine if it needs a geo var
-    this.geoService.get().filter(geo => geo.geocode === geocode).forEach(geo => {
-      // If there is no geo var for this geocode / varPk / location, create one
-      if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1
-                     && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1) {
-        const currentResult: ImpGeofootprintVar = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, newVarPk, fieldValue, fullId, fieldDescription, fieldType);
-        currentResult.impGeofootprintLocation = geo.impGeofootprintLocation; // TODO: This should be part of the factory method
-        console.log('createGeofootprintVar custom - created a var: loc: ' + currentResult.impGeofootprintLocation.locationNumber + ', geocode: ' + currentResult.geocode + ', varPk: ' + currentResult.varPk);
+    if (isForShading) {
+      // TODO: Not efficient - this is creating shading data that already exists as geodata, but it's the fastest way to fix defects 2299 and 2300
+      if (results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk) === -1) {
+        const currentResult = this.domainFactory.createGeoVar(null, geocode, newVarPk, fieldValue, fullId, fieldDescription);
         results.push(currentResult);
       }
-    });
-    this.varService.add(results); //, null, null, InTransaction.silent);
+    } else {
+      // For each geo matching this geocode, determine if it needs a geo var
+      this.geoService.get().filter(geo => geo.geocode === geocode).forEach(geo => {
+        // If there is no geo var for this geocode / varPk / location, create one
+        if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1
+          && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1) {
+          const currentResult: ImpGeofootprintVar = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, newVarPk, fieldValue, fullId, fieldDescription, fieldType);
+          currentResult.impGeofootprintLocation = geo.impGeofootprintLocation; // TODO: This should be part of the factory method
+          this.logger.debug.log('createGeofootprintVar custom - created a var: loc: ' + currentResult.impGeofootprintLocation.locationNumber + ', geocode: ' + currentResult.geocode + ', varPk: ' + currentResult.varPk);
+          results.push(currentResult);
+        }
+      });
+      this.varService.add(results); //, null, null, InTransaction.silent);
+    }
+
     return results;
 /*
    // If we do not have a geo var for this varPk / geocode, create it
@@ -234,7 +236,7 @@ export class TargetAudienceCustomService {
    if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk) === -1) {
       // For each geo matching this geocode, create a variable
       this.geoService.get().filter(geo => geo.geocode === geocode).forEach(geo => {
-      console.log("createGeofootprintVar - created a var: loc: " + geo.impGeofootprintLocation.locationNumber + ", geocode: " + geo.geocode + ", varPk: " + newVarPk);
+      this.logger.debug.log("createGeofootprintVar - created a var: loc: " + geo.impGeofootprintLocation.locationNumber + ", geocode: " + geo.geocode + ", varPk: " + newVarPk);
          const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, newVarPk, fieldValue, fullId, fieldDescription, fieldType);
         results.push(currentResult);
    });
@@ -243,7 +245,7 @@ export class TargetAudienceCustomService {
    }
    else
    {
-//      console.log("createGeofootprintVar - did NOT create a var");
+//      this.logger.debug.log("createGeofootprintVar - did NOT create a var");
       return [];
    }*/
    /*
@@ -258,15 +260,13 @@ export class TargetAudienceCustomService {
    return results;*/
  }
 
-  public parseFileData(dataBuffer: string, fileName: string) {
+  public parseFileData(dataBuffer: string, fileName: string, isReload: boolean = false) {
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
-    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     try {
       const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, audienceUpload);
       const failCount = data.failedRows.length;
       const successCount = data.parsedData.length;
-      //console.log("parseFileData.data = ", data);
 
       if (failCount > 0) {
         console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
@@ -280,22 +280,25 @@ export class TargetAudienceCustomService {
           this.currentFileName = fileName;
           this.dataCache = {};
           data.parsedData.forEach(d => this.dataCache[d.geocode] = d);
-          const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
-          for (const column of columnNames) {
-            // Get existing varPk
-            const projectVars = this.projectVarService.get().filter(pv => pv.fieldname === column);
-            const varPk = (projectVars != null && projectVars.length > 0) ? projectVars[0].varPk.toString() : column;
-            const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName, varPk);
-            if (projectVars != null && projectVars.length > 0)
-            {
-              audDataDefinition.showOnGrid = projectVars[0].isIncludedInGeoGrid;
-              audDataDefinition.showOnMap  = projectVars[0].isShadedOnMap;
-              audDataDefinition.exportInGeoFootprint = projectVars[0].isIncludedInGeofootprint;
+          if (!isReload) {
+            const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+            const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
+            for (const column of columnNames) {
+              // Get existing varPk
+              const projectVars = this.projectVarService.get().filter(pv => pv.fieldname === column);
+              const varPk = (projectVars != null && projectVars.length > 0) ? projectVars[0].varPk.toString() : column;
+              const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName, varPk);
+              if (projectVars != null && projectVars.length > 0)
+              {
+                audDataDefinition.showOnGrid = projectVars[0].isIncludedInGeoGrid;
+                audDataDefinition.showOnMap  = projectVars[0].isShadedOnMap;
+                audDataDefinition.exportInGeoFootprint = projectVars[0].isIncludedInGeofootprint;
+              }
+              // this.logger.debug.log("parseFileData - addAudience for " + column);
+              this.audienceService.addAudience(audDataDefinition, (al, pks, geos, shading) => this.audienceRefreshCallback(al, pks, geos, shading));
+              const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
+              this.store$.dispatch(new CreateAudienceUsageMetric('custom', 'upload', metricText, successCount));
             }
-            // console.log("parseFileData - addAudience for " + column);
-            this.audienceService.addAudience(audDataDefinition, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos));
-            const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
-            this.store$.dispatch(new CreateAudienceUsageMetric('custom', 'upload', metricText, successCount));
           }
           this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Custom Audience Upload'}));
         }
@@ -306,35 +309,35 @@ export class TargetAudienceCustomService {
   }
 
   public reloadCustomVars() {
-      console.log('reloadCustomVars fired - total prefs: ' + this.appProjectPrefService.getAllPrefs().length);
+      this.logger.debug.log('reloadCustomVars fired - total prefs: ' + this.appProjectPrefService.getAllPrefs().length);
       try {
-         //console.log("currentProject = ", this.stateService.currentProject$.getValue());
+         //this.logger.debug.log("currentProject = ", this.stateService.currentProject$.getValue());
          if (this.stateService.currentProject$.getValue() != null)
-            console.log('this.stateService.currentProject$.getValue().impProjectPrefs = ', ((this.stateService.currentProject$.getValue().impProjectPrefs != null) ? this.stateService.currentProject$.getValue().impProjectPrefs.length : null));
+            this.logger.debug.log('this.stateService.currentProject$.getValue().impProjectPrefs = ', ((this.stateService.currentProject$.getValue().impProjectPrefs != null) ? this.stateService.currentProject$.getValue().impProjectPrefs.length : null));
 
          // Retrieve all of the custom vars from project prefs
          const prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup(ProjectPrefGroupCodes.CustomVar);
-         console.log('custom var prefs.Count = ' + ((prefs != null) ? prefs.length : null));
+         this.logger.debug.log('custom var prefs.Count = ' + ((prefs != null) ? prefs.length : null));
 
          if (prefs != null && prefs.length > 0)
          {
             // let removeVars:ImpProjectVar[] = this.varService.get().filter(pv => pv.source === "Online_Audience-TA" || pv.isCustom);
-            //    console.log("addAudiences going to remove " + removeVars.length + " project vars");
+            //    this.logger.debug.log("addAudiences going to remove " + removeVars.length + " project vars");
             // removeVars.forEach(rvar => rvar.impProject = null);
 /*
-            this.varService.get().forEach(pv => console.log("BEFORE: projectVar: ", pv));
+            this.varService.get().forEach(pv => this.logger.debug.log("BEFORE: projectVar: ", pv));
 //            this.varService.clearAll(false);  // TODO: Attempting to just clear them all
             this.varService.remove(this.varService.get().filter(pv => pv.varSource === "Online_Audience-TA" || pv.isCustom));
 
-            console.log("projectVars after remove: " + this.varService.get().length);
-            this.varService.get().forEach(pv => console.log("AFTER: projectVar: ", pv));
-            console.log("Current project, project vars before: ");
-            this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.log("project project var: ", pv));
+            this.logger.debug.log("projectVars after remove: " + this.varService.get().length);
+            this.varService.get().forEach(pv => this.logger.debug.log("AFTER: projectVar: ", pv));
+            this.logger.debug.log("Current project, project vars before: ");
+            this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => this.logger.debug.log("project project var: ", pv));
             this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.source !== "Online_Audience-TA" && !pv.isCustom)
             //this.stateService.currentProject$.getValue().impProjectVars = [];
             //tradeAreas.forEach(ta => ta.impGeofootprintGeos = ta.impGeofootprintGeos.filter(g => !geoSet.has(g)));
-            console.log("Current project, project vars after remove: ");
-            this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.log("project project var: ", pv));
+            this.logger.debug.log("Current project, project vars after remove: ");
+            this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => this.logger.debug.log("project project var: ", pv));
 */
             // Just clearing out custom
             const projectVarsDict = this.stateService.projectVarsDict$;
@@ -346,8 +349,8 @@ export class TargetAudienceCustomService {
 //            this.varService.remove(this.varService.get().filter(pv => pv.varSource === "Online_Audience-TA" || pv.isCustom));
 //            this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.source !== "Online_Audience-TA" && !pv.isCustom)
 
-            // prefs.forEach(customVarPref => console.log('reloadCustomVars - name: ', customVarPref.pref, ', Custom Var Pref: ', customVarPref));
-            // prefs.forEach(customVarPref => this.parseFileData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref));
+            prefs.forEach(customVarPref => this.logger.debug.log('reloadCustomVars - name: ', customVarPref.pref, ', Custom Var Pref: ', customVarPref));
+            prefs.forEach(customVarPref => this.parseFileData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref, true));
             this.targetAudienceService.applyAudienceSelection();
          }
       }
@@ -365,9 +368,9 @@ export class TargetAudienceCustomService {
     this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
   }
 
-  private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {
-    console.log('Refresh callback', geocodes, identifiers);
-    // console.log("addAudience - target-audience-custom - audienceRefreshCallback fired - ");
+  private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean) : Observable<ImpGeofootprintVar[]> {
+    this.logger.debug.log('Refresh callback', geocodes, identifiers);
+    // this.logger.debug.log("addAudience - target-audience-custom - audienceRefreshCallback fired - ");
     if (identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
       return EMPTY;
     const geoSet = new Set(geocodes);
@@ -375,16 +378,16 @@ export class TargetAudienceCustomService {
     const allNewVars = [];
     const projectVarsDict = this.stateService.projectVarsDict$.getValue();
     geoSet.forEach(geo => {
-      if (this.dataCache.hasOwnProperty(geo)) {
+      if (this.dataCache != null && this.dataCache.hasOwnProperty(geo)) {
         identifiers.forEach(varPk => {
           const column = (projectVarsDict[varPk] || safe).fieldname;
-          const newVars = this.createGeofootprintVar(geo, column, this.dataCache[geo][column], this.currentFileName, geoCache);
+          const newVars = this.createGeofootprintVar(geo, column, this.dataCache[geo][column], this.currentFileName, geoCache, isForShading);
           allNewVars.push(...newVars);
         });
       }
     });
     // console.groupCollapsed("New custom vars: " + allNewVars.length);
-    // console.log("allNewVars:", allNewVars);
+    // this.logger.debug.log("allNewVars:", allNewVars);
     // console.groupEnd();
     return Observable.create(o => {
       o.next(allNewVars);
