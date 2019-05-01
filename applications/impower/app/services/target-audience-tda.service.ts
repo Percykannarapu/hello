@@ -158,7 +158,7 @@ export class TargetAudienceTdaService {
       const varPk: number = parseInt(key, 10); // value: string
       const rawData: TdaVariableResponse = this.rawAudienceData.get(key);
       const fullId = `Offline/TDA/${varPk}`;
-      const numberAttempt = value == null ? null : Number(value);
+      const numberAttempt = value == null ? null : Number(value.trim());
       let fieldDescription: string;
       let fieldValue: string | number;
       if (rawData != null) {
@@ -167,7 +167,7 @@ export class TargetAudienceTdaService {
       if (numberAttempt == null) {
         fieldValue = null;
       } else if (Number.isNaN(numberAttempt)) {
-        fieldValue = value;
+        fieldValue = value.trim();
       } else {
         fieldValue = numberAttempt;
       }
