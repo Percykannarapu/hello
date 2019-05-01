@@ -184,11 +184,14 @@ export class AppEffects {
   private parseLocations(state: FullState) : SiteInformation[] {
     const coordinates: Array<SiteInformation> = [];
     for (const id of state.rfpUiEdit.ids) {
+      let currentIHD = new Date (state.rfpUiEditDetail.entities[id].ihDate).toLocaleDateString();
+
       coordinates.push({
         coordinates: { x: state.rfpUiEdit.entities[id].siteLong, y: state.rfpUiEdit.entities[id].siteLat },
         name: state.rfpUiEdit.entities[id].siteName,
         radius: state.shared.radius,
-        siteId: state.rfpUiEdit.entities[id].siteId
+        siteId: state.rfpUiEdit.entities[id].siteId,
+        inHomeDate: currentIHD,
       });
     }
     return coordinates;

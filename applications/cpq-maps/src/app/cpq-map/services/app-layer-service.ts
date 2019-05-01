@@ -21,6 +21,7 @@ export interface SiteInformation {
   coordinates: UniversalCoordinates;
   radius: number;
   siteId: number;
+  inHomeDate: string;
 }
 
 @Injectable({
@@ -76,6 +77,7 @@ export class AppLayerService {
         graphic.setAttribute('SHADING_GROUP', s.name);
         graphic.setAttribute('radius', s.radius.toString());
         graphic.setAttribute('siteId', s.siteId.toString());
+        graphic.setAttribute('inHomeDate', s.inHomeDate);
         graphics.push(graphic);
       });
       const label = this.esriFactory.createLabelClass(new EsriApi.Color([0, 0, 255, 1]), '$feature.SHADING_GROUP');
