@@ -554,11 +554,11 @@ export class AppLayerService {
    }
 
    public setPopupData(state: FullState) {
-      const layerNames = ['zip', 'atz'];
+      const layerNames = ['zip', 'atz', 'wrap'];
       layerNames.forEach(name => {
          const layerId = this.configService.layers[name].boundaries.id;
          const layer = this.esriLayerService.getPortalLayerById(layerId);
-         if (name !== state.shared.analysisLevel) {
+         if (name !== state.shared.analysisLevel || name === 'wrap') {
            layer.popupTemplate = null;
            return;
          }
@@ -696,7 +696,7 @@ export class AppLayerService {
       fields.push(this.createPopupField('cl2i0r', '% CY HHs w/HH Inc $50K +', 2));
       fields.push(this.createPopupField('cl2i0p', '% CY HHs w/HH Inc $75,000 +', 2));
       fields.push(this.createPopupField('cl0utw', '% CY Owner Occupied Housing Units', 2));
-      fields.push(this.createPopupField('cl2prb', '% Pop White Alone Non-Hisp', 2));
+      fields.push(this.createPopupField('cl2prb', '% Pop Black Alone Non-Hisp', 2));
       fields.push(this.createPopupField('cl2prw', '% Pop White Alone Non-Hisp', 2));
       fields.push(this.createPopupField('cl2i00', 'CY Median Household Income'));
       fields.push(this.createPopupField('cl2hwv', 'CY Median Value, Owner OCC Housing Units'));
