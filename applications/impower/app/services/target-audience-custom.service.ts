@@ -222,7 +222,7 @@ export class TargetAudienceCustomService {
           && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1) {
           const currentResult: ImpGeofootprintVar = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, newVarPk, fieldValue, fullId, fieldDescription, fieldType);
           currentResult.impGeofootprintLocation = geo.impGeofootprintLocation; // TODO: This should be part of the factory method
-          this.logger.debug.log('createGeofootprintVar custom - created a var: loc: ' + currentResult.impGeofootprintLocation.locationNumber + ', geocode: ' + currentResult.geocode + ', varPk: ' + currentResult.varPk);
+          // this.logger.debug.log('createGeofootprintVar custom - created a var: loc: ' + currentResult.impGeofootprintLocation.locationNumber + ', geocode: ' + currentResult.geocode + ', varPk: ' + currentResult.varPk);
           results.push(currentResult);
         }
       });
@@ -369,7 +369,7 @@ export class TargetAudienceCustomService {
   }
 
   private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean) : Observable<ImpGeofootprintVar[]> {
-    this.logger.debug.log('Refresh callback', geocodes, identifiers);
+    // this.logger.debug.log('Refresh callback', geocodes, identifiers);
     // this.logger.debug.log("addAudience - target-audience-custom - audienceRefreshCallback fired - ");
     if (identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
       return EMPTY;
