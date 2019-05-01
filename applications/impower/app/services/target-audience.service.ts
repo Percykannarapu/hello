@@ -219,7 +219,6 @@ export class TargetAudienceService implements OnDestroy {
   //   return projectVar;
   // }
 
-
   public updateProjectVars(audience: AudienceDataDefinition) {
     //console.debug("updateProjectVars fired: audience.audienceIdentifier: " + audience.audienceIdentifier);
     const newProjectVar = this.createProjectVar(audience);
@@ -235,7 +234,7 @@ export class TargetAudienceService implements OnDestroy {
       for (const pv of otherVars) {
         const newPv = Object.assign(pv);
         newPv.baseStatus = DAOBaseStatus.UPDATE;
-        // pv.isShadedOnMap = false;
+        newPv.isShadedOnMap = false; // gotta turn off all the others since we can only shade by one variable
         this.projectVarService.update(pv, newPv);
       }
     }
