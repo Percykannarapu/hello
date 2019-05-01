@@ -2,14 +2,14 @@
 
 // these are the only palettes used in the application for now
 export enum ColorPalette {
-  Cpqmaps = '20 Colors',
+  Cpqmaps = '20 Colors (text vars only)',
   Advantagedarker2 = '5 Advantage-Darker',
   EsriPurple = 'Esri High To Low',
 }
 
 export enum AllColorPalettes {
   Random = 'Random',
-  Cpqmaps = '20 Colors',
+  Cpqmaps = '20 Colors (text vars only)',
   Lightyellow = '1 Light yellow',
   Lightblue = '1 Light blue',
   Lightgreen = '1 Light green',
