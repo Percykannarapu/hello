@@ -8,11 +8,11 @@ import { AppStateService } from './app-state.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { calculateStatistics, mapToEntity } from '@val/common';
-import { ClearSelectedGeos, ClearShadingData, ColorPallete, EsriRendererService, SetSelectedGeos, SetShadingData } from '@val/esri';
+import { ClearSelectedGeos, ClearShadingData, ColorPalette, EsriRendererService, SetSelectedGeos, SetShadingData } from '@val/esri';
 
 @Injectable()
 export class AppRendererService {
-  public static currentDefaultTheme: ColorPallete = ColorPallete.Advantagedarker;
+  public static currentDefaultTheme: ColorPalette = ColorPalette.EsriPurple;
 
   private geoSubscription: Subscription;
   private dataSubscription: Subscription;

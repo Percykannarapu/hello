@@ -1,6 +1,6 @@
 import { EsriMapActionTypes, ResetMapState } from './esri.map.actions';
 import { EsriRendererActions, EsriRendererActionTypes } from './esri.renderer.actions';
-import { ColorPallete } from '../../models/ColorPalletes';
+import { ColorPalette } from '../../models/color-palettes';
 
 export interface ShadingData {
   [geocode: string] : string | number;
@@ -32,7 +32,7 @@ export interface EsriRendererState {
   highlightLayer: string;
   highlightLayerGroup: string;
   shadingGroups: { groupName: string, ids: string[] }[];
-  colorPallete: ColorPallete;
+  colorPallete: ColorPalette;
 }
 
 const initialState: EsriRendererState = {
@@ -45,7 +45,7 @@ const initialState: EsriRendererState = {
   highlightLayer: null,
   highlightLayerGroup: null,
   shadingGroups: null,
-  colorPallete: ColorPallete.Random
+  colorPallete: ColorPalette.EsriPurple
 };
 
 type ReducerActions = EsriRendererActions | ResetMapState;

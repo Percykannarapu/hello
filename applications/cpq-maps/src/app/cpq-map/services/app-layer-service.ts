@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ColorPallete, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions, EsriQueryService, getColorPallete, EsriDomainFactoryService } from '@val/esri';
+import { ColorPalette, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions, EsriQueryService, getColorPalette, EsriDomainFactoryService } from '@val/esri';
 import { UniversalCoordinates } from '@val/common';
 import { calculateStatistics } from '@val/common';
 import { Store } from '@ngrx/store';
@@ -180,7 +180,7 @@ export class AppLayerService {
          if (this.zipShadingMap.has(geo.zip)) {
             continue;
          } else {
-            const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
+            const pallete: number [][] = getColorPalette(ColorPalette.Cpqmaps);
             pallete.forEach(color => color.push(0.6));
             this.zipShadingMap.set(geo.zip, pallete[count % pallete.length]);
          }
@@ -224,7 +224,7 @@ export class AppLayerService {
          if (this.wrapShadingMap.has(wrapZones.get(wrapZone)[0].wrapZone)) {
             continue;
          } else {
-            const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
+            const pallete: number [][] = getColorPalette(ColorPalette.Cpqmaps);
             pallete.forEach(color => color.push(0.6));
             this.wrapShadingMap.set(wrapZones.get(wrapZone)[0].wrapZone, pallete[count % pallete.length]);
          }
@@ -260,7 +260,7 @@ export class AppLayerService {
          if (this.atzShadingMap.has(designator)) {
             continue;
          } else {
-            const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
+            const pallete: number [][] = getColorPalette(ColorPalette.Cpqmaps);
             pallete.forEach(color => color.push(0.6));
             this.atzShadingMap.set(designator, pallete[count % pallete.length]);
          }
@@ -300,7 +300,7 @@ export class AppLayerService {
       for (const site of state.rfpUiEdit.ids) {
          const geos: Array<string> = [];
          const siteId = state.rfpUiEdit.entities[site].siteId;
-         const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
+         const pallete: number [][] = getColorPalette(ColorPalette.Cpqmaps);
          pallete.forEach(color => color.push(0.6));
          this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, pallete[count % pallete.length]);
          for (const detail of state.rfpUiEditDetail.ids) {
@@ -403,7 +403,7 @@ export class AppLayerService {
    }
 
    private getGeoColor(state: FullState, geocode: string, fkSiteMap?: Map<string, number | string>) : number[] {
-      const pallete: number [][] = getColorPallete(ColorPallete.Cpqmaps);
+      const pallete: number [][] = getColorPalette(ColorPalette.Cpqmaps);
       switch (state.shared.shadingType) {
          case shadingType.SITE:
             return this.shadingMap.get(Number(fkSiteMap.get(geocode)));
