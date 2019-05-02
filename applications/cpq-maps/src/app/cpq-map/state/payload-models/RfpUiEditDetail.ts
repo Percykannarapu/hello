@@ -25,8 +25,8 @@ export interface RfpUiEditDetailPayload extends BaseModelPayload
    zip:                   string;         /// The zip code component of the geography
    atz:                   string;         /// The atz component of the geography
    cityName:              string;         /// The city / state of the geography
-   household:             number;         /// When bought, hh_count_mbu otherwise hh_count_pref_ihd. If null, then hh_count_geo
-   taHousehold:           number;         /// Households in the trade area
+   households:             number;         /// When bought, hh_count_mbu otherwise hh_count_pref_ihd. If null, then hh_count_geo
+   taHouseholds:           number;         /// Households in the trade area
    distribution:          number;         /// The distribution (circ)
    addOnDistribution:     number;
    cpm:                   number;         /// Average MBU price (cost per thousand)
