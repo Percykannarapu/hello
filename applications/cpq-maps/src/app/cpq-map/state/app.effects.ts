@@ -191,7 +191,6 @@ export class AppEffects {
         radius: state.shared.radius,
         siteId: state.rfpUiEdit.entities[id].siteId,
         inHomeDate: currentIHD,
-        householdCount: state.rfpUiEditDetail.entities[id].taHouseholds,
       });
     }
     return coordinates;

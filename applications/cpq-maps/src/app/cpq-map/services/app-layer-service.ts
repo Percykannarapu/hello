@@ -22,7 +22,6 @@ export interface SiteInformation {
   radius: number;
   siteId: number;
   inHomeDate: string;
-  householdCount:number;
 }
 
 @Injectable({
@@ -79,7 +78,6 @@ export class AppLayerService {
         graphic.setAttribute('radius', s.radius.toString());
         graphic.setAttribute('siteId', s.siteId.toString());
         graphic.setAttribute('inHomeDate', s.inHomeDate);
-        graphic.setAttribute('householdCount', s.householdCount.toString());
         graphics.push(graphic);
       });
       const label = this.esriFactory.createLabelClass(new EsriApi.Color([0, 0, 255, 1]), '$feature.SHADING_GROUP');
@@ -324,16 +322,25 @@ export class AppLayerService {
       selectedGeos.forEach(sg => query.where += `'${sg}',`);
       query.where = query.where.substr(0, query.where.length - 1);
       query.where += ')';
+      const geoHHC = new Map<string, string>();
+      if(state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+         for(const id in state.rfpUiEditDetail.ids){
+            if(state.rfpUiEditDetail.entities[id] != null)
+               geoHHC.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].households.toString());
+         }
+      }
       this.queryService.executeQuery(this.configService.layers[analysisLevel].boundaries.id, query, true).subscribe(res => {
          const graphics: Array<__esri.Graphic> = [];
-         for (const geo of res.features) {
+            for (const geo of res.features) {
             const graphic: __esri.Graphic = new EsriApi.Graphic();
             const symbol: __esri.Symbol = new EsriApi.SimpleFillSymbol({ color:  this.shadingMap.get(shadingGroups.get(geo.getAttribute('geocode')))});
             graphic.symbol = symbol;
             graphic.geometry = geo.geometry;
             graphic.setAttribute('geocode', geo.getAttribute('geocode'));
+            if(geoHHC.has(geo.getAttribute('geocode')))
+                 graphic.setAttribute('householdCount', geoHHC.get(geo.getAttribute('geocode')) );
             graphics.push(graphic);
-         }
+            }
          if (this.esriLayerService.getGraphicsLayer('Selected Geos') == null)
             this.esriLayerService.createGraphicsLayer('Shading', 'Selected Geos', graphics, true);
          else {
