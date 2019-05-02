@@ -174,7 +174,8 @@
     stage('Run Tests') {
       when {
         expression {
-          return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'qa'
+          // Disable the jobs untill geos are fixed
+          return env.BRANCH_NAME == 'disable' || env.BRANCH_NAME == 'disable'
         }
       }
       steps {
