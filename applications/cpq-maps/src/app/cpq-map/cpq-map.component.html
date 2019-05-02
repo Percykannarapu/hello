@@ -1,13 +1,28 @@
-<div style="overflow: hidden;">
-   <div *ngIf="panelSize === 'small'" style="width: 20%; float: left; height: 750px;">
-      <val-grid [smallSizeTable]=true></val-grid>
-   </div>
-   <div *ngIf="panelSize === 'large'" style="width: 33%; float: left; height: 750px;">
-      <val-grid [smallSizeTable]=false></val-grid>
-   </div>
-   <div style="overflow: hidden;">
-      <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="true">
-         <additional-toolbar-group (onPanelChange)="onPanelChange($event)"></additional-toolbar-group>
-      </val-esri-map-panel>
-   </div>
+<div #appRoot class="app-root" [class.small]="gridIsSmall" [class.large]="gridIsLarge">
+
+  <cpq-header-bar class="title-bar"></cpq-header-bar>
+
+  <val-grid [smallSizeTable]="gridIsSmall" *ngIf="gridIsVisible"></val-grid>
+
+  <div class="map-container">
+    <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="true">
+      <additional-toolbar-group>
+        <div class="additional-toolbar-container">
+          <p-button icon="pi pi-angle-left" label="" (click)="sideNavVisible = !sideNavVisible"></p-button>
+        </div>
+      </additional-toolbar-group>
+    </val-esri-map-panel>
+  </div>
+
 </div>
+
+<p-sidebar [appendTo]="appRoot" [(visible)]="sideNavVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
+  <div class="app-sidenav-content">
+    <val-map-controls (onGridSizeChange)="gridSize = $event"></val-map-controls>
+    <val-dev-tools></val-dev-tools>
+    <val-shading-config></val-shading-config>
+  </div>
+</p-sidebar>
+
+<val-busy-indicator></val-busy-indicator>
+<p-toast styleClass="val-toast-top-right"></p-toast>

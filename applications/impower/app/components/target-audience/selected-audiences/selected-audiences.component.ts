@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AppStateService } from '../../../services/app-state.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { SelectItem } from 'primeng/primeng';
-import { AppRendererService, SmartMappingTheme } from '../../../services/app-renderer.service';
+import { AppRendererService } from '../../../services/app-renderer.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { map, take, filter } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -12,6 +12,7 @@ import { LocalAppState } from '../../../state/app.interfaces';
 import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric, CreateMapUsageMetric } from '../../../state/usage/targeting-usage.actions';
 import { CreateGaugeMetric } from '../../../state/usage/usage.actions';
+import { ColorPalette } from '@val/esri';
 
 @Component({
   selector: 'val-selected-audiences',
@@ -33,15 +34,16 @@ export class SelectedAudiencesComponent implements OnInit {
               private confirmationService: ConfirmationService,
               private store$: Store<LocalAppState>) {
     // this is how you convert an enum into a list of drop-down values
-    const allThemes = SmartMappingTheme;
+    const allThemes = ColorPalette;
     const keys = Object.keys(allThemes);
     for (const key of keys) {
       this.allThemes.push({
-        label: key,
+        label: allThemes[key],
         value: allThemes[key]
       });
     }
-    this.currentTheme = this.allThemes[0].value;
+    this.allThemes.sort((a, b) => a.label.localeCompare(b.label));
+    this.currentTheme = AppRendererService.currentDefaultTheme;
   }
 
   public ngOnInit() : void {
@@ -97,10 +99,8 @@ export class SelectedAudiencesComponent implements OnInit {
     this.varService.applyAudienceSelection();
   }
 
-  public onThemeChange(event: { value: SmartMappingTheme }) : void {
-    console.log(event);
+  public onThemeChange(event: { value: ColorPalette }) : void {
     AppRendererService.currentDefaultTheme = event.value;
-    this.currentTheme = event.value.toString();
   }
 
   public closeDialog(){
@@ -179,17 +179,6 @@ export class SelectedAudiencesComponent implements OnInit {
     },
     reject: () => {}
    });
-
-
-  }
-
-  private clearSelectedFields(){
-    this.varService.getAudiences().forEach(audience => {
-      this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-      this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-    });
-    this.varService.applyAudienceSelection();
-      
   }
 
   public onMoveUp(audience: AudienceDataDefinition) {

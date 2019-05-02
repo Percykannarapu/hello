@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { AppLocationService } from '../../services/app-location.service';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { map } from 'rxjs/operators';
+import { map, filter, take } from 'rxjs/operators';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
@@ -12,8 +12,8 @@ import { AppBusinessSearchService, BusinessSearchCategory, BusinessSearchRequest
 import { BusinessSearchComponent, SearchEventData } from './business-search/business-search.component';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { AppStateService } from '../../services/app-state.service';
-import { LocalAppState } from '../../state/app.interfaces';
-import { Store } from '@ngrx/store';
+import { LocalAppState, FullAppState } from '../../state/app.interfaces';
+import { Store, select } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ManualEntryComponent } from './manual-entry/manual-entry.component';
@@ -21,6 +21,7 @@ import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { Geocode, HomeGeocode } from '../../state/homeGeocode/homeGeo.actions';
+import { selectors } from '@val/esri';
 
 @Component({
   selector: 'val-add-locations-tab',
@@ -52,7 +53,7 @@ export class AddLocationsTabComponent implements OnInit {
               private appTradeAreaService: AppTradeAreaService,
               private audienceTradeAreaService: ValAudienceTradeareaService,
               private appStateService: AppStateService,
-              private store$: Store<LocalAppState>,
+              private store$: Store<FullAppState>,
               private appEditSiteService: AppEditSiteService) {}
 
   ngOnInit() {
@@ -62,11 +63,19 @@ export class AddLocationsTabComponent implements OnInit {
       }   
     });
 
-    this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
-      map(([sites, competitors]) => [...sites, ...competitors])
-    );
-    this.hasFailures$ = this.appLocationService.hasFailures$;
-    this.totalCount$ = this.appLocationService.totalCount$;
+    this.store$.pipe(
+      select(selectors.getMapReady),
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
+        map(([sites, competitors]) => [...sites, ...competitors])
+      );
+      this.hasFailures$ = this.appLocationService.hasFailures$;
+      this.totalCount$ = this.appLocationService.totalCount$;
+    });
+
+    
     this.searchCategories$ = this.businessSearchService.getCategories();
     this.appStateService.clearUI$.subscribe(() => {
       this.businessSearchComponent.clear();

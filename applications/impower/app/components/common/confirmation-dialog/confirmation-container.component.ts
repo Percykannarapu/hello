@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { LocalAppState } from '../../../state/app.interfaces';
+import { FullAppState, LocalAppState } from '../../../state/app.interfaces';
 import { HideConfirmation, AcceptConfirmation, selectors, RejectConfirmation } from '@val/messaging';
 import { map } from 'rxjs/operators';
 
@@ -24,7 +24,7 @@ export class ConfirmationContainerComponent {
   rejectLabel$ = this.confirmation$.pipe(map(c => c.rejectLabel));
   canBeClosed$ = this.confirmation$.pipe(map(c => c.explicitlyClosable));
 
-  constructor(private store$: Store<LocalAppState>){}
+  constructor(private store$: Store<FullAppState>){}
 
   onClosed() {
     this.store$.dispatch(new HideConfirmation());

@@ -7,6 +7,7 @@ export interface EsriLabelConfiguration {
   size: number;
   enabled: boolean;
   pobEnabled: boolean;
+  siteEnabled: boolean;
 }
 
 export interface EsriLabelLayerOptions {
@@ -47,7 +48,8 @@ const initialState: EsriMapState = {
     font: 'sans-serif',
     size: 10,
     enabled: true,
-    pobEnabled: false
+    pobEnabled: false,
+    siteEnabled: true,
   },
   layerExpressions: null
 };

@@ -33,6 +33,7 @@ export class EsriDomainFactoryService {
     if (currentMapView == null) throw new Error('The SketchViewModel factory requires a valid MapView instance.');
     const result = new EsriApi.widgets.SketchViewModel({
       view: currentMapView,
+      layer: new EsriApi.GraphicsLayer({}),
       pointSymbol: {
         type: 'simple-marker',
         style: 'square',
@@ -67,5 +68,22 @@ export class EsriDomainFactoryService {
       if (l.title == null) l.listMode = 'hide';
     });
     return result;
+  }
+
+  createLabelClass(color: __esri.Color, expression: string) : __esri.LabelClass {
+    const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
+    const font = new EsriApi.Font({ family: 'sans-serif', size: 12, weight: 'bold' });
+    textSymbol.backgroundColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    textSymbol.haloColor = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+    textSymbol.color = color;
+    textSymbol.haloSize = 1;
+    textSymbol.font = font;
+    return new EsriApi.LabelClass({
+      symbol: textSymbol,
+      labelPlacement: 'below-center',
+      labelExpressionInfo: {
+        expression: expression
+      }
+    });
   }
 }

@@ -50,7 +50,7 @@
     "@angular/cli": "~6.0.0",
     "@angular/language-service": "^6.0.0",
     "@ngrx/schematics": "^6.1.0",
-    "@types/arcgis-js-api": "4.8.1",
+    "@types/arcgis-js-api": "4.10.0",
     "@types/jasmine": "~2.8.6",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "~8.9.4",

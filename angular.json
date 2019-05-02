@@ -197,7 +197,8 @@
               "applications/cpq-maps/src/assets"
             ],
             "styles": [
-              "applications/cpq-maps/src/assets/cpq-maps.css"
+              "applications/cpq-maps/src/assets/cpq-maps.css",
+              "applications/cpq-maps/src/styles.css"
             ],
             "scripts": []
           },

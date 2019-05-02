@@ -31,7 +31,7 @@ export class AppMenuComponent implements OnInit {
     ngOnInit() {
         this.model = [
             { label: 'Dashboard', icon: 'dashboard', routerLink: ['/'] },
-            { label: 'Save', icon: 'save', command: () => this.store$.dispatch(new SaveAndReloadProject()) },
+            { label: 'Save', id: 'saveProject', icon: 'save', command: () => this.store$.dispatch(new SaveAndReloadProject()) },
             { label: 'Projects', icon: 'storage',
               items: [
                   { label: 'Create New', icon: '', command: () =>  this.createNewProject() },

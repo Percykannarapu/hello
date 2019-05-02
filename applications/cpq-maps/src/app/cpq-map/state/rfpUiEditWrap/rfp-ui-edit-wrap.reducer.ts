@@ -1,7 +1,7 @@
-import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
+import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { RfpUiEditWrap } from '../../../val-modules/mediaexpress/models/RfpUiEditWrap';
 import { RfpUiEditWrapActions, RfpUiEditWrapActionTypes } from './rfp-ui-edit-wrap.actions';
-import { SharedActions } from '../shared/shared.actions';
+import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface RfpUiEditWrapState extends EntityState<RfpUiEditWrap> {
   // additional entities state properties
@@ -20,6 +20,14 @@ type reducerActions = RfpUiEditWrapActions | SharedActions;
 
 export function rfpUiEditWrapReducer(state = initialState, action: reducerActions) : RfpUiEditWrapState {
   switch (action.type) {
+    case SharedActionTypes.LoadEntityGraph : {
+      if (action.payload.normalizedEntities.rfpUiEditWraps != null) {
+        return adapter.addAll(action.payload.normalizedEntities.rfpUiEditWraps, state);
+      } else {
+        return state;
+      }
+    }
+
     case RfpUiEditWrapActionTypes.AddRfpUiEditWrap: {
       return adapter.addOne(action.payload.rfpUiEditWrap, state);
     }

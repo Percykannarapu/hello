@@ -11,7 +11,7 @@
  * because it will have performance impact when throw error
  */
 import 'zone.js/dist/zone-error'; // Included with Angular CLI.
-import { LogLevels } from '../app/val-modules/common/services/logging.service';
+import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
 
 export const environment = {
@@ -42,8 +42,8 @@ export class EnvironmentData {
 
   public static esri = {
     portalServer:  'https://vallomimpor1vm.val.vlss.local/',
-    userName: 'admin',
-    password: 'password'
+    userName: 'impower5',
+    password: 'impower123!'
   };
 
   public static oAuth = {

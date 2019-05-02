@@ -1,24 +1,10 @@
-<div *ngIf="loading" style="font: large; text-align: center; font-weight: bold">
-  <svg class="spinner" viewBox="0 0 50 50">
-    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
-  </svg>
-</div>
-<br>
-<br>
-<p-card>
-    <p style="text-align: center; font-size: large;">Developer Controls</p>
-  <div *ngIf="groupId != null">
-    <p>Current Media Plan Group ID: {{groupId}}</p>
-    <p>Current Media Plan ID: {{currentMediaPlanId}}</p>
-    <div style="padding: 0; overflow: hidden; white-space: nowrap">
-      Update Media Plan Group ID&nbsp;&nbsp;
-      <input #box (keyup.enter)="onGroupIdChange(box.value)">
+<div class="dev-tools-container">
+  <p-card class="dev-controls-container">
+    <div class="dev-controls">
+      <h4>Developer Controls</h4>
+      <div>
+        <button pButton type="button" label="Print" (click)="onPrint()"></button>
+      </div>
     </div>
-  </div>
-  <br>
-  <div *ngIf="mediaPlanIds.length > 0">
-    <p-dropdown #mpIds [options]="mediaPlanIds" id="mpIds"></p-dropdown>&nbsp;&nbsp;
-    <button pButton type="button" label="Update Selected Media Plan" (click)="setActiveMediaPlan()"></button>
-  </div>
-  
-</p-card>
+  </p-card>
+</div>

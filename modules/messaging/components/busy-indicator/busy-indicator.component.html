@@ -1,0 +1,5 @@
+<p-dialog [closable]="true" [header]="currentBusyMessage$ | async" [visible]="currentBusyState$ | async" width="350">
+  <div class="busy-container">
+    <p-progressSpinner class="busy-spinner"></p-progressSpinner>
+  </div>
+</p-dialog>

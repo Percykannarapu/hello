@@ -13,7 +13,7 @@ export enum HomeGeoActionTypes {
    ZoomtoLocations = '[Application Geocode] Zoom to Locations',
    DetermineDTZHomeGeos = '[Application Geocode] Determine Digital ATZ',
    ProcessHomeGeoAttributes = '[Application Geocode] Flag Homegeo Attributes',
-  // ReCalcHomeGeos = '[Application Geocode] Re Calculate Homegeos',
+   ReCalcHomeGeos = '[Application Geocode] Re Calculate Homegeos',
    UpdateLocations = '[Application Geocode] Update existing Locations', 
 }
 
@@ -33,6 +33,14 @@ export class PersistLocations implements Action {
    constructor(public payload: {locations: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){}
 }
 
+export class ReCalcHomeGeos implements Action {
+  readonly type = HomeGeoActionTypes.ReCalcHomeGeos;
+  constructor(public payload: {locations: ImpGeofootprintLocation[],
+                               siteType: SuccessfulLocationTypeCodes,
+                               reCalculateHomeGeos: boolean, 
+                               isLocationEdit: boolean} ){}
+}
+
 export class ApplyTradeAreaOnEdit implements Action {
    readonly type = HomeGeoActionTypes.ApplyTradeAreaOnEdit;
    constructor(public payload: {isLocationEdit: boolean, reCalculateHomeGeos: boolean}){}
@@ -45,16 +53,16 @@ export class ZoomtoLocations implements Action {
 
 export class DetermineDTZHomeGeos implements Action{
    readonly type = HomeGeoActionTypes.DetermineDTZHomeGeos;
-   //, locationsMap: Map<string, ImpGeofootprintLocation[]>
    constructor(public payload: {attributes: any , 
                                 locationsMap: Map<string, ImpGeofootprintLocation[]>, 
                                 isLocationEdit: boolean, 
-                                reCalculateHomeGeos: boolean}){}
+                                reCalculateHomeGeos: boolean,
+                                totalLocs: ImpGeofootprintLocation[]}){}
 }
 
 export class ProcessHomeGeoAttributes implements Action{
   readonly type = HomeGeoActionTypes.ProcessHomeGeoAttributes;
-  constructor(public payload: {attributes: any}){}
+  constructor(public payload: {attributes: any, totalLocs: ImpGeofootprintLocation[], isLocationEdit: boolean, reCalculateHomeGeos: boolean}){}
 }
 
 export class UpdateLocations implements Action {
@@ -69,4 +77,5 @@ export type HomeGeoActions = Geocode |
                              DetermineDTZHomeGeos |
                              ProcessHomeGeoAttributes|
                              UpdateLocations |
+                             ReCalcHomeGeos |
                              ZoomtoLocations;

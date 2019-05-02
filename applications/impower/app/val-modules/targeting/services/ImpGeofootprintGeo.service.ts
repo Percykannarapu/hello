@@ -24,7 +24,7 @@ import { select, Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
 import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
-import { groupBy, roundTo } from '@val/common';
+import { groupBy, roundTo, mapArrayToEntity, safe } from '@val/common';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -327,7 +327,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public calculateGeoRanks()
    {
-      console.log('ImpGeofootprintGeo.service.addGeoRank - fired');
       const geos = this.get();
 
       console.log('Calculating geo ranks for ', (geos != null) ? geos.length : 0, ' rows');
@@ -347,7 +346,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
      return this.get().sort((a, b) => comparatorMethod(a, b));
    }
 
-   public exportMustCoverFlag(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo ){
+  public exportMustCoverFlag(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo) {
     return  (state.mustCovers != null && state.mustCovers.includes(geo.geocode)) ? '1' : '0' ;
   }
 
@@ -407,38 +406,21 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          const value = currentAttribute[header];
          result = value == null ? '' : value.toString();
       }
+      const projectVarsDict = mapArrayToEntity(geo.impGeofootprintLocation.impProject.impProjectVars,  v => v.varPk);
+
       if (result === '' && state.varCache.has(geo.geocode)) {
         const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
-        const currentVar = vars.find(v => v.customVarExprDisplay === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
-        if (currentVar != null) {
-          if (currentVar.isString) result = currentVar.valueString;
-          if (currentVar.isNumber) result = currentVar.valueNumber.toString();
+        const currentVar = vars.find(v => (projectVarsDict[v.varPk]||safe).fieldname === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
+        if (currentVar != null && currentVar.value != null) {
+          // if (currentVar.isString) result = currentVar.valueString;
+          // if (currentVar.isNumber) result = currentVar.valueNumber.toString();
+          // We no longer have isString/isNumber, so use the field that has a value as only one will.
+          result = currentVar.value.toString(); //currentVar.valueNumber != null ? currentVar.valueNumber.toString() : currentVar.valueString;
         }
       }
       if (!result || result == 'null') result = '';
       return result;
    }
-
-   private getProjectVarFieldName(pv: ImpProjectVar) : string {
-     if (pv.source.includes('Online') && !pv.source.includes('Audience-TA')) {
-       const sourceName = pv.source.split('_')[1];
-       return `${pv.fieldname} (${sourceName})`;
-     } else {
-       return pv.fieldname;
-     }
-   }
-
-  private getGeoVarFieldName(gv: ImpGeofootprintVar) : string {
-    if (TradeAreaTypeCodes.parse(gv.impGeofootprintTradeArea.taType) === TradeAreaTypeCodes.Audience) {
-      if (gv.customVarExprQuery && gv.customVarExprQuery.includes('Offline')) {
-            return gv.customVarExprDisplay;
-      } else {
-            return gv.fieldname ? `${gv.fieldname} ${gv.customVarExprDisplay}` : gv.customVarExprDisplay;
-      }
-    } else {
-      return gv.customVarExprDisplay;
-    }
-  }
 
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
@@ -446,17 +428,15 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       if (aGeo == null) return;
       //  const currentProject = aGeo.impProject;
       const currentProject = aGeo.impGeofootprintLocation.impProject;  //DEFECT FIX : export feature - accessing project details from GeoFootPrintLocation
-      const usableVars = new Set(currentProject.impProjectVars
-                          .filter(pv => pv.isIncludedInGeofootprint)
-                          .map(pv => this.getProjectVarFieldName(pv)));
-      let usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => usableVars.has(this.getGeoVarFieldName(gv)));
-      usableGeoVars = usableGeoVars.sort((a, b) => this.sortVars(a, b));
+      const projectVarsDict = mapArrayToEntity(currentProject.impProjectVars,  v => v.varPk);
+      const usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => projectVarsDict[gv.varPk] != null && projectVarsDict[gv.varPk].isIncludedInGeofootprint);
+      usableGeoVars.sort((a, b) => this.sortVars(a, b));
       this.varCache = groupBy(usableGeoVars, 'geocode');
-      const columnSet = new Set(usableGeoVars.map(gv => gv.customVarExprDisplay));
+      const columnSet = new Set(usableGeoVars.map(gv => (projectVarsDict[gv.varPk] || safe).fieldname));
       const attributeNames = Array.from(columnSet);
       attributeNames.forEach(name => {
-         exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
-         });
+        exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
+      });
    }
 
    private sortVars(a, b) {

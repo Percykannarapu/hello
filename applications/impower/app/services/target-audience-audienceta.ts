@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, EMPTY } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { AudienceDataDefinition, AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
@@ -13,17 +13,15 @@ import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-d
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
-import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
-import { mapByExtended, groupByExtended, groupBy } from '@val/common';
-import { InTransaction } from '../val-modules/common/services/datastore.service';
-import { AppGeoService } from './app-geo.service';
+import { mapByExtended, safe } from '@val/common';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { tap } from 'rxjs/internal/operators/tap';
 import { FullAppState } from 'app/state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { UpsertGeoAttributes } from 'app/impower-datastore/state/geo-attributes/geo-attributes.actions';
+import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
 
 interface AudienceTradeareaResponse {
   maxRadius: number;
@@ -71,9 +69,15 @@ export class TargetAudienceAudienceTA {
   private geoVarMap: Map<string, string> = new Map<string, string>();
   private geoVarFieldMap: Map<string, string> = new Map<string, string>();
 
-  constructor(private config: AppConfig, private restService: RestDataService, private audienceService: TargetAudienceService,
-              private appStateService: AppStateService, private varService: ImpGeofootprintVarService, private factory: ImpDomainFactoryService,
-              private tradeAreaService: ImpGeofootprintTradeAreaService, private projectVarService: ImpProjectVarService, private httpClient: HttpClient,
+  constructor(private config: AppConfig,
+              private restService: RestDataService,
+              private audienceService: TargetAudienceService,
+              private appStateService: AppStateService,
+              private varService: ImpGeofootprintVarService,
+              private factory: ImpDomainFactoryService,
+              private tradeAreaService: ImpGeofootprintTradeAreaService,
+              private projectVarService: ImpProjectVarService,
+              private httpClient: HttpClient,
               private impGeoService: ImpGeofootprintGeoService,
               private store$: Store<FullAppState>) {
     this.geoVarMap.set('Index Value', 'number');
@@ -88,8 +92,12 @@ export class TargetAudienceAudienceTA {
     this.geoVarFieldMap.set('Combined Tile Number', 'combinedIndexTile');
     this.geoVarFieldMap.set('In/Out', 'tradeareaLocation');
 
-    this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
+    let varPkStart = 0;
+    Array.from(this.geoVarMap.keys()).forEach(varName => {
+      this.varPkCache.set(varName, --varPkStart);
+    });
 
+    this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
   }
 
   private onLoadProject() {
@@ -110,13 +118,16 @@ export class TargetAudienceAudienceTA {
             allowNationalExport: false,
             exportNationally: false,
             secondaryId: this.reloadSecondaryId(projectVar),
-            audienceTAConfig: this.reloadAudienceTaConfig()
+            audienceTAConfig: this.reloadAudienceTaConfig(),
+            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
+            audienceCounter: projectVar.sortOrder,
+            requiresGeoPreCaching: false
           };
           this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
           this.audienceService.addAudience(
             currentAudience,
-            (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),
-            null);
+            (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
+            null, true);
         }
       }
     } catch (error) {
@@ -144,7 +155,7 @@ export class TargetAudienceAudienceTA {
       minRadius: project.audTaMinRadiu,
       scoreType: project.audTaIndexBase,
       weight: project.audTaVarWeight,
-      includeMustCover:project.audTaIsMustCover === 1
+      includeMustCover: project.audTaIsMustCover === 1
     };
   }
 
@@ -163,10 +174,9 @@ export class TargetAudienceAudienceTA {
     if (audiences.length > 0) {
       audienceName = audiences[0].audienceName;
     }
-    TargetAudienceService.audienceCounter++;
     const audience: AudienceDataDefinition = {
       audienceName: `${audienceName} ${name}`,
-      audienceIdentifier: this.projectVarService.getNextStoreId().toString(), // `${digId}-${name}`,
+      audienceIdentifier: this.varPkCache.get(name).toString(),
       audienceSourceType: 'Online',
       audienceSourceName: 'Audience-TA',
       exportInGeoFootprint: true,
@@ -176,11 +186,12 @@ export class TargetAudienceAudienceTA {
       exportNationally: false,
       secondaryId: `${name}`,
       audienceTAConfig: audienceTAConfig,
-      audienceCounter: TargetAudienceService.audienceCounter
+      audienceCounter: TargetAudienceService.audienceCounter++,
+      fieldconte: this.geoVarMap.get(name) === 'number' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Char,
+      requiresGeoPreCaching: false
     };
     return audience;
   }
-
 
   public addAudiences(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>, digCategoryId, audienceTAConfig: AudienceTradeAreaConfig) {
     //console.debug("addAudiences - target-audience-audienceta - fired - audienceTAConfig: ", audienceTAConfig);
@@ -188,7 +199,7 @@ export class TargetAudienceAudienceTA {
       const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
       this.audienceService.addAudience(
         model,
-        (al, pks, geos, shading, audience) => this.dataRefreshCallback(null, null, null, null, audience),
+        (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
         null);
     }
     /*this.audienceService.addAudience(
@@ -204,7 +215,7 @@ export class TargetAudienceAudienceTA {
     let varPk = null;
     let geofootprintVars: ImpGeofootprintVar[] = [];
     const taByLocationNum = mapByExtended(this.tradeAreaService.get().filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Audience), item => item.impGeofootprintLocation.locationNumber);
-    let currentAttributes: Map<string, boolean> = new Map<string, boolean>();
+    const currentAttributes: Map<string, boolean> = new Map<string, boolean>();
     const audienceTAConfig = this.reloadAudienceTaConfig();
     for (const location of Array.from(taResponseCache.keys())) {
       //console.log("target-audience-audienceta - createGeofootprintVars - processing location:", location);
@@ -220,11 +231,7 @@ export class TargetAudienceAudienceTA {
           if (this.varPkCache.has(geoVarKey)) {
             varPk = this.varPkCache.get(geoVarKey);
           } else {
-            // Get a new varPk, ensuring that it is bigger than max already used
-            varPk = this.varService.getNextStoreId();
-            let maxVarPk = Math.max.apply(Math, Array.from(this.varPkCache.values()));
-            while (varPk <= maxVarPk)
-              varPk = this.varService.getNextStoreId();
+            throw new Error('Audience TA var pk cache set up incorrectly');
           }
           this.varPkCache.set(geoVarKey, varPk);
 
@@ -233,7 +240,6 @@ export class TargetAudienceAudienceTA {
           const previousFlag = currentAttributes.get(geoResponse.geocode) || false;
           const newFlag = previousFlag || this.setActiveGeos(geoResponse.combinedIndexTile, audienceTAConfig, geoResponse.distance);
           currentAttributes.set(geoResponse.geocode, newFlag);
-        
           if (this.varService.get().findIndex(gvar => gvar.geocode === geoResponse.geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === location) === -1
           &&       geofootprintVars.findIndex(gvar => gvar.geocode === geoResponse.geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === location) === -1)
           {
@@ -251,7 +257,7 @@ export class TargetAudienceAudienceTA {
     if (currentAttributes.size > 0) {
       const payload = { geoAttributes: [] };
       currentAttributes.forEach((v, k) => {
-        payload.geoAttributes.push({ geocode: k, preSelectedForAudience: v })
+        payload.geoAttributes.push({ geocode: k, preSelectedForAudience: v });
       });
       this.store$.dispatch(new UpsertGeoAttributes(payload));
     }
@@ -259,8 +265,8 @@ export class TargetAudienceAudienceTA {
     // Filter out any dupes
     geofootprintVars = (geofootprintVars.filter(gv => this.varService.get().findIndex(gvar => gvar.geocode === gv.geocode && gvar.varPk === gv.varPk && gvar.impGeofootprintLocation.locationNumber === gv.impGeofootprintLocation.locationNumber) === -1));
     if (geofootprintVars.length > 0)
-      this.varService.add(geofootprintVars);//, null, null, InTransaction.silent);
-    console.log("target-audience-audienceta - createGeofootprintVars - Added:", geofootprintVars.length, "new geo vars");
+      this.varService.add(geofootprintVars); // , null, null, InTransaction.silent);
+    console.log('target-audience-audienceta - createGeofootprintVars - Added:', geofootprintVars.length, 'new geo vars');
     // DEBUG: Print variable counts
     // console.log("target-audience-audienceta - current geo vars");
     // let variablePkCounts:Map<string,ImpGeofootprintVar[]> = groupByExtended(this.varService.get(), (i) => i.varPk + ", " + i.customVarExprDisplay);
@@ -270,7 +276,7 @@ export class TargetAudienceAudienceTA {
   }
 
   /**
-   * Create geoffotprint variables for the for the geos that are being selected
+   * Create geofootprint variables for the for the geos that are being selected
    * @param currentTradeArea The Trade Area object to attach this geovar to.
    * @param pk The primary key of the new
    * @param geocode The geocode of the new variable
@@ -283,26 +289,24 @@ export class TargetAudienceAudienceTA {
    */
   private createGeoVar(currentTradeArea: ImpGeofootprintTradeArea, pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, audienceName: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
     const value = valueString == null ? valueNumber : valueString;
-        const fieldType = type === 'string' ? FieldContentTypeCodes.Char : numberType === 'index' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Percent;
-        const result = this.factory.createGeoVar(currentTradeArea, geocode, pk, value, '', fieldDisplay, fieldType, audienceName);
-    for (const audience of this.audienceService.getAudiences()) {
-      if (result.fieldname != null && result.fieldname.replace(/\s/g, '') + result.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
-              result.varPosition = audience.audienceCounter;
+    const fieldType = type === 'string' ? FieldContentTypeCodes.Char : numberType === 'index' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Percent;
+    const result = this.factory.createGeoVar(currentTradeArea, geocode, pk, value, '', fieldDisplay, fieldType, audienceName);
+    const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
+
+/*    for (const audience of this.audienceService.getAudiences()) {
+      let fieldname = (projectVarsDict[pk]||safe).fieldname;
+      if (fieldname != null && fieldname.replace(/\s/g, '') + result.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
+        result.varPosition = audience.audienceCounter;
       }
-    }
+    }*/
     return result;
   }
 
-  public setActiveGeos(combinedIndexTile: number, audienceTAConfig: AudienceTradeAreaConfig, distance: number): boolean{
-      
-  const value = ((combinedIndexTile != null && combinedIndexTile !== 0 && combinedIndexTile <= 4) ||
-        (audienceTAConfig != null && audienceTAConfig.includeMustCover && distance <= audienceTAConfig.minRadius));
-  if(value == null){
-    console.log('params:::', combinedIndexTile);
-    console.log('param2:::',audienceTAConfig);
-    console.log('param3:::',distance);
-  }
-  return value;          
+  public setActiveGeos(combinedIndexTile: number, audienceTAConfig: AudienceTradeAreaConfig, distance: number) : boolean{
+
+    return ((combinedIndexTile != null && combinedIndexTile !== 0 && combinedIndexTile <= 4) ||
+          (audienceTAConfig.includeMustCover && distance <= audienceTAConfig.minRadius));
+
   }
 
   /**
@@ -310,13 +314,13 @@ export class TargetAudienceAudienceTA {
    * This method will also create the renderer data that is required for map shading
    */
   private parseResponse(restResponse: RestResponse, alternateCategory: string) : Map<string, Map<number, AudienceTradeareaResponse>> {
-        const taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
-        let count: number = 0;
-        const rows: AudienceTradeareaResponse[] = restResponse.payload.rows;
+    const taResponses = new Map<string, Map<number, AudienceTradeareaResponse>>();
+    let count: number = 0;
+    const rows: AudienceTradeareaResponse[] = restResponse.payload.rows;
     for (const taResponse of rows) {
-            if (taResponse.categoryName == null) {
-              taResponse.categoryName = alternateCategory;
-            }
+      if (taResponse.categoryName == null) {
+        taResponse.categoryName = alternateCategory;
+      }
       if (taResponses.has(taResponse.locationName)) {
         taResponses.get(taResponse.locationName).set(count, taResponse);
         count++;
@@ -328,14 +332,15 @@ export class TargetAudienceAudienceTA {
         count++;
       }
       const geoVar: ImpGeofootprintVar = new ImpGeofootprintVar();
-      geoVar.valueString = taResponse.combinedIndexTileName;
+      geoVar.value = taResponse.combinedIndexTileName;
     }
     return taResponses;
   }
 
-    private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
+    private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, txId: number, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
       //console.debug("addAudience - target-audience-audienceta - dataRefreshCallback, audience: ", audience);
       if (!audience) return EMPTY;
+      const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
 
       // Update the ta config
       audience.audienceTAConfig = this.reloadAudienceTaConfig();
@@ -363,6 +368,13 @@ export class TargetAudienceAudienceTA {
     const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(payload), { headers: headers });
     return dataObs.pipe(
       map(res => this.createGeofootprintVars(this.parseResponse(res, localAudienceName))),
+      map(data => {
+        if (isForShading) {
+          return data.filter(gv => ((projectVarsDict[gv.varPk] || safe).customVarExprDisplay || '').includes(audience.secondaryId));
+        } else {
+          return data;
+        }
+      })
     );
   }
 }

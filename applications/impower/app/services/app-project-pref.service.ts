@@ -93,13 +93,13 @@ export class AppProjectPrefService {
       }
       catch(e)
       {
-         this.logger.error(e);
+         this.logger.error.log(e);
          prefs = null;
       }
       finally
       {
          if (prefs === null)
-            this.logger.warn("Could not find " + (mustBeActive ? "active" : "") + " preferences");
+            this.logger.warn.log("Could not find " + (mustBeActive ? "active" : "") + " preferences");
       }
 
       return prefs;
@@ -118,13 +118,13 @@ export class AppProjectPrefService {
       }
       catch(e)
       {
-         this.logger.error(e);
+         this.logger.error.log(e);
          prefs = null;
       }
       finally
       {
          if (prefs === null)
-            this.logger.warn("### Could not find " + (mustBeActive ? "active" : "") + " preferences for group: [" + prefGroup + "]");
+            this.logger.warn.log("### Could not find " + (mustBeActive ? "active" : "") + " preferences for group: [" + prefGroup + "]");
       }
 
       return prefs;
@@ -142,13 +142,13 @@ export class AppProjectPrefService {
       }
       catch(e)
       {
-         this.logger.error(e);
+         this.logger.error.log(e);
          pref = null;
       }
       finally
       {
          if (pref === null)
-            this.logger.warn("### Could not find " + (mustBeActive ? "an active" : "") + " preference by key: [" + prefKey + "]");
+            this.logger.warn.log("### Could not find " + (mustBeActive ? "an active" : "") + " preference by key: [" + prefKey + "]");
       }
 
       return pref;
@@ -167,7 +167,7 @@ export class AppProjectPrefService {
       }
       catch(e)
       {
-         this.logger.error(e);
+         this.logger.error.log(e);
       }
 
       return prefVal;

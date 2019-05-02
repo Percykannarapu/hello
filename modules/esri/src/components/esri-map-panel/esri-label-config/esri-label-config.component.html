@@ -11,6 +11,9 @@
       <br>
       <br>
       <label style="color:black;">POB Labels Enabled</label>
+      <br>
+      <br>
+      <label style="color:black;">Site Labels Enabled</label>
     </div>
     <div class="ui-g-3">
       <!--<p-dropdown [options]="fonts"  [(ngModel)]="selectedFont" (onChange)="onFontChanged($event)"></p-dropdown>
@@ -23,6 +26,9 @@
       <br>
       <br>
       <p-inputSwitch [(ngModel)]="pobEnabled" (onChange)="onPOBEnabledChanged($event)" [disabled]="!enabled"></p-inputSwitch>
+      <br>
+      <br>
+      <p-inputSwitch [(ngModel)]="siteEnabled" (onChange)="onSiteEnabledChanged($event)"></p-inputSwitch>
     </div>
   </div>
 </p-overlayPanel>

@@ -59,6 +59,30 @@ export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelec
 }
 
 /**
+ * Groups an array by the result of a keySelector function
+ * @param {T[]} items: The array to group
+ * @param {function} keySelector: A callback function that is used to generate the keys for the dictionary
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ */
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string) : { [key: string] : T[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number) : { [key: number] : T[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string, valueSelector: (item: T) => R) : { [key: string] : R[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number, valueSelector: (item: T) => R) : { [key: number] : R[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: ((item: T) => string) | ((item: T) => number), valueSelector: (item: T) => T | R = (i) => i) : { [key: string] : (T | R)[] } | { [key: number] : (T | R)[] } {
+  const result: { [k: string] : (T | R)[] } = {};
+  if (items == null || items.length === 0) return result;
+  for (const i of items) {
+    const currentKey = keySelector(i);
+    if (result[currentKey] == null) {
+      result[currentKey] = [valueSelector(i)];
+    } else {
+      result[currentKey].push(valueSelector(i));
+    }
+  }
+  return result;
+}
+
+/**
  * Converts Map<string | number, T> into an entity in the form of { [key: string | number] : T }
  */
 export function mapToEntity<T>(sourceMap: Map<string, T>) : { [key: string] : T };
@@ -102,6 +126,26 @@ export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, 
   items.forEach(i => {
     result.set(keySelector(i), tx(i));
   });
+  return result;
+}
+
+/**
+ * Maps an array by the result of a keySelector function
+ * Note this method assumes that there will only be one instance for each key value
+ * @param {T[]} items: The array to group
+ * @param {function} keySelector: A callback function that is used to generate the keys for the dictionary
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ */
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string) : { [key: string] : T };
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number) : { [key: number] : T };
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string, valueSelector: (item: T) => R) : { [key: string] : R };
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number, valueSelector: (item: T) => R) : { [key: number] : R };
+export function mapArrayToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: ((item: T) => string) | ((item: T) => number), valueSelector: (item: T) => T | R = (i) => i) : { [key: string] : (T | R) } | { [key: number] : (T | R) } {
+  const result: { [k: string] : (T | R) } = {};
+  if (items == null || items.length === 0) return result;
+  for (const i of items) {
+    result[keySelector(i)] = valueSelector(i);
+  }
   return result;
 }
 
@@ -212,6 +256,57 @@ export function isNumber(value: any) : value is number {
   return value != null && value !== '' && !Number.isNaN(Number(value));
 }
 
+/**
+ *  Formats millisecond input into h:m:s.nnn
+ *
+ *  Usage:
+ *    let startTime = performance.now();
+ *    ...
+ *    let endTime = performance.now();
+ *    console.log("Process took", formatMilli(endTime - startTime));
+ *
+ * Milliseconds       Output      Notes
+ * -----------------  ----------  ----------------------------------------
+ * 99152612           3h 32m 32s  Handles Long running processes
+ * 1152612            19m 12s
+ * 152612             2m 32s      Anything above a minute rounds seconds
+ * 10500              10s         Anything above 10s truncates sub seconds
+ * 3125               3.125s      Anything under 10s shows sub second
+ * 2516               2.516s      A maxium of 3 decimals for sub seconds
+ * 2001               2.001s
+ * 1118               1.118s      A number with a weird precision error
+ * 1000               1s          If precision is < 3, it doesn't force it
+ * 612                0.612s      Can display sub millisecond values
+ * 45                 0.045s
+ * 10                 0.01s
+ * 9.664999786764383  0.009s      Handles output from performance.now
+ * 1.664999786764383  0.001s
+ * 1                  0.001s
+ * 0.001999786764383  0.001ms     Capped sub milliseconds to 3 decimals
+ * 0.000199786764383  0ms         Below sub milli 3 dec is just instant
+ */
+export function formatMilli(a,k?,sub?,s?,m?,h?,e?){
+  return k=Math.trunc(a%1e3), sub=Math.floor((a%1e3-k)*1000)/1000, s=a/1e3%60|0, e=(s+k/1000+"").length, m=a/6e4%60|0, h=a/36e5%24|0,
+    (h?h+'h ':'')+
+    (m?m+'m':'')+
+    (h || m || s >= 10 ? (s != 0 ? (m?' ':'')+s+'s':''): (s >= 1 ? (e <= 5 ? s+k/1000 : (s+k/1000).toFixed(3)) + 's' : '')) +
+    (!h && !m && s == 0 && k >= 1 ? (k/1000) + 's' : '') +
+    (!h && !m && !s && !k ? sub + 'ms' : '');
+}
+
 export function dedupeSimpleSet<T>(newValues: Set<T>, previousValues: Set<T>) : Set<T> {
   return new Set(Array.from(newValues).filter(v => !previousValues.has(v)));
 }
+
+export function setsAreEqual<T>(current: Set<T>, previous: Set<T>) : boolean {
+  if ((previous == null && current != null) || (current == null && previous != null)) return false;
+  if (current == null && previous == null) return true;
+  if (current.size !== previous.size) return false;
+  const currentItems = Array.from(current);
+  for (const item of currentItems) {
+    if (!previous.has(item)) return false;
+  }
+  return true;
+}
+
+export const safe: any = {};

@@ -3,20 +3,22 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { AppLocationService } from '../../services/app-location.service';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { map, startWith } from 'rxjs/operators';
+import { map, startWith, filter, take } from 'rxjs/operators';
 import { Table } from 'primeng/table';
 import { ConfirmationService, MultiSelect, SelectItem } from 'primeng/primeng';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from '../../state/app.interfaces';
+import { Store, select } from '@ngrx/store';
+import { LocalAppState, FullAppState } from '../../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { Geocode, HomeGeocode } from '../../state/homeGeocode/homeGeo.actions';
+import { Geocode, HomeGeocode, ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { AppProjectService } from '../../services/app-project.service';
+import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { selectors } from '@val/esri';
 
 export class FlatSite {
   fgId: number;
@@ -182,8 +184,10 @@ export class SiteListComponent implements OnInit {
       private appProjectService: AppProjectService,
       private cd: ChangeDetectorRef,
       private impLocationService: ImpGeofootprintLocationService,
+      private impLocAttributeService: ImpGeofootprintLocAttribService,
       //private valGeocodingRequest: ValGeocodingRequest,
-      private store$: Store<LocalAppState>) {}
+      private store$: Store<LocalAppState>,
+      private fullStateStore$: Store<FullAppState>) {}
 
    ngOnInit() {
       // Observe the behavior subjects on the input parameters
@@ -193,11 +197,19 @@ export class SiteListComponent implements OnInit {
       this.allLocationAttribs$ = this.allLocationAttribsBS$.asObservable();
       
       this.onListTypeChange('Site');
-      this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
-        map(([sites, competitors]) => [...sites, ...competitors])
-      );
-      this.hasFailures$ = this.appLocationService.hasFailures$;
-      this.totalCount$ = this.appLocationService.totalCount$;
+
+      this.fullStateStore$.pipe(
+        select(selectors.getMapReady),
+        filter(ready => ready),
+        take(1)
+      ).subscribe(() => {
+        this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
+          map(([sites, competitors]) => [...sites, ...competitors])
+        );
+        this.hasFailures$ = this.appLocationService.hasFailures$;
+        this.totalCount$ = this.appLocationService.totalCount$;
+      });
+      
       for (const column of this.flatSiteGridColumns) {
          this.columnOptions.push({ label: column.header, value: column });
          this.selectedColumns.push(column);
@@ -315,7 +327,7 @@ export class SiteListComponent implements OnInit {
      site.previousCity = this.selectedRowData.origCity;
      site.previousState = this.selectedRowData.origState;
      site.previousZip = this.selectedRowData.origPostalCode;
-    this.editLocations.emit({site: site, siteType: siteType, oldData: this.selectedRowData});
+     this.editLocations.emit({site: site, siteType: siteType, oldData: this.selectedRowData});
    }
 
    public onListTypeChange(data: 'Site' | 'Competitor') {
@@ -438,6 +450,7 @@ export class SiteListComponent implements OnInit {
    }
 
    public onEdit(row: ImpGeofootprintLocation) {
+   //  const locAttribs = row['impGeofootprintLocAttribs'];
     this.displayData = {
       locationNumber: row.locationNumber,
       locationName: row.locationName,
@@ -447,7 +460,13 @@ export class SiteListComponent implements OnInit {
       locZip: row.locZip,
       marketName: row.marketName,
       marketCode: row.marketCode,
-      coord: row.ycoord + ',' + row.xcoord
+      coord: row.ycoord + ',' + row.xcoord,
+      // homeZip: locAttribs.filter(la => la.attributeCode === 'Home Zip Code').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue : '',
+      // homeAtz: locAttribs.filter(la => la.attributeCode === 'Home ATZ').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue : '',
+      // homeDigitalAtz: locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue : '',
+      // homePcr: locAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue : '',
+      // homeDmaCode: locAttribs.filter(la => la.attributeCode === 'Home DMA').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home DMA')[0].attributeValue : '',
+      // homeCountyFip: locAttribs.filter(la => la.attributeCode === 'Home County').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home County')[0].attributeValue : ''
     };
     this.selectedRowData = row;
     this.showDialog = true;
@@ -501,42 +520,15 @@ export class SiteListComponent implements OnInit {
     */
    public calcHomeGeocode(){
      if ( this.impLocationService.get().length > 0){
-
-      this.confirmationService.confirm({
-        message: 'Are you sure you want to calculate home geocodes for all your sites?' + '<br>' + 'All customization will be lost and trade areas will be reapplied',
-        header: 'Calc Home Geocodes',
-        accept: () => {
-          const valGeosites: ValGeocodingRequest[] = [];
-          const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
-          
-          this.impLocationService.get().forEach(loc => {
-            if (loc.recordStatusCode !== 'CENTROID'){
-              loc.impGeofootprintLocAttribs.forEach(attr => {
-                if (homeGeoColumnsSet.has(attr.attributeCode)){
-                  attr.attributeValue = '';
-                }
-              });
-              if (loc.recordStatusCode === 'SUCCESS'){
-                loc.xcoord = null;
-                loc.ycoord = null;
-              }
-              valGeosites.push(new ValGeocodingRequest(loc, false, true));
-            }
-          });
- 
-         const sites = Array.isArray(valGeosites) ? valGeosites : [valGeosites];
-         const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(this.impLocationService.get()[0].clientLocationTypeCode));
-         const reCalculateHomeGeos = true;
-         const isLocationEdit =  false;
-         this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
-        },
-        reject: () => {
-         console.log('calcHomeGeocode aborted');
-        }
-      });
+      const locations = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite);
+      const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
+      const reCalculateHomeGeos = true;
+      const isLocationEdit =  false;
+      this.store$.dispatch(new ReCalcHomeGeos({locations: locations, 
+                                               siteType: siteType, 
+                                               reCalculateHomeGeos: reCalculateHomeGeos, 
+                                               isLocationEdit: isLocationEdit}));
      }
-     
-
    }
 
       /**

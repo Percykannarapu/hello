@@ -1,31 +1,40 @@
 <div style="height: 100%;">
-    <p-table #dt [columns]="columns" [value]="rows" [scrollable]="true" scrollWidth="100%" scrollHeight="100%" [style]="{'font-size':'1em'}"
-        [resizableColumns]="true" columnResizeMode="expand">
-        <ng-template pTemplate="caption">
-            <div class="ui-g" style="text-align: left">
-                <div class="ui-g-12">
-                    <input type="text" size="25" pInputText placeholder="Search" (input)="dt.filterGlobal($event.target.value, 'contains')">
-                </div>
+<p-table #dt [columns]="columns" [value]="rows" [scrollable]="true" scrollHeight="100%" [style]="{'font-size':'1em'}"
+[resizableColumns]="true" columnResizeMode="expand" (onRowSelect)="onChangeRowSelection($event)" (onRowUnselect)="onChangeRowSelection($event)" [(selection)]="selectedRows">
+    <ng-template pTemplate="caption">
+        <div class="ui-g" style="text-align: left">
+            <div class="ui-g-12">
+                <input type="text" size="25" pInputText placeholder="Search" (input)="dt.filterGlobal($event.target.value, 'contains')">
             </div>
-        </ng-template>
-        <ng-template pTemplate="colgroup" let-columns>
-            <colgroup>
-                <col *ngFor="let col of columns" [style.width]="col.width">
-            </colgroup>
-        </ng-template>
-        <ng-template pTemplate="header" let-columns style="width: 100%">
-            <tr>
-                <th *ngFor="let col of columns" [pSortableColumn]="col.field">
-                    {{col.header}}
-                </th>
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-rowData let-columns="columns">
-            <tr>
-                <td *ngFor="let col of columns" style="border-style: solid; border-color: #c8c8c8; border-spacing: 2px; border-width: 1px">
-                    {{rowData[col.field]}}
-                </td>
-            </tr>
-        </ng-template>
-    </p-table>
+        </div>
+    </ng-template>
+    <ng-template pTemplate="colgroup" let-columns>
+        <colgroup>  
+            <col style="width: 30px;" />
+            <col *ngFor="let col of columns" [style.width]="col.width" />
+        </colgroup>
+    </ng-template>
+    <ng-template pTemplate="header" let-columns style="width: 100%;">
+        <tr>
+            <th style="width: 30px; padding: 0%">
+            </th>
+            <th *ngFor="let col of columns" [pSortableColumn]="col.field">
+                {{col.header}}
+            </th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr [pSelectableRow]="rowData">
+            <td style="padding: 0%; width: 30px; border-style: solid; border-color: #c8c8c8; border-spacing: 2px; border-width: 1px; text-align: center">
+                <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+            </td>
+            <td *ngFor="let col of columns" style="border-style: solid; border-color: #c8c8c8; border-spacing: 2px; border-width: 1px;" [class]="col.styleClass" [ngSwitch]="col.field">
+                <div *ngSwitchCase="'investment'"> {{rowData[col.field] | currency}} </div>
+                <div *ngSwitchCase="'distribution'"> {{rowData[col.field] | number:'1.0-2'}} </div>
+                <div *ngSwitchCase="'distance'"> {{rowData[col.field] | number:'1.2-2'}} </div>
+                <div *ngSwitchDefault> {{rowData[col.field]}} </div>
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
 </div>

@@ -21,7 +21,7 @@
       <div class="ui-g-12">
         <div class="ui-g-3">
           <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="!(currentAnalysisLevel$ | async)"
-                        pTooltip="CSV or Excel format required: Location #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
+                        pTooltip="CSV or Excel format required: Site #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
           </p-fileUpload>
           <div *ngIf="!(currentAnalysisLevel$ | async)" class="warning-label" >
             Please select an Analysis Level before uploading a custom trade area

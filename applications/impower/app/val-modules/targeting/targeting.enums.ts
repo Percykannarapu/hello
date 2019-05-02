@@ -14,6 +14,9 @@ export namespace ImpClientLocationTypeCodes {
     if (result == null) throw new Error('Invalid Client Location Type Code');
     return result;
   }
+  export function parseAsSuccessful(code: string) : SuccessfulLocationTypeCodes {
+    return markSuccessful(parse(code));
+  }
   export function markSuccessful(code: ImpClientLocationTypeCodes) : SuccessfulLocationTypeCodes {
     switch (code) {
       case ImpClientLocationTypeCodes.Competitor:
@@ -84,11 +87,25 @@ export enum FieldContentTypeCodes {
 }
 
 export namespace FieldContentTypeCodes {
-  export function parse(code: string) : FieldContentTypeCodes {
-    if (code == null) return null;
+  export function parse(parseCode: string) : FieldContentTypeCodes {
+    let lastKey:string ="";
+    let code: string = (parseCode != null) ? parseCode.match("\\w*")[0] : null;  // Strip out any non-word characters
+    if (code == null || code === "") return null;
     for (const key of Object.keys(FieldContentTypeCodes)) {
-      if (code.toUpperCase() === FieldContentTypeCodes[key].toUpperCase()) return FieldContentTypeCodes[key];
+      lastKey = key;
+      try{
+        if (code.toUpperCase() === FieldContentTypeCodes[key]||("" as any).toUpperCase())
+          return FieldContentTypeCodes[key];
+      }
+      catch(e)
+      {
+        console.error("Error in FieldContentTypeCodes.parse\n", e);
+        console.error("code", code);
+        console.error("key", key);
+        throw new Error('Invalid Field Content Type Code');
+      }
     }
+    console.error("FieldContentTypeCode parse error.  code: ["+code+"] key: ["+lastKey+"]");
     throw new Error('Invalid Field Content Type Code');
   }
 }

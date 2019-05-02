@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@angular/core';
+import { LogLevels } from '@val/common';
 import { environment, EnvironmentData } from '../environments/environment';
 import { AllLayers, EsriLoaderToken, EsriConfigOptions } from '@val/esri';
-import { LoggingConfiguration, LogLevels } from './val-modules/common/services/logging.service';
+import { LoggingConfiguration } from './val-modules/common/services/logging.service';
 
 @Injectable()
 export class AppConfig implements LoggingConfiguration {
@@ -29,6 +30,7 @@ export class AppConfig implements LoggingConfiguration {
    public maxGeosPerGeoInfoQuery = 400;
    public maxValGeocodingReqSize = 50;
    public maxRadiusTradeAreas = 3;
+   public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
    //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
 
    public serviceUrls = EnvironmentData.serviceUrls;

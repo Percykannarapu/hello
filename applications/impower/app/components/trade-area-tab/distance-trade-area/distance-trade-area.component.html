@@ -5,7 +5,7 @@
           <div class="ui-g-4 ui-g-offset-half">
             <div class="ui-inputgroup">
               <p-toggleButton onLabel="Show" offLabel="Hide" formControlName="isShowing" [style]="{'width':'65px', 'float': 'right'}"></p-toggleButton>
-              <input type="text" pInputText formControlName="radius" autocomplete="off" placeholder="Trade Area {{i + 1}} (in miles)">
+              <input name="TradeArea{{i + 1}}" type="text" pInputText formControlName="radius" autocomplete="off" placeholder="Trade Area {{i + 1}} (in miles)">
               <span *ngIf="tradeAreaControl.get('isApplied').value" class="ui-inputgroup-addon">
                 <i class="fa fa-check"></i>
               </span>
@@ -33,7 +33,7 @@
         <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" formControlName="mergeType"></p-selectButton>
       </div>
       <div class="ui-g-6">
-        <button pButton label="Apply" type="submit" [disabled]="radiusForm.invalid || hasProvidedTradeAreas"></button>
+        <button pButton label="Apply" name = "submitDistanceTa" type="submit" [disabled]="radiusForm.invalid || hasProvidedTradeAreas"></button>
       </div>
     </div>
   </form>

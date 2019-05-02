@@ -1,0 +1,26 @@
+.app-root {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.app-root.small {
+  grid-template-columns: 25% 75%;
+}
+
+.app-root.large {
+  grid-template-columns: 57% 43%;
+}
+
+.title-bar {
+  grid-column-start: 1;
+  grid-column-end: 3;
+}
+
+.additional-toolbar-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.app-sidenav-content {
+  margin-top: 25px;
+}

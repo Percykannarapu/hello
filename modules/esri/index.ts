@@ -24,7 +24,7 @@ export * from './src/services/esri-renderer.service';
 
 export { EsriState, AppState, selectors } from './src/state/esri.selectors';
 export { HighlightMode } from './src/state/map/esri.renderer.reducer';
-export { ColorPallete } from './src/models/ColorPalletes';
+export { ColorPalette, getColorPalette } from './src/models/color-palettes';
 export * from './src/state/api/esri.api.actions';
 export * from './src/state/auth/esri.auth.actions';
 export * from './src/state/map/esri.map.actions';

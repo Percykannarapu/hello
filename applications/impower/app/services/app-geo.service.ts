@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriQueryService, EsriUtils, selectors } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
-import { LocalAppState } from '../state/app.interfaces';
+import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -28,6 +28,7 @@ import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { ConfirmationService } from 'primeng/primeng';
 
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
 
@@ -58,29 +59,37 @@ export class AppGeoService {
               private queryService: EsriQueryService,
               private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
-              private store$: Store<LocalAppState>,
-              private logger: AppLoggingService) {
+              private store$: Store<FullAppState>,
+              private logger: AppLoggingService,
+              private confirmationService: ConfirmationService) {
     this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.currentGeos$ = this.impGeoService.storeObservable;
-    this.setupRadiusSelectionObservable();
-    this.setupHomeGeoSelectionObservable();
-    this.setupFilterGeosObservable();
-    this.setupMapClickEventHandler();
-
-    // Detect changes in must covers list and call ensureMustCovers
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
-    this.allMustCovers$.subscribe(() => {
-       this.ensureMustCovers();
-    });
 
-    this.locationService.storeObservable.subscribe(() => {
-       this.ensureMustCovers();
-    });
+    this.store$.pipe(
+      select(selectors.getMapReady),
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.setupRadiusSelectionObservable();
+      this.setupHomeGeoSelectionObservable();
+      this.setupFilterGeosObservable();
+      this.setupMapClickEventHandler();
 
-    // Detect new project
-    this.appStateService.clearUI$.subscribe(() => {
-       // Clear must covers
-       this.impGeoService.clearMustCovers();
+      // Detect changes in must covers list and call ensureMustCovers
+      this.allMustCovers$.subscribe(() => {
+        this.ensureMustCovers();
+      });
+
+      this.locationService.storeObservable.subscribe(() => {
+        this.ensureMustCovers();
+      });
+
+      // Detect new project
+      this.appStateService.clearUI$.subscribe(() => {
+        // Clear must covers
+        this.impGeoService.clearMustCovers();
+      });
     });
   }
 
@@ -127,18 +136,24 @@ export class AppGeoService {
    * Sets up an observable sequence that fires when a new, empty Radius trade area appears in the data store.
    */
   private setupRadiusSelectionObservable() : void {
-    // The root sequence is Radius only trade areas for Sites (not competitors)
-    this.tradeAreaService.storeObservable.pipe(
+    const root$ = this.tradeAreaService.storeObservable.pipe(
       withLatestFrom(this.appStateService.applicationIsReady$),
       // halt the sequence if the project is still loading
-      filter(([tradeAreas, isReady]) => isReady),
+      filter(([, isReady]) => isReady),
       // flatten the data to a 1-dimension array
       map(([tradeAreas]) => tradeAreas),
-      // keep all trade areas that have no geos and has not been marked complete
-      map(tradeAreas => tradeAreas.filter(ta => ta.impGeofootprintGeos.length === 0 && ta['isComplete'] !== true)),
-      // halt the sequence if there are no trade areas remaining at this point
+      filterArray(ta => ta.isActive && ta.impGeofootprintGeos.length === 0 && ta['isComplete'] !== true)
+    );
+
+    root$.pipe(
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'),
       filter(tradeAreas => tradeAreas.length > 0),
     ).subscribe(tradeAreas => this.selectAndPersistRadiusGeos(tradeAreas));
+
+    root$.pipe(
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
+      filter(tradeAreas => tradeAreas.length > 0)
+    ).subscribe(tradeAreas => this.finalizeTradeAreas(tradeAreas));
   }
 
   /**
@@ -153,7 +168,8 @@ export class AppGeoService {
       filterArray(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
                                                                       (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
                               loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
-                              loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0)
+                              loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
+                              loc.clientLocationTypeCode === 'Site')
     ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
   }
 
@@ -170,13 +186,13 @@ export class AppGeoService {
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
     const quadTree = new LocationQuadTree(locations);
     const result = quadTree.partition(250, 500);
-    this.logger.debug('QuadTree partitions', quadTree);
+    this.logger.debug.log('QuadTree partitions', quadTree);
     return result.filter(chunk => chunk && chunk.length > 0);
   }
 
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
-    this.logger.debug('Select and Persist Radius Geos', tradeAreas);
+    this.logger.debug.log('Select and Persist Radius Geos', tradeAreas);
     const key = 'selectAndPersistRadiusGeos';
     const allLocations = new Set(tradeAreas.map(ta => ta.impGeofootprintLocation));
     const locationChunks = this.partitionLocations(Array.from(allLocations));
@@ -184,7 +200,7 @@ export class AppGeoService {
     const tradeAreaSet = new Set(tradeAreas);
     const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Calculating Trade Areas...' }));
-    this.logger.debug('Total number of location slices to process', locationChunks.length);
+    this.logger.debug.log('Total number of location slices to process', locationChunks.length);
     for (const currentChunk of locationChunks) {
       const currentTas = simpleFlatten(currentChunk.map(l => l.impGeofootprintTradeAreas)).filter(ta => tradeAreaSet.has(ta));
       const maxRadius = Math.max(...currentTas.map(ta => ta.taRadius));
@@ -335,7 +351,7 @@ export class AppGeoService {
         }
       }
     });
-    this.logger.debug('Total geo count:', geosToSave.length);
+    this.logger.debug.log('Total geo count:', geosToSave.length);
     if (allAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({ geoAttributes: allAttributes }));
     return geosToSave;
   }
@@ -652,6 +668,62 @@ export class AppGeoService {
     if (geosToDelete.size > 0) {
       this.deleteGeos(Array.from(geosToDelete));
     }
+  }
+
+  public confirmMustCover(geo: ImpGeofootprintGeo, isSelected: boolean, isHomeGeo: boolean ){
+    const commonGeos = this.impGeoService.get().filter(g => g.geocode === geo.geocode);
+    if (isHomeGeo){
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to unselect a Must Cover & Home Geocode geography?',
+      header: 'Must Cover/Home Geocode selection',
+      acceptLabel: 'Yes',
+      rejectLabel: 'No',
+      accept: () => {
+            commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+            setTimeout(() => {
+              this.impGeoService.makeDirty();
+            }, 0);
+            setTimeout(() => {
+              this.impGeoService.makeDirty();
+            }, 0);
+      },
+      reject: () => {
+             geo.isActive = true;
+             setTimeout(() => {
+              this.impGeoService.makeDirty();
+             }, 0);
+             setTimeout(() => {
+              this.impGeoService.makeDirty();
+             }, 0);
+      }
+   });
+  } else{
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to unselect a Must Cover geography?',
+      header: 'Must Cover selection',
+      acceptLabel: 'Yes',
+      rejectLabel: 'No',
+      accept: () => {
+            commonGeos.forEach(dupGeo => dupGeo.isActive = isSelected);
+            setTimeout(() => {
+              this.impGeoService.makeDirty();
+            }, 0);
+            setTimeout(() => {
+              this.impGeoService.makeDirty();
+            }, 0);
+      },
+      reject: () => {
+             geo.isActive = true;
+             setTimeout(() => {
+                this.impGeoService.makeDirty();
+             }, 0);
+             setTimeout(() => {
+               this.impGeoService.makeDirty();
+             }, 0);
+      }
+   });
+
+  }
   }
 
   private reactivateGeosByGeocode(geocode: string) : void {

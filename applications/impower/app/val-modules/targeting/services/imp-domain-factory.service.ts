@@ -92,10 +92,17 @@ export class ImpDomainFactoryService {
   createProjectVar(parent: ImpProject, varPk: number, audience: AudienceDataDefinition, isActive: boolean = true, duplicatePksOverwrite: boolean = true) : ImpProjectVar {
     if (parent == null) throw new Error('Project Var factory requires a valid Project instance');
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
-    const existingVar = parent.impProjectVars.find(pv => pv.varPk === varPk);
-    if (existingVar != null && !duplicatePksOverwrite) throw new Error('A duplicate Project Var addition was attempted');
-    const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
     const isCustom = audience.audienceSourceType === 'Custom';
+    const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
+    let existingVar;
+
+    if(isCustom) {
+      existingVar = parent.impProjectVars.find(pv => pv.fieldname === audience.audienceName);
+    } else{
+      existingVar = parent.impProjectVars.find(pv => pv.varPk === varPk);
+    }
+
+    if (existingVar != null && !duplicatePksOverwrite) throw new Error('A duplicate Project Var addition was attempted');
     if (existingVar == null) {
       const projectVar = new ImpProjectVar();
       projectVar.baseStatus = DAOBaseStatus.INSERT;
@@ -107,6 +114,7 @@ export class ImpDomainFactoryService {
       projectVar.isNationalExtract = audience.exportNationally;
       projectVar.indexBase = audience.selectedDataSet;
       projectVar.fieldname = audience.audienceName;
+      projectVar.fieldconte = (audience.fieldconte != null) ? audience.fieldconte : FieldContentTypeCodes.Char;
       projectVar.source = source;
       projectVar.isCustom = isCustom;
       projectVar.isString = false;
@@ -115,6 +123,8 @@ export class ImpDomainFactoryService {
       projectVar.isActive = true;
       projectVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       projectVar.sortOrder = audience.audienceCounter;
+      projectVar.customVarExprDisplay = `${audience.audienceName} (${audience.audienceSourceName})`;
+      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? "Offline":"Online") + `/${audience.audienceSourceName}/${varPk}`;
       projectVar.impProject = parent;
       parent.impProjectVars.push(projectVar);
       return projectVar;
@@ -126,6 +136,7 @@ export class ImpDomainFactoryService {
       existingVar.isNationalExtract = audience.exportNationally;
       existingVar.indexBase = audience.selectedDataSet;
       existingVar.fieldname = audience.audienceName;
+      existingVar.fieldconte = audience.fieldconte;
       existingVar.source = source;
       existingVar.isCustom = isCustom;
       existingVar.isString = false;
@@ -134,6 +145,8 @@ export class ImpDomainFactoryService {
       existingVar.isActive = true;
       existingVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       existingVar.sortOrder = audience.audienceCounter;
+      existingVar.customVarExprDisplay = `${audience.audienceName} (${audience.audienceSourceName})`;
+      existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? "Offline":"Online") + `/${audience.audienceSourceName}/${varPk}`;
       existingVar.impProject = parent;
       if (existingVar.baseStatus === DAOBaseStatus.UNCHANGED) existingVar.baseStatus = DAOBaseStatus.UPDATE;
       return existingVar;
@@ -361,24 +374,25 @@ export class ImpDomainFactoryService {
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       geocode,
-      varPk,
-      customVarExprQuery: fullId,
-      isNumber: false,
-      isString: false,
-      isCustom:  (fullId.includes('Custom')),
-      fieldconte: fieldType,
-      customVarExprDisplay: fieldDescription,
-      fieldname: fieldName,
-      natlAvg: nationalAvg,
-      isActive
+      varPk
+      //customVarExprQuery: fullId,
+      //isNumber: false,
+      //isString: false,
+      //isCustom:  (fullId.includes('Custom')),
+      //fieldconte: fieldType,
+      //customVarExprDisplay: fieldDescription,
+      //fieldname: fieldName,
+      //natlAvg: nationalAvg//,
+      //isActive
     });
-    if (isNumber(value)) {
-      result.isNumber = true;
+    result.value = value;
+/*    if (isNumber(value)) {
+      //result.isNumber = true;
       result.valueNumber = value;
     } else {
-      result.isString = true;
+      //result.isString = true;
       result.valueString = value;
-    }
+    }*/
     if (parent != null) {
       const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
       if (existingVar == null) {
@@ -389,16 +403,17 @@ export class ImpDomainFactoryService {
         if (overwriteDuplicates) {
           existingVar.dirty = true;
           existingVar.baseStatus = DAOBaseStatus.UPDATE;
-          existingVar.customVarExprQuery = result.customVarExprQuery;
-          existingVar.isNumber = result.isNumber;
-          existingVar.valueNumber = result.valueNumber;
-          existingVar.isString = result.isString;
-          existingVar.valueString = result.valueString;
-          existingVar.customVarExprDisplay = result.customVarExprDisplay;
-          existingVar.fieldconte = result.fieldconte;
-          existingVar.fieldname = result.fieldname;
-          existingVar.natlAvg = result.natlAvg;
-          existingVar.isActive = result.isActive;
+          //existingVar.customVarExprQuery = result.customVarExprQuery;
+          //existingVar.isNumber = result.isNumber;
+          existingVar.value = value;
+          //existingVar.valueNumber = result.valueNumber;
+          //existingVar.isString = result.isString;
+          //existingVar.valueString = result.valueString;
+          //existingVar.customVarExprDisplay = result.customVarExprDisplay;
+          //existingVar.fieldconte = result.fieldconte;
+          //existingVar.fieldname = result.fieldname;
+          //existingVar.natlAvg = result.natlAvg;
+          //existingVar.isActive = result.isActive;
           return existingVar;
         } else {
           console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });

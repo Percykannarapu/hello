@@ -20,7 +20,7 @@ import { AppStateService } from './app-state.service';
 import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { simpleFlatten } from '@val/common';
+import { simpleFlatten, mapArrayToEntity, safe } from '@val/common';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { filter } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -237,14 +237,15 @@ export class ValAudienceTradeareaService {
     this.fetchData = true;
 
     if (this.fetchData) {
+      let projectVarsDict = this.stateService.projectVarsDict$;
 
       this.projectVarService.remove(this.projectVarService.get().filter(pv => pv.source === 'Online_Audience-TA' /*&& !pv.fieldname.includes("Index Value")*/ || pv.isCustom), InTransaction.silent);
 
       this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => /*(*/pv.source !== 'Online_Audience-TA'  /*|| pv.fieldname.includes("Index Value"))*/ && !pv.isCustom);
 
-      this.varService.remove(this.varService.get().filter(pv => pv.varSource === 'Online_Audience-TA' || pv.isCustom), InTransaction.silent);
+      this.varService.remove(this.varService.get().filter(pv => (projectVarsDict[pv.varPk]||safe).varSource === 'Online_Audience-TA' || (projectVarsDict[pv.varPk]||safe).isCustom), InTransaction.silent);
 
-      this.stateService.currentProject$.getValue().getImpGeofootprintTradeAreas().forEach(ta => ta.impGeofootprintVars = ta.impGeofootprintVars.filter(gv => gv.varSource !== 'Online_Audience-TA' && !gv.isCustom));
+      this.stateService.currentProject$.getValue().getImpGeofootprintTradeAreas().forEach(ta => ta.impGeofootprintVars = ta.impGeofootprintVars.filter(gv => (projectVarsDict[gv.varPk]||safe).varSource  !== 'Online_Audience-TA' && !(projectVarsDict[gv.varPk]||safe).isCustom));
 
       this.sendRequest(this.audienceTAConfig).subscribe(response => {
         try {
@@ -257,7 +258,7 @@ export class ValAudienceTradeareaService {
             return;
           }
           this.fetchData = false;
-          const allLocations = this.stateService.currentMaster$.getValue().impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site');
+          const allLocations = this.stateService.currentMaster$.getValue().impGeofootprintLocations.filter(l => l.clientLocationTypeCode === 'Site' && l.baseStatus !== 'DELETE');
           const existingAudienceTAs = simpleFlatten(allLocations.map(l => l.impGeofootprintTradeAreas)).filter(ta => ta.taType === 'AUDIENCE' || ta.taType === 'HOMEGEO');
           if (existingAudienceTAs.length > 0) {
             this.appTradeAreaService.deleteTradeAreas(existingAudienceTAs);
@@ -265,7 +266,7 @@ export class ValAudienceTradeareaService {
           const newTradeAreas: ImpGeofootprintTradeArea[] = [];
           for (const location of allLocations) {
             this.createGeos(audienceTAConfig, location);
-          }     
+          }
 
           const selectedGeocodes = new Set(this.geoCache.filter(g => g.isActive).map(g => g.geocode));
           this.geoCache.forEach(g => {
@@ -406,7 +407,7 @@ export class ValAudienceTradeareaService {
         count++;
       }
       const geoVar: ImpGeofootprintVar = new ImpGeofootprintVar();
-      geoVar.valueString = taResponse.combinedIndexTileName;
+      geoVar.value = taResponse.combinedIndexTileName;
       rendererData.push({ geocode: taResponse.geocode, data: geoVar });
     }
     rendererData = rendererData.sort((a, b) => this.compare(a, b));
@@ -561,8 +562,10 @@ export class ValAudienceTradeareaService {
   }
 
   private searchVarId(fieldDisplay: string) : number {
+    const projectVarsDict = this.stateService.projectVarsDict$;
+
     for (const geoVar of this.varService.get()) {
-      if (geoVar.customVarExprDisplay === fieldDisplay) {
+      if ((projectVarsDict[geoVar.varPk]||safe).customVarExprDisplay === fieldDisplay) {
         return geoVar.varPk;
       }
     }

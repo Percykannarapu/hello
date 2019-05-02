@@ -32,4 +32,6 @@ export class AppConfig {
    // Can be used to hide/show debugging info
    public debugMode: boolean = environment.debugMode;
 
+   public ApplicationBusyKey = 'application-level-busy-key';
+
 }

@@ -53,8 +53,6 @@ export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTr
          count += this.dbRemoves.filter(remove => remove.gtaId === impGeofootprintTradeArea.gtaId).length;
          count += this.impGeofootprintGeoService.getTreeRemoveCount(this.impGeofootprintGeoService.get().filter(geo  => geo.gtaId  === impGeofootprintTradeArea.gtaId).concat
                                                                    (this.impGeofootprintGeoService.dbRemoves.filter(geo  => geo.gtaId  === impGeofootprintTradeArea.gtaId)));
-         count += this.impGeofootprintVarService.getTreeRemoveCount(this.impGeofootprintVarService.get().filter(gvar => gvar.gtaId === impGeofootprintTradeArea.gtaId).concat
-                                                                   (this.impGeofootprintVarService.dbRemoves.filter(gvar => gvar.gtaId === impGeofootprintTradeArea.gtaId)));
       });
       return count;
    }
@@ -63,7 +61,6 @@ export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTr
    public completeDBRemoves(completes: ImpGeofootprintTradeArea[]) {
       completes.forEach(complete => {
          this.impGeofootprintGeoService.completeDBRemoves(this.impGeofootprintGeoService.get().filter(geo  => geo.gtaId  === complete.gtaId));
-         this.impGeofootprintVarService.completeDBRemoves(this.impGeofootprintVarService.get().filter(gvar => gvar.gtaId === complete.gtaId));
       });
       this.clearDBRemoves(completes);
    }
@@ -75,11 +72,10 @@ export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTr
          return source;
 
       const result: ImpGeofootprintTradeArea[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
-      
+
       // TODO: Pretty sure I can use the filterOp below
       result.forEach (ta => {
          ta.impGeofootprintGeos = this.impGeofootprintGeoService.prune(ta.impGeofootprintGeos, geo => geo.gtaId === ta.gtaId && (geo.baseStatus === DAOBaseStatus.UNCHANGED || geo.baseStatus === DAOBaseStatus.DELETE));
-         ta.impGeofootprintVars = this.impGeofootprintVarService.prune(ta.impGeofootprintVars, geo => geo.gtaId === ta.gtaId && (geo.baseStatus === DAOBaseStatus.UNCHANGED || geo.baseStatus === DAOBaseStatus.DELETE));
       });
 
       return result;
@@ -107,12 +103,10 @@ export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTr
          if (parentRemove)
          {
             this.impGeofootprintGeoService.performDBRemoves(this.impGeofootprintGeoService.get().filter(geo  => geo.gtaId  === ta.gtaId), false, true);
-            this.impGeofootprintVarService.performDBRemoves(this.impGeofootprintVarService.get().filter(gvar => gvar.gtaId === ta.gtaId), false, true);
          }
          else
          {
             this.impGeofootprintGeoService.performDBRemoves(this.impGeofootprintGeoService.filterBy (geo  => geo.gtaId  === geo.gtaId  && geo['baseStatus']  === DAOBaseStatus.DELETE, (geo)    => this.impGeofootprintGeoService.getTreeRemoveCount(geo),    false, true, true), false, false);
-            this.impGeofootprintVarService.performDBRemoves(this.impGeofootprintVarService.filterBy (gvar => gvar.gtaId === gvar.gtaId && gvar['baseStatus'] === DAOBaseStatus.DELETE, (geoVar) => this.impGeofootprintVarService.getTreeRemoveCount(geoVar), false, true, true), false, false);
          }
 /*
          // DEBUG: Get the list of children to remove.

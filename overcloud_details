@@ -1,0 +1,8 @@
+Ansible passed.
+Overcloud configuration completed.
+Waiting for messages on queue 'tripleo' with no timeout.
+Overcloud Endpoint: http://192.168.0.102:5000
+Overcloud Horizon Dashboard URL: http://192.168.0.102:80/dashboard
+Overcloud rc file: /home/stack/overcloudrc
+Overcloud Deployed
+(undercloud) [stack@uc0 ~]$ Timeout, server uc0 not responding.

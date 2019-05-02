@@ -7,6 +7,7 @@ import { from, Observable } from 'rxjs';
 @Injectable()
 export class EsriMapService {
   public mapView: __esri.MapView;
+  public measureWidget: any = null;
 
   constructor(private domainService: EsriDomainFactoryService,
               @Inject(EsriAppSettingsToken) private config: EsriAppSettings) {}
@@ -35,6 +36,47 @@ export class EsriMapService {
 
   clearGraphics() : void {
     this.mapView.graphics.removeAll();
+  }
+
+  public setMeasureWidget(type) {
+    switch (type) {
+      case 'measure':
+        this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
+          view: this.mapView,
+          unit: 'miles'
+        });
+        this.measureWidget.view.surface.style.cursor = 'crosshair';
+        this.measureWidget.viewModel.newMeasurement();
+        break;
+      case 'copy':
+        if (!this.measureWidget) {
+          this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
+            view: this.mapView,
+            unit: 'miles'
+          });
+        }
+        this.measureWidget.view.surface.style.cursor = 'copy';
+        this.measureWidget.destroy();
+        this.measureWidget = null;
+        break;
+      case 'default':
+        if (!this.measureWidget) {
+          this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
+            view: this.mapView,
+            unit: 'miles'
+          });
+        }
+        this.measureWidget.view.surface.style.cursor = 'default';
+        this.measureWidget.destroy();
+        this.measureWidget = null;
+        break;
+      case null:
+        if (this.measureWidget) {
+          this.measureWidget.destroy();
+          this.measureWidget = null;
+        }
+        break;
+    }
   }
 
   createBasicWidget(constructor: __esri.WidgetConstructor, properties?: any, position: string = 'top-left') : void {

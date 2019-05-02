@@ -1,0 +1,8 @@
+.busy-container {
+  display: flex;
+  padding: 14px 0;
+}
+
+.busy-spinner {
+  margin: auto;
+}

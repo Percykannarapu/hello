@@ -17,7 +17,7 @@ export class EsriRendererEffects {
   enableShading$ = this.actions$.pipe(
     ofType<SetShadingData>(EsriRendererActionTypes.SetShadingData),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
-    tap(([action, mapState]) => this.rendererService.setShadingRenderer(mapState, action.payload.data, action.payload.isNumericData, action.payload.statistics))
+    tap(([action, mapState]) => this.rendererService.setShadingRenderer(mapState, action.payload.data, action.payload.isNumericData, action.payload.statistics, action.payload.legend, action.payload.theme))
   );
 
   @Effect({ dispatch: false })

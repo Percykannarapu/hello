@@ -72,4 +72,13 @@
       rollbackOnError="true"
       logType="Detail"/>
   </target>
+  <target name="deploy-qa">
+    <sf:deploy username="jenkins@valassis.com.qa" 
+      password="D3pl0y2019!khV6TxNWHT7d0udO5va9J9YJ" 
+      serverurl="https://valassis--qa.cs94.my.salesforce.com" 
+      maxPoll="10000" 
+      deployRoot="${DIST_ROOT}/sfdc-deploy" 
+      rollbackOnError="true"
+      logType="Detail"/>
+  </target>
 </project>

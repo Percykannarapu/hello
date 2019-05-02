@@ -57,6 +57,25 @@
         }
       }
     }
+    stage('Run checkmarx') {
+      steps {
+        echo 'Running checkmarx stage'
+        script {
+          echo 'Running checkmarx scan in script block'
+          step([$class: 'CxScanBuilder', comment: '', credentialsId: '', excludeFolders: '', excludeOpenSourceFolders: '', exclusionsSetting: 'global', failBuildOnNewResults: true, failBuildOnNewSeverity: 'HIGH', incremental: true, generatePdfReport: true, filterPattern: '''!**/_cvs/**/*, !**/.svn/**/*,   !**/.hg/**/*,   !**/.git/**/*,  !**/.bzr/**/*, !**/bin/**/*, !**/node_modules/**/*, !**/.sonar*/**/*, !node_modules/**/*
+          !**/obj/**/*,  !**/backup/**/*, !**/.idea/**/*, !**/*.DS_Store, !**/*.ipr,     !**/*.iws,
+          !**/*.bak,     !**/*.tmp,       !**/*.aac,      !**/*.aif,      !**/*.iff,     !**/*.m3u, !**/*.mid, !**/*.mp3,
+          !**/*.mpa,     !**/*.ra,        !**/*.wav,      !**/*.wma,      !**/*.3g2,     !**/*.3gp, !**/*.asf, !**/*.asx,
+          !**/*.avi,     !**/*.flv,       !**/*.mov,      !**/*.mp4,      !**/*.mpg,     !**/*.rm,  !**/*.swf, !**/*.vob,
+          !**/*.wmv,     !**/*.bmp,       !**/*.gif,      !**/*.jpg,      !**/*.png,     !**/*.psd, !**/*.tif, !**/*.swf,
+          !**/*.jar,     !**/*.zip,       !**/*.rar,      !**/*.exe,      !**/*.dll,     !**/*.pdb, !**/*.7z,  !**/*.gz,
+          !**/*.tar.gz,  !**/*.tar,       !**/*.gz,       !**/*.ahtm,     !**/*.ahtml,   !**/*.fhtml, !**/*.hdm,
+          !**/*.hdml,    !**/*.hsql,      !**/*.ht,       !**/*.hta,      !**/*.htc,     !**/*.htd, !**/*.war, !**/*.ear,
+          !**/*.htmls,   !**/*.ihtml,     !**/*.mht,      !**/*.mhtm,     !**/*.mhtml,   !**/*.ssi, !**/*.stm,
+          !**/*.stml,    !**/*.ttml,      !**/*.txn,      !**/*.xhtm,     !**/*.xhtml,   !**/*.class, !**/*.iml, !Checkmarx/Reports/*.*''', fullScanCycle: 1000, groupId: '54765168-4478-41b2-8cb3-3714a1df4b4b', includeOpenSourceFolders: '', osaArchiveIncludePatterns: '*.zip, *.war, *.ear, *.tgz', osaInstallBeforeScan: false, password: '{AQAAABAAAAAQAtw2NIROwdWnClQnFbJAhswYkn/VGVX1gw7FaOJb67E=}', preset: '100005', projectName: 'test-checkmarx', sastEnabled: true, serverUrl: 'http://sa1w-cxmngr-p1', sourceEncoding: '1', username: '', vulnerabilityThresholdResult: 'FAILURE', waitForResultsEnabled: true])
+        }
+      }
+    }
     stage('Deploy dev apps') {
       parallel {
         stage('Deploy imPower dev') {
@@ -129,18 +148,19 @@
           */
       }
     }
-    stage('SonarQube analysis') {
+    stage('Static analysis') {
       parallel {
-        stage('scan imPower') {
+        stage('Scan imPower with Sonarqube') {
           when { branch 'dev' }
           steps {
             echo 'Run Sonarqube'
             sh '''
               /data/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=impower-angular -Dsonar.sources=applications/impower/app -Dsonar.host.url=http://valjenkins.valassis.com:9000 -Dsonar.login=f4d79d0a078650f55c4e70d8932c76e17fb478c5 -Dsonar.working.directory=.sonar-impower
               '''
+            echo 'Run Checkmarx'
           }
         }
-        stage('scan cpq-maps') {
+        stage('Scan cpq-maps with Sonarqube') {
           when { branch 'dev' }
           steps {
             echo 'Run Sonarqube'
@@ -152,8 +172,12 @@
       }
     }
     stage('Run Tests') {
-      // disabled due to test scripts are not in good place for automation testing
-      when {branch 'disable'}
+      when {
+        expression {
+          // Disable the jobs untill geos are fixed
+          return env.BRANCH_NAME == 'disable' || env.BRANCH_NAME == 'disable'
+        }
+      }
       steps {
         script {
           try {
@@ -162,25 +186,19 @@
             if (env.BRANCH_NAME == 'qa'){
                   echo 'Automation test cases for QA'
                   sh '''
-                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
-                    git pull
-                    git checkout qa
-                    git pull
+                    rm -rf /var/lib/jenkins/Downloads/*
+                    xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/qa/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
             else if (env.BRANCH_NAME == 'dev'){
                   echo 'Automation test cases for Dev'
                   sh '''
-                    cd /robotTestcases/jenkins/impower_robot_regressionTestSuite
-                    git pull
-                    git checkout dev
-                    git pull
+                    rm -rf /var/lib/jenkins/Downloads/*
+                    rm -rf /robotTestcases/jenkins/reportLogs/*
+                    xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
-            sh '''
-              xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html   --report  /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml impProject.robot
-              '''
-            color = '#BDFFC3'  
+            color = '#BDFFC3'
           }
           catch (Exception ex){
             echo 'exception in test cases'
@@ -189,17 +207,17 @@
               cd /robotTestcases/jenkins/reportLogs
             '''
             color = '#FFFE89'
-            emailext attachmentsPattern: 'log.html', 
+            /*emailext attachmentsPattern: 'log.html', 
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true, 
                      subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed", 
-                     to: 'amcirillo@valassis.com GegenheiD@valassis.com ClawsonK@valassis.com reddyn@valassis.com KannarapuP@valassis.com PalathinkaraJ@valassis.com MadhukR@valassis.com CurmiN@valassis.com PeerE@valassis.com'
+                     to: 'reddyn@valassis.com KannarapuP@valassis.com'*/
             echo 'Test completed'
           }
           finally{
             echo 'finally publish reports'
-            /*temporarily suspended , until test scripts corrected*/
-            /*step(
+            
+            step(
               [
                 $class : 'RobotPublisher',
                 outputPath : '/robotTestcases/jenkins/reportLogs',
@@ -209,7 +227,7 @@
                 unstableThreshold: 95.0,
                 otherFiles : "*.png",
               ]
-            )*/
+            )
             echo 'send slack notifications'
             slackSend channel: '#impower_test_results',
                       color: color,
@@ -217,6 +235,19 @@
           }
         }
       }
+    }
+  }
+  post {
+    always {
+      // publish html
+      publishHTML target: [
+          allowMissing: false,
+          alwaysLinkToLastBuild: false,
+          keepAll: true,
+          reportDir: 'Checkmarx/Reports/',
+          reportFiles: 'Report_CxSAST.html',
+          reportName: 'Checkmarx Static Analysis Report'
+        ]
     }
   }
 }

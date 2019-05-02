@@ -1,14 +1,15 @@
-import { ModuleWithProviders, NgModule, Optional, SkipSelf, ChangeDetectionStrategy } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { EsriModule } from '@val/esri';
+import { MessagingModule } from '@val/messaging';
 import { environment } from '../../environments/environment';
 import { CpqMapComponent } from './cpq-map.component';
 import { StoreModule } from '@ngrx/store';
 import { reducers, metaReducers } from './state/app.reducer';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects';
-import { AppEffects } from './app.effects';
+import { AppEffects } from './state/app.effects';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { AppConfig } from '../app.config';
 import { SidebarModule } from 'primeng/sidebar';
@@ -26,11 +27,19 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MapControlsComponent } from './components/map-controls/map-controls.component';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { CheckboxModule } from 'primeng/checkbox';
-import { AdditionalToolbarGroupComponent } from './components/additional-toolbar-group/additional-toolbar-group.component';
+import { DialogModule } from 'primeng/dialog';
+import { MessageService, MessagesModule, SpinnerModule } from 'primeng/primeng';
+import { SharedEffects } from './state/shared/shared.effects';
+import { HeaderBarComponent } from './components/header-bar/header-bar.component';
+import { AppMessagingService } from './services/app-messaging.service';
+import { ToastModule } from 'primeng/toast';
+import { ShadingConfigComponent } from './components/shading-config/shading-config.component';
 
 
 @NgModule({
   imports: [
+    DialogModule,
+    SpinnerModule,
     CheckboxModule,
     InputSwitchModule,
     TableModule,
@@ -45,8 +54,15 @@ import { AdditionalToolbarGroupComponent } from './components/additional-toolbar
     CommonModule,
     InputTextModule,
     HttpClientModule,
-    StoreModule.forRoot(reducers, { metaReducers }),
-    EffectsModule.forRoot([AppEffects]),
+    MessagesModule,
+    ToastModule,
+    MessagingModule.forRoot(AppMessagingService),
+    StoreModule.forRoot(reducers, {metaReducers}),
+    EffectsModule.forRoot([SharedEffects, AppEffects]),
+    StoreDevtoolsModule.instrument({
+      name: 'CPQ Maps Application',
+      logOnly: environment.production,
+    }),
     EsriModule.forRoot(environment.esri.portalServer, {
       auth: {
         userName: environment.esri.username,
@@ -54,14 +70,11 @@ import { AdditionalToolbarGroupComponent } from './components/additional-toolbar
         referer: window.location.origin
       }
     }),
-    StoreDevtoolsModule.instrument({
-      name: 'CPQ Maps Application',
-      logOnly: environment.production,
-    }),
   ],
-  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, AdditionalToolbarGroupComponent],
+  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent],
   exports: [CpqMapComponent],
-  providers: [RestDataService, AppConfig]
+  providers: [RestDataService, AppConfig, MessageService],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class CpqMapModule {
 
