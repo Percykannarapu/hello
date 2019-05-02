@@ -22,6 +22,7 @@ export interface SiteInformation {
   radius: number;
   siteId: number;
   inHomeDate: string;
+  householdCount:number;
 }
 
 @Injectable({
@@ -78,6 +79,7 @@ export class AppLayerService {
         graphic.setAttribute('radius', s.radius.toString());
         graphic.setAttribute('siteId', s.siteId.toString());
         graphic.setAttribute('inHomeDate', s.inHomeDate);
+        graphic.setAttribute('householdCount', s.householdCount);
         graphics.push(graphic);
       });
       const label = this.esriFactory.createLabelClass(new EsriApi.Color([0, 0, 255, 1]), '$feature.SHADING_GROUP');

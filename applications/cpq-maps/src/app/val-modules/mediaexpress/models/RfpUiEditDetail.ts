@@ -25,8 +25,8 @@ export class RfpUiEditDetail extends BaseModel
    public zip:                   string;         /// The zip code component of the geography
    public atz:                   string;         /// The atz component of the geography
    public cityName:              string;         /// The city / state of the geography
-   public household:             number;         /// When bought, hh_count_mbu otherwise hh_count_pref_ihd. If null, then hh_count_geo
-   public taHousehold:           number;         /// Households in the trade area
+   public households:             number;         /// When bought, hh_count_mbu otherwise hh_count_pref_ihd. If null, then hh_count_geo
+   public taHouseholds:           number;         /// Households in the trade area
    public distribution:          number;         /// The distribution (circ)
    public addOnDistribution:     number;
    public cpm:                   number;         /// Average MBU price (cost per thousand)

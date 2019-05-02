@@ -185,13 +185,13 @@ export class AppEffects {
     const coordinates: Array<SiteInformation> = [];
     for (const id of state.rfpUiEdit.ids) {
       let currentIHD = new Date (state.rfpUiEditDetail.entities[id].ihDate).toLocaleDateString();
-
       coordinates.push({
         coordinates: { x: state.rfpUiEdit.entities[id].siteLong, y: state.rfpUiEdit.entities[id].siteLat },
         name: state.rfpUiEdit.entities[id].siteName,
         radius: state.shared.radius,
         siteId: state.rfpUiEdit.entities[id].siteId,
         inHomeDate: currentIHD,
+        householdCount: state.rfpUiEditDetail.entities[id].taHouseholds,
       });
     }
     return coordinates;

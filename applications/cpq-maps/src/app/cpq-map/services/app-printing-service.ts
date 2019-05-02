@@ -4,6 +4,7 @@ import { FullState } from '../state';
 import { ConfigService } from './config.service';
 
 interface PrintModel {
+  clientName: string;
   layerSource: string;
   siteFeatures: Array<__esri.Graphic>;
   shadingFeatures: Array<__esri.Graphic>;
@@ -22,7 +23,7 @@ export class AppPrintingService {
     shadingGraphics.forEach(g => g.geometry = null);
     const siteGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getFeatureLayer('Project Sites').source;
     const layerSource =this.configService.layers['zip'].boundaries.id;
-    const printFeatures: PrintModel = { layerSource: layerSource, siteFeatures: siteGraphics.toArray(), shadingFeatures: shadingGraphics.toArray() };
+    const printFeatures: PrintModel = { clientName: 'Buddy\'s Pizza', layerSource: layerSource, siteFeatures: siteGraphics.toArray(), shadingFeatures: shadingGraphics.toArray() };
     console.log(JSON.stringify(printFeatures, null, 2));
   }
 
