@@ -14,6 +14,7 @@ import { LocalAppState } from '../../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { filterArray } from '@val/common';
+import { CalculateMetrics } from '../../state/data-shim/data-shim.actions';
 
 @Component({
   selector: 'val-campaign-details',
@@ -43,7 +44,7 @@ export class CampaignDetailsComponent implements OnInit {
       combineLatest(this.appStateService.applicationIsReady$, this.appStateService.currentProject$, this.appDiscoveryService.selectedRadLookup$, this.appDiscoveryService.selectedProjectTracker$)
         .pipe(
           filter(([appIsReady]) => appIsReady),
-          map(([appIsReady, currentProject, selectedRad, selectedTracker]) => ValDiscoveryUIModel.createFromProject(currentProject, selectedRad, selectedTracker)),
+          map(([, currentProject, selectedRad, selectedTracker]) => ValDiscoveryUIModel.createFromProject(currentProject, selectedRad, selectedTracker)),
           tap(UIData => this.logger.debug.log('Discovery UI data changed', UIData))
         );
     this.currentRadSuggestions$ = this.appDiscoveryService.radSearchSuggestions$;
@@ -53,6 +54,8 @@ export class CampaignDetailsComponent implements OnInit {
       filterArray(audience => audience.audienceSourceType === 'Online'),
       map(audiences => audiences.length > 0 )
     );
+
+
     
     // this maps the form control names to the equivalent usage metric name
     // if there is no entry here, then it will not get logged on change
@@ -86,6 +89,17 @@ export class CampaignDetailsComponent implements OnInit {
         currentProject.createDate = new Date(Date.now());
       currentProject.modifyUser = (currentUser.userId) ? (currentUser.userId) : -1;
       currentProject.modifyDate = new Date(Date.now());
+
+      if (this.previousForm != null) {
+        if (this.previousForm.circulationBudget !== newValues.circulationBudget ||
+            this.previousForm.dollarBudget !== newValues.dollarBudget ||
+            this.previousForm.cpmAnne !== newValues.cpmAnne ||
+            this.previousForm.cpmSolo !== newValues.cpmSolo ||
+            this.previousForm.cpmValassis !== newValues.cpmValassis ||
+            this.previousForm.cpmBlended !== newValues.cpmBlended) {
+          this.store$.dispatch(new CalculateMetrics());
+        }
+      }
 
       this.impProjectService.makeDirty();
     }
