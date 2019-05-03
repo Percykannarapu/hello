@@ -71,6 +71,7 @@ export class RfpUiEditDetail extends BaseModel
    public var3IsString:          number;         /// 0 = Not a string, 1 = Is a string
    public var3IsNumber:          number;         /// 0 = Not a number, 1 = Is a number
    public var3Value:             string;         /// Variable 3 number value
+   public siteName?:             string;        /// Site Name
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<RfpUiEditDetail>) {

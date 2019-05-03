@@ -71,4 +71,5 @@ export interface RfpUiEditDetailPayload extends BaseModelPayload
    var3IsString:          number;         /// 0 = Not a string, 1 = Is a string
    var3IsNumber:          number;         /// 0 = Not a number, 1 = Is a number
    var3Value:             string;         /// Variable 3 number value
+   siteName?:              string;         /// Site Name
 }
