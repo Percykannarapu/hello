@@ -116,7 +116,7 @@ export class UploadTradeAreasComponent implements OnInit {
     } else {
       reader.readAsText(event.files[0]);
       reader.onload = () => {
-        this.parseCsvFile(reader.result);
+        this.parseCsvFile(reader.result as string);
       };
     }
 
@@ -131,7 +131,7 @@ export class UploadTradeAreasComponent implements OnInit {
   }
 
   // to process excel upload data
-  private parseExcelFile(bstr: string) : void {
+  private parseExcelFile(bstr: string | ArrayBuffer) : void {
     console.log('process excel data::');
     try {
       const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });

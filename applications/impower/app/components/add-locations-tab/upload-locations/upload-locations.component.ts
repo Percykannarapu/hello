@@ -14,7 +14,7 @@ export class UploadLocationsComponent {
   @Output() upload = new EventEmitter<string[]>();
   @ViewChild('fileUpload') private fileUploadElement: FileUpload;
 
-  private static excelToCsv(encodedString: string) : string {
+  private static excelToCsv(encodedString: string | ArrayBuffer) : string {
     const wb: XLSX.WorkBook = XLSX.read(encodedString, { type: 'binary' });
     const worksheetName: string = wb.SheetNames[0];
     const ws: XLSX.WorkSheet = wb.Sheets[worksheetName];

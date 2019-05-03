@@ -115,7 +115,7 @@ export class EsriUtils {
     return Observable.create(observer => {
       let handle;
       try {
-        handle = instance.watch(prop, (newValue, oldValue, propName, target) => {
+        handle = instance.watch(prop as string, (newValue, oldValue, propName, target) => {
           observer.next({ newValue, oldValue, propName, target });
         });
       } catch (err) {
