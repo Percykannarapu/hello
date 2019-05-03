@@ -59,7 +59,7 @@ export class DiscoveryInputComponent implements OnInit {
     this.discoveryForm = this.fb.group({
       projectId: { value: null, disabled: true },
       projectName: new FormControl('', { validators: Validators.required, updateOn: 'blur' }),
-      selectedProjectTracker: new FormControl(null, { updateOn: 'blur' }),
+      selectedProjectTracker: null,
       selectedRadLookup: null,
       selectedSeason: null,
       selectedAnalysisLevel: [null, Validators.required],
