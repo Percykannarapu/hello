@@ -20,3 +20,4 @@ export interface LocalAppState {
 }
 
 export const getRenderingSlice = (state: LocalAppState) => state.rendering;
+export const getMenuSlice = (state: LocalAppState) => state.menu;
