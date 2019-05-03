@@ -2,9 +2,9 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { AppConfig } from '../app.config';
 import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
-import { selectGeoAttributeEntities, selectGeoAttributes } from '../impower-datastore/state/impower-datastore.selectors';
+import { selectGeoAttributes } from '../impower-datastore/state/impower-datastore.selectors';
 import { FullAppState } from '../state/app.interfaces';
-import { Subscription, Observable, combineLatest } from 'rxjs';
+import { combineLatest, Observable, Subscription } from 'rxjs';
 import { CalculateMetrics } from '../state/data-shim/data-shim.actions';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { filter, map, take, withLatestFrom } from 'rxjs/operators';
@@ -281,14 +281,6 @@ export class ValMetricsService implements OnDestroy {
     this.metricDefinitions.push(casualDining);
   }
 
-  private getMetricObservable() : Observable<MetricDefinition<any>[]> {
-    const storeAttributes$ = this.store$.pipe(select(selectGeoAttributeEntities));
-    return this.stateService.uniqueSelectedGeocodes$.pipe(
-      withLatestFrom(this.stateService.currentProject$, storeAttributes$),
-      map(([geos, project, attrs]) => this.updateDefinitions(attrs, geos, project))
-    );
-  }
-
   private getMismatchObservable() : Observable<boolean> {
     const geoOwnerTypes$ = this.store$.pipe(
       select(selectGeoAttributes),
@@ -319,6 +311,7 @@ export class ValMetricsService implements OnDestroy {
 
   public updateDefinitions(attributes: { [geocode: string] : GeoAttribute }, geocodes: string[], project: ImpProject) : MetricDefinition<any>[] {
     if (project == null || attributes == null) return;
+    this.currentProject = project;
     this.isWinter = this.stateService.season$.getValue() === Season.Winter;
 
     for (const definition of this.metricDefinitions) {
