@@ -7,16 +7,11 @@ export const defaultEsriUrlFragments = {
 };
 
 export const defaultEsriConfig: EsriConfigOptions = {
-  url: 'https://js.arcgis.com/4.10/',
+  version: '4.11',
+  css: true,
   portalUrl:  null,
   request: {
     timeout: 120000
-  },
-  dojoConfig: {
-    has: {
-      // 2D WebGL setting - https://blogs.esri.com/esri/arcgis/2017/09/29/featurelayer-taking-advantage-of-webgl-2d/
-      'esri-featurelayer-webgl': 1
-    }
   }
 };
 
