@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnChanges, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { Store, select } from '@ngrx/store';
 import { LocalState } from '../../state';
@@ -6,6 +6,7 @@ import { filter } from 'rxjs/operators';
 import { RfpUiEditWrap } from '../../../val-modules/mediaexpress/models/RfpUiEditWrap';
 import { UpsertRfpUiEditDetail } from '../../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { UpsertRfpUiEditWraps } from '../../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { DataTable } from 'primeng/primeng';
 
 class CompositeRow extends RfpUiEditDetail {
 public siteName?: string;
@@ -34,6 +35,9 @@ set smallSizeTable(val: boolean) {
   this.refreshRows(this.currentState);
 }
 
+@ViewChild('dt')
+public pTable: DataTable;
+
 rows: Array<CompositeRow | WrapCompositeRow> = [];
 selectedRows: Array<CompositeRow | WrapCompositeRow> = [];
 isWrap: boolean = true;
@@ -44,6 +48,25 @@ ngOnInit() {
   this.store$.pipe(select(state => state)).pipe(
     filter(state => state.shared.appReady === true)
   ).subscribe(state => this.refreshRows(state));
+
+  this.pTable.filterConstraints['search'] = (value: string, searchFilter: string) : boolean => {
+    if (searchFilter === undefined || searchFilter === null || searchFilter === '') {
+      return true;
+    }
+    if (value === undefined || value === null || !value.length) {
+      return false;
+    }
+    return value.toLowerCase().includes(searchFilter.toLowerCase());
+  };
+
+}
+
+public applyFilter(searchFilter: string) {
+  this.pTable.filter(searchFilter, 'global', 'search');
+}
+
+public onFilter() {
+  this.cd.markForCheck();
 }
 
 private refreshRows(state: LocalState) : void {
@@ -86,9 +109,9 @@ private createColumns(small: boolean, isWrap: boolean) {
 }
 
 private addVariableColumns(var1: boolean, var2: boolean, var3: boolean, heading1: string, heading2: string, heading3: string) {
-  if (var1) this.columns.push({field: 'var1Value', header: heading1, width: '6em', styleClass: "val-text-right"});
-  if (var2) this.columns.push({field: 'var2Value', header: heading2, width: '6em', styleClass: "val-text-right"});
-  if (var3) this.columns.push({field: 'var3Value', header: heading3, width: '6em', styleClass: "val-text-right"});
+  if (var1) this.columns.push({field: 'var1Value', header: heading1, width: '6em', styleClass: 'val-text-right'});
+  if (var2) this.columns.push({field: 'var2Value', header: heading2, width: '6em', styleClass: 'val-text-right'});
+  if (var3) this.columns.push({field: 'var3Value', header: heading3, width: '6em', styleClass: 'val-text-right'});
 }
 
 private createNonWrapRows(state: LocalState) {
