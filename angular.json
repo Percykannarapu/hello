@@ -14,6 +14,7 @@
             "outputPath": "dist/impower",
             "index": "applications/impower/index.html",
             "main": "applications/impower/main.ts",
+            "es5BrowserSupport": true,
             "tsConfig": "applications/impower/tsconfig.app.json",
             "polyfills": "applications/impower/polyfills.ts",
             "assets": [
@@ -192,6 +193,7 @@
             "main": "applications/cpq-maps/src/main.ts",
             "polyfills": "applications/cpq-maps/src/polyfills.ts",
             "tsConfig": "applications/cpq-maps/tsconfig.app.json",
+            "es5BrowserSupport": true,
             "assets": [
               "applications/cpq-maps/src/favicon.ico",
               "applications/cpq-maps/src/assets"
