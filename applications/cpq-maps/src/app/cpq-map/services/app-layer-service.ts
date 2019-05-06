@@ -179,9 +179,9 @@ export class AppLayerService {
       this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
       const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
       const zipShadingGroup: Map<string, string> = new Map<string, string>();
-      if(state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-         for(const id in state.rfpUiEditDetail.ids){
-            if(state.rfpUiEditDetail.entities[id] != null)
+      if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+         for (const id in state.rfpUiEditDetail.ids){
+            if (state.rfpUiEditDetail.entities[id] != null)
                zipShadingGroup.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].zip);
          }
       }
@@ -212,9 +212,9 @@ export class AppLayerService {
             graphic.symbol = symbol;
             graphic.geometry = geo.geometry;
             graphic.setAttribute('geocode', geo.getAttribute('geocode'));
-            if(this.geoHHC.has(geo.getAttribute('geocode')))
+            if (this.geoHHC.has(geo.getAttribute('geocode')))
                graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')));
-            if(zipShadingGroup.has(geo.getAttribute('geocode')))
+            if (zipShadingGroup.has(geo.getAttribute('geocode')))
                   graphic.setAttribute('SHADING_GROUP', zipShadingGroup.get(geo.getAttribute('geocode')));
                 
             graphics.push(graphic);
@@ -274,9 +274,9 @@ export class AppLayerService {
       let count: number = 0;
       const designators = this.editDetailService.getEditDetailsByATZDesignator(state);
       const shadingGroup: Map<string, string> = new Map<string, string>();
-      if(state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-         for(const id in state.rfpUiEditDetail.ids){
-            if(state.rfpUiEditDetail.entities[id] != null)
+      if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+         for (const id in state.rfpUiEditDetail.ids){
+            if (state.rfpUiEditDetail.entities[id] != null)
                shadingGroup.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].atz);
          }
       }
@@ -308,14 +308,14 @@ export class AppLayerService {
             graphic.symbol = symbol;
             graphic.geometry = geo.geometry;
             graphic.setAttribute('geocode', geo.getAttribute('geocode'));
-            if(this.geoHHC.has(geo.getAttribute('geocode')))
+            if (this.geoHHC.has(geo.getAttribute('geocode')))
                graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')));
-            if(shadingGroup.has(geo.getAttribute('geocode'))){
+            if (shadingGroup.has(geo.getAttribute('geocode'))){
                const atz = shadingGroup.get(geo.getAttribute('geocode'));
-               if(atz != null){
+               if (atz != null){
                   graphic.setAttribute('SHADING_GROUP', shadingGroup.get(geo.getAttribute('geocode')));
                } else{
-                  graphic.setAttribute('SHADING_GROUP', "Full Zip");
+                  graphic.setAttribute('SHADING_GROUP', 'Full Zip');
                }
             }  
             graphics.push(graphic);
@@ -336,7 +336,7 @@ export class AppLayerService {
       for (const site of state.rfpUiEdit.ids) {
          const geos: Array<string> = [];
          const siteId = state.rfpUiEdit.entities[site].siteId;
-         const siteName =state.rfpUiEdit.entities[site].siteName;
+         const siteName = state.rfpUiEdit.entities[site].siteName;
          const pallete: number [][] = getColorPalette(ColorPalette.Cpqmaps);
          pallete.forEach(color => color.push(0.6));
          this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, pallete[count % pallete.length]);
@@ -367,10 +367,10 @@ export class AppLayerService {
             graphic.symbol = symbol;
             graphic.geometry = geo.geometry;
             graphic.setAttribute('geocode', geo.getAttribute('geocode'));
-            if(shadingGroupName.has(geo.getAttribute('geocode'))){
+            if (shadingGroupName.has(geo.getAttribute('geocode'))){
                graphic.setAttribute('SHADING_GROUP', shadingGroupName.get(geo.getAttribute('geocode')));
             }
-            if(this.geoHHC.has(geo.getAttribute('geocode')))
+            if (this.geoHHC.has(geo.getAttribute('geocode')))
                graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')) );
             graphics.push(graphic);
             }
@@ -383,10 +383,10 @@ export class AppLayerService {
       });
    }
 
-   private setHouseholdCount(state){
-      if(state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-         for(const id in state.rfpUiEditDetail.ids){
-            if(state.rfpUiEditDetail.entities[id] != null)
+   private setHouseholdCount(state: FullState){
+      if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+         for (const id in state.rfpUiEditDetail.ids){
+            if (state.rfpUiEditDetail.entities[id] != null)
                this.geoHHC.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].households.toString());
          }
       }
