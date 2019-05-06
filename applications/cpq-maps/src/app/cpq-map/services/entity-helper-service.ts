@@ -19,6 +19,7 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
  export class EntityHelper {
 
   readonly setSelectedUrl: string = 'v1/mediaexpress/base/mediaplan/setselected';
+  readonly addNewUrl: string = 'v1/mediaexpress/base/mediaplan/%id%/addGeocodes';
 
   constructor(private rfpUiEditLoader: RfpUiEditLoaderService,
                private rfpUiEditDetailLoader: RfpUiEditDetailLoaderService,
@@ -53,9 +54,21 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
 
    public saveMediaPlan(updates: RfpUiEditDetail[], adds: RfpUiEditDetail[]) : Observable<any> {
      const updatePayload = updates.map(u => ({ id: u.commonMbuId, value: u.isSelected }));
-     const setSelected$ = this.restService.post(this.setSelectedUrl, updatePayload);
-     const addPayload = adds;      // for future expansion
-     const miniMediaPlan$ = EMPTY; // for future expansion
+     const setSelected$ = updates.length > 0
+       ? this.restService.post(this.setSelectedUrl, updatePayload)
+       : EMPTY;
+
+     const addPayload =  {
+       products: [{
+         product: {
+           name: adds[0].productName,
+           geocodes: adds.map(a => ({ geocode: a.geocode }))
+         }
+       }]
+     };
+     const miniMediaPlan$ = adds.length > 0
+       ? this.restService.post(this.addNewUrl.replace('%id%', adds[0].mediaPlanId.toString()), addPayload)
+       : EMPTY;
 
      return merge(setSelected$, miniMediaPlan$);
    }

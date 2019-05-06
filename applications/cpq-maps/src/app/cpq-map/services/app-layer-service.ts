@@ -664,15 +664,15 @@ export class AppLayerService {
          query.outFields = ['geocode'];
          query.where = `geocode = '${selectedFeature.attributes.geocode}'`;
          this.queryService.executeQuery(this.configService.layers[state.shared.analysisLevel].centroids.id, query, true).subscribe(res => {
-            this.createNewRfpUiEditDetails([{ geocode: geocode, point: <__esri.Point> res.features[0].geometry, zip: geocode.substr(0, 5) }]);   
+            this.createNewRfpUiEditDetails([{ geocode: geocode, point: <__esri.Point> res.features[0].geometry, zip: geocode.substr(0, 5) }], state);
          });
        } else {
-         this.createNewRfpUiEditWrap(wrapZone);
+         this.createNewRfpUiEditWrap(wrapZone, state);
        }
      }
    }
 
-   private createNewRfpUiEditWrap(wrapZone: string) {
+   private createNewRfpUiEditWrap(wrapZone: string, state: FullState) {
       const newWrap = new RfpUiEditWrap();
       newWrap.wrapZone = wrapZone;
       newWrap['@ref'] = this.newGeoId;
@@ -697,12 +697,13 @@ export class AppLayerService {
                const centroid: __esri.Point = <__esri.Point> f.geometry;
                editDetailsInput.push({ geocode: f.getAttribute('geocode'), point: centroid, wrapZone: wrapZone, zip: f.getAttribute('geocode') });
             });
-            this.createNewRfpUiEditDetails(editDetailsInput);
+            this.createNewRfpUiEditDetails(editDetailsInput, state);
          });
       });
    }
 
-   private createNewRfpUiEditDetails(editDetailInput: { geocode: string, point: __esri.Point, wrapZone?: string, zip?: string }[]) {
+   private createNewRfpUiEditDetails(editDetailInput: { geocode: string, point: __esri.Point, wrapZone?: string, zip?: string }[], state: FullState) {
+     const arbitraryReviewDetail = (state.rfpUiReview.ids as number[]).map(id => state.rfpUiReview.entities[id])[0];
      const newDetails: Array<RfpUiEditDetail> = [];
      editDetailInput.forEach(edi => {
          const newDetail: RfpUiEditDetail = new RfpUiEditDetail();
@@ -711,6 +712,8 @@ export class AppLayerService {
          newDetail.isSelected = true;
          newDetail.fkSite = closestSite.getAttribute('siteId');
          newDetail['@ref'] = this.newGeoId;
+         newDetail.mediaPlanId = arbitraryReviewDetail.mediaPlanId;
+         newDetail.productName = arbitraryReviewDetail.sfdcProductName;
          if (edi.wrapZone != null)
             newDetail.wrapZone = edi.wrapZone;
          if (edi.zip != null)

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriUtils, LayerDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, EsriUtils, LayerDefinition, selectors, SetLayerLabelExpressions, SetPopupVisibility } from '@val/esri';
 import { merge, Observable } from 'rxjs';
 import { tap, reduce, finalize, map, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { FullState } from '../state';
@@ -35,6 +35,7 @@ export class AppMapService {
         const popup = this.mapService.mapView.popup;
         popup.highlightEnabled = false;
         EsriApi.projection.load();
+        this.store$.dispatch(new SetPopupVisibility({ isVisible: true }));
       })
     );
   }
