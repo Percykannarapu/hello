@@ -15,6 +15,7 @@ import { FilterData, TableFilterNumericComponent } from '../common/table-filter-
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { MultiSelect, SortMeta } from 'primeng/primeng';
 import { distinctArray, groupBy, groupByExtended, mapArray, resolveFieldData, roundTo, mapArrayToEntity, safe } from '@val/common';
+import { AppStateService } from '../../services/app-state.service';
 
 export interface FlatGeo {
    fgId: number;
@@ -39,6 +40,8 @@ interface AttributeEntity { [geocode: string] : GeoAttribute; }
 })
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 {
+   private gridUpdateFlag: boolean;
+
    @Input('impProject')
    set project(val: ImpProject) {
       this.projectBS$.next(val);
@@ -121,6 +124,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private allAttributesBS$  = new BehaviorSubject<AttributeEntity>(null);
    private allVarsBS$        = new BehaviorSubject<ImpGeofootprintVar[]>([]);
    private varColOrderBS$    = new BehaviorSubject<Map<string, number>>(new Map<string, number>());
+   private listCollapse$: Observable<boolean>;
 
    // Data store observables
    private project$: Observable<ImpProject>;
@@ -236,10 +240,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(private logger: LoggingService) { }
+   constructor(private logger: LoggingService,
+               private appStateService: AppStateService) { }
 
    ngOnInit()
    {
+      this.listCollapse$ = this.appStateService.getCollapseObservable();
+      this.listCollapse$.subscribe(collapseFlag => this.gridUpdateFlag = collapseFlag);
       // Observe the behavior subjects on the input parameters
       this.project$ = this.projectBS$.asObservable();
       this.allProjectVars$ = this.allProjectVarsBS$.asObservable();
@@ -269,13 +276,18 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Remember that combineLatest is going to fire the pipe for each subscriber to allImpGeofootprintGeos$.  In the template, we have two | async values:
       // displayedImpGeofootprintGeos$ and selectedImpGeofootprintGeos$, which creates two subscribers.  This would fire createComposite twice, which is an expensive
       // operation.  The publishReplay is allows it to run once for the first subscriber, then the other uses the result of that.
-      type createCompositeTuple = [ImpProject, ImpProjectVar[], ImpGeofootprintGeo[], string[], AttributeEntity, ImpGeofootprintVar[], Map<string, number>];
+      type createCompositeTuple = [ImpProject, ImpProjectVar[], ImpGeofootprintGeo[], string[], AttributeEntity, ImpGeofootprintVar[], Map<string, number>, boolean];
 
-      this.allImpGeofootprintGeos$ = combineLatest<createCompositeTuple, createCompositeTuple>(this.projectBS$, this.allProjectVars$, this.allGeos$, this.allMustCovers$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$)
+      this.allImpGeofootprintGeos$ = combineLatest<createCompositeTuple, createCompositeTuple>(this.projectBS$, this.allProjectVars$, this.allGeos$, this.allMustCovers$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$, this.listCollapse$)
                                     .pipe(tap(x => this.setGridTotals())
                                          , tap(x => this.syncHeaderFilter())
-                                         , map(([discovery, projectVars, geos, mustCovers, attributes, vars, varColOrder]: createCompositeTuple) =>
-                                            this.createComposite(discovery, projectVars, geos, mustCovers, attributes, vars, varColOrder))
+                                         , map(
+                                            ([discovery, projectVars, geos, mustCovers, attributes, vars, varColOrder]: createCompositeTuple) => {
+                                                if (!this.gridUpdateFlag) {
+                                                   return this.createComposite(discovery, projectVars, geos, mustCovers, attributes, vars, varColOrder);
+                                                }
+                                                return [];
+                                            })
                                           // Share the latest emitted value by creating a new behaviorSubject on the result of createComposite (The previous operator in the pipe)
                                           // Allows the first subscriber to run pipe and all other subscribers get the result of that
                                          , publishReplay(1)
@@ -457,7 +469,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * having pivoted up the variables and attributes to their respective geographies.
     *
     */
-   createComposite(project: ImpProject, projectVars: ImpProjectVar[], geos: ImpGeofootprintGeo[], mustCovers: string[], geoAttributes: AttributeEntity, geoVars: ImpGeofootprintVar[], varColOrder: Map<string, number>) : FlatGeo[]
+   createComposite(project: ImpProject, projectVars: ImpProjectVar[], geos: ImpGeofootprintGeo[], mustCovers: string[], geoAttributes: AttributeEntity, geoVars: ImpGeofootprintVar[], varColOrder: Map<string, number>, collapsed?: boolean) : FlatGeo[]
    {
       if (geos == null || geos.length === 0) {
         this.initializeGridTotals();

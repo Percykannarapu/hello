@@ -12,6 +12,7 @@ import { UserService } from '../../services/user.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../state/app.interfaces';
 import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
+import { AppStateService } from 'app/services/app-state.service';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -50,6 +51,7 @@ export class DashboardComponent implements OnInit {
 
     public locations$: Observable<ImpGeofootprintLocation[]>;
     public geos$: Observable<ImpGeofootprintGeo[]>;
+    public listCollapsed$: Observable<any>;
 
     // note about "unused" services:
     // This is the only place these services are being injected, so leave them.
@@ -59,6 +61,7 @@ export class DashboardComponent implements OnInit {
                 private userService: UserService,
                 private impLocationService: ImpGeofootprintLocationService,
                 private impGeoService: ImpGeofootprintGeoService,
+                private appStateService: AppStateService,
                 private store$: Store<LocalAppState>) { }
 
     ngOnInit() {
@@ -144,6 +147,11 @@ export class DashboardComponent implements OnInit {
 
         this.locations$ = this.impLocationService.storeObservable;
         this.geos$ = this.impGeoService.storeObservable;
+        this.listCollapsed$ = this.appStateService.getCollapseObservable();
+    }
+
+    triggerCollapseOnToggle(collapsed: boolean) {
+        this.appStateService.triggerChangeInCollapse(collapsed);
     }
 
     showSideBar($event) {

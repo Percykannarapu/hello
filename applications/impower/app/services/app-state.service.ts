@@ -74,6 +74,8 @@ export class AppStateService {
 
   private setVisibleGeosForLayer$ = new Subject<string>();
 
+  private isCollapsed = new BehaviorSubject<boolean>(false);
+
   constructor(private projectService: AppProjectService,
               private locationService: ImpGeofootprintLocationService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
@@ -264,5 +266,17 @@ export class AppStateService {
       filterArray(pvar => pvar.isActive),
       map(pvars => mapArrayToEntity(pvars,  pvar => pvar.varPk)),
     ).subscribe(this.projectVarsDict$ as BehaviorSubject<any>);
+  }
+
+  getCollapseObservable() {
+    return this.isCollapsed.asObservable();
+  }
+
+  triggerChangeInCollapse(collapse: boolean){
+    this.isCollapsed.next(collapse);
+  }
+  
+  stopObservingCollapse(){
+    this.isCollapsed.complete();
   }
 }
