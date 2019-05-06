@@ -71,7 +71,8 @@ export class AppMapService implements OnDestroy {
         this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, {}, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' });
         this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
 
-        const popup = this.mapService.mapView.popup;
+        const popup: __esri.Popup = this.mapService.mapView.popup;
+        popup.actionsMenuEnabled = false;
         if (this.useWebGLHighlighting) {
           popup.highlightEnabled = false;
         }

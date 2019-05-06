@@ -32,8 +32,9 @@ export class AppMapService {
         this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, {}, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
         this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
 
-        const popup = this.mapService.mapView.popup;
+        const popup: __esri.Popup = this.mapService.mapView.popup;
         popup.highlightEnabled = false;
+        popup.actionsMenuEnabled = false;
         EsriApi.projection.load();
         this.store$.dispatch(new SetPopupVisibility({ isVisible: true }));
       })
