@@ -96,9 +96,7 @@ export class AddLocationsTabComponent implements OnInit {
   accept(site: ImpGeofootprintLocation) {
     site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
     if (site.recordStatusCode === 'PROVIDED'){
-      const existingSite = this.impGeofootprintLocationService.get().filter(l => l.locationNumber == site.locationNumber);
       const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
-      this.appLocationService.deleteLocations(existingSite);
       site.impGeofootprintLocAttribs.forEach(attr => {
         if (homeGeoColumnsSet.has(attr.attributeCode)){
           attr.attributeValue = '';

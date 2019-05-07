@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { AppLocationService } from 'app/services/app-location.service';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
   selector: 'val-failed-geocode-grid',
@@ -30,6 +32,10 @@ export class FailedGeocodeGridComponent implements OnInit{
     //   this.locFieldZip = 'locZip';
     // }
   }
+
+  
+  constructor(private appLocationService: AppLocationService,
+              private impGeofootprintLocationService: ImpGeofootprintLocationService) {}
 
   canBeAccepted(site: ImpGeofootprintLocation) : boolean {
     return site.recordStatusCode !== 'ERROR' && site.recordStatusCode !== '';
@@ -77,6 +83,10 @@ export class FailedGeocodeGridComponent implements OnInit{
     if (!this.edited.has(site)) {
       site.recordStatusCode = 'SUCCESS';
     }
+    if (site.recordStatusCode === 'PROVIDED') {
+      const existingSite = this.impGeofootprintLocationService.get().filter(l => l.locationNumber == site.locationNumber);
+      this.appLocationService.deleteLocations(existingSite);
+    }   
     this.accept.emit(site);
   }
 
