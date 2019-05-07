@@ -63,7 +63,8 @@ import { ShadingConfigComponent } from './components/shading-config/shading-conf
       name: 'CPQ Maps Application',
       logOnly: environment.production,
     }),
-    EsriModule.forRoot(environment.esri.portalServer, {
+    EsriModule.forRoot({
+      portalServerRootUrl: environment.esri.portalServer,
       auth: {
         userName: environment.esri.username,
         password: environment.esri.password,

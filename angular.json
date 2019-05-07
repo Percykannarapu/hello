@@ -130,6 +130,9 @@
             },
             "dev-server": {
               "browserTarget": "impower:build:dev-server"
+            },
+            "prod-win": {
+              "browserTarget": "impower:build:prod-win"
             }
           }
         },

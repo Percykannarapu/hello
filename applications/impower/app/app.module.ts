@@ -215,7 +215,8 @@ import { AppEditSiteService } from './services/app-editsite.service';
         CommonModule,
         NgStringPipesModule,
         CardModule,
-        EsriModule.forRoot(EnvironmentData.esri.portalServer, {
+        EsriModule.forRoot({
+          portalServerRootUrl: EnvironmentData.esri.portalServer,
           auth: {
             userName: EnvironmentData.esri.userName,
             password: EnvironmentData.esri.password,
