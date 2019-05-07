@@ -220,11 +220,29 @@
               "sourceMap": false,
               "extractCss": true,
               "namedChunks": false,
-              "aot": true,
+              "aot": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true
+            },
+            "qa": {
+              "fileReplacements": [
+                {
+                  "replace": "applications/cpq-maps/src/environments/environment.ts",
+                  "with": "applications/cpq-maps/src/environments/environment.qa.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": false,
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true
             }
+          
           }
         },
         "serve": {
