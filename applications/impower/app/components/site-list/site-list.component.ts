@@ -306,6 +306,7 @@ export class SiteListComponent implements OnInit {
         }
       });
       site['homeGeoFound'] = null;
+      site.impGeofootprintTradeAreas = [];
       const reCalculateHomeGeos = false;
       const isLocationEdit =  false;
       const locations = [site];
