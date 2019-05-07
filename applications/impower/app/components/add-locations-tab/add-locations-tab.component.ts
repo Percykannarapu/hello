@@ -104,6 +104,7 @@ export class AddLocationsTabComponent implements OnInit {
           attr.attributeValue = '';
         }
       });
+      site.impGeofootprintTradeAreas = [];
       site['homeGeoFound'] = null;
       const reCalculateHomeGeos = false;
       const isLocationEdit =  false;
