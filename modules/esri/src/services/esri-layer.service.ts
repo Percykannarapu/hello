@@ -39,11 +39,6 @@ export class EsriLayerService {
     return EsriUtils.layerIsGroup(group);
   }
 
-  public layerExists(layerName: string) : boolean {
-    const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
-    return layer != null;
-  }
-
   public getGroup(groupName: string) : __esri.GroupLayer {
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
     if (EsriUtils.layerIsGroup(group)) {
@@ -90,11 +85,12 @@ export class EsriLayerService {
   }
 
   public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
-    let result: __esri.FeatureLayer = null;
-    this.mapService.mapView.map.allLayers.forEach(l => {
-      if (EsriUtils.layerIsPortalFeature(l) && l.portalItem.id === portalId) result = l;
-    });
-    return result;
+    for (const l of this.mapService.mapView.map.allLayers.toArray()) {
+      if (EsriUtils.layerIsFeature(l)) {
+        if (EsriUtils.layerIsPortalFeature(l) && l.portalItem.id === portalId) return l;
+        if (l.url != null && l.url.startsWith(portalId)) return l;
+      }
+    }
   }
 
   public removeLayer(layerName: string) : void {
@@ -260,16 +256,17 @@ export class EsriLayerService {
   }
 
   public setLabels(labelConfig: EsriLabelConfiguration, layerExpressions: { [layerId: string] : EsriLabelLayerOptions }) : void {
-      const layers = this.mapService.mapView.map.allLayers.toArray();
-      layers.forEach(l => {
-        if (EsriUtils.layerIsPortalFeature(l)) {
-          l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions[l.portalItem.id]);
-          l.labelsVisible = labelConfig.enabled;
-        }
-        if (EsriUtils.layerIsFeature(l) && l.title == 'Project Sites') {
-          l.labelsVisible = labelConfig.siteEnabled;
-        }
-      });
+    Object.entries(layerExpressions).forEach(([layerId, options]) => {
+      const currentLayer = this.getPortalLayerById(layerId);
+      if (currentLayer != null) {
+        currentLayer.labelingInfo = this.createLabelConfig(currentLayer, labelConfig.font, labelConfig.size, options);
+        currentLayer.labelsVisible = labelConfig.enabled;
+      }
+    });
+    const siteLayer = this.getFeatureLayer('Project Sites');
+    if (siteLayer != null) {
+      siteLayer.labelsVisible = labelConfig.siteEnabled;
+    }
   }
 
   private createLabelConfig(layer: __esri.FeatureLayer, fontName: string, fontSize: number, layerOptions: EsriLabelLayerOptions) : __esri.LabelClass[] {

@@ -110,6 +110,14 @@
                   "with": "applications/impower/environments/environment.dev.ts"
                 }
               ]
+            },
+            "vpnless": {
+              "fileReplacements": [
+                {
+                  "replace": "applications/impower/environments/environment.ts",
+                  "with": "applications/impower/environments/environment.vpnless.ts"
+                }
+              ]
             }
           }
         },
@@ -133,6 +141,9 @@
             },
             "prod-win": {
               "browserTarget": "impower:build:prod-win"
+            },
+            "vpnless": {
+              "browserTarget": "impower:build:vpnless"
             }
           }
         },
@@ -242,7 +253,7 @@
               "vendorChunk": false,
               "buildOptimizer": false
             }
-          
+
           }
         },
         "serve": {

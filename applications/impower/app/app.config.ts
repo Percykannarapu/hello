@@ -229,11 +229,4 @@ export class AppConfig implements LoggingConfiguration {
         throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);
     }
   }
-
-  public webGLIsAvailable() : boolean {
-    // console.log('Esri config inside app config: ', this.esriSettings);
-    // return this.esriSettings.dojoConfig['has'] && (this.esriSettings.dojoConfig['has']['esri-featurelayer-webgl'] === 1);
-    return true;
-  }
-
 }

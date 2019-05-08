@@ -28,7 +28,6 @@ export class AppMapService implements OnDestroy {
   private clientTradeAreaSubscription: Subscription;
   private competitorTradeAreaSubscription: Subscription;
   private currentGeocodes = new Set<string>();
-  private readonly useWebGLHighlighting: boolean;
   private layerSelectionRefresh: () => void;
 
   public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
@@ -43,8 +42,6 @@ export class AppMapService implements OnDestroy {
               private logger: AppLoggingService,
               private config: AppConfig,
               private store$: Store<LocalAppState>) {
-    this.useWebGLHighlighting = this.config.webGLIsAvailable();
-
     this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
       if (this.layerSelectionRefresh) this.layerSelectionRefresh();
     });
@@ -73,9 +70,7 @@ export class AppMapService implements OnDestroy {
 
         const popup: __esri.Popup = this.mapService.mapView.popup;
         popup.actionsMenuEnabled = false;
-        if (this.useWebGLHighlighting) {
-          popup.highlightEnabled = false;
-        }
+        popup.highlightEnabled = false;
 
         // Event handler that fires each time a popup action is clicked.
         popup.on('trigger-action', (event) => {
