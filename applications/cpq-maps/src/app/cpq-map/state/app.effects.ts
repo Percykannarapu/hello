@@ -10,7 +10,7 @@ import {
   SetAppReady,
   SetIsDistrQtyEnabled,
   GetMapData,
-  LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle, SaveMediaPlan, SaveSucceeded, SaveFailed, NavigateToReviewPage, SetShadingType
+  LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle, SaveMediaPlan, SaveSucceeded, SaveFailed, NavigateToReviewPage, SetShadingType, SetLegendHTML
 } from './shared/shared.actions';
 import { tap, filter, switchMap, map, catchError, withLatestFrom, concatMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -73,6 +73,12 @@ export class AppEffects {
     tap(([, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state))),
     tap(([, state]) => this.appLayerService.setPopupData(state)),
     tap(() => this.appMapService.setMapWatches())
+  );
+
+  @Effect({ dispatch: false })
+  setLegendHTML$ = this.actions$.pipe(
+    ofType<SetLegendHTML>(SharedActionTypes.SetLegendHTML),
+    tap(() => this.appLayerService.setupLegend())
   );
 
   @Effect({ dispatch: false })

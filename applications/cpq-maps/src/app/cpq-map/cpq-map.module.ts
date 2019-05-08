@@ -34,6 +34,7 @@ import { HeaderBarComponent } from './components/header-bar/header-bar.component
 import { AppMessagingService } from './services/app-messaging.service';
 import { ToastModule } from 'primeng/toast';
 import { ShadingConfigComponent } from './components/shading-config/shading-config.component';
+import { LegendComponent } from './components/legend/legend.component';
 
 
 @NgModule({
@@ -72,7 +73,7 @@ import { ShadingConfigComponent } from './components/shading-config/shading-conf
       }
     }),
   ],
-  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent],
+  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent, LegendComponent],
   exports: [CpqMapComponent],
   providers: [RestDataService, AppConfig, MessageService],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

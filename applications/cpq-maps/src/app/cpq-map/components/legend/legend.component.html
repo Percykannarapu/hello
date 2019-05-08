@@ -1,0 +1,12 @@
+<div #legendNode id="legend" style="visibility: hidden;">
+  <div style="width: 100%; max-height: 40em; overflow: scroll; overflow-x: hidden;">
+    <ul>
+      <li *ngFor="let row of legendData">
+        <div class="grid-container">
+          <div [style.backgroundColor]="row.value" style="border: solid; border-color: black; border-width: 2px; width: 20px;"></div>
+          <div style="font-size: x-small; font-weight: bolder">{{row.key}}</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>

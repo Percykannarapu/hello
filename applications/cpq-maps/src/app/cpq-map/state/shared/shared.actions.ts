@@ -7,23 +7,30 @@ export enum SharedActionTypes {
   ApplicationStartup = '[Shared Actions] Application Startup',
   MapSetupComplete = '[Shared Actions] Map Setup Complete',
   MapSetupFailed = '[Shared Actions] Map Setup Failed',
-
   GetMapData = '[Shared Actions] Get Map Data',
   GetMapDataFailed = '[Shared Actions] Get Map Data Failed',
   LoadEntityGraph = '[Shared Actions] Load Entity Graph',
-
   SetAppReady = '[Shared Actions] Set App Ready',
   SetIsWrap = '[Shared Actions] Set isWrap',
   SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled',
-
   PopupGeoToggle = '[Shared Actions] Toggle Geo Through Map Popup',
-
   SaveMediaPlan = '[Shared Actions] Save Media Plan',
   SaveSucceeded = '[Shared Actions] Save Succeeded',
   SaveFailed = '[Shared Actions] Save Failed',
-
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
-  SetShadingType = '[Shared Actions] Set Shading Type'
+  SetShadingType = '[Shared Actions] Set Shading Type',
+  SetShadingData = '[Shared Actions] Set Shading Data',
+  SetLegendHTML = '[Shared Actions] Set Legend HTML'
+}
+
+export class SetLegendHTML implements Action {
+  readonly type = SharedActionTypes.SetLegendHTML;
+  constructor() { }
+}
+
+export class SetShadingData implements Action {
+  readonly type = SharedActionTypes.SetShadingData;
+  constructor(public payload: { shadingData: Array<{key: string | Number, value: number[]}> }) { }
 }
 
 export class SetShadingType implements Action {
@@ -115,5 +122,7 @@ export type SharedActions =
   | SaveFailed
   | NavigateToReviewPage
   | SetShadingType
+  | SetShadingData
+  | SetLegendHTML
   ;
 

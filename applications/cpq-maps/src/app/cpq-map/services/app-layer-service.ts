@@ -8,7 +8,7 @@ import { FullState } from '../state';
 import { ConfigService } from './config.service';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { PopupGeoToggle } from '../state/shared/shared.actions';
+import { PopupGeoToggle, SetShadingData } from '../state/shared/shared.actions';
 import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
 import { UpsertRfpUiEditWrap, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { RfpUiEditWrapService } from './rfpEditWrap-service';
@@ -47,6 +47,8 @@ export class AppLayerService {
    private wrapShadingMap: Map<string, number[]> = new Map<string, number[]>();
    private newGeoId: number = 500000;
    private geoHHC = new Map<string, string>();
+   private legendRef: __esri.Expand = null;
+
    public boundaryExpression: string;
    
    public addLocationsLayer(groupName: string, layerName: string, siteInformation: SiteInformation[], analysisLevel: string) {
@@ -161,35 +163,57 @@ export class AppLayerService {
    }
 
    public shadeMap(state: FullState) {
+      const shadingData: Array<{key: string | number, value: number[]}> = [];
       this.setHouseholdCount(state);
       switch (state.shared.shadingType) {
          case shadingType.SITE:
             this.shadeBySite(state);
+            for (const id of state.rfpUiEdit.ids) {
+               const record = state.rfpUiEdit.entities[id];
+               shadingData.push({ key: record.siteName, value: this.shadingMap.get(Number(record.siteId)) });
+            }
             break;
          case shadingType.ZIP:
             this.shadeByZip(state);
+            for (const key of Array.from(this.zipShadingMap.keys())) {
+               shadingData.push({ key: key, value: this.zipShadingMap.get(key) });
+            }
             break;
          case shadingType.WRAP_ZONE:
             this.shadeByWrapZone(state);
+            for (const key of Array.from(this.wrapShadingMap.keys())) {
+               shadingData.push({ key: key, value: this.wrapShadingMap.get(key) });
+            }
             break;
          case shadingType.ATZ_DESIGNATOR:
             this.shadeByATZDesignator(state);
+            for (const key of Array.from(this.atzShadingMap.keys())) {
+               shadingData.push({ key: key, value: this.atzShadingMap.get(key) });
+            }
             break;
          case shadingType.VARIABLE:
             this.shadeByVariable(state);
             break;
+      }
+      this.store$.dispatch(new SetShadingData({ shadingData: shadingData }));
+   }
+
+   private setShadingData() {
+      const shadingData: Array<{key: string | number, value: number[]}> = [];
+      for (const key of Array.from(this.zipShadingMap.keys())) {
+         shadingData.push({ key: key, value: this.zipShadingMap.get(key) });
       }
    }
 
    private shadeByZip(state: FullState) {
       this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
       const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
-      let uniqueZips =[];
-      const sitesByZip: Map<string, string> = new Map<string,string>();
+      const uniqueZips = [];
+      const sitesByZip: Map<string, string> = new Map<string, string>();
 
-      if(state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-         for(const id in state.rfpUiEditDetail.ids){
-            if(state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode && state.rfpUiEditDetail.entities[id].siteName != null){
+      if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+         for (const id in state.rfpUiEditDetail.ids){
+            if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode && state.rfpUiEditDetail.entities[id].siteName != null){
                sitesByZip.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].siteName);
             }
          }
@@ -206,7 +230,7 @@ export class AppLayerService {
          }
          count++;
       }
-      this.boundaryExpression = 'geocode in (\''+ uniqueZips.join("',' ")+ '\')';
+      this.boundaryExpression = 'geocode in (\'' + uniqueZips.join("',' ") + '\')';
       const analysisLevel: string = state.shared.analysisLevel;
       const query: __esri.Query = new EsriApi.Query();
       query.outFields = ['geocode, zip'];
@@ -222,7 +246,7 @@ export class AppLayerService {
             graphic.symbol = symbol;
             graphic.geometry = geo.geometry;
             graphic.setAttribute('geocode', geo.getAttribute('geocode'));
-            if(this.geoHHC.has(geo.getAttribute('geocode')))
+            if (this.geoHHC.has(geo.getAttribute('geocode')))
                graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')));
             graphic.setAttribute('SHADING_GROUP', geo.getAttribute('zip'));
             if (sitesByZip.has(geo.getAttribute('geocode'))) {
@@ -245,12 +269,12 @@ export class AppLayerService {
    private shadeByWrapZone(state: FullState) {
       this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
       const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
-      let uniqueWrapZones = [];
-      const sitesByWrapZone: Map<string, string> = new Map<string,string>();
+      const uniqueWrapZones = [];
+      const sitesByWrapZone: Map<string, string> = new Map<string, string>();
       const wrapZoneHHC: Map<string, number> = new Map<string, number>();
-      if(state.rfpUiEditWrap.ids != null && state.rfpUiEditWrap.ids.length > 0){
-         for(const id in state.rfpUiEditWrap.ids){
-            if(state.rfpUiEditWrap.entities[id] != null){
+      if (state.rfpUiEditWrap.ids != null && state.rfpUiEditWrap.ids.length > 0){
+         for (const id in state.rfpUiEditWrap.ids){
+            if (state.rfpUiEditWrap.entities[id] != null){
                sitesByWrapZone.set(state.rfpUiEditWrap.entities[id].wrapZone, state.rfpUiEditWrap.entities[id].siteName);
             }
          }
@@ -286,14 +310,14 @@ export class AppLayerService {
             graphic.setAttribute('geocode', geo.getAttribute('geocode'));
             graphic.setAttribute('wrapZone', geo.getAttribute('wrap_name'));
             graphic.setAttribute('SHADING_GROUP', geo.getAttribute('wrap_name'));
-            if(this.geoHHC.has(geo.getAttribute('wrap_name')))
+            if (this.geoHHC.has(geo.getAttribute('wrap_name')))
                graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('wrap_name')));
-            if(sitesByWrapZone.has(geo.getAttribute('wrap_name')))
+            if (sitesByWrapZone.has(geo.getAttribute('wrap_name')))
                graphic.setAttribute('siteId', this.siteIdMap.get(sitesByWrapZone.get(geo.getAttribute('wrap_name'))));
             
             graphics.push(graphic);
          }
-         this.boundaryExpression = 'geocode in (\''+ uniqueWrapZones.join("','")+ '\')';
+         this.boundaryExpression = 'geocode in (\'' + uniqueWrapZones.join("','") + '\')';
 
          this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
       });
@@ -304,8 +328,8 @@ export class AppLayerService {
       const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
       let count: number = 0;
       const designators = this.editDetailService.getEditDetailsByATZDesignator(state);
-      const sitesByAtz: Map<string, string> = new Map<string,string>();
-      let uniqueAtz = [];
+      const sitesByAtz: Map<string, string> = new Map<string, string>();
+      const uniqueAtz = [];
 
       for (const designator of Array.from(designators.keys())) {
          if (this.atzShadingMap.has(designator)) {
@@ -317,9 +341,9 @@ export class AppLayerService {
          }
          count++;
       }
-      if(state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-         for(const id in state.rfpUiEditDetail.ids){
-            if(state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode != null && state.rfpUiEditDetail.entities[id].siteName != null){
+      if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+         for (const id in state.rfpUiEditDetail.ids){
+            if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode != null && state.rfpUiEditDetail.entities[id].siteName != null){
                sitesByAtz.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].siteName);
             }
          }
@@ -345,9 +369,9 @@ export class AppLayerService {
             graphic.symbol = symbol;
             graphic.geometry = geo.geometry;
             graphic.setAttribute('geocode', geo.getAttribute('geocode'));
-            if(this.geoHHC.has(geo.getAttribute('geocode')))
+            if (this.geoHHC.has(geo.getAttribute('geocode')))
                graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')));
-            if(geo.getAttribute('atz') != null)
+            if (geo.getAttribute('atz') != null)
                graphic.setAttribute('SHADING_GROUP', geo.getAttribute('atz'));
             else
                graphic.setAttribute('SHADING_GROUP', 'Full Zip');
@@ -356,7 +380,7 @@ export class AppLayerService {
             }
             graphics.push(graphic);
          }
-         this.boundaryExpression = 'geocode in (\''+ uniqueAtz.join("','")+ '\')';
+         this.boundaryExpression = 'geocode in (\'' + uniqueAtz.join("','") + '\')';
          this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
       });
    }
@@ -373,7 +397,7 @@ export class AppLayerService {
       for (const site of state.rfpUiEdit.ids) {
          const geos: Array<string> = [];
          const siteId = state.rfpUiEdit.entities[site].siteId;
-         const siteName =state.rfpUiEdit.entities[site].siteName;
+         const siteName = state.rfpUiEdit.entities[site].siteName;
          const pallete: number [][] = getColorPalette(ColorPalette.Cpqmaps);
          pallete.forEach(color => color.push(0.6));
          this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, pallete[count % pallete.length]);
@@ -395,7 +419,7 @@ export class AppLayerService {
       selectedGeos.forEach(sg => query.where += `'${sg}',`);
       query.where = query.where.substr(0, query.where.length - 1);
       query.where += ')';
-      this.boundaryExpression = 'geocode in (\''+ selectedGeos.join("',' ")+ '\')';
+      this.boundaryExpression = 'geocode in (\'' + selectedGeos.join("',' ") + '\')';
       this.queryService.executeQuery(this.configService.layers[analysisLevel].boundaries.id, query, true).subscribe(res => {
          const graphics: Array<__esri.Graphic> = [];
             for (const geo of res.features) {
@@ -404,12 +428,12 @@ export class AppLayerService {
             graphic.symbol = symbol;
             graphic.geometry = geo.geometry;
             graphic.setAttribute('geocode', geo.getAttribute('geocode'));
-            if(shadingGroupName.has(geo.getAttribute('geocode'))){
+            if (shadingGroupName.has(geo.getAttribute('geocode'))){
                graphic.setAttribute('SHADING_GROUP', shadingGroupName.get(geo.getAttribute('geocode')));
             }
-            if(this.geoHHC.has(geo.getAttribute('geocode')))
+            if (this.geoHHC.has(geo.getAttribute('geocode')))
                graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')));
-            if(this.siteIdMap.has(shadingGroupName.get(geo.getAttribute('geocode'))))
+            if (this.siteIdMap.has(shadingGroupName.get(geo.getAttribute('geocode'))))
                graphic.setAttribute('siteId', this.siteIdMap.get(shadingGroupName.get(geo.getAttribute('geocode'))));   
             graphics.push(graphic);
             }
@@ -424,10 +448,10 @@ export class AppLayerService {
 
    private setHouseholdCount(state){
 
-      if(state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-         for(const id in state.rfpUiEditDetail.ids){
-            if(state.rfpUiEditDetail.entities[id] != null){
-               if(state.shared.shadingType === shadingType.WRAP_ZONE){
+      if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+         for (const id in state.rfpUiEditDetail.ids){
+            if (state.rfpUiEditDetail.entities[id] != null){
+               if (state.shared.shadingType === shadingType.WRAP_ZONE){
                   this.geoHHC.set(state.rfpUiEditDetail.entities[id].wrapZone, state.rfpUiEditDetail.entities[id].households.toString());
                }
                else
@@ -814,5 +838,23 @@ export class AppLayerService {
          }
       });
       return field;
+   }
+
+   public setupLegend() {
+      const node: HTMLElement = this.generateLegendHTML('legend', null);
+      const expand: __esri.Expand = new EsriApi.Expand({ content: node, view: this.esriMapService.mapView });
+      expand.expandIconClass = 'esri-icon-maps';
+      expand.expandTooltip = 'Open Legend';
+      this.esriMapService.mapView.ui.add(expand, 'top-right');
+      this.legendRef = expand;
+   }
+
+   private generateLegendHTML(nodeId: string, state: FullState) : HTMLElement {
+      if (this.legendRef)
+         this.esriMapService.mapView.ui.remove(this.legendRef);
+      const legend = document.createElement('div');
+      legend.style.background = 'white';
+      legend.innerHTML = document.getElementById(nodeId).innerHTML;
+      return legend;
    }
 }

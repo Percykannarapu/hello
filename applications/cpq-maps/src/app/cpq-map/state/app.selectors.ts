@@ -8,6 +8,7 @@ import * as fromRfpUiEditDetail from './rfpUiEditDetail/rfp-ui-edit-detail.reduc
 import * as fromMediaPlan from './mediaPlan/media-plan.reducer';
 import * as fromRfpUiReview from './rfpUiReview/rfp-ui-review.reducer';
 import * as fromMediaPlanGroup from './mediaPlanGroup/media-plan-group.reducer';
+import * as fromRfpUiEdit from './rfpUiEdit/rfp-ui-edit.reducer';
 
 const cpqSlice = (state: LocalState) => state;
 
@@ -16,7 +17,9 @@ const getRfpUiEditDetailState = createSelector(cpqSlice, state => state.rfpUiEdi
 const getMediaPlanState = createSelector(cpqSlice, state => state.mediaPlan);
 const getMediaPlanGroupState = createSelector(cpqSlice, state => state.mediaPlanGroup);
 const getRfpUiReviewState = createSelector(cpqSlice, state => state.rfpUiReview);
-
+const getRfpUiEditState = createSelector(cpqSlice, state => state.rfpUiEdit);
+const getShadingData = createSelector(cpqSlice, state => state.shared.shadingData);
+const getRfpUiEditEntities = createSelector(getRfpUiEditState, fromRfpUiEdit.selectAll);
 const getRfpUiEditDetailEntities = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectAll);
 const getRfpUiEditDetailEntity = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectEntities);
 const getMediaPlanEntities = createSelector(getMediaPlanState, fromMediaPlan.selectAll);
@@ -61,5 +64,7 @@ export const localSelectors = {
   getHeaderInfo,
   getRfpUiEditDetailEntities,
   getRfpUiEditDetailEntity,
-  getSharedState
+  getSharedState,
+  getRfpUiEditEntities,
+  getShadingData
 };
