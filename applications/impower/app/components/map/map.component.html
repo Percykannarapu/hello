@@ -1,9 +1,8 @@
 <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges">
-    <div id="outerMapDiv" class="val-flush-to-edges">
-      <val-esri-map-panel [mapHeight]="mapHeight$ | async"
-                          [baseMap]="'streets'"
-                        (viewChanged)="onViewExtentChanged($event)"
-      (selectedButton)="fnSelectedButton($event)"><additional-toolbar-buttons>
+  <div id="outerMapDiv" class="val-flush-to-edges">
+    <val-esri-map-panel [mapHeight]="mapHeight$ | async" baseMap="streets-vector"
+                        (viewChanged)="onViewExtentChanged($event)" (selectedButton)="fnSelectedButton($event)">
+      <additional-toolbar-buttons>
         &nbsp;&nbsp;&nbsp;&nbsp;
         <button  label="Clear All"  pButton (click)="onClearSelections()"  title="Clear All Selections"></button>
         <button  label="Revert"     pButton (click)="onRevert()"   title="Revert to Trade Area" ></button>
@@ -13,9 +12,9 @@
       <additional-toolbar-group>
         <div class="ui-g ui-toolbar-group-right">
           <div class="ui-g-12 val-restore-padding">
-        <span *ngIf="currentAnalysisLevel$ | async as currentAnalysisLevel; else noAnalysisLevel">
-          <strong>Analysis Level = {{currentAnalysisLevel}}</strong>
-        </span>
+            <span *ngIf="currentAnalysisLevel$ | async as currentAnalysisLevel; else noAnalysisLevel">
+              <strong>Analysis Level = {{currentAnalysisLevel}}</strong>
+            </span>
             <ng-template #noAnalysisLevel>
               <span><strong>No Analysis Level Selected</strong></span>
             </ng-template>

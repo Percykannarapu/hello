@@ -41,6 +41,9 @@ export const defaultEsriAppSettings: EsriAppSettings = {
     },
     spatialReference: {
       wkid: 102100
+    },
+    constraints: {
+      snapToZoom: false
     }
   }
 };

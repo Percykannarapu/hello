@@ -13,6 +13,7 @@ export class EsriWidgets {
     'esri/widgets/Print',
     'esri/widgets/Sketch/SketchViewModel',
     'esri/widgets/DistanceMeasurement2D',
+    'esri/widgets/BasemapGallery/support/LocalBasemapsSource'
   ];
 
   public LayerList: __esri.LayerListConstructor;
@@ -28,6 +29,7 @@ export class EsriWidgets {
   public Print: __esri.PrintConstructor;
   public SketchViewModel: __esri.SketchViewModelConstructor;
   public DistanceMeasurement2D: __esri.DistanceMeasurement2DConstructor;
+  public LocalBasemapsSource: __esri.LocalBasemapsSourceConstructor;
 
   constructor() {}
 
@@ -45,6 +47,7 @@ export class EsriWidgets {
       this.BaseMapGallery,
       this.Print,
       this.SketchViewModel,
-      this.DistanceMeasurement2D] = modules.slice(modules.length - EsriWidgets.moduleNames.length);
+      this.DistanceMeasurement2D,
+      this.LocalBasemapsSource] = modules.slice(modules.length - EsriWidgets.moduleNames.length);
   }
 }

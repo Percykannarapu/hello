@@ -9,36 +9,44 @@ export class AppConfig implements LoggingConfiguration {
 
   constructor(@Inject(EsriLoaderToken) private esriSettings: EsriConfigOptions) {}
 
-  // The name of the environment
+  // Debug / logging info
   public environmentName = EnvironmentData.environmentName;
+  public logLevel: LogLevels = environment.logLevel;
 
-  // The log level
-  logLevel: LogLevels = environment.logLevel;
-
-  // OAuth information
+  // Authentication info
+  public authenticated: boolean = EnvironmentData.authenticated;
   public clientId = EnvironmentData.clientId;
   public clientSecret = EnvironmentData.clientSecret;
+  public oAuthParams = EnvironmentData.oAuth;
 
-  // This controls whether or not the user is currently authenticated and will have to log in
-  public authenticated: boolean = EnvironmentData.authenticated;
+  // Urls
+  public valServiceBase = `${EnvironmentData.fuseBaseUrl}`;
+  public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
+  public serviceUrls = EnvironmentData.serviceUrls;
 
-   oAuthParams = EnvironmentData.oAuth;
+  // Magic numbers
+  public maxBufferRadius = 50;
+  public maxValGeocodingReqSize = 50;
+  public maxRadiusTradeAreas = 3;
+  public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
 
-   public valServiceBase = `${EnvironmentData.fuseBaseUrl}`;
-   public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
-   public maxBufferRadius = 50;
-   public maxGeosPerGeoInfoQuery = 400;
-   public maxValGeocodingReqSize = 50;
-   public maxRadiusTradeAreas = 3;
-   public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
-   //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
+  // Not used anymore
+  // public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
+  // public maxGeosPerGeoInfoQuery = 400;
+  // public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
+  // public debugMode: boolean = EnvironmentData.debugMode;
 
-   public serviceUrls = EnvironmentData.serviceUrls;
-
-   public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
-
-   // Can be used to hide/show debugging info
-   public debugMode: boolean = EnvironmentData.debugMode;
+  public basemaps = [
+    'streets-vector',
+    'streets-navigation-vector',
+    'gray-vector',
+    'streets-night-vector',
+    'dark-gray-vector',
+    'osm',
+    'streets-relief-vector',
+    'topo-vector',
+    'satellite'
+  ];
 
   public layers: AllLayers = {
     dma: {
