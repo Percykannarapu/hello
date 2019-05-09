@@ -19,6 +19,7 @@ const getMediaPlanGroupState = createSelector(cpqSlice, state => state.mediaPlan
 const getRfpUiReviewState = createSelector(cpqSlice, state => state.rfpUiReview);
 const getRfpUiEditState = createSelector(cpqSlice, state => state.rfpUiEdit);
 const getShadingData = createSelector(cpqSlice, state => state.shared.shadingData);
+const getShadingType = createSelector(getSharedState, state => state.shadingType);
 const getRfpUiEditEntities = createSelector(getRfpUiEditState, fromRfpUiEdit.selectAll);
 const getRfpUiEditDetailEntities = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectAll);
 const getRfpUiEditDetailEntity = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectEntities);
@@ -66,5 +67,6 @@ export const localSelectors = {
   getRfpUiEditDetailEntity,
   getSharedState,
   getRfpUiEditEntities,
-  getShadingData
+  getShadingData,
+  getShadingType
 };
