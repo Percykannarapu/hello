@@ -7,6 +7,16 @@ import { environment } from '../../../environments/environment';
 })
 export class ConfigService {
 
+  public basemaps = [
+    'streets-vector',
+    'streets-navigation-vector',
+    'gray-vector',
+    'dark-gray-vector',
+    'topo-vector',
+    'satellite',
+    'oceans'
+  ];
+
   public layers: AllLayers = {
     wrap: {
       group: {

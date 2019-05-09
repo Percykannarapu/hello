@@ -40,12 +40,10 @@ export class AppConfig implements LoggingConfiguration {
     'streets-vector',
     'streets-navigation-vector',
     'gray-vector',
-    'streets-night-vector',
     'dark-gray-vector',
-    'osm',
-    'streets-relief-vector',
     'topo-vector',
-    'satellite'
+    'satellite',
+    'oceans'
   ];
 
   public layers: AllLayers = {
