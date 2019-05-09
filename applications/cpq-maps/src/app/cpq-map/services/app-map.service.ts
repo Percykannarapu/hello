@@ -29,7 +29,10 @@ export class AppMapService {
         this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });
         this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
         this.mapService.createHiddenWidget(EsriApi.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
-        this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, {}, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
+        const source = new EsriApi.widgets.LocalBasemapsSource({
+          basemaps: this.config.basemaps.map(b => EsriApi.BaseMap.fromId(b))
+        });
+        this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
         this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
 
         const popup: __esri.Popup = this.mapService.mapView.popup;
