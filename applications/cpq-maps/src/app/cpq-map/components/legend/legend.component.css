@@ -1,6 +1,6 @@
 .grid-container {
   display: grid;
-  grid-template-columns: 0.3fr 1.7fr, 1fr;
+  grid-template-columns: fit-content(30px) fit-content(500px) fit-content(500px);
   grid-template-rows: 1fr;
   grid-template-areas: ". . .";
   grid-column-gap: 5px;
