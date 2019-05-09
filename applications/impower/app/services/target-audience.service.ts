@@ -254,7 +254,8 @@ export class TargetAudienceService implements OnDestroy {
     const sourceType = projectVar.source.split('_')[0];
     const sourceName = projectVar.source.split('_')[1];
     const id = audience.audienceSourceType === 'Custom' ? projectVar.fieldname : projectVar.varPk;
-    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audience.audienceIdentifier) {
+    const audienceIdentifier = audience.audienceSourceType === 'Custom' ? audience.audienceName : audience.audienceIdentifier;
+    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audienceIdentifier) {
       return true;
     }
     return false;
