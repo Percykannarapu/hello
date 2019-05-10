@@ -36,7 +36,33 @@ export class LegendComponent implements OnInit {
         this.store$.pipe(select(localSelectors.getRfpUiEditDetailEntities)),
       )
     ).subscribe(([shadingData, legendType, uiEditEntities, uiEditDetailEntities]) => {
-      this.legendData = [];
+      /*this.legendData = [];
+      shadingData.forEach(sd => {
+        const color = this.colorToHex(sd.value[0], sd.value[1], sd.value[2]);
+        const hhc = this.getHHC(legendType, sd.key.toString(), uiEditEntities, uiEditDetailEntities);
+        this.legendData.push({ key: sd.key.toString(), value: color, hhc: hhc.toLocaleString() });
+      });
+      this.cd.markForCheck();
+      setTimeout(() => {
+        const event = new Event('change');
+        this.store$.dispatch(new SetLegendHTML());
+      }, 0);*/
+      this.setupLegend(shadingData, legendType, uiEditEntities, uiEditDetailEntities);
+    });
+    this.store$.pipe(
+      select(localSelectors.getRfpUiEditDetailEntities),
+      withLatestFrom(
+        this.store$.pipe(select(localSelectors.getRfpUiEditEntities)),
+        this.store$.pipe(select(localSelectors.getShadingData)),
+        this.store$.pipe(select(localSelectors.getShadingType))
+      )
+    ).subscribe(([uiEditDetailEntities, uiEditEntities, shadingData, legendType]) => {
+      this.setupLegend(shadingData, legendType, uiEditEntities, uiEditDetailEntities);
+    });
+  }
+
+  private setupLegend(shadingData: Array<{key: string | Number, value: number[]}>, legendType: shadingType, uiEditEntities: RfpUiEdit[], uiEditDetailEntities: RfpUiEditDetail[]) {
+    this.legendData = [];
       shadingData.forEach(sd => {
         const color = this.colorToHex(sd.value[0], sd.value[1], sd.value[2]);
         const hhc = this.getHHC(legendType, sd.key.toString(), uiEditEntities, uiEditDetailEntities);
@@ -47,7 +73,6 @@ export class LegendComponent implements OnInit {
         const event = new Event('change');
         this.store$.dispatch(new SetLegendHTML());
       }, 0);
-    });
   }
 
   private getHHC(legendType: shadingType, shadingKey: string, uiEditEntities: RfpUiEdit[], uiEditDetailEntities: RfpUiEditDetail[]) : number {
