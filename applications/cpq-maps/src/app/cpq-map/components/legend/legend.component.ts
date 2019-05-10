@@ -36,17 +36,6 @@ export class LegendComponent implements OnInit {
         this.store$.pipe(select(localSelectors.getRfpUiEditDetailEntities)),
       )
     ).subscribe(([shadingData, legendType, uiEditEntities, uiEditDetailEntities]) => {
-      /*this.legendData = [];
-      shadingData.forEach(sd => {
-        const color = this.colorToHex(sd.value[0], sd.value[1], sd.value[2]);
-        const hhc = this.getHHC(legendType, sd.key.toString(), uiEditEntities, uiEditDetailEntities);
-        this.legendData.push({ key: sd.key.toString(), value: color, hhc: hhc.toLocaleString() });
-      });
-      this.cd.markForCheck();
-      setTimeout(() => {
-        const event = new Event('change');
-        this.store$.dispatch(new SetLegendHTML());
-      }, 0);*/
       this.setupLegend(shadingData, legendType, uiEditEntities, uiEditDetailEntities);
     });
     this.store$.pipe(
