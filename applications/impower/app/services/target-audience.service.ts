@@ -384,7 +384,8 @@ export class TargetAudienceService implements OnDestroy {
     }
     if (selectedAudiences.length > 0) {
       // set up a watch process
-      this.selectedSub = this.newSelectedGeos$.pipe(debounceTime(500))
+      const geosToBeSelected = selectedAudiences.map(aud => aud.audienceSourceType).filter(type => type === 'Custom').length > 0 ? this.appStateService.uniqueIdentifiedGeocodes$ : this.newSelectedGeos$;
+      this.selectedSub = geosToBeSelected.pipe(debounceTime(500))
         .subscribe(
           geos => {
             if (geos.length > 0)
