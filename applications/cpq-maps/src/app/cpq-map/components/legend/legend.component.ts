@@ -75,7 +75,7 @@ export class LegendComponent implements OnInit {
   private getWrapHHC(uiEditDetailEntities: RfpUiEditDetail[], wrapZone: string) : number {
     let hhc = 0;
     for (const entity of uiEditDetailEntities) {
-      if (entity.wrapZone === wrapZone)
+      if (entity.wrapZone === wrapZone && entity.isSelected)
         hhc += entity.distribution;
     }
     return hhc;
@@ -84,7 +84,7 @@ export class LegendComponent implements OnInit {
   private getAtzHHC(uiEditDetailEntities: RfpUiEditDetail[], designator: string) : number{
     let hhc = 0;
     for (const entity of uiEditDetailEntities) {
-      if (this.getAtzDesignator(entity.geocode) === designator)
+      if (this.getAtzDesignator(entity.geocode) === designator && entity.isSelected )
         hhc += entity.distribution;
     }
     return hhc;
@@ -96,7 +96,7 @@ export class LegendComponent implements OnInit {
       if (editEntity.siteName !== site)
         continue;
       for(const editDetailEntity of uiEditDetailEntities) {
-        if (editDetailEntity.fkSite === editEntity.siteId)
+        if (editDetailEntity.fkSite === editEntity.siteId && editDetailEntity.isSelected)
           hhc += editDetailEntity.distribution;
       }
     }
@@ -106,7 +106,7 @@ export class LegendComponent implements OnInit {
   private getZipHHC(uiEditDetailEntities: RfpUiEditDetail[], zip: string) : number {
     let hhc: number = 0;
     for (const entity of uiEditDetailEntities) {
-      if (entity.zip === zip)
+      if (entity.zip === zip && entity.isSelected)
         hhc += entity.distribution;
     }
     return hhc;
