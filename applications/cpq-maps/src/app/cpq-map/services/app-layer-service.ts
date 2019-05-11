@@ -41,7 +41,7 @@ export class AppLayerService {
    private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
    private shadingMap: Map<number, number[]> = new Map<number, number[]>();
    private siteIdMap: Map<string, string> = new Map<string, string>();
-   private analysisLevel: string;
+   public analysisLevel: string;
    private zipShadingMap: Map<string, number[]> = new Map<string, number[]>();
    private atzShadingMap: Map<string, number[]> = new Map<string, number[]>();
    private wrapShadingMap: Map<string, number[]> = new Map<string, number[]>();
@@ -230,7 +230,8 @@ export class AppLayerService {
          }
          count++;
       }
-      this.boundaryExpression = 'geocode in (\'' + uniqueZips.join("',' ") + '\')';
+      const expressionString = '(\'' + uniqueZips.join('\',\'') + '\')';
+      this.boundaryExpression = 'geocode IN ' + expressionString.replace(/\s/g, '');
       const analysisLevel: string = state.shared.analysisLevel;
       const query: __esri.Query = new EsriApi.Query();
       query.outFields = ['geocode, zip'];
@@ -317,8 +318,8 @@ export class AppLayerService {
             
             graphics.push(graphic);
          }
-         this.boundaryExpression = 'geocode in (\'' + uniqueWrapZones.join("','") + '\')';
-
+         const expressionString = '(\'' + uniqueWrapZones.join('\',\'') + '\')';
+         this.boundaryExpression = 'geocode IN ' + expressionString.replace(/\s/g, '');
          this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
       });
    }
@@ -380,7 +381,8 @@ export class AppLayerService {
             }
             graphics.push(graphic);
          }
-         this.boundaryExpression = 'geocode in (\'' + uniqueAtz.join("','") + '\')';
+         const expressionString = '(\'' + uniqueAtz.join('\',\'') + '\')';
+         this.boundaryExpression = 'geocode IN ' + expressionString.replace(/\s/g, '');
          this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
       });
    }
@@ -419,7 +421,9 @@ export class AppLayerService {
       selectedGeos.forEach(sg => query.where += `'${sg}',`);
       query.where = query.where.substr(0, query.where.length - 1);
       query.where += ')';
-      this.boundaryExpression = 'geocode in (\'' + selectedGeos.join("',' ") + '\')';
+      const expressionString = '(\'' + selectedGeos.join('\',\'') + '\')';
+      this.boundaryExpression = 'geocode IN ' + expressionString.replace(/\s/g, '');
+
       this.queryService.executeQuery(this.configService.layers[analysisLevel].boundaries.id, query, true).subscribe(res => {
          const graphics: Array<__esri.Graphic> = [];
             for (const geo of res.features) {

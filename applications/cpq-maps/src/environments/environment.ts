@@ -18,8 +18,8 @@ export const environment: EnvironmentData = {
   production: false,
   esri: {
     portalServer: 'https://vallomimpor1vm.val.vlss.local/',
-    username: 'admin',
-    password: 'password'
+    username: 'impower5',
+    password: 'impower123!'
   },
   layerIds: {
     zip: {
