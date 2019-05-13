@@ -6,7 +6,6 @@ import { combineLatest, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, finalize, map, take, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
-import { RenderLocations } from '../state/rendering/rendering.actions';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
@@ -124,10 +123,10 @@ export class AppLayerService {
   }
 
   public updateLabelExpressions(showPOBs: boolean) : void {
-   // const groupDefs = Object.values(this.appConfig.layers);
-  // const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
-  // const labelLayerMap = mapByExtended(allLayers, l => l.id, l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset, colorOverride: l.labelColorOverride }));
-  //  this.store$.dispatch(new SetLayerLabelExpressions({ expressions: mapToEntity(labelLayerMap) }));
+    const groupDefs = Object.values(this.appConfig.layers);
+    const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
+    const labelLayerMap = mapByExtended(allLayers, l => l.id, l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset, colorOverride: l.labelColorOverride }));
+    this.store$.dispatch(new SetLayerLabelExpressions({ expressions: mapToEntity(labelLayerMap) }));
   }
 
   private getLabelExpression(l: LayerDefinition, showPOBs: boolean) : string {
