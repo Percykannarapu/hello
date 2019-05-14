@@ -13,6 +13,8 @@ export interface SharedState {
    activeMediaPlanId: number;
    radius: number;
    analysisLevel: string;
+   threshold: string;
+   userEmail: string;
    appReady: boolean;
    isSaving: boolean;
    isWrap: boolean;
@@ -30,6 +32,8 @@ const initialState: SharedState = {
    activeMediaPlanId: null,
    radius: null,
    analysisLevel: null,
+   threshold: '50,000', // hardcoding until we set them from Salesforce
+   userEmail: 'kannarapup@valassis.com',
    appReady: false,
    isSaving: false,
    isWrap: false,

@@ -34,7 +34,8 @@ export class ConfigService {
         popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
         labelExpression: '$feature.wrap_name',
         labelFontSizeOffset: 2
-      }
+      },
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/WRAP_Top_Vars_Portal_Copy_All_Data/FeatureServer/0'
     },
     zip: {
       group: {
@@ -61,7 +62,8 @@ export class ConfigService {
         popUpFields: [],
         labelExpression: '$feature.geocode',
         labelFontSizeOffset: 2
-      }
+      },
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_CopyAllData/FeatureServer/0'
     },
     atz: {
       group: {
@@ -87,7 +89,9 @@ export class ConfigService {
         minScale: 1155600,
         popUpFields: [],
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
-      }
+      },
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_CopyAllData/FeatureServer/0'
+
     },
     digital_atz: {
       group: {
@@ -117,7 +121,10 @@ export class ConfigService {
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
-      }
+      },
+      serviceUrl: ''
     }
   };
+
+  public rootDirectory: string = '/gis/arcgis/server/usr/valassis_reports' ;
 }

@@ -10,7 +10,7 @@ import {
   SetAppReady,
   SetIsDistrQtyEnabled,
   GetMapData,
-  LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle, SaveMediaPlan, SaveSucceeded, SaveFailed, NavigateToReviewPage, SetShadingType, SetLegendHTML
+  LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle, SaveMediaPlan, SaveSucceeded, SaveFailed, NavigateToReviewPage, SetShadingType, SetLegendHTML, ExportMaps
 } from './shared/shared.actions';
 import { tap, filter, switchMap, map, catchError, withLatestFrom, concatMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -24,6 +24,7 @@ import { ConfigService } from '../services/config.service';
 import { RfpUiEditWrapActionTypes, UpsertRfpUiEditWraps } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { RfpUiEditWrapService } from '../services/rfpEditWrap-service';
 import { AppMessagingService } from '../services/app-messaging.service';
+import { AppPrintingService } from '../services/app-printing-service';
 
 @Injectable()
 export class AppEffects {
@@ -38,7 +39,8 @@ export class AppEffects {
     private entityHelper: EntityHelper,
     private rfpUiEditWrapService: RfpUiEditWrapService,
     private messagingService: AppMessagingService,
-    private navigateService: AppNavigationService) { }
+    private navigateService: AppNavigationService,
+    private appPrintingService: AppPrintingService) { }
 
   // After the page and map loads, we go get data for the current Media Plan
   @Effect()
@@ -187,10 +189,37 @@ export class AppEffects {
     map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))
   );
 
+  @Effect()
+  exportMaps$ = this.actions$.pipe(
+    ofType<ExportMaps>(SharedActionTypes.ExportMaps),
+    withLatestFrom(this.store$.pipe(select(localSelectors.getPrintParams)), this.store$.pipe(select(localSelectors.getSharedState))),
+    switchMap(([action, printParams, shared]) => {
+      if (shared.isWrap){
+        printParams.layerSource = this.configService.layers['wrap'].serviceUrl;
+        printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+        printParams.layerSourceLabelingExpression = this.configService.layers['wrap'].boundaries.labelExpression;
+      }
+      else{
+       if (this.appLayerService.analysisLevel === 'zip') {
+          printParams.layerSource = this.configService.layers['zip'].serviceUrl;
+          printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+          printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+       } else{
+          printParams.layerSource = this.configService.layers['atz'].serviceUrl;
+          printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+          printParams.layerSourceLabelingExpression = this.configService.layers['atz'].boundaries.labelExpression;
+       }
+      }
+    return this.appPrintingService.createFeatureSet(printParams);
+    }
+  ));
+  
   private parseLocations(state: FullState) : SiteInformation[] {
     const coordinates: Array<SiteInformation> = [];
     for (const id of state.rfpUiEdit.ids) {
-      let currentIHD = new Date (state.rfpUiEditDetail.entities[id].ihDate).toLocaleDateString();
+      const currentIHD = new Date (state.rfpUiEditDetail.entities[id].ihDate).toLocaleDateString();
+      const ihdList = state.rfpUiEditDetail.entities[id];
+      // console.log('ihdList::', ihdList);
       coordinates.push({
         coordinates: { x: state.rfpUiEdit.entities[id].siteLong, y: state.rfpUiEdit.entities[id].siteLat },
         name: state.rfpUiEdit.entities[id].siteName,

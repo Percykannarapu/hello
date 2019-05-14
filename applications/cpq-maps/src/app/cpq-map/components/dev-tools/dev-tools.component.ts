@@ -14,7 +14,7 @@ export class DevToolsComponent implements OnInit {
   }
 
   public onPrint() {
-    this.printingService.createFeatureSet();
+    // this.printingService.createFeatureSet();
   }
 
 }

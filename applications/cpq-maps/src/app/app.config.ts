@@ -25,7 +25,8 @@ export class AppConfig {
    public maxRadiusTradeAreas = 3;
    //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
 
-   //public serviceUrls = EnvironmentData.serviceUrls;
+   public printServiceUrl = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/exportMapBook/GPServer/exportMapBook';
+   public printRootDirectory = '/gis/arcgis/server/usr/valassis_reports';
 
    //public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
 

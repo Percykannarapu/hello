@@ -17,6 +17,8 @@ export enum SharedActionTypes {
   SaveMediaPlan = '[Shared Actions] Save Media Plan',
   SaveSucceeded = '[Shared Actions] Save Succeeded',
   SaveFailed = '[Shared Actions] Save Failed',
+  ExportMaps = '[Shared Actions] Export Maps',
+
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
   SetShadingType = '[Shared Actions] Set Shading Type',
   SetShadingData = '[Shared Actions] Set Shading Data',
@@ -107,6 +109,11 @@ export class NavigateToReviewPage implements Action {
     constructor(public payload: { rfpId: string, mediaPlanGroupNumber: number }) {}
 }
 
+export class ExportMaps implements Action {
+  readonly type = SharedActionTypes.ExportMaps;
+}
+
+
 export type SharedActions =
   ApplicationStartup
   | SetAppReady
@@ -124,5 +131,6 @@ export type SharedActions =
   | SetShadingType
   | SetShadingData
   | SetLegendHTML
+  | ExportMaps
   ;
 

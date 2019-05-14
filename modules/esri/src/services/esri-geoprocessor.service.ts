@@ -7,12 +7,12 @@ export class EsriGeoprocessorService {
 
   constructor() { }
 
-  public processJob<T>(serviceUrl: string, servicePayload: any) : Observable<{ value: T }> {
+  public processJob<T>(serviceUrl: string, servicePayload: any, resultType: string = 'out_features') : Observable<{ value: T }> {
     const processor = new EsriApi.Geoprocessor({ url: serviceUrl });
     return Observable.create(async observer => {
       try {
         const jobResult = await processor.submitJob(servicePayload);
-        const dataResult = await processor.getResultData(jobResult.jobId, 'out_features');
+        const dataResult = await processor.getResultData(jobResult.jobId, resultType);
         observer.next(dataResult);
         observer.complete();
       } catch (err) {

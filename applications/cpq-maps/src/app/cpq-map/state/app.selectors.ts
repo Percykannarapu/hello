@@ -9,6 +9,10 @@ import * as fromMediaPlan from './mediaPlan/media-plan.reducer';
 import * as fromRfpUiReview from './rfpUiReview/rfp-ui-review.reducer';
 import * as fromMediaPlanGroup from './mediaPlanGroup/media-plan-group.reducer';
 import * as fromRfpUiEdit from './rfpUiEdit/rfp-ui-edit.reducer';
+import * as fromAdvertiserInfo from './advertiserInfo/advertiser-info.reducer';
+import { RfpUiEditDetail } from 'src/app/val-modules/mediaexpress/models/RfpUiEditDetail';
+import { FullPayload } from './app.interfaces';
+import { AdvertiserInfo } from 'src/app/val-modules/mediaexpress/models/AdvertiserInfo';
 
 const cpqSlice = (state: LocalState) => state;
 
@@ -18,6 +22,7 @@ const getMediaPlanState = createSelector(cpqSlice, state => state.mediaPlan);
 const getMediaPlanGroupState = createSelector(cpqSlice, state => state.mediaPlanGroup);
 const getRfpUiReviewState = createSelector(cpqSlice, state => state.rfpUiReview);
 const getRfpUiEditState = createSelector(cpqSlice, state => state.rfpUiEdit);
+const getAdvertiserInfoState = createSelector(cpqSlice, state => state.advertiserInfo);
 const getShadingData = createSelector(cpqSlice, state => state.shared.shadingData);
 const getShadingType = createSelector(getSharedState, state => state.shadingType);
 const getRfpUiEditEntities = createSelector(getRfpUiEditState, fromRfpUiEdit.selectAll);
@@ -26,6 +31,7 @@ const getRfpUiEditDetailEntity = createSelector(getRfpUiEditDetailState, fromRfp
 const getMediaPlanEntities = createSelector(getMediaPlanState, fromMediaPlan.selectAll);
 const getMediaPlanGropuEntities = createSelector(getMediaPlanGroupState, fromMediaPlanGroup.selectAll);
 const getRfpUiReviewEntities = createSelector(getRfpUiReviewState, fromRfpUiReview.selectAll);
+const getAdvertiserInfoEntities = createSelector(getAdvertiserInfoState, fromAdvertiserInfo.selectAll);
 
 const getAppReady = createSelector(getSharedState, state => state.appReady);
 const getIsSaving = createSelector(getSharedState, state => state.isSaving);
@@ -54,8 +60,45 @@ const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpU
     addIds: sharedState.newLineItemIds
   };
 };
-
 const getHeaderInfo = createSelector(getSharedState, getMediaPlanEntities, getRfpUiReviewEntities, getMediaPlanGropuEntities, headerProjector);
+
+
+const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], mediaPlans: MediaPlan[], advertiserInfo: AdvertiserInfo[]) : Partial<FullPayload> => {
+  const mediaPlan = mediaPlans.filter(mp => mp.mediaPlanId === shared.activeMediaPlanId)[0];
+  if (mediaPlan == null || rfpUiEditDetail.length === 0 || advertiserInfo == null) return null;
+
+  const targetingProfile = mediaPlan['targetingProfile'];
+  const rfpNumber = targetingProfile == null ? null : targetingProfile['clientId'];
+  const productName = shared.isWrap ? 'Wrap' : 'SMI';
+  const mpId = shared.activeMediaPlanId;
+  const mpGroupId = mediaPlan['mediaPlanGroupId'];
+  let tradeArea: string;
+  const clientName = advertiserInfo['clientIdentifierName'];
+
+  const fileName = productName + '_Map_' + rfpNumber + '_MP-' + mpId + '_G-' + mpGroupId + '_';
+
+  if (shared.radius != null && shared.threshold != null){
+    tradeArea = 'Radius Miles: ' + shared.radius + ' or Threshold:(per site):' + shared.threshold ;
+  } else if (shared.radius != null && shared.threshold == null){
+    tradeArea = 'Radius Miles: ' + shared.radius;
+  } else if (shared.radius == null && shared.threshold != null){
+    tradeArea = 'Threshold (per site): ' + shared.threshold;
+  } else tradeArea = 'Custom';
+
+  return{
+      clientName: clientName,
+      radius: shared.radius,
+      mediaPlanId: mpId, 
+      rfp: rfpNumber,
+      reportName: fileName,
+      tradeArea: tradeArea,
+      userEmail: shared.userEmail
+  };
+
+};
+
+
+const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities,  buildParams);
 
 export const localSelectors = {
   getAppReady,
@@ -68,5 +111,6 @@ export const localSelectors = {
   getSharedState,
   getRfpUiEditEntities,
   getShadingData,
-  getShadingType
+  getShadingType,
+  getPrintParams
 };

@@ -61,7 +61,8 @@ export class AppConfig implements LoggingConfiguration {
         popUpFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long'],
         labelExpression: '$feature.dma_code',
         labelFontSizeOffset: 6
-      }
+      },
+      serviceUrl: ''
     },
     counties: {
       group: {
@@ -77,7 +78,8 @@ export class AppConfig implements LoggingConfiguration {
         popUpFields: ['gdt_id', 'county_nam', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN'],
         labelExpression: 'TEXT($feature.state_fips, "00") + TEXT($feature.county_fip, "000") + TextFormatting.NewLine + $feature.county_nam',
         labelFontSizeOffset: 4
-      }
+      },
+      serviceUrl: ''
     },
     wrap: {
       group: {
@@ -93,7 +95,8 @@ export class AppConfig implements LoggingConfiguration {
         popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
         labelExpression: '$feature.geocode',
         labelFontSizeOffset: 2
-      }
+      },
+      serviceUrl: ''
     },
     zip: {
       group: {
@@ -124,7 +127,8 @@ export class AppConfig implements LoggingConfiguration {
         },
         labelExpression: '$feature.geocode',
         labelFontSizeOffset: 2
-      }
+      },
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_CopyAllData/FeatureServer/0'
     },
     atz: {
       group: {
@@ -155,7 +159,8 @@ export class AppConfig implements LoggingConfiguration {
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
         labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
-      }
+      },
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_CopyAllData/FeatureServer/0'
     },
     digital_atz: {
       group: {
@@ -186,7 +191,8 @@ export class AppConfig implements LoggingConfiguration {
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
         labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
-      }
+      },
+      serviceUrl: ''
     },
     pcr: {
       group: {
@@ -217,7 +223,8 @@ export class AppConfig implements LoggingConfiguration {
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
         labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
-      }
+      },
+      serviceUrl: ''
     }
   };
 

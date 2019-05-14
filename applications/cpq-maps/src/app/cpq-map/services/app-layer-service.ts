@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ColorPalette, EsriLayerService, MapSymbols, EsriApi, EsriMapService, SetHighlightOptions, SetSelectedGeos, SetLayerLabelExpressions, EsriQueryService, getColorPalette, EsriDomainFactoryService } from '@val/esri';
-import { UniversalCoordinates } from '@val/common';
+import { UniversalCoordinates, groupBy } from '@val/common';
 import { calculateStatistics } from '@val/common';
 import { Store } from '@ngrx/store';
 import { HighlightMode } from '@val/esri';
@@ -79,7 +79,7 @@ export class AppLayerService {
       siteInformation.forEach(s => {
         const fakeSiteId = fakeOid++;
         const graphic = this.esriLayerService.coordinateToGraphic(s.coordinates);
-        graphic.setAttribute('OBJECTID', fakeOid++);
+        graphic.setAttribute('OBJECTID', fakeSiteId );
         graphic.setAttribute('siteId', fakeSiteId.toString());
         graphic.setAttribute('siteName', s.name);
         graphic.setAttribute('radius', s.radius.toString());
@@ -271,8 +271,10 @@ export class AppLayerService {
       this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
       const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
       const uniqueWrapZones = [];
+      const allZones = [];
       const sitesByWrapZone: Map<string, string> = new Map<string, string>();
-      const wrapZoneHHC: Map<string, number> = new Map<string, number>();
+      const hhcByWrapZone: Map<string, number[]> = new Map<string, number[]> ();
+
       if (state.rfpUiEditWrap.ids != null && state.rfpUiEditWrap.ids.length > 0){
          for (const id in state.rfpUiEditWrap.ids){
             if (state.rfpUiEditWrap.entities[id] != null){
@@ -280,7 +282,23 @@ export class AppLayerService {
             }
          }
       }
-      
+
+      if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+         for (const id in state.rfpUiEditDetail.ids){
+            if (state.rfpUiEditDetail.entities[id] != null){
+                  const wrapZoneList = {
+                  geocode: state.rfpUiEditDetail.entities[id].geocode,
+                  wrapZone: state.rfpUiEditDetail.entities[id].wrapZone,
+                  hhc: state.rfpUiEditDetail.entities[id].households
+               };
+              allZones.push(wrapZoneList); 
+            }
+
+         }
+      }
+      const zoneArray = groupBy(allZones, 'wrapZone');
+      // console.log('grouppedArray::', zoneArray);
+
       let count: number = 0;
       const wrapZones = this.editDetailService.getEditDetailsByWrapZone(state);
       for (const wrapZone of Array.from(wrapZones.keys())) {
