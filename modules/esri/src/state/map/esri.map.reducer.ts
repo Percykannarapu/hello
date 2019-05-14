@@ -72,6 +72,8 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
       return { ...state, mapIsInitializing: false, mapIsReady: true };
 
     // toolbar buttons and button-related actions
+    case EsriMapToolbarButtonActionTypes.XYButtonSelected:
+      return { ...state, selectedButton: SelectedButtonTypeCodes.XY };
     case EsriMapToolbarButtonActionTypes.MeasureDistanceSelected:
       return { ...state, selectedButton: SelectedButtonTypeCodes.MeasureDistance };
     case EsriMapToolbarButtonActionTypes.PopupButtonSelected:

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { concatMap, map, mergeMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
+import { concatMap, map, mergeMap, takeUntil, tap, withLatestFrom, switchMap } from 'rxjs/operators';
 import { MonoTypeOperatorFunction, Observable } from 'rxjs';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { ClearSketchView, EsriMapToolbarButtonActionTypes, SelectMultiPolySelected, UnselectMultiPolySelected } from './esri.map-button.actions';
@@ -26,6 +26,14 @@ export class EsriMapButtonEffects {
     ofType(EsriMapToolbarButtonActionTypes.PopupButtonSelected),
     this.resetSketchViewGraphics(),
     mergeMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: true })]),
+    tap(() => this.esriMapService.setMeasureWidget('default'))
+  );
+
+  @Effect()
+  handleXYButton$ = this.actions$.pipe(
+    ofType(EsriMapToolbarButtonActionTypes.XYButtonSelected),    
+    this.resetSketchViewGraphics(),
+    switchMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: false })]),
     tap(() => this.esriMapService.setMeasureWidget('default'))
   );
 

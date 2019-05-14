@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { DataShimActionTypes, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveFailure, ProjectSaveSuccess } from './data-shim.actions';
 import { filter, map } from 'rxjs/operators';
-import { ErrorNotification, MessagingActionTypes, SuccessNotification } from '@val/messaging';
+import { ErrorNotification, MessagingActionTypes, SuccessNotification, InfoNotification } from '@val/messaging';
+import { CopyCoordinatesToClipboard, EsriMapActionTypes } from '@val/esri';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimNotificationEffects {
@@ -33,6 +34,13 @@ export class DataShimNotificationEffects {
     ofType<ProjectLoadFailure>(DataShimActionTypes.ProjectLoadFailure),
     filter(action => !action.payload.isReload),
     map(action => this.processError(action.payload.err, 'Load'))
+  );
+
+  @Effect()
+  coordinatesCopyInfo$ = this.actions$.pipe(
+    ofType<CopyCoordinatesToClipboard>(EsriMapActionTypes.CopyCoordinatesToClipboard),
+    filter(action => action.type === EsriMapActionTypes.CopyCoordinatesToClipboard ),
+    map(() => new InfoNotification({ notificationTitle: 'Copy to Clipboard', message: 'You can copy the LatLong to clipboard by clicking on the map', sticky: false }))
   );
 
   constructor(private actions$: Actions) {}

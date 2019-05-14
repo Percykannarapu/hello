@@ -17,4 +17,5 @@ export class EsriToolbarComponent {
   @Output() multiSelectClicked = new EventEmitter();
   @Output() multiUnselectClicked = new EventEmitter();
   @Output() measureToolClicked = new EventEmitter();
+  @Output() xyButtonClicked = new EventEmitter(); 
 }

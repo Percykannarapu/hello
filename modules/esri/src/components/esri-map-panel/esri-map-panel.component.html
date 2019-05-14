@@ -3,7 +3,8 @@
                   (multiSelectClicked)="selectButton(SelectedButtonTypeCodes.SelectMultiplePolys)"
                   (multiUnselectClicked)="selectButton(SelectedButtonTypeCodes.UnselectMultiplePolys)"
                   (measureToolClicked)="selectButton(SelectedButtonTypeCodes.MeasureDistance)"
-                  (popupButtonClicked)="selectButton(SelectedButtonTypeCodes.ShowPopups)">
+                  (popupButtonClicked)="selectButton(SelectedButtonTypeCodes.ShowPopups)" 
+                  (xyButtonClicked)="selectButton(SelectedButtonTypeCodes.XY)">
   <ng-content select="additional-toolbar-buttons" ngProjectAs="additional-toolbar-buttons"></ng-content>
   &nbsp;&nbsp;
   <val-esri-label-config *ngIf="showLabelConfigButton"></val-esri-label-config>

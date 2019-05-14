@@ -6,6 +6,7 @@ import { EsriMapService } from './esri-map.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { UniversalCoordinates } from '@val/common';
 import { MapSymbols } from '../models/map-symbols';
+import { CopyCoordinatesToClipboard } from '../state/map/esri.map.actions';
 
 const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data === 'string'  ? 'string' : 'double';
 
@@ -16,7 +17,7 @@ export class EsriLayerService {
   private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
   private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public layersReady$: Observable<boolean> = this.layersReady.asObservable();
-
+  
   constructor(private mapService: EsriMapService) {}
 
   public clearClientLayers(groupName: string) : void {
@@ -292,5 +293,15 @@ export class EsriLayerService {
       },
       symbol: textSymbol
     })];
+  }
+
+  public enableLatLongTool(action: CopyCoordinatesToClipboard) : void {
+    const textToBeCopied = (Math.round(action.payload.event.mapPoint.latitude * 1000000) / 1000000) + ',' + (Math.round(action.payload.event.mapPoint.longitude * 1000000) / 1000000);
+    const latLong = document.createElement('textarea');
+    latLong.value = textToBeCopied;
+    document.body.appendChild(latLong);
+    latLong.select();
+    document.execCommand('copy');
+    document.body.removeChild(latLong);
   }
 }
