@@ -10,7 +10,7 @@ export enum MessagingActionTypes {
 
 abstract class NotificationBase implements Action {
   abstract type: string;
-  constructor(public payload: { message: string, notificationTitle?: string, sticky?: boolean }){}
+  constructor(public payload: { message: string, notificationTitle?: string, sticky?: boolean, life?: number }){}
 }
 
 export class ErrorNotification extends NotificationBase {

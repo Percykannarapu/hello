@@ -40,7 +40,7 @@ export class DataShimNotificationEffects {
   coordinatesCopyInfo$ = this.actions$.pipe(
     ofType<CopyCoordinatesToClipboard>(EsriMapActionTypes.CopyCoordinatesToClipboard),
     filter(action => action.type === EsriMapActionTypes.CopyCoordinatesToClipboard ),
-    map(() => new InfoNotification({ notificationTitle: 'Copy to Clipboard', message: 'You can copy the LatLong to clipboard by clicking on the map', sticky: false }))
+    map(() => new InfoNotification({ notificationTitle: 'Copy to Clipboard', message: 'You can copy the LatLong to clipboard by clicking on the map', sticky: false, life: 5000 }))
   );
 
   constructor(private actions$: Actions) {}

@@ -19,8 +19,8 @@ export class AppMessagingService implements NotificationProvider {
     this.toastService.add({ severity: 'success', summary: title, detail: message, sticky: sticky });
   }
 
-  public showInfoNotification(message: string, title: string = 'Information', sticky: boolean = true) : void {
-    this.toastService.add({ severity: 'info', summary: title, detail: message, sticky: sticky });
+  public showInfoNotification(message: string, title: string = 'Information', sticky: boolean = true, life: number = 3000) : void {
+    this.toastService.add({ severity: 'info', summary: title, detail: message, sticky: sticky, life: life });
   }
 
   clearAllNotifications() : void {

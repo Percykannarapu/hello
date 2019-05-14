@@ -5,7 +5,7 @@ export const NotificationProviderToken = new InjectionToken<NotificationProvider
 export interface NotificationProvider {
   showErrorNotification(message: string, title?: string, sticky?: boolean) : void;
   showWarningNotification(message: string, title?: string, sticky?: boolean) : void;
-  showInfoNotification(message: string, title?: string, sticky?: boolean) : void;
+  showInfoNotification(message: string, title?: string, sticky?: boolean, life?: Number) : void;
   showSuccessNotification(message: string, title?: string, sticky?: boolean) : void;
   clearAllNotifications() : void;
 }
