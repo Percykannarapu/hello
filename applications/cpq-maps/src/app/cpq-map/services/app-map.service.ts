@@ -82,7 +82,7 @@ export class AppMapService {
           newLayer.popupEnabled = false;
           newLayer.when(() => {
             if (EsriUtils.rendererIsSimple(newLayer.renderer)) {
-              const renderer: __esri.SimpleRenderer = newLayer.renderer.clone();
+              const renderer: import ('esri/renderers/SimpleRenderer') = newLayer.renderer.clone();
               renderer.symbol.color = new EsriApi.Color([128, 128, 128, 0.01]);
               newLayer.renderer = renderer;
             }

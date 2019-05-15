@@ -5,7 +5,7 @@
   <val-grid [smallSizeTable]="gridIsSmall" *ngIf="gridIsVisible"></val-grid>
 
   <div class="map-container">
-    <val-esri-map-panel [mapHeight]="700" baseMap="streets-vector" [showLabelConfigButton]="true">
+    <val-esri-map-panel [mapHeight]="700" baseMap="streets-vector" [showLabelConfigButton]="true" [showSelectionButtons]="false">
       <additional-toolbar-group>
         <div class="additional-toolbar-container">
           <p-button icon="pi pi-angle-left" label="" (click)="sideNavVisible = !sideNavVisible"></p-button>

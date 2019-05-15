@@ -5,23 +5,17 @@ import { AppConfig } from '../../app.config';
 import { AppMapService } from '../services/app-map.service';
 import { AppNavigationService } from '../services/app-navigation.service';
 import { localSelectors } from './app.selectors';
-import {
-  SharedActionTypes,
-  SetAppReady,
-  SetIsDistrQtyEnabled,
-  GetMapData,
-  LoadEntityGraph, GetMapDataFailed, SetIsWrap, PopupGeoToggle, SaveMediaPlan, SaveSucceeded, SaveFailed, NavigateToReviewPage, SetShadingType, SetLegendHTML, ExportMaps
-} from './shared/shared.actions';
-import { tap, filter, switchMap, map, catchError, withLatestFrom, concatMap } from 'rxjs/operators';
+import { ExportMaps, GetMapDataFailed, LoadEntityGraph, NavigateToReviewPage, SaveFailed, SaveSucceeded, SetAppReady, SharedActions, SharedActionTypes } from './shared/shared.actions';
+import { catchError, concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { Store, select } from '@ngrx/store';
-import { LocalState, FullState } from './index';
+import { select, Store } from '@ngrx/store';
+import { FullState, LocalState } from './index';
 import { SetSelectedLayer } from '@val/esri';
-import { UpsertRfpUiEditDetail, RfpUiEditDetailActionTypes, UpsertRfpUiEditDetails } from './rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { RfpUiEditDetailActions, RfpUiEditDetailActionTypes } from './rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { AppLayerService, SiteInformation } from '../services/app-layer-service';
 import { EntityHelper } from '../services/entity-helper-service';
 import { ConfigService } from '../services/config.service';
-import { RfpUiEditWrapActionTypes, UpsertRfpUiEditWraps } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { RfpUiEditWrapActions, RfpUiEditWrapActionTypes } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { RfpUiEditWrapService } from '../services/rfpEditWrap-service';
 import { AppMessagingService } from '../services/app-messaging.service';
 import { AppPrintingService } from '../services/app-printing-service';
@@ -29,7 +23,7 @@ import { AppPrintingService } from '../services/app-printing-service';
 @Injectable()
 export class AppEffects {
 
-  constructor(private actions$: Actions, 
+  constructor(private actions$: Actions<SharedActions | RfpUiEditDetailActions | RfpUiEditWrapActions>,
     private store$: Store<LocalState>,
     private appConfig: AppConfig,
     private configService: ConfigService,
@@ -45,7 +39,7 @@ export class AppEffects {
   // After the page and map loads, we go get data for the current Media Plan
   @Effect()
   loadEntities$ = this.actions$.pipe(
-    ofType<GetMapData>(SharedActionTypes.GetMapData),
+    ofType(SharedActionTypes.GetMapData),
     switchMap(action => this.entityHelper.loadEntities(action.payload.groupId, action.payload.mediaPlanId).pipe(
       map(result => new LoadEntityGraph({ normalizedEntities: result })),
       catchError(err => of(new GetMapDataFailed({ err })))
@@ -66,7 +60,7 @@ export class AppEffects {
   // only the local application state and doesn't know anything about the ESRI state
   @Effect({ dispatch: false })
   setSelectedGeos$ = this.actions$.pipe(
-    ofType<SetAppReady>(SharedActionTypes.SetAppReady),
+    ofType(SharedActionTypes.SetAppReady),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([, state]) => this.appLayerService.updateLabels(state)),
     tap(([, state]) => this.appLayerService.shadeMap(state)),
@@ -79,20 +73,20 @@ export class AppEffects {
 
   @Effect({ dispatch: false })
   setLegendHTML$ = this.actions$.pipe(
-    ofType<SetLegendHTML>(SharedActionTypes.SetLegendHTML),
+    ofType(SharedActionTypes.SetLegendHTML),
     tap(() => this.appLayerService.setupLegend())
   );
 
   @Effect({ dispatch: false })
   setMapShading = this.actions$.pipe(
-    ofType<SetShadingType>(SharedActionTypes.SetShadingType),
+    ofType(SharedActionTypes.SetShadingType),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([, state]) => this.appLayerService.shadeMap(state)),
   );
 
   @Effect()
   handleWrapZoneLayer$ = this.actions$.pipe(
-    ofType<SetIsWrap>(SharedActionTypes.SetIsWrap),
+    ofType(SharedActionTypes.SetIsWrap),
     filter(action => action.payload.isWrap),
     map(() => new SetSelectedLayer({ layerId: this.configService.layers['zip'].boundaries.id }))
   );
@@ -101,7 +95,7 @@ export class AppEffects {
   // or disable the labels on the map
   @Effect({ dispatch: false })
   isDistryQtyEnabled$ = this.actions$.pipe(
-    ofType<SetIsDistrQtyEnabled>(SharedActionTypes.SetIsDistrQtyEnabled),
+    ofType(SharedActionTypes.SetIsDistrQtyEnabled),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([, state]) => this.appLayerService.updateLabels(state))
   );
@@ -109,7 +103,7 @@ export class AppEffects {
   // If RfpUiEditDetails are changed we have to reshade the map
   @Effect({ dispatch: false })
   rfpUiEditDetailUpserted$ = this.actions$.pipe(
-    ofType<UpsertRfpUiEditDetail>(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail),
+    ofType(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([action, state]) => this.appLayerService.toggleGeoShading([action.payload.rfpUiEditDetail], state))
   );
@@ -117,7 +111,7 @@ export class AppEffects {
   // If RfpUiEditDetails are changed we have to reshade the map
   @Effect({ dispatch: false })
   rfpUiEditDetailsUpserted$ = this.actions$.pipe(
-    ofType<UpsertRfpUiEditDetails>(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetails),
+    ofType(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetails),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([action, state]) => this.appLayerService.toggleGeoShading(action.payload.rfpUiEditDetails, state))
   );
@@ -125,7 +119,7 @@ export class AppEffects {
   // If RfpUiEditWraps are changed we have to reshade the map
   @Effect({ dispatch: false })
   rfpUiEditWrapUpserted$ = this.actions$.pipe(
-    ofType<UpsertRfpUiEditWraps>(RfpUiEditWrapActionTypes.UpsertRfpUiEditWraps),
+    ofType(RfpUiEditWrapActionTypes.UpsertRfpUiEditWraps),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([action, state]) => this.rfpUiEditWrapService.toggleWrapZoneGeos(action.payload.rfpUiEditWraps, state))
   );
@@ -133,7 +127,7 @@ export class AppEffects {
   // Handle the map popup button to toggle geos on and off
   @Effect({dispatch: false})
   popupGeoToggle$ = this.actions$.pipe(
-    ofType<PopupGeoToggle>(SharedActionTypes.PopupGeoToggle),
+    ofType(SharedActionTypes.PopupGeoToggle),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([action, state]) => this.appLayerService.onPopupToggleAction(action.payload.eventName, state))
   );
@@ -154,14 +148,14 @@ export class AppEffects {
 
   @Effect({ dispatch: false })
   navigate$ = this.actions$.pipe(
-    ofType<NavigateToReviewPage>(SharedActionTypes.NavigateToReviewPage),
+    ofType(SharedActionTypes.NavigateToReviewPage),
     map(action => this.navigateService.getreviewPageUrl(action.payload.rfpId, action.payload.mediaPlanGroupNumber)),
     tap(url => this.navigateService.navigateTo(url))
   );
 
   @Effect()
   saveMediaPlans$ = this.actions$.pipe(
-    ofType<SaveMediaPlan>(SharedActionTypes.SaveMediaPlan),
+    ofType(SharedActionTypes.SaveMediaPlan),
     tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.appConfig.ApplicationBusyKey, message: 'Saving Media Plan...' }))),
     withLatestFrom(this.store$.pipe(select(localSelectors.getRfpUiEditDetailEntity))),
     map(([action, entity]) => [action.payload.updateIds.map(u => entity[u]), action.payload.addIds.map(a => entity[a])]),
@@ -183,7 +177,7 @@ export class AppEffects {
 
   @Effect()
   saveFailed$ = this.actions$.pipe(
-    ofType<SaveFailed>(SharedActionTypes.SaveFailed),
+    ofType(SharedActionTypes.SaveFailed),
     tap(action => console.log('Error Saving Media Plan', action.payload.err)),
     tap(() => this.messagingService.showErrorNotification('There was an error saving the Media Plan')),
     map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))

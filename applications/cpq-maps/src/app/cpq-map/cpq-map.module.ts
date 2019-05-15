@@ -35,6 +35,7 @@ import { AppMessagingService } from './services/app-messaging.service';
 import { ToastModule } from 'primeng/toast';
 import { ShadingConfigComponent } from './components/shading-config/shading-config.component';
 import { LegendComponent } from './components/legend/legend.component';
+import { MapPopupComponent } from './components/map-popup/map-popup.component';
 
 
 @NgModule({
@@ -73,9 +74,10 @@ import { LegendComponent } from './components/legend/legend.component';
       }
     }),
   ],
-  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent, LegendComponent],
+  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent, LegendComponent, MapPopupComponent],
   exports: [CpqMapComponent],
   providers: [RestDataService, AppConfig, MessageService],
+  entryComponents: [MapPopupComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class CpqMapModule {

@@ -1,4 +1,4 @@
-<val-esri-toolbar [currentMapState]="currentMapState$ | async"
+<val-esri-toolbar [currentMapState]="currentMapState$ | async" [showSelectionButtons]="showSelectionButtons"
                   (singleSelectClicked)="selectButton(SelectedButtonTypeCodes.SelectSinglePoly)"
                   (multiSelectClicked)="selectButton(SelectedButtonTypeCodes.SelectMultiplePolys)"
                   (multiUnselectClicked)="selectButton(SelectedButtonTypeCodes.UnselectMultiplePolys)"

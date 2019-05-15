@@ -19,6 +19,7 @@ export class EsriMapPanelComponent {
   cursor$: Observable<string> = this.currentMapState$.pipe(map(state => buttonToCursorMap[state]));
   SelectedButtonTypeCodes = SelectedButtonTypeCodes;
 
+  @Input() showSelectionButtons: boolean = true;
   @Input() showLabelConfigButton: boolean = true;
   @Input() set mapHeight(val: number) {
     this.store.dispatch(new SetMapHeight({ newMapHeight: val }));

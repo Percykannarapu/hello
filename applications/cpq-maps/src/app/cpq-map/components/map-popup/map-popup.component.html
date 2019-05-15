@@ -1,0 +1,17 @@
+<!--<div class="avail-status">-->
+<!--  <span *ngIf="checkingAvailability">Checking availability...</span>-->
+<!--  <p-button label="Add Geo" (click)="onClick()" *ngIf="isAvailable"></p-button>-->
+<!--  <span class="not-available" *ngIf="!checkingAvailability && !isAvailable"><strong>Geo Not Available</strong></span>-->
+<!--</div>-->
+<table class="esri-widget__table">
+  <tbody>
+    <tr *ngFor="let field of filteredFields">
+      <th class="esri-feature__field-header">{{field.fieldLabel}}</th>
+      <ng-container [ngSwitch]="field.fieldType">
+        <td class="esri-feature__field-data" *ngSwitchCase="'numeric'">{{selectedAttributes[field.fieldName] | number:'1.0-2'}}</td>
+        <td class="esri-feature__field-data" *ngSwitchCase="'percent'">{{(selectedAttributes[field.fieldName] / 100) | percent:'1.0-2'}}</td>
+        <td class="esri-feature__field-data" *ngSwitchDefault>{{selectedAttributes[field.fieldName]}}</td>
+      </ng-container>
+    </tr>
+  </tbody>
+</table>

@@ -8,6 +8,7 @@ import { SelectedButtonTypeCodes } from '../../../core/esri.enums';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EsriToolbarComponent {
+  @Input() showSelectionButtons = true;
   @Input() currentMapState: SelectedButtonTypeCodes;
 
   states = SelectedButtonTypeCodes;

@@ -123,6 +123,7 @@ export type SharedActions =
   | MapSetupComplete
   | MapSetupFailed
   | GetMapData
+  | GetMapDataFailed
   | PopupGeoToggle
   | SaveMediaPlan
   | SaveSucceeded
