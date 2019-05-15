@@ -97,8 +97,17 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
 
 };
 
-
 const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities,  buildParams);
+
+const availabilityProjector = (advertiserInfo: AdvertiserInfo[], rfpUiReview: RfpUiReview[]) => {
+  return {
+    productCode: rfpUiReview[0].productCd,
+    fromDate: new Date(advertiserInfo[0].ihwFrom),
+    toDate: new Date(advertiserInfo[0].ihwTo)
+  };
+};
+
+const getAvailabilityParams = createSelector(getAdvertiserInfoEntities, getRfpUiReviewEntities, availabilityProjector);
 
 export const localSelectors = {
   getAppReady,
@@ -112,5 +121,6 @@ export const localSelectors = {
   getRfpUiEditEntities,
   getShadingData,
   getShadingType,
-  getPrintParams
+  getPrintParams,
+  getAvailabilityParams
 };

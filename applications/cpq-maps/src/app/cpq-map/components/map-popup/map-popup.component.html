@@ -1,8 +1,15 @@
-<!--<div class="avail-status">-->
-<!--  <span *ngIf="checkingAvailability">Checking availability...</span>-->
-<!--  <p-button label="Add Geo" (click)="onClick()" *ngIf="isAvailable"></p-button>-->
-<!--  <span class="not-available" *ngIf="!checkingAvailability && !isAvailable"><strong>Geo Not Available</strong></span>-->
-<!--</div>-->
+<div class="avail-status" [ngSwitch]="status">
+    <p-button *ngSwitchCase="GeoStatus.Selected" label="Deselect Geo" (click)="onClick()"></p-button>
+    <p-button *ngSwitchCase="GeoStatus.Unselected" label="Select Geo" (click)="onClick()"></p-button>
+    <ng-container *ngSwitchCase="GeoStatus.AvailabilityCheckRequired">
+      <span *ngIf="checkingAvailability">Checking availability...</span>
+      <ng-container *ngIf="!checkingAvailability">
+        <p-button label="Add Geo" (click)="onClick()" *ngIf="isAvailable"></p-button>
+        <span class="not-available" *ngIf="!isAvailable"><strong>The selected geography is not available</strong></span>
+      </ng-container>
+    </ng-container>
+    <span *ngSwitchDefault>&nbsp</span>
+</div>
 <table class="esri-widget__table">
   <tbody>
     <tr *ngFor="let field of filteredFields">

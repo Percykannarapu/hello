@@ -310,3 +310,9 @@ export function setsAreEqual<T>(current: Set<T>, previous: Set<T>) : boolean {
 }
 
 export const safe: any = {};
+
+export function pad(value: number, width: number, z: string = '0') {
+  let str = '' + value;
+  while (str.length < width) str = z + str;
+  return str;
+}
