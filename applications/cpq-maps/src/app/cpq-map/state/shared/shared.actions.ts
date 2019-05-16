@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import { AvailabilityDetailResponse } from '../../models/availability-detail-response';
 import { NormalizedPayload } from '../../models/NormalizedPayload';
 import { shadingType } from './shared.reducers';
 
@@ -42,7 +43,7 @@ export class SetShadingType implements Action {
 
 export class PopupGeoToggle implements Action {
   readonly type = SharedActionTypes.PopupGeoToggle;
-  constructor(public payload: { eventName: string }) { }
+  constructor(public payload: { eventName: string, availsInfo?: AvailabilityDetailResponse[] }) { }
 }
 
 export class ApplicationStartup implements Action {

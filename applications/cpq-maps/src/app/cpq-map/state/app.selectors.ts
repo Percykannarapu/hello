@@ -100,10 +100,12 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
 const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities,  buildParams);
 
 const availabilityProjector = (advertiserInfo: AdvertiserInfo[], rfpUiReview: RfpUiReview[]) => {
+  const fromMin = Math.min(...advertiserInfo.map(a => a.ihwFrom.valueOf()));
+  const toMax = Math.min(...advertiserInfo.map(a => a.ihwTo.valueOf()));
   return {
     productCode: rfpUiReview[0].productCd,
-    fromDate: new Date(advertiserInfo[0].ihwFrom),
-    toDate: new Date(advertiserInfo[0].ihwTo)
+    fromDate: new Date(fromMin),
+    toDate: new Date(toMax)
   };
 };
 

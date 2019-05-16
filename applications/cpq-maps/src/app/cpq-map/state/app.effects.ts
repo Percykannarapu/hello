@@ -129,7 +129,7 @@ export class AppEffects {
   popupGeoToggle$ = this.actions$.pipe(
     ofType(SharedActionTypes.PopupGeoToggle),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
-    tap(([action, state]) => this.appLayerService.onPopupToggleAction(action.payload.eventName, state))
+    tap(([action, state]) => this.appLayerService.onPopupToggleAction(action.payload.eventName, state, action.payload.availsInfo))
   );
 
   @Effect()

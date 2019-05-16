@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, O
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { AvailabilityDetailResponse } from '../../models/availability-detail-response';
 import { AppAvailabilityService, GeoStatus } from '../../services/app-availability.service';
 import { FullState } from '../../state';
 import { PopupGeoToggle } from '../../state/shared/shared.actions';
@@ -30,6 +31,7 @@ export class MapPopupComponent implements OnInit, OnDestroy {
 
   @Output() closePopup = new EventEmitter<void>();
 
+  hasError: boolean = false;
   checkingAvailability: boolean;
   isAvailable: boolean;
   status: GeoStatus;
@@ -43,6 +45,8 @@ export class MapPopupComponent implements OnInit, OnDestroy {
   }
 
   private destroyed$ = new Subject<void>();
+  private cancelProcessing$ = new Subject<void>();
+  private availsResult: AvailabilityDetailResponse[];
 
   constructor(private availsService: AppAvailabilityService,
               private store$: Store<FullState>,
@@ -51,7 +55,8 @@ export class MapPopupComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const geocode = this.selectedAttributes['geocode'];
     this.availsService.getStatus(geocode).pipe(
-      takeUntil(this.destroyed$)
+      takeUntil(this.destroyed$),
+      takeUntil(this.cancelProcessing$)
     ).subscribe(status => {
       this.status = status;
       if (status === GeoStatus.AvailabilityCheckRequired) {
@@ -61,9 +66,16 @@ export class MapPopupComponent implements OnInit, OnDestroy {
         ).subscribe(results => {
           this.checkingAvailability = false;
           this.isAvailable = results.every(r => r.isAvailable === 1);
+          this.availsResult = results;
+          this.cd.detectChanges();
+        }, () => {
+          this.hasError = true;
           this.cd.detectChanges();
         });
       }
+      this.cd.detectChanges();
+    }, () => {
+      this.hasError = true;
       this.cd.detectChanges();
     });
   }
@@ -73,7 +85,8 @@ export class MapPopupComponent implements OnInit, OnDestroy {
   }
 
   onClick() {
-    this.store$.dispatch(new PopupGeoToggle({ eventName: 'toggle-selection' }));
+    this.cancelProcessing$.next();
+    this.store$.dispatch(new PopupGeoToggle({ eventName: 'toggle-selection', availsInfo: this.availsResult }));
     this.closePopup.emit();
   }
 }

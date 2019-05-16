@@ -3,15 +3,17 @@ import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { pad } from '@val/common';
 import { Observable, of } from 'rxjs';
-import { filter, map, switchMap } from 'rxjs/operators';
+import { filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { AvailabilityDetailResponse } from '../models/availability-detail-response';
 import { FullState } from '../state';
 import { localSelectors } from '../state/app.selectors';
 
 export enum GeoStatus {
+  PastIhd,
   Selected,
   Unselected,
+  Added,
   AvailabilityCheckRequired
 }
 
@@ -28,8 +30,12 @@ export class AppAvailabilityService {
       select(localSelectors.getRfpUiEditDetailEntities),
       filter(mbus => mbus != null && mbus.length > 0),
       map(mbus => mbus.filter(m => m.geocode === geocode)),
-      map(entries => {
+      withLatestFrom(this.store$.pipe(select(localSelectors.getSharedState)), this.store$.pipe(select(localSelectors.getAvailabilityParams))),
+      map(([entries, shared, avails]) => {
+        const newIdSet = new Set(shared.newLineItemIds);
+        if (new Date(Date.now()) > avails.toDate) return GeoStatus.PastIhd;
         if (entries.length === 0) return GeoStatus.AvailabilityCheckRequired;
+        if (entries.every(m => newIdSet.has(m['@ref']))) return GeoStatus.Added;
         if (entries.every(m => m.isSelected)) return GeoStatus.Selected;
         return GeoStatus.Unselected;
       })
