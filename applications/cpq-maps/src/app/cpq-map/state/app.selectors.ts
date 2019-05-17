@@ -100,12 +100,17 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
 const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities,  buildParams);
 
 const availabilityProjector = (rfpUiEditDetails: RfpUiEditDetail[], rfpUiReview: RfpUiReview[]) => {
-  const fromMin = Math.min(...rfpUiEditDetails.map(r => r.ihDate.valueOf()));
-  const toMax = Math.max(...rfpUiEditDetails.map(r => r.ihDate.valueOf()));
+  const detailsWithIHDs = rfpUiEditDetails.reduce((p, c) => {
+    if (c.ihDate != null) p.push(c.ihDate.valueOf());
+    return p;
+  }, []);
+  const fromDate = new Date(Math.min(...detailsWithIHDs));
+  const toDate = new Date(Math.max(...detailsWithIHDs));
+  const productCode = rfpUiReview != null && rfpUiReview.length > 0 ? rfpUiReview[0].productCd : '';
   return {
-    productCode: rfpUiReview[0].productCd,
-    fromDate: new Date(fromMin),
-    toDate: new Date(toMax)
+    productCode,
+    fromDate,
+    toDate
   };
 };
 
