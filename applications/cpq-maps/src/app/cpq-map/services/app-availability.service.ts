@@ -31,12 +31,12 @@ export class AppAvailabilityService {
       filter(mbus => mbus != null && mbus.length > 0),
       map(mbus => mbus.filter(m => m.geocode === geocode)),
       withLatestFrom(this.store$.pipe(select(localSelectors.getSharedState)), this.store$.pipe(select(localSelectors.getAvailabilityParams))),
-      map(([entries, shared, avails]) => {
+      map(([foundGeos, shared, avails]) => {
         const newIdSet = new Set(shared.newLineItemIds);
         if (new Date(Date.now()) > avails.toDate) return GeoStatus.PastIhd;
-        if (entries.length === 0) return GeoStatus.AvailabilityCheckRequired;
-        if (entries.every(m => newIdSet.has(m['@ref']))) return GeoStatus.Added;
-        if (entries.every(m => m.isSelected)) return GeoStatus.Selected;
+        if (foundGeos.length === 0) return GeoStatus.AvailabilityCheckRequired;
+        if (foundGeos.every(m => newIdSet.has(m['@ref']))) return GeoStatus.Added;
+        if (foundGeos.every(m => m.isSelected)) return GeoStatus.Selected;
         return GeoStatus.Unselected;
       })
     );

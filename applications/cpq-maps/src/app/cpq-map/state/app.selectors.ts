@@ -99,9 +99,9 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
 
 const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities,  buildParams);
 
-const availabilityProjector = (advertiserInfo: AdvertiserInfo[], rfpUiReview: RfpUiReview[]) => {
-  const fromMin = Math.min(...advertiserInfo.map(a => a.ihwFrom.valueOf()));
-  const toMax = Math.min(...advertiserInfo.map(a => a.ihwTo.valueOf()));
+const availabilityProjector = (rfpUiEditDetails: RfpUiEditDetail[], rfpUiReview: RfpUiReview[]) => {
+  const fromMin = Math.min(...rfpUiEditDetails.map(r => r.ihDate.valueOf()));
+  const toMax = Math.max(...rfpUiEditDetails.map(r => r.ihDate.valueOf()));
   return {
     productCode: rfpUiReview[0].productCd,
     fromDate: new Date(fromMin),
@@ -109,7 +109,7 @@ const availabilityProjector = (advertiserInfo: AdvertiserInfo[], rfpUiReview: Rf
   };
 };
 
-const getAvailabilityParams = createSelector(getAdvertiserInfoEntities, getRfpUiReviewEntities, availabilityProjector);
+const getAvailabilityParams = createSelector(getRfpUiEditDetailEntities, getRfpUiReviewEntities, availabilityProjector);
 
 export const localSelectors = {
   getAppReady,

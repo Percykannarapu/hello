@@ -746,7 +746,7 @@ export class AppLayerService {
          const existingEditWraps: RfpUiEditWrap[] = this.wrapService.getEditWrapZonesByZoneName(wrapZone, state);
          const addWraps = existingEditWraps.filter(d => newIdSet.has(d['@ref']));
          const updateWraps = existingEditWraps.filter(d => !newIdSet.has(d['@ref']));
-         const changeWraps = updateWraps.map(w => ({id: w['@ref'], changes: {isSelected: !w.isSelected}}));
+         const changeWraps = updateWraps.map(w => ({ id: w['@ref'], changes: {isSelected: !w.isSelected}}));
          if (changeWraps.length > 0) {
            this.store$.dispatch(new UpdateRfpUiEditWraps({ rfpUiEditWraps: changeWraps }));
          }

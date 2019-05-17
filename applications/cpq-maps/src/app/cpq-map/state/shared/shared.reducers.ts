@@ -1,4 +1,5 @@
-import { RfpUiEditDetailActionTypes, UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { RfpUiEditDetailActionTypes, UpdateRfpUiEditDetail, UpdateRfpUiEditDetails, UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { UpdateRfpUiEditWraps } from '../rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { SharedActions, SharedActionTypes, SetLegendHTML } from './shared.actions';
 
 export enum shadingType {
@@ -46,45 +47,61 @@ const initialState: SharedState = {
    legendUpdateCounter: 0
 };
 
-type ReducerActions = SharedActions | UpsertRfpUiEditDetail | UpsertRfpUiEditDetails;
+type ReducerActions = SharedActions | UpsertRfpUiEditDetail | UpsertRfpUiEditDetails | UpdateRfpUiEditDetail | UpdateRfpUiEditDetails;
 
 export function sharedReducer(state = initialState, action: ReducerActions) : SharedState {
    switch (action.type) {
+     case RfpUiEditDetailActionTypes.UpdateRfpUiEditDetail:
+       const update = {
+         editedLineItemIds: [...state.editedLineItemIds, action.payload.rfpUiEditDetail.id as number],
+       };
+       return {
+         ...state,
+         ...update
+       };
+     case RfpUiEditDetailActionTypes.UpdateRfpUiEditDetails:
+       const updates = {
+         editedLineItemIds: [...state.editedLineItemIds, ...action.payload.rfpUiEditDetails.map(d => d.id as number)],
+       };
+       return {
+         ...state,
+         ...updates
+       };
      case SharedActionTypes.SaveMediaPlan:
        return { ...state, isSaving: true };
      case SharedActionTypes.SaveSucceeded:
      case SharedActionTypes.SaveFailed:
        return { ...state, isSaving: initialState.isSaving };
      case RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail:
-       const update = {
+       const upsert = {
          editedLineItemIds: [...state.editedLineItemIds],
          newLineItemIds: [...state.newLineItemIds]
        };
        if (action.payload.rfpUiEditDetail.commonMbuId != null) {
-         update.editedLineItemIds.push(action.payload.rfpUiEditDetail['@ref']);
+         upsert.editedLineItemIds.push(action.payload.rfpUiEditDetail['@ref']);
        } else {
-         update.newLineItemIds.push(action.payload.rfpUiEditDetail['@ref']);
+         upsert.newLineItemIds.push(action.payload.rfpUiEditDetail['@ref']);
        }
        return {
          ...state,
-         ...update
+         ...upsert
        };
      case RfpUiEditDetailActionTypes.UpsertRfpUiEditDetails:
-       const updates = {
+       const upserts = {
          editedLineItemIds: [...state.editedLineItemIds],
          newLineItemIds: [...state.newLineItemIds]
        };
        const editedDetails = action.payload.rfpUiEditDetails.filter(d => d.commonMbuId != null);
        const newDetails = action.payload.rfpUiEditDetails.filter(d => d.commonMbuId == null);
        if (editedDetails.length > 0) {
-         updates.editedLineItemIds.push(...editedDetails.map(d => d['@ref']));
+         upserts.editedLineItemIds.push(...editedDetails.map(d => d['@ref']));
        }
        if (newDetails.length > 0) {
-         updates.newLineItemIds.push(...newDetails.map(d => d['@ref']));
+         upserts.newLineItemIds.push(...newDetails.map(d => d['@ref']));
        }
        return {
          ...state,
-         ...updates
+         ...upserts
        };
      case SharedActionTypes.ApplicationStartup:
          return {
@@ -99,7 +116,6 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
          return { ...state, isDistrQtyEnabled: action.payload.isDistrQtyEnabled };
       case SharedActionTypes.SetIsWrap:
          return { ...state, isWrap: action.payload.isWrap };
-
 
       case SharedActionTypes.SetAppReady:
          return { ...state, appReady: action.payload };

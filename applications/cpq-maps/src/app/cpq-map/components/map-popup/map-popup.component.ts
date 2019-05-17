@@ -55,8 +55,8 @@ export class MapPopupComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const geocode = this.selectedAttributes['geocode'];
     this.availsService.getStatus(geocode).pipe(
-      takeUntil(this.destroyed$),
-      takeUntil(this.cancelProcessing$)
+      takeUntil(this.destroyed$),       // unsubscribe when the component is destroyed
+      takeUntil(this.cancelProcessing$) // unsubscribe when the user clicks the button
     ).subscribe(status => {
       this.status = status;
       if (status === GeoStatus.AvailabilityCheckRequired) {
