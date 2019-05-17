@@ -7,7 +7,7 @@ import { AppNavigationService } from '../services/app-navigation.service';
 import { localSelectors } from './app.selectors';
 import { ExportMaps, GetMapDataFailed, LoadEntityGraph, NavigateToReviewPage, SaveFailed, SaveSucceeded, SetAppReady, SharedActions, SharedActionTypes } from './shared/shared.actions';
 import { catchError, concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { merge, of } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { FullState, LocalState } from './index';
 import { SetSelectedLayer } from '@val/esri';
@@ -100,20 +100,30 @@ export class AppEffects {
     tap(([, state]) => this.appLayerService.updateLabels(state))
   );
 
-  // If RfpUiEditDetails are changed we have to reshade the map
-  @Effect({ dispatch: false })
-  rfpUiEditDetailUpserted$ = this.actions$.pipe(
+  editUpsert$ = this.actions$.pipe(
     ofType(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail),
-    withLatestFrom(this.fullStore$.pipe(select(state => state))),
-    tap(([action, state]) => this.appLayerService.toggleGeoShading([action.payload.rfpUiEditDetail], state))
+    map(action => [action.payload.rfpUiEditDetail['@ref']])
   );
 
-  // If RfpUiEditDetails are changed we have to reshade the map
-  @Effect({ dispatch: false })
-  rfpUiEditDetailsUpserted$ = this.actions$.pipe(
+  editsUpsert$ = this.actions$.pipe(
     ofType(RfpUiEditDetailActionTypes.UpsertRfpUiEditDetails),
+    map(action => action.payload.rfpUiEditDetails.map(r => r['@ref']))
+  );
+
+  editUpdate$ = this.actions$.pipe(
+    ofType(RfpUiEditDetailActionTypes.UpdateRfpUiEditDetail),
+    map(action => [action.payload.rfpUiEditDetail.id as any])
+  );
+
+  editsUpdate$ = this.actions$.pipe(
+    ofType(RfpUiEditDetailActionTypes.UpdateRfpUiEditDetails),
+    map(action => action.payload.rfpUiEditDetails.map(r => r.id as any))
+  );
+
+  @Effect({ dispatch: false })
+  reShadeNonWrap$ = merge(this.editUpsert$, this.editsUpsert$, this.editUpdate$, this.editsUpdate$).pipe(
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
-    tap(([action, state]) => this.appLayerService.toggleGeoShading(action.payload.rfpUiEditDetails, state))
+    tap(([edits, state]) => this.appLayerService.toggleGeoShading(edits, state))
   );
 
   // If RfpUiEditWraps are changed we have to reshade the map
@@ -219,6 +229,7 @@ export class AppEffects {
         name: state.rfpUiEdit.entities[id].siteName,
         radius: state.shared.radius,
         siteId: state.rfpUiEdit.entities[id].siteId,
+        siteRef: Number(id),
         inHomeDate: currentIHD,
       });
     }

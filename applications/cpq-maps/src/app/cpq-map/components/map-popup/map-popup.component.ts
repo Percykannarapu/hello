@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { AvailabilityDetailResponse } from '../../models/availability-detail-response';
 import { AppAvailabilityService, GeoStatus } from '../../services/app-availability.service';
 import { FullState } from '../../state';
@@ -45,7 +45,6 @@ export class MapPopupComponent implements OnInit, OnDestroy {
   }
 
   private destroyed$ = new Subject<void>();
-  private cancelProcessing$ = new Subject<void>();
   private availsResult: AvailabilityDetailResponse[];
 
   constructor(private availsService: AppAvailabilityService,
@@ -55,14 +54,13 @@ export class MapPopupComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const geocode = this.selectedAttributes['geocode'];
     this.availsService.getStatus(geocode).pipe(
-      takeUntil(this.destroyed$),       // unsubscribe when the component is destroyed
-      takeUntil(this.cancelProcessing$) // unsubscribe when the user clicks the button
+      take(1)
     ).subscribe(status => {
       this.status = status;
       if (status === GeoStatus.AvailabilityCheckRequired) {
         this.checkingAvailability = true;
         this.availsService.isAvailable(geocode, this.selectedAttributes['wrap_name']).pipe(
-          takeUntil(this.destroyed$)
+          take(1)
         ).subscribe(results => {
           this.checkingAvailability = false;
           this.isAvailable = results.every(r => r.isAvailable === 1);
@@ -85,7 +83,6 @@ export class MapPopupComponent implements OnInit, OnDestroy {
   }
 
   onClick() {
-    this.cancelProcessing$.next();
     this.store$.dispatch(new PopupGeoToggle({ eventName: 'toggle-selection', availsInfo: this.availsResult }));
     this.closePopup.emit();
   }

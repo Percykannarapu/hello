@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { pad } from '@val/common';
 import { Observable, of } from 'rxjs';
-import { filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { AvailabilityDetailResponse } from '../models/availability-detail-response';
 import { FullState } from '../state';

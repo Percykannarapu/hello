@@ -22,6 +22,7 @@ export interface SiteInformation {
   coordinates: UniversalCoordinates;
   radius: number;
   siteId: number;
+  siteRef: number;
   inHomeDate: string;
 }
 
@@ -78,12 +79,10 @@ export class AppLayerService {
          this.currentLayerNames.set(groupName, [layerName]);
       }
       const graphics: Array<__esri.Graphic> = [];
-      let fakeOid = 0;
       siteInformation.forEach(s => {
-        const fakeSiteId = fakeOid++;
         const graphic = this.esriLayerService.coordinateToGraphic(s.coordinates);
-        graphic.setAttribute('OBJECTID', fakeSiteId );
-        graphic.setAttribute('siteId', fakeSiteId.toString());
+        graphic.setAttribute('OBJECTID', s.siteRef);
+        graphic.setAttribute('siteId', s.siteRef.toString());
         graphic.setAttribute('siteName', s.name);
         graphic.setAttribute('radius', s.radius.toString());
         graphic.setAttribute('inHomeDate', s.inHomeDate);
@@ -477,15 +476,16 @@ export class AppLayerService {
       }
    }
 
-   public toggleGeoShading(editDetails: RfpUiEditDetail[], state: FullState) {
-      if (editDetails.length < 1) {
+   public toggleGeoShading(editDetailIds: number[], state: FullState) {
+      if (editDetailIds.length < 1) {
          console.warn('attempted to toggle geo shading but no geos were provided');
          return;
       }
       const selectedGeocodes: Set<string> = new Set<string>();
       const fkSiteMap: Map<string, number | string> = new Map<string, number | string>();
       const wrapZones: Set<string> = new Set<string>();
-      editDetails.forEach(ed => {
+      editDetailIds.forEach(id => {
+         const ed = state.rfpUiEditDetail.entities[id];
          selectedGeocodes.add(ed.geocode);
          if (state.shared.shadingType === shadingType.WRAP_ZONE)
             fkSiteMap.set(ed.geocode, ed.wrapZone);
@@ -814,6 +814,7 @@ export class AppLayerService {
      editDetailInput.forEach(edi => {
          const newDetail: RfpUiEditDetail = new RfpUiEditDetail();
          const closestSite: __esri.Graphic = this.findClosestSite(edi.point);
+         const siteRef = Number(closestSite.getAttribute('OBJECTID'));
          const currentAvailsData = availsByGeocode.get(edi.geocode);
          let distance = 0;
          if (EsriUtils.geometryIsPoint(closestSite.geometry)) {
@@ -825,7 +826,7 @@ export class AppLayerService {
          newDetail.distance = distance;
          newDetail.geocode = edi.geocode;
          newDetail.isSelected = true;
-         newDetail.fkSite = closestSite.getAttribute('siteId');
+         newDetail.fkSite = state.rfpUiEdit.entities[siteRef].siteId;
          newDetail.siteName = closestSite.getAttribute('siteName');
          newDetail.mediaPlanId = arbitraryReviewDetail.mediaPlanId;
          newDetail.productName = arbitraryReviewDetail.sfdcProductName;
