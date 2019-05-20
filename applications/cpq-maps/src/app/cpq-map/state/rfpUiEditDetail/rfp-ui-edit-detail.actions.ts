@@ -60,13 +60,13 @@ export class UpdateRfpUiEditDetails implements Action {
 export class DeleteRfpUiEditDetail implements Action {
   readonly type = RfpUiEditDetailActionTypes.DeleteRfpUiEditDetail;
 
-  constructor(public payload: { id: string }) {}
+  constructor(public payload: { id: string, geocode: string }) {}
 }
 
 export class DeleteRfpUiEditDetails implements Action {
   readonly type = RfpUiEditDetailActionTypes.DeleteRfpUiEditDetails;
 
-  constructor(public payload: { ids: string[] }) {}
+  constructor(public payload: { ids: string[], geocodes: string[] }) {}
 }
 
 export class ClearRfpUiEditDetails implements Action {

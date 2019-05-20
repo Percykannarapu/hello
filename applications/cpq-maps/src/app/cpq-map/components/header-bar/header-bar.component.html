@@ -3,7 +3,8 @@
     <span>Total Distribution</span>
     <span>{{totalDistribution | number:'1.0-0'}}</span>
     <span>Total Investment</span>
-    <span>{{totalInvestment | currency}}</span>
+    <span *ngIf="hasAdditions">{{totalInvestment | currency}}&nbsp;+</span>
+    <span *ngIf="!hasAdditions">{{totalInvestment | currency}}</span>
   </div>
   <div class="header-names" *ngIf="appReady$ | async">
     <span>RFP</span>

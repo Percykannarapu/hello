@@ -121,6 +121,17 @@ export class AppEffects {
   );
 
   @Effect({ dispatch: false })
+  reShadeDeletes$ = this.actions$.pipe(
+    ofType(RfpUiEditDetailActionTypes.DeleteRfpUiEditDetail, RfpUiEditDetailActionTypes.DeleteRfpUiEditDetails),
+    map(action => {
+      if (action.type === RfpUiEditDetailActionTypes.DeleteRfpUiEditDetail) return [action.payload.geocode];
+      return action.payload.geocodes;
+    }),
+    withLatestFrom(this.fullStore$.pipe(select(state => state))),
+    tap(([geocodes, state]) => this.appLayerService.toggleGeoShading([], state, geocodes))
+  );
+
+  @Effect({ dispatch: false })
   reShadeNonWrap$ = merge(this.editUpsert$, this.editsUpsert$, this.editUpdate$, this.editsUpdate$).pipe(
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([edits, state]) => this.appLayerService.toggleGeoShading(edits, state))

@@ -1,4 +1,4 @@
-import { RfpUiEditDetailActionTypes, UpdateRfpUiEditDetail, UpdateRfpUiEditDetails, UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { DeleteRfpUiEditDetail, DeleteRfpUiEditDetails, RfpUiEditDetailActionTypes, UpdateRfpUiEditDetail, UpdateRfpUiEditDetails, UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { UpdateRfpUiEditWraps } from '../rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { SharedActions, SharedActionTypes, SetLegendHTML } from './shared.actions';
 
@@ -47,25 +47,47 @@ const initialState: SharedState = {
    legendUpdateCounter: 0
 };
 
-type ReducerActions = SharedActions | UpsertRfpUiEditDetail | UpsertRfpUiEditDetails | UpdateRfpUiEditDetail | UpdateRfpUiEditDetails;
+type ReducerActions = SharedActions |
+  UpsertRfpUiEditDetail | UpsertRfpUiEditDetails |
+  UpdateRfpUiEditDetail | UpdateRfpUiEditDetails |
+  DeleteRfpUiEditDetail | DeleteRfpUiEditDetails;
+
+function mergeAndDedupeIds(currentIds: number[], additionalIds: number | number[]) : number[] {
+  const deduped = new Set(currentIds);
+  if (Array.isArray(additionalIds)) {
+    additionalIds.forEach(id => deduped.add(id));
+  } else {
+    deduped.add(additionalIds);
+  }
+  return Array.from(deduped);
+}
 
 export function sharedReducer(state = initialState, action: ReducerActions) : SharedState {
+   const adds: number[] = [];
+   const updates: number[] = [];
    switch (action.type) {
-     case RfpUiEditDetailActionTypes.UpdateRfpUiEditDetail:
-       const update = {
-         editedLineItemIds: [...state.editedLineItemIds, action.payload.rfpUiEditDetail.id as number],
-       };
+     case RfpUiEditDetailActionTypes.DeleteRfpUiEditDetail:
+       const filteredDelete = state.newLineItemIds.filter(id => id !== Number(action.payload.id));
        return {
          ...state,
-         ...update
+         newLineItemIds: filteredDelete
+       };
+     case RfpUiEditDetailActionTypes.DeleteRfpUiEditDetails:
+       const deleteSet = new Set(action.payload.ids);
+       const filteredDeletes = state.newLineItemIds.filter(id => deleteSet.has(id.toString()));
+       return {
+         ...state,
+         newLineItemIds: filteredDeletes
+       };
+     case RfpUiEditDetailActionTypes.UpdateRfpUiEditDetail:
+       return {
+         ...state,
+         editedLineItemIds: mergeAndDedupeIds(state.editedLineItemIds, action.payload.rfpUiEditDetail.id as number)
        };
      case RfpUiEditDetailActionTypes.UpdateRfpUiEditDetails:
-       const updates = {
-         editedLineItemIds: [...state.editedLineItemIds, ...action.payload.rfpUiEditDetails.map(d => d.id as number)],
-       };
        return {
          ...state,
-         ...updates
+         editedLineItemIds: mergeAndDedupeIds(state.editedLineItemIds, action.payload.rfpUiEditDetails.map(d => d.id as number))
        };
      case SharedActionTypes.SaveMediaPlan:
        return { ...state, isSaving: true };
@@ -73,35 +95,28 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
      case SharedActionTypes.SaveFailed:
        return { ...state, isSaving: initialState.isSaving };
      case RfpUiEditDetailActionTypes.UpsertRfpUiEditDetail:
-       const upsert = {
-         editedLineItemIds: [...state.editedLineItemIds],
-         newLineItemIds: [...state.newLineItemIds]
-       };
        if (action.payload.rfpUiEditDetail.commonMbuId != null) {
-         upsert.editedLineItemIds.push(action.payload.rfpUiEditDetail['@ref']);
+         updates.push(action.payload.rfpUiEditDetail['@ref']);
        } else {
-         upsert.newLineItemIds.push(action.payload.rfpUiEditDetail['@ref']);
+         adds.push(action.payload.rfpUiEditDetail['@ref']);
        }
        return {
          ...state,
-         ...upsert
+         editedLineItemIds: mergeAndDedupeIds(state.editedLineItemIds, updates),
+         newLineItemIds: mergeAndDedupeIds(state.newLineItemIds, adds)
        };
      case RfpUiEditDetailActionTypes.UpsertRfpUiEditDetails:
-       const upserts = {
-         editedLineItemIds: [...state.editedLineItemIds],
-         newLineItemIds: [...state.newLineItemIds]
-       };
-       const editedDetails = action.payload.rfpUiEditDetails.filter(d => d.commonMbuId != null);
-       const newDetails = action.payload.rfpUiEditDetails.filter(d => d.commonMbuId == null);
-       if (editedDetails.length > 0) {
-         upserts.editedLineItemIds.push(...editedDetails.map(d => d['@ref']));
-       }
-       if (newDetails.length > 0) {
-         upserts.newLineItemIds.push(...newDetails.map(d => d['@ref']));
-       }
+       action.payload.rfpUiEditDetails.forEach(d => {
+         if (d.commonMbuId != null) {
+           updates.push(d['@ref']);
+         } else {
+           adds.push(d['@ref']);
+         }
+       });
        return {
          ...state,
-         ...upserts
+         editedLineItemIds: mergeAndDedupeIds(state.editedLineItemIds, updates),
+         newLineItemIds: mergeAndDedupeIds(state.newLineItemIds, adds)
        };
      case SharedActionTypes.ApplicationStartup:
          return {

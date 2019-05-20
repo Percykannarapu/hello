@@ -30,6 +30,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   rfpName: string;
   productName: string;
   rfpId: string;
+  get hasAdditions() { return this.addIds.length > 0; }
 
   get isClean() {
     return this.updateIds.length === 0 && this.addIds.length === 0;

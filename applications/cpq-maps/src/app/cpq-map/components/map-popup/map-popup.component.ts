@@ -66,14 +66,16 @@ export class MapPopupComponent implements OnInit, OnDestroy {
           this.isAvailable = results.every(r => r.isAvailable === 1);
           this.availsResult = results;
           this.cd.detectChanges();
-        }, () => {
+        }, err => {
           this.hasError = true;
+          console.error('Error during Avails request', err);
           this.cd.detectChanges();
         });
       }
       this.cd.detectChanges();
-    }, () => {
+    }, err => {
       this.hasError = true;
+      console.error('Error during Status request', err);
       this.cd.detectChanges();
     });
   }

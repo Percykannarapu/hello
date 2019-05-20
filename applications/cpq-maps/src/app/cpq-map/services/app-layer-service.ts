@@ -476,23 +476,33 @@ export class AppLayerService {
       }
    }
 
-   public toggleGeoShading(editDetailIds: number[], state: FullState) {
-      if (editDetailIds.length < 1) {
+   public toggleGeoShading(editDetailIds: number[], state: FullState, deletedGeocodes?: string[]) {
+      if (editDetailIds.length < 1 && (deletedGeocodes == null || deletedGeocodes.length === 0)) {
          console.warn('attempted to toggle geo shading but no geos were provided');
          return;
       }
-      const selectedGeocodes: Set<string> = new Set<string>();
+      let selectedGeocodes: Set<string> = new Set<string>();
       const fkSiteMap: Map<string, number | string> = new Map<string, number | string>();
       const wrapZones: Set<string> = new Set<string>();
-      editDetailIds.forEach(id => {
-         const ed = state.rfpUiEditDetail.entities[id];
-         selectedGeocodes.add(ed.geocode);
-         if (state.shared.shadingType === shadingType.WRAP_ZONE)
+      if (deletedGeocodes != null) {
+        selectedGeocodes = new Set<string>(deletedGeocodes);
+        deletedGeocodes.forEach(g => {
+          if (state.shared.shadingType === shadingType.WRAP_ZONE) {
+            wrapZones.add(fkSiteMap.get(g) as string);
+          }
+          fkSiteMap.delete(g);
+        });
+      } else {
+        editDetailIds.forEach(id => {
+          const ed = state.rfpUiEditDetail.entities[id];
+          selectedGeocodes.add(ed.geocode);
+          if (state.shared.shadingType === shadingType.WRAP_ZONE)
             fkSiteMap.set(ed.geocode, ed.wrapZone);
-         else
+          else
             fkSiteMap.set(ed.geocode, ed.fkSite);
-         wrapZones.add(ed.wrapZone);
-      });
+          wrapZones.add(ed.wrapZone);
+        });
+      }
       const existingGraphics: Array<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.filter(g => 
          selectedGeocodes.has(g.getAttribute('geocode')) || 
          (state.shared.isWrap && g.getAttribute('wrapZone') != undefined && wrapZones.has(g.getAttribute('wrapZone')))
@@ -758,7 +768,7 @@ export class AppLayerService {
          this.store$.dispatch(new UpdateRfpUiEditDetails({ rfpUiEditDetails: changes }));
        }
        if (adds.length > 0) {
-         this.store$.dispatch(new DeleteRfpUiEditDetails( { ids: adds.map(a => a['@ref']) }));
+         this.store$.dispatch(new DeleteRfpUiEditDetails( { ids: adds.map(a => a['@ref']), geocodes: adds.map(a => a.geocode) }));
        }
      } else {
        if (!state.shared.isWrap) {
