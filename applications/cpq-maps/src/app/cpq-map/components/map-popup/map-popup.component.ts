@@ -63,7 +63,7 @@ export class MapPopupComponent implements OnInit, OnDestroy {
           take(1)
         ).subscribe(results => {
           this.checkingAvailability = false;
-          this.isAvailable = results.every(r => r.isAvailable === 1);
+          this.isAvailable = results.length > 0 && results.every(r => r.isAvailable === 1);
           this.availsResult = results;
           this.cd.detectChanges();
         }, err => {

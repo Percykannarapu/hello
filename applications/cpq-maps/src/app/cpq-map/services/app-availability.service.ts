@@ -46,12 +46,7 @@ export class AppAvailabilityService {
     return this.store$.pipe(
       select(localSelectors.getAvailabilityParams),
       switchMap(params => this.requestAvailability(params.productCode, params.fromWeek, params.toWeek, geocode, wrapZoneName).pipe(
-        map(response => response.payload.rows as AvailabilityDetailResponse[]),
-        tap(rows => {
-          if (rows.length === 0) {
-            throw new Error(`Availability service returned no data for ${geocode}`);
-          }
-        })
+        map(response => response.payload.rows as AvailabilityDetailResponse[])
       ))
     );
   }
