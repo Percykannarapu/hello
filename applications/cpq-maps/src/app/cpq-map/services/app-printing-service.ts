@@ -30,7 +30,7 @@ export class AppPrintingService {
     siteGraphics.forEach(g => delete g.attributes['OBJECTID']);
     
     const printFeatures: PrintModel = { 
-      clientName: 'Buddy \'s Pizza',
+      clientName: payload.clientName,
       layerSource: payload.layerSource, 
       siteFeatures: siteGraphics.toArray(), 
       shadingFeatures: shadingGraphics.toArray(), 
