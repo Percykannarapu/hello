@@ -13,7 +13,7 @@ export interface PrintPayload {
   radius: number;
   inHomeDate: string;
   reportName: string;
-  rfp: string;
+  rfpNumber: string;
   mediaPlanId: number;
   tradeArea: string;
   userEmail: string;
@@ -29,7 +29,7 @@ export interface FullPayload {
   radius: number;
   inHomeDate: string;
   reportName: string;
-  rfp: string;
+  rfpNumber: string;
   mediaPlanId: number;
   tradeArea: string;
   userEmail: string;

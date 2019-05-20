@@ -19,6 +19,7 @@ import { RfpUiEditWrapActions, RfpUiEditWrapActionTypes } from './rfpUiEditWrap/
 import { RfpUiEditWrapService } from '../services/rfpEditWrap-service';
 import { AppMessagingService } from '../services/app-messaging.service';
 import { AppPrintingService } from '../services/app-printing-service';
+import { groupByExtended } from '@val/common';
 
 @Injectable()
 export class AppEffects {
@@ -207,8 +208,10 @@ export class AppEffects {
   @Effect()
   exportMaps$ = this.actions$.pipe(
     ofType<ExportMaps>(SharedActionTypes.ExportMaps),
-    withLatestFrom(this.store$.pipe(select(localSelectors.getPrintParams)), this.store$.pipe(select(localSelectors.getSharedState))),
-    switchMap(([action, printParams, shared]) => {
+    withLatestFrom(this.store$.pipe(select(localSelectors.getPrintParams)), this.store$.pipe(select(localSelectors.getSharedState)), this.store$.pipe(select(localSelectors.getAvailabilityParams))),
+    switchMap(([action, printParams, shared, dates]) => {
+      this.appPrintingService.firstIHD = dates.fromDate.toLocaleDateString();
+      this.appPrintingService.lastIHD = dates.toDate.toLocaleDateString();
       if (shared.isWrap){
         printParams.layerSource = this.configService.layers['wrap'].serviceUrl;
         printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
@@ -231,18 +234,29 @@ export class AppEffects {
   
   private parseLocations(state: FullState) : SiteInformation[] {
     const coordinates: Array<SiteInformation> = [];
+    const entities = (state.rfpUiEditDetail.ids as number[]).map(i => state.rfpUiEditDetail.entities[i]);
+    const siteIHD = groupByExtended(entities, val => val.fkSite, val => val.ihDate.valueOf());
+    const siteDates = new Map<Number, string>();
+    let uniques: Set<number>;
+    siteIHD.forEach((v, k) => {
+      v.sort();
+      uniques = new Set(v);
+      const ihdString = Array.from(uniques).map(d => new Date(d).toLocaleDateString()).join(',');
+      siteDates.set(k, ihdString);
+    });
+
     for (const id of state.rfpUiEdit.ids) {
-      const currentIHD = new Date (state.rfpUiEditDetail.entities[id].ihDate).toLocaleDateString();
-      const ihdList = state.rfpUiEditDetail.entities[id];
-      // console.log('ihdList::', ihdList);
+      const sfdcSiteId = state.rfpUiEdit.entities[id].siteId;
+      if (siteDates.has(sfdcSiteId)){
       coordinates.push({
         coordinates: { x: state.rfpUiEdit.entities[id].siteLong, y: state.rfpUiEdit.entities[id].siteLat },
         name: state.rfpUiEdit.entities[id].siteName,
         radius: state.shared.radius,
-        siteId: state.rfpUiEdit.entities[id].siteId,
+        siteId: sfdcSiteId,
         siteRef: Number(id),
-        inHomeDate: currentIHD,
+        inHomeDate: siteDates.get(sfdcSiteId),
       });
+      }
     }
     return coordinates;
   }

@@ -35,7 +35,7 @@ export class ConfigService {
         labelExpression: '$feature.wrap_name',
         labelFontSizeOffset: 2
       },
-      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/WRAP_Top_Vars_Portal_Copy_All_Data/FeatureServer/0'
+      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/WRAP_Top_Vars_Portal_Copy_All_Data/FeatureServer/0'
     },
     zip: {
       group: {
@@ -63,7 +63,7 @@ export class ConfigService {
         labelExpression: '$feature.geocode',
         labelFontSizeOffset: 2
       },
-      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_CopyAllData/FeatureServer/0'
+      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_CopyAllData/FeatureServer/0'
     },
     atz: {
       group: {
@@ -90,7 +90,7 @@ export class ConfigService {
         popUpFields: [],
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
       },
-      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_CopyAllData/FeatureServer/0'
+      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_CopyAllData/FeatureServer/0'
 
     },
     digital_atz: {

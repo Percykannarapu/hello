@@ -1,6 +1,6 @@
 import { ComponentFactoryResolver, ElementRef, Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, groupBy, mapBy, UniversalCoordinates } from '@val/common';
+import { calculateStatistics, mapBy, UniversalCoordinates, groupByExtended } from '@val/common';
 import { ColorPalette, EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, getColorPalette, MapSymbols, SetLayerLabelExpressions } from '@val/esri';
 import { take } from 'rxjs/operators';
 import { RfpUiEditWrap } from 'src/app/val-modules/mediaexpress/models/RfpUiEditWrap';
@@ -271,9 +271,8 @@ export class AppLayerService {
    private shadeByWrapZone(state: FullState) {
       this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
       const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
-      const sitesByWrapZone: Map<string, string> = new Map<string, string>();
       const allZones = [];
-      // const hhcByWrapZone: Map<string, number[]> = new Map<string, number[]> ();
+      const sitesByWrapZone: Map<string, string> = new Map<string, string>();
       if (state.rfpUiEditWrap.ids != null && state.rfpUiEditWrap.ids.length > 0){
          for (const id in state.rfpUiEditWrap.ids){
             if (state.rfpUiEditWrap.entities[id] != null){
@@ -295,9 +294,6 @@ export class AppLayerService {
 
          }
       }
-      const zoneArray = groupBy(allZones, 'wrapZone');
-      // console.log('grouppedArray::', zoneArray);
-
       let count: number = 0;
       const wrapZones = this.editDetailService.getEditDetailsByWrapZone(state);
       for (const wrapZone of Array.from(wrapZones.keys())) {
@@ -463,11 +459,16 @@ export class AppLayerService {
    }
 
    private setHouseholdCount(state){
+      const entities = (state.rfpUiEditDetail.ids as number[]).map(i => state.rfpUiEditDetail.entities[i]);
+      const wrapCounts = groupByExtended(entities, item => item.wrapZone, item => item.households);
       if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
          for (const id in state.rfpUiEditDetail.ids){
             if (state.rfpUiEditDetail.entities[id] != null){
                if (state.shared.shadingType === shadingType.WRAP_ZONE){
-                  this.geoHHC.set(state.rfpUiEditDetail.entities[id].wrapZone, state.rfpUiEditDetail.entities[id].households.toString());
+                  wrapCounts.forEach((v, k) => {
+                        const val = v.reduce((p, c) => p + c);
+                        this.geoHHC.set(k, val.toString());
+                     });
                }
                else
                   this.geoHHC.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].households.toString());

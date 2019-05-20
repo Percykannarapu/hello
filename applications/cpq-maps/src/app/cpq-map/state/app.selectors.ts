@@ -75,11 +75,9 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
   const mpGroupId = mediaPlan['mediaPlanGroupId'];
   let tradeArea: string;
   const clientName = advertiserInfo['clientIdentifierName'];
-
   const fileName = productName + '_Map_' + rfpNumber + '_MP-' + mpId + '_G-' + mpGroupId + '_';
-
   if (shared.radius != null && shared.threshold != null){
-    tradeArea = 'Radius Miles: ' + shared.radius + ' or Threshold:(per site):' + shared.threshold ;
+    tradeArea = 'Radius Miles: ' + shared.radius + ' or Threshold(per site): ' + shared.threshold ;
   } else if (shared.radius != null && shared.threshold == null){
     tradeArea = 'Radius Miles: ' + shared.radius;
   } else if (shared.radius == null && shared.threshold != null){
@@ -90,7 +88,7 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
       clientName: clientName,
       radius: shared.radius,
       mediaPlanId: mpId, 
-      rfp: rfpNumber,
+      rfpNumber: rfpNumber,
       reportName: fileName,
       tradeArea: tradeArea,
       userEmail: shared.userEmail
@@ -98,7 +96,7 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
 
 };
 
-const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities,  buildParams);
+const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities, buildParams);
 
 const availabilityProjector = (rfpUiEditDetails: RfpUiEditDetail[], rfpUiReview: RfpUiReview[], advertiserInfo: AdvertiserInfo[]) => {
   const allInHomeDates = rfpUiEditDetails.reduce((p, c) => {

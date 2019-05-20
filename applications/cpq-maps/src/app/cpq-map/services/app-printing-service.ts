@@ -18,6 +18,9 @@ export class AppPrintingService {
     private appLayerService: AppLayerService,
     private esriGeoprocessorService: EsriGeoprocessorService,
     private config: AppConfig) {}
+  
+  public firstIHD;
+  public lastIHD;
 
   public createFeatureSet<T>(payload: Partial<FullPayload>) : Observable<{ value: T }> {
     const shadingGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.clone();
@@ -27,7 +30,7 @@ export class AppPrintingService {
     siteGraphics.forEach(g => delete g.attributes['OBJECTID']);
     
     const printFeatures: PrintModel = { 
-      clientName: payload.clientName,
+      clientName: 'Buddy \'s Pizza',
       layerSource: payload.layerSource, 
       siteFeatures: siteGraphics.toArray(), 
       shadingFeatures: shadingGraphics.toArray(), 
@@ -39,19 +42,15 @@ export class AppPrintingService {
     const servicePayload: PrintPayload = {
       sites: printFeatures,
       radius: payload.radius,
-      inHomeDate: '8/8/2019',
-      reportName: payload.reportName,
-      rfp: payload.rfp,
+      inHomeDate: this.firstIHD + '-' + this.lastIHD,
+      reportName: payload.reportName + this.firstIHD,
+      rfpNumber: payload.rfpNumber,
       mediaPlanId: payload.mediaPlanId,
       tradeArea: payload.tradeArea,
       userEmail: payload.userEmail,
       rootDirectory: this.config.printRootDirectory, 
     }; 
     console.log(JSON.stringify(servicePayload, null, 2));
-
     return this.esriGeoprocessorService.processJob(serviceUrl, servicePayload, 'Output_File');
   }
-
-  
-
 }
