@@ -91,7 +91,11 @@ export class SiteListContainerComponent implements OnInit {
     });
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
-    const newRequest = new ValGeocodingRequest(site, true);
+    let isRadii: boolean = false;
+    if (site.radius1 != null || site.radius2 != null || site.radius3 != null){
+      isRadii = true;
+    }
+    const newRequest = new ValGeocodingRequest(site, true, isRadii);
     delete newRequest['latitude'];
     delete newRequest['longitude'];
     this.processEditRequests(newRequest, newSiteType, site, true);
