@@ -8,8 +8,8 @@ import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEdit
 import { FieldMetaData, MapPopupComponent } from '../components/map-popup/map-popup.component';
 import { AvailabilityDetailResponse } from '../models/availability-detail-response';
 import { FullState } from '../state';
-import { DeleteRfpUiEditDetails, UpdateRfpUiEditDetails, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { DeleteRfpUiEditWraps, UpdateRfpUiEditWraps, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { UpdateRfpUiEditDetails, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { UpdateRfpUiEditWraps, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { SetShadingData } from '../state/shared/shared.actions';
 import { shadingType } from '../state/shared/shared.reducers';
 import { ConfigService } from './config.service';
@@ -749,27 +749,16 @@ export class AppLayerService {
      const existingEditDetails: Array<RfpUiEditDetail> = this.editDetailService.getEditDetailsByGeocode(geocode, state);
      const found: boolean = existingEditDetails.length > 0;
      if (found) {
-       const newIdSet = new Set(state.shared.newLineItemIds);
-       const adds = existingEditDetails.filter(d => newIdSet.has(d['@ref']));
-       const updates = existingEditDetails.filter(d => !newIdSet.has(d['@ref']));
-       const changes = updates.map(d => ({ id: d['@ref'], changes: { isSelected: !d.isSelected }}));
+       const changes = existingEditDetails.map(d => ({ id: d['@ref'], changes: { isSelected: !d.isSelected }}));
        if (state.shared.isWrap) {
          const existingEditWraps: RfpUiEditWrap[] = this.wrapService.getEditWrapZonesByZoneName(wrapZone, state);
-         const addWraps = existingEditWraps.filter(d => newIdSet.has(d['@ref']));
-         const updateWraps = existingEditWraps.filter(d => !newIdSet.has(d['@ref']));
-         const changeWraps = updateWraps.map(w => ({ id: w['@ref'], changes: {isSelected: !w.isSelected}}));
+         const changeWraps = existingEditWraps.map(w => ({ id: w['@ref'], changes: {isSelected: !w.isSelected}}));
          if (changeWraps.length > 0) {
            this.store$.dispatch(new UpdateRfpUiEditWraps({ rfpUiEditWraps: changeWraps }));
-         }
-         if (addWraps.length > 0) {
-           this.store$.dispatch(new DeleteRfpUiEditWraps({ ids: addWraps.map(a => a['@ref']) }));
          }
        }
        if (changes.length > 0) {
          this.store$.dispatch(new UpdateRfpUiEditDetails({ rfpUiEditDetails: changes }));
-       }
-       if (adds.length > 0) {
-         this.store$.dispatch(new DeleteRfpUiEditDetails( { ids: adds.map(a => a['@ref']), geocodes: adds.map(a => a.geocode) }));
        }
      } else {
        if (!state.shared.isWrap) {
