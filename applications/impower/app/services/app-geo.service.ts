@@ -611,7 +611,10 @@ export class AppGeoService {
          if (prefs != null)
          {
             //prefs.forEach(pref => console.debug("### MUSTCOVER pref: " + pref.pref + " = " + pref.val));
-            prefs.forEach(mustCoverPref => newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(mustCoverPref.val)]);
+            prefs.forEach(mustCoverPref => {
+              const prefsVal = mustCoverPref.val == null ? mustCoverPref.largeVal : mustCoverPref.val;
+              newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(prefsVal)];
+            });
             this.impGeoService.setMustCovers(newMustCovers);
          }
          //console.log("### newMustCovers.count = " + newMustCovers.length);
