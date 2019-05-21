@@ -29,6 +29,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService, MessagesModule, SpinnerModule } from 'primeng/primeng';
+import { PopupEffects } from './state/popup/popup.effects';
 import { SharedEffects } from './state/shared/shared.effects';
 import { HeaderBarComponent } from './components/header-bar/header-bar.component';
 import { AppMessagingService } from './services/app-messaging.service';
@@ -60,7 +61,7 @@ import { MapPopupComponent } from './components/map-popup/map-popup.component';
     ToastModule,
     MessagingModule.forRoot(AppMessagingService),
     StoreModule.forRoot(reducers, {metaReducers}),
-    EffectsModule.forRoot([SharedEffects, AppEffects]),
+    EffectsModule.forRoot([SharedEffects, AppEffects, PopupEffects]),
     StoreDevtoolsModule.instrument({
       name: 'CPQ Maps Application',
       logOnly: environment.production,

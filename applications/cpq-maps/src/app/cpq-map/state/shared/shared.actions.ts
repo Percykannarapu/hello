@@ -14,7 +14,6 @@ export enum SharedActionTypes {
   SetAppReady = '[Shared Actions] Set App Ready',
   SetIsWrap = '[Shared Actions] Set isWrap',
   SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled',
-  PopupGeoToggle = '[Shared Actions] Toggle Geo Through Map Popup',
   SaveMediaPlan = '[Shared Actions] Save Media Plan',
   SaveSucceeded = '[Shared Actions] Save Succeeded',
   SaveFailed = '[Shared Actions] Save Failed',
@@ -39,11 +38,6 @@ export class SetShadingData implements Action {
 export class SetShadingType implements Action {
   readonly type = SharedActionTypes.SetShadingType;
   constructor(public payload: { shadingType: shadingType }) { }
-}
-
-export class PopupGeoToggle implements Action {
-  readonly type = SharedActionTypes.PopupGeoToggle;
-  constructor(public payload: { eventName: string, availsInfo?: AvailabilityDetailResponse[] }) { }
 }
 
 export class ApplicationStartup implements Action {
@@ -125,7 +119,6 @@ export type SharedActions =
   | MapSetupFailed
   | GetMapData
   | GetMapDataFailed
-  | PopupGeoToggle
   | SaveMediaPlan
   | SaveSucceeded
   | SaveFailed

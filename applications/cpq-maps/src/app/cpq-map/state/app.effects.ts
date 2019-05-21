@@ -1,25 +1,26 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { AppConfig } from '../../app.config';
-import { AppMapService } from '../services/app-map.service';
-import { AppNavigationService } from '../services/app-navigation.service';
-import { localSelectors } from './app.selectors';
-import { ExportMaps, GetMapDataFailed, LoadEntityGraph, NavigateToReviewPage, SaveFailed, SaveSucceeded, SetAppReady, SharedActions, SharedActionTypes } from './shared/shared.actions';
-import { catchError, concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { merge, of } from 'rxjs';
 import { select, Store } from '@ngrx/store';
-import { FullState, LocalState } from './index';
-import { SetSelectedLayer } from '@val/esri';
-import { RfpUiEditDetailActions, RfpUiEditDetailActionTypes } from './rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { AppLayerService, SiteInformation } from '../services/app-layer-service';
-import { EntityHelper } from '../services/entity-helper-service';
-import { ConfigService } from '../services/config.service';
-import { RfpUiEditWrapActions, RfpUiEditWrapActionTypes } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
-import { RfpUiEditWrapService } from '../services/rfpEditWrap-service';
-import { AppMessagingService } from '../services/app-messaging.service';
-import { AppPrintingService } from '../services/app-printing-service';
 import { groupByExtended } from '@val/common';
+import { SetSelectedLayer } from '@val/esri';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { merge, of } from 'rxjs';
+import { catchError, concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { AppConfig } from '../../app.config';
+import { AppLayerService, SiteInformation } from '../services/app-layer-service';
+import { AppMapService } from '../services/app-map.service';
+import { AppMessagingService } from '../services/app-messaging.service';
+import { AppNavigationService } from '../services/app-navigation.service';
+import { AppPopupService } from '../services/app-popup.service';
+import { AppPrintingService } from '../services/app-printing-service';
+import { ConfigService } from '../services/config.service';
+import { EntityHelper } from '../services/entity-helper-service';
+import { RfpUiEditWrapService } from '../services/rfpEditWrap-service';
+import { localSelectors } from './app.selectors';
+import { FullState, LocalState } from './index';
+import { RfpUiEditDetailActions, RfpUiEditDetailActionTypes } from './rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { RfpUiEditWrapActions, RfpUiEditWrapActionTypes } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { ExportMaps, GetMapDataFailed, LoadEntityGraph, NavigateToReviewPage, SaveFailed, SaveSucceeded, SetAppReady, SharedActions, SharedActionTypes } from './shared/shared.actions';
 
 @Injectable()
 export class AppEffects {
@@ -35,7 +36,8 @@ export class AppEffects {
     private rfpUiEditWrapService: RfpUiEditWrapService,
     private messagingService: AppMessagingService,
     private navigateService: AppNavigationService,
-    private appPrintingService: AppPrintingService) { }
+    private appPrintingService: AppPrintingService,
+    private appPopupService: AppPopupService) { }
 
   // After the page and map loads, we go get data for the current Media Plan
   @Effect()
@@ -68,7 +70,7 @@ export class AppEffects {
     tap(([, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state), state.shared.analysisLevel)),
     tap(([, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state), state.shared.radius)),
     tap(([, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state))),
-    tap(([, state]) => this.appLayerService.setPopupData(state)),
+    tap(([, state]) => this.appPopupService.initializePopups(state)),
     tap(() => this.appMapService.setMapWatches())
   );
 
@@ -146,14 +148,6 @@ export class AppEffects {
     tap(([action, state]) => this.rfpUiEditWrapService.toggleWrapZoneGeos(action.payload.rfpUiEditWraps, state))
   );
 
-  // Handle the map popup button to toggle geos on and off
-  @Effect({dispatch: false})
-  popupGeoToggle$ = this.actions$.pipe(
-    ofType(SharedActionTypes.PopupGeoToggle),
-    withLatestFrom(this.fullStore$.pipe(select(state => state))),
-    tap(([action, state]) => this.appLayerService.onPopupToggleAction(action.payload.eventName, state, action.payload.availsInfo))
-  );
-
   @Effect()
   dataRetrievalFailure$ = this.actions$.pipe(
     ofType(SharedActionTypes.GetMapDataFailed),
@@ -209,7 +203,7 @@ export class AppEffects {
   exportMaps$ = this.actions$.pipe(
     ofType<ExportMaps>(SharedActionTypes.ExportMaps),
     withLatestFrom(this.store$.pipe(select(localSelectors.getPrintParams)), this.store$.pipe(select(localSelectors.getSharedState)), this.store$.pipe(select(localSelectors.getAvailabilityParams))),
-    switchMap(([action, printParams, shared, dates]) => {
+    switchMap(([, printParams, shared, dates]) => {
       this.appPrintingService.firstIHD = dates.fromDate.toLocaleDateString();
       this.appPrintingService.lastIHD = dates.toDate.toLocaleDateString();
       if (shared.isWrap){

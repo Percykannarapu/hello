@@ -1,3 +1,4 @@
+import { PopupActions, PopupActionTypes } from '../popup/popup.actions';
 import { DeleteRfpUiEditDetail, DeleteRfpUiEditDetails, RfpUiEditDetailActionTypes, UpdateRfpUiEditDetail, UpdateRfpUiEditDetails, UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { UpdateRfpUiEditWraps } from '../rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 import { SharedActions, SharedActionTypes, SetLegendHTML } from './shared.actions';
@@ -47,7 +48,7 @@ const initialState: SharedState = {
    legendUpdateCounter: 0
 };
 
-type ReducerActions = SharedActions |
+type ReducerActions = SharedActions | PopupActions |
   UpsertRfpUiEditDetail | UpsertRfpUiEditDetails |
   UpdateRfpUiEditDetail | UpdateRfpUiEditDetails |
   DeleteRfpUiEditDetail | DeleteRfpUiEditDetails;
@@ -134,7 +135,7 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
 
       case SharedActionTypes.SetAppReady:
          return { ...state, appReady: action.payload };
-      case SharedActionTypes.PopupGeoToggle:
+      case PopupActionTypes.PopupGeoToggle:
          return { ...state, popupGeoToggle: state.popupGeoToggle + 1 };
       case SharedActionTypes.SetShadingType:
          return { ...state, shadingType: action.payload.shadingType };

@@ -5,6 +5,7 @@ import { RfpUiReview } from '../../val-modules/mediaexpress/models/RfpUiReview';
 import { LocalState } from './index';
 import { SharedState } from './shared/shared.reducers';
 import * as fromRfpUiEditDetail from './rfpUiEditDetail/rfp-ui-edit-detail.reducer';
+import * as fromRfpUiEditWrap from './rfpUiEditWrap/rfp-ui-edit-wrap.reducer';
 import * as fromMediaPlan from './mediaPlan/media-plan.reducer';
 import * as fromRfpUiReview from './rfpUiReview/rfp-ui-review.reducer';
 import * as fromMediaPlanGroup from './mediaPlanGroup/media-plan-group.reducer';
@@ -23,12 +24,14 @@ const getMediaPlanGroupState = createSelector(cpqSlice, state => state.mediaPlan
 const getRfpUiReviewState = createSelector(cpqSlice, state => state.rfpUiReview);
 const getRfpUiEditState = createSelector(cpqSlice, state => state.rfpUiEdit);
 const getAdvertiserInfoState = createSelector(cpqSlice, state => state.advertiserInfo);
+const getRfpUiEditWrapState = createSelector(cpqSlice, state => state.rfpUiEditWrap);
 const getShadingData = createSelector(cpqSlice, state => state.shared.shadingData);
 const getShadingType = createSelector(getSharedState, state => state.shadingType);
 const getRfpUiEditEntities = createSelector(getRfpUiEditState, fromRfpUiEdit.selectAll);
 const getRfpUiEditDetailEntities = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectAll);
 const getRfpUiEditDetailEntity = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectEntities);
 const getRfpUiEditDetailIds = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectIds);
+const getRfpUiEditWrapEntities = createSelector(getRfpUiEditWrapState, fromRfpUiEditWrap.selectAll);
 const getMediaPlanEntities = createSelector(getMediaPlanState, fromMediaPlan.selectAll);
 const getMediaPlanGroupEntities = createSelector(getMediaPlanGroupState, fromMediaPlanGroup.selectAll);
 const getRfpUiReviewEntities = createSelector(getRfpUiReviewState, fromRfpUiReview.selectAll);
@@ -138,6 +141,8 @@ export const localSelectors = {
   getRfpUiEditDetailIds,
   getSharedState,
   getRfpUiEditEntities,
+  getRfpUiEditWrapEntities,
+  getRfpUiReviewEntities,
   getShadingData,
   getShadingType,
   getPrintParams,

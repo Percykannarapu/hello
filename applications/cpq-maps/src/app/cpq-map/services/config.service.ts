@@ -2,6 +2,12 @@ import { Injectable } from '@angular/core';
 import { AllLayers } from '@val/esri';
 import { environment } from '../../../environments/environment';
 
+export interface FieldMetaData {
+  fieldType: 'string' | 'numeric' | 'percent';
+  fieldLabel: string;
+  fieldName: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -15,6 +21,25 @@ export class ConfigService {
     'topo-vector',
     'satellite',
     'oceans'
+  ];
+
+  public popupFields: FieldMetaData[] = [
+    { fieldName: 'zip', fieldLabel: 'Zip', fieldType: 'string', },
+    { fieldName: 'pricing_name', fieldLabel: 'Pricing Market', fieldType: 'string', },
+    { fieldName: 'sdm_name', fieldLabel: 'Shared Distribution Market', fieldType: 'string', },
+    { fieldName: 'wrap_name', fieldLabel: 'Redplum Wrap Zone', fieldType: 'string', },
+    { fieldName: 'dma_code', fieldLabel: 'DMA Code', fieldType: 'string', },
+    { fieldName: 'county', fieldLabel: 'County FIPS Code', fieldType: 'string', },
+    { fieldName: 'cl0c00', fieldLabel: '% CY HHs Familes With Related Children < 18 Yrs', fieldType: 'percent', },
+    { fieldName: 'cl2i0r', fieldLabel: '% CY HHs w/HH Inc $50K +', fieldType: 'percent', },
+    { fieldName: 'cl2i0p', fieldLabel: '% CY HHs w/HH Inc $75,000 +', fieldType: 'percent', },
+    { fieldName: 'cl0utw', fieldLabel: '% CY Owner Occupied Housing Units', fieldType: 'percent', },
+    { fieldName: 'cl2prb', fieldLabel: '% Pop Black Alone Non-Hisp', fieldType: 'percent', },
+    { fieldName: 'cl2prw', fieldLabel: '% Pop White Alone Non-Hisp', fieldType: 'percent', },
+    { fieldName: 'cl2i00', fieldLabel: 'CY Median Household Income', fieldType: 'numeric', },
+    { fieldName: 'cl2hwv', fieldLabel: 'CY Median Value, Owner OCC Housing Units', fieldType: 'numeric', },
+    { fieldName: 'hhld_w', fieldLabel: 'HouseHolds, Winter', fieldType: 'numeric', },
+    { fieldName: 'hhld_s', fieldLabel: 'HouseHolds, Summer', fieldType: 'numeric', },
   ];
 
   public layers: AllLayers = {

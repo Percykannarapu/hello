@@ -1,17 +1,12 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { Action, Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { AvailabilityDetailResponse } from '../../models/availability-detail-response';
 import { AppAvailabilityService, GeoStatus } from '../../services/app-availability.service';
+import { FieldMetaData } from '../../services/config.service';
 import { FullState } from '../../state';
-import { PopupGeoToggle } from '../../state/shared/shared.actions';
-
-export interface FieldMetaData {
-  fieldType: 'string' | 'numeric' | 'percent';
-  fieldLabel: string;
-  fieldName: string;
-}
+import { PopupGeoToggle, PopupNewGeoAdd } from '../../state/popup/popup.actions';
 
 type MapView = import('esri/views/MapView');
 type Feature = import ('esri/widgets/Feature');
@@ -85,7 +80,19 @@ export class MapPopupComponent implements OnInit, OnDestroy {
   }
 
   onClick() {
-    this.store$.dispatch(new PopupGeoToggle({ eventName: 'toggle-selection', availsInfo: this.availsResult }));
+    let action: Action;
+    const geocode = this.selectedAttributes['geocode'];
+    const wrapName = this.selectedAttributes['wrap_name'];
+    switch (this.status) {
+      case GeoStatus.Selected:
+      case GeoStatus.Unselected:
+        action = new PopupGeoToggle({ geocode, wrapName });
+        break;
+      case GeoStatus.AvailabilityCheckRequired:
+        action = new PopupNewGeoAdd({ geocode, wrapName, availsInfo: this.availsResult });
+        break;
+    }
+    this.store$.dispatch(action);
     this.closePopup.emit();
   }
 }
