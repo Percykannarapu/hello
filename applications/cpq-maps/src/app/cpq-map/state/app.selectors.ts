@@ -74,7 +74,7 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
   const mpId = shared.activeMediaPlanId;
   const mpGroupId = mediaPlan['mediaPlanGroupId'];
   let tradeArea: string;
-  const clientName = advertiserInfo['clientIdentifierName'];
+  const clientName = advertiserInfo[0].clientIdentifierName;
   const fileName = productName + '_Map_' + rfpNumber + '_MP-' + mpId + '_G-' + mpGroupId + '_';
   if (shared.radius != null && shared.threshold != null){
     tradeArea = 'Radius Miles: ' + shared.radius + ' or Threshold(per site): ' + shared.threshold ;

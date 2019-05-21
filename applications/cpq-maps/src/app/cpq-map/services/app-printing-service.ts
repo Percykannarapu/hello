@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { EsriLayerService, EsriApi, EsriGeoprocessorService } from '@val/esri';
-import { ConfigService } from './config.service';
 import { AppLayerService } from './app-layer-service';
 import { Observable } from 'rxjs';
 import { AppConfig } from 'src/app/app.config';
@@ -14,7 +13,6 @@ import { PrintModel, PrintPayload, FullPayload } from '../state/app.interfaces';
 export class AppPrintingService {
 
   constructor (private esriLayerService: EsriLayerService,
-    private configService: ConfigService,
     private appLayerService: AppLayerService,
     private esriGeoprocessorService: EsriGeoprocessorService,
     private config: AppConfig) {}
@@ -28,7 +26,7 @@ export class AppPrintingService {
     const definitionExpression = this.appLayerService.boundaryExpression;
     const siteGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getFeatureLayer('Project Sites').source;
     siteGraphics.forEach(g => delete g.attributes['OBJECTID']);
-    
+
     const printFeatures: PrintModel = { 
       clientName: payload.clientName,
       layerSource: payload.layerSource, 
