@@ -34,8 +34,8 @@ const initialState: SharedState = {
    activeMediaPlanId: null,
    radius: null,
    analysisLevel: null,
-   threshold: '50,000', // hardcoding until we set them from Salesforce
-   userEmail: 'kannarapup@valassis.com',
+   threshold: null, 
+   userEmail: '',
    appReady: false,
    isSaving: false,
    isWrap: false,
@@ -125,8 +125,9 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
            groupId: action.payload.groupId,
            activeMediaPlanId: action.payload.mediaPlanId,
            radius: action.payload.radius,
-           analysisLevel: action.payload.analysisLevel
-         };
+           analysisLevel: action.payload.analysisLevel,
+           threshold: action.payload.threshold,
+          };
 
       case SharedActionTypes.SetIsDistrQtyEnabled:
          return { ...state, isDistrQtyEnabled: action.payload.isDistrQtyEnabled };

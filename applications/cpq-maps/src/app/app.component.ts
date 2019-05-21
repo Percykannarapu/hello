@@ -24,13 +24,14 @@ export class AppComponent implements OnInit {
     const mediaPlanId = Number(el.getAttribute('mediaPlanId'));
     const analysisLevel: string = el.getAttribute('analysisLevel') || 'atz';
     const radius = Number(el.getAttribute('radius'));
+    const threshold: string = el.getAttribute('threshold');
 
     this.store$.pipe(
       select(selectors.getMapReady),
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.store$.dispatch(new ApplicationStartup({ groupId, mediaPlanId, radius, analysisLevel }));
+      this.store$.dispatch(new ApplicationStartup({ groupId, mediaPlanId, radius, analysisLevel, threshold }));
       this.store$.dispatch(new SetSelectedLayer({ layerId: this.configService.layers[analysisLevel.toLowerCase()].boundaries.id }));
     });
   }
