@@ -183,6 +183,7 @@ export class AppLayerService {
     } else {
       result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
     }
+    result.overwriteActions = true;
    return new EsriApi.PopupTemplate(result);
   }
 
