@@ -13,6 +13,7 @@ import { AppMessagingService } from '../services/app-messaging.service';
 import { AppNavigationService } from '../services/app-navigation.service';
 import { AppPopupService } from '../services/app-popup.service';
 import { AppPrintingService } from '../services/app-printing-service';
+import { AppShadingService } from '../services/app-shading.service';
 import { ConfigService } from '../services/config.service';
 import { EntityHelper } from '../services/entity-helper-service';
 import { RfpUiEditWrapService } from '../services/rfpEditWrap-service';
@@ -26,18 +27,19 @@ import { ExportMaps, GetMapDataFailed, LoadEntityGraph, NavigateToReviewPage, Sa
 export class AppEffects {
 
   constructor(private actions$: Actions<SharedActions | RfpUiEditDetailActions | RfpUiEditWrapActions>,
-    private store$: Store<LocalState>,
-    private appConfig: AppConfig,
-    private configService: ConfigService,
-    private appLayerService: AppLayerService,
-    private appMapService: AppMapService,
-    private fullStore$: Store<FullState>,
-    private entityHelper: EntityHelper,
-    private rfpUiEditWrapService: RfpUiEditWrapService,
-    private messagingService: AppMessagingService,
-    private navigateService: AppNavigationService,
-    private appPrintingService: AppPrintingService,
-    private appPopupService: AppPopupService) { }
+              private store$: Store<LocalState>,
+              private appConfig: AppConfig,
+              private configService: ConfigService,
+              private appLayerService: AppLayerService,
+              private appMapService: AppMapService,
+              private fullStore$: Store<FullState>,
+              private entityHelper: EntityHelper,
+              private rfpUiEditWrapService: RfpUiEditWrapService,
+              private messagingService: AppMessagingService,
+              private navigateService: AppNavigationService,
+              private appPrintingService: AppPrintingService,
+              private appPopupService: AppPopupService,
+              private appShadingService: AppShadingService) { }
 
   // After the page and map loads, we go get data for the current Media Plan
   @Effect()
@@ -66,7 +68,7 @@ export class AppEffects {
     ofType(SharedActionTypes.SetAppReady),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
     tap(([, state]) => this.appLayerService.updateLabels(state)),
-    tap(([, state]) => this.appLayerService.shadeMap(state)),
+    tap(([, state]) => this.appShadingService.shadeMap(state)),
     tap(([, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state), state.shared.analysisLevel)),
     tap(([, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state), state.shared.radius)),
     tap(([, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state))),
@@ -84,7 +86,7 @@ export class AppEffects {
   setMapShading = this.actions$.pipe(
     ofType(SharedActionTypes.SetShadingType),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
-    tap(([, state]) => this.appLayerService.shadeMap(state)),
+    tap(([, state]) => this.appShadingService.shadeMap(state)),
   );
 
   @Effect()
@@ -131,13 +133,13 @@ export class AppEffects {
       return action.payload.geocodes;
     }),
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
-    tap(([geocodes, state]) => this.appLayerService.toggleGeoShading([], state, geocodes))
+    tap(([geocodes, state]) => this.appShadingService.toggleGeoShading([], state, geocodes))
   );
 
   @Effect({ dispatch: false })
   reShadeNonWrap$ = merge(this.editUpsert$, this.editsUpsert$, this.editUpdate$, this.editsUpdate$).pipe(
     withLatestFrom(this.fullStore$.pipe(select(state => state))),
-    tap(([edits, state]) => this.appLayerService.toggleGeoShading(edits, state))
+    tap(([edits, state]) => this.appShadingService.toggleGeoShading(edits, state))
   );
 
   // If RfpUiEditWraps are changed we have to reshade the map

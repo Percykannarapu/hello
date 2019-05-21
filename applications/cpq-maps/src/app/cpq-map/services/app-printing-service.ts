@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
-import { EsriLayerService, EsriApi, EsriGeoprocessorService } from '@val/esri';
-import { AppLayerService } from './app-layer-service';
+import { EsriLayerService, EsriGeoprocessorService } from '@val/esri';
 import { Observable } from 'rxjs';
 import { AppConfig } from 'src/app/app.config';
 import { PrintModel, PrintPayload, FullPayload } from '../state/app.interfaces';
-
-
+import { AppShadingService } from './app-shading.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +11,7 @@ import { PrintModel, PrintPayload, FullPayload } from '../state/app.interfaces';
 export class AppPrintingService {
 
   constructor (private esriLayerService: EsriLayerService,
-    private appLayerService: AppLayerService,
+    private appShadingService: AppShadingService,
     private esriGeoprocessorService: EsriGeoprocessorService,
     private config: AppConfig) {}
   
@@ -23,7 +21,7 @@ export class AppPrintingService {
   public createFeatureSet<T>(payload: Partial<FullPayload>) : Observable<{ value: T }> {
     const shadingGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.clone();
     shadingGraphics.forEach(g => g.geometry = null);
-    const definitionExpression = this.appLayerService.boundaryExpression;
+    const definitionExpression = this.appShadingService.boundaryExpression;
     const siteGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getFeatureLayer('Project Sites').source;
     siteGraphics.forEach(g => delete g.attributes['OBJECTID']);
 
