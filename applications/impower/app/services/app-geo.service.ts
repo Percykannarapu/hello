@@ -29,6 +29,7 @@ import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { ConfirmationService } from 'primeng/primeng';
+import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
 
@@ -77,11 +78,18 @@ export class AppGeoService {
       this.setupMapClickEventHandler();
 
       // Detect changes in must covers list and call ensureMustCovers
-      this.allMustCovers$.subscribe(() => {
+      const projectReady$ = this.store$.pipe(select(projectIsReady));
+      this.allMustCovers$.pipe(
+        withLatestFrom(projectReady$),
+        filter(([, isReady]) => isReady)
+      ).subscribe(() => {
         this.ensureMustCovers();
       });
 
-      this.locationService.storeObservable.subscribe(() => {
+      this.locationService.storeObservable.pipe(
+        withLatestFrom(projectReady$),
+        filter(([, isReady]) => isReady)
+      ).subscribe(() => {
         this.ensureMustCovers();
       });
 
