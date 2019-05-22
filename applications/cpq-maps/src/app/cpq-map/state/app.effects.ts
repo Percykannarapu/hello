@@ -206,6 +206,7 @@ export class AppEffects {
     ofType<ExportMaps>(SharedActionTypes.ExportMaps),
     withLatestFrom(this.store$.pipe(select(localSelectors.getPrintParams)), this.store$.pipe(select(localSelectors.getSharedState)), this.store$.pipe(select(localSelectors.getAvailabilityParams))),
     switchMap(([, printParams, shared, dates]) => {
+      // this.store$.dispatch(new StartBusyIndicator({ key: 'Exporting Maps', message: 'Generating map book' })),
       this.appPrintingService.firstIHD = dates.fromDate.toLocaleDateString();
       this.appPrintingService.lastIHD = dates.toDate.toLocaleDateString();
       if (shared.isWrap){
