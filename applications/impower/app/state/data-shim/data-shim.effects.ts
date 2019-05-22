@@ -8,7 +8,8 @@ import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComple
 import { selectGeoAttributeEntities } from '../../impower-datastore/state/impower-datastore.selectors';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
-import { CalculateMetrics, CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged, ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess } from './data-shim.actions';
+import { CalculateMetrics, CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged, 
+  ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess, ProjectLoadFinish } from './data-shim.actions';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimEffects {
@@ -85,10 +86,16 @@ export class DataShimEffects {
     concatMap(([action]) => [new CalculateMetrics(), new ProjectLoadSuccess(action.payload)])
   );
 
-  @Effect({ dispatch: false })
+  @Effect()
   loadSuccess$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectLoadSuccess),
-    tap(() => this.appDataShimService.onLoadSuccess())
+    tap(() => this.appDataShimService.onLoadSuccess()),
+    map(() => new ProjectLoadFinish())
+  );
+
+  @Effect({ dispatch: false })
+  ProjectLoadFinish$ = this.actions$.pipe(
+    ofType(DataShimActionTypes.ProjectLoadFinish)
   );
 
   filterableGeos$ = this.appDataShimService.currentGeos$.pipe(
