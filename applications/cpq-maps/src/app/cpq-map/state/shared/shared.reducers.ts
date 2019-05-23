@@ -16,6 +16,8 @@ export interface SharedState {
    radius: number;
    analysisLevel: string;
    threshold: string;
+   promoDateFrom: Date;
+   promoDateTo: Date;
    appReady: boolean;
    isSaving: boolean;
    isWrap: boolean;
@@ -33,7 +35,9 @@ const initialState: SharedState = {
    activeMediaPlanId: null,
    radius: null,
    analysisLevel: null,
-   threshold: null, 
+   threshold: null,
+   promoDateFrom: null,
+   promoDateTo: null,
    appReady: false,
    isSaving: false,
    isWrap: false,
@@ -125,6 +129,8 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
            radius: action.payload.radius,
            analysisLevel: action.payload.analysisLevel,
            threshold: action.payload.threshold,
+           promoDateFrom: action.payload.promoDateFrom,
+           promoDateTo: action.payload.promoDateTo,
           };
 
       case SharedActionTypes.SetIsDistrQtyEnabled:

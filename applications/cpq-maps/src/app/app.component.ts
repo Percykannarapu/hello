@@ -14,7 +14,7 @@ import { take } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
 
-  constructor(private elementRef: ElementRef,
+  constructor(private elementRef: ElementRef<HTMLDivElement>,
               private store$: Store<FullState>,
               private configService: ConfigService) {}
 
@@ -25,15 +25,16 @@ export class AppComponent implements OnInit {
     const analysisLevel: string = el.getAttribute('analysisLevel') || 'atz';
     const radius = Number(el.getAttribute('radius'));
     const threshold: string = el.getAttribute('threshold');
+    const promoDateFrom: Date = new Date(Number(el.getAttribute('promoDateFrom')));
+    const promoDateTo: Date = new Date(Number(el.getAttribute('promoDateTo')));
 
     this.store$.pipe(
       select(selectors.getMapReady),
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.store$.dispatch(new ApplicationStartup({ groupId, mediaPlanId, radius, analysisLevel, threshold }));
+      this.store$.dispatch(new ApplicationStartup({ groupId, mediaPlanId, radius, analysisLevel, threshold, promoDateFrom, promoDateTo }));
       this.store$.dispatch(new SetSelectedLayer({ layerId: this.configService.layers[analysisLevel.toLowerCase()].boundaries.id }));
     });
   }
-
 }

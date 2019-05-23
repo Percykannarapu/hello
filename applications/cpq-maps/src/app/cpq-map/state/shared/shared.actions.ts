@@ -42,7 +42,7 @@ export class SetShadingType implements Action {
 
 export class ApplicationStartup implements Action {
   readonly type = SharedActionTypes.ApplicationStartup;
-  constructor(public payload: { groupId: number, mediaPlanId: number, radius: number, analysisLevel: string, threshold: string }) { }
+  constructor(public payload: { groupId: number, mediaPlanId: number, radius: number, analysisLevel: string, threshold: string, promoDateFrom: Date, promoDateTo: Date }) { }
 }
 
 export class MapSetupComplete implements Action {

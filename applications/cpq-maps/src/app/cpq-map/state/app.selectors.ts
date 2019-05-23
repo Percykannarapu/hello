@@ -96,23 +96,15 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
 
 const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities, buildParams);
 
-const availabilityProjector = (rfpUiEditDetails: RfpUiEditDetail[], rfpUiReview: RfpUiReview[], advertiserInfo: AdvertiserInfo[]) => {
+const availabilityProjector = (shared: SharedState, rfpUiEditDetails: RfpUiEditDetail[], rfpUiReview: RfpUiReview[]) => {
   const allInHomeDates = rfpUiEditDetails.reduce((p, c) => {
     if (c.ihDate != null) p.push(c.ihDate.valueOf());
     return p;
   }, []);
-  const allInHomeWeekFroms = advertiserInfo.reduce((p, c) => {
-    if (c.ihwFrom != null) p.push(c.ihwFrom.valueOf());
-    return p;
-  }, []);
-  const allInHomeWeekTos = advertiserInfo.reduce((p, c) => {
-    if (c.ihwTo != null) p.push(c.ihwTo.valueOf());
-    return p;
-  }, []);
   const fromDate = new Date(Math.min(...allInHomeDates));
   const toDate = new Date(Math.max(...allInHomeDates));
-  const fromWeek = new Date(Math.min(...allInHomeWeekFroms));
-  const toWeek = new Date(Math.max(...allInHomeWeekTos));
+  const fromWeek = shared.promoDateFrom;
+  const toWeek = shared.promoDateTo;
   const productCode = rfpUiReview != null && rfpUiReview.length > 0 ? rfpUiReview[0].productCd : '';
   return {
     productCode,
@@ -123,7 +115,7 @@ const availabilityProjector = (rfpUiEditDetails: RfpUiEditDetail[], rfpUiReview:
   };
 };
 
-const getAvailabilityParams = createSelector(getRfpUiEditDetailEntities, getRfpUiReviewEntities, getAdvertiserInfoEntities, availabilityProjector);
+const getAvailabilityParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getRfpUiReviewEntities, availabilityProjector);
 
 export const localSelectors = {
   getAppReady,
