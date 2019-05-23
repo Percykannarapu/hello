@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { groupBy, mapBy } from '@val/common';
 import { EsriApi, EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
-import { mapBy } from '@val/common';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { RfpUiEditWrap } from '../../val-modules/mediaexpress/models/RfpUiEditWrap';
 import { RfpUiReview } from '../../val-modules/mediaexpress/models/RfpUiReview';
@@ -35,38 +37,45 @@ export class AppGeoService {
   }
 
   public addNewGeo(geocode: string, wrapName: string, availsInfo: AvailabilityDetailResponse[], arbitraryReviewDetail: RfpUiReview, isWrap: boolean, analysisLevel: string) {
+    const query: __esri.Query = new EsriApi.Query();
+    query.outFields = ['geocode'];
     if (isWrap) {
-      this.createNewRfpUiEditWrap(wrapName, availsInfo);
-      const query: __esri.Query = new EsriApi.Query();
-      query.outFields = ['geocode'];
       query.where = `wrap_name = '${wrapName}'`;
-      this.queryService.executeQuery(this.configService.layers['zip'].boundaries.id, query, false).subscribe(res => {
-        const wrapGeocodes: Array<string> = res.features.map(f => f.getAttribute('geocode'));
-        const geoInClause = wrapGeocodes.map(w => `'${w}'`).join(',');
-        const pointQuery = new EsriApi.Query();
-        pointQuery.outFields = ['geocode'];
-        pointQuery.where = `geocode IN (${geoInClause})`;
-        this.queryService.executeQuery(this.configService.layers['zip'].centroids.id, pointQuery, true).subscribe(pointRes => {
-          const editDetailsInput = pointRes.features.map(f => ({
-            geocode: f.getAttribute('geocode'),
-            point: f.geometry as __esri.Point,
-            wrapZone: wrapName,
-            zip: f.getAttribute('geocode')
-          }));
-          this.createNewRfpUiEditDetails(editDetailsInput, arbitraryReviewDetail, availsInfo);
+      this.queryAndCreateDetails(query, 'zip', arbitraryReviewDetail, availsInfo, wrapName).subscribe(results => {
+        const newWrapDetails = [];
+        groupBy(results, 'fkSite').forEach((details) => {
+          newWrapDetails.push(this.createNewRfpUiEditWrap(details));
         });
+        if (newWrapDetails.length > 0) {
+          this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: newWrapDetails }));
+        }
+        if (results.length > 0) {
+          this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: results }));
+        }
       });
     } else {
-      const query = new EsriApi.Query();
-      query.outFields = ['geocode'];
       query.where = `geocode = '${geocode}'`;
-      this.queryService.executeQuery(this.configService.layers[analysisLevel].centroids.id, query, true).subscribe(res => {
-        this.createNewRfpUiEditDetails([{ geocode: geocode, point: res.features[0].geometry as __esri.Point, zip: geocode.substr(0, 5) }], arbitraryReviewDetail, availsInfo);
+      this.queryAndCreateDetails(query, analysisLevel, arbitraryReviewDetail, availsInfo).subscribe(details => {
+        this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: details }));
       });
     }
   }
 
-  private createNewRfpUiEditDetails(editDetailInput: { geocode: string, point: __esri.Point, wrapZone?: string, zip?: string }[], arbitraryReviewDetail: RfpUiReview, availsInfo?: AvailabilityDetailResponse[]) {
+  private queryAndCreateDetails(query: __esri.Query, analysisLevel: string, review: RfpUiReview, availsInfo: AvailabilityDetailResponse[], wrapName?: string) : Observable<RfpUiEditDetail[]> {
+    return this.queryService.executeQuery(this.configService.layers[analysisLevel].centroids.id, query, true).pipe(
+      map(pointRes => {
+        const editDetailsInput = pointRes.features.map(f => ({
+          geocode: f.getAttribute('geocode'),
+          point: f.geometry as __esri.Point,
+          wrapZone: wrapName,
+          zip: f.getAttribute('geocode').substr(0, 5)
+        }));
+        return this.createNewRfpUiEditDetails(editDetailsInput, review, availsInfo);
+      })
+    );
+  }
+
+  private createNewRfpUiEditDetails(editDetailInput: { geocode: string, point: __esri.Point, wrapZone?: string, zip?: string }[], arbitraryReviewDetail: RfpUiReview, availsInfo?: AvailabilityDetailResponse[]) : RfpUiEditDetail[] {
     const availsByGeocode = mapBy(availsInfo, 'geocode');
     const newDetails: Array<RfpUiEditDetail> = [];
     editDetailInput.forEach(edi => {
@@ -74,6 +83,11 @@ export class AppGeoService {
       const closestSite: __esri.Graphic = this.findClosestSite(edi.point);
       const siteFk = Number(closestSite.getAttribute('siteFk'));
       const currentAvailsData = availsByGeocode.get(edi.geocode);
+      const ownerGroup = currentAvailsData
+        ? currentAvailsData.ownerGroup.toLowerCase() === 'advo'
+          ? 'Valassis'
+          : currentAvailsData.ownerGroup
+        : '';
       let distance = 0;
       if (EsriUtils.geometryIsPoint(closestSite.geometry)) {
         const line = new EsriApi.PolyLine({
@@ -89,7 +103,7 @@ export class AppGeoService {
       newDetail.mediaPlanId = arbitraryReviewDetail.mediaPlanId;
       newDetail.productName = arbitraryReviewDetail.sfdcProductName;
       newDetail.investment = 0;
-      newDetail.ownerGroup = currentAvailsData ? currentAvailsData.ownerGroup : '';
+      newDetail.ownerGroup = ownerGroup;
       newDetail.distribution = currentAvailsData ? Number(currentAvailsData.sharedHhcScheduled) : 0;
       if (edi.wrapZone != null)
         newDetail.wrapZone = edi.wrapZone;
@@ -98,20 +112,20 @@ export class AppGeoService {
       newDetail['@ref'] = this.newGeoId++;
       newDetails.push(newDetail);
     });
-
-    this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: newDetails }));
+    return newDetails;
   }
 
-  private createNewRfpUiEditWrap(wrapZone: string, availsInfo?: AvailabilityDetailResponse[]) {
+  private createNewRfpUiEditWrap(siteDetails: RfpUiEditDetail[]) : RfpUiEditWrap {
     const newWrap = new RfpUiEditWrap();
-    newWrap.wrapZone = wrapZone;
+    newWrap.wrapZone = siteDetails[0].wrapZone;
     newWrap.investment = 0;
+    newWrap.siteId = siteDetails[0].fkSite;
+    newWrap.siteName = siteDetails[0].siteName;
+    newWrap.ownerGroup = siteDetails[0].ownerGroup;
     newWrap['@ref'] = this.newGeoId++;
     newWrap.isSelected = true;
-    if (availsInfo != null) {
-      newWrap.distribution = availsInfo.reduce((p, c) => p + Number(c.sharedHhcScheduled), 0);
-    }
-    this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: [newWrap] }));
+    newWrap.distribution = siteDetails.reduce((p, c) => p + Number(c.distribution), 0);
+    return newWrap;
   }
 
   private findClosestSite(point: __esri.Point) : __esri.Graphic {

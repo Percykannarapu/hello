@@ -263,6 +263,9 @@
           "configurations": {
             "production": {
               "browserTarget": "cpq-maps:build:production"
+            },
+            "qa": {
+              "browserTarget": "cpq-maps:build:qa"
             }
           }
         },

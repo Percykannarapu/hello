@@ -61,7 +61,7 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
      const addPayload =  {
        products: [{
          product: {
-           name: adds[0].productName,
+           name: adds[0] ? adds[0].productName : '',
            geocodes: adds.map(a => ({ geocode: a.geocode }))
          }
        }]
