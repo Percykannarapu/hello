@@ -52,11 +52,12 @@ export class LegendComponent implements OnInit {
 
   private setupLegend(shadingData: Array<{key: string | Number, value: number[]}>, legendType: shadingType, uiEditEntities: RfpUiEdit[], uiEditDetailEntities: RfpUiEditDetail[]) {
     this.legendData = [];
-      shadingData.forEach(sd => {
+      for (const sd of shadingData) {
         const color = this.colorToHex(sd.value[0], sd.value[1], sd.value[2]);
         const hhc = this.getHHC(legendType, sd.key.toString(), uiEditEntities, uiEditDetailEntities);
+        if (hhc < 1) continue;
         this.legendData.push({ key: sd.key.toString(), value: color, hhc: hhc.toLocaleString() });
-      });
+      }
       this.cd.markForCheck();
       setTimeout(() => {
         const event = new Event('change');
