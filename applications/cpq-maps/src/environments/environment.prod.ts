@@ -3,7 +3,7 @@ import { EnvironmentData } from './environmentData';
 export const environment: EnvironmentData = {
   debugMode: false,
   environmentName: 'PROD',
-  fuseBaseUrl: 'https://services.valassislab.com/services/',
+  fuseBaseUrl: 'https://services.valassis.com/services/',
   production: true,
   esri: {
     portalServer: '',
@@ -27,5 +27,6 @@ export const environment: EnvironmentData = {
       boundary: '8dbaa84192c94b5eab3f4e685ba93af7',
       centroid: undefined
     }
-  }
+  },
+  portalUrl: 'https://gis.valassis.com'
 };

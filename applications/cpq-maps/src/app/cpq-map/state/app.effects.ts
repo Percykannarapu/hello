@@ -203,32 +203,18 @@ export class AppEffects {
     map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))
   );
 
-  @Effect()
+  @Effect() 
   exportMaps$ = this.actions$.pipe(
     ofType<ExportMaps>(SharedActionTypes.ExportMaps),
+    tap(() => this.store$.dispatch(new StartBusyIndicator({ key: 'Exporting Maps', message: 'Generating map book' }))),
     withLatestFrom(this.store$.pipe(select(localSelectors.getPrintParams)), this.store$.pipe(select(localSelectors.getSharedState)), this.store$.pipe(select(localSelectors.getAvailabilityParams))),
-    switchMap(([, printParams, shared, dates]) => {
-      // this.store$.dispatch(new StartBusyIndicator({ key: 'Exporting Maps', message: 'Generating map book' })),
-      this.appPrintingService.firstIHD = dates.fromDate.toLocaleDateString();
-      if (shared.isWrap){
-        printParams.layerSource = this.configService.layers['wrap'].serviceUrl;
-        printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
-        printParams.layerSourceLabelingExpression = this.configService.layers['wrap'].boundaries.labelExpression;
-      }
-      else{
-       if (this.appLayerService.analysisLevel === 'zip') {
-          printParams.layerSource = this.configService.layers['zip'].serviceUrl;
-          printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
-          printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
-       } else{
-          printParams.layerSource = this.configService.layers['atz'].serviceUrl;
-          printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
-          printParams.layerSourceLabelingExpression = this.configService.layers['atz'].boundaries.labelExpression;
-       }
-      }
-    return this.appPrintingService.createFeatureSet(printParams);
-    }
-  ));
+    switchMap(([, printParams, shared, dates]) => this.appPrintingService.setPrintParams(shared, printParams, dates.fromDate).pipe(
+      tap(() => this.store$.dispatch(new StopBusyIndicator({key: 'Exporting Maps'})))
+      // catchError(err => console.log('Error has occured while generating map book', err),
+      )),
+      map( results => console.log('results:::', results)));
+      // ,
+  
   
   private parseLocations(state: FullState) : SiteInformation[] {
     const coordinates: Array<SiteInformation> = [];

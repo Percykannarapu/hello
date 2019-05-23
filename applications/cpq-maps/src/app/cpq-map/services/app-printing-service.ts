@@ -4,6 +4,9 @@ import { Observable } from 'rxjs';
 import { AppConfig } from 'src/app/app.config';
 import { PrintModel, PrintPayload, FullPayload } from '../state/app.interfaces';
 import { AppShadingService } from './app-shading.service';
+import { SharedState } from '../state/shared/shared.reducers';
+import { ConfigService } from './config.service';
+import { AppLayerService } from './app-layer-service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +16,8 @@ export class AppPrintingService {
   constructor (private esriLayerService: EsriLayerService,
     private appShadingService: AppShadingService,
     private esriGeoprocessorService: EsriGeoprocessorService,
+    private configService: ConfigService,
+    private appLayerService: AppLayerService,
     private config: AppConfig) {}
   
   public firstIHD: string;
@@ -45,6 +50,28 @@ export class AppPrintingService {
       tradeArea: payload.tradeArea,
     }; 
     console.log(JSON.stringify(servicePayload, null, 2));
-    return this.esriGeoprocessorService.processJob(serviceUrl, servicePayload, 'Output_File');
+    return this.esriGeoprocessorService.processJob(serviceUrl, servicePayload, 'reportUrl');
   }
+
+  public setPrintParams(shared: SharedState, printParams: Partial<FullPayload>, fromDate: Date){
+    this.firstIHD = fromDate.toLocaleDateString();
+    if (shared.isWrap){
+      printParams.layerSource = this.configService.layers['wrap'].serviceUrl;
+      printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+      printParams.layerSourceLabelingExpression = this.configService.layers['wrap'].boundaries.labelExpression;
+    }
+    else{
+     if (this.appLayerService.analysisLevel === 'zip') {
+        printParams.layerSource = this.configService.layers['zip'].serviceUrl;
+        printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+        printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+     } else{
+        printParams.layerSource = this.configService.layers['atz'].serviceUrl;
+        printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+        printParams.layerSourceLabelingExpression = this.configService.layers['atz'].boundaries.labelExpression;
+     }
+    }
+  return this.createFeatureSet(printParams);
+  }
+  
 }

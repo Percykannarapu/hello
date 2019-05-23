@@ -38,5 +38,6 @@ export const environment: EnvironmentData = {
       boundary: '12bae62392eb47aeb887b6509da557b5',
       centroid: undefined
     }
-  }
+  },
+  portalUrl: 'https://gis.valassislab.com'
 };

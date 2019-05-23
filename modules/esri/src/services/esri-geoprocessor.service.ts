@@ -12,9 +12,13 @@ export class EsriGeoprocessorService {
     return Observable.create(async observer => {
       try {
         const jobResult = await processor.submitJob(servicePayload);
-        const dataResult = await processor.getResultData(jobResult.jobId, resultType);
-        observer.next(dataResult);
-        observer.complete();
+        if (jobResult.jobStatus === 'job-failed') {
+            observer.error(jobResult);
+          } else {
+            const dataResult = await processor.getResultData(jobResult.jobId, resultType);
+            observer.next(dataResult);
+            observer.complete();
+          }
       } catch (err) {
         observer.error(err);
       }
