@@ -44,7 +44,6 @@ export class AppPrintingService {
       mediaPlanId: payload.mediaPlanId,
       tradeArea: payload.tradeArea,
       userEmail: payload.userEmail,
-      rootDirectory: this.config.printRootDirectory, 
     }; 
     console.log(JSON.stringify(servicePayload, null, 2));
     return this.esriGeoprocessorService.processJob(serviceUrl, servicePayload, 'Output_File');

@@ -17,7 +17,6 @@ export interface PrintPayload {
   mediaPlanId: number;
   tradeArea: string;
   userEmail: string;
-  rootDirectory: string;
 }
 
 
