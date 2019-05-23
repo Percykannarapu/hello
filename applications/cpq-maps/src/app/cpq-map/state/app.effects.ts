@@ -66,13 +66,15 @@ export class AppEffects {
   @Effect({ dispatch: false })
   setSelectedGeos$ = this.actions$.pipe(
     ofType(SharedActionTypes.SetAppReady),
-    withLatestFrom(this.fullStore$.pipe(select(state => state))),
-    tap(([, state]) => this.appLayerService.updateLabels(state)),
-    tap(([, state]) => this.appShadingService.shadeMap(state)),
-    tap(([, state]) => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state), state.shared.analysisLevel)),
-    tap(([, state]) => this.appLayerService.addTradeAreaRings(this.parseLocations(state), state.shared.radius)),
-    tap(([, state]) => this.appLayerService.zoomToTradeArea(this.parseLocations(state))),
-    tap(([, state]) => this.appPopupService.initializePopups(state)),
+    withLatestFrom(this.fullStore$),
+    map(([, state]) => state as FullState),
+    tap(state => this.appLayerService.updateLabels(state)),
+    tap(state => this.appShadingService.shadeMap(state)),
+    tap(state => this.appLayerService.addLocationsLayer('Sites', 'Project Sites', this.parseLocations(state), state.shared.analysisLevel)),
+    tap(state => this.appLayerService.addTradeAreaRings(this.parseLocations(state), state.shared.radius)),
+    tap(state => this.appLayerService.zoomToTradeArea(this.parseLocations(state))),
+    tap(state => this.appPopupService.initializePopups(state)),
+    tap(state => this.appLayerService.setWrapLayerVisibility(state.shared.isWrap)),
     tap(() => this.appMapService.setMapWatches())
   );
 

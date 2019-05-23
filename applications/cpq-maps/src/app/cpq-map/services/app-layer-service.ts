@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { calculateStatistics, UniversalCoordinates } from '@val/common';
-import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, MapSymbols, SetLayerLabelExpressions } from '@val/esri';
+import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, MapSymbols, SetLayerLabelExpressions } from '@val/esri';
 import { FullState } from '../state';
 import { AppShadingService } from './app-shading.service';
 import { ConfigService } from './config.service';
@@ -212,5 +212,12 @@ export class AppLayerService {
       legend.style.background = 'white';
       legend.innerHTML = document.getElementById(nodeId).innerHTML;
       return legend;
+   }
+
+   public setWrapLayerVisibility(isWrap: boolean) : void {
+     const wrapLayer = this.esriLayerService.getGroup(this.configService.layers.wrap.group.name);
+     if (wrapLayer != null) {
+       wrapLayer.visible = isWrap;
+     }
    }
 }
