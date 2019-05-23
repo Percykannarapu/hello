@@ -94,7 +94,6 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
       rfpNumber: rfpNumber,
       reportName: fileName,
       tradeArea: tradeArea,
-      userEmail: shared.userEmail
   };
 
 };

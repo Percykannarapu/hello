@@ -16,7 +16,6 @@ export interface SharedState {
    radius: number;
    analysisLevel: string;
    threshold: string;
-   userEmail: string;
    appReady: boolean;
    isSaving: boolean;
    isWrap: boolean;
@@ -35,7 +34,6 @@ const initialState: SharedState = {
    radius: null,
    analysisLevel: null,
    threshold: null, 
-   userEmail: '',
    appReady: false,
    isSaving: false,
    isWrap: false,

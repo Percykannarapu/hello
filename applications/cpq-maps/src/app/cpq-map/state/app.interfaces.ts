@@ -16,7 +16,6 @@ export interface PrintPayload {
   rfpNumber: string;
   mediaPlanId: number;
   tradeArea: string;
-  userEmail: string;
 }
 
 
@@ -31,7 +30,6 @@ export interface FullPayload {
   rfpNumber: string;
   mediaPlanId: number;
   tradeArea: string;
-  userEmail: string;
 }
 
 
