@@ -313,6 +313,8 @@ export class AppShadingService {
       const uniqueAtz = Array.from(uniques).map(a => `'${a}'`);
       this.boundaryExpression = `geocode in (${uniqueAtz.join(',')})`;
       this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
+      if (!this.atzShadingMap.has('ZIP'))
+        this.atzShadingMap.set('ZIP', this.getGeoColor(state, 'ZIP'))
       doneSubject.next(true);
     });
     return doneSubject;
