@@ -79,13 +79,9 @@ const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], me
   let tradeArea: string;
   const clientName = advertiserInfo[0].clientIdentifierName;
   const fileName = productName + '_Map_' + rfpNumber + '_MP-' + mpId + '_G-' + mpGroupId + '_';
-  if (shared.radius != null && shared.threshold != null){
-    tradeArea = 'Radius Miles: ' + shared.radius + ' or Threshold(per site): ' + Number(shared.threshold).toLocaleString();
-  } else if (shared.radius != null && shared.threshold == null){
-    tradeArea = 'Radius Miles: ' + shared.radius;
-  } else if (shared.radius == null && shared.threshold != null){
-    tradeArea = 'Threshold (per site): ' + Number(shared.threshold).toLocaleString();
-  } else tradeArea = 'Custom';
+  
+  tradeArea = (shared.radius !== 0 ? (Number(shared.threshold) !== 0 ? 'Radius Miles: ' + shared.radius + ' or Threshold (per site): ' + Number(shared.threshold).toLocaleString() : 'Radius Miles: ' + shared.radius) 
+                      : (Number(shared.threshold) !== 0 ? 'Threshold (per site): ' + Number(shared.threshold).toLocaleString() : 'Custom')); 
 
   return{
       clientName: clientName,

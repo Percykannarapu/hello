@@ -16,7 +16,7 @@ export class AppPrintingService {
     private config: AppConfig) {}
   
   public firstIHD: string;
-  public lastIHD: string;
+  public allDates: string;
 
   public createFeatureSet<T>(payload: Partial<FullPayload>) : Observable<{ value: T }> {
     const shadingGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.clone();
@@ -38,7 +38,7 @@ export class AppPrintingService {
     const servicePayload: PrintPayload = {
       sites: printFeatures,
       radius: payload.radius,
-      inHomeDate: this.firstIHD + '-' + this.lastIHD,
+      inHomeDate: this.allDates,
       reportName: payload.reportName + this.firstIHD.replace(/\//g, '-'),
       rfpNumber: payload.rfpNumber,
       mediaPlanId: payload.mediaPlanId,

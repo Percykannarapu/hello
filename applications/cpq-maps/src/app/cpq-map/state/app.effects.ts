@@ -208,7 +208,6 @@ export class AppEffects {
     switchMap(([, printParams, shared, dates]) => {
       // this.store$.dispatch(new StartBusyIndicator({ key: 'Exporting Maps', message: 'Generating map book' })),
       this.appPrintingService.firstIHD = dates.fromDate.toLocaleDateString();
-      this.appPrintingService.lastIHD = dates.toDate.toLocaleDateString();
       if (shared.isWrap){
         printParams.layerSource = this.configService.layers['wrap'].serviceUrl;
         printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
@@ -234,14 +233,16 @@ export class AppEffects {
     const entities = (state.rfpUiEditDetail.ids as number[]).map(i => state.rfpUiEditDetail.entities[i]);
     const siteIHD = groupByExtended(entities, val => val.fkSite, val => val.ihDate.valueOf());
     const siteDates = new Map<Number, string>();
+    const uniqueIhds = new Set<string>();
     let uniques: Set<number>;
     siteIHD.forEach((v, k) => {
       v.sort();
+      v.map(val => uniqueIhds.add(new Date(val).toLocaleDateString()));
       uniques = new Set(v);
       const ihdString = Array.from(uniques).map(d => new Date(d).toLocaleDateString()).join(',');
       siteDates.set(k, ihdString);
     });
-
+    this.appPrintingService.allDates = Array.from(uniqueIhds).join(',');
     for (const id of state.rfpUiEdit.ids) {
       const sfdcSiteId = state.rfpUiEdit.entities[id].siteId;
       if (siteDates.has(sfdcSiteId)){
