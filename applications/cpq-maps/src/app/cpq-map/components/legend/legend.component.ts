@@ -17,13 +17,7 @@ export class LegendComponent implements OnInit {
 
   @ViewChild('legendNode')
   public legendNode: ElementRef;
-  public color: string = 'ffff00';
   public legendData: Array<{key: string, value: string, hhc: string}> = [];
-  myStyles = {
-    'background-color': 'lime',
-    'font-size': '20px',
-    'font-weight': 'bold'
-    };
 
   constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
 
@@ -60,7 +54,6 @@ export class LegendComponent implements OnInit {
       }
       this.cd.markForCheck();
       setTimeout(() => {
-        const event = new Event('change');
         this.store$.dispatch(new SetLegendHTML());
       }, 0);
   }
@@ -75,6 +68,8 @@ export class LegendComponent implements OnInit {
         return this.getAtzHHC(uiEditDetailEntities, shadingKey);
       case shadingType.WRAP_ZONE:
         return this.getWrapHHC(uiEditDetailEntities, shadingKey);
+      case shadingType.ATZ_INDICATOR:
+        return this.getAtzIndHHC(uiEditDetailEntities, shadingKey);
       default:
         return 0;
     }
@@ -82,7 +77,7 @@ export class LegendComponent implements OnInit {
 
   private getAtzDesignator(geocode: string) : string {
     if (geocode.length === 5)
-      return geocode;
+      return 'ZIP';
     else
       return geocode.substring(5, geocode.length);
   }
@@ -101,6 +96,17 @@ export class LegendComponent implements OnInit {
     for (const entity of uiEditDetailEntities) {
       if (this.getAtzDesignator(entity.geocode) === designator && entity.isSelected )
         hhc += entity.distribution;
+    }
+    return hhc;
+  }
+
+  private getAtzIndHHC(uiEditDetailEntities: RfpUiEditDetail[], indicator: string) : number{
+    let hhc = 0;
+    for (const entity of uiEditDetailEntities) {
+      if (this.getAtzDesignator(entity.geocode) === indicator.trim() && entity.isSelected )
+        hhc += entity.distribution;
+      //else if (this.getAtzDesignator(entity.geocode) === 'ZIP' && entity.isSelected)
+      //  hhc += entity.distribution
     }
     return hhc;
   }

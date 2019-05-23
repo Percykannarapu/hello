@@ -8,6 +8,7 @@ import { shadingType } from '../state/shared/shared.reducers';
 import { ConfigService } from './config.service';
 import { RfpUiEditWrapService } from './rfpEditWrap-service';
 import { RfpUiEditDetailService } from './rfpUiEditDetail-service';
+import { Observable, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -44,30 +45,41 @@ export class AppShadingService {
           const record = state.rfpUiEdit.entities[id];
           shadingData.push({ key: record.siteName, value: this.shadingMap.get(Number(record.siteId)) });
         }
+        this.store$.dispatch(new SetShadingData({ shadingData: shadingData }));
         break;
       case shadingType.ZIP:
         this.shadeByZip(state);
         for (const key of Array.from(this.zipShadingMap.keys())) {
           shadingData.push({ key: key, value: this.zipShadingMap.get(key) });
         }
+        this.store$.dispatch(new SetShadingData({ shadingData: shadingData }));
         break;
       case shadingType.WRAP_ZONE:
         this.shadeByWrapZone(state);
         for (const key of Array.from(this.wrapShadingMap.keys())) {
           shadingData.push({ key: key, value: this.wrapShadingMap.get(key) });
         }
+        this.store$.dispatch(new SetShadingData({ shadingData: shadingData }));
         break;
       case shadingType.ATZ_DESIGNATOR:
         this.shadeByATZDesignator(state);
         for (const key of Array.from(this.atzShadingMap.keys())) {
           shadingData.push({ key: key, value: this.atzShadingMap.get(key) });
         }
+        this.store$.dispatch(new SetShadingData({ shadingData: shadingData }));
+        break;
+      case shadingType.ATZ_INDICATOR:
+        this.shadeByATZIndicator(state).subscribe(() => {
+          for (const key of Array.from(this.atzShadingMap.keys())) {
+            shadingData.push({ key: key, value: this.atzShadingMap.get(key) });
+          }
+          this.store$.dispatch(new SetShadingData({ shadingData: shadingData }));
+        });
         break;
       case shadingType.VARIABLE:
         this.shadeByVariable(state);
         break;
     }
-    this.store$.dispatch(new SetShadingData({ shadingData: shadingData }));
   }
 
   private shadeByZip(state: FullState) {
@@ -253,6 +265,59 @@ export class AppShadingService {
     });
   }
 
+  private shadeByATZIndicator(state: FullState) : Observable<boolean> {
+    this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
+    const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
+    const sitesByAtz: Map<string, string> = new Map<string, string>();
+    const doneSubject: Subject<boolean> = new Subject();
+    if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+      for (const id in state.rfpUiEditDetail.ids){
+        if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode != null && state.rfpUiEditDetail.entities[id].siteName != null){
+          sitesByAtz.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].siteName);
+        }
+      }
+    }
+    const query: __esri.Query = new EsriApi.Query();
+    query.outFields = ['geocode, zip, atz, atzind'];
+    query.where = 'geocode in (';
+    selectedGeos.forEach(sg => query.where += `'${sg.geocode}',`);
+    query.where = query.where.substr(0, query.where.length - 1);
+    query.where += ')';
+    const uniques = new Set<string>();
+    this.queryService.executeQuery(this.configService.layers['atz'].boundaries.id, query, true).subscribe(res => {
+      const graphics: Array<__esri.Graphic> = [];
+      const palette: number [][] = getColorPalette(ColorPalette.Cpqmaps);
+      let colorCount = 0;
+      for (const geo of res.features) {
+        const graphic: __esri.Graphic = new EsriApi.Graphic();
+        uniques.add(geo.getAttribute('geocode'));
+        const atzind: string = geo.getAttribute('atzind').trim();
+        if (!this.atzShadingMap.has(atzind)) {
+          this.atzShadingMap.set(atzind, palette[colorCount % palette.length]);
+          colorCount++;
+        }
+        graphic.symbol = new EsriApi.SimpleFillSymbol({color: this.atzShadingMap.get(atzind)});
+        graphic.geometry = geo.geometry;
+        graphic.setAttribute('geocode', geo.getAttribute('geocode'));
+        if (this.geoHHC.has(geo.getAttribute('geocode')))
+          graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')));
+        if (geo.getAttribute('atz') != null)
+          graphic.setAttribute('SHADING_GROUP', geo.getAttribute('atz'));
+        else
+          graphic.setAttribute('SHADING_GROUP', 'Full Zip');
+        if (sitesByAtz.has(geo.getAttribute('geocode'))) {
+          graphic.setAttribute('siteId', this.siteIdMap.get(sitesByAtz.get(geo.getAttribute('geocode'))));
+        }
+        graphics.push(graphic);
+      }
+      const uniqueAtz = Array.from(uniques).map(a => `'${a}'`);
+      this.boundaryExpression = `geocode in (${uniqueAtz.join(',')})`;
+      this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
+      doneSubject.next(true);
+    });
+    return doneSubject;
+  }
+
   private shadeByVariable(state: FullState) {
     console.warn('VARIABLE SHADING NOT IMPLEMENTED YET');
   }
@@ -368,7 +433,11 @@ export class AppShadingService {
       return;
     }
     const query: __esri.Query = new EsriApi.Query();
+    if (state.shared.shadingType === shadingType.ATZ_INDICATOR)
+      query.outFields = ['geocode, wrap_name, atzind'];
+    else
     query.outFields = ['geocode, wrap_name'];
+
     let analysisLevel = '';
     if (state.shared.isWrap) {
       query.where = `wrap_name in (`;
@@ -394,7 +463,10 @@ export class AppShadingService {
         if (state.shared.shadingType === shadingType.WRAP_ZONE)
           color = this.getGeoColor(state, feature.getAttribute('wrap_name'), fkSiteMap);
         else
-          color = this.getGeoColor(state, feature.getAttribute('geocode'), fkSiteMap);
+          if (state.shared.shadingType === shadingType.ATZ_INDICATOR)
+            color = this.getGeoColor(state, feature.getAttribute('atzind'), fkSiteMap);
+          else
+            color = this.getGeoColor(state, feature.getAttribute('geocode'), fkSiteMap);
         graphic.symbol = new EsriApi.SimpleFillSymbol({color: color});
         graphic.geometry = feature.geometry;
         graphic.setAttribute('geocode', feature.getAttribute('geocode'));
@@ -425,6 +497,11 @@ export class AppShadingService {
         const nextATZColor = palette[(this.atzShadingMap.size + 1) % palette.length];
         this.atzShadingMap.set(designator, nextATZColor);
         return nextATZColor;
+      case shadingType.ATZ_INDICATOR:
+        if (this.atzShadingMap.has(geocode))
+          return this.atzShadingMap.get(geocode);
+        const nextATZIndColor = palette[(this.atzShadingMap.size + 1) % palette.length];
+        return nextATZIndColor;
       case shadingType.WRAP_ZONE:
         if (this.wrapShadingMap.has(geocode))
           return this.wrapShadingMap.get(geocode);

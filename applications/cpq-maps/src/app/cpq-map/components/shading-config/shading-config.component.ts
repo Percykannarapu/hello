@@ -33,7 +33,8 @@ export class ShadingConfigComponent implements OnInit {
     if (state.isWrap)
       this.shadingOptions.push({ label: 'Wrap Zone', value: shadingType.WRAP_ZONE });
     if (state.analysisLevel === 'atz')
-      this.shadingOptions.push({ label: 'ATZ Designator', value: shadingType.ATZ_DESIGNATOR });
+      //this.shadingOptions.push({ label: 'ATZ Designator', value: shadingType.ATZ_DESIGNATOR }); //commented out for US9631
+      this.shadingOptions.push({ label: 'ATZ Indicator', value: shadingType.ATZ_INDICATOR });
   }
 
   public onShadingOptionChange(event: { originalEvent: MouseEvent, value: shadingType }) {

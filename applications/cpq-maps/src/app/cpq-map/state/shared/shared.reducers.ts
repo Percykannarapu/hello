@@ -8,6 +8,7 @@ export enum shadingType {
   ZIP,
   WRAP_ZONE,
   ATZ_DESIGNATOR,
+  ATZ_INDICATOR,
   VARIABLE
 }
 export interface SharedState {
