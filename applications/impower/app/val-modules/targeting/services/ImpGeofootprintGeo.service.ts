@@ -428,12 +428,17 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       if (aGeo == null) return;
       //  const currentProject = aGeo.impProject;
       const currentProject = aGeo.impGeofootprintLocation.impProject;  //DEFECT FIX : export feature - accessing project details from GeoFootPrintLocation
+      const orderColumnNames = [];
+      currentProject.impProjectVars.forEach(impVar => orderColumnNames[impVar.sortOrder] = impVar.fieldname);
       const projectVarsDict = mapArrayToEntity(currentProject.impProjectVars,  v => v.varPk);
       const usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => projectVarsDict[gv.varPk] != null && projectVarsDict[gv.varPk].isIncludedInGeofootprint);
       usableGeoVars.sort((a, b) => this.sortVars(a, b));
       this.varCache = groupBy(usableGeoVars, 'geocode');
       const columnSet = new Set(usableGeoVars.map(gv => (projectVarsDict[gv.varPk] || safe).fieldname));
       const attributeNames = Array.from(columnSet);
+      attributeNames.sort((a, b) => {
+        return orderColumnNames.indexOf(a) - orderColumnNames.indexOf(b);
+      });
       attributeNames.forEach(name => {
         exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
       });

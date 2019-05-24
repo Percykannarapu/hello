@@ -77,13 +77,14 @@ export class AppDataShimService {
   }
 
   onLoadSuccess() : void {
-    this.targetAudienceService.applyAudienceSelection();
+    
     this.appTradeAreaService.setCurrentDefaults();
     this.appTradeAreaService.zoomToTradeArea();
     /**recalculating mustcovers disabled for DE2271 */
     this.appGeoService.reloadMustCovers();
     this.targetAudienceCustomService.reloadCustomVars();
     this.appLayerService.updateLabelExpressions(false);
+    this.targetAudienceService.applyAudienceSelection();
   }
 
   createNew() : number {
