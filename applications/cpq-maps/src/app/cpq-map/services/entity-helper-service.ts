@@ -8,7 +8,7 @@ import { RfpUiEditWrapLoaderService } from './rfpUiEditWrap-loader-service';
 import { LocalState } from '../state';
 import { Store } from '@ngrx/store';
 import { SetIsWrap } from '../state/shared/shared.actions';
-import { Observable, merge, EMPTY } from 'rxjs';
+import { Observable, merge, EMPTY, forkJoin } from 'rxjs';
 import { NormalizedPayload } from '../models/NormalizedPayload';
 import { map, reduce, tap } from 'rxjs/operators';
 import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
@@ -70,6 +70,6 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
        ? this.restService.post(this.addNewUrl.replace('%id%', adds[0].mediaPlanId.toString()), addPayload)
        : EMPTY;
 
-     return merge(setSelected$, miniMediaPlan$);
+     return forkJoin([setSelected$, miniMediaPlan$]);
    }
  }
