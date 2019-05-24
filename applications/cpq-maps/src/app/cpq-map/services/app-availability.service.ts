@@ -50,8 +50,8 @@ export class AppAvailabilityService {
   }
 
   private requestAvailability(productCode: string, fromDate: Date, toDate: Date, geocode: string, wrapZoneName: string) {
-    const fromDateString = `${fromDate.getFullYear()}-${pad(fromDate.getMonth(), 2)}-${pad(fromDate.getDate(), 2)}`;
-    const toDateString = `${toDate.getFullYear()}-${pad(toDate.getMonth(), 2)}-${pad(toDate.getDate(), 2)}`;
+    const fromDateString = `${fromDate.getFullYear()}-${pad(fromDate.getMonth() + 1, 2)}-${pad(fromDate.getDate(), 2)}`;
+    const toDateString = `${toDate.getFullYear()}-${pad(toDate.getMonth() + 1, 2)}-${pad(toDate.getDate(), 2)}`;
     const url = `v1/availability/base/productgeoschedule/${productCode}/${fromDateString}/${toDateString}/search`;
     let params = new HttpParams().append('q', 'availabilityDetail');
     if (productCode === 'WRAP') {
