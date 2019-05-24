@@ -283,6 +283,7 @@ export class AppShadingService {
     selectedGeos.forEach(sg => query.where += `'${sg.geocode}',`);
     query.where = query.where.substr(0, query.where.length - 1);
     query.where += ')';
+    query.orderByFields = ['atzind'];
     const uniques = new Set<string>();
     this.queryService.executeQuery(this.configService.layers['atz'].boundaries.id, query, true).subscribe(res => {
       const graphics: Array<__esri.Graphic> = [];
