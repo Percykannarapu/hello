@@ -21,7 +21,7 @@ import { localSelectors } from './app.selectors';
 import { FullState, LocalState } from './index';
 import { RfpUiEditDetailActions, RfpUiEditDetailActionTypes } from './rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { RfpUiEditWrapActions, RfpUiEditWrapActionTypes } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
-import { ExportMaps, GetMapDataFailed, LoadEntityGraph, NavigateToReviewPage, SaveFailed, SaveSucceeded, SetAppReady, SharedActions, SharedActionTypes } from './shared/shared.actions';
+import { ExportMaps, GetMapDataFailed, LoadEntityGraph, NavigateToReviewPage, SaveFailed, SaveSucceeded, SetAppReady, SharedActions, SharedActionTypes, GenerateMapFailed, DownloadMapBook, GenerateMapSuccess } from './shared/shared.actions';
 
 @Injectable()
 export class AppEffects {
@@ -206,15 +206,35 @@ export class AppEffects {
   @Effect() 
   exportMaps$ = this.actions$.pipe(
     ofType<ExportMaps>(SharedActionTypes.ExportMaps),
-    tap(() => this.store$.dispatch(new StartBusyIndicator({ key: 'Exporting Maps', message: 'Generating map book' }))),
+    tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.appConfig.ApplicationBusyKey, message: 'Generating map book' }))),
     withLatestFrom(this.store$.pipe(select(localSelectors.getPrintParams)), this.store$.pipe(select(localSelectors.getSharedState)), this.store$.pipe(select(localSelectors.getAvailabilityParams))),
     switchMap(([, printParams, shared, dates]) => this.appPrintingService.setPrintParams(shared, printParams, dates.fromDate).pipe(
-      tap(() => this.store$.dispatch(new StopBusyIndicator({key: 'Exporting Maps'})))
-      // catchError(err => console.log('Error has occured while generating map book', err),
-      )),
-      map( results => console.log('results:::', results)));
-      // ,
-  
+      map(results => new GenerateMapSuccess({ response: results })),
+      catchError(err => of(new GenerateMapFailed({ err })))))
+      );
+
+  @Effect()
+  generateMapFailed$ = this.actions$.pipe(
+    ofType(SharedActionTypes.GenerateMapFailed),
+    tap(() => this.messagingService.showErrorNotification('There was an error generating map book')),
+    map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))
+  );
+
+  @Effect({ dispatch: false })
+  generateMapSuccess$ = this.actions$.pipe(
+    ofType(SharedActionTypes.GenerateMapSuccess),
+    tap(() => this.messagingService.showSuccessNotification('Map Book is generated successfully')),
+    concatMap(action => [ 
+      new StopBusyIndicator({key: this.appConfig.ApplicationBusyKey}),
+      new DownloadMapBook({ response: action.payload.response })
+   ])
+  );
+
+  @Effect({dispatch: false})
+  downloadMaps$ = this.actions$.pipe(
+    ofType(SharedActionTypes.DownloadMapBook),
+    map(action => this.appPrintingService.downloadPDF(action.payload.response))
+    );
   
   private parseLocations(state: FullState) : SiteInformation[] {
     const coordinates: Array<SiteInformation> = [];

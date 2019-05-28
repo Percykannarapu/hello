@@ -2,6 +2,7 @@ import { Action } from '@ngrx/store';
 import { AvailabilityDetailResponse } from '../../models/availability-detail-response';
 import { NormalizedPayload } from '../../models/NormalizedPayload';
 import { shadingType } from './shared.reducers';
+import { ResultType } from '../app.interfaces';
 
 
 export enum SharedActionTypes {
@@ -18,6 +19,9 @@ export enum SharedActionTypes {
   SaveSucceeded = '[Shared Actions] Save Succeeded',
   SaveFailed = '[Shared Actions] Save Failed',
   ExportMaps = '[Shared Actions] Export Maps',
+  GenerateMapFailed = '[Shared Actions] Generate Map Failed',
+  GenerateMapSuccess = '[Shared ACtions] Generate Map Success',
+  DownloadMapBook = '[Shared Actions] Download Map Book',
 
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
   SetShadingType = '[Shared Actions] Set Shading Type',
@@ -108,6 +112,21 @@ export class ExportMaps implements Action {
   readonly type = SharedActionTypes.ExportMaps;
 }
 
+export class GenerateMapFailed implements Action {
+  readonly type = SharedActionTypes.GenerateMapFailed;
+  constructor(public payload: { err: any }) {}
+}
+
+
+export class GenerateMapSuccess implements Action {
+  readonly type = SharedActionTypes.GenerateMapSuccess;
+  constructor(public payload: { response: ResultType }) {}
+}
+
+export class DownloadMapBook implements Action {
+  readonly type = SharedActionTypes.DownloadMapBook;
+  constructor(public payload: { response: ResultType }){}
+}
 
 export type SharedActions =
   ApplicationStartup
@@ -127,5 +146,8 @@ export type SharedActions =
   | SetShadingData
   | SetLegendHTML
   | ExportMaps
+  | GenerateMapFailed
+  | GenerateMapSuccess
+  | DownloadMapBook
   ;
 

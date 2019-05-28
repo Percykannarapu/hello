@@ -33,5 +33,12 @@ export interface FullPayload {
 }
 
 
+export interface ResultType{
+  paramName: string;
+  dataType: string;
+  value: string;
+}
+
+
 
 

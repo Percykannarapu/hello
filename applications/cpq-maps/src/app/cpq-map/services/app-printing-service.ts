@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import { EsriLayerService, EsriGeoprocessorService } from '@val/esri';
 import { Observable } from 'rxjs';
 import { AppConfig } from 'src/app/app.config';
-import { PrintModel, PrintPayload, FullPayload } from '../state/app.interfaces';
+import { PrintModel, PrintPayload, FullPayload, ResultType } from '../state/app.interfaces';
 import { AppShadingService } from './app-shading.service';
 import { SharedState } from '../state/shared/shared.reducers';
 import { ConfigService } from './config.service';
 import { AppLayerService } from './app-layer-service';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +24,7 @@ export class AppPrintingService {
   public firstIHD: string;
   public allDates: string;
 
-  public createFeatureSet<T>(payload: Partial<FullPayload>) : Observable<{ value: T }> {
+  public createFeatureSet(payload: Partial<FullPayload>) : Observable<ResultType> {
     const shadingGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.clone();
     shadingGraphics.forEach(g => g.geometry = null);
     const definitionExpression = this.appShadingService.boundaryExpression;
@@ -50,7 +51,9 @@ export class AppPrintingService {
       tradeArea: payload.tradeArea,
     }; 
     console.log(JSON.stringify(servicePayload, null, 2));
-    return this.esriGeoprocessorService.processJob(serviceUrl, servicePayload, 'reportUrl');
+    return this.esriGeoprocessorService.processJob<ResultType>(serviceUrl, servicePayload, 'reportUrl').pipe(
+      map(response => response.value)
+    );
   }
 
   public setPrintParams(shared: SharedState, printParams: Partial<FullPayload>, fromDate: Date){
@@ -72,6 +75,18 @@ export class AppPrintingService {
      }
     }
   return this.createFeatureSet(printParams);
+  }
+
+  public downloadPDF(results?: ResultType){
+    console.log('Download PDF');
+    const url = results.value;
+    const fileName = url.split(/[\s/]+/);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName[fileName.length - 1];
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
   
 }
