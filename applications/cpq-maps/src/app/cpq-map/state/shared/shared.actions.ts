@@ -21,7 +21,7 @@ export enum SharedActionTypes {
   ExportMaps = '[Shared Actions] Export Maps',
   GenerateMapFailed = '[Shared Actions] Generate Map Failed',
   GenerateMapSuccess = '[Shared ACtions] Generate Map Success',
-  DownloadMapBook = '[Shared Actions] Download Map Book',
+  OpenMapBook = '[Shared Actions] Open Map Book',
 
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
   SetShadingType = '[Shared Actions] Set Shading Type',
@@ -123,8 +123,8 @@ export class GenerateMapSuccess implements Action {
   constructor(public payload: { response: ResultType }) {}
 }
 
-export class DownloadMapBook implements Action {
-  readonly type = SharedActionTypes.DownloadMapBook;
+export class OpenMapBook implements Action {
+  readonly type = SharedActionTypes.OpenMapBook;
   constructor(public payload: { response: ResultType }){}
 }
 
@@ -148,6 +148,6 @@ export type SharedActions =
   | ExportMaps
   | GenerateMapFailed
   | GenerateMapSuccess
-  | DownloadMapBook
+  | OpenMapBook
   ;
 

@@ -21,7 +21,7 @@ import { localSelectors } from './app.selectors';
 import { FullState, LocalState } from './index';
 import { RfpUiEditDetailActions, RfpUiEditDetailActionTypes } from './rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { RfpUiEditWrapActions, RfpUiEditWrapActionTypes } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
-import { ExportMaps, GetMapDataFailed, LoadEntityGraph, NavigateToReviewPage, SaveFailed, SaveSucceeded, SetAppReady, SharedActions, SharedActionTypes, GenerateMapFailed, DownloadMapBook, GenerateMapSuccess } from './shared/shared.actions';
+import { ExportMaps, GetMapDataFailed, LoadEntityGraph, NavigateToReviewPage, SaveFailed, SaveSucceeded, SetAppReady, SharedActions, SharedActionTypes, GenerateMapFailed, GenerateMapSuccess, OpenMapBook } from './shared/shared.actions';
 
 @Injectable()
 export class AppEffects {
@@ -223,17 +223,17 @@ export class AppEffects {
   @Effect()
   generateMapSuccess$ = this.actions$.pipe(
     ofType(SharedActionTypes.GenerateMapSuccess),
-    tap(() => this.messagingService.showSuccessNotification('Map Book is generated successfully')),
+    tap(() => this.messagingService.showSuccessNotification('The Map PDF was generated successfully in a new tab')),
     concatMap(action => [ 
       new StopBusyIndicator({key: this.appConfig.ApplicationBusyKey}),
-      new DownloadMapBook({ response: action.payload.response })
+      new OpenMapBook({ response: action.payload.response })
    ])
   );
 
   @Effect({dispatch: false})
-  downloadMaps$ = this.actions$.pipe(
-    ofType(SharedActionTypes.DownloadMapBook),
-    map(action => this.appPrintingService.downloadPDF(action.payload.response.value))
+  openMaps$ = this.actions$.pipe(
+    ofType(SharedActionTypes.OpenMapBook),
+    map(action => this.appPrintingService.openPDF(action.payload.response.value))
     );
   
   private parseLocations(state: FullState) : SiteInformation[] {

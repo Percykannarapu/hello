@@ -6,9 +6,9 @@ export const environment: EnvironmentData = {
   fuseBaseUrl: 'https://services.valassis.com/services/',
   production: true,
   esri: {
-    portalServer: '',
-    username: '',
-    password: ''
+    portalServer: 'https://valvcsimpor1vm.val.vlss.local/',
+    username: 'quickmaps',
+    password: 'quickmaps123'
   },
   layerIds: {
     zip: {

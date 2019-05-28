@@ -75,14 +75,14 @@ export class AppPrintingService {
   return this.createFeatureSet(printParams);
   }
 
-  public downloadPDF(result: string){
-    console.log('Downloading PDF from ', result);
+  public openPDF(result: string){
+    console.log('Opening PDF from', result);
     const url = result;
     const fileName = url.split(/[\s/]+/);
     const link = document.createElement('a');
     link.target = '_blank';
     link.href = url;
-    link.download = fileName[fileName.length - 1];
+    link.download = fileName[fileName.length - 1]; // doesn't download PDF, it instead opens PDF in new tab
     link.dispatchEvent(new MouseEvent('click'));
   }
   
