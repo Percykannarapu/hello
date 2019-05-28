@@ -220,7 +220,7 @@ export class AppEffects {
     map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))
   );
 
-  @Effect({ dispatch: false })
+  @Effect()
   generateMapSuccess$ = this.actions$.pipe(
     ofType(SharedActionTypes.GenerateMapSuccess),
     tap(() => this.messagingService.showSuccessNotification('Map Book is generated successfully')),
@@ -247,10 +247,10 @@ export class AppEffects {
       v.sort();
       v.map(val => uniqueIhds.add(new Date(val).toLocaleDateString()));
       uniques = new Set(v);
-      const ihdString = Array.from(uniques).map(d => new Date(d).toLocaleDateString()).join(',');
+      const ihdString = Array.from(uniques).map(d => new Date(d).toLocaleDateString()).join(', ');
       siteDates.set(k, ihdString);
     });
-    this.appPrintingService.allDates = Array.from(uniqueIhds).join(',');
+    this.appPrintingService.allDates = Array.from(uniqueIhds).join(', ');
     for (const id of state.rfpUiEdit.ids) {
       const sfdcSiteId = state.rfpUiEdit.entities[id].siteId;
       if (siteDates.has(sfdcSiteId)){
