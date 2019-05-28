@@ -21,7 +21,7 @@ export class PopupEffects {
                    this.store$.pipe(select(localSelectors.getSharedState))),
     map(([action, geos, wraps, shared]) => {
       return [
-        geos.filter(g => g.geocode === action.payload.geocode),
+        shared.isWrap ? geos.filter(g => g.wrapZone === action.payload.wrapName) : geos.filter(g => g.geocode === action.payload.geocode),
         shared.isWrap ? wraps.filter(w => w.wrapZone === action.payload.wrapName) : []
       ] as [RfpUiEditDetail[], RfpUiEditWrap[]];
     }),
