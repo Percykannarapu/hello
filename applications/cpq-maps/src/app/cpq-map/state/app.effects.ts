@@ -233,7 +233,7 @@ export class AppEffects {
   @Effect({dispatch: false})
   downloadMaps$ = this.actions$.pipe(
     ofType(SharedActionTypes.DownloadMapBook),
-    map(action => this.appPrintingService.downloadPDF(action.payload.response))
+    map(action => this.appPrintingService.downloadPDF(action.payload.response.value))
     );
   
   private parseLocations(state: FullState) : SiteInformation[] {

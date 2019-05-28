@@ -34,8 +34,8 @@ export interface FullPayload {
 
 
 export interface ResultType{
-  paramName: string;
-  dataType: string;
+  paramName?: string;
+  dataType?: string;
   value: string;
 }
 

@@ -51,9 +51,7 @@ export class AppPrintingService {
       tradeArea: payload.tradeArea,
     }; 
     console.log(JSON.stringify(servicePayload, null, 2));
-    return this.esriGeoprocessorService.processJob<ResultType>(serviceUrl, servicePayload, 'reportUrl').pipe(
-      map(response => response.value)
-    );
+    return this.esriGeoprocessorService.processJob(serviceUrl, servicePayload, 'reportUrl');
   }
 
   public setPrintParams(shared: SharedState, printParams: Partial<FullPayload>, fromDate: Date){
@@ -77,9 +75,9 @@ export class AppPrintingService {
   return this.createFeatureSet(printParams);
   }
 
-  public downloadPDF(results?: ResultType){
-    console.log('Download PDF');
-    const url = results.value;
+  public downloadPDF(result: string){
+    console.log('Downloading PDF from ', result);
+    const url = result;
     const fileName = url.split(/[\s/]+/);
     const link = document.createElement('a');
     link.href = url;
