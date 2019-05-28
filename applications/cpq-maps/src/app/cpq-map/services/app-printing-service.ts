@@ -80,11 +80,10 @@ export class AppPrintingService {
     const url = result;
     const fileName = url.split(/[\s/]+/);
     const link = document.createElement('a');
+    link.target = '_blank';
     link.href = url;
     link.download = fileName[fileName.length - 1];
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    link.dispatchEvent(new MouseEvent('click'));
   }
   
 }
