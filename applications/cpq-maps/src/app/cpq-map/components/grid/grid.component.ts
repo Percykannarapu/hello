@@ -84,34 +84,32 @@ private createColumns(small: boolean, isWrap: boolean) {
   this.columns = []; //reset the columns
   if (small) {
     if (isWrap) {
-      this.columns.push({field: 'wrapZone', header: 'Wrap Zone', width: '10em', styleClass: 'val-text-left'});
-      this.columns.push({field: 'distribution', header: 'Distr Qty', width: '5em', styleClass: 'val-text-right'});
-      this.columns.push({field: 'investment', header: 'Investment', width: '6.5em', styleClass: 'val-text-right'});
+      this.columns.push({field: 'wrapZone', header: 'Wrap Zone', width: '10em', styleClass: 'val-text-left', formatType: 'string'});
+      this.columns.push({field: 'distribution', header: 'Distr Qty', width: '5em', styleClass: 'val-text-right', formatType: 'number'});
+      this.columns.push({field: 'investment', header: 'Investment', width: '6.5em', styleClass: 'val-text-right', formatType: 'currency'});
     }
     else {
-      this.columns.push({field: 'geocode', header: 'Geocode', width: '3.5em', styleClass: 'val-text-left'});
-      this.columns.push({field: 'distribution', header: 'Distr Qty', width: '5em', styleClass: 'val-text-right'});
-      this.columns.push({field: 'investment', header: 'Investment', width: '4.5em', styleClass: 'val-text-right'});
-
+      this.columns.push({field: 'geocode', header: 'Geocode', width: '3.5em', styleClass: 'val-text-left', formatType: 'string'});
+      this.columns.push({field: 'distribution', header: 'Distr Qty', width: '5em', styleClass: 'val-text-right', formatType: 'number'});
+      this.columns.push({field: 'investment', header: 'Investment', width: '4.5em', styleClass: 'val-text-right', formatType: 'currency'});
     }
   } else {
-    this.columns.push({field: 'siteName', header: 'Site Name', width: '9em', styleClass: 'val-text-left'});
+    this.columns.push({field: 'siteName', header: 'Site Name', width: '9em', styleClass: 'val-text-left', formatType: 'string'});
     if (isWrap) 
-      this.columns.push({field: 'wrapZone', header: 'Wrap Zone', width: '10em', styleClass: 'val-text-left'});
+      this.columns.push({field: 'wrapZone', header: 'Wrap Zone', width: '10em', styleClass: 'val-text-left', formatType: 'string'});
     else {
-      this.columns.push({field: 'geocode', header: 'Geocode', width: '5.5em', styleClass: 'val-text-left'});
-      this.columns.push({field: 'distance', header: 'Distance', width: '5.5em', styleClass: 'val-text-right'});  
+      this.columns.push({field: 'geocode', header: 'Geocode', width: '5.5em', styleClass: 'val-text-left', formatType: 'string'});
+      this.columns.push({field: 'distance', header: 'Distance', width: '5.5em', styleClass: 'val-text-right', formatType: 'number', formatSpec: '1.2-2'});
     }
-    this.columns.push({field: 'distribution', header: 'Distr Qty', width: '5em', styleClass: 'val-text-right'});
-    this.columns.push({field: 'ownerGroup', header: 'Owner', width: '5em', styleClass: 'val-text-center'});
-    this.columns.push({field: 'investment', header: 'Investment', width: '6.5em', styleClass: 'val-text-right'});
+    this.columns.push({field: 'distribution', header: 'Distr Qty', width: '5em', styleClass: 'val-text-right', formatType: 'number'});
+    this.columns.push({field: 'ownerGroup', header: 'Owner', width: '5em', styleClass: 'val-text-center', formatType: 'string'});
+    this.columns.push({field: 'investment', header: 'Investment', width: '6.5em', styleClass: 'val-text-right', formatType: 'currency'});
   }
 }
 
-private addVariableColumns(var1: boolean, var2: boolean, var3: boolean, heading1: string, heading2: string, heading3: string) {
-  if (var1) this.columns.push({field: 'var1Value', header: heading1, width: '6em', styleClass: 'val-text-right'});
-  if (var2) this.columns.push({field: 'var2Value', header: heading2, width: '6em', styleClass: 'val-text-right'});
-  if (var3) this.columns.push({field: 'var3Value', header: heading3, width: '6em', styleClass: 'val-text-right'});
+private addVariableColumns(field: string, header: string, formatType: string) {
+  if (this.columns.filter(c => c.field === field).length > 0 || this.smallTableBackingVar) return;
+  this.columns.push({field, header, width: '6em', styleClass: 'val-text-right', formatType});
 }
 
 private createNonWrapRows(state: LocalState) {
@@ -119,17 +117,9 @@ private createNonWrapRows(state: LocalState) {
   this.selectedRows = [];
   this.createColumns(this.smallTableBackingVar, false);
   const newRows: Array<CompositeRow> = [];
-  let var1: boolean, var2: boolean, var3: boolean;
-  let heading1: string, heading2: string, heading3: string;
   for (const id of state.rfpUiEditDetail.ids) {
     const newRow: CompositeRow = state.rfpUiEditDetail.entities[id];
     const siteId = newRow.fkSite;
-    var1 = state.rfpUiEditDetail.entities[id].var1Name != null ? true : false;
-    var2 = state.rfpUiEditDetail.entities[id].var2Name != null ? true : false;
-    var3 = state.rfpUiEditDetail.entities[id].var3Name != null ? true : false;
-    heading1 = state.rfpUiEditDetail.entities[id].var1Name;
-    heading2 = state.rfpUiEditDetail.entities[id].var2Name;
-    heading3 = state.rfpUiEditDetail.entities[id].var3Name;
     if (state.rfpUiEditDetail.entities[id].distance)
       newRow.distance = Number(state.rfpUiEditDetail.entities[id].distance.toFixed(2));
     if (state.rfpUiEditDetail.entities[id].investment)  
@@ -141,10 +131,32 @@ private createNonWrapRows(state: LocalState) {
         newRow.siteName = state.rfpUiEdit.entities[j].siteName;
       }
     }
+
+    if (newRow.var1Name != null) {
+      if (newRow.var1IsNumber) {
+        newRow.var1Value = Number(newRow.var1Value) as any;
+        this.addVariableColumns('var1Value', newRow.var1Name, 'number');
+      } else {
+        this.addVariableColumns('var1Value', newRow.var1Name, 'string');
+      }
+    }
+    if (newRow.var2Name != null) {
+      if (newRow.var2IsNumber) {
+        newRow.var2Value = Number(newRow.var2Value) as any;
+        this.addVariableColumns('var2Value', newRow.var2Name, 'number');
+      } else {
+        this.addVariableColumns('var2Value', newRow.var2Name, 'string');
+      }
+    }
+    if (newRow.var3Name != null) {
+      if (newRow.var3IsNumber) {
+        newRow.var3Value = Number(newRow.var3Value) as any;
+        this.addVariableColumns('var3Value', newRow.var3Name, 'number');
+      } else {
+        this.addVariableColumns('var3Value', newRow.var3Name, 'string');
+      }
+    }
     newRows.push(state.rfpUiEditDetail.entities[id]);
-  }
-  if (!this.smallTableBackingVar && (var1 || var2 || var3)) {
-    this.addVariableColumns(var1, var2, var3, heading1, heading2, heading3);
   }
   this.rows = newRows;
 }
