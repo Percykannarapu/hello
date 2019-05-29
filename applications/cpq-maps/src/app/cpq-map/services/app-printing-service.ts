@@ -42,7 +42,7 @@ export class AppPrintingService {
     };
     const serviceUrl = this.config.printServiceUrl;  
     const servicePayload: PrintPayload = {
-      sites: printFeatures,
+      sites: JSON.stringify(printFeatures),
       radius: payload.radius,
       inHomeDate: this.allDates,
       reportName: payload.reportName + this.firstIHD.replace(/\//g, '-'),

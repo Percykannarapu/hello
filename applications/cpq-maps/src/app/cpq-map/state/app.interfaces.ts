@@ -9,7 +9,7 @@ export interface PrintModel {
 }
 
 export interface PrintPayload {
-  sites: PrintModel;
+  sites: string;
   radius: number;
   inHomeDate: string;
   reportName: string;
