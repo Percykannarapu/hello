@@ -59,7 +59,7 @@ export class AppConfig implements LoggingConfiguration {
         popupTitle: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
         minScale: undefined,
         popUpFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long'],
-        labelExpression: '$feature.dma_code',
+        labelExpression: '$feature.dma_name',
         labelFontSizeOffset: 6
       },
       serviceUrl: ''
@@ -93,7 +93,7 @@ export class AppConfig implements LoggingConfiguration {
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
         minScale: 4622342,
         popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
-        labelExpression: '$feature.geocode',
+        labelExpression: '$feature.wrap_name',
         labelFontSizeOffset: 2
       },
       serviceUrl: ''
