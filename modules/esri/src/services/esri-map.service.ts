@@ -45,6 +45,7 @@ export class EsriMapService {
           view: this.mapView,
           unit: 'miles'
         });
+        this.measureWidget.viewModel.mode = 'geodesic';
         this.measureWidget.view.surface.style.cursor = 'crosshair';
         this.measureWidget.viewModel.newMeasurement();
         break;
@@ -55,6 +56,7 @@ export class EsriMapService {
             unit: 'miles'
           });
         }
+        this.measureWidget.viewModel.mode = 'geodesic';
         this.measureWidget.view.surface.style.cursor = 'copy';
         this.measureWidget.destroy();
         this.measureWidget = null;
@@ -66,6 +68,7 @@ export class EsriMapService {
             unit: 'miles'
           });
         }
+        this.measureWidget.viewModel.mode = 'geodesic';
         this.measureWidget.view.surface.style.cursor = 'default';
         this.measureWidget.destroy();
         this.measureWidget = null;
