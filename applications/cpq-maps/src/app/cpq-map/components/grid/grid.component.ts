@@ -158,6 +158,7 @@ private createNonWrapRows(state: LocalState) {
     }
     newRows.push(state.rfpUiEditDetail.entities[id]);
   }
+  newRows.sort((a, b) => a.distance - b.distance);
   this.rows = newRows;
 }
 
@@ -199,7 +200,8 @@ private createWrapRows(state: LocalState) {
       this.selectedRows.push(newRow);
     newRows.push(newRow);
   }
-  this.rows = [...newRows];
+  newRows.sort((a, b) => a.wrapZone.localeCompare(b.wrapZone));
+  this.rows = newRows;
 }
 
 }

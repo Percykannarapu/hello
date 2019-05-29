@@ -3,7 +3,7 @@
     <div class="ui-g ui-toolbar-group-left">
       <button (click)="popupButtonClicked.emit()" [ngClass]="{ 'active': currentMapState === states.ShowPopups }"
               title="Show Popups" class="action-button esri-icon-comment"></button>
-      <button (click)="xyButtonClicked.emit()" [ngClass]="{ 'active': currentMapState === states.XY }" title="Show XY" class="action-button fa fa-dot-circle-o"></button>
+      <button (click)="xyButtonClicked.emit()" [ngClass]="{ 'active': currentMapState === states.XY }" title="Show XY" class="action-button esri-icon-radio-checked"></button>
       <button (click)="singleSelectClicked.emit()" [ngClass]="{ 'active': currentMapState === states.SelectSinglePoly }"
               title="Add/Remove Single Geo" class="action-button esri-icon-plus-circled" *ngIf="showSelectionButtons"></button>
       <!-- <button (click)="multiSelectClicked.emit()" [ngClass]="{ 'active': currentMapState === states.SelectMultiplePolys }"
