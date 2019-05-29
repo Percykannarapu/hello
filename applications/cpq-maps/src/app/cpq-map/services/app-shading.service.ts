@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { groupByExtended } from '@val/common';
-import { ColorPalette, EsriApi, EsriLayerService, EsriQueryService, getColorPalette } from '@val/esri';
+import { ColorPalette, EsriApi, EsriLayerService, EsriMapService, EsriQueryService, getColorPalette } from '@val/esri';
 import { FullState } from '../state';
 import { SetShadingData } from '../state/shared/shared.actions';
 import { shadingType } from '../state/shared/shared.reducers';
@@ -15,6 +15,7 @@ import { Observable, Subject } from 'rxjs';
 })
 export class AppShadingService {
 
+  private zoomedOnStartup = false;
   private zipShadingMap: Map<string, number[]> = new Map<string, number[]>();
   private atzShadingMap: Map<string, number[]> = new Map<string, number[]>();
   private wrapShadingMap: Map<string, number[]> = new Map<string, number[]>();
@@ -29,7 +30,8 @@ export class AppShadingService {
               private wrapService: RfpUiEditWrapService,
               private editDetailService: RfpUiEditDetailService,
               private esriLayerService: EsriLayerService,
-              private queryService: EsriQueryService) { }
+              private queryService: EsriQueryService,
+              private mapService: EsriMapService) { }
 
   public setSiteInfo(siteName: string, siteId: string) {
     this.siteIdMap.set(siteName, siteId);
@@ -377,6 +379,10 @@ export class AppShadingService {
         const layer: __esri.GraphicsLayer = this.esriLayerService.getGraphicsLayer('Selected Geos');
         layer.graphics.removeAll();
         layer.graphics.addMany(graphics);
+      }
+      if (!this.zoomedOnStartup) {
+        this.mapService.mapView.extent = EsriApi.geometryEngine.union(graphics.map(g => g.geometry)).extent;
+        this.zoomedOnStartup = true;
       }
     });
   }

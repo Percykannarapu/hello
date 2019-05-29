@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, UniversalCoordinates } from '@val/common';
-import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, MapSymbols, SetLayerLabelExpressions } from '@val/esri';
+import { UniversalCoordinates } from '@val/common';
+import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, MapSymbols, SetLayerLabelExpressions } from '@val/esri';
 import { FullState } from '../state';
 import { AppShadingService } from './app-shading.service';
 import { ConfigService } from './config.service';
@@ -102,18 +102,6 @@ export class AppLayerService {
          });
          this.esriLayerService.createGraphicsLayer('Sites', 'Trade Areas', graphics);
       });
-   }
-
-   public zoomToTradeArea(siteInformation: SiteInformation[]) {
-      const latitudes: Array<number> = [];
-      const longitudes: Array<number> = [];
-      for (const siteInfo of siteInformation) {
-         latitudes.push(siteInfo.coordinates.y);
-         longitudes.push(siteInfo.coordinates.x);
-      }
-      const xStats = calculateStatistics(longitudes);
-      const yStats = calculateStatistics(latitudes);
-      this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length);
    }
 
    public updateLabels(state: FullState) {
