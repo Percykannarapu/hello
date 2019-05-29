@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
+import { RestResponse } from '../models/RestResponse';
 import { RfpUiEditLoaderService } from './rfpUiEdit-loader-service';
 import { RfpUiEditDetailLoaderService } from './RfpUiEditDetail-loader-service';
 import { RfpUiReviewLoaderService } from './rfpUiReview-loader-service';
@@ -8,7 +9,7 @@ import { RfpUiEditWrapLoaderService } from './rfpUiEditWrap-loader-service';
 import { LocalState } from '../state';
 import { Store } from '@ngrx/store';
 import { SetIsWrap } from '../state/shared/shared.actions';
-import { Observable, merge, EMPTY, forkJoin } from 'rxjs';
+import { Observable, merge, EMPTY } from 'rxjs';
 import { NormalizedPayload } from '../models/NormalizedPayload';
 import { map, reduce, tap } from 'rxjs/operators';
 import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
@@ -52,7 +53,7 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
      );
    }
 
-   public saveMediaPlan(updates: RfpUiEditDetail[], adds: RfpUiEditDetail[]) : Observable<any> {
+   public saveMediaPlan(updates: RfpUiEditDetail[], adds: RfpUiEditDetail[]) : Observable<any[]> {
      const updatePayload = updates.map(u => ({ id: u.commonMbuId, value: u.isSelected }));
      const setSelected$ = updates.length > 0
        ? this.restService.post(this.setSelectedUrl, updatePayload)
@@ -70,6 +71,8 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
        ? this.restService.post(this.addNewUrl.replace('%id%', adds[0].mediaPlanId.toString()), addPayload)
        : EMPTY;
 
-     return forkJoin([setSelected$, miniMediaPlan$]);
+     return merge(setSelected$, miniMediaPlan$).pipe(
+       reduce((acc, curr) => [...acc, curr], [] as RestResponse[])
+     );
    }
  }
