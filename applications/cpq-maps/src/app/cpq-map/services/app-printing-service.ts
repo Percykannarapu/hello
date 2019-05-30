@@ -50,7 +50,8 @@ export class AppPrintingService {
       mediaPlanId: payload.mediaPlanId,
       tradeArea: payload.tradeArea,
     }; 
-    console.log(JSON.stringify(servicePayload, null, 2));
+    console.log('Generating map for', servicePayload.rfpNumber, 'and MP-' + servicePayload.mediaPlanId);
+    // console.log(JSON.stringify(servicePayload, null, 2));
     return this.esriGeoprocessorService.processJob(serviceUrl, servicePayload, 'reportUrl');
   }
 
