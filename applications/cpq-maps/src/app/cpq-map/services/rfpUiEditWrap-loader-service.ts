@@ -19,7 +19,8 @@ import { RfpUiEditWrapPayload } from '../state/payload-models/RfpUiEditWrap';
    loadRfpUiEditWrap(id: number) : Observable<RfpUiEditWrap[]> {
      if (id == null || id < 0) return EMPTY;
      return this.restService.get(`${this.loadUrl}/${id}/${this.searchQuery}`).pipe(
-       map(response => response.payload.rows as RfpUiEditWrap[])
+       map(response => response.payload.rows as RfpUiEditWrap[]),
+       map(rows => rows.filter(r => r.wrapZone != null))
      );
    }
 
