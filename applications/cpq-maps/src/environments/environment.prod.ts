@@ -28,5 +28,5 @@ export const environment: EnvironmentData = {
       centroid: undefined
     }
   },
-  portalUrl: 'https://gis.valassis.com'
+  portalUrl: 'https://valvcsimpor1vm.val.vlss.local/'
 };

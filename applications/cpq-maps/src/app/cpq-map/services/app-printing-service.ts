@@ -8,6 +8,7 @@ import { SharedState } from '../state/shared/shared.reducers';
 import { ConfigService } from './config.service';
 import { AppLayerService } from './app-layer-service';
 import { map } from 'rxjs/operators';
+import { pad } from '@val/common';
 
 @Injectable({
   providedIn: 'root'
@@ -56,11 +57,16 @@ export class AppPrintingService {
   }
 
   public setPrintParams(shared: SharedState, printParams: Partial<FullPayload>, fromDate: Date){
-    this.firstIHD = fromDate.toLocaleDateString();
+
+    const formatDate = new Date(fromDate.toLocaleDateString());
+    const day = formatDate.getDate() > 0 && formatDate.getDate() < 10 ? '0' + formatDate.getDate() : formatDate.getDate();
+    const month = formatDate.getMonth() >= 0 && formatDate.getMonth() < 9 ? '0' + (formatDate.getMonth() + 1) : (formatDate.getMonth() + 1);
+    this.firstIHD = (month.toString()).slice(-2) + '-' + (day.toString()).slice(-2) + '-' + formatDate.getFullYear();
+
     if (shared.isWrap){
-      printParams.layerSource = this.configService.layers['wrap'].serviceUrl;
+      printParams.layerSource = this.configService.layers['zip'].serviceUrl;
       printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
-      printParams.layerSourceLabelingExpression = this.configService.layers['wrap'].boundaries.labelExpression;
+      printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
     }
     else{
      if (this.appLayerService.analysisLevel === 'zip') {

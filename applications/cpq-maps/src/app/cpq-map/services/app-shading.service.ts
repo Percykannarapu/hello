@@ -183,7 +183,7 @@ export class AppShadingService {
     query.where = query.where.substr(0, query.where.length - 1);
     query.where += ')';
     const uniques = new Set<string>();
-    this.queryService.executeQuery(this.configService.layers['wrap'].boundaries.id, query, true).subscribe(res => {
+    this.queryService.executeQuery(this.configService.layers['zip'].boundaries.id, query, true).subscribe(res => {
       const graphics: Array<__esri.Graphic> = [];
       for (const geo of res.features) {
         uniques.add(geo.getAttribute('geocode'));
@@ -317,7 +317,7 @@ export class AppShadingService {
       this.boundaryExpression = `geocode in (${uniqueAtz.join(',')})`;
       this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.addMany(graphics);
       if (!this.atzShadingMap.has('ZIP'))
-        this.atzShadingMap.set('ZIP', this.getGeoColor(state, 'ZIP'))
+        this.atzShadingMap.set('ZIP', this.getGeoColor(state, 'ZIP'));
       doneSubject.next(true);
     });
     return doneSubject;
