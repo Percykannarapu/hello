@@ -389,7 +389,7 @@ export class AppShadingService {
 
   private setHouseholdCount(state){
     const entities = (state.rfpUiEditDetail.ids as number[]).map(i => state.rfpUiEditDetail.entities[i]);
-    const wrapCounts = groupByExtended(entities, item => item.wrapZone, item => item.households);
+    const wrapCounts = groupByExtended(entities, item => item.wrapZone, item => item.distribution);
     if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
       for (const id in state.rfpUiEditDetail.ids){
         if (state.rfpUiEditDetail.entities[id] != null){
@@ -400,7 +400,7 @@ export class AppShadingService {
             });
           }
           else
-            this.geoHHC.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].households.toString());
+            this.geoHHC.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].distribution.toString());
         }
       }
     }
