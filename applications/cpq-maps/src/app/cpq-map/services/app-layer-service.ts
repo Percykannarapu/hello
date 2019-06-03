@@ -67,8 +67,8 @@ export class AppLayerService {
         graphic.setAttribute('inHomeDate', s.inHomeDate);
         graphic.setAttribute('siteFk', s.siteId.toString());
         graphics.push(graphic);
-
-        this.appShadingService.setSiteInfo(s.name, s.siteRef.toString());
+        
+        this.appShadingService.setSiteInfo(s.siteId.toString(), s.siteRef.toString());
       });
       const label = this.esriFactory.createLabelClass(new EsriApi.Color([0, 0, 255, 1]), '$feature.siteName');
       this.esriLayerService.createClientLayer(groupName, layerName, graphics, 'OBJECTID', renderer, null, [label]);

@@ -91,8 +91,8 @@ export class AppShadingService {
 
     if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
       for (const id of state.rfpUiEditDetail.ids){
-        if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode && state.rfpUiEditDetail.entities[id].siteName != null){
-          sitesByZip.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].siteName);
+        if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode && state.rfpUiEditDetail.entities[id].fkSite != null){
+          sitesByZip.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].fkSite.toString());
         }
       }
     }
@@ -141,10 +141,10 @@ export class AppShadingService {
     this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
     const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
     const sitesByWrapZone: Map<string, string> = new Map<string, string>();
-    if (state.rfpUiEditWrap.ids != null && state.rfpUiEditWrap.ids.length > 0){
-      for (const id of state.rfpUiEditWrap.ids){
-        if (state.rfpUiEditWrap.entities[id] != null){
-          sitesByWrapZone.set(state.rfpUiEditWrap.entities[id].wrapZone, state.rfpUiEditWrap.entities[id].siteName);
+    if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
+      for (const id of state.rfpUiEditDetail.ids){
+        if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode != null && state.rfpUiEditDetail.entities[id].fkSite != null){
+          sitesByWrapZone.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].fkSite.toString());
         }
       }
     }
@@ -180,7 +180,7 @@ export class AppShadingService {
         graphic.setAttribute('wrapZone', geo.getAttribute('wrap_name'));
         graphic.setAttribute('SHADING_GROUP', geo.getAttribute('wrap_name'));
         if (this.geoHHC.has(geo.getAttribute('geocode')))
-          graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('wrap_name')));
+          graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')));
         if (sitesByWrapZone.has(geo.getAttribute('geocode')))
           graphic.setAttribute('siteId', this.siteIdMap.get(sitesByWrapZone.get(geo.getAttribute('geocode'))));
 
@@ -260,8 +260,8 @@ export class AppShadingService {
     const doneSubject: Subject<boolean> = new Subject();
     if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
       for (const id of state.rfpUiEditDetail.ids){
-        if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode != null && state.rfpUiEditDetail.entities[id].siteName != null){
-          sitesByAtz.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].siteName);
+        if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode != null && state.rfpUiEditDetail.entities[id].fkSite != null){
+          sitesByAtz.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].fkSite.toString());
         }
       }
     }
@@ -315,12 +315,10 @@ export class AppShadingService {
 
   private shadeBySite(state: FullState) {
     const shadingGroups: Map<string, number> = new Map<string, number>();
-    const shadingGroupName: Map<string, string> = new Map<string, string>();
     const selectedGeos: Array<string> = [];
     let count = 0;
     for (const site of state.rfpUiEdit.ids) {
       const siteId = state.rfpUiEdit.entities[site].siteId;
-      const siteName = state.rfpUiEdit.entities[site].siteName;
       const palette: number [][] = getColorPalette(ColorPalette.Cpqmaps);
       palette.forEach(color => color.push(0.6));
       this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, palette[count % palette.length]);
@@ -329,7 +327,6 @@ export class AppShadingService {
         if (siteId === Number(state.rfpUiEditDetail.entities[detail].fkSite)) {
           selectedGeos.push(state.rfpUiEditDetail.entities[detail].geocode);
           shadingGroups.set(state.rfpUiEditDetail.entities[detail].geocode, siteId);
-          shadingGroupName.set(state.rfpUiEditDetail.entities[detail].geocode, siteName);
         }
       }
       count++;
@@ -350,13 +347,13 @@ export class AppShadingService {
         graphic.symbol = new EsriApi.SimpleFillSymbol({color: this.shadingMap.get(shadingGroups.get(geo.getAttribute('geocode')))});
         graphic.geometry = geo.geometry;
         graphic.setAttribute('geocode', geo.getAttribute('geocode'));
-        if (shadingGroupName.has(geo.getAttribute('geocode'))){
-          graphic.setAttribute('SHADING_GROUP', shadingGroupName.get(geo.getAttribute('geocode')));
+        if (shadingGroups.has(geo.getAttribute('geocode'))){
+          graphic.setAttribute('SHADING_GROUP', shadingGroups.get(geo.getAttribute('geocode')));
         }
         if (this.geoHHC.has(geo.getAttribute('geocode')))
           graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')));
-        if (this.siteIdMap.has(shadingGroupName.get(geo.getAttribute('geocode'))))
-          graphic.setAttribute('siteId', this.siteIdMap.get(shadingGroupName.get(geo.getAttribute('geocode'))));
+        if (this.siteIdMap.has(shadingGroups.get(geo.getAttribute('geocode')).toString()))
+          graphic.setAttribute('siteId', this.siteIdMap.get(shadingGroups.get(geo.getAttribute('geocode')).toString()));
         graphics.push(graphic);
       }
       if (this.esriLayerService.getGraphicsLayer('Selected Geos') == null)
