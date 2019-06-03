@@ -76,6 +76,18 @@ interface AudienceTradeareaResponse {
   combinedIndexTile: number;
 }
 
+const analysisLevelToLengthMap = {
+  'zip': 5, 
+  'atz': 7, 
+  'pcr': 9
+};
+
+const analysisLevelToHomeGeocodeMap = {
+  'zip': 'Home Zip Code', 
+  'atz': 'Home ATZ', 
+  'pcr': 'Home Carrier Route'
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -143,14 +155,24 @@ export class ValAudienceTradeareaService {
   private attachLocations() {
     this.audienceTAConfig.locations = [];
     for (const location of this.locationService.get()) {
-      const taLocation: AudienceTradeareaLocation = {
-        LOCATIONNAME: location.locationNumber,
-        XCOORD: location.xcoord,
-        YCOORD: location.ycoord,
-        HOMEGEOCODE: location.homeGeocode == null ?  location.locZip.includes('-') ? location.locZip.substring(0, 5) : location.locZip : location.homeGeocode
-        //HOMEGEOCODE:  location.homeGeocode == null ?  location.locZip.substring(0, 5) : location.homeGeocode
-      };
-      this.audienceTAConfig.locations.push(taLocation);
+      if (analysisLevelToLengthMap[this.audienceTAConfig.analysisLevel] === location.homeGeocode.length) {
+        const taLocation: AudienceTradeareaLocation = {
+          LOCATIONNAME: location.locationNumber,
+          XCOORD: location.xcoord,
+          YCOORD: location.ycoord,
+          HOMEGEOCODE: location.homeGeocode == null ?  location.locZip.includes('-') ? location.locZip.substring(0, 5) : location.locZip : location.homeGeocode
+          //HOMEGEOCODE:  location.homeGeocode == null ?  location.locZip.substring(0, 5) : location.homeGeocode
+        };
+        this.audienceTAConfig.locations.push(taLocation);
+      } else {
+        const taLocation: AudienceTradeareaLocation = {
+          LOCATIONNAME: location.locationNumber,
+          XCOORD: location.xcoord,
+          YCOORD: location.ycoord,
+          HOMEGEOCODE: location.impGeofootprintLocAttribs.filter(attrb => attrb.attributeCode == analysisLevelToHomeGeocodeMap[this.audienceTAConfig.analysisLevel])[0].attributeValue
+        };
+        this.audienceTAConfig.locations.push(taLocation);
+      }
     }
   }
 
@@ -226,7 +248,7 @@ export class ValAudienceTradeareaService {
      return Observable.create(o => o.next(false));
    }
 
-    this.attachLocations();
+   this.attachLocations();
     if (this.audienceTAConfig.analysisLevel != null && this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
       this.audienceTAConfig.analysisLevel = 'dtz';
 

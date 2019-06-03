@@ -178,7 +178,11 @@ export class AppGeoService {
                               loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
                               loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
                               loc.clientLocationTypeCode === 'Site')
-    ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
+    ).subscribe(locations => {
+      setTimeout(() => {
+        this.selectAndPersistHomeGeos(locations);
+    }, 0);
+    });
   }
 
   private setupMapClickEventHandler() {
