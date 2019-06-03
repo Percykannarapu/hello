@@ -110,7 +110,7 @@ export class AppShadingService {
       count++;
     }
     const uniqueZips = Array.from(uniques).map(z => `'${z}'`);
-    this.boundaryExpression = `geocode in (${uniqueZips.join(',')})`;
+    this.boundaryExpression = `geocode IN (${uniqueZips.join(',')})`;
     const analysisLevel: string = state.shared.analysisLevel;
     const query: __esri.Query = new EsriApi.Query();
     query.outFields = ['geocode, zip'];
@@ -315,10 +315,12 @@ export class AppShadingService {
 
   private shadeBySite(state: FullState) {
     const shadingGroups: Map<string, number> = new Map<string, number>();
+    const shadingGroupName: Map<string, string> = new Map<string, string>();
     const selectedGeos: Array<string> = [];
     let count = 0;
     for (const site of state.rfpUiEdit.ids) {
       const siteId = state.rfpUiEdit.entities[site].siteId;
+      const siteName = state.rfpUiEdit.entities[site].siteName;
       const palette: number [][] = getColorPalette(ColorPalette.Cpqmaps);
       palette.forEach(color => color.push(0.6));
       this.shadingMap.set(state.rfpUiEdit.entities[site].siteId, palette[count % palette.length]);
@@ -327,6 +329,7 @@ export class AppShadingService {
         if (siteId === Number(state.rfpUiEditDetail.entities[detail].fkSite)) {
           selectedGeos.push(state.rfpUiEditDetail.entities[detail].geocode);
           shadingGroups.set(state.rfpUiEditDetail.entities[detail].geocode, siteId);
+          shadingGroupName.set(state.rfpUiEditDetail.entities[detail].geocode, siteName);
         }
       }
       count++;
@@ -348,7 +351,7 @@ export class AppShadingService {
         graphic.geometry = geo.geometry;
         graphic.setAttribute('geocode', geo.getAttribute('geocode'));
         if (shadingGroups.has(geo.getAttribute('geocode'))){
-          graphic.setAttribute('SHADING_GROUP', shadingGroups.get(geo.getAttribute('geocode')));
+          graphic.setAttribute('SHADING_GROUP', shadingGroupName.get(geo.getAttribute('geocode')));
         }
         if (this.geoHHC.has(geo.getAttribute('geocode')))
           graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('geocode')));
