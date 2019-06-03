@@ -90,7 +90,7 @@ export class AppShadingService {
     const sitesByZip: Map<string, string> = new Map<string, string>();
 
     if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-      for (const id in state.rfpUiEditDetail.ids){
+      for (const id of state.rfpUiEditDetail.ids){
         if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode && state.rfpUiEditDetail.entities[id].siteName != null){
           sitesByZip.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].siteName);
         }
@@ -140,29 +140,15 @@ export class AppShadingService {
   private shadeByWrapZone(state: FullState) {
     this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.removeAll();
     const selectedGeos = this.editDetailService.getSelectedEditDetails(state);
-    const allZones = [];
     const sitesByWrapZone: Map<string, string> = new Map<string, string>();
     if (state.rfpUiEditWrap.ids != null && state.rfpUiEditWrap.ids.length > 0){
-      for (const id in state.rfpUiEditWrap.ids){
+      for (const id of state.rfpUiEditWrap.ids){
         if (state.rfpUiEditWrap.entities[id] != null){
           sitesByWrapZone.set(state.rfpUiEditWrap.entities[id].wrapZone, state.rfpUiEditWrap.entities[id].siteName);
         }
       }
     }
 
-    if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-      for (const id in state.rfpUiEditDetail.ids){
-        if (state.rfpUiEditDetail.entities[id] != null){
-          const wrapZoneList = {
-            geocode: state.rfpUiEditDetail.entities[id].geocode,
-            wrapZone: state.rfpUiEditDetail.entities[id].wrapZone,
-            hhc: state.rfpUiEditDetail.entities[id].households
-          };
-          allZones.push(wrapZoneList);
-        }
-
-      }
-    }
     let count: number = 0;
     const wrapZones = this.editDetailService.getEditDetailsByWrapZone(state);
     for (const wrapZone of Array.from(wrapZones.keys())) {
@@ -224,7 +210,7 @@ export class AppShadingService {
       count++;
     }
     if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-      for (const id in state.rfpUiEditDetail.ids){
+      for (const id of state.rfpUiEditDetail.ids){
         if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode != null && state.rfpUiEditDetail.entities[id].siteName != null){
           sitesByAtz.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].siteName);
         }
@@ -273,7 +259,7 @@ export class AppShadingService {
     const sitesByAtz: Map<string, string> = new Map<string, string>();
     const doneSubject: Subject<boolean> = new Subject();
     if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-      for (const id in state.rfpUiEditDetail.ids){
+      for (const id of state.rfpUiEditDetail.ids){
         if (state.rfpUiEditDetail.entities[id] != null && state.rfpUiEditDetail.entities[id].geocode != null && state.rfpUiEditDetail.entities[id].siteName != null){
           sitesByAtz.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].siteName);
         }
@@ -388,18 +374,9 @@ export class AppShadingService {
   }
 
   private setHouseholdCount(state){
-    const entities = (state.rfpUiEditDetail.ids as number[]).map(i => state.rfpUiEditDetail.entities[i]);
-    const wrapCounts = groupByExtended(entities, item => item.wrapZone, item => item.distribution);
     if (state.rfpUiEditDetail.ids != null && state.rfpUiEditDetail.ids.length > 0){
-      for (const id in state.rfpUiEditDetail.ids){
+      for (const id of state.rfpUiEditDetail.ids){
         if (state.rfpUiEditDetail.entities[id] != null){
-          if (state.shared.shadingType === shadingType.WRAP_ZONE){
-            wrapCounts.forEach((v, k) => {
-              const val = v.reduce((p, c) => p + c);
-              this.geoHHC.set(k, val.toString());
-            });
-          }
-          else
             this.geoHHC.set(state.rfpUiEditDetail.entities[id].geocode, state.rfpUiEditDetail.entities[id].distribution.toString());
         }
       }
