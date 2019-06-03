@@ -179,10 +179,10 @@ export class AppShadingService {
         graphic.setAttribute('geocode', geo.getAttribute('geocode'));
         graphic.setAttribute('wrapZone', geo.getAttribute('wrap_name'));
         graphic.setAttribute('SHADING_GROUP', geo.getAttribute('wrap_name'));
-        if (this.geoHHC.has(geo.getAttribute('wrap_name')))
+        if (this.geoHHC.has(geo.getAttribute('geocode')))
           graphic.setAttribute('householdCount', this.geoHHC.get(geo.getAttribute('wrap_name')));
-        if (sitesByWrapZone.has(geo.getAttribute('wrap_name')))
-          graphic.setAttribute('siteId', this.siteIdMap.get(sitesByWrapZone.get(geo.getAttribute('wrap_name'))));
+        if (sitesByWrapZone.has(geo.getAttribute('geocode')))
+          graphic.setAttribute('siteId', this.siteIdMap.get(sitesByWrapZone.get(geo.getAttribute('geocode'))));
 
         graphics.push(graphic);
       }

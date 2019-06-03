@@ -4,8 +4,9 @@ export interface PrintModel {
   siteFeatures: Array<__esri.Graphic>;
   shadingFeatures: Array<__esri.Graphic>;
   boundaryDefinitionExpression: string;
-  zipsLabelingExpression: string;
+  secondaryLayerSourceLabelingExpression: string;
   layerSourceLabelingExpression: string;
+  secondaryLayerSource: string;
 }
 
 export interface PrintPayload {
@@ -22,8 +23,9 @@ export interface PrintPayload {
 export interface FullPayload {
   clientName: string;
   layerSource: string;
-  zipsLabelingExpression: string;
+  secondaryLayerSourceLabelingExpression: string;
   layerSourceLabelingExpression: string;
+  secondaryLayerSource: string;
   radius: number;
   inHomeDate: string;
   reportName: string;

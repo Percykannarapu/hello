@@ -7,8 +7,6 @@ import { AppShadingService } from './app-shading.service';
 import { SharedState } from '../state/shared/shared.reducers';
 import { ConfigService } from './config.service';
 import { AppLayerService } from './app-layer-service';
-import { map } from 'rxjs/operators';
-import { pad } from '@val/common';
 
 @Injectable({
   providedIn: 'root'
@@ -38,8 +36,9 @@ export class AppPrintingService {
       siteFeatures: siteGraphics.toArray(), 
       shadingFeatures: shadingGraphics.toArray(), 
       boundaryDefinitionExpression: definitionExpression,
-      zipsLabelingExpression: payload.zipsLabelingExpression,
-      layerSourceLabelingExpression: payload.layerSourceLabelingExpression 
+      secondaryLayerSourceLabelingExpression: payload.secondaryLayerSourceLabelingExpression,
+      layerSourceLabelingExpression: payload.layerSourceLabelingExpression,
+      secondaryLayerSource: payload.secondaryLayerSource 
     };
     const serviceUrl = this.config.printServiceUrl;  
     const servicePayload: PrintPayload = {
@@ -65,18 +64,21 @@ export class AppPrintingService {
 
     if (shared.isWrap){
       printParams.layerSource = this.configService.layers['zip'].serviceUrl;
-      printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+      printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['wrap'].boundaries.labelExpression;
       printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+      printParams.secondaryLayerSource = this.configService.layers['wrap'].serviceUrl;
     }
     else{
      if (this.appLayerService.analysisLevel === 'zip') {
         printParams.layerSource = this.configService.layers['zip'].serviceUrl;
-        printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+        printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
         printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+        printParams.secondaryLayerSource = this.configService['zip'].serviceUrl;
      } else{
         printParams.layerSource = this.configService.layers['atz'].serviceUrl;
-        printParams.zipsLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+        printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
         printParams.layerSourceLabelingExpression = this.configService.layers['atz'].boundaries.labelExpression;
+        printParams.secondaryLayerSource = this.configService.layers['zip'].serviceUrl;
      }
     }
   return this.createFeatureSet(printParams);
