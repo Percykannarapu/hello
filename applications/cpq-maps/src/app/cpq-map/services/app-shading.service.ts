@@ -99,7 +99,7 @@ export class AppShadingService {
     let count: number = 0;
     const uniques = new Set<string>();
     for (const geo of selectedGeos) {
-      uniques.add(geo.zip);
+      uniques.add(geo.geocode);
       if (this.zipShadingMap.has(geo.zip)) {
         continue;
       } else {
