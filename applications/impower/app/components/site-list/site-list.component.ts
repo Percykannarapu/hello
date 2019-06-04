@@ -162,6 +162,7 @@ export class SiteListComponent implements OnInit {
       {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',    width: '11em',  styleClass: '',                filterMatchMode: 'contains' },
       {field: 'Home Carrier Route',   header: 'Home PCR',            width: '8em',   styleClass: '',                filterMatchMode: 'contains' },
       {field: 'Home DMA',             header: 'Home DMA',            width: '8em',   styleClass: '',                filterMatchMode: 'contains' },
+      {field: 'Home DMA Name',        header: 'Home DMA Name',       width: '11em',  styleClass: '',                filterMatchMode: 'contains' },
       {field: 'Home County',          header: 'Home County',         width: '11em',  styleClass: '',                filterMatchMode: 'contains' },
       {field: 'geocoderMatchCode',    header: 'Match Code',          width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains' },
       {field: 'geocoderLocationCode', header: 'Location Code',       width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains' },
