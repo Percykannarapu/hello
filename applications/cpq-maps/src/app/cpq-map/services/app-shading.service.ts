@@ -293,7 +293,7 @@ export class AppShadingService {
         if (geo.getAttribute('atz') != null)
           graphic.setAttribute('SHADING_GROUP', geo.getAttribute('atz'));
         else
-          graphic.setAttribute('SHADING_GROUP', 'Full Zip');
+          graphic.setAttribute('SHADING_GROUP', 'ZIP');
         if (sitesByAtz.has(geo.getAttribute('geocode'))) {
           graphic.setAttribute('siteId', this.siteIdMap.get(sitesByAtz.get(geo.getAttribute('geocode'))));
         }

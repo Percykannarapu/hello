@@ -73,7 +73,7 @@ export class AppPrintingService {
         printParams.layerSource = this.configService.layers['zip'].serviceUrl;
         printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
         printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
-        printParams.secondaryLayerSource = this.configService['zip'].serviceUrl;
+        printParams.secondaryLayerSource = this.configService.layers['zip'].serviceUrl;
      } else{
         printParams.layerSource = this.configService.layers['atz'].serviceUrl;
         printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
