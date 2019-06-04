@@ -128,7 +128,7 @@ export class AppGeoService {
     return newWrap;
   }
 
-  private findClosestSite(point: __esri.Point) : __esri.Graphic {
+  /*private findClosestSite(point: __esri.Point) : __esri.Graphic {
     const geometry: __esri.Multipoint = new EsriApi.Multipoint();
     const layer: __esri.FeatureLayer = this.esriLayerService.getFeatureLayer('Project Sites');
     if (layer != null) {
@@ -143,5 +143,29 @@ export class AppGeoService {
       return p.x === nearestPoint.coordinate.x && p.y === nearestPoint.coordinate.y;
     });
     return sitesGraphic.getItemAt(0);
+  }*/
+
+  private findClosestSite(point: __esri.Point) : __esri.Graphic {
+    const siteGrahics: Array<__esri.Graphic> = [];
+    const layer: __esri.FeatureLayer = this.esriLayerService.getFeatureLayer('Project Sites');
+    if (layer != null) {
+      layer.source.forEach(g => siteGrahics.push(g));
+    }
+    if (siteGrahics.length === 0)
+      console.error('No sites found when calculating nearest site');
+    if (siteGrahics.length === 1)
+      return siteGrahics[0];
+    let closestGraphic: __esri.Graphic = null;
+    let closestDistance: number = Number.MAX_SAFE_INTEGER;
+    for (const graphic of siteGrahics) {
+      if (closestGraphic == null)
+        closestGraphic = graphic;
+      const distanceToSite = EsriUtils.getDistance(point, <__esri.Point> graphic.geometry);
+      if (distanceToSite < closestDistance) {
+        closestDistance = distanceToSite;
+        closestGraphic = graphic;
+      }
+    }
+    return closestGraphic;
   }
 }
