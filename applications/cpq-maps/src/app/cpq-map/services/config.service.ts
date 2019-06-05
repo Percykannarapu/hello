@@ -60,7 +60,7 @@ export class ConfigService {
         labelExpression: '$feature.wrap_name',
         labelFontSizeOffset: 2
       },
-      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/WRAP_Top_Vars_Portal_Copy_All_Data/FeatureServer/0'
+      serviceUrl: environment.layerIds.wrap.serviceUrl
     },
     zip: {
       group: {
@@ -88,7 +88,7 @@ export class ConfigService {
         labelExpression: '$feature.geocode',
         labelFontSizeOffset: 2
       },
-      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_CopyAllData/FeatureServer/0'
+      serviceUrl: environment.layerIds.zip.serviceUrl
     },
     atz: {
       group: {
@@ -115,7 +115,7 @@ export class ConfigService {
         popUpFields: [],
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
       },
-      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_CopyAllData/FeatureServer/0'
+      serviceUrl: environment.layerIds.atz.serviceUrl
 
     },
     digital_atz: {
@@ -147,7 +147,7 @@ export class ConfigService {
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
       },
-      serviceUrl: ''
+      serviceUrl: environment.layerIds.dtz.serviceUrl
     }
   };
 

@@ -1,6 +1,7 @@
 export interface LayerIdDefinition {
   centroid: string;
   boundary: string;
+  serviceUrl: string;
 }
 
 export interface EnvironmentData {
