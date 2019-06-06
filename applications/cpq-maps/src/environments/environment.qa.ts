@@ -25,12 +25,12 @@ export const environment: EnvironmentData = {
     zip: {
       boundary: '23a54308e914496aa24d94a9b36776a0',
       centroid: '88120ac630d746239b133296e87b8e1f',
-      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_CopyAllData/FeatureServer/0'
+      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_Very_Simplified/FeatureServer/0'
     },
     atz: {
       boundary: 'c0ee701ee95f4bbdbc15ded2a37ca802',
       centroid: 'fd4b078fc2424dd5a48af860dc421431',
-      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_CopyAllData/FeatureServer/0'
+      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_Very_Simplified/FeatureServer/0'
     },
     dtz: {
       boundary: 'a4449b3ee55442af881f6ac660ca8163',
@@ -40,7 +40,7 @@ export const environment: EnvironmentData = {
     wrap: {
       boundary: '12bae62392eb47aeb887b6509da557b5',
       centroid: undefined,
-      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/WRAP_Top_Vars_Portal_Copy_All_Data/FeatureServer/0'
+      serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/WRAP_Top_Vars_Very_Simplified/FeatureServer/0'
     }
   },
   portalUrl: 'https://gis.valassislab.com'
