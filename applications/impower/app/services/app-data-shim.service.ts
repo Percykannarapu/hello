@@ -168,7 +168,7 @@ export class AppDataShimService {
         }
         if (!ignore) {
           currentGeos.forEach(g => {
-            g.isActive = state && audiencePreSelected;
+            g.isActive = g.isActive && state && audiencePreSelected;
             g['filterReasons'] = state ? (audiencePreSelected ? null : 'Under Audience TA threshold') : `Filtered because: ${filterReasons.join(', ')}`;
           });
         }

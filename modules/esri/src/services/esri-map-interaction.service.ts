@@ -28,12 +28,14 @@ export class EsriMapInteractionService {
 
   startSketchModel(graphicType: EsriGraphicTypeCodes) : Observable<__esri.Geometry> {
     const model = this.domainFactory.createSketchViewModel(this.mapService.mapView);
-    const result = Observable.create(observer => {
-      const drawingHandler = model.on('create-complete', event => {
-        this.stopSketchModel(model, event);
-        observer.next(event.geometry);
-        observer.complete();
-        drawingHandler.remove();
+    const result: Observable<__esri.Geometry> = Observable.create(observer => {
+      const drawingHandler = model.on('create', event => {
+        if (event.state === 'complete') {
+          this.stopSketchModel(model, event);
+          observer.next(event.graphic.geometry);
+          observer.complete();
+          drawingHandler.remove();
+        }
       });
     });
     model.create(graphicType);

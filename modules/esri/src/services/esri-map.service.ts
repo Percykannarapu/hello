@@ -38,7 +38,7 @@ export class EsriMapService {
     this.mapView.graphics.removeAll();
   }
 
-  public setMeasureWidget(type) {
+  public setWidget(type) {
     switch (type) {
       case 'measure':
         this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
