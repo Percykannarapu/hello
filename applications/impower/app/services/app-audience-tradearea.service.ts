@@ -79,13 +79,15 @@ interface AudienceTradeareaResponse {
 const analysisLevelToLengthMap = {
   'zip': 5, 
   'atz': 7, 
-  'pcr': 9
+  'pcr': 9,
+  'digital atz': 7
 };
 
 const analysisLevelToHomeGeocodeMap = {
   'zip': 'Home Zip Code', 
   'atz': 'Home ATZ', 
-  'pcr': 'Home Carrier Route'
+  'pcr': 'Home Carrier Route',
+  'digital atz': 'Home Digital ATZ'
 };
 
 @Injectable({
