@@ -13,6 +13,8 @@ export interface FieldMetaData {
 })
 export class ConfigService {
 
+  public defaultShadingTransparency = 0.5; // 50%
+
   public basemaps = [
     'streets-vector',
     'streets-navigation-vector',

@@ -1,31 +1,20 @@
 import { Action } from '@ngrx/store';
-import { AvailabilityDetailResponse } from '../../models/availability-detail-response';
-import { NormalizedPayload } from '../../models/NormalizedPayload';
-import { shadingType } from './shared.reducers';
-import { ResultType } from '../app.interfaces';
-
+import { LegendData, ResultType } from '../app.interfaces';
 
 export enum SharedActionTypes {
-  ApplicationStartup = '[Shared Actions] Application Startup',
-  MapSetupComplete = '[Shared Actions] Map Setup Complete',
-  MapSetupFailed = '[Shared Actions] Map Setup Failed',
-  GetMapData = '[Shared Actions] Get Map Data',
-  GetMapDataFailed = '[Shared Actions] Get Map Data Failed',
-  LoadEntityGraph = '[Shared Actions] Load Entity Graph',
   SetAppReady = '[Shared Actions] Set App Ready',
   SetIsWrap = '[Shared Actions] Set isWrap',
   SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled',
   SaveMediaPlan = '[Shared Actions] Save Media Plan',
   SaveSucceeded = '[Shared Actions] Save Succeeded',
   SaveFailed = '[Shared Actions] Save Failed',
-  ExportMaps = '[Shared Actions] Export Maps',
-  GenerateMapFailed = '[Shared Actions] Generate Map Failed',
-  GenerateMapSuccess = '[Shared ACtions] Generate Map Success',
-  OpenMapBook = '[Shared Actions] Open Map Book',
+
+  GeneratePdf = '[Shared Actions] Generate Map Pdf',
+  GeneratePdfSucceeded = '[Shared Actions] Generate Map Pdf Succeeded',
+  GeneratePfdFailed = '[Shared Actions] Generate Map Pdf Failed',
 
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
-  SetShadingType = '[Shared Actions] Set Shading Type',
-  SetShadingData = '[Shared Actions] Set Shading Data',
+  SetLegendData = '[Shared Actions] Set Legend Data',
   SetLegendHTML = '[Shared Actions] Set Legend HTML'
 }
 
@@ -34,44 +23,9 @@ export class SetLegendHTML implements Action {
   constructor() { }
 }
 
-export class SetShadingData implements Action {
-  readonly type = SharedActionTypes.SetShadingData;
-  constructor(public payload: { shadingData: Array<{key: string | Number, value: number[]}> }) { }
-}
-
-export class SetShadingType implements Action {
-  readonly type = SharedActionTypes.SetShadingType;
-  constructor(public payload: { shadingType: shadingType }) { }
-}
-
-export class ApplicationStartup implements Action {
-  readonly type = SharedActionTypes.ApplicationStartup;
-  constructor(public payload: { groupId: number, mediaPlanId: number, radius: number, analysisLevel: string, threshold: string, promoDateFrom: Date, promoDateTo: Date }) { }
-}
-
-export class MapSetupComplete implements Action {
-  readonly type = SharedActionTypes.MapSetupComplete;
-  constructor(public payload: { groupId: number, mediaPlanId: number }) {}
-}
-
-export class MapSetupFailed implements Action {
-  readonly type = SharedActionTypes.MapSetupFailed;
-  constructor(public payload: { err: any }) {}
-}
-
-export class GetMapData implements Action {
-  readonly type = SharedActionTypes.GetMapData;
-  constructor(public payload: { groupId: number, mediaPlanId: number }) {}
-}
-
-export class GetMapDataFailed implements Action {
-  readonly type = SharedActionTypes.GetMapDataFailed;
-  constructor(public payload: { err: any }) {}
-}
-
-export class LoadEntityGraph implements Action {
-  readonly type = SharedActionTypes.LoadEntityGraph;
-  constructor(public payload: { normalizedEntities: NormalizedPayload }) { }
+export class SetLegendData implements Action {
+  readonly type = SharedActionTypes.SetLegendData;
+  constructor(public payload: { legendData: LegendData[], legendTitle: string }) { }
 }
 
 export class SetAppReady implements Action {
@@ -108,46 +62,32 @@ export class NavigateToReviewPage implements Action {
     constructor(public payload: { rfpId: string, mediaPlanGroupNumber: number }) {}
 }
 
-export class ExportMaps implements Action {
-  readonly type = SharedActionTypes.ExportMaps;
+export class GeneratePdf implements Action {
+  readonly type = SharedActionTypes.GeneratePdf;
 }
 
-export class GenerateMapFailed implements Action {
-  readonly type = SharedActionTypes.GenerateMapFailed;
+export class GeneratePfdFailed implements Action {
+  readonly type = SharedActionTypes.GeneratePfdFailed;
   constructor(public payload: { err: any }) {}
 }
 
-
-export class GenerateMapSuccess implements Action {
-  readonly type = SharedActionTypes.GenerateMapSuccess;
+export class GeneratePdfSucceeded implements Action {
+  readonly type = SharedActionTypes.GeneratePdfSucceeded;
   constructor(public payload: { response: ResultType }) {}
 }
 
-export class OpenMapBook implements Action {
-  readonly type = SharedActionTypes.OpenMapBook;
-  constructor(public payload: { response: ResultType }){}
-}
-
 export type SharedActions =
-  ApplicationStartup
-  | SetAppReady
-  | LoadEntityGraph
+  SetAppReady
   | SetIsWrap
   | SetIsDistrQtyEnabled
-  | MapSetupComplete
-  | MapSetupFailed
-  | GetMapData
-  | GetMapDataFailed
   | SaveMediaPlan
   | SaveSucceeded
   | SaveFailed
   | NavigateToReviewPage
-  | SetShadingType
-  | SetShadingData
+  | SetLegendData
   | SetLegendHTML
-  | ExportMaps
-  | GenerateMapFailed
-  | GenerateMapSuccess
-  | OpenMapBook
+  | GeneratePdf
+  | GeneratePfdFailed
+  | GeneratePdfSucceeded
   ;
 

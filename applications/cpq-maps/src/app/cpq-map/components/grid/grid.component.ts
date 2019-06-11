@@ -1,12 +1,11 @@
-import { Component, OnInit, Input, ViewChild, ChangeDetectorRef } from '@angular/core';
-import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
-import { Store, select } from '@ngrx/store';
-import { LocalState } from '../../state';
-import { filter } from 'rxjs/operators';
-import { RfpUiEditWrap } from '../../../val-modules/mediaexpress/models/RfpUiEditWrap';
-import { UpsertRfpUiEditDetail } from '../../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { UpsertRfpUiEditWraps } from '../../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { select, Store } from '@ngrx/store';
 import { DataTable } from 'primeng/primeng';
+import { filter } from 'rxjs/operators';
+import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
+import { RfpUiEditWrap } from '../../../val-modules/mediaexpress/models/RfpUiEditWrap';
+import { LocalState } from '../../state';
+import { GridGeoToggle } from '../../state/grid/grid.actions';
 
 class CompositeRow extends RfpUiEditDetail {
 public siteName?: string;
@@ -164,19 +163,9 @@ private createNonWrapRows(state: LocalState) {
 
 public onChangeRowSelection(event: any) {
   if (event.data.geocode) {
-    const rowUpdate: RfpUiEditDetail = Object.assign({}, event.data);
-    rowUpdate.isSelected = !rowUpdate.isSelected;
-    this.store$.dispatch(new UpsertRfpUiEditDetail({ rfpUiEditDetail: <RfpUiEditDetail> rowUpdate }));
+    this.store$.dispatch(new GridGeoToggle({ geocode: event.data.geocode }));
   } else {
-    // for wrap we need to update all of the rows that have the same wrap zone
-    const rowUpdates: Array<RfpUiEditWrap> = [];
-    const matchedRows = this.rows.filter(row => row.wrapZone === event.data.wrapZone);
-    matchedRows.forEach(row => {
-      const rowUpdate: RfpUiEditWrap = Object.assign({}, <WrapCompositeRow> row);
-      rowUpdate.isSelected = !rowUpdate.isSelected;
-      rowUpdates.push(rowUpdate);
-    });
-    this.store$.dispatch(new UpsertRfpUiEditWraps({ rfpUiEditWraps: rowUpdates }));
+    this.store$.dispatch(new GridGeoToggle({ geocode: event.data.wrapZone }));
   }
 }
 

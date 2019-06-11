@@ -2,7 +2,6 @@ import { ComponentFactoryResolver, ElementRef, Injectable, Injector } from '@ang
 import { EsriApi, EsriLayerService, EsriMapService } from '@val/esri';
 import { take } from 'rxjs/operators';
 import { MapPopupComponent } from '../components/map-popup/map-popup.component';
-import { FullState } from '../state';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -16,12 +15,12 @@ export class AppPopupService {
               private resolver: ComponentFactoryResolver,
               private injector: Injector) { }
 
-  public initializePopups(state: FullState) {
+  public initializePopups(analysisLevel: string) {
     const layerNames = ['zip', 'atz', 'wrap'];
     layerNames.forEach(name => {
       const layerId = this.configService.layers[name].boundaries.id;
       const layer = this.esriLayerService.getPortalLayerById(layerId);
-      if (name !== state.shared.analysisLevel || name === 'wrap') {
+      if (name !== analysisLevel || name === 'wrap') {
         layer.popupTemplate = null;
         return;
       }

@@ -29,8 +29,10 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService, MessagesModule, SpinnerModule } from 'primeng/primeng';
+import { InitEffects } from './state/init/init.effects';
+import { ShadingEffects } from './state/shading/shading.effects';
+import { GridEffects } from './state/grid/grid.effects';
 import { PopupEffects } from './state/popup/popup.effects';
-import { SharedEffects } from './state/shared/shared.effects';
 import { HeaderBarComponent } from './components/header-bar/header-bar.component';
 import { AppMessagingService } from './services/app-messaging.service';
 import { ToastModule } from 'primeng/toast';
@@ -61,10 +63,11 @@ import { MapPopupComponent } from './components/map-popup/map-popup.component';
     ToastModule,
     MessagingModule.forRoot(AppMessagingService),
     StoreModule.forRoot(reducers, {metaReducers}),
-    EffectsModule.forRoot([SharedEffects, AppEffects, PopupEffects]),
+    EffectsModule.forRoot([AppEffects, InitEffects, PopupEffects, ShadingEffects, GridEffects]),
     StoreDevtoolsModule.instrument({
       name: 'CPQ Maps Application',
       logOnly: environment.production,
+
     }),
     EsriModule.forRoot({
       portalServerRootUrl: environment.esri.portalServer,
@@ -78,7 +81,7 @@ import { MapPopupComponent } from './components/map-popup/map-popup.component';
   declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent, LegendComponent, MapPopupComponent],
   exports: [CpqMapComponent],
   providers: [RestDataService, AppConfig, MessageService],
-  entryComponents: [MapPopupComponent],
+  entryComponents: [MapPopupComponent, LegendComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class CpqMapModule {

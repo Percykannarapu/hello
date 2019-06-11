@@ -1,7 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { TargetAudiencePref } from '../../../val-modules/mediaexpress/models/TargetAudiencePref';
+import { GetMediaPlanDataSucceeded, InitActionTypes } from '../init/init.actions';
 import { TargetAudienceActions, TargetAudienceActionTypes } from './target-audience.actions';
-import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface TargetAudienceState extends EntityState<TargetAudiencePref> {
   // additional entities state properties
@@ -16,11 +16,11 @@ export const initialState: TargetAudienceState = adapter.getInitialState({
   // additional entity state properties
 });
 
-type reducerActions = TargetAudienceActions | SharedActions;
+type reducerActions = TargetAudienceActions | GetMediaPlanDataSucceeded;
 
 export function targetAudienceReducer(state = initialState, action: reducerActions) : TargetAudienceState {
   switch (action.type) {
-    case SharedActionTypes.LoadEntityGraph: {
+    case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.targetAudiencePrefs != null)
         return adapter.addMany(action.payload.normalizedEntities.targetAudiencePrefs, state);
       else

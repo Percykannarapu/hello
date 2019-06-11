@@ -1,11 +1,10 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
-import { Store, select } from '@ngrx/store';
-import { ApplicationStartup } from './cpq-map/state/shared/shared.actions';
-import { FullState } from './cpq-map/state';
-import { selectors, SetSelectedLayer } from '@val/esri';
-import { ConfigService } from './cpq-map/services/config.service';
+import { select, Store } from '@ngrx/store';
+import { selectors } from '@val/esri';
 import { filter } from 'rxjs/internal/operators/filter';
 import { take } from 'rxjs/operators';
+import { FullState } from './cpq-map/state';
+import { ApplicationStartup } from './cpq-map/state/init/init.actions';
 
 @Component({
   selector: 'cpq-root',
@@ -15,8 +14,7 @@ import { take } from 'rxjs/operators';
 export class AppComponent implements OnInit {
 
   constructor(private elementRef: ElementRef<HTMLDivElement>,
-              private store$: Store<FullState>,
-              private configService: ConfigService) {}
+              private store$: Store<FullState>) {}
 
   ngOnInit() {
     const el = this.elementRef.nativeElement;
@@ -34,7 +32,6 @@ export class AppComponent implements OnInit {
       take(1)
     ).subscribe(() => {
       this.store$.dispatch(new ApplicationStartup({ groupId, mediaPlanId, radius, analysisLevel, threshold, promoDateFrom, promoDateTo }));
-      this.store$.dispatch(new SetSelectedLayer({ layerId: this.configService.layers[analysisLevel.toLowerCase()].boundaries.id }));
     });
   }
 }

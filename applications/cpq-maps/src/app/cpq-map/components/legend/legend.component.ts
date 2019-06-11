@@ -1,151 +1,48 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
-import { Store, select } from '@ngrx/store';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { select, Store } from '@ngrx/store';
+import { pad } from '@val/common';
+import { map, tap, withLatestFrom } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
-import { withLatestFrom, filter, tap } from 'rxjs/operators';
-import { SetLegendHTML } from '../../state/shared/shared.actions';
-import { shadingType } from '../../state/shared/shared.reducers';
-import { RfpUiEdit } from 'src/app/val-modules/mediaexpress/models/RfpUiEdit';
-import { RfpUiEditDetail } from 'src/app/val-modules/mediaexpress/models/RfpUiEditDetail';
+
+function colorToHex(color: number[]) {
+  const red = pad(Number(color[0]).toString(16), 2);
+  const green = pad(Number(color[1]).toString(16), 2);
+  const blue = pad(Number(color[2]).toString(16), 2);
+  return `#${red}${green}${blue}99`;
+}
 
 @Component({
-  selector: 'val-legend',
+  selector: 'cpq-legend',
   templateUrl: './legend.component.html',
   styleUrls: ['./legend.component.css']
 })
 export class LegendComponent implements OnInit {
 
-  @ViewChild('legendNode')
-  public legendNode: ElementRef;
-  public legendData: Array<{key: string, value: string, hhc: string}> = [];
+  legendTitle: string;
+  legendData: Array<{ name: string, colorHex: string, hhc: number }> = [];
 
   constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
 
   ngOnInit() {
     this.store$.pipe(
-      select(localSelectors.getShadingData),
-      withLatestFrom(
-        this.store$.pipe(select(localSelectors.getShadingType)),
-        this.store$.pipe(select(localSelectors.getRfpUiEditEntities)),
-        this.store$.pipe(select(localSelectors.getRfpUiEditDetailEntities)),
-      )
-    ).subscribe(([shadingData, legendType, uiEditEntities, uiEditDetailEntities]) => {
-      this.setupLegend(shadingData, legendType, uiEditEntities, uiEditDetailEntities);
+      select(localSelectors.getLegendData),
+      map(shadingData => shadingData.filter(d => d.hhc > 0)),
+      tap(shadingData => shadingData.sort((a, b) => {
+        if (a.sortOrder == null || b.sortOrder == null) {
+          return a.groupName.localeCompare(b.groupName);
+        } else {
+          return a.sortOrder - b.sortOrder;
+        }
+      })),
+      map(shadingData => shadingData.map(d => ({ name: d.groupName, colorHex: colorToHex(d.color), hhc: d.hhc }))),
+      withLatestFrom(this.store$.pipe(select(localSelectors.getLegendTitle)))
+    ).subscribe(([result, title]) => {
+      this.legendData = result;
+      this.legendTitle = title;
+      this.cd.detectChanges();
+    }, err => {
+      console.error('There was an error creating the Legend Component', err);
     });
-    this.store$.pipe(
-      select(localSelectors.getRfpUiEditDetailEntities),
-      withLatestFrom(
-        this.store$.pipe(select(localSelectors.getRfpUiEditEntities)),
-        this.store$.pipe(select(localSelectors.getShadingData)),
-        this.store$.pipe(select(localSelectors.getShadingType))
-      )
-    ).subscribe(([uiEditDetailEntities, uiEditEntities, shadingData, legendType]) => {
-      this.setupLegend(shadingData, legendType, uiEditEntities, uiEditDetailEntities);
-    });
   }
-
-  private setupLegend(shadingData: Array<{key: string | Number, value: number[]}>, legendType: shadingType, uiEditEntities: RfpUiEdit[], uiEditDetailEntities: RfpUiEditDetail[]) {
-    this.legendData = [];
-      for (const sd of shadingData) {
-        const color = this.colorToHex(sd.value[0], sd.value[1], sd.value[2]);
-        const hhc = this.getHHC(legendType, sd.key.toString(), uiEditEntities, uiEditDetailEntities);
-        if (hhc < 1) continue;
-        this.legendData.push({ key: sd.key.toString(), value: color, hhc: hhc.toLocaleString() });
-      }
-      this.cd.markForCheck();
-      setTimeout(() => {
-        this.store$.dispatch(new SetLegendHTML());
-      }, 0);
-  }
-
-  private getHHC(legendType: shadingType, shadingKey: string, uiEditEntities: RfpUiEdit[], uiEditDetailEntities: RfpUiEditDetail[]) : number {
-    switch (legendType) {
-      case shadingType.ZIP :
-        return this.getZipHHC(uiEditDetailEntities, shadingKey);
-      case shadingType.SITE:
-        return this.getSiteHHC(uiEditEntities, uiEditDetailEntities, shadingKey);
-      case shadingType.ATZ_DESIGNATOR:
-        return this.getAtzHHC(uiEditDetailEntities, shadingKey);
-      case shadingType.WRAP_ZONE:
-        return this.getWrapHHC(uiEditDetailEntities, shadingKey);
-      case shadingType.ATZ_INDICATOR:
-        return this.getAtzIndHHC(uiEditDetailEntities, shadingKey);
-      default:
-        return 0;
-    }
-  }
-
-  private getAtzDesignator(geocode: string) : string {
-    if (geocode.length === 5)
-      return 'ZIP';
-    else
-      return geocode.substring(5, geocode.length);
-  }
-
-  private getWrapHHC(uiEditDetailEntities: RfpUiEditDetail[], wrapZone: string) : number {
-    let hhc = 0;
-    for (const entity of uiEditDetailEntities) {
-      if (entity.wrapZone === wrapZone && entity.isSelected)
-        hhc += entity.distribution;
-    }
-    return hhc;
-  }
-
-  private getAtzHHC(uiEditDetailEntities: RfpUiEditDetail[], designator: string) : number{
-    let hhc = 0;
-    for (const entity of uiEditDetailEntities) {
-      if (this.getAtzDesignator(entity.geocode) === designator && entity.isSelected )
-        hhc += entity.distribution;
-    }
-    return hhc;
-  }
-
-  private getAtzIndHHC(uiEditDetailEntities: RfpUiEditDetail[], indicator: string) : number{
-    let hhc = 0;
-    for (const entity of uiEditDetailEntities) {
-      if (this.getAtzDesignator(entity.geocode) === indicator.trim() && entity.isSelected )
-        hhc += entity.distribution;
-      //else if (this.getAtzDesignator(entity.geocode) === 'ZIP' && entity.isSelected)
-      //  hhc += entity.distribution
-    }
-    return hhc;
-  }
-
-  private getSiteHHC(uiEditEntities: RfpUiEdit[], uiEditDetailEntities: RfpUiEditDetail[], site: string) : number {
-    let hhc = 0;
-    for (const editEntity of uiEditEntities) {
-      if (editEntity.siteName !== site)
-        continue;
-      for(const editDetailEntity of uiEditDetailEntities) {
-        if (editDetailEntity.fkSite === editEntity.siteId && editDetailEntity.isSelected)
-          hhc += editDetailEntity.distribution;
-      }
-    }
-    return hhc;
-  }
-
-  private getZipHHC(uiEditDetailEntities: RfpUiEditDetail[], zip: string) : number {
-    let hhc: number = 0;
-    for (const entity of uiEditDetailEntities) {
-      if (entity.zip === zip && entity.isSelected)
-        hhc += entity.distribution;
-    }
-    return hhc;
-  }
-
-  private colorToHex(r: number, g: number, b: number) {
-    const red = this.singleValueToHex(r);
-    const green = this.singleValueToHex(g);
-    const blue = this.singleValueToHex(b);
-    return '#' + red + green + blue + '99';
-  }
-
-  private singleValueToHex (value: number) : string {
-    let hex: string = Number(value).toString(16);
-    if (hex.length < 2) {
-         hex = '0' + hex;
-    }
-    return hex;
-  }
-
 }

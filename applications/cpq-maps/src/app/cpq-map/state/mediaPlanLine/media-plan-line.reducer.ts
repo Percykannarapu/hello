@@ -1,7 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { MediaPlanLine } from '../../../val-modules/mediaexpress/models/MediaPlanLine';
+import { GetMediaPlanDataSucceeded, InitActionTypes } from '../init/init.actions';
 import { MediaPlanLineActions, MediaPlanLineActionTypes } from './media-plan-line.actions';
-import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface MediaPlanLineState extends EntityState<MediaPlanLine> {
   // additional entities state properties
@@ -16,11 +16,11 @@ export const initialState: MediaPlanLineState = adapter.getInitialState({
   // additional entity state properties
 });
 
-type reducerActions = MediaPlanLineActions | SharedActions;
+type reducerActions = MediaPlanLineActions | GetMediaPlanDataSucceeded;
 
 export function mediaPlanLineReducer(state = initialState, action: reducerActions) : MediaPlanLineState {
   switch (action.type) {
-    case SharedActionTypes.LoadEntityGraph: {
+    case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.lines != null)
         return adapter.addAll(action.payload.normalizedEntities.lines, state);
       else

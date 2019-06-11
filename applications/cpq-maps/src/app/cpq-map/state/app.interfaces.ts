@@ -19,7 +19,6 @@ export interface PrintPayload {
   tradeArea: string;
 }
 
-
 export interface FullPayload {
   clientName: string;
   layerSource: string;
@@ -34,13 +33,15 @@ export interface FullPayload {
   tradeArea: string;
 }
 
-
 export interface ResultType{
   paramName?: string;
   dataType?: string;
   value: string;
 }
 
-
-
-
+export interface LegendData {
+  sortOrder: number;
+  groupName: string;
+  color: number[];
+  hhc: number;
+}

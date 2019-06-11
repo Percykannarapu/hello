@@ -2,6 +2,7 @@ import { createSelector } from '@ngrx/store';
 import { MediaPlan } from '../../val-modules/mediaexpress/models/MediaPlan';
 import { MediaPlanGroup } from '../../val-modules/mediaexpress/models/MediaPlanGroup';
 import { RfpUiReview } from '../../val-modules/mediaexpress/models/RfpUiReview';
+import { ShadingState } from './shading/shading.reducer';
 import { LocalState } from './index';
 import { SharedState } from './shared/shared.reducers';
 import * as fromRfpUiEditDetail from './rfpUiEditDetail/rfp-ui-edit-detail.reducer';
@@ -25,10 +26,11 @@ const getRfpUiReviewState = createSelector(cpqSlice, state => state.rfpUiReview)
 const getRfpUiEditState = createSelector(cpqSlice, state => state.rfpUiEdit);
 const getAdvertiserInfoState = createSelector(cpqSlice, state => state.advertiserInfo);
 const getRfpUiEditWrapState = createSelector(cpqSlice, state => state.rfpUiEditWrap);
-const getShadingData = createSelector(cpqSlice, state => state.shared.shadingData);
-const getShadingType = createSelector(getSharedState, state => state.shadingType);
+const getShadingState = createSelector(cpqSlice, state => state.shading);
+
 const getRfpUiEditEntities = createSelector(getRfpUiEditState, fromRfpUiEdit.selectAll);
 const getRfpUiEditDetailEntities = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectAll);
+const getSelectedDetails = createSelector(getRfpUiEditDetailEntities, details => details.filter(d => d.isSelected));
 const getRfpUiEditDetailEntity = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectEntities);
 const getRfpUiEditDetailIds = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectIds);
 const getRfpUiEditWrapEntities = createSelector(getRfpUiEditWrapState, fromRfpUiEditWrap.selectAll);
@@ -41,7 +43,9 @@ const getAppReady = createSelector(getSharedState, state => state.appReady);
 const getIsSaving = createSelector(getSharedState, state => state.isSaving);
 const getUpdateIds = createSelector(getSharedState, state => state.editedLineItemIds);
 const getAddIds = createSelector(getSharedState, state => state.newLineItemIds);
-const getSelectedAnalysisLevel = createSelector(getSharedState, state => state.analysisLevel);
+const getSelectedAnalysisLevel = createSelector(getSharedState, state => state.isWrap ? 'zip' : state.analysisLevel);
+const getLegendData = createSelector(getSharedState, state => state.legendData);
+const getLegendTitle = createSelector(getSharedState, state => state.legendTitle);
 
 const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpUiReviews: RfpUiReview[], mpGroups: MediaPlanGroup[]) => {
   const mediaPlan = mediaPlans.filter(mp => mp.mediaPlanId === sharedState.activeMediaPlanId)[0];
@@ -66,35 +70,33 @@ const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpU
 };
 const getHeaderInfo = createSelector(getSharedState, getMediaPlanEntities, getRfpUiReviewEntities, getMediaPlanGroupEntities, headerProjector);
 
-
-const buildParams = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], mediaPlans: MediaPlan[], advertiserInfo: AdvertiserInfo[]) : Partial<FullPayload> => {
+const printParamProjector = (shared: SharedState, rfpUiEditDetail: RfpUiEditDetail[], mediaPlans: MediaPlan[], advertiserInfo: AdvertiserInfo[]) : Partial<FullPayload> => {
   const mediaPlan = mediaPlans.filter(mp => mp.mediaPlanId === shared.activeMediaPlanId)[0];
   if (mediaPlan == null || rfpUiEditDetail.length === 0 || advertiserInfo == null) return null;
 
+  const inHomeDates = new Set(rfpUiEditDetail.filter(d => d.ihDate != null).map(d => d.ihDate.valueOf()));
+  const inHomeDateString = Array.from(inHomeDates).map(d => new Date(d).toLocaleDateString()).join(' ,');
   const targetingProfile = mediaPlan['targetingProfile'];
   const rfpNumber = targetingProfile == null ? null : targetingProfile['clientId'];
   const productName = shared.isWrap ? 'Wrap' : 'SMI';
   const mpId = shared.activeMediaPlanId;
   const mpGroupId = mediaPlan['mediaPlanGroupId'];
-  let tradeArea: string;
   const clientName = advertiserInfo[0].clientIdentifierName;
   const fileName = productName + ' Map_' + rfpNumber + '_MP-' + mpId + '_G-' + mpGroupId + '_';
-  
-  tradeArea = (shared.radius !== 0 ? (Number(shared.threshold) !== 0 ? 'Radius Miles: ' + shared.radius + ' or Threshold (per site): ' + Number(shared.threshold).toLocaleString() : 'Radius Miles: ' + shared.radius) 
-                      : (Number(shared.threshold) !== 0 ? 'Threshold (per site): ' + Number(shared.threshold).toLocaleString() : 'Custom')); 
-
-  return{
+  const tradeArea = (shared.radius !== 0 ? (Number(shared.threshold) !== 0 ? 'Radius Miles: ' + shared.radius + ' or Threshold (per site): ' + Number(shared.threshold).toLocaleString() : 'Radius Miles: ' + shared.radius)
+                      : (Number(shared.threshold) !== 0 ? 'Threshold (per site): ' + Number(shared.threshold).toLocaleString() : 'Custom'));
+  return {
       clientName: clientName,
       radius: shared.radius,
       mediaPlanId: mpId, 
       rfpNumber: rfpNumber,
       reportName: fileName,
       tradeArea: tradeArea,
+      inHomeDate: inHomeDateString
   };
-
 };
 
-const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities, buildParams);
+const getPrintParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getMediaPlanEntities, getAdvertiserInfoEntities, printParamProjector);
 
 const availabilityProjector = (shared: SharedState, rfpUiEditDetails: RfpUiEditDetail[], rfpUiReview: RfpUiReview[]) => {
   const allInHomeDates = rfpUiEditDetails.reduce((p, c) => {
@@ -124,14 +126,17 @@ export const localSelectors = {
   getAddIds,
   getHeaderInfo,
   getRfpUiEditDetailEntities,
+  getSelectedDetails,
   getRfpUiEditDetailEntity,
   getRfpUiEditDetailIds,
   getSharedState,
   getRfpUiEditEntities,
   getRfpUiEditWrapEntities,
   getRfpUiReviewEntities,
-  getShadingData,
-  getShadingType,
+  getLegendData,
+  getLegendTitle,
   getPrintParams,
-  getAvailabilityParams
+  getAvailabilityParams,
+  getSelectedAnalysisLevel,
+  getShadingState
 };

@@ -1,20 +1,9 @@
-import { Injectable } from '@angular/core';
+import { ComponentFactoryResolver, Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { UniversalCoordinates } from '@val/common';
-import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, MapSymbols, SetLayerLabelExpressions } from '@val/esri';
+import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, SetLayerLabelExpressions } from '@val/esri';
+import { LegendComponent } from '../components/legend/legend.component';
 import { FullState } from '../state';
-import { AppShadingService } from './app-shading.service';
 import { ConfigService } from './config.service';
-
-export interface SiteInformation {
-  geocode?: string;
-  name: string;
-  coordinates: UniversalCoordinates;
-  radius: number;
-  siteId: number;
-  siteRef: number;
-  inHomeDate: string;
-}
 
 @Injectable({
    providedIn: 'root'
@@ -27,82 +16,10 @@ export class AppLayerService {
                private esriFactory: EsriDomainFactoryService,
                private store$: Store<FullState>,
                private configService: ConfigService,
-               private appShadingService: AppShadingService) { }
+               private resolver: ComponentFactoryResolver,
+               private injector: Injector) { }
 
-   private currentLayerNames: Map<string, string[]> = new Map<string, string[]>();
-   public analysisLevel: string;
-   private legendRef: __esri.Expand = null;
-
-
-   public addLocationsLayer(groupName: string, layerName: string, siteInformation: SiteInformation[], analysisLevel: string) {
-      this.analysisLevel = analysisLevel;
-      const renderer = new EsriApi.SimpleRenderer({
-         symbol: new EsriApi.SimpleMarkerSymbol({
-            color: [0, 0, 255, 1],
-            path: MapSymbols.STAR,
-            outline: new EsriApi.SimpleLineSymbol({
-              color: [0, 0, 0, 0],
-              width: 0
-            })
-         })
-      });
-      if (this.currentLayerNames.has(groupName)) {
-         for (const curName of this.currentLayerNames.get(groupName)) {
-            if (layerName === curName) {
-               console.warn('Attempted to add layer name that already exists');
-               return;
-            }
-         }
-         this.currentLayerNames.get(groupName).push(layerName);
-      } else {
-         this.currentLayerNames.set(groupName, [layerName]);
-      }
-      const graphics: Array<__esri.Graphic> = [];
-      siteInformation.forEach(s => {
-        const graphic = this.esriLayerService.coordinateToGraphic(s.coordinates);
-        graphic.setAttribute('OBJECTID', s.siteRef);
-        graphic.setAttribute('siteId', s.siteRef.toString());
-        graphic.setAttribute('siteName', s.name);
-        graphic.setAttribute('radius', s.radius.toString());
-        graphic.setAttribute('inHomeDate', s.inHomeDate);
-        graphic.setAttribute('siteFk', s.siteId.toString());
-        graphics.push(graphic);
-        
-        this.appShadingService.setSiteInfo(s.siteId.toString(), s.siteRef.toString());
-      });
-      const label = this.esriFactory.createLabelClass(new EsriApi.Color([0, 0, 255, 1]), '$feature.siteName');
-      this.esriLayerService.createClientLayer(groupName, layerName, graphics, 'OBJECTID', renderer, null, [label]);
-   }
-
-   public addTradeAreaRings(siteInformation: SiteInformation[], radius: number) {
-      this.esriLayerService.removeLayer('Trade Area');
-      const symbol = new EsriApi.SimpleFillSymbol({
-        style: 'solid',
-        color: [0, 0, 0, 0],
-        outline: {
-          style: 'solid',
-          color: [0, 0, 255, 1],
-          width: 2
-        }
-      });
-      const points: Array<__esri.Point> = [];
-      for (const siteInfo of siteInformation) {
-         const point: __esri.Point = new EsriApi.Point();
-         point.x = siteInfo.coordinates.x;
-         point.y = siteInfo.coordinates.y;
-         points.push(point);
-      }
-      EsriApi.geometryEngineAsync.geodesicBuffer(points, radius, 'miles', false).then(geoBuffer => {
-         const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
-         const graphics = geometry.map(g => {
-            return new EsriApi.Graphic({
-               geometry: g,
-               symbol: symbol,
-            });
-         });
-         this.esriLayerService.createGraphicsLayer('Sites', 'Trade Areas', graphics);
-      });
-   }
+   private legendCreated = false;
 
    public updateLabels(state: FullState) {
       if (state.shared.isDistrQtyEnabled) {
@@ -185,27 +102,36 @@ export class AppLayerService {
    }
 
    public setupLegend() {
-      const node: HTMLElement = this.generateLegendHTML('legend', null);
+      if (this.legendCreated) return;
+      const node = this.generateLegendHTML();
       const expand: __esri.Expand = new EsriApi.Expand({ content: node, view: this.esriMapService.mapView });
       expand.expandIconClass = 'esri-icon-maps';
       expand.expandTooltip = 'Open Legend';
       this.esriMapService.mapView.ui.add(expand, 'top-right');
-      this.legendRef = expand;
+      this.legendCreated = true;
    }
 
-   private generateLegendHTML(nodeId: string, state: FullState) : HTMLElement {
-      if (this.legendRef)
-         this.esriMapService.mapView.ui.remove(this.legendRef);
-      const legend = document.createElement('div');
-      legend.style.background = 'white';
-      legend.innerHTML = document.getElementById(nodeId).innerHTML;
-      return legend;
+   private generateLegendHTML() : HTMLDivElement {
+     const legendFactory = this.resolver.resolveComponentFactory(LegendComponent);
+     const legendComponent = legendFactory.create(this.injector);
+     legendComponent.changeDetectorRef.detectChanges();
+     return legendComponent.location.nativeElement;
    }
 
-   public setWrapLayerVisibility(isWrap: boolean) : void {
+   public turnOnWrapLayer() : void {
      const wrapLayer = this.esriLayerService.getGroup(this.configService.layers.wrap.group.name);
      if (wrapLayer != null) {
-       wrapLayer.visible = isWrap;
+       wrapLayer.visible = true;
+     }
+   }
+
+   public initializeGraphicLayer(graphics: __esri.Graphic[], groupName: string, layerName: string, addToBottomOfList: boolean = false) : void {
+     const layer = this.esriLayerService.getGraphicsLayer(layerName);
+     if (layer == null) {
+       this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics, addToBottomOfList);
+     } else {
+       layer.graphics.removeAll();
+       layer.graphics.addMany(graphics);
      }
    }
 }

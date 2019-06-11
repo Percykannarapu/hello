@@ -1,6 +1,7 @@
 import * as fromEsri from '@val/esri';
 import * as fromMessaging from '@val/messaging';
 import { AdvertiserInfoState } from './advertiserInfo/advertiser-info.reducer';
+import { ShadingState } from './shading/shading.reducer';
 import { CbxReportState } from './cbxReport/cbx-report.reducer';
 import { CbxReportParamState } from './cbxReportParam/cbx-report-param.reducer';
 import { CbxReportTypeState } from './cbxReportType/cbx-report-type.reducer';
@@ -44,5 +45,6 @@ export interface LocalState {
    rfpUiReview: RfpUiReviewState;
    rfpUiEdit: RfpUiEditState;
    rfpUiEditWrap: RfpUiEditWrapState;
+   shading: ShadingState;
 }
 

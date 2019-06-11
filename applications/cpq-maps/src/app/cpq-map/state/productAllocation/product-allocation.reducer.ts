@@ -1,23 +1,26 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { ProductAllocation } from '../../../val-modules/mediaexpress/models/ProductAllocation';
+import { GetMediaPlanDataSucceeded, InitActionTypes } from '../init/init.actions';
 import { ProductAllocationActions, ProductAllocationActionTypes } from './product-allocation.actions';
-import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface ProductAllocationState extends EntityState<ProductAllocation> {
   // additional entities state properties
 }
 
-export const adapter: EntityAdapter<ProductAllocation> = createEntityAdapter<ProductAllocation>();
+export const adapter: EntityAdapter<ProductAllocation> = createEntityAdapter<ProductAllocation>({
+  sortComparer: false,
+  selectId: model => model.productAllocationId
+});
 
 export const initialState: ProductAllocationState = adapter.getInitialState({
   // additional entity state properties
 });
 
-type reducerActions = ProductAllocationActions | SharedActions;
+type reducerActions = ProductAllocationActions | GetMediaPlanDataSucceeded;
 
 export function productAllocationReducer(state = initialState, action: reducerActions) : ProductAllocationState {
   switch (action.type) {
-    case SharedActionTypes.LoadEntityGraph: {
+    case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.productAllocations != null)
         return adapter.addAll(action.payload.normalizedEntities.productAllocations, state);
       else

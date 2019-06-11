@@ -3,7 +3,6 @@ import { EsriLayerService, EsriGeoprocessorService } from '@val/esri';
 import { Observable } from 'rxjs';
 import { AppConfig } from 'src/app/app.config';
 import { PrintModel, PrintPayload, FullPayload, ResultType } from '../state/app.interfaces';
-import { AppShadingService } from './app-shading.service';
 import { SharedState } from '../state/shared/shared.reducers';
 import { ConfigService } from './config.service';
 import { AppLayerService } from './app-layer-service';
@@ -14,7 +13,6 @@ import { AppLayerService } from './app-layer-service';
 export class AppPrintingService {
 
   constructor (private esriLayerService: EsriLayerService,
-    private appShadingService: AppShadingService,
     private esriGeoprocessorService: EsriGeoprocessorService,
     private configService: ConfigService,
     private appLayerService: AppLayerService,
@@ -26,7 +24,8 @@ export class AppPrintingService {
   public createFeatureSet(payload: Partial<FullPayload>) : Observable<ResultType> {
     const shadingGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.clone();
     shadingGraphics.forEach(g => g.geometry = null);
-    const definitionExpression = this.appShadingService.boundaryExpression;
+    const geocodes = shadingGraphics.map(g => `'${g.getAttribute('geocode')}'`);
+    const definitionExpression = `geocode in (${geocodes.join(',')})`;
     const siteGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getFeatureLayer('Project Sites').source;
     siteGraphics.forEach(g => delete g.attributes['OBJECTID']);
 
@@ -34,7 +33,7 @@ export class AppPrintingService {
       clientName: payload.clientName,
       layerSource: payload.layerSource, 
       siteFeatures: siteGraphics.toArray(), 
-      shadingFeatures: shadingGraphics.toArray(), 
+      shadingFeatures: shadingGraphics.filter(g => g.visible).toArray(),
       boundaryDefinitionExpression: definitionExpression,
       secondaryLayerSourceLabelingExpression: payload.secondaryLayerSourceLabelingExpression,
       layerSourceLabelingExpression: payload.layerSourceLabelingExpression,
@@ -56,32 +55,28 @@ export class AppPrintingService {
   }
 
   public setPrintParams(shared: SharedState, printParams: Partial<FullPayload>, fromDate: Date){
-
     const formatDate = new Date(fromDate.toLocaleDateString());
     const day = formatDate.getDate() > 0 && formatDate.getDate() < 10 ? '0' + formatDate.getDate() : formatDate.getDate();
     const month = formatDate.getMonth() >= 0 && formatDate.getMonth() < 9 ? '0' + (formatDate.getMonth() + 1) : (formatDate.getMonth() + 1);
     this.firstIHD = (month.toString()).slice(-2) + '-' + (day.toString()).slice(-2) + '-' + formatDate.getFullYear();
 
-    if (shared.isWrap){
+    if (shared.isWrap) {
       printParams.layerSource = this.configService.layers['zip'].serviceUrl;
       printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['wrap'].boundaries.labelExpression;
       printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
       printParams.secondaryLayerSource = this.configService.layers['wrap'].serviceUrl;
+    } else if (shared.analysisLevel === 'zip') {
+      printParams.layerSource = this.configService.layers['zip'].serviceUrl;
+      printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+      printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+      printParams.secondaryLayerSource = this.configService.layers['zip'].serviceUrl;
+    } else {
+      printParams.layerSource = this.configService.layers['atz'].serviceUrl;
+      printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
+      printParams.layerSourceLabelingExpression = this.configService.layers['atz'].boundaries.labelExpression;
+      printParams.secondaryLayerSource = this.configService.layers['zip'].serviceUrl;
     }
-    else{
-     if (this.appLayerService.analysisLevel === 'zip') {
-        printParams.layerSource = this.configService.layers['zip'].serviceUrl;
-        printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
-        printParams.layerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
-        printParams.secondaryLayerSource = this.configService.layers['zip'].serviceUrl;
-     } else{
-        printParams.layerSource = this.configService.layers['atz'].serviceUrl;
-        printParams.secondaryLayerSourceLabelingExpression = this.configService.layers['zip'].boundaries.labelExpression;
-        printParams.layerSourceLabelingExpression = this.configService.layers['atz'].boundaries.labelExpression;
-        printParams.secondaryLayerSource = this.configService.layers['zip'].serviceUrl;
-     }
-    }
-  return this.createFeatureSet(printParams);
+    return this.createFeatureSet(printParams);
   }
 
   public openPDF(result: string){

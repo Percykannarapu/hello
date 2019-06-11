@@ -1,7 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
+import { GetMediaPlanDataSucceeded, InitActionTypes } from '../init/init.actions';
 import { RfpUiEditDetailActions, RfpUiEditDetailActionTypes } from './rfp-ui-edit-detail.actions';
-import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface RfpUiEditDetailState extends EntityState<RfpUiEditDetail> {
   // additional entities state properties
@@ -16,12 +16,11 @@ export const initialState: RfpUiEditDetailState = adapter.getInitialState({
   // additional entity state properties
 });
 
-type reducerActions = RfpUiEditDetailActions | SharedActions;
+type reducerActions = RfpUiEditDetailActions | GetMediaPlanDataSucceeded;
 
 export function rfpUiEditDetailreducer(state = initialState, action: reducerActions) : RfpUiEditDetailState {
   switch (action.type) {
-    case SharedActionTypes.LoadEntityGraph: {
-      console.warn('in reducer', state, action);
+    case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.rfpUiEditDetails != null)
         return adapter.addAll(action.payload.normalizedEntities.rfpUiEditDetails, state);
       else

@@ -1,16 +1,9 @@
+import { LegendData } from '../app.interfaces';
+import { ApplicationStartup, InitActionTypes } from '../init/init.actions';
 import { PopupActions, PopupActionTypes } from '../popup/popup.actions';
 import { DeleteRfpUiEditDetail, DeleteRfpUiEditDetails, RfpUiEditDetailActionTypes, UpdateRfpUiEditDetail, UpdateRfpUiEditDetails, UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../rfpUiEditDetail/rfp-ui-edit-detail.actions';
-import { UpdateRfpUiEditWraps } from '../rfpUiEditWrap/rfp-ui-edit-wrap.actions';
-import { SharedActions, SharedActionTypes, SetLegendHTML } from './shared.actions';
+import { SharedActions, SharedActionTypes } from './shared.actions';
 
-export enum shadingType {
-  SITE,
-  ZIP,
-  WRAP_ZONE,
-  ATZ_DESIGNATOR,
-  ATZ_INDICATOR,
-  VARIABLE
-}
 export interface SharedState {
    groupId: number;
    activeMediaPlanId: number;
@@ -26,8 +19,8 @@ export interface SharedState {
    popupGeoToggle: number;
    editedLineItemIds: number[];
    newLineItemIds: number[];
-   shadingType: shadingType;
-   shadingData: Array<{key: string | Number, value: number[]}>;
+   legendData: LegendData[];
+   legendTitle: string;
    legendUpdateCounter: number;
 }
 
@@ -46,12 +39,12 @@ const initialState: SharedState = {
    popupGeoToggle: 0,
    editedLineItemIds: [],
    newLineItemIds: [],
-   shadingType: shadingType.SITE,
-   shadingData: [],
+   legendData: [],
+   legendTitle: '',
    legendUpdateCounter: 0
 };
 
-type ReducerActions = SharedActions | PopupActions |
+type ReducerActions = SharedActions | PopupActions | ApplicationStartup |
   UpsertRfpUiEditDetail | UpsertRfpUiEditDetails |
   UpdateRfpUiEditDetail | UpdateRfpUiEditDetails |
   DeleteRfpUiEditDetail | DeleteRfpUiEditDetails;
@@ -122,7 +115,7 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
          editedLineItemIds: mergeAndDedupeIds(state.editedLineItemIds, updates),
          newLineItemIds: mergeAndDedupeIds(state.newLineItemIds, adds)
        };
-     case SharedActionTypes.ApplicationStartup:
+     case InitActionTypes.ApplicationStartup:
          return {
            ...state,
            groupId: action.payload.groupId,
@@ -143,10 +136,12 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
          return { ...state, appReady: action.payload };
       case PopupActionTypes.PopupGeoToggle:
          return { ...state, popupGeoToggle: state.popupGeoToggle + 1 };
-      case SharedActionTypes.SetShadingType:
-         return { ...state, shadingType: action.payload.shadingType };
-      case SharedActionTypes.SetShadingData:
-         return { ...state, shadingData: action.payload.shadingData };
+      case SharedActionTypes.SetLegendData:
+         return {
+           ...state,
+           legendData: action.payload.legendData,
+           legendTitle: action.payload.legendTitle
+         };
       case SharedActionTypes.SetLegendHTML:
          return { ...state, legendUpdateCounter: state.legendUpdateCounter + 1 };
       default:
