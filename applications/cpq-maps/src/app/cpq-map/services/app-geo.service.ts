@@ -11,6 +11,7 @@ import { AvailabilityDetailResponse } from '../models/availability-detail-respon
 import { FullState } from '../state';
 import { UpdateRfpUiEditDetails, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { UpdateRfpUiEditWraps, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
+import { VarDefinition } from '../state/shading/shading.reducer';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -36,12 +37,13 @@ export class AppGeoService {
     }
   }
 
-  public addNewGeo(geocode: string, wrapName: string, availsInfo: AvailabilityDetailResponse[], arbitraryReviewDetail: RfpUiReview, isWrap: boolean, analysisLevel: string) {
+  public addNewGeo(geocode: string, wrapName: string, availsInfo: AvailabilityDetailResponse[], arbitraryReviewDetail: RfpUiReview,
+                   availableVars: VarDefinition[], isWrap: boolean, analysisLevel: string) {
     const query: __esri.Query = new EsriApi.Query();
     query.outFields = ['geocode'];
     if (isWrap) {
       query.where = `wrap_name = '${wrapName}'`;
-      this.queryAndCreateDetails(query, 'zip', arbitraryReviewDetail, availsInfo, wrapName).subscribe(results => {
+      this.queryAndCreateDetails(query, 'zip', arbitraryReviewDetail, availsInfo, availableVars, wrapName).subscribe(results => {
         const newWrapDetails = [];
         groupBy(results, 'fkSite').forEach((details) => {
           newWrapDetails.push(this.createNewRfpUiEditWrap(details));
@@ -55,13 +57,14 @@ export class AppGeoService {
       });
     } else {
       query.where = `geocode = '${geocode}'`;
-      this.queryAndCreateDetails(query, analysisLevel, arbitraryReviewDetail, availsInfo).subscribe(details => {
+      this.queryAndCreateDetails(query, analysisLevel, arbitraryReviewDetail, availsInfo, availableVars).subscribe(details => {
         this.store$.dispatch(new UpsertRfpUiEditDetails({ rfpUiEditDetails: details }));
       });
     }
   }
 
-  private queryAndCreateDetails(query: __esri.Query, analysisLevel: string, review: RfpUiReview, availsInfo: AvailabilityDetailResponse[], wrapName?: string) : Observable<RfpUiEditDetail[]> {
+  private queryAndCreateDetails(query: __esri.Query, analysisLevel: string, review: RfpUiReview, availsInfo: AvailabilityDetailResponse[],
+                                availableVars: VarDefinition[], wrapName?: string) : Observable<RfpUiEditDetail[]> {
     return this.queryService.executeQuery(this.configService.layers[analysisLevel].centroids.id, query, true).pipe(
       map(pointRes => {
         const editDetailsInput = pointRes.features.map(f => ({
@@ -70,12 +73,13 @@ export class AppGeoService {
           wrapZone: wrapName,
           zip: f.getAttribute('geocode').substr(0, 5)
         }));
-        return this.createNewRfpUiEditDetails(editDetailsInput, review, availsInfo);
+        return this.createNewRfpUiEditDetails(editDetailsInput, review, availableVars, availsInfo);
       })
     );
   }
 
-  private createNewRfpUiEditDetails(editDetailInput: { geocode: string, point: __esri.Point, wrapZone?: string, zip?: string }[], arbitraryReviewDetail: RfpUiReview, availsInfo?: AvailabilityDetailResponse[]) : RfpUiEditDetail[] {
+  private createNewRfpUiEditDetails(editDetailInput: { geocode: string, point: __esri.Point, wrapZone?: string, zip?: string }[],
+                                    arbitraryReviewDetail: RfpUiReview, availableVars: VarDefinition[], availsInfo?: AvailabilityDetailResponse[]) : RfpUiEditDetail[] {
     const availsByGeocode = mapBy(availsInfo, 'geocode');
     const newDetails: Array<RfpUiEditDetail> = [];
     editDetailInput.forEach(edi => {
@@ -109,6 +113,14 @@ export class AppGeoService {
         newDetail.wrapZone = edi.wrapZone;
       if (edi.zip != null)
         newDetail.zip = edi.zip;
+      for (let i = 0; i < availableVars.length; ++i) {
+        const varName = `var${i + 1}Name`;
+        const varFlag = `var${i + 1}IsNumber`;
+        const varValue = `var${i + 1}Value`;
+        newDetail[varName] = availableVars[i].name;
+        newDetail[varFlag] = availableVars[i].isNumber;
+        newDetail[varValue] = null;
+      }
       newDetail['@ref'] = this.newGeoId++;
       newDetails.push(newDetail);
     });

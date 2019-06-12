@@ -37,8 +37,8 @@ set smallSizeTable(val: boolean) {
 @ViewChild('dt')
 public pTable: DataTable;
 
-rows: Array<CompositeRow | WrapCompositeRow> = [];
-selectedRows: Array<CompositeRow | WrapCompositeRow> = [];
+rows: Array<Partial<CompositeRow> | Partial<WrapCompositeRow>> = [];
+selectedRows: Array<Partial<CompositeRow> | Partial<WrapCompositeRow>> = [];
 isWrap: boolean = true;
 
 constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
@@ -115,9 +115,9 @@ private createNonWrapRows(state: LocalState) {
   this.rows = []; // reset the rows
   this.selectedRows = [];
   this.createColumns(this.smallTableBackingVar, false);
-  const newRows: Array<CompositeRow> = [];
+  const newRows: Array<Partial<CompositeRow>> = [];
   for (const id of state.rfpUiEditDetail.ids) {
-    const newRow: CompositeRow = state.rfpUiEditDetail.entities[id];
+    const newRow: Partial<CompositeRow> = { ...state.rfpUiEditDetail.entities[id] };
     const siteId = newRow.fkSite;
     if (state.rfpUiEditDetail.entities[id].distance)
       newRow.distance = Number(state.rfpUiEditDetail.entities[id].distance.toFixed(2));
@@ -174,9 +174,9 @@ private createWrapRows(state: LocalState) {
   this.selectedRows = [];
   this.isWrap = true;
   this.createColumns(this.smallTableBackingVar, true);
-  const newRows: Array<WrapCompositeRow> = [];
+  const newRows: Array<Partial<WrapCompositeRow>> = [];
   for (const id of state.rfpUiEditWrap.ids) {
-    const newRow: WrapCompositeRow = state.rfpUiEditWrap.entities[id];
+    const newRow: Partial<WrapCompositeRow> = { ...state.rfpUiEditWrap.entities[id] };
     const siteId: number = newRow.siteId;
     if (state.rfpUiEditWrap.entities[id].investment)
       newRow.investment = Number(state.rfpUiEditWrap.entities[id].investment.toFixed(2));
