@@ -4,11 +4,9 @@
   </div>
   <ul>
     <li *ngFor="let row of legendData">
-      <div class="grid-container">
-        <div [style.backgroundColor]="row.colorHex"></div>
-        <div>{{row.name}}</div>
-        <div>({{row.hhc | number:'1.0-0'}}&nbsp;HH)</div>
-      </div>
+      <span class="legend-color-chip" [style.backgroundColor]="row.colorHex">&nbsp;</span>
+      <span class="legend-name">{{row.name}}</span>
+      <span>({{row.hhc | number:'1.0-0'}}&nbsp;HH)</span>
     </li>
   </ul>
 </div>

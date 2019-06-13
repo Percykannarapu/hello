@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { mapByExtended } from '@val/common';
 import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { Observable, of } from 'rxjs';
-import { mapByExtended } from '@val/common';
 import { map, tap } from 'rxjs/operators';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
@@ -35,23 +35,18 @@ export class ShadingService {
               private queryService: EsriQueryService,
               private store$: Store<LocalState>) { }
 
-  private static assignShadingGroup(graphic: __esri.Graphic, shadingMode: ShadingType) : void {
+  private static getShadingGroupAttributeName(shadingMode: ShadingType) : string {
     switch (shadingMode) {
       case ShadingType.ZIP:
-        graphic.setAttribute('SHADING_GROUP', graphic.getAttribute('zip'));
-        break;
+        return 'zip';
       case ShadingType.WRAP_ZONE:
-        graphic.setAttribute('SHADING_GROUP', graphic.getAttribute('wrap_name'));
-        break;
+        return 'wrap_name';
       case ShadingType.ATZ_INDICATOR:
-        graphic.setAttribute('SHADING_GROUP', graphic.getAttribute('atzind'));
-        break;
+        return 'atzind';
       case ShadingType.VARIABLE:
-        graphic.setAttribute('SHADING_GROUP', graphic.getAttribute('variableName'));
-        break;
+        return 'variableName';
       default:
-        graphic.setAttribute('SHADING_GROUP', graphic.getAttribute('siteName'));
-        break;
+        return 'siteName';
     }
   }
 
@@ -158,13 +153,14 @@ export class ShadingService {
 
   private enrichGraphics(graphics: __esri.Graphic[], shadingData: ShadingState, details: RfpUiEditDetail[]) : void {
     const detailsByGeocode = mapByExtended(details, d => d.geocode);
+    const shadingAttribute = ShadingService.getShadingGroupAttributeName(shadingData.shadingType);
     for (const graphic of graphics) {
       const currentGeocode = graphic.getAttribute('geocode');
       this.assignSiteId(graphic);
       if (detailsByGeocode.has(currentGeocode)) {
         this.assignDemographicMetadata(graphic, detailsByGeocode.get(currentGeocode), shadingData);
       }
-      ShadingService.assignShadingGroup(graphic, shadingData.shadingType);
+      graphic.setAttribute('SHADING_GROUP', graphic.getAttribute(shadingAttribute));
     }
   }
 
@@ -250,6 +246,15 @@ export class ShadingService {
     const palette = shadingData.basePalette;
     const layerId = this.configService.layers[analysisLevel].boundaries.id;
     const layer = this.layerService.getPortalLayerById(layerId);
+    graphics.sort((a, b) => {
+      const groupA: string = a.getAttribute('SHADING_GROUP');
+      const groupB: string = b.getAttribute('SHADING_GROUP');
+      if (this.sortMap.has(groupA) && this.sortMap.has(groupB)) {
+        return this.sortMap.get(groupA) - this.sortMap.get(groupB);
+      } else {
+        return groupA.localeCompare(groupB);
+      }
+    });
     for (const graphic of graphics) {
       if (!legend.has(graphic.getAttribute('SHADING_GROUP'))) {
         const newColor = [...palette[legend.size % palette.length]];
