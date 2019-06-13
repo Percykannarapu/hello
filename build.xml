@@ -65,7 +65,7 @@
   </target>
   <target name="deploy">
     <sf:deploy username="jenkins@valassis.com.dev" 
-      password="D3pl0y2019!t0yvMuz2s2rBOTycqO9XslZlj" 
+      password="D3pl0y20192!t0yvMuz2s2rBOTycqO9XslZlj" 
       serverurl="https://valassis--dev.cs15.my.salesforce.com" 
       maxPoll="10000" 
       deployRoot="${DIST_ROOT}/sfdc-deploy" 
