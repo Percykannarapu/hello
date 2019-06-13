@@ -125,7 +125,7 @@ export class ShadingConfigComponent implements OnInit {
     this.classBreakValues = [];
     const interval = (this.selectedVar.maxValue - this.selectedVar.minValue) / breakCount;
     for (let i = 0; i < breakCount - 1; ++i) {
-      const currentBreak = interval * (i + 1);
+      const currentBreak = (interval * (i + 1)) + this.selectedVar.minValue;
       this.classBreakValues.push(currentBreak);
     }
   }
