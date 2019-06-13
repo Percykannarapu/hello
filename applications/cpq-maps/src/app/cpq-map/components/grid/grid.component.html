@@ -1,6 +1,8 @@
 <div style="height: 100%;">
-<p-table #dt [columns]="columns" [value]="rows" [scrollable]="true" scrollHeight="100%" [style]="{'font-size':'1em'}" [filterDelay]="0" (onFilter)="onFilter()"
-[resizableColumns]="true" columnResizeMode="expand" (onRowSelect)="onChangeRowSelection($event)" (onRowUnselect)="onChangeRowSelection($event)" [(selection)]="selectedRows">
+<p-table #dt [columns]="columns" [value]="rows" [scrollable]="true" scrollHeight="100%"
+         [style]="{'font-size':'1em'}" [filterDelay]="0" (onFilter)="onFilter()"
+         [resizableColumns]="true" columnResizeMode="expand" (onRowSelect)="onChangeRowSelection($event)"
+         (onRowUnselect)="onChangeRowSelection($event)" [(selection)]="selectedRows" dataKey="@ref">
     <ng-template pTemplate="caption">
         <div class="ui-g" style="text-align: left">
             <div class="ui-g-12">
