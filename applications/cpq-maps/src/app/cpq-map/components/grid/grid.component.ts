@@ -5,6 +5,7 @@ import { filter, map } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { GridGeoToggle } from '../../state/grid/grid.actions';
 import * as fromGridSelectors from '../../state/grid/grid.selectors';
+import { UpdateRfpUiEditDetails } from '../../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 
 export interface FullColumn extends fromGridSelectors.GridColumn {
   formatType?: 'string' | 'number' | 'currency';
@@ -83,5 +84,16 @@ export class GridComponent implements OnInit {
       return { ...column, formatType: 'string', formatSpec: null };
     }
     return column;
+  }
+
+  private applyHeaderFilter(event: any){
+    const geoChanges = [];
+    this.rows.forEach(data => {
+      if (data.isSelected != event.checked){
+        const geos = { id: data['id'], changes: { isSelected: !data['isSelected'] }};
+        geoChanges.push(geos);
+      }
+    });
+    this.store$.dispatch(new UpdateRfpUiEditDetails({rfpUiEditDetails: geoChanges }));
   }
 }

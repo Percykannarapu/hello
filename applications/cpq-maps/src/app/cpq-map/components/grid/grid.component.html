@@ -1,7 +1,7 @@
 <div style="height: 100%;">
     <p-table #smallDt [value]="rows" [scrollable]="true" scrollHeight="100%" selectionMode="multiple"
              [resizableColumns]="true" columnResizeMode="expand" (onRowSelect)="onChangeRowSelection($event)"
-             (onRowUnselect)="onChangeRowSelection($event)" [selection]="selectedRows">
+             (onRowUnselect)="onChangeRowSelection($event)" [selection]="selectedRows" (onHeaderCheckboxToggle)=applyHeaderFilter($event)>
       <ng-template pTemplate="caption">
         <div class="ui-g">
           <div class="ui-g-12">
@@ -19,7 +19,10 @@
       <ng-template pTemplate="header">
         <ng-container *ngIf="rows.length > 0">
           <tr class="grid-header-row">
-            <th class="checkbox-column">&nbsp;</th>
+            <!-- <th class="checkbox-column">&nbsp;</th> -->
+            <th style="width: 30px">
+              <p-tableHeaderCheckbox [ngStyle]="{'width':'114px'}" class="checkbox-column" [value]="rows" ></p-tableHeaderCheckbox>
+            </th>
             <th *ngFor="let col of columns" [pSortableColumn]="col.field" [className]="gridStyle + '-' + col.field">
               {{col.header}}
             </th>
