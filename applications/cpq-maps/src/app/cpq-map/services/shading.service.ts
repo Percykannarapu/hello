@@ -160,7 +160,8 @@ export class ShadingService {
       if (detailsByGeocode.has(currentGeocode)) {
         this.assignDemographicMetadata(graphic, detailsByGeocode.get(currentGeocode), shadingData);
       }
-      graphic.setAttribute('SHADING_GROUP', graphic.getAttribute(shadingAttribute));
+      const shadingValue = graphic.getAttribute(shadingAttribute);
+      graphic.setAttribute('SHADING_GROUP', shadingValue == null ? 'Unknown' : shadingValue);
     }
   }
 
@@ -249,6 +250,7 @@ export class ShadingService {
     graphics.sort((a, b) => {
       const groupA: string = a.getAttribute('SHADING_GROUP');
       const groupB: string = b.getAttribute('SHADING_GROUP');
+      if (groupA === 'Unknown') return 1;
       if (this.sortMap.has(groupA) && this.sortMap.has(groupB)) {
         return this.sortMap.get(groupA) - this.sortMap.get(groupB);
       } else {
