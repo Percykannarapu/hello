@@ -71,7 +71,7 @@ export class ShadingService {
     if (arbitrary.var1Name != null) {
       const var1: VarDefinition = { name: arbitrary.var1Name, isNumber: (arbitrary.var1IsNumber === 1) };
       if (arbitrary.var1IsNumber) {
-        const var1Values = details.map(d => Number(d.var1Value));
+        const var1Values = details.filter(d => d.var1Value != null).map(d => Number(d.var1Value));
         var1.minValue = Math.min(...var1Values);
         var1.maxValue = Math.max(...var1Values);
       }
@@ -80,7 +80,7 @@ export class ShadingService {
     if (arbitrary.var2Name != null) {
       const var2: VarDefinition = { name: arbitrary.var2Name, isNumber: (arbitrary.var2IsNumber === 1) };
       if (arbitrary.var2IsNumber) {
-        const var2Values = details.map(d => Number(d.var2Value));
+        const var2Values = details.filter(d => d.var2Value != null).map(d => Number(d.var2Value));
         var2.minValue = Math.min(...var2Values);
         var2.maxValue = Math.max(...var2Values);
       }
@@ -89,7 +89,7 @@ export class ShadingService {
     if (arbitrary.var3Name != null) {
       const var3: VarDefinition = { name: arbitrary.var3Name, isNumber: (arbitrary.var3IsNumber === 1) };
       if (arbitrary.var3IsNumber) {
-        const var3Values = details.map(d => Number(d.var3Value));
+        const var3Values = details.filter(d => d.var3Value != null).map(d => Number(d.var3Value));
         var3.minValue = Math.min(...var3Values);
         var3.maxValue = Math.max(...var3Values);
       }
@@ -251,6 +251,7 @@ export class ShadingService {
       const groupA: string = a.getAttribute('SHADING_GROUP');
       const groupB: string = b.getAttribute('SHADING_GROUP');
       if (groupA === 'Unknown') return 1;
+      if (groupB === 'Unknown') return -1;
       if (this.sortMap.has(groupA) && this.sortMap.has(groupB)) {
         return this.sortMap.get(groupA) - this.sortMap.get(groupB);
       } else {
