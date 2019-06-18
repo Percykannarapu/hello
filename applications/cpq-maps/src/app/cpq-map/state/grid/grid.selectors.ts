@@ -31,6 +31,7 @@ export interface GridWrapRow extends GridRowBase {
 export interface GridColumn {
   field: string;
   header: string;
+  searchable: boolean;
 }
 
 const gridRowProjector = (shared: SharedState, detailEntities: RfpUiEditDetail[], wrapEntities: RfpUiEditWrap[], editEntities: RfpUiEdit[]) : GridRowBase[] => {
@@ -38,7 +39,7 @@ const gridRowProjector = (shared: SharedState, detailEntities: RfpUiEditDetail[]
     return wrapEntities.map(w => ({
       id: Number(w['@ref']),
       selectionIdentifier: w.wrapZone,
-      wrapZone: w.wrapZone,
+      wrapZone: w.wrapZone.replace(/[\/]/g, '/<wbr>'),
       distributionQuantity: Number(w.distribution),
       investment: Number(w.investment),
       ownerGroup: w.ownerGroup,
@@ -67,15 +68,15 @@ const gridRowProjector = (shared: SharedState, detailEntities: RfpUiEditDetail[]
 const smallGridColumnProjector = (shared: SharedState) : GridColumn[] => {
   if (shared.isWrap) {
     return [
-      { field: 'wrapZone', header: 'Wrap Zone' },
-      { field: 'distributionQuantity', header: 'Distr Qty' },
-      { field: 'investment', header: 'Investment' }
+      { field: 'wrapZone', header: 'Wrap Zone', searchable: true },
+      { field: 'distributionQuantity', header: 'Distr Qty', searchable: false },
+      { field: 'investment', header: 'Investment', searchable: false }
     ];
   } else {
     return [
-      { field: 'geocode', header: 'Geocode' },
-      { field: 'distributionQuantity', header: 'Distr Qty' },
-      { field: 'investment', header: 'Investment' }
+      { field: 'geocode', header: 'Geocode', searchable: true },
+      { field: 'distributionQuantity', header: 'Distr Qty', searchable: false },
+      { field: 'investment', header: 'Investment', searchable: false }
     ];
   }
 };
@@ -84,30 +85,30 @@ const largeGridColumnProjector = (shared: SharedState, detailEntities: RfpUiEdit
   if (detailEntities.length === 0) return [];
   if (shared.isWrap) {
     return [
-      { field: 'siteName', header: 'Site Name' },
-      { field: 'wrapZone', header: 'Wrap Zone' },
-      { field: 'distributionQuantity', header: 'Distr Qty' },
-      { field: 'ownerGroup', header: 'Owner' },
-      { field: 'investment', header: 'Investment' }
+      { field: 'siteName', header: 'Site Name', searchable: true },
+      { field: 'wrapZone', header: 'Wrap Zone', searchable: true },
+      { field: 'distributionQuantity', header: 'Distr Qty', searchable: false },
+      { field: 'ownerGroup', header: 'Owner', searchable: true },
+      { field: 'investment', header: 'Investment', searchable: false }
     ];
   } else {
     const arbitraryDetail = detailEntities[0];
     const result = [
-      { field: 'siteName', header: 'Site Name' },
-      { field: 'geocode', header: 'Geocode' },
-      { field: 'distance', header: 'Distance' },
-      { field: 'distributionQuantity', header: 'Distr Qty' },
-      { field: 'ownerGroup', header: 'Owner' },
-      { field: 'investment', header: 'Investment' }
+      { field: 'siteName', header: 'Site Name', searchable: true },
+      { field: 'geocode', header: 'Geocode', searchable: true },
+      { field: 'distance', header: 'Distance', searchable: false },
+      { field: 'distributionQuantity', header: 'Distr Qty', searchable: false },
+      { field: 'ownerGroup', header: 'Owner', searchable: true },
+      { field: 'investment', header: 'Investment', searchable: false }
     ];
     if (arbitraryDetail.var1Name != null) {
-      result.push({ field: 'var1Value', header: arbitraryDetail.var1Name });
+      result.push({ field: 'var1Value', header: arbitraryDetail.var1Name, searchable: !arbitraryDetail.var1IsNumber });
     }
     if (arbitraryDetail.var2Name != null) {
-      result.push({ field: 'var2Value', header: arbitraryDetail.var2Name });
+      result.push({ field: 'var2Value', header: arbitraryDetail.var2Name, searchable: !arbitraryDetail.var2IsNumber });
     }
     if (arbitraryDetail.var3Name != null) {
-      result.push({ field: 'var3Value', header: arbitraryDetail.var3Name });
+      result.push({ field: 'var3Value', header: arbitraryDetail.var3Name, searchable: !arbitraryDetail.var3IsNumber });
     }
     return result;
   }

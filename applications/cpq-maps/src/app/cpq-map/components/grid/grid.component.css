@@ -10,8 +10,8 @@
   text-align: center;
 }
 
-.grid-header-row {
-
+.grid-header-row > th {
+  font-size: 12px;
 }
 
 .grid-data-row > td {
@@ -19,7 +19,8 @@
   border-color: #c8c8c8;
   border-spacing: 2px;
   border-width: 1px;
-  text-align: center
+  text-align: center;
+  font-size: 12px;
 }
 
 .checkbox-column {

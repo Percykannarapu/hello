@@ -31,6 +31,7 @@ export class GridComponent implements OnInit {
   columns: fromGridSelectors.GridColumn[] = [];
   rows: fromGridSelectors.GridRowBase[] = [];
   selectedRows: fromGridSelectors.GridRowBase[] = [];
+  globalFilterColumns: string[] = [];
 
   gridStyle = 'small';
 
@@ -71,6 +72,7 @@ export class GridComponent implements OnInit {
     this.gridIsSmall = isSmall;
     this.columns = isSmall ? this.smallGridColumns : this.largeGridColumns;
     this.gridStyle = isSmall ? 'small' : 'large';
+    this.globalFilterColumns = this.columns.filter(c => c.searchable).map(c => c.field);
   }
 
   private enrichColumn(column: fromGridSelectors.GridColumn) : FullColumn {
