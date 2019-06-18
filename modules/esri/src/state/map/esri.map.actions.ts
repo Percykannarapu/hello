@@ -11,6 +11,7 @@ export enum EsriMapActionTypes {
   SetMapViewPoint = '[Esri Map] Set Viewpoint',
   SetPopupVisibility = '[Esri Map] Set Popup Visibility',
   MapClicked = '[Esri Map] Click Event',
+  CopyCoordinatesToClipboard = '[Esri Map] Copy Coordinates to Clipboard',
   FeaturesSelected = '[Esri Map] Features Selected',
   SetSelectedLayer = '[Esri Map] Set Selected Layer Id',
   SetLabelConfiguration = '[Esri Map] Set Label Configuration',
@@ -59,6 +60,11 @@ export class MapClicked implements Action {
   constructor(public payload: { event: __esri.MapViewImmediateClickEvent }){}
 }
 
+export class CopyCoordinatesToClipboard implements Action {
+  readonly type = EsriMapActionTypes.CopyCoordinatesToClipboard;
+  constructor(public payload: { event: __esri.MapViewImmediateClickEvent }){}
+}
+
 export class FeaturesSelected implements Action {
   readonly type = EsriMapActionTypes.FeaturesSelected;
   constructor(public payload: { features: __esri.Graphic[] }){}
@@ -86,6 +92,7 @@ export type EsriMapActions =
   | SetMapViewpoint
   | SetPopupVisibility
   | MapClicked
+  | CopyCoordinatesToClipboard
   | FeaturesSelected
   | EsriMapToolbarButtonActions
   | SetSelectedLayer

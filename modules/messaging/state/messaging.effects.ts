@@ -34,7 +34,7 @@ export class MessagingEffects {
   infoNotifier$ = this.actions$.pipe(
     ofType<InfoNotification>(MessagingActionTypes.InfoNotification),
     toPayload(),
-    tap(p => this.notifications.showInfoNotification(p.message, p.notificationTitle, p.sticky))
+    tap(p => this.notifications.showInfoNotification(p.message, p.notificationTitle, p.sticky, p.life))
   );
 
   @Effect({ dispatch: false })

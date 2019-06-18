@@ -23,9 +23,11 @@ export class AppConfig {
    public maxGeosPerGeoInfoQuery = 400;
    public maxValGeocodingReqSize = 50;
    public maxRadiusTradeAreas = 3;
-   //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
+   //Service Url for the Print Widget
+   // public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
 
-   //public serviceUrls = EnvironmentData.serviceUrls;
+   // Service Url for the GP Print Service
+   public printServiceUrl = `${environment.portalUrl}/arcgis-server2/rest/services/exportMapBook/GPServer/exportMapBook`;
 
    //public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
 

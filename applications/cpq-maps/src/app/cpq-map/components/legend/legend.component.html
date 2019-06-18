@@ -1,0 +1,12 @@
+<div class="legend-container">
+  <div class="legend-title">
+    <span>{{legendTitle}}</span>
+  </div>
+  <ul>
+    <li *ngFor="let row of legendData">
+      <span class="legend-color-chip" [style.backgroundColor]="row.colorHex">&nbsp;</span>
+      <span class="legend-name">{{row.name}}</span>
+      <span>({{row.hhc | number:'1.0-0'}}&nbsp;HH)</span>
+    </li>
+  </ul>
+</div>

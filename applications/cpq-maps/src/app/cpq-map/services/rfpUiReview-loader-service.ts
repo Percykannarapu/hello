@@ -19,7 +19,8 @@ import { RfpUiReview } from '../../val-modules/mediaexpress/models/RfpUiReview';
    public loadRfpUiReview(id: number) : Observable<RfpUiReviewPayload[]> {
      if (id == null || id < 0) return EMPTY;
      return this.restService.get(`${this.loadUrl}/${id}/${this.searchQuery}`).pipe(
-       map(response => response.payload.rows as RfpUiReviewPayload[])
+       map(response => response.payload.rows as RfpUiReviewPayload[]),
+       map(rows => rows.filter(r => r.siteId != null))
      );
    }
 

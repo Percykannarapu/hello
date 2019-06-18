@@ -1,11 +1,56 @@
-<div class="shading-config-container">
-  <p-card class="shading-controls-container">
-    <div class="shading-controls">
+<div class="shading-controls-card">
+  <p-card>
+    <div class="shading-controls-container">
       <h4>Shading Controls</h4>
-      <div>
-        Shade By: &nbsp;
-        <p-dropdown (onChange)="onShadingOptionChange($event)" [options]="shadingOptions" [(ngModel)]="selectOption"></p-dropdown>
+      <div class="shading-controls">
+        <span>Shade By:</span>
+        <div>
+          <p-dropdown (onChange)="onShadingOptionChange($event)" [options]="shadingTypeOptions" [(ngModel)]="selectedShadingType"></p-dropdown>
+        </div>
+        <ng-container *ngIf="selectedShadingType === shadingTypes.VARIABLE">
+          <span>Variable:</span>
+          <div>
+            <p-dropdown [options]="variableOptions" [(ngModel)]="selectedVar" (onChange)="onVariableOptionChanged()"></p-dropdown>
+          </div>
+          <span>Method:</span>
+          <div>
+            <ng-container *ngIf="selectedVar.isNumber">
+              <p-dropdown [options]="numericMethodOptions" [(ngModel)]="selectedNumericMethod" (onChange)="onMethodOptionChanged($event)"></p-dropdown>
+            </ng-container>
+            <ng-container *ngIf="!selectedVar.isNumber">
+              Individual Values
+            </ng-container>
+          </div>
+          <ng-container *ngIf="selectedVar.isNumber">
+            <span>Classes:</span>
+            <div>
+              <p-dropdown [options]="classBreakOptions" [(ngModel)]="selectedClassBreaks" (onChange)="onBreakCountChanged($event.value)"
+                          [disabled]="selectedNumericMethod === numericShadingMethods.StandardIndex"></p-dropdown>
+            </div>
+            <span>&nbsp;</span>
+            <div class="shading-breaks-container">
+              <ng-container *ngFor="let breakValue of classBreakValues; trackBy: indexTracker; let i = index; let first = first;">
+                <span>
+                  <ng-container *ngIf="first && breakValue != null">&lt;</ng-container>
+                  <ng-container *ngIf="!first && classBreakValues[i-1] != null">{{classBreakValues[i-1] | number:'1.0-2'}}&nbsp;&mdash;</ng-container>
+                </span>
+                <div>
+                  <input type="text" pInputText [ngModel]="classBreakValues[i] | number:'1.0-2'" (ngModelChange)="setBreak(i, $event)"
+                         [disabled]="selectedNumericMethod !== numericShadingMethods.CustomClassifications"
+                         [ngModelOptions]="{ updateOn: 'blur' }"
+                         [ngClass]="{ 'ng-invalid': isNotValid(classBreakValues[i], classBreakValues[i-1]) }" />
+                  <span class="pi pi-exclamation-triangle" *ngIf="isNotValid(classBreakValues[i], classBreakValues[i-1])" title="This value must be larger than the previous value"></span>
+                </div>
+              </ng-container>
+              <ng-container *ngIf="classBreakValues[classBreakValues.length - 1] != null">
+                <span>&gt;</span><div>{{classBreakValues[classBreakValues.length - 1] | number:'1.0-2'}}</div>
+              </ng-container>
+            </div>
+          </ng-container>
+        </ng-container>
       </div>
+      <button pButton type="button" label="Apply" [disabled]="breaksAreInvalid()" (click)="applyVariableShading()"
+              *ngIf="selectedShadingType === shadingTypes.VARIABLE"></button>
     </div>
   </p-card>
 </div>

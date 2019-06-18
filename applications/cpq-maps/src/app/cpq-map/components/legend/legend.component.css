@@ -1,0 +1,47 @@
+.legend-container {
+  background-color: white;
+  max-height: 40em;
+  overflow: auto;
+  font-weight: normal;
+  padding: 0.5em;
+}
+
+.legend-title {
+  display: flex;
+  justify-content: center;
+}
+
+.legend-title > span {
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.legend-container li {
+  font-size: 11px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-content: flex-start;
+  align-items: center;
+  padding-top: 0.5em;
+}
+
+.legend-container li > span {
+  order: 0;
+  flex: 0 1 auto;
+  align-self: auto;
+  white-space: nowrap;
+  padding-left: 0.5em;
+}
+
+.legend-color-chip {
+  border: 2px solid black;
+  width: 2em;
+  padding-left: 0;
+}
+
+.legend-name {
+  font-weight: bold;
+  flex: 1 1 auto;
+}

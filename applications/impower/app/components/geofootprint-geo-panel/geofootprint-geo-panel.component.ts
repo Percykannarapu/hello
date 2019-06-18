@@ -238,8 +238,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                //const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
                //                                         target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
                // this.usageService.createCounterMetric(usageMetricName, metricText, 1);
-               this.impGeofootprintGeoService.addDbRemove(geo);
-               this.impGeofootprintGeoService.remove(geo);
+               this.appGeoService.deleteGeos([geo]);
                console.log('remove successful');
             },
             reject: () => {

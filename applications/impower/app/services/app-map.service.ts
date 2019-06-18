@@ -1,18 +1,17 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { AppConfig } from '../app.config';
-import { AppComponentGeneratorService } from './app-component-generator.service';
-import { AppLoggingService } from './app-logging.service';
-import { ValMetricsService } from './app-metrics.service';
-import { AppRendererService } from './app-renderer.service';
-import { AppStateService, Season } from './app-state.service';
-import { debounceTime } from 'rxjs/operators';
-import { AppLayerService } from './app-layer.service';
 import { Store } from '@ngrx/store';
+import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { ErrorNotification } from '@val/messaging';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../state/usage/targeting-usage.actions';
-import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
-import { ErrorNotification } from '../../../../modules/messaging/state/messaging.actions';
+import { AppComponentGeneratorService } from './app-component-generator.service';
+import { AppLayerService } from './app-layer.service';
+import { AppLoggingService } from './app-logging.service';
+import { AppRendererService } from './app-renderer.service';
+import { AppStateService, Season } from './app-state.service';
 
 export interface GeoClickEvent {
   geocode: string;
@@ -28,7 +27,6 @@ export class AppMapService implements OnDestroy {
   private clientTradeAreaSubscription: Subscription;
   private competitorTradeAreaSubscription: Subscription;
   private currentGeocodes = new Set<string>();
-  private readonly useWebGLHighlighting: boolean;
   private layerSelectionRefresh: () => void;
 
   public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
@@ -43,8 +41,6 @@ export class AppMapService implements OnDestroy {
               private logger: AppLoggingService,
               private config: AppConfig,
               private store$: Store<LocalAppState>) {
-    this.useWebGLHighlighting = this.config.webGLIsAvailable();
-
     this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
       if (this.layerSelectionRefresh) this.layerSelectionRefresh();
     });
@@ -59,22 +55,22 @@ export class AppMapService implements OnDestroy {
 
     const homeView = this.mapService.mapView.viewpoint;
     // Create the layer groups and load the portal items
-    this.appLayerService.initializeLayers().subscribe (
-      null,
-      null,
-      () => {
+    this.appLayerService.initializeLayers().subscribe ({
+      complete: () => {
         // setup the map widgets
         this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });
         this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
         this.mapService.createHiddenWidget(EsriApi.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
         this.mapService.createHiddenWidget(EsriApi.widgets.Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend', group: 'left-column' });
-        this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, {}, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' });
+        const source = new EsriApi.widgets.LocalBasemapsSource({
+          basemaps: this.config.basemaps.map(b => EsriApi.BaseMap.fromId(b))
+        });
+        this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' });
         this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
 
-        const popup = this.mapService.mapView.popup;
-        if (this.useWebGLHighlighting) {
-          popup.highlightEnabled = false;
-        }
+        const popup: __esri.Popup = this.mapService.mapView.popup;
+        popup.actionsMenuEnabled = false;
+        popup.highlightEnabled = false;
 
         // Event handler that fires each time a popup action is clicked.
         popup.on('trigger-action', (event) => {
@@ -94,6 +90,7 @@ export class AppMapService implements OnDestroy {
             this.componentGenerator.cleanUpGeoPopup();
           }
         });
+      }
     });
   }
 

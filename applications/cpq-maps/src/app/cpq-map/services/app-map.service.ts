@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriUtils, LayerDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, EsriUtils, LayerDefinition, selectors, SetLayerLabelExpressions, SetPopupVisibility } from '@val/esri';
 import { merge, Observable } from 'rxjs';
 import { tap, reduce, finalize, map, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { FullState } from '../state';
@@ -29,12 +29,17 @@ export class AppMapService {
         this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });
         this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
         this.mapService.createHiddenWidget(EsriApi.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
-        this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, {}, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
+        const source = new EsriApi.widgets.LocalBasemapsSource({
+          basemaps: this.config.basemaps.map(b => EsriApi.BaseMap.fromId(b))
+        });
+        this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
         this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
 
-        const popup = this.mapService.mapView.popup;
+        const popup: __esri.Popup = this.mapService.mapView.popup;
         popup.highlightEnabled = false;
+        popup.actionsMenuEnabled = false;
         EsriApi.projection.load();
+        this.store$.dispatch(new SetPopupVisibility({ isVisible: true }));
       })
     );
   }
@@ -77,7 +82,7 @@ export class AppMapService {
           newLayer.popupEnabled = false;
           newLayer.when(() => {
             if (EsriUtils.rendererIsSimple(newLayer.renderer)) {
-              const renderer: __esri.SimpleRenderer = newLayer.renderer.clone();
+              const renderer: import ('esri/renderers/SimpleRenderer') = newLayer.renderer.clone();
               renderer.symbol.color = new EsriApi.Color([128, 128, 128, 0.01]);
               newLayer.renderer = renderer;
             }

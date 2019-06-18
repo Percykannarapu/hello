@@ -1,6 +1,6 @@
 import { RestResponse } from '../../../cpq-map/models/RestResponse';
 import { AppConfig } from '../../../app.config';
-import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, concat } from 'rxjs';
 
@@ -18,11 +18,22 @@ export class RestDataService
    // -----------------------------------------------------------------------------------
    // HTTP METHODS
    // -----------------------------------------------------------------------------------
-   public get(url: string) : Observable<RestResponse>
+   public get(url: string, options?: {
+     headers?: HttpHeaders | {
+       [header: string] : string | string[];
+     };
+     observe?: 'body';
+     params?: HttpParams | {
+       [param: string] : string | string[];
+     };
+     reportProgress?: boolean;
+     responseType?: 'json';
+     withCredentials?: boolean;
+   }) : Observable<RestResponse>
    {
       console.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
       //const headers = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
-      return this.http.get<RestResponse>(this.baseUrl + url);
+      return this.http.get<RestResponse>(this.baseUrl + url, options);
    }
 
    public patch(url: string, payload: any) : Observable<RestResponse>

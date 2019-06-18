@@ -6,6 +6,7 @@ import { EsriMapService } from './esri-map.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { UniversalCoordinates } from '@val/common';
 import { MapSymbols } from '../models/map-symbols';
+import { CopyCoordinatesToClipboard } from '../state/map/esri.map.actions';
 
 const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data === 'string'  ? 'string' : 'double';
 
@@ -16,7 +17,7 @@ export class EsriLayerService {
   private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
   private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public layersReady$: Observable<boolean> = this.layersReady.asObservable();
-
+  
   constructor(private mapService: EsriMapService) {}
 
   public clearClientLayers(groupName: string) : void {
@@ -37,11 +38,6 @@ export class EsriLayerService {
   public portalGroupExists(groupName: string) : boolean {
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName && l.id === `portal-${groupName}`);
     return EsriUtils.layerIsGroup(group);
-  }
-
-  public layerExists(layerName: string) : boolean {
-    const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
-    return layer != null;
   }
 
   public getGroup(groupName: string) : __esri.GroupLayer {
@@ -90,11 +86,12 @@ export class EsriLayerService {
   }
 
   public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
-    let result: __esri.FeatureLayer = null;
-    this.mapService.mapView.map.allLayers.forEach(l => {
-      if (EsriUtils.layerIsPortalFeature(l) && l.portalItem.id === portalId) result = l;
-    });
-    return result;
+    for (const l of this.mapService.mapView.map.allLayers.toArray()) {
+      if (EsriUtils.layerIsFeature(l)) {
+        if (EsriUtils.layerIsPortalFeature(l) && l.portalItem.id === portalId) return l;
+        if (l.url != null && l.url.startsWith(portalId)) return l;
+      }
+    }
   }
 
   public removeLayer(layerName: string) : void {
@@ -260,16 +257,17 @@ export class EsriLayerService {
   }
 
   public setLabels(labelConfig: EsriLabelConfiguration, layerExpressions: { [layerId: string] : EsriLabelLayerOptions }) : void {
-      const layers = this.mapService.mapView.map.allLayers.toArray();
-      layers.forEach(l => {
-        if (EsriUtils.layerIsPortalFeature(l)) {
-          l.labelingInfo = this.createLabelConfig(l, labelConfig.font, labelConfig.size, layerExpressions[l.portalItem.id]);
-          l.labelsVisible = labelConfig.enabled;
-        }
-        if (EsriUtils.layerIsFeature(l) && l.title == 'Project Sites') {
-          l.labelsVisible = labelConfig.siteEnabled;
-        }
-      });
+    Object.entries(layerExpressions).forEach(([layerId, options]) => {
+      const currentLayer = this.getPortalLayerById(layerId);
+      if (currentLayer != null) {
+        currentLayer.labelingInfo = this.createLabelConfig(currentLayer, labelConfig.font, labelConfig.size, options);
+        currentLayer.labelsVisible = labelConfig.enabled;
+      }
+    });
+    const siteLayer = this.getFeatureLayer('Project Sites');
+    if (siteLayer != null) {
+      siteLayer.labelsVisible = labelConfig.siteEnabled;
+    }
   }
 
   private createLabelConfig(layer: __esri.FeatureLayer, fontName: string, fontSize: number, layerOptions: EsriLabelLayerOptions) : __esri.LabelClass[] {
@@ -295,5 +293,15 @@ export class EsriLayerService {
       },
       symbol: textSymbol
     })];
+  }
+
+  public enableLatLongTool(action: CopyCoordinatesToClipboard) : void {
+    const textToBeCopied = (Math.round(action.payload.event.mapPoint.latitude * 1000000) / 1000000) + ',' + (Math.round(action.payload.event.mapPoint.longitude * 1000000) / 1000000);
+    const latLong = document.createElement('textarea');
+    latLong.value = textToBeCopied;
+    document.body.appendChild(latLong);
+    latLong.select();
+    document.execCommand('copy');
+    document.body.removeChild(latLong);
   }
 }

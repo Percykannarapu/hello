@@ -12,11 +12,10 @@ import { LocalAppState } from '../../../state/app.interfaces';
 import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric, CreateMapUsageMetric } from '../../../state/usage/targeting-usage.actions';
 import { CreateGaugeMetric } from '../../../state/usage/usage.actions';
-import { ColorPallete } from '@val/esri';
+import { ColorPalette } from '@val/esri';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { DeleteAudience, MoveAudienceUp, MoveAudienceDn } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { MoveAudienceUp, MoveAudienceDn } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
-
 
 @Component({
   selector: 'val-selected-audiences',
@@ -38,7 +37,7 @@ export class SelectedAudiencesComponent implements OnInit {
               private confirmationService: ConfirmationService,
               private store$: Store<LocalAppState>) {
     // this is how you convert an enum into a list of drop-down values
-    const allThemes = ColorPallete;
+    const allThemes = ColorPalette;
     const keys = Object.keys(allThemes);
     for (const key of keys) {
       this.allThemes.push({
@@ -46,7 +45,7 @@ export class SelectedAudiencesComponent implements OnInit {
         value: allThemes[key]
       });
     }
-    this.allThemes.sort((a, b) => a.label.localeCompare(b.label))
+    this.allThemes.sort((a, b) => a.label.localeCompare(b.label));
     this.currentTheme = AppRendererService.currentDefaultTheme;
   }
 
@@ -118,9 +117,8 @@ export class SelectedAudiencesComponent implements OnInit {
     this.varService.applyAudienceSelection();
   }
 
-  public onThemeChange(event: { value: ColorPallete }) : void {
+  public onThemeChange(event: { value: ColorPalette }) : void {
     AppRendererService.currentDefaultTheme = event.value;
-    this.currentTheme = event.value.toString();
   }
 
   public closeDialog(){

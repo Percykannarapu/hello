@@ -403,3 +403,9 @@ export function getUuid() : string {
     (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
   );
 }
+
+export function pad(value: string | number, width: number, z: string = '0') {
+  let str = '' + value;
+  while (str.length < width) str = z + str;
+  return str;
+}

@@ -189,7 +189,7 @@ export class EsriQueryService {
             const query = new EsriApi.Query({
               geometry: extent,
               returnGeometry: returnGeometry,
-              outFields: ['geocode']
+              // outFields: ['geocode']
             });
             queryCall = () => {
               layerView.queryFeatures(query).then(results => {

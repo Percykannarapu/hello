@@ -18,25 +18,30 @@ export const environment: EnvironmentData = {
   production: false,
   esri: {
     portalServer: 'https://vallomimpor1vm.val.vlss.local/',
-    username: 'admin',
-    password: 'password'
+    username: 'impower5',
+    password: 'impower123!'
   },
   layerIds: {
     zip: {
       boundary: '23a54308e914496aa24d94a9b36776a0',
-      centroid: '88120ac630d746239b133296e87b8e1f'
+      centroid: '88120ac630d746239b133296e87b8e1f',
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_Very_Simplified/FeatureServer/0'
     },
     atz: {
       boundary: 'c0ee701ee95f4bbdbc15ded2a37ca802',
-      centroid: 'fd4b078fc2424dd5a48af860dc421431'
+      centroid: 'fd4b078fc2424dd5a48af860dc421431',
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_Very_Simplified/FeatureServer/0'
     },
     dtz: {
       boundary: 'a4449b3ee55442af881f6ac660ca8163',
-      centroid: '377018a24ba14afa9e02e56110b3a568'
+      centroid: '377018a24ba14afa9e02e56110b3a568',
+      serviceUrl: ''
     },
     wrap: {
       boundary: '12bae62392eb47aeb887b6509da557b5',
-      centroid: undefined
+      centroid: undefined,
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/WRAP_Top_Vars_Very_Simplified/FeatureServer/0'
     }
-  }
+  },
+  portalUrl: 'https://gis.valassislab.com',
 };

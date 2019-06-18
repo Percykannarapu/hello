@@ -19,7 +19,12 @@ interface ResponseCoordinates {
   Longitude: number;
 }
 
-type AllCoordinates = GeoCoordinates | LocationCoordinates | RequestCoordinates | ResponseCoordinates;
+interface MediaPlanningCoordinates {
+  siteLat: number;
+  siteLong: number;
+}
+
+type AllCoordinates = GeoCoordinates | LocationCoordinates | RequestCoordinates | ResponseCoordinates | MediaPlanningCoordinates;
 
 function isGeoCoordinates(c: AllCoordinates) : c is GeoCoordinates {
   return c != null && c.hasOwnProperty('xCoord') && c.hasOwnProperty('yCoord');
@@ -33,6 +38,10 @@ function isRequestCoordinates(c: AllCoordinates) : c is RequestCoordinates {
   return c != null && c.hasOwnProperty('latitude') && c.hasOwnProperty('longitude');
 }
 
+function isMediaPlanningCoordinates(c: AllCoordinates) : c is MediaPlanningCoordinates {
+  return c != null && c.hasOwnProperty('siteLat') && c.hasOwnProperty('siteLong');
+}
+
 export function toUniversalCoordinates(coordinates: AllCoordinates) : UniversalCoordinates;
 export function toUniversalCoordinates(coordinate: AllCoordinates[]) : UniversalCoordinates[];
 export function toUniversalCoordinates(coordinates: AllCoordinates | AllCoordinates[]) : UniversalCoordinates | UniversalCoordinates[] {
@@ -44,6 +53,8 @@ export function toUniversalCoordinates(coordinates: AllCoordinates | AllCoordina
     return {x: coordinates.xcoord, y: coordinates.ycoord};
   } else if (isRequestCoordinates(coordinates)) {
     return {x: coordinates.longitude, y: coordinates.latitude};
+  } else if (isMediaPlanningCoordinates(coordinates)) {
+    return {x: coordinates.siteLong, y: coordinates.siteLat};
   } else {
     return {x: coordinates.Longitude, y: coordinates.Latitude};
   }

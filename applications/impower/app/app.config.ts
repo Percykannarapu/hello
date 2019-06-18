@@ -9,36 +9,42 @@ export class AppConfig implements LoggingConfiguration {
 
   constructor(@Inject(EsriLoaderToken) private esriSettings: EsriConfigOptions) {}
 
-  // The name of the environment
+  // Debug / logging info
   public environmentName = EnvironmentData.environmentName;
+  public logLevel: LogLevels = environment.logLevel;
 
-  // The log level
-  logLevel: LogLevels = environment.logLevel;
-
-  // OAuth information
+  // Authentication info
+  public authenticated: boolean = EnvironmentData.authenticated;
   public clientId = EnvironmentData.clientId;
   public clientSecret = EnvironmentData.clientSecret;
+  public oAuthParams = EnvironmentData.oAuth;
 
-  // This controls whether or not the user is currently authenticated and will have to log in
-  public authenticated: boolean = EnvironmentData.authenticated;
+  // Urls
+  public valServiceBase = `${EnvironmentData.fuseBaseUrl}`;
+  public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
+  public serviceUrls = EnvironmentData.serviceUrls;
 
-   oAuthParams = EnvironmentData.oAuth;
+  // Magic numbers
+  public maxBufferRadius = 50;
+  public maxValGeocodingReqSize = 50;
+  public maxRadiusTradeAreas = 3;
+  public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
 
-   public valServiceBase = `${EnvironmentData.fuseBaseUrl}`;
-   public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
-   public maxBufferRadius = 50;
-   public maxGeosPerGeoInfoQuery = 400;
-   public maxValGeocodingReqSize = 50;
-   public maxRadiusTradeAreas = 3;
-   public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
-   //public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
+  // Not used anymore
+  // public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
+  // public maxGeosPerGeoInfoQuery = 400;
+  // public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
+  // public debugMode: boolean = EnvironmentData.debugMode;
 
-   public serviceUrls = EnvironmentData.serviceUrls;
-
-   public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
-
-   // Can be used to hide/show debugging info
-   public debugMode: boolean = EnvironmentData.debugMode;
+  public basemaps = [
+    'streets-vector',
+    'streets-navigation-vector',
+    'gray-vector',
+    'dark-gray-vector',
+    'topo-vector',
+    'satellite',
+    'oceans'
+  ];
 
   public layers: AllLayers = {
     dma: {
@@ -53,9 +59,10 @@ export class AppConfig implements LoggingConfiguration {
         popupTitle: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
         minScale: undefined,
         popUpFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long'],
-        labelExpression: '$feature.dma_code',
+        labelExpression: '$feature.dma_name',
         labelFontSizeOffset: 6
-      }
+      },
+      serviceUrl: ''
     },
     counties: {
       group: {
@@ -71,7 +78,8 @@ export class AppConfig implements LoggingConfiguration {
         popUpFields: ['gdt_id', 'county_nam', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN'],
         labelExpression: 'TEXT($feature.state_fips, "00") + TEXT($feature.county_fip, "000") + TextFormatting.NewLine + $feature.county_nam',
         labelFontSizeOffset: 4
-      }
+      },
+      serviceUrl: ''
     },
     wrap: {
       group: {
@@ -85,9 +93,10 @@ export class AppConfig implements LoggingConfiguration {
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
         minScale: 4622342,
         popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
-        labelExpression: '$feature.geocode',
+        labelExpression: '$feature.wrap_name',
         labelFontSizeOffset: 2
-      }
+      },
+      serviceUrl: ''
     },
     zip: {
       group: {
@@ -118,7 +127,8 @@ export class AppConfig implements LoggingConfiguration {
         },
         labelExpression: '$feature.geocode',
         labelFontSizeOffset: 2
-      }
+      },
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_CopyAllData/FeatureServer/0'
     },
     atz: {
       group: {
@@ -149,7 +159,8 @@ export class AppConfig implements LoggingConfiguration {
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
         labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
-      }
+      },
+      serviceUrl: 'https://vallomimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_CopyAllData/FeatureServer/0'
     },
     digital_atz: {
       group: {
@@ -180,7 +191,8 @@ export class AppConfig implements LoggingConfiguration {
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
         labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
-      }
+      },
+      serviceUrl: ''
     },
     pcr: {
       group: {
@@ -211,7 +223,8 @@ export class AppConfig implements LoggingConfiguration {
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")',
         labelColorOverride: { a: 1, r: 51, g: 59, b: 103 }
-      }
+      },
+      serviceUrl: ''
     }
   };
 
@@ -229,10 +242,4 @@ export class AppConfig implements LoggingConfiguration {
         throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);
     }
   }
-
-  public webGLIsAvailable() : boolean {
-    console.log('Esri config inside app config: ', this.esriSettings);
-    return this.esriSettings.dojoConfig['has'] && (this.esriSettings.dojoConfig['has']['esri-featurelayer-webgl'] === 1);
-  }
-
 }

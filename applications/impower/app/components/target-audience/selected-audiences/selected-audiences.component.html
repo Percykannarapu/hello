@@ -78,8 +78,9 @@
         <div class="ui-g-8">
           <p-dropdown [options]="allThemes"
                       (onChange)="onThemeChange($event)"
+                      [(ngModel)]="currentTheme"
                       [autoWidth]="false"
-                      [style]="{ width:'200px' }"></p-dropdown>
+                      [style]="{ width:'200px' }" ></p-dropdown>
         </div>
       </div>
     </div>

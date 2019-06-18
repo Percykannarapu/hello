@@ -6,6 +6,7 @@ import {
 } from '@ngrx/store';
 import { environment } from '../../../environments/environment';
 import { LocalState } from './';
+import { shadingReducer } from './shading/shading.reducer';
 import { sharedReducer } from './shared/shared.reducers';
 import { advertiserInfoReducer } from './advertiserInfo/advertiser-info.reducer';
 import { cbxReportReducer } from './cbxReport/cbx-report.reducer';
@@ -27,7 +28,6 @@ import { rfpUiReviewreducer } from './rfpUiReview/rfp-ui-review.reducer';
 import { rfpUiEditreducer } from './rfpUiEdit/rfp-ui-edit.reducer';
 import { rfpUiEditWrapReducer } from './rfpUiEditWrap/rfp-ui-edit-wrap.reducer';
 
-
 export const reducers: ActionReducerMap<LocalState> = {
   shared: sharedReducer,
   advertiserInfo: advertiserInfoReducer,
@@ -48,7 +48,8 @@ export const reducers: ActionReducerMap<LocalState> = {
   rfpUiEditDetail: rfpUiEditDetailreducer,
   rfpUiReview: rfpUiReviewreducer,
   rfpUiEdit: rfpUiEditreducer,
-  rfpUiEditWrap: rfpUiEditWrapReducer
+  rfpUiEditWrap: rfpUiEditWrapReducer,
+  shading: shadingReducer
 };
 
 export function logger(reducer: ActionReducer<LocalState>) : ActionReducer<LocalState> {

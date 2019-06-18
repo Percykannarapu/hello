@@ -19,7 +19,8 @@ import { RfpUiEditPayload } from '../state/payload-models/RfpUiEdit';
    loadRfpUiEdit(id: number) : Observable<RfpUiEdit[]> {
      if (id == null || id < 0) return EMPTY;
      return this.restService.get(`${this.loadUrl}/${id}/${this.searchQuery}`).pipe(
-       map(response => response.payload.rows as RfpUiEdit[])
+       map(response => response.payload.rows as RfpUiEdit[]),
+       map(rows => rows.filter(r => r.siteId != null))
      );
    }
 

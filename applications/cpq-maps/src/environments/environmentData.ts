@@ -1,10 +1,11 @@
 export interface LayerIdDefinition {
   centroid: string;
   boundary: string;
+  serviceUrl: string;
 }
 
 export interface EnvironmentData {
-  debugMode: boolean,
+  debugMode: boolean;
   environmentName: string;
   fuseBaseUrl: string;
   production: boolean;
@@ -19,4 +20,5 @@ export interface EnvironmentData {
     wrap: LayerIdDefinition;
     dtz: LayerIdDefinition
   };
+  portalUrl: string;
 }

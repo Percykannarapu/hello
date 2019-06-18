@@ -6,7 +6,6 @@ import { combineLatest, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, finalize, map, take, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
-import { RenderLocations } from '../state/rendering/rendering.actions';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
@@ -184,6 +183,7 @@ export class AppLayerService {
     } else {
       result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
     }
+    result.overwriteActions = true;
    return new EsriApi.PopupTemplate(result);
   }
 

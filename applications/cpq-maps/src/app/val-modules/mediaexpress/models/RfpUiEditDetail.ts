@@ -25,8 +25,8 @@ export class RfpUiEditDetail extends BaseModel
    public zip:                   string;         /// The zip code component of the geography
    public atz:                   string;         /// The atz component of the geography
    public cityName:              string;         /// The city / state of the geography
-   public household:             number;         /// When bought, hh_count_mbu otherwise hh_count_pref_ihd. If null, then hh_count_geo
-   public taHousehold:           number;         /// Households in the trade area
+   public households:             number;         /// When bought, hh_count_mbu otherwise hh_count_pref_ihd. If null, then hh_count_geo
+   public taHouseholds:           number;         /// Households in the trade area
    public distribution:          number;         /// The distribution (circ)
    public addOnDistribution:     number;
    public cpm:                   number;         /// Average MBU price (cost per thousand)
@@ -71,6 +71,7 @@ export class RfpUiEditDetail extends BaseModel
    public var3IsString:          number;         /// 0 = Not a string, 1 = Is a string
    public var3IsNumber:          number;         /// 0 = Not a number, 1 = Is a number
    public var3Value:             string;         /// Variable 3 number value
+   public siteName?:             string;        /// Site Name
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<RfpUiEditDetail>) {

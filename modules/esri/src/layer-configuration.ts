@@ -31,6 +31,7 @@ export interface LayerGroupDefinition {
   group: { name: string, sortOrder: number, analysisLevelName?: string };
   centroids?: LayerDefinition;
   boundaries: LayerDefinition;
+  serviceUrl: string;
 }
 
 export interface AllLayers {

@@ -29,6 +29,7 @@ import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { ConfirmationService } from 'primeng/primeng';
+import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 
 const centroidAttributes = ['geocode', 'latitude', 'longitude'];
 
@@ -77,11 +78,18 @@ export class AppGeoService {
       this.setupMapClickEventHandler();
 
       // Detect changes in must covers list and call ensureMustCovers
-      this.allMustCovers$.subscribe(() => {
+      const projectReady$ = this.store$.pipe(select(projectIsReady));
+      this.allMustCovers$.pipe(
+        withLatestFrom(projectReady$),
+        filter(([, isReady]) => isReady)
+      ).subscribe(() => {
         this.ensureMustCovers();
       });
 
-      this.locationService.storeObservable.subscribe(() => {
+      this.locationService.storeObservable.pipe(
+        withLatestFrom(projectReady$),
+        filter(([, isReady]) => isReady)
+      ).subscribe(() => {
         this.ensureMustCovers();
       });
 
@@ -170,7 +178,11 @@ export class AppGeoService {
                               loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
                               loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
                               loc.clientLocationTypeCode === 'Site')
-    ).subscribe(locations => this.selectAndPersistHomeGeos(locations));
+    ).subscribe(locations => {
+      setTimeout(() => {
+        this.selectAndPersistHomeGeos(locations);
+    }, 0);
+    });
   }
 
   private setupMapClickEventHandler() {
@@ -611,7 +623,10 @@ export class AppGeoService {
          if (prefs != null)
          {
             //prefs.forEach(pref => console.debug("### MUSTCOVER pref: " + pref.pref + " = " + pref.val));
-            prefs.forEach(mustCoverPref => newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(mustCoverPref.val)]);
+            prefs.forEach(mustCoverPref => {
+              const prefsVal = mustCoverPref.val == null ? mustCoverPref.largeVal : mustCoverPref.val;
+              newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(prefsVal)];
+            });
             this.impGeoService.setMustCovers(newMustCovers);
          }
          //console.log("### newMustCovers.count = " + newMustCovers.length);

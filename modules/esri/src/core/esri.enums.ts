@@ -22,6 +22,7 @@ export enum SelectedButtonTypeCodes {
   DrawLine = 6,
   Labels = 7,
   UnselectMultiplePolys = 8,
+  XY = 9
 }
 
 export const buttonToCursorMap = {
@@ -34,4 +35,5 @@ export const buttonToCursorMap = {
   [SelectedButtonTypeCodes.ShowPopups] : 'default',
   [SelectedButtonTypeCodes.Labels] : 'default',
   [SelectedButtonTypeCodes.MeasureDistance] : 'crosshair',
+  [SelectedButtonTypeCodes.XY] : 'default',
 };

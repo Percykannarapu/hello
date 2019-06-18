@@ -71,27 +71,33 @@ export class RestDataInterceptor implements HttpInterceptor
     */
    intercept(req: HttpRequest<any>, next: HttpHandler) : Observable<HttpEvent<any>>
    {
-      if (req.url.includes(this.appConfig.valServiceBase) && DataStore.getConfig().oauthToken != null) {
-
-        // check to see if the current oauth token is expired
-        const refresh: any = this.refreshOauthToken();
-        
+      let internalRequest: HttpRequest<any> = req.clone();
+      let refresh: any;
+      if (req.url.includes(this.appConfig.valServiceBase)) {
         // if there is already a Content-Type header we don't want to override it
         if (req.headers.get('Content-Type') || req.headers.get('content-type')) {
-          req = req.clone({ headers: req.headers.set('Accept', 'application/json')
-          .set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken)
-          .set('Accept', 'application/json') });  
+          internalRequest = req.clone({ headers: req.headers.set('Accept', 'application/json') });
         } else {
-          req = req.clone({ headers: req.headers.set('Accept', 'application/json')
-          .set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken)
-          .set('Content-Type', 'application/json')
-          .set('Accept', 'application/json') });
+          internalRequest = req.clone({
+            headers: req.headers.set('Accept', 'application/json')
+                                .set('Content-Type', 'application/json')
+          });
         }
-        if (refresh instanceof Observable) {
-          return concat(refresh, next.handle(req));
+
+        const tokenConfig = DataStore.getConfig();
+        if (tokenConfig != null && tokenConfig.oauthToken != null) {
+          internalRequest = internalRequest.clone({
+            headers: internalRequest.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
+          });
+          // check to see if the current oauth token is expired
+          refresh = this.refreshOauthToken();
         }
       }
-      return next.handle(req);
+      if (refresh != null && refresh instanceof Observable) {
+         return concat(refresh, next.handle(internalRequest));
+      } else {
+         return next.handle(internalRequest);
+      }
    }
 
    /**

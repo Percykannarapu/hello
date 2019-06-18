@@ -1,11 +1,11 @@
-<div #appRoot class="app-root" [class.small]="gridIsSmall" [class.large]="gridIsLarge">
+<div #appRoot class="app-root">
 
-  <cpq-header-bar class="title-bar"></cpq-header-bar>
+  <cpq-header-bar></cpq-header-bar>
 
-  <val-grid [smallSizeTable]="gridIsSmall" *ngIf="gridIsVisible"></val-grid>
+  <div class="app-content" [class.small]="gridIsSmall" [class.large]="gridIsLarge">
+    <val-grid class="grid-container" [smallSizeTable]="gridIsSmall" *ngIf="gridIsVisible"></val-grid>
 
-  <div class="map-container">
-    <val-esri-map-panel [mapHeight]="700" [baseMap]="'streets'" [showLabelConfigButton]="true">
+    <val-esri-map-panel class="map-container" [mapHeight]="700" baseMap="streets-vector" [showLabelConfigButton]="true" [showSelectionButtons]="false">
       <additional-toolbar-group>
         <div class="additional-toolbar-container">
           <p-button icon="pi pi-angle-left" label="" (click)="sideNavVisible = !sideNavVisible"></p-button>
@@ -19,7 +19,7 @@
 <p-sidebar [appendTo]="appRoot" [(visible)]="sideNavVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
   <div class="app-sidenav-content">
     <val-map-controls (onGridSizeChange)="gridSize = $event"></val-map-controls>
-    <val-dev-tools></val-dev-tools>
+<!--    <val-dev-tools></val-dev-tools>-->
     <val-shading-config></val-shading-config>
   </div>
 </p-sidebar>

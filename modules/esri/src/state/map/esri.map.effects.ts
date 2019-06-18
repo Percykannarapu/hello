@@ -8,7 +8,7 @@ import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { EsriMapService } from '../../services/esri-map.service';
 import { AppState, internalSelectors, selectors } from '../esri.selectors';
-import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, SetPopupVisibility } from './esri.map.actions';
+import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, SetPopupVisibility, CopyCoordinatesToClipboard } from './esri.map.actions';
 
 @Injectable()
 export class EsriMapEffects {
@@ -28,6 +28,20 @@ export class EsriMapEffects {
     filter(([action, state]) => state === SelectedButtonTypeCodes.SelectSinglePoly),
     mergeMap(([action]) => this.mapInteractionService.processClick(action.payload.event)),
     map(features => new FeaturesSelected({ features }))
+  );
+
+  @Effect()
+  handleMapClickHandler$ = this.actions$.pipe(
+    ofType<MapClicked>(EsriMapActionTypes.MapClicked),
+    withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapButtonState))),
+    filter(([action, state]) => state === SelectedButtonTypeCodes.XY),
+    map( action => new CopyCoordinatesToClipboard({ event: action[0].payload.event}))
+  );
+
+  @Effect({ dispatch: false })
+  handleCopyCoordinatesToClipboard$ = this.actions$.pipe(
+    ofType<CopyCoordinatesToClipboard>(EsriMapActionTypes.CopyCoordinatesToClipboard),
+    tap(action => this.layerService.enableLatLongTool(action))
   );
 
   @Effect({ dispatch: false })

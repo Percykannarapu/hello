@@ -171,7 +171,7 @@ export class TargetAudienceTdaService {
       const varPk: number = parseInt(key, 10); // value: string
       const rawData: TdaVariableResponse = this.rawAudienceData.get(key);
       const fullId = `Offline/TDA/${varPk}`;
-      const numberAttempt = value == null ? null : Number(value);
+      const numberAttempt = value == null ? null : Number(value.trim());
       let fieldDescription: string;
       let fieldValue: string | number;
       if (rawData != null) {
@@ -180,13 +180,13 @@ export class TargetAudienceTdaService {
       if (numberAttempt == null) {
         fieldValue = null;
       } else if (Number.isNaN(numberAttempt)) {
-        fieldValue = value;
+        fieldValue = value.trim();
       } else {
         fieldValue = numberAttempt;
       }
       if (isForShading) {
-        if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1
-                      && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1) {
+        // TODO: Not efficient - this is creating shading data that already exists as geodata, but it's the fastest way to fix defects 2299 and 2300
+        if (results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1) {
           const currentResult = this.domainFactory.createGeoVar(null, geocode, varPk, fieldValue, fullId, fieldDescription);
           results.push(currentResult);
         }
@@ -409,21 +409,6 @@ console.log('### target-audience-tda - adding audience:', model);
 
     if (emptyAudiences.length > 0 && !isForShading)
       this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
-
-      // const missingCategoryIds = new Set(responseArray.filter(id => id.score === 'undefined'));
-      // const audience = [];
-      // if (missingCategoryIds.size > 0) {
-      //   missingCategoryIds.forEach(id => {
-      //     if (this.rawAudienceData.has(id.variablePk)) {
-      //       audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
-      //     }
-      //   });
-      //   if (!isForShading){
-      //       this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
-      //   }
-      // }
-    //this.logger.info("Offline Audience Response::: ", responseArray.length, " rows"); // , responseArray);
-    //console.log('### tda validateFuseResponse - responseArray:', responseArray);
     return responseArray;
   }
 

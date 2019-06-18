@@ -382,7 +382,12 @@ export class AppTradeAreaService {
     if (loc.length > 0 &&  loc != null && loc[0].radius1 == null && loc[0].radius2 == null && loc[0].radius3 == null){
       const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(loc[0].clientLocationTypeCode));
       const radiusSet = new Set<Number>();
-      tradeAreas.forEach(ta => radiusSet.add(ta.taRadius));
+      //tradeAreas.forEach(ta => radiusSet.add(ta.taRadius));
+       tradeAreas.forEach(ta => {
+         if (ta.taType.toUpperCase() === TradeAreaTypeCodes.Radius.toUpperCase()){
+           radiusSet.add(ta.taRadius);
+         }
+       });
       const radiusArray = Array.from(radiusSet).sort((a, b) => Number(a) - Number(b));
       if (radiusSet.size > 0){
         radiusArray.forEach(radius => {

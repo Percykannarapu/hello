@@ -38,14 +38,15 @@ export class EsriApi {
     'esri/tasks/Geoprocessor',
     'esri/tasks/support/FeatureSet',
     'esri/layers/support/Field',
-    'esri/support/FieldInfo',
+    'esri/popup/FieldInfo',
     'esri/layers/support/LabelClass',
     'esri/symbols/TextSymbol',
     'esri/symbols/Font',
     'esri/symbols/SimpleLineSymbol',
     'esri/layers/GraphicsLayer',
     'esri/geometry/projection',
-    'esri/geometry/SpatialReference'
+    'esri/geometry/SpatialReference',
+    'esri/widgets/Expand'
 ];
 
   public static config: __esri.config;
@@ -90,25 +91,19 @@ export class EsriApi {
   public static GraphicsLayer: __esri.GraphicsLayerConstructor;
   public static projection: __esri.projection;
   public static SpatialReference: __esri.SpatialReferenceConstructor;
+  public static Expand: __esri.ExpandConstructor;
 
   public static widgets: EsriWidgets;
 
-  public static initialize(config: EsriConfigOptions) : Promise<any> {
-    esriLoader.loadCss(`${config.url}esri/css/main.css`);
-    return new Promise<any>((resolve, reject) => {
-      esriLoader.loadScript(config).then(() => {
-        esriLoader.loadModules(EsriApi.names.concat(EsriWidgets.moduleNames)).then(m => {
-            this.cacheModules(m, config);
-            resolve();
-          }).catch(e => {
-            console.error('There was an error loading the individual Esri modules: ', e);
-            reject(e);
-        });
-      }).catch(e => {
-        console.error('There was an error loading the main Esri script: ', e);
-        reject(e);
-      });
-    });
+  public static async initialize(config: EsriConfigOptions) {
+    try {
+      await esriLoader.loadScript(config);
+      const allModuleNames = EsriApi.names.concat(EsriWidgets.moduleNames);
+      const loadedModules = await esriLoader.loadModules(allModuleNames);
+      EsriApi.cacheModules(loadedModules, config);
+    } catch (e) {
+      console.error('There was an error during the Esri Api bootstrapping process', e);
+    }
   }
 
   private static cacheModules(modules: any[], localConfig: EsriConfigOptions) : void {
@@ -155,7 +150,8 @@ export class EsriApi {
       EsriApi.SimpleLineSymbol,
       EsriApi.GraphicsLayer,
       EsriApi.projection,
-      EsriApi.SpatialReference
+      EsriApi.SpatialReference,
+      EsriApi.Expand
     ] = modules;
 
     EsriApi.widgets = new EsriWidgets();

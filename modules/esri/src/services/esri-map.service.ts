@@ -38,13 +38,14 @@ export class EsriMapService {
     this.mapView.graphics.removeAll();
   }
 
-  public setMeasureWidget(type) {
+  public setWidget(type) {
     switch (type) {
       case 'measure':
         this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
           view: this.mapView,
           unit: 'miles'
         });
+        this.measureWidget.viewModel.mode = 'geodesic';
         this.measureWidget.view.surface.style.cursor = 'crosshair';
         this.measureWidget.viewModel.newMeasurement();
         break;
@@ -55,6 +56,7 @@ export class EsriMapService {
             unit: 'miles'
           });
         }
+        this.measureWidget.viewModel.mode = 'geodesic';
         this.measureWidget.view.surface.style.cursor = 'copy';
         this.measureWidget.destroy();
         this.measureWidget = null;
@@ -66,6 +68,7 @@ export class EsriMapService {
             unit: 'miles'
           });
         }
+        this.measureWidget.viewModel.mode = 'geodesic';
         this.measureWidget.view.surface.style.cursor = 'default';
         this.measureWidget.destroy();
         this.measureWidget = null;

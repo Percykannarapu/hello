@@ -1,11 +1,23 @@
 import { Component, OnInit } from '@angular/core';
-import { Store, select } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
+import { SelectItem } from 'primeng/api';
+import { filter, withLatestFrom } from 'rxjs/operators';
 import { FullState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
-import { tap, filter, withLatestFrom } from 'rxjs/operators';
-import { SharedState, shadingType } from '../../state/shared/shared.reducers';
-import { SelectItem } from 'primeng/api';
-import { SetShadingType } from '../../state/shared/shared.actions';
+import { SetNonVariableShading, SetVariableShading } from '../../state/shading/shading.actions';
+import { ShadingState, ShadingType, VarDefinition, VariableRanges } from '../../state/shading/shading.reducer';
+import { SharedState } from '../../state/shared/shared.reducers';
+
+export enum NumericVariableShadingMethod {
+  StandardIndex = 'Standard Index',
+  CustomClassifications = 'Custom Classifications',
+  EqualIntervals = 'Equal Intervals'
+}
+
+const DEFAULT_SHADING_TYPE = ShadingType.SITE;
+const DEFAULT_NUMERIC_METHOD = NumericVariableShadingMethod.StandardIndex;
+const DEFAULT_CLASS_BREAKS = 4;
+const DEFAULT_BREAK_VALUES = [80, 120, 140];
 
 @Component({
   selector: 'val-shading-config',
@@ -14,30 +26,137 @@ import { SetShadingType } from '../../state/shared/shared.actions';
 })
 export class ShadingConfigComponent implements OnInit {
 
-  public shadingOptions: Array<SelectItem> = [];
-  public selectOption: string = 'Site';
+  shadingTypes = ShadingType;
+  numericShadingMethods = NumericVariableShadingMethod;
+
+  shadingTypeOptions: Array<SelectItem> = [];
+  selectedShadingType: ShadingType = DEFAULT_SHADING_TYPE;
+  variableOptions: Array<SelectItem> = [];
+  selectedVar: VarDefinition;
+  numericMethodOptions: Array<SelectItem> = [];
+  selectedNumericMethod: NumericVariableShadingMethod = DEFAULT_NUMERIC_METHOD;
+  classBreakOptions: Array<SelectItem> = [];
+  selectedClassBreaks: number = DEFAULT_CLASS_BREAKS;
+
+  classBreakValues: number[] = [...DEFAULT_BREAK_VALUES];
 
   constructor(private store: Store<FullState>) { }
 
   ngOnInit() {
-    this.shadingOptions.push({ label: 'Site', value: shadingType.SITE });
-    this.shadingOptions.push({ label: 'Zip', value: shadingType.ZIP });
+    this.setupDefaultDropDownOptions();
     this.store.pipe(
       select(localSelectors.getAppReady),
-      withLatestFrom(this.store.select(localSelectors.getSharedState)),
-      filter(([ready, shared]) => ready)
-    ).subscribe(([ready, shared]) => this.createDropdownList(shared));
+      withLatestFrom(this.store.select(localSelectors.getSharedState), this.store.select(localSelectors.getShadingState)),
+      filter(([ready]) => ready)
+    ).subscribe(([, shared, shading]) => this.setupDynamicDropDownOptions(shared, shading));
   }
 
-  private createDropdownList(state: SharedState) {
+  indexTracker(index: number) {
+    return index;
+  }
+
+  private setupDefaultDropDownOptions() {
+    this.shadingTypeOptions.push({ label: 'Site', value: ShadingType.SITE });
+    this.shadingTypeOptions.push({ label: 'Zip', value: ShadingType.ZIP });
+    this.numericMethodOptions.push({ label: NumericVariableShadingMethod.StandardIndex, value: NumericVariableShadingMethod.StandardIndex });
+    this.numericMethodOptions.push({ label: NumericVariableShadingMethod.CustomClassifications, value: NumericVariableShadingMethod.CustomClassifications });
+    this.numericMethodOptions.push({ label: NumericVariableShadingMethod.EqualIntervals, value: NumericVariableShadingMethod.EqualIntervals });
+    this.classBreakOptions.push({ label: '3 Classes', value: 3 });
+    this.classBreakOptions.push({ label: '4 Classes', value: 4 });
+    this.classBreakOptions.push({ label: '5 Classes', value: 5 });
+    this.classBreakOptions.push({ label: '6 Classes', value: 6 });
+  }
+
+  private setupDynamicDropDownOptions(state: SharedState, shading: ShadingState) {
     if (state.isWrap)
-      this.shadingOptions.push({ label: 'Wrap Zone', value: shadingType.WRAP_ZONE });
+      this.shadingTypeOptions.push({ label: 'Wrap Zone', value: ShadingType.WRAP_ZONE });
     if (state.analysisLevel === 'atz')
-      this.shadingOptions.push({ label: 'ATZ Designator', value: shadingType.ATZ_DESIGNATOR });
+      this.shadingTypeOptions.push({ label: 'ATZ Indicator', value: ShadingType.ATZ_INDICATOR });
+    if (shading.availableVars.length > 0) {
+      this.shadingTypeOptions.push({ label: 'Variable', value: ShadingType.VARIABLE });
+      this.variableOptions = shading.availableVars.map(v => ({ label: v.name, value: v }));
+      this.selectedVar = shading.availableVars[0];
+    }
   }
 
-  public onShadingOptionChange(event: { originalEvent: MouseEvent, value: shadingType }) {
-    this.store.dispatch(new SetShadingType({ shadingType: event.value }));
+  onShadingOptionChange(event: { value: ShadingType }) {
+    if (event.value !== ShadingType.VARIABLE) {
+      this.store.dispatch(new SetNonVariableShading({ shadingType: event.value }));
+    } else {
+      this.selectedNumericMethod = DEFAULT_NUMERIC_METHOD;
+      this.selectedClassBreaks = DEFAULT_CLASS_BREAKS;
+      this.classBreakValues = [...DEFAULT_BREAK_VALUES];
+    }
   }
 
+  onVariableOptionChanged() {
+    this.selectedNumericMethod = DEFAULT_NUMERIC_METHOD;
+    this.selectedClassBreaks = DEFAULT_CLASS_BREAKS;
+    this.classBreakValues = [...DEFAULT_BREAK_VALUES];
+  }
+
+  onMethodOptionChanged(event: { value: NumericVariableShadingMethod }) {
+    switch (event.value) {
+      case NumericVariableShadingMethod.StandardIndex:
+        this.selectedClassBreaks = 4;
+        this.classBreakValues = [...DEFAULT_BREAK_VALUES];
+        break;
+      // case NumericVariableShadingMethod.CustomClassifications:
+      //   break;
+      case NumericVariableShadingMethod.EqualIntervals:
+        this.selectedClassBreaks = 4;
+        this.calculateEqualIntervals(this.selectedClassBreaks);
+        break;
+    }
+  }
+
+  onBreakCountChanged(classBreaks: number) {
+    if (this.selectedNumericMethod === NumericVariableShadingMethod.EqualIntervals) {
+      this.calculateEqualIntervals(classBreaks);
+    } else {
+      this.classBreakValues = [];
+      for (let i = 0; i < classBreaks - 1; ++i) {
+        this.classBreakValues.push(null); // have to initialize items so the template ngFor will work;
+      }
+    }
+  }
+
+  private calculateEqualIntervals(breakCount: number) {
+    this.classBreakValues = [];
+    const interval = (this.selectedVar.maxValue - this.selectedVar.minValue) / breakCount;
+    for (let i = 0; i < breakCount - 1; ++i) {
+      const currentBreak = (interval * (i + 1)) + this.selectedVar.minValue;
+      this.classBreakValues.push(currentBreak);
+    }
+  }
+
+  applyVariableShading() {
+    const classifications: VariableRanges[] = [];
+    classifications.push({ minValue: null, maxValue: this.classBreakValues[0] });
+    for (let i = 1; i < this.classBreakValues.length; ++i) {
+      classifications.push({ minValue: this.classBreakValues[i - 1], maxValue: this.classBreakValues[i] });
+    }
+    classifications.push({ minValue: this.classBreakValues[this.classBreakValues.length - 1], maxValue: null });
+    this.store.dispatch(new SetVariableShading({ classifications, selectedVarName: this.selectedVar.name }));
+  }
+
+  isNotValid(currentBreak: number, previousBreak: number) {
+    return !(currentBreak == null || previousBreak == null || (currentBreak > previousBreak));
+  }
+
+  breaksAreInvalid() {
+    let result = false;
+    for (let i = 0; i < this.classBreakValues.length; ++i) {
+      result = result || this.classBreakValues[i] == null;
+      if (i !== 0) {
+        result = result || this.classBreakValues[i] < this.classBreakValues[i - 1];
+      }
+    }
+    return result;
+  }
+
+  setBreak(index: number, value: string) {
+    const noCommaValue = value.replace(/,/gi, '');
+    this.classBreakValues[index] = Number(noCommaValue);
+  }
 }

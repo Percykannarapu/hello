@@ -6,7 +6,7 @@ import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiE
 import { localSelectors } from '../../state/app.selectors';
 import { FullState } from '../../state';
 import { Observable, Subject } from 'rxjs';
-import { NavigateToReviewPage, SaveMediaPlan } from '../../state/shared/shared.actions';
+import { NavigateToReviewPage, SaveMediaPlan, GeneratePdf } from '../../state/shared/shared.actions';
 
 @Component({
   selector: 'cpq-header-bar',
@@ -30,6 +30,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   rfpName: string;
   productName: string;
   rfpId: string;
+  get hasAdditions() { return this.addIds.length > 0; }
 
   get isClean() {
     return this.updateIds.length === 0 && this.addIds.length === 0;
@@ -78,6 +79,10 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
 
   onSave() {
     this.store$.dispatch(new SaveMediaPlan({ addIds: this.addIds, updateIds: this.updateIds }));
+  }
+
+  exportMaps(){
+    this.store$.dispatch(new GeneratePdf());
   }
 
   private calcMetrics(entities: RfpUiEditDetail[]) {

@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 import { Injectable, OnDestroy } from '@angular/core';
-import { Store, select } from '@ngrx/store';
-import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended } from '@val/common';
+import { Store } from '@ngrx/store';
+import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended, isNumber, mapByExtended } from '@val/common';
 import { ClearShadingData } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
@@ -152,6 +152,7 @@ export class TargetAudienceService implements OnDestroy {
   public addAudience(audience: AudienceDataDefinition/*, sourceRefresh: audienceSource*/, nationalRefresh?: nationalSource, isReload: boolean = false) : void {
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
+
     console.log('addAudience - seq:', ((audience != null) ? audience.seq : ''), ', sourceId:', sourceId, ', audienceName:', ((audience != null) ? audience.audienceName : ''), ', audienceSourceName: ', ((audience != null) ? audience.audienceSourceName : ''));
 //    this.audienceSources.set(sourceId, sourceRefresh);
     if (audience.audienceSourceName === 'Audience-TA')
@@ -288,7 +289,6 @@ export class TargetAudienceService implements OnDestroy {
   //   return projectVar;
   // }
 
-
   public updateProjectVars(audience: AudienceDataDefinition) {
     //console.debug("updateProjectVars fired: audience.audienceIdentifier: " + audience.audienceIdentifier);
     const newProjectVar = this.createProjectVar(audience);
@@ -305,7 +305,7 @@ export class TargetAudienceService implements OnDestroy {
       for (const pv of otherVars) {
         const newPv = Object.assign(pv);
         newPv.baseStatus = DAOBaseStatus.UPDATE;
-        // pv.isShadedOnMap = false;
+        newPv.isShadedOnMap = false; // gotta turn off all the others since we can only shade by one variable
         this.projectVarService.update(pv, newPv);
       }
     }
@@ -325,7 +325,8 @@ export class TargetAudienceService implements OnDestroy {
     const sourceType = projectVar.source.split('_')[0];
     const sourceName = projectVar.source.split('_')[1];
     const id = audience.audienceSourceType === 'Custom' ? projectVar.fieldname : projectVar.varPk;
-    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audience.audienceIdentifier) {
+    const audienceIdentifier = audience.audienceSourceType === 'Custom' ? audience.audienceName : audience.audienceIdentifier;
+    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audienceIdentifier) {
       return true;
     }
     return false;
@@ -492,7 +493,8 @@ export class TargetAudienceService implements OnDestroy {
 
     if (selectedAudiences.length > 0) {
       // set up a watch process
-      this.selectedSub = this.newSelectedGeos$.pipe(debounceTime(500))
+      const geosToBeSelected = selectedAudiences.map(aud => aud.audienceSourceType).filter(type => type === 'Custom').length > 0 ? this.appStateService.uniqueIdentifiedGeocodes$ : this.newSelectedGeos$;
+      this.selectedSub = geosToBeSelected.pipe(debounceTime(500))
         .subscribe(
           geos => {
             if (geos.length > 0)
@@ -619,6 +621,7 @@ console.log('### getShadingData - lvl', analysisLevel, ', geos(' + geos.length +
             err => this.logger.error.log('There was an error retrieving audience data for map shading', err),
             () => {
               this.removeServerGeoCache(txId, startPopChunks).subscribe();
+              this.logger.debug.log('Shading Data after http call', currentShadingData);
               this.shadingData.next(currentShadingData);
               this.store$.dispatch(new StopBusyIndicator({key}));
             });
@@ -628,6 +631,7 @@ console.log('### getShadingData - lvl', analysisLevel, ', geos(' + geos.length +
           data => data.forEach(gv => currentShadingData.set(gv.geocode, gv)),
           err => this.logger.error.log('There was an error retrieving audience data for map shading', err),
           () => {
+            this.logger.debug.log('Shading Data after http call', currentShadingData);
             this.shadingData.next(currentShadingData);
             this.store$.dispatch(new StopBusyIndicator({key}));
           });
@@ -731,12 +735,25 @@ console.log('### getShadingData - lvl', analysisLevel, ', geos(' + geos.length +
   }
 
   private getNationalData(audiences: AudienceDataDefinition[] , analysisLevel: string) : Observable<any[]> {
+    const sourceNameGen = (a: AudienceDataDefinition) => a.audienceSourceName.replace(/-/g, '_');
+    const dmaAudiences = mapByExtended(audiences, a => `${a.audienceIdentifier}_${sourceNameGen(a)}_DMA`.toLowerCase());
+    const natAudiences = mapByExtended(audiences, a => `${a.audienceIdentifier}_${sourceNameGen(a)}_NAT`.toLowerCase());
     const observables: Observable<any[]>[] = this.nationalRefreshDownload(audiences , analysisLevel);
     return merge(...observables, 4).pipe(
       map(data => data.map(d => {
         const result = { Geocode: d.geocode };
         for (const key of Object.keys(d.attrs)) {
-          result[key] = Math.round(Number(d.attrs[key]));
+          if (dmaAudiences.has(key.toLowerCase())) {
+            const audience = dmaAudiences.get(key.toLowerCase());
+            const newKey = `${audience.audienceName} (${sourceNameGen(audience)} - DMA)`;
+            result[newKey] = isNumber(d.attrs[key]) ? Math.round(Number(d.attrs[key])) : d.attrs[key];
+          } else if (natAudiences.has(key.toLowerCase())) {
+            const audience = natAudiences.get(key.toLowerCase());
+            const newKey = `${audience.audienceName} (${sourceNameGen(audience)} - National)`;
+            result[newKey] = isNumber(d.attrs[key]) ? Math.round(Number(d.attrs[key])) : d.attrs[key];
+          } else {
+            result[key] = Math.round(Number(d.attrs[key]));
+          }
         }
         return result;
       }))
@@ -764,7 +781,7 @@ console.log('### getShadingData - lvl', analysisLevel, ', geos(' + geos.length +
       }
     });
     const observables: Observable<OnlineBulkDownloadDataResponse[]>[] = [];
-    if (reqInput.length > 0){
+    if (reqInput.length > 0) {
       observables.push( this.restService.post('v1/targeting/base/geoinfo/digitallookup', reqInput).pipe(
        map(response => this.convertFuseResponse(response))
      ));

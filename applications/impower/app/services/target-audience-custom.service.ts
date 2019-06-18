@@ -3,21 +3,21 @@ import { Injectable } from '@angular/core';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 //import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
+import { AppLoggingService } from './app-logging.service';
 import { TargetAudienceService } from './target-audience.service';
-import { filter, tap, distinctUntilChanged, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { groupBy, filterArray, safe } from '@val/common';
-import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { FieldContentTypeCodes, ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
 //import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
-import { ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { TradeAreaTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
@@ -29,7 +29,6 @@ import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { AddAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { UpdateAudiences } from './../impower-datastore/state/transient/audience/audience.actions';
-import { AppLoggingService } from './app-logging.service';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 
 const audienceUpload: Parser<CustomAudienceData> = {
@@ -69,7 +68,10 @@ export class TargetAudienceCustomService {
 
     // Watch for trade area radius changes, but ignore changes to no trade areas
     this.tradeAreaService.storeObservable
-      .pipe(filter(tas => tas != null && tas.length > 0),   // Don't do anything if there aren't any trade areas
+      .pipe(withLatestFrom(this.stateService.applicationIsReady$),
+            filter(([, isReady]) => isReady),
+            map(([tas]) => tas),
+            filter(tas => tas != null && tas.length > 0),   // Don't do anything if there aren't any trade areas
             tap(tas => this.logger.debug.log('TAs changed, checking if we care: ', tas)),
             filterArray(ta => ta.impGeofootprintGeos != null && ta.impGeofootprintGeos.length > 0),
             map(tas => tas.map(ta => {
@@ -82,6 +84,7 @@ export class TargetAudienceCustomService {
                   this.logger.debug.log('taType: ', ta.taType, ', taNumber: ', ta.taNumber, ', num Geos: ', ta.impGeofootprintGeos.length);
                   return ta.taNumber + '-' + ta.gtaId + '-' + ta.impGeofootprintGeos.length;
                 }}).join(',')),  // Map to just a delimited list of radiuses
+//          tap(tas => this.logger.debug.log("ta string: " + tas)),
             distinctUntilChanged((x, y) => {
               this.logger.debug.log('x: ', x, ((x === y) ? '===' : '!==') + ' y: ', y, ', x.length: ', x.length, ', y.length: ', y.length, (y.length === 0 || x === y ? ' DID NOT FIND CHANGE' : ' FOUND CHANGE'));
               if (!(y.length === 0 || x === y))
@@ -220,13 +223,11 @@ export class TargetAudienceCustomService {
 console.log('createGeofootprintVar: got newVarPk:', newVarPk);
       }
       this.varPkCache.set(column, newVarPk);
-      //console.debug("createGeofootprintVar custom varPkCache did NOT find " + column + ", new varPk: " + newVarPk, ", varPkCache:", this.varPkCache);
+      //this.logger.debug.log("createGeofootprintVar custom varPkCache did NOT find " + column + ", new varPk: " + newVarPk, ", varPkCache:", this.varPkCache);
     }
     const results: ImpGeofootprintVar[] = [];
     const numberAttempt = Number(value);
     const fieldDescription: string = `${column}`;
-    const matchingAudience = this.audienceService.getAudiences()
-      .find(a => a.audienceSourceName === column && a.audienceSourceType === 'Custom');
 
     // Determine the type and value for the variable
     let fieldType: FieldContentTypeCodes;
@@ -254,10 +255,9 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
     return results;
   }*/
 
-  public parseFileData(dataBuffer: string, fileName: string) {
+  public parseFileData(dataBuffer: string, fileName: string, isReload: boolean = false) {
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
-    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     try {
       const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, audienceUpload);
       const failCount = data.failedRows.length;
@@ -275,22 +275,25 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
           this.currentFileName = fileName;
           this.dataCache = {};
           data.parsedData.forEach(d => this.dataCache[d.geocode] = d);
-          const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
-          for (const column of columnNames) {
-            // Get existing varPk
-            const projectVars = this.projectVarService.get().filter(pv => pv.fieldname === column);
-            const varPk = (projectVars != null && projectVars.length > 0) ? projectVars[0].varPk.toString() : column;
-            const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName, varPk);
-            if (projectVars != null && projectVars.length > 0)
-            {
-              audDataDefinition.showOnGrid = projectVars[0].isIncludedInGeoGrid;
-              audDataDefinition.showOnMap  = projectVars[0].isShadedOnMap;
-              audDataDefinition.exportInGeoFootprint = projectVars[0].isIncludedInGeofootprint;
+          if (!isReload) {
+            const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+            const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
+            for (const column of columnNames) {
+              // Get existing varPk
+              const projectVars = this.projectVarService.get().filter(pv => pv.fieldname === column);
+              const varPk = (projectVars != null && projectVars.length > 0) ? projectVars[0].varPk.toString() : column;
+              const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName, varPk);
+              if (projectVars != null && projectVars.length > 0)
+              {
+                audDataDefinition.showOnGrid = projectVars[0].isIncludedInGeoGrid;
+                audDataDefinition.showOnMap  = projectVars[0].isShadedOnMap;
+                audDataDefinition.exportInGeoFootprint = projectVars[0].isIncludedInGeofootprint;
+              }
+              console.log('### parseFileData - adding audience:', audDataDefinition);
+              this.audienceService.addAudience(audDataDefinition);
+              const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
+              this.store$.dispatch(new CreateAudienceUsageMetric('custom', 'upload', metricText, successCount));
             }
-            console.log('### parseFileData - adding audience:', audDataDefinition);
-            this.audienceService.addAudience(audDataDefinition);
-            const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
-            this.store$.dispatch(new CreateAudienceUsageMetric('custom', 'upload', metricText, successCount));
           }
           this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Custom Audience Upload'}));
         }
@@ -543,7 +546,7 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
     const allNewVars = [];
     const projectVarsDict = this.stateService.projectVarsDict$.getValue();
     geoSet.forEach(geo => {
-      if (this.dataCache.hasOwnProperty(geo)) {
+      if (this.dataCache != null && this.dataCache.hasOwnProperty(geo)) {
         identifiers.forEach(varPk => {
           const column = (projectVarsDict[varPk] || safe).fieldname;
           const newVars = this.createGeofootprintVar(geo, column, this.dataCache[geo][column], this.currentFileName, geoCache);
@@ -552,7 +555,7 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
       }
     });
     // console.groupCollapsed("New custom vars: " + allNewVars.length);
-    // console.debug("allNewVars:", allNewVars);
+    // this.logger.debug.log("allNewVars:", allNewVars);
     // console.groupEnd();
     return Observable.create(o => {
       o.next(allNewVars);

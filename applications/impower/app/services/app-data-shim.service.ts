@@ -77,11 +77,13 @@ export class AppDataShimService {
   }
 
   onLoadSuccess() : void {
-    this.targetAudienceService.applyAudienceSelection();
+    
     this.appTradeAreaService.setCurrentDefaults();
     this.appTradeAreaService.zoomToTradeArea();
+    /**recalculating mustcovers disabled for DE2271 */
     this.appGeoService.reloadMustCovers();
     this.appLayerService.updateLabelExpressions(false);
+    this.targetAudienceService.applyAudienceSelection();
   }
 
   createNew() : number {
@@ -165,7 +167,7 @@ export class AppDataShimService {
         }
         if (!ignore) {
           currentGeos.forEach(g => {
-            g.isActive = state && audiencePreSelected;
+            g.isActive = g.isActive && state && audiencePreSelected;
             g['filterReasons'] = state ? (audiencePreSelected ? null : 'Under Audience TA threshold') : `Filtered because: ${filterReasons.join(', ')}`;
           });
         }

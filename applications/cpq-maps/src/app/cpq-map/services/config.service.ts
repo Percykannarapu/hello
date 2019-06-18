@@ -2,10 +2,47 @@ import { Injectable } from '@angular/core';
 import { AllLayers } from '@val/esri';
 import { environment } from '../../../environments/environment';
 
+export interface FieldMetaData {
+  fieldType: 'string' | 'numeric' | 'percent';
+  fieldLabel: string;
+  fieldName: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ConfigService {
+
+  public defaultShadingTransparency = 0.5; // 50%
+
+  public basemaps = [
+    'streets-vector',
+    'streets-navigation-vector',
+    'gray-vector',
+    'dark-gray-vector',
+    'topo-vector',
+    'satellite',
+    'oceans'
+  ];
+
+  public popupFields: FieldMetaData[] = [
+    { fieldName: 'zip', fieldLabel: 'Zip', fieldType: 'string', },
+    { fieldName: 'pricing_name', fieldLabel: 'Pricing Market', fieldType: 'string', },
+    { fieldName: 'sdm_name', fieldLabel: 'Shared Distribution Market', fieldType: 'string', },
+    { fieldName: 'wrap_name', fieldLabel: 'Redplum Wrap Zone', fieldType: 'string', },
+    { fieldName: 'dma_code', fieldLabel: 'DMA Code', fieldType: 'string', },
+    { fieldName: 'county', fieldLabel: 'County FIPS Code', fieldType: 'string', },
+    { fieldName: 'cl0c00', fieldLabel: '% CY HHs Familes With Related Children < 18 Yrs', fieldType: 'percent', },
+    { fieldName: 'cl2i0r', fieldLabel: '% CY HHs w/HH Inc $50K +', fieldType: 'percent', },
+    { fieldName: 'cl2i0p', fieldLabel: '% CY HHs w/HH Inc $75,000 +', fieldType: 'percent', },
+    { fieldName: 'cl0utw', fieldLabel: '% CY Owner Occupied Housing Units', fieldType: 'percent', },
+    { fieldName: 'cl2prb', fieldLabel: '% Pop Black Alone Non-Hisp', fieldType: 'percent', },
+    { fieldName: 'cl2prw', fieldLabel: '% Pop White Alone Non-Hisp', fieldType: 'percent', },
+    { fieldName: 'cl2i00', fieldLabel: 'CY Median Household Income', fieldType: 'numeric', },
+    { fieldName: 'cl2hwv', fieldLabel: 'CY Median Value, Owner OCC Housing Units', fieldType: 'numeric', },
+    { fieldName: 'hhld_w', fieldLabel: 'HouseHolds, Winter', fieldType: 'numeric', },
+    { fieldName: 'hhld_s', fieldLabel: 'HouseHolds, Summer', fieldType: 'numeric', },
+  ];
 
   public layers: AllLayers = {
     wrap: {
@@ -20,11 +57,12 @@ export class ConfigService {
         defaultVisibility: true,
         sortOrder: 0,
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
-        minScale: 577790,
+        minScale: 4622342,
         popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
         labelExpression: '$feature.wrap_name',
         labelFontSizeOffset: 2
-      }
+      },
+      serviceUrl: environment.layerIds.wrap.serviceUrl
     },
     zip: {
       group: {
@@ -51,7 +89,8 @@ export class ConfigService {
         popUpFields: [],
         labelExpression: '$feature.geocode',
         labelFontSizeOffset: 2
-      }
+      },
+      serviceUrl: environment.layerIds.zip.serviceUrl
     },
     atz: {
       group: {
@@ -77,7 +116,9 @@ export class ConfigService {
         minScale: 1155600,
         popUpFields: [],
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
-      }
+      },
+      serviceUrl: environment.layerIds.atz.serviceUrl
+
     },
     digital_atz: {
       group: {
@@ -107,7 +148,10 @@ export class ConfigService {
           standardFields: ['hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00']
         },
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
-      }
+      },
+      serviceUrl: environment.layerIds.dtz.serviceUrl
     }
   };
+
+  public rootDirectory: string = '/gis/arcgis/server/usr/valassis_reports' ;
 }

@@ -8,6 +8,7 @@ export enum EsriMapToolbarButtonActionTypes {
   StartSketchView = '[Esri Map Toolbar] Start SketchView',
   ClearSketchView = '[Esri Map Toolbar] Clear SketchView',
   MeasureDistanceSelected = '[Esri Map Toolbar] Measure Distance Selected',
+  XYButtonSelected = '[Esri Map Toolbar] XY Button Selected',
 }
 
 export class PopupButtonSelected implements Action {
@@ -39,10 +40,15 @@ export class MeasureDistanceSelected implements Action {
   readonly type = EsriMapToolbarButtonActionTypes.MeasureDistanceSelected;
 }
 
+export class XYButtonSelected implements Action {
+  readonly type = EsriMapToolbarButtonActionTypes.XYButtonSelected;
+}
+
 export type EsriMapToolbarButtonActions = PopupButtonSelected |
   SelectSinglePolySelected |
   SelectMultiPolySelected |
   UnselectMultiPolySelected |
   StartSketchView |
   ClearSketchView |
-  MeasureDistanceSelected;
+  MeasureDistanceSelected |
+  XYButtonSelected;

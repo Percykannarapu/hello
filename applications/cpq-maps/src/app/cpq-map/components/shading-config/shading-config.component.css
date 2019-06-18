@@ -1,17 +1,49 @@
-.shading-config-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.shading-controls-container {
+.shading-controls-card {
   margin-top: 0.5em;
 }
 
-.shading-controls {
+.shading-controls-container {
   display: flex;
   flex-direction: column;
 }
 
-.shading-controls>h4 {
+.shading-controls-container > h4 {
   align-self: center;
+  padding-bottom: 1em;
+}
+
+.shading-controls-container > button {
+  align-self: center;
+  width: 10em;
+  margin-top: 1em;
+}
+
+.shading-controls {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  grid-gap: 0.5em;
+}
+
+.shading-controls > span,
+.shading-breaks-container > span {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-content: flex-start;
+  align-items: center;
+}
+
+.shading-breaks-container {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  grid-gap: 0.25em;
+}
+
+.shading-breaks-container input {
+  width: 5em;
+}
+
+.shading-breaks-container span.pi-exclamation-triangle {
+  color: #a80000;
 }

@@ -8,16 +8,15 @@ import { AppStateService } from './app-state.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { calculateStatistics, mapToEntity } from '@val/common';
-import { ClearSelectedGeos, ClearShadingData, ColorPallete, EsriRendererService, SetSelectedGeos, SetShadingData } from '@val/esri';
+import { ClearSelectedGeos, ClearShadingData, ColorPalette, EsriRendererService, SetSelectedGeos, SetShadingData } from '@val/esri';
 import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromMapVarSelectors from 'app/impower-datastore/state/transient/map-vars/map-vars.selectors';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 
-
 @Injectable()
 export class AppRendererService {
-  public static currentDefaultTheme: ColorPallete = ColorPallete.Advantagedarker;
+  public static currentDefaultTheme: ColorPalette = ColorPalette.EsriPurple;
 
   private geoSubscription: Subscription;
   private dataSubscription: Subscription;
@@ -66,29 +65,29 @@ export class AppRendererService {
       let legendText = null;
       let legendOption =  null;
 
-      if (audiences[0].audienceSourceType === "Online"){
+      if (audiences[0].audienceSourceType === 'Online'){
 
         if (audiences[0].audienceSourceName === 'Audience-TA'){
-          let scoreTypeLabel:string = null;
+          let scoreTypeLabel: string = null;
           scoreTypeLabel = audiences[0].audienceTAConfig.scoreType;
-          if (scoreTypeLabel==='national'){
+          if (scoreTypeLabel === 'national'){
             scoreTypeLabel = scoreTypeLabel.charAt(0).toUpperCase() + scoreTypeLabel.slice(1);
           }
-          legendText = audiences[0].audienceName+ " "+ audiences[0].audienceSourceName + " " + scoreTypeLabel;
+          legendText = audiences[0].audienceName + ' ' + audiences[0].audienceSourceName + ' ' + scoreTypeLabel;
         }
-        else if ((audiences[0].audienceSourceName === 'VLH')||(audiences[0].audienceSourceName === 'Pixel')){
+        else if ((audiences[0].audienceSourceName === 'VLH') || (audiences[0].audienceSourceName === 'Pixel')){
           legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
-          legendText = audiences[0].audienceName+ " " +  legendOption.label;
+          legendText = audiences[0].audienceName + ' ' +  legendOption.label;
         }
         else{
           legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
-          legendText = audiences[0].audienceName+ " "+ audiences[0].audienceSourceName + " " + legendOption.label;
+          legendText = audiences[0].audienceName + ' ' + audiences[0].audienceSourceName + ' ' + legendOption.label;
         }
       }
       else{
         legendText = audiences[0].audienceName;
       }
-      if(legendText != null){
+      if (legendText != null){
         newAction.payload.legend = legendText;
       }
         this.store$.dispatch(newAction);

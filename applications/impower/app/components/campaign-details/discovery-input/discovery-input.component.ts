@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/primeng';
-import { debounceTime, filter, map } from 'rxjs/operators';
+import { debounceTime, map } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../../models/val-discovery.model';
 import { ProjectCpmTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-discovery.service';
@@ -17,17 +17,17 @@ export class DiscoveryInputComponent implements OnInit {
   @Input('storeData')
   set data(val: ValDiscoveryUIModel) {
     if (val) {
-      this.discoveryForm.patchValue(val);
+      this.discoveryForm.patchValue(val, { emitEvent: false });
       this.setControlStates(val);
-      this.discoveryForm.markAsPristine();
     }
   }
-  @Input() radSuggestions: RadLookupUIModel[];
-  @Input() projectTrackerSuggestions: ProjectTrackerUIModel[];
-  @Input('onlineAudienceExists') set onlineAudienceExists(val: boolean) {
+  @Input('onlineAudienceExists')
+  set onlineAudienceExists(val: boolean) {
     this.setPCROptionState(val);
     this.showAnalysisLevelError = val;
   }
+  @Input() radSuggestions: RadLookupUIModel[];
+  @Input() projectTrackerSuggestions: ProjectTrackerUIModel[];
 
   @Output() formChanged = new EventEmitter<ValDiscoveryUIModel>();
   @Output() radSearchRequest = new EventEmitter<string>();
@@ -58,7 +58,7 @@ export class DiscoveryInputComponent implements OnInit {
     // to make for easy mapping/patching back and forth.
     this.discoveryForm = this.fb.group({
       projectId: { value: null, disabled: true },
-      projectName: ['', Validators.required],
+      projectName: new FormControl('', { validators: Validators.required, updateOn: 'blur' }),
       selectedProjectTracker: null,
       selectedRadLookup: null,
       selectedSeason: null,
@@ -67,19 +67,17 @@ export class DiscoveryInputComponent implements OnInit {
       includeValassis: true,
       includeAnne: true,
       includeSolo: true,
-      dollarBudget: null,
-      circulationBudget: null,
+      dollarBudget: new FormControl(null, { updateOn: 'blur' }),
+      circulationBudget: new FormControl(null, { updateOn: 'blur' }),
       cpmType: null,
-      cpmBlended: { value: null, disabled: true },
-      cpmValassis: { value: null, disabled: true },
-      cpmAnne: { value: null, disabled: true },
-      cpmSolo: { value: null, disabled: true }
-      
+      cpmBlended: new FormControl({ value: null, disabled: true }, { updateOn: 'blur' }),
+      cpmValassis: new FormControl({ value: null, disabled: true }, { updateOn: 'blur' }),
+      cpmAnne: new FormControl({ value: null, disabled: true }, { updateOn: 'blur' }),
+      cpmSolo: new FormControl({ value: null, disabled: true }, { updateOn: 'blur' })
     });
   
     this.discoveryForm.valueChanges.pipe(
-      debounceTime(500),
-      filter(() => this.discoveryForm.dirty),
+      debounceTime(250),
       map(formData => new ValDiscoveryUIModel(formData))
     ).subscribe(uiModel => this.onFormChanged(uiModel));
   }
@@ -92,25 +90,27 @@ export class DiscoveryInputComponent implements OnInit {
     this.allAnalysisLevels = [ ...this.allAnalysisLevels ];
   }
 
-   private setControlStates(currentForm: ValDiscoveryUIModel) : void {
+  private setControlStates(currentForm: ValDiscoveryUIModel) : void {
+    const disable = (name: string) => this.discoveryForm.controls[name].disable({ emitEvent: false });
+    const enable = (name: string) => this.discoveryForm.controls[name].enable({ emitEvent: false });
     switch (currentForm.cpmType) {
       case ProjectCpmTypeCodes.Blended:
-        this.discoveryForm.controls['cpmValassis'].disable();
-        this.discoveryForm.controls['cpmAnne'].disable();
-        this.discoveryForm.controls['cpmSolo'].disable();
-        this.discoveryForm.controls['cpmBlended'].enable();
+        disable('cpmValassis');
+        disable('cpmAnne');
+        disable('cpmSolo');
+        enable('cpmBlended');
         break;
       case ProjectCpmTypeCodes.OwnerGroup:
-        this.discoveryForm.controls['cpmValassis'].enable();
-        this.discoveryForm.controls['cpmAnne'].enable();
-        this.discoveryForm.controls['cpmSolo'].enable();
-        this.discoveryForm.controls['cpmBlended'].disable();
+        enable('cpmValassis');
+        enable('cpmAnne');
+        enable('cpmSolo');
+        disable('cpmBlended');
         break;
       default:
-        this.discoveryForm.controls['cpmValassis'].disable();
-        this.discoveryForm.controls['cpmAnne'].disable();
-        this.discoveryForm.controls['cpmSolo'].disable();
-        this.discoveryForm.controls['cpmBlended'].disable();
+        disable('cpmValassis');
+        disable('cpmAnne');
+        disable('cpmSolo');
+        disable('cpmBlended');
     }
     this.setAnalysisLevelDropDown(currentForm.selectedAnalysisLevel);
   }
@@ -131,9 +131,9 @@ export class DiscoveryInputComponent implements OnInit {
 
   private setAnalysisLevelDropDown(analysisLevel: string) : void {
     if (analysisLevel == null || analysisLevel.trim().length === 0) {
-      this.discoveryForm.controls['selectedAnalysisLevel'].reset();
+      this.discoveryForm.controls['selectedAnalysisLevel'].reset(null, { emitEvent: false });
     } else {
-      this.discoveryForm.controls['selectedAnalysisLevel'].setValue(analysisLevel);
+      this.discoveryForm.controls['selectedAnalysisLevel'].setValue(analysisLevel, { emitEvent: false });
     }
   }
 }

@@ -1,0 +1,27 @@
+<div class="avail-status" [ngSwitch]="status">
+  <span *ngSwitchCase="GeoStatus.PastIhd" class="not-available"><strong>Media Plans past their last IHD cannot be modified</strong></span>
+  <p-button *ngSwitchCase="GeoStatus.Selected" label="Deselect Geo" (click)="onClick()"></p-button>
+  <p-button *ngSwitchCase="GeoStatus.Unselected" label="Select Geo" (click)="onClick()"></p-button>
+  <p-button *ngSwitchCase="GeoStatus.Added" label="Remove Geo" (click)="onClick()"></p-button>
+  <ng-container *ngSwitchCase="GeoStatus.AvailabilityCheckRequired">
+    <span class="not-available" *ngIf="hasError"><strong>There was an error checking availability</strong></span>
+    <span *ngIf="checkingAvailability && !hasError">Checking availability...</span>
+    <ng-container *ngIf="!checkingAvailability && !hasError">
+      <p-button label="Add Geo" (click)="onClick()" *ngIf="isAvailable"></p-button>
+      <span class="not-available" *ngIf="!isAvailable"><strong>The selected geography is not available</strong></span>
+    </ng-container>
+  </ng-container>
+  <span *ngSwitchDefault>&nbsp;</span>
+</div>
+<table class="esri-widget__table">
+  <tbody>
+    <tr *ngFor="let field of filteredFields">
+      <th class="esri-feature__field-header">{{field.fieldLabel}}</th>
+      <ng-container [ngSwitch]="field.fieldType">
+        <td class="esri-feature__field-data" *ngSwitchCase="'numeric'">{{selectedAttributes[field.fieldName] | number:'1.0-2'}}</td>
+        <td class="esri-feature__field-data" *ngSwitchCase="'percent'">{{(selectedAttributes[field.fieldName] / 100) | percent:'1.0-2'}}</td>
+        <td class="esri-feature__field-data" *ngSwitchDefault>{{selectedAttributes[field.fieldName]}}</td>
+      </ng-container>
+    </tr>
+  </tbody>
+</table>

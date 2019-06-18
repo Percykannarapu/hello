@@ -4536,6 +4536,9 @@ dfn[title] {
 .cpq-maps .ui-table-scrollable-header-box {
   margin-right: 17px !important;
 }
+.cpq-maps .ui-table-scrollable-body {
+  overflow-y: scroll;
+}
 .cpq-maps .ui-table-scrollable-body > table > .ui-table-tbody > tr:first-child > td {
   border-top: 0 none;
 }

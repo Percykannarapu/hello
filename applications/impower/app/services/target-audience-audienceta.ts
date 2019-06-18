@@ -250,7 +250,6 @@ console.log('### target-audience-audienceta - addAudiences - model', model);
           const previousFlag = currentAttributes.get(geoResponse.geocode) || false;
           const newFlag = previousFlag || this.setActiveGeos(geoResponse.combinedIndexTile, audienceTAConfig, geoResponse.distance);
           currentAttributes.set(geoResponse.geocode, newFlag);
-
           if (this.varService.get().findIndex(gvar => gvar.geocode === geoResponse.geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === location) === -1
           &&       geofootprintVars.findIndex(gvar => gvar.geocode === geoResponse.geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === location) === -1)
           {

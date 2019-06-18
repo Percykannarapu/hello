@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { select, Store } from '@ngrx/store';
 import { AppState, internalSelectors } from '../../state/esri.selectors';
-import { MeasureDistanceSelected, PopupButtonSelected, SelectMultiPolySelected, SelectSinglePolySelected, UnselectMultiPolySelected } from '../../state/map/esri.map-button.actions';
+import { MeasureDistanceSelected, PopupButtonSelected, SelectMultiPolySelected, SelectSinglePolySelected, UnselectMultiPolySelected, XYButtonSelected } from '../../state/map/esri.map-button.actions';
 import { buttonToCursorMap, SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { MapClicked, SetMapHeight, SetMapViewpoint } from '../../state/map/esri.map.actions';
 
@@ -19,6 +19,7 @@ export class EsriMapPanelComponent {
   cursor$: Observable<string> = this.currentMapState$.pipe(map(state => buttonToCursorMap[state]));
   SelectedButtonTypeCodes = SelectedButtonTypeCodes;
 
+  @Input() showSelectionButtons: boolean = true;
   @Input() showLabelConfigButton: boolean = true;
   @Input() set mapHeight(val: number) {
     this.store.dispatch(new SetMapHeight({ newMapHeight: val }));
@@ -55,6 +56,9 @@ export class EsriMapPanelComponent {
         break;
       case SelectedButtonTypeCodes.UnselectMultiplePolys:
         this.store.dispatch(new UnselectMultiPolySelected());
+        break;
+      case SelectedButtonTypeCodes.XY:
+        this.store.dispatch(new XYButtonSelected());
         break;
       default:
         throw new Error('Unknown Button type selected');

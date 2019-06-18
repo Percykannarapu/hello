@@ -102,6 +102,7 @@ export class AddLocationsTabComponent implements OnInit {
           attr.attributeValue = '';
         }
       });
+      site.impGeofootprintTradeAreas = [];
       site['homeGeoFound'] = null;
       const reCalculateHomeGeos = false;
       const isLocationEdit =  false;
@@ -123,11 +124,16 @@ export class AddLocationsTabComponent implements OnInit {
     });
     const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
     const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
-    const newRequest = new ValGeocodingRequest(site, true);
+    let isRadii: boolean = false;
+    if (site.radius1 != null || site.radius2 != null || site.radius3 != null){
+      isRadii = true;
+    }
+
+    const newRequest = new ValGeocodingRequest(site, true, isRadii);
     delete newRequest['latitude'];
     delete newRequest['longitude'];
     this.appLocationService.deleteLocations([site]);
-    this.processSiteRequests(newRequest, newSiteType);
+    this.processSiteRequests(newRequest, newSiteType, true);
     const metricText = AppLocationService.createMetricTextForLocation(site);
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
   }

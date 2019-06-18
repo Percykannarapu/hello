@@ -1,7 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { RfpUiReview } from '../../../val-modules/mediaexpress/models/RfpUiReview';
+import { GetMediaPlanDataSucceeded, InitActionTypes } from '../init/init.actions';
 import { RfpUiReviewActions, RfpUiReviewActionTypes } from './rfp-ui-review.actions';
-import { SharedActions, SharedActionTypes } from '../shared/shared.actions';
 
 export interface RfpUiReviewState extends EntityState<RfpUiReview> {
   // additional entities state properties
@@ -16,11 +16,11 @@ export const initialState: RfpUiReviewState = adapter.getInitialState({
   // additional entity state properties
 });
 
-type reducerActions = RfpUiReviewActions | SharedActions;
+type reducerActions = RfpUiReviewActions | GetMediaPlanDataSucceeded;
 
 export function rfpUiReviewreducer(state = initialState, action: reducerActions) : RfpUiReviewState {
   switch (action.type) {
-    case SharedActionTypes.LoadEntityGraph: {
+    case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.rfpUiReviews != null) {
         return adapter.addAll(action.payload.normalizedEntities.rfpUiReviews, state);
       } else {
