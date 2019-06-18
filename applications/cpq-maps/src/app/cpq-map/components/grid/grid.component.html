@@ -1,6 +1,6 @@
 <div style="height: 100%;">
     <p-table #dt scrollHeight="100%" selectionMode="multiple" columnResizeMode="expand" [filterDelay]="50"
-             [value]="rows" [scrollable]="true" [globalFilterFields]="globalFilterColumns" (onFilter)="onFilter()"
+             [value]="rows" [scrollable]="true" [globalFilterFields]="globalFilterColumns" (onFilter)="onFilter($event)"
              [resizableColumns]="true" [selection]="selectedRows" (onRowSelect)="onChangeRowSelection($event)"
              (onRowUnselect)="onChangeRowSelection($event)" (onHeaderCheckboxToggle)=applyHeaderFilter($event)>
       <ng-template pTemplate="caption">

@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isNumber } from '@val/common';
-import { Table } from 'primeng/table';
 import { filter, map, take } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
@@ -24,6 +23,7 @@ export class GridComponent implements OnInit {
   private gridIsSmall: boolean = true;
   private smallGridColumns: fromGridSelectors.GridColumn[] = [];
   private largeGridColumns: fromGridSelectors.GridColumn[] = [];
+  private filteredIds: number[] = null;
 
   @Input()
   set smallSizeTable(value: boolean) {
@@ -74,7 +74,8 @@ export class GridComponent implements OnInit {
     this.store$.dispatch(new GridGeoToggle({ geocode: event.data.selectionIdentifier }));
   }
 
-  onFilter() {
+  onFilter(event: { filters: any, filteredValue: fromGridSelectors.GridRowBase[] }) {
+    this.filteredIds = event.filteredValue.map(r => r.id);
     this.cd.markForCheck();
   }
 
@@ -100,7 +101,8 @@ export class GridComponent implements OnInit {
 
   private applyHeaderFilter(event: any){
     const geoChanges = [];
-    this.rows.forEach(data => {
+    const ids = this.filteredIds == null ? new Set<number>(this.rows.map(r => r.id)) : new Set(this.filteredIds);
+    this.rows.filter(r => ids.has(r.id)).forEach(data => {
       if (data.isSelected != event.checked){
         const geos = { id: data['id'], changes: { isSelected: !data['isSelected'] }};
         geoChanges.push(geos);
