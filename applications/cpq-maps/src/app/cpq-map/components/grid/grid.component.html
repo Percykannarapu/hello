@@ -41,8 +41,7 @@
               <div *ngIf="getColumnType(col, rowData[col.field]) === 'number'" class="val-text-right">
                 {{rowData[col.field] | number:(col.formatSpec == null ? '1.0-2' : col.formatSpec)}}
               </div>
-              <div *ngIf="getColumnType(col, rowData[col.field]) === 'string'" class="val-text-left">
-                {{rowData[col.field]}}
+              <div *ngIf="getColumnType(col, rowData[col.field]) === 'string'" class="val-text-left" [innerHTML]="rowData[col.field]">
               </div>
             </td>
           </ng-container>
