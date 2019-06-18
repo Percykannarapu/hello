@@ -59,7 +59,7 @@ export class AppConfig implements LoggingConfiguration {
         popupTitle: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
         minScale: undefined,
         popUpFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long'],
-        labelExpression: '$feature.dma_name',
+        labelExpression: '$feature.dma_display_name',
         labelFontSizeOffset: 6
       },
       serviceUrl: ''
