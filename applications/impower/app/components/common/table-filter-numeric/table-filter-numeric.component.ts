@@ -14,35 +14,35 @@ export class FilterData {
    minValue:      number;
    maxValue:      number;
 
-   public static numericFilter (compareValue, filter, precision = null): boolean
+   public static numericFilter (compareValue, filter, precision = null) : boolean
    {
       let result: boolean = true;
-      
+
       // Enforce precision if provided
-      let value: number = (precision != null) ? roundTo(compareValue, precision): compareValue;
+      const value: number = (precision != null) ? roundTo(compareValue, precision) : compareValue;
 
 // The below will include nulls in the results.  Think about including a parameter to enable this
 //      if (value == null)
 //         return true;
 
       switch (filter.rangeOperator.code) {
-         case "between":
+         case 'between':
             result = value >= filter.lowValue && value <= filter.highValue;
             break;
 
-         case ">=":
+         case '>=':
             result = value >= filter.lowValue;
             break;
 
-         case "<=":
+         case '<=':
             result = value <= filter.lowValue;
             break;
 
-         case ">":
+         case '>':
             result = value >  filter.lowValue;
             break;
 
-         case "<":
+         case '<':
             result = value <  filter.lowValue;
             break;
 
@@ -52,8 +52,8 @@ export class FilterData {
             break;
       }
       //console.debug("numericFilter - compareValue: ", compareValue, ", filter: ", filter, " returning ", result);
-      return result;   
-   }   
+      return result;
+   }
 }
 
 @Component({
@@ -70,8 +70,8 @@ export class TableFilterNumericComponent implements OnInit {
    @Output() filterApplied = new EventEmitter<FilterData>();
    @Output() filterCleared = new EventEmitter<FilterData>();
 
-   public  rangeStr: string = "All";
-   public  rangeLbl: string = "All";
+   public  rangeStr: string = 'All';
+   public  rangeLbl: string = 'All';
    public  rangeOperators: RangeOperator[] = [{name: '>=', code: '>='}, {name: '<=', code: '<='}, {name: '>', code: '>'}, {name: '<', code: '<'}, {name: 'Between', code: 'between'}];
    public  filterData: FilterData = { rangeOperator: this.rangeOperators[0], lowValue: this.minValue, highValue: this.maxValue, minValue: this.minValue, maxValue: this.maxValue };
 
@@ -85,7 +85,7 @@ export class TableFilterNumericComponent implements OnInit {
          this.fieldHeader = this.fieldName;
 
       if (this.operatorType != null) {
-         let newRangeOperator = this.rangeOperators.find(operator => operator.code === this.operatorType);
+         const newRangeOperator = this.rangeOperators.find(operator => operator.code === this.operatorType);
 
          if (newRangeOperator != null)
             this.filterData = { ...this.filterData, rangeOperator: newRangeOperator };
@@ -99,24 +99,24 @@ export class TableFilterNumericComponent implements OnInit {
       // Default low/high if null
       if (this.filterData.lowValue == null)
          switch (this.filterData.rangeOperator.code) {
-            case "between":
+            case 'between':
                this.filterData.lowValue = this.minValue;
                break;
 
-            case ">=":
+            case '>=':
                this.filterData.lowValue = this.minValue;
                break;
 
-            case "<=":
+            case '<=':
                this.filterData.lowValue = this.maxValue;
                break;
 
-            case ">":
-               this.filterData.lowValue = this.minValue-1;
+            case '>':
+               this.filterData.lowValue = this.minValue - 1;
                break;
 
-            case "<":
-               this.filterData.lowValue = this.maxValue+1;
+            case '<':
+               this.filterData.lowValue = this.maxValue + 1;
                break;
 
             // Unknown operator
@@ -124,7 +124,7 @@ export class TableFilterNumericComponent implements OnInit {
                this.filterData.lowValue = this.minValue;
                break;
          }
-      
+
       if (this.filterData.highValue == null)
          this.filterData.highValue = this.maxValue;
 
@@ -138,73 +138,74 @@ export class TableFilterNumericComponent implements OnInit {
       else
          if (this.filterData.lowValue > this.filterData.maxValue)
             this.filterData.lowValue = this.filterData.maxValue;
-      
+
       if (this.filterData.highValue == null)
          this.filterData.highValue = this.filterData.maxValue;
       else
          if (this.filterData.highValue < this.filterData.minValue)
             this.filterData.highValue = this.filterData.minValue;*/
 
-      //console.debug("onChange - filterData: rangeOperator: ", this.filterData.rangeOperator.code, ", lowValue: ", this.filterData.lowValue, ", highValue: ", this.filterData.highValue, ", minValue: ", this.filterData.minValue, ", maxValue: ", this.filterData.maxValue);
+      //console.debug("onChange - filterData: rangeOperator: ", this.filterData.rangeOperator.code, ", lowValue: "
+      //, this.filterData.lowValue, ", highValue: ", this.filterData.highValue, ", minValue: ", this.filterData.minValue, ", maxValue: ", this.filterData.maxValue);
       this.setFilterStr();
    }
 
    private setFilterStr() {
       // Start with default for all operators (Except between)
-      this.rangeStr = this.filterData.rangeOperator.name + " " + this.filterData.lowValue;
-      console.log("rangeStr: " + this.rangeStr + ", filterData: ", this.filterData);
+      this.rangeStr = this.filterData.rangeOperator.name + ' ' + this.filterData.lowValue;
+      //console.log("rangeStr: " + this.rangeStr + ", filterData: ", this.filterData);
 
       switch (this.filterData.rangeOperator.code) {
-         case "between":
+         case 'between':
             if (this.filterData.lowValue === this.filterData.minValue && this.filterData.highValue === this.filterData.maxValue)
-               this.rangeStr = "All";
+               this.rangeStr = 'All';
             else
-               this.rangeStr = this.filterData.rangeOperator.name + " " + this.filterData.lowValue + " and " + this.filterData.highValue;
+               this.rangeStr = this.filterData.rangeOperator.name + ' ' + this.filterData.lowValue + ' and ' + this.filterData.highValue;
             break;
 
-         case ">=":
+         case '>=':
             if (this.filterData.lowValue <= this.filterData.minValue || this.filterData.lowValue == null)
-               this.rangeStr = "All";
+               this.rangeStr = 'All';
             break;
 
-         case "<=":
+         case '<=':
             if (this.filterData.lowValue >= this.filterData.maxValue || this.filterData.lowValue == null)
-               this.rangeStr = "All";
+               this.rangeStr = 'All';
             break;
 
-         case ">":
+         case '>':
             if (this.filterData.lowValue < this.filterData.minValue || this.filterData.lowValue == null)
-               this.rangeStr = "All";
+               this.rangeStr = 'All';
             break;
 
-         case "<":
+         case '<':
             if (this.filterData.lowValue > this.filterData.maxValue || this.filterData.lowValue == null)
-               this.rangeStr = "All";
+               this.rangeStr = 'All';
             break;
 
          // Unknown operator
          default:
-            this.rangeStr = this.filterData.rangeOperator.name + " " + this.filterData.lowValue;
+            this.rangeStr = this.filterData.rangeOperator.name + ' ' + this.filterData.lowValue;
             break;
       }
 
-      this.rangeLbl = (this.rangeStr === "All") ? "All" : this.filterData.rangeOperator.name;
+      this.rangeLbl = (this.rangeStr === 'All') ? 'All' : this.filterData.rangeOperator.name;
    }
 
-   public clearFilter(filterName: string = "", resetOperator: boolean = false) {
+   public clearFilter(filterName: string = '', resetOperator: boolean = false) {
       // Clear out either an individual filter or all of them
-      if ((filterName === "" || filterName === "all" || filterName === "rangeOperator" ) && resetOperator === true)
+      if ((filterName === '' || filterName === 'all' || filterName === 'rangeOperator' ) && resetOperator === true)
          this.filterData.rangeOperator = this.rangeOperators[0];
 
-      if (filterName === "" || filterName === "all" || filterName === "min")
+      if (filterName === '' || filterName === 'all' || filterName === 'min')
          this.filterData.lowValue = null;
 
-      if (filterName === "" || filterName === "all" || filterName === "max")
+      if (filterName === '' || filterName === 'all' || filterName === 'max')
          this.filterData.highValue = null;
 
       // Update everything
-      if (filterName === "all" || (filterName === "min" && this.filterData.highValue === this.maxValue)
-                               || (filterName === "max" && this.filterData.lowValue  === this.minValue))
+      if (filterName === 'all' || (filterName === 'min' && this.filterData.highValue === this.maxValue)
+                               || (filterName === 'max' && this.filterData.lowValue  === this.minValue))
          this.onClearAll();
       else
          this.onChange('rangeOperator', null);

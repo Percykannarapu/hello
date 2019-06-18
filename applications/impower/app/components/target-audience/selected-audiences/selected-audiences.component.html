@@ -8,9 +8,14 @@
                    [paginator]="true"
                    [alwaysShowPaginator]="false"
                    [immutable]="false">
-        <p-column header="Move Up" [style]="{ width: '5%' }">
+        <p-column header="Move Up" [style]="{ width: '4%' }">
           <ng-template let-col let-audience="rowData" pTemplate="body">
-            <button (click)="onMoveUp(audience)" icon="fa fa-fontAwesome fa-arrow-up" pButton style="margin: auto; display: block" pTooltip="Move this audience up"></button>
+            <button (click)="onMoveUp(audience)" icon="fa fa-fontAwesome fa-arrow-up" pButton style="font-size: 14px; width: 24px; height:24px; margin: auto; display: block" pTooltip="Move this audience up"></button>
+          </ng-template>
+        </p-column>
+        <p-column header="Move Down" [style]="{ width: '4%' }">
+          <ng-template let-col let-audience="rowData" pTemplate="body">
+            <button (click)="onMoveDn(audience)" icon="fa fa-fontAwesome fa-arrow-down" pButton style="font-size: 14px; width: 24px; height:24px; margin: auto; display: block" pTooltip="Move this audience down"></button>
           </ng-template>
         </p-column>
         <p-column header="Map" field="showOnMap" [style]="{ width: '6%' }">
@@ -41,7 +46,7 @@
             </div>
           </ng-template>
         </p-column>
-        <p-column header="Index Base" field="selectedDataSet" [style]="{ width: '15%', overflow: 'visible' }">
+        <p-column header="Index Base" field="selectedDataSet" [style]="{ width: '13%', overflow: 'visible' }">
           <ng-template let-col let-audience="rowData" pTemplate="body">
             <p-dropdown
               *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"
@@ -51,7 +56,7 @@
               (onChange)="onIndexBaseChange(audience)"></p-dropdown>
           </ng-template>
         </p-column>
-        <p-column header="Audience Name" field="audienceName" [style]="{ width: '30%' }"></p-column>
+        <p-column header="Audience Name" field="audienceName" [style]="{ width: '29%' }"></p-column>
         <p-column header="Source" [style]="{ width: '21%' }">
           <ng-template let-col let-audience="rowData" pTemplate="body">
             {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
@@ -59,7 +64,7 @@
         </p-column>
         <p-column header="Delete" [style]="{ width: '5%' }">
           <ng-template let-col let-audience="rowData" pTemplate="body">
-            <button (click)="onRemove(audience)" icon="ui-icon-delete" pButton style="margin: auto; display: block" pTooltip="Click to delete the audience from your project"></button>
+            <button (click)="onRemove(audience)" icon="ui-icon-delete" pButton style="font-size: 13px; width: 24px; height:24px; margin: auto; margin: auto; display: block" pTooltip="Click to delete the audience from your project"></button>
           </ng-template>
         </p-column>
       </p-dataTable>
@@ -94,7 +99,7 @@
         Only 5 variables can be selected at one time for the National export.
       </span>
     </div>
-      
+
     <p-footer>
       <div class="ui-g">
           <div class="ui-g-11"></div>

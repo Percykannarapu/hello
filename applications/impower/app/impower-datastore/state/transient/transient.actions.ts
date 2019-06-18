@@ -1,56 +1,47 @@
 import { Action } from '@ngrx/store';
-import { TransientVarDefinition } from '../models/transient-var-definition';
 
 export enum TransientActionTypes {
-  LoadTransients = '[Transient Entities] Load Transients',
-
-  AddTransientDefinition = '[Transient Entities] Add Definition',
-  DeleteTransientDefinitions = '[Transient Entities] Delete Definitions',
-  ClearTransientDefinitions = '[Transient Entities] Clear Definitions',
-
-  AddTransientGeoData = '[Transient Entities] Add Geo Data',
-  DeleteTransientGeoData = '[Transient Entities] Delete Geo Data',
-  ClearTransientGeoData = '[Transient Entities] Clear Geo Data',
+  CacheGeos             = '[Transient] Cache Geos',
+  CacheGeofootprintGeos = '[Transient] Cache Geofootprint Geos',
+  CacheGeosComplete     = '[Transient] Cache Geos Complete',
+  CacheGeosFailure      = '[Transient] Cache Geos Failed',
+  RemoveGeoCache        = '[Transient] Remove Geo Cache',
+  ClearAudiencesAndVars = '[Transient] Clear Audiences, Geo and Map Vars'
 }
 
-export class LoadTransients implements Action {
-  readonly type = TransientActionTypes.LoadTransients;
+export class CacheGeos implements Action {
+  readonly type = TransientActionTypes.CacheGeos;
+  constructor(public payload: { geocodes: Set<string>, correlationId: string }) {}
 }
 
-export class AddTransientDefinition implements Action {
-  readonly type = TransientActionTypes.AddTransientDefinition;
-  constructor(public payload: { definition: TransientVarDefinition }) {}
+export class CacheGeofootprintGeos implements Action {
+  readonly type = TransientActionTypes.CacheGeofootprintGeos;
+  constructor(public payload: { correlationId: string }) {}
 }
 
-export class DeleteTransientDefinitions implements Action {
-  readonly type = TransientActionTypes.DeleteTransientDefinitions;
-  constructor(public payload: { definitionPks: number[] }) {}
+export class CacheGeosComplete implements Action {
+  readonly type = TransientActionTypes.CacheGeosComplete;
+  constructor(public payload: { transactionId: number, correlationId: string }) {}
 }
 
-export class ClearTransientDefinitions implements Action {
-  readonly type = TransientActionTypes.ClearTransientDefinitions;
+export class CacheGeosFailure implements Action {
+  readonly type = TransientActionTypes.CacheGeosFailure;
+  constructor(public payload: { err: any, correlationId: string }) {}
 }
 
-export class AddTransientGeoData<T extends string | number> implements Action {
-  readonly type = TransientActionTypes.AddTransientGeoData;
-  constructor(public payload: { definitionPk: number, data: { [geocode: string] : T } }) {}
+export class RemoveGeoCache implements Action {
+  readonly type = TransientActionTypes.RemoveGeoCache;
+  constructor(public payload: { transactionId: number }) {}
 }
 
-export class DeleteTransientGeoData implements Action {
-  readonly type = TransientActionTypes.DeleteTransientGeoData;
-  constructor(public payload: { geocodes: string[] }) {}
-}
-
-export class ClearTransientGeoData implements Action {
-  readonly type = TransientActionTypes.ClearTransientGeoData;
+export class ClearAudiencesAndVars implements Action {
+  readonly type = TransientActionTypes.ClearAudiencesAndVars;
 }
 
 export type TransientActions =
-  LoadTransients
-  | AddTransientDefinition
-  | DeleteTransientDefinitions
-  | ClearTransientDefinitions
-  | AddTransientGeoData<string>
-  | AddTransientGeoData<number>
-  | DeleteTransientGeoData
-  | ClearTransientGeoData;
+    CacheGeos
+  | CacheGeofootprintGeos
+  | CacheGeosComplete
+  | CacheGeosFailure
+  | RemoveGeoCache
+  | ClearAudiencesAndVars;

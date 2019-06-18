@@ -20,6 +20,10 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeC
 import { AppGeoService } from './app-geo.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
+import { ClearAudiencesAndVars } from 'app/impower-datastore/state/transient/transient.actions';
+import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
+import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
+import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 
 interface TradeAreaDefinition {
   store: string;
@@ -79,7 +83,7 @@ export class AppTradeAreaService {
   public onLocationsWithoutRadius(locations: ImpGeofootprintLocation[]) : void{
     const currentLocations = locations.filter(loc => loc.baseStatus === 'INSERT' && loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
     const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
-    const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');    
+    const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');
     if (newSites.length > 0) {
         this.applyRadiusTradeAreasToLocations(this.currentDefaults.get(ImpClientLocationTypeCodes.Site), newSites);
     }
@@ -92,7 +96,7 @@ export class AppTradeAreaService {
     const locations = this.impLocationService.get();
     const currentLocations = locations.filter(loc => loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'RADIUS').length === 0);
     const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
-    const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');    
+    const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');
     if (newSites.length > 0) {
       const siteRadiusFlag: boolean = newSites.filter(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)).length > 0;
       if (siteRadiusFlag) {
@@ -261,6 +265,9 @@ export class AppTradeAreaService {
     this.logger.debug.log('Clearing all Geos');
     this.impTradeAreaService.startTx();
     this.impLocAttrService.remove(attrs);
+    this.store$.dispatch( new ClearMapVars());
+    this.store$.dispatch( new ClearGeoVars());
+    this.store$.dispatch( new ClearAudienceStats());
     this.impVarService.clearAll();
     this.appGeoService.clearAll();
     this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
@@ -282,7 +289,7 @@ export class AppTradeAreaService {
             newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, tradeAreas[i].selected, i, tradeAreas[i].radius, attachToHierarchy));
           }
         }
-    });  
+    });
 
     return newTradeAreas;
   }
@@ -370,7 +377,7 @@ export class AppTradeAreaService {
   public setCurrentDefaults(){
     const loc = this.impLocationService.get();
     const tradeAreas = this.impTradeAreaService.get();
-   
+
     const tas: { radius: number, selected: boolean }[] = [];
     if (loc.length > 0 &&  loc != null && loc[0].radius1 == null && loc[0].radius2 == null && loc[0].radius3 == null){
       const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(loc[0].clientLocationTypeCode));
@@ -384,6 +391,6 @@ export class AppTradeAreaService {
         this.currentDefaults.set(siteType, tas);
       }
     }
-    
+
   }
 }

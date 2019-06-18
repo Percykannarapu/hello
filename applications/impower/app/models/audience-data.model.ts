@@ -16,9 +16,9 @@ export interface AudienceDataDefinition {
   audienceSourceType: 'Online' | 'Offline' | 'Custom';
   secondaryId?: string;
   audienceTAConfig?: AudienceTradeAreaConfig;
-  audienceCounter?: number; // the number that will be used to maintain order in the audiences grid
   fieldconte: FieldContentTypeCodes;
   requiresGeoPreCaching: boolean;
+  seq: number;
 }
 
 export interface AudienceTradeAreaConfig {

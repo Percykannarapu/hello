@@ -3,7 +3,7 @@ import { TreeNode } from 'primeng/primeng';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
+import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { AppStateService } from '../../../services/app-state.service';
 
@@ -49,7 +49,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
     ).subscribe(term => this.filterNodes(term));
 
     // this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
-    
+
     this.parentAudienceService.audiences$.pipe(
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === 'VLH'))
     ).subscribe(audiences => this.selectNodes(audiences, true));
@@ -72,7 +72,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() : void {
-    this.audienceService.getAudienceDescriptions([SourceTypes.VLH])
+    this.audienceService.getAudienceDescriptions([OnlineSourceTypes.VLH])
     .pipe(
       map(folders => folders.filter(f => f.isLeaf && !f.categoryName.match('-canada$') && !f.categoryName.match('-uk$') && !f.categoryName.match('_canada$') && !f.categoryName.match('_uk$')))
     )
@@ -94,7 +94,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
     const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Visit Likelihood~${this.appStateService.analysisLevel$.getValue()}`;
     this.usageService.createCounterMetric(usageMetricName, metricText, null);*/
     this.currentSelectedNodes.push(event);
-    this.audienceService.addAudience(event.data, SourceTypes.VLH);
+    this.audienceService.addAudience(event.data, OnlineSourceTypes.VLH);
   }
 
   public removeVariable(event: TreeNode) : void {
@@ -103,7 +103,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
     // this.usageService.createCounterMetric(usageMetricName, metricText, null);
     const indexToRemove = this.currentSelectedNodes.indexOf(event);
     this.currentSelectedNodes.splice(indexToRemove, 1);
-    this.audienceService.removeAudience(event.data, SourceTypes.VLH);
+    this.audienceService.removeAudience(event.data, OnlineSourceTypes.VLH);
   }
 
   private filterNodes(term: string) {

@@ -83,6 +83,91 @@ export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: 
 }
 
 /**
+ * Groups an array of entities into a map keyed by the properties found on those entities.
+ *
+ * @param {T[]} items: The array to group
+ * @param {function} keySelector: Optional callback function used to transform or filter the entity properties as keys for the dictionary
+ * @param {(T) => R} valueSelector: Optional callback to transform each item value before the final grouping
+ * @returns {Map<string, (T | R)[]>}
+ *
+ * Example - Basic Array of entities as input:
+ * -------------------------------------------
+ * const geoVarArray  = [ {1016: '.08',  31068: '97.56', 31934: '109.31', 96063: '113.08', 151126: '143.9',  textvar: 'One',   geocode: '48152'},
+ *                        {1016: '.12',  31068: '80.63', 31934: '101.16', 96063: '116.57', 151126: '173.4',  textvar: 'One',   geocode: '48154'},
+ *                        {1016: '.45',  31068: '97.79', 31934:  '99.74', 96063: '151.13', 151126: '158.79', textvar: 'Two',   geocode: '48335'},
+ *                        {1016: '.16',  31068: '92.04', 31934: '100.56', 96063: '142.65', 151126: '227.63', textvar: 'Two',   geocode: '48336'},
+ *                        {1016: '3.14', 31068: '77.74', 31934: '102.33', 96063: '104.45', 151126: '149.15', textvar: 'Three', geocode: '48375'}];
+ * const geoVarArray = [ {geocode: '48152', 31068: '1', 151126: '2', textvar: 'One'},
+ *                       {geocode: '48375', 31068: '3', 151126: '4', textvar: 'Two'}];
+ * const arrayMap: Map<string, any> = groupEntityToArray(geoVarArray);
+ * arrayMap.forEach((value, key) => console.log(`m[${key}] = ${value}`));
+ *
+ * Example - An ngrx entity keyed by geocode as input:
+ * ---------------------------------------------------
+ * const geoVarEntity = { 48152: {geocode: '48152', 31068: '1', 151126: '2', textvar: 'One'},
+ *                        48375: {geocode: '48375', 31068: '3', 151126: '4', textvar: 'Two'}};
+ * const entityMap: Map<string, any> = groupEntityToArray(Object.keys(geoVarEntity).map(key => geoVarEntity[key]));  // In this case, convert entity into an array of objects
+ * entityMap.forEach((value, key) => console.log(`m[${key}] = ${value}`));
+ *
+ * Both produce results:
+ *    m[31068]   = 1,3
+ *    m[151126]  = 2,4
+ *    m[geocode] = 48152,48375
+ *    m[textvar] = One,Two
+ *
+ * Example - An ngrx entity keyed by geocode as input and keys and values are transformed:
+ * ---------------------------------------------------------------------------------------
+ * const geoVarEntity = { 48152: {geocode: '48152', 31068: '1', 151126: '2', textvar: 'One'},
+ *                        48375: {geocode: '48375', 31068: '3', 151126: '4', textvar: 'Two'}};
+ *
+ * const entityMap: Map<string, any> = groupEntityToArray(Object.keys(geoVarEntity).map(key => geoVarEntity[key]),
+ *                                                       (key) => key !== 'geocode' ? 'namespace.' + key : null, // Omit 'geocode', add namespace to key
+ *                                                       (value) => isNaN(value) ? value : value * 2);           // Double numeric values
+ * entityMap.forEach((value, key) => console.log(`m[${key}] = ${value}`));
+ *
+ * Results:
+ *    m[namespace.31068]   = 2,6
+ *    m[namespace.151126]  = 4,8
+ *    m[namespace.textvar] = One,Two
+ */
+export function groupEntityToArray<T, R>(items: T[] | ReadonlyArray<T>, keySelector?: (item: string) => string) : Map<string, T[]>;
+export function groupEntityToArray<T, R>(items: T[] | ReadonlyArray<T>, keySelector?: (item: string) => string, valueSelector?: (item: T) => R) : Map<string, R[]>;
+export function groupEntityToArray<T, R>(items: T[] | ReadonlyArray<T>, keySelector?: (item: string) => string, valueSelector?: (item: T) => R) : Map<string, (T | R)[]> {
+  const result = new Map<string, (T | R)[]>();
+  if (items == null || items.length === 0) return result;
+  const tx: ((item: T) => T | R) = valueSelector != null ? valueSelector : (i) => i;
+  for (const i of items) {
+    for (const field of Object.keys(i)) {
+      const currentKey = (keySelector == null) ? field : keySelector(field);
+      if (currentKey == null)
+        continue;
+      const currentValue = tx(i[field]);
+      if (result.has(currentKey))
+        result.get(currentKey).push(currentValue);
+      else
+        result.set(currentKey, [currentValue]);
+    }
+  }
+  return result;
+}
+
+export function transformEntity(entity: object, valueSelector: (field: string, item: any) => any, keySelector?: (key: string) => string) : object {
+  const newEntity: any = {};
+  if (entity == null) return null;
+  const tx: ((field: string, item: any) => any) = valueSelector != null ? valueSelector : (i) => i;
+  for (const [entityKey, entityValue] of Object.entries(entity)) {
+    const newValue = {};
+    Object.entries(entityValue).map((prop) => {
+      const currentKey = (keySelector == null) ? prop[0] : keySelector(prop[0]);
+      if (currentKey !== null)
+        newValue[currentKey] = tx(currentKey, prop[1]);
+    });
+    newEntity[entityKey] = newValue;
+  }
+  return newEntity;
+}
+
+/**
  * Converts Map<string | number, T> into an entity in the form of { [key: string | number] : T }
  */
 export function mapToEntity<T>(sourceMap: Map<string, T>) : { [key: string] : T };
@@ -263,7 +348,7 @@ export function isNumber(value: any) : value is number {
  *    let startTime = performance.now();
  *    ...
  *    let endTime = performance.now();
- *    console.log("Process took", formatMilli(endTime - startTime));
+ *    console.log('Process took', formatMilli(endTime - startTime));
  *
  * Milliseconds       Output      Notes
  * -----------------  ----------  ----------------------------------------
@@ -286,7 +371,7 @@ export function isNumber(value: any) : value is number {
  * 0.000199786764383  0ms         Below sub milli 3 dec is just instant
  */
 export function formatMilli(a,k?,sub?,s?,m?,h?,e?){
-  return k=Math.trunc(a%1e3), sub=Math.floor((a%1e3-k)*1000)/1000, s=a/1e3%60|0, e=(s+k/1000+"").length, m=a/6e4%60|0, h=a/36e5%24|0,
+  return k=Math.trunc(a%1e3), sub=Math.floor((a%1e3-k)*1000)/1000, s=a/1e3%60|0, e=(s+k/1000+'').length, m=a/6e4%60|0, h=a/36e5%24|0,
     (h?h+'h ':'')+
     (m?m+'m':'')+
     (h || m || s >= 10 ? (s != 0 ? (m?' ':'')+s+'s':''): (s >= 1 ? (e <= 5 ? s+k/1000 : (s+k/1000).toFixed(3)) + 's' : '')) +
@@ -309,4 +394,12 @@ export function setsAreEqual<T>(current: Set<T>, previous: Set<T>) : boolean {
   return true;
 }
 
-export const safe: any = {};
+export const safe: any = { fieldname: ''};
+
+// Produce a unique UUID, good for use as correlation IDs in NgRx actions/effects
+export function getUuid() : string {
+  // @ts-ignore
+  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
+}

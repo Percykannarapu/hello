@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
+import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { TreeNode } from 'primeng/primeng';
 import { TargetAudienceService } from '../../../services/target-audience.service';
@@ -40,7 +40,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
     this.sources.add(Array.from(variable.digLookup.keys()).join('/'));
     const selectable: boolean = (!Number.isNaN(Number(variable.taxonomy)) && Number(variable.taxonomy) > UnSelectableLimit);
     return {
-      label: undefined, // template in the html markup does this since we have spacing requirements
+      label: variable.categoryName, // This is used in selectNodes, not just for display //undefined, // template in the html markup does this since we have spacing requirements
       data: variable,
       icon: `fa fa-fontAwesome ${selectable ? 'fa fa-file-o' : 'fa fa-lock'}`,
       type: selectable ? undefined : 'disabled',
@@ -61,7 +61,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.audienceService.getAudienceDescriptions([SourceTypes.Pixel]).subscribe(
+    this.audienceService.getAudienceDescriptions([OnlineSourceTypes.Pixel]).subscribe(
       folders => folders.forEach(f => this.allNodes.push(OnlineAudiencePixelComponent.asTreeNode(f))),
       err => console.error('There was an error during retrieval of the Pixel descriptions', err),
       () => {
@@ -77,14 +77,18 @@ export class OnlineAudiencePixelComponent implements OnInit {
 
     // this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
 
+    // this.parentAudienceService.audiences$.pipe(
+    //   map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === OnlineSourceTypes.Pixel))
+    // ).subscribe(audiences => console.log('### Hawkman - pixel audiences:', audiences));
+
     this.parentAudienceService.audiences$.pipe(
-      map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === SourceTypes.Pixel))
+      map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === OnlineSourceTypes.Pixel))
     ).subscribe(audiences => this.selectNodes(audiences, true));
   }
 
   public selectVariable(event: TreeNode) : void {
     this.currentSelectedNodes.push(event);
-    this.audienceService.addAudience(event.data, SourceTypes.Pixel);
+    this.audienceService.addAudience(event.data, OnlineSourceTypes.Pixel);
     // const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'checked' });
     // const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
   }
@@ -92,7 +96,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
   public removeVariable(event: TreeNode) : void {
     const indexToRemove = this.currentSelectedNodes.indexOf(event);
     this.currentSelectedNodes.splice(indexToRemove, 1);
-    this.audienceService.removeAudience(event.data, SourceTypes.Pixel);
+    this.audienceService.removeAudience(event.data, OnlineSourceTypes.Pixel);
     // const usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience', target: 'online', action: 'unchecked' });
     // const metricText = `${event.data.digCategoryId}~${event.data.categoryName}~Pixel~${this.appStateService.analysisLevel$.getValue()}`;
   }

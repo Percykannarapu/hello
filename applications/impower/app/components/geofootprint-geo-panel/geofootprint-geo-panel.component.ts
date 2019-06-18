@@ -1,8 +1,9 @@
+import { GeoVar } from './../../impower-datastore/state/transient/geo-vars/geo-vars.model';
 import { GeoAttribute } from '../../impower-datastore/state/geo-attributes/geo-attributes.model';
 import { selectGeoAttributeEntities } from '../../impower-datastore/state/impower-datastore.selectors';
 import { ImpProjectVarService } from '../../val-modules/targeting/services/ImpProjectVar.service';
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { AppStateService } from '../../services/app-state.service';
@@ -21,6 +22,10 @@ import { FullAppState } from '../../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { EsriMapService } from '@val/esri';
 import { AppGeoService } from '../../services/app-geo.service';
+import { GridGeoVar } from 'app/impower-datastore/state/transient/transient.reducer';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import * as fromTransientSelectors from 'app/impower-datastore/state/transient/transient.reducer';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 
 export interface FlatGeo {
    fgId: number;
@@ -35,12 +40,17 @@ export interface FlatGeo {
 export class GeofootprintGeoPanelComponent implements OnInit {
    // Data store observables
    public  nonNullProject$: Observable<ImpProject>;
+   public  gridAudiences$: Observable<Audience[]>;
    public  allProjectVars$: Observable<ImpProjectVar[]>;
    public  allLocations$: Observable<ImpGeofootprintLocation[]>;
    public  allGeos$: Observable<ImpGeofootprintGeo[]>;
    public  allMustCovers$: Observable<string[]>;
    public  allAttributes$: Observable<{ [geocode: string] : GeoAttribute }>;
-   public  allVars$: Observable<ImpGeofootprintVar[]>;
+   //public  allVars$: Observable<{ [geocode: string] : GeoVar }>;
+   public  allVars$: Observable<GridGeoVar>;
+   //public  allVars$: Observable<ImpGeofootprintVar[]>;
+
+   private gridAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
 
    public  allImpGeofootprintGeos$: Observable<FlatGeo[]>;
    public  displayedImpGeofootprintGeos$: Observable<FlatGeo[]>;
@@ -80,47 +90,56 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    ngOnInit() {
       // Subscribe to the data stores
       this.nonNullProject$ = this.appStateService.currentProject$
-                                 .pipe(filter(project => project != null)
-                                      ,map(project => Object.create(project))
+                                 .pipe(filter(project => project != null),
+                                       map(project => Object.create(project))
                                       //,tap(data => { console.log("OBSERVABLE FIRED: appStateService"); })
                                       );
 
       this.allProjectVars$ = this.impProjectVarService.storeObservable
-                                 .pipe(map(pvars => Array.from(pvars))
-                                      ,tap(pvars => {
+                                 .pipe(map(pvars => Array.from(pvars)),
+                                       tap(pvars => {
                                       // console.log("OBSERVABLE FIRED: allProjectVars");
-                                         this.setVariableOrderFromProjectVars(pvars);
+                                         // PB COL_ORDER this.setVariableOrderFromProjectVars(pvars);
                                       }));
 
       this.allLocations$  = this.impGeofootprintLocationService.storeObservable
-                                .pipe(map(locs => Array.from(locs))
-                                     ,tap(locs => {
+                                .pipe(map(locs => Array.from(locs)),
+                                      tap(locs => {
                                         if (locs != null && locs.length > 0) {
                                        // console.log("OBSERVABLE FIRED: impGeofootprintLocationService - Locs:", locs);
                                           this.rankGeographies();
                                         }
-                                     }));
+                                      }));
 
       this.allGeos$ = this.impGeofootprintGeoService.storeObservable
-                          .pipe(map(geos => Array.from(geos))
-                               ,tap(geos => {
+                          .pipe(map(geos => Array.from(geos)),
+                                tap(geos => {
                                   if (geos != null && geos.length > 0) {
                                   // console.log("OBSERVABLE FIRED: impGeofootprintGeoService - " + geos.length + " Geos: ", geos);
-                                     this.setVariableOrder();
+                                  // PB COL_ORDER this.setVariableOrder();
                                      this.rankGeographies();
+                                     // TODO: When geos are in redux, trigger this when geo creation is complete
+                                     // this.targetAudienceService.applyAudienceSelection();
                                   }
-                               }));
+                                }));
 
       // The geo grid watches this for changes in must covers to set the column
       this.allMustCovers$ = this.impGeofootprintGeoService.allMustCoverBS$.asObservable();
 
       this.allAttributes$ = this.store$.pipe(select(selectGeoAttributeEntities));
 
-      this.allVars$ = this.impGeofootprintVarService.storeObservable
-                          .pipe(map(vars => Array.from(vars))
-                            // ,tap(data => console.log("OBSERVABLE FIRED: impGeofootprintVarService", data))
-                               );
-   }
+      // this.allVars$ = this.impGeofootprintVarService.storeObservable
+      //                     .pipe(map(vars => Array.from(vars))
+      //                       // ,tap(data => console.log("OBSERVABLE FIRED: impGeofootprintVarService", data))
+      //                          );
+
+      // Subscribe to store selectors
+      this.store$.select(fromAudienceSelectors.getAudiencesInGrid).subscribe(this.gridAudiencesBS$);
+      this.gridAudiences$ = this.store$.select(fromAudienceSelectors.getAudiencesInGrid);
+
+      this.allVars$ = this.store$.pipe(select(fromTransientSelectors.selectGridGeoVars));
+    //this.allVars$ = this.store$.pipe(select(fromGeoVarSelectors.allGeoVars));
+    }
 
    public rankGeographies() {
       // Rank the geos by distance
@@ -133,28 +152,29 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       //console.log("Rank > 0 Geos:"); this.impGeofootprintGeoService.get().filter(geo => geo.rank > 0).forEach(geo => console.log("geo: ", geo));
    }
 
+  /* PB COL_ORDER
    public setVariableOrderFromProjectVars(projectVars: ImpProjectVar[]) {
       let varName: string = null;
 
       if (projectVars != null) {
-         let newVariableColOrder: Map<string, number> = new Map<string, number>();
+         const newVariableColOrder: Map<string, number> = new Map<string, number>();
 
          // Build the map, massaging the variable names
          projectVars.forEach (pvar => {
             switch (pvar.source) {
-               case "Online_Interest":
+               case 'Online_Interest':
                   varName = pvar.fieldname + ' (Interest)';
                   break;
 
-               case "Online_VLH":
+               case 'Online_VLH':
                   varName = pvar.fieldname + ' (VLH)';
                   break;
 
-               case "Online_Pixel":
+               case 'Online_Pixel':
                   varName = pvar.fieldname + ' (Pixel)';
                   break;
 
-               case "Online_In-Market":
+               case 'Online_In-Market':
                   varName = pvar.fieldname + ' (In-Market)';
                   break;
 
@@ -168,7 +188,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
 
          // Set the final map as a whole
          this.variableColOrder = newVariableColOrder;
-         console.log("newVariableColOrder = ", newVariableColOrder);
+         console.log('newVariableColOrder =', newVariableColOrder);
       }
    }
 
@@ -194,9 +214,9 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                this.variableColOrder.set(audience.audienceName, audience.audienceCounter);
             }
          }
-         console.log("variableColOrder = ", this.variableColOrder);
+         console.log('variableColOrder =', this.variableColOrder);
       }
-   }
+   }*/
 
    // -----------------------------------------------------------
    // GEO GRID OUTPUT EVENTS
@@ -237,14 +257,12 @@ export class GeofootprintGeoPanelComponent implements OnInit {
          if (includesHomeGeo && this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive )
          {
          this.appGeoService.confirmMustCover(geo, isSelected, true);
-
          }
-         else if(this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive )
+         else if (this.impGeofootprintGeoService.mustCovers != null && this.impGeofootprintGeoService.mustCovers.length > 0 && this.impGeofootprintGeoService.mustCovers.includes(geo.geocode) && geo.isActive )
          {
           this.appGeoService.confirmMustCover(geo, isSelected, false);
-
-        }
-         else if(includesHomeGeo && geo.isActive) {
+         }
+         else if (includesHomeGeo && geo.isActive) {
           this.confirmationService.confirm({
              message: 'You are about to deselect a Home Geo for at least one of the sites.',
              header: 'Home Geo selection',
@@ -304,7 +322,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       // console.log("-".padEnd(80, "-"));
       if (event != null)
       {
-         let eventGeos: ImpGeofootprintGeo[] = event.geos;
+         const eventGeos: ImpGeofootprintGeo[] = event.geos;
          this.impGeofootprintGeoService.get().forEach(geo => geo.isActive = event.value);
          this.impGeofootprintGeoService.makeDirty();
       }
@@ -316,8 +334,8 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       // console.log("-".padEnd(80, "-"));
       if (event != null)
       {
-         let eventGeos: ImpGeofootprintGeo[] = event.geos;
-         this.impGeofootprintGeoService.get().filter(geo => eventGeos.includes(geo)).forEach(geo => { geo.isActive = event.value; console.log("set geo: " + geo.geocode + " isActive = " + geo.isActive); });
+         const eventGeos: ImpGeofootprintGeo[] = event.geos;
+         this.impGeofootprintGeoService.get().filter(geo => eventGeos.includes(geo)).forEach(geo => { geo.isActive = event.value; console.log('set geo: ' + geo.geocode + ' isActive = ' + geo.isActive); });
          this.impGeofootprintGeoService.makeDirty();
       }
    }

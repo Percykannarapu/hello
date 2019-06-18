@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { TreeNode } from 'primeng/primeng';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { TargetAudienceTdaService, TdaAudienceDescription } from '../../../services/target-audience-tda.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
@@ -74,6 +74,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
     // this.stateService.clearUI$.subscribe(() => {
     //   this.clearSelections();
     // });
+
+    this.parentAudienceService.audiences$.pipe(
+    map(audiences => audiences.filter(a => a.audienceSourceType === 'Offline')),
+    ).subscribe(audiences => this.syncAudiencesCheckData(audiences));
   }
 
   private filterNodes(term: string) {
@@ -105,6 +109,18 @@ export class OfflineAudienceTdaComponent implements OnInit {
 
   private syncCheckData(result: AudienceDataDefinition[]){
     this.selectedVariables = this.selectedVariables.filter(node => node.data.identifier !== result[0].audienceIdentifier);
+    this.cd.markForCheck();
+  }
+
+  private syncAudiencesCheckData(audiences: AudienceDataDefinition[]){
+    this.clearSelections();
+    audiences.forEach(audience => {
+      this.allNodes.forEach(category => {
+        const children = category.children.filter(child => child.data.identifier === audience.audienceIdentifier);
+        if (children.length > 0)
+          this.selectedVariables.push(children[0]);
+      });
+    });
     this.cd.markForCheck();
   }
 

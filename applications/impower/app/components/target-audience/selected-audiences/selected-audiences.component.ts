@@ -13,6 +13,10 @@ import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric, CreateMapUsageMetric } from '../../../state/usage/targeting-usage.actions';
 import { CreateGaugeMetric } from '../../../state/usage/usage.actions';
 import { ColorPallete } from '@val/esri';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { DeleteAudience, MoveAudienceUp, MoveAudienceDn } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
+
 
 @Component({
   selector: 'val-selected-audiences',
@@ -47,6 +51,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   public ngOnInit() : void {
+/* Original code
     this.audiences$ = this.varService.audiences$;
     // .pipe(
     //   tap(items => console.log('Audience Observable contents:', items))
@@ -61,8 +66,22 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(() => {
       this.onLoadProject();
     });
-
     // this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
+*/
+    // Setup an observable to watch the store for audiences
+    this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences);
+
+    const storeSub = this.store$.select(fromAudienceSelectors.allAudiences)
+      .pipe(map(audiences => audiences.length > 0))
+      .subscribe(res => this.hasAudiences = res, null, () => {
+        if (storeSub) storeSub.unsubscribe();
+      });
+
+    this.appStateService.applicationIsReady$.pipe(
+      filter(ready => ready)
+    ).subscribe(() => {
+      this.onLoadProject();
+    });
   }
 
   private onLoadProject() {
@@ -106,13 +125,13 @@ export class SelectedAudiencesComponent implements OnInit {
 
   public closeDialog(){
     this.audiences$.pipe(
-         map(all => all.filter(a => a.audienceIdentifier == this.audienceUnselect.audienceIdentifier)),
+         map(all => all.filter(a => a.audienceIdentifier === this.audienceUnselect.audienceIdentifier)),
          take(1),
      ).subscribe(unMapped => unMapped.forEach(a => {
       a.exportNationally = false;
       this.varService.updateProjectVars(a);
          }));
-     
+
     this.showDialog = false;
   }
 
@@ -124,23 +143,23 @@ export class SelectedAudiencesComponent implements OnInit {
       take(1),
     ).subscribe(unMapped => unMapped.forEach(a => a.showOnMap = false)); // with take(1), this subscription will immediately close
   }
-    
-  onShowGridSelected(audience: AudienceDataDefinition) : void{
+
+  onShowGridSelected(audience: AudienceDataDefinition) : void {
     this.varService.updateProjectVars(audience);
     this.audiences$.pipe(
-      map(a => a.filter(a2 => a2 === audience)),
+      map(a => a.filter(a2 => a2.audienceIdentifier === audience.audienceIdentifier)),
       take(1),
     ).subscribe(selected => selected[0].showOnGrid = audience.showOnGrid);
-   }
-  
+  }
+
   onExportInGeoFootprintSelected(audience: AudienceDataDefinition) : void {
     this.varService.updateProjectVars(audience);
     this.audiences$.pipe(
-      map(a => a.filter(a2 => a2 === audience)),
+      map(a => a.filter(a2 => a2.audienceIdentifier === audience.audienceIdentifier)),
       take(1),
     ).subscribe(selected => selected[0].exportInGeoFootprint = audience.exportInGeoFootprint);
    }
-  
+
   onNationalSelected(audience: AudienceDataDefinition) : void {
     const audiences = Array.from(this.varService.audienceMap.values()).filter(a => a.exportNationally === true);
     this.varService.updateProjectVars(audience);
@@ -163,6 +182,9 @@ export class SelectedAudiencesComponent implements OnInit {
     accept: () => {
       this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
       this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+      //this.store$.dispatch(new DeleteAudience({id: audience.audienceIdentifier}));
+      this.store$.dispatch(new RemoveVar({varPk: audience.audienceIdentifier}));
+
       let metricText = null;
       switch (audience.audienceSourceType) {
         case 'Custom':
@@ -180,8 +202,6 @@ export class SelectedAudiencesComponent implements OnInit {
     },
     reject: () => {}
    });
-
-
   }
 
   private clearSelectedFields(){
@@ -190,10 +210,13 @@ export class SelectedAudiencesComponent implements OnInit {
       this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
     });
     this.varService.applyAudienceSelection();
-      
   }
 
   public onMoveUp(audience: AudienceDataDefinition) {
-    this.varService.moveAudienceUp(audience);
+    this.store$.dispatch(new MoveAudienceUp({ audienceIdentifier: audience.audienceIdentifier }));
+  }
+
+  public onMoveDn(audience: AudienceDataDefinition) {
+    this.store$.dispatch(new MoveAudienceDn({ audienceIdentifier: audience.audienceIdentifier }));
   }
 }

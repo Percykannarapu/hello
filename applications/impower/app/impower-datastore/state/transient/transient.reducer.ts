@@ -1,81 +1,124 @@
-import { TransientActions, TransientActionTypes } from './transient.actions';
-import { TransientVarDefinition } from '../models/transient-var-definition';
+import { Action, ActionReducerMap, combineReducers, ActionReducer, createSelector } from '@ngrx/store';
+import { Dictionary } from '@ngrx/entity';
+import { transformEntity, groupEntityToArray } from '@val/common';
+import { GeoVar } from './geo-vars/geo-vars.model';
+import * as fromAudience from './audience/audience.reducer';
+import * as fromAudienceSel from './audience/audience.selectors';
+import * as fromGeoVars from './geo-vars/geo-vars.reducer';
+import * as fromGeoVarsSel from './geo-vars/geo-vars.selectors';
+import * as fromMapVars from './map-vars/map-vars.reducer';
 
-// TODO: Once we upgrade to TS 2.8+ this can go away, and we can use Record<number, T>
-interface NumericRecord<T> { [key: number] : T; }
-
-export interface State {
-  definitions: number[];
-  definitionEntities: { [key: number] : TransientVarDefinition };
-  geoData: Record<string, NumericRecord<string | number>>;
+export interface ImpowerTransientState {
+  audiences: fromAudience.State;
+  geoVars: fromGeoVars.State;
+  mapVars: fromMapVars.State;
 }
 
-export const initialState: State = {
-  definitions: [],
-  definitionEntities: {},
-  geoData: {},
+const transientReducers: ActionReducerMap<ImpowerTransientState> = {
+  audiences: fromAudience.reducer,
+  geoVars: fromGeoVars.reducer,
+  mapVars: fromMapVars.reducer
 };
 
-export function reducer(state = initialState, action: TransientActions) : State {
-  switch (action.type) {
-    case TransientActionTypes.AddTransientDefinition:
-      return {
-        ...state,
-        definitions: [...state.definitions, action.payload.definition.pk],
-        definitionEntities: {
-          ...state.definitionEntities,
-          [action.payload.definition.pk]: action.payload.definition
-        }
-      };
-    case TransientActionTypes.AddTransientGeoData:
-      Object.entries(action.payload.data).forEach(([geocode, data]: [string, string | number]) => {
-        state.geoData[geocode] = {
-          ...state.geoData[geocode],
-          [action.payload.definitionPk]: data
-        };
-      });
-      return {
-        ...state,
-        geoData: {
-          ...state.geoData,
-        }
-      };
-    case TransientActionTypes.ClearTransientDefinitions:
-      return {
-        ...state,
-        definitions: initialState.definitions,
-        definitionEntities: initialState.definitionEntities
-      };
-    case TransientActionTypes.ClearTransientGeoData:
-      return {
-        ...state,
-        geoData: initialState.geoData
-      };
-    case TransientActionTypes.DeleteTransientDefinitions:
-      const toBeRemoved = new Set(action.payload.definitionPks);
-      action.payload.definitionPks.forEach(pk => {
-        delete state.definitionEntities[pk];
-      });
-      return {
-        ...state,
-        definitions: state.definitions.filter(pk => !toBeRemoved.has(pk)),
-        definitionEntities: {
-          ...state.definitionEntities
-        }
-      };
-    case TransientActionTypes.DeleteTransientGeoData:
-      action.payload.geocodes.forEach(geocode => {
-        delete state.geoData[geocode];
-      });
-      return {
-        ...state,
-        geoData: {
-          ...state.geoData
-        }
-      };
-    case TransientActionTypes.LoadTransients:
-      return state;
-    default:
-      return state;
-  }
+const metaReducer: ActionReducer<ImpowerTransientState, Action> = combineReducers(transientReducers);
+
+export function reducer(state: ImpowerTransientState, action: Action) : ImpowerTransientState {
+  return metaReducer(state, action);
 }
+
+// Selector to retrieve geo vars with audienceNames instead of ids
+export const selectAudiencesAndVars = createSelector(
+  fromAudienceSel.allAudienceEntities,
+  fromGeoVarsSel.allGeoVars,
+  (audiences, geoVars) => {
+    return geoVars.map(gv => {
+        const newGeoVar = { Geocode: gv.geocode };
+        for (const [name, val] of Object.entries(gv)) {
+          if (audiences[name] != null && audiences[name].showOnGrid)
+             newGeoVar[audiences[name].audienceName] = val;
+        }
+        return newGeoVar;
+      });
+  }
+);
+
+// Interfaces to support the geo grid
+export interface MinMax {
+  min: number;
+  max: number;
+  cnt: number;
+}
+
+export interface GridGeoVar {
+  geoVars: Dictionary<GeoVar>;
+  ranges: Map<string, MinMax>;
+  lov: Map<string, string[]>;
+  numVars: number;
+}
+
+/**
+ * Selector to retrieve geo vars prepared for the geo grid.
+ * Will return a GridGeoVar entity that contains not only the geoVars, but information about the
+ * data set for filters and totals.
+ */
+export const selectGridGeoVars = createSelector(
+  fromAudienceSel.allAudienceEntities,
+  fromGeoVarsSel.allGeoVarEntities,
+  (audiences, geoVars) => {
+    const result: GridGeoVar = { geoVars: null, ranges: new Map<string, MinMax>(), lov: new Map<string, string[]>(), numVars: 0 };
+    const transformedEntity = transformEntity(geoVars, (varName, val) => {
+      if ((audiences.hasOwnProperty(varName) && audiences[varName].showOnGrid))
+        result.numVars++;
+      switch (audiences.hasOwnProperty(varName) ? audiences[varName].fieldconte : 'unknown') {
+        case 'COUNT':
+        case 'MEDIAN':
+        case 'INDEX':
+          return (val != null) ? Math.round(val as number) : null;
+
+        case 'PERCENT':
+        case 'RATIO':
+          return (val != null) ? Number(val).toFixed(2) : null;
+
+        case 'CHAR':
+          return val as string;
+
+        default:
+          return val;
+      }
+    },
+    (varName) => {
+      if ((audiences.hasOwnProperty(varName) && audiences[varName].showOnGrid === false))
+        return null;
+      else
+        return varName;
+    });
+
+    const entityMap: Map<string, any> = groupEntityToArray(Object.keys(geoVars).map(key => geoVars[key]),
+      (k) => {
+        if (k === 'geocode')
+          return null;
+        else
+          return k;
+      },
+      (v) => {
+        return v;
+      });
+
+    result.geoVars = transformedEntity as Dictionary<GeoVar>;
+
+    // Track the distinct list of values for CHAR and min/max for numerics
+    entityMap.forEach((value, key) => {
+      const fieldConte = audiences.hasOwnProperty(key) ? audiences[key].fieldconte : 'unknown';
+      if (fieldConte === 'CHAR')
+        result.lov.set(key, Array.from(new Set(value as string)));
+      else {
+        const minVal = value.reduce((min: number, p: number) => p as number < min ? p : min, value[0]);
+        const maxVal = value.reduce((max: number, p: number) => p as number > max ? p : max, minVal);
+        result.ranges.set(key, { min: minVal, max: maxVal, cnt: value.length });
+      }
+    });
+    entityMap.clear();
+
+    return result;
+  }
+);

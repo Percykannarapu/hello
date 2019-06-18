@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
-import { merge, Observable, throwError } from 'rxjs';
+import { merge, Observable, throwError, EMPTY } from 'rxjs';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { TargetAudienceService } from './target-audience.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
@@ -52,12 +52,23 @@ interface TdaVariableResponse {
 }
 
 // TODO Strip out the dma / national scores, digCategoryId
-interface TdaBulkDataResponse {
+export interface OfflineFuseResponse {
   geocode: string;
   dmaScore: string;
   nationalScore: string;
   digCategoryId: string;
   attrs: Map<string, string>;
+}
+
+export interface OfflineBulkDataResponse {
+  geocode: string;
+  id: string;
+  score: string;
+}
+
+
+export enum OfflineSourceTypes {
+  TDA = 'tda'
 }
 
 export class TdaAudienceDescription {
@@ -103,7 +114,7 @@ export class TargetAudienceTdaService {
   }
 
   private static createDataDefinition(name: string, pk: string, fieldconte: FieldContentTypeCodes) : AudienceDataDefinition {
-   TargetAudienceService.audienceCounter++;
+//   TargetAudienceService.audienceCounter++;
    const audience: AudienceDataDefinition = {
       audienceName: name,
       audienceIdentifier: pk,
@@ -114,9 +125,10 @@ export class TargetAudienceTdaService {
       showOnMap: false,
       exportNationally: false,
       allowNationalExport: false,
-      audienceCounter: TargetAudienceService.audienceCounter,
+//      audienceCounter: TargetAudienceService.audienceCounter,
       fieldconte: fieldconte,
-      requiresGeoPreCaching: true
+      requiresGeoPreCaching: true,
+      seq: null
     };
     return audience;
   }
@@ -137,13 +149,14 @@ export class TargetAudienceTdaService {
             showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
             allowNationalExport: false,
-            audienceCounter: projectVar.sortOrder,
+//            audienceCounter: projectVar.sortOrder,
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
-            requiresGeoPreCaching: true
+            requiresGeoPreCaching: true,
+            seq: projectVar.sortOrder
           };
-          if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder++;
+          //if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder + 1;
           if (projectVar.source.toLowerCase().match('tda')) {
-            this.audienceService.addAudience(audience, (al, pks, geos, shading, txId) => this.audienceRefreshCallback(al, pks, geos, shading, txId), null, true);
+            this.audienceService.addAudience(audience, null, true);
           }
         }
       }
@@ -196,7 +209,9 @@ export class TargetAudienceTdaService {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
       const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte);
-      this.audienceService.addAudience(model, (al, pks, geos, shading, transactionId) => this.audienceRefreshCallback(al, pks, geos, shading, transactionId));
+//      this.audienceService.addAudience(model, (al, pks, geos, shading, transactionId) => this.audienceRefreshCallback(al, pks, geos, shading, transactionId));
+console.log('### target-audience-tda - adding audience:', model);
+      this.audienceService.addAudience(model, null /* (al, pks, geos, shading, transactionId) => this.audienceRefreshCallback(al, pks, geos, shading, transactionId)*/);
       this.usageMetricCheckUncheckOffline('checked', model);
     }
   }
@@ -237,10 +252,10 @@ export class TargetAudienceTdaService {
   }
 
   private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<ImpGeofootprintVar[]> {
+  console.log('### audienceRefreshCallback Old - fired');
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
-//  const chunks = chunkArray(geocodes, 999999/*geocodes.length / 4*/); //this.config.maxGeosPerGeoInfoQuery);
-    const observables: Observable<TdaBulkDataResponse[]>[] = [];
+    const observables: Observable<OfflineFuseResponse[]>[] = [];
     let c: number = 0;
 
 //    for (const chunk of chunks) {
@@ -260,7 +275,7 @@ export class TargetAudienceTdaService {
         observables.push(
           this.restService.post('v1/targeting/base/geoinfo/tdalookup', [inputData]).pipe(
             tap(response => this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now() - this.audienceService.timingMap.get('(' + inputData.source.toLowerCase() + ')'))),
-            map(response => this.validateFuseResponse(response, identifiers, isForShading)),
+            map(response => this.validateFuseResponseOld(response, identifiers, isForShading)),
             catchError( () => {
                 console.error('Error posting to v1/targeting/base/geoinfo/tdalookup with payload:');
                 console.error('payload:\n{\n ' +
@@ -297,9 +312,80 @@ export class TargetAudienceTdaService {
 //    return observables;
 }
 
-  private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean) {
-    const responseArray: TdaBulkDataResponse[] = response.payload.rows;
+  // NOTE: This is going to be the new tda var refresh method
+  public offlineVarRefresh(source: OfflineSourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number) : Observable<OfflineBulkDataResponse[]> {
+    const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
+    const numericIds = identifiers.map(i => Number(i));
+    const currentProject = this.stateService.currentProject$.getValue();
 
+    console.log('### offlineVarRefresh:', source, 'ids:', numericIds, 'geocodes:', geocodes, 'transactionId:', transactionId);
+
+    const serviceURL = 'v1/targeting/base/geoinfo/tdalookup';
+    const inputData = {
+      geoType: serviceAnalysisLevel,
+      source: source,
+      geocodes: geocodes,
+      categoryIds: numericIds,
+      transactionId: transactionId,
+      chunks: this.config.geoInfoQueryChunks
+    };
+
+    // Simulate error
+    // if (inputData.source === 'tda')
+    //   return throwError('No Data was returned for the selected audiences');
+
+    if (inputData.categoryIds.length > 0) {
+      this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now());
+      return this.restService.post(serviceURL, [inputData])
+        .pipe(
+          tap(response => this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now() - this.audienceService.timingMap.get('(' + inputData.source.toLowerCase() + ')'))),
+          map(response => this.validateFuseResponse(response, inputData.categoryIds.map(id => id.toString()), isForShading)),
+          tap(response => (response)),
+          catchError( () => {
+            console.error('Error posting to', serviceURL, 'with payload:');
+            console.error('payload:', inputData);
+            console.error('payload:\n{\n' +
+                          '   geoType: ', inputData.geoType, '\n',
+                          '   source:  ', inputData.source, '\n',
+                          '   geocodes: ', geocodes.toString(), '\n',
+                          '   categoryIds:', inputData.categoryIds.toString(), '\n}'
+                          );
+            return throwError('No data was returned for the selected audiences'); })
+          );
+    }
+    console.warn('offlineVarRefresh had no ids to process.');
+    return EMPTY;
+  }
+
+  private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
+    const validatedResponse: OfflineBulkDataResponse[] = [];
+    const responseArray: OfflineFuseResponse[] = response.payload.rows;
+    const emptyAudiences: string[] = [];
+    console.log('### tda validateFuseResponse NEW - response.length:', responseArray.length);
+
+    // Simulate no variables being returned
+    // response.payload.counts['1016'] = 0;
+
+    // Validate and transform the response
+    for (let r = 0; r < responseArray.length; r++)
+      for (let i = 0; i < identifiers.length; i++)
+        if (responseArray[r].attrs.hasOwnProperty(identifiers[i]))
+          validatedResponse.push ({ geocode: responseArray[r].geocode, id: identifiers[i], score: responseArray[r].attrs[identifiers[i]] });
+
+    // Look for variables that did not have data
+    for (let i = 0; i < identifiers.length; i++)
+      if (isForShading[i] === false && response.payload.counts.hasOwnProperty(identifiers[i]) && response.payload.counts[identifiers[i]] === 0)
+        emptyAudiences.push((this.rawAudienceData.has(identifiers[i]) ? this.rawAudienceData.get(identifiers[i]).fielddescr : identifiers[i]));
+
+    if (emptyAudiences.length > 0)
+      this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
+
+    return validatedResponse;
+  }
+
+  private validateFuseResponseOld(response: RestResponse, identifiers: string[], isForShading: boolean) {
+    const responseArray: OfflineFuseResponse[] = response.payload.rows;
+    console.log('### tda validateFuseResponse OLD - response.length:', responseArray.length);
     for (let r = 0; r < responseArray.length; r++)
     {
       const vars: Map<string, string> = new Map<string, string>();
@@ -323,20 +409,21 @@ export class TargetAudienceTdaService {
 
     if (emptyAudiences.length > 0 && !isForShading)
       this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
-/*
-      const missingCategoryIds = new Set(responseArray.filter(id => id.score === 'undefined'));
-      const audience = [];
-      if (missingCategoryIds.size > 0) {
-        missingCategoryIds.forEach(id => {
-          if (this.rawAudienceData.has(id.variablePk)) {
-            audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
-          }
-        });
-        if (!isForShading){
-            this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
-        }
-      }*/
+
+      // const missingCategoryIds = new Set(responseArray.filter(id => id.score === 'undefined'));
+      // const audience = [];
+      // if (missingCategoryIds.size > 0) {
+      //   missingCategoryIds.forEach(id => {
+      //     if (this.rawAudienceData.has(id.variablePk)) {
+      //       audience.push(this.rawAudienceData.get(id.variablePk).fielddescr);
+      //     }
+      //   });
+      //   if (!isForShading){
+      //       this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
+      //   }
+      // }
     //this.logger.info("Offline Audience Response::: ", responseArray.length, " rows"); // , responseArray);
+    //console.log('### tda validateFuseResponse - responseArray:', responseArray);
     return responseArray;
   }
 

@@ -24,11 +24,6 @@ function isNumber(value: any) : value is number {
 })
 export class ImpDomainFactoryService {
 
-  // private static entityId = -1;
-  // private static getNextId() : number {
-  //   return this.entityId--;
-  // }
-
   constructor(private config: AppConfig, private userService: UserService) {}
 
   private static createTradeAreaName(locationTypeCode: string, tradeAreaType: TradeAreaTypeCodes, index: number) : string {
@@ -47,7 +42,6 @@ export class ImpDomainFactoryService {
 
   createProject() : ImpProject {
     const result = new ImpProject({
-      //projectId: ImpDomainFactoryService.getNextId(),
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       createDate: new Date(Date.now()),
@@ -96,7 +90,7 @@ export class ImpDomainFactoryService {
     const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
     let existingVar;
 
-    if(isCustom) {
+    if (isCustom) {
       existingVar = parent.impProjectVars.find(pv => pv.fieldname === audience.audienceName);
     } else{
       existingVar = parent.impProjectVars.find(pv => pv.varPk === varPk);
@@ -122,9 +116,9 @@ export class ImpDomainFactoryService {
       projectVar.isUploaded = isCustom;
       projectVar.isActive = true;
       projectVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
-      projectVar.sortOrder = audience.audienceCounter;
+      projectVar.sortOrder = audience.seq; // audience.audienceCounter;
       projectVar.customVarExprDisplay = `${audience.audienceName} (${audience.audienceSourceName})`;
-      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? "Offline":"Online") + `/${audience.audienceSourceName}/${varPk}`;
+      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : 'Online') + `/${audience.audienceSourceName}/${varPk}`;
       projectVar.impProject = parent;
       parent.impProjectVars.push(projectVar);
       return projectVar;
@@ -144,9 +138,9 @@ export class ImpDomainFactoryService {
       existingVar.isUploaded = isCustom;
       existingVar.isActive = true;
       existingVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
-      existingVar.sortOrder = audience.audienceCounter;
+      existingVar.sortOrder = audience.seq; // audience.audienceCounter;
       existingVar.customVarExprDisplay = `${audience.audienceName} (${audience.audienceSourceName})`;
-      existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? "Offline":"Online") + `/${audience.audienceSourceName}/${varPk}`;
+      existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : 'Online') + `/${audience.audienceSourceName}/${varPk}`;
       existingVar.impProject = parent;
       if (existingVar.baseStatus === DAOBaseStatus.UNCHANGED) existingVar.baseStatus = DAOBaseStatus.UPDATE;
       return existingVar;
@@ -186,7 +180,7 @@ export class ImpDomainFactoryService {
          existingPref.val         = (value.length <= 4000) ? value : null,
          existingPref.largeVal    = (value.length > 4000) ? value : null,
          existingPref.isActive    = isActive,
-         existingPref.impProject  = parent // Set transient property
+         existingPref.impProject  = parent; // Set transient property
          return existingPref;
       }
       else {
@@ -204,7 +198,6 @@ export class ImpDomainFactoryService {
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       clientIdentifierId: 123, // Mandatory field, stubbing
-      //clientLocationId: 123, // Mandatory field, stubbing
       locationName: res.Name != null ? res.Name.trim() : '',
       marketName: res.Market != null ? res.Market.trim() : '',
       marketCode: res['Market Code'] != null ? res['Market Code'].trim() : '',
@@ -375,24 +368,8 @@ export class ImpDomainFactoryService {
       baseStatus: DAOBaseStatus.INSERT,
       geocode,
       varPk
-      //customVarExprQuery: fullId,
-      //isNumber: false,
-      //isString: false,
-      //isCustom:  (fullId.includes('Custom')),
-      //fieldconte: fieldType,
-      //customVarExprDisplay: fieldDescription,
-      //fieldname: fieldName,
-      //natlAvg: nationalAvg//,
-      //isActive
     });
     result.value = value;
-/*    if (isNumber(value)) {
-      //result.isNumber = true;
-      result.valueNumber = value;
-    } else {
-      //result.isString = true;
-      result.valueString = value;
-    }*/
     if (parent != null) {
       const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
       if (existingVar == null) {
@@ -403,17 +380,7 @@ export class ImpDomainFactoryService {
         if (overwriteDuplicates) {
           existingVar.dirty = true;
           existingVar.baseStatus = DAOBaseStatus.UPDATE;
-          //existingVar.customVarExprQuery = result.customVarExprQuery;
-          //existingVar.isNumber = result.isNumber;
           existingVar.value = value;
-          //existingVar.valueNumber = result.valueNumber;
-          //existingVar.isString = result.isString;
-          //existingVar.valueString = result.valueString;
-          //existingVar.customVarExprDisplay = result.customVarExprDisplay;
-          //existingVar.fieldconte = result.fieldconte;
-          //existingVar.fieldname = result.fieldname;
-          //existingVar.natlAvg = result.natlAvg;
-          //existingVar.isActive = result.isActive;
           return existingVar;
         } else {
           console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });

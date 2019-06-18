@@ -1,12 +1,12 @@
 import { Component, ViewChild } from '@angular/core';
 import { FileUpload } from 'primeng/primeng';
 import * as xlsx from 'xlsx';
-import { TargetAudienceCustomService } from '../../../services/target-audience-custom.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ProjectPrefGroupCodes } from './../../../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './../../../services/app-project-pref.service';
+import { FetchCustom } from 'app/impower-datastore/state/transient/audience/audience.actions';
 
 @Component({
   selector: 'val-custom-audience',
@@ -17,8 +17,7 @@ export class CustomAudienceComponent {
 
   @ViewChild('audienceUpload') private audienceUploadEl: FileUpload;
 
-  constructor(private audienceService: TargetAudienceCustomService,
-              private appProjectPrefService: AppProjectPrefService,
+  constructor(private appProjectPrefService: AppProjectPrefService,
               private store$: Store<LocalAppState>) { }
 
   public uploadFile(event: any) : void {
@@ -36,10 +35,12 @@ export class CustomAudienceComponent {
             const worksheetName: string = wb.SheetNames[0];
             const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
             csvData  = xlsx.utils.sheet_to_csv(ws);
-            this.audienceService.parseFileData(csvData, name);
-          } catch (e) {
+            this.store$.dispatch(new FetchCustom({dataBuffer: csvData, fileName: name}));
+          }
+          catch (e) {
             this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
-          } finally {
+          }
+          finally {
             this.store$.dispatch(new StopBusyIndicator({ key }));
             if (csvData != null)
                this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, name, csvData);
@@ -49,10 +50,13 @@ export class CustomAudienceComponent {
         reader.readAsText(event.files[0]);
         reader.onload = () => {
           try {
-            this.audienceService.parseFileData(reader.result.toString(), name);
-          } catch (e) {
+            // TODO:  Will have to rework these try/catch/finally to happen from actions
+            this.store$.dispatch(new FetchCustom({dataBuffer: reader.result.toString(), fileName: name}));
+          }
+          catch (e) {
             this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
-          } finally {
+          }
+          finally {
             this.store$.dispatch(new StopBusyIndicator({ key }));
             if (reader.result != null)
                this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, name, reader.result.toString());

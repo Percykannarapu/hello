@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } 
 import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { OnlineAudienceDescription, SourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
+import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { AppStateService } from '../../../services/app-state.service';
@@ -21,8 +21,8 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   static sources: Set<string> = new Set<string>();
 
-  private selectedNodeMapInterest: Map<SourceTypes, ApioTreeNode[]> = new Map<SourceTypes, ApioTreeNode[]>();
-  private selectedNodeMapInMarket: Map<SourceTypes, ApioTreeNode[]> = new Map<SourceTypes, ApioTreeNode[]>();
+  private selectedNodeMapInterest: Map<OnlineSourceTypes, ApioTreeNode[]> = new Map<OnlineSourceTypes, ApioTreeNode[]>();
+  private selectedNodeMapInMarket: Map<OnlineSourceTypes, ApioTreeNode[]> = new Map<OnlineSourceTypes, ApioTreeNode[]>();
   private allNodes: ApioTreeNode[] = [];
 
   @Input() useNarrowLayout: boolean;
@@ -34,19 +34,18 @@ export class OnlineAudienceApioComponent implements OnInit {
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
   public includeFolder$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  public selectedSource: SourceTypes = SourceTypes.Interest;
+  public selectedSource: OnlineSourceTypes = OnlineSourceTypes.Interest;
 
   // these have to be exposed like this so they are available in the template
-  public SourceType = SourceTypes;
+  public SourceType = OnlineSourceTypes;
 
-  constructor(private audienceService: TargetAudienceOnlineService, 
-    private parentAudienceService: TargetAudienceService, 
-    private cd: ChangeDetectorRef,
-    private stateSetvice: AppStateService) {
-    this.selectedNodeMapInMarket.set(SourceTypes.InMarket, []);
-    this.selectedNodeMapInterest.set(SourceTypes.Interest, []);
+  constructor(private audienceService: TargetAudienceOnlineService,
+              private parentAudienceService: TargetAudienceService,
+              private cd: ChangeDetectorRef) {
+    this.selectedNodeMapInMarket.set(OnlineSourceTypes.InMarket, []);
+    this.selectedNodeMapInterest.set(OnlineSourceTypes.Interest, []);
     this.currentSelectedNodesInterest = this.selectedNodeMapInterest.get(this.selectedSource);
-    this.currentSelectedNodesInMarket = this.selectedNodeMapInMarket.get(SourceTypes.InMarket);
+    this.currentSelectedNodesInMarket = this.selectedNodeMapInMarket.get(OnlineSourceTypes.InMarket);
 
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
@@ -130,8 +129,11 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.audienceService.getAudienceDescriptions([SourceTypes.InMarket, SourceTypes.Interest]).subscribe(
-      folders => folders.forEach(f => this.allNodes.push(OnlineAudienceApioComponent.asTreeNode(f))),
+    this.audienceService.getAudienceDescriptions([OnlineSourceTypes.InMarket, OnlineSourceTypes.Interest]).subscribe(
+//      folders => folders.forEach(f => this.allNodes.push(OnlineAudienceApioComponent.asTreeNode(f))),
+      folders => folders.forEach(f => {
+        this.allNodes.push(OnlineAudienceApioComponent.asTreeNode(f));
+      }),
       err => console.error('There was an error during retrieval of the Apio Audience descriptions', err),
       () => {
         this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
@@ -148,7 +150,7 @@ export class OnlineAudienceApioComponent implements OnInit {
     // this.stateSetvice.clearUI$.subscribe(() => this.clearSelections());
 
     this.parentAudienceService.audiences$.pipe(
-      map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && (a.audienceSourceName === SourceTypes.Interest || a.audienceSourceName === SourceTypes.InMarket)))
+      map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && (a.audienceSourceName === OnlineSourceTypes.Interest || a.audienceSourceName === OnlineSourceTypes.InMarket)))
     ).subscribe(audiences => this.selectNodes(audiences, true));
 
   }
@@ -173,7 +175,7 @@ export class OnlineAudienceApioComponent implements OnInit {
     this.audienceService.removeAudience(event.data, this.selectedSource);
   }
 
-  public onSourceChanged(source: SourceTypes) {
+  public onSourceChanged(source: OnlineSourceTypes) {
     this.cd.markForCheck();
   }
 
@@ -216,7 +218,7 @@ export class OnlineAudienceApioComponent implements OnInit {
       if (result[0].audienceSourceName == 'In-Market') {
         this.currentSelectedNodesInMarket = this.currentSelectedNodesInMarket.filter(node => node.data.digLookup.get('in_market') != result[0].audienceIdentifier);
       } else if (result[0].audienceSourceName == 'Interest') {
-        this.currentSelectedNodesInterest = this.currentSelectedNodesInterest.filter(node => node.data.digLookup.get('interest') != result[0].audienceIdentifier);  
+        this.currentSelectedNodesInterest = this.currentSelectedNodesInterest.filter(node => node.data.digLookup.get('interest') != result[0].audienceIdentifier);
       }
       this.cd.markForCheck();
     }

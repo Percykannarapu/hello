@@ -81,7 +81,6 @@ export class AppDataShimService {
     this.appTradeAreaService.setCurrentDefaults();
     this.appTradeAreaService.zoomToTradeArea();
     this.appGeoService.reloadMustCovers();
-    this.targetAudienceCustomService.reloadCustomVars();
     this.appLayerService.updateLabelExpressions(false);
   }
 

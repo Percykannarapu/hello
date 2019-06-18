@@ -1,3 +1,4 @@
+import { ApplyAudiences } from './../impower-datastore/state/transient/audience/audience.actions';
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { dedupeSimpleSet, distinctArray, filterArray, groupBy, isNumber, mapArray, mapArrayToEntity, setsAreEqual } from '@val/common';
@@ -220,7 +221,10 @@ export class AppStateService {
       map(([requestedGeos, currentGeos]) => dedupeSimpleSet(requestedGeos, new Set(currentGeos))),
       withLatestFrom(this.applicationIsReady$),
       filter(([newGeos, isReady]) => newGeos.size > 0 && isReady),
-    ).subscribe(([geoSet]) => this.store$.dispatch(new RequestAttributes({ geocodes: geoSet })));
+    ).subscribe(([geoSet]) => {
+      this.store$.dispatch(new RequestAttributes({ geocodes: geoSet }));
+      this.store$.dispatch(new ApplyAudiences({analysisLevel: this.analysisLevel$.getValue()}));
+    });
 
     this.setVisibleGeosForLayer$.pipe(
       switchMap(layerId => this.esriQueryService.queryPortalLayerView(layerId).pipe(

@@ -87,7 +87,7 @@ export class StateModelFactoryService {
       isUploaded: isCustom,
       isActive: isActive,
       uploadFileName: isCustom ? audience.audienceSourceName : '',
-      sortOrder: audience.audienceCounter,
+      sortOrder: audience.seq // audience.audienceCounter,
     });
   }
 

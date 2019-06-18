@@ -28,9 +28,9 @@ export class EsriRendererService {
   private simpleSymbol: any = null;
   private simpleRenderer: any = null;
   private highlightHandler: { remove: () => void } = null;
-  
-  
-  constructor(private mapService: EsriMapService, 
+
+
+  constructor(private mapService: EsriMapService,
               private layerService: EsriLayerService) {}
 
   private static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
@@ -112,7 +112,7 @@ export class EsriRendererService {
         }
       }
       const arcadeValues = keyValues.join(`\,`);
-      const arcade = `var geoData = {${arcadeValues}}; 
+      const arcade = `var geoData = {${arcadeValues}};
                       if(hasKey(geoData, $feature.geocode)) {
                         return geoData[$feature.geocode];
                       }
@@ -131,7 +131,7 @@ export class EsriRendererService {
     });
     return layerView;
   }
-  
+
   private createBaseRenderer(defaultSymbol: __esri.SimpleFillSymbol, outlineSetup: OutlineSetup, noDataSuffix: string = '', hasClassBreaks: boolean = false) : __esri.UniqueValueRenderer {
     const newDefaultSymbol = defaultSymbol.clone();
     if (outlineSetup.defaultWidth != null) {

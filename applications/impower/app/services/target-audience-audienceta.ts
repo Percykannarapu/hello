@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable } from 'rxjs';
+import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { AudienceDataDefinition, AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
@@ -22,6 +22,8 @@ import { FullAppState } from 'app/state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { UpsertGeoAttributes } from 'app/impower-datastore/state/geo-attributes/geo-attributes.actions';
 import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 
 interface AudienceTradeareaResponse {
   maxRadius: number;
@@ -69,6 +71,8 @@ export class TargetAudienceAudienceTA {
   private geoVarMap: Map<string, string> = new Map<string, string>();
   private geoVarFieldMap: Map<string, string> = new Map<string, string>();
 
+  private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
+
   constructor(private config: AppConfig,
               private restService: RestDataService,
               private audienceService: TargetAudienceService,
@@ -97,6 +101,9 @@ export class TargetAudienceAudienceTA {
       this.varPkCache.set(varName, --varPkStart);
     });
 
+    // Subscribe to store selectors
+    this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
+
     this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
   }
 
@@ -120,13 +127,14 @@ export class TargetAudienceAudienceTA {
             secondaryId: this.reloadSecondaryId(projectVar),
             audienceTAConfig: this.reloadAudienceTaConfig(),
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
-            audienceCounter: projectVar.sortOrder,
-            requiresGeoPreCaching: false
+            requiresGeoPreCaching: false,
+            seq: projectVar.sortOrder
           };
           this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
+console.log('### onLoadProject adding audience:', currentAudience.audienceName, '- seq:', currentAudience.seq);
           this.audienceService.addAudience(
             currentAudience,
-            (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
+//            (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
             null, true);
         }
       }
@@ -186,9 +194,10 @@ export class TargetAudienceAudienceTA {
       exportNationally: false,
       secondaryId: `${name}`,
       audienceTAConfig: audienceTAConfig,
-      audienceCounter: TargetAudienceService.audienceCounter++,
+//      audienceCounter: TargetAudienceService.audienceCounter++,
       fieldconte: this.geoVarMap.get(name) === 'number' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Char,
-      requiresGeoPreCaching: false
+      requiresGeoPreCaching: false,
+      seq: this.allAudiencesBS$.value.length
     };
     return audience;
   }
@@ -197,9 +206,10 @@ export class TargetAudienceAudienceTA {
     //console.debug("addAudiences - target-audience-audienceta - fired - audienceTAConfig: ", audienceTAConfig);
     for (const key of Array.from(this.geoVarMap.keys())) {
       const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
+console.log('### target-audience-audienceta - addAudiences - model', model);
       this.audienceService.addAudience(
         model,
-        (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
+//        (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
         null);
     }
     /*this.audienceService.addAudience(
@@ -288,7 +298,8 @@ export class TargetAudienceAudienceTA {
    * @param valueNumber If the type is a number, the number value
    * @param numberType If the number is a vlaue the number type, index or percent
    */
-  private createGeoVar(currentTradeArea: ImpGeofootprintTradeArea, pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string, audienceName: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
+  private createGeoVar(currentTradeArea: ImpGeofootprintTradeArea, pk: number, geocode: string, type: 'string' | 'number', fieldDisplay: string,
+                       audienceName: string, valueString?: string, valueNumber?: number, numberType?: 'index' | 'percent') : ImpGeofootprintVar {
     const value = valueString == null ? valueNumber : valueString;
     const fieldType = type === 'string' ? FieldContentTypeCodes.Char : numberType === 'index' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Percent;
     const result = this.factory.createGeoVar(currentTradeArea, geocode, pk, value, '', fieldDisplay, fieldType, audienceName);
@@ -339,7 +350,7 @@ export class TargetAudienceAudienceTA {
   }
 
     private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, txId: number, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
-      //console.debug("addAudience - target-audience-audienceta - dataRefreshCallback, audience: ", audience);
+      console.log('addAudience - target-audience-audienceta - dataRefreshCallback, audience:', audience);
       if (!audience) return EMPTY;
       const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
 
