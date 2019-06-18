@@ -629,7 +629,7 @@ export class AppLocationService {
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
 
       if (currentAttributes != null){
-        Object.keys(currentAttributes).filter(key => key.startsWith('home')).forEach(key => {
+        Object.keys(currentAttributes).filter(key => key.startsWith('home') && key != 'homeDmaName').forEach(key => {
           if (newHomeGeoToAnalysisLevelMap[key] != null) {
             // the service might return multiple values for a home geo (in case of overlapping geos)
             // as csv. For now, we're only taking the first result.
