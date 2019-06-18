@@ -1,8 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isNumber } from '@val/common';
-import { filter, map } from 'rxjs/operators';
+import { Table } from 'primeng/table';
+import { filter, map, take } from 'rxjs/operators';
 import { LocalState } from '../../state';
+import { localSelectors } from '../../state/app.selectors';
 import { GridGeoToggle } from '../../state/grid/grid.actions';
 import * as fromGridSelectors from '../../state/grid/grid.selectors';
 import { UpdateRfpUiEditDetails } from '../../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
@@ -29,13 +31,14 @@ export class GridComponent implements OnInit {
   }
 
   columns: fromGridSelectors.GridColumn[] = [];
+  globalFilterColumns: fromGridSelectors.GridColumn[] = [];
   rows: fromGridSelectors.GridRowBase[] = [];
   selectedRows: fromGridSelectors.GridRowBase[] = [];
-  globalFilterColumns: string[] = [];
 
-  gridStyle = 'small';
+  gridStyle: string = 'small';
+  emptyGridMessage: string = 'Loading Media Plan...';
 
-  constructor(private store$: Store<LocalState>) { }
+  constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
 
   ngOnInit() {
     this.store$.select(fromGridSelectors.getGridRows).pipe(
@@ -44,7 +47,6 @@ export class GridComponent implements OnInit {
       this.rows = rows;
       this.selectedRows = rows.filter(r => r.isSelected);
     });
-
     this.store$.select(fromGridSelectors.getSmallGridColumns).pipe(
       map(cols => cols.map(c => this.enrichColumn(c)))
     ).subscribe(cols => {
@@ -57,6 +59,10 @@ export class GridComponent implements OnInit {
       this.largeGridColumns = cols;
       this.setGridSize(this.gridIsSmall);
     });
+    this.store$.select(localSelectors.getAppReady).pipe(
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => this.emptyGridMessage = 'No matching results');
   }
 
   getColumnType(column: FullColumn, currentRowValue: string | number) : 'string' | 'number' | 'currency' {
@@ -68,11 +74,15 @@ export class GridComponent implements OnInit {
     this.store$.dispatch(new GridGeoToggle({ geocode: event.data.selectionIdentifier }));
   }
 
+  onFilter() {
+    this.cd.markForCheck();
+  }
+
   private setGridSize(isSmall: boolean) {
     this.gridIsSmall = isSmall;
     this.columns = isSmall ? this.smallGridColumns : this.largeGridColumns;
     this.gridStyle = isSmall ? 'small' : 'large';
-    this.globalFilterColumns = this.columns.filter(c => c.searchable).map(c => c.field);
+    this.globalFilterColumns = this.columns.filter(c => c.searchable);
   }
 
   private enrichColumn(column: fromGridSelectors.GridColumn) : FullColumn {
