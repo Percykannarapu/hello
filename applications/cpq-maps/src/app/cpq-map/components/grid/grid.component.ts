@@ -4,7 +4,7 @@ import { isNumber } from '@val/common';
 import { filter, map, take } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
-import { GridGeoToggle } from '../../state/grid/grid.actions';
+import { GridGeosToggle } from '../../state/grid/grid.actions';
 import * as fromGridSelectors from '../../state/grid/grid.selectors';
 import { UpdateRfpUiEditDetails } from '../../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 
@@ -71,7 +71,7 @@ export class GridComponent implements OnInit {
   }
 
   onChangeRowSelection(event: { data: fromGridSelectors.GridRowBase }) {
-    this.store$.dispatch(new GridGeoToggle({ geocode: event.data.selectionIdentifier }));
+   this.store$.dispatch(new GridGeosToggle({ geos: [event.data.selectionIdentifier] }));
   }
 
   onFilter(event: { filters: any, filteredValue: fromGridSelectors.GridRowBase[] }) {
@@ -100,14 +100,16 @@ export class GridComponent implements OnInit {
   }
 
   private applyHeaderFilter(event: any){
-    const geoChanges = [];
+    //const geoChanges = [];
+    const geos = [];
     const ids = this.filteredIds == null ? new Set<number>(this.rows.map(r => r.id)) : new Set(this.filteredIds);
     this.rows.filter(r => ids.has(r.id)).forEach(data => {
       if (data.isSelected != event.checked){
-        const geos = { id: data['id'], changes: { isSelected: !data['isSelected'] }};
-        geoChanges.push(geos);
+        //const geos1 = { id: data['id'], changes: { isSelected: !data['isSelected'] }};
+        // geoChanges.push(geos1);
+        geos.push(data.selectionIdentifier);
       }
     });
-    this.store$.dispatch(new UpdateRfpUiEditDetails({rfpUiEditDetails: geoChanges }));
+    this.store$.dispatch(new GridGeosToggle({geos: geos}));
   }
 }
