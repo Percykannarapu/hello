@@ -19,13 +19,10 @@ export class GridEffects {
       this.store$.pipe(select(localSelectors.getRfpUiEditWrapEntities)),
       this.store$.pipe(select(localSelectors.getSharedState))),
     map(([action, geos, wraps, shared]) => {
-      const geoSet = new Set(geos);
-      const wrapSet = new Set(wraps);
-      const geoSetPayload = new Set(action.payload.geos);
+      const geosPayload = new Set(action.payload.geos);
       return [
-        shared.isWrap ? geos.filter(g => geoSetPayload.has(g.wrapZone)) : geos.filter(g => geoSetPayload.has(g.geocode)),
-       /* shared.isWrap ? geos.filter(g => action.payload.geos.includes(g.wrapZone)) : geos.filter(g => action.payload.geos.includes(g.geocode)),*/
-        shared.isWrap ? wraps.filter(w => geoSetPayload.has(w.wrapZone)) : []
+        shared.isWrap ? geos.filter(g => geosPayload.has(g.wrapZone)) : geos.filter(g => geosPayload.has(g.geocode)),
+        shared.isWrap ? wraps.filter(w => geosPayload.has(w.wrapZone)) : []
       ] as [RfpUiEditDetail[], RfpUiEditWrap[]];
     }),
     tap(([geos, wraps]) => this.geoService.toggleGeoSelection(geos, wraps))
