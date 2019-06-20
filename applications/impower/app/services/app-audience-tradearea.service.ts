@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { UpsertGeoAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
-import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
+import { UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
@@ -77,15 +77,15 @@ interface AudienceTradeareaResponse {
 }
 
 const analysisLevelToLengthMap = {
-  'zip': 5, 
-  'atz': 7, 
+  'zip': 5,
+  'atz': 7,
   'pcr': 9,
   'digital atz': 7
 };
 
 const analysisLevelToHomeGeocodeMap = {
-  'zip': 'Home Zip Code', 
-  'atz': 'Home ATZ', 
+  'zip': 'Home Zip Code',
+  'atz': 'Home ATZ',
   'pcr': 'Home Carrier Route',
   'digital atz': 'Home Digital ATZ'
 };
@@ -261,15 +261,16 @@ export class ValAudienceTradeareaService {
     this.fetchData = true;
 
     if (this.fetchData) {
-      let projectVarsDict = this.stateService.projectVarsDict$;
+      const projectVarsDict = this.stateService.projectVarsDict$;
 
       this.projectVarService.remove(this.projectVarService.get().filter(pv => pv.source === 'Online_Audience-TA' /*&& !pv.fieldname.includes("Index Value")*/ || pv.isCustom), InTransaction.silent);
 
       this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => /*(*/pv.source !== 'Online_Audience-TA'  /*|| pv.fieldname.includes("Index Value"))*/ && !pv.isCustom);
 
-      this.varService.remove(this.varService.get().filter(pv => (projectVarsDict[pv.varPk]||safe).varSource === 'Online_Audience-TA' || (projectVarsDict[pv.varPk]||safe).isCustom), InTransaction.silent);
+      this.varService.remove(this.varService.get().filter(pv => (projectVarsDict[pv.varPk] || safe).varSource === 'Online_Audience-TA' || (projectVarsDict[pv.varPk] || safe).isCustom), InTransaction.silent);
 
-      this.stateService.currentProject$.getValue().getImpGeofootprintTradeAreas().forEach(ta => ta.impGeofootprintVars = ta.impGeofootprintVars.filter(gv => (projectVarsDict[gv.varPk]||safe).varSource  !== 'Online_Audience-TA' && !(projectVarsDict[gv.varPk]||safe).isCustom));
+      this.stateService.currentProject$.getValue().getImpGeofootprintTradeAreas().forEach(ta => ta.impGeofootprintVars = ta.impGeofootprintVars
+        .filter(gv => (projectVarsDict[gv.varPk] || safe).varSource  !== 'Online_Audience-TA' && !(projectVarsDict[gv.varPk] || safe).isCustom));
 
       this.sendRequest(this.audienceTAConfig).subscribe(response => {
         try {
@@ -589,7 +590,7 @@ export class ValAudienceTradeareaService {
     const projectVarsDict = this.stateService.projectVarsDict$;
 
     for (const geoVar of this.varService.get()) {
-      if ((projectVarsDict[geoVar.varPk]||safe).customVarExprDisplay === fieldDisplay) {
+      if ((projectVarsDict[geoVar.varPk] || safe).customVarExprDisplay === fieldDisplay) {
         return geoVar.varPk;
       }
     }

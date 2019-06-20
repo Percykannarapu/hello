@@ -9,7 +9,7 @@ import { RestDataService } from 'app/val-modules/common/services/restdata.servic
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { formatMilli } from '@val/common';
 import { TransientActionTypes, TransientActions, CacheGeos, CacheGeosFailure, CacheGeofootprintGeos, CacheGeosComplete, RemoveGeoCache, ClearAudiencesAndVars, RehydrateAfterLoad } from './transient.actions';
-import { RehydrateAttributes } from '../geo-attributes/geo-attributes.actions';
+import { RehydrateAttributes } from './geo-attributes/geo-attributes.actions';
 import { RehydrateAudiences } from './audience/audience.actions';
 
 @Injectable()

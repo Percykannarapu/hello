@@ -1,6 +1,6 @@
 import { FieldContentTypeCodes } from './../../impower-datastore/state/models/impower-model.enums';
 import { isString } from 'util';
-import { GeoAttribute } from '../../impower-datastore/state/geo-attributes/geo-attributes.model';
+import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
 import { Component, OnDestroy, OnInit, ViewChild, ViewChildren, QueryList, Input, ChangeDetectionStrategy, EventEmitter, Output } from '@angular/core';

@@ -20,7 +20,7 @@ import { mapByExtended, safe } from '@val/common';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { FullAppState } from 'app/state/app.interfaces';
 import { Store } from '@ngrx/store';
-import { UpsertGeoAttributes } from 'app/impower-datastore/state/geo-attributes/geo-attributes.actions';
+import { UpsertGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';

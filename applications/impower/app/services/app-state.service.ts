@@ -5,8 +5,8 @@ import { dedupeSimpleSet, distinctArray, filterArray, groupBy, isNumber, mapArra
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
-import { RequestAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
-import { selectGeoAttributes } from '../impower-datastore/state/impower-datastore.selectors';
+import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';

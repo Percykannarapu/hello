@@ -6,8 +6,8 @@ import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/m
 import { merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/geo-attributes/geo-attributes.actions';
-import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
+import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';

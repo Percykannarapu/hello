@@ -1,8 +1,8 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { AppConfig } from '../app.config';
-import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
-import { selectGeoAttributes } from '../impower-datastore/state/impower-datastore.selectors';
+import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { FullAppState } from '../state/app.interfaces';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { CalculateMetrics } from '../state/data-shim/data-shim.actions';
@@ -177,9 +177,9 @@ export class ValMetricsService implements OnDestroy {
         if (v != null && v.hhc !== 0 && v.income !== 0){
           const result = v.income / v.hhc;
           return '$' + result.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        }else 
+        }else
           return 'N/A';
-       
+
       }
     };
     this.metricDefinitions.push(medianHhIncome);
@@ -212,7 +212,7 @@ export class ValMetricsService implements OnDestroy {
           return result.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '%';
         }
         else return 'N/A';
-        
+
       }
     };
     this.metricDefinitions.push(familiesRelatedChild);

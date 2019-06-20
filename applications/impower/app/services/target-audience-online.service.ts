@@ -160,6 +160,8 @@ export class TargetAudienceOnlineService {
   public rehydrateAudience() {
     try {
       const project = this.appStateService.currentProject$.getValue();
+      if (project == null || project.impProjectVars == null)
+         return;
       let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
       projectVars = projectVars.filter(v => !v.source.split('_')[1].toLowerCase().includes('audience'));
       if (projectVars.length > 0) {

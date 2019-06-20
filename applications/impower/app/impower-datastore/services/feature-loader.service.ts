@@ -3,7 +3,7 @@ import { accumulateArrays } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 import { Observable } from 'rxjs';
 import { map, reduce } from 'rxjs/operators';
-import { GeoAttribute } from '../state/geo-attributes/geo-attributes.model';
+import { GeoAttribute } from '../state/transient/geo-attributes/geo-attributes.model';
 
 @Injectable({
   providedIn: 'root'

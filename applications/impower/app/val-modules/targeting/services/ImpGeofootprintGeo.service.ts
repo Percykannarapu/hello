@@ -8,18 +8,16 @@
  **
  ** ImpGeofootprintGeo.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-import { GeoAttribute } from '../../../impower-datastore/state/geo-attributes/geo-attributes.model';
-import { selectGeoAttributeEntities } from '../../../impower-datastore/state/impower-datastore.selectors';
+import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { RestDataService } from '../../common/services/restdata.service';
 import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
-import { TradeAreaTypeCodes } from '../targeting.enums';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
-import { ImpProjectVar } from '../models/ImpProjectVar';
 import { select, Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
@@ -410,7 +408,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       if (result === '' && state.varCache.has(geo.geocode)) {
         const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
-        const currentVar = vars.find(v => (projectVarsDict[v.varPk]||safe).fieldname === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
+        const currentVar = vars.find(v => (projectVarsDict[v.varPk] || safe).fieldname === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
         if (currentVar != null && currentVar.value != null) {
           // if (currentVar.isString) result = currentVar.valueString;
           // if (currentVar.isNumber) result = currentVar.valueNumber.toString();

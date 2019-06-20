@@ -1,4 +1,3 @@
-import { getTransactionId } from './../map-vars/map-vars.selectors';
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';

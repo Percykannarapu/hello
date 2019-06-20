@@ -4,7 +4,7 @@ import { filterArray, groupBy, mapArray } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { GeoAttribute } from '../impower-datastore/state/geo-attributes/geo-attributes.model';
+import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { LocalAppState } from '../state/app.interfaces';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';

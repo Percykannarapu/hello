@@ -4,8 +4,8 @@ import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComplete } from '../../impower-datastore/state/geo-attributes/geo-attributes.actions';
-import { selectGeoAttributeEntities } from '../../impower-datastore/state/impower-datastore.selectors';
+import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
 import { CalculateMetrics, CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged,

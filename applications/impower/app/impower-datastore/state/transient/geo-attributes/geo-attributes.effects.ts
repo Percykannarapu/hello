@@ -4,8 +4,8 @@ import { select, Store } from '@ngrx/store';
 import { selectors } from '@val/esri';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, switchMap, withLatestFrom } from 'rxjs/operators';
-import { FullAppState } from '../../../state/app.interfaces';
-import { FeatureLoaderService } from '../../services/feature-loader.service';
+import { FullAppState } from '../../../../state/app.interfaces';
+import { FeatureLoaderService } from '../../../services/feature-loader.service';
 import {
   GeoAttributeActions,
   GeoAttributeActionTypes,

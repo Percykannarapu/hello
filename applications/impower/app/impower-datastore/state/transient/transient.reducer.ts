@@ -7,17 +7,20 @@ import * as fromAudienceSel from './audience/audience.selectors';
 import * as fromGeoVars from './geo-vars/geo-vars.reducer';
 import * as fromGeoVarsSel from './geo-vars/geo-vars.selectors';
 import * as fromMapVars from './map-vars/map-vars.reducer';
+import * as fromGeoAttribute from './geo-attributes/geo-attributes.reducer';
 
 export interface ImpowerTransientState {
   audiences: fromAudience.State;
   geoVars: fromGeoVars.State;
   mapVars: fromMapVars.State;
+  geoAttributes: fromGeoAttribute.State;
 }
 
 const transientReducers: ActionReducerMap<ImpowerTransientState> = {
   audiences: fromAudience.reducer,
   geoVars: fromGeoVars.reducer,
-  mapVars: fromMapVars.reducer
+  mapVars: fromMapVars.reducer,
+  geoAttributes: fromGeoAttribute.reducer
 };
 
 const metaReducer: ActionReducer<ImpowerTransientState, Action> = combineReducers(transientReducers);
