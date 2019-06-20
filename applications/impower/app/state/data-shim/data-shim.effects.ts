@@ -8,8 +8,9 @@ import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComple
 import { selectGeoAttributeEntities } from '../../impower-datastore/state/impower-datastore.selectors';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
-import { CalculateMetrics, CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged, 
+import { CalculateMetrics, CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged,
   ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess, ProjectLoadFinish } from './data-shim.actions';
+import { RehydrateAfterLoad } from 'app/impower-datastore/state/transient/transient.actions';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimEffects {
@@ -52,7 +53,8 @@ export class DataShimEffects {
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
       withLatestFrom(this.appDataShimService.currentGeocodeSet$),
-      map(([projectId, geocodes]) => new RehydrateAttributes({ ...action.payload, geocodes })),
+//    map(([projectId, geocodes]) => new RehydrateAttributes({ ...action.payload, geocodes })),
+      map(([projectId, geocodes]) => new RehydrateAfterLoad({ ...action.payload, geocodes })),
       catchError(err => of(new ProjectLoadFailure({ err, isReload: false }))),
     )),
   );

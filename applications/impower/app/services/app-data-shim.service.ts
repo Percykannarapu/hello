@@ -77,7 +77,6 @@ export class AppDataShimService {
   }
 
   onLoadSuccess() : void {
-    
     this.appTradeAreaService.setCurrentDefaults();
     this.appTradeAreaService.zoomToTradeArea();
     /**recalculating mustcovers disabled for DE2271 */

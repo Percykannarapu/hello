@@ -159,8 +159,7 @@ export class TargetAudienceOnlineService {
     return audience;
   }
 
-  private onLoadProject(ready: boolean) {
-    if (!ready) return; // loading will be false when the load is actually done
+  public rehydrateAudience() {
     try {
       const project = this.appStateService.currentProject$.getValue();
       let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
@@ -197,9 +196,15 @@ export class TargetAudienceOnlineService {
           }
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(error);
     }
+  }
+
+  private onLoadProject(ready: boolean) {
+    if (!ready) return; // loading will be false when the load is actually done
+    this.rehydrateAudience();
   }
 
   public createGeofootprintVar(response: OnlineBulkDataResponse, source: OnlineSourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {
@@ -283,74 +288,6 @@ console.log('### target-audience-online - adding audience:', model);
     return this.audienceCache$.get(resultKey);
   }
 
-  public OLDapioRefreshCallback(source: OnlineSourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<ImpGeofootprintVar[]> {
-    return EMPTY;
-/* pb
-console.log('### apioRefreshCallback(Old) - Fired');
-    if (analysisLevel == null || analysisLevel.length === 0 || identifiers == null || identifiers.length === 0)
-      return EMPTY;
-    const numericIds = identifiers.map(i => Number(i));
-    if (numericIds.filter(n => Number.isNaN(n)).length > 0)
-      return throwError({ identifiers, msg: `Some identifiers were passed into the Apio ${source} Refresh function that weren't numeric pks` });
-    const fullIds = identifiers.map(id => `Online/${source}/${id}`);
-*/
-// Debug
-// console.log('### apioRefreshCallback(Old) - fullIds:', fullIds);
-// this.audienceService.getAudiences(fullIds).forEach((audValue, audKey) => {
-//   console.log('### apioRefreshCallback(Old) - getAudiences - key:', audKey, ', value:', audValue);
-// });
-
-// console.log('### apioRefreshCallback(Old) - audienceMap.size:', this.audienceService.audienceMap.size);
-// this.audienceService.audienceMap.forEach((value, key) => {
-//   console.log('### apioRefreshCallback(Old) - audienceMap - key:', key, ', value:', value);
-// });
-
-// PB const observables = this.apioDataRefresh(source, analysisLevel, identifiers, geocodes, isForShading, transactionId);
-
-/*
-// Test sourcing from data store
-const descriptionMap = new Map();
-this.allAudiencesBS$.value.filter(audience => identifiers.includes(audience.audienceIdentifier)).forEach(aud => {
-  descriptionMap.set(aud.audienceIdentifier, aud.audienceName);
-});
-console.log('### apioRefreshCallback - descriptionMap.keys:', descriptionMap.size);
-descriptionMap.forEach((value, key) => {
-  console.log('### apioRefreshCallback - descriptionMap - key:', key, ', value:', value);
-});
-*/
- /* PB
-    const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
-//  console.log('Description Maps', descriptionMap);
-    descriptionMap.forEach(id => this.audDescription[id.audienceIdentifier] = id.audienceName);
-    const currentProject = this.appStateService.currentProject$.getValue();
-    const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
-    return merge(...observables, 4).pipe(
-      filter(data => data != null),
-      map(bulkData => simpleFlatten(bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap, geoCache, isForShading))))
-    );*/
-  }
-
-/*
-  public Unmodified_apioRefreshCallback(source: OnlineSourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<ImpGeofootprintVar[]> {
-    console.log('### apioRefreshCallback(Old) - Fired');
-    if (analysisLevel == null || analysisLevel.length === 0 || identifiers == null || identifiers.length === 0)
-      return EMPTY;
-    const numericIds = identifiers.map(i => Number(i));
-    if (numericIds.filter(n => Number.isNaN(n)).length > 0)
-      return throwError({ identifiers, msg: `Some identifiers were passed into the Apio ${source} Refresh function that weren't numeric pks` });
-    const fullIds = identifiers.map(id => `Online/${source}/${id}`);
-    const observables = this.apioDataRefresh(source, analysisLevel, identifiers, geocodes, isForShading, transactionId);
-    const descriptionMap = new Map(this.audienceService.getAudiences(fullIds).map<[string, AudienceDataDefinition]>(a => [a.audienceIdentifier, a]));
-//  console.log('Description Maps', descriptionMap);
-    descriptionMap.forEach(id => this.audDescription[id.audienceIdentifier] = id.audienceName);
-    const currentProject = this.appStateService.currentProject$.getValue();
-    const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
-    return merge(...observables, 4).pipe(
-      filter(data => data != null),
-      map(bulkData => simpleFlatten(bulkData.map(b => this.createGeofootprintVar(b, source, descriptionMap, geoCache, isForShading))))
-    );
-  }*/
-
   //TODO Use ID instead of audienceName
   private nationalRefreshCallback(source: OnlineSourceTypes, analysisLevel: string, identifier: string, transactionId: number) : Observable<any[]> {
     if (analysisLevel == null || analysisLevel.length === 0 || identifier == null || identifier.length === 0)
@@ -375,7 +312,7 @@ descriptionMap.forEach((value, key) => {
   }
 
   public apioDataRefresh(source: OnlineSourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<OnlineBulkDataResponse[]>[] {
-console.log('### apiDataRefresh(Old) - Fired');
+console.log('### apiDataRefresh - Fired');
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
     const observables: Observable<OnlineBulkDataResponse[]>[] = [];
@@ -473,55 +410,6 @@ console.log('### apiDataRefresh(Old) - Fired');
     return EMPTY;
   }
 
-  // public onlineVarRefresh2(source: SourceTypes, audiences: Audience[], analysisLevel: string, geocodes: string[], isForShading: boolean, transactionId: number) : Observable<OnlineBulkDataResponse[]> {
-  //   const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
-  //   const numericIds = audiences.map(audience => Number(audience.audienceIdentifier));
-  //   const observables: Observable<OnlineBulkDataResponse[]> = null;
-  //   const currentProject = this.appStateService.currentProject$.getValue();
-
-  //   console.log('### onlineVarRefresh2:', source, 'ids:', numericIds, 'geocodes:', geocodes, 'transactionId:', transactionId);
-  //   const varTypes: string[] = [];
-  //   identifiers.forEach(id => {
-  //     const pv = currentProject.impProjectVars.filter(v => v.varPk.toString() === id);
-  //     if (varTypes != null)
-  //       varTypes.push('DMA');
-  //       // FIXME: Enable when app is connected | varTypes.push((pv[0].indexBase.toUpperCase() == 'NATIONALSCORE') ? 'NATIONAL' : 'DMA');
-  //   });
-
-  //   const inputData = {
-  //     geoType: serviceAnalysisLevel.toUpperCase(),
-  //     source: this.fuseSourceMapping.get(source),
-  //     geocodes: geocodes,
-  //     digCategoryIds: numericIds,
-  //     varType: varTypes,
-  //     transactionId: transactionId,
-  //     chunks: this.config.geoInfoQueryChunks
-  //   };
-
-  //   if (inputData.digCategoryIds.length > 0) {
-  //     this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now());
-  //     return this.restService.post('v1/targeting/base/geoinfo/digitallookup', [inputData])
-  //       .pipe(
-  //         tap(response => console.log('###', inputData.source, 'response:', response)),
-  //         tap(response => this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now() - this.audienceService.timingMap.get('(' + inputData.source.toLowerCase() + ')'))),
-  //         map(response => this.validateFuseResponse(inputData, response, isForShading)),
-  //         tap(response => (response)),
-  //         catchError( () => {
-  //           console.error('Error posting to v1/targeting/base/geoinfo/digitallookup with payload:');
-  //           console.error('payload:', inputData);
-  //           console.error('payload:\n{\n' +
-  //                         '   geoType: ', inputData.geoType, '\n',
-  //                         '   source:  ', inputData.source, '\n',
-  //                         '   geocodes: ', geocodes.toString(), '\n',
-  //                         '   digCategoryIds:', inputData.digCategoryIds.toString(), '\n}'
-  //                         );
-  //           return throwError('No Data was returned for the selected audiences'); })
-  //         );
-  //   }
-  //   console.warn('onlineVarRefresh had no ids to process.');
-  //   return EMPTY;
-  // }
-
   private validateFuseResponse(inputData: any, response: RestResponse, isForShading: boolean[]) {
     const newArray = this.audienceService.convertFuseResponse(response);
     const audiences: Audience[] = this.allAudiencesBS$.value;
@@ -548,7 +436,7 @@ console.log('### apiDataRefresh(Old) - Fired');
       });
     });
 
-    // Simulate no variables being returned
+    // DEBUG: Simulate no variables being returned
     // response.payload.counts['31934'] = 0;
     // response.payload.counts['31068'] = 0;
 

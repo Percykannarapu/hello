@@ -1,14 +1,11 @@
 import { Injectable } from '@angular/core';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { merge, Observable, throwError, EMPTY } from 'rxjs';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { TargetAudienceService } from './target-audience.service';
-import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AppConfig } from '../app.config';
 import { AppStateService } from './app-state.service';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { RestResponse } from '../models/RestResponse';
@@ -16,8 +13,6 @@ import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
-import { groupBy } from '@val/common';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -51,7 +46,6 @@ interface TdaVariableResponse {
   'includeInDatadist': string;
 }
 
-// TODO Strip out the dma / national scores, digCategoryId
 export interface OfflineFuseResponse {
   geocode: string;
   dmaScore: string;
@@ -65,7 +59,6 @@ export interface OfflineBulkDataResponse {
   id: string;
   score: string;
 }
-
 
 export enum OfflineSourceTypes {
   TDA = 'tda'
@@ -105,8 +98,6 @@ export class TargetAudienceTdaService {
   constructor(private config: AppConfig,
     private restService: RestDataService,
     private audienceService: TargetAudienceService,
-    private domainFactory: ImpDomainFactoryService,
-    private varService: ImpGeofootprintVarService,
     private stateService: AppStateService,
     private store$: Store<LocalAppState>,
     private logger: AppLoggingService) {
@@ -114,7 +105,6 @@ export class TargetAudienceTdaService {
   }
 
   private static createDataDefinition(name: string, pk: string, fieldconte: FieldContentTypeCodes) : AudienceDataDefinition {
-//   TargetAudienceService.audienceCounter++;
    const audience: AudienceDataDefinition = {
       audienceName: name,
       audienceIdentifier: pk,
@@ -125,7 +115,6 @@ export class TargetAudienceTdaService {
       showOnMap: false,
       exportNationally: false,
       allowNationalExport: false,
-//      audienceCounter: TargetAudienceService.audienceCounter,
       fieldconte: fieldconte,
       requiresGeoPreCaching: true,
       seq: null
@@ -133,8 +122,7 @@ export class TargetAudienceTdaService {
     return audience;
   }
 
-  private onLoadProject(ready: boolean) {
-    if (!ready) return; // loading will be false when the load is actually done
+  public rehydrateAudience() {
     try {
       const project = this.stateService.currentProject$.getValue();
       if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
@@ -149,22 +137,27 @@ export class TargetAudienceTdaService {
             showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
             allowNationalExport: false,
-//            audienceCounter: projectVar.sortOrder,
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
             requiresGeoPreCaching: true,
             seq: projectVar.sortOrder
           };
-          //if (projectVar.sortOrder > TargetAudienceService.audienceCounter) TargetAudienceService.audienceCounter = projectVar.sortOrder + 1;
+
           if (projectVar.source.toLowerCase().match('tda')) {
             this.audienceService.addAudience(audience, null, true);
           }
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(error);
     }
   }
 
+  private onLoadProject(ready: boolean) {
+    if (!ready) return; // loading will be false when the load is actually done
+    this.rehydrateAudience();
+  }
+/*
   private createGeofootprintVars(geocode: string, attrs: Map<string, string>, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {
     const results: ImpGeofootprintVar[] = [];
     attrs.forEach((value: string, key: string) => {
@@ -203,15 +196,14 @@ export class TargetAudienceTdaService {
       }
     });
     return results;
-  }
+  }*/
 
   public addAudience(audience: TdaAudienceDescription) {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
       const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte);
-//      this.audienceService.addAudience(model, (al, pks, geos, shading, transactionId) => this.audienceRefreshCallback(al, pks, geos, shading, transactionId));
 console.log('### target-audience-tda - adding audience:', model);
-      this.audienceService.addAudience(model, null /* (al, pks, geos, shading, transactionId) => this.audienceRefreshCallback(al, pks, geos, shading, transactionId)*/);
+      this.audienceService.addAudience(model, null);
       this.usageMetricCheckUncheckOffline('checked', model);
     }
   }
@@ -251,6 +243,7 @@ console.log('### target-audience-tda - adding audience:', model);
     return merge(...allObservables, 4);
   }
 
+/*
   private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<ImpGeofootprintVar[]> {
   console.log('### audienceRefreshCallback Old - fired');
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
@@ -310,9 +303,8 @@ console.log('### target-audience-tda - adding audience:', model);
 
 //    console.log("### apioDataRefresh pushing ", observables.length, "observables for ", geocodes.length, "geocodes in ", chunks.length, "chunks, ids:", identifiers);
 //    return observables;
-}
+  }*/
 
-  // NOTE: This is going to be the new tda var refresh method
   public offlineVarRefresh(source: OfflineSourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number) : Observable<OfflineBulkDataResponse[]> {
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
@@ -383,6 +375,7 @@ console.log('### target-audience-tda - adding audience:', model);
     return validatedResponse;
   }
 
+/*
   private validateFuseResponseOld(response: RestResponse, identifiers: string[], isForShading: boolean) {
     const responseArray: OfflineFuseResponse[] = response.payload.rows;
     console.log('### tda validateFuseResponse OLD - response.length:', responseArray.length);
@@ -410,7 +403,7 @@ console.log('### target-audience-tda - adding audience:', model);
     if (emptyAudiences.length > 0 && !isForShading)
       this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
     return responseArray;
-  }
+  }*/
 
   private usageMetricCheckUncheckOffline(checkType: string, audience: AudienceDataDefinition){
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();

@@ -217,6 +217,7 @@ export class AppStateService {
       filterArray(e => e.hasOwnProperty('hhld_s') || e.hasOwnProperty('hhld_w')),
       mapArray(e => e.geocode)
     );
+
     uniqueGeos$.pipe(
       filter(geoSet => geoSet.size > 0),
       withLatestFrom(completeAttributes$),
@@ -225,6 +226,7 @@ export class AppStateService {
       filter(([newGeos, isReady]) => newGeos.size > 0 && isReady),
     ).subscribe(([geoSet]) => {
       this.store$.dispatch(new RequestAttributes({ geocodes: geoSet }));
+console.log('### uniqueGeos$.pipe - ApplyAudiences');
       this.store$.dispatch(new ApplyAudiences({analysisLevel: this.analysisLevel$.getValue()}));
     });
 
@@ -279,7 +281,7 @@ export class AppStateService {
   triggerChangeInCollapse(collapse: boolean){
     this.isCollapsed.next(collapse);
   }
-  
+
   stopObservingCollapse(){
     this.isCollapsed.complete();
   }

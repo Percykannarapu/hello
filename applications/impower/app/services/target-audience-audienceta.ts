@@ -74,7 +74,6 @@ export class TargetAudienceAudienceTA {
   private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
 
   constructor(private config: AppConfig,
-              private restService: RestDataService,
               private audienceService: TargetAudienceService,
               private appStateService: AppStateService,
               private varService: ImpGeofootprintVarService,
@@ -82,7 +81,6 @@ export class TargetAudienceAudienceTA {
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private projectVarService: ImpProjectVarService,
               private httpClient: HttpClient,
-              private impGeoService: ImpGeofootprintGeoService,
               private store$: Store<FullAppState>) {
     this.geoVarMap.set('Index Value', 'number');
     this.geoVarMap.set('Combined Index', 'number');
@@ -132,10 +130,7 @@ export class TargetAudienceAudienceTA {
           };
           this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
 console.log('### onLoadProject adding audience:', currentAudience.audienceName, '- seq:', currentAudience.seq);
-          this.audienceService.addAudience(
-            currentAudience,
-//            (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
-            null, true);
+          this.audienceService.addAudience(currentAudience, null, true);
         }
       }
     } catch (error) {
@@ -194,7 +189,6 @@ console.log('### onLoadProject adding audience:', currentAudience.audienceName, 
       exportNationally: false,
       secondaryId: `${name}`,
       audienceTAConfig: audienceTAConfig,
-//      audienceCounter: TargetAudienceService.audienceCounter++,
       fieldconte: this.geoVarMap.get(name) === 'number' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Char,
       requiresGeoPreCaching: false,
       seq: this.allAudiencesBS$.value.length
@@ -207,10 +201,7 @@ console.log('### onLoadProject adding audience:', currentAudience.audienceName, 
     for (const key of Array.from(this.geoVarMap.keys())) {
       const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
 console.log('### target-audience-audienceta - addAudiences - model', model);
-      this.audienceService.addAudience(
-        model,
-//        (al, pks, geos, shading, transactionId, audience) => this.dataRefreshCallback(al, pks, geos, shading, transactionId, audience),
-        null);
+      this.audienceService.addAudience(model, null);
     }
     /*this.audienceService.addAudience(
         model,

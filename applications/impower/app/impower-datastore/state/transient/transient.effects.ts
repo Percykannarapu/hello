@@ -2,13 +2,15 @@ import { TargetAudienceService } from 'app/services/target-audience.service';
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { of, EMPTY } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap, concatMap } from 'rxjs/operators';
 import { AppConfig } from 'app/app.config';
 import { AppStateService } from 'app/services/app-state.service';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { formatMilli } from '@val/common';
-import { TransientActionTypes, TransientActions, CacheGeos, CacheGeosFailure, CacheGeofootprintGeos, CacheGeosComplete, RemoveGeoCache, ClearAudiencesAndVars } from './transient.actions';
+import { TransientActionTypes, TransientActions, CacheGeos, CacheGeosFailure, CacheGeofootprintGeos, CacheGeosComplete, RemoveGeoCache, ClearAudiencesAndVars, RehydrateAfterLoad } from './transient.actions';
+import { RehydrateAttributes } from '../geo-attributes/geo-attributes.actions';
+import { RehydrateAudiences } from './audience/audience.actions';
 
 @Injectable()
 export class TransientEffects {
@@ -81,6 +83,14 @@ export class TransientEffects {
     tap(() => this.targetAudienceService.clearAll())
   );
 
+  @Effect()
+  rehydrateAfterLoad$ = this.actions$.pipe(
+    ofType<RehydrateAfterLoad>(TransientActionTypes.RehydrateAfterLoad),
+    concatMap((action) => [
+      new RehydrateAttributes({ ...action.payload }),
+      new RehydrateAudiences()
+    ])
+  );
 
   constructor(private actions$: Actions<TransientActions>,
               private config: AppConfig,

@@ -1,4 +1,4 @@
-import { allAudiences } from './audience.selectors';
+import { AppStateService } from './../../../../services/app-state.service';
 import { TargetAudienceCustomService } from './../../../../services/target-audience-custom.service';
 import { OfflineSourceTypes } from './../../../../services/target-audience-tda.service';
 import { GeoVarActionTypes, GeoVarCacheGeosFailure, GeoVarCacheGeosComplete, GeoVarCacheGeofootprintGeos } from './../geo-vars/geo-vars.actions';
@@ -25,7 +25,7 @@ import { AudienceActionTypes, ApplyAudiences, AudienceActions, FetchOnlineIntere
          FetchOfflineTDACompleted, FetchOfflineFailed, FetchCustom, FetchCustomCompleted, FetchCustomFromPrefs, FetchCustomFailed, FetchMapVar, FetchOnlineInterestMap, FetchOnlineVLHMap, FetchOnlinePixelMap,
          FetchOfflineTDAMap, FetchCustomFromPrefsMap, FetchOnlineInMarketMap, FetchOnlineInterestCompletedMap, FetchOnlineInMarketCompletedMap, FetchOnlinePixelCompletedMap, FetchOnlineVLHCompletedMap,
          FetchOnlineFailedMap, FetchOfflineFailedMap, FetchCustomCompletedMap, FetchCustomFailedMap, MoveAudienceUp, UpsertAudiences, MoveAudienceDn,
-         SequenceChanged, ApplyAudiencesRecordStats} from './audience.actions';
+         SequenceChanged, ApplyAudiencesRecordStats, RehydrateAudiences} from './audience.actions';
 import { Stats, initialStatState } from './audience.reducer';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
@@ -53,7 +53,8 @@ export class AudiencesEffects {
     tap(action => this.store$.dispatch(new ApplyAudiencesRecordStart())),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesAppliable))),
     tap(([action, audiences]) => {
-      //audiences.forEach(aud => console.log('### ApplyAudiences - selectedAudiences - aud:', aud));
+      console.log('### ApplyAudiences - selectedAudiences count', audiences.length);
+      audiences.forEach(aud => console.log('### ApplyAudiences - selectedAudiences - aud:', aud));
       if (audiences.length > 0)
         this.store$.dispatch(new GeoVarCacheGeofootprintGeos());
     }),
@@ -581,10 +582,23 @@ export class AudiencesEffects {
     })
   );
 
+  @Effect()
+  rehydrateAudiences$ = this.actions$.pipe(
+    ofType<RehydrateAudiences>(AudienceActionTypes.RehydrateAudiences),
+    tap(() => {
+      this.targetAudienceOnlineService.rehydrateAudience();
+      this.targetAudienceTdaService.rehydrateAudience();
+      this.targetAudienceCustomService.rehydrateAudience();
+    }),
+    withLatestFrom(this.appStateService.analysisLevel$),
+    map(([, analysisLevel]) => new ApplyAudiences({ analysisLevel: analysisLevel }))
+  );
+
   constructor(private actions$: Actions<AudienceActions>,
               private store$: Store<FullAppState>,
               private config: AppConfig,
               private logger: LoggingService,
+              private appStateService: AppStateService,
               private targetAudienceService: TargetAudienceService,
               private targetAudienceOnlineService: TargetAudienceOnlineService,
               private targetAudienceTdaService: TargetAudienceTdaService,

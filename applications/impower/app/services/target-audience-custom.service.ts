@@ -126,10 +126,8 @@ export class TargetAudienceCustomService {
     return audience;
   }
 
-  private onLoadProject(ready: boolean) {
-    if (!ready) return;
+  public rehydrateAudience() {
     try {
-      // console.log('### target-audience-custom - onLoadProject fired');
       const project = this.stateService.currentProject$.getValue();
       if (project == null) return;
       const customProjectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom');
@@ -159,6 +157,11 @@ export class TargetAudienceCustomService {
     catch (error) {
       console.error(error);
     }
+  }
+
+  private onLoadProject(ready: boolean) {
+    if (!ready) return;
+    this.rehydrateAudience();
   }
 
   private varPkForColumn(column: string) : string {

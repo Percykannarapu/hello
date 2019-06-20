@@ -6,7 +6,8 @@ export enum TransientActionTypes {
   CacheGeosComplete     = '[Transient] Cache Geos Complete',
   CacheGeosFailure      = '[Transient] Cache Geos Failed',
   RemoveGeoCache        = '[Transient] Remove Geo Cache',
-  ClearAudiencesAndVars = '[Transient] Clear Audiences, Geo and Map Vars'
+  ClearAudiencesAndVars = '[Transient] Clear Audiences, Geo and Map Vars',
+  RehydrateAfterLoad    = '[Transient] Rehydrate after a load'
 }
 
 export class CacheGeos implements Action {
@@ -38,10 +39,16 @@ export class ClearAudiencesAndVars implements Action {
   readonly type = TransientActionTypes.ClearAudiencesAndVars;
 }
 
+export class RehydrateAfterLoad implements Action {
+  readonly type = TransientActionTypes.RehydrateAfterLoad;
+  constructor(public payload: { projectId: number, isReload: boolean, geocodes: Set<string> }) {}
+}
+
 export type TransientActions =
     CacheGeos
   | CacheGeofootprintGeos
   | CacheGeosComplete
   | CacheGeosFailure
   | RemoveGeoCache
-  | ClearAudiencesAndVars;
+  | ClearAudiencesAndVars
+  | RehydrateAfterLoad;

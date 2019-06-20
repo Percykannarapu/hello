@@ -31,6 +31,7 @@ export enum AudienceActionTypes {
   FetchCountDecrement             = '[Audience] Fetch Counter Decrement',
   GetDataFromCache                = '[Audience] Get Data From Cached Geos',
   GetDataFromGeos                 = '[Audience] Get Data From Geos',
+  RehydrateAudiences              = '[Audience] Rehydrate Audiences',
 
   FetchOnlineInterest             = '[Audience] Fetch Online Audience: Interest',
   FetchOnlineInMarket             = '[Audience] Fetch Online Audience: In-Market',
@@ -340,6 +341,10 @@ export class GetDataFromGeos implements Action {
   constructor(public payload: {analysisLevel: string, selectedAudiences: Audience[], geos: string[]}) {}
 }
 
+export class RehydrateAudiences implements Action {
+  readonly type = AudienceActionTypes.RehydrateAudiences;
+}
+
 export class MoveAudienceUp implements Action {
   readonly type = AudienceActionTypes.MoveAudienceUp;
   constructor(public payload: {audienceIdentifier: string}) {}
@@ -371,6 +376,7 @@ export type AudienceActions =
   | ApplyAudiencesRecordStart
   | ApplyAudiencesRecordStats
   | ClearAudienceStats
+  | RehydrateAudiences
   | FetchMapVar
   | FetchMapVarCompleted
   | FetchAudiences
