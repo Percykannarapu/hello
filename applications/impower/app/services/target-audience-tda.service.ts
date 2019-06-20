@@ -99,7 +99,7 @@ export class TargetAudienceTdaService {
     private stateService: AppStateService,
     private store$: Store<LocalAppState>,
     private logger: AppLoggingService) {
-    this.stateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
+    this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
   }
 
   private static createDataDefinition(name: string, pk: string, fieldconte: FieldContentTypeCodes) : AudienceDataDefinition {
@@ -121,8 +121,8 @@ export class TargetAudienceTdaService {
     return audience;
   }
 
-  private onLoadProject(ready: boolean) {
-    if (!ready) return; // loading will be false when the load is actually done
+  private onLoadProject() {
+    this.logger.debug.log('On Load Project called from TDA/Offline Audience observable');
     try {
       const project = this.stateService.currentProject$.getValue();
       if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'offline')) {
