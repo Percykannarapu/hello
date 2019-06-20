@@ -95,7 +95,8 @@ export class DataShimEffects {
 
   @Effect({ dispatch: false })
   ProjectLoadFinish$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectLoadFinish)
+    ofType(DataShimActionTypes.ProjectLoadFinish),
+    tap(() => this.appDataShimService.onLoadFinished())
   );
 
   filterableGeos$ = this.appDataShimService.currentGeos$.pipe(

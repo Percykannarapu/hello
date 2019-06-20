@@ -127,9 +127,7 @@ export class TargetAudienceOnlineService {
       [SourceTypes.Pixel, 'pixel']
     ]);
 
-    this.appStateService.applicationIsReady$.subscribe(ready => {
-      this.onLoadProject(ready);
-    });
+    this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
   }
 
   private static createDataDefinition(source: SourceTypes, name: string, pk: number, digId: number) : AudienceDataDefinition {
@@ -154,8 +152,8 @@ export class TargetAudienceOnlineService {
     return audience;
   }
 
-  private onLoadProject(ready: boolean) {
-    if (!ready) return; // loading will be false when the load is actually done
+  private onLoadProject() {
+    this.logger.debug.log('On Load Project called from Online Audience observable');
     try {
       const project = this.appStateService.currentProject$.getValue();
       let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');

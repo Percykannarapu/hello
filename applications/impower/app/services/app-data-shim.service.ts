@@ -77,13 +77,15 @@ export class AppDataShimService {
   }
 
   onLoadSuccess() : void {
-    
     this.appTradeAreaService.setCurrentDefaults();
     this.appTradeAreaService.zoomToTradeArea();
     /**recalculating mustcovers disabled for DE2271 */
     this.appGeoService.reloadMustCovers();
     this.targetAudienceCustomService.reloadCustomVars();
     this.appLayerService.updateLabelExpressions(false);
+  }
+
+  onLoadFinished() : void {
     this.targetAudienceService.applyAudienceSelection();
   }
 
