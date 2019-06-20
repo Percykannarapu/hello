@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { catchError, map, mergeMap, tap } from 'rxjs/operators';
+import { catchError, map, mergeMap, tap, filter } from 'rxjs/operators';
 import { merge, Observable, throwError, EMPTY } from 'rxjs';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { TargetAudienceService } from './target-audience.service';
@@ -101,7 +101,7 @@ export class TargetAudienceTdaService {
     private stateService: AppStateService,
     private store$: Store<LocalAppState>,
     private logger: AppLoggingService) {
-    this.stateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
+    this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
   }
 
   private static createDataDefinition(name: string, pk: string, fieldconte: FieldContentTypeCodes) : AudienceDataDefinition {
@@ -153,8 +153,7 @@ export class TargetAudienceTdaService {
     }
   }
 
-  private onLoadProject(ready: boolean) {
-    if (!ready) return; // loading will be false when the load is actually done
+  private onLoadProject() {
     this.rehydrateAudience();
   }
 /*

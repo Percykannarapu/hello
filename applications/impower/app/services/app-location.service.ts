@@ -544,6 +544,8 @@ export class AppLocationService {
             attribute['homeZip'] = homeZip && homeZip.attributeValue !== '' ? homeZip.attributeValue : attr['ZIP'];
             attribute['homeDma'] = homeDma && homeDma.attributeValue !== '' ? homeDma.attributeValue : attr['homeDma'];
             attribute['homeCounty'] = homeCounty && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : attr['homeCounty'];
+            attribute['homeDmaName'] = attr['DMA_Name'];
+            
           }
           else if (attribute['homeZip'] != null && attribute['homeZip'] !== '' &&  attribute['homeZip'].split(',').length > 1
                   && attribute['homeZip'].includes(attribute['geocoderZip']) && attribute['geocoderZip'] in zipTab14ResponseDict){
@@ -558,11 +560,11 @@ export class AppLocationService {
               attribute['homeZip'] = homeZip && homeZip.attributeValue !== '' ? homeZip.attributeValue : attr['ZIP'];
               attribute['homeDma'] = homeDma && homeDma.attributeValue !== '' ? homeDma.attributeValue : attr['homeDma'];
               attribute['homeCounty'] = homeCounty && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : attr['homeCounty'];
+              attribute['homeDmaName'] = attr['DMA_Name'];
            // }
           }
 
-          const zipDetails = zipResponse.filter((item) => item.ZIP === attribute['homeZip']);
-          attribute['homeDmaName'] = zipDetails[0].DMA_Name;
+         
          /* else {
             attribute['homeZip']    = '';
             attribute['homeDma']    = '';
@@ -627,7 +629,7 @@ export class AppLocationService {
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
 
       if (currentAttributes != null){
-        Object.keys(currentAttributes).filter(key => key.startsWith('home')).forEach(key => {
+        Object.keys(currentAttributes).filter(key => key.startsWith('home') && key != 'homeDmaName').forEach(key => {
           if (newHomeGeoToAnalysisLevelMap[key] != null) {
             // the service might return multiple values for a home geo (in case of overlapping geos)
             // as csv. For now, we're only taking the first result.
@@ -850,7 +852,6 @@ export class AppLocationService {
          })
        );
       }
-
       return merge(dmaAndCountyObservble, pipObservble, initialAttributesObs).pipe(
         filter(value => value != null),
         reduce((acc, value) => [...acc, ...value], [])

@@ -131,9 +131,7 @@ export class TargetAudienceOnlineService {
       [OnlineSourceTypes.Pixel, 'pixel']
     ]);
 
-    this.appStateService.applicationIsReady$.subscribe(ready => {
-      this.onLoadProject(ready);
-    });
+    this.appStateService.applicationIsReady$.subscribe(ready => this.onLoadProject());
 
     this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
   }
@@ -202,8 +200,7 @@ export class TargetAudienceOnlineService {
     }
   }
 
-  private onLoadProject(ready: boolean) {
-    if (!ready) return; // loading will be false when the load is actually done
+  private onLoadProject() {
     this.rehydrateAudience();
   }
 

@@ -124,9 +124,8 @@ export class AppStateService {
   }
 
   private setupApplicationReadyObservable() : void {
-    const projectReady$ = this.store$.pipe(select(projectIsReady));
     this.applicationIsReady$ =
-      combineLatest(this.esriLayerService.layersReady$, projectReady$).pipe(
+      combineLatest([this.esriLayerService.layersReady$, this.store$.select(projectIsReady)]).pipe(
         map(([layersReady, projectReady]) => layersReady && projectReady),
         distinctUntilChanged()
       );
