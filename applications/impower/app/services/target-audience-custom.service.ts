@@ -1,7 +1,6 @@
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { Injectable } from '@angular/core';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
-//import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
 import { AppLoggingService } from './app-logging.service';
 import { TargetAudienceService } from './target-audience.service';
@@ -12,7 +11,6 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { groupBy, filterArray, safe } from '@val/common';
 import { FieldContentTypeCodes, ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
-//import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
@@ -21,8 +19,6 @@ import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { TradeAreaTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
-// import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-// import { AppProjectService } from './app-project.service';
 import { Update } from '@ngrx/entity';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
@@ -53,14 +49,10 @@ export class TargetAudienceCustomService {
 
   constructor(private audienceService: TargetAudienceService,
               private stateService: AppStateService,
-//              private domainFactory: ImpDomainFactoryService,
               private varService: ImpGeofootprintVarService,
               private projectVarService: ImpProjectVarService,
               private appProjectPrefService: AppProjectPrefService,
-//              private appProjectService: AppProjectService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
-//              private targetAudienceService: TargetAudienceService,
-//              private geoService: ImpGeofootprintGeoService,
               private logger: AppLoggingService,
               private store$: Store<LocalAppState>) {
 
@@ -165,19 +157,14 @@ export class TargetAudienceCustomService {
   }
 
   private varPkForColumn(column: string) : string {
-//console.log('### varPkForColumn - fired - column:', column);
     let varPk = null;
     const audiences: Audience[] = this.allAudiencesBS$.value;
 
     if (this.varPkCache.has(column)) {
       varPk = this.varPkCache.get(column);
-//console.log('### varPkForColumn - fired - varPkCache had column:', column, '- varPk:', varPk);
     }
     else {
       // If there is a project var for this column, use the varPk from it.
-// this.projectVarService.get().sort((a, b) => a.sortOrder - b.sortOrder).forEach(pv => console.log('### varPkForColumn - projectVarService:', ', seq:', pv.sortOrder, ' ', pv.varPk, '-', pv.fieldname));
-// this.stateService.currentProject$.getValue().impProjectVars.sort((a, b) => a.sortOrder - b.sortOrder).forEach(ipv => console.log('### varPkForColumn - hier project vars:', ', seq:', ipv.sortOrder, ' ', ipv.varPk, '-', ipv.fieldname));
-
       const projectVar = this.projectVarService.get().filter(pv => pv.fieldname === column);
       if (projectVar != null && projectVar.length > 0) {
         varPk = projectVar[0].varPk;
@@ -201,62 +188,6 @@ export class TargetAudienceCustomService {
     }
     return varPk;
   }
-
-  /*private createGeofootprintVar(geocode: string, column: string, value: string, fileName: string, geoCache: Map<string, ImpGeofootprintGeo[]>) : ImpGeofootprintVar[] {
-    console.log('CreateGeofootprintVar called');
-    const fullId = `Custom/${fileName}/${column}`;
-    let newVarPk = null;
-   // If we have a varPk defined for this column already, use it, if not create one
-    if (this.varPkCache.has(column)) {
-      newVarPk = this.varPkCache.get(column);
-      //console.debug("createGeofootprintVar custom varPkCache found " + column + ", varPk: " + newVarPk);
-    }
-    else {
-      // If there is a project var for this column, use the varPk from it.
-      const projectVar = this.projectVarService.get().filter(pv => pv.fieldname === column);
-      if (projectVar != null && projectVar.length > 0) {
-          newVarPk = projectVar[0].varPk;
-      }
-      else {
-        newVarPk = this.varService.getNextStoreId();
-        const maxVarPk = Math.max.apply(Math, Array.from(this.varPkCache.values()));
-        while (newVarPk <= maxVarPk) {
-          newVarPk = this.varService.getNextStoreId();
-        }
-console.log('createGeofootprintVar: got newVarPk:', newVarPk);
-      }
-      this.varPkCache.set(column, newVarPk);
-      //this.logger.debug.log("createGeofootprintVar custom varPkCache did NOT find " + column + ", new varPk: " + newVarPk, ", varPkCache:", this.varPkCache);
-    }
-    const results: ImpGeofootprintVar[] = [];
-    const numberAttempt = Number(value);
-    const fieldDescription: string = `${column}`;
-
-    // Determine the type and value for the variable
-    let fieldType: FieldContentTypeCodes;
-    let fieldValue: string | number;
-    if (Number.isNaN(numberAttempt)) {
-      fieldValue = value;
-      fieldType = FieldContentTypeCodes.Char;
-    } else {
-      fieldValue = numberAttempt;
-      fieldType = FieldContentTypeCodes.Index;
-    }
-
-    // For each geo matching this geocode, determine if it needs a geo var
-    this.geoService.get().filter(geo => geo.geocode === geocode).forEach(geo => {
-      // If there is no geo var for this geocode / varPk / location, create one
-      if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1
-                     && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === newVarPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1) {
-        const currentResult: ImpGeofootprintVar = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, newVarPk, fieldValue, fullId, fieldDescription, fieldType);
-        currentResult.impGeofootprintLocation = geo.impGeofootprintLocation; // TODO: This should be part of the factory method
-        console.log('createGeofootprintVar custom - created a var: loc: ' + currentResult.impGeofootprintLocation.locationNumber + ', geocode: ' + currentResult.geocode + ', varPk: ' + currentResult.varPk);
-        results.push(currentResult);
-      }
-    });
-    this.varService.add(results);
-    return results;
-  }*/
 
   public parseFileData(dataBuffer: string, fileName: string, isReload: boolean = false) {
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
@@ -292,7 +223,6 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
                 audDataDefinition.showOnMap  = projectVars[0].isShadedOnMap;
                 audDataDefinition.exportInGeoFootprint = projectVars[0].isIncludedInGeofootprint;
               }
-              console.log('### parseFileData - adding audience:', audDataDefinition);
               this.audienceService.addAudience(audDataDefinition);
               const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
               this.store$.dispatch(new CreateAudienceUsageMetric('custom', 'upload', metricText, successCount));
@@ -307,7 +237,7 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
   }
 
   public parseCustomVarData(dataBuffer: string, fileName: string, justColumn?: string) : GeoVar[] {
-    console.log('### parseCustomVarData - fired - dataBuffer size:', dataBuffer.length, 'filename:', fileName, 'justColumn:', justColumn);
+    // console.log('### parseCustomVarData - fired - dataBuffer size:', dataBuffer.length, 'filename:', fileName, 'justColumn:', justColumn);
     let results: GeoVar[] = [];
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
@@ -467,13 +397,6 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
             const mapVar = { geocode: d.geocode };
             if (Object.keys(d).includes(varName)) {
               mapVar[varPk] = d[varName];
-            // for (const [field, fieldValue] of Object.entries(d))
-            //    if (this.varPkCache.has(field)) {
-            //       mapVar[this.varPkCache.get(field).toString()] = fieldValue;
-            //       if (Number.isNaN(Number(fieldValue))) {
-            //         correctAudience.push(field);
-            //       }
-            //    }
               results.push(mapVar);
             }
           });
@@ -486,18 +409,16 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
   }
 
   public reloadVarsFromPrefs(justColumn?: string) : GeoVar[] {
-    // console.log('### reloadVarsFromPrefs - fired - justColumn:', justColumn);
     const result: GeoVar[] = [];
     try {
       if (this.stateService.currentProject$.getValue() != null)
-        console.log('this.stateService.currentProject$.getValue().impProjectPrefs = ', ((this.stateService.currentProject$.getValue().impProjectPrefs != null) ? this.stateService.currentProject$.getValue().impProjectPrefs.length : null));
+        this.logger.info.log('this.stateService.currentProject$.getValue().impProjectPrefs = ', ((this.stateService.currentProject$.getValue().impProjectPrefs != null) ? this.stateService.currentProject$.getValue().impProjectPrefs.length : null));
 
       // Retrieve all of the custom vars from project prefs
       const prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup(ProjectPrefGroupCodes.CustomVar);
-      console.log('reloadVarsFromPrefs - custom var prefs.Count = ' + ((prefs != null) ? prefs.length : null));
+      this.logger.info.log('reloadVarsFromPrefs - custom var prefs.Count = ' + ((prefs != null) ? prefs.length : null));
 
       if (prefs != null && prefs.length > 0) {
-        //prefs.forEach(customVarPref => console.log('reloadVarsFromPrefs - name:', customVarPref.pref, ', Custom Var Pref:', customVarPref));
         prefs.forEach(customVarPref => result.push(...this.parseCustomVarData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref, justColumn)));
       }
     }
@@ -509,15 +430,13 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
   }
 
   public reloadMapVarFromPrefs(varName: string, varPk: string) : MapVar[] {
-    // console.log('### reloadMapVarFromPrefs - fired - varName:', varName, ', varPk:', varPk);
     const result: GeoVar[] = [];
     try {
       // Retrieve all of the custom vars from project prefs
       const prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup(ProjectPrefGroupCodes.CustomVar);
-      console.log('reloadMapVarFromPrefs - custom var prefs.Count = ' + ((prefs != null) ? prefs.length : null));
+      this.logger.info.log('reloadMapVarFromPrefs - custom var prefs.Count = ' + ((prefs != null) ? prefs.length : null));
 
       if (prefs != null && prefs.length > 0) {
-      //prefs.forEach(customVarPref => console.log('reloadVarsFromPrefs - name:', customVarPref.pref, ', Custom Var Pref:', customVarPref));
         prefs.forEach(customVarPref => result.push(...this.parseCustomMapVar(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref, varName, varPk)));
       }
     }
@@ -535,34 +454,4 @@ console.log('createGeofootprintVar: got newVarPk:', newVarPk);
   private handleError(message: string) : void {
     this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
   }
-
-  // TODO: This was removed, need to make sure all functionality is represented
-  /*
-  private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[]) : Observable<ImpGeofootprintVar[]> {
-    console.log('Refresh callback', geocodes, identifiers);
-    // console.log("addAudience - target-audience-custom - audienceRefreshCallback fired - ");
-    if (identifiers == null || identifiers.length === 0 || geocodes == null || geocodes.length === 0)
-      return EMPTY;
-    const geoSet = new Set(geocodes);
-    const geoCache = this.buildGeoCache();
-    const observables: Observable<ImpGeofootprintVar[]>[] = [];
-    const allNewVars = [];
-    const projectVarsDict = this.stateService.projectVarsDict$.getValue();
-    geoSet.forEach(geo => {
-      if (this.dataCache != null && this.dataCache.hasOwnProperty(geo)) {
-        identifiers.forEach(varPk => {
-          const column = (projectVarsDict[varPk] || safe).fieldname;
-          const newVars = this.createGeofootprintVar(geo, column, this.dataCache[geo][column], this.currentFileName, geoCache);
-          allNewVars.push(...newVars);
-        });
-      }
-    });
-    // console.groupCollapsed("New custom vars: " + allNewVars.length);
-    // this.logger.debug.log("allNewVars:", allNewVars);
-    // console.groupEnd();
-    return Observable.create(o => {
-      o.next(allNewVars);
-      o.complete();
-    });
-  }*/
 }

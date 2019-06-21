@@ -24,7 +24,6 @@ export class EsriRendererEffects {
   disableShading$ = this.actions$.pipe(
     ofType(EsriRendererActionTypes.ClearShadingData),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
-tap(([action, mapState]) => console.log('### EsriRendererActionTypes.ClearShadingData, mapState:', mapState)),
     tap(([action, mapState]) => this.rendererService.restoreSimpleRenderer(mapState))
   );
 

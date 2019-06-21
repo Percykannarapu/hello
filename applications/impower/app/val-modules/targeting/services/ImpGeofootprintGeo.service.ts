@@ -4,8 +4,6 @@
  ** See the contents of val-modules/common/services/datastore.service.ts to see built in
  ** methods that all data services have.
  **
- ** NOTE: This class is generated only once and may be updated by developers.
- **
  ** ImpGeofootprintGeo.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -606,7 +604,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          }
       }
       catch (e) {
-         console.error('### ERROR Parsing must cover string: ' + mustCoverCsv);
+         console.error('ERROR Parsing must cover string: ' + mustCoverCsv);
          console.error(e);
          return [];
       }

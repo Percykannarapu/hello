@@ -7,8 +7,6 @@ import { FullAppState } from '../../../../state/app.interfaces';
 import { CacheGeosComplete, TransientActionTypes, CacheGeosFailure, CacheGeos } from './../transient.actions';
 import { GeoVarActions, GeoVarActionTypes, GeoVarCacheGeos, GeoVarCacheGeosComplete, GeoVarCacheGeosFailure, UpsertGeoVars, GeoVarCacheGeofootprintGeos, RemoveVar, DeleteGeoVars, RemoveVars } from './geo-vars.actions';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
-import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { TargetAudienceService } from 'app/services/target-audience.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { AppConfig } from 'app/app.config';
 import { CacheGeofootprintGeos } from '../transient.actions';
@@ -29,12 +27,11 @@ export class GeoVarsEffects {
       geocodes: Array.from(action.payload.geocodes),
       correlationId: getUuid()
     })),
-tap(params => console.log('### geoVarCacheGeos - correlationId:', params.correlationId)),
+    //tap(params => console.log('### geoVarCacheGeos - correlationId:', params.correlationId)),
     tap(params => this.store$.dispatch(new CacheGeos({ geocodes: new Set(params.geocodes), correlationId: params.correlationId }))),
     switchMap(action => this.actions$.pipe(
       ofType<CacheGeosComplete|CacheGeosFailure>(TransientActionTypes.CacheGeosComplete, TransientActionTypes.CacheGeosFailure),
       filter(response => response.payload.correlationId === action.correlationId),
-tap(response => console.log('### geoVarCacheGeos -', action.correlationId, 'response:', response)),
       map(response => (response.type == TransientActionTypes.CacheGeosComplete)
                       ? new GeoVarCacheGeosComplete({ transactionId: response.payload.transactionId, correlationId: response.payload.correlationId })
                       : new GeoVarCacheGeosFailure({ err: response.payload.err, correlationId: response.payload.correlationId })),
@@ -50,12 +47,11 @@ tap(response => console.log('### geoVarCacheGeos -', action.correlationId, 'resp
       geocodes: this.appStateService.uniqueIdentifiedGeocodes$.getValue(),
       correlationId: getUuid()
     })),
-tap(params => console.log('### geoVarCacheGeofootprintGeos - caching:', params.geocodes.length, 'geos - correlationId:', params.correlationId)),
+    //tap(params => console.log('### geoVarCacheGeofootprintGeos - caching:', params.geocodes.length, 'geos - correlationId:', params.correlationId)),
     tap(params => this.store$.dispatch(new CacheGeofootprintGeos({ correlationId: params.correlationId }))),
     switchMap(action => this.actions$.pipe(
       ofType<CacheGeosComplete|CacheGeosFailure>(TransientActionTypes.CacheGeosComplete, TransientActionTypes.CacheGeosFailure),
       filter(response => response.payload.correlationId === action.correlationId),
-tap(response => console.log('### geoVarCacheGeofootprintGeos - transactionId:', 'response:', response)),
       map(response => (response.type == TransientActionTypes.CacheGeosComplete)
                       ? new GeoVarCacheGeosComplete({ transactionId: response.payload.transactionId, correlationId: response.payload.correlationId })
                       : new GeoVarCacheGeosFailure({ err: response.payload.err, correlationId: response.payload.correlationId })),
@@ -68,7 +64,7 @@ tap(response => console.log('### geoVarCacheGeofootprintGeos - transactionId:', 
   cacheGeosComplete$ = this.actions$.pipe(
     ofType<CacheGeosComplete>(GeoVarActionTypes.GeoVarCacheGeosComplete),
     map(action => action.payload),
-    tap(payload => console.log('### GeoVar CacheGeosComplete - transactionId:', payload.transactionId, ', correlationId:', payload.correlationId))
+    // tap(payload => console.log('### GeoVar CacheGeosComplete - transactionId:', payload.transactionId, ', correlationId:', payload.correlationId))
   );
 
   /*
@@ -151,8 +147,6 @@ tap(response => console.log('### geoVarCacheGeofootprintGeos - transactionId:', 
               private store$: Store<FullAppState>,
               private config: AppConfig,
               private logger: LoggingService,
-              private restService: RestDataService,
-              private audienceService: TargetAudienceService,
               private appStateService: AppStateService
               ) { }
 }

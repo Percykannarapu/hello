@@ -17,11 +17,11 @@ import { AppConfig } from 'app/app.config';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { TargetAudienceTdaService } from 'app/services/target-audience-tda.service';
 import { RemoveGeoCache } from '../transient.actions';
-import { MapVarCacheGeos, MapVarCacheGeosFailure, MapVarCacheGeosComplete, MapVarActionTypes, UpsertMapVars } from '../map-vars/map-vars.actions';
+import { MapVarCacheGeos, MapVarCacheGeosFailure, MapVarCacheGeosComplete, MapVarActionTypes, UpsertMapVars, ClearMapVars } from '../map-vars/map-vars.actions';
 import { MapVar } from '../map-vars/map-vars.model';
 import { StopBusyIndicator } from '@val/messaging';
 import { AudienceActionTypes, ApplyAudiences, AudienceActions, FetchOnlineInterest, FetchOnlinePixel, FetchOnlineVLH, FetchOfflineTDA, FetchOnlineInMarket, AddAudience, FetchOnlineInterestCompleted, FetchOnlineInMarketCompleted,
-         FetchOnlinePixelCompleted, FetchOnlineVLHCompleted, FetchOfflineTDACompletedMap, FetchOnlineFailed, FetchCountIncrement, FetchCountDecrement, ApplyAudiencesCompleted, ApplyAudiencesRecordStart,
+         FetchOnlinePixelCompleted, FetchOnlineVLHCompleted, FetchOfflineTDACompletedMap, FetchOnlineFailed, FetchCountIncrement, FetchCountDecrement, ApplyAudiencesCompleted,// ApplyAudiencesRecordStart,
          FetchOfflineTDACompleted, FetchOfflineFailed, FetchCustom, FetchCustomCompleted, FetchCustomFromPrefs, FetchCustomFailed, FetchMapVar, FetchOnlineInterestMap, FetchOnlineVLHMap, FetchOnlinePixelMap,
          FetchOfflineTDAMap, FetchCustomFromPrefsMap, FetchOnlineInMarketMap, FetchOnlineInterestCompletedMap, FetchOnlineInMarketCompletedMap, FetchOnlinePixelCompletedMap, FetchOnlineVLHCompletedMap,
          FetchOnlineFailedMap, FetchOfflineFailedMap, FetchCustomCompletedMap, FetchCustomFailedMap, MoveAudienceUp, UpsertAudiences, MoveAudienceDn,
@@ -33,6 +33,8 @@ import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-
 const shadingKey: string = 'SHADING_DATA';
 
 let stats: Stats = initialStatState;
+let applyStart: number = null;
+let applyStop: number = null;
 
 @Injectable()
 export class AudiencesEffects {
@@ -47,40 +49,29 @@ export class AudiencesEffects {
   @Effect({dispatch: false})
   applyAudiences$ = this.actions$.pipe(
     ofType<ApplyAudiences>(AudienceActionTypes.ApplyAudiences),
-    tap(action => console.log('### ApplyAudiences action fired', action)),
     map(action => ({ analysisLevel: action.payload.analysisLevel })),
     tap(action => stats = {...initialStatState}),
-    tap(action => this.store$.dispatch(new ApplyAudiencesRecordStart())),
+    tap(action => applyStart = performance.now()),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesAppliable))),
     tap(([action, audiences]) => {
-      console.log('### ApplyAudiences - selectedAudiences count', audiences.length);
-      audiences.forEach(aud => console.log('### ApplyAudiences - selectedAudiences - aud:', aud));
+      //audiences.forEach(aud => console.log('### ApplyAudiences - selectedAudiences - aud:', aud));
       if (audiences.length > 0)
         this.store$.dispatch(new GeoVarCacheGeofootprintGeos());
     }),
     switchMap(([action, selectedAudiences]) => this.actions$.pipe(
         ofType<GeoVarCacheGeosComplete | GeoVarCacheGeosFailure>(GeoVarActionTypes.GeoVarCacheGeosComplete, GeoVarActionTypes.GeoVarCacheGeosFailure),
         take(1),
-        tap(errorAction => (errorAction.type === GeoVarActionTypes.GeoVarCacheGeosFailure) ? console.log('### applyAudiences detected CacheGeosFailure:', errorAction.payload) : null),
+        tap(errorAction => (errorAction.type === GeoVarActionTypes.GeoVarCacheGeosFailure) ? this.logger.error.log('applyAudiences detected CacheGeosFailure:', errorAction.payload) : null),
         filter(filterAction => filterAction.type === GeoVarActionTypes.GeoVarCacheGeosComplete),
-        tap(payload => console.log('### applyAudiences detected CacheGeosComplete - payload:', payload, 'action:', action, 'audiences:', selectedAudiences)),
+        //tap(payload => console.log('### applyAudiences detected CacheGeosComplete - payload:', payload, 'action:', action, 'audiences:', selectedAudiences)),
         tap((subAction) => {
           const transactionId: number = (subAction.type === GeoVarActionTypes.GeoVarCacheGeosComplete) ? subAction.payload.transactionId : null;
-          // console.log('### applyAudiences subAction response:', transactionId, 'action:', action, 'audiences:', selectedAudiences);
-          // console.log('### applyAudiences effect: transactionId:', transactionId, 'analysisLevel:', action.analysisLevel, 'geos:', action.geos, 'audiences:', selectedAudiences);
           const audiencesBySource = groupByExtended(selectedAudiences, a => this.targetAudienceService.createKey(a.audienceSourceType, a.audienceSourceName));
-          // const isolatedGetStart = performance.now();
-          // const key = this.targetAudienceService.spinnerKey;
-          // const notificationTitle = 'Audience Error';
-          // const errorMessage = 'There was an error retrieving audience data';
-          // const nonCachedAudiences = selectedAudiences.filter(a => !a.requiresGeoPreCaching);
-          // const preCachedAudiences = selectedAudiences.filter(a => a.requiresGeoPreCaching);
 
           // Dispatch a fetch for each audience source
           audiencesBySource.forEach((audiences, source) => {
             const ids = audiences.map(audience => audience.audienceIdentifier);
             const showOnMap = audiences.map(audience => audience.showOnMap);
-            console.log('### applyAudiences - source: ', source, 'audiences:', audiences);
             switch (source) {
               case 'Online/Interest':
                 this.store$.dispatch(new FetchOnlineInterest({ fuseSource: 'interest', al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
@@ -118,10 +109,9 @@ export class AudiencesEffects {
   applyAudiencesCompleted$ = this.actions$.pipe(
     ofType<ApplyAudiencesCompleted>(AudienceActionTypes.ApplyAudiencesCompleted),
     withLatestFrom(this.store$.pipe(select(fromGeoVarSelectors.getTransactionId)),
-                   this.store$.pipe(select(fromGeoVarSelectors.getGeoVarCount)),
-                   this.store$.pipe(select(fromAudienceSelectors.getApplyAudiencesStart))),
-    map(([action, transactionId, geoVarCount, startTime]) => {
-      stats.totalTime = formatMilli(performance.now() - startTime);
+                   this.store$.pipe(select(fromGeoVarSelectors.getGeoVarCount))),
+    map(([action, transactionId, geoVarCount]) => {
+      stats.totalTime = formatMilli(applyStop - applyStart);
       stats.totalGeoVars = geoVarCount;
       this.store$.dispatch(new ApplyAudiencesRecordStats({ stats: stats }));
       this.logger.info.log('*** Apply Audiences Completed in', stats.totalTime, '***');
@@ -132,39 +122,32 @@ export class AudiencesEffects {
   @Effect({dispatch: false})
   fetchMapVar$ = this.actions$.pipe(
     ofType<FetchMapVar>(AudienceActionTypes.FetchMapVar),
-  //tap(action => this.store$.dispatch(new ApplyAudiencesRecordStart())),
-    tap(action => console.log('### fetchMapVar - geos(' + action.payload.geos.length + '):', action.payload.geos)),
-    tap(action => this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(action.payload.geos) }))),
+  //tap(action => console.log('### fetchMapVar - geos(' + action.payload.geos.length + '):', action.payload.geos)),
     tap(action => {
-      this.store$.pipe(select(fromAudienceSelectors.getAudiencesOnMap)).subscribe(aud => console.log('### fetchMapVar - getAudiencesOnMap:', aud));
+      stats.totalMapVars = 0;
+      this.store$.dispatch(new ClearMapVars());
     }),
+    tap(action => this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(action.payload.geos) }))),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesOnMap))),
     switchMap(([action, selectedAudiences]) => this.actions$.pipe(
       ofType<MapVarCacheGeosComplete | MapVarCacheGeosFailure>(MapVarActionTypes.MapVarCacheGeosComplete, MapVarActionTypes.MapVarCacheGeosFailure),
         take(1),
         tap(errorAction => { if (errorAction.type === MapVarActionTypes.MapVarCacheGeosFailure) {
-          console.log('### fetchMapVar detected MapVarCacheGeosFailure:', errorAction.payload);
+          this.logger.error.log('fetchMapVar detected MapVarCacheGeosFailure:', errorAction.payload);
           this.store$.dispatch(new StopBusyIndicator({key: shadingKey}));
         }}),
         filter(filterAction => filterAction.type === MapVarActionTypes.MapVarCacheGeosComplete),
-        tap(payload => console.log('### fetchMapVar detected MapVarCacheGeosComplete - payload:', payload, 'action:', action, 'audiences:', selectedAudiences)),
+      //tap(payload => console.log('### fetchMapVar detected MapVarCacheGeosComplete - payload:', payload, 'action:', action, 'audiences:', selectedAudiences)),
         tap((subAction) => {
           const transactionId: number = (subAction.type === MapVarActionTypes.MapVarCacheGeosComplete) ? subAction.payload.transactionId : null;
-          console.log('### applyAudiences subAction response:', transactionId, 'action:', action, 'audiences:', selectedAudiences);
+        //console.log('### applyAudiences subAction response:', transactionId, 'action:', action, 'audiences:', selectedAudiences);
           const audiencesBySource = groupByExtended(selectedAudiences, a => this.targetAudienceService.createKey(a.audienceSourceType, a.audienceSourceName));
-          // const isolatedGetStart = performance.now();
-          // const key = this.targetAudienceService.spinnerKey;
-          // const notificationTitle = 'Audience Error';
-          // const errorMessage = 'There was an error retrieving audience data';
-          // const nonCachedAudiences = selectedAudiences.filter(a => !a.requiresGeoPreCaching);
-          // const preCachedAudiences = selectedAudiences.filter(a => a.requiresGeoPreCaching);
           const analysisLevel = action.payload.analysisLevel;
 
           // Dispatch a fetch for each audience source
           audiencesBySource.forEach((audiences, source) => {
             const ids = audiences.map(audience => audience.audienceIdentifier);
             const showOnMap = audiences.map(audience => audience.showOnMap);
-            console.log('### fetchMapVar - source: ', source, 'audiences:', audiences);
             switch (source) {
               case 'Online/Interest':
                 this.store$.dispatch(new FetchOnlineInterestMap({ fuseSource: 'interest', al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
@@ -276,7 +259,7 @@ export class AudiencesEffects {
           (AudienceActionTypes.FetchOnlineInterestCompleted, AudienceActionTypes.FetchOnlineInMarketCompleted,
            AudienceActionTypes.FetchOnlinePixelCompleted, AudienceActionTypes.FetchOnlineVLHCompleted),
     tap(action => {
-      console.log(`### Retrieved`, action.payload.response.length, `geo vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime));
+      this.logger.info.log(`Retrieved`, action.payload.response.length, `geo vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime));
       stats.fetchTimes[action.payload.source] = formatMilli(performance.now() - action.payload.startTime);
     }),
     map(bulkResponse => {
@@ -288,6 +271,7 @@ export class AudiencesEffects {
           gv[responseRow.digCategoryId] = isNaN(score as any) ? score : Number(score);
           return gv;
         });
+      applyStop = performance.now();
       stats.counts[bulkResponse.payload.source] = geoVars.length;
       this.store$.dispatch(new FetchCountDecrement());
       return new UpsertGeoVars({ geoVars: geoVars});
@@ -299,7 +283,7 @@ export class AudiencesEffects {
     ofType<FetchOnlineInterestCompletedMap | FetchOnlineInMarketCompletedMap |FetchOnlinePixelCompletedMap | FetchOnlineVLHCompletedMap>
           (AudienceActionTypes.FetchOnlineInterestCompletedMap, AudienceActionTypes.FetchOnlineInMarketCompletedMap,
            AudienceActionTypes.FetchOnlinePixelCompletedMap, AudienceActionTypes.FetchOnlineVLHCompletedMap),
-    tap(action => console.log(`### Retrieved`, action.payload.response.length, `map vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime))),
+    tap(action => this.logger.info.log(`Retrieved`, action.payload.response.length, `map vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime))),
     map(bulkResponse => {
       const mapVars: MapVar[] = bulkResponse.payload.response.filter(data => data != null)
         .map(responseRow => {
@@ -348,7 +332,6 @@ export class AudiencesEffects {
       isForShading: action.payload.showOnMap,
       chunks: this.config.geoInfoQueryChunks
     })),
-    //tap(inputData => console.log('### inputData:', inputData)),
     // mergeMap to watch for completes on all active fetches
     mergeMap((params) => {
       this.store$.dispatch(new FetchCountIncrement()); // Count all out going fetches to know when all have completed
@@ -364,7 +347,7 @@ export class AudiencesEffects {
                        : new FetchOfflineTDACompleted({ source: params.source, startTime: refreshStart, response: offlineBulkDataResponse });
 
               default:
-                console.warn('### Offline Variable Refresh had an invalid source:', params.source);
+                console.warn('Offline Variable Refresh had an invalid source:', params.source);
                 return EMPTY;
             }
           }),
@@ -379,7 +362,7 @@ export class AudiencesEffects {
   fetchOfflineVariablesCompleted$ = this.actions$.pipe(
     ofType<FetchOfflineTDACompleted> (AudienceActionTypes.FetchOfflineTDACompleted),
     tap(action => {
-      console.log(`### Retrieved`, action.payload.response.length, `geo vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime));
+      this.logger.info.log(`Retrieved`, action.payload.response.length, `geo vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime));
       stats.fetchTimes[action.payload.source] = formatMilli(performance.now() - action.payload.startTime);
     }),
     map(bulkResponse => {
@@ -390,6 +373,7 @@ export class AudiencesEffects {
           gv[responseRow.id] = isNaN(responseRow.score as any) ? responseRow.score : Number(responseRow.score);
           return gv;
         });
+      applyStop = performance.now();
       stats.counts[bulkResponse.payload.source] = geoVars.length;
       this.store$.dispatch(new FetchCountDecrement());
 
@@ -400,7 +384,7 @@ export class AudiencesEffects {
   @Effect()
   fetchOfflineTDACompletedMap$ = this.actions$.pipe(
     ofType<FetchOfflineTDACompletedMap> (AudienceActionTypes.FetchOfflineTDACompletedMap),
-    tap(action => console.log(`### Retrieved`, action.payload.response.length, `map vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime))),
+    tap(action => this.logger.info.log(`Retrieved`, action.payload.response.length, `map vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime))),
     map(bulkResponse => {
       const mapVars: MapVar[] = bulkResponse.payload.response.filter(data => data != null)
         .map(responseRow => {
@@ -439,7 +423,6 @@ export class AudiencesEffects {
     map(action => {
       const refreshStart = performance.now();
       try {
-        console.log('### fetchCustomVariables effect fired');
         const geoVars = this.targetAudienceCustomService.parseCustomVarData(action.payload.dataBuffer, action.payload.fileName);
         if (geoVars != null)
           return new FetchCustomCompleted({ source: 'custom', startTime: refreshStart, response: geoVars });
@@ -472,7 +455,7 @@ export class AudiencesEffects {
     map(([action, selectedAudiences]) => {
       const refreshStart = performance.now();
       const mapVars = this.targetAudienceCustomService.reloadMapVarFromPrefs(selectedAudiences[0].audienceName, selectedAudiences[0].audienceIdentifier);
-      console.log('### fetchCustomFromPrefsMap - fired - mapVars:', mapVars, 'audiences:', selectedAudiences);
+      //console.log('### fetchCustomFromPrefsMap - fired - mapVars:', mapVars, 'audiences:', selectedAudiences);
       if (mapVars != null)
         return new FetchCustomCompletedMap({ source: 'custom', startTime: refreshStart, response: mapVars });
       else
@@ -484,7 +467,7 @@ export class AudiencesEffects {
   fetchCustomVariablesCompleted$ = this.actions$.pipe(
     ofType<FetchCustomCompleted> (AudienceActionTypes.FetchCustomCompleted),
     tap(action => {
-      console.log(`### Retrieved`, action.payload.response.length, `geo vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime));
+      this.logger.info.log(`Retrieved`, action.payload.response.length, `geo vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime));
       stats.fetchTimes[action.payload.source] = formatMilli(performance.now() - action.payload.startTime);
     }),
     map(bulkResponse => {
@@ -494,7 +477,8 @@ export class AudiencesEffects {
       for (let i = 0; i < geoVars.length; i++)
         for (const [field, ] of Object.entries(geoVars[i]))
           if (field !== 'geocode')
-              count++;
+            count++;
+      applyStop = performance.now();
       stats.counts[bulkResponse.payload.source] = count;
       return new UpsertGeoVars({ geoVars: bulkResponse.payload.response.filter(data => data != null)});
     })
@@ -503,13 +487,13 @@ export class AudiencesEffects {
   @Effect()
   fetchCustomVariablesCompletedMap$ = this.actions$.pipe(
     ofType<FetchCustomCompletedMap> (AudienceActionTypes.FetchCustomCompletedMap),
-    tap(action => console.log(`### Retrieved`, action.payload.response.length, `map vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime))),
+    tap(action => this.logger.info.log(`Retrieved`, action.payload.response.length, `map vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime))),
     map(bulkResponse => {
       this.store$.dispatch(new FetchCountDecrement());
       this.store$.dispatch(new StopBusyIndicator({key: shadingKey}));
       const mapVars = bulkResponse.payload.response.filter(data => data != null);
       stats.totalMapVars += mapVars.length;
-      return new UpsertMapVars({ mapVars: bulkResponse.payload.response.filter(data => data != null)});
+      return new UpsertMapVars({ mapVars: mapVars});
     })
   );
 
@@ -577,7 +561,6 @@ export class AudiencesEffects {
     ofType<SequenceChanged>(AudienceActionTypes.SequenceChanged),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.allAudiences))),
     map(([, allAudiences]) => {
-      console.log('### audience sequence changed:', allAudiences);
       this.targetAudienceService.syncProjectVarOrder();
     })
   );

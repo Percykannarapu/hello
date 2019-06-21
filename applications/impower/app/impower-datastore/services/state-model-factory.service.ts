@@ -87,14 +87,13 @@ export class StateModelFactoryService {
       isUploaded: isCustom,
       isActive: isActive,
       uploadFileName: isCustom ? audience.audienceSourceName : '',
-      sortOrder: audience.seq // audience.audienceCounter,
+      sortOrder: audience.seq
     });
   }
 
   createProjectPref(parentId: number, prefGroup: string, pref: string, prefType: string, val: string, largeVal: string, isActive: boolean = true) : ImpProjectPrefState {
     if (val == null) throw new Error('Project Preferences cannot have a null value');
     return new ImpProjectPrefState({
-
       projectPrefId: StateModelFactoryService.getNextId(),
       projectId:     parentId,
       dirty:         true,

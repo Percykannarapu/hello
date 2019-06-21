@@ -70,7 +70,6 @@ export function reducer(state = initialState, action: MapVarActions) : State {
     }
 
     case MapVarActionTypes.ClearMapVars: {
-      console.log('### MapVarActionTypes.ClearMapVars');
       return adapter.removeAll(state);
     }
 

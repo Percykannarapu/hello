@@ -238,11 +238,8 @@ export class TargetAudienceOnlineService {
   public addAudience(audience: OnlineAudienceDescription, source: OnlineSourceTypes) {
     this.usageMetricCheckUncheckApio('checked', audience, source);
     const model = TargetAudienceOnlineService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digLookup.get(this.fuseSourceMapping.get(source)));
-console.log('### target-audience-online - adding audience:', model);
     this.audienceService.addAudience(
       model,
-//      (al, pks, geos, shading, transactionId) => this.OLDapioRefreshCallback(source, al, pks, geos, shading, transactionId),
-//    null, //(al, pks, geos, shading, transactionId) => this.apioRefreshCallback(source, al, pks, geos, shading, transactionId),
       (al, pk, transactionId) => this.nationalRefreshCallback(source, al, pk, transactionId)
     );
   }
@@ -311,7 +308,6 @@ console.log('### target-audience-online - adding audience:', model);
   }
 
   public apioDataRefresh(source: OnlineSourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<OnlineBulkDataResponse[]>[] {
-console.log('### apiDataRefresh - Fired');
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
     const observables: Observable<OnlineBulkDataResponse[]>[] = [];
@@ -327,7 +323,6 @@ console.log('### apiDataRefresh - Fired');
       const inputData = {
         geoType: serviceAnalysisLevel,
         source: this.fuseSourceMapping.get(source),
-        // geocodes: chunk,
         digCategoryIds: numericIds,
         varType: varTypes,
         transactionId: transactionId,
@@ -355,14 +350,12 @@ console.log('### apiDataRefresh - Fired');
     return observables;
   }
 
-  // NOTE: This is going to be the new digital var refresh method
   public onlineVarRefresh(source: OnlineSourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number) : Observable<OnlineBulkDataResponse[]> {
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
-    const observables: Observable<OnlineBulkDataResponse[]> = null;
     const currentProject = this.appStateService.currentProject$.getValue();
 
-    console.log('### onlineVarRefresh:', source, 'ids:', numericIds, 'geocodes:', geocodes, 'transactionId:', transactionId);
+    // console.log('### onlineVarRefresh:', source, 'ids:', numericIds, 'geocodes:', geocodes, 'transactionId:', transactionId);
     const varTypes: string[] = [];
     identifiers.forEach(id => {
       const pv = currentProject.impProjectVars.filter(v => v.varPk.toString() === id);
@@ -380,7 +373,7 @@ console.log('### apiDataRefresh - Fired');
       chunks: this.config.geoInfoQueryChunks
     };
 
-    // Simulate error
+    // DEBUG: Simulate error
     // if (inputData.source === 'vlh')
     //   return throwError('No Data was returned for the selected audiences');
 
@@ -388,7 +381,6 @@ console.log('### apiDataRefresh - Fired');
       this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now());
       return this.restService.post('v1/targeting/base/geoinfo/digitallookup', [inputData])
         .pipe(
-          //tap(response => console.log('###', inputData.source, 'response:', response)),
           tap(response => this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now() - this.audienceService.timingMap.get('(' + inputData.source.toLowerCase() + ')'))),
           map(response => this.validateFuseResponse(inputData, response, isForShading)),
           tap(response => (response)),
@@ -421,8 +413,6 @@ console.log('### apiDataRefresh - Fired');
     inputData.digCategoryIds.forEach(id => {
       const audience = audMap.get(id.toString());
       const sourceName = audience.audienceSourceName != null && audience.audienceSourceName.toLowerCase() === 'in-market' ? 'in_market' : audience.audienceSourceName;
-   // const dmaKey = `${audience.audienceName}_${sourceName.toLowerCase()}_DMA`;
-   // const nationalKey = `${audience.audienceName}_${sourceName.toLowerCase()}_NATIONAL`;
       const dmaKey = `${id}_${sourceName.toLowerCase()}_DMA`;
       const nationalKey = `${id}_${sourceName.toLowerCase()}_NAT`;
       newArray.forEach(row => {
@@ -461,8 +451,6 @@ console.log('### apiDataRefresh - Fired');
     inputData.digCategoryIds.forEach(id => {
       const audience = audMap.get(id.toString());
       const sourceName = audience.audienceSourceName != null && audience.audienceSourceName.toLowerCase() === 'in-market' ? 'in_market' : audience.audienceSourceName;
-      // const dmaKey = `${audience.audienceName}_${sourceName.toLowerCase()}_DMA`;
-      // const nationalKey = `${audience.audienceName}_${sourceName.toLowerCase()}_NATIONAL`;
       const dmaKey = `${id}_${sourceName.toLowerCase()}_DMA`;
       const nationalKey = `${id}_${sourceName.toLowerCase()}_NAT`;
       newArray.forEach(row => {

@@ -633,7 +633,7 @@ export class AppGeoService {
          //this.impGeoService.mustCovers.forEach(mc => console.log("### MC: " + mc));
       }
       catch (e) {
-         console.error ('### Error loading must covers: ' + e);
+         console.error ('Error loading must covers: ' + e);
       }
    }
 

@@ -21,16 +21,16 @@ import { Audience } from 'app/impower-datastore/state/transient/audience/audienc
 import { AppStateService } from '../../services/app-state.service';
 
 export interface FlatGeo {
-   fgId: number;
-   geo: ImpGeofootprintGeo;
+  fgId: number;
+  geo: ImpGeofootprintGeo;
 }
 
 export interface ColMetric {
-   tot:  number;
-   cnt?: number;
-   min?: number;
-   max?: number;
-   avg?: number;
+  tot:  number;
+  cnt?: number;
+  min?: number;
+  max?: number;
+  avg?: number;
 }
 
 interface AttributeEntity { [geocode: string] : GeoAttribute; }
@@ -152,14 +152,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    // Variable column order observable
    private _varColOrder: Map<string, number> = new Map();
-// private varColOrder$: Observable<Map<string, number>>;
-
-   // Project variables index lookup
-   private projectVarsDict: { [varpk: number] : ImpProjectVar };
-
-   // Grid Observables for totals
-   private gridValuesBS$ = new BehaviorSubject<any[]>([]);
-   private gridFilterBS$ = new BehaviorSubject<any[]>([]);
 
    public  gridValues$: Observable<any[]>;
    public  gridFilter$: Observable<any[]>;
@@ -220,7 +212,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  flatGeoGridExtraColumns: any[];
    public  selectedColumns: any[] = [];
    public  columnOptions: SelectItem[] = [];
-// public  variableColOrder:Map<string, number> = new Map<string, number>();
 
    // Control table cell / header wrapping
    private tableWrapOn: string = 'val-table val-tbody-wrap';
@@ -257,6 +248,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       this.listCollapse$ = this.appStateService.getCollapseObservable();
       this.listCollapse$.subscribe(collapseFlag => this.gridUpdateFlag = collapseFlag);
+
       // Observe the behavior subjects on the input parameters
       this.project$ = this.projectBS$.asObservable();
       this.allAudiences$ = this.allAudiencesBS$.asObservable();
@@ -266,9 +258,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.allMustCovers$ = this.allMustCoversBS$.asObservable();
       this.allAttributes$ = this.allAttributesBS$.asObservable();
       this.allVars$ = this.allVarsBS$.asObservable();
-      //this.varColOrder$ = this.varColOrderBS$.asObservable();
-
-      //this.varColOrder$.subscribe(colOrder => {/*this.variableColOrder = colOrder; */console.log("OBSERVABLE FIRED: varColOrder$ - colOrder:", colOrder); console.log("variableColOrder: ", this.variableColOrder);})
 
       // Whenever the project changes, update the grid export file name
       this.project$.subscribe(project => {
@@ -333,9 +322,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this._geoGrid.filterConstraints['numericFilter']  = (value, filter) : boolean => FilterData.numericFilter(value, filter);
       this._geoGrid.filterConstraints['distanceFilter'] = (value, filter) : boolean => FilterData.numericFilter(value, filter, 2);
 
-      //this._geoGrid._value
-//      this.gridValuesBS$ =
-//      this.gridValues$ = from(this._geoGrid._value);
       this.gridValues$ = Observable.create(observer => observer.next(this._geoGrid._value));
 
       this.gridValues$.subscribe(data => {
@@ -346,8 +332,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       const subscribe = this.gridValues$.subscribe(val => {
          console.log('subscribe fired - ', val);
       });
-//      this.gridFilter$ =
-
 
       // ----------------------------------------------------------------------
       // Table filter observables
@@ -425,12 +409,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     */
    initializeState() {
       //console.log('geoGrid - initializeState - fired');
-      //this.gridStats = {
-         //numLocsActive: 0,
-         this.gridStats.numGeos = 0;
-         this.gridStats.numGeosActive = 0;
-         this.gridStats.numGeosInactive = 0;
-      //}
+      this.gridStats.numGeos = 0;
+      this.gridStats.numGeosActive = 0;
+      this.gridStats.numGeosInactive = 0;
 
       this.dedupeGrid = false;
       this.dupeCount = 0;
@@ -443,7 +424,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.distanceRanges = [null, null];
       this.cpmRanges = [null, null];
 
-      //console.log(this._geoGrid);
       this._geoGrid.reset();
       this._varColOrder = {...this._varColOrder};
 
@@ -487,87 +467,23 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
         this.initializeGridTotals();
         return [];
       }
-
-      this.projectVarsDict = mapArrayToEntity(projectVars,  v => v.varPk);
-
-      //let uniqueGeos = (geos != null) ? new Set(geos.map(geo => geo.geocode)) : new Set();
       console.log('createComposite:',
                   ' geos:' , (geos.length),
-               // ' unique geos:' , ((uniqueGeos != null) ? uniqueGeos.size: null),
                   ' must covers:' , ((mustCovers != null) ? mustCovers.length : null),
                   ' projectVars: ', ((projectVars != null) ? projectVars.length : null),
                   ' geo vars:' , ((gridGeoVars != null) ? gridGeoVars.geoVars.length : null),
-      ); // TODO: put back somehow                  ' geo vars custom:' , ((gridGeoVars != null) ? gridGeoVars.geoVars.filter(gv => (this.projectVarsDict[gv.varPk] || safe).isCustom).length : null));
+      );
       // DEBUG: See additional parameters
       // console.log('createComposite: varColOrder: ', varColOrder
       //            ,' project: ', project
       //            ,' smAnneCpm: ' + project.smAnneCpm + ', smSoloCpm: ' + project.smSoloCpm + ', smValassisCpm: ' + project.smValassisCpm);
 
-      // DEBUG: Print the geoVar counts
-/* TODO: put back somehow
-      let variablePkCounts: Map<string, GeoVar[]> = groupByExtended(gridGeoVars, (i) => i.varPk + ', ' + (this.projectVarsDict[i.varPk] || safe).customVarExprDisplay);
-      if (variablePkCounts != null && variablePkCounts.size > 0)
-      {
-        this.logger.info.groupCollapsed('createComposite - geoVar Counts:', variablePkCounts.size);
-        this.logger.info.table(Array.from(variablePkCounts.keys()).map(v => ({Variable: v, Count: variablePkCounts.get(v).length})));
-        this.logger.info.groupEnd();
-      }
-      variablePkCounts = null;
-*/
       let min: number;
       let max: number;
       let fgId = 0; // fgId is a fabricated flat geo id used by turbo grid to uniquely identify a row for filtering and selection
       const geoGridData: FlatGeo[] = [];
       this.flatGeoGridExtraColumns = [];
 
-      // Get only geo variables that are flagged as usable
-/* TODO: put back      const usableGeoVars = gridGeoVars.filter(gv => this.projectVarsDict[gv.varPk] != null && this.projectVarsDict[gv.varPk].isIncludedInGeoGrid);
-      //const varsInData = new Set(usableGeoVars.map(gv => this.getGeoVarFieldName(gv)));
-
-      // Get the missing geoVars with no scores
-      // const missingVars = projectVars.filter(pv => pv.isIncludedInGeoGrid && !varsInData.has(this.getProjectVarFieldName(pv)));
-//    console.log('Vars with no data:::', missingVars);
-
-       // Create a cache of geo variables, grouped by geocode
-      const varCache = groupBy(usableGeoVars, 'geocode');
-      //console.log('createComposite: varCache', { usableVars, usableGeoVars, varCache });
-      // Populate the unique values for text variables, keyed by variable pk
-      this.uniqueTextVals = new Map<string, SelectItem[]>();
-//      const distinctVarPks: number[] = Array.from(new Set(usableGeoVars.filter(gv => (this.projectVarsDict[gv.varPk] || safe).fieldconte === 'CHAR').map(v => v.varPk)));
-      const distinctVarPks: (number|string)[] = Array.from(new Set(usableGeoVars.filter(gv => (this.projectVarsDict[gv.varPk] || safe).fieldconte === 'CHAR').map(v => v.varPk)));
-
-      distinctVarPks.forEach(varPk => {
-         // Reduce the geo vars to just the unique values
-         const uniqueVals = Array.from(new Set(usableGeoVars.filter(geoVar => geoVar.varPk === varPk).map(geoVar => geoVar.value))).sort();
-
-         // Store the unique values in a map keyed by the variable pk
-        this.uniqueTextVals.set(varPk.toString(), uniqueVals.map(varVal => ({ label: varVal, value: varVal} as SelectItem)));
-      });
-
-      // Populate the range values for numeric variables, keyed by variable pk
-      this.variableRanges = new Map<string, number[]>();
-
-      const distinctNumVarPks: (string | number)[] = Array.from(new Set(usableGeoVars.filter(gv => (this.projectVarsDict[gv.varPk] || safe).fieldconte !== 'CHAR').map(v => v.varPk)));
-      distinctNumVarPks.forEach(varPk => {
-         // console.log('processing variable: ', varPk);
-         // Filter out the variables for this pk
-//       const pkVars: ImpGeofootprintVar[] = usableGeoVars.filter(gv => gv.varPk === varPk);
-         const pkVars: GeoVar[] = usableGeoVars.filter(gv => gv.hasOwnProperty[varPk]);
-         // console.log ('pkVars.length = ', (pkVars != null) ? pkVars.length : null);
-
-         // Reduce the geo vars to just the min / max values
-         min = pkVars.reduce((currMin, v: GeoVar) => (v.value == null) ? 0 : v.value < currMin ? v.value as number : currMin, (pkVars != null && pkVars.length > 0) ? pkVars[0].value as number : 0  as number );
-         max = pkVars.reduce((currMax, v: GeoVar) => (v.value == null) ? currMax : (v.value > currMax) ? v.value as number : currMax, (pkVars != null && pkVars.length > 0 && pkVars[0].value != null) ? pkVars[0].value as number : 0);
-
-         // Massage the min / max
-         min = (min != null) ? Math.trunc(min) : null; // Number(min.toFixed(0)) : null;
-         max = (max != null) ? Math.round(max) : null;
-
-         // console.log('   min: ', min, ', max: ', max);
-         // Store the min / max range values in a map keyed by the variable pk
-         this.variableRanges.set(varPk.toString(), [min, max, min, max]);
-      });
-*/
       this.variableRanges = new Map<string, number[]>();
       audiences.forEach(audience => {
         this.variableRanges.set(audience.audienceIdentifier, [null, null]);
@@ -707,112 +623,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
          if (gridGeoVars != null && gridGeoVars.geoVars != null && gridGeoVars.geoVars.hasOwnProperty(geo.geocode))
          for (const [varPk, varValue] of Object.entries(gridGeoVars.geoVars[geo.geocode])) {
-//           console.log('### createComposite: varName:', varPk, ', geoVar:', varValue);
            gridGeo[varPk] = varValue;
 
            // Hack to prevent empty columns because geovars structure isn't getting cleared out on new project
            const pv = projectVars.filter(findPv => findPv.varPk.toString() === varPk);
-/* Original good position
-            // Create grid columns for the variables
-            if (varPk !== 'geocode' && !this.flatGeoGridExtraColumns.find(f => f.field === varPk) && pv != null && pv.length > 0) // geovar.varPk.toString()))
-            {
-//console.log('### projectVarsDict:', this.projectVarsDict, ', varPk:', varPk);
-//console.log('### projectVarsDict[',varPk,'] = ', this.projectVarsDict[varPk]);
-              const colWidth: number = Math.min(200, Math.max(60, ((this.projectVarsDict[varPk] || safe).fieldname.length * 6) + 24));
-              const colStyleClass: string = ((this.projectVarsDict[varPk] || safe).isNumber) ? 'val-text-right' : '';
-
-              // Let the fieldConte decide what the match operator will be on the numeric filter
-              let matchOper: string;
-              switch ((this.projectVarsDict[varPk] || safe).fieldconte) {
-               // SAMPLE: This is setup this way to show we can have different filters, per fieldconte value
-               // case 'PERCENT':
-               //    matchOper = ">=";
-               //    break;
-               default:
-                  matchOper = 'between';
-                  break;
-              }
-
-              //console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + " - Header:", header, ", colWidth:",colWidth,'px,
-              // styleClass: ', colStyleClass, ", isNumber: " + (this.projectVarsDict[geovar.varPk]||safe).isNumber, ", project Var:", this.projectVarsDict[geovar.varPk]);
-              // const header = (this.projectVarsDict[geovar.varPk]||safe).isCustom ? (this.projectVarsDict[geovar.varPk]||safe).fieldname : (this.projectVarsDict[geovar.varPk]||safe).customVarExprDisplay;
-              const header = (this.projectVarsDict[varPk] || safe).fieldname;
-              this.flatGeoGridExtraColumns.push({field: varPk.toString(), header: header, width: colWidth + 'px',
-                                                 fieldname: (this.projectVarsDict[varPk] || safe).fieldname,
-                                                 matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes((this.projectVarsDict[varPk] || safe).fieldconte)) ? 'numeric' : 'text',
-                                                 matchOper: matchOper,
-                                                 matchMode: 'contains', styleClass: colStyleClass, sortOrder: (this.projectVarsDict[varPk] || safe).sortOrder});
-            }*/
          }
-/*
-         const currentVars = varCache.get(geo.geocode) || [];
-        //  currentVars.filter(geoVar => geoVar.impGeofootprintTradeArea != null
-        //                  && geoVar.impGeofootprintTradeArea.impGeofootprintLocation != null
-        //                  && geoVar.impGeofootprintTradeArea.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber)
-          currentVars
-            .forEach(geovar => {
-            if ((this.projectVarsDict[geovar.varPk] || safe).isString)
-               gridGeo[geovar.varPk.toString()] = geovar.value !== 'null' ? geovar.value : '';
-            else
-            {
-               // Format them
-               switch ((this.projectVarsDict[geovar.varPk] || safe).fieldconte) {
-                  case 'COUNT':
-                  case 'MEDIAN':
-                  case 'INDEX':
-                     gridGeo[geovar.varPk.toString()] = (geovar.value != null) ? Math.round(geovar.value as number) : null;
-                     break;
-
-                  case 'PERCENT':
-                  case 'RATIO':
-                     gridGeo[geovar.varPk.toString()] = (geovar.value != null) ? (geovar.value as number).toFixed(2) : null;
-                     break;
-
-                  case 'CHAR':
-                     gridGeo[geovar.varPk.toString()] = geovar.value; // (geovar.valueString != null) ? geovar.valueString : geovar.valueNumber;
-                     break;
-
-                  default:
-                     console.log('### Do not know fieldconte for varPk:', geovar.varPk, 'projectVarsDict:', this.projectVarsDict);
-                     gridGeo[geovar.varPk.toString()] = (geovar.value != null) ? (geovar.value as number).toFixed(14) : null;
-                     break;
-               }
-               //console.table(geovar);
-            }
-
-            // console.table(currentVars, ["geocode", "varPk", "fieldname", "fieldconte"]);
-            // console.log("geovar.name: " + geovar.fieldname + ", fieldconte: " + geovar.fieldconte + ", geovar: ", geovar, ", gridGeo: ", gridGeo);
-
-            // Create grid columns for the variables
-            if (!this.flatGeoGridExtraColumns.find(f => f.field === geovar.varPk.toString()))
-            {
-              const colWidth: number = Math.min(200, Math.max(60, ((this.projectVarsDict[geovar.varPk] || safe).fieldname.length * 6) + 24));
-              const colStyleClass: string = ((this.projectVarsDict[geovar.varPk] || safe).isNumber) ? 'val-text-right' : '';
-
-              // Let the fieldConte decide what the match operator will be on the numeric filter
-              let matchOper: string;
-              switch ((this.projectVarsDict[geovar.varPk] || safe).fieldconte) {
-               // SAMPLE: This is setup this way to show we can have different filters, per fieldconte value
-               // case 'PERCENT':
-               //    matchOper = ">=";
-               //    break;
-               default:
-                  matchOper = 'between';
-                  break;
-              }
-
-              //console.log("this.flatGeoGridExtraColumns adding ", geovar.varPk + " - Header:", header, ", colWidth:",colWidth,'px,
-              // styleClass: ', colStyleClass, ", isNumber: " + (this.projectVarsDict[geovar.varPk]||safe).isNumber, ", project Var:", this.projectVarsDict[geovar.varPk]);
-              // const header = (this.projectVarsDict[geovar.varPk]||safe).isCustom ? (this.projectVarsDict[geovar.varPk]||safe).fieldname : (this.projectVarsDict[geovar.varPk]||safe).customVarExprDisplay;
-              const header = (this.projectVarsDict[geovar.varPk] || safe).fieldname;
-              this.flatGeoGridExtraColumns.push({field: geovar.varPk.toString(), header: header, width: colWidth + 'px',
-                                                 fieldname: (this.projectVarsDict[geovar.varPk] || safe).fieldname,
-                                                 matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes((this.projectVarsDict[geovar.varPk] || safe).fieldconte)) ? 'numeric' : 'text',
-                                                 matchOper: matchOper,
-                                                 matchMode: 'contains', styleClass: colStyleClass, sortOrder: (this.projectVarsDict[geovar.varPk] || safe).sortOrder});
-            }
-         });
-*/
          // Set the tooltip for the geography
          gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
 
@@ -890,23 +705,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    public sortFlatGeoGridExtraColumns() {
-     /*
-      // Add the sort order to the object
-      this.flatGeoGridExtraColumns.forEach(col => {
-         if (this.variableColOrder != null  && this.variableColOrder instanceof Map) {
-            if (this.variableColOrder.has(col.header))
-               col['sortOrder'] = this.variableColOrder.get(col.header);
-            else {
-               if (this.variableColOrder.has(col.fieldname + ' ' + col.header))
-                  col['sortOrder'] = this.variableColOrder.get(col.fieldname + ' ' + col.header);
-               else
-                  col['sortOrder'] = -1;
-            }
-         }
-         else
-            col['sortOrder'] = 0;
-      });*/
-
       // Sort the array of columns
       this.flatGeoGridExtraColumns.sort((a, b) => this.sortVarColumns(a, b));
    }
@@ -1057,7 +855,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                   this._geoGrid.selectionKeys[dataKeyValue] = 1;
                }
             }
-
          }
          else
             matchCount++;
@@ -1074,42 +871,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 // Works, but overkill         this.impGeofootprintGeoService.makeDirty();
       //console.log('sync finished - matches: ', matchCount, ', differences: ', diffCount);
    }
-
-/* Just to document original process
-      // Initialize the selection array
-      this._geoGrid.selection = this._geoGrid.selection||[];
-
-      // Determine if the row provided is selected
-      let selected = this._geoGrid.isSelected(rowData);
-
-      // Get the dataKeyValue of the row provided
-      let dataKeyValue = this._geoGrid.dataKey ? String(this._geoGrid.objectUtils.resolveFieldData(rowData, this._geoGrid.dataKey)) : null;
-      this._geoGrid.preventSelectionSetterPropagation = true;
-
-      // If that row is selected, filter it out of selection
-      if (selected) {
-         let selectionIndex = this._geoGrid.findIndexInSelection(rowData);
-         this._geoGrid._selection = this._geoGrid.selection.filter((val, i) => i != selectionIndex);
-         this._geoGrid.selectionChange.emit(this._geoGrid.selection);
-   //        this._geoGrid.onRowUnselect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
-         if (dataKeyValue) {
-            delete this._geoGrid.selectionKeys[dataKeyValue];
-         }
-      }
-      else
-      // The row was not selected, add it into selection
-      {
-         this._geoGrid._selection = this._geoGrid.selection ? [...this._geoGrid.selection, rowData] : [rowData];
-         this._geoGrid.selectionChange.emit(this._geoGrid.selection);
-   //        this._geoGrid.onRowSelect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
-         if (dataKeyValue) {
-            this._geoGrid.selectionKeys[dataKeyValue] = 1;
-         }
-      }
-
-      // Tell the service that selection has changed
-      this._geoGrid.tableService.onSelectionChange();
-*/
 
    // Experimental enable as replacement for p-tableHeaderCheckbox in template
    onToggleFilteredGeocodes(checked: boolean) {

@@ -79,7 +79,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
 
     // this.parentAudienceService.audiences$.pipe(
     //   map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === OnlineSourceTypes.Pixel))
-    // ).subscribe(audiences => console.log('### Hawkman - pixel audiences:', audiences));
+    // ).subscribe(audiences => console.log('### pixel audiences:', audiences));
 
     this.parentAudienceService.audiences$.pipe(
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === OnlineSourceTypes.Pixel))

@@ -1,3 +1,4 @@
+import { ClearGeoVars } from './../impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { ApplyAudiences } from './../impower-datastore/state/transient/audience/audience.actions';
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
@@ -22,6 +23,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMerge
 import { AppLoggingService } from './app-logging.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { AppProjectService } from './app-project.service';
+import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 
 export enum Season {
   Summer = 'summer',
@@ -225,7 +227,7 @@ export class AppStateService {
       filter(([newGeos, isReady]) => newGeos.size > 0 && isReady),
     ).subscribe(([geoSet]) => {
       this.store$.dispatch(new RequestAttributes({ geocodes: geoSet }));
-console.log('### uniqueGeos$.pipe - ApplyAudiences');
+      this.store$.dispatch(new ClearGeoVars());
       this.store$.dispatch(new ApplyAudiences({analysisLevel: this.analysisLevel$.getValue()}));
     });
 

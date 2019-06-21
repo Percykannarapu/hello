@@ -156,52 +156,11 @@ export class TargetAudienceTdaService {
   private onLoadProject() {
     this.rehydrateAudience();
   }
-/*
-  private createGeofootprintVars(geocode: string, attrs: Map<string, string>, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {
-    const results: ImpGeofootprintVar[] = [];
-    attrs.forEach((value: string, key: string) => {
-      const varPk: number = parseInt(key, 10); // value: string
-      const rawData: TdaVariableResponse = this.rawAudienceData.get(key);
-      const fullId = `Offline/TDA/${varPk}`;
-      const numberAttempt = value == null ? null : Number(value.trim());
-      let fieldDescription: string;
-      let fieldValue: string | number;
-      if (rawData != null) {
-        fieldDescription = rawData.fielddescr;
-      }
-      if (numberAttempt == null) {
-        fieldValue = null;
-      } else if (Number.isNaN(numberAttempt)) {
-        fieldValue = value.trim();
-      } else {
-        fieldValue = numberAttempt;
-      }
-      if (isForShading) {
-        // TODO: Not efficient - this is creating shading data that already exists as geodata, but it's the fastest way to fix defects 2299 and 2300
-        if (results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk) === -1) {
-          const currentResult = this.domainFactory.createGeoVar(null, geocode, varPk, fieldValue, fullId, fieldDescription);
-          results.push(currentResult);
-        }
-      } else {
-        if (geoCache.has(geocode)) {
-          geoCache.get(geocode).forEach(geo => {
-            if (this.varService.get().findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1
-                          && results.findIndex(gvar => gvar.geocode === geocode && gvar.varPk === varPk && gvar.impGeofootprintLocation.locationNumber === geo.impGeofootprintLocation.locationNumber) === -1) {
-              const currentResult = this.domainFactory.createGeoVar(geo.impGeofootprintTradeArea, geocode, varPk, fieldValue, fullId, fieldDescription);
-              results.push(currentResult);
-            }
-          });
-        }
-      }
-    });
-    return results;
-  }*/
 
   public addAudience(audience: TdaAudienceDescription) {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
       const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte);
-console.log('### target-audience-tda - adding audience:', model);
       this.audienceService.addAudience(model, null);
       this.usageMetricCheckUncheckOffline('checked', model);
     }
@@ -242,75 +201,9 @@ console.log('### target-audience-tda - adding audience:', model);
     return merge(...allObservables, 4);
   }
 
-/*
-  private audienceRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number) : Observable<ImpGeofootprintVar[]> {
-  console.log('### audienceRefreshCallback Old - fired');
-    const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
-    const numericIds = identifiers.map(i => Number(i));
-    const observables: Observable<OfflineFuseResponse[]>[] = [];
-    let c: number = 0;
-
-//    for (const chunk of chunks) {
-      const inputData = {
-        geoType: serviceAnalysisLevel,
-        source: 'tda',
-//      geocodes: chunk,
-        categoryIds: numericIds,
-        transactionId: transactionId,
-        chunks: this.config.geoInfoQueryChunks
-      };
-//      if (inputData.geocodes.length > 0 && inputData.categoryIds.length > 0) {
-      if (inputData.categoryIds.length > 0) {
-        c++;
-        const chunkNum: number = c;
-        this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now());
-        observables.push(
-          this.restService.post('v1/targeting/base/geoinfo/tdalookup', [inputData]).pipe(
-            tap(response => this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now() - this.audienceService.timingMap.get('(' + inputData.source.toLowerCase() + ')'))),
-            map(response => this.validateFuseResponseOld(response, identifiers, isForShading)),
-            catchError( () => {
-                console.error('Error posting to v1/targeting/base/geoinfo/tdalookup with payload:');
-                console.error('payload:\n{\n ' +
-                              '   geoType:      ', inputData.geoType, '\n',
-                              '   source:       ', inputData.source, '\n',
-//                            '   geocodes:     ', inputData.geocodes.toString(), '\n',
-                              '   transactionId:', inputData.transactionId, '\n',
-                              '   chunks:       ', inputData.chunks, '\n',
-                              '   categoryIds:  ', inputData.categoryIds.toString(), '\n}'
-                             );
-                return throwError('No Data was returned for the selected audiences'); })
-          ));
-        }
-//    }
-
-    const currentProject = this.stateService.currentProject$.getValue();
-    const geoCache = groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
-    return merge(...observables, 4).pipe(
-      filter(data => data != null),
-//      map(bulkData => simpleFlatten(bulkData.map(b => {this.createGeofootprintVar(b.geocode, Number(b.variablePk), b.score, this.rawAudienceData.get(b.variablePk), geoCache, isForShading))))
-      map(bulkData => {
-        const geoVars: ImpGeofootprintVar[] = [];
-         //let rows = bulkData["rows"];
-       for (let i = 0; i < bulkData.length; i++)
-       {
-          // console.log("bulk geocode: ", bulkData[i].geocode, ", attrs: ", bulkData[i].attrs);
-          geoVars.push(...this.createGeofootprintVars(bulkData[i].geocode, bulkData[i].attrs, geoCache, isForShading));
-       }
-       return geoVars;
-      })
-    );
-
-//    console.log("### apioDataRefresh pushing ", observables.length, "observables for ", geocodes.length, "geocodes in ", chunks.length, "chunks, ids:", identifiers);
-//    return observables;
-  }*/
-
   public offlineVarRefresh(source: OfflineSourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number) : Observable<OfflineBulkDataResponse[]> {
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
-    const currentProject = this.stateService.currentProject$.getValue();
-
-    console.log('### offlineVarRefresh:', source, 'ids:', numericIds, 'geocodes:', geocodes, 'transactionId:', transactionId);
-
     const serviceURL = 'v1/targeting/base/geoinfo/tdalookup';
     const inputData = {
       geoType: serviceAnalysisLevel,
@@ -352,10 +245,7 @@ console.log('### target-audience-tda - adding audience:', model);
     const validatedResponse: OfflineBulkDataResponse[] = [];
     const responseArray: OfflineFuseResponse[] = response.payload.rows;
     const emptyAudiences: string[] = [];
-    console.log('### tda validateFuseResponse NEW - response.length:', responseArray.length);
-
-    // Simulate no variables being returned
-    // response.payload.counts['1016'] = 0;
+    //console.log('### tda validateFuseResponse - response.length:', responseArray.length);
 
     // Validate and transform the response
     for (let r = 0; r < responseArray.length; r++)
@@ -373,36 +263,6 @@ console.log('### target-audience-tda - adding audience:', model);
 
     return validatedResponse;
   }
-
-/*
-  private validateFuseResponseOld(response: RestResponse, identifiers: string[], isForShading: boolean) {
-    const responseArray: OfflineFuseResponse[] = response.payload.rows;
-    console.log('### tda validateFuseResponse OLD - response.length:', responseArray.length);
-    for (let r = 0; r < responseArray.length; r++)
-    {
-      const vars: Map<string, string> = new Map<string, string>();
-      for (let i = 0; i < identifiers.length; i++)
-        if (responseArray[r].attrs.hasOwnProperty(identifiers[i]))
-           vars.set(identifiers[i], responseArray[r].attrs[identifiers[i]]);
-      responseArray[r].attrs = vars;
-    }
-    // console.log("response.payload.counts:", response.payload.counts); // DEBUG see the REST response counts
-    const missingCategoryIds: number[] = [];
-    // let varCounts: Map<string, number> = new Map<string, number>();
-    // for (let i=0; i < identifiers.length; i++)
-    //    varCounts.set(identifiers[i], response.payload.counts.hasOwnProperty(identifiers[i]) ? response.payload.counts[identifiers[i]]:0);
-    // vs
-    // let varCounts: Map<string, number> = new Map<string, number>(Object.entries(response.payload.counts));
-    // console.log("varCountsNew:", varCounts);
-
-    const emptyAudiences = Object.entries(response.payload.counts)
-      .filter((entry) => (entry[1] === 0 || entry[1] == null) && this.rawAudienceData.has(entry[0]))
-      .map(e => this.rawAudienceData.get(e[0]).fielddescr);
-
-    if (emptyAudiences.length > 0 && !isForShading)
-      this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
-    return responseArray;
-  }*/
 
   private usageMetricCheckUncheckOffline(checkType: string, audience: AudienceDataDefinition){
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();

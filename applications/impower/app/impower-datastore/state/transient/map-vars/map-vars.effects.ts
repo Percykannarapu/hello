@@ -18,17 +18,15 @@ export class MapVarsEffects {
   @Effect()
   mapVarCacheGeos$ = this.actions$.pipe(
     ofType<MapVarCacheGeos>(MapVarActionTypes.MapVarCacheGeos),
-    tap(action => console.log('### mapVarCacheGeos - fired')),
     map(action => ({
       geocodes: Array.from(action.payload.geocodes),
       correlationId: getUuid()
     })),
-    tap(params => console.log('### mapVarCacheGeos is dispatching transient CacheGeos #geos:', params.geocodes.length, 'as set:', new Set(params.geocodes).size, 'correlationId:', params.correlationId)),
+ // tap(params => console.log('### mapVarCacheGeos is dispatching transient CacheGeos #geos:', params.geocodes.length, 'as set:', new Set(params.geocodes).size, 'correlationId:', params.correlationId)),
     tap(params => this.store$.dispatch(new CacheGeos({ geocodes: new Set(params.geocodes), correlationId: params.correlationId }))),
     switchMap(action => this.actions$.pipe(
       ofType<CacheGeosComplete|CacheGeosFailure>(TransientActionTypes.CacheGeosComplete, TransientActionTypes.CacheGeosFailure),
       filter(response => response.payload.correlationId === action.correlationId),
-      tap(response => console.log('### mapVarCacheGeos is dispatching complete - response:', response)),
       map(response => (response.type == TransientActionTypes.CacheGeosComplete)
                       ? new MapVarCacheGeosComplete({ transactionId: response.payload.transactionId, correlationId: response.payload.correlationId })
                       : new MapVarCacheGeosFailure({ err: response.payload.err, correlationId: response.payload.correlationId })),

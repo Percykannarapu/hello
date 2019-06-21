@@ -15,8 +15,8 @@ export const getTransactionId = createSelector(geoVarSlice, state => state.trans
 export const getGeoVarCount = createSelector(allGeoVars, geoVars => {
   let count = 0;
   for (let i = 0; i < geoVars.length; i++)
-    for (const [field, fieldValue] of Object.entries(geoVars[i]))
-       if (field !== 'geocode')
-          count++;
+    for (const [fieldName, ] of Object.entries(geoVars[i]))
+      if (fieldName !== 'geocode')
+        count++;
   return count;
 });

@@ -20,7 +20,6 @@ export enum AudienceActionTypes {
 
   ApplyAudiences                  = '[Audience] Apply Audiences',
   ApplyAudiencesCompleted         = '[Audience] Apply Audiences Completed',
-  ApplyAudiencesRecordStart       = '[Audience] Apply Audiences Record Start',
   ApplyAudiencesRecordStats       = '[Audience] Apply Audiences Record Stats',
   ClearAudienceStats              = '[Audience] Clear Audience Stats',
   FetchMapVar                     = '[Audience] Fetch Map Variable',
@@ -136,10 +135,6 @@ export class ApplyAudiences implements Action {
 
 export class ApplyAudiencesCompleted implements Action {
   readonly type = AudienceActionTypes.ApplyAudiencesCompleted;
-}
-
-export class ApplyAudiencesRecordStart implements Action {
-  readonly type = AudienceActionTypes.ApplyAudiencesRecordStart;
 }
 
 export class ApplyAudiencesRecordStats implements Action {
@@ -373,7 +368,6 @@ export type AudienceActions =
   | ClearAudiences
   | ApplyAudiences
   | ApplyAudiencesCompleted
-  | ApplyAudiencesRecordStart
   | ApplyAudiencesRecordStats
   | ClearAudienceStats
   | RehydrateAudiences

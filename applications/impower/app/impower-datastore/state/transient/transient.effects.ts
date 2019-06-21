@@ -22,7 +22,7 @@ export class TransientEffects {
     map(action => ({ geocodes: Array.from(action.payload.geocodes), correlationId: action.payload.correlationId})),
     switchMap(params => {
       const chunks = this.config.geoInfoQueryChunks;
-      console.log('### Transient - cacheGeos - caching', params.geocodes.length, 'geos into', chunks, 'chunks, correlationId:', params.correlationId);
+      //console.log('### Transient - cacheGeos - caching', params.geocodes.length, 'geos into', chunks, 'chunks, correlationId:', params.correlationId);
       return (params.geocodes.length === 0)
         ? of(new CacheGeosFailure({ err: 'No geos to cache', correlationId: params.correlationId}))
         : this.restService.post('v1/targeting/base/chunkedgeos/populateChunkedGeos', [{chunks, geocodes: params.geocodes}]).pipe(
@@ -39,7 +39,7 @@ export class TransientEffects {
     map(action => ({ geocodes: this.appStateService.uniqueIdentifiedGeocodes$.getValue(), correlationId: action.payload.correlationId })),
     switchMap(params => {
       const chunks = this.config.geoInfoQueryChunks;
-      console.log('### Transient - Caching', params.geocodes.length, 'geofootprint geos into', chunks, 'chunks', ' correlationId:', params.correlationId);
+      //console.log('### Transient - Caching', params.geocodes.length, 'geofootprint geos into', chunks, 'chunks', ' correlationId:', params.correlationId);
       return (params.geocodes.length === 0)
         ? of(new CacheGeosFailure({ err: 'No geos to cache', correlationId: params.correlationId}))
         : this.restService.post('v1/targeting/base/chunkedgeos/populateChunkedGeos', [{chunks, geocodes: params.geocodes}]).pipe(
@@ -54,7 +54,7 @@ export class TransientEffects {
   cacheGeosComplete$ = this.actions$.pipe(
     ofType<CacheGeosComplete>(TransientActionTypes.CacheGeosComplete),
     map(action => action.payload),
-    tap(payload => console.log('### Transient - CacheGeosComplete - transactionId:', payload.transactionId, ', correlationId:', payload.correlationId))
+    //tap(payload => console.log('### Transient - CacheGeosComplete - transactionId:', payload.transactionId, ', correlationId:', payload.correlationId))
   );
 
   // Removes a cache of geocodes from the server by transactionId
@@ -66,7 +66,7 @@ export class TransientEffects {
       if (transactionId == null)
         return EMPTY;
       else {
-        console.log('Removing cached geos for transactionId:', transactionId);
+        this.logger.info.log('Removing cached geos for transactionId:', transactionId);
         const deleteStartTime = performance.now();
         return this.restService.delete('v1/targeting/base/chunkedgeos/deleteChunks/', transactionId).pipe(
           tap(response => this.logger.info.log('deleteChunks took', formatMilli(performance.now() - deleteStartTime), ', Response:', response)),

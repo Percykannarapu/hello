@@ -97,14 +97,8 @@ export class AppRendererService {
   }
 
   public updateMapVarData(newData: MapVar[]) : void {
-    console.log('### updateMapVarData - newData:', newData);
     const result: ShadingData = {};
     let isNumericData = false;
-    // Object.keys(newData).forEach(geocode => {
-    //   result[geocode] = newData[geocode].value;
-    //   if (!Number.isNaN(Number(newData[geocode].value)) && newData[geocode].value != null)
-    //      isNumericData = true;
-    // });
 
     for (let i = 0; i < newData.length; i++) {
       let finalValue: number = 0;
@@ -122,22 +116,19 @@ export class AppRendererService {
       }
       result[newData[i].geocode] = finalValue;
     }
-    console.log('### updateMapVarData - isNumericData:', isNumericData);
 
     if (Object.keys(newData).length > 0) {
-      console.log('### updateMapVarData - dispatching SetShadingData - data:', result);
       const newAction = new SetShadingData({ data: result, isNumericData: isNumericData, theme: AppRendererService.currentDefaultTheme });
       if (isNumericData)
         newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
 
       //const audiences = Array.from(this.dataService.audienceMap.values()).filter(a => a.showOnMap === true);
       const audiences = this.mapAudienceBS$.value;
-      console.log('### updateMapVarData - audience:', audiences[0]);
       let legendText = null;
       let legendOption =  null;
 
       if (audiences == null || audiences.length === 0)
-         console.log('### updateMapVarData - No audiences specified for shading');
+         console.log('updateMapVarData - No audiences specified for shading');
       else {
         if (audiences[0].audienceSourceType === 'Online') {
           if (audiences[0].audienceSourceName === 'Audience-TA') {
@@ -163,13 +154,11 @@ export class AppRendererService {
         if (legendText != null) {
           newAction.payload.legend = legendText;
         }
-        console.log('### updateMapVarData - newAction:', newAction);
         this.store$.dispatch(newAction);
       }
     }
     else {
       // Below is causing the esri renderer error
-      //console.log('### updateMapVarData - dispatching ClearShadingData');
       //this.store$.dispatch(new ClearShadingData());
     }
   }

@@ -12,7 +12,6 @@ export interface Stats {
 
 export interface State extends EntityState<Audience> {
   scratch: {
-    applyAudiencesStart: number;
     outstandingVarFetches: number;
   };
   stats: Stats;
@@ -37,7 +36,6 @@ export const initialStatState = {
 
 export const initialState: State = adapter.getInitialState({
   scratch: {
-    applyAudiencesStart: null,
     outstandingVarFetches: 0,
   },
   stats: { ...initialStatState, fetchTimes: {}, counts: {} }
@@ -88,9 +86,9 @@ export function reducer(
       return adapter.removeAll(state);
     }
 
-    case AudienceActionTypes.ApplyAudiencesRecordStart: {
-      return {...state, scratch: {...state.scratch, applyAudiencesStart: performance.now()}};
-    }
+    // case AudienceActionTypes.ApplyAudiencesRecordStart: {
+    //   return {...state, scratch: {...state.scratch, applyAudiencesStart: performance.now()}};
+    // }
 
     case AudienceActionTypes.ApplyAudiencesRecordStats: {
       return {...state, stats: action.payload.stats};

@@ -129,7 +129,6 @@ export class TargetAudienceAudienceTA {
             seq: projectVar.sortOrder
           };
           this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
-console.log('### onLoadProject adding audience:', currentAudience.audienceName, '- seq:', currentAudience.seq);
           this.audienceService.addAudience(currentAudience, null, true);
         }
       }
@@ -200,14 +199,8 @@ console.log('### onLoadProject adding audience:', currentAudience.audienceName, 
     //console.debug("addAudiences - target-audience-audienceta - fired - audienceTAConfig: ", audienceTAConfig);
     for (const key of Array.from(this.geoVarMap.keys())) {
       const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
-console.log('### target-audience-audienceta - addAudiences - model', model);
       this.audienceService.addAudience(model, null);
     }
-    /*this.audienceService.addAudience(
-        model,
-        (al, pks, geos, shading) => this.apioRefreshCallback(source, al, pks, geos, shading),
-        (al, pk) => this.nationalRefreshCallback(source, al, pk)
-    );*/
     this.createGeofootprintVars(taResponseCache);
   }
 
@@ -293,22 +286,13 @@ console.log('### target-audience-audienceta - addAudiences - model', model);
     const value = valueString == null ? valueNumber : valueString;
     const fieldType = type === 'string' ? FieldContentTypeCodes.Char : numberType === 'index' ? FieldContentTypeCodes.Index : FieldContentTypeCodes.Percent;
     const result = this.factory.createGeoVar(currentTradeArea, geocode, pk, value, '', fieldDisplay, fieldType, audienceName);
-    const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
-
-/*    for (const audience of this.audienceService.getAudiences()) {
-      let fieldname = (projectVarsDict[pk]||safe).fieldname;
-      if (fieldname != null && fieldname.replace(/\s/g, '') + result.customVarExprDisplay.replace(/\s/g, '') === audience.audienceName.replace(/\s/g, '')) {
-        result.varPosition = audience.audienceCounter;
-      }
-    }*/
     return result;
   }
 
-  public setActiveGeos(combinedIndexTile: number, audienceTAConfig: AudienceTradeAreaConfig, distance: number) : boolean{
+  public setActiveGeos(combinedIndexTile: number, audienceTAConfig: AudienceTradeAreaConfig, distance: number) : boolean {
 
     return ((combinedIndexTile != null && combinedIndexTile !== 0 && combinedIndexTile <= 4) ||
-          (audienceTAConfig.includeMustCover && distance <= audienceTAConfig.minRadius));
-
+           (audienceTAConfig.includeMustCover && distance <= audienceTAConfig.minRadius));
   }
 
   /**
@@ -339,29 +323,29 @@ console.log('### target-audience-audienceta - addAudiences - model', model);
     return taResponses;
   }
 
-    private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, txId: number, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
-      console.log('addAudience - target-audience-audienceta - dataRefreshCallback, audience:', audience);
-      if (!audience) return EMPTY;
-      const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
+  private dataRefreshCallback(analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, txId: number, audience?: AudienceDataDefinition) : Observable<ImpGeofootprintVar[]> {
+    console.log('addAudience - target-audience-audienceta - dataRefreshCallback, audience:', audience);
+    if (!audience) return EMPTY;
+    const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
 
-      // Update the ta config
-      audience.audienceTAConfig = this.reloadAudienceTaConfig();
+    // Update the ta config
+    audience.audienceTAConfig = this.reloadAudienceTaConfig();
 
-      const payload = audience.audienceTAConfig;
-      const localAudienceName = audience.audienceName.replace(audience.secondaryId, '').trim();
-      delete payload.includeMustCover;
-      delete payload.audienceName;
+    const payload = audience.audienceTAConfig;
+    const localAudienceName = audience.audienceName.replace(audience.secondaryId, '').trim();
+    delete payload.includeMustCover;
+    delete payload.audienceName;
 
-      if (payload.analysisLevel)
-        payload.analysisLevel = payload.analysisLevel.toLowerCase();
+    if (payload.analysisLevel)
+      payload.analysisLevel = payload.analysisLevel.toLowerCase();
 
-      if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
-        payload.analysisLevel = 'dtz';
-      }
+    if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
+      payload.analysisLevel = 'dtz';
+    }
 
-      //DE2057: If the digCategoryId is null get it from the project
-      if (payload.digCategoryId == null) {
-        payload.digCategoryId = this.appStateService.currentProject$.getValue().audTaVarPk;
+    //DE2057: If the digCategoryId is null get it from the project
+    if (payload.digCategoryId == null) {
+      payload.digCategoryId = this.appStateService.currentProject$.getValue().audTaVarPk;
     }
 
     const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');

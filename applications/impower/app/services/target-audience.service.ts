@@ -122,7 +122,6 @@ export class TargetAudienceService implements OnDestroy {
       }
       else if (shadingAudience.length === 0) {
         console.log('### getAudiencesOnMap.sub - length === 0');
-        // TODO: commenting this stuff causes labels to be funky
         if (this.shadingSub) this.shadingSub.unsubscribe();
           this.store$.dispatch(new ClearShadingData());
       }
@@ -155,7 +154,7 @@ export class TargetAudienceService implements OnDestroy {
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
 
-    console.log('addAudience - seq:', ((audience != null) ? audience.seq : ''), ', sourceId:', sourceId, ', audienceName:', ((audience != null) ? audience.audienceName : ''), ', audienceSourceName: ', ((audience != null) ? audience.audienceSourceName : ''));
+    this.logger.debug.log('addAudience - seq:', ((audience != null) ? audience.seq : ''), ', sourceId:', sourceId, ', audienceName:', ((audience != null) ? audience.audienceName : ''), ', audienceSourceName: ', ((audience != null) ? audience.audienceSourceName : ''));
 
     if (audience.audienceSourceName === 'Audience-TA')
       this.audienceMap.set(`/${sourceId}-${audience.secondaryId}`, audience);
@@ -190,7 +189,6 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   private createProjectVar(audience: AudienceDataDefinition) : ImpProjectVar {
-//console.log('### createProjectVar - audience:', audience);
     // Determine if we have a project var already
     let existingPVar = null;
     let varPk = null;
@@ -201,20 +199,16 @@ export class TargetAudienceService implements OnDestroy {
       existingPVar = this.projectVarService.get().filter(pv => pv.varPk === Number(audience.audienceIdentifier));
 
     if (existingPVar != null && existingPVar.length > 0) {
-      // console.log('### createProjectVar - Existing project var found:', existingPVar[0]);
       varPk = existingPVar[0].varPk;
     }
     else {
       const audiences: Audience[] = this.allAudiencesBS$.value;
       const dsAudience = audiences.filter(aud => aud.audienceName === audience.audienceName);
       if (dsAudience != null && dsAudience.length > 0) {
-        // console.log('### createProjectVar - Found existing audienceIdentifier', dsAudience);
         varPk = dsAudience[0].audienceIdentifier;
-        // console.log('### createProjectVar - Found existing audience identifier:', varPk, 'for', audience.audienceName);
       }
       else {
         // If not, create a new id
-        // console.log('### createProjectVar - id not found, creating new one');
         if (Number.isNaN(Number(audience.audienceIdentifier))) {
           varPk = this.projectVarService.getNextStoreId();
           if (varPk <= this.projectVarService.get().length) {
@@ -222,7 +216,6 @@ export class TargetAudienceService implements OnDestroy {
               varPk = this.projectVarService.getNextStoreId(); // avoid collisions with existing IDs
             }
           }
-  // console.log('### createProjectVar - created varPk:', varPk);
         }
         else
           varPk = Number(audience.audienceIdentifier);
@@ -400,9 +393,8 @@ export class TargetAudienceService implements OnDestroy {
   {
     this.audienceMap.clear();
     this.allAudiencesBS$.value.forEach((audience, key) => {
-      // console.log('### setAudienceMapFromStore - setting key:', key, ', audience:', audience.audienceIdentifier, ', source:', audience.audienceSourceType, ', sourceName:', audience.audienceSourceName, ', secondaryId:', audience.secondaryId);
+   // this.logger.debug.log('### setAudienceMapFromStore - setting key:', key, ', audience:', audience.audienceIdentifier, ', source:', audience.audienceSourceType, ', sourceName:', audience.audienceSourceName, ', secondaryId:', audience.secondaryId);
       const audKey = audience.audienceSourceType + '/' + audience.audienceSourceName + '/' + audience.audienceIdentifier;
-      // console.log('### setAudienceMapFromStore - audKey:', audKey);
       this.audienceMap.set(audKey, audience);
     });
   }
@@ -413,7 +405,7 @@ export class TargetAudienceService implements OnDestroy {
     const audiences = Array.from(this.allAudiencesBS$.value);
     const shadingAudience = Array.from(this.mapAudiencesBS$.value);
     const selectedAudiences = audiences.filter(a => a.exportInGeoFootprint || a.showOnGrid);
-    console.log('applyAudienceSelection fired - # Audiences:', audiences.length, ', selectedAudiences.length:', selectedAudiences.length, ', shadingAudience.length:', shadingAudience.length, ', audiences:', audiences);
+    this.logger.info.log('applyAudienceSelection fired - # Audiences:', audiences.length, ', selectedAudiences.length:', selectedAudiences.length, ', shadingAudience.length:', shadingAudience.length, ', audiences:', audiences);
     this.unsubEverything();
     this.clearShadingData();
     this.clearVars();
@@ -442,7 +434,7 @@ export class TargetAudienceService implements OnDestroy {
           geos => {
             if (geos.length > 0)
             {
-              console.log('applyAudienceSelection observable: analysisLevel:', this.appStateService.analysisLevel$.getValue(), ' - geos.count', geos.length);
+              this.logger.debug.log('applyAudienceSelection observable: analysisLevel:', this.appStateService.analysisLevel$.getValue(), ' - geos.count', geos.length);
               this.getGeoData(this.appStateService.analysisLevel$.getValue(), geos, selectedAudiences);
             }
           }
@@ -465,7 +457,7 @@ export class TargetAudienceService implements OnDestroy {
     if (geos == null || geos.length === 0 || audience == null) {
       return;
     }
-    // console.log('### getShadingData - fired - lvl:', analysisLevel, ', audience:', audience, ', # geos:', geos.length);
+    // this.logger.debug.log('### getShadingData - fired - lvl:', analysisLevel, ', audience:', audience, ', # geos:', geos.length);
     this.setAudienceMapFromStore();
 
     const key = 'SHADING_DATA';
@@ -484,10 +476,8 @@ export class TargetAudienceService implements OnDestroy {
     if (this.mapAudiencesBS$.value.length > 0) {
       const currentShadingData = this.shadingData.getValue();
       this.store$.dispatch(new StartBusyIndicator({key, message: 'Retrieving shading data'}));
-console.log('### getShadingData - lvl', analysisLevel, ', geos(' + geos.length + '), ngrx Map Audience:', this.mapAudiencesBS$.value);
 //      if (audience.requiresGeoPreCaching) {
-        const startPopChunks: number = performance.now();
-        //this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(geos) }));
+      //this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(geos) }));
         this.store$.dispatch(new FetchMapVar({ analysisLevel: analysisLevel, geos: geos }));
     }
   }

@@ -206,7 +206,8 @@
 
                   <!-- Display all other columns -->
                   <div *ngSwitchDefault>
-                     {{flatGeo[col.field]}}
+                    <div *ngIf="col.matchType == 'numeric'">{{flatGeo[col.field] | number:'1.2-2'}}</div>
+                    <div *ngIf="col.matchType != 'numeric'">{{flatGeo[col.field]}}</div>
                   </div>
                </td>
 

@@ -18,7 +18,6 @@ export const selectAudienceEntities = createSelector(audienceSlice, fromAudience
 export const selectAudiences = createSelector(audienceSlice, fromAudience.selectAll);
 
 export const getOutstandingVarFetches = createSelector(audienceSlice, state => state.scratch.outstandingVarFetches);
-export const getApplyAudiencesStart = createSelector(audienceSlice, state => state.scratch.applyAudiencesStart);
 
 export const getAllAudiences = createSelector(allAudienceEntities, entities => {
   return Object.keys(entities).map(id => entities[id]);
