@@ -1,84 +1,69 @@
 <?xml version="1.0"?>
 <project name="cpq-maps" default="test" basedir="." xmlns:sf="antlib:com.salesforce">
-  <property name="DIST_ROOT" value="./dist"/>
-  <property name="CPQ_MAPS_DIST" value="./dist/cpq-maps"/>
-  <target name="create-resources">
 
-    <mkdir dir="${DIST_ROOT}/sfdc-deploy" />
-    
-    <!-- Create the assets resource -->
-    <!--<delete dir="${CPQ_MAPS_DIST}/assets/sass"/>
-    <delete>
-      <fileset dir="${CPQ_MAPS_DIST}/assets/layout/css">
-        <include name="*.scss"/>
-      </fileset>
-    </delete>
-    <delete file="${CPQ_MAPS_DIST}/assets/layout/images/landing/landing-header.png"/>
-    <delete file="${CPQ_MAPS_DIST}/assets/layout/images/landing/promotion.png"/>
-    <copy file="${CPQ_MAPS_DIST}/assets/layout/images/favicon.png" tofile="${CPQ_MAPS_DIST}/assets/layout/images/landing/landing-header.png"/>
-    <copy file="${CPQ_MAPS_DIST}/assets/layout/images/favicon.png" tofile="${CPQ_MAPS_DIST}/assets/layout/images/landing/promotion.png"/>
-    <move file="${CPQ_MAPS_DIST}/assets" todir="${CPQ_MAPS_ROOT}/sfdc-deploy"/>
-    <zip destfile="${CPQ_MAPS_ROOT}/sfdc-deploy/assets.zip" basedir="${CPQ_MAPS_ROOT}/sfdc-deploy/assets" level="9"/>
-    <move file="${CPQ_MAPS_ROOT}/sfdc-deploy/assets.zip" tofile="${CPQ_MAPS_ROOT}/sfdc-deploy/staticresources/CPQMapsAssets.resource"/>
-    <delete dir="${CPQ_MAPS_ROOT}/sfdc-deploy/assets"/>-->
-      
+  <property name="CPQ_MAPS_ROOT" value="./dist/cpq-maps"/>
+  <property name="DEPLOY_ROOT" value="./dist/sfdc-deploy" />
+  <property name="VALIDATE_ONLY" value="false" />
 
-    <!-- Create the MainJS resource -->
-    <mkdir dir="${DIST_ROOT}/sfdc-deploy/main-js"/>
-    <move todir="${DIST_ROOT}/sfdc-deploy/main-js">
-      <fileset dir="${CPQ_MAPS_DIST}">
-        <include name="main.*"/>
-        <include name="assets/*"/>
-        <include name="assets/fonts/*"/>
-        <include name="assets/images/*"/>
-        <include name="assets/themes/base/images/*"/>
-        <include name="assets/themes/base/icons/fonts/*"/>
-        <include name="assets/themes/base/fonts/avenir-next/*"/>
-        <include name="assets/themes/dgrid/css/images/*"/>
-      </fileset>
-    </move>
-    <zip destfile="${DIST_ROOT}/sfdc-deploy/main-js.zip" basedir="${DIST_ROOT}/sfdc-deploy/main-js" level="9"/>
-    <move file="${DIST_ROOT}/sfdc-deploy/main-js.zip" tofile="${DIST_ROOT}/sfdc-deploy/staticresources/CPQMapsMainJS.resource"/>
-    <delete dir="${DIST_ROOT}/sfdc-deploy/main-js"/>
-
-    <!-- Create the JS resource -->
-    <mkdir dir="${DIST_ROOT}/sfdc-deploy/js"/>
-    <move todir="${DIST_ROOT}/sfdc-deploy/js">
-      <fileset dir="${CPQ_MAPS_DIST}">
-        <include name="*"/>
-      </fileset>
-    </move>
-    <zip destfile="${DIST_ROOT}/sfdc-deploy/js.zip" basedir="${DIST_ROOT}/sfdc-deploy/js" level="9"/>
-    <move file="${DIST_ROOT}/sfdc-deploy/js.zip" tofile="${DIST_ROOT}/sfdc-deploy/staticresources/CPQMapsJS.resource"/>
-    <delete dir="${DIST_ROOT}/sfdc-deploy/js"/>
-    
-    <!-- Copy the package.xml to the deployment directory -->
-    <copy file="package.xml" todir="${DIST_ROOT}/sfdc-deploy"/>
-
-  </target>
   <target name="clean">
     <delete failonerror="false">
-      <fileset dir="staticresources">
+      <fileset dir="${DEPLOY_ROOT}">
         <include name="*"/>
       </fileset>
     </delete>
   </target>
-  <target name="deploy">
-    <sf:deploy username="jenkins@valassis.com.dev" 
-      password="D3pl0y20192!Og5bv8s7W5tbTIlJVaFz7pvsy" 
-      serverurl="https://valassis--dev.cs15.my.salesforce.com" 
-      maxPoll="10000" 
-      deployRoot="${DIST_ROOT}/sfdc-deploy" 
-      rollbackOnError="true"
-      logType="Detail"/>
+
+  <target name="create-resources" depends="clean">
+    <!-- Create the directory structure -->
+    <mkdir dir="${DEPLOY_ROOT}" />
+    <mkdir dir="${DEPLOY_ROOT}/main-js"/>
+    <mkdir dir="${DEPLOY_ROOT}/js"/>
+
+    <!-- Gather the CPQMapsMainJS files -->
+    <move todir="${DEPLOY_ROOT}/main-js">
+      <fileset dir="${CPQ_MAPS_ROOT}">
+        <include name="main.*"/>
+        <include name="assets/**"/>
+        <!--        <include name="assets/fonts/*"/>-->
+        <!--        <include name="assets/images/*"/>-->
+        <!--        <include name="assets/themes/base/images/*"/>-->
+        <!--        <include name="assets/themes/base/icons/fonts/*"/>-->
+        <!--        <include name="assets/themes/base/fonts/avenir-next/*"/>-->
+        <!--        <include name="assets/themes/dgrid/css/images/*"/>-->
+      </fileset>
+    </move>
+
+    <!-- Gather the CPQMapsJS files -->
+    <move todir="${DEPLOY_ROOT}/js">
+      <fileset dir="${CPQ_MAPS_ROOT}">
+        <include name="*"/>
+      </fileset>
+    </move>
+
+    <!-- Create the static resource files -->
+    <zip destfile="${DEPLOY_ROOT}/main-js.zip" basedir="${DEPLOY_ROOT}/main-js" level="9"/>
+    <zip destfile="${DEPLOY_ROOT}/js.zip" basedir="${DEPLOY_ROOT}/js" level="9"/>
+
+    <!-- Rename the static resource files and prep the folder for SFDC upload-->
+    <move file="${DEPLOY_ROOT}/main-js.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsMainJS.resource"/>
+    <move file="${DEPLOY_ROOT}/js.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsJS.resource"/>
+    <copy file="package.xml" todir="${DEPLOY_ROOT}"/>
+
+    <!-- Clean up -->
+    <delete dir="${DEPLOY_ROOT}/main-js"/>
+    <delete dir="${DEPLOY_ROOT}/js"/>
+
   </target>
-  <target name="deploy-qa">
-    <sf:deploy username="jenkins@valassis.com.qa" 
-      password="D3pl0y2019!khV6TxNWHT7d0udO5va9J9YJ" 
-      serverurl="https://valassis--qa.cs94.my.salesforce.com" 
-      maxPoll="10000" 
-      deployRoot="${DIST_ROOT}/sfdc-deploy" 
-      rollbackOnError="true"
-      logType="Detail"/>
+
+  <target name="deploy" depends="create-resources">
+    <sf:deploy username="${USER}"
+               password="${PASS}"
+               serverurl="${SERVER_URL}"
+               maxPoll="10000"
+               deployRoot="${DEPLOY_ROOT}"
+               rollbackOnError="true"
+               checkOnly="${VALIDATE_ONLY}"
+               logType="Detail"/>
   </target>
+
 </project>
