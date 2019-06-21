@@ -24,12 +24,6 @@
       <fileset dir="${CPQ_MAPS_ROOT}">
         <include name="main.*"/>
         <include name="assets/**"/>
-        <!--        <include name="assets/fonts/*"/>-->
-        <!--        <include name="assets/images/*"/>-->
-        <!--        <include name="assets/themes/base/images/*"/>-->
-        <!--        <include name="assets/themes/base/icons/fonts/*"/>-->
-        <!--        <include name="assets/themes/base/fonts/avenir-next/*"/>-->
-        <!--        <include name="assets/themes/dgrid/css/images/*"/>-->
       </fileset>
     </move>
 
