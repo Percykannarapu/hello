@@ -93,7 +93,7 @@
         stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
-            sh "/data/ant/bin/ant clean create-resources deploy"
+            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20192!Og5bv8s7W5tbTIlJVaFz7pvsy -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
           }
         }
       }
@@ -180,9 +180,9 @@
       }
       steps {
         script {
+          def slackColor
           try {
             echo 'run unit tests'
-            def color
             if (env.BRANCH_NAME == 'qa'){
                   echo 'Automation test cases for QA'
                   sh '''
@@ -198,7 +198,7 @@
                     xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
-            color = '#BDFFC3'
+            slackColor = '#BDFFC3'
           }
           catch (Exception ex){
             echo 'exception in test cases'
@@ -206,7 +206,7 @@
             sh '''
               cd /robotTestcases/jenkins/reportLogs
             '''
-            color = '#FFFE89'
+            slackColor = '#FFFE89'
             /*emailext attachmentsPattern: 'log.html', 
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true, 
@@ -230,7 +230,7 @@
             )
             echo 'send slack notifications'
             slackSend channel: '#impower_test_results',
-                      color: color,
+                      color: slackColor,
                       message: "Job: ${env.JOB_NAME} build: ${env.BUILD_NUMBER} Result: ${currentBuild.currentResult}\nMore info at: ${env.BUILD_URL}"
           }
         }
