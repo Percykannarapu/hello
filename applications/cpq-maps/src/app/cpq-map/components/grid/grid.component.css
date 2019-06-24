@@ -33,25 +33,25 @@
   width: 3.5em;
 }
 
-.large-geocode {
-  width: 5.5em;
-}
-
 .small-distributionQuantity, .large-distributionQuantity,
 .small-investment,
 .large-distance, .large-ownerGroup {
   width: 5em;
 }
 
-.small-wrapZone, .large-wrapZone {
-  width: 10em;
+.large-geocode {
+  width: 5.5em;
+}
+
+.large-investment,
+.large-var1Value, .large-var2Value, .large-var3Value {
+  width: 6em;
 }
 
 .large-siteName {
   width: 9em;
 }
 
-.large-investment,
-.large-var1Value, .large-var2Value, .large-var3Value {
-  width: 6em;
+.small-wrapZone, .large-wrapZone {
+  width: 10em;
 }

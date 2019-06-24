@@ -3,7 +3,7 @@
   <cpq-header-bar></cpq-header-bar>
 
   <div class="app-content" [class.small]="gridIsSmall" [class.large]="gridIsLarge">
-    <val-grid class="grid-container" [smallSizeTable]="gridIsSmall" *ngIf="gridIsVisible"></val-grid>
+    <cpq-grid class="grid-container" [smallSizeTable]="gridIsSmall" *ngIf="gridIsVisible"></cpq-grid>
 
     <val-esri-map-panel class="map-container" [mapHeight]="700" baseMap="streets-vector" [showLabelConfigButton]="true" [showSelectionButtons]="false">
       <additional-toolbar-group>
