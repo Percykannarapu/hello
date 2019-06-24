@@ -130,6 +130,11 @@ export class AddLocationsTabComponent implements OnInit {
     }
 
     const newRequest = new ValGeocodingRequest(site, true, isRadii);
+    newRequest['resubmit'] = true;
+    newRequest['Original Address'] = site.locAddress;
+    newRequest['Original City'] = site.locCity;
+    newRequest['Original State'] = site.locState;
+    newRequest['Original ZIP'] = site.locZip;
     delete newRequest['latitude'];
     delete newRequest['longitude'];
     this.appLocationService.deleteLocations([site]);
