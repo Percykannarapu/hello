@@ -658,6 +658,18 @@ export class AppLocationService {
           }
         });
       }
+      if (currentAttributes != null) {
+        Object.keys(currentAttributes).filter(key => key == 'homeDmaName').forEach(key => {
+          if (newHomeGeoToAnalysisLevelMap[key] != null) {
+            if (currentAttributes[key] != null && currentAttributes[key] !== '')   {
+              const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
+              const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
+              if (newAttribute != null)
+                impAttributesToAdd.push(newAttribute);
+            }
+          }
+        });
+      }
      const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'Home Geocode Issue', homeGeocodeIssue);
      if (newAttribute1 != null)
         impAttributesToAdd.push(newAttribute1);
