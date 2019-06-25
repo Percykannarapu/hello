@@ -1,7 +1,7 @@
 import { ProjectPrefGroupCodes } from './../../../val-modules/targeting/targeting.enums';
 import { AppStateService } from './../../../services/app-state.service';
 import { AppProjectPrefService } from './../../../services/app-project-pref.service';
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { FileUpload } from 'primeng/primeng';
 import * as xlsx from 'xlsx';
 import { Store } from '@ngrx/store';
@@ -16,17 +16,28 @@ import { ImpGeofootprintGeo } from './../../../val-modules/targeting/models/ImpG
   templateUrl: './upload-must-cover.component.html',
   styleUrls: ['./upload-must-cover.component.css']
 })
-export class UploadMustCoverComponent {
+export class UploadMustCoverComponent implements OnInit {
    private readonly spinnerId = 'MUST_COVERS_UPLOAD';
+   public isDisable: boolean;
+   public tooltip;
 
    @ViewChild('mustCoverUpload') private mustCoverUploadEl: FileUpload;
 
    constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService
-              ,private appGeoService: AppGeoService
-              ,private appStateService: AppStateService
-              ,private appProjectPrefService: AppProjectPrefService
-              ,private geoService: ImpGeofootprintGeoService
-              ,private store$: Store<LocalAppState>) { }
+              , private appGeoService: AppGeoService
+              , private appStateService: AppStateService
+              , private appProjectPrefService: AppProjectPrefService
+              , private geoService: ImpGeofootprintGeoService
+              , private store$: Store<LocalAppState>) { 
+
+              }
+
+   ngOnInit() {
+    this.appStateService.analysisLevel$.subscribe(val => {
+      this.isDisable = val != null ? false : true; 
+      this.tooltip = this.isDisable ? 'You must select an Analysis Level prior' : 'CSV or Excel format required: Geocode';
+    });
+   }
 
    public uploadFile(event: any) : void {
       const reader = new FileReader();
