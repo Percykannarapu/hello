@@ -21,6 +21,11 @@ import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
 import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
 import { groupBy, roundTo, mapArrayToEntity, safe } from '@val/common';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
+
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -52,6 +57,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public  currentMustCoverFileName: string;
    public  mustCovers: string[] = [];
    public  allMustCoverBS$ = new BehaviorSubject<string[]>([]);
+   private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
+   private exportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
+   private geoVarsBS$ = new BehaviorSubject<GeoVar[]>([]);
 
 
    constructor(restDataService: RestDataService,
@@ -60,7 +68,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
       this.store$.pipe(select(selectGeoAttributeEntities)).subscribe(attributes => this.attributeCache = attributes);
-   }
+      this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
+      this.store$.select(fromAudienceSelectors.getAudiencesInFootprint).subscribe(this.exportAudiencesBS$);
+      this.store$.select(fromGeoVarSelectors.getGeoVars).subscribe(this.geoVarsBS$);
+    }
 
    load(items: ImpGeofootprintGeo[]) : void {
       // fix up fields that aren't part of convertToModel()
@@ -402,23 +413,50 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          const value = currentAttribute[header];
          result = value == null ? '' : value.toString();
       }
+
+      const audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === header);
+      if (audience != null) {
+        const geoVar = state.geoVarsBS$.value.find(gv => gv.geocode === geo.geocode);
+        if (geoVar != null) {
+          result = (geoVar[audience.audienceIdentifier] != null) ? geoVar[audience.audienceIdentifier].toString() : '';
+        }
+      }
+
+      return result;
+   }
+
+/*  public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
+      let result = '';
+      const currentAttribute = state.attributeCache[geo.geocode];
+      if (currentAttribute != null) {
+         const value = currentAttribute[header];
+         result = value == null ? '' : value.toString();
+      }
       const projectVarsDict = mapArrayToEntity(geo.impGeofootprintLocation.impProject.impProjectVars,  v => v.varPk);
 
       if (result === '' && state.varCache.has(geo.geocode)) {
         const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
         const currentVar = vars.find(v => (projectVarsDict[v.varPk] || safe).fieldname === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
         if (currentVar != null && currentVar.value != null) {
-          // if (currentVar.isString) result = currentVar.valueString;
-          // if (currentVar.isNumber) result = currentVar.valueNumber.toString();
           // We no longer have isString/isNumber, so use the field that has a value as only one will.
-          result = currentVar.value.toString(); //currentVar.valueNumber != null ? currentVar.valueNumber.toString() : currentVar.valueString;
+          result = currentVar.value.toString();
         }
       }
       if (!result || result == 'null') result = '';
       return result;
-   }
+   }*/
 
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
+   {
+      const aGeo = this.get()[0];
+      if (aGeo == null) return;
+      const currentProject = aGeo.impGeofootprintLocation.impProject;  //DEFECT FIX : export feature - accessing project details from GeoFootPrintLocation
+      const orderColumnNames = [];
+
+      this.exportAudiencesBS$.value.forEach(impVar => exportColumns.splice(insertAtPos++, 0, { header: impVar.audienceName, row: this.exportVarAttributes}));
+   }
+
+/* public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
       const aGeo = this.get()[0];
       if (aGeo == null) return;
@@ -447,7 +485,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
         return -1;
       }
       return 0;
-    }
+    }*/
 
    // -----------------------------------------------------------
    // EXPORT METHODS
@@ -458,7 +496,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       let geos: ImpGeofootprintGeo[] = this.get();
       if (filter != null) geos = geos.filter(filter);
-      // DE1742: display an error message if attempting to export an empty data store
+
       if (geos.length === 0) {
          this.store$.dispatch(new ErrorNotification({ message: 'You must add sites and select geographies prior to exporting the geofootprint', notificationTitle: 'Error Exporting Geofootprint' }));
          return; // need to return here so we don't create an invalid usage metric later in the function since the export failed
@@ -466,7 +504,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       const exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = this.getExportFormat (exportFormat);
 
-      // TODO make this a part of the getExportFormat
       this.addAdditionalExportColumns(exportColumns, 17);
 
       if (filename == null)

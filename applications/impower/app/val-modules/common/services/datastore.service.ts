@@ -818,6 +818,7 @@ export class DataStore<T>
 
       // Write Headers
       let fieldsForRow: string[] = [];
+
       for (const column of columns)
       {
          if (typeof column.header === 'string' && column.header.includes(',')) {
@@ -836,7 +837,7 @@ export class DataStore<T>
          csvData.push(row);
 
       // For every row of data in the data store
-      for (const data of csvSource) // this._dataStore)
+      for (const data of csvSource)
       {
          // Begin a new line for every row of data
          row = '';
@@ -862,7 +863,6 @@ export class DataStore<T>
 
             // Add the final value in field to the row
             fieldsForRow.push(field);
-           // row += (field != null) ? field + ',' : ',';
          }
          row = fieldsForRow.join(',');
          // If we have built a row, push it to the result
