@@ -3,7 +3,7 @@
      <label>Upload a list of geographies that must be in the geofootprint.</label>
      <br>
      <p-fileUpload #mustCoverUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
-                   pTooltip="CSV or Excel format required: Geocode" [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true">
+                   [pTooltip]="tooltip" [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isDisable">
      </p-fileUpload>
      <div class="warning-label">
        Must cover is currently not working for audience trade area. Use for distance and custom trade area only.
