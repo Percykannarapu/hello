@@ -23,7 +23,7 @@ import { FullAppState, LocalAppState } from '../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { toUniversalCoordinates, mapByExtended, isNumber } from '@val/common';
-import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService, selectors } from '@val/esri';
+import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService, selectors, EsriQueryService } from '@val/esri';
 import { calculateStatistics, filterArray, groupByExtended, mapBy, simpleFlatten } from '@val/common';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { mergeMap } from 'rxjs/internal/operators/mergeMap';
@@ -32,6 +32,7 @@ import { concat } from 'rxjs/internal/observable/concat';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { empty } from 'rxjs/internal/observable/empty';
 import { select } from '@ngrx/store';
+import { EnvironmentData } from 'environments/environment.qa';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -92,6 +93,7 @@ export class AppLocationService {
               private config: AppConfig,
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
+              private queryService: EsriQueryService,
               private esriGeoprocessingService: EsriGeoprocessorService,
               private logger: AppLoggingService,
               private domainFactory: ImpDomainFactoryService,
@@ -624,7 +626,7 @@ export class AppLocationService {
     const attributesBySiteNumber: Map<any, any> = mapBy(attributes, 'siteNumber');
     const impAttributesToAdd: ImpGeofootprintLocAttrib[] = [];
     let homeGeocodeIssue = 'N';
-    let warningNotificationFlag = 'N';
+    let warningNotificationFlag = 'N';  
     locations.forEach(loc => {
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
 
@@ -658,7 +660,28 @@ export class AppLocationService {
           }
         });
       }
-      if (currentAttributes != null) {
+      this.queryService.queryAttributeIn(EnvironmentData.layerIds.dma.boundary, 'dma_code', [currentAttributes['homeDma']], false, ['dma_name']).subscribe(
+        graphics => {
+          if (graphics != null && graphics != undefined && graphics.length != 0) {
+            currentAttributes['homeDmaName'] = graphics[0].attributes.dma_name;
+          }
+        },
+        err => console.error('There was an error querying the layer', err),
+        () => {
+          if (currentAttributes != null) { 
+            Object.keys(currentAttributes).filter(key => key == 'homeDmaName').forEach(key => {
+              if (newHomeGeoToAnalysisLevelMap[key] != null) {
+                if (currentAttributes[key] != null && currentAttributes[key] !== '')   {
+                  const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
+                  const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
+                  if (newAttribute != null)
+                    impAttributesToAdd.push(newAttribute);
+                }
+              }
+            });
+          }
+        });
+      if (currentAttributes != null) { 
         Object.keys(currentAttributes).filter(key => key == 'homeDmaName').forEach(key => {
           if (newHomeGeoToAnalysisLevelMap[key] != null) {
             if (currentAttributes[key] != null && currentAttributes[key] !== '')   {
