@@ -439,6 +439,7 @@ export class AudiencesEffects {
   fetchCustomFromPrefs$ = this.actions$.pipe(
     ofType<FetchCustomFromPrefs>(AudienceActionTypes.FetchCustomFromPrefs),
     map(action => {
+      this.store$.dispatch(new FetchCountIncrement());
       const refreshStart = performance.now();
       const geoVars = this.targetAudienceCustomService.reloadVarsFromPrefs();
       if (geoVars != null)
@@ -453,6 +454,7 @@ export class AudiencesEffects {
     ofType<FetchCustomFromPrefsMap>(AudienceActionTypes.FetchCustomFromPrefsMap),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesOnMap))),
     map(([action, selectedAudiences]) => {
+      this.store$.dispatch(new FetchCountIncrement());
       const refreshStart = performance.now();
       const mapVars = this.targetAudienceCustomService.reloadMapVarFromPrefs(selectedAudiences[0].audienceName, selectedAudiences[0].audienceIdentifier);
       //console.log('### fetchCustomFromPrefsMap - fired - mapVars:', mapVars, 'audiences:', selectedAudiences);
