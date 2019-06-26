@@ -542,7 +542,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                            fieldname: audience.audienceName,
                                            matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(audience.fieldconte)) ? 'numeric' : 'text',
                                            matchOper: matchOper,
-                                           matchMode: 'contains', styleClass: colStyleClass, sortOrder: audience.seq});
+                                           matchMode: 'contains', styleClass: colStyleClass, sortOrder: audience.seq, sourceType: audience.audienceSourceType});
       });
 
       // For every geo, create a FlatGeo to pivot up the variables and attributes
