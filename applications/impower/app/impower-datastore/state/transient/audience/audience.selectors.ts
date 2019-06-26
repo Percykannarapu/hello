@@ -22,3 +22,10 @@ export const getOutstandingVarFetches = createSelector(audienceSlice, state => s
 export const getAllAudiences = createSelector(allAudienceEntities, entities => {
   return Object.keys(entities).map(id => entities[id]);
 });
+
+// Get an array of audiences matching the audience name
+export const getAudienceByName = createSelector(allAudiences, (audiences: Audience[], props) => audiences.filter(audience => audience.audienceName === props.audienceName));
+
+// Get the audienceIdentifier for the first audience matching the name
+export const getAudienceIdFromName = createSelector(allAudiences, (audiences: Audience[], props) =>
+  audiences.find(audience => audience.audienceName === props.audienceName).audienceIdentifier);

@@ -8,7 +8,9 @@ import { LocalAppState } from '../../../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { CreateTradeAreaUsageMetric } from '../../../state/usage/targeting-usage.actions';
 import { AppTradeAreaService } from '../../../services/app-trade-area.service';
-
+import { of } from 'rxjs';
+import { withLatestFrom, mergeMap } from 'rxjs/operators';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 
 @Component({
   selector: 'val-audience-tradearea',
@@ -40,7 +42,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
 
     this.scoreTypeOptions.push({label: 'DMA', value: 'DMA'});
     this.scoreTypeOptions.push({label: 'National', value: 'national'});
-     
+
     this.configForm = this.fb.group({
       'minRadius': [null, Validators.required],
       'maxRadius': [null, Validators.required],
@@ -50,9 +52,13 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
       'includeMustCover': [false]
     });
 
-    this.configForm.valueChanges.subscribe(f => {
-      this.updatedFormData.emit(f);
-    });
+    // Pull in audiences to emit audienceId along with the form data
+    this.configForm.valueChanges.pipe(
+      mergeMap(formData => of(formData).pipe(
+        withLatestFrom(this.store$.select(fromAudienceSelectors.getAudienceIdFromName, { audienceName: formData.audience }))))
+      ).subscribe(([formData, audienceIdentifier]) => {
+        this.updatedFormData.emit({...formData, audienceIdentifier: audienceIdentifier});
+      });
 
     // this.configForm.valueChanges.pipe(
     //   filter(() => this.configForm.valid && !this.isLoadingData),
