@@ -5,7 +5,7 @@ import { SelectItem } from 'primeng/primeng';
 import { AppRendererService } from '../../../services/app-renderer.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { map, take, filter } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
@@ -16,6 +16,8 @@ import { ColorPalette } from '@val/esri';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { MoveAudienceUp, MoveAudienceDn } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import { AppLoggingService } from 'app/services/app-logging.service';
 
 @Component({
   selector: 'val-selected-audiences',
@@ -32,9 +34,12 @@ export class SelectedAudiencesComponent implements OnInit {
   public showDialog: boolean = false;
   public audienceUnselect: AudienceDataDefinition;
 
+  private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
+
   constructor(private varService: TargetAudienceService,
               private appStateService: AppStateService,
               private confirmationService: ConfirmationService,
+              private logger: AppLoggingService,
               private store$: Store<LocalAppState>) {
     // this is how you convert an enum into a list of drop-down values
     const allThemes = ColorPalette;
@@ -47,26 +52,10 @@ export class SelectedAudiencesComponent implements OnInit {
     }
     this.allThemes.sort((a, b) => a.label.localeCompare(b.label));
     this.currentTheme = AppRendererService.currentDefaultTheme;
+    this.store$.select(fromAudienceSelectors.getAudiencesNationalExtract).subscribe(this.nationalAudiencesBS$);
   }
 
   public ngOnInit() : void {
-/* Original code
-    this.audiences$ = this.varService.audiences$;
-    // .pipe(
-    //   tap(items => console.log('Audience Observable contents:', items))
-    // );
-    const sub = this.varService.audiences$.pipe(
-      map(audiences => audiences.length > 0)
-    ).subscribe(res => this.hasAudiences = res, null, () => {
-      if (sub) sub.unsubscribe();
-    });
-    this.appStateService.applicationIsReady$.pipe(
-      filter(ready => ready)
-    ).subscribe(() => {
-      this.onLoadProject();
-    });
-    // this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
-*/
     // Setup an observable to watch the store for audiences
     this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences);
 
@@ -96,7 +85,7 @@ export class SelectedAudiencesComponent implements OnInit {
   public onApplyClicked() {
     const audiences = this.varService.getAudiences();
     const mappedAudience = audiences.find(a => a.showOnMap === true);
-    console.log('mappedAudience:::', mappedAudience);
+    this.logger.debug.log('mappedAudience:::', mappedAudience);
     if (mappedAudience != null) {
       const analysisLevel = this.appStateService.analysisLevel$.getValue();
       const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
@@ -159,9 +148,10 @@ export class SelectedAudiencesComponent implements OnInit {
    }
 
   onNationalSelected(audience: AudienceDataDefinition) : void {
-    const audiences = Array.from(this.varService.audienceMap.values()).filter(a => a.exportNationally === true);
+    //const audiences = Array.from(this.varService.audienceMap.values()).filter(a => a.exportNationally === true);
     this.varService.updateProjectVars(audience);
-    if (audiences.length > 5){
+
+    if (this.nationalAudiencesBS$.value.length > 5) {
       this.audienceUnselect = audience;
       this.showDialog = true;
     }
@@ -180,7 +170,6 @@ export class SelectedAudiencesComponent implements OnInit {
     accept: () => {
       this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
       this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-      //this.store$.dispatch(new DeleteAudience({id: audience.audienceIdentifier}));
       this.store$.dispatch(new RemoveVar({varPk: audience.audienceIdentifier}));
 
       let metricText = null;

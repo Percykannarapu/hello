@@ -13,15 +13,14 @@ import { AudienceTradeAreaConfig, AudienceDataDefinition } from '../../models/au
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { Store, select } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../state/app.interfaces';
 import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { AppGeoService } from './../../services/app-geo.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { AppLoggingService } from 'app/services/app-logging.service';
 
 const tradeAreaExtract = (maxTas: number) => map<Map<number, ImpGeofootprintTradeArea[]>, ImpGeofootprintTradeArea[]>(taMap => {
   const result = [];
@@ -72,6 +71,7 @@ export class TradeAreaTabComponent implements OnInit {
               private locationService: ImpGeofootprintLocationService,
               private appGeoService: AppGeoService,
               private geoService: ImpGeofootprintGeoService,
+              private logger: AppLoggingService,
               private store$: Store<LocalAppState>) { }
 
   ngOnInit() {
@@ -161,7 +161,7 @@ export class TradeAreaTabComponent implements OnInit {
   }
 
   onUpdatedAudienceTAData(form: any) {
-    console.log('Trade Area parent component fired', form);
+    this.logger.debug.log('Trade Area parent component fired', form);
     const audienceTAConfig: AudienceTradeAreaConfig = {
       analysisLevel: this.stateService.analysisLevel$.getValue() ? this.stateService.analysisLevel$.getValue().toLowerCase() : null,
       digCategoryId: form.audienceIdentifier, // this.getVarId(form.audience),
@@ -177,12 +177,6 @@ export class TradeAreaTabComponent implements OnInit {
   }
 
   private getVarId(audienceName: string) : number {
-//    let audience: Audience;
-//    this.store$.select(fromAudienceSelectors.getAudienceByName, { audienceName: audienceName }).subscribe(audiences => audience = audiences[0]).unsubscribe();
-//    const audiences: Audience[] = this.store$.select(fromAudienceSelectors.getAudienceByNamX);
-//    console.log('### getVarId - audienceName:', audienceName, ', audience:', audience);
-    //if (audience == null) return null;
-
     const targetingVar: AudienceDataDefinition[] = this.targetAudienceService.getAudiences().filter(v => v.audienceName === audienceName && v.audienceSourceType === 'Online');
     let id: number;
     if (targetingVar.length > 0)
@@ -204,21 +198,21 @@ export class TradeAreaTabComponent implements OnInit {
             results.forEach(result => geosToPersist.push(result));
          }
          , err => {
-            console.log('ERROR occurred ensuring must covers: ', err);
+            this.logger.error.log('ERROR occurred ensuring must covers: ', err);
             this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating must covers for the Audience Trade Area' }));
          }
          , () => {
             if (geosToPersist.length > 0) {
-               console.log('Adding ', geosToPersist.length, ' must covers for audience TA');
-               this.geoService.add(geosToPersist);
+              this.logger.info.log('Adding ', geosToPersist.length, ' must covers for audience TA');
+              this.geoService.add(geosToPersist);
             }
             else
-               console.log('No must covers for audience TA');
+              this.logger.info.log('No must covers for audience TA');
          });
       }
     },
     error => {
-      console.error('Error while creating audience tradearea', error);
+      this.logger.error.log('Error while creating audience tradearea', error);
       this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
       this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
    }

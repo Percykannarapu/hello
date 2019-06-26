@@ -27,5 +27,7 @@ export const getAllAudiences = createSelector(allAudienceEntities, entities => {
 export const getAudienceByName = createSelector(allAudiences, (audiences: Audience[], props) => audiences.filter(audience => audience.audienceName === props.audienceName));
 
 // Get the audienceIdentifier for the first audience matching the name
-export const getAudienceIdFromName = createSelector(allAudiences, (audiences: Audience[], props) =>
-  audiences.find(audience => audience.audienceName === props.audienceName).audienceIdentifier);
+export const getAudienceIdFromName = createSelector(allAudiences, (audiences: Audience[], props) => {
+  const aud = audiences.find(audience => audience.audienceName === props.audienceName);
+  return (aud != null) ? aud.audienceIdentifier : null;
+});
