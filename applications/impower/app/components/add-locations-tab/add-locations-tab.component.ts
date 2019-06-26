@@ -86,7 +86,14 @@ export class AddLocationsTabComponent implements OnInit {
 
   onUpload(csvData: string[], siteType: SuccessfulLocationTypeCodes) {
     const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListUpload);
+    this.validateHomeDmaIfExists(requests);
     this.processSiteRequests(requests, siteType);
+  }
+
+  validateHomeDmaIfExists(requests: ValGeocodingRequest[]) {
+    requests.forEach(req => {
+      if (req['Home DMA'] != null && req['Home DMA'] != undefined && req['Home DMA'].length != 0 && parseInt(req['Home DMA'], 10) != NaN && req['Home DMA'].length === 3) req['Home DMA'] = '0' + req['Home DMA'];
+    });
   }
 
   remove(site: ImpGeofootprintLocation) {

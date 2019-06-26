@@ -50,6 +50,9 @@ export class EsriQueryService {
       result.distance = queryField;
       result.units = 'miles';
     }
+    if (queryField === 'dma_code') {
+      result.orderByFields = [];
+    }
     if (outFields != null) {
       result.outFields = outFields;
     }
