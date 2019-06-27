@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { isNumber } from '@val/common';
-import { filter, takeUntil } from 'rxjs/operators';
+import { filter, takeUntil, map } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { localSelectors } from '../../state/app.selectors';
 import { FullState } from '../../state';
@@ -18,9 +18,10 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   private updateIds: number[] = [];
   private addIds: number[] = [];
   private componentDestroyed$ = new Subject();
-
+  
   appReady$: Observable<boolean>;
   isSaving$: Observable<boolean>;
+  generateDisabled$: Observable<boolean>;
 
   totalDistribution: number;
   totalInvestment: number;
@@ -67,6 +68,9 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
     this.isSaving$ = this.store$.pipe(
       select(localSelectors.getIsSaving)
     );
+    
+    this.generateDisabled$ = this.store$.pipe(select(localSelectors.getFilteredGeos));
+
   }
 
   ngOnDestroy() : void {
