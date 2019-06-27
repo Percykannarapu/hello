@@ -540,6 +540,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
         this.flatGeoGridExtraColumns.push({field: audience.audienceIdentifier, header: audience.audienceName, width: colWidth + 'px',
                                            fieldname: audience.audienceName,
+                                           decimals:  ['PERCENT', 'RATIO'].includes(audience.fieldconte) ? 2 : 0,
+                                           fieldConte: audience.fieldconte,
                                            matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(audience.fieldconte)) ? 'numeric' : 'text',
                                            matchOper: matchOper,
                                            matchMode: 'contains', styleClass: colStyleClass, sortOrder: audience.seq, sourceType: audience.audienceSourceType});

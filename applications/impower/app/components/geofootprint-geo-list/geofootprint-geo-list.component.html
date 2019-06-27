@@ -207,7 +207,8 @@
                   <!-- Display all other columns -->
                   <div *ngSwitchDefault>
                     <div *ngIf="col.matchType == 'numeric' && col.sourceType == 'Custom'">{{flatGeo[col.field] | number:'1.2-2'}}</div>
-                    <div *ngIf="col.matchType == 'numeric' && col.sourceType != 'Custom'">{{flatGeo[col.field] | number:'1.0-0'}}</div>
+                    <div *ngIf="col.matchType == 'numeric' && col.sourceType != 'Custom' && col.decimals == 2">{{flatGeo[col.field] | number:'1.2-2'}}</div>
+                    <div *ngIf="col.matchType == 'numeric' && col.sourceType != 'Custom' && col.decimals == 0">{{flatGeo[col.field] | number:'1.0-0'}}</div>
                     <div *ngIf="col.matchType != 'numeric'">{{flatGeo[col.field]}}</div>
                   </div>
                </td>
