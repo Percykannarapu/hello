@@ -3,6 +3,7 @@ import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from
 import { MenuItem } from 'primeng/primeng';
 import { ValGeocodingRequest } from '../../../models/val-geocoding-request.model';
 import * as Presets from './manual-entry-presets';
+import { AppEditSiteService } from 'app/services/app-editsite.service';
 
 @Component({
   selector: 'val-manual-entry',
@@ -20,8 +21,10 @@ export class ManualEntryComponent implements OnInit {
 
   get latitude() { return this.manualEntryForm.get('latitude'); }
   get longitude() { return this.manualEntryForm.get('longitude'); }
+  get coord() { return this.manualEntryForm.get('coord'); }
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder,
+              private appEditSiteService: AppEditSiteService) {}
 
   ngOnInit() {
     this.manualEntryForm = this.fb.group({
@@ -32,8 +35,7 @@ export class ManualEntryComponent implements OnInit {
       state: '',
       zip: '',
       Market: '',
-      latitude: ['', this.latLonValidator(true)],
-      longitude: ['', this.latLonValidator(false)]
+      coord: ['', this.appEditSiteService.latLonValidator()]
     });
     this.loadItems = [
       { label: 'VPW', icon: 'ui-icon-map', command: () => this.loadVPW() },
@@ -55,6 +57,14 @@ export class ManualEntryComponent implements OnInit {
   }
 
   onSubmit(formData: any) {
+    if (formData.coord != null && formData.coord != undefined && formData.coord != '') {
+      formData.latitude = formData.coord.split(',')[0];
+      formData.longitude = formData.coord.split(',')[1];
+    } else if (formData.coord == '') {
+      formData.latitude = '';
+      formData.longitude = '';
+    }
+    delete formData.coord;
     this.submitSite.emit(new ValGeocodingRequest(formData));
   }
 
@@ -67,22 +77,4 @@ export class ManualEntryComponent implements OnInit {
     this.manualEntryForm.patchValue(data);
   }
 
-  private latLonValidator(isLat: boolean) : ValidatorFn {
-    return (c: AbstractControl) => {
-      if (c.value == null || c.value === '') return null; // empty is ok
-      const numVal = Number(c.value);
-      if (Number.isNaN(numVal)) {
-        return {
-          latLon: 'Value must be numeric'
-        };
-      } else {
-        if (isLat && (numVal < -90 || numVal > 90)) {
-          return {
-            latLon: 'Latitude is limited to +/- 90'
-          };
-        }
-        return null;
-      }
-    };
-  }
 }
