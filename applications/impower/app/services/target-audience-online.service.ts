@@ -354,9 +354,8 @@ export class TargetAudienceOnlineService {
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     const numericIds = identifiers.map(i => Number(i));
     const currentProject = this.appStateService.currentProject$.getValue();
-
-    // console.log('### onlineVarRefresh:', source, 'ids:', numericIds, 'geocodes:', geocodes, 'transactionId:', transactionId);
     const varTypes: string[] = [];
+    // this.logger.debug.log('### onlineVarRefresh:', source, 'ids:', numericIds, 'geocodes:', geocodes, 'transactionId:', transactionId);
     identifiers.forEach(id => {
       const pv = currentProject.impProjectVars.filter(v => v.varPk.toString() === id);
       if (varTypes != null)
@@ -372,6 +371,7 @@ export class TargetAudienceOnlineService {
       transactionId: transactionId,
       chunks: this.config.geoInfoQueryChunks
     };
+    // this.logger.debug.log('### onlineVarRefresh: inputData:', inputData);
 
     // DEBUG: Simulate error
     // if (inputData.source === 'vlh')

@@ -165,7 +165,10 @@ export class TargetAudienceAudienceTA {
   }
 
   private createDataDefinition(name: string, digId: number, audienceTAConfig: AudienceTradeAreaConfig, digCategoryId: number) : AudienceDataDefinition {
-    const audiences = this.audienceService.getAudiences().filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === digCategoryId);
+  //this.logger.debug.log('### createDataDefinition digCategoryId:', digCategoryId, ', audienceTAConfig:', audienceTAConfig, ', digId:', digId);
+  //const audiences = this.audienceService.getAudiences().filter(a => a.audienceSourceType === 'Online' && Number(a.secondaryId.replace(',', '')) === digCategoryId);
+    const audiences = this.allAudiencesBS$.value.filter(a => a.audienceIdentifier === digCategoryId.toString());
+
     let audienceName = '';
     if (audiences.length > 0) {
       audienceName = audiences[0].audienceName;

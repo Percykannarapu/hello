@@ -122,14 +122,15 @@ export class AudiencesEffects {
   @Effect({dispatch: false})
   fetchMapVar$ = this.actions$.pipe(
     ofType<FetchMapVar>(AudienceActionTypes.FetchMapVar),
-  //tap(action => console.log('### fetchMapVar - geos(' + action.payload.geos.length + '):', action.payload.geos)),
+    //tap(action => this.logger.info.log('### fetchMapVar - geos(' + action.payload.geos.length + '):', action.payload.geos)),
     tap(action => {
       stats.totalMapVars = 0;
       this.store$.dispatch(new ClearMapVars());
     }),
     tap(action => this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(action.payload.geos) }))),
-    withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesOnMap))),
-    switchMap(([action, selectedAudiences]) => this.actions$.pipe(
+    withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesOnMap)),
+                   this.store$.pipe(select(fromAudienceSelectors.allAudiences))),
+    switchMap(([action, selectedAudiences, allAudiences]) => this.actions$.pipe(
       ofType<MapVarCacheGeosComplete | MapVarCacheGeosFailure>(MapVarActionTypes.MapVarCacheGeosComplete, MapVarActionTypes.MapVarCacheGeosFailure),
         take(1),
         tap(errorAction => { if (errorAction.type === MapVarActionTypes.MapVarCacheGeosFailure) {
@@ -137,17 +138,27 @@ export class AudiencesEffects {
           this.store$.dispatch(new StopBusyIndicator({key: shadingKey}));
         }}),
         filter(filterAction => filterAction.type === MapVarActionTypes.MapVarCacheGeosComplete),
-      //tap(payload => console.log('### fetchMapVar detected MapVarCacheGeosComplete - payload:', payload, 'action:', action, 'audiences:', selectedAudiences)),
+        //tap(payload => this.logger.info.log('### fetchMapVar detected MapVarCacheGeosComplete - payload:', payload, 'action:', action, 'audiences:', selectedAudiences)),
         tap((subAction) => {
           const transactionId: number = (subAction.type === MapVarActionTypes.MapVarCacheGeosComplete) ? subAction.payload.transactionId : null;
-        //console.log('### applyAudiences subAction response:', transactionId, 'action:', action, 'audiences:', selectedAudiences);
+          // this.logger.info.log('### FetchMapVar subAction response:', transactionId, 'action:', action, 'audiences:', selectedAudiences);
           const audiencesBySource = groupByExtended(selectedAudiences, a => this.targetAudienceService.createKey(a.audienceSourceType, a.audienceSourceName));
           const analysisLevel = action.payload.analysisLevel;
 
           // Dispatch a fetch for each audience source
           audiencesBySource.forEach((audiences, source) => {
-            const ids = audiences.map(audience => audience.audienceIdentifier);
+            let ids = audiences.map(audience => audience.audienceIdentifier);
             const showOnMap = audiences.map(audience => audience.showOnMap);
+            // this.logger.info.log('### FetchMapVar fetching source:', source);
+            // If the source is from an audience trade area, determine the real source and id
+            if (source === 'Online/Audience-TA' && audiences.length > 0 && audiences[0].audienceTAConfig != null) {
+              const realAudience = allAudiences.find(aud => aud.audienceIdentifier === audiences[0].audienceTAConfig.digCategoryId.toString());
+              if (realAudience != null) {
+                source = this.targetAudienceService.createKey(realAudience.audienceSourceType, realAudience.audienceSourceName);
+                ids = [realAudience.audienceIdentifier];
+             // this.logger.info.log('### FetchMapVar - found real audience for id:', audiences[0].audienceTAConfig.digCategoryId, 'new source is:', source);
+              }
+            }
             switch (source) {
               case 'Online/Interest':
                 this.store$.dispatch(new FetchOnlineInterestMap({ fuseSource: 'interest', al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
