@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { isNumber } from '@val/common';
-import { filter, takeUntil, map } from 'rxjs/operators';
+import { filter, takeUntil, map, tap } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { localSelectors } from '../../state/app.selectors';
 import { FullState } from '../../state';

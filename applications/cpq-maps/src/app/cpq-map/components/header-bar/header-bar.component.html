@@ -15,9 +15,16 @@
     <span>{{productName}}</span>
   </div>
   <div class="header-buttons">
-    <span *ngIf="generateDisabled$ | async" title="You must Save & Return prior to generating maps"> <button label="Generate Maps" (click)="exportMaps()" pButton type="button" [disabled]="true" styleClass="ui-button-raised"></button></span>
-    <span *ngIf="!(generateDisabled$ | async)"> <button label="Generate Maps" (click)="exportMaps()" pButton type="button" [disabled]="false" styleClass="ui-button-raised"></button></span>
-
+    <span *ngIf="!(appReady$ | async)"> 
+        <button label="Generate Maps" (click)="exportMaps()" pButton type="button" [disabled]="true" styleClass="ui-button-raised"></button>
+    </span>
+    <span *ngIf="(generateDisabled$ | async) && (appReady$ | async)" title="You must Save & Return prior to generating maps"> 
+      <button label="Generate Maps" (click)="exportMaps()" pButton type="button" [disabled]="true" styleClass="ui-button-raised"></button>
+    </span>
+      <span *ngIf="!(generateDisabled$ | async) && (appReady$ | async)"> 
+        <button label="Generate Maps" (click)="exportMaps()" pButton type="button" [disabled]="false" styleClass="ui-button-raised"></button>
+      </span>
+   
     <p-button label="Save & Return" (click)="onSave()" [disabled]="(isSaving$ | async) || isClean" styleClass="ui-button-raised"></p-button>
     <p-button label="Cancel" (click)="onCancel()" styleClass="ui-button-raised"></p-button>
   </div>

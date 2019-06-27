@@ -120,17 +120,17 @@ const availabilityProjector = (shared: SharedState, rfpUiEditDetails: RfpUiEditD
 
 const getAvailabilityParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getRfpUiReviewEntities, availabilityProjector);
 
-const filterGeosProjector = (newIds: number[], isAppReady: boolean, rfpUiEditDetailEntity: Dictionary<RfpUiEditDetail>) => {
+const filterGeosProjector = (newIds: number[], rfpUiEditDetailEntity: Dictionary<RfpUiEditDetail>) => {
   let flag = [];
-  if (!isAppReady || Object.keys(rfpUiEditDetailEntity).length === 0) return true;
-  if (newIds.length > 0){
-    flag = newIds.filter(id => isAppReady && rfpUiEditDetailEntity[id].isSelected);
+  if ( Object.keys(rfpUiEditDetailEntity).length === 0 && newIds.length === 0) return true; 
+  else if (newIds.length > 0 && Object.keys(rfpUiEditDetailEntity).length > 0){
+    flag = newIds.filter(id => rfpUiEditDetailEntity[id].isSelected);
     return flag.length > 0;
   }
-
+  else return false;
 };
 
-const getFilteredGeos = createSelector(getAddIds, getAppReady, getRfpUiEditDetailEntity, filterGeosProjector);
+const getFilteredGeos = createSelector(getAddIds, getRfpUiEditDetailEntity, filterGeosProjector);
 
 export const localSelectors = {
   getAppReady,
