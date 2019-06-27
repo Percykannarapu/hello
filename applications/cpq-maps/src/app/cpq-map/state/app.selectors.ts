@@ -15,6 +15,7 @@ import * as fromAdvertiserInfo from './advertiserInfo/advertiser-info.reducer';
 import { RfpUiEditDetail } from 'src/app/val-modules/mediaexpress/models/RfpUiEditDetail';
 import { FullPayload } from './app.interfaces';
 import { AdvertiserInfo } from 'src/app/val-modules/mediaexpress/models/AdvertiserInfo';
+import { Dictionary } from '@ngrx/entity';
 
 const cpqSlice = (state: LocalState) => state;
 
@@ -119,6 +120,18 @@ const availabilityProjector = (shared: SharedState, rfpUiEditDetails: RfpUiEditD
 
 const getAvailabilityParams = createSelector(getSharedState, getRfpUiEditDetailEntities, getRfpUiReviewEntities, availabilityProjector);
 
+const filterGeosProjector = (newIds: number[], isAppReady: boolean, rfpUiEditDetailEntity: Dictionary<RfpUiEditDetail>) => {
+  let flag = [];
+  if (!isAppReady || Object.keys(rfpUiEditDetailEntity).length === 0) return true;
+  if (newIds.length > 0){
+    flag = newIds.filter(id => isAppReady && rfpUiEditDetailEntity[id].isSelected);
+    return flag.length > 0;
+  }
+
+};
+
+const getFilteredGeos = createSelector(getAddIds, getAppReady, getRfpUiEditDetailEntity, filterGeosProjector);
+
 export const localSelectors = {
   getAppReady,
   getIsSaving,
@@ -138,5 +151,6 @@ export const localSelectors = {
   getPrintParams,
   getAvailabilityParams,
   getSelectedAnalysisLevel,
-  getShadingState
+  getShadingState,
+  getFilteredGeos,
 };
