@@ -1,11 +1,12 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { MenuItem } from 'primeng/api';
-import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AnyFn } from '@ngrx/store/src/selector';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 import { UsageService } from '../../services/usage.service';
 import { AppStateService } from '../../services/app-state.service';
+import { AppEditSiteService } from '../../services/app-editsite.service';
 
 @Component({
   selector: 'val-edit-locations',
@@ -28,6 +29,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
 
   constructor(private fb: FormBuilder,
               private appStateService: AppStateService,
+              private appEditSiteService: AppEditSiteService,
               private usageService: UsageService) { }
   ngOnChanges(change: SimpleChanges) {
     if  (this.displayData) {
@@ -45,7 +47,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       locZip: '',
       marketName: '',
       marketCode: '',
-      coord: ['', this.latLonValidator()],
+      coord: ['', this.appEditSiteService.latLonValidator()],
       // homeZip: '',
       // homeAtz: '',
       // homeDigitalAtz: '',
@@ -92,37 +94,6 @@ export class EditLocationsComponent implements OnInit, OnChanges {
     metricsText = mktValue != null ? metricsText + mktValue : metricsText;
     this.usageService.createCounterMetric(usageMetricName, metricsText, null);
     this.cancelDialog();
-  }
-
-  private latLonValidator() : ValidatorFn {
-    return (c: AbstractControl) => {
-      const enteredValue = c.value as string;
-      if (enteredValue == null || enteredValue.length === 0) {
-        return null;
-      }
-      const coords = enteredValue.split(',');
-      if (coords.length === 2) {
-        const lat = coords[0] ? Number(coords[0]) : NaN;
-        const lon = coords[1] ? Number(coords[1]) : NaN;
-        if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
-          if ( lat < -90 || lat > 90 ) {
-            return {
-              latLon: 'Latitude is limited to +/- 90'
-            };
-          }          
-        return null; 
-      }  
-        if (Number.isNaN(lat) || Number.isNaN(lon)) {
-          return {
-            latLon: 'Value must be numeric'
-          };
-        }
-      } else if (coords.length != 2) {
-        return {
-          latLon: 'Should have 2 values(latitude & longitude)'
-        };
-      }
-    };
   }
   
   public formEdited() : void {

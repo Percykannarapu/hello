@@ -15,8 +15,7 @@ export const SkyZone = {
   state: 'IN',
   zip: '46037',
   Market: 'Test Market',
-  latitude: '39.967208',
-  longitude: '-85.988858'
+  coord: '39.967208,-85.988858'
 };
 
 export const Tecumseh = {
@@ -37,8 +36,7 @@ export const Madison = {
   state: 'WV',
   zip: '25130',
   Market: 'Test Market',
-  latitude: '38.05773',
-  longitude: '-81.825'
+  coord: '38.05773,-81.825',
 };
 
 export const Nancys = {
@@ -49,8 +47,7 @@ export const Nancys = {
    state: 'MI',
    zip: '48178',
    Market: 'Test Market',
-   latitude: '42.465074',
-   longitude: '-83.675303'
+   coord: '42.465074,-83.675303'
  };
 
 export const Erins = {
@@ -61,6 +58,5 @@ export const Erins = {
    state: 'MI',
    zip: '48335',
    Market: 'Test Market',
-   latitude: '42.448518',
-   longitude: '-83.412142'
+   coord: '42.448518,-83.412142'
  };

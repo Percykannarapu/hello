@@ -54,32 +54,20 @@
       </div>
       <div class="ui-g-4"></div>
       <div class="ui-g-12 ui-g-nopad">
-         <div class="ui-g-4 p-t-15">
-            <div class="ui-inputgroup">
-               <span class="md-inputfield">
-                  <input pInputText id="latInput" class="ui-g-12" formControlName="latitude" autocomplete="off" />
-                  <span class="ui-inputgroup-addon" *ngIf="!hasErrors('latitude')">&nbsp;</span>
-                  <span class="ui-inputgroup-addon" *ngIf="hasErrors('latitude')">
-                    <i class="ui-icon-error error-icon" [title]="latitude.errors['latLon']"></i>
-                  </span>
-                  <label for="latInput">Latitude (Y)</label>
-               </span>
-            </div>
-         </div>
-         <div class="ui-g-4 p-t-15">
-            <div class="ui-inputgroup">
-               <span class="md-inputfield">
-                  <input pInputText id="lonInput" class="ui-g-11" formControlName="longitude" autocomplete="off" />
-                  <span class="ui-inputgroup-addon" *ngIf="!hasErrors('longitude')">&nbsp;</span>
-                  <span class="ui-inputgroup-addon" *ngIf="hasErrors('longitude')">
-                    <i class="ui-icon-error error-icon" [title]="longitude.errors['latLon']"></i>
-                  </span>
-                  <label for="lonInput">Longitude (X)</label>
-               </span>
-            </div>
-         </div>
-         <div class="ui-g-4"></div>
-      </div>
+          <div class="ui-g-4 p-t-15">
+             <div class="ui-inputgroup">
+                <span class="md-inputfield">
+                   <input pInputText id="latlongInput" class="ui-g-12" formControlName="coord" autocomplete="off" />
+                   <span class="ui-inputgroup-addon" *ngIf="!hasErrors('coord')">&nbsp;</span>
+                   <span class="ui-inputgroup-addon" *ngIf="hasErrors('coord')">
+                     <i class="ui-icon-error error-icon" [title]="coord.errors['latLon']"></i>
+                   </span>
+                   <label for="latlongInput">Latitude (Y), Longitude(X)</label>
+                </span>
+             </div>
+          </div>
+          <div class="ui-g-4"></div>
+       </div>
       <div class="ui-g-12 ui-g-nopad">
          <div class="ui-g-4">
             <button (click)="manualEntryForm.reset()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
