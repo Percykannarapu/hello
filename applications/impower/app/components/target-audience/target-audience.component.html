@@ -2,12 +2,12 @@
 
   <p-tabPanel header="Online Audience">
     <ng-template pTemplate="content">
-      <div class="ui-g" *ngIf="(analysisLevel$ | async) === 'PCR'">
+      <!-- <div class="ui-g" *ngIf="(analysisLevel$ | async) === 'PCR'">
         <div class="ui-g-12">
           Online Audience not available at the PCR level
         </div>
-      </div>
-      <p-tabView *ngIf="(analysisLevel$ | async) !== 'PCR'" class="val-child-tabs">
+      </div> -->
+      <p-tabView  class="val-child-tabs">
         <p-tabPanel header="Interest and In-Market">
           <val-online-audience-apio [useNarrowLayout]="false"></val-online-audience-apio>
         </p-tabPanel>
