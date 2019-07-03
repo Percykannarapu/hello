@@ -386,7 +386,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       if (geo != null && geo.impGeofootprintTradeArea != null)
       {
-         if (geo.impGeofootprintLocation != null && geo.geocode === geo.impGeofootprintLocation.homeGeocode && geo.impGeofootprintTradeArea.taType === 'RADIUS')
+         if (geo.impGeofootprintLocation != null && geo.geocode === geo.impGeofootprintLocation.homeGeocode && (geo.impGeofootprintTradeArea.taType === 'RADIUS' || geo.impGeofootprintTradeArea.taType === 'HOMEGEO'))
          {
             varValue = 'Trade Area 1';  
          }
