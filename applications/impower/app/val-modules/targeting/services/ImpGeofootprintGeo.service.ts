@@ -386,20 +386,27 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       if (geo != null && geo.impGeofootprintTradeArea != null)
       {
-        switch (geo.impGeofootprintTradeArea.taType)
-        {
-          case 'RADIUS':
-            varValue = 'Trade Area ' + geo.impGeofootprintTradeArea.taNumber;
-            break;
-          case 'HOMEGEO':
-            varValue = 'Forced Home Geo';
-            break;
-          case 'AUDIENCE':
-            varValue = 'Audience Trade Area';
-            break;
-          default:
-            varValue = 'Custom';
-        }
+         if (geo.impGeofootprintLocation != null && geo.geocode === geo.impGeofootprintLocation.homeGeocode && geo.impGeofootprintTradeArea.taType === 'RADIUS')
+         {
+            varValue = 'Trade Area 1';  
+         }
+         else 
+         {
+            switch (geo.impGeofootprintTradeArea.taType)
+            {
+               case 'RADIUS':
+                  varValue = 'Trade Area ' + geo.impGeofootprintTradeArea.taNumber;
+                  break;
+               case 'HOMEGEO':
+                  varValue = 'Forced Home Geo';
+                  break;
+               case 'AUDIENCE':
+                  varValue = 'Audience Trade Area';
+                  break;
+               default:
+                  varValue = 'Custom';
+            }
+         }
       }
       else
          return null;
