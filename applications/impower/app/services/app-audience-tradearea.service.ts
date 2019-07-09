@@ -229,28 +229,30 @@ export class ValAudienceTradeareaService {
    * Create an audience trade are for each location that has been created
    */
   public createAudienceTradearea(audienceTAConfig: AudienceTradeAreaConfig) : Observable<boolean> {
-     const key = 'AUDIENCETA';
-     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Creating Audience Trade Area'}));
+    const key = 'AUDIENCETA';
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Creating Audience Trade Area'}));
 
-   try {
-     const validate: boolean | string[] = this.validateTradeArea();
-     if (validate !== true) {
-       const growlMessage = [] ;
-       for (const message of validate) {
-        growlMessage.push(message);
-       }
+    try {
+      const validate: boolean | string[] = this.validateTradeArea();
+      if (validate !== true) {
+        const growlMessage = [] ;
+        for (const message of validate) {
+          growlMessage.push(message);
+        }
  //      console.log('growlMessage::::', growlMessage);
-       for (let i = 0; i < growlMessage.length; i++) {
-         this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Trade Area Error', message: growlMessage[i] }));
-       }
-       this.store$.dispatch(new StopBusyIndicator({ key }));
-       return Observable.create(o => o.next(false));
-     }
-   } catch (error) {
-     return Observable.create(o => o.next(false));
-   }
+        for (let i = 0; i < growlMessage.length; i++) {
+          this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Trade Area Error', message: growlMessage[i] }));
+        }
+        this.store$.dispatch(new StopBusyIndicator({ key }));
+        return Observable.create(o => o.next(false));
+      }
+    }
+    catch (error) {
+      return Observable.create(o => o.next(false));
+    }
 
-   this.attachLocations();
+    this.attachLocations();
+
     if (this.audienceTAConfig.analysisLevel != null && this.audienceTAConfig.analysisLevel.toLocaleLowerCase() === 'digital atz')
       this.audienceTAConfig.analysisLevel = 'dtz';
 
@@ -319,33 +321,36 @@ export class ValAudienceTradeareaService {
           this.geoCache = new Array<ImpGeofootprintGeo>();
           this.audienceTaSubject.next(true);
           this.store$.dispatch(new StopBusyIndicator({ key }));
-        } catch (error) {
+        }
+        catch (error) {
           console.error(error);
           this.audienceTaSubject.next(false);
           this.store$.dispatch(new StopBusyIndicator({ key }));
         }
       },
-        err => {
-          console.error(err);
-          this.audienceTaSubject.next(false);
-          this.fetchData = true;
-          this.store$.dispatch(new StopBusyIndicator({ key }));
-        });
-    } else {
+      err => {
+        console.error(err);
+        this.audienceTaSubject.next(false);
+        this.fetchData = true;
+        this.store$.dispatch(new StopBusyIndicator({ key }));
+      });
+    }
+    else {
       this.rerunTradearea(audienceTAConfig).subscribe(res => {
         if (res) {
           this.audienceTaSubject.next(true);
-        } else {
+        }
+        else {
           this.audienceTaSubject.next(false);
           this.store$.dispatch(new StopBusyIndicator({ key }));
         }
       },
-        err => {
-          console.error(err);
-          this.audienceTaSubject.next(false);
-          this.fetchData = true;
-          this.store$.dispatch(new StopBusyIndicator({ key }));
-        });
+      err => {
+        console.error(err);
+        this.audienceTaSubject.next(false);
+        this.fetchData = true;
+        this.store$.dispatch(new StopBusyIndicator({ key }));
+      });
     }
     return this.audienceTaSubject.asObservable();
   }

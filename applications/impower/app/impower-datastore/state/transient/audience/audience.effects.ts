@@ -19,22 +19,25 @@ import { TargetAudienceTdaService } from 'app/services/target-audience-tda.servi
 import { RemoveGeoCache } from '../transient.actions';
 import { MapVarCacheGeos, MapVarCacheGeosFailure, MapVarCacheGeosComplete, MapVarActionTypes, UpsertMapVars, ClearMapVars } from '../map-vars/map-vars.actions';
 import { MapVar } from '../map-vars/map-vars.model';
-import { StopBusyIndicator } from '@val/messaging';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { AudienceActionTypes, ApplyAudiences, AudienceActions, FetchOnlineInterest, FetchOnlinePixel, FetchOnlineVLH, FetchOfflineTDA, FetchOnlineInMarket, AddAudience, FetchOnlineInterestCompleted, FetchOnlineInMarketCompleted,
-         FetchOnlinePixelCompleted, FetchOnlineVLHCompleted, FetchOfflineTDACompletedMap, FetchOnlineFailed, FetchCountIncrement, FetchCountDecrement, ApplyAudiencesCompleted,
-         FetchOfflineTDACompleted, FetchOfflineFailed, FetchCustom, FetchCustomCompleted, FetchCustomFromPrefs, FetchCustomFailed, FetchMapVar, FetchOnlineInterestMap, FetchOnlineVLHMap, FetchOnlinePixelMap,
-         FetchOfflineTDAMap, FetchCustomFromPrefsMap, FetchOnlineInMarketMap, FetchOnlineInterestCompletedMap, FetchOnlineInMarketCompletedMap, FetchOnlinePixelCompletedMap, FetchOnlineVLHCompletedMap,
-         FetchOnlineFailedMap, FetchOfflineFailedMap, FetchCustomCompletedMap, FetchCustomFailedMap, MoveAudienceUp, UpsertAudiences, MoveAudienceDn,
-         SequenceChanged, ApplyAudiencesRecordStats, RehydrateAudiences} from './audience.actions';
+         FetchOnlinePixelCompleted, FetchOnlineVLHCompleted, FetchOfflineTDACompletedMap, FetchOnlineFailed, FetchCountIncrement, FetchCountDecrement, ApplyAudiencesCompleted, FetchOfflineTDACompleted, FetchOfflineFailed,
+         FetchCustom, FetchCustomCompleted, FetchCustomFromPrefs, FetchCustomFailed, FetchMapVar, FetchOnlineInterestMap, FetchOnlineVLHMap, FetchOnlinePixelMap, FetchOfflineTDAMap, FetchCustomFromPrefsMap, FetchOnlineInMarketMap,
+         FetchOnlineInterestCompletedMap, FetchOnlineInMarketCompletedMap, FetchOnlinePixelCompletedMap, FetchOnlineVLHCompletedMap, FetchOnlineFailedMap, FetchOfflineFailedMap, FetchCustomCompletedMap, FetchCustomFailedMap,
+         MoveAudienceUp, UpsertAudiences, MoveAudienceDn, SequenceChanged, ApplyAudiencesRecordStats, RehydrateAudiences, FetchAudienceTradeArea, FetchAudienceTradeAreaCompleted, FetchAudienceTradeAreaFailed, FetchAudienceTradeAreaMap,
+         FetchAudienceTradeAreaCompletedMap, FetchAudienceTradeAreaFailedMap, RehydrateShading} from './audience.actions';
 import { Stats, initialStatState } from './audience.reducer';
+import { TargetAudienceAudienceTA } from 'app/services/target-audience-audienceta';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
 
+const audienceTaKey: string = 'AUDIENCE_TA_VARS';
 const shadingKey: string = 'SHADING_DATA';
 
 let stats: Stats = initialStatState;
 let applyStart: number = null;
 let applyStop: number = null;
+let audTAStop: number = null;
 
 @Injectable()
 export class AudiencesEffects {
@@ -54,7 +57,7 @@ export class AudiencesEffects {
     tap(action => applyStart = performance.now()),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesAppliable))),
     tap(([action, audiences]) => {
-      //audiences.forEach(aud => console.log('### ApplyAudiences - selectedAudiences - aud:', aud));
+      //audiences.forEach(aud => console.log('### ApplyAudiences - applying:', aud));
       if (audiences.length > 0)
         this.store$.dispatch(new GeoVarCacheGeofootprintGeos());
     }),
@@ -126,6 +129,7 @@ export class AudiencesEffects {
     tap(action => {
       stats.totalMapVars = 0;
       this.store$.dispatch(new ClearMapVars());
+      this.store$.dispatch(new StartBusyIndicator({key: shadingKey, message: 'Retrieving shading data'}));
     }),
     tap(action => this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(action.payload.geos) }))),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesOnMap)),
@@ -147,10 +151,10 @@ export class AudiencesEffects {
 
           // Dispatch a fetch for each audience source
           audiencesBySource.forEach((audiences, source) => {
-            let ids = audiences.map(audience => audience.audienceIdentifier);
+            const ids = audiences.map(audience => audience.audienceIdentifier);
             const showOnMap = audiences.map(audience => audience.showOnMap);
             // this.logger.info.log('### FetchMapVar fetching source:', source);
-            // If the source is from an audience trade area, determine the real source and id
+/*          // If the source is from an audience trade area, determine the real source and id
             if (source === 'Online/Audience-TA' && audiences.length > 0 && audiences[0].audienceTAConfig != null) {
               const realAudience = allAudiences.find(aud => aud.audienceIdentifier === audiences[0].audienceTAConfig.digCategoryId.toString());
               if (realAudience != null) {
@@ -158,7 +162,7 @@ export class AudiencesEffects {
                 ids = [realAudience.audienceIdentifier];
              // this.logger.info.log('### FetchMapVar - found real audience for id:', audiences[0].audienceTAConfig.digCategoryId, 'new source is:', source);
               }
-            }
+            }*/
             switch (source) {
               case 'Online/Interest':
                 this.store$.dispatch(new FetchOnlineInterestMap({ fuseSource: 'interest', al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
@@ -178,6 +182,10 @@ export class AudiencesEffects {
 
               case 'Offline/TDA':
                 this.store$.dispatch(new FetchOfflineTDAMap({ fuseSource: 'tda', al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                break;
+
+              case 'Online/Audience-TA':
+                this.store$.dispatch(new FetchAudienceTradeAreaMap());
                 break;
 
               default:
@@ -240,7 +248,7 @@ export class AudiencesEffects {
                 return new FetchOnlineInMarketCompleted({  source: params.source, startTime: refreshStart, response: onlineBulkDataResponse });
 
               case AudienceActionTypes.FetchOnlineVLH:
-              return new FetchOnlineVLHCompleted({ source: params.source, startTime: refreshStart, response: onlineBulkDataResponse });
+                return new FetchOnlineVLHCompleted({ source: params.source, startTime: refreshStart, response: onlineBulkDataResponse });
 
               case AudienceActionTypes.FetchOnlinePixel:
                 return new FetchOnlinePixelCompleted({ source: params.source, startTime: refreshStart, response: onlineBulkDataResponse });
@@ -377,7 +385,7 @@ export class AudiencesEffects {
       stats.fetchTimes[action.payload.source] = formatMilli(performance.now() - action.payload.startTime);
     }),
     map(bulkResponse => {
-      const geoVars: GeoVar[] = bulkResponse.payload.response.filter(data => data != null)
+        const geoVars: GeoVar[] = bulkResponse.payload.response.filter(data => data != null)
         .map(responseRow => {
           // Convert response into an array of GeoVars
           const gv = { geocode: responseRow.geocode };
@@ -424,6 +432,80 @@ export class AudiencesEffects {
     tap(err => {
       console.error('Error loading offline audience:', err);
       this.store$.dispatch(new StopBusyIndicator({key: shadingKey}));
+    }),
+    map(action => new FetchCountDecrement())
+  );
+
+  @Effect()
+  fetchAudienceTradeArea$ = this.actions$.pipe(
+    ofType<FetchAudienceTradeArea | FetchAudienceTradeAreaMap>(AudienceActionTypes.FetchAudienceTradeArea, AudienceActionTypes.FetchAudienceTradeAreaMap),
+    tap(action => this.store$.dispatch(new StartBusyIndicator({ key: audienceTaKey, message: 'Retrieving audience trade area data' }))),
+    map(action => ({
+      actionType: action.type,
+      source: 'audience-ta',
+      forShading: (action.type === AudienceActionTypes.FetchAudienceTradeAreaMap)
+    })),
+    // mergeMap to watch for completes on all active fetches
+    withLatestFrom(this.store$.select(fromAudienceSelectors.getAudiencesOnMap)),
+    mergeMap(([params, audiencesOnMap]) => {
+      this.store$.dispatch(new FetchCountIncrement()); // Count all out going fetches to know when all have completed
+      const refreshStart = performance.now();
+      return this.targetAudienceAudienceTA.fetchAudienceTradeArea(params.forShading)
+        .pipe(
+          tap(response => this.logger.debug.log('Audience TA service responded with:', response, 'params.source:', params.source, 'params:', params)),
+          map((geoVars) => {
+            //this.logger.debug.log('fetchAudienceTradeArea effect - geoVars:', geoVars);
+            if (geoVars != null && geoVars.length > 0)
+              return params.actionType === AudienceActionTypes.FetchAudienceTradeArea
+                     ? new FetchAudienceTradeAreaCompleted({ source: params.source, startTime: refreshStart, response: geoVars })
+                     : new FetchAudienceTradeAreaCompletedMap({ source: params.source, startTime: refreshStart, response: geoVars });
+            else
+              return params.actionType === AudienceActionTypes.FetchAudienceTradeArea
+                     ? new FetchAudienceTradeAreaFailed({ err: 'No audience trade area variables were retrieved' })
+                     : new FetchAudienceTradeAreaFailedMap({ err: 'No audience trade area map variables were retrieved' });
+          }),
+          catchError(err => of(params.actionType === AudienceActionTypes.FetchAudienceTradeArea
+                              ? new FetchAudienceTradeAreaFailed({ err })
+                              : new FetchAudienceTradeAreaFailedMap({ err })))
+        );
+    }),
+  );
+
+  @Effect()
+  fetchAudienceTradeAreaCompleted$ = this.actions$.pipe(
+    ofType<FetchAudienceTradeAreaCompleted | FetchAudienceTradeAreaCompletedMap> (AudienceActionTypes.FetchAudienceTradeAreaCompleted, AudienceActionTypes.FetchAudienceTradeAreaCompletedMap),
+    tap(action => {
+      audTAStop = performance.now();
+      this.logger.info.log(`Retrieved`, action.payload.response.length, `geo vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime));
+      stats.fetchTimes[action.payload.source] = formatMilli(performance.now() - action.payload.startTime);
+    }),
+    map(response => {
+      stats.counts[response.payload.source] = response.payload.response.length;
+      this.store$.dispatch(new FetchCountDecrement());
+      this.store$.dispatch(new StopBusyIndicator({key: shadingKey}));
+
+      if (response.type === AudienceActionTypes.FetchAudienceTradeAreaCompleted) {
+        stats.totalAudTATime = formatMilli(audTAStop - response.payload.startTime);
+        stats.totalGeoVars = response.payload.response.length;
+        this.store$.dispatch(new ApplyAudiencesRecordStats({ stats: stats }));  // REVIEW This is going to clobber other stats
+        return new UpsertGeoVars({ geoVars: response.payload.response});
+      }
+      else {
+        stats.totalAudTATime = formatMilli(audTAStop - response.payload.startTime);
+        stats.totalMapVars = response.payload.response.length;
+        this.store$.dispatch(new ApplyAudiencesRecordStats({ stats: stats }));  // REVIEW This is going to clobber other stats
+        return new UpsertMapVars({ mapVars: response.payload.response});
+      }
+    }),
+    tap(action => this.store$.dispatch(new StopBusyIndicator({ key: audienceTaKey })))
+  );
+
+  @Effect()
+  fetchAudienceTradeAreaFailed$ = this.actions$.pipe(
+    ofType<FetchAudienceTradeAreaFailed | FetchAudienceTradeAreaFailedMap>(AudienceActionTypes.FetchAudienceTradeAreaFailed, AudienceActionTypes.FetchAudienceTradeAreaFailedMap),
+    tap(err => {
+      console.error('Error loading audience trade area', err);
+      this.store$.dispatch(new StopBusyIndicator({key: audienceTaKey}));
     }),
     map(action => new FetchCountDecrement())
   );
@@ -585,9 +667,24 @@ export class AudiencesEffects {
       this.targetAudienceOnlineService.rehydrateAudience();
       this.targetAudienceTdaService.rehydrateAudience();
       this.targetAudienceCustomService.rehydrateAudience();
+      this.targetAudienceAudienceTA.rehydrateAudience();
     }),
     withLatestFrom(this.appStateService.analysisLevel$),
-    map(([, analysisLevel]) => new ApplyAudiences({ analysisLevel: analysisLevel }))
+//  map(([, analysisLevel]) => new ApplyAudiences({ analysisLevel: analysisLevel }))
+    concatMap(([, analysisLevel]) => [
+      new ApplyAudiences({ analysisLevel: analysisLevel }),
+      new RehydrateShading()
+    ])
+  );
+
+  @Effect({dispatch: false})
+  rehydrateShading$ = this.actions$.pipe(
+    ofType<RehydrateShading>(AudienceActionTypes.RehydrateShading),
+    withLatestFrom(this.store$.select(fromAudienceSelectors.getAudiencesOnMap)),
+    map(([, audiencesOnMap]) => {
+      console.log('### rehydrateShading - audiencesOnMap:', audiencesOnMap);
+      this.targetAudienceService.rehydrateShading();
+    })
   );
 
   constructor(private actions$: Actions<AudienceActions>,
@@ -598,5 +695,6 @@ export class AudiencesEffects {
               private targetAudienceService: TargetAudienceService,
               private targetAudienceOnlineService: TargetAudienceOnlineService,
               private targetAudienceTdaService: TargetAudienceTdaService,
-              private targetAudienceCustomService: TargetAudienceCustomService) {}
+              private targetAudienceCustomService: TargetAudienceCustomService,
+              private targetAudienceAudienceTA: TargetAudienceAudienceTA) {}
 }

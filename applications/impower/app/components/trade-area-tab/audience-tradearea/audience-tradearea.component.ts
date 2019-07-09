@@ -57,7 +57,8 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
       mergeMap(formData => of(formData).pipe(
         withLatestFrom(this.store$.select(fromAudienceSelectors.getAudienceIdFromName, { audienceName: formData.audience }))))
       ).subscribe(([formData, audienceIdentifier]) => {
-        this.updatedFormData.emit({...formData, audienceIdentifier: audienceIdentifier});
+        if (!this.isLoadingData)
+          this.updatedFormData.emit({...formData, audienceIdentifier: audienceIdentifier});
       });
 
     // this.configForm.valueChanges.pipe(
@@ -74,7 +75,7 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
       const config = this.audienceTradeareaService.getAudienceTAConfig();
       let currentAnalysis = this.stateService.analysisLevel$.getValue();
       if (currentAnalysis) currentAnalysis = currentAnalysis.toLowerCase();
-      if ( config && config.analysisLevel && config.analysisLevel != currentAnalysis && this.tradeareaService.tradeareaType == 'audience') {
+      if (config && config.analysisLevel && config.analysisLevel != currentAnalysis && this.tradeareaService.tradeareaType === 'audience') {
         config.analysisLevel = currentAnalysis;
         this.audienceTradeareaService.updateAudienceTAConfig(config);
         this.runAudienceTA.emit(true);

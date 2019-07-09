@@ -8,6 +8,7 @@ export interface Stats {
   totalGeoVars: number;
   totalMapVars: number;
   totalTime: string;
+  totalAudTATime: string;
 }
 
 export interface State extends EntityState<Audience> {
@@ -31,7 +32,8 @@ export const initialStatState = {
   counts: {},
   totalGeoVars: 0,
   totalMapVars: 0,
-  totalTime: ''
+  totalTime: '',
+  totalAudTATime: ''
 };
 
 export const initialState: State = adapter.getInitialState({

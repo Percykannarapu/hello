@@ -5,74 +5,82 @@ import { OnlineBulkDataResponse } from 'app/services/target-audience-online.serv
 import { OfflineBulkDataResponse } from 'app/services/target-audience-tda.service';
 import { GeoVar } from '../geo-vars/geo-vars.model';
 import { Stats } from './audience.reducer';
+import { MapVar } from '../map-vars/map-vars.model';
 
 export enum AudienceActionTypes {
-  LoadAudiences                   = '[Audience] Load Audiences',
-  AddAudience                     = '[Audience] Add Audience',
-  UpsertAudience                  = '[Audience] Upsert Audience',
-  AddAudiences                    = '[Audience] Add Audiences',
-  UpsertAudiences                 = '[Audience] Upsert Audiences',
-  UpdateAudience                  = '[Audience] Update Audience',
-  UpdateAudiences                 = '[Audience] Update Audiences',
-  DeleteAudience                  = '[Audience] Delete Audience',
-  DeleteAudiences                 = '[Audience] Delete Audiences',
-  ClearAudiences                  = '[Audience] Clear Audiences',
+  LoadAudiences                      = '[Audience] Load Audiences',
+  AddAudience                        = '[Audience] Add Audience',
+  UpsertAudience                     = '[Audience] Upsert Audience',
+  AddAudiences                       = '[Audience] Add Audiences',
+  UpsertAudiences                    = '[Audience] Upsert Audiences',
+  UpdateAudience                     = '[Audience] Update Audience',
+  UpdateAudiences                    = '[Audience] Update Audiences',
+  DeleteAudience                     = '[Audience] Delete Audience',
+  DeleteAudiences                    = '[Audience] Delete Audiences',
+  ClearAudiences                     = '[Audience] Clear Audiences',
 
-  ApplyAudiences                  = '[Audience] Apply Audiences',
-  ApplyAudiencesCompleted         = '[Audience] Apply Audiences Completed',
-  ApplyAudiencesRecordStats       = '[Audience] Apply Audiences Record Stats',
-  ClearAudienceStats              = '[Audience] Clear Audience Stats',
-  FetchMapVar                     = '[Audience] Fetch Map Variable',
-  FetchMapVarCompleted            = '[Audience] Fetch Map Variable Completed',
-  FetchAudiences                  = '[Audience] Fetch Audiences',
-  FetchAudiencesCompleted         = '[Audience] Fetch Audiences Completed',
-  FetchCountIncrement             = '[Audience] Fetch Counter Increment',
-  FetchCountDecrement             = '[Audience] Fetch Counter Decrement',
-  GetDataFromCache                = '[Audience] Get Data From Cached Geos',
-  GetDataFromGeos                 = '[Audience] Get Data From Geos',
-  RehydrateAudiences              = '[Audience] Rehydrate Audiences',
+  ApplyAudiences                     = '[Audience] Apply Audiences',
+  ApplyAudiencesCompleted            = '[Audience] Apply Audiences Completed',
+  ApplyAudiencesRecordStats          = '[Audience] Apply Audiences Record Stats',
+  ClearAudienceStats                 = '[Audience] Clear Audience Stats',
+  FetchMapVar                        = '[Audience] Fetch Map Variable',
+  FetchMapVarCompleted               = '[Audience] Fetch Map Variable Completed',
+  FetchAudiences                     = '[Audience] Fetch Audiences',
+  FetchAudiencesCompleted            = '[Audience] Fetch Audiences Completed',
+  FetchCountIncrement                = '[Audience] Fetch Counter Increment',
+  FetchCountDecrement                = '[Audience] Fetch Counter Decrement',
+  GetDataFromCache                   = '[Audience] Get Data From Cached Geos',
+  GetDataFromGeos                    = '[Audience] Get Data From Geos',
+  RehydrateAudiences                 = '[Audience] Rehydrate Audiences',
+  RehydrateShading                   = '[Audience] Rehydrate Shading',
 
-  FetchOnlineInterest             = '[Audience] Fetch Online Audience: Interest',
-  FetchOnlineInMarket             = '[Audience] Fetch Online Audience: In-Market',
-  FetchOnlineVLH                  = '[Audience] Fetch Online Audience: VLH',
-  FetchOnlinePixel                = '[Audience] Fetch Online Audience: Pixel',
-  FetchOfflineTDA                 = '[Audience] Fetch Offline Audience: TDA',
-  FetchCustom                     = '[Audience] Fetch Custom Audience',
-  FetchCustomFromPrefs            = '[Audience] Fetch Custom Audience From Project Prefs',
+  FetchAudienceTradeArea             = '[Audience] Fetch Audience: Trade Area',
+  FetchOnlineInterest                = '[Audience] Fetch Online Audience: Interest',
+  FetchOnlineInMarket                = '[Audience] Fetch Online Audience: In-Market',
+  FetchOnlineVLH                     = '[Audience] Fetch Online Audience: VLH',
+  FetchOnlinePixel                   = '[Audience] Fetch Online Audience: Pixel',
+  FetchOfflineTDA                    = '[Audience] Fetch Offline Audience: TDA',
+  FetchCustom                        = '[Audience] Fetch Custom Audience',
+  FetchCustomFromPrefs               = '[Audience] Fetch Custom Audience From Project Prefs',
 
-  FetchOnlineInterestCompleted    = '[Audience] Fetch Online Audience: Interest Completed',
-  FetchOnlineInMarketCompleted    = '[Audience] Fetch Online Audience: In-Market Completed',
-  FetchOnlineVLHCompleted         = '[Audience] Fetch Online Audience: VLH Completed',
-  FetchOnlinePixelCompleted       = '[Audience] Fetch Online Audience: Pixel Completed',
-  FetchOfflineTDACompleted        = '[Audience] Fetch Offline Audience: TDA Completed',
-  FetchCustomCompleted            = '[Audience] Fetch Custom Audience: Completed',
+  FetchAudienceTradeAreaCompleted    = '[Audience] Fetch Audience: Trade Area Completed',
+  FetchOnlineInterestCompleted       = '[Audience] Fetch Online Audience: Interest Completed',
+  FetchOnlineInMarketCompleted       = '[Audience] Fetch Online Audience: In-Market Completed',
+  FetchOnlineVLHCompleted            = '[Audience] Fetch Online Audience: VLH Completed',
+  FetchOnlinePixelCompleted          = '[Audience] Fetch Online Audience: Pixel Completed',
+  FetchOfflineTDACompleted           = '[Audience] Fetch Offline Audience: TDA Completed',
+  FetchCustomCompleted               = '[Audience] Fetch Custom Audience: Completed',
 
-  FetchOnlineInterestMap          = '[Audience] Fetch For Map Online Audience: Interest',
-  FetchOnlineInMarketMap          = '[Audience] Fetch For Map Online Audience: In-Market',
-  FetchOnlineVLHMap               = '[Audience] Fetch For Map Online Audience: VLH',
-  FetchOnlinePixelMap             = '[Audience] Fetch For Map Online Audience: Pixel',
-  FetchOfflineTDAMap              = '[Audience] Fetch For Map Offline Audience: TDA',
-  FetchCustomMap                  = '[Audience] Fetch For Map Custom Audience',
-  FetchCustomFromPrefsMap         = '[Audience] Fetch For Map Custom Audience From Project Prefs',
+  FetchAudienceTradeAreaMap          = '[Audience] Fetch For Map Audience: Trade Area',
+  FetchOnlineInterestMap             = '[Audience] Fetch For Map Online Audience: Interest',
+  FetchOnlineInMarketMap             = '[Audience] Fetch For Map Online Audience: In-Market',
+  FetchOnlineVLHMap                  = '[Audience] Fetch For Map Online Audience: VLH',
+  FetchOnlinePixelMap                = '[Audience] Fetch For Map Online Audience: Pixel',
+  FetchOfflineTDAMap                 = '[Audience] Fetch For Map Offline Audience: TDA',
+  FetchCustomMap                     = '[Audience] Fetch For Map Custom Audience',
+  FetchCustomFromPrefsMap            = '[Audience] Fetch For Map Custom Audience From Project Prefs',
 
-  FetchOnlineInterestCompletedMap = '[Audience] Fetch For Map Online Audience: Interest Completed',
-  FetchOnlineInMarketCompletedMap = '[Audience] Fetch For Map Online Audience: In-Market Completed',
-  FetchOnlineVLHCompletedMap      = '[Audience] Fetch For Map Online Audience: VLH Completed',
-  FetchOnlinePixelCompletedMap    = '[Audience] Fetch For Map Online Audience: Pixel Completed',
-  FetchOfflineTDACompletedMap     = '[Audience] Fetch For Map Offline Audience: TDA Completed',
-  FetchCustomCompletedMap         = '[Audience] Fetch For Map Custom Audience: Completed',
+  FetchAudienceTradeAreaCompletedMap = '[Audience] Fetch For Map Audience: Trade Area Completed',
+  FetchOnlineInterestCompletedMap    = '[Audience] Fetch For Map Online Audience: Interest Completed',
+  FetchOnlineInMarketCompletedMap    = '[Audience] Fetch For Map Online Audience: In-Market Completed',
+  FetchOnlineVLHCompletedMap         = '[Audience] Fetch For Map Online Audience: VLH Completed',
+  FetchOnlinePixelCompletedMap       = '[Audience] Fetch For Map Online Audience: Pixel Completed',
+  FetchOfflineTDACompletedMap        = '[Audience] Fetch For Map Offline Audience: TDA Completed',
+  FetchCustomCompletedMap            = '[Audience] Fetch For Map Custom Audience: Completed',
 
-  FetchOnlineFailed               = '[Audience] Fetch Online Audience Failed',
-  FetchOfflineFailed              = '[Audience] Fetch Offline Audience Failed',
-  FetchCustomFailed               = '[Audience] Fetch Custom Audience Failed',
-  FetchOnlineFailedMap            = '[Audience] Fetch For Map Online Audience Failed',
-  FetchOfflineFailedMap           = '[Audience] Fetch For Map Offline Audience Failed',
-  FetchCustomFailedMap            = '[Audience] Fetch For Map Custom Audience Failed',
+  FetchAudienceTradeAreaFailed       = '[Audience] Fetch Audience: Trade Area Failed',
+  FetchOnlineFailed                  = '[Audience] Fetch Online Audience Failed',
+  FetchOfflineFailed                 = '[Audience] Fetch Offline Audience Failed',
+  FetchCustomFailed                  = '[Audience] Fetch Custom Audience Failed',
+  FetchAudienceTradeAreaFailedMap    = '[Audience] Fetch For Map Audience: Trade Area Failed',
+  FetchOnlineFailedMap               = '[Audience] Fetch For Map Online Audience Failed',
+  FetchOfflineFailedMap              = '[Audience] Fetch For Map Offline Audience Failed',
+  FetchCustomFailedMap               = '[Audience] Fetch For Map Custom Audience Failed',
 
-  MoveAudienceUp                  = '[Audience] Move audience sequence up',
-  MoveAudienceDn                  = '[Audience] Move audience sequence down',
+  MoveAudienceUp                     = '[Audience] Move audience sequence up',
+  MoveAudienceDn                     = '[Audience] Move audience sequence down',
 
-  SequenceChanged                 = '[Audience] Order of audiences changed'
+  SequenceChanged                    = '[Audience] Order of audiences changed'
 }
 
 export class LoadAudiences implements Action {
@@ -164,6 +172,10 @@ export class FetchCountDecrement implements Action {
   readonly type = AudienceActionTypes.FetchCountDecrement;
 }
 
+export class FetchAudienceTradeArea implements Action {
+  readonly type = AudienceActionTypes.FetchAudienceTradeArea;
+}
+
 export class FetchOnlineInterest implements Action {
   readonly type = AudienceActionTypes.FetchOnlineInterest;
   constructor(public payload: {fuseSource: string, al: string, showOnMap: boolean[], ids: string[], geos: string[], transactionId?: number}) {}
@@ -198,6 +210,11 @@ export class FetchCustomFromPrefs implements Action {
   readonly type = AudienceActionTypes.FetchCustomFromPrefs;
 }
 
+export class FetchAudienceTradeAreaCompleted implements Action {
+  readonly type = AudienceActionTypes.FetchAudienceTradeAreaCompleted;
+  constructor(public payload: {source: string, startTime: number, response: GeoVar[]}) {}
+}
+
 export class FetchOnlineInterestCompleted implements Action {
   readonly type = AudienceActionTypes.FetchOnlineInterestCompleted;
   constructor(public payload: {source: string, startTime: number, response: OnlineBulkDataResponse[]}) {}
@@ -226,6 +243,10 @@ export class FetchOfflineTDACompleted implements Action {
 export class FetchCustomCompleted implements Action {
   readonly type = AudienceActionTypes.FetchCustomCompleted;
   constructor(public payload: {source: string, startTime: number, response: GeoVar[]}) {}
+}
+
+export class FetchAudienceTradeAreaMap implements Action {
+  readonly type = AudienceActionTypes.FetchAudienceTradeAreaMap;
 }
 
 export class FetchOnlineInterestMap implements Action {
@@ -262,6 +283,11 @@ export class FetchCustomFromPrefsMap implements Action {
   readonly type = AudienceActionTypes.FetchCustomFromPrefsMap;
 }
 
+export class FetchAudienceTradeAreaCompletedMap implements Action {
+  readonly type = AudienceActionTypes.FetchAudienceTradeAreaCompletedMap;
+  constructor(public payload: {source: string, startTime: number, response: MapVar[]}) {}
+}
+
 export class FetchOnlineInterestCompletedMap implements Action {
   readonly type = AudienceActionTypes.FetchOnlineInterestCompletedMap;
   constructor(public payload: {source: string, startTime: number, response: OnlineBulkDataResponse[]}) {}
@@ -292,6 +318,11 @@ export class FetchCustomCompletedMap implements Action {
   constructor(public payload: {source: string, startTime: number, response: GeoVar[]}) {}
 }
 
+export class FetchAudienceTradeAreaFailed implements Action {
+  readonly type = AudienceActionTypes.FetchAudienceTradeAreaFailed;
+  constructor(public payload: { err: any }) {}
+}
+
 export class FetchOnlineFailed implements Action {
   readonly type = AudienceActionTypes.FetchOnlineFailed;
   constructor(public payload: { err: any }) {}
@@ -304,6 +335,11 @@ export class FetchOfflineFailed implements Action {
 
 export class FetchCustomFailed implements Action {
   readonly type = AudienceActionTypes.FetchCustomFailed;
+  constructor(public payload: { err: any }) {}
+}
+
+export class FetchAudienceTradeAreaFailedMap implements Action {
+  readonly type = AudienceActionTypes.FetchAudienceTradeAreaFailedMap;
   constructor(public payload: { err: any }) {}
 }
 
@@ -340,6 +376,10 @@ export class RehydrateAudiences implements Action {
   readonly type = AudienceActionTypes.RehydrateAudiences;
 }
 
+export class RehydrateShading implements Action {
+  readonly type = AudienceActionTypes.RehydrateShading;
+}
+
 export class MoveAudienceUp implements Action {
   readonly type = AudienceActionTypes.MoveAudienceUp;
   constructor(public payload: {audienceIdentifier: string}) {}
@@ -371,11 +411,13 @@ export type AudienceActions =
   | ApplyAudiencesRecordStats
   | ClearAudienceStats
   | RehydrateAudiences
+  | RehydrateShading
   | FetchMapVar
   | FetchMapVarCompleted
   | FetchAudiences
   | FetchCountIncrement
   | FetchCountDecrement
+  | FetchAudienceTradeArea
   | FetchOnlineInterest
   | FetchOnlineInMarket
   | FetchOnlineVLH
@@ -383,12 +425,14 @@ export type AudienceActions =
   | FetchOfflineTDA
   | FetchCustom
   | FetchCustomFromPrefs
+  | FetchAudienceTradeAreaCompleted
   | FetchOnlineInterestCompleted
   | FetchOnlineInMarketCompleted
   | FetchOnlineVLHCompleted
   | FetchOnlinePixelCompleted
   | FetchOfflineTDACompleted
   | FetchCustomCompleted
+  | FetchAudienceTradeAreaMap
   | FetchOnlineInterestMap
   | FetchOnlineInMarketMap
   | FetchOnlineVLHMap
@@ -396,15 +440,18 @@ export type AudienceActions =
   | FetchOfflineTDAMap
   | FetchCustomMap
   | FetchCustomFromPrefsMap
+  | FetchAudienceTradeAreaCompletedMap
   | FetchOnlineInterestCompletedMap
   | FetchOnlineInMarketCompletedMap
   | FetchOnlineVLHCompletedMap
   | FetchOnlinePixelCompletedMap
   | FetchOfflineTDACompletedMap
   | FetchCustomCompletedMap
+  | FetchAudienceTradeAreaFailed
   | FetchOnlineFailed
   | FetchOfflineFailed
   | FetchCustomFailed
+  | FetchAudienceTradeAreaFailedMap
   | FetchOnlineFailedMap
   | FetchOfflineFailedMap
   | FetchCustomFailedMap

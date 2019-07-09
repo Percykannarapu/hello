@@ -21,6 +21,7 @@ import { AppGeoService } from './../../services/app-geo.service';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { AppLoggingService } from 'app/services/app-logging.service';
+import { FetchAudienceTradeArea } from 'app/impower-datastore/state/transient/audience/audience.actions';
 
 const tradeAreaExtract = (maxTas: number) => map<Map<number, ImpGeofootprintTradeArea[]>, ImpGeofootprintTradeArea[]>(taMap => {
   const result = [];
@@ -161,6 +162,9 @@ export class TradeAreaTabComponent implements OnInit {
   }
 
   onUpdatedAudienceTAData(form: any) {
+    // Exit if the application is not ready as it will update the project with null min/max radiuses for audience trade areas
+    if (!this.stateService.applicationIsReady$) return;
+
     //this.logger.debug.log('Trade Area parent component fired', form);
     const audienceTAConfig: AudienceTradeAreaConfig = {
       analysisLevel: this.stateService.analysisLevel$.getValue() ? this.stateService.analysisLevel$.getValue().toLowerCase() : null,
@@ -193,29 +197,30 @@ export class TradeAreaTabComponent implements OnInit {
     .subscribe(createTASuccessful => {
       const geosToPersist: Array<ImpGeofootprintGeo> = [];
       if (createTASuccessful) {
-         // Add the must covers to geosToPersist
-         this.appGeoService.ensureMustCoversObs(this.locationService.get(), null).subscribe(results => {
-            results.forEach(result => geosToPersist.push(result));
-         }
-         , err => {
-            this.logger.error.log('ERROR occurred ensuring must covers: ', err);
-            this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating must covers for the Audience Trade Area' }));
-         }
-         , () => {
-            if (geosToPersist.length > 0) {
-              this.logger.info.log('Adding ', geosToPersist.length, ' must covers for audience TA');
-              this.geoService.add(geosToPersist);
-            }
-            else
-              this.logger.info.log('No must covers for audience TA');
-         });
+        this.store$.dispatch(new FetchAudienceTradeArea());
+        // Add the must covers to geosToPersist
+        this.appGeoService.ensureMustCoversObs(this.locationService.get(), null).subscribe(results => {
+          results.forEach(result => geosToPersist.push(result));
+        },
+        err => {
+          this.logger.error.log('ERROR occurred ensuring must covers: ', err);
+          this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating must covers for the Audience Trade Area' }));
+        },
+        () => {
+          if (geosToPersist.length > 0) {
+            this.logger.info.log('Adding ', geosToPersist.length, ' must covers for audience TA');
+            this.geoService.add(geosToPersist);
+          }
+          else
+            this.logger.info.log('No must covers for audience TA');
+        });
       }
     },
     error => {
       this.logger.error.log('Error while creating audience tradearea', error);
       this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
       this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
-   }
-   );
+    }
+    );
   }
 }

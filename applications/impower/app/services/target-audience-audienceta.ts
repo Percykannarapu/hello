@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError, EMPTY } from 'rxjs';
+import { filter, tap, map, catchError, take, withLatestFrom } from 'rxjs/operators';
 import { AudienceDataDefinition, AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
 import { RestResponse } from '../models/RestResponse';
 import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
-import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
@@ -20,7 +19,8 @@ import { Audience } from 'app/impower-datastore/state/transient/audience/audienc
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
-import { UpsertGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
+import { FetchAudienceTradeArea, FetchAudienceTradeAreaMap } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 
 interface AudienceTradeareaResponse {
   maxRadius: number;
@@ -74,6 +74,7 @@ export class TargetAudienceAudienceTA {
               private appStateService: AppStateService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private projectVarService: ImpProjectVarService,
+              private restService: RestDataService,
               private logger: LoggingService,
               private store$: Store<FullAppState>) {
     this.geoVarMap.set('Index Value', 'number');
@@ -96,13 +97,55 @@ export class TargetAudienceAudienceTA {
     // Subscribe to store selectors
     this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
 
-    this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
+//  this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
+    this.appStateService.applicationIsReady$.pipe(filter(ready => ready),
+      withLatestFrom(this.store$.select(fromAudienceSelectors.getAudiencesForTA),
+                     this.store$.select(fromAudienceSelectors.getAudiencesForTAOnMap))).subscribe(([ready, audiencesForTA, audiencesForMap]) => {
+        console.log('### applicationIsReady - ready:', ready, 'audiencesForTA:', audiencesForTA, 'audiencesForMap:', audiencesForMap);
+        this.onLoadProject(audiencesForTA, audiencesForMap);
+      });
   }
 
-  private onLoadProject() {
+  public fetchAudienceTradeArea(forShading: boolean) : Observable<GeoVar[]> {
+    const refreshProjectVars = forShading ? this.allAudiencesBS$.value.filter(aud => aud.showOnMap)
+                                          : this.allAudiencesBS$.value.filter(aud => aud.secondaryId === 'Index Value');
+
+    if (refreshProjectVars != null && refreshProjectVars.length > 0) {
+      //const refreshProjectVar = projectVars[0];
+      console.log('### fetchAudienceTradeArea - refreshProjectVars:', refreshProjectVars, ', aud.secondaryId:', refreshProjectVars[0].secondaryId);
+
+      const refreshAudience: AudienceDataDefinition = {
+        audienceName: refreshProjectVars[0].audienceName,
+        audienceIdentifier: refreshProjectVars[0].audienceIdentifier.toString(),
+        audienceSourceType: 'Online',
+        audienceSourceName: 'Audience-TA',
+        exportInGeoFootprint: refreshProjectVars[0].exportInGeoFootprint,
+        showOnGrid: refreshProjectVars[0].showOnGrid,
+        showOnMap: refreshProjectVars[0].showOnMap,
+        allowNationalExport: false,
+        exportNationally: false,
+        //secondaryId: this.reloadSecondaryId(refreshProjectVar),
+        secondaryId: refreshProjectVars[0].secondaryId,
+        audienceTAConfig: refreshProjectVars[0].audienceTAConfig, // this.reloadAudienceTaConfig(),
+        fieldconte: FieldContentTypeCodes.parse(refreshProjectVars[0].fieldconte),
+        requiresGeoPreCaching: false,
+        seq: refreshProjectVars[0].seq
+      };
+      return this.audienceTaRefresh(forShading, refreshAudience);
+/*
+      this.audienceTaRefresh(refreshAudience).pipe(take(1)).subscribe(geoVars => {
+        if (geoVars != null)
+          console.log('### fetchAudienceTradeArea - geovars:', geoVars);
+      });*/
+    }
+    else
+        return EMPTY;
+  }
+
+  public rehydrateAudience() {
     try {
       const project = this.appStateService.currentProject$.getValue();
-      let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
+      let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online').sort((a, b) => a.sortOrder - b.sortOrder);
       projectVars = projectVars.filter(v => v.source.split('_')[1].toLowerCase().includes('audience'));
       if (projectVars.length > 0) {
         for (const projectVar of projectVars) {
@@ -123,12 +166,25 @@ export class TargetAudienceAudienceTA {
             seq: projectVar.sortOrder
           };
           this.projectVarService.getNextStoreId(); //do this so that we don't collide with any new project vars we create
+          //this.logger.debug.log('### rehydrateAudience - currentAudience:', currentAudience);
           this.audienceService.addAudience(currentAudience, null, true);
         }
       }
-    } catch (error) {
+      //this.logger.debug.log('### rehydrateAudience - this.allAudiencesBS$.value:', this.allAudiencesBS$.value);
+      //this.allAudiencesBS$.value.forEach(aud => this.logger.debug.log('### rehydrateAudience - redux audience:', aud.audienceIdentifier, '-', aud.audienceName));
+      //this.valAudienceTradeareaService.createAudienceTradearea(this.reloadAudienceTaConfig());
+    }
+    catch (error) {
       console.error(error);
     }
+  }
+
+  private onLoadProject(audiencesForTA: Audience[], audiencesForMap: Audience[]) {
+    if (audiencesForTA.length > 0)
+      this.store$.dispatch(new FetchAudienceTradeArea());
+    // if (audiencesForMap.length > 0) {
+    //   this.store$.dispatch(new FetchAudienceTradeAreaMap());
+    // }
   }
 
   private reloadAudienceTaConfig() : AudienceTradeAreaConfig {
@@ -193,15 +249,15 @@ export class TargetAudienceAudienceTA {
   }
 
   public addAudiences(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>, digCategoryId, audienceTAConfig: AudienceTradeAreaConfig) {
-    //console.debug("addAudiences - target-audience-audienceta - fired - audienceTAConfig: ", audienceTAConfig);
+    //this.logger.debug.log('addAudiences - target-audience-audienceta - fired - digCategoryId:', digCategoryId, ', audienceTAConfig:', audienceTAConfig);
     for (const key of Array.from(this.geoVarMap.keys())) {
       const model = this.createDataDefinition(key, digCategoryId, audienceTAConfig, digCategoryId);
       this.audienceService.addAudience(model, null);
     }
-    this.createGeofootprintVars(taResponseCache);
+    this.createGeofootprintVars(taResponseCache, false);
   }
 
-  private createGeofootprintVars(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>) : GeoVar[] {
+  private createGeofootprintVars(taResponseCache: Map<string, Map<number, AudienceTradeareaResponse>>, forShading: boolean, shadingSecondaryId?: string) : GeoVar[] {
     this.logger.debug.log('target-audience-audienceta - createGeofootprintVars - Locs: ' + taResponseCache.size + ', taResponseCache: ', taResponseCache);
     let varPk = null;
     const geofootprintVars: GeoVar[] = [];
@@ -219,11 +275,11 @@ export class TargetAudienceAudienceTA {
       const currentTradeArea = taByLocationNum.get(location);
       for (const geoResponseId of geoResponseKeys) {
         for (const geoVarKey of Array.from(this.geoVarMap.keys())) {
-          if (this.varPkCache.has(geoVarKey)) {
+          if (this.varPkCache.has(geoVarKey))
             varPk = this.varPkCache.get(geoVarKey);
-          } else {
+          else
             throw new Error('Audience TA var pk cache set up incorrectly');
-          }
+
           this.varPkCache.set(geoVarKey, varPk);
 
           const geoResponse: AudienceTradeareaResponse = geoResponses.get(geoResponseId);
@@ -231,7 +287,11 @@ export class TargetAudienceAudienceTA {
           // Create the geo var and put it in the array
           const geoVar: GeoVar = { geocode: geoResponse.geocode };
           geoVar[varPk] = geoResponse[this.geoVarFieldMap.get(geoVarKey)];
-          geofootprintVars.push(geoVar);
+
+          if (!forShading || (forShading && geoVarKey.startsWith(shadingSecondaryId))) {
+            //console.log('### createGeofootprintVars - forShading:', forShading, ', varPk:', varPk, ', shadingSecondaryId:', shadingSecondaryId, ', geoVarKey:', geoVarKey, 'geoResponseId:', geoResponseId);
+            geofootprintVars.push(geoVar);
+          }
 
           const previousFlag = currentAttributes.get(geoResponse.geocode) || false;
           const newFlag = previousFlag || this.setActiveGeos(geoResponse.combinedIndexTile, audienceTAConfig, geoResponse.distance);
@@ -261,10 +321,10 @@ export class TargetAudienceAudienceTA {
 
     //// Filter out any dupes
     //geofootprintVars = (geofootprintVars.filter(gv => this.varService.get().findIndex(gvar => gvar.geocode === gv.geocode && gvar.varPk === gv.varPk && gvar.impGeofootprintLocation.locationNumber === gv.impGeofootprintLocation.locationNumber) === -1));
-    if (geofootprintVars.length > 0) {
-      //this.varService.add(geofootprintVars);
-      this.store$.dispatch(new UpsertGeoVars({ geoVars: geofootprintVars}));
-    }
+    // if (geofootprintVars.length > 0) {
+    //   //this.varService.add(geofootprintVars);
+    //   this.store$.dispatch(new UpsertGeoVars({ geoVars: geofootprintVars}));
+    // }
     this.logger.debug.log('target-audience-audienceta - createGeofootprintVars - Added:', geofootprintVars.length, 'new geo vars');
     // DEBUG: Print variable counts
     // console.log("target-audience-audienceta - current geo vars");
@@ -326,6 +386,71 @@ export class TargetAudienceAudienceTA {
       geoVar.value = taResponse.combinedIndexTileName;
     }
     return taResponses;
+  }
+
+  private audienceTaRefresh(forShading: boolean, audience?: AudienceDataDefinition) : Observable<GeoVar[]> {
+    //console.log('addAudience - target-audience-audienceta - dataRefreshCallback, audience:', audience);
+    if (!audience) return EMPTY;
+    const projectVarsDict = this.appStateService.projectVarsDict$.getValue();
+
+    // Update the ta config
+    audience.audienceTAConfig = this.reloadAudienceTaConfig();
+
+    const payload = audience.audienceTAConfig;
+    const localAudienceName = audience.audienceName.replace(audience.secondaryId, '').trim();
+    const shadingSecondaryId = (audience != null) ? audience.secondaryId : null;
+    delete payload.includeMustCover;
+    delete payload.audienceName;
+
+    if (payload.analysisLevel)
+      payload.analysisLevel = payload.analysisLevel.toLowerCase();
+
+    if (payload.analysisLevel.toLocaleLowerCase() === 'digital atz') {
+      payload.analysisLevel = 'dtz';
+    }
+
+    //DE2057: If the digCategoryId is null get it from the project
+    if (payload.digCategoryId == null) {
+      payload.digCategoryId = this.appStateService.currentProject$.getValue().audTaVarPk;
+    }
+
+    //this.logger.debug.log('Preparing to send Audience TA payload to Fuse', payload);
+//    const headers: HttpHeaders = new HttpHeaders().set('Content-Type', 'application/json');
+//    const url: string = this.config.valServiceBase + 'v1/targeting/base/audiencetradearea';
+/*  const dataObs: Observable<RestResponse> = this.httpClient.post<RestResponse>(url, JSON.stringify(payload), { headers: headers });
+    return dataObs.pipe(
+      map(res => this.createGeofootprintVars(this.parseResponse(res, localAudienceName))),
+      map(data => {
+        if (isForShading)
+          return data.filter(gv => ((projectVarsDict[gv.varPk] || safe).customVarExprDisplay || '').includes(audience.secondaryId));
+        else
+          return data;
+      })
+    );*/
+    const source = 'audience-ta: ' + audience.audienceName;
+    this.audienceService.timingMap.set('(' + audience.audienceSourceType.toLowerCase() + ')', performance.now());
+    return this.restService.post('v1/targeting/base/audiencetradearea', payload)
+      .pipe(
+        tap(response => this.audienceService.timingMap.set('(' + source + ')', performance.now() - this.audienceService.timingMap.get('(' + source + ')'))),
+        map(response => this.parseResponse(response, localAudienceName)),
+        tap(response => console.log('response:', response)),
+        map(response => {
+          console.log('response:', response);
+          const gv = this.createGeofootprintVars(response, forShading, shadingSecondaryId);
+          return gv;
+        }),
+        catchError( (err) => {
+          console.error('Error posting to v1/targeting/base/audiencetradearea');
+          console.error('payload:', payload);
+          console.error('payload:\n{\n' +
+                        '   audienceName: ', payload.audienceName, '\n',
+                        '   locations:    ', payload.locations, '\n',
+                        '   analysis lvl: ', payload.analysisLevel, '\n',
+                        '   digCategoryIds:', payload.digCategoryId.toString(), '\n}'
+                        );
+          console.error(err);
+          return throwError('No Data was returned for the audience ta - id: ' + payload.digCategoryId); })
+        );
   }
 
 /*

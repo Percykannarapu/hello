@@ -184,7 +184,6 @@ export class TargetAudienceService implements OnDestroy {
         if (projectVar) this.projectVarService.add([projectVar]);
       }
     }
-
     this.store$.dispatch(new UpsertAudience({ audience: audience }));
   }
 
@@ -399,6 +398,35 @@ export class TargetAudienceService implements OnDestroy {
     });
   }
 
+  public rehydrateShading() { // REVIEW
+    this.setAudienceMapFromStore();
+
+    const shadingAudience = Array.from(this.mapAudiencesBS$.value);
+    this.logger.info.log('rehydrateShading fired - shadingAudience.length:', shadingAudience.length, ', shadingAudience:', shadingAudience);
+    if (this.shadingSub) this.shadingSub.unsubscribe();
+    this.clearShadingData();
+
+    switch (shadingAudience.length) {
+      case 0:
+        if (this.shadingSub) this.shadingSub.unsubscribe();
+        this.store$.dispatch(new ClearShadingData());
+        break;
+
+      case 1:
+        const visibleGeos$ = this.appStateService.uniqueVisibleGeocodes$;
+        this.shadingSub = combineLatest(this.appStateService.analysisLevel$, visibleGeos$)
+          .subscribe(([analysisLevel, visibleGeos]) => this.getShadingData(analysisLevel, visibleGeos, shadingAudience[0]));
+        // console.log('### rehydrateShading visibleGeos:', visibleGeos$.getValue().length, visibleGeos$.getValue());
+        // if (visibleGeos$.getValue().length > 0)
+        //   this.store$.dispatch(new FetchMapVar({ analysisLevel: this.appStateService.analysisLevel$.getValue(), geos: visibleGeos$.getValue() }));
+        break;
+
+      default:
+        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Selected Audience Error', message: 'Only 1 Audience can be selected to shade the map by.' }));
+        break;
+    }
+  }
+
   public applyAudienceSelection() : void {
     this.setAudienceMapFromStore();
 
@@ -407,9 +435,9 @@ export class TargetAudienceService implements OnDestroy {
     const selectedAudiences = audiences.filter(a => a.exportInGeoFootprint || a.showOnGrid);
     this.logger.info.log('applyAudienceSelection fired - # Audiences:', audiences.length, ', selectedAudiences.length:', selectedAudiences.length, ', shadingAudience.length:', shadingAudience.length, ', audiences:', audiences);
     this.unsubEverything();
-    this.clearShadingData();
     this.clearVars();
-    if (shadingAudience.length > 1) {
+    this.clearShadingData();
+/*    if (shadingAudience.length > 1) {
       this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Selected Audience Error', message: 'Only 1 Audience can be selected to shade the map by.' }));
     }
     else
@@ -422,10 +450,12 @@ export class TargetAudienceService implements OnDestroy {
         if (shadingAudience.length === 0) {
           if (this.shadingSub) this.shadingSub.unsubscribe();
             this.store$.dispatch(new ClearShadingData());
-        }
+        }*/
+    this.rehydrateShading();
 
-    if (audiences.length > 0)
+    if (audiences.length > 0) {
       this.store$.dispatch(new ApplyAudiences({analysisLevel: this.appStateService.analysisLevel$.getValue()}));
+    }
 
     if (selectedAudiences.length > 0) {
       // set up a watch process
@@ -472,13 +502,13 @@ export class TargetAudienceService implements OnDestroy {
     // this.logger.debug.log('getShadingData - audienceSources ', (this.audienceSources.has(sourceId) ? 'has' : 'does not have'), sourceId);
     // this.logger.debug.log('getShadingData - sourceId:', sourceId, ', source:', source, ', audienceSources:', this.audienceSources);
 
-    //console.log('### getShadingData - source:', source);
+console.log('### getShadingData fired for audience:', audience);
     if (this.mapAudiencesBS$.value.length > 0) {
       const currentShadingData = this.shadingData.getValue();
-      this.store$.dispatch(new StartBusyIndicator({key, message: 'Retrieving shading data'}));
-//      if (audience.requiresGeoPreCaching) {
-      //this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(geos) }));
-        this.store$.dispatch(new FetchMapVar({ analysisLevel: analysisLevel, geos: geos }));
+//REVIEW      this.store$.dispatch(new StartBusyIndicator({key, message: 'Retrieving shading data'}));
+  //      if (audience.requiresGeoPreCaching) {
+        //this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(geos) }));
+          this.store$.dispatch(new FetchMapVar({ analysisLevel: analysisLevel, geos: geos }));
     }
   }
 

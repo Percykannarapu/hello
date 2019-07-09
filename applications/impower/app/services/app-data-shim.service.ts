@@ -85,7 +85,7 @@ export class AppDataShimService {
   }
 
   onLoadFinished() : void {
-    this.targetAudienceService.applyAudienceSelection();
+    //this.targetAudienceService.applyAudienceSelection();
   }
 
   createNew() : number {

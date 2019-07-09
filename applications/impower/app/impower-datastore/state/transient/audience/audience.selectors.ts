@@ -10,8 +10,10 @@ export const allAudienceEntities = createSelector(audienceSlice, fromAudience.se
 export const getAudiencesInFootprint = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportInGeoFootprint));
 export const getAudiencesInGrid = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.showOnGrid));
 export const getAudiencesOnMap = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.showOnMap));
+export const getAudiencesForTA = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.audienceTAConfig != null));
+export const getAudiencesForTAOnMap = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.audienceTAConfig != null && audience.showOnMap));
 export const getAudiencesNationalExtract = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportNationally));
-export const getAudiencesAppliable = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.showOnGrid || audience.exportInGeoFootprint));
+export const getAudiencesAppliable = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => (audience.showOnGrid || audience.exportInGeoFootprint) && audience.audienceTAConfig == null));
 
 export const selectAudienceIds = createSelector(audienceSlice, fromAudience.selectIds);
 export const selectAudienceEntities = createSelector(audienceSlice, fromAudience.selectEntities);
