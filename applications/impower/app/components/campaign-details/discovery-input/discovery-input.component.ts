@@ -21,11 +21,7 @@ export class DiscoveryInputComponent implements OnInit {
       this.setControlStates(val);
     }
   }
-  @Input('onlineAudienceExists')
-  set onlineAudienceExists(val: boolean) {
-    this.setPCROptionState(val);
-    this.showAnalysisLevelError = val;
-  }
+  
   @Input() radSuggestions: RadLookupUIModel[];
   @Input() projectTrackerSuggestions: ProjectTrackerUIModel[];
 
