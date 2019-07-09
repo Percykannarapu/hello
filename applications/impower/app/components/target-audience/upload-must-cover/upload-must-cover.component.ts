@@ -87,6 +87,14 @@ export class UploadMustCoverComponent implements OnInit {
           console.log(' ro be removed from failure grid::', uniqueGeos);
         }
         this.totalUploadedRowCount = uniqueGeos.length + this.uploadFailures.length; 
+        //ensure mustcover are active 
+        const uniqueGeoSet = new Set(uniqueGeos);
+        this.impGeofootprintGeoService.get().forEach(geo => {
+        if (uniqueGeoSet.has(geo.geocode)){
+        geo.isActive = true;
+}
+});
+this.impGeofootprintGeoService.makeDirty();
       } 
     );
    }
