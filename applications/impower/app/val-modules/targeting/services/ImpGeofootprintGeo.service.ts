@@ -25,7 +25,14 @@ import { Audience } from 'app/impower-datastore/state/transient/audience/audienc
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
+import { AppConfig } from 'app/app.config';
+import { EsriQueryService } from '@val/esri';
+import { map } from 'rxjs/operators';
 
+interface CustomTADefinition {
+  Number: number;
+  geocode: string;
+}
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -60,10 +67,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
    private exportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
    private geoVarsBS$ = new BehaviorSubject<GeoVar[]>([]);
+   private uploadFailuresSub: BehaviorSubject<CustomTADefinition[]> = new BehaviorSubject<CustomTADefinition[]>([]);
+  public uploadFailuresObs$: Observable<CustomTADefinition[]> = this.uploadFailuresSub.asObservable();
 
 
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
+               private appConfig: AppConfig,
+               private esriQueryService: EsriQueryService,
                private store$: Store<LocalAppState>)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
@@ -579,59 +590,78 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // MUST COVER METHODS
    // -----------------------------------------------------------
-   public parseMustCoverFile(dataBuffer: string, fileName: string) : string[] {
-      //console.debug("### parseMustCoverFile fired");
-      const rows: string[] = dataBuffer.split(/\r\n|\n/);
-      const header: string = rows.shift();
-      const errorTitle: string = 'Must Cover Geographies Upload';
-      //const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+   public parseMustCoverFile(dataBuffer: string, fileName: string, analysisLevel: string) : Observable<any> {
+    //console.debug("### parseMustCoverFile fired");
+    const rows: string[] = dataBuffer.split(/\r\n|\n/);
+    const header: string = rows.shift();
+    const errorTitle: string = 'Must Cover Geographies Upload';
+    const errorGeo: CustomTADefinition[] = [];
+    const successGeo = [];
+    //const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
-      try {
-         // Parse the file data
-         const data: ParseResponse<UploadMustCoverData> = FileService.parseDelimitedData(header, rows, mustCoverUpload);
+    try {
+       // Parse the file data
+       const data: ParseResponse<UploadMustCoverData> = FileService.parseDelimitedData(header, rows, mustCoverUpload);
 
-         // Gather metrics about the upload
-         const failCount = data.failedRows.length;
-         const successCount = data.parsedData.length;
+       // Gather metrics about the upload
+       const failCount = data.failedRows.length;
+       const successCount = data.parsedData.length;
 
-         // If there was a problem in the upload file, notify the user
-         if (failCount > 0) {
-            console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-            this.reportError(errorTitle, `There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
-         }
+       // If there was a problem in the upload file, notify the user
+       if (failCount > 0) {
+          console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
+          this.reportError(errorTitle, `There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
+       }
 
-         // If the file did have some correct rows, begin processing them
-         if (successCount > 0) {
-            // Reduce the list of geographies down to the distinct list
-            const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
+       // If the file did have some correct rows, begin processing them
+       if (successCount > 0) {
+          // Reduce the list of geographies down to the distinct list
+          const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
 
-            if (uniqueGeos.size !== data.parsedData.length) {
-               this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
-            }
+          if (uniqueGeos.size !== data.parsedData.length) {
+             this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
+          }
 
-            // Keep track of the current must cover upload filename
-            this.currentMustCoverFileName = fileName;
+          const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel);
 
-            // // Create an array of must cover geographies
-            // this.mustCovers = Array.from(uniqueGeos);
+          const outfields = ['geocode', 'latitude', 'longitude'];
+          const queryResult = new Set<string>();
 
-            // // Alert subscribers that we have a new list of must covers
-            // this.allMustCoverBS$.next(this.mustCovers);
+          return this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
+            map(graphics => graphics.map(g => g.attributes)),
+            map(attrs => {
+              attrs.forEach(r => queryResult.add(r.geocode));
+              let i = 0;
+              uniqueGeos.forEach(geo => {
+                //queryResult.has(geo) ? successGeo.push(geo) : errorGeo.push({ 1 , geo })
+                if (queryResult.has(geo)){
+                  successGeo.push(geo);
+                }else{
+                 // const customGeocodeDef = this.uploadFailuresSub.getValue().filter(customMC => customMC.geocode != geo);
+                  const customTa: CustomTADefinition = { Number: i++, geocode: geo };
+                 // if (customGeocodeDef.length == 0)
+                  errorGeo.push(customTa);
+                }
 
-            this.setMustCovers(Array.from(uniqueGeos), true);
-
-            console.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
-
-            this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Must Cover Upload'}));
-
-            return Array.from(uniqueGeos);
-         }
+              });
+              this.uploadFailuresSub.next(errorGeo);
+               // Keep track of the current must cover upload filename
+               this.currentMustCoverFileName = fileName; 
+               this.setMustCovers(successGeo, true);
+ 
+               console.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
+ 
+               
+               return successGeo;
+            })
+           );
+       }
       }
       catch (e) {
-         this.reportError(errorTitle, `${e}`);
+        this.reportError(errorTitle, `${e}`);
       }
-      return [];
-   }
+      return EMPTY;
+    }
 
    public parseMustCoverString(mustCoverCsv: string) : string[] {
       try

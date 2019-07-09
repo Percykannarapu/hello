@@ -6,10 +6,16 @@ import { FileUpload } from 'primeng/primeng';
 import * as xlsx from 'xlsx';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppGeoService } from './../../../services/app-geo.service';
 import { ImpGeofootprintGeo } from './../../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { Observable } from 'rxjs';
+
+interface CustomTADefinition {
+  Number: number;
+  geocode: string;
+}
 
 @Component({
   selector: 'val-upload-must-cover',
@@ -20,6 +26,10 @@ export class UploadMustCoverComponent implements OnInit {
    private readonly spinnerId = 'MUST_COVERS_UPLOAD';
    public isDisable: boolean;
    public tooltip;
+   public uploadFailures: CustomTADefinition[] = [];
+   public currentAnalysisLevel$: Observable<string>;
+   public totalUploadedRowCount = 0;
+   private fileName: string;
 
    @ViewChild('mustCoverUpload') private mustCoverUploadEl: FileUpload;
 
@@ -29,25 +39,67 @@ export class UploadMustCoverComponent implements OnInit {
               , private appProjectPrefService: AppProjectPrefService
               , private geoService: ImpGeofootprintGeoService
               , private store$: Store<LocalAppState>) { 
-
+                this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
               }
 
    ngOnInit() {
     this.appStateService.analysisLevel$.subscribe(val => {
       this.isDisable = val != null ? false : true; 
-      this.tooltip = this.isDisable ? 'You must select an Analysis Level prior' : 'CSV or Excel format required: Geocode';
+      this.tooltip = this.isDisable ? 'Please select an Analysis Level before uploading a Must Cover file' : 'CSV or Excel format required: Geocode';
     });
+
+    this.impGeofootprintGeoService.uploadFailuresObs$.subscribe(result => {
+      if (this.uploadFailures.length == 0)
+          this.uploadFailures.push(...result);
+    });
+
+   }
+
+   public onResubmit(data: CustomTADefinition){
+     let csvData = 'Geocode \n';
+     csvData = csvData + data.geocode;
+     //this.onRemove(data);
+    this.parseMustcovers(csvData, this.fileName, true, data);
+
+   }
+
+   public onRemove(data: CustomTADefinition){
+    this.totalUploadedRowCount -= 1;
+    this.uploadFailures = this.uploadFailures.filter(f => f.Number !== data.Number);
+   }
+
+
+   private parseMustcovers(dataBuffer: string, fileName: string, isResubmit: boolean = false, customTADefinition?: CustomTADefinition){
+    let uniqueGeos: string[] = [];
+    this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, this.appStateService.analysisLevel$.getValue()).subscribe(
+      geos => {
+          if (geos.length > 0){
+            uniqueGeos = geos;
+            
+          }
+      }, null , () => {
+        // Create a new project pref for the upload file
+        const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
+        this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
+        this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcovetText + name, uniqueGeos.join(', '));
+        if (isResubmit && uniqueGeos.length > 0){
+          this.onRemove(customTADefinition);
+          console.log(' ro be removed from failure grid::', uniqueGeos);
+        }
+        this.totalUploadedRowCount = uniqueGeos.length + this.uploadFailures.length; 
+      } 
+    );
    }
 
    public uploadFile(event: any) : void {
       const reader = new FileReader();
-      const name: string = event.files[0].name ? event.files[0].name.toLowerCase() : null;
+      this.fileName = event.files[0].name ? event.files[0].name.toLowerCase() : null;
       const key = this.spinnerId;
       const project = this.appStateService.currentProject$.getValue();
-      let uniqueGeos: string[] = [];
+      //let uniqueGeos: string[] = [];
       if (name != null) {
          this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Must Cover Data'}));
-         if (name.includes('.xlsx') || name.includes('.xls')) {
+         if (this.fileName.includes('.xlsx') || this.fileName.includes('.xls')) {
             reader.readAsBinaryString(event.files[0]);
             reader.onload = () => {
                try {
@@ -55,7 +107,17 @@ export class UploadMustCoverComponent implements OnInit {
                   const worksheetName: string = wb.SheetNames[0];
                   const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
                   const csvData  = xlsx.utils.sheet_to_csv(ws);
-                  uniqueGeos = this.impGeofootprintGeoService.parseMustCoverFile(csvData, name);
+                  this.parseMustcovers(csvData, this.fileName);
+                  /*this.impGeofootprintGeoService.parseMustCoverFile(csvData, name, this.appStateService.analysisLevel$.getValue()).subscribe(
+                    geos => {
+                        if (geos.length > 0){
+                          uniqueGeos = geos;
+                          this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, 'Must Cover Upload: ' + name, geos.join(', '));
+                        }
+                    }, null , () => {
+                      this.totalUploadedRowCount = uniqueGeos.length + this.uploadFailures.length; 
+                    } 
+                  );*/
                }
                catch (e) {
                   this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
@@ -63,8 +125,8 @@ export class UploadMustCoverComponent implements OnInit {
                finally {
                   this.store$.dispatch(new StopBusyIndicator({ key: key }));
                   // Create a new project pref for the upload file
-                  if (uniqueGeos.length > 0)
-                     this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, "Must Cover Upload: " + name, uniqueGeos.join(", "));
+                  // if (uniqueGeos.length > 0)
+                  //    this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, "Must Cover Upload: " + name, uniqueGeos.join(", "));
                }
             };
          }
@@ -72,7 +134,7 @@ export class UploadMustCoverComponent implements OnInit {
             reader.readAsText(event.files[0]);
             reader.onload = () => {
                try {
-                  uniqueGeos = this.impGeofootprintGeoService.parseMustCoverFile(reader.result.toString(), name);
+                this.parseMustcovers(reader.result.toString(), this.fileName);
                }
                catch (e) {
                   this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
@@ -80,8 +142,7 @@ export class UploadMustCoverComponent implements OnInit {
                finally {
                   this.store$.dispatch(new StopBusyIndicator({ key: key }));
                   // Create a new project pref for the upload file
-                  if (uniqueGeos.length > 0)
-                     this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, "Must Cover Upload" + name, uniqueGeos.join(", "));
+                  
                }
             };
          }
