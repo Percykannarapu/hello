@@ -228,6 +228,12 @@ export class TargetAudienceService implements OnDestroy {
     return this.domainFactory.createProjectVar(currentProject, varPk, audience);
   }
 
+  public syncProjectVars() {
+    this.allAudiencesBS$.value.forEach(aud => {
+      this.createProjectVar(aud);
+    });
+  }
+
   public updateProjectVars(audience: AudienceDataDefinition) {
     //console.debug("updateProjectVars fired: audience.audienceIdentifier: " + audience.audienceIdentifier);
     const newProjectVar = this.createProjectVar(audience);

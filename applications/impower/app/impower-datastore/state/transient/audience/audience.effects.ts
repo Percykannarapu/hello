@@ -4,6 +4,7 @@ import { OfflineSourceTypes } from './../../../../services/target-audience-tda.s
 import { GeoVarActionTypes, GeoVarCacheGeosFailure, GeoVarCacheGeosComplete, GeoVarCacheGeofootprintGeos } from './../geo-vars/geo-vars.actions';
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { Injectable } from '@angular/core';
+import { Update } from '@ngrx/entity';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { map, tap, withLatestFrom, switchMap, mergeMap, concatMap, catchError, take, filter } from 'rxjs/operators';
 import { Store, select } from '@ngrx/store';
@@ -18,6 +19,7 @@ import { LoggingService } from 'app/val-modules/common/services/logging.service'
 import { TargetAudienceTdaService } from 'app/services/target-audience-tda.service';
 import { RemoveGeoCache } from '../transient.actions';
 import { MapVarCacheGeos, MapVarCacheGeosFailure, MapVarCacheGeosComplete, MapVarActionTypes, UpsertMapVars, ClearMapVars } from '../map-vars/map-vars.actions';
+import { Audience } from './audience.model';
 import { MapVar } from '../map-vars/map-vars.model';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { AudienceActionTypes, ApplyAudiences, AudienceActions, FetchOnlineInterest, FetchOnlinePixel, FetchOnlineVLH, FetchOfflineTDA, FetchOnlineInMarket, AddAudience, FetchOnlineInterestCompleted, FetchOnlineInMarketCompleted,
@@ -25,7 +27,7 @@ import { AudienceActionTypes, ApplyAudiences, AudienceActions, FetchOnlineIntere
          FetchCustom, FetchCustomCompleted, FetchCustomFromPrefs, FetchCustomFailed, FetchMapVar, FetchOnlineInterestMap, FetchOnlineVLHMap, FetchOnlinePixelMap, FetchOfflineTDAMap, FetchCustomFromPrefsMap, FetchOnlineInMarketMap,
          FetchOnlineInterestCompletedMap, FetchOnlineInMarketCompletedMap, FetchOnlinePixelCompletedMap, FetchOnlineVLHCompletedMap, FetchOnlineFailedMap, FetchOfflineFailedMap, FetchCustomCompletedMap, FetchCustomFailedMap,
          MoveAudienceUp, UpsertAudiences, MoveAudienceDn, SequenceChanged, ApplyAudiencesRecordStats, RehydrateAudiences, FetchAudienceTradeArea, FetchAudienceTradeAreaCompleted, FetchAudienceTradeAreaFailed, FetchAudienceTradeAreaMap,
-         FetchAudienceTradeAreaCompletedMap, FetchAudienceTradeAreaFailedMap, RehydrateShading} from './audience.actions';
+         FetchAudienceTradeAreaCompletedMap, FetchAudienceTradeAreaFailedMap, RehydrateShading, SelectMappingAudience, UpdateAudiences} from './audience.actions';
 import { Stats, initialStatState } from './audience.reducer';
 import { TargetAudienceAudienceTA } from 'app/services/target-audience-audienceta';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -684,6 +686,20 @@ export class AudiencesEffects {
     map(([, audiencesOnMap]) => {
       console.log('### rehydrateShading - audiencesOnMap:', audiencesOnMap);
       this.targetAudienceService.rehydrateShading();
+    })
+  );
+
+  @Effect()
+  selectMappingAudience$ = this.actions$.pipe(
+    ofType<SelectMappingAudience>(AudienceActionTypes.SelectMappingAudience),
+    map(action => action.payload.audienceIdentifier),
+    withLatestFrom(this.store$.select(fromAudienceSelectors.getAllAudiences)),
+    concatMap(([mapAudienceIdentifier, allAudiences]) => {
+      const updates: Update<Audience>[] = [];
+      allAudiences.forEach(aud => updates.push({ id: aud.audienceIdentifier,
+                                            changes: { showOnMap: aud.audienceIdentifier === mapAudienceIdentifier ? true : false }}));
+      return [new UpdateAudiences({ audiences: updates }),
+              new RehydrateShading()];
     })
   );
 

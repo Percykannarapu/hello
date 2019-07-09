@@ -14,7 +14,7 @@ import { CreateAudienceUsageMetric, CreateMapUsageMetric } from '../../../state/
 import { CreateGaugeMetric } from '../../../state/usage/usage.actions';
 import { ColorPalette } from '@val/esri';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { MoveAudienceUp, MoveAudienceDn } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { MoveAudienceUp, MoveAudienceDn, SelectMappingAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { AppLoggingService } from 'app/services/app-logging.service';
@@ -25,14 +25,13 @@ import { AppLoggingService } from 'app/services/app-logging.service';
   styleUrls: ['./selected-audiences.component.css']
 })
 export class SelectedAudiencesComponent implements OnInit {
-
-  audiences$: Observable<AudienceDataDefinition[]>;
+  audiences$: Observable<Audience[]>;
   showRenderControls: boolean = false;
   hasAudiences: boolean = false;
   allThemes: SelectItem[] = [];
   currentTheme: string;
   public showDialog: boolean = false;
-  public audienceUnselect: AudienceDataDefinition;
+  public audienceUnselect: Audience;
 
   private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
 
@@ -122,16 +121,19 @@ export class SelectedAudiencesComponent implements OnInit {
     this.showDialog = false;
   }
 
-  onMapSelected(audience: AudienceDataDefinition) : void {
-    this.varService.updateProjectVars(audience);
+  onMapSelected(audience: Audience) : void {
+    this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier }));
+    // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
+    this.varService.syncProjectVars();
     this.showRenderControls = audience.showOnMap;
-    this.audiences$.pipe(
-      map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
-      take(1),
-    ).subscribe(unMapped => unMapped.forEach(a => a.showOnMap = false)); // with take(1), this subscription will immediately close
+    //this.varService.updateProjectVars(audience, false);
+    // this.audiences$.pipe(
+    //   map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
+    //   take(1),
+    // ).subscribe(unMapped => unMapped.forEach(a => a.showOnMap = false)); // with take(1), this subscription will immediately close
   }
 
-  onShowGridSelected(audience: AudienceDataDefinition) : void {
+  onShowGridSelected(audience: Audience) : void {
     this.varService.updateProjectVars(audience);
     this.audiences$.pipe(
       map(a => a.filter(a2 => a2.audienceIdentifier === audience.audienceIdentifier)),
@@ -139,7 +141,7 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(selected => selected[0].showOnGrid = audience.showOnGrid);
   }
 
-  onExportInGeoFootprintSelected(audience: AudienceDataDefinition) : void {
+  onExportInGeoFootprintSelected(audience: Audience) : void {
     this.varService.updateProjectVars(audience);
     this.audiences$.pipe(
       map(a => a.filter(a2 => a2.audienceIdentifier === audience.audienceIdentifier)),
@@ -147,7 +149,7 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(selected => selected[0].exportInGeoFootprint = audience.exportInGeoFootprint);
    }
 
-  onNationalSelected(audience: AudienceDataDefinition) : void {
+  onNationalSelected(audience: Audience) : void {
     //const audiences = Array.from(this.varService.audienceMap.values()).filter(a => a.exportNationally === true);
     this.varService.updateProjectVars(audience);
 
@@ -157,7 +159,7 @@ export class SelectedAudiencesComponent implements OnInit {
     }
   }
 
-  onIndexBaseChange(audience: AudienceDataDefinition) : void {
+  onIndexBaseChange(audience: Audience) : void {
     this.varService.updateProjectVars(audience);
   }
 
@@ -199,11 +201,13 @@ export class SelectedAudiencesComponent implements OnInit {
     this.varService.applyAudienceSelection();
   }
 
-  public onMoveUp(audience: AudienceDataDefinition) {
+  public onMoveUp(audience: Audience) {
     this.store$.dispatch(new MoveAudienceUp({ audienceIdentifier: audience.audienceIdentifier }));
+    this.varService.syncProjectVars();
   }
 
-  public onMoveDn(audience: AudienceDataDefinition) {
+  public onMoveDn(audience: Audience) {
     this.store$.dispatch(new MoveAudienceDn({ audienceIdentifier: audience.audienceIdentifier }));
+    this.varService.syncProjectVars();
   }
 }

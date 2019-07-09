@@ -79,6 +79,7 @@ export enum AudienceActionTypes {
 
   MoveAudienceUp                     = '[Audience] Move audience sequence up',
   MoveAudienceDn                     = '[Audience] Move audience sequence down',
+  SelectMappingAudience              = '[Audience] Select audience to shade map',
 
   SequenceChanged                    = '[Audience] Order of audiences changed'
 }
@@ -394,6 +395,11 @@ export class SequenceChanged implements Action {
   readonly type = AudienceActionTypes.SequenceChanged;
 }
 
+export class SelectMappingAudience implements Action {
+  readonly type = AudienceActionTypes.SelectMappingAudience;
+  constructor(public payload: {audienceIdentifier: string}) {}
+}
+
 
 export type AudienceActions =
     LoadAudiences
@@ -460,4 +466,5 @@ export type AudienceActions =
   | GetDataFromGeos
   | MoveAudienceUp
   | MoveAudienceDn
-  | SequenceChanged;
+  | SequenceChanged
+  | SelectMappingAudience;
