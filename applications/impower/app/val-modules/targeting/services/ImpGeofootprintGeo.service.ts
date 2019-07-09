@@ -20,12 +20,12 @@ import { select, Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
 import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
-import { groupBy, roundTo, mapArrayToEntity, safe } from '@val/common';
+import { FieldContentTypeCodes } from './../../../impower-datastore/state/models/impower-model.enums';
+import { roundTo } from '@val/common';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
-
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
 
@@ -101,7 +101,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
    }
 
-   // TODO: David come back to this - check all in header will call this
    public setActive(setActiveData: ImpGeofootprintGeo | ImpGeofootprintGeo[] | ReadonlyArray<ImpGeofootprintGeo>, newIsActive: boolean)
    {
       if (Array.isArray(setActiveData))
@@ -174,7 +173,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    public exportVarGeoHeader(state: ImpGeofootprintGeoService)
    {
-   // console.log('exportVar handler for #V-GEOHEADER fired');
       const analysisLevel = (state.analysisLevelForExport != null) ? state.analysisLevelForExport.toUpperCase() : 'ATZ';
 
       let varValue: any;
@@ -388,9 +386,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       {
          if (geo.impGeofootprintLocation != null && geo.geocode === geo.impGeofootprintLocation.homeGeocode && (geo.impGeofootprintTradeArea.taType === 'RADIUS' || geo.impGeofootprintTradeArea.taType === 'HOMEGEO'))
          {
-            varValue = 'Trade Area 1';  
+            varValue = 'Trade Area 1';
          }
-         else 
+         else
          {
             switch (geo.impGeofootprintTradeArea.taType)
             {
@@ -425,33 +423,28 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       if (audience != null) {
         const geoVar = state.geoVarsBS$.value.find(gv => gv.geocode === geo.geocode);
         if (geoVar != null) {
-          result = (geoVar[audience.audienceIdentifier] != null) ? geoVar[audience.audienceIdentifier].toString() : '';
+          if (geoVar[audience.audienceIdentifier] != null) {
+            switch (audience.fieldconte) {
+              case FieldContentTypeCodes.Char:
+                result = geoVar[audience.audienceIdentifier].toString();
+                break;
+
+              case FieldContentTypeCodes.Percent:
+              case FieldContentTypeCodes.Ratio:
+                result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(2);
+                break;
+
+              default:
+                result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(0);
+                break;
+            }
+          }
+          else
+             result = '';
         }
       }
-
       return result;
    }
-
-/*  public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
-      let result = '';
-      const currentAttribute = state.attributeCache[geo.geocode];
-      if (currentAttribute != null) {
-         const value = currentAttribute[header];
-         result = value == null ? '' : value.toString();
-      }
-      const projectVarsDict = mapArrayToEntity(geo.impGeofootprintLocation.impProject.impProjectVars,  v => v.varPk);
-
-      if (result === '' && state.varCache.has(geo.geocode)) {
-        const vars: ImpGeofootprintVar[] = state.varCache.get(geo.geocode);
-        const currentVar = vars.find(v => (projectVarsDict[v.varPk] || safe).fieldname === header && v.impGeofootprintTradeArea.impGeofootprintLocation === geo.impGeofootprintLocation);
-        if (currentVar != null && currentVar.value != null) {
-          // We no longer have isString/isNumber, so use the field that has a value as only one will.
-          result = currentVar.value.toString();
-        }
-      }
-      if (!result || result == 'null') result = '';
-      return result;
-   }*/
 
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
@@ -462,37 +455,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       this.exportAudiencesBS$.value.forEach(impVar => exportColumns.splice(insertAtPos++, 0, { header: impVar.audienceName, row: this.exportVarAttributes}));
    }
-
-/* public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
-   {
-      const aGeo = this.get()[0];
-      if (aGeo == null) return;
-      const currentProject = aGeo.impGeofootprintLocation.impProject;  //DEFECT FIX : export feature - accessing project details from GeoFootPrintLocation
-      const orderColumnNames = [];
-      currentProject.impProjectVars.forEach(impVar => orderColumnNames[impVar.sortOrder] = impVar.fieldname);
-      const projectVarsDict = mapArrayToEntity(currentProject.impProjectVars,  v => v.varPk);
-      const usableGeoVars = currentProject.getImpGeofootprintVars().filter(gv => projectVarsDict[gv.varPk] != null && projectVarsDict[gv.varPk].isIncludedInGeofootprint);
-      usableGeoVars.sort((a, b) => this.sortVars(a, b));
-      this.varCache = groupBy(usableGeoVars, 'geocode');
-      const columnSet = new Set(usableGeoVars.map(gv => (projectVarsDict[gv.varPk] || safe).fieldname));
-      const attributeNames = Array.from(columnSet);
-      attributeNames.sort((a, b) => {
-        return orderColumnNames.indexOf(a) - orderColumnNames.indexOf(b);
-      });
-      attributeNames.forEach(name => {
-        exportColumns.splice(insertAtPos++, 0, { header: name, row: this.exportVarAttributes});
-      });
-   }
-
-   private sortVars(a, b) {
-      if (a.varPosition > b.varPosition) {
-        return 1;
-      }
-      if (a.varPosition < b.varPosition) {
-        return -1;
-      }
-      return 0;
-    }*/
 
    // -----------------------------------------------------------
    // EXPORT METHODS
@@ -559,7 +521,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
          break;
 
-         // No format specified, derive from the object  TODO: IMPLEMENT
+         // No format specified, derive from the object - IMPLEMENT (Will eventually have an export from NgRx)
          default:
             console.log ('setExportFormat - default');
             exportColumns.push({ header: this.exportVarGeoHeader(this),  row: (state, data) => data.geocode});
