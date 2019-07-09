@@ -29,7 +29,7 @@ import { AppConfig } from 'app/app.config';
 import { EsriQueryService } from '@val/esri';
 import { map } from 'rxjs/operators';
 
-interface CustomTADefinition {
+interface CustomMCDefinition {
   Number: number;
   geocode: string;
 }
@@ -67,8 +67,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
    private exportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
    private geoVarsBS$ = new BehaviorSubject<GeoVar[]>([]);
-   private uploadFailuresSub: BehaviorSubject<CustomTADefinition[]> = new BehaviorSubject<CustomTADefinition[]>([]);
-  public uploadFailuresObs$: Observable<CustomTADefinition[]> = this.uploadFailuresSub.asObservable();
+   private uploadFailuresSub: BehaviorSubject<CustomMCDefinition[]> = new BehaviorSubject<CustomMCDefinition[]>([]);
+  public uploadFailuresObs$: Observable<CustomMCDefinition[]> = this.uploadFailuresSub.asObservable();
 
 
    constructor(restDataService: RestDataService,
@@ -595,7 +595,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
     const errorTitle: string = 'Must Cover Geographies Upload';
-    const errorGeo: CustomTADefinition[] = [];
+    const errorGeo: CustomMCDefinition[] = [];
     const successGeo = [];
     //const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
@@ -633,25 +633,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
               attrs.forEach(r => queryResult.add(r.geocode));
               let i = 0;
               uniqueGeos.forEach(geo => {
-                //queryResult.has(geo) ? successGeo.push(geo) : errorGeo.push({ 1 , geo })
-                if (queryResult.has(geo)){
-                  successGeo.push(geo);
-                }else{
-                 // const customGeocodeDef = this.uploadFailuresSub.getValue().filter(customMC => customMC.geocode != geo);
-                  const customTa: CustomTADefinition = { Number: i++, geocode: geo };
-                 // if (customGeocodeDef.length == 0)
-                  errorGeo.push(customTa);
-                }
-
-              });
+                const customMc: CustomMCDefinition = { Number: i++, geocode: geo };
+                queryResult.has(geo) ? successGeo.push(geo) : errorGeo.push(customMc);        });
+              
               this.uploadFailuresSub.next(errorGeo);
                // Keep track of the current must cover upload filename
                this.currentMustCoverFileName = fileName; 
                this.setMustCovers(successGeo, true);
- 
                console.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
- 
-               
                return successGeo;
             })
            );

@@ -12,7 +12,7 @@ import { AppGeoService } from './../../../services/app-geo.service';
 import { ImpGeofootprintGeo } from './../../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { Observable } from 'rxjs';
 
-interface CustomTADefinition {
+interface CustomMCDefinition {
   Number: number;
   geocode: string;
 }
@@ -26,7 +26,7 @@ export class UploadMustCoverComponent implements OnInit {
    private readonly spinnerId = 'MUST_COVERS_UPLOAD';
    public isDisable: boolean;
    public tooltip;
-   public uploadFailures: CustomTADefinition[] = [];
+   public uploadFailures: CustomMCDefinition[] = [];
    public currentAnalysisLevel$: Observable<string>;
    public totalUploadedRowCount = 0;
    private fileName: string;
@@ -55,7 +55,7 @@ export class UploadMustCoverComponent implements OnInit {
 
    }
 
-   public onResubmit(data: CustomTADefinition){
+   public onResubmit(data: CustomMCDefinition){
      let csvData = 'Geocode \n';
      csvData = csvData + data.geocode;
      //this.onRemove(data);
@@ -63,13 +63,13 @@ export class UploadMustCoverComponent implements OnInit {
 
    }
 
-   public onRemove(data: CustomTADefinition){
+   public onRemove(data: CustomMCDefinition){
     this.totalUploadedRowCount -= 1;
     this.uploadFailures = this.uploadFailures.filter(f => f.Number !== data.Number);
    }
 
 
-   private parseMustcovers(dataBuffer: string, fileName: string, isResubmit: boolean = false, customTADefinition?: CustomTADefinition){
+   private parseMustcovers(dataBuffer: string, fileName: string, isResubmit: boolean = false, customMCDefinition?: CustomMCDefinition){
     let uniqueGeos: string[] = [];
     this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, this.appStateService.analysisLevel$.getValue()).subscribe(
       geos => {
@@ -83,7 +83,7 @@ export class UploadMustCoverComponent implements OnInit {
         this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
         this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcovetText + name, uniqueGeos.join(', '));
         if (isResubmit && uniqueGeos.length > 0){
-          this.onRemove(customTADefinition);
+          this.onRemove(customMCDefinition);
           console.log(' ro be removed from failure grid::', uniqueGeos);
         }
         this.totalUploadedRowCount = uniqueGeos.length + this.uploadFailures.length; 
