@@ -254,7 +254,7 @@ export class AppLocationService {
     const currentProject = this.appStateService.currentProject$.getValue();
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     return this.geocodingService.getGeocodingResponse(data, siteType).pipe(
-      map(responses => responses.map(r => this.domainFactory.createLocation(currentProject, r, siteType, currentAnalysisLevel)))
+      map(responses => responses.map(r => this.domainFactory.createLocation(currentProject, r, siteType, currentAnalysisLevel, data)))
     );
     }
 

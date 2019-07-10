@@ -14,6 +14,7 @@ import { ImpProjectPref } from '../models/ImpProjectPref';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { ImpProjectVar } from '../models/ImpProjectVar';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
 
 function isNumber(value: any) : value is number {
   return value != null && value !== '' && !Number.isNaN(Number(value));
@@ -189,7 +190,7 @@ export class ImpDomainFactoryService {
     }
   }
 
-  createLocation(parent: ImpProject, res: ValGeocodingResponse, siteType: string, analysisLevel?: string) : ImpGeofootprintLocation {
+  createLocation(parent: ImpProject, res: ValGeocodingResponse, siteType: string, analysisLevel?: string, data?: ValGeocodingRequest[]) : ImpGeofootprintLocation {
     if (parent == null || parent.impGeofootprintMasters == null || parent.impGeofootprintMasters[0] == null) throw new Error('Location factory requires a valid ImpProject instance with a valid ImpGeofootprintMaster instance');
     const nonAttributeProps = new Set<string>(['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number',
       'Name', 'Market', 'Market Code', 'Group', 'Description', 'Original Address', 'Original City', 'Original State',
@@ -273,8 +274,9 @@ export class ImpDomainFactoryService {
     delete res['previousCity'];
     delete res['previousState'];
     delete res['previousZip'];
+    const uploadData = data.filter(val => val.number === res.Number);
     for (const [k, v] of Object.entries(res)) {
-      if (k == null || k.length === 0 || v == null || typeof v === 'function' || nonAttributeProps.has(k)) continue;
+      if (k == null || k.length === 0 || v == null || typeof v === 'function' || nonAttributeProps.has(k) || (k == 'Home DMA Name' && uploadData[0].latitude === '' && uploadData[0].longitude === '')) continue;
       this.createLocationAttribute(result, k, v);
     }
     return result;
