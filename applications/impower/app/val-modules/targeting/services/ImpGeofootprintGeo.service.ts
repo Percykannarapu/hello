@@ -431,7 +431,27 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          result = value == null ? '' : value.toString();
       }
 
-      const audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === header);
+      // Look for headers formed like 'xxxxx (yyyy)'
+      const matchRegex = /(.*)\s*(\(.*\))/gm;
+      let m;
+      const matches: string[] = [];
+      while ((m = matchRegex.exec(header)) !== null) {
+          // This is necessary to avoid infinite loops with zero-width matches
+          if (m.index === matchRegex.lastIndex)
+            matchRegex.lastIndex++;
+
+          m.forEach((match, groupIndex) => matches[groupIndex] = match);
+      }
+
+      // If the header contained an audienceSource name in parens, pull out the actual audienceName to match on
+      let audienceName = header;
+      let audienceSourceName = null;
+      if (matches.length >= 2) {
+        audienceName = matches[1].trim();
+        audienceSourceName = matches[2];
+      }
+
+      const audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName);
       if (audience != null) {
         const geoVar = state.geoVarsBS$.value.find(gv => gv.geocode === geo.geocode);
         if (geoVar != null) {
@@ -462,10 +482,15 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       const aGeo = this.get()[0];
       if (aGeo == null) return;
-      const currentProject = aGeo.impGeofootprintLocation.impProject;  //DEFECT FIX : export feature - accessing project details from GeoFootPrintLocation
-      const orderColumnNames = [];
+      // const currentProject = aGeo.impGeofootprintLocation.impProject;  //DEFECT FIX : export feature - accessing project details from GeoFootPrintLocation
+      // const orderColumnNames = [];
 
-      this.exportAudiencesBS$.value.forEach(impVar => exportColumns.splice(insertAtPos++, 0, { header: impVar.audienceName, row: this.exportVarAttributes}));
+      this.exportAudiencesBS$.value.forEach(impVar => {
+        // If more than one variable has this audience name, add the source name to the header
+        const dupeNameCount = (this.allAudiencesBS$.getValue() != null) ? this.allAudiencesBS$.getValue().filter(aud => aud.audienceName === impVar.audienceName).length : 0;
+        const header = (dupeNameCount <= 1) ? impVar.audienceName : impVar.audienceName + ' (' + impVar.audienceSourceName + ')';
+        exportColumns.splice(insertAtPos++, 0, { header: header, row: this.exportVarAttributes});
+      });
    }
 
    // -----------------------------------------------------------
