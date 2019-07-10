@@ -276,7 +276,8 @@ export class ImpDomainFactoryService {
     delete res['previousZip'];
     const uploadData = data.filter(val => val.number === res.Number);
     for (const [k, v] of Object.entries(res)) {
-      if (k == null || k.length === 0 || v == null || typeof v === 'function' || nonAttributeProps.has(k) || (k == 'Home DMA Name' && uploadData[0].latitude === '' && uploadData[0].longitude === '')) continue;
+      if (k == null || k.length === 0 || v == null || typeof v === 'function' || nonAttributeProps.has(k) || (k == 'Home DMA Name' 
+          && uploadData[0]['Home DMA'] !== '' && uploadData[0]['Home DMA'] !== null && uploadData[0]['Home DMA'] !== undefined && !((/^\d{4}$/.test(uploadData[0]['Home DMA']) || /^\d{3}$/.test(uploadData[0]['Home DMA']))))) continue;
       this.createLocationAttribute(result, k, v);
     }
     return result;
