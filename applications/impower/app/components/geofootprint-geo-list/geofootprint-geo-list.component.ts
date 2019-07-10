@@ -523,7 +523,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Create grid columns for the variables
       audiences.forEach(audience => {
         //console.log('### createComposite - aud:', audience);
-        const colWidth: number = Math.min(200, Math.max(60, (audience.audienceName.length * 6) + 24));
+        let colWidth: number = Math.min(200, Math.max(60, (audience.audienceName.length * 6) + 24));
         const colStyleClass: string = (audience.fieldconte != FieldContentTypeCodes.Char) ? 'val-text-right' : '';
 
         // Let the fieldConte decide what the match operator will be on the numeric filter
@@ -538,7 +538,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             break;
         }
 
-        this.flatGeoGridExtraColumns.push({field: audience.audienceIdentifier, header: audience.audienceName, width: colWidth + 'px',
+        // If more than one variable has this audience name, add the source name to the header
+        const dupeNameCount = audiences.filter(aud => aud.audienceName === audience.audienceName).length;
+        if (dupeNameCount > 1)
+          colWidth = (audience.audienceSourceName.length + 3 > audience.audienceName.length) ? Math.min(200, Math.max(60, (audience.audienceSourceName.length + 3) * 6 + 24)) : colWidth;
+
+        this.flatGeoGridExtraColumns.push({field: audience.audienceIdentifier,
+                                           header: audience.audienceName + ((dupeNameCount > 1) ? ' (' + audience.audienceSourceName + ')' : ''),
+                                           width: colWidth + 'px',
                                            fieldname: audience.audienceName,
                                            decimals:  ['PERCENT', 'RATIO'].includes(audience.fieldconte) ? 2 : 0,
                                            fieldConte: audience.fieldconte,

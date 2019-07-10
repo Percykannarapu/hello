@@ -167,12 +167,22 @@ export class TargetAudienceService implements OnDestroy {
     if (audience.audienceSourceType === 'Custom' && audience.fieldconte === null)
       audience.fieldconte = FieldContentTypeCodes.Char;
 
-    // The next audienceSeq is either incremented or put past the current existing sequence
-    if (audience.seq == null)
-      audience.seq = this.allAudiencesBS$.value.length; // TargetAudienceService.audienceSeq++;
+    // Check to see if this is an update to protect the sequence
+    const existingAudience = (this.allAudiencesBS$.getValue() != null) ? this.allAudiencesBS$.getValue().find(aud => aud.audienceIdentifier === audience.audienceIdentifier) : null;
+
+    // If necessary assign a new seq value (audience sort order)
+    if (audience.seq == null) {
+      if (existingAudience != null && existingAudience.seq != null) {
+        audience.seq = existingAudience.seq;
+      }
+      else {
+        audience.seq = this.allAudiencesBS$.value.length;
+      }
+    }
     else
-      if (audience.seq > TargetAudienceService.audienceSeq)
-        TargetAudienceService.audienceSeq = audience.seq + 1;
+      if (audience.seq > this.allAudiencesBS$.value.length || audience.seq < this.allAudiencesBS$.value.length) {
+        audience.seq = this.allAudiencesBS$.value.length;
+      }
 
     if (!isReload) {
       const projectVar = this.createProjectVar(audience);
@@ -202,7 +212,9 @@ export class TargetAudienceService implements OnDestroy {
     }
     else {
       const audiences: Audience[] = this.allAudiencesBS$.value;
-      const dsAudience = audiences.filter(aud => aud.audienceName === audience.audienceName);
+      const dsAudience = (audience.audienceIdentifier != null)
+                         ? audiences.filter(aud => aud.audienceIdentifier === audience.audienceIdentifier)
+                         : audiences.filter(aud => aud.audienceName === audience.audienceName);
       if (dsAudience != null && dsAudience.length > 0) {
         varPk = dsAudience[0].audienceIdentifier;
       }
