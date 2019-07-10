@@ -180,9 +180,8 @@ export class TargetAudienceService implements OnDestroy {
       }
     }
     else
-      if (audience.seq > this.allAudiencesBS$.value.length || audience.seq < this.allAudiencesBS$.value.length) {
+      if (!isReload && (audience.seq < this.allAudiencesBS$.value.length))
         audience.seq = this.allAudiencesBS$.value.length;
-      }
 
     if (!isReload) {
       const projectVar = this.createProjectVar(audience);
