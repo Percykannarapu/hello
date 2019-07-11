@@ -10,11 +10,11 @@
      <!--     Must cover is currently not working for audience trade area. Use for distance and custom trade area only.-->
         </div>
      </div>
-     <div *ngIf="uploadFailures.length > 0" class="ui-g-7">
-        <p-table [value]="uploadFailures" [paginator]="true" [rows]="5">
+     <div *ngIf="impGeofootprintGeoService.uploadFailures.length > 0" class="ui-g-7">
+        <p-table [value]="impGeofootprintGeoService.uploadFailures" [paginator]="true" [rows]="5">
             <ng-template pTemplate="caption">
                 <div>
-                  Detected {{(uploadFailures.length) || 0}} {{currentAnalysisLevel$ | async}} upload failures out of {{totalUploadedRowCount}} rows
+                  Detected {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{currentAnalysisLevel$ | async}} upload failures out of {{totalUploadedRowCount}} rows
                 </div>
             </ng-template>
             <ng-template pTemplate="header">

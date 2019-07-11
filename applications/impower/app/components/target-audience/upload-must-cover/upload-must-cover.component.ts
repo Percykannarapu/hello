@@ -26,7 +26,6 @@ export class UploadMustCoverComponent implements OnInit {
    private readonly spinnerId = 'MUST_COVERS_UPLOAD';
    public isDisable: boolean;
    public tooltip;
-   public uploadFailures: CustomMCDefinition[] = [];
    public currentAnalysisLevel$: Observable<string>;
    public totalUploadedRowCount = 0;
    private fileName: string;
@@ -49,8 +48,8 @@ export class UploadMustCoverComponent implements OnInit {
     });
 
     this.impGeofootprintGeoService.uploadFailuresObs$.subscribe(result => {
-      if (this.uploadFailures.length == 0)
-          this.uploadFailures.push(...result);
+      if (this.impGeofootprintGeoService.uploadFailures.length == 0)
+      this.impGeofootprintGeoService.uploadFailures.push(...result);
     });
 
    }
@@ -65,7 +64,7 @@ export class UploadMustCoverComponent implements OnInit {
 
    public onRemove(data: CustomMCDefinition){
     this.totalUploadedRowCount -= 1;
-    this.uploadFailures = this.uploadFailures.filter(f => f.Number !== data.Number);
+    this.impGeofootprintGeoService.uploadFailures = this.impGeofootprintGeoService.uploadFailures.filter(f => f.Number !== data.Number);
    }
 
 
@@ -84,9 +83,8 @@ export class UploadMustCoverComponent implements OnInit {
         this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcovetText + name, uniqueGeos.join(', '));
         if (isResubmit && uniqueGeos.length > 0){
           this.onRemove(customMCDefinition);
-          console.log(' ro be removed from failure grid::', uniqueGeos);
         }
-        this.totalUploadedRowCount = uniqueGeos.length + this.uploadFailures.length; 
+        this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length; 
         //ensure mustcover are active 
         const uniqueGeoSet = new Set(uniqueGeos);
         this.impGeofootprintGeoService.get().forEach(geo => {
@@ -95,6 +93,7 @@ export class UploadMustCoverComponent implements OnInit {
 }
 });
 this.impGeofootprintGeoService.makeDirty();
+        this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length; 
       } 
     );
    }
@@ -116,25 +115,12 @@ this.impGeofootprintGeoService.makeDirty();
                   const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
                   const csvData  = xlsx.utils.sheet_to_csv(ws);
                   this.parseMustcovers(csvData, this.fileName);
-                  /*this.impGeofootprintGeoService.parseMustCoverFile(csvData, name, this.appStateService.analysisLevel$.getValue()).subscribe(
-                    geos => {
-                        if (geos.length > 0){
-                          uniqueGeos = geos;
-                          this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, 'Must Cover Upload: ' + name, geos.join(', '));
-                        }
-                    }, null , () => {
-                      this.totalUploadedRowCount = uniqueGeos.length + this.uploadFailures.length; 
-                    } 
-                  );*/
                }
                catch (e) {
                   this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
                }
                finally {
                   this.store$.dispatch(new StopBusyIndicator({ key: key }));
-                  // Create a new project pref for the upload file
-                  // if (uniqueGeos.length > 0)
-                  //    this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, "Must Cover Upload: " + name, uniqueGeos.join(", "));
                }
             };
          }

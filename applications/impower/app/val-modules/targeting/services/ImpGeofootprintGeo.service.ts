@@ -70,6 +70,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private geoVarsBS$ = new BehaviorSubject<GeoVar[]>([]);
    private uploadFailuresSub: BehaviorSubject<CustomMCDefinition[]> = new BehaviorSubject<CustomMCDefinition[]>([]);
   public uploadFailuresObs$: Observable<CustomMCDefinition[]> = this.uploadFailuresSub.asObservable();
+  public uploadFailures: CustomMCDefinition[] = [];
 
 
    constructor(restDataService: RestDataService,
@@ -664,6 +665,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public clearMustCovers() {
       //console.debug("### clearMustCovers");
       this.mustCovers = [];
+      this.uploadFailures = [];
       // Alert subscribers that we have a new list of must covers
       this.allMustCoverBS$.next(this.mustCovers);
    }
