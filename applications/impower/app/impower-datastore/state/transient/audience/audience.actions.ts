@@ -397,7 +397,7 @@ export class SequenceChanged implements Action {
 
 export class SelectMappingAudience implements Action {
   readonly type = AudienceActionTypes.SelectMappingAudience;
-  constructor(public payload: {audienceIdentifier: string}) {}
+  constructor(public payload: {audienceIdentifier: string, isActive: boolean}) {}
 }
 
 

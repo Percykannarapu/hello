@@ -490,6 +490,8 @@ export class AudiencesEffects {
         stats.totalAudTATime = formatMilli(audTAStop - response.payload.startTime);
         stats.totalGeoVars = response.payload.response.length;
         this.store$.dispatch(new ApplyAudiencesRecordStats({ stats: stats }));  // REVIEW This is going to clobber other stats
+        // response.payload.response.sort((a, b) => parseInt(a.geocode, 10) - parseInt(b.geocode, 10))
+        //    .forEach(geoVar => { if (['48081', '48089', '48123', '48151', '48153', '49510', '49514'].includes(geoVar.geocode)) console.log('### fetchTA Complete geoVar:', geoVar); });
         return new UpsertGeoVars({ geoVars: response.payload.response});
       }
       else {
@@ -692,12 +694,14 @@ export class AudiencesEffects {
   @Effect()
   selectMappingAudience$ = this.actions$.pipe(
     ofType<SelectMappingAudience>(AudienceActionTypes.SelectMappingAudience),
-    map(action => action.payload.audienceIdentifier),
+//    map(action => action.payload.audienceIdentifier),
+    map(action => action.payload),
     withLatestFrom(this.store$.select(fromAudienceSelectors.getAllAudiences)),
-    concatMap(([mapAudienceIdentifier, allAudiences]) => {
-      const updates: Update<Audience>[] = [];
+//    concatMap(([mapAudienceIdentifier, allAudiences]) => {
+    concatMap(([payload, allAudiences]) => {
+        const updates: Update<Audience>[] = [];
       allAudiences.forEach(aud => updates.push({ id: aud.audienceIdentifier,
-                                            changes: { showOnMap: aud.audienceIdentifier === mapAudienceIdentifier ? true : false }}));
+                                            changes: { showOnMap: aud.audienceIdentifier === payload.audienceIdentifier ? payload.isActive : false }}));
       return [new UpdateAudiences({ audiences: updates }),
               new RehydrateShading()];
     })

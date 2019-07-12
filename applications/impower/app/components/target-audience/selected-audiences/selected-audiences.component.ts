@@ -122,7 +122,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onMapSelected(audience: Audience) : void {
-    this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier }));
+    this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier, isActive: audience.showOnMap }));
     // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
     this.varService.syncProjectVars();
     this.showRenderControls = audience.showOnMap;
