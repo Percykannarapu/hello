@@ -18,6 +18,7 @@ import { AppTradeAreaService } from './app-trade-area.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
 import { AppLayerService } from './app-layer.service';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -46,6 +47,7 @@ export class AppDataShimService {
               private targetAudienceService: TargetAudienceService,
               private targetAudienceCustomService: TargetAudienceCustomService,
               private metricService: ValMetricsService,
+              private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private store$: Store<LocalAppState>) {
     this.currentProject$ = this.appProjectService.currentProject$;
     this.currentGeos$ = this.appGeoService.currentGeos$;
@@ -177,5 +179,11 @@ export class AppDataShimService {
     });
 
     this.appGeoService.notify();
+  }
+
+  isProjectReload(isReload: boolean){
+    //clean mustcover failure grid
+    if (!isReload)
+        this.impGeofootprintGeoService.uploadFailures = [];
   }
 }

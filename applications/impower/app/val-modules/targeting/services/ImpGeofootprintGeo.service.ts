@@ -665,7 +665,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public clearMustCovers() {
       //console.debug("### clearMustCovers");
       this.mustCovers = [];
-      this.uploadFailures = [];
+     // this.uploadFailures = [];
       // Alert subscribers that we have a new list of must covers
       this.allMustCoverBS$.next(this.mustCovers);
    }

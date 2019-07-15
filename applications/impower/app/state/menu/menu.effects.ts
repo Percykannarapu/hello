@@ -22,6 +22,7 @@ export class MenuEffects {
       new ClearAllNotifications(),
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=Yes'),
       new fromDataShims.ProjectSaveAndNew(),
+      new fromDataShims.IsProjectReload({isReload: false})
     ]),
   );
 
@@ -32,6 +33,7 @@ export class MenuEffects {
       new ClearAllNotifications(),
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=No'),
       new fromDataShims.CreateNewProject(),
+      new fromDataShims.IsProjectReload({isReload: false})
     ])
   );
 
@@ -42,7 +44,8 @@ export class MenuEffects {
     filter(([action, project]) => this.dataShimService.validateProject(project)),
     concatMap(() => [
       new ClearAllNotifications(),
-      new fromDataShims.ProjectSaveAndReload()
+      new fromDataShims.ProjectSaveAndReload(),
+      new fromDataShims.IsProjectReload({isReload: true})
     ])
   );
 
@@ -54,7 +57,8 @@ export class MenuEffects {
     concatMap(([action]) => [
       new ClearAllNotifications(),
       new fromDataShims.ProjectSaveAndLoad({ projectId: action.payload.projectToLoad }),
-      new CloseExistingProjectDialog()
+      new CloseExistingProjectDialog(),
+      new fromDataShims.IsProjectReload({isReload: false})
     ]),
 );
 
@@ -64,7 +68,8 @@ export class MenuEffects {
     concatMap(action => [
       new ClearAllNotifications(),
       new fromDataShims.ProjectLoad({ projectId: action.payload.projectToLoad, isReload: false }),
-      new CloseExistingProjectDialog()
+      new CloseExistingProjectDialog(),
+      new fromDataShims.IsProjectReload({isReload: false})
     ])
   );
 

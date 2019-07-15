@@ -9,7 +9,7 @@ import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transien
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
 import { CalculateMetrics, CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged,
-  ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess, ProjectLoadFinish } from './data-shim.actions';
+  ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess, ProjectLoadFinish, IsProjectReload } from './data-shim.actions';
 import { RehydrateAfterLoad } from 'app/impower-datastore/state/transient/transient.actions';
 
 @Injectable({ providedIn: 'root' })
@@ -120,6 +120,13 @@ export class DataShimEffects {
     withLatestFrom(this.appDataShimService.currentActiveGeocodeSet$, this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentProject$),
     tap(([a, geocodes, attrs, project]) => this.appDataShimService.calcMetrics(Array.from(geocodes), attrs, project))
   );
+
+  @Effect({dispatch: false})
+  isProjectReload$ = this.actions$.pipe(
+    ofType<IsProjectReload>(DataShimActionTypes.IsProjectReload),
+    map(action => this.appDataShimService.isProjectReload(action.payload.isReload))
+  );
+
 
   // These are for the NgRx store
   // @Effect()

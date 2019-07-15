@@ -26,7 +26,8 @@ export enum DataShimActionTypes {
 
   CalculateMetrics = '[Application Data Shim] Calculate Color box metrics',
 
-  ProjectLoadFinish = '[Application Data Shim] Project Load Finish'
+  ProjectLoadFinish = '[Application Data Shim] Project Load Finish',
+  IsProjectReload = '[Application Data Shim] Project Reload'
 }
 
 export class ProjectSaveAndNew implements Action {
@@ -35,6 +36,11 @@ export class ProjectSaveAndNew implements Action {
 
 export class ProjectSaveAndReload implements Action {
   readonly type = DataShimActionTypes.ProjectSaveAndReload;
+}
+
+export class IsProjectReload implements Action {
+  readonly type = DataShimActionTypes.IsProjectReload;
+  constructor(public payload: { isReload: boolean }) {}
 }
 
 export class ProjectSaveAndLoad implements Action {
@@ -127,4 +133,5 @@ export type DataShimActions =
   ExportHGCIssuesLog |
   FiltersChanged |
   CalculateMetrics|
+  IsProjectReload|
   ProjectLoadFinish;
