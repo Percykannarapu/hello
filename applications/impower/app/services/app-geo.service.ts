@@ -481,6 +481,14 @@ export class AppGeoService {
       // Determine which must covers are not in the list of geos
       const diff = this.impGeoService.mustCovers.filter(x => !geos.map(geo => geo.geocode).includes(x));
 
+      // ensure mustcover are active 
+      this.impGeoService.get().forEach(geo => {
+      if (this.impGeoService.mustCovers.includes(geo.geocode))
+      {
+        geo.isActive = true;
+      }
+      }); 
+
       // Track the number of new must cover geos added
       let numNewGeos: number = 0;
       let newGeoList: string = '';

@@ -90,8 +90,9 @@ export class UploadMustCoverComponent implements OnInit {
         this.impGeofootprintGeoService.get().forEach(geo => {
         if (uniqueGeoSet.has(geo.geocode)){
         geo.isActive = true;
-}
-});
+      }
+      }
+   );
 this.impGeofootprintGeoService.makeDirty();
         this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length; 
       } 
