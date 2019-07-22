@@ -519,7 +519,6 @@ export class TargetAudienceService implements OnDestroy {
     // this.logger.debug.log('getShadingData - audienceSources ', (this.audienceSources.has(sourceId) ? 'has' : 'does not have'), sourceId);
     // this.logger.debug.log('getShadingData - sourceId:', sourceId, ', source:', source, ', audienceSources:', this.audienceSources);
 
-console.log('### getShadingData fired for audience:', audience);
     if (this.mapAudiencesBS$.value.length > 0) {
       const currentShadingData = this.shadingData.getValue();
 //REVIEW      this.store$.dispatch(new StartBusyIndicator({key, message: 'Retrieving shading data'}));

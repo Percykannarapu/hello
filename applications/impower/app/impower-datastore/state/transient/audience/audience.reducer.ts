@@ -7,7 +7,8 @@ export interface Stats {
   counts: any;
   totalGeoVars: number;
   totalMapVars: number;
-  totalTime: string;
+  totalGeoVarTime: string;
+  totalMapVarTime: string;
   totalAudTATime: string;
 }
 
@@ -32,7 +33,8 @@ export const initialStatState = {
   counts: {},
   totalGeoVars: 0,
   totalMapVars: 0,
-  totalTime: '',
+  totalGeoVarTime: '',
+  totalMapVarTime: '',
   totalAudTATime: ''
 };
 

@@ -40,6 +40,7 @@ let stats: Stats = initialStatState;
 let applyStart: number = null;
 let applyStop: number = null;
 let audTAStop: number = null;
+let mapVarsStart: number = null;
 
 @Injectable()
 export class AudiencesEffects {
@@ -116,10 +117,19 @@ export class AudiencesEffects {
     withLatestFrom(this.store$.pipe(select(fromGeoVarSelectors.getTransactionId)),
                    this.store$.pipe(select(fromGeoVarSelectors.getGeoVarCount))),
     map(([action, transactionId, geoVarCount]) => {
-      stats.totalTime = formatMilli(applyStop - applyStart);
+      console.log('### apply audiences applyStart:', applyStart, ', applyStop:', applyStop, ' stop-start:', applyStop - applyStart, ', formatted:', formatMilli(applyStop - applyStart));
+      if (mapVarsStart <= 0) {
+        stats.totalGeoVarTime = formatMilli(performance.now() - applyStart);
+        this.logger.info.log('*** Apply Audiences Completed in', stats.totalGeoVarTime, '***');
+      }
+      else
+      {
+        stats.totalMapVarTime = formatMilli(performance.now() - mapVarsStart);
+        mapVarsStart = 0;
+        this.logger.info.log('*** Apply Shading Completed in', stats.totalMapVarTime, '***');
+      }
       stats.totalGeoVars = geoVarCount;
       this.store$.dispatch(new ApplyAudiencesRecordStats({ stats: stats }));
-      this.logger.info.log('*** Apply Audiences Completed in', stats.totalTime, '***');
       return new RemoveGeoCache({ transactionId: transactionId });
     })
   );
@@ -129,6 +139,7 @@ export class AudiencesEffects {
     ofType<FetchMapVar>(AudienceActionTypes.FetchMapVar),
     //tap(action => this.logger.info.log('### fetchMapVar - geos(' + action.payload.geos.length + '):', action.payload.geos)),
     tap(action => {
+      mapVarsStart = performance.now();
       stats.totalMapVars = 0;
       this.store$.dispatch(new ClearMapVars());
       this.store$.dispatch(new StartBusyIndicator({key: shadingKey, message: 'Retrieving shading data'}));
@@ -684,9 +695,10 @@ export class AudiencesEffects {
   @Effect({dispatch: false})
   rehydrateShading$ = this.actions$.pipe(
     ofType<RehydrateShading>(AudienceActionTypes.RehydrateShading),
+    tap(action => mapVarsStart = performance.now()),
     withLatestFrom(this.store$.select(fromAudienceSelectors.getAudiencesOnMap)),
     map(([, audiencesOnMap]) => {
-      console.log('### rehydrateShading - audiencesOnMap:', audiencesOnMap);
+      console.log('rehydrateShading - audiencesOnMap:', audiencesOnMap);
       this.targetAudienceService.rehydrateShading();
     })
   );
@@ -694,12 +706,10 @@ export class AudiencesEffects {
   @Effect()
   selectMappingAudience$ = this.actions$.pipe(
     ofType<SelectMappingAudience>(AudienceActionTypes.SelectMappingAudience),
-//    map(action => action.payload.audienceIdentifier),
     map(action => action.payload),
     withLatestFrom(this.store$.select(fromAudienceSelectors.getAllAudiences)),
-//    concatMap(([mapAudienceIdentifier, allAudiences]) => {
     concatMap(([payload, allAudiences]) => {
-        const updates: Update<Audience>[] = [];
+      const updates: Update<Audience>[] = [];
       allAudiences.forEach(aud => updates.push({ id: aud.audienceIdentifier,
                                             changes: { showOnMap: aud.audienceIdentifier === payload.audienceIdentifier ? payload.isActive : false }}));
       return [new UpdateAudiences({ audiences: updates }),

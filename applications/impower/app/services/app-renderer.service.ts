@@ -124,12 +124,10 @@ export class AppRendererService {
     if (Object.keys(newData).length > 0) {
       let legendText = null;
       let legendOption =  null;
-      console.log('### updateMapVarData - made it in first if');
       if (audiences == null || audiences.length === 0)
-         console.log('### updateMapVarData - No audiences specified for shading');
+         console.log('updateMapVarData - No audiences specified for shading');
       else {
         isNumericData = audiences[0].fieldconte != FieldContentTypeCodes.Char;
-        console.log('### updateMapVarData - shading by', audiences[0].audienceName, ', fieldconte:', audiences[0].fieldconte, ', isNumeric:', isNumericData)
         const newAction = new SetShadingData({ data: result, isNumericData: isNumericData, theme: AppRendererService.currentDefaultTheme });
         if (isNumericData)
           newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
