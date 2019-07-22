@@ -3,7 +3,6 @@ import { Subscription, BehaviorSubject } from 'rxjs';
 import { ShadingData } from '../../../../modules/esri/src/state/map/esri.renderer.reducer';
 import { TargetAudienceService } from './target-audience.service';
 import { filter, withLatestFrom } from 'rxjs/operators';
-import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
 import { AppStateService } from './app-state.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
@@ -11,6 +10,7 @@ import { calculateStatistics, mapToEntity } from '@val/common';
 import { ClearSelectedGeos, ClearShadingData, ColorPalette, EsriRendererService, SetSelectedGeos, SetShadingData } from '@val/esri';
 import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import * as fromMapVarSelectors from 'app/impower-datastore/state/transient/map-vars/map-vars.selectors';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 
@@ -38,16 +38,11 @@ export class AppRendererService {
       }
     });
 
-    /* Disable old method of setting shading data
-    this.dataSubscription = this.dataService.shadingData$.pipe(
-      map(dataMap => mapToEntity(dataMap))
-    ).subscribe(dataList => this.updateData(dataList)); */
-
     // Subscribe to store selectors
     this.store$.select(fromAudienceSelectors.getAudiencesOnMap).subscribe(this.mapAudienceBS$);
     this.store$.select(fromMapVarSelectors.allMapVars).subscribe(mapVars => this.updateMapVarData(mapVars));
   }
-
+/*
   public updateData(newData: { [geocode: string] : ImpGeofootprintVar }) : void {
     const result: ShadingData = {};
     let isNumericData = false;
@@ -95,41 +90,50 @@ export class AppRendererService {
       this.store$.dispatch(new ClearShadingData());
     }
   }
-
+*/
   public updateMapVarData(newData: MapVar[]) : void {
+    const audiences = this.mapAudienceBS$.value;
+    const mapAudience = (audiences != null || audiences.length > 0) ? audiences[0] : null;
+    const audNumeric = (mapAudience != null) ? mapAudience.fieldconte != FieldContentTypeCodes.Char : true;
+    if (mapAudience == null) {
+      console.log('updateMapVarData - No audiences specified for shading');
+      return;
+    }
+
     const result: ShadingData = {};
     let isNumericData = false;
 
     for (let i = 0; i < newData.length; i++) {
       let finalValue: number = 0;
+      let stringValue: string = '';
       let numericCount = 0;
       for (const [varPk, varValue] of Object.entries(newData[i])) {
-        //console.log('### updateMapVarData - varPk:', varPk, ', varValue:', varValue, ', newData:', newData[i]);
         if (varPk !== 'geocode') {
-          if (!Number.isNaN(Number(varValue)) && varValue != null) {
-            //finalValue += varValue;
-            finalValue += parseFloat(varValue.toString());
-            numericCount++;
-            isNumericData = true;
+          if (audNumeric) {
+            if (!Number.isNaN(Number(varValue)) && varValue != null) {
+              finalValue += parseFloat(varValue.toString());
+              numericCount++;
+            }
           }
+          else
+            stringValue = varValue.toString();
         }
       }
-      result[newData[i].geocode] = finalValue;
+      result[newData[i].geocode] = (audNumeric) ? finalValue : stringValue;
     }
-
     if (Object.keys(newData).length > 0) {
-      const newAction = new SetShadingData({ data: result, isNumericData: isNumericData, theme: AppRendererService.currentDefaultTheme });
-      if (isNumericData)
-        newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
-
-      //const audiences = Array.from(this.dataService.audienceMap.values()).filter(a => a.showOnMap === true);
-      const audiences = this.mapAudienceBS$.value;
       let legendText = null;
       let legendOption =  null;
-
+      console.log('### updateMapVarData - made it in first if');
       if (audiences == null || audiences.length === 0)
-         console.log('updateMapVarData - No audiences specified for shading');
+         console.log('### updateMapVarData - No audiences specified for shading');
       else {
+        isNumericData = audiences[0].fieldconte != FieldContentTypeCodes.Char;
+        console.log('### updateMapVarData - shading by', audiences[0].audienceName, ', fieldconte:', audiences[0].fieldconte, ', isNumeric:', isNumericData)
+        const newAction = new SetShadingData({ data: result, isNumericData: isNumericData, theme: AppRendererService.currentDefaultTheme });
+        if (isNumericData)
+          newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
+
         if (audiences[0].audienceSourceType === 'Online') {
           if (audiences[0].audienceSourceName === 'Audience-TA') {
             let scoreTypeLabel: string = null;
