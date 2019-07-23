@@ -101,7 +101,7 @@ export class TargetAudienceAudienceTA {
     this.appStateService.applicationIsReady$.pipe(filter(ready => ready),
       withLatestFrom(this.store$.select(fromAudienceSelectors.getAudiencesForTA),
                      this.store$.select(fromAudienceSelectors.getAudiencesForTAOnMap))).subscribe(([ready, audiencesForTA, audiencesForMap]) => {
-        console.log('### applicationIsReady - ready:', ready, 'audiencesForTA:', audiencesForTA, 'audiencesForMap:', audiencesForMap);
+        //console.log('### applicationIsReady - ready:', ready, 'audiencesForTA:', audiencesForTA, 'audiencesForMap:', audiencesForMap);
         this.onLoadProject(audiencesForTA, audiencesForMap);
       });
   }
@@ -112,7 +112,7 @@ export class TargetAudienceAudienceTA {
 
     if (refreshProjectVars != null && refreshProjectVars.length > 0) {
       //const refreshProjectVar = projectVars[0];
-      console.log('### fetchAudienceTradeArea - refreshProjectVars:', refreshProjectVars, ', aud.secondaryId:', refreshProjectVars[0].secondaryId);
+      //console.log('### fetchAudienceTradeArea - refreshProjectVars:', refreshProjectVars, ', aud.secondaryId:', refreshProjectVars[0].secondaryId);
 
       const refreshAudience: AudienceDataDefinition = {
         audienceName: refreshProjectVars[0].audienceName,
@@ -280,13 +280,13 @@ export class TargetAudienceAudienceTA {
           else
             throw new Error('Audience TA var pk cache set up incorrectly');
 
-          this.varPkCache.set(geoVarKey, varPk);
+          this.varPkCache.set(location + ':' + geoVarKey, varPk);
 
           const geoResponse: AudienceTradeareaResponse = geoResponses.get(geoResponseId);
 
           // Create the geo var and put it in the array
           const geoVar: GeoVar = { geocode: geoResponse.geocode };
-          geoVar[varPk] = geoResponse[this.geoVarFieldMap.get(geoVarKey)];
+          geoVar[location + ':' + varPk] = geoResponse[this.geoVarFieldMap.get(geoVarKey)];
 
           if (!forShading || (forShading && geoVarKey.startsWith(shadingSecondaryId))) {
             //console.log('### createGeofootprintVars - forShading:', forShading, ', varPk:', varPk, ', shadingSecondaryId:', shadingSecondaryId, ', geoVarKey:', geoVarKey, 'geoResponseId:', geoResponseId);
@@ -433,9 +433,8 @@ export class TargetAudienceAudienceTA {
       .pipe(
         tap(response => this.audienceService.timingMap.set('(' + source + ')', performance.now() - this.audienceService.timingMap.get('(' + source + ')'))),
         map(response => this.parseResponse(response, localAudienceName)),
-        tap(response => console.log('response:', response)),
         map(response => {
-          console.log('response:', response);
+          //console.log('response:', response);
           const gv = this.createGeofootprintVars(response, forShading, shadingSecondaryId);
           return gv;
         }),

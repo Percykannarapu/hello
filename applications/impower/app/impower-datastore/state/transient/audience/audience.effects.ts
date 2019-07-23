@@ -698,7 +698,7 @@ export class AudiencesEffects {
     tap(action => mapVarsStart = performance.now()),
     withLatestFrom(this.store$.select(fromAudienceSelectors.getAudiencesOnMap)),
     map(([, audiencesOnMap]) => {
-      console.log('rehydrateShading - audiencesOnMap:', audiencesOnMap);
+      //console.log('### rehydrateShading - audiencesOnMap:', audiencesOnMap);
       this.targetAudienceService.rehydrateShading();
     })
   );
