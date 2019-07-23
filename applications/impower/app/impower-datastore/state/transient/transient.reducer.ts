@@ -110,10 +110,12 @@ export const selectGridGeoVars = createSelector(
     result.geoVars = transformedEntity as Dictionary<GeoVar>;
 
     // Track the distinct list of values for CHAR and min/max for numerics
-    entityMap.forEach((value, key) => {
+    entityMap.forEach((value, varPk) => {
+      const n = varPk.indexOf(':');
+      const key = varPk.substr(n + 1);
       const fieldConte = audiences.hasOwnProperty(key) ? audiences[key].fieldconte : 'unknown';
       if (fieldConte === 'CHAR')
-        result.lov.set(key, Array.from(new Set(value as string)));
+        result.lov.set(key, Array.from(new Set(value as string)).sort());
       else {
         const minVal = value.reduce((min: number, p: number) => p as number < min ? p : min, value[0]);
         const maxVal = value.reduce((max: number, p: number) => p as number > max ? p : max, minVal);

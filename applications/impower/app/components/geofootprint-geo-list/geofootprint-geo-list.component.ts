@@ -490,7 +490,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
         this.uniqueTextVals.set(audience.audienceIdentifier, null);
       });
 
-      gridGeoVars.ranges.forEach((value, key) => {
+      gridGeoVars.ranges.forEach((value, varPk) => {
+        const n = varPk.indexOf(':');
+        const key = varPk.substr(n + 1);
         this.variableRanges.set(key, [(value.min != null) ? Math.floor(value.min) : null, (value.max != null) ? Math.ceil(value.max) : null]);
       });
       //gridGeoVars.lov.forEach((value, key) => this.variableRanges.set(key, [null, null]));
@@ -501,7 +503,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
         this.variableRanges.set(key, [null, null]);
         this.uniqueTextVals.set(key, value.map(varVal => ({ label: varVal, value: varVal} as SelectItem)));
       });
-
 
       // Debug
       // console.log("-".padEnd(80, "-"));
@@ -632,7 +633,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
          if (gridGeoVars != null && gridGeoVars.geoVars != null && gridGeoVars.geoVars.hasOwnProperty(geo.geocode))
          for (const [varPk, varValue] of Object.entries(gridGeoVars.geoVars[geo.geocode])) {
-           gridGeo[varPk] = varValue;
+           const n = varPk.indexOf(':');
+           const location = varPk.substr(0, n);
+           const pk = varPk.substr(n + 1);
+           if (location == null || location == '' || gridGeo.geo.impGeofootprintLocation.locationNumber == location)
+             gridGeo[pk] = varValue;
 
            // Hack to prevent empty columns because geovars structure isn't getting cleared out on new project
            const pv = projectVars.filter(findPv => findPv.varPk.toString() === varPk);
