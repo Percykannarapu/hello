@@ -87,8 +87,9 @@ export class FailedGeocodeGridComponent implements OnInit{
       const existingSite = this.impGeofootprintLocationService.get().filter(l => l.locationNumber == site.locationNumber);
       this.appLocationService.deleteLocations(existingSite);
     }   
-    const dmaCode = site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0].attributeValue;
-    if (!(/^\d{4}$/.test(dmaCode) || /^\d{3}$/.test(dmaCode))) {
+    const locAttribs = site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0];
+
+    if (locAttribs != null && !(/^\d{4}$/.test(locAttribs.attributeValue) || /^\d{3}$/.test(locAttribs.attributeValue))) {
       site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue = '';
     }
     this.accept.emit(site);
