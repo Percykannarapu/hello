@@ -353,7 +353,7 @@ export class TargetAudienceService implements OnDestroy {
             reqInput.push(inputData);
           }
         });
-        this.restService.post('v1/targeting/base/geoinfo/digitallookuppcr', reqInput). subscribe(res => {
+        this.restService.post('v1/targeting/base/geoinfo/digitallookup', reqInput). subscribe(res => {
           const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
           const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.csv`.replace(/\//g, '_');
           const url = 'https://impowerdev.val.vlss.local/nationalextract/ID-VALVCSTRN014VM-62527-1564060554517-36-37500.csv';
