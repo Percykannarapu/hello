@@ -27,6 +27,8 @@ import { ClearGeoVars } from './../impower-datastore/state/transient/geo-vars/ge
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { EnvironmentData } from 'environments/environment';
+import { url } from 'inspector';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string, transactionId: number) => Observable<any[]>;
@@ -336,6 +338,7 @@ export class TargetAudienceService implements OnDestroy {
       const convertedData: any[] = [];
       this.store$.dispatch(new StartBusyIndicator({ key, message: 'Downloading National Data' }));
       if (analysisLevel === 'PCR'){
+        let originalFileName = '';
         audiences.forEach(audience => {
           let inputData;
           const numericId = Number(audience.audienceIdentifier);
@@ -353,20 +356,26 @@ export class TargetAudienceService implements OnDestroy {
             reqInput.push(inputData);
           }
         });
-        this.restService.post('v1/targeting/base/geoinfo/digitallookup', reqInput). subscribe(res => {
+        this.restService.post('v1/targeting/base/geoinfo/digitallookuppcr', reqInput). subscribe(res => {
           const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
           const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.csv`.replace(/\//g, '_');
-          const url = 'https://impowerdev.val.vlss.local/nationalextract/ID-VALVCSTRN014VM-62527-1564060554517-36-37500.csv';
-          //res.payload;
-          console.log('response fuse:::', res);
+          const downloadUrl = `${EnvironmentData.impowerBaseUrl}nationalextract/${res.payload}`;
+          originalFileName = res.payload;
           const element = window.document.createElement('a');
           document.body.appendChild(element);
-          element.href = url;
+          element.href = downloadUrl;
           
           element['download'] = fileName;
           element.target = '_blank';
           
           element.click();
+        }, null, () => {
+          //TODO: send a request to fuse to delete the file
+          this.store$.dispatch(new StopBusyIndicator({ key }));
+          console.log('file Name', originalFileName);
+          this.restService.get(`v1/targeting/base/geoinfo/deletefile/${originalFileName}`).subscribe(res => {
+            console.log(res.payload);
+          });
         });
       }else{
         this.getNationalData(audiences, analysisLevel).subscribe(
