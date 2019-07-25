@@ -329,34 +329,70 @@ export class TargetAudienceService implements OnDestroy {
 
   public exportNationalExtract(analysisLevel: string, projectId: number) : void {
     const key = 'NATIONAL_EXTRACT';
+    const reqInput = [];
     const audiences = this.natExportAudiencesBS$.value;
 //  const audiences = Array.from(this.audienceMap.values()).filter(a => a.exportNationally === true);
     if (audiences.length > 0 && analysisLevel != null && analysisLevel.length > 0 && projectId != null) {
       const convertedData: any[] = [];
       this.store$.dispatch(new StartBusyIndicator({ key, message: 'Downloading National Data' }));
-      this.getNationalData(audiences, analysisLevel).subscribe(
-        data => convertedData.push(...data),
-        err => {
-          console.error('There was an error processing the National Extract', err);
-          this.store$.dispatch(new StopBusyIndicator({ key }));
-        },
-        () => {
-          try {
-            const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-            const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.xlsx`.replace(/\//g, '_');
-            const workbook = XLSX.utils.book_new();
-            const worksheet = XLSX.utils.json_to_sheet(convertedData);
-            const sheetName = projectId.toString();
-            //audiences[0].audienceName.replace(/\//g, '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
-            XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-            XLSX.writeFile(workbook, fileName);
-            const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName.replace('~', ':') + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
-            this.store$.dispatch(new CreateAudienceUsageMetric('online', 'export', metricText, convertedData.length));
-          } finally {
-            this.store$.dispatch(new StopBusyIndicator({ key }));
+      if (analysisLevel === 'PCR'){
+        audiences.forEach(audience => {
+          let inputData;
+          const numericId = Number(audience.audienceIdentifier);
+          const duplicateCategorys = reqInput.length > 0 ? reqInput.filter( inputMap => inputMap['source'] == audience.audienceSourceName) : [];
+          if (duplicateCategorys.length > 0){
+            duplicateCategorys[0]['digCategoryIds'].push(numericId);
+          } else {
+             inputData = {
+              geoType: analysisLevel,
+              source: audience.audienceSourceName === 'In-Market' ? 'In_Market' : audience.audienceSourceName,
+              geocodes: ['*'],
+              digCategoryIds: [numericId],
+              varType: ['ALL']
+            };
+            reqInput.push(inputData);
           }
-        }
-      );
+        });
+        this.restService.post('v1/targeting/base/geoinfo/digitallookuppcr', reqInput). subscribe(res => {
+          const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
+          const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.csv`.replace(/\//g, '_');
+          const url = 'https://impowerdev.val.vlss.local/nationalextract/ID-VALVCSTRN014VM-62527-1564060554517-36-37500.csv';
+          //res.payload;
+          console.log('response fuse:::', res);
+          const element = window.document.createElement('a');
+          document.body.appendChild(element);
+          element.href = res.payload;
+          
+          element['download'] = fileName;
+          element.target = '_blank';
+          
+          element.click();
+        });
+      }else{
+        this.getNationalData(audiences, analysisLevel).subscribe(
+          data => convertedData.push(...data),
+          err => {
+            console.error('There was an error processing the National Extract', err);
+            this.store$.dispatch(new StopBusyIndicator({ key }));
+          },
+          () => {
+            try {
+              const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
+              const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.xlsx`.replace(/\//g, '_');
+              const workbook = XLSX.utils.book_new();
+              const worksheet = XLSX.utils.json_to_sheet(convertedData);
+              const sheetName = projectId.toString();
+              //audiences[0].audienceName.replace(/\//g, '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
+              XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+              XLSX.writeFile(workbook, fileName);
+              const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName.replace('~', ':') + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
+              this.store$.dispatch(new CreateAudienceUsageMetric('online', 'export', metricText, convertedData.length));
+            } finally {
+              this.store$.dispatch(new StopBusyIndicator({ key }));
+            }
+          }
+        );
+      }
     } else {
       const notificationTitle = 'National Extract Export';
       if (audiences.length === 0) {

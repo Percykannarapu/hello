@@ -32,6 +32,7 @@ export class SelectedAudiencesComponent implements OnInit {
   currentTheme: string;
   public showDialog: boolean = false;
   public audienceUnselect: Audience;
+  public dialogboxWarningmsg: string = '';
 
   private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
 
@@ -153,8 +154,15 @@ export class SelectedAudiencesComponent implements OnInit {
     //const audiences = Array.from(this.varService.audienceMap.values()).filter(a => a.exportNationally === true);
     this.varService.updateProjectVars(audience);
 
+    if (this.appStateService.analysisLevel$.getValue() === 'PCR' && this.nationalAudiencesBS$.value.length > 1){
+      this.audienceUnselect = audience;
+      this.dialogboxWarningmsg = 'Only 1 variable can be selected at one time for PCR level National exports.';
+      this.showDialog = true;
+    }
+
     if (this.nationalAudiencesBS$.value.length > 5) {
       this.audienceUnselect = audience;
+      this.dialogboxWarningmsg = 'Only 5 variables can be selected at one time for the National export.';
       this.showDialog = true;
     }
   }
