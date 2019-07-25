@@ -361,7 +361,7 @@ export class TargetAudienceService implements OnDestroy {
           console.log('response fuse:::', res);
           const element = window.document.createElement('a');
           document.body.appendChild(element);
-          element.href = res.payload;
+          element.href = url;
           
           element['download'] = fileName;
           element.target = '_blank';
