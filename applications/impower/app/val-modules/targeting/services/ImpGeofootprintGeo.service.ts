@@ -426,6 +426,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
       let result = '';
+      const locNum = geo.impGeofootprintLocation.locationNumber;
       const currentAttribute = state.attributeCache[geo.geocode];
       if (currentAttribute != null) {
          const value = currentAttribute[header];
@@ -477,6 +478,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                 result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(0);
                 break;
             }
+          }
+          else if (geoVar[`${locNum}:${audience.audienceIdentifier}`] != null){
+                result = geoVar[`${locNum}:${audience.audienceIdentifier}`].toString();
           }
           else
              result = '';
