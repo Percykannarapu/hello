@@ -1,18 +1,18 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import {  MenuItem } from 'primeng/primeng';
+import { Store } from '@ngrx/store';
+import { AppStateService } from 'app/services/app-state.service';
+import { MenuItem } from 'primeng/api';
 import { Observable } from 'rxjs';
+import { RadService } from '../../services/rad.service';
+import { UserService } from '../../services/user.service';
+import { LocalAppState } from '../../state/app.interfaces';
+import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
+import { MetricOperations, MetricService } from '../../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ColorBoxComponent } from '../color-box/color-box.component';
-import { MetricService, MetricOperations } from '../../val-modules/common/services/metric.service';
-import { RadService } from '../../services/rad.service';
-import { UserService } from '../../services/user.service';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from '../../state/app.interfaces';
-import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
-import { AppStateService } from 'app/services/app-state.service';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -35,16 +35,16 @@ export class DashboardComponent implements OnInit {
     public metricMapTeal: Map<string, string>;
     public flagMapTeal: Map<string, boolean>;
 
-    @ViewChild('locationsColorBox')
+    @ViewChild('locationsColorBox', { static: true })
     private locationsColorBox: ColorBoxComponent;
 
-    @ViewChild('campaignColorBox')
+    @ViewChild('campaignColorBox', { static: true })
     private campaignColorBox: ColorBoxComponent;
 
-    @ViewChild('audienceColorBox')
+    @ViewChild('audienceColorBox', { static: true })
     private audienceColorBox: ColorBoxComponent;
 
-    @ViewChild('performanceColorBox')
+    @ViewChild('performanceColorBox', { static: true })
     private performanceColorBox: ColorBoxComponent;
 
     private colorBoxesByGroup: Map<string, ColorBoxComponent> = new Map<string, ColorBoxComponent>();

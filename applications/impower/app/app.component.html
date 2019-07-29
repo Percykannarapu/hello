@@ -1,19 +1,15 @@
 <div class="layout-wrapper" [ngClass]="{'layout-compact':layoutCompact}" (click)="onLayoutClick()">
 
-    <div #layoutContainer class="layout-container" [ngClass]="{'menu-layout-static': !isOverlay(),
-            'menu-layout-overlay': isOverlay(),
-            'layout-menu-overlay-active': overlayMenuActive,
-            'menu-layout-horizontal': isHorizontal(),
-            'menu-layout-slim': isSlim(),
+    <div #layoutContainer class="layout-container menu-layout-static menu-layout-horizontal"
+         [ngClass]="{ 'layout-menu-overlay-active': overlayMenuActive,
             'layout-menu-static-inactive': staticMenuDesktopInactive,
-            'layout-menu-static-active': staticMenuMobileActive}">
+            'layout-menu-static-active': staticMenuMobileActive }">
 
-        <val-app-topbar></val-app-topbar>
+        <val-app-header></val-app-header>
 
         <div class="layout-menu" [ngClass]="{'layout-menu-dark':darkMenu}" (click)="onMenuClick($event)">
             <div #layoutMenuScroller class="nano">
                 <div class="nano-content menu-scroll-content">
-                    <app-inline-profile *ngIf="profileMode=='inline'&&!isHorizontal()"></app-inline-profile>
                     <div class="ui-g">
                       <div class="ui-g-8 ui-g-nopad">
                         <app-menu [reset]="resetMenu"></app-menu>
@@ -34,12 +30,10 @@
         <div class="layout-main">
             <val-project></val-project>
             <router-outlet></router-outlet>
-            <app-footer></app-footer>
+            <val-app-footer></val-app-footer>
         </div>
 
-        <app-rightpanel></app-rightpanel>
-
-        <p-confirmDialog icon="fa fa-FontAwesome fa-question-circle" width="500"></p-confirmDialog>
+        <p-confirmDialog icon="fa fa-question-circle" width="500"></p-confirmDialog>
         <val-busy-indicator></val-busy-indicator>
         <val-confirmation-dialog></val-confirmation-dialog>
         <div class="layout-mask"></div>

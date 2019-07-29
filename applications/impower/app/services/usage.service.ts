@@ -78,7 +78,7 @@ export class UsageService {
     }
 
     //If there is no OAuth token available yet wait a few seconds and try again
-    if (DataStore.getConfig().oauthToken == null) {
+    if (RestDataService.getConfig().oauthToken == null) {
       setTimeout(() => { this.createCounterMetric(metricName, metricText, metricValue); }, 2000);
     }
 
@@ -130,7 +130,7 @@ export class UsageService {
     }
 
     //If there is no OAuth token available yet wait a few seconds and try again
-    if (DataStore.getConfig().oauthToken == null) {
+    if (RestDataService.getConfig().oauthToken == null) {
       setTimeout(() => { this.createCounterMetric(metricName, metricText, metricValue); }, 2000);
     }
 
@@ -202,7 +202,7 @@ export class UsageService {
     impMetricCounter.origSystemRefId = impProjectId != null ? impProjectId.toString() : null;
     impMetricCounter.projectTrackerId = this.stateService.currentProject$.getValue().projectTrackerId;
 
-    const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
+    const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + RestDataService.getConfig().oauthToken);
 
     // Send the counter data to Fuse for persistence
     return this.restClient.post('v1/metrics/base/impmetriccounter/save', JSON.stringify(impMetricCounter));
@@ -234,7 +234,7 @@ export class UsageService {
     impMetricGauge.isActive = 1;
     impMetricGauge.projectTrackerId = this.stateService.currentProject$.getValue().projectTrackerId;
 
-    const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
+    const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + RestDataService.getConfig().oauthToken);
 
     // Send the counter data to Fuse for persistence
     //console.log('metric request:::', JSON.stringify(impMetricGauge));

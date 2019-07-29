@@ -29,9 +29,9 @@ import { selectors } from '@val/esri';
 })
 export class AddLocationsTabComponent implements OnInit {
 
-  @ViewChild('businessSearch') businessSearchComponent: BusinessSearchComponent;
-  @ViewChild('manualSiteEntry') manualSiteEntry: ManualEntryComponent;
-  @ViewChild('manualCompetitorEntry') manualCompetitorEntry: ManualEntryComponent;
+  @ViewChild('businessSearch', { static: true }) businessSearchComponent: BusinessSearchComponent;
+  @ViewChild('manualSiteEntry', { static: true }) manualSiteEntry: ManualEntryComponent;
+  @ViewChild('manualCompetitorEntry', { static: true }) manualCompetitorEntry: ManualEntryComponent;
 
   isProd: boolean = environment.production;
   businessSearchLimit: number = 20000; 

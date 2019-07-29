@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { TreeNode } from 'primeng/primeng';
-import { TargetAudienceService } from '../../../services/target-audience.service';
+import { TreeNode } from 'primeng/api';
 import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { AppStateService } from '../../../services/app-state.service';
+import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
+import { TargetAudienceService } from '../../../services/target-audience.service';
 
 const UnSelectableLimit = 1000;
 

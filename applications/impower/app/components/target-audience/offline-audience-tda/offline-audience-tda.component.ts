@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { TreeNode } from 'primeng/primeng';
-import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
-import { TargetAudienceTdaService, TdaAudienceDescription } from '../../../services/target-audience-tda.service';
-import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { TargetAudienceService } from '../../../services/target-audience.service';
-import { AppStateService } from '../../../services/app-state.service';
 import { Store } from '@ngrx/store';
-import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification } from '@val/messaging';
+import { TreeNode } from 'primeng/api';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { AppStateService } from '../../../services/app-state.service';
+import { TargetAudienceTdaService, TdaAudienceDescription } from '../../../services/target-audience-tda.service';
+import { TargetAudienceService } from '../../../services/target-audience.service';
+import { LocalAppState } from '../../../state/app.interfaces';
 
 @Component({
   selector: 'val-offline-audience-tda',

@@ -1,24 +1,25 @@
-import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { AppLocationService } from '../../services/app-location.service';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { map, startWith, filter, take } from 'rxjs/operators';
-import { Table } from 'primeng/table';
-import { ConfirmationService, MultiSelect, SelectItem } from 'primeng/primeng';
-import { Store, select } from '@ngrx/store';
-import { LocalAppState, FullAppState } from '../../state/app.interfaces';
-import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { select, Store } from '@ngrx/store';
 import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { Geocode, HomeGeocode, ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
-import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
-import { AppProjectService } from '../../services/app-project.service';
-import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { selectors } from '@val/esri';
+import { ConfirmationService, SelectItem } from 'primeng/api';
+import { MultiSelect } from 'primeng/multiselect';
+import { Table } from 'primeng/table';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { filter, map, startWith, take } from 'rxjs/operators';
+import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
+import { AppLocationService } from '../../services/app-location.service';
+import { AppProjectService } from '../../services/app-project.service';
+import { FullAppState, LocalAppState } from '../../state/app.interfaces';
+import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
+import { HomeGeocode, ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
+import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 export class FlatSite {
   fgId: number;
@@ -30,7 +31,7 @@ export class FlatSite {
 @Component({
   selector: 'val-site-list',
   templateUrl: './site-list.component.html',
-  styleUrls: ['./site-list.component.css'],
+  styleUrls: ['./site-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SiteListComponent implements OnInit {
@@ -175,7 +176,7 @@ export class SiteListComponent implements OnInit {
    public selectedColumns: any[] = [];
    public displayData: any;
    public selectedRowData: any;
-   @ViewChild('locGrid') public _locGrid: Table;
+   @ViewChild('locGrid', { static: true }) public _locGrid: Table;
 
    public showDialog: boolean = false;
 

@@ -1,11 +1,11 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { TreeNode } from 'primeng/primeng';
+import { TreeNode } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { AppStateService } from '../../../services/app-state.service';
 import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
-import { AppStateService } from '../../../services/app-state.service';
 
 @Component({
   selector: 'val-online-audience-vlh',

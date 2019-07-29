@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { DialogModule } from 'primeng/dialog';
-import { ProgressSpinnerModule } from 'primeng/primeng';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { NotificationProvider, NotificationProviderToken } from './core/notification-provider.interface';
 import { NullNotificationService } from './core/null-notification.service';
 import { messagingReducers } from './state/messaging.interfaces';

@@ -28,7 +28,7 @@ interface SearchForm {
 @Component({
   selector: 'val-business-search',
   templateUrl: './business-search.component.html',
-  styleUrls: ['./business-search.component.css'],
+  styleUrls: ['./business-search.component.scss'],
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush
 })

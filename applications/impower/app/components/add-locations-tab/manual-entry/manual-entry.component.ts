@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { MenuItem } from 'primeng/primeng';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MenuItem } from 'primeng/api';
 import { ValGeocodingRequest } from '../../../models/val-geocoding-request.model';
 import * as Presets from './manual-entry-presets';
 import { AppEditSiteService } from 'app/services/app-editsite.service';

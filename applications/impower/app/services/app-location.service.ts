@@ -887,7 +887,7 @@ export class AppLocationService {
          })
        );
       }
-      return merge(dmaAndCountyObservble, pipObservble, initialAttributesObs).pipe(
+      return merge([dmaAndCountyObservble, pipObservble, initialAttributesObs]).pipe(
         filter(value => value != null),
         reduce((acc, value) => [...acc, ...value], [])
       );

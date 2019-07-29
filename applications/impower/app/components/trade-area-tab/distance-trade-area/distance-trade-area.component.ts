@@ -1,18 +1,19 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidatorFn } from '@angular/forms';
-import { SelectItem } from 'primeng/primeng';
+import { SelectItem } from 'primeng/api';
 import { distinctUntilChanged, pairwise, startWith } from 'rxjs/operators';
+import { AppTradeAreaService } from '../../../services/app-trade-area.service';
 import { TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
-import { AppTradeAreaService } from '../../../services/app-trade-area.service';
 
 const numberOrNull = (value: any) => value == null || value === '' || Number.isNaN(Number(value)) ? null : Number(value);
 
 @Component({
   selector: 'val-distance-trade-area',
   templateUrl: './distance-trade-area.component.html',
-  styleUrls: ['./distance-trade-area.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./distance-trade-area.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class DistanceTradeAreaComponent implements OnInit, OnChanges {
   @Input() currentTradeAreas: TradeAreaModel[];

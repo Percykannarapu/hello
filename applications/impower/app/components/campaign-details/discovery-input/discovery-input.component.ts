@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { SelectItem } from 'primeng/primeng';
+import { SelectItem } from 'primeng/api';
 import { debounceTime, map } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../../models/val-discovery.model';
 import { ProjectCpmTypeCodes } from '../../../val-modules/targeting/targeting.enums';

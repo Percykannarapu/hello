@@ -1,18 +1,18 @@
-import { Component, ViewChild, Output, EventEmitter, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FileUpload } from 'primeng/primeng';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { FileUpload } from 'primeng/fileupload';
 import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'val-upload-locations',
   templateUrl: './upload-locations.component.html',
-  styleUrls: ['./upload-locations.component.css'],
+  styleUrls: ['./upload-locations.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UploadLocationsComponent {
 
   @Input() label: string = '';
   @Output() upload = new EventEmitter<string[]>();
-  @ViewChild('fileUpload') private fileUploadElement: FileUpload;
+  @ViewChild('fileUpload', { static: true }) private fileUploadElement: FileUpload;
 
   private static excelToCsv(encodedString: string | ArrayBuffer) : string {
     const wb: XLSX.WorkBook = XLSX.read(encodedString, { type: 'binary' });

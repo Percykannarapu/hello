@@ -1,37 +1,32 @@
-<div class="ui-g">
-    <div class="card ui-g-4 ui-g-offset-4">
-        <div class="ui-g-12" style="background-color: #4177a1; color: #ffffff">
-            <div class="ui-g-10 ui-xl-offset-3 ui-lg-offset-2">
-                <h1 style="font-size: 250%">imPower Login</h1>
-            </div>
+<div class="val-centered">
+    <div class="login-form card">
+        <div class="login-header val-centered">
+          <h1>imPower Login</h1>
         </div>
-        <form #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" novalidate>
+        <form #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" novalidate class="ui-g val-centered">
+          <div class="ui-g-6">
             <div class="ui-g-12">
-                <div class="ui-g-10 ui-g-offset-2">
-                    <div class="ui-g-2 ui-lg-3">
-                        Username
-                    </div>
-                    <div class="ui-g-6">
-                        <input name="username" ngModel  autofocus style="width: 100%;">
-                    </div>
-                </div>
+              <div class="ui-inputgroup">
+                <span class="ui-inputgroup-addon"><i class="fa fa-user-o"></i></span>
+                <span class="md-inputfield">
+                  <input id="username" type="text" name="username" class="ui-g-12" ngModel pInputText autofocus >
+                  <label for="username">Username</label>
+                </span>
+              </div>
             </div>
             <div class="ui-g-12">
-                <div class="ui-g-10 ui-g-offset-2">
-                    <div class="ui-g-2 ui-lg-3">
-                        Password
-                    </div>
-                    <div class="ui-g-6">
-                        <input type="password" name="password" ngModel style="width: 100%;">
-                    </div>
-                </div>
+              <div class="ui-inputgroup">
+                <span class="ui-inputgroup-addon"><i class="fa fa-user-secret"></i></span>
+                <span class="md-inputfield">
+                  <input id="password" type="password" name="password" class="ui-g-12" ngModel pInputText >
+                  <label for="password">Password</label>
+                </span>
+              </div>
             </div>
             <div class="ui-g-12">
-                <div class="ui-g-7 ui-lg-8 ui-g-offset-2">
-                    <button type="submit" label="Sign In" icon="ui-icon-person" pButton style="width: 100%"></button>
-                </div>
+              <button type="submit" label="Sign In" icon="ui-icon-person" class="ui-g-12" pButton></button>
             </div>
+          </div>
         </form>
-
     </div>
 </div>

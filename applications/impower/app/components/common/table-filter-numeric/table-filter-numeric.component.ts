@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
-import { OverlayPanel } from 'primeng/primeng';
+import { OverlayPanel } from 'primeng/overlaypanel';
 import { roundTo } from '@val/common';
 
 export interface RangeOperator {

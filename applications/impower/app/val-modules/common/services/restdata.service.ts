@@ -3,12 +3,22 @@ import { AppConfig } from '../../../app.config';
 import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, concat } from 'rxjs';
-import { DataStore } from './datastore.service';
+
+/**
+ * Data store configuration, holds the oauth token for communicating with Fuse
+ */
+export class OauthConfiguration {
+  public oauthToken: string;
+  public tokenExpiration: number;
+  public tokenRefreshFunction: Function;
+}
 
 @Injectable()
 export class RestDataService
 {
-   public baseUrl: string;
+  private static configuration: OauthConfiguration;
+
+  public baseUrl: string;
 
    constructor(private http: HttpClient, private appConfig: AppConfig) {
       // Assign the base url from configuration
@@ -16,7 +26,18 @@ export class RestDataService
       console.log('RestDataService - baseUrl: ' + this.baseUrl);
    }
 
-   // -----------------------------------------------------------------------------------
+  /**
+   * Bootstrap the data store, right now the only thing we bootstrap with is the oauth token
+   */
+  public static bootstrap(config: OauthConfiguration) {
+    this.configuration = config;
+  }
+
+  public static getConfig() : OauthConfiguration {
+    return this.configuration;
+  }
+
+  // -----------------------------------------------------------------------------------
    // HTTP METHODS
    // -----------------------------------------------------------------------------------
    public get(url: string) : Observable<RestResponse>
@@ -84,7 +105,7 @@ export class RestDataInterceptor implements HttpInterceptor
           });
         }
 
-        const tokenConfig = DataStore.getConfig();
+        const tokenConfig = RestDataService.getConfig();
         if (tokenConfig != null && tokenConfig.oauthToken != null) {
           internalRequest = internalRequest.clone({
             headers: internalRequest.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
@@ -105,11 +126,11 @@ export class RestDataInterceptor implements HttpInterceptor
     * @returns An Observable<boolean> if the token needs to be refreshed, false if it does not need to be refreshed
     */
     private refreshOauthToken() : Observable<boolean> | false {
-      const tokenExpirationDate = new Date(DataStore.getConfig().tokenExpiration);
+      const tokenExpirationDate = new Date(RestDataService.getConfig().tokenExpiration);
       const now = new Date(Date.now());
       const refreshTokenSubject: Subject<boolean> = new Subject<boolean>();
       if (tokenExpirationDate <= now) {
-        const refreshToken$: Observable<boolean> = <Observable<boolean>> DataStore.getConfig().tokenRefreshFunction();
+        const refreshToken$: Observable<boolean> = <Observable<boolean>> RestDataService.getConfig().tokenRefreshFunction();
         refreshToken$.subscribe(res => {
           if (res) {
             refreshTokenSubject.next(true);

@@ -1,11 +1,11 @@
 import { Component, ViewChild } from '@angular/core';
-import { FileUpload } from 'primeng/primeng';
+import { FileUpload } from 'primeng/fileupload';
 import * as xlsx from 'xlsx';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { ProjectPrefGroupCodes } from './../../../val-modules/targeting/targeting.enums';
-import { AppProjectPrefService } from './../../../services/app-project-pref.service';
+import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
+import { AppProjectPrefService } from '../../../services/app-project-pref.service';
 import { FetchCustom } from 'app/impower-datastore/state/transient/audience/audience.actions';
 
 @Component({
@@ -15,7 +15,7 @@ import { FetchCustom } from 'app/impower-datastore/state/transient/audience/audi
 export class CustomAudienceComponent {
   private readonly spinnerId = 'CUSTOM_UPLOAD';
 
-  @ViewChild('audienceUpload') private audienceUploadEl: FileUpload;
+  @ViewChild('audienceUpload', { static: true }) private audienceUploadEl: FileUpload;
 
   constructor(private appProjectPrefService: AppProjectPrefService,
               private store$: Store<LocalAppState>) { }

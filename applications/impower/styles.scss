@@ -1,7 +1,225 @@
 /* You can add global styles to this file, and also import other style files */
-.ui-sidebar-left.ui-sidebar-xlg,
-.ui-sidebar-right.ui-sidebar-xlg {
-    width: 80em;
+@import "assets/valassis-variables";
+@import "assets/sass/variables";
+
+.impower.splash-screen {
+  background: $primaryDarkColor url("assets/layout/images/logo.png") no-repeat center;
+}
+
+.impower > .splash-loader-container {
+  top: 60%;
+  margin-left: -45px;
+}
+
+// PrimeNg Overrides
+.layout-container.menu-layout-horizontal .layout-menu {
+  top: $valTitleHeight !important;
+}
+
+.layout-wrapper.layout-compact .layout-container.menu-layout-horizontal .layout-main {
+  padding-top: $valHeaderHeight !important;
+}
+
+body {
+  .ui-table {
+    border-spacing: 0;
+    .ui-table-thead {
+      > tr {
+        > th {
+          .ui-column-resizer {
+            color: #00000000;
+          }
+          i {
+            font-size: 1em;
+          }
+        }
+      }
+    }
+    .ui-sortable-column {
+      &:not(.ui-state-highlight):hover {
+        background-color: $valTableHeaderHoverBgColor;
+        a, a:hover {
+          background-color: $valTableHeaderHoverBgColor;
+        }
+      }
+    }
+    .ui-table-tbody {
+      .ui-button {
+        &.ui-button-icon-only {
+          width: 1.25em;
+          height: 1.25em;
+          font-size: 0.8em;
+          padding: 0;
+          .ui-button-icon-left {
+            margin-top: -0.4em;
+          }
+        }
+      }
+      > tr:nth-child(even) {
+        color: $valDeselectedTextColor;
+        &.home-geo {
+          background-color: lighten($accentLightColor, 25%);
+        }
+        &.ui-state-highlight {
+          background-color: $valSelectedTableRowBgColor;
+          color: black;
+          &.home-geo {
+            background-color: $accentColor;
+          }
+        }
+      }
+      > tr:nth-child(odd) {
+        color: $valDeselectedTextColor;
+        &.home-geo {
+          background-color: lighten($accentColor, 25%);
+        }
+        &.ui-state-highlight {
+          background-color: $valSelectedOddRowBgColor;
+          color: black;
+          &.home-geo {
+            background-color: $accentDarkColor;
+          }
+        }
+      }
+    }
+    .ui-table-scrollable-body-table {
+      margin-bottom: 0.25em;
+    }
+  }
+
+  .ui-fileupload-choose {
+    &.ui-button {
+      &.ui-button-text-icon-left {
+        padding: 0 2em;
+        > .ui-button-icon-left {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .ui-widget-header {
+    .ui-dropdown-label {
+      color: $textColor;
+    }
+  }
+
+  .ui-multiselect-panel {
+    * {
+      font-size: $c-fontSize;
+    }
+  }
+
+  .ui-dropdown {
+    min-width: auto;
+  }
+
+  .ui-overlaypanel:after,
+  .ui-overlaypanel:before {
+    content: none;
+  }
+
+  .ui-tabview {
+    .ui-tabview-panel {
+      border-width: 1px;
+      border-top-width: 0;
+    }
+  }
+}
+
+// Valassis-specific options
+.val-centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.val-text-center {
+  text-align: center;
+}
+
+.val-text-right {
+  text-align: end;
+}
+
+.val-toast-top-right {
+  top: ($valHeaderHeight + 3px) !important;
+  span.pi.ui-toast-icon {
+    font-size: 2em;
+  }
+}
+
+.val-custom-popup-tree-table table > tbody > tr > td.val-custom-cell {
+  padding: 0.25em 1em;
+}
+
+.ui-tabview.ui-tabview-top > ul.ui-tabview-nav > li:focus {
+  outline-width: 0;
+}
+
+.val-child-tabs > .ui-tabview {
+  &.ui-tabview-top > .ui-tabview-nav {
+    background-color: $valBackgroundGrey;
+  }
+  > ul.ui-tabview-nav {
+    > li {
+      background-color: $primaryColor;
+      border-bottom-color: $primaryColor;
+    }
+    > li.ui-state-active {
+      background-color: $accentColor;
+      border-bottom-color: $accentColor;
+    }
+    > li:not(.ui-state-active):not(.ui-state-disabled):hover {
+      background-color: $primaryLightColor !important;
+      border-bottom-color: $primaryDarkColor !important;
+    }
+    > li a {
+      color: white !important;
+    }
+  }
+}
+
+// html form layout fixes and changes
+form {
+  div.ui-g-1:not(.ui-g-nopad),
+  div.ui-g-2:not(.ui-g-nopad),
+  div.ui-g-3:not(.ui-g-nopad),
+  div.ui-g-4:not(.ui-g-nopad),
+  div.ui-g-5:not(.ui-g-nopad),
+  div.ui-g-6:not(.ui-g-nopad),
+  div.ui-g-7:not(.ui-g-nopad),
+  div.ui-g-8:not(.ui-g-nopad),
+  div.ui-g-9:not(.ui-g-nopad),
+  div.ui-g-10:not(.ui-g-nopad),
+  div.ui-g-11:not(.ui-g-nopad),
+  div.ui-g-12:not(.ui-g-nopad) {
+    padding: 1em 0.5em 0.5em;
+  }
+}
+
+body .ui-inputgroup .md-inputfield {
+  input:focus ~ label, input.ui-state-filled ~ label {
+    top: -1em;
+  }
+  label {
+    top: 1px;
+  }
+}
+
+body .ui-table .ui-table-caption .ui-inputgroup {
+  .ui-inputgroup-addon {
+    color: $valReversedDisabledColor;
+    padding-bottom: 2px;
+  }
+  .md-inputfield {
+    input {
+      color: $valReversedTextColor;
+    }
+    label {
+      color: $valReversedDisabledColor;
+    }
+  }
 }
 
 /*-- Top Info Box Overlay Panel Styles */
@@ -24,46 +242,6 @@
     background: #2F9688
 }
 
-// .dashboard{
-//     .colorboxPicker-green{
-//         .ui-overlaypanel{
-//             width: 75% !important;
-//         }
-//     }
-// }
-
-.p-t-45{
-    padding-top: 45px !important;
-}
-.p-t-15{
-    padding-top: 15px !important;
-}
-.ui-g-offset-half {
-  margin-left: 4%;
-}
-
-// for prime-ng internal styling tweaks to the upload-locations component:
-.file-upload-align {
-  padding-top: 20px;
-
-  .ui-fileupload-choose {
-    padding: 0 3em;
-
-    .ui-button-icon-left {
-      display: none;
-    }
-  }
-}
-
-// fix up the spinner icon for the project tracker drop-down
-#projectTrackerLookup {
-  span {
-    i.fa {
-      font-family: "FontAwesome";
-    }
-  }
-}
-
 // widen the main menu so the full National Extract text can fit on one line
 .layout-menu ul.ultima-menu > li > ul {
   width: 300px !important;
@@ -79,11 +257,471 @@
   width: 100% !important;
 }
 
-// restores regular grid padding to elements that are nested inside val-flush-to-edges
-.val-restore-padding {
-  padding: 0.5em !important;
+.colorboxPicker {
+  padding: 0 !important;
+  text-align: center;
+  overflow: hidden;
+  /* border: 1px solid black; -- Happy accident that outlined everything in colorbox black */
+  /* margin-bottom: 0 !important; */
+  margin: 0 !important;
+  -moz-border-radius: 0;
+  -webkit-border-radius: 0;
+  border-radius: 0 2px 2px 0;
 }
 
-.val-nopad-top-bottom {
-  padding: 0 0.5em !important;
+.colorboxPicker.spinner {
+  -moz-border-radius: 0 2px 2px 0;
+  -webkit-border-radius: 0 2px 2px 0;
+  border-radius: 0 2px 2px 0;
+}
+
+card.colorboxPicker.spinner {
+  -moz-border-radius: 0 2px 2px 0;
+  -webkit-border-radius: 0 2px 2px 0;
+  border-radius: 0 2px 2px 0;
+}
+
+.colorboxPicker i {
+  /* font-size: 36px; */
+  /* font-size: 4.5vh; */
+  /* font-size: 100%; */
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  /* margin-top: 10;          */
+  color: #ffffff; }
+
+.colorboxPicker .colorboxPicker-name {
+  font-size: 1em;
+  display: inline-block;
+  width: 100%;
+  margin: 0 0 8px 0;
+  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.69);
+  color: #ffffff; }
+
+.colorboxPicker .colorboxPicker-count {
+  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.69);
+  width: 100%;
+  color: #ffffff;
+  font-size: 2.7em;
+  /* font-size: 36px; */ }
+
+.colorboxPicker .colorboxPicker-count {
+  font-weight: bold; }
+
+.colorboxPicker.header span {
+  margin: 0 0 0 0;
+  font-size: 100%; }
+
+.colorboxPicker.icon {
+  height: 100%; }
+
+.colorboxPicker.icon.child {
+  width: 100%;
+  height: 100%;
+  font-size: 280%;
+  padding-top: 0.28em !important; }
+
+.colorboxPicker.spinner {
+  /* max-width:50%;
+  max-height:50%; */
+  font-size: 1em;
+  -webkit-user-select: none;
+  /* Safari */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* IE10+/Edge */
+  user-select: none;
+  /* Standard */ }
+
+.colorboxPicker-green .ui-overlaypanel {
+  width: 52% !important; }
+
+.colorboxPicker.colorboxPicker-green {
+  background-color: #50844a; }
+
+.colorboxPicker.spinner.colorboxPicker-green div {
+  background-color: #50844a; }
+
+.colorboxPicker.spinner.colorboxPicker-green div:first-child {
+  vertical-align: middle;
+  background-color: #50844a; }
+
+.colorboxPicker.colorboxPicker-green div:hover {
+  background-color: #406b3b; }
+
+.colorboxPicker.spinner.colorboxPicker-green div:hover {
+  background-color: #365c31; }
+
+.colorboxPicker.colorboxPicker-green div:first-child:hover {
+  background-color: #365c31; }
+
+.colorboxPicker-green .ui-overlaypanel-content {
+  background: #365c31; }
+
+.colorboxPicker.colorboxPicker-green div:first-child {
+  background-color: #365c31; }
+
+.colorboxPicker-green .ui-overlaypanel {
+  border: 1px solid #264223;
+  border-radius: 0; }
+
+.colorboxPicker.colorboxPicker-green.header {
+  background-color: #264223; }
+
+.colorboxPicker.colorboxPicker-greener {
+  background-color: #659e5b; }
+
+.colorboxPicker.spinner.colorboxPicker-greener div {
+  background-color: #659e5b; }
+
+.colorboxPicker.spinner.colorboxPicker-greener div:first-child {
+  background-color: #659e5b; }
+
+.colorboxPicker.colorboxPicker-greener div:hover {
+  background-color: #55854d; }
+
+.colorboxPicker.colorboxPicker-greener div:first-child:hover {
+  background-color: #55854d; }
+
+.colorboxPicker-greener .ui-overlaypanel-content {
+  background: #436f3b; }
+
+.colorboxPicker.colorboxPicker-greener div:first-child {
+  background-color: #436f3b; }
+
+.colorboxPicker-greener .ui-overlaypanel {
+  border: 1px solid #34572e;
+  border-radius: 0; }
+
+.colorboxPicker.colorboxPicker-greener.header {
+  max-height: 25px;
+  background-color: #34572e; }
+
+.colorboxPicker.colorboxPicker-ochre {
+  background-color: #84794a; }
+
+.colorboxPicker.spinner.colorboxPicker-ochre div {
+  background-color: #84794a; }
+
+.colorboxPicker.spinner.colorboxPicker-ochre div:first-child {
+  background-color: #84794a; }
+
+.colorboxPicker.colorboxPicker-ochre div:hover {
+  background-color: #6b623b; }
+
+.colorboxPicker.spinner.colorboxPicker-ochre div:hover {
+  background-color: #6b623b; }
+
+.colorboxPicker.colorboxPicker-ochre div:first-child:hover {
+  background-color: #6b623b; }
+
+.colorboxPicker-ochre .ui-overlaypanel-content {
+  background: #5c5331; }
+
+.colorboxPicker.colorboxPicker-ochre div:first-child {
+  background-color: #5c5331; }
+
+.colorboxPicker-ochre .ui-overlaypanel {
+  border: 1px solid #423c23;
+  border-radius: 0; }
+
+.colorboxPicker.colorboxPicker-ochre.header {
+  max-height: 25px;
+  background-color: #423c23; }
+
+.colorboxPicker.colorboxPicker-blue {
+  background-color: #4a5a84; }
+
+.colorboxPicker.spinner.colorboxPicker-blue div {
+  background-color: #4a5a84; }
+
+.colorboxPicker.spinner.colorboxPicker-blue div:first-child {
+  background-color: #4a5a84; }
+
+.colorboxPicker.colorboxPicker-blue div:hover {
+  background-color: #3b486b; }
+
+.colorboxPicker.spinner.colorboxPicker-blue div:hover {
+  background-color: #313e5c; }
+
+.colorboxPicker.colorboxPicker-blue div:first-child:hover {
+  background-color: #313e5c; }
+
+.colorboxPicker-blue .ui-overlaypanel-content {
+  background: #313e5c; }
+
+.colorboxPicker.colorboxPicker-blue div:first-child {
+  background-color: #313e5c; }
+
+.colorboxPicker-blue .ui-overlaypanel {
+  border: 1px solid #232b42;
+  border-radius: 0; }
+
+.colorboxPicker.colorboxPicker-blue.header {
+  max-height: 25px;
+  background-color: #232b42; }
+
+.colorboxPicker.colorboxPicker-purple {
+  background-color: #5d4a84; }
+
+.colorboxPicker.spinner.colorboxPicker-purple div {
+  background-color: #5d4a84; }
+
+.colorboxPicker.spinner.colorboxPicker-purple div:first-child {
+  background-color: #5d4a84; }
+
+.colorboxPicker.colorboxPicker-purple div:hover {
+  background-color: #4b3b6b; }
+
+.colorboxPicker.spinner.colorboxPicker-purple div:hover {
+  background-color: #3e315c; }
+
+.colorboxPicker.colorboxPicker-purple div:first-child:hover {
+  background-color: #3e315c; }
+
+.colorboxPicker-purple .ui-overlaypanel-content {
+  background: #3e315c; }
+
+.colorboxPicker.colorboxPicker-purple div:first-child {
+  background-color: #3e315c; }
+
+.colorboxPicker-purple .ui-overlaypanel {
+  border: 1px solid #2e2342;
+  border-radius: 0; }
+
+.colorboxPicker.colorboxPicker-purple.header {
+  max-height: 25px;
+  background-color: #2e2342; }
+
+.colorboxPicker.colorboxPicker-slate {
+  background-color: #4a7184; }
+
+.colorboxPicker.spinner.colorboxPicker-slate div {
+  background-color: #4a7184; }
+
+.colorboxPicker.spinner.colorboxPicker-slate div:first-child {
+  background-color: #4a7184; }
+
+.colorboxPicker.colorboxPicker-slate div:hover {
+  background-color: #3b5b6b; }
+
+.colorboxPicker.spinner.colorboxPicker-slate div:hover {
+  background-color: #3b5b6b; }
+
+.colorboxPicker.colorboxPicker-slate div:first-child:hover {
+  background-color: #3b5b6b; }
+
+.colorboxPicker-slate .ui-overlaypanel-content {
+  background: #314f5c; }
+
+.colorboxPicker.colorboxPicker-slate div:first-child {
+  background-color: #314f5c; }
+
+.colorboxPicker-slate .ui-overlaypanel {
+  border: 1px solid #233842;
+  border-radius: 0; }
+
+.colorboxPicker.colorboxPicker-slate.header {
+  max-height: 25px;
+  background-color: #233842; }
+
+.colorboxPicker.colorboxPicker-olive {
+  background-color: #70844a; }
+
+.colorboxPicker.spinner.colorboxPicker-olive div {
+  background-color: #70844a; }
+
+.colorboxPicker.spinner.colorboxPicker-olive div:first-child {
+  background-color: #70844a; }
+
+.colorboxPicker.colorboxPicker-olive div:hover {
+  background-color: #5a6b3b; }
+
+.colorboxPicker.spinner.colorboxPicker-olive div:hover {
+  background-color: #5a6b3b; }
+
+.colorboxPicker.colorboxPicker-olive div:first-child:hover {
+  background-color: #5a6b3b; }
+
+.colorboxPicker-olive .ui-overlaypanel-content {
+  background: #4e5c31; }
+
+.colorboxPicker.colorboxPicker-olive div:first-child {
+  background-color: #4e5c31; }
+
+.colorboxPicker-olive .ui-overlaypanel {
+  border: 1px solid #374223;
+  border-radius: 0; }
+
+.colorboxPicker.colorboxPicker-olive.header {
+  max-height: 25px;
+  background-color: #374223; }
+
+.colorboxPicker.colorboxPicker-rose {
+  background-color: #844a5c; }
+
+.colorboxPicker.spinner.colorboxPicker-rose div {
+  background-color: #844a5c; }
+
+.colorboxPicker.spinner.colorboxPicker-rose div:first-child {
+  background-color: #844a5c; }
+
+.colorboxPicker.colorboxPicker-rose div:hover {
+  background-color: #6b3b49; }
+
+.colorboxPicker.spinner.colorboxPicker-rose div:hover {
+  background-color: #6b3b49; }
+
+.colorboxPicker.colorboxPicker-rose div:first-child:hover {
+  background-color: #6b3b49; }
+
+.colorboxPicker-rose .ui-overlaypanel-content {
+  background: #5c313f; }
+
+.colorboxPicker.colorboxPicker-rose div:first-child {
+  background-color: #5c313f; }
+
+.colorboxPicker-rose .ui-overlaypanel {
+  border: 1px solid #42232c;
+  border-radius: 0; }
+
+.colorboxPicker.colorboxPicker-rose.header {
+  max-height: 25px;
+  background-color: #42232c; }
+
+.colorboxPicker-teal .ui-overlaypanel {
+  width: 53% !important; }
+
+.colorboxPicker.colorboxPicker-teal {
+  background-color: #4a847a; }
+
+.colorboxPicker.spinner.colorboxPicker-teal div {
+  background-color: #4a847a; }
+
+.colorboxPicker.spinner.colorboxPicker-teal div:first-child {
+  background-color: #4a847a; }
+
+.colorboxPicker.colorboxPicker-teal div:hover {
+  background-color: #3b6b63; }
+
+.colorboxPicker.spinner.colorboxPicker-teal div:hover {
+  background-color: #3b6b63; }
+
+.colorboxPicker.colorboxPicker-teal div:first-child:hover {
+  background-color: #3b6b63; }
+
+.colorboxPicker-teal .ui-overlaypanel-content {
+  background: #315c53; }
+
+.colorboxPicker.colorboxPicker-teal div:first-child {
+  background-color: #315c53; }
+
+.colorboxPicker-teal .ui-overlaypanel {
+  border: 1px solid #23423c;
+  border-radius: 0; }
+
+.colorboxPicker.colorboxPicker-teal.header {
+  max-height: 25px;
+  background-color: #23423c; }
+
+.val-flush-to-edges {
+  .ui-panel-content.ui-widget-content {
+    padding: 0 !important;
+  }
+}
+
+.val-grid-no-pad {
+  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
+    padding: 0;
+  }
+}
+
+.val-grid-no-pad-top {
+  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
+    padding-top: 0;
+  }
+}
+
+.val-grid-no-pad-bottom {
+  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
+    padding-bottom: 0;
+  }
+}
+
+.val-grid-no-pad-left {
+  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
+    padding-left: 0;
+  }
+}
+
+.val-grid-no-pad-right {
+  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
+    padding-right: 0;
+  }
+}
+
+.val-thin-toolbar .ui-toolbar {
+  padding: .45em 0 0 .25px;
+  vertical-align: top;
+}
+
+.val-audience-tree .ui-tree {
+  width: 100%;
+  min-height: 15em;
+  max-height: 20em;
+  overflow-x: hidden !important;
+  overflow-y: auto;
+}
+
+.valTabViewPaleBlue div.ui-tabview-panels {
+  background: #e7eff6;
+}
+
+.form-wrapper .field-list .field {
+  position: relative;
+  margin: -20px 0px 24px;
+}
+
+.val-green-tab .ui-tabview.ui-tabview-top > .ui-tabview-nav {
+  background-color: #D9E5D0;
+}
+
+.val-icon-button.ui-button {
+  padding: 0.002em 0 0.002em 0;
+  height: 2em;
+  line-height: 1.25em; }
+
+.val-icon-button.ui-button.ui-button-text,
+.val-icon-button.ui-button .ui-button-text,
+.val-icon-button.ui-button.ui-button-text-icon-left {
+  padding-left: 0.9em;
+  padding-right: 0.25em;
+  line-height: 1.25em;
+}
+
+.val-icon-button.ui-button {
+  padding: 0.002em 0 0.002em 0;
+  height: 2em;
+  line-height: 1.25em; }
+
+.val-short-button .ui-button-text.ui-clickable {
+  padding: 0;
+  line-height: 1.25em; }
+
+.val-short-square-button.ui-button.ui-button-icon-only {
+  -moz-border-radius: 4%;
+  -webkit-border-radius: 4%;
+  border-radius: 4%;
+  width: 1em;
+  height: 1em;
+  padding: 0.7em;
+}
+
+.val-tbody-nowrap .ui-table .ui-table-tbody > tr > td
+{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -21,17 +21,17 @@
               "applications/impower/assets"
             ],
             "styles": [
-              "applications/impower/styles.scss",
-              "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/primeng/resources/primeng.css"
+              "node_modules/font-awesome/css/font-awesome.min.css",
+              "node_modules/primeng/resources/primeng.min.css",
+              "node_modules/primeicons/primeicons.css",
+              "applications/impower/assets/layout/css/layout-valassis-blue.scss",
+              "applications/impower/assets/theme/theme-valassis-blue.scss",
+              "applications/impower/styles.scss"
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.js",
               "node_modules/nanoscroller/bin/javascripts/jquery.nanoscroller.js",
-              "applications/impower/assets/layout/js/ripple.js",
-              "node_modules/moment/moment.js",
-              "node_modules/chart.js/dist/Chart.js",
-              "node_modules/fullcalendar/dist/fullcalendar.js"
+              "node_modules/moment/moment.js"
             ]
           },
           "configurations": {
@@ -163,15 +163,14 @@
             "scripts": [
               "node_modules/jquery/dist/jquery.js",
               "node_modules/nanoscroller/bin/javascripts/jquery.nanoscroller.js",
-              "applications/impower/assets/layout/js/ripple.js",
-              "node_modules/moment/moment.js",
-              "node_modules/chart.js/dist/Chart.js",
-              "node_modules/fullcalendar/dist/fullcalendar.js"
+              "node_modules/moment/moment.js"
             ],
             "styles": [
-              "applications/impower/styles.scss",
-              "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/primeng/resources/primeng.css"
+              "node_modules/primeng/resources/primeng.min.css",
+              "node_modules/primeicons/primeicons.css",
+              "applications/impower/assets/layout/css/layout-valassis-blue.scss",
+              "applications/impower/assets/theme/theme-valassis-blue.scss",
+              "applications/impower/styles.scss"
             ],
             "assets": [
               "applications/impower/assets"

@@ -1,22 +1,3 @@
-$primaryColor: #4177a1;
-$primaryDarkColor: #2e5473;
-$primaryLightColor: #4a8aba;
-$accentColor: #EF9300;
-$accentDarkColor: #bd7400;
-$accentLightColor: #f0a630;
-$accentTextColor: #ffffff;
-$darkMenuBgColor: #424242;
-$darkMenuHoverColor: #676767;
-$darkMenuRouterLinkActiveColor: #9fa8da;
-$lightMenuRouterLinkActiveColor: #2e5473;
-$horizontalLightMenuRouterLinkActiveColor: #9fa8da;
+@import '../../valassis-variables';
 
 @import '../../sass/layout/_layout';
-
-.val-toast-top-right {
-  top: 93px !important;
-}
-
-.val-custom-popup-tree-table table > tbody > tr > td.val-custom-cell {
-  padding: 0.25em 1em;
-}

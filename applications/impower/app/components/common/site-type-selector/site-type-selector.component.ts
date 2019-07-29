@@ -11,7 +11,7 @@ export class SiteTypeSelectorComponent implements OnInit {
   @Input() label: string = '';
 
   SiteType = ImpClientLocationTypeCodes;
-  selectedSiteType: SuccessfulLocationTypeCodes;
+  selectedSiteType: ImpClientLocationTypeCodes;
 
   ngOnInit() {
     this.selectedSiteType = ImpClientLocationTypeCodes.Site;

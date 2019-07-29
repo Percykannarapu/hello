@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { ConfirmationPayload, ShowConfirmation } from '@val/messaging';
-import { SelectItem } from 'primeng/primeng';
+import { SelectItem } from 'primeng/api';
 import { forkJoin, Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { AppLocationService } from '../../services/app-location.service';
@@ -20,7 +19,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 @Component({
     selector: 'val-project',
     templateUrl: './project.component.html',
-    styleUrls: ['./project.component.css']
+    styleUrls: ['./project.component.scss']
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
 
@@ -34,12 +33,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       }
       this._showDialog = newValue;
     }
+
     public timeLines;
     public selectedTimeLine = 'sixMonths';
     public todayDate = new Date();
-    // public customDialogDisplay: boolean;
     public selectedRow;
-    // public loadEvent: any;
     public allProjectsData: any;
     public myProjectsData: any;
     public selectedListType: 'myProject' | 'allProjects';
@@ -63,7 +61,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
                 private appTradeAreaService: AppTradeAreaService,
                 private stateService: AppStateService,
                 private targetAudienceService: TargetAudienceService,
-                private store$: Store<LocalAppState>){
+                private store$: Store<LocalAppState>,
+                private cd: ChangeDetectorRef){
 
                   this.timeLines = [
                     {label: 'Last 6 Months',  value: 'sixMonths'},
@@ -96,25 +95,21 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
 
         this.getAllProjectsData(updatedDateFrom, updatedDateTo).subscribe(data => {
-          Array.from(data).forEach(row => {
-            const dt = new Date(row['modifyDate']);
-            row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
-          });
           this.allProjectsData = data;
         }, null , () =>  this.searchFilterMetric());
 
         this.getMyProjectData(updatedDateFrom, updatedDateTo).subscribe(data => {
-          Array.from(data).forEach(row => {
-            const dt = new Date(row['modifyDate']);
-            row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
-          });
           this.myProjectsData = data;
           this.currentProjectData = this.myProjectsData;
         });
       });
     }
 
-    public getAllProjectsData(updatedDateFrom, updatedDateTo) : Observable<any>{
+    onFilter() {
+      this.cd.markForCheck();
+    }
+
+    private getAllProjectsData(updatedDateFrom, updatedDateTo) : Observable<any>{
       updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
       updatedDateTo.setDate(updatedDateTo.getDate() + 1);
       updatedDateFrom = this.formatDate(updatedDateFrom);
@@ -124,7 +119,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
        );
     }
 
-    public getMyProjectData(updatedDateFrom, updatedDateTo) : Observable<any>{
+    private getMyProjectData(updatedDateFrom, updatedDateTo) : Observable<any>{
       updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
       updatedDateTo.setDate(updatedDateTo.getDate() + 1);
       updatedDateFrom = this.formatDate(updatedDateFrom);
@@ -133,7 +128,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         map((response) => response.payload.rows));
     }
 
-    public onListTypeChange(data: 'myProject' | 'allProjects') {
+    onListTypeChange(data: 'myProject' | 'allProjects') {
       this.selectedListType = data;
      
       if (this.selectedListType === 'myProject'){
@@ -145,7 +140,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       this.searchFilterMetric();
     }
 
-    public onSelectTimeFrame(event: string){
+    onSelectTimeFrame(event: string){
       const updatedDateFrom = new Date();
       const updatedDateTo = new Date();
       this.selectedTimeLine = event;
@@ -184,21 +179,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
       const allProject$ =  this.getAllProjectsData(updatedDateFrom, updatedDateTo).pipe(
         tap(data => {
-          Array.from(data).forEach(row => {
-            const dt = new Date(row['modifyDate']);
-            row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
-  
-          });
           this.allProjectsData = data;
         }));
 
         const myProject$ =  this.getMyProjectData(updatedDateFrom, updatedDateTo).pipe(
           tap(data => {
-            Array.from(data).forEach(row => {
-              const dt = new Date(row['modifyDate']);
-              row['modifyDate'] = dt.toLocaleDateString() + '  ' + dt.toLocaleTimeString();
-    
-            });
             this.myProjectsData = data;
           }));
        
@@ -222,11 +207,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       return year + '-' + month + '-' + day;
     }
 
-    public dbClick(event: { originalEvent: MouseEvent, data: { projectId: number }}) {
-       this.loadProject(event.data);
+    public onDoubleClick(data: { projectId: number }) {
+       this.loadProject(data.projectId);
     }
 
-    public loadProject(event: { projectId: number }){
+    public loadProject(projectId: number) {
       const locData = this.impGeofootprintLocationService.get();
       if (locData.length > 0) {
         const payload: ConfirmationPayload = {
@@ -234,23 +219,16 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           message: 'Would you like to save your work before proceeding?',
           canBeClosed: true,
           accept: {
-            result: new SaveThenLoadProject({ projectToLoad: event.projectId })
+            result: new SaveThenLoadProject({ projectToLoad: projectId })
           },
           reject: {
-            result: new DiscardThenLoadProject({ projectToLoad: event.projectId })
+            result: new DiscardThenLoadProject({ projectToLoad: projectId })
           }
         };
         this.store$.dispatch(new ShowConfirmation(payload));
       } else {
-        this.store$.dispatch(new DiscardThenLoadProject({ projectToLoad: event.projectId }));
+        this.store$.dispatch(new DiscardThenLoadProject({ projectToLoad: projectId }));
       }
-    }
-
-    public onSearch(event, count){
-      //console.log('test:::::', event, 'count::::', count);
-      //const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'project', target: 'project', action: 'search' });
-      //const metricText  = `userFilter=${event}~timeFilter=${this.selectedTimeLine}`;
-      //this.usageService.createCounterMetric(usageMetricName, metricText, count);
     }
 
     private searchFilterMetric(){
@@ -262,4 +240,4 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     onDialogHide() : void {
       this.store$.dispatch(new CloseExistingProjectDialog());
     }
-  }
+}

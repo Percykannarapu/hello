@@ -4,11 +4,14 @@
         <div class="ui-g-12 ui-g-nopad" [formGroupName]="i">
           <div class="ui-g-4 ui-g-offset-half">
             <div class="ui-inputgroup">
-              <p-toggleButton onLabel="Show" offLabel="Hide" formControlName="isShowing" [style]="{'width':'65px', 'float': 'right'}"></p-toggleButton>
-              <input name="TradeArea{{i + 1}}" type="text" pInputText formControlName="radius" autocomplete="off" placeholder="Trade Area {{i + 1}} (in miles)">
-              <span *ngIf="tradeAreaControl.get('isApplied').value" class="ui-inputgroup-addon">
-                <i class="fa fa-check"></i>
-              </span>
+              <p-toggleButton onLabel="Show" offLabel="Hide" formControlName="isShowing" styleClass="trade-area-toggle"></p-toggleButton>
+              <span class="md-inputfield">
+                  <input pInputText id="tradeArea{{i + 1}}" name="TradeArea{{i + 1}}" formControlName="radius" autocomplete="off" />
+                  <span *ngIf="tradeAreaControl.get('isApplied').value" class="ui-inputgroup-addon">
+                    <i class="fa fa-check"></i>
+                  </span>
+                  <label for="tradeArea{{i + 1}}" class="trade-area-value">Trade Area {{i + 1}} (in miles)</label>
+               </span>
             </div>
           </div>
   
@@ -37,4 +40,3 @@
       </div>
     </div>
   </form>
-  

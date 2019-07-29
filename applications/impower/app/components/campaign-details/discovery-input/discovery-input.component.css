@@ -1,6 +1,11 @@
 #projectId:disabled {
   opacity: 0.75;
   }
+
 .analysisLevelError{
   color: #e62a10;
+}
+
+.switch-label {
+  padding-left: 0.75em;
 }

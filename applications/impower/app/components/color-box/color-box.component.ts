@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { OverlayPanel } from 'primeng/primeng';
+import { OverlayPanel } from 'primeng/overlaypanel';
 import { Subscription } from 'rxjs';
 import { AppStateService } from '../../services/app-state.service';
 
@@ -8,7 +8,7 @@ import { AppStateService } from '../../services/app-state.service';
   templateUrl: './color-box.component.html'
 })
 export class ColorBoxComponent implements OnInit, OnDestroy{
-   @ViewChild('op') overlayPanel: OverlayPanel;
+   @ViewChild('op', { static: true }) overlayPanel: OverlayPanel;
    @Input() header:         string = 'Header';
    @Input() boxStyle:       string = 'colorbox-1';
    @Input() popupStyle:     string = 'green-panel';

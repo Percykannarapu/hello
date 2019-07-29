@@ -1,14 +1,22 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
-import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
+
+export interface GeocodeFailureGridField {
+  field: string;
+  header: string;
+  width: string;
+  isEditable: boolean;
+}
 
 @Component({
   selector: 'val-failed-geocode-grid',
   templateUrl: './failed-geocode-grid.component.html',
+  styleUrls: ['./failed-geocode-grid.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FailedGeocodeGridComponent implements OnInit{
+export class FailedGeocodeGridComponent {
 
   @Input() failedSites: ImpGeofootprintLocation[];
   @Input() totalCount: number = 0;
@@ -18,21 +26,21 @@ export class FailedGeocodeGridComponent implements OnInit{
   @Output() accept = new EventEmitter<ImpGeofootprintLocation>();
   @Output() remove = new EventEmitter<ImpGeofootprintLocation>();
 
+  gridColumns: GeocodeFailureGridField[] = [
+    { field: 'locationNumber', header: 'Number', width: '5em', isEditable: false },
+    { field: 'origAddress1', header: 'Address', width: '14em', isEditable: true },
+    { field: 'origCity', header: 'City', width: '9em', isEditable: true },
+    { field: 'origState', header: 'State', width: '3em', isEditable: true },
+    { field: 'origPostalCode', header: 'ZIP', width: '4em', isEditable: true },
+    { field: 'coordinates', header: 'XY', width: '10em', isEditable: true },
+    { field: 'recordStatusCode', header: 'Status', width: '6em', isEditable: false },
+    { field: 'geocoderMatchCode', header: 'Match Code', width: '4em', isEditable: false },
+    { field: 'geocoderLocationCode', header: 'Location Code', width: '8em', isEditable: false },
+    { field: 'locationName', header: 'Name', width: '15em', isEditable: false },
+    { field: 'marketName', header: 'Market', width: '15em', isEditable: true },
+  ];
+
   private edited = new Set<ImpGeofootprintLocation>();
-  // public locFieldAddress: string = '';
-  // public locFieldCity: string = '';
-  // public locFieldState: string = '';
-  // public locFieldZip: string = '';
-
-  ngOnInit() {
-    // if (this.type === 'edit') {
-    //   this.locFieldAddress = 'locAddress';
-    //   this.locFieldCity = 'locCity';
-    //   this.locFieldState = 'locState';
-    //   this.locFieldZip = 'locZip';
-    // }
-  }
-
   
   constructor(private appLocationService: AppLocationService,
               private impGeofootprintLocationService: ImpGeofootprintLocationService) {}

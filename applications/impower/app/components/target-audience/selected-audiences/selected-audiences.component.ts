@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AppStateService } from '../../../services/app-state.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
-import { SelectItem } from 'primeng/primeng';
+import { SelectItem } from 'primeng/api';
 import { AppRendererService } from '../../../services/app-renderer.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { map, take, filter } from 'rxjs/operators';
@@ -57,13 +57,16 @@ export class SelectedAudiencesComponent implements OnInit {
 
   public ngOnInit() : void {
     // Setup an observable to watch the store for audiences
-    this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences);
+    this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
+      filter(audiences => audiences != null),
+    );
 
-    const storeSub = this.store$.select(fromAudienceSelectors.allAudiences)
-      .pipe(map(audiences => audiences.length > 0))
-      .subscribe(res => this.hasAudiences = res, null, () => {
-        if (storeSub) storeSub.unsubscribe();
-      });
+    this.audiences$.pipe(
+        filter(audiences => audiences.length > 0),
+        take(1)
+    ).subscribe(audiences => {
+      this.hasAudiences = true;
+    });
 
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready)

@@ -1,4 +1,7 @@
-import { FieldContentTypeCodes } from './../../impower-datastore/state/models/impower-model.enums';
+import { SortMeta } from 'primeng/api';
+import { ObjectUtils } from 'primeng/components/utils/objectutils';
+import { MultiSelect } from 'primeng/multiselect';
+import { FieldContentTypeCodes } from '../../impower-datastore/state/models/impower-model.enums';
 import { isString } from 'util';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
@@ -13,8 +16,7 @@ import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar'
 import { Table } from 'primeng/table';
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { MultiSelect, SortMeta } from 'primeng/primeng';
-import { distinctArray, mapArray, resolveFieldData, roundTo, mapArrayToEntity } from '@val/common';
+import { distinctArray, mapArray, resolveFieldData, roundTo } from '@val/common';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import { GridGeoVar } from 'app/impower-datastore/state/transient/transient.reducer';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
@@ -38,7 +40,7 @@ interface AttributeEntity { [geocode: string] : GeoAttribute; }
 @Component({
   selector: 'val-geofootprint-geo-list',
   templateUrl: './geofootprint-geo-list.component.html',
-  styleUrls: ['./geofootprint-geo-list.component.css'],
+  styleUrls: ['./geofootprint-geo-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy
@@ -117,7 +119,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    onForceRedraw: EventEmitter<any> = new EventEmitter<any>();
 
    // Get the grid as a view child to attach custom filters
-   @ViewChild('geoGrid') public _geoGrid: Table;
+   @ViewChild('geoGrid', { static: true }) public _geoGrid: Table;
 
    // Get grid filter components to clear them
    @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
@@ -217,7 +219,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private tableWrapOn: string = 'val-table val-tbody-wrap';
    private tableWrapOff: string = 'val-table val-tbody-nowrap';
    public  tableWrapStyle: string = this.tableWrapOff;
-   public  tableWrapIcon: string = 'fa fa-minus';
+   public  tableWrapIcon: string = 'ui-icon-menu';
    public  tableHdrSlice: boolean = false;
 
    // Private component variables
@@ -797,7 +799,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       //console.log('gridToggleRowWithCheckbox - rowData: ', rowData);
       this._geoGrid.selection = this._geoGrid.selection || [];
       const selected = this._geoGrid.isSelected(rowData);
-      const dataKeyValue = this._geoGrid.dataKey ? String(this._geoGrid.objectUtils.resolveFieldData(rowData, this._geoGrid.dataKey)) : null;
+      const dataKeyValue = this._geoGrid.dataKey ? ObjectUtils.resolveFieldData(rowData, this._geoGrid.dataKey) : null;
       this._geoGrid.preventSelectionSetterPropagation = true;
 
       if (selected) {
@@ -844,7 +846,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             diffCount++;
 
             // Get the dataKeyValue of the row provided
-            const dataKeyValue = this._geoGrid.dataKey ? String(this._geoGrid.objectUtils.resolveFieldData(geo, this._geoGrid.dataKey)) : null;
+            const dataKeyValue = this._geoGrid.dataKey ? ObjectUtils.resolveFieldData(geo, this._geoGrid.dataKey) : null;
             this._geoGrid.preventSelectionSetterPropagation = true;
 
             // If that row is selected, filter it out of selection
@@ -1079,13 +1081,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (this.tableWrapStyle === this.tableWrapOn)
       {
          this.tableWrapStyle = this.tableWrapOff;
-         this.tableWrapIcon = 'fa fa-minus';
+         this.tableWrapIcon = 'ui-icon-menu';
          //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
       }
       else
       {
          this.tableWrapStyle = this.tableWrapOn;
-         this.tableWrapIcon = 'fa fa-bars';
+         this.tableWrapIcon = 'ui-icon-wrap-text';
          //this.tableHdrSlice = false;
       }
    }
