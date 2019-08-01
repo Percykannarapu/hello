@@ -838,9 +838,9 @@ export class AppLocationService {
 
   public queryAllHomeGeos(locationsMap: Map<string, ImpGeofootprintLocation[]>) : Observable<any> {
       console.log(locationsMap);
-      let pipObservble: any = EMPTY;
-      let dmaAndCountyObservble: any = EMPTY;
-      let initialAttributesObs: any = EMPTY;
+      let pipObservble: Observable<any> = EMPTY;
+      let dmaAndCountyObservble: Observable<any> = EMPTY;
+      let initialAttributesObs: Observable<any> = EMPTY;
       if (locationsMap.get('needtoPipLocations').length > 0){
         let objId = 0;
           const partitionedLocations = this.partitionLocations(locationsMap.get('needtoPipLocations'));
@@ -887,8 +887,9 @@ export class AppLocationService {
          })
        );
       }
-      return merge([dmaAndCountyObservble, pipObservble, initialAttributesObs]).pipe(
+      return merge(dmaAndCountyObservble, pipObservble, initialAttributesObs).pipe(
         filter(value => value != null),
+        tap(value => console.log('Before reduce', value)),
         reduce((acc, value) => [...acc, ...value], [])
       );
   }
