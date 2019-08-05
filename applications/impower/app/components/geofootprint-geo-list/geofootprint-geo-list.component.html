@@ -35,13 +35,13 @@
                   <div class="ui-inputgroup">
                     <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
                     <span class="md-inputfield">
-                      <input id="gridFilter" type="text" pInputText size="30" (input)="geoGrid.filterGlobal($event.target.value, 'contains')">
+                      <input id="gridFilter" type="text" pInputText size="15" (input)="geoGrid.filterGlobal($event.target.value, 'contains')">
                       <label for="gridFilter">Filter Geographies</label>
                     </span>
                   </div>
                   <span>Export</span>
                   <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="{{exportAllButtonText}}" pTooltip="{{exportAllButtonTip}}" class="val-icon-button" (click)="geoGrid.exportCSV()" style="margin-right: 10px"></button>
-                  <button type="button" pButton icon="fa fa-file"   iconPos="left" label="All Selected" pTooltip="Export all selected geos, regardless of filtering" class="val-icon-button" (click)="geoGrid.exportCSV({selectionOnly:true})"></button>
+                  <button type="button" pButton icon="fa fa-file"   iconPos="left" label="Selected" pTooltip="Export all selected geos, regardless of filtering" class="val-icon-button" (click)="geoGrid.exportCSV({selectionOnly:true})"></button>
              <!-- <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Print" class="val-icon-button" (click)="debugPrintGrid()"></button>
                   <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Toggle"  class="val-icon-button" (click)="gridToggleRowWithCheckbox($event, _geoGrid.value[0])"></button>
                   <button type="button" pButton icon="fa fa-bug"    iconPos="left" label="Debug Sync"  class="val-icon-button" (click)="syncGridSelection()"></button>
