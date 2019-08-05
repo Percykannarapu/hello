@@ -45,7 +45,14 @@ interface AttributeEntity { [geocode: string] : GeoAttribute; }
 })
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 {
+   private exportAllText = 'All';
+   private exportAllTip  = 'Export all geos. (Selected & Deselected)';
+   private exportFilteredText = 'Filtered';
+   private exportFilteredTip  = 'Export geos filtered in the grid.  (Selected & Deselected)';
+
    private gridUpdateFlag: boolean;
+   public exportAllButtonText: string = this.exportAllText;
+   public exportAllButtonTip:  string = this.exportAllTip;
 
    @Input('impProject')
    set project(val: ImpProject) {
@@ -327,8 +334,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.gridValues$ = Observable.create(observer => observer.next(this._geoGrid._value));
 
       this.gridValues$.subscribe(data => {
-         console.log('gridValues$ Observable fired');
-         this.setGridTotals();
+        console.log('gridValues$ Observable fired');
+        this.setGridTotals();
       });
 
       const subscribe = this.gridValues$.subscribe(val => {
@@ -757,7 +764,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (this._geoGrid.filteredValue != null)
          this.onSetFilteredGeos.emit({value: this.headerFilter, geos: this._geoGrid.filteredValue.map(flatGeo => flatGeo.geo)});
       else
-         this.onSetAllGeos.emit({value: this.headerFilter});
+        this.onSetAllGeos.emit({value: this.headerFilter});
    }
 
 
@@ -929,6 +936,15 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       this.syncHeaderFilter();
       this.setGridTotals();
+      const noFilters: boolean = event == null || event.filters == null || (Object.keys(event.filters).length === 0 && event.filters.constructor === Object);
+      if (noFilters) {
+        this.exportAllButtonText = this.exportAllText;
+        this.exportAllButtonTip  = this.exportAllTip;
+      }
+      else {
+        this.exportAllButtonText = this.exportFilteredText;
+        this.exportAllButtonTip  = this.exportFilteredTip;
+      }
    }
 
    /**
