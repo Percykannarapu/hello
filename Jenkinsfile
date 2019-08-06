@@ -175,7 +175,7 @@
       when {
         expression {
           // Disable the jobs untill geos are fixed
-          return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'qa'
+          return env.BRANCH_NAME == 'dev-disabled' || env.BRANCH_NAME == 'qa'
         }
       }
       steps {
