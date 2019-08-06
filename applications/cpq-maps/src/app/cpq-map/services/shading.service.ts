@@ -11,6 +11,8 @@ import { LegendData } from '../state/app.interfaces';
 import { ShadingState, ShadingType, VarDefinition, VariableRanges } from '../state/shading/shading.reducer';
 import { SetLegendData } from '../state/shared/shared.actions';
 import { ConfigService } from './config.service';
+import { localSelectors } from '../state/app.selectors';
+import { SetClassBreakValues } from '../state/shading/shading.actions';
 
 function formatNumber(value: number) {
   const localeOptions = {
@@ -71,7 +73,7 @@ export class ShadingService {
     if (arbitrary.var1Name != null) {
       const var1: VarDefinition = { name: arbitrary.var1Name, isNumber: (arbitrary.var1IsNumber === 1) };
       if (arbitrary.var1IsNumber) {
-        const var1Values = details.filter(d => d.var1Value != null).map(d => Number(d.var1Value));
+        const var1Values = details.filter(d => d.isSelected && d.var1Value != null).map(d => Number(d.var1Value));
         var1.minValue = Math.min(...var1Values);
         var1.maxValue = Math.max(...var1Values);
       }
@@ -80,7 +82,7 @@ export class ShadingService {
     if (arbitrary.var2Name != null) {
       const var2: VarDefinition = { name: arbitrary.var2Name, isNumber: (arbitrary.var2IsNumber === 1) };
       if (arbitrary.var2IsNumber) {
-        const var2Values = details.filter(d => d.var2Value != null).map(d => Number(d.var2Value));
+        const var2Values = details.filter(d => d.isSelected && d.var2Value != null).map(d => Number(d.var2Value));
         var2.minValue = Math.min(...var2Values);
         var2.maxValue = Math.max(...var2Values);
       }
@@ -89,7 +91,7 @@ export class ShadingService {
     if (arbitrary.var3Name != null) {
       const var3: VarDefinition = { name: arbitrary.var3Name, isNumber: (arbitrary.var3IsNumber === 1) };
       if (arbitrary.var3IsNumber) {
-        const var3Values = details.filter(d => d.var3Value != null).map(d => Number(d.var3Value));
+        const var3Values = details.filter(d => d.isSelected && d.var3Value != null).map(d => Number(d.var3Value));
         var3.minValue = Math.min(...var3Values);
         var3.maxValue = Math.max(...var3Values);
       }
@@ -290,4 +292,18 @@ export class ShadingService {
       this.zoomedFirstTime = true;
     }
   }
+
+  calculateEqualIntervals(payload: {breakCount: number, selectedVar: VarDefinition}) {
+//    const shadingState: ShadingState = this.store$.select(this.store$.select(localSelectors.getShadingState);
+    const classBreakValues = [];
+    const interval = (payload.selectedVar.maxValue - payload.selectedVar.minValue) / payload.breakCount;
+    for (let i = 0; i < payload.breakCount - 1; ++i) {
+      const currentBreak = (interval * (i + 1)) + payload.selectedVar.minValue;
+      classBreakValues.push(currentBreak);
+    }
+    //this.store$.dispatch(new SetClassBreakValues({classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar}));
+    //console.log('classBreakValues::::', classBreakValues);
+    return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar};
+  }
+
 }

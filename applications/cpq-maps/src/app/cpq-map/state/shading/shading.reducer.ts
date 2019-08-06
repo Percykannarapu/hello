@@ -27,14 +27,23 @@ export interface ShadingState {
   selectedVarName: string;
   shadingType: ShadingType;
   basePalette: number[][];
+  //
+  classBreakValues: number[];
+  selectedClassBreaks: number;
+  selectedVar: VarDefinition;
 }
+
+
 
 export const initialState: ShadingState = {
   classifications: [],
   availableVars: [],
   selectedVarName: '',
   shadingType: ShadingType.SITE,
-  basePalette: getColorPalette(ColorPalette.Cpqmaps)
+  basePalette: getColorPalette(ColorPalette.Cpqmaps),
+  classBreakValues: [],
+  selectedClassBreaks: 4,
+  selectedVar: null
 };
 
 type ReducerActions = ShadingActions;
@@ -60,6 +69,14 @@ export function shadingReducer(state = initialState, action: ReducerActions) : S
         classifications: [...action.payload.classifications],
         selectedVarName: action.payload.selectedVarName
       };
+    case ShadingActionTypes.SetClassBreakValues:
+      return {
+        ...state,
+        classBreakValues: action.payload.classBreakValues,
+        selectedClassBreaks: action.payload.breakCount,
+        selectedVar: action.payload.selectedVar
+
+      };  
     default:
       return state;
   }

@@ -9,7 +9,7 @@ import { ShadingService } from '../../services/shading.service';
 import { localSelectors } from '../app.selectors';
 import { LocalState } from '../index';
 import { SetAppReady } from '../shared/shared.actions';
-import { InitializeVariableOptions, RenderShading, ShadingActions, ShadingActionTypes } from './shading.actions';
+import { InitializeVariableOptions, RenderShading, ShadingActions, ShadingActionTypes, SetClassBreakValues } from './shading.actions';
 
 @Injectable()
 export class ShadingEffects {
@@ -48,6 +48,13 @@ export class ShadingEffects {
   render$ = this.actions$.pipe(
     ofType(ShadingActionTypes.SetNonVariableShading, ShadingActionTypes.SetVariableShading),
     map(() => new RenderShading({ recreateLayer: false }))
+  );
+
+  @Effect()
+  calculateEqualIntervals = this.actions$.pipe(
+    ofType(ShadingActionTypes.CalculateEqualIntervals),
+    map(action => this.shadingService.calculateEqualIntervals(action.payload)),
+    map(payload => new SetClassBreakValues(payload))
   );
 
   constructor(private actions$: Actions<ShadingActions>,
