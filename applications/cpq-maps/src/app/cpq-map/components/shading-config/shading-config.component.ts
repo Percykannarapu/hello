@@ -4,7 +4,7 @@ import { SelectItem } from 'primeng/api';
 import { filter, withLatestFrom } from 'rxjs/operators';
 import { FullState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
-import { SetNonVariableShading, SetVariableShading, CalculateEqualIntervals } from '../../state/shading/shading.actions';
+import { SetNonVariableShading, SetVariableShading, CalculateEqualIntervals, SetClassBreakValues } from '../../state/shading/shading.actions';
 import { ShadingState, ShadingType, VarDefinition, VariableRanges } from '../../state/shading/shading.reducer';
 import { SharedState } from '../../state/shared/shared.reducers';
 import { of } from 'rxjs';
@@ -110,8 +110,10 @@ export class ShadingConfigComponent implements OnInit {
         this.selectedClassBreaks = 4;
         this.classBreakValues = [...DEFAULT_BREAK_VALUES];
         break;
-      // case NumericVariableShadingMethod.CustomClassifications:
-      //   break;
+      //  case NumericVariableShadingMethod.CustomClassifications:
+      //   this.selectedClassBreaks = 4;
+      //   this.classBreakValues = [];
+      //  break;
       case NumericVariableShadingMethod.EqualIntervals:
         this.selectedClassBreaks = 4;
         this.calculateEqualIntervals(this.selectedClassBreaks);
@@ -137,12 +139,15 @@ export class ShadingConfigComponent implements OnInit {
 
   applyVariableShading() {
     const classifications: VariableRanges[] = [];
+    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
+                              breakCount: this.selectedClassBreaks, selectedVar: this.selectedVar}));
     classifications.push({ minValue: null, maxValue: this.classBreakValues[0] });
     for (let i = 1; i < this.classBreakValues.length; ++i) {
       classifications.push({ minValue: this.classBreakValues[i - 1], maxValue: this.classBreakValues[i] });
     }
     classifications.push({ minValue: this.classBreakValues[this.classBreakValues.length - 1], maxValue: null });
     this.store.dispatch(new SetVariableShading({ classifications, selectedVarName: this.selectedVar.name }));
+    
   }
 
   isNotValid(currentBreak: number, previousBreak: number) {
