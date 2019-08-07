@@ -577,6 +577,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       });
 
       // For every geo, create a FlatGeo to pivot up the variables and attributes
+      const varPkSet = new Set<number>();
+      projectVars.forEach(pv => varPkSet.add(pv.varPk)); 
+
       geos.forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo;
          gridGeo.geo = geo;
@@ -652,17 +655,27 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Update current number of dupes when dedupe filter is on
          this.dupeMsg = (this.dedupeGrid) ? 'Filtered Dupe Geos' : 'Total Dupe Geos';
 
-         if (gridGeoVars != null && gridGeoVars.geoVars != null && gridGeoVars.geoVars.hasOwnProperty(geo.geocode))
-         for (const [varPk, varValue] of Object.entries(gridGeoVars.geoVars[geo.geocode])) {
-           const n = varPk.indexOf(':');
-           const location = varPk.substr(0, n);
-           const pk = varPk.substr(n + 1);
-           if (location == null || location == '' || gridGeo.geo.impGeofootprintLocation.locationNumber == location)
-             gridGeo[pk] = varValue;
-
-           // Hack to prevent empty columns because geovars structure isn't getting cleared out on new project
-           const pv = projectVars.filter(findPv => findPv.varPk.toString() === varPk);
+         if (gridGeoVars != null && gridGeoVars.geoVars != null && gridGeoVars.geoVars.hasOwnProperty(geo.geocode)){
+            for (const [varPk, varValue] of Object.entries(gridGeoVars.geoVars[geo.geocode])) {
+               const n = varPk.indexOf(':');
+               const location = varPk.substr(0, n);
+               const pk = varPk.substr(n + 1);
+               if (location == null || location == '' || gridGeo.geo.impGeofootprintLocation.locationNumber == location)
+                  gridGeo[pk] = varValue;
+   
+               // Hack to prevent empty columns because geovars structure isn't getting cleared out on new project
+               const pv = projectVars.filter(findPv => findPv.varPk.toString() === varPk);
+               }
          }
+         else{
+            varPkSet.forEach(pvID => { 
+                  if (!gridGeo[pvID]){ 
+                     gridGeo['geocode'] = geo.geocode; 
+                     gridGeo[pvID] = ''; 
+                  } 
+               });
+         }
+            
          // Set the tooltip for the geography
          gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
 
