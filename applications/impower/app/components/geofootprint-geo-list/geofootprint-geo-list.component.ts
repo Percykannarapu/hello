@@ -616,7 +616,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          {
             gridGeo['pob'] = (currentAttribute['pob'] === 'B') ? 'Y' : 'N';
             gridGeo['coveragedescription'] = (currentAttribute['cov_desc'] == null) ? '' : currentAttribute['cov_desc'] ;
-            gridGeo['dma'] = currentAttribute['dma_name'];
+            gridGeo['dma'] = (currentAttribute['dma_name'] == null) ? '' : currentAttribute['dma_name'];
             gridGeo['ownergroup'] = (currentAttribute['owner_group_primary'] == null) ? '' : currentAttribute['owner_group_primary'];
 
             const cityName = currentAttribute['city_name'];

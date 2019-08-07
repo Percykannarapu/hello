@@ -889,7 +889,6 @@ export class AppLocationService {
       }
       return merge(dmaAndCountyObservble, pipObservble, initialAttributesObs).pipe(
         filter(value => value != null),
-        tap(value => console.log('Before reduce', value)),
         reduce((acc, value) => [...acc, ...value], [])
       );
   }

@@ -1,11 +1,13 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { isNumber } from '@val/common';
-import { filter, map, take } from 'rxjs/operators';
+import { isNumber, mapBy } from '@val/common';
+import { filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
 import { GridGeosToggle } from '../../state/grid/grid.actions';
 import * as fromGridSelectors from '../../state/grid/grid.selectors';
+import { CalculateEqualIntervals, InitializeShading } from '../../state/shading/shading.actions';
+import { VarDefinition } from '../../state/shading/shading.reducer';
 
 export interface FullColumn extends fromGridSelectors.GridColumn {
   formatType?: 'string' | 'number' | 'currency';
@@ -23,6 +25,8 @@ export class GridComponent implements OnInit {
   private smallGridColumns: FullColumn[] = [];
   private largeGridColumns: FullColumn[] = [];
   private filteredIds: number[] = null;
+  private selectedClassBreak: number = 0;
+  private selectedVar: VarDefinition = null;
 
   @Input()
   set smallSizeTable(value: boolean) {
@@ -76,6 +80,14 @@ export class GridComponent implements OnInit {
       filter(ready => ready),
       take(1)
     ).subscribe(() => this.emptyGridMessage = 'No matching results');
+
+    this.store$.select(localSelectors.getShadingState).subscribe(shading => {
+      //console.log('values updated::::oninit=====>', shading);
+      const mapByNameVars = mapBy(shading.availableVars, 'name');
+      this.selectedClassBreak = shading.selectedClassBreaks;
+      this.selectedVar =  shading.selectedVar != null ? mapByNameVars.get(shading.selectedVar.name) : shading.selectedVar;
+     
+    });
   }
 
   getColumnType(column: FullColumn, currentRowValue: string | number) : 'string' | 'number' | 'currency' {
@@ -85,6 +97,10 @@ export class GridComponent implements OnInit {
 
   onChangeRowSelection(event: { data: fromGridSelectors.GridRowBase }) {
    this.store$.dispatch(new GridGeosToggle({ geos: [event.data.selectionIdentifier] }));
+   this.store$.dispatch(new InitializeShading());
+   // console.log('selectedClassBreak::', this.selectedClassBreak, 'selectedVar::', this.selectedVar);
+   if (this.selectedVar != null)
+      this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, selectedVar: this.selectedVar}));
   }
 
   onFilter(event: { filters: any, filteredValue: fromGridSelectors.GridRowBase[] }) {

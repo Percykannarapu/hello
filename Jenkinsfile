@@ -175,7 +175,7 @@
       when {
         expression {
           // Disable the jobs untill geos are fixed
-          return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'qa'
+          return env.BRANCH_NAME == 'dev-disabled' || env.BRANCH_NAME == 'qa'
         }
       }
       steps {
@@ -183,14 +183,14 @@
           def slackColor
           try {
             echo 'run unit tests'
-            if (env.BRANCH_NAME == 'qa'){
+            if (env.BRANCH_NAME == 'qa-disabled'){
                   echo 'Automation test cases for QA'
                   sh '''
                     rm -rf /var/lib/jenkins/Downloads/*
                     xvfb-run robot --log /robotTestcases/jenkins/reportLogs/log.html --report /robotTestcases/jenkins/reportLogs/report.html --output /robotTestcases/jenkins/reportLogs/output.xml /robotTestcases/jenkins/qa/impower_robot_regressionTestSuite/impProject.robot
                   '''
             }
-            else if (env.BRANCH_NAME == 'dev'){
+            else if (env.BRANCH_NAME == 'dev-disabled'){
                   echo 'Automation test cases for Dev'
                   sh '''
                     rm -rf /var/lib/jenkins/Downloads/*
