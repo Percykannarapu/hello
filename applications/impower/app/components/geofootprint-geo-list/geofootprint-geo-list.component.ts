@@ -50,9 +50,17 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private exportFilteredText = 'Filtered';
    private exportFilteredTip  = 'Export geos filtered in the grid.  (Selected & Deselected)';
 
+   private filterAllIcon = 'fa fa-check-square';
+   private filterSelectedIcon = 'fa fa-check-square-o';
+   private filterDeselectedIcon = 'fa fa-square';
+   private filterAllTip = 'Selected & Deselected';
+   private filterSelectedTip = 'All Selected';
+   private filterDeselectedTip = 'All Deselected';
+
    private gridUpdateFlag: boolean;
-   public exportAllButtonText: string = this.exportAllText;
-   public exportAllButtonTip:  string = this.exportAllTip;
+   public  exportAllButtonText: string = this.exportAllText;
+   public  exportAllButtonTip:  string = this.exportAllTip;
+   public  filterIsSelected: boolean = true;
 
    @Input('impProject')
    set project(val: ImpProject) {
@@ -192,30 +200,34 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // Filtered Totals
    public  gridTotals: Map<string, ColMetric> = new Map<string, ColMetric>();
 
+   // Filter selected rows
+   public  isSelectedFilterState: string = this.filterAllIcon;
+   public  isSelectedToolTip: string = this.filterAllTip;
+
    // Grid Column Variables
    public flatGeoGridColumns: any[] =
-   [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',          width: '5em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',            width: '8em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.marketName',     header: 'Market',          width: '8em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locAddress',     header: 'Address',         width: '14em', matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locCity',        header: 'City',            width: '9em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locState',       header: 'State',           width: '4em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locZip',         header: 'ZIP',             width: '4em',  matchMode: 'contains', styleClass: ''},
-    {field: 'home_geo',                                   header: 'Home Geo',        width: '4em',  matchMode: 'contains', styleClass: 'val-text-center'},
-    {field: 'isMustCover',                                header: 'Must Cover',      width: '4em',  matchMode: 'contains', styleClass: 'val-text-center'},
-    {field: 'geo.distance',                               header: 'Dist',            width: '4em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'geo.geocode',                                header: 'Geocode',         width: '9em',  matchMode: 'contains', styleClass: ''},
-    {field: 'city_name',                                  header: 'Geo City, State', width: '10em', matchMode: 'contains', styleClass: ''},
-    {field: 'geo.hhc',                                    header: 'HHC',             width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'allocHhc',                                   header: 'HHC Allocated',   width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
+   [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',          width: '5em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',            width: '8em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.marketName',     header: 'Market',          width: '8em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locAddress',     header: 'Address',         width: '14em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locCity',        header: 'City',            width: '9em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locState',       header: 'State',           width: '4em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locZip',         header: 'ZIP',             width: '4em',   matchMode: 'contains', styleClass: ''},
+    {field: 'home_geo',                                   header: 'Home Geo',        width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'isMustCover',                                header: 'Must Cover',      width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'geo.distance',                               header: 'Dist',            width: '4em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'geo.geocode',                                header: 'Geocode',         width: '9em',   matchMode: 'contains', styleClass: ''},
+    {field: 'city_name',                                  header: 'Geo City, State', width: '10em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.hhc',                                    header: 'HHC',             width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'allocHhc',                                   header: 'HHC Allocated',   width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'cpm',                                        header: 'CPM',             width: '5.5em', matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'investment',                                 header: 'Inv',             width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'allocInvestment',                            header: 'Inv Allocated',   width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'ownergroup',                                 header: 'Owner Group',     width: '7em',  matchMode: 'contains', styleClass: ''},
-    {field: 'coveragedescription',                        header: 'Cov Desc',        width: '12em', matchMode: 'contains', styleClass: ''},
-    {field: 'pob',                                        header: 'POB',             width: '4em',  matchMode: 'contains', styleClass: 'val-text-center'},
-    {field: 'dma',                                        header: 'DMA',             width: '10em', matchMode: 'contains', styleClass: ''},
-    {field: 'geo.isDeduped',                              header: 'In Deduped',      width: '6em',  matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'investment',                                 header: 'Inv',             width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'allocInvestment',                            header: 'Inv Allocated',   width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'ownergroup',                                 header: 'Owner Group',     width: '7em',   matchMode: 'contains', styleClass: ''},
+    {field: 'coveragedescription',                        header: 'Cov Desc',        width: '12em',  matchMode: 'contains', styleClass: ''},
+    {field: 'pob',                                        header: 'POB',             width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'dma',                                        header: 'DMA',             width: '10em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.isDeduped',                              header: 'In Deduped',      width: '6em',   matchMode: 'contains', styleClass: 'val-text-center'},
    ];
 
    public  flatGeoGridExtraColumns: any[];
@@ -945,6 +957,35 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
         this.exportAllButtonText = this.exportFilteredText;
         this.exportAllButtonTip  = this.exportFilteredTip;
       }
+   }
+
+   onFilterSelected()
+   {
+      let filterVal: boolean = true;
+      switch (this.isSelectedFilterState) {
+        case this.filterSelectedIcon:
+          this.isSelectedFilterState = this.filterDeselectedIcon;
+          this.isSelectedToolTip = this.filterDeselectedTip;
+          filterVal = false;
+          break;
+
+        case this.filterDeselectedIcon:
+          this.isSelectedFilterState = this.filterAllIcon;
+          this.isSelectedToolTip = this.filterAllTip;
+          filterVal = null;
+          break;
+
+        default:
+          this.isSelectedFilterState = this.filterSelectedIcon;
+          this.isSelectedToolTip = this.filterSelectedTip;
+          filterVal = true;
+          break;
+      }
+      if (this._geoGrid.rows > 0) {
+        this._geoGrid.filter(filterVal, 'geo.isActive', 'equals');
+        this.onForceRedraw.emit();
+      }
+      this.onForceRedraw.emit();
    }
 
    /**

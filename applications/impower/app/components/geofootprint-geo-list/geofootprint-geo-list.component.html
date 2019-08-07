@@ -24,7 +24,6 @@
                <col style="width: 30px">
                <col style="width: 30px">
                <col *ngFor="let col of selectedColumns" [style.width]="col.width">
-               <!-- <col *ngFor="let col of flatGeoGridExtraColumns" [style.width]="col.width"> -->
             </colgroup>
          </ng-template>
 
@@ -75,11 +74,8 @@
             </div>
          </ng-template>
 
-         <!-- <p-tableHeaderCheckbox></p-tableHeaderCheckbox> -->
-         <!-- <p-button icon="pi pi-check" class="val-short-button" (onClick)="onToggleFilteredGeocodes(false)"></p-button> -->
          <ng-template pTemplate="header" class="ui-g ui-g-nopad" let-selectedColumns>
             <tr>
-               <!-- <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th> -->
                <th style="width: 30px; padding-left: 0.4em"><p-checkbox [(ngModel)]="headerFilter" binary="true" (onChange)="applyHeaderFilter()" class="val-table-hdr"></p-checkbox></th>
                <th style="width: 30px"></th>
                <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
@@ -87,17 +83,14 @@
                   <div *ngIf="tableHdrSlice === false">{{col.header}}</div>
                   <p-sortIcon [field]="col.field"></p-sortIcon>
                </th>
-               <!-- <th *ngFor="let col of flatGeoGridExtraColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
-                  <div *ngIf="tableHdrSlice === true">{{col.header | slice:0:20}}</div>
-                  <div *ngIf="tableHdrSlice === false">{{col.header}}</div>
-                  <p-sortIcon [field]="col.field"></p-sortIcon>
-               </th> -->
             </tr>
             <tr class="second-header">
-               <th style="width: 30px; padding-left: 0.4em;">
+               <th style="width: 30px; padding: 0.6em 0 0 0.4em">
+                 <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" class="val-short-square-button" (click)="onFilterSelected()" style="width: 20px; height: 20px; padding: 0em; margin: 0px;"></button>
+               </th>
+               <th style="width: 30px; padding: 1.25em 0 0 0.4em">
                  <button type="button" pButton icon="fa fa-eraser" pTooltip="Clear Filters" class="val-short-square-button" style="color: #edb3ce" (click)="onClickResetFilters()"></button>
                </th>
-               <th style="width: 30px;"></th>
 
                <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
                   <input *ngSwitchCase="'geo.impGeofootprintLocation.locationNumber'" pInputText type="text"   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''" >
@@ -138,8 +131,6 @@
 
                   <input *ngSwitchCase="'Delete'"  pInputText type="text">
 
-                  <!-- <input *ngSwitchDefault pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, 'contains')"> -->
-
                   <div *ngSwitchDefault>
                      <div [ngSwitch]="col.matchType">
                         <div *ngSwitchCase="'numeric'">
@@ -152,15 +143,6 @@
                      </div>
                   </div>
                </th>
-          <!-- <th *ngFor="let col of flatGeoGridExtraColumns" [ngSwitch]="col.matchType" style="background: #b3d4ed; overflow: visible;">
-                  <div *ngSwitchCase="'numeric'">
-                     <val-table-filter-numeric #filterNm fieldName="{{col.header}}" (filterApplied)="geoGrid.filter($event, col.field, 'numericFilter')" (filterCleared)="onRemoveFilter(col.field)" operatorType="{{col.matchOper}}" [(minValue)]="variableRanges.get(col.field)[0]" [(maxValue)]="variableRanges.get(col.field)[1]"></val-table-filter-numeric>
-                  </div>
-                  <div *ngSwitchCase="'text'">
-                     <p-multiSelect #filterMs appendTo="body" [options]="uniqueTextVals.get(col.field)" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                  </div>
-                  <input *ngSwitchDefault pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, 'contains')">
-               </th> -->
             </tr>
          </ng-template>
 
@@ -191,7 +173,6 @@
                   <!-- Format various columns -->
                   <div *ngSwitchCase="'geo.isDeduped'">  {{flatGeo['geo'].isDeduped | number:'1.0-0'}} </div>
                   <div *ngSwitchCase="'geo.distance'">   {{flatGeo[col.field] | number:'1.2-2'}} </div>
-                  <!-- <div *ngSwitchCase="'geo.hhc'">        {{flatGeo['geo'].hhc | number:'1.0-0'}} </div> -->
                   <div *ngSwitchCase="'geo.hhc'">
                      <ng-container
                         *ngIf="(flatGeo['geo'].hhc === 0); then empty; else value">
@@ -220,13 +201,6 @@
                     <div *ngIf="col.matchType != 'numeric'">{{flatGeo[col.field]}}</div>
                   </div>
                </td>
-
-               <!-- GEOGRID VARIABLE COLUMNS -->
-               <!-- <td *ngFor="let col of flatGeoGridExtraColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
-                  <div *ngSwitchDefault>
-                     {{flatGeo[col.field]}}
-                  </div>
-               </td> -->
             </tr>
          </ng-template>
 
@@ -282,8 +256,6 @@
                      {{gridTotals.get('allocInvestment').tot | currency}}
                   </div>
                </td>
-               <!-- <td *ngFor="let col of flatGeoGridExtraColumns" [ngSwitch]="col.field" [class]="col.styleClass">
-               </td> -->
             </tr>
          </ng-template>
 
