@@ -578,7 +578,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // For every geo, create a FlatGeo to pivot up the variables and attributes
       const varPkSet = new Set<number>();
-      projectVars.forEach(pv => varPkSet.add(pv.varPk)); 
+      projectVars.forEach(pv => varPkSet.add(pv.varPk));
 
       geos.forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo;
@@ -662,20 +662,20 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                const pk = varPk.substr(n + 1);
                if (location == null || location == '' || gridGeo.geo.impGeofootprintLocation.locationNumber == location)
                   gridGeo[pk] = varValue;
-   
+
                // Hack to prevent empty columns because geovars structure isn't getting cleared out on new project
                const pv = projectVars.filter(findPv => findPv.varPk.toString() === varPk);
                }
          }
          else{
-            varPkSet.forEach(pvID => { 
-                  if (!gridGeo[pvID]){ 
-                     gridGeo['geocode'] = geo.geocode; 
-                     gridGeo[pvID] = ''; 
-                  } 
+            varPkSet.forEach(pvID => {
+                  if (!gridGeo[pvID]){
+                     gridGeo['geocode'] = geo.geocode;
+                     gridGeo[pvID] = '';
+                  }
                });
          }
-            
+
          // Set the tooltip for the geography
          gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
 
@@ -1022,6 +1022,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Reset the grid and grid filters
       this._geoGrid.reset();
       this.onFilter(null);
+
+      // Reset the row selection filter
+      this.isSelectedFilterState = this.filterAllIcon;
+      this.isSelectedToolTip = this.filterAllTip;
    }
 
    onRemoveFilter(filterName: string) {
