@@ -487,6 +487,8 @@ export class AppLocationService {
       editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];
     });
     this.impLocationService.update(oldData, editedLocation);
+    const location = this.impLocationService.get().filter(l => l.locationNumber === oldData.locationNumber);
+    this.processHomeGeoAttributes(attributeList, location);
   }
 
   private validateHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : Observable<any>{
