@@ -14,6 +14,7 @@ import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofoo
 import { LocalAppState } from '../../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ValidateEditedHomeGeoAttributes } from '../../state/homeGeocode/homeGeo.actions';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
 import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
@@ -152,6 +153,34 @@ export class SiteListContainerComponent implements OnInit {
           this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
         }
       }); 
+    } else if (!ifAddressChanged && !ifLatLongChanged && anyChangeinHomeGeoFields) {    
+      const editedLocation = this.impGeofootprintLocationService.get().filter(l => l.locationNumber === oldData.locationNumber);
+      const attributeList = [{'homeAtz': siteOrSites['Home ATZ'],
+      'homeDtz': siteOrSites['Home Digital ATZ'],
+      'homePcr': siteOrSites['Home Carrier Route'],
+      'homeZip': siteOrSites['Home Zip Code'],
+      'siteNumber': siteOrSites.number,
+      'geocoderZip': editedLocation[0].locZip.substring(0, 5),
+      'abZip': editedLocation[0].locZip.substring(0, 5)}];
+
+      const editedTags: string[] = [];
+      if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== attributeList[0].homeZip 
+          || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== '') {
+        editedTags.push('zip');
+      }
+      if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== attributeList[0].homeAtz
+          || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== '') {
+        editedTags.push('atz');
+      }
+      if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== attributeList[0].homePcr
+          || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== '') {
+        editedTags.push('pcr');
+      }
+      if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== attributeList[0].homeDtz
+          || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== '') {
+        editedTags.push('dtz');
+      }
+      this.store$.dispatch(new ValidateEditedHomeGeoAttributes({oldData, siteOrSites, siteType, editedTags, attributeList}));
     } 
     else {
       if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) {

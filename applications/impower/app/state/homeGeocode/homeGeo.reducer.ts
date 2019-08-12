@@ -45,8 +45,12 @@ export function homeGeoReducer(state = initialState, action: HomeGeoActions) : H
        case HomeGeoActionTypes.ProcessHomeGeoAttributes:
          return state;
        case HomeGeoActionTypes.UpdateLocations:
-         return state;  
+         return state;   
        case HomeGeoActionTypes.ApplyTradeAreaOnEdit:
+         return state;
+       case HomeGeoActionTypes.ValidateEditedHomeGeoAttributes:
+         return state;
+       case HomeGeoActionTypes.SaveOnValidationSuccess:
          return state;
        default:
          return state;   

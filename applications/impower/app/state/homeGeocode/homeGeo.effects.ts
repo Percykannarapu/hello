@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
 import { toPayload } from '../../../../../modules/common/src/rxjs';
 import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistLocations, ZoomtoLocations,
-         DetermineDTZHomeGeos, ProcessHomeGeoAttributes, UpdateLocations, ApplyTradeAreaOnEdit, ReCalcHomeGeos} from './homeGeo.actions';
+         DetermineDTZHomeGeos, ProcessHomeGeoAttributes, ApplyTradeAreaOnEdit, ReCalcHomeGeos, ValidateEditedHomeGeoAttributes, SaveOnValidationSuccess } from './homeGeo.actions';
 import { Actions, ofType, Effect} from '@ngrx/effects';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
 import { tap, map, concatMap } from 'rxjs/operators';
-import { StopBusyIndicator, StartBusyIndicator } from '@val/messaging';
+import { StopBusyIndicator, InfoNotification } from '@val/messaging';
 import { catchError } from 'rxjs/internal/operators/catchError';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { of } from 'rxjs/internal/observable/of';
+import { AppLocationService } from 'app/services/app-location.service';
 
 
 
@@ -96,7 +97,28 @@ export class HomeGeoEffects {
       map(action => this.appHomeGeocodingService.zoomToLocations(action.payload))
    );
 
+   @Effect()
+   validateEditedHomeGeoAttributes$ = this.actions$.pipe(
+      ofType<ValidateEditedHomeGeoAttributes>(HomeGeoActionTypes.ValidateEditedHomeGeoAttributes),
+      switchMap(action => this.appLocationService.validateHomeGeoAttributesOnEdit(action.payload.attributeList, action.payload.editedTags).pipe(
+         map(val => {
+            if (val.filter(item => item.length > 0).length === val.length){
+               return new SaveOnValidationSuccess({ oldData: action.payload.oldData, editedTags: action.payload.editedTags, attributeList: action.payload.attributeList });            
+            } else {
+               return new InfoNotification({ notificationTitle: 'Invalid HomeGeos', message: 'There are invalid values for one/more HomeGeoFields. Please provide valid values instead', sticky: false, life: 5000 });          
+            }
+         })
+      ))
+   );
+
+   @Effect({ dispatch: false })
+   saveOnValidationSuccess$ = this.actions$.pipe(
+      ofType<SaveOnValidationSuccess>(HomeGeoActionTypes.SaveOnValidationSuccess),
+      tap(action => this.appLocationService.editLocationOnValidationSuccess(action.payload.oldData, action.payload.editedTags, action.payload.attributeList))
+   );
+
    constructor(private actions$: Actions, 
-               private appHomeGeocodingService: AppHomeGeocodingService) {}
+               private appHomeGeocodingService: AppHomeGeocodingService,
+               private appLocationService: AppLocationService) {}
    
 }

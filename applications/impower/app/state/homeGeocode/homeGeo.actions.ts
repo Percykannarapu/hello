@@ -15,6 +15,8 @@ export enum HomeGeoActionTypes {
    ProcessHomeGeoAttributes = '[Application Geocode] Flag Homegeo Attributes',
    ReCalcHomeGeos = '[Application Geocode] Re Calculate Homegeos',
    UpdateLocations = '[Application Geocode] Update existing Locations', 
+   ValidateEditedHomeGeoAttributes = '[Application Geocode] Validate Edited HomeGeo Attributes',
+   SaveOnValidationSuccess = '[Aplication Geocode] Save On Validation Success'
 }
 
 export class Geocode implements Action {
@@ -70,6 +72,16 @@ export class UpdateLocations implements Action {
   constructor(public payload: {locations: ImpGeofootprintLocation[]}){}
 }
 
+export class ValidateEditedHomeGeoAttributes implements Action {
+   readonly type = HomeGeoActionTypes.ValidateEditedHomeGeoAttributes;
+   constructor(public payload: {oldData: any, siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, editedTags: string[], attributeList: any}){}
+}
+
+export class SaveOnValidationSuccess implements Action {
+   readonly type = HomeGeoActionTypes.SaveOnValidationSuccess;
+   constructor(public payload: {oldData: any, editedTags: string[], attributeList: any}){}
+}
+
 export type HomeGeoActions = Geocode | 
                              HomeGeocode | 
                              PersistLocations |
@@ -78,4 +90,6 @@ export type HomeGeoActions = Geocode |
                              ProcessHomeGeoAttributes|
                              UpdateLocations |
                              ReCalcHomeGeos |
-                             ZoomtoLocations;
+                             ZoomtoLocations |
+                             ValidateEditedHomeGeoAttributes |
+                             SaveOnValidationSuccess;
