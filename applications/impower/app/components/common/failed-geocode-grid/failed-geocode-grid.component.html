@@ -1,46 +1,71 @@
-<p-dataTable [value]="failedSites" [rows]="10" [paginator]="true" [editable]="true" scrollable="true" scrollWidth="100%">
-  <p-header>Detected {{failedSites.length}} geocoding failures out of {{totalCount}} rows</p-header>
-  <p-column header="Google Map" [style]="{'width':'4em'}">
-    <ng-template let-site="rowData" pTemplate="body">
-      <button (click)="openGoogleMap(site)" icon="fa fa-map-marker" pButton style="margin: auto; display: block"></button>
+<div class="failure-grid">
+  <p-table [value]="failedSites" [rows]="10" [paginator]="true" [alwaysShowPaginator]="false" [scrollable]="true">
+    <ng-template pTemplate="caption">
+      <div>
+        Detected {{failedSites.length}} geocoding failures out of {{totalCount}} rows
+      </div>
     </ng-template>
-  </p-column>
-  <p-column header="Resubmit Address" [style]="{'width':'5em'}">
-    <ng-template let-site="rowData" pTemplate="body">
-      <button (click)="resubmit.emit(site)" icon="ui-icon-refresh" pButton style="margin: auto; display: block"></button>
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="button-column">Google&reg; Map</th>
+        <th class="button-column">Resubmit Address</th>
+        <th class="button-column">Accept XY</th>
+        <th *ngFor="let column of gridColumns" [style.width]="column.width">
+          {{column.header}}
+        </th>
+        <th class="button-column">Remove</th>
+      </tr>
     </ng-template>
-  </p-column>
-  <p-column header="Accept XY" [style]="{'width':'4em'}">
-    <ng-template let-site="rowData" pTemplate="body">
-      <button (click)="onAccept(site)" icon="ui-icon-check" [disabled]="!canBeAccepted(site)" pButton style="margin: auto; display: block"></button>
+    <ng-template pTemplate="body" let-site>
+      <tr>
+        <td class="button-column">
+          <div>
+            <button (click)="openGoogleMap(site)" icon="fa fa-map-marker" pButton></button>
+          </div>
+        </td>
+        <td class="button-column">
+          <div>
+            <button (click)="resubmit.emit(site)" icon="ui-icon-refresh" pButton></button>
+          </div>
+        </td>
+        <td class="button-column">
+          <div>
+            <button (click)="onAccept(site)" icon="ui-icon-check" [disabled]="!canBeAccepted(site)" pButton></button>
+          </div>
+        </td>
+        <ng-container *ngFor="let column of gridColumns">
+          <td *ngIf="column.isEditable" pEditableColumn [style.width]="column.width" [ngSwitch]="column.field">
+            <ng-container *ngSwitchCase="'coordinates'">
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <textarea pInputTextarea rows="2" cols="10" title="XY" (blur)="setCoordinates($event, site)">{{ getCoordinates(site) }}</textarea>
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{ getCoordinates(site) }}
+                </ng-template>
+              </p-cellEditor>
+            </ng-container>
+            <ng-container *ngSwitchDefault>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input type="text" [(ngModel)]="site[column.field]">
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{ site[column.field] }}
+                </ng-template>
+              </p-cellEditor>
+            </ng-container>
+          </td>
+          <td *ngIf="!column.isEditable" [style.width]="column.width">
+            {{ site[column.field] }}
+          </td>
+        </ng-container>
+        <td  class="button-column">
+          <div>
+            <button (click)="remove.emit(site)" icon="ui-icon-delete" pButton></button>
+          </div>
+        </td>
+      </tr>
     </ng-template>
-  </p-column>
-  
-  <p-column field="locationNumber" header="Number" [editable]="false" [style]="{'width':'5em'}"></p-column>
-  <!--<p-column field="{{locFieldAddress}}" header="Address" [editable]="true" [style]="{'width':'14em'}"></p-column>-->
-  <!--<p-column field="{{locFieldCity}}" header="City" [editable]="true" [style]="{'width':'9em'}"></p-column>-->
-  <!--<p-column field="{{locFieldState}}" header="State" [editable]="true" [style]="{'width':'3em'}"></p-column>-->
-  <!--<p-column field="{{locFieldZip}}" header="ZIP" [editable]="true" [style]="{'width':'4em'}"></p-column>-->
-  <p-column field="origAddress1" header="Address" [editable]="true" [style]="{'width':'14em'}"></p-column>
-  <p-column field="origCity" header="City" [editable]="true" [style]="{'width':'9em'}"></p-column>
-  <p-column field="origState" header="State" [editable]="true" [style]="{'width':'3em'}"></p-column>
-  <p-column field="origPostalCode" header="ZIP" [editable]="true" [style]="{'width':'4em'}"></p-column>
-  <p-column field="coordinates" header="XY" [editable]="true" [style]="{'width':'10em'}">
-    <ng-template let-site="rowData" pTemplate="body">
-      {{ getCoordinates(site) }}
-    </ng-template>
-    <ng-template let-site="rowData" pTemplate="editor">
-      <textarea pInputTextarea rows="2" cols="10" title="XY" (blur)="setCoordinates($event, site)">{{ getCoordinates(site) }}</textarea>
-    </ng-template>
-  </p-column>
-  <p-column field="recordStatusCode" header="Status" [editable]="false" [style]="{'width':'6em'}"></p-column>
-  <p-column field="geocoderMatchCode" header="Match Code" [editable]="false" [style]="{'width':'4em'}"></p-column>
-  <p-column field="geocoderLocationCode" header="Location Code" [editable]="false" [style]="{'width':'8em'}"></p-column>
-  <p-column field="locationName" header="Name" [editable]="false" [style]="{'width':'15em'}"></p-column>
-  <p-column field="marketName" header="Market" [editable]="true" [style]="{'width':'15em'}"></p-column> 
-  <p-column header="Remove" [style]="{'width':'4em'}">
-    <ng-template let-site="rowData" pTemplate="body">
-      <button (click)="remove.emit(site)" icon="ui-icon-delete" pButton style="margin: auto; display: block"></button>
-    </ng-template>
-  </p-column>
-</p-dataTable>
+  </p-table>
+</div>

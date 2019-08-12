@@ -21,7 +21,7 @@ export class EsriMapComponent implements OnInit {
   @Output() mapClicked = new EventEmitter<__esri.MapViewImmediateClickEvent>();
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
 
-  @ViewChild('mapViewNode') private mapViewEl: ElementRef;
+  @ViewChild('mapViewNode', { static: true }) private mapViewEl: ElementRef;
 
   constructor(private mapService: EsriMapService,
               private store: Store<AppState>) { }

@@ -5,8 +5,8 @@ import { User } from '../models/User';
 import { Observable, Subject } from 'rxjs';
 import { AppConfig } from '../app.config';
 import { CookieService } from 'ngx-cookie-service';
+import { OauthConfiguration, RestDataService } from '../val-modules/common/services/restdata.service';
 import { UserService } from './user.service';
-import { DataStoreServiceConfiguration, DataStore } from '../val-modules/common/services/datastore.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateApplicationUsageMetric } from '../state/usage/targeting-usage.actions';
@@ -207,10 +207,10 @@ export class AuthService implements CanActivate {
       this.user != null) {
 
       //boostrap the data store with the OAuth tokens
-      const config: DataStoreServiceConfiguration = new DataStoreServiceConfiguration();
+      const config: OauthConfiguration = new OauthConfiguration();
       config.oauthToken = this.oauthToken;
       config.tokenExpiration = this.tokenExpiration;
-      DataStore.bootstrap(config);
+      RestDataService.bootstrap(config);
       config.tokenRefreshFunction = () => this.refreshToken();
 
 
@@ -283,10 +283,10 @@ export class AuthService implements CanActivate {
         this.saveOAuthData(this.userService.getUser().username);
 
         //populate the data store with the new token
-        const config: DataStoreServiceConfiguration = new DataStoreServiceConfiguration();
+        const config: OauthConfiguration = new OauthConfiguration();
         config.oauthToken = this.oauthToken;
         config.tokenExpiration = this.tokenExpiration;
-        DataStore.bootstrap(config);
+        RestDataService.bootstrap(config);
         config.tokenRefreshFunction = () => this.refreshToken();
 
       } else {

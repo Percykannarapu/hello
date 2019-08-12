@@ -1,0 +1,42 @@
+@import "~assets/valassis-variables";
+
+.grid-caption-left-group {
+  display: flex;
+  align-items: flex-end;
+  > * {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+}
+
+.grid-caption-center-group {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  > * {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+}
+
+.grid-caption-right-group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  > * {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+}
+
+.second-header {
+  > th {
+    background-color: $valTableHeaderSecondaryBgColor;
+  }
+}
+
+.empty-grid {
+  > td {
+    border-width: 0;
+  }
+}

@@ -2,7 +2,9 @@
   <div class="ui-g-6 card">
     <p-tabView>
       <p-tabPanel header="Interest and In-Market">
-        <val-online-audience-apio [useNarrowLayout]="true"></val-online-audience-apio>
+        <div class="narrow-layout">
+          <val-online-audience-apio></val-online-audience-apio>
+        </div>
       </p-tabPanel>
       <p-tabPanel header="Visit Likelihood">
         <val-online-audience-vlh></val-online-audience-vlh>

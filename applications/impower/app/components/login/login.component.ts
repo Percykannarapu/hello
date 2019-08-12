@@ -4,15 +4,15 @@ import { NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/User';
-import { DataStoreServiceConfiguration, DataStore } from '../../val-modules/common/services/datastore.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../state/app.interfaces';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { OauthConfiguration, RestDataService } from '../../val-modules/common/services/restdata.service';
 
 @Component({
   selector: 'val-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
 
@@ -70,11 +70,11 @@ export class LoginComponent {
    * Boostrap the data store with the oauth token that was acquired on login
    */
   private bootstrapDataStore() {
-    const config: DataStoreServiceConfiguration = new DataStoreServiceConfiguration();
+    const config: OauthConfiguration = new OauthConfiguration();
     config.oauthToken = this.authService.getOauthToken();
     config.tokenExpiration = this.authService.getTokenExpiration();
     config.tokenRefreshFunction = () => this.authService.refreshToken();
-    DataStore.bootstrap(config);
+    RestDataService.bootstrap(config);
   }
 
   private createUser(username: string, user: User) {

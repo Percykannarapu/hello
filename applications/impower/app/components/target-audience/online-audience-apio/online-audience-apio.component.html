@@ -1,30 +1,29 @@
 <div class="ui-g">
-  <div class="ui-g-12">
-    <i class="fa fa-search"></i>
-    <input pInputText id="onlineAudApioSearch" name="onlineAudApioSearch" (keyup)="searchTerm$.next($event.target.value)" placeholder="Search" [ngClass]="{ 'val-wide-search': useNarrowLayout }">
-    <span *ngIf="!useNarrowLayout" class="val-spacer-left"></span>
-    <br *ngIf="useNarrowLayout">
-    <span [ngClass]="{ 'val-padding-top': useNarrowLayout }">
+  <div class="ui-g-12 search-controls">
+    <div class="ui-inputgroup search-text">
+      <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
+      <span class="md-inputfield">
+        <input pInputText id="onlineAudApioSearch" name="onlineAudApioSearch" class="ui-g-12" (keyup)="searchTerm$.next($event.target.value)" />
+        <label for="onlineAudApioSearch">Search</label>
+      </span>
+    </div>
+    <div class="search-folder">
       <p-checkbox [binary]="true" (onChange)="includeFolder$.next($event)" label="Include folder in search"></p-checkbox>
-    </span>
+    </div>
   </div>
-  <div class="ui-g-12">
+  <div class="ui-g-12 search-source">
     <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="Interest (rolling 12 months)" [value]="SourceType.Interest" (onClick)="onSourceChanged(SourceType.Interest)"></p-radioButton>
-    <span *ngIf="!useNarrowLayout" class="val-spacer-left"></span>
-    <br *ngIf="useNarrowLayout">
-    <span [ngClass]="{ 'val-padding-top': useNarrowLayout }">
-      <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
-    </span>
+    <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
   </div>
-  <div class="ui-g-12 val-wide-tree" [hidden]="selectedSource == 'In-Market'" >
-    <p-tree loadingIcon="fa fa-fontAwesome fa-circle-o-notch fa-spin fa-3x fa-fw" selectionMode="checkbox"
+  <div class="ui-g-12 val-audience-tree" [hidden]="selectedSource == 'In-Market'" >
+    <p-tree loadingIcon="fa fa-circle-o-notch fa-spin fa-3x fa-fw" selectionMode="checkbox"
           [loading]="loading" [value]="currentNodes"
           [selection]="currentSelectedNodesInterest"
           (onNodeSelect)="selectVariable($event.node, 'Interest')"
           (onNodeUnselect)="removeVariable($event.node)"></p-tree>
   </div>
-  <div class="ui-g-12 val-wide-tree"   [hidden]="selectedSource == 'Interest'">
-    <p-tree loadingIcon="fa fa-fontAwesome fa-circle-o-notch fa-spin fa-3x fa-fw" selectionMode="checkbox"
+  <div class="ui-g-12 val-audience-tree" [hidden]="selectedSource == 'Interest'">
+    <p-tree loadingIcon="fa fa-circle-o-notch fa-spin fa-3x fa-fw" selectionMode="checkbox"
           [loading]="loading" [value]="currentNodes"
           [selection]="currentSelectedNodesInMarket"
           (onNodeSelect)="selectVariable($event.node, 'In-Market')"

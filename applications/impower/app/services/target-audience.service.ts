@@ -27,6 +27,8 @@ import { ClearGeoVars } from './../impower-datastore/state/transient/geo-vars/ge
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { EnvironmentData } from 'environments/environment';
+import { url } from 'inspector';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string, transactionId: number) => Observable<any[]>;
@@ -329,34 +331,77 @@ export class TargetAudienceService implements OnDestroy {
 
   public exportNationalExtract(analysisLevel: string, projectId: number) : void {
     const key = 'NATIONAL_EXTRACT';
+    const reqInput = [];
     const audiences = this.natExportAudiencesBS$.value;
 //  const audiences = Array.from(this.audienceMap.values()).filter(a => a.exportNationally === true);
     if (audiences.length > 0 && analysisLevel != null && analysisLevel.length > 0 && projectId != null) {
       const convertedData: any[] = [];
       this.store$.dispatch(new StartBusyIndicator({ key, message: 'Downloading National Data' }));
-      this.getNationalData(audiences, analysisLevel).subscribe(
-        data => convertedData.push(...data),
-        err => {
-          console.error('There was an error processing the National Extract', err);
-          this.store$.dispatch(new StopBusyIndicator({ key }));
-        },
-        () => {
-          try {
-            const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-            const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.xlsx`.replace(/\//g, '_');
-            const workbook = XLSX.utils.book_new();
-            const worksheet = XLSX.utils.json_to_sheet(convertedData);
-            const sheetName = projectId.toString();
-            //audiences[0].audienceName.replace(/\//g, '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
-            XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-            XLSX.writeFile(workbook, fileName);
-            const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName.replace('~', ':') + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
-            this.store$.dispatch(new CreateAudienceUsageMetric('online', 'export', metricText, convertedData.length));
-          } finally {
-            this.store$.dispatch(new StopBusyIndicator({ key }));
+      if (analysisLevel === 'PCR'){
+        let originalFileName = '';
+        audiences.forEach(audience => {
+          let inputData;
+          const numericId = Number(audience.audienceIdentifier);
+          const duplicateCategorys = reqInput.length > 0 ? reqInput.filter( inputMap => inputMap['source'] == audience.audienceSourceName) : [];
+          if (duplicateCategorys.length > 0){
+            duplicateCategorys[0]['digCategoryIds'].push(numericId);
+          } else {
+             inputData = {
+              geoType: analysisLevel,
+              source: audience.audienceSourceName === 'In-Market' ? 'In_Market' : audience.audienceSourceName,
+              geocodes: ['*'],
+              digCategoryIds: [numericId],
+              varType: ['ALL']
+            };
+            reqInput.push(inputData);
           }
-        }
-      );
+        });
+        this.restService.post('v1/targeting/base/geoinfo/digitallookuppcr', reqInput). subscribe(res => {
+          const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
+          const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.csv`.replace(/\//g, '_');
+          const downloadUrl = `${EnvironmentData.impowerBaseUrl}nationalextract/${res.payload}`;
+          originalFileName = res.payload;
+          const element = window.document.createElement('a');
+          document.body.appendChild(element);
+          element.href = downloadUrl;
+          
+          element['download'] = fileName;
+          element.target = '_blank';
+          
+          element.click();
+        }, null, () => {
+          //TODO: send a request to fuse to delete the file
+          this.store$.dispatch(new StopBusyIndicator({ key }));
+          console.log('file Name', originalFileName);
+          this.restService.get(`v1/targeting/base/geoinfo/deletefile/${originalFileName}`).subscribe(res => {
+            console.log(res.payload);
+          });
+        });
+      }else{
+        this.getNationalData(audiences, analysisLevel).subscribe(
+          data => convertedData.push(...data),
+          err => {
+            console.error('There was an error processing the National Extract', err);
+            this.store$.dispatch(new StopBusyIndicator({ key }));
+          },
+          () => {
+            try {
+              const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
+              const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.xlsx`.replace(/\//g, '_');
+              const workbook = XLSX.utils.book_new();
+              const worksheet = XLSX.utils.json_to_sheet(convertedData);
+              const sheetName = projectId.toString();
+              //audiences[0].audienceName.replace(/\//g, '_').substr(0, 31); // magic number == maximum number of chars allowed in an Excel tab name
+              XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+              XLSX.writeFile(workbook, fileName);
+              const metricText = audiences[0].audienceIdentifier + '~' + audiences[0].audienceName.replace('~', ':') + '~' + audiences[0].audienceSourceName + '~' + analysisLevel;
+              this.store$.dispatch(new CreateAudienceUsageMetric('online', 'export', metricText, convertedData.length));
+            } finally {
+              this.store$.dispatch(new StopBusyIndicator({ key }));
+            }
+          }
+        );
+      }
     } else {
       const notificationTitle = 'National Extract Export';
       if (audiences.length === 0) {
@@ -519,7 +564,6 @@ export class TargetAudienceService implements OnDestroy {
     // this.logger.debug.log('getShadingData - audienceSources ', (this.audienceSources.has(sourceId) ? 'has' : 'does not have'), sourceId);
     // this.logger.debug.log('getShadingData - sourceId:', sourceId, ', source:', source, ', audienceSources:', this.audienceSources);
 
-console.log('### getShadingData fired for audience:', audience);
     if (this.mapAudiencesBS$.value.length > 0) {
       const currentShadingData = this.shadingData.getValue();
 //REVIEW      this.store$.dispatch(new StartBusyIndicator({key, message: 'Retrieving shading data'}));

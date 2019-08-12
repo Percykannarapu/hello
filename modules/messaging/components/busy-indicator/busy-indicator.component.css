@@ -1,8 +1,6 @@
 .busy-container {
   display: flex;
-  padding: 14px 0;
-}
-
-.busy-spinner {
-  margin: auto;
+  padding: 1.5em 0;
+  align-items: center;
+  justify-content: center;
 }

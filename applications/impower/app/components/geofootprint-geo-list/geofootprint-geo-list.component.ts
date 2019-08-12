@@ -1,4 +1,7 @@
-import { FieldContentTypeCodes } from './../../impower-datastore/state/models/impower-model.enums';
+import { SortMeta } from 'primeng/api';
+import { ObjectUtils } from 'primeng/components/utils/objectutils';
+import { MultiSelect } from 'primeng/multiselect';
+import { FieldContentTypeCodes } from '../../impower-datastore/state/models/impower-model.enums';
 import { isString } from 'util';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
@@ -13,8 +16,7 @@ import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar'
 import { Table } from 'primeng/table';
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { MultiSelect, SortMeta } from 'primeng/primeng';
-import { distinctArray, mapArray, resolveFieldData, roundTo, mapArrayToEntity } from '@val/common';
+import { distinctArray, mapArray, resolveFieldData, roundTo } from '@val/common';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import { GridGeoVar } from 'app/impower-datastore/state/transient/transient.reducer';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
@@ -38,12 +40,27 @@ interface AttributeEntity { [geocode: string] : GeoAttribute; }
 @Component({
   selector: 'val-geofootprint-geo-list',
   templateUrl: './geofootprint-geo-list.component.html',
-  styleUrls: ['./geofootprint-geo-list.component.css'],
+  styleUrls: ['./geofootprint-geo-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 {
+   private exportAllText = 'All';
+   private exportAllTip  = 'Export all geos. (Selected & Deselected)';
+   private exportFilteredText = 'Filtered';
+   private exportFilteredTip  = 'Export geos filtered in the grid.  (Selected & Deselected)';
+
+   private filterAllIcon = 'fa fa-check-square';
+   private filterSelectedIcon = 'fa fa-check-square-o';
+   private filterDeselectedIcon = 'fa fa-square';
+   private filterAllTip = 'Selected & Deselected';
+   private filterSelectedTip = 'All Selected';
+   private filterDeselectedTip = 'All Deselected';
+
    private gridUpdateFlag: boolean;
+   public  exportAllButtonText: string = this.exportAllText;
+   public  exportAllButtonTip:  string = this.exportAllTip;
+   public  filterIsSelected: boolean = true;
 
    @Input('impProject')
    set project(val: ImpProject) {
@@ -117,7 +134,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    onForceRedraw: EventEmitter<any> = new EventEmitter<any>();
 
    // Get the grid as a view child to attach custom filters
-   @ViewChild('geoGrid') public _geoGrid: Table;
+   @ViewChild('geoGrid', { static: true }) public _geoGrid: Table;
 
    // Get grid filter components to clear them
    @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
@@ -183,30 +200,34 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // Filtered Totals
    public  gridTotals: Map<string, ColMetric> = new Map<string, ColMetric>();
 
+   // Filter selected rows
+   public  isSelectedFilterState: string = this.filterAllIcon;
+   public  isSelectedToolTip: string = this.filterAllTip;
+
    // Grid Column Variables
    public flatGeoGridColumns: any[] =
-   [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',          width: '5em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',            width: '8em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.marketName',     header: 'Market',          width: '8em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locAddress',     header: 'Address',         width: '14em', matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locCity',        header: 'City',            width: '9em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locState',       header: 'State',           width: '4em',  matchMode: 'contains', styleClass: ''},
-    {field: 'geo.impGeofootprintLocation.locZip',         header: 'ZIP',             width: '4em',  matchMode: 'contains', styleClass: ''},
-    {field: 'home_geo',                                   header: 'Home Geo',        width: '4em',  matchMode: 'contains', styleClass: 'val-text-center'},
-    {field: 'isMustCover',                                header: 'Must Cover',      width: '4em',  matchMode: 'contains', styleClass: 'val-text-center'},
-    {field: 'geo.distance',                               header: 'Dist',            width: '4em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'geo.geocode',                                header: 'Geocode',         width: '9em',  matchMode: 'contains', styleClass: ''},
-    {field: 'city_name',                                  header: 'Geo City, State', width: '10em', matchMode: 'contains', styleClass: ''},
-    {field: 'geo.hhc',                                    header: 'HHC',             width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'allocHhc',                                   header: 'HHC Allocated',   width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
+   [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',          width: '5em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locationName',   header: 'Name',            width: '8em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.marketName',     header: 'Market',          width: '8em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locAddress',     header: 'Address',         width: '14em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locCity',        header: 'City',            width: '9em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locState',       header: 'State',           width: '4em',   matchMode: 'contains', styleClass: ''},
+    {field: 'geo.impGeofootprintLocation.locZip',         header: 'ZIP',             width: '4em',   matchMode: 'contains', styleClass: ''},
+    {field: 'home_geo',                                   header: 'Home Geo',        width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'isMustCover',                                header: 'Must Cover',      width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'geo.distance',                               header: 'Dist',            width: '4em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'geo.geocode',                                header: 'Geocode',         width: '9em',   matchMode: 'contains', styleClass: ''},
+    {field: 'city_name',                                  header: 'Geo City, State', width: '10em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.hhc',                                    header: 'HHC',             width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'allocHhc',                                   header: 'HHC Allocated',   width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
     {field: 'cpm',                                        header: 'CPM',             width: '5.5em', matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'investment',                                 header: 'Inv',             width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'allocInvestment',                            header: 'Inv Allocated',   width: '7em',  matchMode: 'contains', styleClass: 'val-text-right'},
-    {field: 'ownergroup',                                 header: 'Owner Group',     width: '7em',  matchMode: 'contains', styleClass: ''},
-    {field: 'coveragedescription',                        header: 'Cov Desc',        width: '12em', matchMode: 'contains', styleClass: ''},
-    {field: 'pob',                                        header: 'POB',             width: '4em',  matchMode: 'contains', styleClass: 'val-text-center'},
-    {field: 'dma',                                        header: 'DMA',             width: '10em', matchMode: 'contains', styleClass: ''},
-    {field: 'geo.isDeduped',                              header: 'In Deduped',      width: '6em',  matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'investment',                                 header: 'Inv',             width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'allocInvestment',                            header: 'Inv Allocated',   width: '7em',   matchMode: 'contains', styleClass: 'val-text-right'},
+    {field: 'ownergroup',                                 header: 'Owner Group',     width: '7em',   matchMode: 'contains', styleClass: ''},
+    {field: 'coveragedescription',                        header: 'Cov Desc',        width: '12em',  matchMode: 'contains', styleClass: ''},
+    {field: 'pob',                                        header: 'POB',             width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'dma',                                        header: 'DMA',             width: '10em',  matchMode: 'contains', styleClass: ''},
+    {field: 'geo.isDeduped',                              header: 'In Deduped',      width: '6em',   matchMode: 'contains', styleClass: 'val-text-center'},
    ];
 
    public  flatGeoGridExtraColumns: any[];
@@ -217,7 +238,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private tableWrapOn: string = 'val-table val-tbody-wrap';
    private tableWrapOff: string = 'val-table val-tbody-nowrap';
    public  tableWrapStyle: string = this.tableWrapOff;
-   public  tableWrapIcon: string = 'fa fa-minus';
+   public  tableWrapIcon: string = 'ui-icon-menu';
    public  tableHdrSlice: boolean = false;
 
    // Private component variables
@@ -325,8 +346,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.gridValues$ = Observable.create(observer => observer.next(this._geoGrid._value));
 
       this.gridValues$.subscribe(data => {
-         console.log('gridValues$ Observable fired');
-         this.setGridTotals();
+        console.log('gridValues$ Observable fired');
+        this.setGridTotals();
       });
 
       const subscribe = this.gridValues$.subscribe(val => {
@@ -556,6 +577,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       });
 
       // For every geo, create a FlatGeo to pivot up the variables and attributes
+      const varPkSet = new Set<number>();
+      projectVars.forEach(pv => varPkSet.add(pv.varPk));
+
       geos.forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo;
          gridGeo.geo = geo;
@@ -594,9 +618,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          if (currentAttribute != null)
          {
             gridGeo['pob'] = (currentAttribute['pob'] === 'B') ? 'Y' : 'N';
-            gridGeo['coveragedescription'] = currentAttribute['cov_desc'];
-            gridGeo['dma'] = currentAttribute['dma_name'];
-            gridGeo['ownergroup'] = currentAttribute['owner_group_primary'];
+            gridGeo['coveragedescription'] = (currentAttribute['cov_desc'] == null) ? '' : currentAttribute['cov_desc'] ;
+            gridGeo['dma'] = (currentAttribute['dma_name'] == null) ? '' : currentAttribute['dma_name'];
+            gridGeo['ownergroup'] = (currentAttribute['owner_group_primary'] == null) ? '' : currentAttribute['owner_group_primary'];
 
             const cityName = currentAttribute['city_name'];
             if (cityName != null && isString(cityName)) {
@@ -631,17 +655,27 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Update current number of dupes when dedupe filter is on
          this.dupeMsg = (this.dedupeGrid) ? 'Filtered Dupe Geos' : 'Total Dupe Geos';
 
-         if (gridGeoVars != null && gridGeoVars.geoVars != null && gridGeoVars.geoVars.hasOwnProperty(geo.geocode))
-         for (const [varPk, varValue] of Object.entries(gridGeoVars.geoVars[geo.geocode])) {
-           const n = varPk.indexOf(':');
-           const location = varPk.substr(0, n);
-           const pk = varPk.substr(n + 1);
-           if (location == null || location == '' || gridGeo.geo.impGeofootprintLocation.locationNumber == location)
-             gridGeo[pk] = varValue;
+         if (gridGeoVars != null && gridGeoVars.geoVars != null && gridGeoVars.geoVars.hasOwnProperty(geo.geocode)){
+            for (const [varPk, varValue] of Object.entries(gridGeoVars.geoVars[geo.geocode])) {
+               const n = varPk.indexOf(':');
+               const location = varPk.substr(0, n);
+               const pk = varPk.substr(n + 1);
+               if (location == null || location == '' || gridGeo.geo.impGeofootprintLocation.locationNumber == location)
+                  gridGeo[pk] = varValue;
 
-           // Hack to prevent empty columns because geovars structure isn't getting cleared out on new project
-           const pv = projectVars.filter(findPv => findPv.varPk.toString() === varPk);
+               // Hack to prevent empty columns because geovars structure isn't getting cleared out on new project
+               const pv = projectVars.filter(findPv => findPv.varPk.toString() === varPk);
+               }
          }
+         else{
+            varPkSet.forEach(pvID => {
+                  if (!gridGeo[pvID]){
+                     gridGeo['geocode'] = geo.geocode;
+                     gridGeo[pvID] = '';
+                  }
+               });
+         }
+
          // Set the tooltip for the geography
          gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
 
@@ -755,7 +789,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (this._geoGrid.filteredValue != null)
          this.onSetFilteredGeos.emit({value: this.headerFilter, geos: this._geoGrid.filteredValue.map(flatGeo => flatGeo.geo)});
       else
-         this.onSetAllGeos.emit({value: this.headerFilter});
+        this.onSetAllGeos.emit({value: this.headerFilter});
    }
 
 
@@ -797,7 +831,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       //console.log('gridToggleRowWithCheckbox - rowData: ', rowData);
       this._geoGrid.selection = this._geoGrid.selection || [];
       const selected = this._geoGrid.isSelected(rowData);
-      const dataKeyValue = this._geoGrid.dataKey ? String(this._geoGrid.objectUtils.resolveFieldData(rowData, this._geoGrid.dataKey)) : null;
+      const dataKeyValue = this._geoGrid.dataKey ? ObjectUtils.resolveFieldData(rowData, this._geoGrid.dataKey) : null;
       this._geoGrid.preventSelectionSetterPropagation = true;
 
       if (selected) {
@@ -844,7 +878,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             diffCount++;
 
             // Get the dataKeyValue of the row provided
-            const dataKeyValue = this._geoGrid.dataKey ? String(this._geoGrid.objectUtils.resolveFieldData(geo, this._geoGrid.dataKey)) : null;
+            const dataKeyValue = this._geoGrid.dataKey ? ObjectUtils.resolveFieldData(geo, this._geoGrid.dataKey) : null;
             this._geoGrid.preventSelectionSetterPropagation = true;
 
             // If that row is selected, filter it out of selection
@@ -927,6 +961,44 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    {
       this.syncHeaderFilter();
       this.setGridTotals();
+      const noFilters: boolean = event == null || event.filters == null || (Object.keys(event.filters).length === 0 && event.filters.constructor === Object);
+      if (noFilters) {
+        this.exportAllButtonText = this.exportAllText;
+        this.exportAllButtonTip  = this.exportAllTip;
+      }
+      else {
+        this.exportAllButtonText = this.exportFilteredText;
+        this.exportAllButtonTip  = this.exportFilteredTip;
+      }
+   }
+
+   onFilterSelected()
+   {
+      let filterVal: boolean = true;
+      switch (this.isSelectedFilterState) {
+        case this.filterSelectedIcon:
+          this.isSelectedFilterState = this.filterDeselectedIcon;
+          this.isSelectedToolTip = this.filterDeselectedTip;
+          filterVal = false;
+          break;
+
+        case this.filterDeselectedIcon:
+          this.isSelectedFilterState = this.filterAllIcon;
+          this.isSelectedToolTip = this.filterAllTip;
+          filterVal = null;
+          break;
+
+        default:
+          this.isSelectedFilterState = this.filterSelectedIcon;
+          this.isSelectedToolTip = this.filterSelectedTip;
+          filterVal = true;
+          break;
+      }
+      if (this._geoGrid.rows > 0) {
+        this._geoGrid.filter(filterVal, 'geo.isActive', 'equals');
+        this.onForceRedraw.emit();
+      }
+      this.onForceRedraw.emit();
    }
 
    /**
@@ -950,6 +1022,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Reset the grid and grid filters
       this._geoGrid.reset();
       this.onFilter(null);
+
+      // Reset the row selection filter
+      this.isSelectedFilterState = this.filterAllIcon;
+      this.isSelectedToolTip = this.filterAllTip;
    }
 
    onRemoveFilter(filterName: string) {
@@ -1079,13 +1155,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (this.tableWrapStyle === this.tableWrapOn)
       {
          this.tableWrapStyle = this.tableWrapOff;
-         this.tableWrapIcon = 'fa fa-minus';
+         this.tableWrapIcon = 'ui-icon-menu';
          //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
       }
       else
       {
          this.tableWrapStyle = this.tableWrapOn;
-         this.tableWrapIcon = 'fa fa-bars';
+         this.tableWrapIcon = 'ui-icon-wrap-text';
          //this.tableHdrSlice = false;
       }
    }

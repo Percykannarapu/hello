@@ -1,0 +1,37 @@
+@import '~assets/valassis-variables';
+
+.impower-header-wrapper {
+  position: fixed;
+  width: 100%;
+  z-index: 99;
+}
+
+.impower-header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-content: stretch;
+  align-items: center;
+  background-color: $primaryColor;
+  height: $valTitleHeight;
+}
+
+.impower-header > .logo {
+  margin: 0 18px;
+  width: 137px;
+  height: 43px;
+  background: url('~assets/layout/images/logo-137x43.png') center no-repeat;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  color: $valReversedTextColor;
+}
+
+.user > i {
+  font-size: 28px;
+  padding: 0 5px;
+}

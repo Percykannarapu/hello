@@ -17,15 +17,6 @@ export type callbackSuccessType<T> = (boolean) => boolean;      // Callback take
 type headerHandlerType<T> = (state: any) => any;         // Register export variable handlers
 type variableHandlerType<T> = (state: any, data: T, header: string|number) => any;         // Register export variable handlers
 
-/**
- * Data store configuration, holds the oauth token for communicating with Fuse
- */
-export class DataStoreServiceConfiguration {
-      public oauthToken: string;
-      public tokenExpiration: number;
-      public tokenRefreshFunction: Function;
-}
-
 export interface ColumnDefinition<T> {
    header: number | string | headerHandlerType<T>;
    row:    number | string | variableHandlerType<T>;
@@ -39,7 +30,6 @@ export enum InTransaction {
 
 export class DataStore<T>
 {
-   private static dataStoreServiceConfiguration: DataStoreServiceConfiguration;
    private transientId: number = 0;
    public  dbRemoves: Array<T> = new Array<T>();
 
@@ -64,23 +54,6 @@ export class DataStore<T>
    protected constructor(protected rest: RestDataService, protected dataUrl: string, protected transactionManager?: TransactionManager, protected storeName: string = '') {
       if (this.storeName != '')
          this.storeName += ' ';
-   }
-
-   // ---------------------------------------------
-   // Utility / Non-Essential Methods
-   // ---------------------------------------------
-   /**
-    * Bootstrap the data store, right now the only thing we bootstrap with is the oauth token
-    */
-   public static bootstrap(config: DataStoreServiceConfiguration) {
-      DataStore.dataStoreServiceConfiguration = config;
-   }
-
-   /**
-    * Get the data store configuration
-    */
-   public static getConfig() : DataStoreServiceConfiguration {
-      return DataStore.dataStoreServiceConfiguration;
    }
 
   startTx() : void {

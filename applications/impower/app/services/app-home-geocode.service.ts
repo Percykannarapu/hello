@@ -20,7 +20,7 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { PersistLocations, Geocode } from 'app/state/homeGeocode/homeGeo.actions';
-import { ConfirmationService } from 'primeng/primeng';
+import { ConfirmationService } from 'primeng/api';
 import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 
 interface TradeAreaDefinition {
@@ -125,9 +125,9 @@ interface TradeAreaDefinition {
     return this.appLocationService.queryAllHomeGeos(payload.LocMap);
    }
 
-   determineHomeDTZ(payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>}){
+   determineHomeDTZ(payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>, totalLocs: ImpGeofootprintLocation[]}){
      console.log('determineHomeDTZ:::');
-     return this.appLocationService.determineDtzHomegeos(payload.attributes, this.impLocationService.get());
+     return this.appLocationService.determineDtzHomegeos(payload.attributes, payload.totalLocs);
    }
 
    processHomeGeoAttributes(payload: {attributes: any[], totalLocs: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){

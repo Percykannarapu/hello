@@ -55,7 +55,8 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
 
    public saveMediaPlan(updates: RfpUiEditDetail[], adds: RfpUiEditDetail[]) : Observable<any[]> {
      const updatePayload = updates.map(u => ({ id: u.commonMbuId, value: u.isSelected }));
-     const setSelected$ = updates.length > 0
+     const filterRfpUiEditDetail = updates.filter(rfp => rfp.commonMbuId == null);
+     const setSelected$ = updates.length > 0 && filterRfpUiEditDetail.length == 0
        ? this.restService.post(this.setSelectedUrl, updatePayload)
        : EMPTY;
 
@@ -67,7 +68,7 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
          }
        }]
      };
-     const miniMediaPlan$ = adds.length > 0
+     const miniMediaPlan$ = adds.length > 0 && filterRfpUiEditDetail.length == 0
        ? this.restService.post(this.addNewUrl.replace('%id%', adds[0].mediaPlanId.toString()), addPayload)
        : EMPTY;
 

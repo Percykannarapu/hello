@@ -1,6 +1,6 @@
 import { Component, OnInit, SimpleChanges, OnChanges, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { SelectItem } from 'primeng/primeng';
+import { SelectItem } from 'primeng/api';
 import { ValAudienceTradeareaService } from '../../../services/app-audience-tradearea.service';
 import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../../models/audience-data.model';
 import { AppStateService } from '../../../services/app-state.service';

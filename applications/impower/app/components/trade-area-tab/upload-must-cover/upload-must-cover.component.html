@@ -1,0 +1,51 @@
+<div class="ui-g">
+   <div class="ui-g-12">
+     <div class="upload-label">Upload a list of geographies that must be in the geofootprint.</div>
+
+     <p-fileUpload #mustCoverUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
+                   [pTooltip]="tooltip" [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isDisable">
+     </p-fileUpload>
+
+     <div *ngIf="impGeofootprintGeoService.uploadFailures.length > 0" class="ui-g-7">
+        <p-table [value]="impGeofootprintGeoService.uploadFailures" [paginator]="true" [rows]="5">
+            <ng-template pTemplate="caption">
+                <div>
+                  Detected {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{currentAnalysisLevel$ | async}} upload failures out of {{totalUploadedRowCount}} rows
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr>
+                  <th>Geocode</th>
+                  <th>Resubmit</th>
+                  <th>Remove</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-rowData>
+                <tr>
+                    <td pEditableColumn>
+                      <p-cellEditor>
+                        <ng-template pTemplate="input">
+                            <input pInputText type="text" [(ngModel)]="rowData.geocode">
+                        </ng-template>
+                        <ng-template pTemplate="output">
+                            {{rowData.geocode}}
+                        </ng-template>
+                      </p-cellEditor>
+                    </td>
+                    <td>
+                      <div class="val-centered">
+                        <button (click)="onResubmit(rowData)" icon="ui-icon-refresh" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="val-centered">
+                        <button (click)="onRemove(rowData)" icon="ui-icon-delete" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
+                      </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+
+     </div>
+   </div>
+ </div>

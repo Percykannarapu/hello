@@ -1,10 +1,9 @@
 <div class="ui-g">
   <div class="ui-g-12">
-      <a class="val-spacer-left"></a>
       <span>{{label}}</span>
-      <a class="val-spacer-left"></a>
+      &nbsp;
       <p-radioButton name="siteType" [value]="SiteType.Site" label="Sites" [(ngModel)]="selectedSiteType"></p-radioButton>
-      <a class="val-spacer-left"></a>
+      &nbsp;
       <p-radioButton name="siteType" [value]="SiteType.Competitor" label="Competitors" [(ngModel)]="selectedSiteType"></p-radioButton>
   </div>
   <ng-content select="site-content" *ngIf="selectedSiteType === SiteType.Site"></ng-content>

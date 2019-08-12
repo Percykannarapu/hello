@@ -1,0 +1,38 @@
+$primaryColor: #4177a1;
+$primaryDarkColor: #2e5473;
+$primaryLightColor: #4a8aba;
+$accentColor: #EF9300;
+$accentDarkColor: #bd7400;
+$accentLightColor: #f0a630;
+$accentTextColor: #ffffff;
+$darkMenuBgColor: #424242;
+$darkMenuHoverColor: #676767;
+$darkMenuRouterLinkActiveColor: #9fa8da;
+$lightMenuRouterLinkActiveColor: #2e5473;
+$horizontalLightMenuRouterLinkActiveColor: #9fa8da;
+
+$valTitleHeight: 55px;
+$valHeaderHeight: 90px;
+$valReversedTextColor: white;
+$valReversedDisabledColor: #ccc;
+$valDeselectedTextColor: #787878;
+$valBackgroundGrey: #DFDFDF;
+$valSelectedTableRowBgColor: lighten($primaryColor, 33%);
+$valSelectedOddRowBgColor: lighten($primaryDarkColor, 33%);
+$valTableHeaderSecondaryBgColor: #b3d4ed;
+$valTableHeaderBgColor: #91b8d6;
+$valTableHeaderHoverBgColor: #5b99c9;
+
+// grid variables
+$dividerLightColor:#898989;
+$tableOddRowBgColor:#f4f4f4;
+$tableHeaderCellBgColor:$valTableHeaderBgColor;
+$tableBodyRowBgColor:#ffffff;
+$dataTableCellPadding: 0 0.5em;
+$dataTableHeaderPadding: 0 0.5em;
+
+$inputHeaderPadding: 0.5em;
+$listItemPadding: 0 0.5em;
+$contentPadding: 0 0.5em;
+
+

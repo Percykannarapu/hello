@@ -5,71 +5,65 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CommonModule, HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { MessagingModule } from '@val/messaging';
+import { AccordionModule } from 'primeng/accordion';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ContextMenuModule } from 'primeng/contextmenu';
+import { DataGridModule } from 'primeng/datagrid';
+import { DataListModule } from 'primeng/datalist';
+import { DataScrollerModule } from 'primeng/datascroller';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { FieldsetModule } from 'primeng/fieldset';
+import { FileUploadModule } from 'primeng/fileupload';
+import { InputMaskModule } from 'primeng/inputmask';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { ListboxModule } from 'primeng/listbox';
+import { MegaMenuModule } from 'primeng/megamenu';
+import { MenuModule } from 'primeng/menu';
+import { MenubarModule } from 'primeng/menubar';
+import { MessagesModule } from 'primeng/messages';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { OrderListModule } from 'primeng/orderlist';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { PaginatorModule } from 'primeng/paginator';
+import { PanelModule } from 'primeng/panel';
+import { PanelMenuModule } from 'primeng/panelmenu';
+import { PasswordModule } from 'primeng/password';
+import { PickListModule } from 'primeng/picklist';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { SharedModule } from 'primeng/shared';
+import { SlideMenuModule } from 'primeng/slidemenu';
+import { SliderModule } from 'primeng/slider';
+import { SpinnerModule } from 'primeng/spinner';
+import { SplitButtonModule } from 'primeng/splitbutton';
+import { StepsModule } from 'primeng/steps';
+import { TabMenuModule } from 'primeng/tabmenu';
+import { TabViewModule } from 'primeng/tabview';
+import { TieredMenuModule } from 'primeng/tieredmenu';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { ToolbarModule } from 'primeng/toolbar';
+import { TooltipModule } from 'primeng/tooltip';
+import { TreeModule } from 'primeng/tree';
+import { TreeTableModule } from 'primeng/treetable';
 import { AppConfig } from './app.config';
 import { AppRoutes } from './app.routes';
-import {
-  AccordionModule,
-  AutoCompleteModule,
-  ButtonModule,
-  CardModule,
-  CheckboxModule,
-  ConfirmDialogModule,
-  ContextMenuModule,
-  DataGridModule,
-  DataListModule,
-  DataScrollerModule,
-  DataTableModule,
-  DialogModule,
-  DropdownModule,
-  EditorModule,
-  FieldsetModule,
-  FileUploadModule,
-  InputMaskModule,
-  InputSwitchModule,
-  InputTextareaModule,
-  InputTextModule,
-  ListboxModule,
-  MegaMenuModule,
-  MenubarModule,
-  MenuModule,
-  MessagesModule,
-  MultiSelectModule,
-  OrderListModule,
-  OverlayPanelModule,
-  PaginatorModule,
-  PanelMenuModule,
-  PanelModule,
-  PasswordModule,
-  PickListModule,
-  ProgressBarModule,
-  ProgressSpinnerModule,
-  RadioButtonModule,
-  SelectButtonModule,
-  SharedModule,
-  SlideMenuModule,
-  SliderModule,
-  SpinnerModule,
-  SplitButtonModule,
-  StepsModule,
-  TabMenuModule,
-  TabViewModule,
-  TieredMenuModule,
-  ToggleButtonModule,
-  ToolbarModule,
-  TooltipModule,
-  TreeModule,
-  TreeTableModule
-} from 'primeng/primeng';
 import { TableModule } from 'primeng/table';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { AppComponent } from './app.component';
-import { AppMenuComponent, AppSubMenuComponent } from './app.menu.component';
-import { AppTopbarComponent } from './app.topbar.component';
-import { AppFooterComponent } from './app.footer.component';
-import { AppRightpanelComponent } from './app.rightpanel.component';
-import { AppInlineProfileComponent } from './app.profile.component';
+import { AppMenuComponent, AppSubMenuComponent } from './components/frame/app.menu.component';
+import { AppHeaderComponent } from './components/frame/app.header.component';
+import { AppFooterComponent } from './components/frame/app.footer.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { AppLayerService } from './services/app-layer.service';
 import { UserService } from './services/user.service';
@@ -104,7 +98,7 @@ import { AppTradeAreaService } from './services/app-trade-area.service';
 import { CookieService } from 'ngx-cookie-service';
 import { AppMapService } from './services/app-map.service';
 import { ValMetricsService } from './services/app-metrics.service';
-import { UploadTradeAreasComponent } from './components/upload-tradeareas/upload-tradeareas.component';
+import { UploadTradeAreasComponent } from './components/trade-area-tab/upload-tradeareas/upload-tradeareas.component';
 import { OfflineAudienceTdaComponent } from './components/target-audience/offline-audience-tda/offline-audience-tda.component';
 import { UsageService } from './services/usage.service';
 import { SelectedAudiencesComponent } from './components/target-audience/selected-audiences/selected-audiences.component';
@@ -144,7 +138,7 @@ import { ConfirmationContainerComponent } from './components/common/confirmation
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ImpowerDatastoreModule } from './impower-datastore/impower-datastore.module';
 import { EditLocationsComponent } from './components/edit-locations/edit-locations.component';
-import { UploadMustCoverComponent } from './components/target-audience/upload-must-cover/upload-must-cover.component';
+import { UploadMustCoverComponent } from './components/trade-area-tab/upload-must-cover/upload-must-cover.component';
 import { EsriModule } from '@val/esri';
 import { EnvironmentData } from '../environments/environment';
 import { AppEditSiteService } from './services/app-editsite.service';
@@ -168,10 +162,8 @@ import { AppEditSiteService } from './services/app-editsite.service';
         DataGridModule,
         DataListModule,
         DataScrollerModule,
-        DataTableModule,
         DialogModule,
         DropdownModule,
-        EditorModule,
         FieldsetModule,
         FileUploadModule,
         InputMaskModule,
@@ -230,10 +222,8 @@ import { AppEditSiteService } from './services/app-editsite.service';
         AppComponent,
         AppMenuComponent,
         AppSubMenuComponent,
-        AppTopbarComponent,
+        AppHeaderComponent,
         AppFooterComponent,
-        AppRightpanelComponent,
-        AppInlineProfileComponent,
         DashboardComponent,
         PocComponent,
         PocMapComponent,

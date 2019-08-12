@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AppStateService } from '../../../services/app-state.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
-import { SelectItem } from 'primeng/primeng';
+import { SelectItem } from 'primeng/api';
 import { AppRendererService } from '../../../services/app-renderer.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { map, take, filter } from 'rxjs/operators';
@@ -32,6 +32,7 @@ export class SelectedAudiencesComponent implements OnInit {
   currentTheme: string;
   public showDialog: boolean = false;
   public audienceUnselect: Audience;
+  public dialogboxWarningmsg: string = '';
 
   private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
 
@@ -56,13 +57,16 @@ export class SelectedAudiencesComponent implements OnInit {
 
   public ngOnInit() : void {
     // Setup an observable to watch the store for audiences
-    this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences);
+    this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
+      filter(audiences => audiences != null),
+    );
 
-    const storeSub = this.store$.select(fromAudienceSelectors.allAudiences)
-      .pipe(map(audiences => audiences.length > 0))
-      .subscribe(res => this.hasAudiences = res, null, () => {
-        if (storeSub) storeSub.unsubscribe();
-      });
+    this.audiences$.pipe(
+        filter(audiences => audiences.length > 0),
+        take(1)
+    ).subscribe(audiences => {
+      this.hasAudiences = true;
+    });
 
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready)
@@ -153,8 +157,15 @@ export class SelectedAudiencesComponent implements OnInit {
     //const audiences = Array.from(this.varService.audienceMap.values()).filter(a => a.exportNationally === true);
     this.varService.updateProjectVars(audience);
 
+    if (this.appStateService.analysisLevel$.getValue() === 'PCR' && this.nationalAudiencesBS$.value.length > 1){
+      this.audienceUnselect = audience;
+      this.dialogboxWarningmsg = 'Only 1 variable can be selected at one time for PCR level National exports.';
+      this.showDialog = true;
+    }
+
     if (this.nationalAudiencesBS$.value.length > 5) {
       this.audienceUnselect = audience;
+      this.dialogboxWarningmsg = 'Only 5 variables can be selected at one time for the National export.';
       this.showDialog = true;
     }
   }

@@ -21,6 +21,7 @@ import { EsriMapService } from '@val/esri';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { AppEditSiteService } from '../../services/app-editsite.service';
+import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'val-site-list-container',
@@ -52,6 +53,7 @@ export class SiteListContainerComponent implements OnInit {
       private appTradeAreaService: AppTradeAreaService,
       private audienceTradeAreaService: ValAudienceTradeareaService,
       private esriMapService: EsriMapService,
+      private confirmationService: ConfirmationService,
       private store$: Store<LocalAppState>,
       private appEditSiteService: AppEditSiteService) {}
 
@@ -130,35 +132,61 @@ export class SiteListContainerComponent implements OnInit {
 
    private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData, resubmit?: boolean) {
     //console.log('Processing requests:', siteOrSites);
-    const newLocation: ValGeocodingRequest = oldData;   
-    if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street'])) {
-      siteOrSites['latitude'] = null;
-      siteOrSites['longitude'] = null;
-      if (oldData != null){
-        this.handleCustomTradeAreaIfExistAndEdit(oldData);
-        this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
-      }
-    } else if (newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude']){
-      // const newLocation: ValGeocodingRequest = oldData; 
-        newLocation.recordStatusCode = 'PROVIDED';
-        newLocation.xcoord = Number(siteOrSites['longitude']);
-        newLocation.ycoord = Number(siteOrSites['latitude']);
-        const sites = [siteOrSites] ;
-       // const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
-      //  const reCalculateHomeGeos = false;
-      //  const isLocationEdit =  true;
-       this.handleCustomTradeAreaIfExistAndEdit(oldData);
-       this.appEditSiteService.sendEditLocationData({'siteData': sites, 'type': siteType, 'isEdit': true});
-      //  this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
-       this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-    } else {
-      const editedLocation: ImpGeofootprintLocation = oldData;
-      editedLocation.locationNumber = siteOrSites['number'];
-      editedLocation.locationName = siteOrSites['name'];
-      editedLocation.marketName = siteOrSites['Market'];
-      editedLocation.marketCode = siteOrSites['Market Code'];
-      this.impGeofootprintLocationService.update(oldData, editedLocation);
+    const newLocation: ValGeocodingRequest = oldData;  
+    const ifAddressChanged: boolean = (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street']); 
+    const ifLatLongChanged: boolean = newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude'];
+    const anyChangeinHomeGeoFields: boolean = (oldData.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue != siteOrSites['Home Zip Code']) || 
+    (oldData.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue != siteOrSites['Home ATZ']) || 
+    (oldData.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue != siteOrSites['Home Digital ATZ']) ||
+    (oldData.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']);
+    if ((ifAddressChanged || ifLatLongChanged) && anyChangeinHomeGeoFields) {
+      this.confirmationService.confirm({
+        message: 'Geocoding and/or Home Geocoding is required and will override any changes made to the Home Geocode fields.',
+        header: 'Edit Warning',
+        acceptLabel: 'OK',
+        accept: () => {
+          siteOrSites['Home Zip Code'] = null;
+          siteOrSites['Home ATZ'] = null;
+          siteOrSites['Home Carrier Route'] = null;
+          siteOrSites['Home Digital ATZ'] = null;
+          this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
+        }
+      }); 
     } 
+    else {
+      if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) {
+          this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
+      } else if (ifLatLongChanged) {
+        // const newLocation: ValGeocodingRequest = oldData; 
+          newLocation.recordStatusCode = 'PROVIDED';
+          newLocation.xcoord = Number(siteOrSites['longitude']);
+          newLocation.ycoord = Number(siteOrSites['latitude']);
+          const sites = [siteOrSites] ;
+         // const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
+        //  const reCalculateHomeGeos = false;
+        //  const isLocationEdit =  true;
+         this.handleCustomTradeAreaIfExistAndEdit(oldData);
+         this.appEditSiteService.sendEditLocationData({'siteData': sites, 'type': siteType, 'isEdit': true});
+        //  this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
+         this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+      } else {
+        const editedLocation: ImpGeofootprintLocation = oldData;
+        editedLocation.locationNumber = siteOrSites['number'];
+        editedLocation.locationName = siteOrSites['name'];
+        editedLocation.marketName = siteOrSites['Market'];
+        editedLocation.marketCode = siteOrSites['Market Code'];
+        this.impGeofootprintLocationService.update(oldData, editedLocation);
+      } 
+    }   
+  }
+
+  private geocodeAndHomegeocode(oldData: ImpGeofootprintLocation, siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes) : void {
+        siteOrSites['latitude'] = null;
+        siteOrSites['longitude'] = null;
+        if (oldData != null){
+          this.handleCustomTradeAreaIfExistAndEdit(oldData);
+          this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
+        }
   }
 
   private handleCustomTradeAreaIfExistAndEdit(oldData: ImpGeofootprintLocation) : void {

@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
-import { TreeNode } from 'primeng/primeng';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
-import { AppStateService } from '../../../services/app-state.service';
+import { TreeNode } from 'primeng/api';
 
 interface ApioTreeNode extends TreeNode {
   originalChildren?: ApioTreeNode[];
@@ -14,8 +13,9 @@ interface ApioTreeNode extends TreeNode {
 @Component({
   selector: 'val-online-audience-apio',
   templateUrl: './online-audience-apio.component.html',
-  styleUrls: ['./online-audience-apio.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./online-audience-apio.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class OnlineAudienceApioComponent implements OnInit {
 
@@ -24,8 +24,6 @@ export class OnlineAudienceApioComponent implements OnInit {
   private selectedNodeMapInterest: Map<OnlineSourceTypes, ApioTreeNode[]> = new Map<OnlineSourceTypes, ApioTreeNode[]>();
   private selectedNodeMapInMarket: Map<OnlineSourceTypes, ApioTreeNode[]> = new Map<OnlineSourceTypes, ApioTreeNode[]>();
   private allNodes: ApioTreeNode[] = [];
-
-  @Input() useNarrowLayout: boolean;
 
   public currentNodes: ApioTreeNode[] = [];
   public currentSelectedNodesInterest: ApioTreeNode[];

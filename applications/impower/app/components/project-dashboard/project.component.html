@@ -1,71 +1,136 @@
-<p-dialog [(visible)]="showDialog" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true"
-          [contentStyle]="{'max-height':'400px'}" width="1000">
+<p-dialog [(visible)]="showDialog" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true" width="1000">
     <p-header>
       Load Project
     </p-header>
-    <div class="ui-g">
-      <div class="ui-g-12 ui-g-nopad">
-        <div class="ui-g-2">
-          <label> View for: </label>
+    <div class="dialog-main">
+      <div class="dialog-body">
+        <div class="ui-g-12 ui-g-nopad">
+          <div class="ui-g-2">
+            <label> View for: </label>
+          </div>
+          <div class="ui-g-3">
+            <p-radioButton name="projectListProjectGroup" value="myProject" label="My Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+          </div>
+          <div class="ui-g-3">
+            <p-radioButton name="projectListProjectGroup" value="allProjects" label="All Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+          </div>
+          <div class="ui-g-4">
+            <p-dropdown [options]="timeLines" [(ngModel)]="selectedTimeLine" [style]="{'width':'150px'}" [filter]="true" (ngModelChange)="onSelectTimeFrame($event)">
+            </p-dropdown>
+          </div>
         </div>
-        <div class="ui-g-3">
-          <p-radioButton name="projectListProjectGroup" value="myProject" label="My Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-        </div>
-        <div class="ui-g-3">
-          <p-radioButton name="projectListProjectGroup" value="allProjects" label="All Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-        </div>
-        <div class="ui-g-4">
-          <p-dropdown [options]="timeLines" [(ngModel)]="selectedTimeLine" [style]="{'width':'150px'}" [filter]="true" (ngModelChange)="onSelectTimeFrame($event)">
-          </p-dropdown>
-        </div>
-      </div>
-      <div class="ui-g-12 ui-g-nopad">
-        <p-dataTable
-          [globalFilter]="filter"
-          [value]="currentProjectData"
-          [expandableRows]="false" [resizableColumns]="true"
-          [rows]="8" [paginator]="true"
-          columnResizeMode="expand" [responsive]="true"
-          [immutable]="false"
-          sortField="projectId"
-          [sortOrder]="-1"
-          selectionMode="single"
-          (onRowDblclick)="dbClick($event)"
-          [(selection)]="selectedRow"
-          [reorderableColumns]="true">
-          <p-header>
-            <div class="ui-g">
-              <div class="ui-g-12 ui-g-nopad">
-                <div class="ui-g-1 ui-g-nopad" style="min-width:25px">
-                  <i class="fa fa-search"></i>
+        <div class="ui-g-12 ui-g-nopad val-tbody-nowrap">
+
+          <p-table #projGrid [columns]="allColumns"
+                   [value]="currentProjectData"
+                   [(selection)]="selectedRow"
+                   selectionMode="single"
+                   dataKey="projectId"
+                   [resizableColumns]="true"
+                   columnResizeMode="expand"
+                   [reorderableColumns]="false"
+                   [responsive]="true"
+                   [paginator]="true" [rows]="10"
+                   sortField="modifyDate" sortOrder="-1"
+                   (onFilter)="onFilter()">
+            <ng-template pTemplate="caption">
+              <div class="ui-g ui-g-nopad">
+                <div class="ui-g-4 ui-g-nopad grid-caption-left-group">
+                  <div class="ui-inputgroup">
+                    <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
+                    <span class="md-inputfield">
+                      <input id="projectSearch" type="text" pInputText size="30"  (input)="projGrid.filterGlobal($event.target.value, 'contains')">
+                      <label for="projectSearch">Search Projects</label>
+                    </span>
+                  </div>
                 </div>
-                <div class="ui-g-2 ui-g-nopad">
-                  <span class="md-inputfield">
-                    <input #filter id="filter" type="text" (blur)="onSearch($event.target.value, (currentProjectData != null) ? currentProjectData.length : 0)" pInputText size="30" style="color: rgba(255, 255, 255, 0.315);">
-                    <label for="filter" style="color: white;">Search Projects</label>
-                  </span>
+                <div class="ui-g-4 ui-g-nopad grid-caption-center-group">
+                  <label>Projects: {{currentProjectData.length}}</label>
                 </div>
-                <div class="ui-g-7 ui-g-nopad">
-                  <label style="text-align: center;">Projects: {{(currentProjectData != null) ? currentProjectData.length : 0}}</label>
-                </div>
-                <div class="ui-g-2 ui-g-nopad" style="float:right; color: white;">
-                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+                <div class="ui-g=4 ui-g-nopad grid-caption-right-group">
+                  <div>
+                    <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+                  </div>
                 </div>
               </div>
-            </div>
-          </p-header>
-          <p-column *ngFor="let projectColumn of selectedColumns" [sortable]="true" [editable]="false"
-                    [style]="{'width': projectColumn.size}" [field]="projectColumn.field" [header]="projectColumn.header">
-          </p-column>
-        </p-dataTable>
+            </ng-template>
+
+            <ng-template pTemplate="header" class="ui-g ui-g-nopad">
+              <tr>
+                <th *ngFor="let col of selectedColumns" pResizableColumn [pSortableColumn]="col.field" [style.width]="col.size">
+                  {{col.header}}
+                  <p-sortIcon [field]="col.field"></p-sortIcon>
+                </th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-project>
+              <tr [pSelectableRow]="project" (dblclick)="onDoubleClick(project)">
+                <td *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
+                  <div *ngSwitchCase="'modifyDate'">
+                    {{project[col.field] | date:'short' }}
+                  </div>
+                  <div *ngSwitchDefault [title]="project[col.field]">
+                    {{project[col.field]}}
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage" let-columns>
+              <tr class="empty-grid">
+                <td [attr.colspan]="columns.length">
+                  <div class="ui-g-12">
+                    <h4>No Projects found.</h4>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+
+          <!--        <p-dataTable-->
+          <!--          [globalFilter]="filter"-->
+          <!--          [value]="currentProjectData"-->
+          <!--          [expandableRows]="false" [resizableColumns]="true"-->
+          <!--          [rows]="8" [paginator]="true"-->
+          <!--          columnResizeMode="expand" [responsive]="true"-->
+          <!--          [immutable]="false"-->
+          <!--          sortField="projectId"-->
+          <!--          [sortOrder]="-1"-->
+          <!--          selectionMode="single"-->
+          <!--          (onRowDblclick)="dbClick($event)"-->
+          <!--          [(selection)]="selectedRow"-->
+          <!--          [reorderableColumns]="true">-->
+          <!--          <p-header>-->
+          <!--            <div class="ui-g">-->
+          <!--              <div class="ui-g-12 ui-g-nopad">-->
+          <!--                <div class="ui-g-1 ui-g-nopad" style="min-width:25px">-->
+          <!--                  <i class="fa fa-search"></i>-->
+          <!--                </div>-->
+          <!--                <div class="ui-g-2 ui-g-nopad">-->
+          <!--                  <span class="md-inputfield">-->
+          <!--                    <input #filter id="filter" type="text" (blur)="onSearch($event.target.value, (currentProjectData != null) ? currentProjectData.length : 0)" pInputText size="30" style="color: rgba(255, 255, 255, 0.315);">-->
+          <!--                    <label for="filter" style="color: white;">Search Projects</label>-->
+          <!--                  </span>-->
+          <!--                </div>-->
+          <!--                <div class="ui-g-7 ui-g-nopad">-->
+          <!--                  <label style="text-align: center;">Projects: {{(currentProjectData != null) ? currentProjectData.length : 0}}</label>-->
+          <!--                </div>-->
+          <!--                <div class="ui-g-2 ui-g-nopad" style="float:right; color: white;">-->
+          <!--                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>-->
+          <!--                </div>-->
+          <!--              </div>-->
+          <!--            </div>-->
+          <!--          </p-header>-->
+          <!--          <p-column *ngFor="let projectColumn of selectedColumns" [sortable]="true" [editable]="false"-->
+          <!--                    [style]="{'width': projectColumn.size}" [field]="projectColumn.field" [header]="projectColumn.header">-->
+          <!--          </p-column>-->
+          <!--        </p-dataTable>-->
+        </div>
+      </div>
+
+      <div class="dialog-buttons">
+        <div class="ui-g-2">
+          <button pButton type="button" (click)="loadProject(selectedRow.projectId)" label="Load" [disabled]="selectedRow == null"></button>
+        </div>
       </div>
     </div>
-
-    <p-footer>
-        <div class="ui-g">
-            <div class="ui-g-1 ui-g-nopad">
-                <button pButton type="button" (click)="loadProject(selectedRow)" label="Load" class="load-button"></button>
-            </div>
-        </div>
-    </p-footer>
 </p-dialog>
