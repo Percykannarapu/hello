@@ -1,13 +1,20 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { SelectItem } from 'primeng/components/common/selectitem';
+import { mapArray, distinctArray } from '@val/common';
+import { map } from 'rxjs/operators';
+import { SortMeta } from 'primeng/api';
 
 export interface GeocodeFailureGridField {
+  seq: number;
   field: string;
   header: string;
   width: string;
   isEditable: boolean;
+  matchMode: string;
 }
 
 @Component({
@@ -16,9 +23,20 @@ export interface GeocodeFailureGridField {
   styleUrls: ['./failed-geocode-grid.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FailedGeocodeGridComponent {
+export class FailedGeocodeGridComponent implements OnInit {
 
-  @Input() failedSites: ImpGeofootprintLocation[];
+  @Input('failedSites')
+  set failedSites(val: ImpGeofootprintLocation[]) {
+    this._failedSites = val;
+    this._failedSites.forEach(loc => loc['coordinates'] = this.getCoordinates(loc));
+    this.failedSitesBS$.next(val);
+  }
+  get failedSites() {
+    // Sorting by sequence lets columns maintain position when toggled on and off
+    this.selectedColumns.sort((a, b) => a.seq - b.seq);
+    return this._failedSites;
+ }
+
   @Input() totalCount: number = 0;
   @Input() type: string;
 
@@ -27,23 +45,84 @@ export class FailedGeocodeGridComponent {
   @Output() remove = new EventEmitter<ImpGeofootprintLocation>();
 
   gridColumns: GeocodeFailureGridField[] = [
-    { field: 'locationNumber', header: 'Number', width: '5em', isEditable: false },
-    { field: 'origAddress1', header: 'Address', width: '14em', isEditable: true },
-    { field: 'origCity', header: 'City', width: '9em', isEditable: true },
-    { field: 'origState', header: 'State', width: '3em', isEditable: true },
-    { field: 'origPostalCode', header: 'ZIP', width: '4em', isEditable: true },
-    { field: 'coordinates', header: 'XY', width: '10em', isEditable: true },
-    { field: 'recordStatusCode', header: 'Status', width: '6em', isEditable: false },
-    { field: 'geocoderMatchCode', header: 'Match Code', width: '4em', isEditable: false },
-    { field: 'geocoderLocationCode', header: 'Location Code', width: '8em', isEditable: false },
-    { field: 'locationName', header: 'Name', width: '15em', isEditable: false },
-    { field: 'marketName', header: 'Market', width: '15em', isEditable: true },
+    { seq:  1, field: 'locationNumber',       header: 'Number',        width: '5em',  isEditable: false, matchMode: 'contains' },
+    { seq:  2, field: 'origAddress1',         header: 'Address',       width: '14em', isEditable: true,  matchMode: 'contains' },
+    { seq:  3, field: 'origCity',             header: 'City',          width: '9em',  isEditable: true,  matchMode: 'contains' },
+    { seq:  4, field: 'origState',            header: 'State',         width: '3em',  isEditable: true,  matchMode: 'contains' },
+    { seq:  5, field: 'origPostalCode',       header: 'ZIP',           width: '4em',  isEditable: true,  matchMode: 'contains' },
+    { seq:  6, field: 'coordinates',          header: 'XY',            width: '10em', isEditable: true,  matchMode: 'contains' },
+    { seq:  7, field: 'recordStatusCode',     header: 'Status',        width: '6em',  isEditable: false, matchMode: 'contains' },
+    { seq:  8, field: 'geocoderMatchCode',    header: 'Match Code',    width: '4em',  isEditable: false, matchMode: 'contains' },
+    { seq:  9, field: 'geocoderLocationCode', header: 'Location Code', width: '8em',  isEditable: false, matchMode: 'contains' },
+    { seq: 10, field: 'locationName',         header: 'Name',          width: '15em', isEditable: false, matchMode: 'contains' },
+    { seq: 11, field: 'marketName',           header: 'Market',        width: '15em', isEditable: true,  matchMode: 'contains' },
   ];
 
+  // Track unique values for text variables for filtering
+  public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
+  private failedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
+
+  // Observables for unique values to filter on in the grid
+  public  uniqueCity$: Observable<SelectItem[]>;
+  public  uniqueState$: Observable<SelectItem[]>;
+  public  uniqueStatus$: Observable<SelectItem[]>;
+  public  uniqueMatchCode$: Observable<SelectItem[]>;
+  public  uniqueLocationCode$: Observable<SelectItem[]>;
+  public  uniqueMarketName$: Observable<SelectItem[]>;
+
+  private _failedSites: ImpGeofootprintLocation[] = [];
   private edited = new Set<ImpGeofootprintLocation>();
-  
+  public  defaultLabel: string = 'All';
+
+  public  selectedColumns: any[] = [];
+  public  columnOptions: SelectItem[] = [];
+
+  public  multiSortMeta: SortMeta[] = [];
+
   constructor(private appLocationService: AppLocationService,
               private impGeofootprintLocationService: ImpGeofootprintLocationService) {}
+
+  ngOnInit() {
+    // Create an observable for unique list of values
+    this.uniqueCity$ = this.failedSitesBS$.pipe(mapArray(loc => loc.origCity),
+                                                distinctArray(),
+                                                map(arr => arr.sort()),
+                                                mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+    this.uniqueState$ = this.failedSitesBS$.pipe(mapArray(loc => loc.origState),
+                                                 distinctArray(),
+                                                 map(arr => arr.sort()),
+                                                 mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+    this.uniqueStatus$ = this.failedSitesBS$.pipe(mapArray(loc => loc.recordStatusCode),
+                                                  distinctArray(),
+                                                  map(arr => arr.sort()),
+                                                  mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+    this.uniqueMatchCode$ = this.failedSitesBS$.pipe(mapArray(loc => loc.geocoderMatchCode),
+                                                     distinctArray(),
+                                                     map(arr => arr.sort()),
+                                                     mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+    this.uniqueLocationCode$ = this.failedSitesBS$.pipe(mapArray(loc => loc.geocoderLocationCode),
+                                                        distinctArray(),
+                                                        map(arr => arr.sort()),
+                                                        mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+    this.uniqueMarketName$ = this.failedSitesBS$.pipe(mapArray(loc => loc.marketName),
+                                                      distinctArray(),
+                                                      map(arr => arr.sort()),
+                                                      mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+
+    // Column Picker Model
+    for (const column of this.gridColumns) {
+      this.columnOptions.push({ label: column.header, value: column });
+      this.selectedColumns.push(column);
+    }
+
+    // Default sort
+    this.multiSortMeta.push({field: 'locationNumber', order: 1});
+  }
 
   canBeAccepted(site: ImpGeofootprintLocation) : boolean {
     return site.recordStatusCode !== 'ERROR' && site.recordStatusCode !== '';
@@ -94,7 +173,7 @@ export class FailedGeocodeGridComponent {
     if (site.recordStatusCode === 'PROVIDED') {
       const existingSite = this.impGeofootprintLocationService.get().filter(l => l.locationNumber == site.locationNumber);
       this.appLocationService.deleteLocations(existingSite);
-    }   
+    }
     const locAttribs = site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0];
 
     if (locAttribs != null && !(/^\d{4}$/.test(locAttribs.attributeValue) || /^\d{3}$/.test(locAttribs.attributeValue))) {
@@ -109,4 +188,3 @@ export class FailedGeocodeGridComponent {
     window.open(googleMapUri, '_blank', strWindowFeatures);
   }
 }
-
