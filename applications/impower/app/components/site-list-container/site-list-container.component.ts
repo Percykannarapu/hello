@@ -164,6 +164,18 @@ export class SiteListContainerComponent implements OnInit {
       'abZip': editedLocation[0].locZip.substring(0, 5)}];
 
       const editedTags: string[] = [];
+      const tagToField = {
+        'zip': 'Home Zip Code',
+        'atz': 'Home ATZ',
+        'pcr': 'Home Carrier Route',
+        'dtz': 'Home Digital ATZ'
+      };
+      const tagToFieldName = {
+        'zip': 'homeZip',
+        'atz': 'homeAtz',
+        'pcr': 'homePcr',
+        'dtz': 'homeDtz'
+      };
       if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== attributeList[0].homeZip 
           || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== '') {
         editedTags.push('zip');
@@ -180,7 +192,12 @@ export class SiteListContainerComponent implements OnInit {
           || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== '') {
         editedTags.push('dtz');
       }
-      this.store$.dispatch(new ValidateEditedHomeGeoAttributes({oldData, siteOrSites, siteType, editedTags, attributeList}));
+      editedTags.forEach(tag => {
+        editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];
+      });
+      this.impGeofootprintLocationService.update(oldData, editedLocation[0]);
+      this.appLocationService.processHomeGeoAttributes(attributeList, this.impGeofootprintLocationService.get().filter(l => l.locationNumber === oldData.locationNumber));
+      // this.store$.dispatch(new ValidateEditedHomeGeoAttributes({oldData, siteOrSites, siteType, editedTags, attributeList}));
     } 
     else {
       if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) {
