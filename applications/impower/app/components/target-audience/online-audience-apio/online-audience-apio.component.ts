@@ -59,8 +59,8 @@ export class OnlineAudienceApioComponent implements OnInit {
     return {
       label: variable.taxonomyParsedName,
       data: variable,
-      expandedIcon: 'ui-icon-folder-open',
-      collapsedIcon: 'ui-icon-folder',
+      expandedIcon: 'fa fa-folder-open',
+      collapsedIcon: 'fa fa-folder',
       leaf: false,
       selectable: false,
       originalChildren: children,
@@ -73,7 +73,7 @@ export class OnlineAudienceApioComponent implements OnInit {
     return {
       label: variable.categoryName,
       data: variable,
-      icon: 'fa fa-fontAwesome fa-file-o',
+      icon: 'fa fa-file-o',
       leaf: true,
     };
   }

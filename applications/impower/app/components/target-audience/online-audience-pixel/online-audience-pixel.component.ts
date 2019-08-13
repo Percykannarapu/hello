@@ -42,7 +42,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
     return {
       label: variable.categoryName, // This is used in selectNodes, not just for display //undefined, // template in the html markup does this since we have spacing requirements
       data: variable,
-      icon: `fa fa-fontAwesome ${selectable ? 'fa fa-file-o' : 'fa fa-lock'}`,
+      icon: `fa ${selectable ? 'fa fa-file-o' : 'fa fa-lock'}`,
       type: selectable ? undefined : 'disabled',
       selectable: selectable,
       leaf: true,
