@@ -53,7 +53,10 @@ export class ShadingConfigComponent implements OnInit {
 
     this.store.pipe(
       withLatestFrom(this.store.select(localSelectors.getShadingState)),
-    ).subscribe(([,  shading]) => this.classBreakValues = shading.classBreakValues);
+    ).subscribe(([,  shading]) => {
+      this.classBreakValues = shading.classBreakValues;
+      this.variableOptions = shading.availableVars.map(v => ({ label: v.name, value: v }));
+    });
 
   }
 
