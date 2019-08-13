@@ -460,6 +460,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       else{
         audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName);
       }
+
       if (audience != null) {
         const geoVar = state.geoVarsBS$.value.find(gv => gv.geocode === geo.geocode);
         if (geoVar != null) {
