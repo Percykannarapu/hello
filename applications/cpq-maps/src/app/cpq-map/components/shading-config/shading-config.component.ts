@@ -8,6 +8,7 @@ import { SetNonVariableShading, SetVariableShading, CalculateEqualIntervals, Set
 import { ShadingState, ShadingType, VarDefinition, VariableRanges } from '../../state/shading/shading.reducer';
 import { SharedState } from '../../state/shared/shared.reducers';
 import { of } from 'rxjs';
+import { mapBy } from '@val/common';
 
 export enum NumericVariableShadingMethod {
   StandardIndex = 'Standard Index',
@@ -54,8 +55,9 @@ export class ShadingConfigComponent implements OnInit {
     this.store.pipe(
       withLatestFrom(this.store.select(localSelectors.getShadingState)),
     ).subscribe(([,  shading]) => {
-      this.classBreakValues = shading.classBreakValues;
-      this.variableOptions = shading.availableVars.map(v => ({ label: v.name, value: v }));
+      this.classBreakValues = shading.classBreakValues.length == 0 ? [...DEFAULT_BREAK_VALUES] : shading.classBreakValues;
+      this.setSelectedVar(shading);
+      this.selectedNumericMethod = shading.selectedNumericMethod;
     });
 
   }
@@ -91,6 +93,15 @@ export class ShadingConfigComponent implements OnInit {
 
   }
 
+  private setSelectedVar(shading: ShadingState){
+    this.variableOptions = shading.availableVars.map(v => ({ label: v.name, value: v }));
+    if (this.variableOptions.length > 0 && this.selectedVar != null){
+      const mapVariableOptions = mapBy(this.variableOptions, 'label');
+      this.selectedVar = mapVariableOptions.get(this.selectedVar.name).value;
+    }
+    
+  }
+
   onShadingOptionChange(event: { value: ShadingType }) {
     if (event.value !== ShadingType.VARIABLE) {
       this.store.dispatch(new SetNonVariableShading({ shadingType: event.value }));
@@ -105,6 +116,10 @@ export class ShadingConfigComponent implements OnInit {
     this.selectedNumericMethod = DEFAULT_NUMERIC_METHOD;
     this.selectedClassBreaks = DEFAULT_CLASS_BREAKS;
     this.classBreakValues = [...DEFAULT_BREAK_VALUES];
+    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
+      breakCount: this.selectedClassBreaks, 
+      selectedVar: this.selectedVar,
+      selectedNumericMethod: this.selectedNumericMethod}));
   }
 
   onMethodOptionChanged(event: { value: NumericVariableShadingMethod }) {
@@ -119,14 +134,14 @@ export class ShadingConfigComponent implements OnInit {
       //  break;
       case NumericVariableShadingMethod.EqualIntervals:
         this.selectedClassBreaks = 4;
-        this.calculateEqualIntervals(this.selectedClassBreaks);
+        this.calculateEqualIntervals(this.selectedClassBreaks, NumericVariableShadingMethod.EqualIntervals);
         break;
     }
   }
 
   onBreakCountChanged(classBreaks: number) {
     if (this.selectedNumericMethod === NumericVariableShadingMethod.EqualIntervals) {
-      this.calculateEqualIntervals(classBreaks);
+      this.calculateEqualIntervals(classBreaks, NumericVariableShadingMethod.EqualIntervals);
     } else {
       this.classBreakValues = [];
       for (let i = 0; i < classBreaks - 1; ++i) {
@@ -135,15 +150,17 @@ export class ShadingConfigComponent implements OnInit {
     }
   }
 
-  private calculateEqualIntervals(breakCount: number) {
-    this.store.dispatch(new CalculateEqualIntervals({breakCount: breakCount, selectedVar: this.selectedVar}));
+  private calculateEqualIntervals(breakCount: number, selectedNumericMethod: NumericVariableShadingMethod) {
+    this.store.dispatch(new CalculateEqualIntervals({breakCount: breakCount, selectedVar: this.selectedVar, selectedNumericMethod: selectedNumericMethod}));
     
   }
 
   applyVariableShading() {
     const classifications: VariableRanges[] = [];
     this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
-                              breakCount: this.selectedClassBreaks, selectedVar: this.selectedVar}));
+                              breakCount: this.selectedClassBreaks, 
+                              selectedVar: this.selectedVar,
+                              selectedNumericMethod: this.selectedNumericMethod}));
     classifications.push({ minValue: null, maxValue: this.classBreakValues[0] });
     for (let i = 1; i < this.classBreakValues.length; ++i) {
       classifications.push({ minValue: this.classBreakValues[i - 1], maxValue: this.classBreakValues[i] });

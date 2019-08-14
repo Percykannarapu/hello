@@ -8,7 +8,7 @@ import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { LocalState } from '../state';
 import { LegendData } from '../state/app.interfaces';
-import { ShadingState, ShadingType, VarDefinition, VariableRanges } from '../state/shading/shading.reducer';
+import { ShadingState, ShadingType, VarDefinition, VariableRanges, NumericVariableShadingMethod } from '../state/shading/shading.reducer';
 import { SetLegendData } from '../state/shared/shared.actions';
 import { ConfigService } from './config.service';
 import { localSelectors } from '../state/app.selectors';
@@ -293,17 +293,19 @@ export class ShadingService {
     }
   }
 
-  calculateEqualIntervals(payload: {breakCount: number, selectedVar: VarDefinition}) {
-//    const shadingState: ShadingState = this.store$.select(this.store$.select(localSelectors.getShadingState);
-    const classBreakValues = [];
+  calculateEqualIntervals(payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod}) {
+    let classBreakValues = [80, 120, 140];
     const interval = (payload.selectedVar.maxValue - payload.selectedVar.minValue) / payload.breakCount;
-    for (let i = 0; i < payload.breakCount - 1; ++i) {
-      const currentBreak = (interval * (i + 1)) + payload.selectedVar.minValue;
-      classBreakValues.push(currentBreak);
+    if (payload.selectedNumericMethod != NumericVariableShadingMethod.StandardIndex){
+      classBreakValues = [];
+      for (let i = 0; i < payload.breakCount - 1; ++i) {
+        const currentBreak = (interval * (i + 1)) + payload.selectedVar.minValue;
+        classBreakValues.push(currentBreak);
+      }
     }
-    //this.store$.dispatch(new SetClassBreakValues({classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar}));
-    //console.log('classBreakValues::::', classBreakValues);
-    return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar};
+      
+    return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar, 
+            selectedNumericMethod: payload.selectedNumericMethod};
   }
 
 }

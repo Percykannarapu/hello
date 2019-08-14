@@ -1,5 +1,5 @@
 import { Action } from '@ngrx/store';
-import { VariableRanges, ShadingType, VarDefinition, ShadingState } from './shading.reducer';
+import { VariableRanges, ShadingType, VarDefinition, ShadingState, NumericVariableShadingMethod } from './shading.reducer';
 
 export enum ShadingActionTypes {
   InitializeShading = '[Shading] Initialize',
@@ -35,12 +35,15 @@ export class SetNonVariableShading implements Action {
 
 export class CalculateEqualIntervals implements Action{
   readonly type = ShadingActionTypes.CalculateEqualIntervals;
-  constructor(public payload: {breakCount: number, selectedVar: VarDefinition}){}
+  constructor(public payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod}){}
 }
 
 export class SetClassBreakValues implements Action{
   readonly type = ShadingActionTypes.SetClassBreakValues;
-  constructor(public payload: {classBreakValues: number[], breakCount: number, selectedVar: VarDefinition}){}
+  constructor(public payload: {classBreakValues: number[], 
+                               breakCount: number, 
+                               selectedVar: VarDefinition,
+                               selectedNumericMethod: NumericVariableShadingMethod}){}
 }
 
 export type ShadingActions =
