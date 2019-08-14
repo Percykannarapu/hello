@@ -1,24 +1,17 @@
 <p-tabView>
 
   <p-tabPanel header="Online Audience">
-    <ng-template pTemplate="content">
-      <!-- <div class="ui-g" *ngIf="(analysisLevel$ | async) === 'PCR'">
-        <div class="ui-g-12">
-          Online Audience not available at the PCR level
-        </div>
-      </div> -->
-      <p-tabView  class="val-child-tabs">
-        <p-tabPanel header="Interest and In-Market">
-          <val-online-audience-apio></val-online-audience-apio>
-        </p-tabPanel>
-        <p-tabPanel header="Visit Likelihood">
-          <val-online-audience-vlh></val-online-audience-vlh>
-        </p-tabPanel>
-        <p-tabPanel header="Pixel Data">
-          <val-online-audience-pixel></val-online-audience-pixel>
-        </p-tabPanel>
-      </p-tabView>
-    </ng-template>
+    <p-tabView  class="val-child-tabs">
+      <p-tabPanel header="Interest and In-Market">
+        <val-online-audience-apio></val-online-audience-apio>
+      </p-tabPanel>
+      <p-tabPanel header="Visit Likelihood">
+        <val-online-audience-vlh></val-online-audience-vlh>
+      </p-tabPanel>
+      <p-tabPanel header="Pixel Data">
+        <val-online-audience-pixel></val-online-audience-pixel>
+      </p-tabPanel>
+    </p-tabView>
   </p-tabPanel>
 
   <p-tabPanel header="Offline Audience">

@@ -8,6 +8,7 @@ import { GridGeosToggle } from '../../state/grid/grid.actions';
 import * as fromGridSelectors from '../../state/grid/grid.selectors';
 import { CalculateEqualIntervals, InitializeShading } from '../../state/shading/shading.actions';
 import { VarDefinition } from '../../state/shading/shading.reducer';
+import { NumericVariableShadingMethod } from '../shading-config/shading-config.component';
 
 export interface FullColumn extends fromGridSelectors.GridColumn {
   formatType?: 'string' | 'number' | 'currency';
@@ -27,6 +28,7 @@ export class GridComponent implements OnInit {
   private filteredIds: number[] = null;
   private selectedClassBreak: number = 0;
   private selectedVar: VarDefinition = null;
+  private selectedNumericMethod: NumericVariableShadingMethod = NumericVariableShadingMethod.StandardIndex;
 
   @Input()
   set smallSizeTable(value: boolean) {
@@ -86,6 +88,7 @@ export class GridComponent implements OnInit {
       const mapByNameVars = mapBy(shading.availableVars, 'name');
       this.selectedClassBreak = shading.selectedClassBreaks;
       this.selectedVar =  shading.selectedVar != null ? mapByNameVars.get(shading.selectedVar.name) : shading.selectedVar;
+      this.selectedNumericMethod = shading.selectedNumericMethod;
      
     });
   }
@@ -100,7 +103,9 @@ export class GridComponent implements OnInit {
    this.store$.dispatch(new InitializeShading());
    // console.log('selectedClassBreak::', this.selectedClassBreak, 'selectedVar::', this.selectedVar);
    if (this.selectedVar != null)
-      this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, selectedVar: this.selectedVar}));
+      this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, 
+                                                        selectedVar: this.selectedVar,
+                                                        selectedNumericMethod: this.selectedNumericMethod}));
   }
 
   onFilter(event: { filters: any, filteredValue: fromGridSelectors.GridRowBase[] }) {
@@ -118,6 +123,11 @@ export class GridComponent implements OnInit {
       }
     }, []);
     this.store$.dispatch(new GridGeosToggle({ geos: geos }));
+    this.store$.dispatch(new InitializeShading());
+    if (this.selectedVar != null)
+      this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, 
+                                                        selectedVar: this.selectedVar,
+                                                        selectedNumericMethod: this.selectedNumericMethod}));
   }
 
   private setGridSize(isSmall: boolean) {

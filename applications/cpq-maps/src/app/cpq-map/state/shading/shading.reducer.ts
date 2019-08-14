@@ -9,6 +9,12 @@ export enum ShadingType {
   VARIABLE
 }
 
+export enum NumericVariableShadingMethod {
+  StandardIndex = 'Standard Index',
+  CustomClassifications = 'Custom Classifications',
+  EqualIntervals = 'Equal Intervals'
+}
+
 export interface VariableRanges {
   minValue?: number;
   maxValue?: number;
@@ -31,6 +37,7 @@ export interface ShadingState {
   classBreakValues: number[];
   selectedClassBreaks: number;
   selectedVar: VarDefinition;
+  selectedNumericMethod: NumericVariableShadingMethod;
 }
 
 
@@ -43,7 +50,8 @@ export const initialState: ShadingState = {
   basePalette: getColorPalette(ColorPalette.Cpqmaps),
   classBreakValues: [],
   selectedClassBreaks: 4,
-  selectedVar: null
+  selectedVar: null,
+  selectedNumericMethod: NumericVariableShadingMethod.StandardIndex
 };
 
 type ReducerActions = ShadingActions;
@@ -74,7 +82,8 @@ export function shadingReducer(state = initialState, action: ReducerActions) : S
         ...state,
         classBreakValues: action.payload.classBreakValues,
         selectedClassBreaks: action.payload.breakCount,
-        selectedVar: action.payload.selectedVar
+        selectedVar: action.payload.selectedVar,
+        selectedNumericMethod: action.payload.selectedNumericMethod
 
       };  
     default:

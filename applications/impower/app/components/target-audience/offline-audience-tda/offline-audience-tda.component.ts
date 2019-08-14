@@ -35,8 +35,8 @@ export class OfflineAudienceTdaComponent implements OnInit {
     return {
       label: category.displayName,
       data: category,
-      expandedIcon: 'ui-icon-folder-open',
-      collapsedIcon: 'ui-icon-folder',
+      expandedIcon: 'fa fa-folder-open',
+      collapsedIcon: 'fa fa-folder',
       leaf: false,
       selectable: false,
       children: category.children.map(child => this.asLeaf(child))
@@ -47,7 +47,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
     return {
       label: variable.displayName,
       data: variable,
-      icon: 'fa fa-fontAwesome fa-file-o',
+      icon: 'fa fa-file-o',
       leaf: true,
     };
   }

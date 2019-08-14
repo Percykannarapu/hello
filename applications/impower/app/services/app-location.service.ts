@@ -6,7 +6,7 @@ import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { AppGeocodingService } from './app-geocoding.service';
-import { combineLatest, merge, Observable, EMPTY, of } from 'rxjs';
+import { combineLatest, merge, Observable, EMPTY, of, forkJoin } from 'rxjs';
 import { filter, map, pairwise, startWith, tap, withLatestFrom, take } from 'rxjs/operators';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { AppConfig } from '../app.config';
@@ -46,6 +46,13 @@ const newHomeGeoToAnalysisLevelMap = {
   homeDmaName: getHomeGeoKey('DMA Name'),
   homePcr: getHomeGeoKey('Carrier Route'),
   homeZip: getHomeGeoKey('Zip Code')
+};
+
+const tagToFieldName = {
+  'zip': 'homeZip',
+  'atz': 'homeAtz',
+  'pcr': 'homePcr',
+  'dtz': 'homeDtz'
 };
 
 function isReadyforHomegeocoding(loc: ImpGeofootprintLocation) : boolean {
@@ -449,6 +456,41 @@ export class AppLocationService {
     );
   }
 
+  public validateHomeGeoAttributesOnEdit(attributes: any[], editedTags ?: any[]) : Observable<any> { 
+    if (editedTags.length > 0){
+      const requestToCall: Array<Observable<any>> = [];
+      let call: Observable<__esri.Graphic[]>;
+      const tagToEnvironmentData = {  
+        'zip': EnvironmentData.layerIds.zip.boundary,
+        'atz': EnvironmentData.layerIds.atz.boundary,
+        'pcr': EnvironmentData.layerIds.pcr.boundary,
+        'dtz': EnvironmentData.layerIds.dtz.boundary
+      };
+      editedTags.forEach((tag) => {
+          call = this.queryService.queryAttributeIn(tagToEnvironmentData[tag], 'geocode', [attributes[0][tagToFieldName[tag]]], false, ['geocode']);
+          console.log('call:::::', call);
+          requestToCall.push(call);
+      });
+      return forkJoin(requestToCall);
+    }
+  }
+
+  public editLocationOnValidationSuccess(oldData: any, editedTags: string[], attributeList: any) : void {
+    const editedLocation: ImpGeofootprintLocation = oldData; 
+    const tagToField = {
+      'zip': 'Home Zip Code',
+      'atz': 'Home ATZ',
+      'pcr': 'Home Carrier Route',
+      'dtz': 'Home Digital ATZ'
+    };
+    editedTags.forEach(tag => {
+      editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];
+    });
+    this.impLocationService.update(oldData, editedLocation);
+    const location = this.impLocationService.get().filter(l => l.locationNumber === oldData.locationNumber);
+    this.processHomeGeoAttributes(attributeList, location);
+  }
+
   private validateHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : Observable<any>{
    // const attributesBySiteNumber: Map<any, any> = mapBy(attributes, 'siteNumber');
     let geocodeList = [];
@@ -500,7 +542,7 @@ export class AppLocationService {
               }
             });
           }
-         /* else {
+          /* else {
             attribute['homePcr'] = '';
           } */
         });
@@ -566,7 +608,7 @@ export class AppLocationService {
            // }
           }
 
-         
+          
          /* else {
             attribute['homeZip']    = '';
             attribute['homeDma']    = '';

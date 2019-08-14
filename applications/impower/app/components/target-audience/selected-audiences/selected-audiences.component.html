@@ -1,6 +1,6 @@
 <div class="ui-g">
   <div *ngIf="hasAudiences" class="ui-g-12 val-table-with-dropdowns">
-    <div class="card ui-g">
+    <div class="card ui-g" (click)="$event.stopPropagation()">
 
       <p-table [value]="audiences$ | async" [rows]="10" [paginator]="true" [alwaysShowPaginator]="false">
         <ng-template pTemplate="header">
