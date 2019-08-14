@@ -8,5 +8,6 @@
           "editorBracketMatch.background": "#0074aa",
           "editorBracketMatch.border": "#000000",
       }
-  }
+  },
+  "typescript.tsdk": "node_modules\\typescript\\lib"
 }

@@ -1,12 +1,12 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, ViewChildren, QueryList, ViewChild } from '@angular/core';
 import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { SelectItem } from 'primeng/components/common/selectitem';
-import { mapArray, distinctArray } from '@val/common';
-import { map } from 'rxjs/operators';
 import { SortMeta } from 'primeng/api';
+import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';
+import { Table } from 'primeng/table';
 
 export interface GeocodeFailureGridField {
   seq: number;
@@ -62,13 +62,11 @@ export class FailedGeocodeGridComponent implements OnInit {
   public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
   private failedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
 
-  // Observables for unique values to filter on in the grid
-  public  uniqueCity$: Observable<SelectItem[]>;
-  public  uniqueState$: Observable<SelectItem[]>;
-  public  uniqueStatus$: Observable<SelectItem[]>;
-  public  uniqueMatchCode$: Observable<SelectItem[]>;
-  public  uniqueLocationCode$: Observable<SelectItem[]>;
-  public  uniqueMarketName$: Observable<SelectItem[]>;
+  // Get the grid as a view child to attach custom filters
+  @ViewChild('failureGrid', { static: true }) public _failureGrid: Table;
+
+  // Get grid filter components to clear them
+  @ViewChildren(TableFilterLovComponent) lovFilters: QueryList<TableFilterLovComponent>;
 
   private _failedSites: ImpGeofootprintLocation[] = [];
   private edited = new Set<ImpGeofootprintLocation>();
@@ -83,37 +81,6 @@ export class FailedGeocodeGridComponent implements OnInit {
               private impGeofootprintLocationService: ImpGeofootprintLocationService) {}
 
   ngOnInit() {
-    // Create an observable for unique list of values
-    this.uniqueCity$ = this.failedSitesBS$.pipe(mapArray(loc => loc.origCity),
-                                                distinctArray(),
-                                                map(arr => arr.sort()),
-                                                mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    this.uniqueState$ = this.failedSitesBS$.pipe(mapArray(loc => loc.origState),
-                                                 distinctArray(),
-                                                 map(arr => arr.sort()),
-                                                 mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    this.uniqueStatus$ = this.failedSitesBS$.pipe(mapArray(loc => loc.recordStatusCode),
-                                                  distinctArray(),
-                                                  map(arr => arr.sort()),
-                                                  mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    this.uniqueMatchCode$ = this.failedSitesBS$.pipe(mapArray(loc => loc.geocoderMatchCode),
-                                                     distinctArray(),
-                                                     map(arr => arr.sort()),
-                                                     mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    this.uniqueLocationCode$ = this.failedSitesBS$.pipe(mapArray(loc => loc.geocoderLocationCode),
-                                                        distinctArray(),
-                                                        map(arr => arr.sort()),
-                                                        mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    this.uniqueMarketName$ = this.failedSitesBS$.pipe(mapArray(loc => loc.marketName),
-                                                      distinctArray(),
-                                                      map(arr => arr.sort()),
-                                                      mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
     // Column Picker Model
     for (const column of this.gridColumns) {
       this.columnOptions.push({ label: column.header, value: column });
@@ -186,5 +153,33 @@ export class FailedGeocodeGridComponent implements OnInit {
     const googleMapUri = `https://www.google.com/maps/place/${site.locAddress},${site.locCity},${site.locState},${site.locZip}`;
     const strWindowFeatures = 'height=1000px,width=1000px';
     window.open(googleMapUri, '_blank', strWindowFeatures);
+  }
+
+   /**
+    * Clears out the filters from the grid and reset the filter components
+    */
+   onClickResetFilters()
+   {
+      // Clear the multi select filters
+      if (this.lovFilters)
+         this.lovFilters.forEach(lov => {
+           lov.clearFilter();
+         });
+
+      // Reset the grid and grid filters
+      this._failureGrid.reset();
+   }
+
+  // Table-Filter-LOV events
+  onFilterRemoved(field: string) {
+    //console.log('### onFilterRemoved - removed filter for field:', field);
+  }
+
+  onFilterShow(field: string) {
+    //console.log('### onFilterShow - field', field);
+  }
+
+  onFilterHide(field: string) {
+    //console.log('### onFilterHide - field', field);
   }
 }

@@ -4,11 +4,10 @@
            [columns]="selectedColumns"
            [globalFilterFields]="selectedColumns"
            [value]="failedSites"
-           [alwaysShowPaginator]="false"
            [resizableColumns]="true"
            sortMode="multiple" [multiSortMeta]="multiSortMeta"
            [responsive]="true"
-           [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,15,25,50,100,200,500,1000]"
+           [paginator]="true" [rows]="5" [rowsPerPageOptions]="[3,5,10,15,25,50,100,200,500,1000]"
            [scrollable]="true">
     <ng-template pTemplate="caption">
       <div class="ui-g">
@@ -42,22 +41,23 @@
         <th class="button-column">Remove</th>
       </tr>
       <tr class="second-header">
-        <th class="button-column"></th>
+        <th class="button-column" style="padding: 0 0 0 1.6em">
+          <button type="button" pButton icon="fa fa-eraser" pTooltip="Clear Filters" class="val-short-square-button" style="color:#edb3ce;vertical-align: text-bottom;" (click)="onClickResetFilters()"></button>
+        </th>
         <th class="button-column"></th>
         <th class="button-column"></th>
         <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
           <input *ngSwitchCase="'locationNumber'" pInputText type="number" (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
           <input *ngSwitchCase="'origAddress1'"   pInputText type="text"   (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
           <input *ngSwitchCase="'origPostalCode'" pInputText type="number" (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
-          <input *ngSwitchCase="'coordinates'"    pInputText type="number" (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
+          <input *ngSwitchCase="'coordinates'"    pInputText type="text"   (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
           <input *ngSwitchCase="'locationName'"   pInputText type="text"   (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
-
-          <p-multiSelect *ngSwitchCase="'origCity'"             appendTo="body" [options]="uniqueCity$ | async"         [defaultLabel]="defaultLabel" (onChange)="failureGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-          <p-multiSelect *ngSwitchCase="'origState'"            appendTo="body" [options]="uniqueState$ | async"        [defaultLabel]="defaultLabel" (onChange)="failureGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-          <p-multiSelect *ngSwitchCase="'recordStatusCode'"     appendTo="body" [options]="uniqueStatus$ | async"       [defaultLabel]="defaultLabel" (onChange)="failureGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-          <p-multiSelect *ngSwitchCase="'geocoderMatchCode'"    appendTo="body" [options]="uniqueMatchCode$ | async"    [defaultLabel]="defaultLabel" (onChange)="failureGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-          <p-multiSelect *ngSwitchCase="'geocoderLocationCode'" appendTo="body" [options]="uniqueLocationCode$ | async" [defaultLabel]="defaultLabel" (onChange)="failureGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-          <p-multiSelect *ngSwitchCase="'marketName'"           appendTo="body" [options]="uniqueMarketName$ | async"   [defaultLabel]="defaultLabel" (onChange)="failureGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+          <val-table-filter-lov *ngSwitchCase="'origCity'"             field="origCity"             [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)" (onShow)="onFilterShow($event)" (onHide)="onFilterHide($event)"></val-table-filter-lov>
+          <val-table-filter-lov *ngSwitchCase="'origState'"            field="origState"            [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
+          <val-table-filter-lov *ngSwitchCase="'recordStatusCode'"     field="recordStatusCode"     [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
+          <val-table-filter-lov *ngSwitchCase="'geocoderMatchCode'"    field="geocoderMatchCode"    [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
+          <val-table-filter-lov *ngSwitchCase="'geocoderLocationCode'" field="geocoderLocationCode" [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
+          <val-table-filter-lov *ngSwitchCase="'marketName'"           field="marketName"           [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
         </th>
         <th class="button-column"></th>
       </tr>
