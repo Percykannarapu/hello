@@ -127,6 +127,10 @@ export class ShadingConfigComponent implements OnInit {
       case NumericVariableShadingMethod.StandardIndex:
         this.selectedClassBreaks = 4;
         this.classBreakValues = [...DEFAULT_BREAK_VALUES];
+        this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
+          breakCount: this.selectedClassBreaks, 
+          selectedVar: this.selectedVar,
+          selectedNumericMethod: this.selectedNumericMethod}));
         break;
       //  case NumericVariableShadingMethod.CustomClassifications:
       //   this.selectedClassBreaks = 4;

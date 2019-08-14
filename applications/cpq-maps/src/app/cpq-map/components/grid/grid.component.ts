@@ -123,6 +123,11 @@ export class GridComponent implements OnInit {
       }
     }, []);
     this.store$.dispatch(new GridGeosToggle({ geos: geos }));
+    this.store$.dispatch(new InitializeShading());
+    if (this.selectedVar != null)
+      this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, 
+                                                        selectedVar: this.selectedVar,
+                                                        selectedNumericMethod: this.selectedNumericMethod}));
   }
 
   private setGridSize(isSmall: boolean) {
