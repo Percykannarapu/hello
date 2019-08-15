@@ -142,7 +142,7 @@ export class TargetAudienceCustomService {
             seq: projectVar.sortOrder
           };
           this.currentFileName = audience.audienceSourceName;
-          this.audienceService.addAudience(audience);
+          this.audienceService.addAudience(audience, null, true);
         }
       }
     }
