@@ -1,5 +1,9 @@
+@import "~assets/valassis-variables";
+
 .failure-grid {
   padding-top: 0.5em;
+  margin-left: -0.5em;
+  margin-right: -0.5em;
 }
 .button-column {
   width: 5em;
@@ -12,5 +16,10 @@
       width: 2em;
       height: 2em;
     }
+  }
+}
+.second-header {
+  > th {
+    background-color: $valTableHeaderSecondaryBgColor;
   }
 }

@@ -282,7 +282,7 @@
             "tsConfig": "applications/cpq-maps/tsconfig.spec.json",
             "karmaConfig": "applications/cpq-maps/karma.conf.js",
             "styles": [
-              "applications/cpq-maps/styles.css"
+              "applications/cpq-maps/src/styles.css"
             ],
             "scripts": [],
             "assets": [

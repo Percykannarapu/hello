@@ -131,6 +131,7 @@ import { ToastModule } from 'primeng/toast';
 import { SampleComponent } from './poc/sample/sample.component';
 import { NgStringPipesModule } from 'angular-pipes';
 import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
+import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { StateModule } from './state/state.module';
 import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
@@ -256,6 +257,7 @@ import { AppEditSiteService } from './services/app-editsite.service';
         MapComponent,
         SampleComponent,
         TableFilterNumericComponent,
+        TableFilterLovComponent,
         SiteListContainerComponent,
         ConfirmationContainerComponent,
         ConfirmationDialogComponent,

@@ -3,8 +3,14 @@
   "compilerOptions": {
     "outDir": "../../out-tsc/impower-spec"
   },
+  "paths": {
+    "@val/esri": ["../../modules/esri"],
+    "@val/common": ["../../modules/common"],
+    "@val/messaging": ["../../modules/messaging"]
+  },
   "files": [
-    "test.ts"
+    "test.ts",
+    "polyfills.ts"
   ],
   "include": [
     "**/*.spec.ts",
