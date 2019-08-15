@@ -9,14 +9,14 @@ import { filter } from 'rxjs/operators';
 @Component({
   selector: 'val-esri-label-config',
   templateUrl: './esri-label-config.component.html',
-  styleUrls: ['./esri-label-config.component.css'],
+  styleUrls: ['./esri-label-config.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EsriLabelConfigComponent implements OnInit {
 
   constructor(private store$: Store<AppState>,
               private changeDetector: ChangeDetectorRef) { }
-  
+
   public fonts: SelectItem[] = [
     { label: 'Serif', value: 'serif' },
     { label: 'Sans-Serif', value: 'sans-serif' },
@@ -25,7 +25,7 @@ export class EsriLabelConfigComponent implements OnInit {
     { label: 'Pacifico', value: 'pacifico' },
     { label: 'Tangerine', value: 'tangerine' },
     { label: 'Merriweather', value: 'merriweather' }];
-  
+
     public sizes: SelectItem[] = [
     { label: '8', value: 8 },
     { label: '10', value: 10 },
@@ -44,7 +44,7 @@ export class EsriLabelConfigComponent implements OnInit {
     { label: '36', value: 36 },
     { label: '38', value: 38 },
     { label: '40', value: 40 }];
-  
+
   public enabled = false;
   public pobEnabled = false;
   public siteEnabled = false;
@@ -89,7 +89,7 @@ export class EsriLabelConfigComponent implements OnInit {
     const labelConfig: EsriLabelConfiguration = { enabled: event.checked, font: this.selectedFont, size: this.selectedSize, pobEnabled: this.pobEnabled, siteEnabled: this.siteEnabled };
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
-  
+
   onPOBEnabledChanged(event: any) {
     this.pobEnabled = (!this.enabled && event.checked) ? false : event.checked && this.enabled;
     const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, font: this.selectedFont, size: this.selectedSize, pobEnabled: this.pobEnabled, siteEnabled: this.siteEnabled };
@@ -101,4 +101,3 @@ export class EsriLabelConfigComponent implements OnInit {
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
 }
- 

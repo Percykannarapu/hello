@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 @import "assets/valassis-variables";
 @import "assets/sass/variables";
+@import "assets/sass/theme/variables";
 
 .impower.splash-screen {
   background: $primaryDarkColor url("assets/layout/images/logo.png") no-repeat center;
@@ -60,6 +61,12 @@ body {
           }
         }
       }
+      > tr > td {
+        border-left: 1px solid $contentBorderColor;
+      }
+      > tr > td:first-child {
+        border-left: 0 none;
+      }
       > tr:nth-child(even) {
         color: $valDeselectedTextColor;
         &.home-geo {
@@ -104,6 +111,11 @@ body {
   }
 
   .ui-widget-header {
+    &:not(.ui-dataview-header) {
+      .ui-inputtext {
+        width: 100%;
+      }
+    }
     .ui-dropdown-label {
       color: $textColor;
     }
@@ -158,10 +170,6 @@ body {
   span.pi.ui-toast-icon {
     font-size: 2em;
   }
-}
-
-.val-custom-popup-tree-table table > tbody > tr > td.val-custom-cell {
-  padding: 0.25em 1em;
 }
 
 .ui-tabview.ui-tabview-top > ul.ui-tabview-nav > li:focus {

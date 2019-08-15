@@ -1,4 +1,4 @@
-import { Component, DoCheck, Input, OnInit } from '@angular/core';
+import { Component, DoCheck, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { TreeNode } from 'primeng/api';
 import { CustomPopUpDefinition } from '../../layer-configuration';
 
@@ -17,7 +17,9 @@ export interface NodeVariable {
 
 @Component({
   selector: 'val-esri-geometry-popup',
-  templateUrl: 'esri-geography-popup.component.html'
+  templateUrl: 'esri-geography-popup.component.html',
+  styleUrls: ['./esri-geography-popup.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class EsriGeographyPopupComponent implements OnInit, DoCheck {
 

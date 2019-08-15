@@ -82,7 +82,8 @@
 
           <p-listbox [multiple]="true" [checkbox]="true" [filter]="true" [options]="searchResultList" [(ngModel)]="selectedSearchResults" styleClass="business-search-result-list">
             <p-header>
-              <div class="business-search-result-header">{{searchResultList.length}} Businesses found</div>
+              <div class="business-search-result-header" *ngIf="!(searchResultList.length)">Search Results (maximum 20,000)</div>
+              <div class="business-search-result-header" *ngIf="(searchResultList.length)">{{searchResultList.length}} Businesses found</div>
             </p-header>
             <ng-template let-result pTemplate="item">
               <div class="business-search-result">
