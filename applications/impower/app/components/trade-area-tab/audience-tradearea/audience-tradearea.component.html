@@ -1,5 +1,5 @@
-<div class="ui-g" style="background: #D8E5D1; margin-bottom: 0%;">
-  <div class="ui-g-6 card">
+<div class="ui-g" style="background: #D8E5D1; margin-bottom: 0;">
+  <div class="ui-g-6 card nopad">
     <p-tabView>
       <p-tabPanel header="Interest and In-Market">
         <div class="narrow-layout">
@@ -14,7 +14,8 @@
       </p-tabPanel>
     </p-tabView>
   </div>
-  <div class="ui-g-6 card">
+
+  <div class="ui-g-6 card nopad val-audience-trade-area-config">
     <p-panel header="Trade Area Configuration">
       <form class="ui-g" novalidate [formGroup]="configForm" autocomplete="off">
         <div class="ui-g-12 ui-g-nopad">
@@ -37,7 +38,7 @@
             <a class="val-spacer-left"></a>
             <p-checkbox formControlName="includeMustCover" binary="true"
                         pTooltip="Force all geographies in the must cover radius to be selected regardless of their score"></p-checkbox>
-          </div>          
+          </div>
           <div class="ui-g-6">
             Driving variable in addition to distance:
           </div>

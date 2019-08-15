@@ -1,0 +1,5 @@
+body .ui-treetable .ui-treetable-tbody > tr > td.val-custom-cell {
+  border-left: 1px solid #cacaca;
+  border-right: 1px solid #cacaca;
+  padding: 0.25em 0.1em 0.25em 0.75em;
+}
