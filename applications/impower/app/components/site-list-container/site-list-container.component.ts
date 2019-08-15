@@ -200,19 +200,19 @@ export class SiteListContainerComponent implements OnInit {
       // this.store$.dispatch(new ValidateEditedHomeGeoAttributes({oldData, siteOrSites, siteType, editedTags, attributeList}));
     } 
     else {
-      if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) {
+      if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) { 
+          siteOrSites['latitude'] = null;
+          siteOrSites['longitude'] = null;
           this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
       } else if (ifLatLongChanged) {
         // const newLocation: ValGeocodingRequest = oldData; 
           newLocation.recordStatusCode = 'PROVIDED';
           newLocation.xcoord = Number(siteOrSites['longitude']);
           newLocation.ycoord = Number(siteOrSites['latitude']);
-          const sites = [siteOrSites] ;
          // const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
         //  const reCalculateHomeGeos = false;
         //  const isLocationEdit =  true;
-         this.handleCustomTradeAreaIfExistAndEdit(oldData);
-         this.appEditSiteService.sendEditLocationData({'siteData': sites, 'type': siteType, 'isEdit': true});
+        this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
         //  this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
          this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
       } else {
@@ -227,8 +227,10 @@ export class SiteListContainerComponent implements OnInit {
   }
 
   private geocodeAndHomegeocode(oldData: ImpGeofootprintLocation, siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes) : void {
-        siteOrSites['latitude'] = null;
-        siteOrSites['longitude'] = null;
+        delete siteOrSites['Home Zip Code'];
+        delete siteOrSites['Home ATZ'];
+        delete siteOrSites['Home Carrier Route'];
+        delete siteOrSites['Home Digital ATZ'];
         if (oldData != null){
           this.handleCustomTradeAreaIfExistAndEdit(oldData);
           this.appEditSiteService.sendEditLocationData({'siteData': siteOrSites, 'type': siteType, 'isEdit': true});
