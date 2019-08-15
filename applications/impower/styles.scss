@@ -148,6 +148,14 @@ body {
       border-top-width: 0;
     }
   }
+
+  .ui-radiobutton .ui-radiobutton-box:before {
+    content: normal;
+  }
+
+  .ui-chkbox .ui-chkbox-box:before {
+    content: normal
+  }
 }
 
 // Valassis-specific options
