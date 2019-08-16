@@ -15,6 +15,10 @@ export enum EsriMapActionTypes {
   FeaturesSelected = '[Esri Map] Features Selected',
   SetSelectedLayer = '[Esri Map] Set Selected Layer Id',
   SetLabelConfiguration = '[Esri Map] Set Label Configuration',
+  
+  PrintMap = '[Esri Map] Print Map',
+  SetPrintRenderer = '[Esri Map] Set Shading Renderer for Print Service',
+  PrintJobComplete = '[Esri Map] Print Job Complete',
 
   SetLayerLabelExpressions = '[Esri Map] Set Layer Label Expressions',
 
@@ -84,6 +88,21 @@ export class ResetMapState implements Action {
     readonly type = EsriMapActionTypes.ResetMapState;
 }
 
+export class PrintMap implements Action{
+  readonly type = EsriMapActionTypes.PrintMap;
+  constructor(public payload: { templateOptions: {title: string, author: string }, serviceUrl: string}){}
+}
+
+export class SetPrintRenderer implements Action{
+  readonly type = EsriMapActionTypes.SetPrintRenderer;
+  constructor(public payload: {geos: string[], portalId: string, minScale: number}){}
+}
+
+export class PrintJobComplete implements Action {
+  readonly type = EsriMapActionTypes.PrintJobComplete;
+  constructor(public payload: { result: string }) {}
+}
+
 export type EsriMapActions =
   InitializeMap
   | InitializeMapSuccess
@@ -99,4 +118,7 @@ export type EsriMapActions =
   | SetLabelConfiguration
   | SetLayerLabelExpressions
   | ResetMapState
+  | PrintMap
+  | SetPrintRenderer
+  | PrintJobComplete
   ;

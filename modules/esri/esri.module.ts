@@ -29,6 +29,7 @@ import { allEffects } from './src/state/esri.effects';
 import { esriReducers } from './src/state/esri.reducers';
 import { AppState, selectors } from './src/state/esri.selectors';
 import { ForRootOptions, forRootOptionsToken, provideEsriAppOptions, provideEsriAuthOptions, provideEsriLoaderOptions } from './esri-module-factories';
+import { EsriPrintingService } from './src/services/esri-printing-service';
 
 export function initializer(store: Store<AppState>) {
   return function () {
@@ -88,6 +89,7 @@ export class EsriModule {
         EsriMapInteractionService,
         EsriQueryService,
         EsriRendererService,
+        EsriPrintingService,
         { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] }
       ]
     };

@@ -6,6 +6,7 @@ import { EsriLayerService } from './esri-layer.service';
 import { EsriMapState } from '../state/map/esri.map.reducer';
 import { ShadingData, Statistics } from '../state/map/esri.renderer.reducer';
 import { ColorPalette, getColorPalette } from '../models/color-palettes';
+import { tap, map } from 'rxjs/operators';
 
 interface OutlineSetup {
   defaultWidth: number;
@@ -31,7 +32,8 @@ export class EsriRendererService {
 
 
   constructor(private mapService: EsriMapService,
-              private layerService: EsriLayerService) {}
+              private layerService: EsriLayerService,
+              ) {}
 
   private static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
   private static createSymbol(fillColor: number[] | __esri.Color, outlineColor: number[] | __esri.Color, outlineWidth: number) : __esri.SimpleFillSymbol;
@@ -324,6 +326,55 @@ export class EsriRendererService {
     if (layerView != null) {
       if (objectIds.length > 0) this.highlightHandler = layerView.highlight(objectIds);
     }
+  }
+
+  private generateArcadeForGeos(geos: string[]) : string {
+    const arcadeValues: Array<string> = [];
+    geos.forEach( geo => arcadeValues.push(`\"${geo}\":1`));
+    const arcade = `var geos = {${arcadeValues}};
+                    if(hasKey(geos, $feature.geocode)) {
+                      return 1;
+                    }
+                    else {
+                    return 0;
+                    }`;
+    return arcade;
+  }
+
+
+  public createUniqueValueRenderer(geos: string[], mapState: EsriMapState) : Partial<__esri.UniqueValueRenderer>{
+      console.log('call to create unique value renderer');
+      const arcade = this.generateArcadeForGeos(geos);
+      let renderer: Partial<__esri.UniqueValueRenderer> ;
+      const result: any = [];
+      const defaultSymbol = EsriRendererService.createSymbol([0, 0, 0, 0], [0, 0, 0, 0], 1);
+
+        result.push({
+            value: '1',
+            symbol: EsriRendererService.createSymbol([0, 255, 0, 0.25], [0, 0, 0, 0], 1),
+          });
+     renderer =  {
+        type: 'unique-value',
+        field: 'geocode',
+        defaultSymbol: defaultSymbol,
+        valueExpression: arcade,
+        uniqueValueInfos: result,
+      };
+      return renderer;
+    }
+
+    
+  public setRendererForPrint(geos: string[], mapState: EsriMapState, portalId: string, minScale: number, visibility: boolean){
+    console.log('creating shading renderer for Print');
+    return  this.layerService.createPortalLayer(portalId, 'ShadingLayer', minScale, true).pipe(
+             tap(newLayer => {
+              newLayer.spatialReference = {wkid: 4326} as __esri.SpatialReference;
+              newLayer.popupEnabled = false;
+              newLayer.labelsVisible = false;
+              newLayer.renderer = this.createUniqueValueRenderer(geos, mapState) as __esri.UniqueValueRenderer;
+              this.mapService.mapView.map.add(newLayer);
+              }),
+            );
   }
 
   public clearHighlight() : void {

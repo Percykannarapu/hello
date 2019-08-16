@@ -28,6 +28,7 @@ export const defaultEsriAppSettings: EsriAppSettings = {
   maxPointsPerBufferQuery: 250,
   maxPointsPerAttributeQuery: 50,
   maxPointsPerServiceQuery: 5000,
+  printServiceUrl: null,
   defaultMapParams: {
     layers: []
   },

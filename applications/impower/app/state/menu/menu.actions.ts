@@ -14,7 +14,15 @@ export enum MenuActionTypes {
   ExportGeofootprint = '[Application Menu] Export Geofootprint',
   ExportLocations = '[Application Menu] Export Locations',
   ExportApioNationalData = '[Application Menu] Export Online Audience National Data',
-  ExportToValassisDigital = '[Application Menu] Export Sites to Valassis Digital'
+  ExportToValassisDigital = '[Application Menu] Export Sites to Valassis Digital',
+  
+  OpenPrintViewDialog = '[Application Menu] Open Print View Dialog',
+  ClosePrintViewDialog = '[Application Menu] Close Print View Dialog',
+
+}
+export enum PrintActionTypes{
+  PrintMapFailure = '[Print Map] Print Map Failed',
+  PrintMapSuccess = '[Print Map] Print Map Succeeded',
 }
 
 export class SaveAndReloadProject implements Action {
@@ -65,6 +73,26 @@ export class ExportToValassisDigital implements Action {
   readonly type = MenuActionTypes.ExportToValassisDigital;
 }
 
+export class OpenPrintViewDialog implements Action {
+  readonly type = MenuActionTypes.OpenPrintViewDialog;
+}
+
+export class ClosePrintViewDialog implements Action {
+  readonly type = MenuActionTypes.ClosePrintViewDialog;
+}
+
+export class PrintMapFailure implements Action {
+  readonly type = PrintActionTypes.PrintMapFailure;
+  constructor(public payload: { err: any }) {}
+}
+
+export class PrintMapSuccess implements Action {
+  readonly type = PrintActionTypes.PrintMapSuccess;
+  constructor(public payload: { url: string }) {}
+}
+
+
+
 export type MenuActions =
   SaveAndReloadProject |
   SaveAndCreateNew |
@@ -76,4 +104,14 @@ export type MenuActions =
   ExportGeofootprint |
   ExportLocations |
   ExportApioNationalData |
-  ExportToValassisDigital;
+  ExportToValassisDigital |
+  OpenPrintViewDialog |
+  ClosePrintViewDialog;
+
+
+export type PrintActions = PrintMapSuccess |
+                           PrintMapFailure;
+
+
+
+ 

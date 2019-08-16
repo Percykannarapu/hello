@@ -75,6 +75,8 @@ export class EnvironmentData {
   };
 
   public static serviceUrls = {
-    homeGeocode: `${EnvironmentData.esri.portalServer}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`
+    homeGeocode: `${EnvironmentData.esri.portalServer}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`,
+    valPrintService : `https://valvcsimpor1vm.val.vlss.local/arcgis-server2/rest/services/PrintLayout/GPServer/Print%20Layout`
+
   };
 }

@@ -17,6 +17,7 @@ export interface EsriAppSettings {
   maxPointsPerBufferQuery: number;
   maxPointsPerAttributeQuery: number;
   maxPointsPerServiceQuery: number;
+  printServiceUrl: string;
   defaultMapParams: __esri.MapProperties;
   defaultViewParams: __esri.MapViewProperties;
 }

@@ -84,6 +84,7 @@ export class EnvironmentData {
   };
 
   public static serviceUrls = {
-    homeGeocode: `${EnvironmentData.esri.portalServer}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`
+    homeGeocode: `${EnvironmentData.esri.portalServer}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`,
+    valPrintService : `https://vallomgis002vm.val.vlss.local:6443/arcgis/rest/services/CurrentMapView/GPServer/CurrentMapView`
   };
 }

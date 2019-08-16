@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { of } from 'rxjs';
@@ -7,8 +7,12 @@ import { SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { EsriMapService } from '../../services/esri-map.service';
+import { EsriPrintingService } from '../../services/esri-printing-service';
 import { AppState, internalSelectors, selectors } from '../esri.selectors';
-import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, SetPopupVisibility, CopyCoordinatesToClipboard } from './esri.map.actions';
+import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, SetPopupVisibility, CopyCoordinatesToClipboard, SetPrintRenderer, PrintMap, PrintJobComplete} from './esri.map.actions';
+import { EsriAppSettingsToken, EsriAppSettings } from '../../configuration';
+import { EsriGeoprocessorService } from '../../services/esri-geoprocessor.service';
+import { EsriRendererService } from '../../services/esri-renderer.service';
 
 @Injectable()
 export class EsriMapEffects {
@@ -57,9 +61,40 @@ export class EsriMapEffects {
     tap(([action, labelConfig, layerConfig]) => this.layerService.setLabels(labelConfig, layerConfig))
   );
 
+
+  @Effect({dispatch: false})
+  handlePrintMap$ = this.actions$.pipe(
+    ofType<PrintMap>(EsriMapActionTypes.PrintMap),
+    tap(() => console.log('Inside Print effect')),
+    map((action) => this.printingService.createPrintPayload(action.payload.templateOptions)),
+    switchMap((printParams) => 
+    this.geoprocessorService.processPrintJob<__esri.PrintResponse>('https://vallomgis002vm.val.vlss.local:6443/arcgis/rest/services/CurrentMapView/GPServer/CurrentMapView', printParams)
+    .pipe(
+      map(response => {
+        this.layerService.removeLayer('ShadingLayer');
+        return this.store$.dispatch(new PrintJobComplete({result: response.url})) ;
+      }),
+      ),
+  ),
+  );
+
+  @Effect({dispatch: false})
+  setShadingRender$ = this.actions$.pipe(
+    ofType<SetPrintRenderer>(EsriMapActionTypes.SetPrintRenderer),
+    withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
+    tap(() => console.log('call to set map renderer')),
+    switchMap(([action, mapState]) => this.esriRendererService.setRendererForPrint(action.payload.geos, mapState, action.payload.portalId, action.payload.minScale, true).pipe(
+    )),
+  );
+
   constructor(private actions$: Actions,
               private store$: Store<AppState>,
               private mapService: EsriMapService,
               private layerService: EsriLayerService,
-              private mapInteractionService: EsriMapInteractionService) {}
+              private esriRendererService: EsriRendererService,
+              private mapInteractionService: EsriMapInteractionService,
+              private geoprocessorService: EsriGeoprocessorService,
+              private printingService: EsriPrintingService,
+              @Inject(EsriAppSettingsToken) private settings: EsriAppSettings
+              ) {}
 }

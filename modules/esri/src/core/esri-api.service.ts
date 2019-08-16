@@ -46,7 +46,10 @@ export class EsriApi {
     'esri/layers/GraphicsLayer',
     'esri/geometry/projection',
     'esri/geometry/SpatialReference',
-    'esri/widgets/Expand'
+    'esri/widgets/Expand',
+    'esri/tasks/PrintTask',
+    'esri/tasks/support/PrintParameters',
+    'esri/tasks/support/PrintTemplate'
 ];
 
   public static config: __esri.config;
@@ -92,6 +95,9 @@ export class EsriApi {
   public static projection: __esri.projection;
   public static SpatialReference: __esri.SpatialReferenceConstructor;
   public static Expand: __esri.ExpandConstructor;
+  public static PrintTask: __esri.PrintTaskConstructor;
+  public static PrintParameters: __esri.PrintParametersConstructor;
+  public static PrintTemplate: __esri.PrintTemplateConstructor;
 
   public static widgets: EsriWidgets;
 
@@ -151,7 +157,10 @@ export class EsriApi {
       EsriApi.GraphicsLayer,
       EsriApi.projection,
       EsriApi.SpatialReference,
-      EsriApi.Expand
+      EsriApi.Expand,
+      EsriApi.PrintTask,
+      EsriApi.PrintParameters,
+      EsriApi.PrintTemplate
     ] = modules;
 
     EsriApi.widgets = new EsriWidgets();

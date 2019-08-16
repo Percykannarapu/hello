@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { EsriApi } from '../core/esri-api.service';
+import { EsriMapService } from './esri-map.service';
 
 @Injectable()
 export class EsriGeoprocessorService {
 
-  constructor() { }
+  constructor(private esriMapService: EsriMapService) { }
 
   public processJob<T>(serviceUrl: string, servicePayload: any, resultType: string = 'out_features') : Observable<{ value: T }> {
     const processor = new EsriApi.Geoprocessor({ url: serviceUrl });
@@ -24,4 +25,27 @@ export class EsriGeoprocessorService {
       }
     });
   }
+
+  public processPrintJob<T>(printServiceUrl: string, servicePayload: __esri.PrintParameters) : Observable<T> {
+
+    const processor = new EsriApi.PrintTask({url: printServiceUrl});
+
+   return Observable.create(async observer => {
+      try {
+        const printResult = await processor.execute(servicePayload);
+        console.log('printResults:::', printResult);
+
+        // if (printResult == null) {
+          //   observer.error(printResult);
+          // } else {
+            // const dataResult = await processor.getResultData(printResult.jobId, 'reportUrl');
+            observer.next(printResult);
+            observer.complete();
+          // }
+      } catch (err) {
+        observer.error(err);
+      }
+    });
+  }
+
 }

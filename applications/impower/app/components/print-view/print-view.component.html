@@ -1,0 +1,29 @@
+ <p-dialog header="Print Current View" [visible]="(displayDialog$ | async)" [modal]="true" [style]="{width: '450px', minWidth: '200px', height: '200px'}" [closable]="false" [closeOnEscape]="false">
+      <div class="dialog-form">
+          <form novalidate  [formGroup]="printForm" autocomplete="off">
+
+            <div class="ui-g-12" >
+              <span class="md-inputfield">
+                  <input id="fileName" type="text" formControlName="title" pInputText class="val-full-width">
+                  <label for="fileName">Title</label>
+              </span>
+            </div>
+            <br>
+            <div class="ui-g-12">
+            <span class="md-inputfield">
+                <input id ="subTitle" type="text" formControlName="subTitle" pInputText class="val-full-width"> 
+                <label for="subTitle"> Sub-Title </label>
+            </span>
+            </div> 
+           </form>  
+     </div>
+
+    <p-footer>
+        <button type="submit" pButton label="Print" (click)="onSubmit(printForm.value)"></button>
+    </p-footer>
+    
+  </p-dialog>
+
+     
+
+

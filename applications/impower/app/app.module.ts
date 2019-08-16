@@ -143,6 +143,7 @@ import { UploadMustCoverComponent } from './components/trade-area-tab/upload-mus
 import { EsriModule } from '@val/esri';
 import { EnvironmentData } from '../environments/environment';
 import { AppEditSiteService } from './services/app-editsite.service';
+import { PrintViewComponent } from './components/print-view/print-view.component';
 
 @NgModule({
     imports: [
@@ -214,6 +215,8 @@ import { AppEditSiteService } from './services/app-editsite.service';
             userName: EnvironmentData.esri.userName,
             password: EnvironmentData.esri.password,
             referer: window.location.origin
+          }, app: {
+            printServiceUrl: EnvironmentData.serviceUrls.valPrintService,
           }
         }),
         MessagingModule.forRoot(AppMessagingService),
@@ -262,7 +265,8 @@ import { AppEditSiteService } from './services/app-editsite.service';
         ConfirmationContainerComponent,
         ConfirmationDialogComponent,
         UploadMustCoverComponent,
-        EditLocationsComponent
+        EditLocationsComponent,
+        PrintViewComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
