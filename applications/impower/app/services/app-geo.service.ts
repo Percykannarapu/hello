@@ -348,7 +348,7 @@ export class AppGeoService {
     const geosToSave: ImpGeofootprintGeo[] = [];
     const allAttributes: GeoAttribute[] = [];
     locationMap.forEach((attributes, location) => {
-      const currentTas = location.impGeofootprintTradeAreas.filter(ta => tradeAreaSet.has(ta));
+      const currentTas = location.impGeofootprintTradeAreas.filter(ta => tradeAreaSet.has(ta)).sort((a, b) => a.taRadius - b.taRadius);
       for (let i = 0; i < currentTas.length; ++i) {
         const geoSet = new Set<string>();
         for (const currentPoint of attributes) {
