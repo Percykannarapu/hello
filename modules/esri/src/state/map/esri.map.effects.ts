@@ -66,9 +66,9 @@ export class EsriMapEffects {
   handlePrintMap$ = this.actions$.pipe(
     ofType<PrintMap>(EsriMapActionTypes.PrintMap),
     tap(() => console.log('Inside Print effect')),
-    map((action) => this.printingService.createPrintPayload(action.payload.templateOptions)),
-    switchMap((printParams) => 
-    this.geoprocessorService.processPrintJob<__esri.PrintResponse>('https://vallomgis002vm.val.vlss.local:6443/arcgis/rest/services/CurrentMapView/GPServer/CurrentMapView', printParams)
+    map((action) => ({ printParams: this.printingService.createPrintPayload(action.payload.templateOptions), serviceUrl: action.payload.serviceUrl})),
+    switchMap((params) => 
+    this.geoprocessorService.processPrintJob<__esri.PrintResponse>(params.serviceUrl, params.printParams)
     .pipe(
       map(response => {
         this.layerService.removeLayer('ShadingLayer');
