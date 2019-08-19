@@ -414,6 +414,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                case 'AUDIENCE':
                   varValue = 'Audience Trade Area';
                   break;
+               case 'MANUAL':
+                  varValue = 'Manual Trade Area';
+                  break;
                default:
                   varValue = 'Custom';
             }
