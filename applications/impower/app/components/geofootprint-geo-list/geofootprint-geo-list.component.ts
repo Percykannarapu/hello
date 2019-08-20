@@ -300,7 +300,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       type createCompositeTuple = [ImpProject, Audience[], ImpProjectVar[], ImpGeofootprintGeo[], string[], AttributeEntity, GridGeoVar, Map<string, number>, boolean];
 
       this.allImpGeofootprintGeos$ = combineLatest<createCompositeTuple, createCompositeTuple>
-        (this.projectBS$, this.allAudiences$, this.allProjectVars$, this.allGeos$, this.allMustCovers$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$, this.listCollapse$)
+        (this.projectBS$, this.allAudiences$, this.allProjectVars$, this.allGeos$, this.allMustCovers$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$, this.listCollapse$, this.allLocations$)
         .pipe(tap(x => this.setGridTotals()),
               tap(x => this.syncHeaderFilter()),
               map(([discovery, audiences, projectVars, geos, mustCovers, attributes, vars, varColOrder]: createCompositeTuple) => {
