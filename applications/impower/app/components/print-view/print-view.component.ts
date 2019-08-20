@@ -5,7 +5,7 @@ import { printViewDialogFlag } from 'app/state/menu/menu.reducer';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PrintMap } from '@val/esri';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { AppConfig } from 'app/app.config';
 
 @Component({
@@ -25,7 +25,7 @@ export class PrintViewComponent implements OnInit {
   ngOnInit() {
 
     this.printForm = this.fb.group({
-      title: '',
+      title: ['', Validators.required],
       subTitle: '',
     });
     this.displayDialog$ = this.store$.pipe(select(printViewDialogFlag));
@@ -39,4 +39,10 @@ export class PrintViewComponent implements OnInit {
     this.store$.dispatch(new PrintMap({ templateOptions: formData, serviceUrl: this.config.serviceUrls.valPrintService}));
     this.printForm.reset();
   }
+
+  hasErrors(controlKey: string) : boolean {
+    const control = this.printForm.get(controlKey);
+    return (control.dirty || control.untouched || control.value == null) && (control.errors != null);
+  }
+  
 }
