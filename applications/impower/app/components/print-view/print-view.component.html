@@ -4,8 +4,12 @@
 
             <div class="ui-g-12" >
               <span class="md-inputfield">
-                  <input id="fileName" type="text" formControlName="title" pInputText class="val-full-width">
-                  <label for="fileName">Title</label>
+                  <input id="fileName" type="text" formControlName="title" pInputText class="val-full-width"> 
+                  <span class="ui-inputgroup-addon" *ngIf="!hasErrors('title')">&nbsp;</span>
+                  <span class="ui-inputgroup-addon" *ngIf="hasErrors('title')">
+                      <i class="ui-icon-error error-icon" title="Title is required"></i>
+                  </span>
+                  <label for="fileName">Title (required)</label>
               </span>
             </div>
             <br>
@@ -19,7 +23,7 @@
      </div>
 
     <p-footer>
-        <button type="submit" pButton label="Print" (click)="onSubmit(printForm.value)"></button>
+        <button type="submit" pButton label="Print" (click)="onSubmit(printForm.value)" [disabled]="printForm.invalid"></button>
     </p-footer>
     
   </p-dialog>
