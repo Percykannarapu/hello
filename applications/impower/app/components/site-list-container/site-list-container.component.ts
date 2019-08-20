@@ -161,7 +161,7 @@ export class SiteListContainerComponent implements OnInit {
       'siteNumber': siteOrSites.number,
       'geocoderZip': editedLocation[0].locZip.substring(0, 5),
       'abZip': editedLocation[0].locZip.substring(0, 5)}];
-
+      const analysisLevel: string = this.appStateService.analysisLevel$.getValue();
       const editedTags: string[] = [];
       const tagToField = {
         'zip': 'Home Zip Code',
@@ -194,6 +194,9 @@ export class SiteListContainerComponent implements OnInit {
       editedTags.forEach(tag => {
         editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];
       });
+      if (analysisLevel != null) {
+          editedLocation[0].homeGeocode = editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()])[0].attributeValue;
+      }
       this.impGeofootprintLocationService.update(oldData, editedLocation[0]);
       this.appLocationService.processHomeGeoAttributes(attributeList, this.impGeofootprintLocationService.get().filter(l => l.locationNumber === oldData.locationNumber));
       // this.store$.dispatch(new ValidateEditedHomeGeoAttributes({oldData, siteOrSites, siteType, editedTags, attributeList}));
