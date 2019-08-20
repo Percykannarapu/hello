@@ -13,6 +13,7 @@
             <th class="checkbox-column">National</th>
             <th class="index-column">Index Base</th>
             <th>Audience Name</th>
+            <th>Source</th>
             <th class="button-column">Delete</th>
           </tr>
         </ng-template>
@@ -54,6 +55,9 @@
             </td>
             <td>
               {{audience.audienceName}}
+            </td>
+            <td>
+              {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
             </td>
             <td class="button-column">
               <button (click)="onRemove(audience)" icon="ui-icon-delete" pButton style="font-size: 13px; width: 24px; height:24px; margin: auto; margin: auto; display: block" pTooltip="Click to delete the audience from your project"></button>
