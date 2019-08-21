@@ -11,6 +11,7 @@ import { AdvertiserInfo } from '../../val-modules/mediaexpress/models/Advertiser
 import { Objective } from '../../val-modules/mediaexpress/models/Objective';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditWrap } from '../../val-modules/mediaexpress/models/RfpUiEditWrap';
+import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
 
 export interface NormalizedPayload {
    mediaPlanGroup?: MediaPlanGroup;
@@ -27,4 +28,5 @@ export interface NormalizedPayload {
    rfpUiEditDetails?: RfpUiEditDetail[];
    rfpUiEdits?: RfpUiEdit[];
    rfpUiEditWraps?: RfpUiEditWrap[];
+   mediaPlanPrefs?: MediaPlanPref[];
  }

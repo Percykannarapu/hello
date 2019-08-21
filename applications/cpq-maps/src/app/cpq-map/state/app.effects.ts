@@ -82,8 +82,14 @@ export class AppEffects {
     ofType(SharedActionTypes.SaveMediaPlan),
     tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.appConfig.ApplicationBusyKey, message: 'Saving Media Plan...' }))),
     withLatestFrom(this.store$.pipe(select(localSelectors.getRfpUiEditDetailEntity))),
-    map(([action, entity]) => [action.payload.updateIds.map(u => entity[u]), action.payload.addIds.map(a => entity[a])]),
-    switchMap(([updates, adds]) => this.entityHelper.saveMediaPlan(updates, adds).pipe(
+    // map(([action, entity]) => [action.payload.updateIds.map(u => entity[u]), 
+    //                            action.payload.addIds.map(a => entity[a]), 
+    //                           [action.payload.mapConfig]]),
+    map(([action, entity]) => {return {updates: action.payload.updateIds.map(u => entity[u]), 
+                               adds: action.payload.addIds.map(a => entity[a]), 
+                               mapConfig: action.payload.mapConfig}; }),
+    //switchMap(([updates, adds, mapConfig]) => this.entityHelper.saveMediaPlan(updates, adds, mapConfig).pipe(
+      switchMap((params) => this.entityHelper.saveMediaPlan(params.updates, params.adds, params.mapConfig).pipe(
       map(() => new SaveSucceeded()),
       catchError(err => of(new SaveFailed({ err })))
     ))

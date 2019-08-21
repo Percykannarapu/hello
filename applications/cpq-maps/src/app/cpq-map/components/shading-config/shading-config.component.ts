@@ -4,11 +4,15 @@ import { SelectItem } from 'primeng/api';
 import { filter, withLatestFrom } from 'rxjs/operators';
 import { FullState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
-import { SetNonVariableShading, SetVariableShading, CalculateEqualIntervals, SetClassBreakValues } from '../../state/shading/shading.actions';
+import { SetNonVariableShading, SetVariableShading, CalculateEqualIntervals, SetClassBreakValues, SetShadingType } from '../../state/shading/shading.actions';
 import { ShadingState, ShadingType, VarDefinition, VariableRanges } from '../../state/shading/shading.reducer';
 import { SharedState } from '../../state/shared/shared.reducers';
 import { of } from 'rxjs';
 import { mapBy } from '@val/common';
+import { MapConfig } from '../header-bar/header-bar.component';
+import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
+import { Dictionary } from '@ngrx/entity';
+import { SetIsDistrQtyEnabled, SetGridSize } from '../../state/shared/shared.actions';
 
 export enum NumericVariableShadingMethod {
   StandardIndex = 'Standard Index',
@@ -36,11 +40,13 @@ export class ShadingConfigComponent implements OnInit {
   variableOptions: Array<SelectItem> = [];
   selectedVar: VarDefinition;
   numericMethodOptions: Array<SelectItem> = [];
-  selectedNumericMethod: NumericVariableShadingMethod = DEFAULT_NUMERIC_METHOD;
+  selectedNumericMethod: NumericVariableShadingMethod = NumericVariableShadingMethod.EqualIntervals;
   classBreakOptions: Array<SelectItem> = [];
   selectedClassBreaks: number = DEFAULT_CLASS_BREAKS;
 
   classBreakValues: number[] = [...DEFAULT_BREAK_VALUES];
+
+  mapConfig: MapConfig;
 
   constructor(private store: Store<FullState>) { }
 
@@ -48,14 +54,14 @@ export class ShadingConfigComponent implements OnInit {
     this.setupDefaultDropDownOptions();
     this.store.pipe(
       select(localSelectors.getAppReady),
-      withLatestFrom(this.store.select(localSelectors.getSharedState), this.store.select(localSelectors.getShadingState)),
+      withLatestFrom(this.store.select(localSelectors.getSharedState), this.store.select(localSelectors.getShadingState), this.store.select(localSelectors.getMediaPlanPrefEntities)),
       filter(([ready]) => ready)
-    ).subscribe(([, shared, shading]) => this.setupDynamicDropDownOptions(shared, shading));
+    ).subscribe(([, shared, shading, mediaPlanPref]) => this.setupDynamicDropDownOptions(shared, shading, mediaPlanPref));
 
     this.store.pipe(
       withLatestFrom(this.store.select(localSelectors.getShadingState)),
     ).subscribe(([,  shading]) => {
-      this.classBreakValues = shading.classBreakValues.length == 0 ? [...DEFAULT_BREAK_VALUES] : shading.classBreakValues;
+      this.classBreakValues = shading.classBreakValues != null && shading.classBreakValues.length == 0 ? [...DEFAULT_BREAK_VALUES] : shading.classBreakValues;
       this.setSelectedVar(shading);
       this.selectedNumericMethod = shading.selectedNumericMethod;
     });
@@ -78,7 +84,7 @@ export class ShadingConfigComponent implements OnInit {
     this.classBreakOptions.push({ label: '6 Classes', value: 6 });
   }
 
-  private setupDynamicDropDownOptions(state: SharedState, shading: ShadingState) {
+  private setupDynamicDropDownOptions(state: SharedState, shading: ShadingState, mediaPlanPrefs: MediaPlanPref[]) {
     if (state.isWrap)
       this.shadingTypeOptions.push({ label: 'Wrap Zone', value: ShadingType.WRAP_ZONE });
     if (state.analysisLevel === 'atz')
@@ -91,6 +97,32 @@ export class ShadingConfigComponent implements OnInit {
     this.selectedClassBreaks = shading.selectedClassBreaks;
     this.classBreakValues = shading.classBreakValues;
 
+    let mediaPlanPref: MediaPlanPref = null;
+    mediaPlanPrefs.forEach(mpPref => {
+        if (mpPref.prefGroup === 'CPQ MAPS'){
+          mediaPlanPref = mpPref;
+        }
+    });
+    if (mediaPlanPref.val != null){
+      this.mapConfig = JSON.parse(mediaPlanPref.val.replace( /[\r\n]+/gm, '' ));
+      this.selectedShadingType = ShadingType[this.mapConfig.shadeBy];
+      this.selectedVar = this.mapConfig.variable == null ? shading.availableVars[0] : this.mapConfig.variable;
+      this.selectedClassBreaks = this.mapConfig.classes;
+      this.classBreakValues = this.mapConfig.classBreakValues;
+      this.selectedNumericMethod =  this.mapConfig.method === NumericVariableShadingMethod.StandardIndex ? NumericVariableShadingMethod.StandardIndex : 
+                                     this.mapConfig.method === NumericVariableShadingMethod.EqualIntervals ? NumericVariableShadingMethod.EqualIntervals : NumericVariableShadingMethod.CustomClassifications;
+      
+      this.store.dispatch(new SetShadingType({ shadingType: this.selectedShadingType }));  
+                                      
+      if (this.selectedNumericMethod ===  NumericVariableShadingMethod.EqualIntervals){
+        this.calculateEqualIntervals(this.selectedClassBreaks, NumericVariableShadingMethod.EqualIntervals);
+      }else{
+        this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
+          breakCount: this.selectedClassBreaks, 
+          selectedVar: this.selectedVar,
+          selectedNumericMethod: this.selectedNumericMethod}));
+      }
+    }
   }
 
   private setSelectedVar(shading: ShadingState){
@@ -103,6 +135,7 @@ export class ShadingConfigComponent implements OnInit {
   }
 
   onShadingOptionChange(event: { value: ShadingType }) {
+    this.store.dispatch(new SetShadingType({ shadingType: event.value }));
     if (event.value !== ShadingType.VARIABLE) {
       this.store.dispatch(new SetNonVariableShading({ shadingType: event.value }));
     } else {
@@ -110,6 +143,10 @@ export class ShadingConfigComponent implements OnInit {
       this.selectedClassBreaks = DEFAULT_CLASS_BREAKS;
       this.classBreakValues = [...DEFAULT_BREAK_VALUES];
     }
+    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
+      breakCount: this.selectedClassBreaks, 
+      selectedVar: this.selectedVar,
+      selectedNumericMethod: this.selectedNumericMethod}));
   }
 
   onVariableOptionChanged() {

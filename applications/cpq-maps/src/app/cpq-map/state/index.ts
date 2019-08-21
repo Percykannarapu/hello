@@ -21,6 +21,7 @@ import { RfpUiEditWrapState } from './rfpUiEditWrap/rfp-ui-edit-wrap.reducer';
 import { RfpUiReviewState } from './rfpUiReview/rfp-ui-review.reducer';
 import { SharedState } from './shared/shared.reducers';
 import { TargetAudienceState } from './targetAudience/target-audience.reducer';
+import { MediaPlanPrefState } from './mediaPlanPref/media-plan-pref.reducer';
 
 export interface FullState extends LocalState, fromEsri.AppState, fromMessaging.AppState {}
 
@@ -46,5 +47,6 @@ export interface LocalState {
    rfpUiEdit: RfpUiEditState;
    rfpUiEditWrap: RfpUiEditWrapState;
    shading: ShadingState;
+   mediaPlanPref: MediaPlanPrefState;
 }
 

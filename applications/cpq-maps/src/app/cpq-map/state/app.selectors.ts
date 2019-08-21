@@ -12,6 +12,7 @@ import * as fromRfpUiReview from './rfpUiReview/rfp-ui-review.reducer';
 import * as fromMediaPlanGroup from './mediaPlanGroup/media-plan-group.reducer';
 import * as fromRfpUiEdit from './rfpUiEdit/rfp-ui-edit.reducer';
 import * as fromAdvertiserInfo from './advertiserInfo/advertiser-info.reducer';
+import * as fromMediaPlanPref from './mediaPlanPref/media-plan-pref.reducer';
 import { RfpUiEditDetail } from 'src/app/val-modules/mediaexpress/models/RfpUiEditDetail';
 import { FullPayload } from './app.interfaces';
 import { AdvertiserInfo } from 'src/app/val-modules/mediaexpress/models/AdvertiserInfo';
@@ -28,6 +29,7 @@ const getRfpUiEditState = createSelector(cpqSlice, state => state.rfpUiEdit);
 const getAdvertiserInfoState = createSelector(cpqSlice, state => state.advertiserInfo);
 const getRfpUiEditWrapState = createSelector(cpqSlice, state => state.rfpUiEditWrap);
 const getShadingState = createSelector(cpqSlice, state => state.shading);
+const getMediaPlanPrefState = createSelector(cpqSlice, state => state.mediaPlanPref);
 
 const getRfpUiEditEntities = createSelector(getRfpUiEditState, fromRfpUiEdit.selectAll);
 const getRfpUiEditDetailEntities = createSelector(getRfpUiEditDetailState, fromRfpUiEditDetail.selectAll);
@@ -39,6 +41,7 @@ const getMediaPlanEntities = createSelector(getMediaPlanState, fromMediaPlan.sel
 const getMediaPlanGroupEntities = createSelector(getMediaPlanGroupState, fromMediaPlanGroup.selectAll);
 const getRfpUiReviewEntities = createSelector(getRfpUiReviewState, fromRfpUiReview.selectAll);
 const getAdvertiserInfoEntities = createSelector(getAdvertiserInfoState, fromAdvertiserInfo.selectAll);
+const getMediaPlanPrefEntities = createSelector(getMediaPlanPrefState, fromMediaPlanPref.selectAll);
 
 const getAppReady = createSelector(getSharedState, state => state.appReady);
 const getIsSaving = createSelector(getSharedState, state => state.isSaving);
@@ -132,6 +135,8 @@ const filterGeosProjector = (newIds: number[], rfpUiEditDetailEntity: Dictionary
 
 const getFilteredGeos = createSelector(getAddIds, getRfpUiEditDetailEntity, filterGeosProjector);
 
+
+
 export const localSelectors = {
   getAppReady,
   getIsSaving,
@@ -153,4 +158,6 @@ export const localSelectors = {
   getSelectedAnalysisLevel,
   getShadingState,
   getFilteredGeos,
+  getMediaPlanPrefEntities,
+  getMediaPlanPrefState,
 };

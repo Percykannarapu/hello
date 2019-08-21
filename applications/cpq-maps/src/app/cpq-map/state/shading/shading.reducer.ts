@@ -38,6 +38,7 @@ export interface ShadingState {
   selectedClassBreaks: number;
   selectedVar: VarDefinition;
   selectedNumericMethod: NumericVariableShadingMethod;
+  shadeBy: ShadingType;
 }
 
 
@@ -51,7 +52,8 @@ export const initialState: ShadingState = {
   classBreakValues: [],
   selectedClassBreaks: 4,
   selectedVar: null,
-  selectedNumericMethod: NumericVariableShadingMethod.StandardIndex
+  selectedNumericMethod: NumericVariableShadingMethod.StandardIndex,
+  shadeBy: null,
 };
 
 type ReducerActions = ShadingActions;
@@ -84,8 +86,12 @@ export function shadingReducer(state = initialState, action: ReducerActions) : S
         selectedClassBreaks: action.payload.breakCount,
         selectedVar: action.payload.selectedVar,
         selectedNumericMethod: action.payload.selectedNumericMethod
-
-      };  
+      };
+    case ShadingActionTypes.SetShadingType:
+      return{
+        ...state,
+        shadeBy: action.payload.shadingType
+      };    
     default:
       return state;
   }

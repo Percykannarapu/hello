@@ -1,14 +1,15 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { Store, select } from '@ngrx/store';
 import { isNumber, mapBy } from '@val/common';
 import { filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
 import { GridGeosToggle } from '../../state/grid/grid.actions';
 import * as fromGridSelectors from '../../state/grid/grid.selectors';
-import { CalculateEqualIntervals, InitializeShading } from '../../state/shading/shading.actions';
-import { VarDefinition } from '../../state/shading/shading.reducer';
+import { CalculateEqualIntervals, InitializeShading, SetShadingType } from '../../state/shading/shading.actions';
+import { VarDefinition, ShadingType } from '../../state/shading/shading.reducer';
 import { NumericVariableShadingMethod } from '../shading-config/shading-config.component';
+import { MapConfig } from '../header-bar/header-bar.component';
 
 export interface FullColumn extends fromGridSelectors.GridColumn {
   formatType?: 'string' | 'number' | 'currency';
@@ -29,6 +30,7 @@ export class GridComponent implements OnInit {
   private selectedClassBreak: number = 0;
   private selectedVar: VarDefinition = null;
   private selectedNumericMethod: NumericVariableShadingMethod = NumericVariableShadingMethod.StandardIndex;
+  private shadeBy: ShadingType = ShadingType.ZIP;
 
   @Input()
   set smallSizeTable(value: boolean) {
@@ -89,6 +91,7 @@ export class GridComponent implements OnInit {
       this.selectedClassBreak = shading.selectedClassBreaks;
       this.selectedVar =  shading.selectedVar != null ? mapByNameVars.get(shading.selectedVar.name) : shading.selectedVar;
       this.selectedNumericMethod = shading.selectedNumericMethod;
+      this.shadeBy = shading.shadeBy;
      
     });
   }
@@ -101,6 +104,7 @@ export class GridComponent implements OnInit {
   onChangeRowSelection(event: { data: fromGridSelectors.GridRowBase }) {
    this.store$.dispatch(new GridGeosToggle({ geos: [event.data.selectionIdentifier] }));
    this.store$.dispatch(new InitializeShading());
+   //this.store$.dispatch(new SetShadingType({shadingType: this.shadeBy}));
    // console.log('selectedClassBreak::', this.selectedClassBreak, 'selectedVar::', this.selectedVar);
    if (this.selectedVar != null)
       this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, 

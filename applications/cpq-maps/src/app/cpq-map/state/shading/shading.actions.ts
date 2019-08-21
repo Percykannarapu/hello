@@ -9,6 +9,7 @@ export enum ShadingActionTypes {
   SetVariableShading = '[Shading] Set Selected Var',
   CalculateEqualIntervals = '[Shading] Calculate equal intervals',
   SetClassBreakValues = '[Shading] Set Class Break Values',
+  SetShadingType = '[Shading] Set Shading Type',
 }
 
 export class InitializeShading implements Action {
@@ -38,6 +39,11 @@ export class CalculateEqualIntervals implements Action{
   constructor(public payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod}){}
 }
 
+export class SetShadingType implements Action {
+  readonly type = ShadingActionTypes.SetShadingType;
+  constructor(public payload: { shadingType: ShadingType }) {}
+}
+
 export class SetClassBreakValues implements Action{
   readonly type = ShadingActionTypes.SetClassBreakValues;
   constructor(public payload: {classBreakValues: number[], 
@@ -53,5 +59,6 @@ export type ShadingActions =
   SetVariableShading |
   SetNonVariableShading |
   CalculateEqualIntervals |
-  SetClassBreakValues
+  SetClassBreakValues |
+  SetShadingType
   ;

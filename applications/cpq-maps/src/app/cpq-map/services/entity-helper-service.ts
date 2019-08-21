@@ -13,6 +13,9 @@ import { Observable, merge, EMPTY } from 'rxjs';
 import { NormalizedPayload } from '../models/NormalizedPayload';
 import { map, reduce, tap } from 'rxjs/operators';
 import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
+import { MediaPlanPrefLoaderService } from './mediaplanPref-loader-service';
+import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
+import { MediaPlanPrefPayload } from '../state/payload-models/MediaPlanPref';
 
 @Injectable({
    providedIn: 'root'
@@ -21,12 +24,14 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
 
   readonly setSelectedUrl: string = 'v1/mediaexpress/base/mediaplan/setselected';
   readonly addNewUrl: string = 'v1/mediaexpress/base/mediaplan/%id%/addGeocodes';
+  readonly savePreferences: string = 'v1/mediaexpress/base/mediaplanpref/save';
 
   constructor(private rfpUiEditLoader: RfpUiEditLoaderService,
                private rfpUiEditDetailLoader: RfpUiEditDetailLoaderService,
                private rfpUiReviewLoader: RfpUiReviewLoaderService,
                private rfpUiEditWrapLoader: RfpUiEditWrapLoaderService,
                private mediaPlanGroupLoader: MediaPlanGroupLoaderService,
+               private mediaPlanPrefLoader: MediaPlanPrefLoaderService,
                private restService: RestDataService,
                private store$: Store<LocalState>) {}
 
@@ -48,15 +53,18 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
        map(result => this.rfpUiEditWrapLoader.normalize(result))
      );
 
-     return merge(group$, rfpUiReview$, rfpUiEdit$, rfpUiEditDetail$, rfpUiEditWrap$, 3).pipe(
+     const mediaplanPref$ = this.mediaPlanPrefLoader.loadMediaPlanPref(mediaPlanId).pipe(
+       map(result => this.mediaPlanPrefLoader.normalize(result))
+     );
+
+     return merge(group$, rfpUiReview$, rfpUiEdit$, rfpUiEditDetail$, rfpUiEditWrap$, mediaplanPref$, 4).pipe(
        reduce((a, c) => Object.assign(a, c), {})
      );
    }
 
-   public saveMediaPlan(updates: RfpUiEditDetail[], adds: RfpUiEditDetail[]) : Observable<any[]> {
+   public saveMediaPlan(updates: RfpUiEditDetail[], adds: RfpUiEditDetail[], mapConfig: MediaPlanPref   ) : Observable<any[]> {
      const updatePayload = updates.map(u => ({ id: u.commonMbuId, value: u.isSelected }));
-     const filterRfpUiEditDetail = updates.filter(rfp => rfp.commonMbuId == null);
-     const setSelected$ = updates.length > 0 && filterRfpUiEditDetail.length == 0
+     const setSelected$ = updates.length > 0 && updates.filter(rfp => rfp.commonMbuId == null).length == 0
        ? this.restService.post(this.setSelectedUrl, updatePayload)
        : EMPTY;
 
@@ -68,11 +76,14 @@ import { MediaPlanGroupLoaderService } from './mediaplanGroup-loader-service';
          }
        }]
      };
-     const miniMediaPlan$ = adds.length > 0 && filterRfpUiEditDetail.length == 0
+     const miniMediaPlan$ = adds.length > 0 && updates.filter(rfp => rfp.commonMbuId == null).length == 0
        ? this.restService.post(this.addNewUrl.replace('%id%', adds[0].mediaPlanId.toString()), addPayload)
        : EMPTY;
 
-     return merge(setSelected$, miniMediaPlan$).pipe(
+     
+     const mediaplanPref$ = mapConfig  != null ? this.restService.post(this.savePreferences, mapConfig) : EMPTY;  
+
+     return merge(setSelected$, miniMediaPlan$, mediaplanPref$).pipe(
        reduce((acc, curr) => [...acc, curr], [] as RestResponse[])
      );
    }

@@ -1,5 +1,7 @@
 import { Action } from '@ngrx/store';
 import { LegendData, ResultType } from '../app.interfaces';
+import { MediaPlanPrefPayload } from '../payload-models/MediaPlanPref';
+import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
 
 export enum SharedActionTypes {
   SetAppReady = '[Shared Actions] Set App Ready',
@@ -15,7 +17,8 @@ export enum SharedActionTypes {
 
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
   SetLegendData = '[Shared Actions] Set Legend Data',
-  SetLegendHTML = '[Shared Actions] Set Legend HTML'
+  SetLegendHTML = '[Shared Actions] Set Legend HTML',
+  SetGridSize = '[Shared Actions] set Grid Size'
 }
 
 export class SetLegendHTML implements Action {
@@ -45,7 +48,7 @@ export class SetIsWrap implements Action {
 
 export class SaveMediaPlan implements Action {
     readonly type = SharedActionTypes.SaveMediaPlan;
-    constructor(public payload: { updateIds: number[], addIds: number[] }) {}
+    constructor(public payload: { updateIds: number[], addIds: number[],  mapConfig: MediaPlanPref}) {}
 }
 
 export class SaveSucceeded implements Action {
@@ -76,6 +79,11 @@ export class GeneratePdfSucceeded implements Action {
   constructor(public payload: { response: ResultType }) {}
 }
 
+export class SetGridSize implements Action {
+  readonly type = SharedActionTypes.SetGridSize;
+  constructor(public payload: { gridSize: 'small' | 'large' | 'none' }) { }
+}
+
 export type SharedActions =
   SetAppReady
   | SetIsWrap
@@ -89,5 +97,6 @@ export type SharedActions =
   | GeneratePdf
   | GeneratePfdFailed
   | GeneratePdfSucceeded
+  | SetGridSize
   ;
 

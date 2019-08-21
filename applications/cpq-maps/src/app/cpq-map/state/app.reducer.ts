@@ -27,6 +27,7 @@ import { rfpUiEditDetailreducer } from './rfpUiEditDetail/rfp-ui-edit-detail.red
 import { rfpUiReviewreducer } from './rfpUiReview/rfp-ui-review.reducer';
 import { rfpUiEditreducer } from './rfpUiEdit/rfp-ui-edit.reducer';
 import { rfpUiEditWrapReducer } from './rfpUiEditWrap/rfp-ui-edit-wrap.reducer';
+import { mediaPlanPrefReducer } from './mediaPlanPref/media-plan-pref.reducer';
 
 export const reducers: ActionReducerMap<LocalState> = {
   shared: sharedReducer,
@@ -49,7 +50,8 @@ export const reducers: ActionReducerMap<LocalState> = {
   rfpUiReview: rfpUiReviewreducer,
   rfpUiEdit: rfpUiEditreducer,
   rfpUiEditWrap: rfpUiEditWrapReducer,
-  shading: shadingReducer
+  shading: shadingReducer,
+  mediaPlanPref: mediaPlanPrefReducer
 };
 
 export function logger(reducer: ActionReducer<LocalState>) : ActionReducer<LocalState> {

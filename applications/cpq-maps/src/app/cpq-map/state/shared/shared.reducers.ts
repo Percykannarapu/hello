@@ -22,6 +22,7 @@ export interface SharedState {
    legendData: LegendData[];
    legendTitle: string;
    legendUpdateCounter: number;
+   grisSize: 'small' | 'large' | 'none';
 }
 
 const initialState: SharedState = {
@@ -41,7 +42,8 @@ const initialState: SharedState = {
    newLineItemIds: [],
    legendData: [],
    legendTitle: '',
-   legendUpdateCounter: 0
+   legendUpdateCounter: 0,
+   grisSize: null
 };
 
 type ReducerActions = SharedActions | PopupActions | ApplicationStartup |
@@ -144,6 +146,11 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
          };
       case SharedActionTypes.SetLegendHTML:
          return { ...state, legendUpdateCounter: state.legendUpdateCounter + 1 };
+      case SharedActionTypes.SetGridSize:
+         return {
+           ...state,
+           grisSize: action.payload.gridSize
+         };   
       default:
          return state;
    }
