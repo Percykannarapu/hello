@@ -47,6 +47,7 @@ export class PrintViewComponent implements OnInit {
   }
 
   closeDialog(){
+    this.printForm.reset();
     this.store$.dispatch(new DeletePrintRenderer({layerName: 'Selected Geos'}));
     this.store$.dispatch(new ClosePrintViewDialog);
   }
