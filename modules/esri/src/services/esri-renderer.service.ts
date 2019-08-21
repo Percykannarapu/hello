@@ -343,7 +343,6 @@ export class EsriRendererService {
 
 
   public createUniqueValueRenderer(geos: string[], mapState: EsriMapState) : Partial<__esri.UniqueValueRenderer>{
-      console.log('call to create unique value renderer');
       const arcade = this.generateArcadeForGeos(geos);
       let renderer: Partial<__esri.UniqueValueRenderer> ;
       const result: any = [];
@@ -365,7 +364,6 @@ export class EsriRendererService {
 
     
   public setRendererForPrint(geos: string[], mapState: EsriMapState, portalId: string, minScale: number, visibility: boolean){
-    console.log('creating shading renderer for Print');
     return  this.layerService.createPortalLayer(portalId, 'Selected Geos', minScale, true).pipe(
              tap(newLayer => {
               newLayer.spatialReference = {wkid: 4326} as __esri.SpatialReference;

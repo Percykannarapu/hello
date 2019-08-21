@@ -7,7 +7,7 @@ import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targetin
 import { CreateProjectUsageMetric } from '../usage/targeting-usage.actions';
 import { ClearAllNotifications, AppState, ErrorNotification, SuccessNotification, StopBusyIndicator, StartBusyIndicator } from '@val/messaging';
 import { AppDataShimService } from '../../services/app-data-shim.service';
-import { SetPrintRenderer, PrintMap, EsriMapActionTypes, PrintJobComplete } from '@val/esri';
+import { SetPrintRenderer, PrintMap, EsriMapActionTypes, PrintJobComplete, DeletePrintRenderer } from '@val/esri';
 import { AppStateService } from 'app/services/app-state.service';
 import { AppConfig } from 'app/app.config';
 import { Store } from '@ngrx/store';
@@ -132,15 +132,14 @@ export class MenuEffects {
   handlePrintError$ = this.actions$.pipe(
      ofType<PrintMapFailure>(PrintActionTypes.PrintMapFailure),
      tap((action) => {
-            console.log('Inside failure effect');
+            this.store$.dispatch(new DeletePrintRenderer({layerName: 'Selected Geos'}));
             this.store$.dispatch(new StopBusyIndicator({ key: 'Map Book'}));
             this.store$.dispatch(new ClosePrintViewDialog());
             this.store$.dispatch(new ErrorNotification({message: 'There was an error generating current view map book' }));
      })
   );
 
-
-   @Effect()
+   @Effect({dispatch: false})
    handlePrintComplete$ = this.actions$.pipe(
      ofType<PrintJobComplete>(EsriMapActionTypes.PrintJobComplete),
      tap((action) => {

@@ -65,16 +65,14 @@ export class EsriMapEffects {
   @Effect()
   handlePrintMap$ = this.actions$.pipe(
     ofType<PrintMap>(EsriMapActionTypes.PrintMap),
-    tap(() => console.log('Inside Print effect')),
     map((action) => ({ printParams: this.printingService.createPrintPayload(action.payload.templateOptions), serviceUrl: action.payload.serviceUrl})),
     switchMap((params) => 
     this.geoprocessorService.processPrintJob<__esri.PrintResponse>(params.serviceUrl, params.printParams)
     .pipe(
-      map(response =>
+      tap(response =>
         {
-          console.log('Print Response::', response);
           this.store$.dispatch(new DeletePrintRenderer({layerName: 'Selected Geos'}));
-          this.store$.dispatch(new PrintJobComplete({result: response.url}));
+          this.store$.dispatch(new PrintJobComplete({result: response.toString()}));
         }),
         catchError(err => of(new PrintMapFailure({ err })))
 

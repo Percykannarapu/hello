@@ -35,8 +35,7 @@ export class EsriGeoprocessorService {
         const printResult = await processor.execute(servicePayload).catch(err => {
           throw err;
         });
-        console.log('response after::', printResult);
-        if (printResult != null) {
+        if (printResult != null && printResult.url != null) {
             observer.next(printResult.url);
             observer.complete();
           } 
@@ -44,7 +43,6 @@ export class EsriGeoprocessorService {
           //   observer.error(printResult);
           // }
       } catch (err) {
-        console.log('Inside catch', err);
          observer.error(err);
       }
     });
