@@ -13,6 +13,7 @@ import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailu
 import { EsriAppSettingsToken, EsriAppSettings } from '../../configuration';
 import { EsriGeoprocessorService } from '../../services/esri-geoprocessor.service';
 import { EsriRendererService } from '../../services/esri-renderer.service';
+import { PrintMapFailure } from 'app/state/menu/menu.actions';
 
 @Injectable()
 export class EsriMapEffects {
@@ -61,7 +62,7 @@ export class EsriMapEffects {
     tap(([action, labelConfig, layerConfig]) => this.layerService.setLabels(labelConfig, layerConfig))
   );
 
-  @Effect({dispatch: false})
+  @Effect()
   handlePrintMap$ = this.actions$.pipe(
     ofType<PrintMap>(EsriMapActionTypes.PrintMap),
     tap(() => console.log('Inside Print effect')),
@@ -71,9 +72,12 @@ export class EsriMapEffects {
     .pipe(
       map(response =>
         {
+          console.log('Print Response::', response);
           this.store$.dispatch(new DeletePrintRenderer({layerName: 'Selected Geos'}));
           this.store$.dispatch(new PrintJobComplete({result: response.url}));
         }),
+        catchError(err => of(new PrintMapFailure({ err })))
+
       ),
   ),
   );

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriMapService } from './esri-map.service';
 
@@ -32,19 +32,23 @@ export class EsriGeoprocessorService {
 
    return Observable.create(async observer => {
       try {
-        const printResult = await processor.execute(servicePayload);
-
-        // if (printResult == null) {
-          //   observer.error(printResult);
-          // } else {
-            // const dataResult = await processor.getResultData(printResult.jobId, 'reportUrl');
-            observer.next(printResult);
+        const printResult = await processor.execute(servicePayload).catch(err => {
+          throw err;
+        });
+        console.log('response after::', printResult);
+        if (printResult != null) {
+            observer.next(printResult.url);
             observer.complete();
+          } 
+          // else {
+          //   observer.error(printResult);
           // }
       } catch (err) {
-        observer.error(err);
+        console.log('Inside catch', err);
+         observer.error(err);
       }
     });
+    
   }
 
 }
