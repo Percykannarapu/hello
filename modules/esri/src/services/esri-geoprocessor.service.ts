@@ -33,7 +33,6 @@ export class EsriGeoprocessorService {
    return Observable.create(async observer => {
       try {
         const printResult = await processor.execute(servicePayload);
-        console.log('printResults:::', printResult);
 
         // if (printResult == null) {
           //   observer.error(printResult);

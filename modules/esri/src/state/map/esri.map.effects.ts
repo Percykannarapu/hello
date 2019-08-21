@@ -61,7 +61,7 @@ export class EsriMapEffects {
     tap(([action, labelConfig, layerConfig]) => this.layerService.setLabels(labelConfig, layerConfig))
   );
 
-  @Effect()
+  @Effect({dispatch: false})
   handlePrintMap$ = this.actions$.pipe(
     ofType<PrintMap>(EsriMapActionTypes.PrintMap),
     tap(() => console.log('Inside Print effect')),
@@ -69,10 +69,11 @@ export class EsriMapEffects {
     switchMap((params) => 
     this.geoprocessorService.processPrintJob<__esri.PrintResponse>(params.serviceUrl, params.printParams)
     .pipe(
-      map(response => [
-        new DeletePrintRenderer({layerName: 'Selected Geos'}),
-        new PrintJobComplete({result: response.url}),
-      ]),
+      map(response =>
+        {
+          this.store$.dispatch(new DeletePrintRenderer({layerName: 'Selected Geos'}));
+          this.store$.dispatch(new PrintJobComplete({result: response.url}));
+        }),
       ),
   ),
   );
