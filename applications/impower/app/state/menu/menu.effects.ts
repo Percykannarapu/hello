@@ -106,7 +106,6 @@ export class MenuEffects {
   @Effect()
   exportMap$ = this.actions$.pipe(
     ofType(MenuActionTypes.OpenPrintViewDialog),
-    tap(() => console.log('Inside Effect')),
     withLatestFrom(this.stateService.analysisLevel$, this.stateService.uniqueSelectedGeocodes$),
     filter(([, analysisLevel, geos]) => (analysisLevel != null && analysisLevel.length > 0) || (geos != null && geos.length > 0)),
     map(([, analysisLevel, geos]) => {
@@ -118,7 +117,6 @@ export class MenuEffects {
   @Effect({dispatch: false})
   showBusySpinner$ = this.actions$.pipe(
     ofType<PrintMap>(EsriMapActionTypes.PrintMap),
-    tap(() => console.log('Inside show indicator effect')),
     tap(() => this.store$.dispatch(new StartBusyIndicator({ key: 'Map Book', message: 'Generating map book' }))),
   );
 
@@ -126,7 +124,6 @@ export class MenuEffects {
   @Effect({dispatch: false})
   handlePrintError$ = this.actions$.pipe(
     ofType(PrintActionTypes.PrintMapFailure),
-    tap(() => console.log('Error creating map book')),
     tap(() => this.store$.dispatch(new ErrorNotification({message: 'There was an error generating current view map book' }))),
     );
 

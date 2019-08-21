@@ -4,9 +4,10 @@ import { Store, select } from '@ngrx/store';
 import { printViewDialogFlag } from 'app/state/menu/menu.reducer';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { PrintMap } from '@val/esri';
+import { PrintMap, EsriLayerService, DeletePrintRenderer } from '@val/esri';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { AppConfig } from 'app/app.config';
+import { ClosePrintViewDialog } from 'app/state/menu/menu.actions';
 
 @Component({
   selector: 'val-print-view',
@@ -43,6 +44,11 @@ export class PrintViewComponent implements OnInit {
   hasErrors(controlKey: string) : boolean {
     const control = this.printForm.get(controlKey);
     return (control.dirty || control.untouched || control.value == null) && (control.errors != null);
+  }
+
+  closeDialog(){
+    this.store$.dispatch(new DeletePrintRenderer({layerName: 'Selected Geos'}));
+    this.store$.dispatch(new ClosePrintViewDialog);
   }
   
 }

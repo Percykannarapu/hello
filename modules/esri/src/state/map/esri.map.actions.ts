@@ -18,6 +18,7 @@ export enum EsriMapActionTypes {
   
   PrintMap = '[Esri Map] Print Map',
   SetPrintRenderer = '[Esri Map] Set Shading Renderer for Print Service',
+  DeletePrintRenderer = '[Esri Map] Remove Shading Renderer',
   PrintJobComplete = '[Esri Map] Print Job Complete',
 
   SetLayerLabelExpressions = '[Esri Map] Set Layer Label Expressions',
@@ -98,6 +99,11 @@ export class SetPrintRenderer implements Action{
   constructor(public payload: {geos: string[], portalId: string, minScale: number}){}
 }
 
+export class DeletePrintRenderer implements Action{
+  readonly type = EsriMapActionTypes.DeletePrintRenderer;
+  constructor(public payload: {layerName: string}){}
+}
+
 export class PrintJobComplete implements Action {
   readonly type = EsriMapActionTypes.PrintJobComplete;
   constructor(public payload: { result: string }) {}
@@ -121,4 +127,5 @@ export type EsriMapActions =
   | PrintMap
   | SetPrintRenderer
   | PrintJobComplete
+  | DeletePrintRenderer
   ;
