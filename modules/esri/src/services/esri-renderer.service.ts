@@ -366,7 +366,7 @@ export class EsriRendererService {
     
   public setRendererForPrint(geos: string[], mapState: EsriMapState, portalId: string, minScale: number, visibility: boolean){
     console.log('creating shading renderer for Print');
-    return  this.layerService.createPortalLayer(portalId, 'ShadingLayer', minScale, true).pipe(
+    return  this.layerService.createPortalLayer(portalId, 'Selected Geos', minScale, true).pipe(
              tap(newLayer => {
               newLayer.spatialReference = {wkid: 4326} as __esri.SpatialReference;
               newLayer.popupEnabled = false;
