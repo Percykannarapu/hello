@@ -190,7 +190,7 @@ export class ImpDomainFactoryService {
     }
   }
 
-  createLocation(parent: ImpProject, res: ValGeocodingResponse, siteType: string, analysisLevel?: string, data?: ValGeocodingRequest[]) : ImpGeofootprintLocation {
+  createLocation(parent: ImpProject, res: ValGeocodingResponse, siteType: string, isLocationEdit: boolean, analysisLevel?: string, data?: ValGeocodingRequest[]) : ImpGeofootprintLocation {
     if (parent == null || parent.impGeofootprintMasters == null || parent.impGeofootprintMasters[0] == null) throw new Error('Location factory requires a valid ImpProject instance with a valid ImpGeofootprintMaster instance');
     const nonAttributeProps = new Set<string>(['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number',
       'Name', 'Market', 'Market Code', 'Group', 'Description', 'Original Address', 'Original City', 'Original State',
@@ -210,10 +210,10 @@ export class ImpDomainFactoryService {
       locZip: res.ZIP,
       xcoord: Number(res.Longitude),
       ycoord: Number(res.Latitude),
-      origAddress1: res['Original Address'] != null ? ((!res['previousAddress1']) ? res['Original Address'].trim() : res['previousAddress1'].trim()) : '' ,
-      origCity: res['Original City'] != null ? ((!res['previousCity']) ? res['Original City'].trim() : res['previousCity'].trim()) : '' ,
-      origState: res['Original State'] != null ? ((!res['previousState']) ? res['Original State'].trim() : res['previousState'].trim()) : '' ,
-      origPostalCode: res['Original ZIP'] != null ?  ((!res['previousZip']) ? res['Original ZIP'].trim() : res['previousZip'].trim()) : '' ,
+      origAddress1: (res['Original Address'] != null || isLocationEdit) ? ((!res['previousAddress1']) ? res['Original Address'].trim() : res['previousAddress1'].trim()) : '' ,
+      origCity: (res['Original City'] != null || isLocationEdit) ? ((!res['previousCity']) ? res['Original City'].trim() : res['previousCity'].trim()) : '' ,
+      origState: (res['Original State'] != null || isLocationEdit) ? ((!res['previousState']) ? res['Original State'].trim() : res['previousState'].trim()) : '' ,
+      origPostalCode: (res['Original ZIP'] != null || isLocationEdit) ?  ((!res['previousZip']) ? res['Original ZIP'].trim() : res['previousZip'].trim()) : '' ,
       recordStatusCode: res['Geocode Status'],
       geocoderMatchCode: res['Match Code'],
       geocoderLocationCode: res['Match Quality'],

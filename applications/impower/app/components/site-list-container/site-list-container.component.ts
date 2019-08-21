@@ -207,16 +207,8 @@ export class SiteListContainerComponent implements OnInit {
           siteOrSites['longitude'] = null;
           this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
       } else if (ifLatLongChanged) {
-        // const newLocation: ValGeocodingRequest = oldData;
-          newLocation.recordStatusCode = 'PROVIDED';
-          newLocation.xcoord = Number(siteOrSites['longitude']);
-          newLocation.ycoord = Number(siteOrSites['latitude']);
-         // const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
-        //  const reCalculateHomeGeos = false;
-        //  const isLocationEdit =  true;
-        this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
-        //  this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
-         this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+          this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
+          this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
       } else {
         const editedLocation: ImpGeofootprintLocation = oldData;
         editedLocation.locationNumber = siteOrSites['number'];

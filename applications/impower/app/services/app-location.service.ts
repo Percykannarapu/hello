@@ -257,11 +257,11 @@ export class AppLocationService {
     this.impLocAttributeService.clearAll();
   }
 
-  public geocode(data: ValGeocodingRequest[], siteType: string) : Observable<ImpGeofootprintLocation[]> {
+  public geocode(data: ValGeocodingRequest[], siteType: string, isLocationEdit: boolean) : Observable<ImpGeofootprintLocation[]> {
     const currentProject = this.appStateService.currentProject$.getValue();
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     return this.geocodingService.getGeocodingResponse(data, siteType).pipe(
-      map(responses => responses.map(r => this.domainFactory.createLocation(currentProject, r, siteType, currentAnalysisLevel, data)))
+      map(responses => responses.map(r => this.domainFactory.createLocation(currentProject, r, siteType, isLocationEdit, currentAnalysisLevel, data)))
     );
     }
 

@@ -57,11 +57,10 @@ interface TradeAreaDefinition {
 
                }
 
-   geocode(payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes}) : Observable<ImpGeofootprintLocation[]>{
+   geocode(payload: {sites: ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, isLocationEdit: boolean}) : Observable<ImpGeofootprintLocation[]>{
       const pluralize = payload.sites.length > 1 ? 's' : '';
       this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: `Geocoding ${payload.sites.length} ${payload.siteType}${pluralize}` }));
-      const locationCache: ImpGeofootprintLocation[] = [];
-      return this.appLocationService.geocode(payload.sites, payload.siteType).pipe(
+      return this.appLocationService.geocode(payload.sites, payload.siteType, payload.isLocationEdit).pipe(
         //reduce((accumlatorLocs, locations) => { accumlatorLocs.push(...locations); return accumlatorLocs}, [] )
         reduce((accumlatorLocs , locations) => [...accumlatorLocs, ...locations], [])
       );

@@ -171,7 +171,7 @@ export class AddLocationsTabComponent implements OnInit {
     //console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
     const reCalculateHomeGeos = false;
-    const isLocationEdit =  isEdit;
+    const isLocationEdit: boolean =  (isEdit !== null && isEdit !== undefined) ? isEdit : false;
     //this.store$.dispatch(new StartBusyIndicatorx({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
     this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
     /*const locationCache: ImpGeofootprintLocation[] = [];
