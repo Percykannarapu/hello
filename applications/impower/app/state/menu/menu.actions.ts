@@ -21,7 +21,6 @@ export enum MenuActionTypes {
 
 }
 export enum PrintActionTypes{
-  PrintMapFailure = '[Print Map] Print Map Failed',
   PrintMapSuccess = '[Print Map] Print Map Succeeded',
 }
 
@@ -81,10 +80,6 @@ export class ClosePrintViewDialog implements Action {
   readonly type = MenuActionTypes.ClosePrintViewDialog;
 }
 
-export class PrintMapFailure implements Action {
-  readonly type = PrintActionTypes.PrintMapFailure;
-  constructor(public payload: { err: any }) {}
-}
 
 export class PrintMapSuccess implements Action {
   readonly type = PrintActionTypes.PrintMapSuccess;
@@ -109,8 +104,7 @@ export type MenuActions =
   ClosePrintViewDialog;
 
 
-export type PrintActions = PrintMapSuccess |
-                           PrintMapFailure;
+export type PrintActions = PrintMapSuccess;
 
 
 

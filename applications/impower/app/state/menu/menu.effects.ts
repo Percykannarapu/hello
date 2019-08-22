@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { CloseExistingProjectDialog, DiscardThenLoadProject, ExportGeofootprint, ExportLocations, MenuActionTypes, SaveThenLoadProject, PrintActionTypes, PrintMapSuccess, ClosePrintViewDialog, PrintMapFailure} from './menu.actions';
+import { CloseExistingProjectDialog, DiscardThenLoadProject, ExportGeofootprint, ExportLocations, MenuActionTypes, SaveThenLoadProject, PrintActionTypes, PrintMapSuccess, ClosePrintViewDialog} from './menu.actions';
 import { concatMap, filter, map, withLatestFrom, tap, switchMap, catchError } from 'rxjs/operators';
 import * as fromDataShims from '../data-shim/data-shim.actions';
 import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { CreateProjectUsageMetric } from '../usage/targeting-usage.actions';
 import { ClearAllNotifications, AppState, ErrorNotification, SuccessNotification, StopBusyIndicator, StartBusyIndicator } from '@val/messaging';
 import { AppDataShimService } from '../../services/app-data-shim.service';
-import { SetPrintRenderer, PrintMap, EsriMapActionTypes, PrintJobComplete, DeletePrintRenderer } from '@val/esri';
+import { SetPrintRenderer, PrintMap, EsriMapActionTypes, PrintJobComplete, DeletePrintRenderer, PrintMapFailure } from '@val/esri';
 import { AppStateService } from 'app/services/app-state.service';
 import { AppConfig } from 'app/app.config';
 import { Store } from '@ngrx/store';
@@ -128,15 +128,15 @@ export class MenuEffects {
       tap(() => this.store$.dispatch(new SuccessNotification({message: 'The Current View PDF was generated successfully in a new tab' })))
    );
 
-  @Effect({dispatch: false})
+  @Effect()
   handlePrintError$ = this.actions$.pipe(
-     ofType<PrintMapFailure>(PrintActionTypes.PrintMapFailure),
-     tap((action) => {
-            this.store$.dispatch(new DeletePrintRenderer({layerName: 'Selected Geos'}));
-            this.store$.dispatch(new StopBusyIndicator({ key: 'Map Book'}));
-            this.store$.dispatch(new ClosePrintViewDialog());
-            this.store$.dispatch(new ErrorNotification({message: 'There was an error generating current view map book' }));
-     })
+     ofType<PrintMapFailure>(EsriMapActionTypes.PrintMapFailure),
+     concatMap((action) => [
+      new DeletePrintRenderer({layerName: 'Selected Geos'}),
+      new StopBusyIndicator({ key: 'Map Book'}),
+      new ClosePrintViewDialog(),
+      new ErrorNotification({message: 'There was an error generating current view map book' })
+     ])
   );
 
    @Effect({dispatch: false})

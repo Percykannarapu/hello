@@ -20,6 +20,7 @@ export enum EsriMapActionTypes {
   SetPrintRenderer = '[Esri Map] Set Shading Renderer for Print Service',
   DeletePrintRenderer = '[Esri Map] Remove Shading Renderer',
   PrintJobComplete = '[Esri Map] Print Job Complete',
+  PrintMapFailure = '[Esri Map] Print Job Failed',
 
   SetLayerLabelExpressions = '[Esri Map] Set Layer Label Expressions',
 
@@ -106,7 +107,12 @@ export class DeletePrintRenderer implements Action{
 
 export class PrintJobComplete implements Action {
   readonly type = EsriMapActionTypes.PrintJobComplete;
-  constructor(public payload: { result: string }) {}
+  constructor(public payload: { result: any }) {}
+}
+
+export class PrintMapFailure implements Action {
+  readonly type = EsriMapActionTypes.PrintMapFailure;
+  constructor(public payload: { err: any }) {}
 }
 
 export type EsriMapActions =
@@ -127,5 +133,6 @@ export type EsriMapActions =
   | PrintMap
   | SetPrintRenderer
   | PrintJobComplete
+  | PrintMapFailure
   | DeletePrintRenderer
   ;
