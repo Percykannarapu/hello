@@ -31,6 +31,7 @@ export class GridComponent implements OnInit {
   private selectedVar: VarDefinition = null;
   private selectedNumericMethod: NumericVariableShadingMethod = NumericVariableShadingMethod.StandardIndex;
   private shadeBy: ShadingType = ShadingType.ZIP;
+  private classBreakValues: number[] = [];
 
   @Input()
   set smallSizeTable(value: boolean) {
@@ -92,6 +93,7 @@ export class GridComponent implements OnInit {
       this.selectedVar =  shading.selectedVar != null ? mapByNameVars.get(shading.selectedVar.name) : shading.selectedVar;
       this.selectedNumericMethod = shading.selectedNumericMethod;
       this.shadeBy = shading.shadeBy;
+      this.classBreakValues = shading.classBreakValues;
      
     });
   }
@@ -109,7 +111,8 @@ export class GridComponent implements OnInit {
    if (this.selectedVar != null)
       this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, 
                                                         selectedVar: this.selectedVar,
-                                                        selectedNumericMethod: this.selectedNumericMethod}));
+                                                        selectedNumericMethod: this.selectedNumericMethod,
+                                                        classBreakValues: this.classBreakValues}));
   }
 
   onFilter(event: { filters: any, filteredValue: fromGridSelectors.GridRowBase[] }) {
@@ -131,7 +134,8 @@ export class GridComponent implements OnInit {
     if (this.selectedVar != null)
       this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, 
                                                         selectedVar: this.selectedVar,
-                                                        selectedNumericMethod: this.selectedNumericMethod}));
+                                                        selectedNumericMethod: this.selectedNumericMethod,
+                                                        classBreakValues: this.classBreakValues}));
   }
 
   private setGridSize(isSmall: boolean) {

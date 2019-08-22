@@ -36,7 +36,10 @@ export class SetNonVariableShading implements Action {
 
 export class CalculateEqualIntervals implements Action{
   readonly type = ShadingActionTypes.CalculateEqualIntervals;
-  constructor(public payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod}){}
+  constructor(public payload: {breakCount: number, 
+                               selectedVar: VarDefinition, 
+                               selectedNumericMethod: NumericVariableShadingMethod,
+                               classBreakValues: number[] }){}
 }
 
 export class SetShadingType implements Action {

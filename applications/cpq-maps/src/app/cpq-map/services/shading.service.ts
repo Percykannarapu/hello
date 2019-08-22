@@ -293,10 +293,10 @@ export class ShadingService {
     }
   }
 
-  calculateEqualIntervals(payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod}) {
-    let classBreakValues = [80, 120, 140];
+  calculateEqualIntervals(payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod, classBreakValues: number[]}) {
+    let classBreakValues = payload.selectedNumericMethod != NumericVariableShadingMethod.CustomClassifications ? [80, 120, 140] : payload.classBreakValues;
     const interval = (payload.selectedVar.maxValue - payload.selectedVar.minValue) / payload.breakCount;
-    if (payload.selectedNumericMethod != NumericVariableShadingMethod.StandardIndex){
+    if (payload.selectedNumericMethod != NumericVariableShadingMethod.StandardIndex && payload.selectedNumericMethod != NumericVariableShadingMethod.CustomClassifications){
       classBreakValues = [];
       for (let i = 0; i < payload.breakCount - 1; ++i) {
         const currentBreak = (interval * (i + 1)) + payload.selectedVar.minValue;

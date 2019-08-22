@@ -192,7 +192,10 @@ export class ShadingConfigComponent implements OnInit {
   }
 
   private calculateEqualIntervals(breakCount: number, selectedNumericMethod: NumericVariableShadingMethod) {
-    this.store.dispatch(new CalculateEqualIntervals({breakCount: breakCount, selectedVar: this.selectedVar, selectedNumericMethod: selectedNumericMethod}));
+    this.store.dispatch(new CalculateEqualIntervals({breakCount: breakCount, 
+                                                    selectedVar: this.selectedVar, 
+                                                    selectedNumericMethod: selectedNumericMethod,
+                                                    classBreakValues: this.classBreakValues}));
     
   }
 
