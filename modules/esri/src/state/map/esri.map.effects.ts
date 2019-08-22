@@ -2,18 +2,17 @@ import { Injectable, Inject } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { catchError, filter, map, mergeMap, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, switchMap, tap, withLatestFrom, concatMap } from 'rxjs/operators';
 import { SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { EsriMapService } from '../../services/esri-map.service';
 import { EsriPrintingService } from '../../services/esri-printing-service';
 import { AppState, internalSelectors, selectors } from '../esri.selectors';
-import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, SetPopupVisibility, CopyCoordinatesToClipboard, SetPrintRenderer, PrintMap, PrintJobComplete, DeletePrintRenderer} from './esri.map.actions';
+import { EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, SetPopupVisibility, CopyCoordinatesToClipboard, SetPrintRenderer, PrintMap, PrintJobComplete, DeletePrintRenderer, PrintMapFailure} from './esri.map.actions';
 import { EsriAppSettingsToken, EsriAppSettings } from '../../configuration';
 import { EsriGeoprocessorService } from '../../services/esri-geoprocessor.service';
 import { EsriRendererService } from '../../services/esri-renderer.service';
-import { PrintMapFailure } from 'app/state/menu/menu.actions';
 
 @Injectable()
 export class EsriMapEffects {
@@ -69,11 +68,11 @@ export class EsriMapEffects {
     switchMap((params) => 
     this.geoprocessorService.processPrintJob<__esri.PrintResponse>(params.serviceUrl, params.printParams)
     .pipe(
-      tap(response =>
-        {
-          this.store$.dispatch(new DeletePrintRenderer({layerName: 'Selected Geos'}));
-          this.store$.dispatch(new PrintJobComplete({result: response.toString()}));
-        }),
+      concatMap(response =>
+        [
+          new DeletePrintRenderer({layerName: 'Selected Geos'}),
+          new PrintJobComplete({result: response})
+        ]),
         catchError(err => of(new PrintMapFailure({ err })))
 
       ),
@@ -84,7 +83,6 @@ export class EsriMapEffects {
   setShadingRenderer$ = this.actions$.pipe(
     ofType<SetPrintRenderer>(EsriMapActionTypes.SetPrintRenderer),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
-    tap(() => console.log('Set Map Renderer')),
     switchMap(([action, mapState]) => this.esriRendererService.setRendererForPrint(action.payload.geos, mapState, action.payload.portalId, action.payload.minScale, true).pipe(
     )),
   );
@@ -93,7 +91,6 @@ export class EsriMapEffects {
   removeShadingRenderer$ = this.actions$.pipe(
     ofType<DeletePrintRenderer>(EsriMapActionTypes.DeletePrintRenderer),
     tap(() => {
-      console.log('Delete Print Renderer');
       this.layerService.removeLayer('Selected Geos');
     })
   );
