@@ -24,7 +24,7 @@ export class EnvironmentData {
   public static authenticated = false;
 
   public static fuseBaseUrl = 'https://services.valassis.com/services/';
-  public static impowerBaseUrl = 'https://impowerdev.val.vlss.local/';
+  public static impowerBaseUrl = 'https://impower.val.vlss.local/';
 
   public static esri = {
     portalServer:  'https://valvcsimpor1vm.val.vlss.local/',
