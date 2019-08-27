@@ -74,7 +74,6 @@ export class EsriMapEffects {
           new PrintJobComplete({result: response})
         ]),
         catchError(err => of(new PrintMapFailure({ err })))
-
       ),
   ),
   );
@@ -83,7 +82,7 @@ export class EsriMapEffects {
   setShadingRenderer$ = this.actions$.pipe(
     ofType<SetPrintRenderer>(EsriMapActionTypes.SetPrintRenderer),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
-    switchMap(([action, mapState]) => this.esriRendererService.setRendererForPrint(action.payload.geos, mapState, action.payload.portalId, action.payload.minScale, true).pipe(
+    switchMap(([action, mapState]) => this.esriRendererService.setRendererForPrint(action.payload.geos, mapState, action.payload.portalId, action.payload.minScale).pipe(
     )),
   );
 
