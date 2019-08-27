@@ -15,7 +15,7 @@ import { EntityHelper } from '../../services/entity-helper-service';
 import { localSelectors } from '../app.selectors';
 import { FullState } from '../index';
 import { InitializeShading } from '../shading/shading.actions';
-import { SetAppReady } from '../shared/shared.actions';
+import { SetAppReady, SetMapPreference } from '../shared/shared.actions';
 import { GetMediaPlanData, GetMediaPlanDataFailed, GetMediaPlanDataSucceeded, InitActions, InitActionTypes, MapSetupFailed, MapSetupSucceeded } from './init.actions';
 
 @Injectable()
@@ -76,7 +76,8 @@ export class InitEffects {
     tap(() => this.appMapService.setMapWatches()),
     concatMap(([, , analysisLevel]) => [
       new SetSelectedLayer({ layerId: this.config.layers[analysisLevel].boundaries.id }),
-      new InitializeShading()
+      new InitializeShading(),
+      new SetMapPreference({ mapPrefChanged: true})
     ])
   );
 

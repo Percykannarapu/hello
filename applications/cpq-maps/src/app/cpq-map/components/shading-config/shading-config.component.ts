@@ -12,7 +12,7 @@ import { mapBy } from '@val/common';
 import { MapConfig } from '../header-bar/header-bar.component';
 import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
 import { Dictionary } from '@ngrx/entity';
-import { SetIsDistrQtyEnabled, SetGridSize } from '../../state/shared/shared.actions';
+import { SetIsDistrQtyEnabled, SetGridSize, SetMapPreference } from '../../state/shared/shared.actions';
 
 export enum NumericVariableShadingMethod {
   StandardIndex = 'Standard Index',
@@ -103,7 +103,7 @@ export class ShadingConfigComponent implements OnInit {
           mediaPlanPref = mpPref;
         }
     });
-    if (mediaPlanPref.val != null){
+    if (mediaPlanPref != null && mediaPlanPref.val != null){
       this.mapConfig = JSON.parse(mediaPlanPref.val.replace( /[\r\n]+/gm, '' ));
       this.selectedShadingType = ShadingType[this.mapConfig.shadeBy];
       this.selectedVar = this.mapConfig.variable == null ? shading.availableVars[0] : this.mapConfig.variable;
@@ -147,6 +147,8 @@ export class ShadingConfigComponent implements OnInit {
       breakCount: this.selectedClassBreaks, 
       selectedVar: this.selectedVar,
       selectedNumericMethod: this.selectedNumericMethod}));
+    
+      this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));   
   }
 
   onVariableOptionChanged() {
@@ -157,6 +159,8 @@ export class ShadingConfigComponent implements OnInit {
       breakCount: this.selectedClassBreaks, 
       selectedVar: this.selectedVar,
       selectedNumericMethod: this.selectedNumericMethod}));
+    
+    this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));  
   }
 
   onMethodOptionChanged(event: { value: NumericVariableShadingMethod }) {
@@ -168,6 +172,7 @@ export class ShadingConfigComponent implements OnInit {
           breakCount: this.selectedClassBreaks, 
           selectedVar: this.selectedVar,
           selectedNumericMethod: this.selectedNumericMethod}));
+        this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));  
         break;
       //  case NumericVariableShadingMethod.CustomClassifications:
       //   this.selectedClassBreaks = 4;
@@ -176,6 +181,7 @@ export class ShadingConfigComponent implements OnInit {
       case NumericVariableShadingMethod.EqualIntervals:
         this.selectedClassBreaks = 4;
         this.calculateEqualIntervals(this.selectedClassBreaks, NumericVariableShadingMethod.EqualIntervals);
+        this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));   
         break;
     }
   }
@@ -183,6 +189,7 @@ export class ShadingConfigComponent implements OnInit {
   onBreakCountChanged(classBreaks: number) {
     if (this.selectedNumericMethod === NumericVariableShadingMethod.EqualIntervals) {
       this.calculateEqualIntervals(classBreaks, NumericVariableShadingMethod.EqualIntervals);
+      this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));   
     } else {
       this.classBreakValues = [];
       for (let i = 0; i < classBreaks - 1; ++i) {
@@ -196,6 +203,7 @@ export class ShadingConfigComponent implements OnInit {
                                                     selectedVar: this.selectedVar, 
                                                     selectedNumericMethod: selectedNumericMethod,
                                                     classBreakValues: this.classBreakValues}));
+                                                     
     
   }
 

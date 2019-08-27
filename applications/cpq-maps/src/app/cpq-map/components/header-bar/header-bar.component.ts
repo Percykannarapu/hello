@@ -33,10 +33,11 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   private updateIds: number[] = [];
   private addIds: number[] = [];
   private componentDestroyed$ = new Subject();
+  private isPrefChange: boolean = true;
 
   mapConfig: MapConfig = new MapConfig;
 
-  mediaplanPref: MediaPlanPref;
+  mediaplanPref: MediaPlanPref = new MediaPlanPref();
   
   appReady$: Observable<boolean>;
   isSaving$: Observable<boolean>;
@@ -53,7 +54,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   get hasAdditions() { return this.addIds.length > 0; }
 
   get isClean() {
-    return this.updateIds.length === 0 && this.addIds.length === 0;
+    return this.updateIds.length === 0 && this.addIds.length === 0 && this.isPrefChange;
   }
 
   constructor(private store$: Store<FullState>) { }
@@ -102,6 +103,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
          this.mapConfig.showDist = shared.isDistrQtyEnabled; 
          this.mapConfig.variable = shading.selectedVar;
          this.mapConfig.classBreakValues = shading.classBreakValues;
+         this.isPrefChange = shared.mapPrefChanged;
     });
 
     this.store$.pipe(
@@ -111,9 +113,10 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
         mediaPlanPrefs.forEach(mediaplanPref => {
             if (mediaplanPref.prefGroup === 'CPQ MAPS')
                 this.mediaplanPref = mediaplanPref;
+            else
+                this.mediaplanPref = new MediaPlanPref();   
         });
       });
-
   }
 
   ngOnDestroy() : void {
@@ -132,7 +135,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
 
   createPayload(mapConfigPayload: string){
     const mediaplanPrefPayload: MediaPlanPref = {
-      prefId: this.mediaplanPref.prefId,
+      prefId: this.mediaplanPref.prefId != null ? this.mediaplanPref.prefId : null,
       mediaPlanId: this.mediaPlanId,
       prefGroup: 'CPQ MAPS',
       prefType: 'STRING',

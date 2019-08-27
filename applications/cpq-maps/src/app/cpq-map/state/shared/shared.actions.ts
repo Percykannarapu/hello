@@ -18,7 +18,8 @@ export enum SharedActionTypes {
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
   SetLegendData = '[Shared Actions] Set Legend Data',
   SetLegendHTML = '[Shared Actions] Set Legend HTML',
-  SetGridSize = '[Shared Actions] set Grid Size'
+  SetGridSize = '[Shared Actions] set Grid Size',
+  SetMapPreference = '[Shared Actions] set Map preference onload'
 }
 
 export class SetLegendHTML implements Action {
@@ -84,6 +85,11 @@ export class SetGridSize implements Action {
   constructor(public payload: { gridSize: 'small' | 'large' | 'none' }) { }
 }
 
+export class SetMapPreference implements Action {
+  readonly type = SharedActionTypes.SetMapPreference;
+  constructor(public payload: { mapPrefChanged: boolean }) { }
+}
+
 export type SharedActions =
   SetAppReady
   | SetIsWrap
@@ -98,5 +104,6 @@ export type SharedActions =
   | GeneratePfdFailed
   | GeneratePdfSucceeded
   | SetGridSize
+  | SetMapPreference
   ;
 
