@@ -1,18 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
+import { mapBy } from '@val/common';
 import { SelectItem } from 'primeng/api';
+import { Observable } from 'rxjs';
 import { filter, withLatestFrom } from 'rxjs/operators';
+import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
 import { FullState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
-import { SetNonVariableShading, SetVariableShading, CalculateEqualIntervals, SetClassBreakValues, SetShadingType } from '../../state/shading/shading.actions';
+import { CalculateEqualIntervals, SetAnneShading, SetClassBreakValues, SetNonVariableShading, SetShadingType, SetSoloShading, SetVariableShading } from '../../state/shading/shading.actions';
 import { ShadingState, ShadingType, VarDefinition, VariableRanges } from '../../state/shading/shading.reducer';
+import { SetMapPreference } from '../../state/shared/shared.actions';
 import { SharedState } from '../../state/shared/shared.reducers';
-import { of } from 'rxjs';
-import { mapBy } from '@val/common';
 import { MapConfig } from '../header-bar/header-bar.component';
-import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
-import { Dictionary } from '@ngrx/entity';
-import { SetIsDistrQtyEnabled, SetGridSize, SetMapPreference } from '../../state/shared/shared.actions';
 
 export enum NumericVariableShadingMethod {
   StandardIndex = 'Standard Index',
@@ -26,7 +25,7 @@ const DEFAULT_CLASS_BREAKS = 4;
 const DEFAULT_BREAK_VALUES = [80, 120, 140];
 
 @Component({
-  selector: 'val-shading-config',
+  selector: 'cpq-shading-config',
   templateUrl: './shading-config.component.html',
   styleUrls: ['./shading-config.component.css']
 })
@@ -48,6 +47,9 @@ export class ShadingConfigComponent implements OnInit {
 
   mapConfig: MapConfig;
 
+  shadeAnne$: Observable<boolean>;
+  shadeSolo$: Observable<boolean>;
+
   constructor(private store: Store<FullState>) { }
 
   ngOnInit() {
@@ -66,6 +68,8 @@ export class ShadingConfigComponent implements OnInit {
       this.selectedNumericMethod = shading.selectedNumericMethod;
     });
 
+    this.shadeAnne$ = this.store.select(localSelectors.getShadeAnne);
+    this.shadeSolo$ = this.store.select(localSelectors.getShadeSolo);
   }
 
   indexTracker(index: number) {
@@ -97,28 +101,23 @@ export class ShadingConfigComponent implements OnInit {
     this.selectedClassBreaks = shading.selectedClassBreaks;
     this.classBreakValues = shading.classBreakValues;
 
-    let mediaPlanPref: MediaPlanPref = null;
-    mediaPlanPrefs.forEach(mpPref => {
-        if (mpPref.prefGroup === 'CPQ MAPS'){
-          mediaPlanPref = mpPref;
-        }
-    });
+    const mediaPlanPref: MediaPlanPref = mediaPlanPrefs.filter(p => p.prefGroup === 'CPQ MAPS')[0];
     if (mediaPlanPref != null && mediaPlanPref.val != null){
       this.mapConfig = JSON.parse(mediaPlanPref.val.replace( /[\r\n]+/gm, '' ));
       this.selectedShadingType = ShadingType[this.mapConfig.shadeBy];
       this.selectedVar = this.mapConfig.variable == null ? shading.availableVars[0] : this.mapConfig.variable;
       this.selectedClassBreaks = this.mapConfig.classes;
       this.classBreakValues = this.mapConfig.classBreakValues;
-      this.selectedNumericMethod =  this.mapConfig.method === NumericVariableShadingMethod.StandardIndex ? NumericVariableShadingMethod.StandardIndex : 
+      this.selectedNumericMethod =  this.mapConfig.method === NumericVariableShadingMethod.StandardIndex ? NumericVariableShadingMethod.StandardIndex :
                                      this.mapConfig.method === NumericVariableShadingMethod.EqualIntervals ? NumericVariableShadingMethod.EqualIntervals : NumericVariableShadingMethod.CustomClassifications;
-      
-      this.store.dispatch(new SetShadingType({ shadingType: this.selectedShadingType }));  
-                                      
+
+      this.store.dispatch(new SetShadingType({ shadingType: this.selectedShadingType }));
+
       if (this.selectedNumericMethod ===  NumericVariableShadingMethod.EqualIntervals){
         this.calculateEqualIntervals(this.selectedClassBreaks, NumericVariableShadingMethod.EqualIntervals);
       }else{
-        this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
-          breakCount: this.selectedClassBreaks, 
+        this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues,
+          breakCount: this.selectedClassBreaks,
           selectedVar: this.selectedVar,
           selectedNumericMethod: this.selectedNumericMethod}));
       }
@@ -131,7 +130,7 @@ export class ShadingConfigComponent implements OnInit {
       const mapVariableOptions = mapBy(this.variableOptions, 'label');
       this.selectedVar = mapVariableOptions.get(this.selectedVar.name).value;
     }
-    
+
   }
 
   onShadingOptionChange(event: { value: ShadingType }) {
@@ -143,24 +142,24 @@ export class ShadingConfigComponent implements OnInit {
       this.selectedClassBreaks = DEFAULT_CLASS_BREAKS;
       this.classBreakValues = [...DEFAULT_BREAK_VALUES];
     }
-    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
-      breakCount: this.selectedClassBreaks, 
+    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues,
+      breakCount: this.selectedClassBreaks,
       selectedVar: this.selectedVar,
       selectedNumericMethod: this.selectedNumericMethod}));
-    
-      this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));   
+
+      this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
   }
 
   onVariableOptionChanged() {
     this.selectedNumericMethod = DEFAULT_NUMERIC_METHOD;
     this.selectedClassBreaks = DEFAULT_CLASS_BREAKS;
     this.classBreakValues = [...DEFAULT_BREAK_VALUES];
-    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
-      breakCount: this.selectedClassBreaks, 
+    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues,
+      breakCount: this.selectedClassBreaks,
       selectedVar: this.selectedVar,
       selectedNumericMethod: this.selectedNumericMethod}));
-    
-    this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));  
+
+    this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
   }
 
   onMethodOptionChanged(event: { value: NumericVariableShadingMethod }) {
@@ -168,11 +167,11 @@ export class ShadingConfigComponent implements OnInit {
       case NumericVariableShadingMethod.StandardIndex:
         this.selectedClassBreaks = 4;
         this.classBreakValues = [...DEFAULT_BREAK_VALUES];
-        this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
-          breakCount: this.selectedClassBreaks, 
+        this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues,
+          breakCount: this.selectedClassBreaks,
           selectedVar: this.selectedVar,
           selectedNumericMethod: this.selectedNumericMethod}));
-        this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));  
+        this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
         break;
       //  case NumericVariableShadingMethod.CustomClassifications:
       //   this.selectedClassBreaks = 4;
@@ -181,7 +180,7 @@ export class ShadingConfigComponent implements OnInit {
       case NumericVariableShadingMethod.EqualIntervals:
         this.selectedClassBreaks = 4;
         this.calculateEqualIntervals(this.selectedClassBreaks, NumericVariableShadingMethod.EqualIntervals);
-        this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));   
+        this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
         break;
     }
   }
@@ -189,7 +188,7 @@ export class ShadingConfigComponent implements OnInit {
   onBreakCountChanged(classBreaks: number) {
     if (this.selectedNumericMethod === NumericVariableShadingMethod.EqualIntervals) {
       this.calculateEqualIntervals(classBreaks, NumericVariableShadingMethod.EqualIntervals);
-      this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));   
+      this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
     } else {
       this.classBreakValues = [];
       for (let i = 0; i < classBreaks - 1; ++i) {
@@ -199,18 +198,18 @@ export class ShadingConfigComponent implements OnInit {
   }
 
   private calculateEqualIntervals(breakCount: number, selectedNumericMethod: NumericVariableShadingMethod) {
-    this.store.dispatch(new CalculateEqualIntervals({breakCount: breakCount, 
-                                                    selectedVar: this.selectedVar, 
+    this.store.dispatch(new CalculateEqualIntervals({breakCount: breakCount,
+                                                    selectedVar: this.selectedVar,
                                                     selectedNumericMethod: selectedNumericMethod,
                                                     classBreakValues: this.classBreakValues}));
-                                                     
-    
+
+
   }
 
   applyVariableShading() {
     const classifications: VariableRanges[] = [];
-    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues, 
-                              breakCount: this.selectedClassBreaks, 
+    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues,
+                              breakCount: this.selectedClassBreaks,
                               selectedVar: this.selectedVar,
                               selectedNumericMethod: this.selectedNumericMethod}));
     classifications.push({ minValue: null, maxValue: this.classBreakValues[0] });
@@ -219,7 +218,7 @@ export class ShadingConfigComponent implements OnInit {
     }
     classifications.push({ minValue: this.classBreakValues[this.classBreakValues.length - 1], maxValue: null });
     this.store.dispatch(new SetVariableShading({ classifications, selectedVarName: this.selectedVar.name }));
-    
+
   }
 
   isNotValid(currentBreak: number, previousBreak: number) {
@@ -240,5 +239,13 @@ export class ShadingConfigComponent implements OnInit {
   setBreak(index: number, value: string) {
     const noCommaValue = value.replace(/,/gi, '');
     this.classBreakValues[index] = Number(noCommaValue);
+  }
+
+  anneChanged(shadeAnne: boolean) {
+    this.store.dispatch(new SetAnneShading({ shadeAnne }));
+  }
+
+  soloChanged(shadeSolo: boolean) {
+    this.store.dispatch(new SetSoloShading({ shadeSolo }));
   }
 }

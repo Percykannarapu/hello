@@ -33,7 +33,7 @@ export interface FullPayload {
   tradeArea: string;
 }
 
-export interface ResultType{
+export interface ResultType {
   paramName?: string;
   dataType?: string;
   value: string;

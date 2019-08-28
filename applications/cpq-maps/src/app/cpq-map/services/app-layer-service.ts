@@ -125,7 +125,7 @@ export class AppLayerService {
      }
    }
 
-   public initializeGraphicLayer(graphics: __esri.Graphic[], groupName: string, layerName: string, addToBottomOfList: boolean = false) : void {
+   public initializeGraphicGroup(graphics: __esri.Graphic[], groupName: string, layerName: string, addToBottomOfList: boolean = false) : void {
      const layer = this.esriLayerService.getGraphicsLayer(layerName);
      if (layer == null) {
        this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics, addToBottomOfList);
@@ -134,4 +134,49 @@ export class AppLayerService {
        layer.graphics.addMany(graphics);
      }
    }
+
+  public setupAnneSoloLayers(shadeAnne: boolean, shadeSolo: boolean, groupName: string, analysisLevel: string) : void {
+    const anneName = 'ANNE Geographies';
+    const soloName = 'Solo Geographies';
+    const group = this.esriLayerService.getGroup(groupName);
+    this.setupDupeLayer(analysisLevel, anneName, group, shadeAnne, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)');
+    this.setupDupeLayer(analysisLevel, soloName, group, shadeSolo, 'IIF($feature.cov_frequency == "Solo", 1, 0)');
+  }
+
+  private setupDupeLayer(analysisLevel: string, layerName: string, group: __esri.GroupLayer, visibility: boolean, expression: string) : void {
+    const currentLayer = this.esriLayerService.getFeatureLayer(layerName);
+    if (currentLayer == null) {
+      let layerId = null;
+      let layerScale = null;
+      for (const layerGroup of Object.values(this.configService.layers)) {
+        if (layerGroup.group.analysisLevelName == analysisLevel) {
+          layerId = layerGroup.boundaries.id;
+          layerScale = layerGroup.boundaries.minScale;
+          break;
+        }
+      }
+      let fillStyle = 'horizontal';
+      if (layerName.toLowerCase().includes('anne')) {
+        fillStyle = 'diagonal-cross';
+      }
+      this.esriLayerService.createPortalLayer(layerId, layerName, layerScale, visibility).subscribe(newLayer => {
+        newLayer.legendEnabled = false;
+        newLayer.labelsVisible = false;
+        newLayer.renderer = new EsriApi.UniqueValueRenderer({
+          defaultSymbol: new EsriApi.SimpleFillSymbol({ color: [0, 0, 0, 0], outline: { color: [0, 0, 0, 0] } }),
+          uniqueValueInfos: [{
+            value: 1,
+            symbol: new EsriApi.SimpleFillSymbol({
+              style: fillStyle,
+              color: [0, 0, 0, 1]
+            })
+          }],
+          valueExpression: expression,
+        });
+        group.add(newLayer);
+      });
+    } else {
+      currentLayer.visible = visibility;
+    }
+  }
 }

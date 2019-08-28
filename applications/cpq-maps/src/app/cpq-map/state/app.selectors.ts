@@ -51,6 +51,9 @@ const getSelectedAnalysisLevel = createSelector(getSharedState, state => state.i
 const getLegendData = createSelector(getSharedState, state => state.legendData);
 const getLegendTitle = createSelector(getSharedState, state => state.legendTitle);
 
+const getShadeAnne = createSelector(getShadingState, state => state.shadeAnne);
+const getShadeSolo = createSelector(getShadingState, state => state.shadeSolo);
+
 const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpUiReviews: RfpUiReview[], mpGroups: MediaPlanGroup[]) => {
   const mediaPlan = mediaPlans.filter(mp => mp.mediaPlanId === sharedState.activeMediaPlanId)[0];
   if (mediaPlan == null || rfpUiReviews.length === 0 || mpGroups.length === 0) return null;
@@ -92,7 +95,7 @@ const printParamProjector = (shared: SharedState, rfpUiEditDetail: RfpUiEditDeta
   return {
       clientName: clientName,
       radius: shared.radius,
-      mediaPlanId: mpId, 
+      mediaPlanId: mpId,
       rfpNumber: rfpNumber,
       reportName: fileName,
       tradeArea: tradeArea,
@@ -125,7 +128,7 @@ const getAvailabilityParams = createSelector(getSharedState, getRfpUiEditDetailE
 
 const filterGeosProjector = (newIds: number[], rfpUiEditDetailEntity: Dictionary<RfpUiEditDetail>) => {
   let flag = [];
-  if ( Object.keys(rfpUiEditDetailEntity).length === 0 && newIds.length === 0) return true; 
+  if ( Object.keys(rfpUiEditDetailEntity).length === 0 && newIds.length === 0) return true;
   else if (newIds.length > 0 && Object.keys(rfpUiEditDetailEntity).length > 0){
     flag = newIds.filter(id => rfpUiEditDetailEntity[id].isSelected);
     return flag.length > 0;
@@ -134,8 +137,6 @@ const filterGeosProjector = (newIds: number[], rfpUiEditDetailEntity: Dictionary
 };
 
 const getFilteredGeos = createSelector(getAddIds, getRfpUiEditDetailEntity, filterGeosProjector);
-
-
 
 export const localSelectors = {
   getAppReady,
@@ -160,4 +161,6 @@ export const localSelectors = {
   getFilteredGeos,
   getMediaPlanPrefEntities,
   getMediaPlanPrefState,
+  getShadeAnne,
+  getShadeSolo
 };

@@ -100,7 +100,7 @@ export class InitEffects {
     withLatestFrom(this.store$.pipe(select(localSelectors.getRfpUiEditEntities)),
                    this.store$.pipe(select(localSelectors.getSharedState))),
     map(([, edits, shared]) => this.appSiteService.createSiteRadii(edits, shared.radius)),
-    tap(graphics => this.appLayerService.initializeGraphicLayer(graphics, 'Sites', 'Trade Areas')),
+    tap(graphics => this.appLayerService.initializeGraphicGroup(graphics, 'Sites', 'Trade Areas')),
   );
 
   @Effect({ dispatch: false })

@@ -39,9 +39,9 @@ export interface ShadingState {
   selectedVar: VarDefinition;
   selectedNumericMethod: NumericVariableShadingMethod;
   shadeBy: ShadingType;
+  shadeAnne: boolean;
+  shadeSolo: boolean;
 }
-
-
 
 export const initialState: ShadingState = {
   classifications: [],
@@ -54,6 +54,8 @@ export const initialState: ShadingState = {
   selectedVar: null,
   selectedNumericMethod: NumericVariableShadingMethod.StandardIndex,
   shadeBy: null,
+  shadeAnne: false,
+  shadeSolo: false
 };
 
 type ReducerActions = ShadingActions;
@@ -91,7 +93,17 @@ export function shadingReducer(state = initialState, action: ReducerActions) : S
       return{
         ...state,
         shadeBy: action.payload.shadingType
-      };    
+      };
+    case ShadingActionTypes.SetAnneShading:
+      return {
+        ...state,
+        shadeAnne: action.payload.shadeAnne,
+      };
+    case ShadingActionTypes.SetSoloShading:
+      return {
+        ...state,
+        shadeSolo: action.payload.shadeSolo,
+      };
     default:
       return state;
   }

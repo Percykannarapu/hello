@@ -35,7 +35,8 @@ export class ShadingEffects {
                    this.store$.select(localSelectors.getRfpUiEditDetailEntities),
                    this.store$.select(localSelectors.getSelectedAnalysisLevel)),
     switchMap(([action, shadingData, edits, details, analysisLevel]) => this.shadingService.setShader(analysisLevel, shadingData, edits, details, action.payload.recreateLayer).pipe(
-      tap(graphics => this.appLayerService.initializeGraphicLayer(graphics, 'Shading', 'Selected Geos', true)),
+      tap(graphics => this.appLayerService.initializeGraphicGroup(graphics, 'Shading', 'Selected Geos', true)),
+      tap(() => this.appLayerService.setupAnneSoloLayers(shadingData.shadeAnne, shadingData.shadeSolo, 'Shading', analysisLevel)),
       catchError(err => {
         console.error(err);
         this.messagingService.showErrorNotification('There was an error retrieving shading data');
@@ -55,6 +56,20 @@ export class ShadingEffects {
     ofType(ShadingActionTypes.CalculateEqualIntervals),
     map(action => this.shadingService.calculateEqualIntervals(action.payload)),
     map(payload => new SetClassBreakValues(payload))
+  );
+
+  @Effect({ dispatch: false })
+  changeAnneShading$ = this.actions$.pipe(
+    ofType(ShadingActionTypes.SetAnneShading),
+    withLatestFrom(this.store$.select(localSelectors.getShadeSolo), this.store$.select(localSelectors.getSelectedAnalysisLevel)),
+    tap(([action, solo, analysisLevel]) => this.appLayerService.setupAnneSoloLayers(action.payload.shadeAnne, solo, 'Shading', analysisLevel))
+  );
+
+  @Effect({ dispatch: false })
+  changeSoloShading$ = this.actions$.pipe(
+    ofType(ShadingActionTypes.SetSoloShading),
+    withLatestFrom(this.store$.select(localSelectors.getShadeAnne), this.store$.select(localSelectors.getSelectedAnalysisLevel)),
+    tap(([action, anne, analysisLevel]) => this.appLayerService.setupAnneSoloLayers(anne, action.payload.shadeSolo, 'Shading', analysisLevel))
   );
 
   constructor(private actions$: Actions<ShadingActions>,

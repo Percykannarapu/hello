@@ -10,6 +10,8 @@ export enum ShadingActionTypes {
   CalculateEqualIntervals = '[Shading] Calculate equal intervals',
   SetClassBreakValues = '[Shading] Set Class Break Values',
   SetShadingType = '[Shading] Set Shading Type',
+  SetAnneShading = '[Shading] Set Anne Shading',
+  SetSoloShading = '[Shading] Set Solo Shading'
 }
 
 export class InitializeShading implements Action {
@@ -36,8 +38,8 @@ export class SetNonVariableShading implements Action {
 
 export class CalculateEqualIntervals implements Action{
   readonly type = ShadingActionTypes.CalculateEqualIntervals;
-  constructor(public payload: {breakCount: number, 
-                               selectedVar: VarDefinition, 
+  constructor(public payload: {breakCount: number,
+                               selectedVar: VarDefinition,
                                selectedNumericMethod: NumericVariableShadingMethod,
                                classBreakValues: number[] }){}
 }
@@ -49,10 +51,20 @@ export class SetShadingType implements Action {
 
 export class SetClassBreakValues implements Action{
   readonly type = ShadingActionTypes.SetClassBreakValues;
-  constructor(public payload: {classBreakValues: number[], 
-                               breakCount: number, 
+  constructor(public payload: {classBreakValues: number[],
+                               breakCount: number,
                                selectedVar: VarDefinition,
                                selectedNumericMethod: NumericVariableShadingMethod}){}
+}
+
+export class SetAnneShading implements Action {
+  readonly type = ShadingActionTypes.SetAnneShading;
+  constructor(public payload: { shadeAnne: boolean }) {}
+}
+
+export class SetSoloShading implements Action {
+  readonly type = ShadingActionTypes.SetSoloShading;
+  constructor(public payload: { shadeSolo: boolean }) {}
 }
 
 export type ShadingActions =
@@ -63,5 +75,7 @@ export type ShadingActions =
   SetNonVariableShading |
   CalculateEqualIntervals |
   SetClassBreakValues |
-  SetShadingType
+  SetShadingType |
+  SetAnneShading |
+  SetSoloShading
   ;
