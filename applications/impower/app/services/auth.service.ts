@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpParameterCodec } from '@angular/common/http';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 import { User } from '../models/User';
 import { Observable, Subject } from 'rxjs';
@@ -45,6 +45,26 @@ interface RefreshResponse {
   refresh_token: string;
   access_token: string;
 }
+
+class CustomEncoder implements HttpParameterCodec {
+  encodeKey(key: string) : string {
+    return encodeURIComponent(key);
+  }
+
+  encodeValue(value: string) : string {
+    console.log('Encoding value: ' + value +  'to:'  + encodeURIComponent(value));
+    return encodeURIComponent(value);
+  }
+
+  decodeKey(key: string) : string {
+    return decodeURIComponent(key);
+  }
+
+  decodeValue(value: string) : string {
+    return decodeURIComponent(value);
+  }
+}
+
 
 @Injectable()
 export class AuthService implements CanActivate {
@@ -245,7 +265,7 @@ export class AuthService implements CanActivate {
     };
 
     // set up the body of the request for the token request
-    const tokenParams = new HttpParams()
+    const tokenParams = new HttpParams({encoder: new CustomEncoder()})
       .set('grant_type', 'password')
       .set('username', username)
       .set('password', password)
@@ -255,7 +275,7 @@ export class AuthService implements CanActivate {
     /*return this.httpClient.post<RegistrationResponse>(this.config.oAuthParams.registerUrl, registrationPayload, { headers: headers })
       .map(res => this.parseRegistrationResponse(res))
       .mergeMap(tokenHeaders => this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders }));*/
-    const tokenHeaders: HttpHeaders = new HttpHeaders().set('Authorization', 'Basic ' + btoa(this.clientId + ':' + this.clientSecret));
+    const tokenHeaders: HttpHeaders = new HttpHeaders().set('Authorization', 'Basic ' + btoa(this.clientId + ':' + this.clientSecret)).set('Content-type', 'application/x-www-form-urlencoded');
     return this.httpClient.post<TokenResponse>(this.config.oAuthParams.tokenUrl, tokenParams, { headers: tokenHeaders });
   }
 
