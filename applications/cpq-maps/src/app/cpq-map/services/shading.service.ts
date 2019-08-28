@@ -11,8 +11,6 @@ import { LegendData } from '../state/app.interfaces';
 import { ShadingState, ShadingType, VarDefinition, VariableRanges, NumericVariableShadingMethod } from '../state/shading/shading.reducer';
 import { SetLegendData } from '../state/shared/shared.actions';
 import { ConfigService } from './config.service';
-import { localSelectors } from '../state/app.selectors';
-import { SetClassBreakValues } from '../state/shading/shading.actions';
 
 function formatNumber(value: number) {
   const localeOptions = {
@@ -247,8 +245,9 @@ export class ShadingService {
   private generateLegend(analysisLevel: string, graphics: __esri.Graphic[], shadingData: ShadingState) : void {
     const legend = new Map<string, { color: number[], hhc: number }>();
     const palette = shadingData.basePalette;
-    const layerId = this.configService.layers[analysisLevel].boundaries.id;
-    const layer = this.layerService.getPortalLayerById(layerId);
+    const layers = this.layerService.getPortalLayersById(this.configService.layers[analysisLevel].boundaries.id);
+    const shadingGroup = this.layerService.getGroup('Shading');
+    const layer = layers.filter(l => l['parent'] !== shadingGroup)[0];
     graphics.sort((a, b) => {
       const groupA: string = a.getAttribute('SHADING_GROUP');
       const groupB: string = b.getAttribute('SHADING_GROUP');
@@ -303,8 +302,8 @@ export class ShadingService {
         classBreakValues.push(currentBreak);
       }
     }
-      
-    return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar, 
+
+    return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar,
             selectedNumericMethod: payload.selectedNumericMethod};
   }
 

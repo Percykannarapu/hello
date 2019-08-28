@@ -17,7 +17,7 @@ export class EsriLayerService {
   private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
   private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public layersReady$: Observable<boolean> = this.layersReady.asObservable();
-  
+
   constructor(private mapService: EsriMapService) {}
 
   public clearClientLayers(groupName: string) : void {
@@ -86,12 +86,22 @@ export class EsriLayerService {
   }
 
   public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
+    const result = this.getPortalLayersById(portalId);
+    if (result.length > 1) {
+      console.warn('Expecting a single layer in getPortalLayerById, got multiple. Returning first instance only');
+    }
+    return result[0];
+  }
+
+  public getPortalLayersById(portalId: string) : __esri.FeatureLayer[] {
+    const result = [];
     for (const l of this.mapService.mapView.map.allLayers.toArray()) {
       if (EsriUtils.layerIsFeature(l)) {
-        if (EsriUtils.layerIsPortalFeature(l) && l.portalItem.id === portalId) return l;
-        if (l.url != null && l.url.startsWith(portalId)) return l;
+        if (EsriUtils.layerIsPortalFeature(l) && l.portalItem.id === portalId) result.push(l);
+        if (l.url != null && l.url.startsWith(portalId)) result.push(l);
       }
     }
+    return result;
   }
 
   public removeLayer(layerName: string) : void {
