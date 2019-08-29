@@ -165,13 +165,14 @@ export class EsriRendererService {
     uniqueData.sort();
     const setup = this.createRendererSetup(mapState, theme);
     const uvi = this.generateClassBreaks(uniqueData, setup.rendererSetup);
+    const lv = this.getLayerView(mapState.selectedLayerId);
     const renderer: Partial<__esri.UniqueValueRenderer> = {
       type: 'unique-value',
       valueExpression: arcade,
       uniqueValueInfos: uvi,
-      defaultSymbol: setup.symbol
+      defaultSymbol: setup.symbol,
+      defaultLabel: lv.layer.title
     };
-    const lv = this.getLayerView(mapState.selectedLayerId);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = renderer as __esri.UniqueValueRenderer;
     } else {
@@ -262,7 +263,8 @@ export class EsriRendererService {
     dataValues.forEach((value, i) => {
       result.push({
           value: value,
-          symbol: EsriRendererService.createSymbol(themeColors[i % themeColors.length], setup.outline.defaultColor, setup.outline.defaultWidth)
+          symbol: EsriRendererService.createSymbol(themeColors[i % themeColors.length], setup.outline.defaultColor, setup.outline.defaultWidth),
+          label: value
         });
     });
     return result;
