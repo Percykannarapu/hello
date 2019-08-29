@@ -40,8 +40,9 @@ export interface ResultType {
 }
 
 export interface LegendData {
-  sortOrder: number;
   groupName: string;
-  color: number[];
   hhc: number;
+  color?: number[];
+  sortOrder?: number;
+  image?: string;
 }

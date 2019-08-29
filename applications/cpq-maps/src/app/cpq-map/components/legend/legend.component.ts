@@ -1,7 +1,8 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { pad } from '@val/common';
-import { map, tap, withLatestFrom } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
 
@@ -12,6 +13,10 @@ function colorToHex(color: number[]) {
   return `#${red}${green}${blue}99`;
 }
 
+function url(img: string) {
+  return `assets/crosshatch/${img}.png`;
+}
+
 @Component({
   selector: 'cpq-legend',
   templateUrl: './legend.component.html',
@@ -20,14 +25,14 @@ function colorToHex(color: number[]) {
 export class LegendComponent implements OnInit {
 
   legendTitle: string;
-  legendData: Array<{ name: string, colorHex: string, hhc: number }> = [];
+  colorLegendData: Array<{ name: string, colorHex: string, hhc: number }> = [];
+  imageLegendData: Array<{ name: string, imgUrl: string, hhc: number }> = [];
 
   constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
 
   ngOnInit() {
-    this.store$.pipe(
-      select(localSelectors.getLegendData),
-      map(shadingData => shadingData.filter(d => d.hhc > 0)),
+    const colorEntries$ = this.store$.select(localSelectors.getLegendData).pipe(
+      map(shadingData => shadingData.filter(d => d.hhc > 0 && d.color != null)),
       tap(shadingData => shadingData.sort((a, b) => {
         if (a.sortOrder == null || b.sortOrder == null) {
           return a.groupName.localeCompare(b.groupName);
@@ -35,10 +40,17 @@ export class LegendComponent implements OnInit {
           return a.sortOrder - b.sortOrder;
         }
       })),
-      map(shadingData => shadingData.map(d => ({ name: d.groupName, colorHex: colorToHex(d.color), hhc: d.hhc }))),
-      withLatestFrom(this.store$.pipe(select(localSelectors.getLegendTitle)))
-    ).subscribe(([result, title]) => {
-      this.legendData = result;
+      map(shadingData => shadingData.map(d => ({ name: d.groupName, colorHex: colorToHex(d.color), hhc: d.hhc })))
+    );
+    const imageEntries$ = this.store$.select(localSelectors.getLegendData).pipe(
+      map(shadingData => shadingData.filter(d => d.image != null)),
+      map(shadingData => shadingData.map(d => ({ name: d.groupName, imgUrl: url(d.image), hhc: d.hhc })))
+    );
+
+    combineLatest([colorEntries$, imageEntries$, this.store$.select(localSelectors.getLegendTitle)])
+      .subscribe(([colorResult, imageResult, title]: [{ name: string, colorHex: string, hhc: number }[], { name: string, imgUrl: string, hhc: number }[], string]) => {
+      this.colorLegendData = colorResult;
+      this.imageLegendData = imageResult;
       this.legendTitle = title;
       this.cd.detectChanges();
     }, err => {

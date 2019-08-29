@@ -38,7 +38,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   mapConfig: MapConfig = new MapConfig;
 
   mediaplanPref: MediaPlanPref = new MediaPlanPref();
-  
+
   appReady$: Observable<boolean>;
   isSaving$: Observable<boolean>;
   generateDisabled$: Observable<boolean>;
@@ -82,7 +82,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
       this.updateIds = headers.updateIds;
     });
 
-    
+
 
     this.appReady$ = this.store$.pipe(
       select(localSelectors.getAppReady)
@@ -90,17 +90,17 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
     this.isSaving$ = this.store$.pipe(
       select(localSelectors.getIsSaving)
     );
-    
+
     this.generateDisabled$ = this.store$.pipe(select(localSelectors.getFilteredGeos));
-    
+
     this.store$.pipe(
       withLatestFrom(this.store$.select(localSelectors.getSharedState), this.store$.select(localSelectors.getShadingState))
     ).subscribe( ([,  shared, shading]) => {
          this.mapConfig.classes = shading.selectedClassBreaks != null ? shading.selectedClassBreaks : 0;
-         this.mapConfig.gridDisplay = shared.grisSize;
+         this.mapConfig.gridDisplay = shared.gridSize;
          this.mapConfig.method = shading.selectedNumericMethod;
          this.mapConfig.shadeBy = ShadingType[shading.shadeBy];
-         this.mapConfig.showDist = shared.isDistrQtyEnabled; 
+         this.mapConfig.showDist = shared.isDistrQtyEnabled;
          this.mapConfig.variable = shading.selectedVar;
          this.mapConfig.classBreakValues = shading.classBreakValues;
          this.isPrefChange = shared.mapPrefChanged;
@@ -114,7 +114,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
             if (mediaplanPref.prefGroup === 'CPQ MAPS')
                 this.mediaplanPref = mediaplanPref;
             else
-                this.mediaplanPref = new MediaPlanPref();   
+                this.mediaplanPref = new MediaPlanPref();
         });
       });
   }
@@ -150,7 +150,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
    return mediaplanPrefPayload;
   }
 
-  
+
 
   exportMaps(){
     this.store$.dispatch(new GeneratePdf());

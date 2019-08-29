@@ -58,18 +58,10 @@ export class ShadingEffects {
     map(payload => new SetClassBreakValues(payload))
   );
 
-  @Effect({ dispatch: false })
-  changeAnneShading$ = this.actions$.pipe(
-    ofType(ShadingActionTypes.SetAnneShading),
-    withLatestFrom(this.store$.select(localSelectors.getShadeSolo), this.store$.select(localSelectors.getSelectedAnalysisLevel)),
-    tap(([action, solo, analysisLevel]) => this.appLayerService.setupAnneSoloLayers(action.payload.shadeAnne, solo, 'Shading', analysisLevel))
-  );
-
-  @Effect({ dispatch: false })
-  changeSoloShading$ = this.actions$.pipe(
-    ofType(ShadingActionTypes.SetSoloShading),
-    withLatestFrom(this.store$.select(localSelectors.getShadeAnne), this.store$.select(localSelectors.getSelectedAnalysisLevel)),
-    tap(([action, anne, analysisLevel]) => this.appLayerService.setupAnneSoloLayers(anne, action.payload.shadeSolo, 'Shading', analysisLevel))
+  @Effect()
+  changeAnneSoloShading$ = this.actions$.pipe(
+    ofType(ShadingActionTypes.SetAnneShading, ShadingActionTypes.SetSoloShading),
+    map(() => new RenderShading({ recreateLayer: false }))
   );
 
   constructor(private actions$: Actions<ShadingActions>,

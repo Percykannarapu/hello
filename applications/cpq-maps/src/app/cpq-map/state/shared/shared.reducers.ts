@@ -22,7 +22,7 @@ export interface SharedState {
    legendData: LegendData[];
    legendTitle: string;
    legendUpdateCounter: number;
-   grisSize: 'small' | 'large' | 'none';
+   gridSize: 'small' | 'large' | 'none';
    mapPrefChanged: boolean;
 }
 
@@ -44,7 +44,7 @@ const initialState: SharedState = {
    legendData: [],
    legendTitle: '',
    legendUpdateCounter: 0,
-   grisSize: null,
+   gridSize: null,
    mapPrefChanged: true,
 };
 
@@ -151,10 +151,10 @@ export function sharedReducer(state = initialState, action: ReducerActions) : Sh
       case SharedActionTypes.SetGridSize:
          return {
            ...state,
-           grisSize: action.payload.gridSize
+           gridSize: action.payload.gridSize
          };
       case SharedActionTypes.SetMapPreference:
-          return {...state, mapPrefChanged: action.payload.mapPrefChanged}      
+          return {...state, mapPrefChanged: action.payload.mapPrefChanged};
       default:
          return state;
    }

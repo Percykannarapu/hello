@@ -4,6 +4,7 @@ import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, Es
 import { LegendComponent } from '../components/legend/legend.component';
 import { FullState } from '../state';
 import { ConfigService } from './config.service';
+import { ShadingService } from './shading.service';
 
 @Injectable({
    providedIn: 'root'
@@ -16,6 +17,7 @@ export class AppLayerService {
                private esriFactory: EsriDomainFactoryService,
                private store$: Store<FullState>,
                private configService: ConfigService,
+               private shadingService: ShadingService,
                private resolver: ComponentFactoryResolver,
                private injector: Injector) { }
 
@@ -139,44 +141,18 @@ export class AppLayerService {
     const anneName = 'ANNE Geographies';
     const soloName = 'Solo Geographies';
     const group = this.esriLayerService.getGroup(groupName);
-    this.setupDupeLayer(analysisLevel, anneName, group, shadeAnne, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)');
-    this.setupDupeLayer(analysisLevel, soloName, group, shadeSolo, 'IIF($feature.cov_frequency == "Solo", 1, 0)');
-  }
-
-  private setupDupeLayer(analysisLevel: string, layerName: string, group: __esri.GroupLayer, visibility: boolean, expression: string) : void {
-    const currentLayer = this.esriLayerService.getFeatureLayer(layerName);
-    if (currentLayer == null) {
-      let layerId = null;
-      let layerScale = null;
-      for (const layerGroup of Object.values(this.configService.layers)) {
-        if (layerGroup.group.analysisLevelName == analysisLevel) {
-          layerId = layerGroup.boundaries.id;
-          layerScale = layerGroup.boundaries.minScale;
-          break;
-        }
-      }
-      let fillStyle = 'horizontal';
-      if (layerName.toLowerCase().includes('anne')) {
-        fillStyle = 'diagonal-cross';
-      }
-      this.esriLayerService.createPortalLayer(layerId, layerName, layerScale, visibility).subscribe(newLayer => {
-        newLayer.legendEnabled = false;
-        newLayer.labelsVisible = false;
-        newLayer.renderer = new EsriApi.UniqueValueRenderer({
-          defaultSymbol: new EsriApi.SimpleFillSymbol({ color: [0, 0, 0, 0], outline: { color: [0, 0, 0, 0] } }),
-          uniqueValueInfos: [{
-            value: 1,
-            symbol: new EsriApi.SimpleFillSymbol({
-              style: fillStyle,
-              color: [0, 0, 0, 1]
-            })
-          }],
-          valueExpression: expression,
-        });
-        group.add(newLayer);
-      });
+    const anneLayer = this.esriLayerService.getFeatureLayer(anneName);
+    const soloLayer = this.esriLayerService.getFeatureLayer(soloName);
+    const layerConfig = this.configService.layers[analysisLevel];
+    if (anneLayer == null) {
+      this.shadingService.setupCrossHatchLayer(layerConfig, anneName, group, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)');
     } else {
-      currentLayer.visible = visibility;
+      anneLayer.visible = shadeAnne;
+    }
+    if (soloLayer == null) {
+      this.shadingService.setupCrossHatchLayer(layerConfig, soloName, group, 'IIF($feature.cov_frequency == "Solo", 1, 0)');
+    } else {
+      soloLayer.visible = shadeSolo;
     }
   }
 }

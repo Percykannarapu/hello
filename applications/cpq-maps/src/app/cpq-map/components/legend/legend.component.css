@@ -41,6 +41,13 @@
   padding-left: 0;
 }
 
+.legend-crosshatch {
+  border: 2px solid black;
+  width: 24px;
+  height: 24px;
+  padding-left: 0 !important;
+}
+
 .legend-name {
   font-weight: bold;
   flex: 1 1 auto;

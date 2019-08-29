@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { mapByExtended } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, LayerGroupDefinition } from '@val/esri';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
@@ -19,6 +19,9 @@ function formatNumber(value: number) {
   };
   return value.toLocaleString(window.navigator.language, localeOptions);
 }
+
+const ANNE_PATTERN = 'diagonal-cross';
+const SOLO_PATTERN = 'horizontal';
 
 @Injectable({
   providedIn: 'root'
@@ -279,9 +282,18 @@ export class ShadingService {
       if (this.sortMap.has(k)) {
         legendSettings.push({ groupName: k, color: v.color, hhc: v.hhc, sortOrder: this.sortMap.get(k) });
       } else {
-        legendSettings.push({ groupName: k, color: v.color, hhc: v.hhc, sortOrder: null });
+        legendSettings.push({ groupName: k, color: v.color, hhc: v.hhc });
       }
     });
+
+    if (shadingData.shadeAnne) {
+      legendSettings.push({ groupName: 'ANNE Geographies', hhc: 0, image: ANNE_PATTERN, sortOrder: 0 });
+    }
+
+    if (shadingData.shadeSolo) {
+      legendSettings.push({ groupName: 'Solo Geographies', hhc: 0, image: SOLO_PATTERN, sortOrder: 1 });
+    }
+
     this.store$.dispatch(new SetLegendData({ legendData: legendSettings, legendTitle: ShadingService.getLegendTitle(shadingData) }));
   }
 
@@ -305,6 +317,29 @@ export class ShadingService {
 
     return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar,
             selectedNumericMethod: payload.selectedNumericMethod};
+  }
+
+  public setupCrossHatchLayer(layerConfig: LayerGroupDefinition, layerName: string, group: __esri.GroupLayer, expression: string) : void {
+    let fillStyle = SOLO_PATTERN;
+    if (layerName.toLowerCase().includes('anne')) {
+      fillStyle = ANNE_PATTERN;
+    }
+    this.layerService.createPortalLayer(layerConfig.boundaries.id, layerName, layerConfig.boundaries.minScale, false).subscribe(newLayer => {
+      newLayer.legendEnabled = false;
+      newLayer.labelsVisible = false;
+      newLayer.renderer = new EsriApi.UniqueValueRenderer({
+        defaultSymbol: new EsriApi.SimpleFillSymbol({ color: [0, 0, 0, 0], outline: { color: [0, 0, 0, 0] } }),
+        uniqueValueInfos: [{
+          value: 1,
+          symbol: new EsriApi.SimpleFillSymbol({
+            style: fillStyle,
+            color: [0, 0, 0, 1]
+          })
+        }],
+        valueExpression: expression,
+      });
+      group.add(newLayer);
+    });
   }
 
 }
