@@ -19,7 +19,7 @@ export class PrintViewComponent implements OnInit {
 
   displayDialog$: Observable<boolean>;
   printForm: FormGroup;
-  currentAnalysisLevel: any;
+  currentAnalysisLevel: string;
 
   constructor(private store$: Store<LocalAppState>,
               private fb: FormBuilder,
@@ -34,7 +34,6 @@ export class PrintViewComponent implements OnInit {
       subTitle: '',
     });
     this.displayDialog$ = this.store$.pipe(select(printViewDialogFlag));
-    this.currentAnalysisLevel = this.stateService.analysisLevel$;
   }
 
   onSubmit(dialogFields: any) {
@@ -53,9 +52,8 @@ export class PrintViewComponent implements OnInit {
 
   closeDialog(event: any){
       this.printForm.reset();
-      if (this.currentAnalysisLevel != null && this.currentAnalysisLevel.length > 0){
-        this.store$.dispatch(new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel)}));
-      }
+      this.currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+      this.store$.dispatch(new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, true)}));
       this.store$.dispatch(new ClosePrintViewDialog);
   }
   
