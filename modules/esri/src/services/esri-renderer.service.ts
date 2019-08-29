@@ -366,20 +366,17 @@ export class EsriRendererService {
     }
 
   public setRendererForPrint(geos: string[], mapState: EsriMapState, portalId: string, minScale: number){
-    
+    const portalLayer = this.layerService.getPortalLayerById(portalId);
+    portalLayer.labelingInfo[0].symbol['font'].size = 8;
     const audienceSelections = this.layerService.createPortalLayer( portalId, 'Text Variables', minScale, true).pipe(
         tap(audienceLayer => {
-
-          const portalLayer = this.layerService.getPortalLayerById(portalId);
           const copyRenderer = EsriUtils.clone(portalLayer.renderer);
-
           if (EsriUtils.rendererIsUnique(copyRenderer)){
             
             if ((copyRenderer.uniqueValueInfos[0].value as string).startsWith('Selected')){
               copyRenderer.uniqueValueInfos = [];
               portalLayer.visible = false;
-              portalLayer.labelsVisible = false;
-              audienceLayer.labelsVisible = true;
+              audienceLayer.labelsVisible = false;
 
             } else{
               copyRenderer.uniqueValueInfos = copyRenderer.uniqueValueInfos;
