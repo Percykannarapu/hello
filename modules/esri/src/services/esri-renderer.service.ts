@@ -367,29 +367,24 @@ export class EsriRendererService {
 
   public setRendererForPrint(geos: string[], mapState: EsriMapState, portalId: string, minScale: number){
     const portalLayer = this.layerService.getPortalLayerById(portalId);
-    portalLayer.labelingInfo[0].symbol['font'].size = 7;
     const audienceSelections = this.layerService.createPortalLayer( portalId, 'Text Variables', minScale, true).pipe(
         tap(audienceLayer => {
+          portalLayer.visible = false;
+          portalLayer.labelsVisible = false;
+          portalLayer.legendEnabled = false;
+          audienceLayer.labelingInfo = portalLayer.labelingInfo.map(l => l.clone());
+          audienceLayer.labelingInfo[0].symbol['font'].size = 7;
+          audienceLayer.labelsVisible = true;
           const copyRenderer = EsriUtils.clone(portalLayer.renderer);
+          audienceLayer.renderer = copyRenderer;
+          audienceLayer.legendEnabled = true;
           if (EsriUtils.rendererIsUnique(copyRenderer)){
-            
             if ((copyRenderer.uniqueValueInfos[0].value as string).startsWith('Selected')){
               copyRenderer.uniqueValueInfos = [];
-              portalLayer.visible = false;
-              audienceLayer.labelsVisible = false;
-
-            } else{
-              copyRenderer.uniqueValueInfos = copyRenderer.uniqueValueInfos;
             }
-            // copyRenderer.uniqueValueInfos = (copyRenderer.uniqueValueInfos[0].value as string).startsWith('Selected') ? [] : copyRenderer.uniqueValueInfos;
             copyRenderer.defaultLabel = portalLayer.title;
-            audienceLayer.spatialReference = {wkid: 4326} as __esri.SpatialReference;
-            audienceLayer.popupEnabled = false;
-            audienceLayer.renderer = copyRenderer;
-            audienceLayer.legendEnabled = false;
-            this.mapService.mapView.map.layers.unshift(audienceLayer);
           }
-           
+          this.mapService.mapView.map.layers.unshift(audienceLayer);           
         })
       );
     const geoSelections =  this.layerService.createPortalLayer(portalId, 'Selected Geos', minScale, true).pipe(

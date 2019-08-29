@@ -35,7 +35,7 @@ export class EsriGeoprocessorService {
        return proxy_getPrintDefinition.apply(processor, arguments).then((result) => {
          console.log('Print Payload::', result);
          result.operationalLayers.forEach(layer => {
-           if (layer.title === 'ATZ Boundaries' || layer.title === 'ZIP Boundaries' || layer.title === 'PCR Boundaries' || layer.title === 'Digital ATZ Boundaries'){
+           if (layer.title === 'Text Variables'){
              layer.layerDefinition.drawingInfo.labelingInfo[0].removeDuplicates = 'none';
            }
          });
