@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Store, select } from '@ngrx/store';
 import { LocalState } from '../../state';
-import { SetIsDistrQtyEnabled, SetGridSize } from '../../state/shared/shared.actions';
+import { SetIsDistrQtyEnabled, SetGridSize, SetMapPreference } from '../../state/shared/shared.actions';
 import { withLatestFrom, filter } from 'rxjs/operators';
 import { localSelectors } from '../../state/app.selectors';
 import { MapConfig } from '../header-bar/header-bar.component';
@@ -34,20 +34,22 @@ export class MapControlsComponent implements OnInit {
         const mapConfig: MapConfig = JSON.parse(prefs[0].val);
         this.distributionQtyEnabled = mapConfig.showDist;
         this.gridSize = mapConfig.gridDisplay;
-        this.store$.dispatch(new SetGridSize({gridSize: this.gridSize}));   
-        this.updateGridSize(this.gridSize);
-        this.store$.dispatch(new SetIsDistrQtyEnabled({ isDistrQtyEnabled: this.distributionQtyEnabled })); 
+        this.store$.dispatch(new SetGridSize({gridSize: this.gridSize}));
+        this.store$.dispatch(new SetIsDistrQtyEnabled({ isDistrQtyEnabled: this.distributionQtyEnabled }));
+        this.onGridSizeChange.emit(this.gridSize);
       }
     });
   }
 
   public onDistributionQtyChange(event: any) {
     this.store$.dispatch(new SetIsDistrQtyEnabled({ isDistrQtyEnabled: event }));
+    this.store$.dispatch(new SetMapPreference({ mapPrefChanged: false}));
   }
 
   public updateGridSize(event: any ) {
     this.onGridSizeChange.emit(event);
     this.store$.dispatch(new SetGridSize({gridSize: event}));
+    this.store$.dispatch(new SetMapPreference({ mapPrefChanged: false}));
   }
 
 }

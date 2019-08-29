@@ -121,6 +121,12 @@ export class ShadingConfigComponent implements OnInit {
           selectedVar: this.selectedVar,
           selectedNumericMethod: this.selectedNumericMethod}));
       }
+
+      // this is a horrible hack, and I feel bad
+      setTimeout(() => {
+        this.store.dispatch(new SetSoloShading({ shadeSolo: this.mapConfig.shadeSolo || false }));
+        this.store.dispatch(new SetAnneShading({ shadeAnne: this.mapConfig.shadeAnne || false }));
+      }, 5000);
     }
   }
 
@@ -243,9 +249,11 @@ export class ShadingConfigComponent implements OnInit {
 
   anneChanged(shadeAnne: boolean) {
     this.store.dispatch(new SetAnneShading({ shadeAnne }));
+    this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
   }
 
   soloChanged(shadeSolo: boolean) {
     this.store.dispatch(new SetSoloShading({ shadeSolo }));
+    this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
   }
 }

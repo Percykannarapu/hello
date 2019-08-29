@@ -4,6 +4,7 @@ import { pad } from '@val/common';
 import { combineLatest } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { LocalState } from '../../state';
+import { LegendData } from '../../state/app.interfaces';
 import { localSelectors } from '../../state/app.selectors';
 
 function colorToHex(color: number[]) {
@@ -13,8 +14,16 @@ function colorToHex(color: number[]) {
   return `#${red}${green}${blue}99`;
 }
 
-function url(img: string) {
+function crosshatchUrl(img: string) {
   return `assets/crosshatch/${img}.png`;
+}
+
+function LegendEntrySort(a: LegendData, b: LegendData) {
+  if (a.sortOrder == null || b.sortOrder == null) {
+    return a.groupName.localeCompare(b.groupName);
+  } else {
+    return a.sortOrder - b.sortOrder;
+  }
 }
 
 @Component({
@@ -31,24 +40,11 @@ export class LegendComponent implements OnInit {
   constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
 
   ngOnInit() {
-    const colorEntries$ = this.store$.select(localSelectors.getLegendData).pipe(
-      map(shadingData => shadingData.filter(d => d.hhc > 0 && d.color != null)),
-      tap(shadingData => shadingData.sort((a, b) => {
-        if (a.sortOrder == null || b.sortOrder == null) {
-          return a.groupName.localeCompare(b.groupName);
-        } else {
-          return a.sortOrder - b.sortOrder;
-        }
-      })),
-      map(shadingData => shadingData.map(d => ({ name: d.groupName, colorHex: colorToHex(d.color), hhc: d.hhc })))
-    );
-    const imageEntries$ = this.store$.select(localSelectors.getLegendData).pipe(
-      map(shadingData => shadingData.filter(d => d.image != null)),
-      map(shadingData => shadingData.map(d => ({ name: d.groupName, imgUrl: url(d.image), hhc: d.hhc })))
-    );
+    const colorEntries$ = this.prepColorChipEntries();
+    const imageEntries$ = this.prepImageEntries();
 
     combineLatest([colorEntries$, imageEntries$, this.store$.select(localSelectors.getLegendTitle)])
-      .subscribe(([colorResult, imageResult, title]: [{ name: string, colorHex: string, hhc: number }[], { name: string, imgUrl: string, hhc: number }[], string]) => {
+      .subscribe(([colorResult, imageResult, title]) => {
       this.colorLegendData = colorResult;
       this.imageLegendData = imageResult;
       this.legendTitle = title;
@@ -56,5 +52,21 @@ export class LegendComponent implements OnInit {
     }, err => {
       console.error('There was an error creating the Legend Component', err);
     });
+  }
+
+  private prepColorChipEntries() {
+    return this.store$.select(localSelectors.getLegendData).pipe(
+      map(shadingData => shadingData.filter(d => d.hhc > 0 && d.color != null)),
+      tap(shadingData => shadingData.sort(LegendEntrySort)),
+      map(shadingData => shadingData.map(d => ({ name: d.groupName, colorHex: colorToHex(d.color), hhc: d.hhc })))
+    );
+  }
+
+  private prepImageEntries() {
+    return this.store$.select(localSelectors.getLegendData).pipe(
+      map(shadingData => shadingData.filter(d => d.image != null)),
+      tap(shadingData => shadingData.sort(LegendEntrySort)),
+      map(shadingData => shadingData.map(d => ({ name: d.groupName, imgUrl: crosshatchUrl(d.image), hhc: d.hhc })))
+    );
   }
 }

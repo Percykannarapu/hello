@@ -145,12 +145,12 @@ export class AppLayerService {
     const soloLayer = this.esriLayerService.getFeatureLayer(soloName);
     const layerConfig = this.configService.layers[analysisLevel];
     if (anneLayer == null) {
-      this.shadingService.setupCrossHatchLayer(layerConfig, anneName, group, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)');
+      this.shadingService.setupCrossHatchLayer(layerConfig, anneName, group, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)', shadeAnne);
     } else {
       anneLayer.visible = shadeAnne;
     }
     if (soloLayer == null) {
-      this.shadingService.setupCrossHatchLayer(layerConfig, soloName, group, 'IIF($feature.cov_frequency == "Solo", 1, 0)');
+      this.shadingService.setupCrossHatchLayer(layerConfig, soloName, group, 'IIF($feature.cov_frequency == "Solo", 1, 0)', shadeSolo);
     } else {
       soloLayer.visible = shadeSolo;
     }

@@ -21,6 +21,8 @@ export class MapConfig {
   method: NumericVariableShadingMethod;
   classes: number;
   classBreakValues: number[];
+  shadeAnne: boolean;
+  shadeSolo: boolean;
 }
 
 @Component({
@@ -103,6 +105,8 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
          this.mapConfig.showDist = shared.isDistrQtyEnabled;
          this.mapConfig.variable = shading.selectedVar;
          this.mapConfig.classBreakValues = shading.classBreakValues;
+         this.mapConfig.shadeAnne = shading.shadeAnne;
+         this.mapConfig.shadeSolo = shading.shadeSolo;
          this.isPrefChange = shared.mapPrefChanged;
     });
 

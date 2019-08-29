@@ -147,7 +147,7 @@ export class EsriLayerService {
     const isUrlRequest = portalId.toLowerCase().startsWith('http');
     const loader: any = isUrlRequest ? EsriApi.Layer.fromArcGISServerUrl : EsriApi.Layer.fromPortalItem;
     const itemLoadSpec = isUrlRequest ? { url: portalId } : { portalItem: {id: portalId } };
-    return Observable.create(subject => {
+    return new Observable(subject => {
       loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
         currentLayer.visible = defaultVisibility;
         currentLayer.title = layerTitle;

@@ -245,7 +245,7 @@ export class ShadingService {
     throw new Error('Error generating variable suffix');
   }
 
-  private generateLegend(analysisLevel: string, graphics: __esri.Graphic[], shadingData: ShadingState) : void {
+  public generateLegend(analysisLevel: string, graphics: __esri.Graphic[], shadingData: ShadingState) : void {
     const legend = new Map<string, { color: number[], hhc: number }>();
     const palette = shadingData.basePalette;
     const layers = this.layerService.getPortalLayersById(this.configService.layers[analysisLevel].boundaries.id);
@@ -319,12 +319,12 @@ export class ShadingService {
             selectedNumericMethod: payload.selectedNumericMethod};
   }
 
-  public setupCrossHatchLayer(layerConfig: LayerGroupDefinition, layerName: string, group: __esri.GroupLayer, expression: string) : void {
+  public setupCrossHatchLayer(layerConfig: LayerGroupDefinition, layerName: string, group: __esri.GroupLayer, expression: string, showLayer: boolean) : void {
     let fillStyle = SOLO_PATTERN;
     if (layerName.toLowerCase().includes('anne')) {
       fillStyle = ANNE_PATTERN;
     }
-    this.layerService.createPortalLayer(layerConfig.boundaries.id, layerName, layerConfig.boundaries.minScale, false).subscribe(newLayer => {
+    this.layerService.createPortalLayer(layerConfig.boundaries.id, layerName, layerConfig.boundaries.minScale, showLayer).subscribe(newLayer => {
       newLayer.legendEnabled = false;
       newLayer.labelsVisible = false;
       newLayer.renderer = new EsriApi.UniqueValueRenderer({
