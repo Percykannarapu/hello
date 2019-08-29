@@ -367,7 +367,7 @@ export class EsriRendererService {
 
   public setRendererForPrint(geos: string[], mapState: EsriMapState, portalId: string, minScale: number){
     const portalLayer = this.layerService.getPortalLayerById(portalId);
-    portalLayer.labelingInfo[0].symbol['font'].size = 8;
+    portalLayer.labelingInfo[0].symbol['font'].size = 7;
     const audienceSelections = this.layerService.createPortalLayer( portalId, 'Text Variables', minScale, true).pipe(
         tap(audienceLayer => {
           const copyRenderer = EsriUtils.clone(portalLayer.renderer);
