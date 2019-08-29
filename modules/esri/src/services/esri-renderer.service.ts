@@ -6,7 +6,8 @@ import { EsriLayerService } from './esri-layer.service';
 import { EsriMapState } from '../state/map/esri.map.reducer';
 import { ShadingData, Statistics } from '../state/map/esri.renderer.reducer';
 import { ColorPalette, getColorPalette } from '../models/color-palettes';
-import { tap, map } from 'rxjs/operators';
+import { tap, map} from 'rxjs/operators';
+import { merge } from 'rxjs';
 
 interface OutlineSetup {
   defaultWidth: number;
@@ -363,7 +364,36 @@ export class EsriRendererService {
     }
 
   public setRendererForPrint(geos: string[], mapState: EsriMapState, portalId: string, minScale: number){
-    return  this.layerService.createPortalLayer(portalId, 'Selected Geos', minScale, true).pipe(
+    
+    const audienceSelections = this.layerService.createPortalLayer( portalId, 'Text Variables', minScale, true).pipe(
+        tap(audienceLayer => {
+
+          const portalLayer = this.layerService.getPortalLayerById(portalId);
+          const copyRenderer = EsriUtils.clone(portalLayer.renderer);
+
+          if (EsriUtils.rendererIsUnique(copyRenderer)){
+            
+            if ((copyRenderer.uniqueValueInfos[0].value as string).startsWith('Selected')){
+              copyRenderer.uniqueValueInfos = [];
+              portalLayer.visible = false;
+              portalLayer.labelsVisible = false;
+              audienceLayer.labelsVisible = true;
+
+            } else{
+              copyRenderer.uniqueValueInfos = copyRenderer.uniqueValueInfos;
+            }
+            // copyRenderer.uniqueValueInfos = (copyRenderer.uniqueValueInfos[0].value as string).startsWith('Selected') ? [] : copyRenderer.uniqueValueInfos;
+            copyRenderer.defaultLabel = portalLayer.title;
+            audienceLayer.spatialReference = {wkid: 4326} as __esri.SpatialReference;
+            audienceLayer.popupEnabled = false;
+            audienceLayer.renderer = copyRenderer;
+            audienceLayer.legendEnabled = false;
+            this.mapService.mapView.map.layers.unshift(audienceLayer);
+          }
+           
+        })
+      );
+    const geoSelections =  this.layerService.createPortalLayer(portalId, 'Selected Geos', minScale, true).pipe(
              tap(newLayer => {
               newLayer.spatialReference = {wkid: 4326} as __esri.SpatialReference;
               newLayer.popupEnabled = false;
@@ -371,8 +401,8 @@ export class EsriRendererService {
               newLayer.renderer = this.createUniqueValueRenderer(geos, mapState) as __esri.UniqueValueRenderer;
               this.mapService.mapView.map.add(newLayer);
               }),
-              
             );
+      return merge(audienceSelections, geoSelections);
   }
 
   public clearHighlight() : void {

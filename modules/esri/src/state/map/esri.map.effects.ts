@@ -70,7 +70,7 @@ export class EsriMapEffects {
     .pipe(
       concatMap(response =>
         [
-          new DeletePrintRenderer({layerName: 'Selected Geos'}),
+          // new DeletePrintRenderer(),
           new PrintJobComplete({result: response})
         ]),
         catchError(err => of(new PrintMapFailure({ err })))
@@ -82,15 +82,17 @@ export class EsriMapEffects {
   setShadingRenderer$ = this.actions$.pipe(
     ofType<SetPrintRenderer>(EsriMapActionTypes.SetPrintRenderer),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
-    switchMap(([action, mapState]) => this.esriRendererService.setRendererForPrint(action.payload.geos, mapState, action.payload.portalId, action.payload.minScale).pipe(
-    )),
+    switchMap(([action, mapState]) => this.esriRendererService.setRendererForPrint(action.payload.geos, mapState, action.payload.portalId, action.payload.minScale)),
   );
 
   @Effect({dispatch: false})
   removeShadingRenderer$ = this.actions$.pipe(
     ofType<DeletePrintRenderer>(EsriMapActionTypes.DeletePrintRenderer),
-    tap(() => {
+    tap((action) => {
       this.layerService.removeLayer('Selected Geos');
+      this.layerService.removeLayer('Text Variables');
+      const portalLayer = this.layerService.getPortalLayerById(action.payload.portalId);
+      portalLayer.visible = true;
     })
   );
 
