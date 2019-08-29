@@ -8,6 +8,7 @@ import { PrintMap, EsriLayerService, DeletePrintRenderer } from '@val/esri';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { AppConfig } from 'app/app.config';
 import { ClosePrintViewDialog } from 'app/state/menu/menu.actions';
+import { AppStateService } from 'app/services/app-state.service';
 
 @Component({
   selector: 'val-print-view',
@@ -18,10 +19,13 @@ export class PrintViewComponent implements OnInit {
 
   displayDialog$: Observable<boolean>;
   printForm: FormGroup;
+  currentAnalysisLevel: string;
 
   constructor(private store$: Store<LocalAppState>,
               private fb: FormBuilder,
-              private config: AppConfig) { }
+              private config: AppConfig,
+              private stateService: AppStateService,
+              ) { }
 
   ngOnInit() {
 
@@ -46,10 +50,11 @@ export class PrintViewComponent implements OnInit {
     return (control.dirty || control.untouched || control.value == null) && (control.errors != null);
   }
 
-  closeDialog(){
-    this.printForm.reset();
-    this.store$.dispatch(new DeletePrintRenderer({layerName: 'Selected Geos'}));
-    this.store$.dispatch(new ClosePrintViewDialog);
+  closeDialog(event: any){
+      this.printForm.reset();
+      this.currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+      this.store$.dispatch(new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, true)}));
+      this.store$.dispatch(new ClosePrintViewDialog);
   }
   
 }

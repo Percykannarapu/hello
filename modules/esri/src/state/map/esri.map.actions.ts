@@ -102,7 +102,7 @@ export class SetPrintRenderer implements Action{
 
 export class DeletePrintRenderer implements Action{
   readonly type = EsriMapActionTypes.DeletePrintRenderer;
-  constructor(public payload: {layerName: string}){}
+  constructor(public payload: {portalId: string}){}
 }
 
 export class PrintJobComplete implements Action {

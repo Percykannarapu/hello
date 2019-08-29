@@ -64,6 +64,10 @@ export class EsriUtils {
     return r != null && r.hasOwnProperty('type') && r['type'] === 'simple';
   }
 
+  public static rendererIsUnique(r: __esri.Renderer) : r is __esri.UniqueValueRenderer {
+    return r != null && r.hasOwnProperty('type') && r['type'] === 'unique-value';
+  }
+
   public static symbolIsSimpleFill(s: __esri.Symbol) : s is __esri.SimpleFillSymbol {
     return s != null && s.type === 'simple-fill';
   }

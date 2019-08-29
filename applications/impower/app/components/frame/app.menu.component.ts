@@ -2,7 +2,7 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ConfirmationPayload, ShowConfirmation } from '@val/messaging';
+import { ConfirmationPayload, ShowConfirmation, ErrorNotification } from '@val/messaging';
 import { MenuItem } from 'primeng/api';
 import { filter, take } from 'rxjs/operators';
 import { AppComponent } from '../../app.component';
@@ -10,6 +10,7 @@ import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, SaveAndCreateNew, SaveAndReloadProject, OpenPrintViewDialog } from '../../state/menu/menu.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { AppStateService } from 'app/services/app-state.service';
 
 @Component({
     selector: 'app-menu',
@@ -20,7 +21,7 @@ export class AppMenuComponent implements OnInit {
     model: MenuItem[];
     isLoggedIn: boolean = false;
 
-    constructor(private store$: Store<LocalAppState>, private userService: UserService) { }
+    constructor(private store$: Store<LocalAppState>, private userService: UserService, private stateService: AppStateService) { }
 
     ngOnInit() {
         this.userService.userObservable.pipe(
@@ -46,7 +47,7 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Export Competitors', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor) },
                   { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
                   { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportToValassisDigital()) },
-                  { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.store$.dispatch(new OpenPrintViewDialog()) }
+                  { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() }
               ]
             }
         ];
@@ -54,6 +55,13 @@ export class AppMenuComponent implements OnInit {
 
     private exportLocations(locationType: SuccessfulLocationTypeCodes) : void {
       this.store$.dispatch(new ExportLocations({ locationType }));
+    }
+    private exportCurrentView(){
+    const analysisLevel = this.stateService.analysisLevel$.getValue();
+        if (analysisLevel != null && analysisLevel.length > 0)
+            this.store$.dispatch(new OpenPrintViewDialog());
+        else
+            this.store$.dispatch(new ErrorNotification({message: 'Analysis Level is required to print Current view'}));
     }
 
     public createNewProject() {

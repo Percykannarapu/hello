@@ -131,8 +131,10 @@ export class MenuEffects {
   @Effect()
   handlePrintError$ = this.actions$.pipe(
      ofType<PrintMapFailure>(EsriMapActionTypes.PrintMapFailure),
-     concatMap((action) => [
-      new DeletePrintRenderer({layerName: 'Selected Geos'}),
+     withLatestFrom(this.stateService.analysisLevel$),
+     filter((analysisLevel) => (analysisLevel != null && analysisLevel.length > 0)),
+     concatMap(([action, analysisLevel]) => [
+      new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(analysisLevel)}),
       new StopBusyIndicator({ key: 'Map Book'}),
       new ClosePrintViewDialog(),
       new ErrorNotification({message: 'There was an error generating current view map book' })
@@ -142,7 +144,9 @@ export class MenuEffects {
    @Effect({dispatch: false})
    handlePrintComplete$ = this.actions$.pipe(
      ofType<PrintJobComplete>(EsriMapActionTypes.PrintJobComplete),
-     tap((action) => {
+     withLatestFrom(this.stateService.analysisLevel$),
+     tap(([action, analysisLevel]) => {
+       this.store$.dispatch(new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(analysisLevel)}));
        this.store$.dispatch(new StopBusyIndicator({ key: 'Map Book'}));
        this.store$.dispatch(new ClosePrintViewDialog());
        this.store$.dispatch(new PrintMapSuccess({url: action.payload.result}));
