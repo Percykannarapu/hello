@@ -93,6 +93,8 @@ export class EsriMapEffects {
       this.layerService.removeLayer('Text Variables');
       const portalLayer = this.layerService.getPortalLayerById(action.payload.portalId);
       portalLayer.visible = true;
+      portalLayer.labelsVisible = true;
+      portalLayer.legendEnabled = true;
     })
   );
 
