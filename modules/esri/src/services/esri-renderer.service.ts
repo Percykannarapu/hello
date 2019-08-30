@@ -383,8 +383,10 @@ export class EsriRendererService {
               copyRenderer.uniqueValueInfos = [];
             }
             copyRenderer.defaultLabel = portalLayer.title;
+          } else if (EsriUtils.rendererIsSimple(copyRenderer)) {
+            copyRenderer.label = portalLayer.title;
           }
-          this.mapService.mapView.map.layers.unshift(audienceLayer);           
+          this.mapService.mapView.map.layers.unshift(audienceLayer);
         })
       );
     const geoSelections =  this.layerService.createPortalLayer(portalId, 'Selected Geos', minScale, true).pipe(
