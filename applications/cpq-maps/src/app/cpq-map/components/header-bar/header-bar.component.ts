@@ -99,7 +99,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
       withLatestFrom(this.store$.select(localSelectors.getSharedState), this.store$.select(localSelectors.getShadingState))
     ).subscribe( ([,  shared, shading]) => {
          this.mapConfig.classes = shading.selectedClassBreaks != null ? shading.selectedClassBreaks : 0;
-         this.mapConfig.gridDisplay = shared.gridSize;
+         this.mapConfig.gridDisplay = shared.gridSize == null ? 'small' : shared.gridSize;
          this.mapConfig.method = shading.selectedNumericMethod;
          this.mapConfig.shadeBy = ShadingType[shading.shadeBy];
          this.mapConfig.showDist = shared.isDistrQtyEnabled;

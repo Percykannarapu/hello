@@ -15,7 +15,6 @@ export class MapControlsComponent implements OnInit {
 
   @Output() onGridSizeChange = new EventEmitter<'small' | 'large' | 'none'>();
 
-  public gridSize1: string = 'small';
   public gridSize: 'small' | 'large' | 'none' = 'small';
 
 
@@ -33,10 +32,10 @@ export class MapControlsComponent implements OnInit {
       if (prefs.length > 0){
         const mapConfig: MapConfig = JSON.parse(prefs[0].val);
         this.distributionQtyEnabled = mapConfig.showDist;
-        this.gridSize = mapConfig.gridDisplay;
-        this.store$.dispatch(new SetGridSize({gridSize: this.gridSize}));
-        this.store$.dispatch(new SetIsDistrQtyEnabled({ isDistrQtyEnabled: this.distributionQtyEnabled }));
-        this.onGridSizeChange.emit(this.gridSize);
+        this.gridSize = mapConfig.gridDisplay == null ? 'small' : mapConfig.gridDisplay;
+        this.store$.dispatch(new SetGridSize({gridSize: this.gridSize})); 
+        this.onGridSizeChange.emit(this.gridSize);  
+        this.store$.dispatch(new SetIsDistrQtyEnabled({ isDistrQtyEnabled: this.distributionQtyEnabled })); 
       }
     });
   }
