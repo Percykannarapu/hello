@@ -1,6 +1,5 @@
 import { Action } from '@ngrx/store';
-import { GridSize } from '../app.interfaces';
-import { VariableRanges, ShadingType, VarDefinition, NumericVariableShadingMethod } from './map-ui.reducer';
+import { GridSize, NumericVariableShadingMethod, ShadingType, VarDefinition, VariableRanges } from '../app.interfaces';
 
 export enum MapUIActionTypes {
   InitializeMapUI = '[Map UI] Initialize',

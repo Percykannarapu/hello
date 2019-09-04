@@ -9,9 +9,9 @@ import { RfpUiEditWrap } from '../../val-modules/mediaexpress/models/RfpUiEditWr
 import { RfpUiReview } from '../../val-modules/mediaexpress/models/RfpUiReview';
 import { AvailabilityDetailResponse } from '../models/availability-detail-response';
 import { FullState } from '../state';
+import { VarDefinition } from '../state/app.interfaces';
 import { UpdateRfpUiEditDetails, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { UpdateRfpUiEditWraps, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
-import { VarDefinition } from '../state/map-ui/map-ui.reducer';
 import { ConfigService } from './config.service';
 
 @Injectable({

@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { map, tap, withLatestFrom } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { RfpUiEditWrap } from '../../../val-modules/mediaexpress/models/RfpUiEditWrap';
 import { RfpUiReview } from '../../../val-modules/mediaexpress/models/RfpUiReview';
 import { AppGeoService } from '../../services/app-geo.service';
+import { VarDefinition } from '../app.interfaces';
 import { localSelectors } from '../app.selectors';
 import { FullState } from '../index';
-import { VarDefinition } from '../map-ui/map-ui.reducer';
 import { PopupActions, PopupActionTypes, PopupNewGeoAdd } from './popup.actions';
 
 @Injectable({ providedIn: 'root' })

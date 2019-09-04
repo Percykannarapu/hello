@@ -1,8 +1,8 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { pad } from '@val/common';
-import { combineLatest } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { combineLatest, Subject } from 'rxjs';
+import { map, takeUntil, tap } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { LegendData } from '../../state/app.interfaces';
 import { localSelectors } from '../../state/app.selectors';
@@ -27,7 +27,9 @@ function LegendEntrySort(a: LegendData, b: LegendData) {
   templateUrl: './legend.component.html',
   styleUrls: ['./legend.component.css']
 })
-export class LegendComponent implements OnInit {
+export class LegendComponent implements OnInit, OnDestroy {
+
+  private componentDestroyed$ = new Subject();
 
   legendTitle: string;
   colorLegendData: Array<{ name: string, colorHex: string, hhc: number }> = [];
@@ -39,8 +41,9 @@ export class LegendComponent implements OnInit {
     const colorEntries$ = this.prepColorChipEntries();
     const imageEntries$ = this.prepImageEntries();
 
-    combineLatest([colorEntries$, imageEntries$, this.store$.select(localSelectors.getLegendTitle)])
-      .subscribe(([colorResult, imageResult, title]) => {
+    combineLatest([colorEntries$, imageEntries$, this.store$.select(localSelectors.getLegendTitle)]).pipe(
+      takeUntil(this.componentDestroyed$)
+    ).subscribe(([colorResult, imageResult, title]) => {
       this.colorLegendData = colorResult;
       this.imageLegendData = imageResult;
       this.legendTitle = title;
@@ -48,6 +51,10 @@ export class LegendComponent implements OnInit {
     }, err => {
       console.error('There was an error creating the Legend Component', err);
     });
+  }
+
+  ngOnDestroy() : void {
+    this.componentDestroyed$.next();
   }
 
   private prepColorChipEntries() {

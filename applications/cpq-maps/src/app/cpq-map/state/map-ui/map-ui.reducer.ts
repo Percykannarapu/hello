@@ -1,32 +1,7 @@
-import { GridSize } from '../app.interfaces';
+import { ColorPalette, FillPattern } from '@val/esri';
+import { GridSize, NumericVariableShadingMethod, ShadingType, VarDefinition, VariableRanges } from '../app.interfaces';
 import { SetMapPreferences, SharedActionTypes } from '../shared/shared.actions';
 import { ShadingActions, MapUIActionTypes } from './map-ui.actions';
-
-export enum ShadingType {
-  SITE,
-  ZIP,
-  WRAP_ZONE,
-  ATZ_INDICATOR,
-  VARIABLE
-}
-
-export enum NumericVariableShadingMethod {
-  StandardIndex = 'Standard Index',
-  CustomClassifications = 'Custom Classifications',
-  EqualIntervals = 'Equal Intervals'
-}
-
-export interface VariableRanges {
-  minValue?: number;
-  maxValue?: number;
-}
-
-export interface VarDefinition {
-  name: string;
-  isNumber: boolean;
-  minValue?: number;
-  maxValue?: number;
-}
 
 export interface MapUIState {
   isDistrQtyEnabled: boolean;
@@ -39,8 +14,11 @@ export interface MapUIState {
   selectedClassBreaks: number;
   selectedVar: VarDefinition;
   selectedNumericMethod: NumericVariableShadingMethod;
+  selectedPalette: ColorPalette;
   shadeAnne: boolean;
+  annePattern: FillPattern;
   shadeSolo: boolean;
+  soloPattern: FillPattern;
 }
 
 export const initialState: MapUIState = {
@@ -50,12 +28,15 @@ export const initialState: MapUIState = {
   availableVars: [],
   selectedVarName: '',
   shadingType: ShadingType.SITE,
-  classBreakValues: [],
+  classBreakValues: [80, 120, 140],
   selectedClassBreaks: 4,
   selectedVar: null,
   selectedNumericMethod: NumericVariableShadingMethod.StandardIndex,
+  selectedPalette: ColorPalette.Cpqmaps,
   shadeAnne: false,
-  shadeSolo: false
+  annePattern: 'diagonal-cross',
+  shadeSolo: false,
+  soloPattern: 'horizontal'
 };
 
 type ReducerActions = ShadingActions | SetMapPreferences;

@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { mapByExtended } from '@val/common';
-import { ColorPalette, EsriApi, EsriLayerService, EsriMapService, EsriQueryService, getColorPalette, LayerGroupDefinition } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, FillPattern, getColorPalette, LayerGroupDefinition } from '@val/esri';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { LocalState } from '../state';
-import { LegendData } from '../state/app.interfaces';
-import { MapUIState, ShadingType, VarDefinition, VariableRanges, NumericVariableShadingMethod } from '../state/map-ui/map-ui.reducer';
+import { LegendData, NumericVariableShadingMethod, ShadingType, VarDefinition, VariableRanges } from '../state/app.interfaces';
+import { MapUIState } from '../state/map-ui/map-ui.reducer';
 import { SetLegendData } from '../state/shared/shared.actions';
 import { ConfigService } from './config.service';
 
@@ -19,11 +19,6 @@ function formatNumber(value: number) {
   };
   return value.toLocaleString(window.navigator.language, localeOptions);
 }
-
-const ANNE_PATTERN = 'diagonal-cross';
-const SOLO_PATTERN = 'horizontal';
-
-const DEFAULT_PALETTE = getColorPalette(ColorPalette.Cpqmaps);
 
 @Injectable({
   providedIn: 'root'
@@ -249,6 +244,7 @@ export class ShadingService {
 
   public generateLegend(analysisLevel: string, graphics: __esri.Graphic[], shadingData: MapUIState) : void {
     const legend = new Map<string, { color: number[], hhc: number }>();
+    const palette = getColorPalette(shadingData.selectedPalette);
     const layers = this.layerService.getPortalLayersById(this.configService.layers[analysisLevel].boundaries.id);
     const shadingGroup = this.layerService.getGroup('Shading');
     const layer = layers.filter(l => l['parent'] !== shadingGroup)[0];
@@ -265,7 +261,7 @@ export class ShadingService {
     });
     for (const graphic of graphics) {
       if (!legend.has(graphic.getAttribute('SHADING_GROUP'))) {
-        const newColor = [...DEFAULT_PALETTE[legend.size % DEFAULT_PALETTE.length]];
+        const newColor = [...palette[legend.size % palette.length]];
         newColor.push(this.configService.defaultShadingTransparency);
         legend.set(graphic.getAttribute('SHADING_GROUP'), { color: newColor, hhc: 0 } );
       }
@@ -288,11 +284,11 @@ export class ShadingService {
     });
 
     if (shadingData.shadeAnne) {
-      legendSettings.push({ groupName: 'ANNE Geographies', hhc: 0, image: ANNE_PATTERN, sortOrder: 0 });
+      legendSettings.push({ groupName: 'ANNE Geographies', hhc: 0, image: shadingData.annePattern, sortOrder: 0 });
     }
 
     if (shadingData.shadeSolo) {
-      legendSettings.push({ groupName: 'Solo Geographies', hhc: 0, image: SOLO_PATTERN, sortOrder: 1 });
+      legendSettings.push({ groupName: 'Solo Geographies', hhc: 0, image: shadingData.soloPattern, sortOrder: 1 });
     }
 
     this.store$.dispatch(new SetLegendData({ legendData: legendSettings, legendTitle: ShadingService.getLegendTitle(shadingData) }));
@@ -320,7 +316,7 @@ export class ShadingService {
             selectedNumericMethod: payload.selectedNumericMethod};
   }
 
-  public setupCrossHatchLayer(layerConfig: LayerGroupDefinition, layerName: string, group: __esri.GroupLayer, expression: string, showLayer: boolean, recreateLayer: boolean) : void {
+  public setupCrossHatchLayer(layerConfig: LayerGroupDefinition, layerName: string, group: __esri.GroupLayer, expression: string, showLayer: boolean, recreateLayer: boolean, pattern: FillPattern) : void {
     const foundLayer = this.layerService.getFeatureLayer(layerName);
 
     if (foundLayer != null) {
@@ -330,10 +326,6 @@ export class ShadingService {
 
     if (recreateLayer == false) return;
 
-    let fillStyle = SOLO_PATTERN;
-    if (layerName.toLowerCase().includes('anne')) {
-      fillStyle = ANNE_PATTERN;
-    }
     this.layerService.createPortalLayer(layerConfig.boundaries.id, layerName, layerConfig.boundaries.minScale, showLayer).subscribe(newLayer => {
       newLayer.legendEnabled = false;
       newLayer.labelsVisible = false;
@@ -342,7 +334,7 @@ export class ShadingService {
         uniqueValueInfos: [{
           value: 1,
           symbol: new EsriApi.SimpleFillSymbol({
-            style: fillStyle,
+            style: pattern,
             color: [0, 0, 0, 1]
           })
         }],

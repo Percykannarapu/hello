@@ -5,7 +5,7 @@ import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri
 import { EsriMapService } from './esri-map.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { UniversalCoordinates } from '@val/common';
-import { MapSymbols } from '../models/map-symbols';
+import { MapSymbols } from '../models/map-types';
 import { CopyCoordinatesToClipboard } from '../state/map/esri.map.actions';
 
 const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data === 'string'  ? 'string' : 'double';

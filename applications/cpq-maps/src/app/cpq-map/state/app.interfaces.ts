@@ -48,3 +48,29 @@ export interface LegendData {
   sortOrder?: number;
   image?: string;
 }
+
+export enum ShadingType {
+  SITE,
+  ZIP,
+  WRAP_ZONE,
+  ATZ_INDICATOR,
+  VARIABLE
+}
+
+export enum NumericVariableShadingMethod {
+  StandardIndex = 'Standard Index',
+  CustomClassifications = 'Custom Classifications',
+  EqualIntervals = 'Equal Intervals'
+}
+
+export interface VariableRanges {
+  minValue?: number;
+  maxValue?: number;
+}
+
+export interface VarDefinition {
+  name: string;
+  isNumber: boolean;
+  minValue?: number;
+  maxValue?: number;
+}

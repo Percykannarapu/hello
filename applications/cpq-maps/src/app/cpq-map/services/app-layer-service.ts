@@ -3,6 +3,7 @@ import { Store } from '@ngrx/store';
 import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, SetLayerLabelExpressions } from '@val/esri';
 import { LegendComponent } from '../components/legend/legend.component';
 import { FullState } from '../state';
+import { MapUIState } from '../state/map-ui/map-ui.reducer';
 import { ConfigService } from './config.service';
 import { ShadingService } from './shading.service';
 
@@ -137,12 +138,12 @@ export class AppLayerService {
      }
    }
 
-  public setupAnneSoloLayers(shadeAnne: boolean, shadeSolo: boolean, groupName: string, analysisLevel: string, recreateLayers: boolean) : void {
+  public setupAnneSoloLayers(mapUIState: MapUIState, groupName: string, analysisLevel: string, recreateLayers: boolean) : void {
     const anneName = 'ANNE Geographies';
     const soloName = 'Solo Geographies';
     const group = this.esriLayerService.getGroup(groupName);
     const layerConfig = this.configService.layers[analysisLevel];
-    this.shadingService.setupCrossHatchLayer(layerConfig, anneName, group, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)', shadeAnne, recreateLayers);
-    this.shadingService.setupCrossHatchLayer(layerConfig, soloName, group, 'IIF($feature.cov_frequency == "Solo", 1, 0)', shadeSolo, recreateLayers);
+    this.shadingService.setupCrossHatchLayer(layerConfig, anneName, group, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)', mapUIState.shadeAnne, recreateLayers, mapUIState.annePattern);
+    this.shadingService.setupCrossHatchLayer(layerConfig, soloName, group, 'IIF($feature.cov_frequency == "Solo", 1, 0)', mapUIState.shadeSolo, recreateLayers, mapUIState.soloPattern);
   }
 }

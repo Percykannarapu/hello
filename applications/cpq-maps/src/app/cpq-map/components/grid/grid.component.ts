@@ -3,12 +3,11 @@ import { Store } from '@ngrx/store';
 import { isNumber, mapBy } from '@val/common';
 import { filter, map, take } from 'rxjs/operators';
 import { LocalState } from '../../state';
+import { NumericVariableShadingMethod, ShadingType, VarDefinition } from '../../state/app.interfaces';
 import { localSelectors } from '../../state/app.selectors';
 import { GridGeosToggle } from '../../state/grid/grid.actions';
 import * as fromGridSelectors from '../../state/grid/grid.selectors';
 import { CalculateEqualIntervals, InitializeMapUI } from '../../state/map-ui/map-ui.actions';
-import { VarDefinition, ShadingType } from '../../state/map-ui/map-ui.reducer';
-import { NumericVariableShadingMethod } from '../shading-config/shading-config.component';
 
 export interface FullColumn extends fromGridSelectors.GridColumn {
   formatType?: 'string' | 'number' | 'currency';
