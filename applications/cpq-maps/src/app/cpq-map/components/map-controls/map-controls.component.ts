@@ -1,54 +1,46 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { Store, select } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { LocalState } from '../../state';
-import { SetIsDistrQtyEnabled, SetGridSize, SetMapPreference } from '../../state/shared/shared.actions';
+import { GridSize } from '../../state/app.interfaces';
 import { withLatestFrom, filter } from 'rxjs/operators';
 import { localSelectors } from '../../state/app.selectors';
-import { MapConfig } from '../header-bar/header-bar.component';
+import { SetGridSize, SetIsDistributionVisible } from '../../state/map-ui/map-ui.actions';
+import { SetPrefsDirty } from '../../state/shared/shared.actions';
 
 @Component({
-  selector: 'val-map-controls',
+  selector: 'cpq-map-controls',
   templateUrl: './map-controls.component.html',
   styleUrls: ['./map-controls.component.css']
 })
 export class MapControlsComponent implements OnInit {
 
-  @Output() onGridSizeChange = new EventEmitter<'small' | 'large' | 'none'>();
+  @Output() onGridSizeChange = new EventEmitter<GridSize>();
 
-  public gridSize: 'small' | 'large' | 'none' = 'small';
-
-
+  public gridSize: GridSize = 'small';
   public distributionQtyEnabled: boolean = false;
 
   constructor(private store$: Store<LocalState>) { }
 
   ngOnInit() {
-    this.store$.pipe(
-      select(localSelectors.getAppReady),
-      withLatestFrom(this.store$.select(localSelectors.getSharedState), this.store$.select(localSelectors.getMediaPlanPrefEntities)),
+    this.store$.select(localSelectors.getAppReady).pipe(
+      withLatestFrom(this.store$.select(localSelectors.getMapUIState)),
       filter(([ready]) => ready)
-    ).subscribe( ([,  shared, mediaPlanPrefs]) => {
-      const prefs = mediaPlanPrefs.filter(pref => pref.prefGroup === 'CPQ MAPS');
-      if (prefs.length > 0){
-        const mapConfig: MapConfig = JSON.parse(prefs[0].val);
-        this.distributionQtyEnabled = mapConfig.showDist;
-        this.gridSize = mapConfig.gridDisplay == null ? 'small' : mapConfig.gridDisplay;
-        this.store$.dispatch(new SetGridSize({gridSize: this.gridSize})); 
-        this.onGridSizeChange.emit(this.gridSize);  
-        this.store$.dispatch(new SetIsDistrQtyEnabled({ isDistrQtyEnabled: this.distributionQtyEnabled })); 
-      }
+    ).subscribe( ([,  shared]) => {
+      this.distributionQtyEnabled = shared.isDistrQtyEnabled;
+      this.gridSize = shared.gridSize;
+      this.onGridSizeChange.emit(this.gridSize);
     });
   }
 
   public onDistributionQtyChange(event: any) {
-    this.store$.dispatch(new SetIsDistrQtyEnabled({ isDistrQtyEnabled: event }));
-    this.store$.dispatch(new SetMapPreference({ mapPrefChanged: false}));
+    this.store$.dispatch(new SetIsDistributionVisible({ isVisible: event }));
+    this.store$.dispatch(new SetPrefsDirty());
   }
 
   public updateGridSize(event: any ) {
     this.onGridSizeChange.emit(event);
-    this.store$.dispatch(new SetGridSize({gridSize: event}));
-    this.store$.dispatch(new SetMapPreference({ mapPrefChanged: false}));
+    this.store$.dispatch(new SetGridSize({ gridSize: event }));
+    this.store$.dispatch(new SetPrefsDirty());
   }
 
 }

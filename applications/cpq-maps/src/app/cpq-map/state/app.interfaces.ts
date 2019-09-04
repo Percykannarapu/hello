@@ -1,3 +1,5 @@
+export type GridSize = 'small' | 'large' | 'none';
+
 export interface PrintModel {
   clientName: string;
   layerSource: string;

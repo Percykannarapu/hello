@@ -1,12 +1,11 @@
 import { Action } from '@ngrx/store';
 import { LegendData, ResultType } from '../app.interfaces';
-import { MediaPlanPrefPayload } from '../payload-models/MediaPlanPref';
-import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
+import { MapUIState } from '../map-ui/map-ui.reducer';
+import { SharedState } from './shared.reducers';
 
 export enum SharedActionTypes {
   SetAppReady = '[Shared Actions] Set App Ready',
   SetIsWrap = '[Shared Actions] Set isWrap',
-  SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled',
   SaveMediaPlan = '[Shared Actions] Save Media Plan',
   SaveSucceeded = '[Shared Actions] Save Succeeded',
   SaveFailed = '[Shared Actions] Save Failed',
@@ -18,8 +17,9 @@ export enum SharedActionTypes {
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
   SetLegendData = '[Shared Actions] Set Legend Data',
   SetLegendHTML = '[Shared Actions] Set Legend HTML',
-  SetGridSize = '[Shared Actions] set Grid Size',
-  SetMapPreference = '[Shared Actions] set Map preference onload'
+
+  LoadMapPreferences = '[Shared Actions] Load Map Preferences',
+  SetPrefsDirty = '[Shared Actions] Mark Map Preferences Dirty'
 }
 
 export class SetLegendHTML implements Action {
@@ -37,11 +37,6 @@ export class SetAppReady implements Action {
   constructor(public payload: boolean) { }
 }
 
-export class SetIsDistrQtyEnabled implements Action {
-  readonly type = SharedActionTypes.SetIsDistrQtyEnabled;
-  constructor(public payload: { isDistrQtyEnabled: boolean }) { }
-}
-
 export class SetIsWrap implements Action {
   readonly type = SharedActionTypes.SetIsWrap;
   constructor(public payload: { isWrap: boolean }) { }
@@ -49,7 +44,6 @@ export class SetIsWrap implements Action {
 
 export class SaveMediaPlan implements Action {
     readonly type = SharedActionTypes.SaveMediaPlan;
-    constructor(public payload: { updateIds: number[], addIds: number[],  mapConfig: MediaPlanPref}) {}
 }
 
 export class SaveSucceeded implements Action {
@@ -80,20 +74,18 @@ export class GeneratePdfSucceeded implements Action {
   constructor(public payload: { response: ResultType }) {}
 }
 
-export class SetGridSize implements Action {
-  readonly type = SharedActionTypes.SetGridSize;
-  constructor(public payload: { gridSize: 'small' | 'large' | 'none' }) { }
+export class SetMapPreferences implements Action {
+  readonly type = SharedActionTypes.LoadMapPreferences;
+  constructor(public payload: { mapUISlice: MapUIState }) { }
 }
 
-export class SetMapPreference implements Action {
-  readonly type = SharedActionTypes.SetMapPreference;
-  constructor(public payload: { mapPrefChanged: boolean }) { }
+export class SetPrefsDirty implements Action {
+  readonly type = SharedActionTypes.SetPrefsDirty;
 }
 
 export type SharedActions =
   SetAppReady
   | SetIsWrap
-  | SetIsDistrQtyEnabled
   | SaveMediaPlan
   | SaveSucceeded
   | SaveFailed
@@ -103,7 +95,7 @@ export type SharedActions =
   | GeneratePdf
   | GeneratePfdFailed
   | GeneratePdfSucceeded
-  | SetGridSize
-  | SetMapPreference
+  | SetMapPreferences
+  | SetPrefsDirty
   ;
 

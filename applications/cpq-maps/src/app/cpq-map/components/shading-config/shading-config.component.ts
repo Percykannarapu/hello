@@ -4,14 +4,12 @@ import { mapBy } from '@val/common';
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { filter, withLatestFrom } from 'rxjs/operators';
-import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
 import { FullState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
-import { CalculateEqualIntervals, SetAnneShading, SetClassBreakValues, SetNonVariableShading, SetShadingType, SetSoloShading, SetVariableShading } from '../../state/shading/shading.actions';
-import { ShadingState, ShadingType, VarDefinition, VariableRanges } from '../../state/shading/shading.reducer';
-import { SetMapPreference } from '../../state/shared/shared.actions';
+import { CalculateEqualIntervals, SetAnneShading, SetClassBreakValues, SetNonVariableShading, SetShadingType, SetSoloShading, SetVariableShading } from '../../state/map-ui/map-ui.actions';
+import { MapUIState, ShadingType, VarDefinition, VariableRanges } from '../../state/map-ui/map-ui.reducer';
+import { SetPrefsDirty } from '../../state/shared/shared.actions';
 import { SharedState } from '../../state/shared/shared.reducers';
-import { MapConfig } from '../header-bar/header-bar.component';
 
 export enum NumericVariableShadingMethod {
   StandardIndex = 'Standard Index',
@@ -45,8 +43,6 @@ export class ShadingConfigComponent implements OnInit {
 
   classBreakValues: number[] = [...DEFAULT_BREAK_VALUES];
 
-  mapConfig: MapConfig;
-
   shadeAnne$: Observable<boolean>;
   shadeSolo$: Observable<boolean>;
 
@@ -54,15 +50,12 @@ export class ShadingConfigComponent implements OnInit {
 
   ngOnInit() {
     this.setupDefaultDropDownOptions();
-    this.store.pipe(
-      select(localSelectors.getAppReady),
-      withLatestFrom(this.store.select(localSelectors.getSharedState), this.store.select(localSelectors.getShadingState), this.store.select(localSelectors.getMediaPlanPrefEntities)),
-      filter(([ready]) => ready)
-    ).subscribe(([, shared, shading, mediaPlanPref]) => this.setupDynamicDropDownOptions(shared, shading, mediaPlanPref));
+    this.store.select(localSelectors.getAppReady).pipe(
+      filter(ready => ready),
+      withLatestFrom(this.store.select(localSelectors.getSharedState), this.store.select(localSelectors.getMapUIState)),
+    ).subscribe(([, shared, shading]) => this.setupDynamicDropDownOptions(shared, shading));
 
-    this.store.pipe(
-      withLatestFrom(this.store.select(localSelectors.getShadingState)),
-    ).subscribe(([,  shading]) => {
+    this.store.select(localSelectors.getMapUIState).subscribe(shading => {
       this.classBreakValues = shading.classBreakValues != null && shading.classBreakValues.length == 0 ? [...DEFAULT_BREAK_VALUES] : shading.classBreakValues;
       this.setSelectedVar(shading);
       this.selectedNumericMethod = shading.selectedNumericMethod;
@@ -88,7 +81,7 @@ export class ShadingConfigComponent implements OnInit {
     this.classBreakOptions.push({ label: '6 Classes', value: 6 });
   }
 
-  private setupDynamicDropDownOptions(state: SharedState, shading: ShadingState, mediaPlanPrefs: MediaPlanPref[]) {
+  private setupDynamicDropDownOptions(state: SharedState, shading: MapUIState) {
     if (state.isWrap)
       this.shadingTypeOptions.push({ label: 'Wrap Zone', value: ShadingType.WRAP_ZONE });
     if (state.analysisLevel === 'atz')
@@ -96,47 +89,20 @@ export class ShadingConfigComponent implements OnInit {
     if (shading.availableVars.length > 0) {
       this.shadingTypeOptions.push({ label: 'Variable', value: ShadingType.VARIABLE });
       this.variableOptions = shading.availableVars.map(v => ({ label: v.name, value: v }));
-      this.selectedVar = shading.availableVars[0];
+      this.selectedVar = shading.selectedVar || shading.availableVars[0];
     }
     this.selectedClassBreaks = shading.selectedClassBreaks;
     this.classBreakValues = shading.classBreakValues;
-
-    const mediaPlanPref: MediaPlanPref = mediaPlanPrefs.filter(p => p.prefGroup === 'CPQ MAPS')[0];
-    if (mediaPlanPref != null && mediaPlanPref.val != null){
-      this.mapConfig = JSON.parse(mediaPlanPref.val.replace( /[\r\n]+/gm, '' ));
-      this.selectedShadingType = ShadingType[this.mapConfig.shadeBy];
-      this.selectedVar = this.mapConfig.variable == null ? shading.availableVars[0] : this.mapConfig.variable;
-      this.selectedClassBreaks = this.mapConfig.classes;
-      this.classBreakValues = this.mapConfig.classBreakValues;
-      this.selectedNumericMethod =  this.mapConfig.method === NumericVariableShadingMethod.StandardIndex ? NumericVariableShadingMethod.StandardIndex :
-                                     this.mapConfig.method === NumericVariableShadingMethod.EqualIntervals ? NumericVariableShadingMethod.EqualIntervals : NumericVariableShadingMethod.CustomClassifications;
-
-      this.store.dispatch(new SetShadingType({ shadingType: this.selectedShadingType }));
-
-      if (this.selectedNumericMethod ===  NumericVariableShadingMethod.EqualIntervals){
-        this.calculateEqualIntervals(this.selectedClassBreaks, NumericVariableShadingMethod.EqualIntervals);
-      }else{
-        this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues,
-          breakCount: this.selectedClassBreaks,
-          selectedVar: this.selectedVar,
-          selectedNumericMethod: this.selectedNumericMethod}));
-      }
-
-      // this is a horrible hack, and I feel bad
-      setTimeout(() => {
-        this.store.dispatch(new SetSoloShading({ shadeSolo: this.mapConfig.shadeSolo || false }));
-        this.store.dispatch(new SetAnneShading({ shadeAnne: this.mapConfig.shadeAnne || false }));
-      }, 5000);
-    }
+    this.selectedShadingType = shading.shadingType;
+    this.selectedNumericMethod = shading.selectedNumericMethod;
   }
 
-  private setSelectedVar(shading: ShadingState){
+  private setSelectedVar(shading: MapUIState){
     this.variableOptions = shading.availableVars.map(v => ({ label: v.name, value: v }));
     if (this.variableOptions.length > 0 && this.selectedVar != null){
       const mapVariableOptions = mapBy(this.variableOptions, 'label');
       this.selectedVar = mapVariableOptions.get(this.selectedVar.name).value;
     }
-
   }
 
   onShadingOptionChange(event: { value: ShadingType }) {
@@ -148,12 +114,12 @@ export class ShadingConfigComponent implements OnInit {
       this.selectedClassBreaks = DEFAULT_CLASS_BREAKS;
       this.classBreakValues = [...DEFAULT_BREAK_VALUES];
     }
-    this.store.dispatch(new SetClassBreakValues({classBreakValues: this.classBreakValues,
+    this.store.dispatch(new SetClassBreakValues({
+      classBreakValues: this.classBreakValues,
       breakCount: this.selectedClassBreaks,
       selectedVar: this.selectedVar,
-      selectedNumericMethod: this.selectedNumericMethod}));
-
-      this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
+      selectedNumericMethod: this.selectedNumericMethod
+    }));
   }
 
   onVariableOptionChanged() {
@@ -165,7 +131,7 @@ export class ShadingConfigComponent implements OnInit {
       selectedVar: this.selectedVar,
       selectedNumericMethod: this.selectedNumericMethod}));
 
-    this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
+    this.store.dispatch(new SetPrefsDirty());
   }
 
   onMethodOptionChanged(event: { value: NumericVariableShadingMethod }) {
@@ -177,7 +143,7 @@ export class ShadingConfigComponent implements OnInit {
           breakCount: this.selectedClassBreaks,
           selectedVar: this.selectedVar,
           selectedNumericMethod: this.selectedNumericMethod}));
-        this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
+        this.store.dispatch(new SetPrefsDirty());
         break;
       //  case NumericVariableShadingMethod.CustomClassifications:
       //   this.selectedClassBreaks = 4;
@@ -186,7 +152,7 @@ export class ShadingConfigComponent implements OnInit {
       case NumericVariableShadingMethod.EqualIntervals:
         this.selectedClassBreaks = 4;
         this.calculateEqualIntervals(this.selectedClassBreaks, NumericVariableShadingMethod.EqualIntervals);
-        this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
+        this.store.dispatch(new SetPrefsDirty());
         break;
     }
   }
@@ -194,7 +160,7 @@ export class ShadingConfigComponent implements OnInit {
   onBreakCountChanged(classBreaks: number) {
     if (this.selectedNumericMethod === NumericVariableShadingMethod.EqualIntervals) {
       this.calculateEqualIntervals(classBreaks, NumericVariableShadingMethod.EqualIntervals);
-      this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
+      this.store.dispatch(new SetPrefsDirty());
     } else {
       this.classBreakValues = [];
       for (let i = 0; i < classBreaks - 1; ++i) {
@@ -204,12 +170,12 @@ export class ShadingConfigComponent implements OnInit {
   }
 
   private calculateEqualIntervals(breakCount: number, selectedNumericMethod: NumericVariableShadingMethod) {
-    this.store.dispatch(new CalculateEqualIntervals({breakCount: breakCount,
-                                                    selectedVar: this.selectedVar,
-                                                    selectedNumericMethod: selectedNumericMethod,
-                                                    classBreakValues: this.classBreakValues}));
-
-
+    this.store.dispatch(new CalculateEqualIntervals({
+      breakCount: breakCount,
+      selectedVar: this.selectedVar,
+      selectedNumericMethod: selectedNumericMethod,
+      classBreakValues: this.classBreakValues
+    }));
   }
 
   applyVariableShading() {
@@ -224,7 +190,7 @@ export class ShadingConfigComponent implements OnInit {
     }
     classifications.push({ minValue: this.classBreakValues[this.classBreakValues.length - 1], maxValue: null });
     this.store.dispatch(new SetVariableShading({ classifications, selectedVarName: this.selectedVar.name }));
-
+    this.store.dispatch(new SetPrefsDirty());
   }
 
   isNotValid(currentBreak: number, previousBreak: number) {
@@ -249,11 +215,11 @@ export class ShadingConfigComponent implements OnInit {
 
   anneChanged(shadeAnne: boolean) {
     this.store.dispatch(new SetAnneShading({ shadeAnne }));
-    this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
+    this.store.dispatch(new SetPrefsDirty());
   }
 
   soloChanged(shadeSolo: boolean) {
     this.store.dispatch(new SetSoloShading({ shadeSolo }));
-    this.store.dispatch(new SetMapPreference({ mapPrefChanged: false}));
+    this.store.dispatch(new SetPrefsDirty());
   }
 }

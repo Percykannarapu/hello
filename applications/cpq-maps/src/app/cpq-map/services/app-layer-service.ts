@@ -24,7 +24,7 @@ export class AppLayerService {
    private legendCreated = false;
 
    public updateLabels(state: FullState) {
-      if (state.shared.isDistrQtyEnabled) {
+      if (state.mapUI.isDistrQtyEnabled) {
          this.showDistrQty(state);
       } else {
          this.restoreDefaultLabels(state);
@@ -137,22 +137,12 @@ export class AppLayerService {
      }
    }
 
-  public setupAnneSoloLayers(shadeAnne: boolean, shadeSolo: boolean, groupName: string, analysisLevel: string) : void {
+  public setupAnneSoloLayers(shadeAnne: boolean, shadeSolo: boolean, groupName: string, analysisLevel: string, recreateLayers: boolean) : void {
     const anneName = 'ANNE Geographies';
     const soloName = 'Solo Geographies';
     const group = this.esriLayerService.getGroup(groupName);
-    const anneLayer = this.esriLayerService.getFeatureLayer(anneName);
-    const soloLayer = this.esriLayerService.getFeatureLayer(soloName);
     const layerConfig = this.configService.layers[analysisLevel];
-    if (anneLayer == null) {
-      this.shadingService.setupCrossHatchLayer(layerConfig, anneName, group, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)', shadeAnne);
-    } else {
-      anneLayer.visible = shadeAnne;
-    }
-    if (soloLayer == null) {
-      this.shadingService.setupCrossHatchLayer(layerConfig, soloName, group, 'IIF($feature.cov_frequency == "Solo", 1, 0)', shadeSolo);
-    } else {
-      soloLayer.visible = shadeSolo;
-    }
+    this.shadingService.setupCrossHatchLayer(layerConfig, anneName, group, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)', shadeAnne, recreateLayers);
+    this.shadingService.setupCrossHatchLayer(layerConfig, soloName, group, 'IIF($feature.cov_frequency == "Solo", 1, 0)', shadeSolo, recreateLayers);
   }
 }

@@ -1,7 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { Subject } from 'rxjs';
-import { FullState } from './state';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'cpq-map',
@@ -9,9 +6,7 @@ import { FullState } from './state';
   styleUrls: ['./cpq-map.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CpqMapComponent implements OnInit, OnDestroy {
-
-  private componentDestroyed = new Subject<void>();
+export class CpqMapComponent {
 
   sideNavVisible = false;
   gridSize = 'small';
@@ -20,13 +15,6 @@ export class CpqMapComponent implements OnInit, OnDestroy {
   get gridIsLarge() { return this.gridSize === 'large'; }
   get gridIsVisible() { return this.gridSize !== 'none'; }
 
-  constructor(private store$: Store<FullState>) { }
+  constructor() { }
 
-  ngOnInit() {
-
-  }
-
-  ngOnDestroy() : void {
-    this.componentDestroyed.next();
-  }
 }

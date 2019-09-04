@@ -3,9 +3,6 @@ import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { MediaPlanPrefActions, MediaPlanPrefActionTypes } from './media-plan-pref.actions';
 import { GetMediaPlanDataSucceeded, InitActionTypes } from '../init/init.actions';
 
-
-
-
 export interface MediaPlanPrefState extends EntityState<MediaPlanPref> {
   // additional entities state properties
 }
@@ -24,8 +21,8 @@ type reducerActions = MediaPlanPrefActions | GetMediaPlanDataSucceeded;
 export function mediaPlanPrefReducer(state = initialState, action: reducerActions) : MediaPlanPrefState {
   switch (action.type) {
     case InitActionTypes.GetMediaPlanDataSucceeded: {
-      if (action.payload.normalizedEntities.mediaPlanPrefs != null)
-        return adapter.addMany(action.payload.normalizedEntities.mediaPlanPrefs, state);
+      if (action.payload.normalizedEntities.mapPreferences != null)
+        return adapter.addMany(action.payload.normalizedEntities.mapPreferences, state);
       else
         return state;
     }

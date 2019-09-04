@@ -1,5 +1,6 @@
-import { ColorPalette, getColorPalette } from '@val/esri';
-import { ShadingActions, ShadingActionTypes } from './shading.actions';
+import { GridSize } from '../app.interfaces';
+import { SetMapPreferences, SharedActionTypes } from '../shared/shared.actions';
+import { ShadingActions, MapUIActionTypes } from './map-ui.actions';
 
 export enum ShadingType {
   SITE,
@@ -27,61 +28,75 @@ export interface VarDefinition {
   maxValue?: number;
 }
 
-export interface ShadingState {
+export interface MapUIState {
+  isDistrQtyEnabled: boolean;
+  gridSize: GridSize;
   classifications: VariableRanges[];
   availableVars: VarDefinition[];
   selectedVarName: string;
   shadingType: ShadingType;
-  basePalette: number[][];
-  //
   classBreakValues: number[];
   selectedClassBreaks: number;
   selectedVar: VarDefinition;
   selectedNumericMethod: NumericVariableShadingMethod;
-  shadeBy: ShadingType;
   shadeAnne: boolean;
   shadeSolo: boolean;
 }
 
-export const initialState: ShadingState = {
+export const initialState: MapUIState = {
+  isDistrQtyEnabled: false,
+  gridSize: 'small',
   classifications: [],
   availableVars: [],
   selectedVarName: '',
   shadingType: ShadingType.SITE,
-  basePalette: getColorPalette(ColorPalette.Cpqmaps),
   classBreakValues: [],
   selectedClassBreaks: 4,
   selectedVar: null,
   selectedNumericMethod: NumericVariableShadingMethod.StandardIndex,
-  shadeBy: null,
   shadeAnne: false,
   shadeSolo: false
 };
 
-type ReducerActions = ShadingActions;
+type ReducerActions = ShadingActions | SetMapPreferences;
 
-export function shadingReducer(state = initialState, action: ReducerActions) : ShadingState {
+export function mapUIReducer(state = initialState, action: ReducerActions) : MapUIState {
   switch (action.type) {
-    case ShadingActionTypes.InitializeVariableOptions:
+    case SharedActionTypes.LoadMapPreferences:
+      return {
+        ...state,
+        ...action.payload.mapUISlice
+      };
+    case MapUIActionTypes.SetIsDistributionVisible:
+      return {
+        ...state,
+        isDistrQtyEnabled: action.payload.isVisible
+      };
+    case MapUIActionTypes.SetGridSize:
+      return {
+        ...state,
+        gridSize: action.payload.gridSize
+      };
+    case MapUIActionTypes.InitializeVariableOptions:
       return {
         ...state,
         availableVars: action.payload.definitions
       };
-    case ShadingActionTypes.SetNonVariableShading:
+    case MapUIActionTypes.SetNonVariableShading:
       return {
         ...state,
         shadingType: action.payload.shadingType,
         classifications: [...initialState.classifications],
         selectedVarName: initialState.selectedVarName
       };
-    case ShadingActionTypes.SetVariableShading:
+    case MapUIActionTypes.SetVariableShading:
       return {
         ...state,
         shadingType: ShadingType.VARIABLE,
         classifications: [...action.payload.classifications],
         selectedVarName: action.payload.selectedVarName
       };
-    case ShadingActionTypes.SetClassBreakValues:
+    case MapUIActionTypes.SetClassBreakValues:
       return {
         ...state,
         classBreakValues: action.payload.classBreakValues,
@@ -89,17 +104,17 @@ export function shadingReducer(state = initialState, action: ReducerActions) : S
         selectedVar: action.payload.selectedVar,
         selectedNumericMethod: action.payload.selectedNumericMethod
       };
-    case ShadingActionTypes.SetShadingType:
+    case MapUIActionTypes.SetShadingType:
       return{
         ...state,
-        shadeBy: action.payload.shadingType
+        shadingType: action.payload.shadingType
       };
-    case ShadingActionTypes.SetAnneShading:
+    case MapUIActionTypes.SetAnneShading:
       return {
         ...state,
         shadeAnne: action.payload.shadeAnne,
       };
-    case ShadingActionTypes.SetSoloShading:
+    case MapUIActionTypes.SetSoloShading:
       return {
         ...state,
         shadeSolo: action.payload.shadeSolo,

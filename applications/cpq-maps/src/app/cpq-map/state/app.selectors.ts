@@ -2,7 +2,6 @@ import { createSelector } from '@ngrx/store';
 import { MediaPlan } from '../../val-modules/mediaexpress/models/MediaPlan';
 import { MediaPlanGroup } from '../../val-modules/mediaexpress/models/MediaPlanGroup';
 import { RfpUiReview } from '../../val-modules/mediaexpress/models/RfpUiReview';
-import { ShadingState } from './shading/shading.reducer';
 import { LocalState } from './index';
 import { SharedState } from './shared/shared.reducers';
 import * as fromRfpUiEditDetail from './rfpUiEditDetail/rfp-ui-edit-detail.reducer';
@@ -28,7 +27,7 @@ const getRfpUiReviewState = createSelector(cpqSlice, state => state.rfpUiReview)
 const getRfpUiEditState = createSelector(cpqSlice, state => state.rfpUiEdit);
 const getAdvertiserInfoState = createSelector(cpqSlice, state => state.advertiserInfo);
 const getRfpUiEditWrapState = createSelector(cpqSlice, state => state.rfpUiEditWrap);
-const getShadingState = createSelector(cpqSlice, state => state.shading);
+const getMapUIState = createSelector(cpqSlice, state => state.mapUI);
 const getMediaPlanPrefState = createSelector(cpqSlice, state => state.mediaPlanPref);
 
 const getRfpUiEditEntities = createSelector(getRfpUiEditState, fromRfpUiEdit.selectAll);
@@ -50,9 +49,10 @@ const getAddIds = createSelector(getSharedState, state => state.newLineItemIds);
 const getSelectedAnalysisLevel = createSelector(getSharedState, state => state.isWrap ? 'zip' : state.analysisLevel);
 const getLegendData = createSelector(getSharedState, state => state.legendData);
 const getLegendTitle = createSelector(getSharedState, state => state.legendTitle);
+const getPrefsChanged = createSelector(getSharedState, state => state.mapPrefChanged);
 
-const getShadeAnne = createSelector(getShadingState, state => state.shadeAnne);
-const getShadeSolo = createSelector(getShadingState, state => state.shadeSolo);
+const getShadeAnne = createSelector(getMapUIState, state => state.shadeAnne);
+const getShadeSolo = createSelector(getMapUIState, state => state.shadeSolo);
 
 const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpUiReviews: RfpUiReview[], mpGroups: MediaPlanGroup[]) => {
   const mediaPlan = mediaPlans.filter(mp => mp.mediaPlanId === sharedState.activeMediaPlanId)[0];
@@ -71,8 +71,6 @@ const headerProjector = (sharedState: SharedState, mediaPlans: MediaPlan[], rfpU
     productName,
     mediaPlanGroup: mediaPlan.mediaPlanGroupId,
     rfpId,
-    updateIds: sharedState.editedLineItemIds,
-    addIds: sharedState.newLineItemIds
   };
 };
 const getHeaderInfo = createSelector(getSharedState, getMediaPlanEntities, getRfpUiReviewEntities, getMediaPlanGroupEntities, headerProjector);
@@ -143,6 +141,7 @@ export const localSelectors = {
   getIsSaving,
   getUpdateIds,
   getAddIds,
+  getPrefsChanged,
   getHeaderInfo,
   getRfpUiEditDetailEntities,
   getSelectedDetails,
@@ -157,7 +156,7 @@ export const localSelectors = {
   getPrintParams,
   getAvailabilityParams,
   getSelectedAnalysisLevel,
-  getShadingState,
+  getMapUIState,
   getFilteredGeos,
   getMediaPlanPrefEntities,
   getMediaPlanPrefState,

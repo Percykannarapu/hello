@@ -9,14 +9,12 @@
       <span>({{row.hhc | number:'1.0-0'}}&nbsp;HH)</span>
     </li>
   </ul>
-  <ng-container *ngIf="imageLegendData.length > 0">
-    <hr>
-    <ul>
-      <li *ngFor="let row of imageLegendData">
-        <span class="legend-crosshatch"><img [src]="row.imgUrl" /></span>
-        <span class="legend-name">{{row.name}}</span>
-        <span>({{row.hhc | number:'1.0-0'}}&nbsp;HH)</span>
-      </li>
-    </ul>
-  </ng-container>
+  <hr *ngIf="imageLegendData.length > 0 && colorLegendData.length > 0">
+  <ul *ngIf="imageLegendData.length > 0">
+    <li *ngFor="let row of imageLegendData">
+      <span class="legend-crosshatch" [ngClass]="row.crosshatch"></span>
+      <span class="legend-name">{{row.name}}</span>
+      <span *ngIf="row.hhc != null">({{row.hhc | number:'1.0-0'}}&nbsp;HH)</span>
+    </li>
+  </ul>
 </div>

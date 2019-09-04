@@ -11,7 +11,7 @@ import { AvailabilityDetailResponse } from '../models/availability-detail-respon
 import { FullState } from '../state';
 import { UpdateRfpUiEditDetails, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { UpdateRfpUiEditWraps, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
-import { VarDefinition } from '../state/shading/shading.reducer';
+import { VarDefinition } from '../state/map-ui/map-ui.reducer';
 import { ConfigService } from './config.service';
 
 @Injectable({

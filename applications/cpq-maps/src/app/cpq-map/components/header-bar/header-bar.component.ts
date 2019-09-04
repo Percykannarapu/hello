@@ -1,29 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { isNumber } from '@val/common';
-import { filter, takeUntil, map, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, takeUntil } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { localSelectors } from '../../state/app.selectors';
 import { FullState } from '../../state';
 import { Observable, Subject } from 'rxjs';
 import { NavigateToReviewPage, SaveMediaPlan, GeneratePdf } from '../../state/shared/shared.actions';
-import { VarDefinition, ShadingType } from '../../state/shading/shading.reducer';
-import { MediaPlanPrefPayload } from '../../state/payload-models/MediaPlanPref';
-import { MediaPlanPref } from 'src/app/val-modules/mediaexpress/models/MediaPlanPref';
-import { NumericVariableShadingMethod } from '../shading-config/shading-config.component';
-import { DAOBaseStatus } from 'src/app/val-modules/api/models/BaseModel';
-
-export class MapConfig {
-  showDist: boolean;
-  gridDisplay: 'small' | 'large' | 'none' = 'small';
-  shadeBy: string;
-  variable: VarDefinition;
-  method: NumericVariableShadingMethod;
-  classes: number;
-  classBreakValues: number[];
-  shadeAnne: boolean;
-  shadeSolo: boolean;
-}
 
 @Component({
   selector: 'cpq-header-bar',
@@ -32,17 +15,14 @@ export class MapConfig {
 })
 export class HeaderBarComponent implements OnInit, OnDestroy {
 
-  private updateIds: number[] = [];
-  private addIds: number[] = [];
   private componentDestroyed$ = new Subject();
-  private isPrefChange: boolean = true;
-
-  mapConfig: MapConfig = new MapConfig;
-
-  mediaplanPref: MediaPlanPref = new MediaPlanPref();
 
   appReady$: Observable<boolean>;
   isSaving$: Observable<boolean>;
+  addCount$: Observable<number>;
+  updateCount$: Observable<number>;
+  prefsChanged$: Observable<boolean>;
+
   generateDisabled$: Observable<boolean>;
 
   totalDistribution: number;
@@ -53,24 +33,25 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   rfpName: string;
   productName: string;
   rfpId: string;
-  get hasAdditions() { return this.addIds.length > 0; }
-
-  get isClean() {
-    return this.updateIds.length === 0 && this.addIds.length === 0 && this.isPrefChange;
-  }
 
   constructor(private store$: Store<FullState>) { }
 
   ngOnInit() {
-    this.store$.pipe(
-      select(localSelectors.getRfpUiEditDetailEntities),
+    this.appReady$ = this.store$.select(localSelectors.getAppReady);
+    this.isSaving$ = this.store$.select(localSelectors.getIsSaving);
+    this.addCount$ = this.store$.select(localSelectors.getAddIds).pipe(map(ids => ids.length));
+    this.updateCount$ = this.store$.select(localSelectors.getUpdateIds).pipe(map(ids => ids.length));
+    this.prefsChanged$ = this.store$.select(localSelectors.getPrefsChanged);
+
+    this.generateDisabled$ = this.store$.select(localSelectors.getFilteredGeos);
+
+    this.store$.select(localSelectors.getRfpUiEditDetailEntities).pipe(
       takeUntil(this.componentDestroyed$)
     ).subscribe(state => {
       this.calcMetrics(state);
     });
 
-    this.store$.pipe(
-      select(localSelectors.getHeaderInfo),
+    this.store$.select(localSelectors.getHeaderInfo).pipe(
       filter(header => header != null),
       takeUntil(this.componentDestroyed$)
     ).subscribe(headers => {
@@ -80,47 +61,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
       this.productName = headers.productName;
       this.mediaPlanGroupNumber = headers.mediaPlanGroup;
       this.rfpId = headers.rfpId;
-      this.addIds = headers.addIds;
-      this.updateIds = headers.updateIds;
     });
-
-
-
-    this.appReady$ = this.store$.pipe(
-      select(localSelectors.getAppReady)
-    );
-    this.isSaving$ = this.store$.pipe(
-      select(localSelectors.getIsSaving)
-    );
-
-    this.generateDisabled$ = this.store$.pipe(select(localSelectors.getFilteredGeos));
-
-    this.store$.pipe(
-      withLatestFrom(this.store$.select(localSelectors.getSharedState), this.store$.select(localSelectors.getShadingState))
-    ).subscribe( ([,  shared, shading]) => {
-         this.mapConfig.classes = shading.selectedClassBreaks != null ? shading.selectedClassBreaks : 0;
-         this.mapConfig.gridDisplay = shared.gridSize == null ? 'small' : shared.gridSize;
-         this.mapConfig.method = shading.selectedNumericMethod;
-         this.mapConfig.shadeBy = ShadingType[shading.shadeBy];
-         this.mapConfig.showDist = shared.isDistrQtyEnabled;
-         this.mapConfig.variable = shading.selectedVar;
-         this.mapConfig.classBreakValues = shading.classBreakValues;
-         this.mapConfig.shadeAnne = shading.shadeAnne;
-         this.mapConfig.shadeSolo = shading.shadeSolo;
-         this.isPrefChange = shared.mapPrefChanged;
-    });
-
-    this.store$.pipe(
-      select(localSelectors.getAppReady),
-      withLatestFrom(this.store$.select(localSelectors.getMediaPlanPrefEntities)),
-      filter(([ready]) => ready)).subscribe(([, mediaPlanPrefs]) => {
-        mediaPlanPrefs.forEach(mediaplanPref => {
-            if (mediaplanPref.prefGroup === 'CPQ MAPS')
-                this.mediaplanPref = mediaplanPref;
-            else
-                this.mediaplanPref = new MediaPlanPref();
-        });
-      });
   }
 
   ngOnDestroy() : void {
@@ -132,31 +73,10 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   }
 
   onSave() {
-    console.log('mapConfig payload:::', JSON.stringify(this.mapConfig));
-    const mediaplanPrefPayload = this.createPayload(JSON.stringify(this.mapConfig));
-    this.store$.dispatch(new SaveMediaPlan({ addIds: this.addIds, updateIds: this.updateIds, mapConfig: mediaplanPrefPayload}));
+    this.store$.dispatch(new SaveMediaPlan());
   }
 
-  createPayload(mapConfigPayload: string){
-    const mediaplanPrefPayload: MediaPlanPref = {
-      prefId: this.mediaplanPref.prefId != null ? this.mediaplanPref.prefId : null,
-      mediaPlanId: this.mediaPlanId,
-      prefGroup: 'CPQ MAPS',
-      prefType: 'STRING',
-      pref: 'settings',
-      val: mapConfigPayload,
-      largeVal: null,
-      isActive: true,
-      dirty: true,
-      baseStatus: this.mediaplanPref.mediaPlanId == null ? DAOBaseStatus.INSERT : DAOBaseStatus.UPDATE,
-      mediaPlan: null, setTreeProperty: null, removeTreeProperty: null, convertToModel: null
-   };
-   return mediaplanPrefPayload;
-  }
-
-
-
-  exportMaps(){
+  exportMaps() {
     this.store$.dispatch(new GeneratePdf());
   }
 

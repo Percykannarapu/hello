@@ -8,7 +8,7 @@ import { RfpUiReview } from '../../../val-modules/mediaexpress/models/RfpUiRevie
 import { AppGeoService } from '../../services/app-geo.service';
 import { localSelectors } from '../app.selectors';
 import { FullState } from '../index';
-import { VarDefinition } from '../shading/shading.reducer';
+import { VarDefinition } from '../map-ui/map-ui.reducer';
 import { PopupActions, PopupActionTypes, PopupNewGeoAdd } from './popup.actions';
 
 @Injectable({ providedIn: 'root' })
@@ -34,7 +34,7 @@ export class PopupEffects {
     ofType(PopupActionTypes.PopupNewGeoAdd),
     withLatestFrom(this.store$.select(localSelectors.getRfpUiReviewEntities),
                    this.store$.select(localSelectors.getSharedState),
-                   this.store$.select(localSelectors.getShadingState)),
+                   this.store$.select(localSelectors.getMapUIState)),
     map(([action, reviews, shared, shading]) => {
       return [
         action.payload,

@@ -3,8 +3,8 @@
     <span>Total Distribution</span>
     <span>{{totalDistribution | number:'1.0-0'}}</span>
     <span>Total Investment</span>
-    <span *ngIf="hasAdditions">{{totalInvestment | currency}}&nbsp;+</span>
-    <span *ngIf="!hasAdditions">{{totalInvestment | currency}}</span>
+    <span *ngIf="(addCount$ | async) > 0">{{totalInvestment | currency}}&nbsp;+</span>
+    <span *ngIf="(addCount$ | async) === 0">{{totalInvestment | currency}}</span>
   </div>
   <div class="header-names" *ngIf="appReady$ | async">
     <span>RFP</span>
@@ -15,17 +15,18 @@
     <span>{{productName}}</span>
   </div>
   <div class="header-buttons">
-    <span *ngIf="!(appReady$ | async)"> 
-        <button label="Generate Maps" (click)="exportMaps()" pButton type="button" [disabled]="true" styleClass="ui-button-raised"></button>
+    <span *ngIf="!(appReady$ | async)">
+      <p-button label="Generate Maps" (click)="exportMaps()" [disabled]="true" styleClass="ui-button-raised"></p-button>
     </span>
-    <span *ngIf="(generateDisabled$ | async) && (appReady$ | async)" title="You must Save & Return prior to generating maps"> 
-      <button label="Generate Maps" (click)="exportMaps()" pButton type="button" [disabled]="true" styleClass="ui-button-raised"></button>
+    <span *ngIf="(generateDisabled$ | async) && (appReady$ | async)" title="You must Save & Return prior to generating maps">
+      <p-button label="Generate Maps" (click)="exportMaps()" [disabled]="true" styleClass="ui-button-raised"></p-button>
     </span>
-      <span *ngIf="!(generateDisabled$ | async) && (appReady$ | async)"> 
-        <button label="Generate Maps" (click)="exportMaps()" pButton type="button" [disabled]="false" styleClass="ui-button-raised"></button>
-      </span>
-   
-    <p-button label="Save & Return" (click)="onSave()" [disabled]="(isSaving$ | async) && (appReady$ | async) || isClean" styleClass="ui-button-raised"></p-button>
+    <span *ngIf="!(generateDisabled$ | async) && (appReady$ | async)">
+      <p-button label="Generate Maps" (click)="exportMaps()" styleClass="ui-button-raised"></p-button>
+    </span>
+
+    <p-button label="Save & Return" (click)="onSave()" styleClass="ui-button-raised"
+              [disabled]="((addCount$ | async) === 0 && (updateCount$ | async) === 0 && !(prefsChanged$ | async)) || (isSaving$ | async) || !(appReady$ | async)"></p-button>
     <p-button label="Cancel" (click)="onCancel()" styleClass="ui-button-raised"></p-button>
   </div>
 </div>

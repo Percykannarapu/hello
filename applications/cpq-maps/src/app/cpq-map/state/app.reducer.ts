@@ -6,7 +6,7 @@ import {
 } from '@ngrx/store';
 import { environment } from '../../../environments/environment';
 import { LocalState } from './';
-import { shadingReducer } from './shading/shading.reducer';
+import { mapUIReducer } from './map-ui/map-ui.reducer';
 import { sharedReducer } from './shared/shared.reducers';
 import { advertiserInfoReducer } from './advertiserInfo/advertiser-info.reducer';
 import { cbxReportReducer } from './cbxReport/cbx-report.reducer';
@@ -50,7 +50,7 @@ export const reducers: ActionReducerMap<LocalState> = {
   rfpUiReview: rfpUiReviewreducer,
   rfpUiEdit: rfpUiEditreducer,
   rfpUiEditWrap: rfpUiEditWrapReducer,
-  shading: shadingReducer,
+  mapUI: mapUIReducer,
   mediaPlanPref: mediaPlanPrefReducer
 };
 

@@ -14,10 +14,6 @@ function colorToHex(color: number[]) {
   return `#${red}${green}${blue}99`;
 }
 
-function crosshatchUrl(img: string) {
-  return `assets/crosshatch/${img}.png`;
-}
-
 function LegendEntrySort(a: LegendData, b: LegendData) {
   if (a.sortOrder == null || b.sortOrder == null) {
     return a.groupName.localeCompare(b.groupName);
@@ -35,7 +31,7 @@ export class LegendComponent implements OnInit {
 
   legendTitle: string;
   colorLegendData: Array<{ name: string, colorHex: string, hhc: number }> = [];
-  imageLegendData: Array<{ name: string, imgUrl: string, hhc: number }> = [];
+  imageLegendData: Array<{ name: string, crosshatch: string, hhc: number }> = [];
 
   constructor(private store$: Store<LocalState>, private cd: ChangeDetectorRef) { }
 
@@ -66,7 +62,7 @@ export class LegendComponent implements OnInit {
     return this.store$.select(localSelectors.getLegendData).pipe(
       map(shadingData => shadingData.filter(d => d.image != null)),
       tap(shadingData => shadingData.sort(LegendEntrySort)),
-      map(shadingData => shadingData.map(d => ({ name: d.groupName, imgUrl: crosshatchUrl(d.image), hhc: d.hhc })))
+      map(shadingData => shadingData.map(d => ({ name: d.groupName, crosshatch: d.image, hhc: d.hhc })))
     );
   }
 }

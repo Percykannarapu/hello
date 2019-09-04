@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { mapByExtended } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, LayerGroupDefinition } from '@val/esri';
+import { ColorPalette, EsriApi, EsriLayerService, EsriMapService, EsriQueryService, getColorPalette, LayerGroupDefinition } from '@val/esri';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { LocalState } from '../state';
 import { LegendData } from '../state/app.interfaces';
-import { ShadingState, ShadingType, VarDefinition, VariableRanges, NumericVariableShadingMethod } from '../state/shading/shading.reducer';
+import { MapUIState, ShadingType, VarDefinition, VariableRanges, NumericVariableShadingMethod } from '../state/map-ui/map-ui.reducer';
 import { SetLegendData } from '../state/shared/shared.actions';
 import { ConfigService } from './config.service';
 
@@ -22,6 +22,8 @@ function formatNumber(value: number) {
 
 const ANNE_PATTERN = 'diagonal-cross';
 const SOLO_PATTERN = 'horizontal';
+
+const DEFAULT_PALETTE = getColorPalette(ColorPalette.Cpqmaps);
 
 @Injectable({
   providedIn: 'root'
@@ -53,7 +55,7 @@ export class ShadingService {
     }
   }
 
-  private static getLegendTitle(shadingData: ShadingState) : string {
+  private static getLegendTitle(shadingData: MapUIState) : string {
     switch (shadingData.shadingType) {
       case ShadingType.SITE:
         return 'Site Name';
@@ -101,7 +103,7 @@ export class ShadingService {
     return definitions;
   }
 
-  setShader(analysisLevel: string, shadingData: ShadingState, edits: RfpUiEdit[], details: RfpUiEditDetail[], createLayer: boolean) : Observable<__esri.Graphic[]> {
+  setShader(analysisLevel: string, shadingData: MapUIState, edits: RfpUiEdit[], details: RfpUiEditDetail[], createLayer: boolean) : Observable<__esri.Graphic[]> {
     this.sortMap.clear();
     if (createLayer) {
       return this.createShadingDetails(analysisLevel, shadingData, edits, details);
@@ -110,7 +112,7 @@ export class ShadingService {
     }
   }
 
-  private createShadingDetails(analysisLevel: string, shadingData: ShadingState, edits: RfpUiEdit[], details: RfpUiEditDetail[]) : Observable<__esri.Graphic[]> {
+  private createShadingDetails(analysisLevel: string, shadingData: MapUIState, edits: RfpUiEdit[], details: RfpUiEditDetail[]) : Observable<__esri.Graphic[]> {
     this.generateSiteGeoMap(edits, details);
     return this.generateGraphics(analysisLevel, details).pipe(
       tap(graphics => this.enrichGraphics(graphics, shadingData, details)),
@@ -119,7 +121,7 @@ export class ShadingService {
     );
   }
 
-  private editShadingDetails(analysisLevel: string, shadingData: ShadingState, details: RfpUiEditDetail[]) : Observable<__esri.Graphic[]> {
+  private editShadingDetails(analysisLevel: string, shadingData: MapUIState, details: RfpUiEditDetail[]) : Observable<__esri.Graphic[]> {
     return this.getCurrentGraphics().pipe(
       tap(graphics => this.enrichGraphics(graphics, shadingData, details)),
       tap(graphics => this.generateLegend(analysisLevel, graphics, shadingData)),
@@ -154,7 +156,7 @@ export class ShadingService {
     return of(layer.graphics.toArray());
   }
 
-  private enrichGraphics(graphics: __esri.Graphic[], shadingData: ShadingState, details: RfpUiEditDetail[]) : void {
+  private enrichGraphics(graphics: __esri.Graphic[], shadingData: MapUIState, details: RfpUiEditDetail[]) : void {
     const detailsByGeocode = mapByExtended(details, d => d.geocode);
     const shadingAttribute = ShadingService.getShadingGroupAttributeName(shadingData.shadingType);
     for (const graphic of graphics) {
@@ -182,7 +184,7 @@ export class ShadingService {
     }
   }
 
-  private assignDemographicMetadata(graphic: __esri.Graphic, detail: RfpUiEditDetail, shadingData: ShadingState) {
+  private assignDemographicMetadata(graphic: __esri.Graphic, detail: RfpUiEditDetail, shadingData: MapUIState) {
     graphic.setAttribute('householdCount', detail.distribution);
     let varName;
     switch (shadingData.selectedVarName) {
@@ -245,9 +247,8 @@ export class ShadingService {
     throw new Error('Error generating variable suffix');
   }
 
-  public generateLegend(analysisLevel: string, graphics: __esri.Graphic[], shadingData: ShadingState) : void {
+  public generateLegend(analysisLevel: string, graphics: __esri.Graphic[], shadingData: MapUIState) : void {
     const legend = new Map<string, { color: number[], hhc: number }>();
-    const palette = shadingData.basePalette;
     const layers = this.layerService.getPortalLayersById(this.configService.layers[analysisLevel].boundaries.id);
     const shadingGroup = this.layerService.getGroup('Shading');
     const layer = layers.filter(l => l['parent'] !== shadingGroup)[0];
@@ -264,7 +265,7 @@ export class ShadingService {
     });
     for (const graphic of graphics) {
       if (!legend.has(graphic.getAttribute('SHADING_GROUP'))) {
-        const newColor = [...palette[legend.size % palette.length]];
+        const newColor = [...DEFAULT_PALETTE[legend.size % DEFAULT_PALETTE.length]];
         newColor.push(this.configService.defaultShadingTransparency);
         legend.set(graphic.getAttribute('SHADING_GROUP'), { color: newColor, hhc: 0 } );
       }
@@ -319,7 +320,16 @@ export class ShadingService {
             selectedNumericMethod: payload.selectedNumericMethod};
   }
 
-  public setupCrossHatchLayer(layerConfig: LayerGroupDefinition, layerName: string, group: __esri.GroupLayer, expression: string, showLayer: boolean) : void {
+  public setupCrossHatchLayer(layerConfig: LayerGroupDefinition, layerName: string, group: __esri.GroupLayer, expression: string, showLayer: boolean, recreateLayer: boolean) : void {
+    const foundLayer = this.layerService.getFeatureLayer(layerName);
+
+    if (foundLayer != null) {
+      foundLayer.visible = showLayer;
+      return;
+    }
+
+    if (recreateLayer == false) return;
+
     let fillStyle = SOLO_PATTERN;
     if (layerName.toLowerCase().includes('anne')) {
       fillStyle = ANNE_PATTERN;

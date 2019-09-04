@@ -1,15 +1,14 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { Store, select } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { isNumber, mapBy } from '@val/common';
-import { filter, map, take, withLatestFrom } from 'rxjs/operators';
+import { filter, map, take } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { localSelectors } from '../../state/app.selectors';
 import { GridGeosToggle } from '../../state/grid/grid.actions';
 import * as fromGridSelectors from '../../state/grid/grid.selectors';
-import { CalculateEqualIntervals, InitializeShading, SetShadingType } from '../../state/shading/shading.actions';
-import { VarDefinition, ShadingType } from '../../state/shading/shading.reducer';
+import { CalculateEqualIntervals, InitializeMapUI } from '../../state/map-ui/map-ui.actions';
+import { VarDefinition, ShadingType } from '../../state/map-ui/map-ui.reducer';
 import { NumericVariableShadingMethod } from '../shading-config/shading-config.component';
-import { MapConfig } from '../header-bar/header-bar.component';
 
 export interface FullColumn extends fromGridSelectors.GridColumn {
   formatType?: 'string' | 'number' | 'currency';
@@ -86,15 +85,15 @@ export class GridComponent implements OnInit {
       take(1)
     ).subscribe(() => this.emptyGridMessage = 'No matching results');
 
-    this.store$.select(localSelectors.getShadingState).subscribe(shading => {
+    this.store$.select(localSelectors.getMapUIState).subscribe(shading => {
       //console.log('values updated::::oninit=====>', shading);
       const mapByNameVars = mapBy(shading.availableVars, 'name');
       this.selectedClassBreak = shading.selectedClassBreaks;
       this.selectedVar =  shading.selectedVar != null ? mapByNameVars.get(shading.selectedVar.name) : shading.selectedVar;
       this.selectedNumericMethod = shading.selectedNumericMethod;
-      this.shadeBy = shading.shadeBy;
+      this.shadeBy = shading.shadingType;
       this.classBreakValues = shading.classBreakValues;
-     
+
     });
   }
 
@@ -105,11 +104,11 @@ export class GridComponent implements OnInit {
 
   onChangeRowSelection(event: { data: fromGridSelectors.GridRowBase }) {
    this.store$.dispatch(new GridGeosToggle({ geos: [event.data.selectionIdentifier] }));
-   this.store$.dispatch(new InitializeShading());
+   this.store$.dispatch(new InitializeMapUI());
    //this.store$.dispatch(new SetShadingType({shadingType: this.shadeBy}));
    // console.log('selectedClassBreak::', this.selectedClassBreak, 'selectedVar::', this.selectedVar);
    if (this.selectedVar != null)
-      this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, 
+      this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak,
                                                         selectedVar: this.selectedVar,
                                                         selectedNumericMethod: this.selectedNumericMethod,
                                                         classBreakValues: this.classBreakValues}));
@@ -130,9 +129,9 @@ export class GridComponent implements OnInit {
       }
     }, []);
     this.store$.dispatch(new GridGeosToggle({ geos: geos }));
-    this.store$.dispatch(new InitializeShading());
+    this.store$.dispatch(new InitializeMapUI());
     if (this.selectedVar != null)
-      this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak, 
+      this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak,
                                                         selectedVar: this.selectedVar,
                                                         selectedNumericMethod: this.selectedNumericMethod,
                                                         classBreakValues: this.classBreakValues}));

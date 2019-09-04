@@ -40,7 +40,7 @@ import { metaReducers, reducers } from './state/app.reducer';
 import { GridEffects } from './state/grid/grid.effects';
 import { InitEffects } from './state/init/init.effects';
 import { PopupEffects } from './state/popup/popup.effects';
-import { ShadingEffects } from './state/shading/shading.effects';
+import { MapUIEffects } from './state/map-ui/map-ui.effects';
 
 
 @NgModule({
@@ -65,7 +65,7 @@ import { ShadingEffects } from './state/shading/shading.effects';
     ToastModule,
     MessagingModule.forRoot(AppMessagingService),
     StoreModule.forRoot(reducers, {metaReducers}),
-    EffectsModule.forRoot([AppEffects, InitEffects, PopupEffects, ShadingEffects, GridEffects]),
+    EffectsModule.forRoot([AppEffects, InitEffects, PopupEffects, MapUIEffects, GridEffects]),
     StoreDevtoolsModule.instrument({
       name: 'CPQ Maps Application',
       logOnly: environment.production,
