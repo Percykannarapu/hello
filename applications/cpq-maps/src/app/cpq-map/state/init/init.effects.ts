@@ -77,9 +77,11 @@ export class InitEffects {
     map(prefs => [
       prefs.filter(p => p.pref === 'MAP UI SLICE')[0] || {} as MediaPlanPref,
     ]),
-    map(([mapUI]) => new SetMapPreferences({
-      mapUISlice: JSON.parse(mapUI.val || null)
-    }))
+    concatMap(([mapUI]) => [
+      new InitializeMapUI(),
+      new SetMapPreferences({
+          mapUISlice: JSON.parse(mapUI.val || null)})
+    ])
   );
 
   @Effect()
