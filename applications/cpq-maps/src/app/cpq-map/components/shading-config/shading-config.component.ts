@@ -81,6 +81,13 @@ export class ShadingConfigComponent implements OnInit {
       this.shadingTypeOptions.push({ label: 'Variable', value: ShadingType.VARIABLE });
       this.variableOptions = shading.availableVars.map(v => ({ label: v.name, value: v }));
       this.selectedVar = shading.selectedVar || shading.availableVars[0];
+
+      if (this.selectedNumericMethod === NumericVariableShadingMethod.EqualIntervals){
+        const mapByNameVars = mapBy(shading.availableVars, 'name');
+        this.selectedVar =  shading.selectedVar != null ? mapByNameVars.get(shading.selectedVar.name) : shading.selectedVar;
+        this.calculateEqualIntervals(this.selectedClassBreaks, this.selectedNumericMethod);
+      }
+
     }
     this.selectedClassBreaks = shading.selectedClassBreaks;
     this.classBreakValues = shading.classBreakValues;

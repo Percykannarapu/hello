@@ -16,7 +16,7 @@ import { EntityHelper } from '../../services/entity-helper-service';
 import { localSelectors } from '../app.selectors';
 import { FullState } from '../index';
 import { InitializeMapUI } from '../map-ui/map-ui.actions';
-import { SetMapPreferences } from '../shared/shared.actions';
+import { SetMapPreferences, SetAppReady } from '../shared/shared.actions';
 import { GetMediaPlanData, GetMediaPlanDataFailed, GetMediaPlanDataSucceeded, InitActions, InitActionTypes, MapSetupFailed, MapSetupSucceeded } from './init.actions';
 
 @Injectable()
@@ -79,8 +79,9 @@ export class InitEffects {
     ]),
     concatMap(([mapUI]) => [
       new InitializeMapUI(),
-      new SetMapPreferences({
-          mapUISlice: JSON.parse(mapUI.val || null)})
+      new SetMapPreferences({mapUISlice: JSON.parse(mapUI.val || null)})
+      
+
     ])
   );
 
@@ -92,6 +93,7 @@ export class InitEffects {
     concatMap(([, , analysisLevel]) => [
       new SetSelectedLayer({ layerId: this.config.layers[analysisLevel].boundaries.id }),
       new InitializeMapUI(),
+      new SetAppReady(true)
     ])
   );
 

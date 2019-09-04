@@ -22,8 +22,7 @@ export class MapUIEffects {
     map(([, details]) => this.shadingService.initializeVariables(details)),
     concatMap((definitions) => [
       new InitializeVariableOptions({ definitions }),
-      new RenderShading({ recreateLayer: true }),
-      new SetAppReady(true)
+      new RenderShading({ recreateLayer: true })
     ])
   );
 
