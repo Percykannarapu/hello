@@ -95,6 +95,12 @@ export class ShadingConfigComponent implements OnInit {
     this.classBreakValues = shading.classBreakValues;
     this.selectedShadingType = shading.shadingType;
     this.selectedNumericMethod = shading.selectedNumericMethod;
+    const mapByNameVars = mapBy(shading.availableVars, 'name');
+    this.selectedVar =  shading.selectedVar != null ? mapByNameVars.get(shading.selectedVar.name) : shading.selectedVar;
+    if (this.selectedNumericMethod === NumericVariableShadingMethod.EqualIntervals){
+      this.calculateEqualIntervals(this.selectedClassBreaks, this.selectedNumericMethod);
+    }
+
   }
 
   private setSelectedVar(shading: MapUIState){
