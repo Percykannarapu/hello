@@ -3,7 +3,7 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { SetSelectedLayer } from '@val/esri';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { of } from 'rxjs';
+import { of, zip } from 'rxjs';
 import { catchError, concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { MediaPlanPref } from '../../../val-modules/mediaexpress/models/MediaPlanPref';
 import { AppLayerService } from '../../services/app-layer-service';
@@ -16,7 +16,7 @@ import { EntityHelper } from '../../services/entity-helper-service';
 import { localSelectors } from '../app.selectors';
 import { FullState } from '../index';
 import { InitializeMapUI } from '../map-ui/map-ui.actions';
-import { SetMapPreferences, SetAppReady } from '../shared/shared.actions';
+import { SetMapPreferences } from '../shared/shared.actions';
 import { GetMediaPlanData, GetMediaPlanDataFailed, GetMediaPlanDataSucceeded, InitActions, InitActionTypes, MapSetupFailed, MapSetupSucceeded } from './init.actions';
 
 @Injectable()
@@ -70,30 +70,28 @@ export class InitEffects {
 
   getDataSuccess$ = this.actions$.pipe(ofType(InitActionTypes.GetMediaPlanDataSucceeded));
 
-  @Effect()
   loadPreferences$ = this.getDataSuccess$.pipe(
     map(action => action.payload.normalizedEntities.mapPreferences),
     filter(mapPrefs => mapPrefs.length > 0),
     map(prefs => [
       prefs.filter(p => p.pref === 'MAP UI SLICE')[0] || {} as MediaPlanPref,
     ]),
-    concatMap(([mapUI]) => [
-      new InitializeMapUI(),
-      new SetMapPreferences({mapUISlice: JSON.parse(mapUI.val || null)})
-      
-
-    ])
+    map(([mapUI]) => new SetMapPreferences({mapUISlice: JSON.parse(mapUI.val || null)}))
   );
 
-  @Effect()
   finalizeAppLoad$ = this.getDataSuccess$.pipe(
     withLatestFrom(this.store$, this.store$.pipe(select(localSelectors.getSelectedAnalysisLevel))),
     tap(([, state]) => this.appLayerService.updateLabels(state)),
     tap(() => this.appMapService.setMapWatches()),
-    concatMap(([, , analysisLevel]) => [
-      new SetSelectedLayer({ layerId: this.config.layers[analysisLevel].boundaries.id }),
-      new InitializeMapUI(),
-      new SetAppReady(true)
+    map(([, , analysisLevel]) => new SetSelectedLayer({ layerId: this.config.layers[analysisLevel].boundaries.id }))
+  );
+
+  @Effect()
+  loadComplete$ = zip(this.loadPreferences$, this.finalizeAppLoad$).pipe(
+    concatMap(([prefs, layer]) => [
+      prefs,
+      layer,
+      new InitializeMapUI()
     ])
   );
 
