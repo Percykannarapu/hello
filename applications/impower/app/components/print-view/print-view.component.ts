@@ -32,6 +32,7 @@ export class PrintViewComponent implements OnInit {
     this.printForm = this.fb.group({
       title: ['', Validators.required],
       subTitle: '',
+      geoInfo: '',
     });
     this.displayDialog$ = this.store$.pipe(select(printViewDialogFlag));
   }
@@ -40,6 +41,7 @@ export class PrintViewComponent implements OnInit {
     const formData = {
       title: dialogFields.title,
       author: dialogFields.subTitle,
+      customTextElements: dialogFields.geoInfo,
     };
     this.store$.dispatch(new PrintMap({ templateOptions: formData, serviceUrl: this.config.serviceUrls.valPrintService}));
     this.printForm.reset();

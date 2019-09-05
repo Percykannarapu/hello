@@ -92,7 +92,7 @@ export class ResetMapState implements Action {
 
 export class PrintMap implements Action{
   readonly type = EsriMapActionTypes.PrintMap;
-  constructor(public payload: { templateOptions: {title: string, author: string }, serviceUrl: string}){}
+  constructor(public payload: { templateOptions: {title: string, author: string, customTextElements: any }, serviceUrl: string}){}
 }
 
 export class SetPrintRenderer implements Action{

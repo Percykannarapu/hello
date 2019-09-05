@@ -111,7 +111,8 @@ export class MenuEffects {
     filter(([, analysisLevel, geos]) => (analysisLevel != null && analysisLevel.length > 0) || (geos != null && geos.length > 0)),
     map(([, analysisLevel, geos]) => {
       const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
-     return new SetPrintRenderer({geos, portalId, minScale: undefined});
+      const minScale = this.config.layers[analysisLevel.toLowerCase()].boundaries.minScale;
+     return new SetPrintRenderer({geos, portalId, minScale: minScale});
     }),
     );
   
