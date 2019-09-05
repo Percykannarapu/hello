@@ -34,10 +34,10 @@ export class MapUIEffects {
     withLatestFrom(this.store$.select(localSelectors.getMapUIState),
                    this.store$.select(localSelectors.getRfpUiEditEntities),
                    this.store$.select(localSelectors.getRfpUiEditDetailEntities),
-                   this.store$.select(localSelectors.getSelectedAnalysisLevel)),
-    switchMap(([action, shadingData, edits, details, analysisLevel]) => this.shadingService.setShader(analysisLevel, shadingData, edits, details, action.payload.recreateLayer).pipe(
+                   this.store$.select(localSelectors.getSharedState)),
+    switchMap(([action, shadingData, edits, details, shared]) => this.shadingService.setShader(shared, shadingData, edits, details, action.payload.recreateLayer).pipe(
       tap(graphics => this.appLayerService.initializeGraphicGroup(graphics, 'Shading', 'Selected Geos', true)),
-      tap(() => this.appLayerService.setupAnneSoloLayers(shadingData, 'Shading', analysisLevel, action.payload.recreateLayer)),
+      tap(() => this.appLayerService.setupAnneSoloLayers(shadingData, 'Shading', shared.analysisLevel, action.payload.recreateLayer)),
       catchError(err => {
         console.error(err);
         this.messagingService.showErrorNotification('There was an error retrieving shading data');
