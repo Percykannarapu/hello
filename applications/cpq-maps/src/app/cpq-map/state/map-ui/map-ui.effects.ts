@@ -7,7 +7,7 @@ import { AppLayerService } from '../../services/app-layer-service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { ShadingService } from '../../services/shading.service';
 import { localSelectors } from '../app.selectors';
-import { LocalState } from '../index';
+import { FullState } from '../index';
 import { SetAppReady } from '../shared/shared.actions';
 import { InitializeVariableOptions, RenderShading, ShadingActions, MapUIActionTypes, SetClassBreakValues } from './map-ui.actions';
 
@@ -17,9 +17,10 @@ export class MapUIEffects {
   @Effect()
   initialize$ = this.actions$.pipe(
     ofType(MapUIActionTypes.InitializeMapUI),
-    withLatestFrom(this.store$.select(localSelectors.getRfpUiEditDetailEntities)),
+    withLatestFrom(this.store$, this.store$.select(localSelectors.getRfpUiEditDetailEntities)),
+    tap(([, state]) => this.appLayerService.updateLabels(state)),
     tap(() => this.appLayerService.setupLegend()),
-    map(([, details]) => this.shadingService.initializeVariables(details)),
+    map(([, , details]) => this.shadingService.initializeVariables(details)),
     concatMap((definitions) => [
       new InitializeVariableOptions({ definitions }),
       new RenderShading({ recreateLayer: true }),
@@ -65,7 +66,7 @@ export class MapUIEffects {
   );
 
   constructor(private actions$: Actions<ShadingActions>,
-              private store$: Store<LocalState>,
+              private store$: Store<FullState>,
               private shadingService: ShadingService,
               private appLayerService: AppLayerService,
               private messagingService: AppMessagingService) {}

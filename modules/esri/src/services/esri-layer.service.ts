@@ -86,7 +86,10 @@ export class EsriLayerService {
   }
 
   public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
-    const result = this.getPortalLayersById(portalId);
+    const result = this.getPortalLayersById(portalId).filter(l => {
+      const parent = l['parent'];
+      return !(EsriUtils.layerIsGroup(parent) && parent.title.toLowerCase().includes('shading'));
+    });
     if (result.length > 1) {
       console.warn('Expecting a single layer in getPortalLayerById, got multiple. Returning first instance only');
     }

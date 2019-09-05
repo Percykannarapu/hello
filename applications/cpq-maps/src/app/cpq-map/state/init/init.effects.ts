@@ -16,7 +16,7 @@ import { EntityHelper } from '../../services/entity-helper-service';
 import { localSelectors } from '../app.selectors';
 import { FullState } from '../index';
 import { InitializeMapUI } from '../map-ui/map-ui.actions';
-import { SetMapPreferences } from '../shared/shared.actions';
+import { SetAppReady, SetMapPreferences } from '../shared/shared.actions';
 import { GetMediaPlanData, GetMediaPlanDataFailed, GetMediaPlanDataSucceeded, InitActions, InitActionTypes, MapSetupFailed, MapSetupSucceeded } from './init.actions';
 
 @Injectable()
@@ -80,10 +80,9 @@ export class InitEffects {
   );
 
   finalizeAppLoad$ = this.getDataSuccess$.pipe(
-    withLatestFrom(this.store$, this.store$.pipe(select(localSelectors.getSelectedAnalysisLevel))),
-    tap(([, state]) => this.appLayerService.updateLabels(state)),
+    withLatestFrom(this.store$.pipe(select(localSelectors.getSelectedAnalysisLevel))),
     tap(() => this.appMapService.setMapWatches()),
-    map(([, , analysisLevel]) => new SetSelectedLayer({ layerId: this.config.layers[analysisLevel].boundaries.id }))
+    map(([, analysisLevel]) => new SetSelectedLayer({ layerId: this.config.layers[analysisLevel].boundaries.id }))
   );
 
   @Effect()
