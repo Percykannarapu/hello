@@ -72,7 +72,11 @@ export class ShadingConfigComponent implements OnInit {
   }
 
   private setupDynamicDropDownOptions(state: SharedState, shading: MapUIState) {
-    // this method only runs once at startup, never after that
+    this.selectedClassBreaks = shading.selectedClassBreaks;
+    this.classBreakValues = shading.classBreakValues;
+    this.selectedShadingType = shading.shadingType;
+    this.selectedNumericMethod = shading.selectedNumericMethod;
+
     if (state.isWrap)
       this.shadingTypeOptions.push({ label: 'Wrap Zone', value: ShadingType.WRAP_ZONE });
     if (state.analysisLevel === 'atz')
@@ -81,18 +85,10 @@ export class ShadingConfigComponent implements OnInit {
       this.shadingTypeOptions.push({ label: 'Variable', value: ShadingType.VARIABLE });
       this.variableOptions = shading.availableVars.map(v => ({ label: v.name, value: v }));
       this.selectedVar = shading.selectedVar || shading.availableVars[0];
-
       if (this.selectedNumericMethod === NumericVariableShadingMethod.EqualIntervals){
-        const mapByNameVars = mapBy(shading.availableVars, 'name');
-        this.selectedVar =  shading.selectedVar != null ? mapByNameVars.get(shading.selectedVar.name) : shading.selectedVar;
         this.calculateEqualIntervals(this.selectedClassBreaks, this.selectedNumericMethod);
       }
-
     }
-    this.selectedClassBreaks = shading.selectedClassBreaks;
-    this.classBreakValues = shading.classBreakValues;
-    this.selectedShadingType = shading.shadingType;
-    this.selectedNumericMethod = shading.selectedNumericMethod;
   }
 
   private setSelectedVar(shading: MapUIState){
