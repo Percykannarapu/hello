@@ -14,7 +14,7 @@
     <li *ngFor="let row of imageLegendData">
       <span class="legend-crosshatch" [ngClass]="row.crosshatch"></span>
       <span class="legend-name">{{row.name}}</span>
-      <span *ngIf="row.hhc != null">({{row.hhc | number:'1.0-0'}}&nbsp;HH)</span>
+      <span *ngIf="row.hhc != null">({{row.hhc | number:'1.0-0'}}&nbsp;HH not included)</span>
     </li>
   </ul>
 </div>
