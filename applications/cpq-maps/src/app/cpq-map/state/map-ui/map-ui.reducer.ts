@@ -2,6 +2,7 @@ import { ColorPalette, FillPattern } from '@val/esri';
 import { GridSize, NumericVariableShadingMethod, ShadingType, VarDefinition, VariableRanges } from '../app.interfaces';
 import { SetMapPreferences, SharedActionTypes } from '../shared/shared.actions';
 import { ShadingActions, MapUIActionTypes } from './map-ui.actions';
+import { mapBy } from '@val/common';
 
 export interface MapUIState {
   isDistrQtyEnabled: boolean;
@@ -61,7 +62,8 @@ export function mapUIReducer(state = initialState, action: ReducerActions) : Map
     case MapUIActionTypes.InitializeVariableOptions:
       return {
         ...state,
-        availableVars: action.payload.definitions
+        availableVars: action.payload.definitions,
+        selectedVar: state.selectedVar != null ? mapBy(action.payload.definitions, 'name').get(state.selectedVar.name) : action.payload.definitions[0]
       };
     case MapUIActionTypes.SetNonVariableShading:
       return {
