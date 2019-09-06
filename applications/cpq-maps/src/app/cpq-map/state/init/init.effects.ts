@@ -16,7 +16,7 @@ import { EntityHelper } from '../../services/entity-helper-service';
 import { localSelectors } from '../app.selectors';
 import { FullState } from '../index';
 import { InitializeMapUI } from '../map-ui/map-ui.actions';
-import { SetAppReady, SetMapPreferences } from '../shared/shared.actions';
+import { SetMapPreferences } from '../shared/shared.actions';
 import { GetMediaPlanData, GetMediaPlanDataFailed, GetMediaPlanDataSucceeded, InitActions, InitActionTypes, MapSetupFailed, MapSetupSucceeded } from './init.actions';
 
 @Injectable()
@@ -72,11 +72,10 @@ export class InitEffects {
 
   loadPreferences$ = this.getDataSuccess$.pipe(
     map(action => action.payload.normalizedEntities.mapPreferences),
-    filter(mapPrefs => mapPrefs.length > 0),
     map(prefs => [
       prefs.filter(p => p.pref === 'MAP UI SLICE')[0] || {} as MediaPlanPref,
     ]),
-    map(([mapUI]) => new SetMapPreferences({mapUISlice: JSON.parse(mapUI.val || null)}))
+    map(([mapUI]) => new SetMapPreferences({ mapUISlice: JSON.parse(mapUI.val || null) || {} }))
   );
 
   finalizeAppLoad$ = this.getDataSuccess$.pipe(
