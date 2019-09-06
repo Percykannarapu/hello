@@ -291,13 +291,14 @@ export class ShadingService {
         const countAttr = promoEndDate.getMonth() >= 4 && promoEndDate.getMonth() <= 8 ? 'hhld_s' : 'hhld_w';
         const points = siteData.map(s => new EsriApi.Point({ latitude: s.siteLat, longitude: s.siteLong }));
         const hhCountMap = mapByExtended(siteDetails, s => s.geocode, s => s.distribution);
+        const selectedGeos = new Set(siteDetails.filter(s => s.isSelected).map(s => s.geocode));
         this.queryService.queryPointWithBuffer(layerId, points, shared.radius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'hhld_w', 'hhld_s', 'latitude', 'longitude'])
           .subscribe(results => {
             let anneCount = 0;
             let soloCount = 0;
             results.forEach(r => {
               const currentPoint = new EsriApi.Point({ latitude: r.attributes.latitude, longitude: r.attributes.longitude });
-              const useResult = points.some(p => EsriUtils.getDistance(p, currentPoint) <= shared.radius);
+              const useResult = points.some(p => EsriUtils.getDistance(p, currentPoint) <= shared.radius) && !selectedGeos.has(r.attributes.geocode);
               if (useResult) {
                 if (r.attributes.owner_group_primary === 'ANNE') anneCount += hhCountMap.get(r.attributes.geocode) || Number(r.attributes[countAttr]);
                 if (r.attributes.cov_frequency === 'Solo') soloCount += hhCountMap.get(r.attributes.geocode) || Number(r.attributes[countAttr]);
