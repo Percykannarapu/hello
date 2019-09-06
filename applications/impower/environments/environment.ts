@@ -61,12 +61,13 @@ export class EnvironmentData {
       centroid: undefined
     },
     zip: {
-      boundary: '23a54308e914496aa24d94a9b36776a0',
-      centroid: '88120ac630d746239b133296e87b8e1f'
+     boundary: '23a54308e914496aa24d94a9b36776a0',
+     //boundary: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/Zip_Boundaries__GL/FeatureServer',
+     centroid: '88120ac630d746239b133296e87b8e1f'
     },
     atz: {
       boundary: 'c0ee701ee95f4bbdbc15ded2a37ca802',
-      // boundary: '79903cc024894adebfef4c2f3c6cb883',
+      //boundary: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ATZ_Boundaries_GL/FeatureServer',
       centroid: 'fd4b078fc2424dd5a48af860dc421431'
     },
     dtz: {

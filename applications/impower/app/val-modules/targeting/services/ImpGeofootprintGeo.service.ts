@@ -437,7 +437,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
 
       // Look for headers formed like 'xxxxx (yyyy)'
-      const matchRegex = /(.*)\s*(\(.*\))/gm;
+      const matchRegex = /{(.*)}\s*(\(.*\))/gm;
       let m;
       const matches: string[] = [];
       while ((m = matchRegex.exec(header)) !== null) {
@@ -503,7 +503,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.exportAudiencesBS$.value.forEach(impVar => {
         // If more than one variable has this audience name, add the source name to the header
         const dupeNameCount = (this.allAudiencesBS$.getValue() != null) ? this.allAudiencesBS$.getValue().filter(aud => aud.audienceName === impVar.audienceName).length : 0;
-        const header = (dupeNameCount <= 1) ? impVar.audienceName : impVar.audienceName + ' (' + impVar.audienceSourceName + ')';
+        const header = (dupeNameCount <= 1) ? impVar.audienceName : impVar.audienceName + ' {(' + impVar.audienceSourceName + ')}';
         exportColumns.splice(insertAtPos++, 0, { header: header, row: this.exportVarAttributes});
       });
    }
