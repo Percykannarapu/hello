@@ -10,17 +10,16 @@ import { EsriApi } from '../core/esri-api.service';
 export class EsriPrintingService {
   constructor(private esriMapService: EsriMapService){}
 
-    public createPrintPayload(templateOptions: {title: string, author: string, customTextElements: any }) : __esri.PrintParameters {
+    public createPrintPayload(templateOptions: {title: string, author: string, customTextElements: any}) : __esri.PrintParameters {
 
       const currentLayout: any  = {
         titleText: templateOptions.title,
         authorText: templateOptions.author,
         customTextElements: [{
-          'description': templateOptions.customTextElements,
-        // 'location': 'My Location'
+          'description': templateOptions.customTextElements[0],
+          'projectID': templateOptions.customTextElements[1],
         }]
       } ;
-
       const template = new EsriApi.PrintTemplate({
           format: 'pdf',
           layout: 'imPower_Print_Layout',
