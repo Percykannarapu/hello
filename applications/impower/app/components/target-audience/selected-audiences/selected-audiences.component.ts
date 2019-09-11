@@ -73,6 +73,14 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(() => {
       this.onLoadProject();
     });
+
+    this.appStateService.analysisLevel$.subscribe(analysisLevel => {
+      this.nationalAudiencesBS$.value.forEach(aud => {
+        aud.exportNationally = false;
+        this.varService.updateProjectVars(aud);
+      });
+    }); 
+
   }
 
   private onLoadProject() {
