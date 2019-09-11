@@ -135,7 +135,7 @@ export class MapComponent implements OnInit {
     if (!isRespectingFilters) {
       this.confirmationService.confirm({
         message: 'You are about to select geographies outside of your desired filtered criteria. Are you sure you want to include these geographies?',
-        header: 'Confirm Filters',
+        header: 'Filter Warning',
         accept: () => {
           this.appStateService.filterFlag.next(true);
           this.appMapService.selectMultipleGeocode(features, this.selectedPanelButton, true);
