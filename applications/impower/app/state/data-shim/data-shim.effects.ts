@@ -3,8 +3,8 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
 import { of } from 'rxjs';
-import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { catchError, concatMap, map, switchMap, tap, withLatestFrom, filter } from 'rxjs/operators';
+import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComplete, RequestAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
@@ -74,9 +74,10 @@ export class DataShimEffects {
 
   @Effect()
   requestSuccess$ = this.actions$.pipe(
-    ofType(GeoAttributeActionTypes.RequestAttributesComplete),
+    ofType<RequestAttributesComplete>(GeoAttributeActionTypes.RequestAttributesComplete),
     withLatestFrom(this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
     tap(([a, attrs, geos, project]) => this.appDataShimService.prepGeoFields(geos, attrs, project)),
+    filter(([action]) =>  action.payload.flag === false),
     map(() => new FiltersChanged({ filterChanged: null }))
   );
 

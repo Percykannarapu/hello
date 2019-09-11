@@ -110,7 +110,7 @@ export class AppGeoService {
     this.impGeoService.makeDirty();
   }
 
-  public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
+  public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }, filterFlag?: boolean) {
     const allSelectedGeos = new Set(this.appStateService.uniqueSelectedGeocodes$.getValue());
     const allIdentifiedGeos = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
     if (allSelectedGeos.has(geocode) && this.appMapService.selectedButton !== 3) {
@@ -121,7 +121,7 @@ export class AppGeoService {
       }
     } else {
       if (this.appMapService.selectedButton !== 8) {
-        this.addGeoToManualTradeArea(geocode, geometry);
+        (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);     
       }
     }
   }
@@ -190,7 +190,7 @@ export class AppGeoService {
       filter(events => events != null && events.length > 0)
     ).subscribe(events => {
       events.forEach(event => {
-        this.toggleGeoSelection(event.geocode, event.geometry);
+        (event.filterFlag !== null && event.filterFlag !== undefined) ? this.toggleGeoSelection(event.geocode, event.geometry, event.filterFlag) : this.toggleGeoSelection(event.geocode, event.geometry);
       });
     });
   }
@@ -752,7 +752,7 @@ export class AppGeoService {
     this.impGeoService.update(null, null);
   }
 
-  private addGeoToManualTradeArea(geocode: string, geometry: { x: number; y: number }) : void {
+  private addGeoToManualTradeArea(geocode: string, geometry: { x: number; y: number }, filterFlag?: boolean) : void {
     const locations = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
     let minDistance = Number.MAX_VALUE;
     const closestLocation = locations.reduce((previous, current) => {
@@ -770,6 +770,7 @@ export class AppGeoService {
       this.tradeAreaService.add([tradeArea]);
     }
     const newGeo = this.domainFactory.createGeo(tradeArea, geocode, geometry.x, geometry.y, minDistance);
+    if (filterFlag !== null && filterFlag !== undefined) newGeo.isActive = filterFlag;
     this.impGeoService.add([newGeo]);
   }
 

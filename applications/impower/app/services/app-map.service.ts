@@ -19,6 +19,7 @@ export interface GeoClickEvent {
     x: number;
     y: number;
   };
+  filterFlag?: boolean;
 }
 
 @Injectable()
@@ -124,7 +125,7 @@ export class AppMapService implements OnDestroy {
     }
   }
 
-  public selectMultipleGeocode(graphicsList: __esri.Graphic[], button) {
+  public selectMultipleGeocode(graphicsList: __esri.Graphic[], button, confirmFlag?: boolean, filteredGraphicsList?: __esri.Graphic[]) {
     const events: GeoClickEvent[] = [];
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
     if (layerId == null || layerId.length === 0) return;
@@ -140,7 +141,18 @@ export class AppMapService implements OnDestroy {
         } else {
           this.collectSelectionUsage(graphic, 'multiSelectTool');
         }
-        events.push({ geocode, geometry: point });
+        if (confirmFlag !== null && confirmFlag !== undefined) {
+          if (confirmFlag) {
+              events.push({ geocode, geometry: point, filterFlag: true});
+          } else if (!confirmFlag && filteredGraphicsList !== null && filteredGraphicsList !== undefined) {
+            if (filteredGraphicsList.length === 0) {
+              events.push({ geocode, geometry: point, filterFlag: false });
+            } else {
+              const filterFlag: boolean = (filteredGraphicsList.filter(filteredGraphic => filteredGraphic.attributes.geocode === graphic.attributes.geocode).length > 0);
+              events.push({ geocode, geometry: point, filterFlag: filterFlag });
+            }
+          }         
+        } 
       }
     });
     this.selectedButton = button;

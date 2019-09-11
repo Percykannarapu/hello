@@ -12,6 +12,8 @@ import { filter, take } from 'rxjs/operators';
 import { FullAppState, LocalAppState } from '../../state/app.interfaces';
 import { CreateMapUsageMetric, CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { EsriApi, selectors } from '@val/esri';
+import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
+import { ConfirmationService } from 'primeng/api';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
@@ -31,6 +33,7 @@ export class MapComponent implements OnInit {
               private appGeoService: AppGeoService,
               private impGeoService: ImpGeofootprintGeoService,
               private rendererService: AppRendererService,
+              private confirmationService: ConfirmationService,
               private store$: Store<FullAppState>,
               private config: AppConfig) {}
 
@@ -87,8 +90,69 @@ export class MapComponent implements OnInit {
     this.setupMapFromStorage();
   }
 
+  private checkFilters(features: __esri.Graphic[], currentProject: ImpProject) : any {
+    const includeValassis = currentProject.isIncludeValassis;
+    const includeAnne = currentProject.isIncludeAnne;
+    const includeSolo = currentProject.isIncludeSolo;
+    const includePob = !currentProject.isExcludePob;
+    let outerCheck: boolean = true;
+    const filteredFeatures: __esri.Graphic[] = [];
+    features.forEach((feature, index) => {
+      const currentAttribute = feature.attributes;
+      if (currentAttribute != null) {
+        let innerCheck: boolean = true;
+        switch (currentAttribute['owner_group_primary']) {
+          case 'VALASSIS':
+          innerCheck = includeValassis ? (innerCheck && true) : false;
+            break;
+          case 'ANNE':
+          innerCheck = includeAnne ? (innerCheck && true) : false;
+            break;
+          default:
+          innerCheck = innerCheck;
+        }
+        if (currentAttribute['cov_frequency'] === 'Solo') {
+          innerCheck = includeSolo ? (innerCheck && true) : false;
+        }
+        if (currentAttribute['pob'] === 'B') {
+          innerCheck = includePob ? (innerCheck && true) : false;
+        }
+        if (innerCheck) {
+          filteredFeatures.push(feature);
+        } 
+        outerCheck = outerCheck && innerCheck;
+      }     
+    });
+    return { outerCheck, filteredFeatures };
+  }
+
+  private geosRespectingFilters(features: __esri.Graphic[]) : void {
+    const currentProject = this.appStateService.currentProject$.getValue();
+    // if (currentProject == null || geosInObj == null || geos == null || geos.length === 0) return;
+    const response = this.checkFilters(features, currentProject);
+    const isRespectingFilters: boolean = response.outerCheck;
+    const filteredFeatures: __esri.Graphic[] = response.filteredFeatures;
+    if (!isRespectingFilters) {
+      this.confirmationService.confirm({
+        message: 'You are about to select geographies outside of your desired filtered criteria. Are you sure you want to include these geographies?',
+        header: 'Confirm Filters',
+        accept: () => {
+          this.appStateService.filterFlag.next(true);
+          this.appMapService.selectMultipleGeocode(features, this.selectedPanelButton, true);
+        },
+        reject: () => {
+          this.appStateService.filterFlag.next(true);
+          this.appMapService.selectMultipleGeocode(features, this.selectedPanelButton, false, filteredFeatures);
+        }
+      });
+    } else {
+      this.appStateService.filterFlag.next(true);
+      this.appMapService.selectMultipleGeocode(features, this.selectedPanelButton, true);
+    }
+  }
+
   private onPolysSelected(polys: __esri.Graphic[]) : void {
-    this.appMapService.selectMultipleGeocode(polys, this.selectedPanelButton);
+    this.geosRespectingFilters(polys);
   }
 
   private saveMapViewData(mapView: __esri.MapView) {
