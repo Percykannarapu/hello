@@ -116,7 +116,7 @@ export class AppGeoService {
     if (allSelectedGeos.has(geocode) && this.appMapService.selectedButton !== 3) {
       this.deselectGeosByGeocode(geocode);
     } else if (allIdentifiedGeos.has(geocode)) {
-      if (this.appMapService.selectedButton !== 8) {
+      if (this.appMapService.selectedButton !== 8 && filterFlag) {
         this.reactivateGeosByGeocode(geocode);
       }
     } else {
