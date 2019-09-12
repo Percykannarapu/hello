@@ -113,7 +113,7 @@ export class AppGeoService {
   public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }, filterFlag?: boolean) {
     const allSelectedGeos = new Set(this.appStateService.uniqueSelectedGeocodes$.getValue());
     const allIdentifiedGeos = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
-    if (allSelectedGeos.has(geocode) && this.appMapService.selectedButton !== 3) {
+    if ((allSelectedGeos.has(geocode) && this.appMapService.selectedButton !== 3) || (allIdentifiedGeos.has(geocode) && this.appMapService.selectedButton === 8)) {
       this.deselectGeosByGeocode(geocode);
     } else if (allIdentifiedGeos.has(geocode)) {
       if (this.appMapService.selectedButton !== 8 && filterFlag) {
