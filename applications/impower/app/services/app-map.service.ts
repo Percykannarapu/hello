@@ -152,7 +152,9 @@ export class AppMapService implements OnDestroy {
               events.push({ geocode, geometry: point, filterFlag: filterFlag });
             }
           }         
-        } 
+        } else {
+          events.push({ geocode, geometry: point });
+        }
       }
     });
     this.selectedButton = button;

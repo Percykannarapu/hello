@@ -152,7 +152,11 @@ export class MapComponent implements OnInit {
   }
 
   private onPolysSelected(polys: __esri.Graphic[]) : void {
-    this.geosRespectingFilters(polys);
+    if (this.selectedPanelButton === 3) {
+      this.geosRespectingFilters(polys);
+    } else if (this.selectedPanelButton === 8) {
+      this.appMapService.selectMultipleGeocode(polys, this.selectedPanelButton);
+    }   
   }
 
   private saveMapViewData(mapView: __esri.MapView) {
