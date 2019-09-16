@@ -49,6 +49,18 @@ export class EsriMapService {
         this.measureWidget.view.surface.style.cursor = 'crosshair';
         this.measureWidget.viewModel.newMeasurement();
         break;
+      case 'select':
+        if (!this.measureWidget) {
+          this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
+            view: this.mapView,
+            unit: 'miles'
+          });
+        }
+        this.measureWidget.viewModel.mode = 'geodesic';
+        this.measureWidget.view.surface.style.cursor = 'crosshair';
+        this.measureWidget.destroy();
+        this.measureWidget = null;
+        break;
       case 'copy':
         if (!this.measureWidget) {
           this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
