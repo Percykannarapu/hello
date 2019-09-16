@@ -101,6 +101,7 @@ export class ShadingConfigComponent implements OnInit {
 
   onShadingOptionChange(event: { value: ShadingType }) {
     this.store.dispatch(new SetShadingType({ shadingType: event.value }));
+    this.store.dispatch(new SetPrefsDirty());
     if (event.value !== ShadingType.VARIABLE) {
       this.store.dispatch(new SetNonVariableShading({ shadingType: event.value }));
     } else {
