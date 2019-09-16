@@ -11,6 +11,8 @@ import { LocalAppState } from '../../state/app.interfaces';
 import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, SaveAndCreateNew, SaveAndReloadProject, OpenPrintViewDialog } from '../../state/menu/menu.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { AppStateService } from 'app/services/app-state.service';
+import { CreateGaugeMetric, CreateUsageMetric } from 'app/state/usage/usage.actions';
+import { CreateMapUsageMetric, CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 
 @Component({
     selector: 'app-menu',
@@ -58,8 +60,10 @@ export class AppMenuComponent implements OnInit {
     }
     private exportCurrentView(){
     const analysisLevel = this.stateService.analysisLevel$.getValue();
-        if (analysisLevel != null && analysisLevel.length > 0)
-            this.store$.dispatch(new OpenPrintViewDialog());
+        if (analysisLevel != null && analysisLevel.length > 0){
+           this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'current~view~map~export', 1));
+             this.store$.dispatch(new OpenPrintViewDialog());
+        }
         else
             this.store$.dispatch(new ErrorNotification({message: 'Analysis Level is required to print Current view'}));
     }
