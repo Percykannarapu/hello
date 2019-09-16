@@ -1,4 +1,4 @@
- <p-dialog header="Print Current View" [visible]="displayDialog$ | async" (visibleChange)="closeDialog($event)" [modal]="true" [style]="{width: '450px', minWidth: '200px', height: '250px'}" [maximizable]="false">
+ <p-dialog header="Print Current View" [visible]="displayDialog$ | async" (visibleChange)="closeDialog($event)" [modal]="true" [style]="{width: '450px', minWidth: '200px', height: '200px'}" [maximizable]="false">
       <div class="dialog-form">
           <form novalidate  [formGroup]="printForm" autocomplete="off">
 
@@ -16,12 +16,12 @@
                 <label for="subTitle"> Sub-Title </label>
             </span>
             </div> 
-            <div class="ui-g-12">
+            <!-- <div class="ui-g-12">
               <span class="md-inputfield">
                   <input id ="geoInfo" type="text" formControlName="geoInfo" pInputText class="val-full-width"> 
                   <label for="geoInfo"> Sub Sub-Title </label>
               </span>
-              </div>
+              </div> -->
            </form>  
      </div>
 
