@@ -1,5 +1,7 @@
+@import "~assets/valassis-variables";
+
 .error-icon {
-  color: #e62a10;
+  color: $brandRed;
 }
 
 /*
@@ -10,9 +12,9 @@ span.ui-inputgroup-addon {
 }
 
 .ui-inputtext.ng-touched.ng-invalid {
-  background-image: linear-gradient(to bottom, #e62a10, #e62a10), linear-gradient(to bottom, #e62a10, #e62a10);
+  background-image: linear-gradient(to bottom, $brandRed, $brandRed), linear-gradient(to bottom, $brandRed, $brandRed);
 }
 
 .md-inputfield input.ng-touched.ng-invalid ~ label {
-  color: #e62a10;
+  color: $brandRed;
 }

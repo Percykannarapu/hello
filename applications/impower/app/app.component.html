@@ -10,17 +10,26 @@
         <div class="layout-menu" [ngClass]="{'layout-menu-dark':darkMenu}" (click)="onMenuClick($event)">
             <div #layoutMenuScroller class="nano">
                 <div class="nano-content menu-scroll-content">
-                    <div class="ui-g">
-                      <div class="ui-g-8 ui-g-nopad">
+                    <div class="ui-g ui-g-nopad menu-bar">
+                      <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noMenu" class="ui-g-6 ui-g-nopad">
                         <app-menu [reset]="resetMenu"></app-menu>
                       </div>
-                      <div *ngIf="currentProject$ | async as currentProject; else noProject" class="ui-g-4">
+                      <div *ngIf="currentProject$ | async as currentProject; else noProject" class="ui-g-4 ui-g-nopad">
                         <span *ngIf="currentProject.projectId > 0" class="val-project-name">
                           {{ currentProject.projectId }} - {{ currentProject.projectName | truncate:40:' ...' }}
                         </span>
                       </div>
+                      <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noClear" class="ui-g-2 ui-g-nopad clear-container">
+                        <p-button label="Clear Messages" (onClick)="onClearMessages()"></p-button>
+                      </div>
+                      <ng-template #noMenu>
+                        <div class="ui-g-6 ui-g-nopad">&nbsp;</div>
+                      </ng-template>
                       <ng-template #noProject>
-                        <div class="ui-g-4">&nbsp;</div>
+                        <div class="ui-g-4 ui-g-nopad">&nbsp;</div>
+                      </ng-template>
+                      <ng-template #noClear>
+                        <div class="ui-g-2 ui-g-nopad">&nbsp;</div>
                       </ng-template>
                     </div>
                 </div>

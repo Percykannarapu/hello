@@ -13,25 +13,19 @@
   justify-content: space-between;
   align-content: stretch;
   align-items: center;
-  background-color: $primaryColor;
+  background-color: $lightGray04;
   height: $valTitleHeight;
 }
 
 .impower-header > .logo {
   margin: 0 18px;
   width: 137px;
-  height: 43px;
-  background: url('~assets/layout/images/logo-137x43.png') center no-repeat;
+  height: 47px;
+  background: url('~assets/layout/images/valassis-header-logo.png') center no-repeat;
 }
 
 .user {
   display: flex;
   align-items: center;
   padding: 15px;
-  color: $valReversedTextColor;
-}
-
-.user > i {
-  font-size: 28px;
-  padding: 0 5px;
 }

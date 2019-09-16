@@ -1,0 +1,63 @@
+@import '~assets/branding-variables';
+
+.colorboxPicker {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background-color: $brandBlue;
+
+  .material-icons {
+    font-size: 280%;
+  }
+
+  .header {
+    align-self: center;
+    span {
+      font-size: 100%;
+      color: $lightGray04;
+    }
+  }
+  .body {
+    cursor: pointer;
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    background-color: $lightGray04;
+    .icon {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 1em;
+      line-height: 0.9;
+      background-color: $midGray04;
+      color: $lightGray04;
+    }
+    .metric {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 7px 7px 1em;
+      .value {
+        flex: 1;
+        margin-top: 8px;
+        font-size: 2.7em;
+        font-weight: bold;
+      }
+    }
+    .spinner {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: $brandBlue;
+      border-left: $brandBlue 1px solid;
+      span:hover {
+        background-color: $lightGray02;
+      }
+      .material-icons {
+        font-size: 200%;
+      }
+    }
+  }
+}

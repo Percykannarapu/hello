@@ -1,25 +1,25 @@
 <p-tabView>
 
   <p-tabPanel header="Online Audience">
-    <p-tabView  class="val-child-tabs">
-      <p-tabPanel header="Interest and In-Market">
+    <p-accordion>
+      <p-accordionTab header="Interest and In-Market" [transitionOptions]="'0ms'">
         <val-online-audience-apio></val-online-audience-apio>
-      </p-tabPanel>
-      <p-tabPanel header="Visit Likelihood">
+      </p-accordionTab>
+      <p-accordionTab header="Visit Likelihood" [transitionOptions]="'0ms'">
         <val-online-audience-vlh></val-online-audience-vlh>
-      </p-tabPanel>
-      <p-tabPanel header="Pixel Data">
+      </p-accordionTab>
+      <p-accordionTab header="Pixel Data" [transitionOptions]="'0ms'">
         <val-online-audience-pixel></val-online-audience-pixel>
-      </p-tabPanel>
-    </p-tabView>
+      </p-accordionTab>
+    </p-accordion>
   </p-tabPanel>
 
   <p-tabPanel header="Offline Audience">
-    <p-tabView class="val-child-tabs">
-      <p-tabPanel header="TDA">
+    <p-accordion>
+      <p-accordionTab header="TDA" [transitionOptions]="'0ms'" [selected]="true">
         <val-offline-audience-tda></val-offline-audience-tda>
-      </p-tabPanel>
-    </p-tabView>
+      </p-accordionTab>
+    </p-accordion>
   </p-tabPanel>
 
   <p-tabPanel header="Custom">

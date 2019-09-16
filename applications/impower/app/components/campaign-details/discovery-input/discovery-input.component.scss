@@ -1,0 +1,33 @@
+@import "~assets/valassis-variables.scss";
+
+#projectId:disabled {
+  opacity: 0.75;
+  }
+
+.analysisLevelError{
+  color: $brandRed;
+}
+
+.switch-label {
+  padding-left: 0.75em;
+}
+
+.val-discovery-form {
+  padding: 1em;
+}
+
+label.category {
+  font-weight: bold;
+}
+
+.column-layout {
+  padding-top: 1em;
+}
+
+div.left-column {
+  border-right: 1px solid $midGray03;
+}
+
+div.right-column {
+  padding-left: 1em;
+}

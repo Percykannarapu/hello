@@ -2,14 +2,8 @@ import {Component} from '@angular/core';
 
 @Component({
     selector: 'val-app-footer',
-    template: `
-        <div class="footer">
-            <div class="card clearfix">
-                <span class="footer-text-left">Copyright {{currentYear}} Valassis</span>
-                <span class="footer-text-right">&copy;&nbsp;All Rights Reserved</span>
-            </div>
-        </div>
-    `
+    template: `<div class="footer">Copyright Valassis {{currentYear}}. All Rights Reserved.</div>`,
+    styleUrls: ['./app.footer.component.scss']
 })
 export class AppFooterComponent {
   currentYear: string;

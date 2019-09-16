@@ -21,7 +21,7 @@ export class ValDiscoveryUIModel {
   cpmValassis: string;
   cpmAnne: string;
   cpmSolo: string;
-  
+
   constructor(formData: Partial<ValDiscoveryUIModel>) {
       Object.assign(this, formData);
   }
@@ -60,7 +60,7 @@ export class ValDiscoveryUIModel {
     }
     return new ValDiscoveryUIModel(newFormValues);
   }
-  
+
   public updateProjectItem(projectToUpdate: ImpProject) : void {
     const dollarBudget = this.toNumber(this.dollarBudget);
     const circBudget = this.toNumber(this.circulationBudget);
@@ -91,7 +91,7 @@ export class ValDiscoveryUIModel {
       cpmTypeAttribute = new ImpProjectPref({ pref: 'CPM_TYPE', prefType: 'STRING', isActive: true });
       projectToUpdate.impProjectPrefs.push(cpmTypeAttribute);
     }
-    cpmTypeAttribute.val = (this.cpmType != null) ? this.cpmType : "UNKNOWN";
+    cpmTypeAttribute.val = (this.cpmType != null) ? this.cpmType : 'UNKNOWN';
     console.log('Discovery Form changed, new Project values:', projectToUpdate);
   }
 

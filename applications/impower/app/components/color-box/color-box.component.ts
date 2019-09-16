@@ -1,11 +1,13 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { OverlayPanel } from 'primeng/overlaypanel';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 
 @Component({
   selector: 'val-color-box',
-  templateUrl: './color-box.component.html'
+  templateUrl: './color-box.component.html',
+  styleUrls: ['./color-box.component.scss']
 })
 export class ColorBoxComponent implements OnInit, OnDestroy{
    @ViewChild('op', { static: true }) overlayPanel: OverlayPanel;
@@ -17,6 +19,8 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    @Input() flags:          Map<string, boolean>;
    @Input() displayOverlay: string;
    @Input() dismissible:    boolean = true;  // This property is currently only set once, not toggled, but will revisit if we can get change detection from child panels
+
+   @Output() overlayClosed = new EventEmitter<void>();
 
    index: number = 0;
    metric: string = null;
@@ -31,8 +35,11 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
 
    ngOnInit() {
       this.generateColorBoxValues();
-      this.overlaySub = this.appStateService.closeOverlayPanel$.subscribe(header => {
-        if (header !== this.header) this.overlayPanel.hide();
+      this.overlaySub = this.appStateService.closeOverlayPanel$.pipe(
+        filter(header => header !== this.header)
+      ).subscribe(header => {
+        this.overlayClosed.emit();
+        this.overlayPanel.hide();
       });
    }
 

@@ -4,20 +4,12 @@
     </p-header>
     <div class="dialog-main">
       <div class="dialog-body">
-        <div class="ui-g-12 ui-g-nopad">
-          <div class="ui-g-2">
-            <label> View for: </label>
-          </div>
-          <div class="ui-g-3">
-            <p-radioButton name="projectListProjectGroup" value="myProject" label="My Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-          </div>
-          <div class="ui-g-3">
-            <p-radioButton name="projectListProjectGroup" value="allProjects" label="All Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-          </div>
-          <div class="ui-g-4">
-            <p-dropdown [options]="timeLines" [(ngModel)]="selectedTimeLine" [style]="{'width':'150px'}" [filter]="true" (ngModelChange)="onSelectTimeFrame($event)">
-            </p-dropdown>
-          </div>
+        <div class="ui-g-12 ui-g-nopad search-bar">
+          <label>View for:</label>
+          <p-radioButton name="projectListProjectGroup" value="myProject" label="My Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+          <p-radioButton name="projectListProjectGroup" value="allProjects" label="All Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+          <p-dropdown [options]="timeLines" [(ngModel)]="selectedTimeLine" [style]="{'width':'150px'}" (ngModelChange)="onSelectTimeFrame($event)" dropdownIcon="fa fa-caret-down">
+          </p-dropdown>
         </div>
         <div class="ui-g-12 ui-g-nopad val-tbody-nowrap">
 
@@ -26,7 +18,7 @@
                    [(selection)]="selectedRow"
                    selectionMode="single"
                    dataKey="projectId"
-                   [resizableColumns]="true"
+                   [resizableColumns]="false"
                    columnResizeMode="expand"
                    [reorderableColumns]="false"
                    [responsive]="true"
@@ -49,7 +41,7 @@
                 </div>
                 <div class="ui-g=4 ui-g-nopad grid-caption-right-group">
                   <div>
-                    <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+                    <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" dropdownIcon="fa fa-caret-down"></p-multiSelect>
                   </div>
                 </div>
               </div>
@@ -57,7 +49,7 @@
 
             <ng-template pTemplate="header" class="ui-g ui-g-nopad">
               <tr>
-                <th *ngFor="let col of selectedColumns" pResizableColumn [pSortableColumn]="col.field" [style.width]="col.size">
+                <th *ngFor="let col of selectedColumns" [pSortableColumn]="col.field" [style.width]="col.size">
                   {{col.header}}
                   <p-sortIcon [field]="col.field"></p-sortIcon>
                 </th>
@@ -85,45 +77,6 @@
               </tr>
             </ng-template>
           </p-table>
-
-          <!--        <p-dataTable-->
-          <!--          [globalFilter]="filter"-->
-          <!--          [value]="currentProjectData"-->
-          <!--          [expandableRows]="false" [resizableColumns]="true"-->
-          <!--          [rows]="8" [paginator]="true"-->
-          <!--          columnResizeMode="expand" [responsive]="true"-->
-          <!--          [immutable]="false"-->
-          <!--          sortField="projectId"-->
-          <!--          [sortOrder]="-1"-->
-          <!--          selectionMode="single"-->
-          <!--          (onRowDblclick)="dbClick($event)"-->
-          <!--          [(selection)]="selectedRow"-->
-          <!--          [reorderableColumns]="true">-->
-          <!--          <p-header>-->
-          <!--            <div class="ui-g">-->
-          <!--              <div class="ui-g-12 ui-g-nopad">-->
-          <!--                <div class="ui-g-1 ui-g-nopad" style="min-width:25px">-->
-          <!--                  <i class="fa fa-search"></i>-->
-          <!--                </div>-->
-          <!--                <div class="ui-g-2 ui-g-nopad">-->
-          <!--                  <span class="md-inputfield">-->
-          <!--                    <input #filter id="filter" type="text" (blur)="onSearch($event.target.value, (currentProjectData != null) ? currentProjectData.length : 0)" pInputText size="30" style="color: rgba(255, 255, 255, 0.315);">-->
-          <!--                    <label for="filter" style="color: white;">Search Projects</label>-->
-          <!--                  </span>-->
-          <!--                </div>-->
-          <!--                <div class="ui-g-7 ui-g-nopad">-->
-          <!--                  <label style="text-align: center;">Projects: {{(currentProjectData != null) ? currentProjectData.length : 0}}</label>-->
-          <!--                </div>-->
-          <!--                <div class="ui-g-2 ui-g-nopad" style="float:right; color: white;">-->
-          <!--                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>-->
-          <!--                </div>-->
-          <!--              </div>-->
-          <!--            </div>-->
-          <!--          </p-header>-->
-          <!--          <p-column *ngFor="let projectColumn of selectedColumns" [sortable]="true" [editable]="false"-->
-          <!--                    [style]="{'width': projectColumn.size}" [field]="projectColumn.field" [header]="projectColumn.header">-->
-          <!--          </p-column>-->
-          <!--        </p-dataTable>-->
         </div>
       </div>
 

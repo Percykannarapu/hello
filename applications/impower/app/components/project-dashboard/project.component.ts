@@ -47,10 +47,10 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
     public allColumns: any[] = [
         // { field: '',                     header: 'Select',                        size: '60px'},
-        { field: 'projectId',                    header: 'imPower ID',                    size: '10%'},
-        { field: 'projectTrackerId',             header: 'Project Tracker ID',            size: '12%'},
+        { field: 'projectId',                    header: 'imPower ID',                    size: '11%'},
+        { field: 'projectTrackerId',             header: 'Project Tracker ID',            size: '15%'},
         { field: 'projectName',                  header: 'imPower Project Name',          size: '24%'},
-        { field: 'projectTrackerClientName',     header: 'Client Name',                   size: '24%'},
+        { field: 'projectTrackerClientName',     header: 'Client Name',                   size: '20%'},
         { field: 'modifyUserLoginname',          header: 'Username',                      size: '10%'},
         { field: 'modifyDate',                   header: 'Last Modified Date',            size: '20%'}
       ];
@@ -130,7 +130,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
     onListTypeChange(data: 'myProject' | 'allProjects') {
       this.selectedListType = data;
-     
+
       if (this.selectedListType === 'myProject'){
           this.currentProjectData = this.myProjectsData;
       }
@@ -144,7 +144,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       const updatedDateFrom = new Date();
       const updatedDateTo = new Date();
       this.selectedTimeLine = event;
-     
+
 
       if (event.toLowerCase() === 'sixmonths'){
         updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
@@ -186,7 +186,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           tap(data => {
             this.myProjectsData = data;
           }));
-       
+
       forkJoin(allProject$, myProject$).subscribe(null, null, () => {
 
         if (this.selectedListType === 'myProject'){
@@ -197,7 +197,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           this.currentProjectData = this.allProjectsData;
           this.searchFilterMetric();
         }
-      });    
+      });
     }
 
     public formatDate(date) {

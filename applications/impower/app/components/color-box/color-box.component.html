@@ -1,29 +1,23 @@
 <!-- Color Box Overlay Container -->
 <p-overlayPanel #op class="{{boxStyle}}" [showCloseIcon]="true" [dismissable]="dismissible">
-   <ng-content></ng-content>
+  <ng-content></ng-content>
 </p-overlayPanel>
 
 <div class="ui-g-12 ui-g-nopad colorboxPicker shadow-box ui-shadow-3">
-   <div class="ui-g">
-      <div class="ui-g-12 card colorboxPicker {{boxStyle}} header">
-         <span class="colorboxPicker-name">{{header}}</span>
-      </div>
-      <div class="ui-g-11 card colorboxPicker {{boxStyle}} ui-clickable" (click)="onShowOverlay($event)">
-         <div class="ui-g-2 colorboxPicker icon" style="cursor:pointer;">
-            <i class="material-icons colorboxPicker icon child">{{icon}}</i>
-         </div>
-         <div class="ui-g-10" style="cursor:pointer;">
-            <span class="colorboxPicker-name">{{metric}}{{isFlagged ? '&nbsp;*' : ''}}</span>
-            <span class="colorboxPicker-count">{{metricValue}}</span>
-         </div>
-      </div>
-      <div class="ui-g-1 card colorboxPicker {{boxStyle}} spinner ui-clickable" style="cursor:pointer;padding:0px">
-         <div class="ui-g-12 spinner" style="cursor:pointer;width:100%;padding:0.3em 0 0 0" (click)="onClick('Up')">
-            <i class="material-icons" style="height:100%;font-size:1.8em;margin:0px;padding:0px;">keyboard_arrow_up</i>
-         </div>
-         <div class="ui-g-12 spinner" style="cursor:pointer;width:100%;padding:0.3em 0 0 0" (click)="onClick('Down')">
-            <i class="material-icons" style="height:100%;font-size:1.8em;margin:0px;padding:0px;">keyboard_arrow_down</i>
-         </div>
-      </div>
-   </div>
+  <div class="header">
+    <span>{{header}}</span>
+  </div>
+  <div class="body">
+    <div class="icon" (click)="onShowOverlay($event)">
+      <span class="material-icons">{{icon}}</span>
+    </div>
+    <div class="metric" (click)="onShowOverlay($event)">
+      <span class="name">{{metric}}{{isFlagged ? '&nbsp;*' : ''}}</span>
+      <span class="value">{{metricValue}}</span>
+    </div>
+    <div class="spinner">
+      <span class="material-icons" (click)="onClick('Up')">keyboard_arrow_up</span>
+      <span class="material-icons" (click)="onClick('Down')">keyboard_arrow_down</span>
+    </div>
+  </div>
 </div>

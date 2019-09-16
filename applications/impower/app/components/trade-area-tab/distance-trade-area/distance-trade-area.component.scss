@@ -1,19 +1,31 @@
+@import "~assets/valassis-variables";
 .trade-area-toggle {
   width: 65px;
 }
 
-span.ui-inputgroup-addon {
-  border-style: none;
-}
-
 i.fa.fa-check {
-  color: rgb(10, 112, 25);
+  color: $valSuccessTextColor;
   font-size: 1em;
 }
 
-input:focus ~ label.trade-area-value, input.ui-state-filled ~ label.trade-area-value {
-  top: -0.33em !important;
-}
-label.trade-area-value {
-  top: 12px !important;
+.trade-area-container {
+  display: flex;
+  align-items: flex-end;
+  .trade-area {
+    p-toggleButton {
+      line-height: 1em;
+    }
+    input:not(:focus) ~ label {
+      top: 1em;
+    }
+    input:focus ~ label,
+    input.ui-state-filled ~ label {
+      top: -0.5em !important;
+    }
+  }
+  .validation-messages {
+    > span {
+      color: $inputErrorTextColor;
+    }
+  }
 }

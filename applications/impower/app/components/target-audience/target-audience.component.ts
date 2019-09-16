@@ -6,8 +6,7 @@ import { AppStateService } from '../../services/app-state.service';
 
 @Component({
   selector: 'val-target-audience',
-  templateUrl: './target-audience.component.html',
-  styleUrls: ['./target-audience.component.css']
+  templateUrl: './target-audience.component.html'
 })
 export class TargetAudienceComponent implements OnInit {
   public audiences$: Observable<AudienceDataDefinition[]>;

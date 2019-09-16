@@ -1,28 +1,28 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { ColorPalette } from '@val/esri';
+import { WarningNotification } from '@val/messaging';
+import { MoveAudienceDn, MoveAudienceUp, SelectMappingAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
+import { AppLoggingService } from 'app/services/app-logging.service';
+import { SelectItem } from 'primeng/api';
+import { ConfirmationService } from 'primeng/components/common/confirmationservice';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { filter, map, take, tap } from 'rxjs/operators';
+import { AppRendererService } from '../../../services/app-renderer.service';
 import { AppStateService } from '../../../services/app-state.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
-import { SelectItem } from 'primeng/api';
-import { AppRendererService } from '../../../services/app-renderer.service';
-import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { map, take, filter } from 'rxjs/operators';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { ConfirmationService } from 'primeng/components/common/confirmationservice';
-import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric, CreateMapUsageMetric } from '../../../state/usage/targeting-usage.actions';
 import { CreateGaugeMetric } from '../../../state/usage/usage.actions';
-import { ColorPalette } from '@val/esri';
-import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { MoveAudienceUp, MoveAudienceDn, SelectMappingAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
-import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { AppLoggingService } from 'app/services/app-logging.service';
 
 @Component({
   selector: 'val-selected-audiences',
   templateUrl: './selected-audiences.component.html',
-  styleUrls: ['./selected-audiences.component.css']
+  styleUrls: ['./selected-audiences.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class SelectedAudiencesComponent implements OnInit {
   audiences$: Observable<Audience[]>;
@@ -35,6 +35,7 @@ export class SelectedAudiencesComponent implements OnInit {
   public dialogboxWarningmsg: string = '';
 
   private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
+  public audienceCount: number = 0;
 
   constructor(private varService: TargetAudienceService,
               private appStateService: AppStateService,
@@ -60,6 +61,9 @@ export class SelectedAudiencesComponent implements OnInit {
     this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       filter(audiences => audiences != null),
     );
+    this.audiences$.pipe(
+      filter(a => a.length > 0),
+    ).subscribe(a => this.audienceCount = a.length);
 
     this.audiences$.pipe(
         filter(audiences => audiences.length > 0),
@@ -79,7 +83,7 @@ export class SelectedAudiencesComponent implements OnInit {
         aud.exportNationally = false;
         this.varService.updateProjectVars(aud);
       });
-    }); 
+    });
 
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppStateService } from 'app/services/app-state.service';
 import { MenuItem } from 'primeng/api';
@@ -15,7 +15,9 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { ColorBoxComponent } from '../color-box/color-box.component';
 
 @Component({
-    templateUrl: './dashboard.component.html'
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class DashboardComponent implements OnInit {
     chartData: any;
@@ -152,10 +154,5 @@ export class DashboardComponent implements OnInit {
 
     triggerCollapseOnToggle(collapsed: boolean) {
         this.appStateService.triggerChangeInCollapse(collapsed);
-    }
-
-    showSideBar($event) {
-        this.display = $event;
-        //this.mapService.plotMarker($event.x, $event.y);
     }
 }

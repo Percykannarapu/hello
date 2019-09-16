@@ -3,7 +3,7 @@
     <div id= "campaignDetails" class="ui-g-12 ui-md-6 ui-lg-3">
      <!-- Home for Blue Household Count Box Overlay -->
      <val-color-box header="Campaign Details"
-                    boxStyle="colorboxPicker-teal"
+                    boxStyle="campaign-details-colorbox"
                     icon="done_all"
                     [model]="metricMapBlue"
                     [flags]="flagMapBlue"
@@ -18,7 +18,7 @@
       <!-- Home for Green Sites Box Overlay -->
       <!-- onSetDismissable(true) -->
       <val-color-box header="Locations"
-                     boxStyle="colorboxPicker-green"
+                     boxStyle="locations-colorbox"
                      icon="my_location"
                      [model]="metricMapGreen"
                      displayOverlay="true"
@@ -26,7 +26,7 @@
                      #locationsColorBox>
         <p-tabView>
           <p-tabPanel header="Add Locations">
-            <val-add-locations-tab></val-add-locations-tab>
+            <val-add-locations-tab #addLocations></val-add-locations-tab>
           </p-tabPanel>
           <p-tabPanel header="Manage Locations">
             <val-site-list-container>Loading Site List...</val-site-list-container>
@@ -41,7 +41,7 @@
     <div id="targetAudience" class="ui-g-12 ui-md-6 ui-lg-3">
       <!-- Home for Target Audience Box Overlay -->
       <val-color-box  header="Target Audience"
-                      boxStyle="colorboxPicker-slate"
+                      boxStyle="target-audience-colorbox"
                       icon="tune"
                       [model]="metricMapPurple"
                       [flags]="flagMapPurple"
@@ -67,39 +67,16 @@
                        displayOverlay="false"
                        [dismissible]="true"
                        #performanceColorBox>
-        <!-- For now we are removing the tab panel since there is no content for it currently
-        <p-tabView>
-            <p-tabPanel header="RAD Service">
-               <val-raddata></val-raddata>
-            </p-tabPanel>
-            <p-tabPanel header="Header Tab 2">
-               Content 2
-            </p-tabPanel>
-            <p-tabPanel header="Header Tab 3">
-               <p-panel class="colorboxPicker-blue">
-                  <p-header>
-                     <div>🚨🚧 Under Construction 🚧🚨</div>
-                     Some sort of chart that tells somebody something
-                  </p-header>
-                  <p-chart type="line" [data]="chartData" responsive="true"></p-chart>
-               </p-panel>
-            </p-tabPanel>
-         </p-tabView>-->
       </val-color-box>
     </div>
     <!-- COLORBOX COMPONENTS END -->
 
-    <!-- <div class="ui-g-12 ui-md-6 ui-lg-12 no_vertical_space"> -->
-    <div class="ui-g-12 no_vertical_space">
+    <div class="ui-g-12 panel-wrapper">
       <val-map></val-map>
-      <p-panel id="geosPanel" [toggleable]="true" class="val-flush-to-edges" collapsed="true" (onAfterToggle)="triggerCollapseOnToggle($event.collapsed)">
+      <p-panel id="geosPanel" [toggleable]="true" class="val-flush-to-edges" collapsed="true" (onAfterToggle)="triggerCollapseOnToggle($event.collapsed)"  expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up">
         <p-header style="text-align: center;" pTooltip="Locations: {{(locations$ | async)?.length}}, Geos: {{(geos$ | async)?.length}}">Locations / Geographies</p-header>
 
         <val-geofootprint-geo-panel></val-geofootprint-geo-panel>
       </p-panel>
-    </div>
-
-    <div>
-      <br><br><br>
     </div>
   </div>

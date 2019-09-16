@@ -1,17 +1,17 @@
-import { Component, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { AppConfig } from '../../app.config';
-import { AppMapService } from '../../services/app-map.service';
-import { AppStateService } from '../../services/app-state.service';
-import { AppGeoService } from '../../services/app-geo.service';
-import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { AppTradeAreaService } from '../../services/app-trade-area.service';
-import { AppRendererService } from '../../services/app-renderer.service';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { filter, take } from 'rxjs/operators';
-import { FullAppState, LocalAppState } from '../../state/app.interfaces';
-import { CreateMapUsageMetric, CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { EsriApi, selectors } from '@val/esri';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
+import { AppConfig } from '../../app.config';
+import { AppGeoService } from '../../services/app-geo.service';
+import { AppMapService } from '../../services/app-map.service';
+import { AppRendererService } from '../../services/app-renderer.service';
+import { AppStateService } from '../../services/app-state.service';
+import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { FullAppState } from '../../state/app.interfaces';
+import { CreateMapUsageMetric, CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ConfirmationService } from 'primeng/api';
 
@@ -21,7 +21,7 @@ const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
 @Component({
   selector: 'val-map',
   templateUrl: './map.component.html',
-  styleUrls: ['./map.component.css']
+  styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements OnInit {
   currentAnalysisLevel$: Observable<string>;
@@ -119,9 +119,9 @@ export class MapComponent implements OnInit {
         }
         if (innerCheck) {
           filteredFeatures.push(feature);
-        } 
+        }
         outerCheck = outerCheck && innerCheck;
-      }     
+      }
     });
     return { outerCheck, filteredFeatures };
   }
@@ -156,7 +156,7 @@ export class MapComponent implements OnInit {
       this.geosRespectingFilters(polys);
     } else if (this.selectedPanelButton === 8) {
       this.appMapService.selectMultipleGeocode(polys, this.selectedPanelButton);
-    }   
+    }
   }
 
   private saveMapViewData(mapView: __esri.MapView) {

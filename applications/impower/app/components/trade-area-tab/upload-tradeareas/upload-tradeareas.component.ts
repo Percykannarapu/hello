@@ -38,7 +38,7 @@ const tradeAreaUpload: Parser<TradeAreaDefinition> = {
 @Component({
   selector: 'val-upload-tradeareas',
   templateUrl: './upload-tradeareas.component.html',
-  styleUrls: ['./upload-tradeareas.component.css']
+  styleUrls: ['./upload-tradeareas.component.scss']
 })
 export class UploadTradeAreasComponent implements OnInit {
   public listType1: string = 'Site';
@@ -50,7 +50,7 @@ export class UploadTradeAreasComponent implements OnInit {
   public deleteFlag: boolean = false;
 
   public deleteConfirmFlag$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  
+
 
   @ViewChild('tradeAreaUpload', { static: true }) private fileUploadEl: FileUpload;
 
@@ -68,11 +68,11 @@ export class UploadTradeAreasComponent implements OnInit {
     private appEditSiteService: AppEditSiteService,
     private store$: Store<LocalAppState>) {
     this.currentAnalysisLevel$ = this.stateService.analysisLevel$;
-    
+
   }
 
   ngOnInit() {
-    
+
     this.stateService.currentProject$.subscribe(project => {
       this.isCustomTAExists = project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0));
     });
@@ -80,9 +80,9 @@ export class UploadTradeAreasComponent implements OnInit {
     this.appEditSiteService.customTradeAreaData$.subscribe(message => {
       if (message != null) {
         this.parseCsvFile(message.data);
-      }    
+      }
     });
-    
+
     this.tradeAreaService.uploadFailuresObs$.subscribe(result => {
       this.uploadFailures.push(...result);
     });
@@ -148,7 +148,7 @@ export class UploadTradeAreasComponent implements OnInit {
     if (header.split(/,/).length == 2) {
       const uniqueRows: string[] = [];
       const duplicateRows: string[] = [];
-      for (let i = 0; i < rows.length; i++) {      
+      for (let i = 0; i < rows.length; i++) {
         if (uniqueRows.indexOf(rows[i]) == -1) {
           uniqueRows.push(rows[i]);
         } else {
@@ -169,7 +169,7 @@ export class UploadTradeAreasComponent implements OnInit {
               this.messageService.add({summary: 'Upload Error', detail: `There were ${failedCount} rows that could not be parsed. See the F12 console for more details.`});
               console.error('Failed Trade Area Upload Rows:', data.failedRows);
             }
-            if (successCount > 0) {            
+            if (successCount > 0) {
               this.isCustomTAExists = true;
               this.processUploadedTradeArea(data.parsedData);
             }
@@ -191,13 +191,13 @@ export class UploadTradeAreasComponent implements OnInit {
     } else {
       this.store$.dispatch(new StopBusyIndicator({ key}));
       this.store$.dispatch(new ErrorNotification({ message: 'Upload file must contain a Site # column and a Geocode column.', notificationTitle: 'Error Uploading Custom TA' }));
-    }    
+    }
   }
 
   private processUploadedTradeArea(data: TradeAreaDefinition[]) : void {
     this.totalUploadedRowCount += data.length;
-    this.tradeAreaService.applyCustomTradeArea(data); 
-    
+    this.tradeAreaService.applyCustomTradeArea(data);
+
   }
 
   public deleteCustomTradeArea() : void {
@@ -209,18 +209,18 @@ export class UploadTradeAreasComponent implements OnInit {
         this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' || ta.taType === 'HOMEGEO'));
         this.appGeoService.ensureMustCovers();
         this.isCustomTAExists = false;
-        if (this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL' && ta.impGeofootprintGeos.length > 0).length > 0) {  
+        if (this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL' && ta.impGeofootprintGeos.length > 0).length > 0) {
           this.confirmationService.confirm({
             message: 'Would you like to also delete the manually selected geos?',
             header: 'Delete Manual Geos',
-            accept: () => {          
-                this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL'));                  
+            accept: () => {
+                this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL'));
                 this.appGeoService.ensureMustCovers();
             }
-          });              
-        }  
+          });
+        }
         this.uploadFailures = [];
       }
-    }); 
+    });
   }
 }

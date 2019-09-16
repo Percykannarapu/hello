@@ -1,34 +1,71 @@
-$primaryColor: #4177a1;
-$primaryDarkColor: #2e5473;
-$primaryLightColor: #4a8aba;
-$accentColor: #EF9300;
-$accentDarkColor: #bd7400;
-$accentLightColor: #f0a630;
-$accentTextColor: #ffffff;
-$darkMenuBgColor: #424242;
-$darkMenuHoverColor: #676767;
-$darkMenuRouterLinkActiveColor: #9fa8da;
-$lightMenuRouterLinkActiveColor: #2e5473;
-$horizontalLightMenuRouterLinkActiveColor: #9fa8da;
+// This is a file of variable overrides for the base PrimeNG themes. This file is referenced in
+// /assets/sass/overrides/*_variables.scss
+@import "branding-variables";
+
+$primaryColor: $blueBird;
+$primaryDarkColor: $brandBlue;
+$primaryLightColor: $babyBlue;
+$bodyBgColor: $lightGray01;
+$textColor: $midGray01;
+$contentBorderColor: $midGray03;
+$contentBgColor: $lightGray04;
+$accentColor: $paleYellow;
+$accentDarkColor: darken($paleYellow, 10%);
+$accentLightColor: $primaryYellow;
+$accentTextColor: $midGray01;
+$hoverBgColor: $primaryLightColor;
+$dividerColor: $lightGray01;
+$inputBorderColor: $midGray04;
+$inputInvalidBorderColor: $brandRed;
+$inputErrorTextColor: $brandRed;
+$inputGroupBorderColor: $midGray04;
+$inputGroupTextColor: $midGray02;
+$inputListPadding: 0;
+$headerBgColor: $lightGray04;
+$headerTextColor: $darkGray01;
+$headerIconColor: $midGray01;
+$headerFontWeight: bold;
+$buttonTextColor: $brandBlue;
+$radioButtonBorderColor: $midGray04;
+$accordionHeaderBgColor: $lightGray04;
+$accordionHeaderTextColor: $midGray01;
+$accordionHeaderHoverBgColor: $hoverBgColor;
+$accordionHeaderHoverTextColor: $midGray01;
+
+$horizontalLightMenuRouterLinkActiveColor: $midGray01;
+$horizontalLayoutMenuItemTextColor: $midGray01;
+$horizontalLayoutMenuItemHoverBgColor: $hoverBgColor;
+$layoutMenuItemIconColor: $textColor;
+
 $letterSpacing: normal;
 
 $valTitleHeight: 55px;
 $valHeaderHeight: 90px;
-$valReversedTextColor: white;
-$valReversedDisabledColor: #ccc;
-$valDeselectedTextColor: #787878;
-$valBackgroundGrey: #DFDFDF;
-$valSelectedTableRowBgColor: lighten($primaryColor, 33%);
-$valSelectedOddRowBgColor: lighten($primaryDarkColor, 33%);
-$valTableHeaderSecondaryBgColor: #b3d4ed;
-$valTableHeaderBgColor: #91b8d6;
-$valTableHeaderHoverBgColor: #5b99c9;
+$valReversedTextColor: $lightGray04;
+$valReversedDisabledColor: $midGray03;
+$valDeselectedTextColor: $midGray01;
+$valBackgroundGrey: $lightGray01;
+
+$valSelectedTableRowBgColor: darken($primaryLightColor, 5%);
+$valSelectedOddRowBgColor: $primaryLightColor;
+$valTableHeaderSecondaryBgColor: $barelyBlue;
+$valTableHeaderBgColor: $primaryLightColor;
+$valTableHeaderHoverBgColor: $pendingBlue;
+$valTableCaptionBgColor: $darkGray02;
+$valTableCaptionTextColor: $lightGray01;
+$valTableCaptionMutedTextColor: $midGray02;
+
+$valSuccessBgColor: #8BC34A;
+$valSuccessTextColor: darken(#8BC34A, 20%);
+$valTooltipTextColor: $darkGray03;
+$valTooltipBgColor: $paleYellow;
 
 // grid variables
-$dividerLightColor:#898989;
-$tableOddRowBgColor:#f4f4f4;
-$tableHeaderCellBgColor:$valTableHeaderBgColor;
-$tableBodyRowBgColor:#ffffff;
+$dividerLightColor: $lightGray03;
+$tableBodyRowBgColor: $lightGray02;
+$tableOddRowBgColor: $lightGray04;
+$tableHeaderCellBgColor: $valTableHeaderBgColor;
+
 $dataTableCellPadding: 0 0.5em;
 $dataTableHeaderPadding: 0 0.5em;
 

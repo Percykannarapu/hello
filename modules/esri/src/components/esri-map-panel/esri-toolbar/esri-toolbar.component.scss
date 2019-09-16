@@ -1,0 +1,37 @@
+@import "esri-variables";
+
+.action-button {
+  font-size: $esriToolbarButtonFontSize;
+  background-color: $esriToolbarButtonBgColor;
+  border: 1px solid $esriToolbarButtonBorderColor;
+  color: $esriToolbarButtonColor;
+  height: $esriToolbarButtonFontSize * 2;
+  width: $esriToolbarButtonFontSize * 2;
+  text-align: center;
+  box-shadow: 0 0 1px rgba(0, 0, 0, $esriToolbarButtonShadowAlpha);
+  border-radius: $esriToolbarButtonFontSize / 5;
+  transition: background-color 0.3s;
+}
+
+.action-button:hover {
+  background: $esriToolbarButtonHoverBgColor;
+  color: $esriToolbarButtonHoverColor;
+  border: 1px solid $esriToolbarButtonBorderColor;
+  cursor: pointer;
+}
+
+.action-button:focus {
+  cursor: pointer;
+  border: 1px solid $esriToolbarButtonBorderColor;
+}
+
+.active {
+  background: $esriToolbarButtonActiveBgColor;
+  color: $esriToolbarButtonActiveColor;
+  border: 1px solid $esriToolbarButtonBorderColor;
+}
+
+.button-bar {
+  display: flex;
+  align-items: center;
+}

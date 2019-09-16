@@ -9,7 +9,7 @@ import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-d
 @Component({
   selector: 'val-discovery-input',
   templateUrl: './discovery-input.component.html',
-  styleUrls: ['./discovery-input.component.css'],
+  styleUrls: ['./discovery-input.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DiscoveryInputComponent implements OnInit {
@@ -21,7 +21,7 @@ export class DiscoveryInputComponent implements OnInit {
       this.setControlStates(val);
     }
   }
-  
+
   @Input() radSuggestions: RadLookupUIModel[];
   @Input() projectTrackerSuggestions: ProjectTrackerUIModel[];
 
@@ -31,8 +31,9 @@ export class DiscoveryInputComponent implements OnInit {
 
   discoveryForm: FormGroup;
   allAnalysisLevels: SelectItem[] = [];
-  showAnalysisLevelError: boolean = false;
   allSeasons: SelectItem[];
+  allCPMTypes: SelectItem[];
+
   cpmTypes = ProjectCpmTypeCodes;
 
   constructor(private fb: FormBuilder) { }
@@ -47,6 +48,10 @@ export class DiscoveryInputComponent implements OnInit {
     this.allSeasons = [
       {label: 'Summer', value: 'S'},
       {label: 'Winter', value: 'W'}
+    ];
+    this.allCPMTypes = [
+      { label: 'Blended', value: ProjectCpmTypeCodes.Blended },
+      { label: 'By Owner Group', value: ProjectCpmTypeCodes.OwnerGroup },
     ];
 
     // Create the form fields, and populate default values & validations.
@@ -66,48 +71,19 @@ export class DiscoveryInputComponent implements OnInit {
       dollarBudget: new FormControl(null, { updateOn: 'blur' }),
       circulationBudget: new FormControl(null, { updateOn: 'blur' }),
       cpmType: null,
-      cpmBlended: new FormControl({ value: null, disabled: true }, { updateOn: 'blur' }),
-      cpmValassis: new FormControl({ value: null, disabled: true }, { updateOn: 'blur' }),
-      cpmAnne: new FormControl({ value: null, disabled: true }, { updateOn: 'blur' }),
-      cpmSolo: new FormControl({ value: null, disabled: true }, { updateOn: 'blur' })
+      cpmBlended: new FormControl({ value: null }, { updateOn: 'blur' }),
+      cpmValassis: new FormControl({ value: null }, { updateOn: 'blur' }),
+      cpmAnne: new FormControl({ value: null }, { updateOn: 'blur' }),
+      cpmSolo: new FormControl({ value: null }, { updateOn: 'blur' })
     });
-  
+
     this.discoveryForm.valueChanges.pipe(
       debounceTime(250),
       map(formData => new ValDiscoveryUIModel(formData))
     ).subscribe(uiModel => this.onFormChanged(uiModel));
   }
 
-  setPCROptionState(value: boolean) : void {
-    const pcrOption = this.allAnalysisLevels.find(l => l.value === 'PCR');
-    if (pcrOption != null) {
-     pcrOption.disabled = value;
-    }
-    this.allAnalysisLevels = [ ...this.allAnalysisLevels ];
-  }
-
   private setControlStates(currentForm: ValDiscoveryUIModel) : void {
-    const disable = (name: string) => this.discoveryForm.controls[name].disable({ emitEvent: false });
-    const enable = (name: string) => this.discoveryForm.controls[name].enable({ emitEvent: false });
-    switch (currentForm.cpmType) {
-      case ProjectCpmTypeCodes.Blended:
-        disable('cpmValassis');
-        disable('cpmAnne');
-        disable('cpmSolo');
-        enable('cpmBlended');
-        break;
-      case ProjectCpmTypeCodes.OwnerGroup:
-        enable('cpmValassis');
-        enable('cpmAnne');
-        enable('cpmSolo');
-        disable('cpmBlended');
-        break;
-      default:
-        disable('cpmValassis');
-        disable('cpmAnne');
-        disable('cpmSolo');
-        disable('cpmBlended');
-    }
     this.setAnalysisLevelDropDown(currentForm.selectedAnalysisLevel);
   }
 

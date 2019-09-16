@@ -1,4 +1,4 @@
-@import "~assets/valassis-variables";
+@import "~assets/branding-variables";
 
 .login-form {
   width: 33%;
@@ -7,8 +7,7 @@
 }
 
 .login-header {
-  background-color: $primaryColor;
-  color: $valReversedTextColor;
+  background-color: $lightGray02;
   padding-top: 1em;
   padding-bottom: 1em;
   h1 {

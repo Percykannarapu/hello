@@ -8,7 +8,7 @@ import { AppEditSiteService } from 'app/services/app-editsite.service';
 @Component({
   selector: 'val-manual-entry',
   templateUrl: './manual-entry.component.html',
-  styleUrls: ['./manual-entry.component.css'],
+  styleUrls: ['./manual-entry.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ManualEntryComponent implements OnInit {

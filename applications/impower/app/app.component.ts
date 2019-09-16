@@ -1,9 +1,11 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, OnDestroy, OnInit, DoCheck, ChangeDetectionStrategy } from '@angular/core';
-import { filter, take } from 'rxjs/operators';
-import { AppStateService } from './services/app-state.service';
-import { AppConfig } from './app.config';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, DoCheck, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { ClearAllNotifications } from '@val/messaging';
 import { Observable } from 'rxjs';
-import { UserService } from './services/user.service';
+import { filter } from 'rxjs/operators';
+import { AppConfig } from './app.config';
+import { AppStateService } from './services/app-state.service';
+import { FullAppState, getRouterSlice } from './state/app.interfaces';
 import { ImpProject } from './val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from './val-modules/targeting/services/imp-domain-factory.service';
 
@@ -19,7 +21,7 @@ declare var jQuery: any;
 @Component({
     selector: 'val-app-root',
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css'],
+    styleUrls: ['./app.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
@@ -64,15 +66,23 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     @ViewChild('layoutMenuScroller', { static: true }) layoutMenuScrollerViewChild: ElementRef;
 
-
     currentProject$: Observable<ImpProject>;
+    currentRoute: string = '';
 
     constructor(private config: AppConfig,
                 private domainFactory: ImpDomainFactoryService,
-                private stateService: AppStateService) { }
+                private stateService: AppStateService,
+                private cd: ChangeDetectorRef,
+                private store$: Store<FullAppState>) { }
 
     ngOnInit() {
         this.currentProject$ = this.stateService.currentProject$;
+        this.store$.select(getRouterSlice).pipe(
+          filter(slice => slice != null && slice.state != null && slice.state.url != null)
+        ).subscribe(slice => {
+          this.currentRoute = slice.state.url;
+          this.cd.markForCheck();
+        });
     }
 
     ngOnDestroy() {
@@ -90,6 +100,10 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
     ngDoCheck() {
       this.stateService.refreshDynamicControls();
+    }
+
+    onClearMessages() {
+      this.store$.dispatch(new ClearAllNotifications());
     }
 
     onLayoutClick() {

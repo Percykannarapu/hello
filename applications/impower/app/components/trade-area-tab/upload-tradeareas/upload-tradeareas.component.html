@@ -1,6 +1,6 @@
 <div class="ui-g">
     <div class="ui-g-12">
-      <div class="ui-g-9">
+      <div class="ui-g-12">
         <div class="ui-g-3">
           <label>Define for:</label>
         </div>
@@ -24,7 +24,7 @@
                         pTooltip="CSV or Excel format required: Site #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
           </p-fileUpload>
         </div>
-        <div class="ui-g-3">        
+        <div class="ui-g-3">
           <button pButton type="button" label="Delete Custom TA"  [disabled]="!isCustomTAExists" (click)="deleteCustomTradeArea()" ></button>
        </div>
        <div class="ui-g-6"></div>
@@ -34,10 +34,10 @@
           Please select an Analysis Level before uploading a custom trade area
         </div>
       </div>
-    </div>  
+    </div>
     <div>
         <p-confirmDialog icon="pi pi-exclamation-triangle" key="delete" appendTo="body"></p-confirmDialog>
-    </div> 
+    </div>
     <div *ngIf="uploadFailures.length > 0" class="ui-g-7">
       <p-table [value]="uploadFailures" [paginator]="true" [rows]="5">
         <ng-template pTemplate="caption">

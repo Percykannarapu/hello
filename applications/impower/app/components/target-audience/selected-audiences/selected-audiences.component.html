@@ -1,136 +1,69 @@
 <div class="ui-g">
   <div *ngIf="hasAudiences" class="ui-g-12 val-table-with-dropdowns">
-    <div class="card ui-g" (click)="$event.stopPropagation()">
+    <div class="ui-g ui-g-nopad" (click)="$event.stopPropagation()">
 
-      <p-table [value]="audiences$ | async" [rows]="10" [paginator]="true" [alwaysShowPaginator]="false">
+      <p-table [value]="audiences$ | async" [rows]="10" [paginator]="true" [alwaysShowPaginator]="false" [autoLayout]="true">
         <ng-template pTemplate="header">
           <tr>
-            <th class="button-column">Move Up</th>
-            <th class="button-column">Move Down</th>
-            <th class="checkbox-column">Map</th>
-            <th class="checkbox-column">Grid</th>
-            <th class="checkbox-column">GFP</th>
-            <th class="checkbox-column">National</th>
-            <th class="index-column">Index Base</th>
+            <th>Move</th>
+            <th>Map</th>
+            <th>Grid</th>
+            <th>GFP</th>
+            <th>Nat'l Ex.</th>
+            <th>Index Base</th>
             <th>Audience Name</th>
-            <th>Source</th>
-            <th class="button-column">Delete</th>
+            <th class="absorb">Source</th>
+            <th></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-audience>
           <tr>
             <td class="button-column">
-              <button (click)="onMoveUp(audience)" icon="fa fa-arrow-up" pButton style="font-size: 14px; width: 24px; height:24px; margin: auto; display: block" pTooltip="Move this audience up"></button>
+              <i (click)="onMoveUp(audience)" class="fa fa-arrow-up val-clickable" *ngIf="audience.seq > 0"></i>
+              <i class="fa fa-arrow-up val-non-clickable" *ngIf="(audience.seq === 0) && (audienceCount > 1)"></i>
+              <i (click)="onMoveDn(audience)" class="fa fa-arrow-down val-clickable" *ngIf="audience.seq < (audienceCount - 1)"></i>
             </td>
-            <td class="button-column">
-              <button (click)="onMoveDn(audience)" icon="fa fa-fontAwesome fa-arrow-down" pButton style="font-size: 14px; width: 24px; height:24px; margin: auto; display: block" pTooltip="Move this audience down"></button>
-            </td>
-            <td class="checkbox-column">
+            <td>
               <div class="val-center-controls">
                 <p-checkbox [(ngModel)]="audience.showOnMap" [binary]="true" (onChange)="onMapSelected(audience)"></p-checkbox>
               </div>
             </td>
-            <td class="checkbox-column">
+            <td>
               <div class="val-center-controls">
                 <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience.showOnGrid" binary="true" (onChange)="onShowGridSelected(audience)"></p-checkbox>
               </div>
             </td>
-            <td class="checkbox-column">
+            <td>
               <div class="val-center-controls">
                 <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience.exportInGeoFootprint" binary="true" (onChange)="onExportInGeoFootprintSelected(audience)"></p-checkbox>
               </div>
             </td>
-            <td class="checkbox-column">
+            <td>
               <div class="val-center-controls">
                 <p-checkbox *ngIf="audience.allowNationalExport" [(ngModel)]="audience.exportNationally" binary="true" (onChange)="onNationalSelected(audience)"></p-checkbox>
               </div>
             </td>
-            <td class="index-column">
+            <td>
               <p-dropdown
+                dropdownIcon="fa fa-caret-down"
                 *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"
                 [options]="audience.dataSetOptions"
                 [(ngModel)]="audience.selectedDataSet"
                 [autoWidth]="false"
                 (onChange)="onIndexBaseChange(audience)"></p-dropdown>
             </td>
-            <td>
-              {{audience.audienceName}}
+            <td nowrap>
+              {{ audience.audienceName | truncate:35:'...' }}<i class="fa fa-comment" *ngIf="(audience.audienceName || '').length > 35" pTooltip="{{audience.audienceName}}"></i>
             </td>
             <td>
               {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
             </td>
-            <td class="button-column">
-              <button (click)="onRemove(audience)" icon="ui-icon-delete" pButton style="font-size: 13px; width: 24px; height:24px; margin: auto; margin: auto; display: block" pTooltip="Click to delete the audience from your project"></button>
+            <td>
+              <i (click)="onRemove(audience)" class="fa fa-trash val-clickable"></i>
             </td>
           </tr>
         </ng-template>
       </p-table>
-
-<!--      <p-dataTable [value]="audiences$ | async"-->
-<!--                   [rows]="10"-->
-<!--                   [paginator]="true"-->
-<!--                   [alwaysShowPaginator]="false"-->
-<!--                   [immutable]="false">-->
-<!--        <p-column header="Move Up" [style]="{ width: '4%' }">-->
-<!--          <ng-template let-col let-audience="rowData" pTemplate="body">-->
-<!--            <button (click)="onMoveUp(audience)" icon="fa fa-fontAwesome fa-arrow-up" pButton style="font-size: 14px; width: 24px; height:24px; margin: auto; display: block" pTooltip="Move this audience up"></button>-->
-<!--          </ng-template>-->
-<!--        </p-column>-->
-<!--        <p-column header="Move Down" [style]="{ width: '4%' }">-->
-<!--          <ng-template let-col let-audience="rowData" pTemplate="body">-->
-<!--            <button (click)="onMoveDn(audience)" icon="fa fa-fontAwesome fa-arrow-down" pButton style="font-size: 14px; width: 24px; height:24px; margin: auto; display: block" pTooltip="Move this audience down"></button>-->
-<!--          </ng-template>-->
-<!--        </p-column>-->
-<!--        <p-column header="Map" field="showOnMap" [style]="{ width: '6%' }">-->
-<!--          <ng-template let-col let-audience="rowData" pTemplate="body">-->
-<!--            <div class="val-center-controls">-->
-<!--              <p-checkbox [(ngModel)]="audience[col.field]" [binary]="true" (onChange)="onMapSelected(audience)"></p-checkbox>-->
-<!--            </div>-->
-<!--          </ng-template>-->
-<!--        </p-column>-->
-<!--        <p-column header="Grid" field="showOnGrid" [style]="{ width: '6%' }">-->
-<!--          <ng-template let-col let-audience="rowData" pTemplate="body">-->
-<!--            <div class="val-center-controls">-->
-<!--              <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onShowGridSelected(audience)"></p-checkbox>-->
-<!--            </div>-->
-<!--          </ng-template>-->
-<!--        </p-column>-->
-<!--        <p-column header="GFP" field="exportInGeoFootprint" [style]="{ width: '6%' }">-->
-<!--          <ng-template let-col let-audience="rowData" pTemplate="body">-->
-<!--            <div class="val-center-controls">-->
-<!--              <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onExportInGeoFootprintSelected(audience)"></p-checkbox>-->
-<!--            </div>-->
-<!--          </ng-template>-->
-<!--        </p-column>-->
-<!--        <p-column header="National" field="exportNationally" [style]="{ width: '6%' }">-->
-<!--          <ng-template let-col let-audience="rowData" pTemplate="body">-->
-<!--            <div class="val-center-controls">-->
-<!--              <p-checkbox *ngIf="audience.allowNationalExport" [(ngModel)]="audience[col.field]" binary="true" (onChange)="onNationalSelected(audience)"></p-checkbox>-->
-<!--            </div>-->
-<!--          </ng-template>-->
-<!--        </p-column>-->
-<!--        <p-column header="Index Base" field="selectedDataSet" [style]="{ width: '13%', overflow: 'visible' }">-->
-<!--          <ng-template let-col let-audience="rowData" pTemplate="body">-->
-<!--            <p-dropdown-->
-<!--              *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"-->
-<!--              [options]="audience.dataSetOptions"-->
-<!--              [(ngModel)]="audience.selectedDataSet"-->
-<!--              [autoWidth]="false"-->
-<!--              (onChange)="onIndexBaseChange(audience)"></p-dropdown>-->
-<!--          </ng-template>-->
-<!--        </p-column>-->
-<!--        <p-column header="Audience Name" field="audienceName" [style]="{ width: '29%' }"></p-column>-->
-<!--        <p-column header="Source" [style]="{ width: '21%' }">-->
-<!--          <ng-template let-col let-audience="rowData" pTemplate="body">-->
-<!--            {{audience.audienceSourceType}}: {{audience.audienceSourceName}}-->
-<!--          </ng-template>-->
-<!--        </p-column>-->
-<!--        <p-column header="Delete" [style]="{ width: '5%' }">-->
-<!--          <ng-template let-col let-audience="rowData" pTemplate="body">-->
-<!--            <button (click)="onRemove(audience)" icon="ui-icon-delete" pButton style="font-size: 13px; width: 24px; height:24px; margin: auto; margin: auto; display: block" pTooltip="Click to delete the audience from your project"></button>-->
-<!--          </ng-template>-->
-<!--        </p-column>-->
-<!--      </p-dataTable>-->
     </div>
   </div>
 
@@ -142,7 +75,7 @@
           <p-dropdown [options]="allThemes"
                       (onChange)="onThemeChange($event)"
                       [(ngModel)]="currentTheme"
-                      [autoWidth]="false"
+                      [autoWidth]="false" dropdownIcon="fa fa-caret-down"
                       [style]="{ width:'200px' }" ></p-dropdown>
         </div>
       </div>

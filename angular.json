@@ -20,6 +20,11 @@
             "assets": [
               "applications/impower/assets"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "applications/impower/assets"
+              ]
+            },
             "styles": [
               "node_modules/font-awesome/css/font-awesome.min.css",
               "node_modules/primeng/resources/primeng.min.css",
@@ -165,6 +170,11 @@
               "node_modules/nanoscroller/bin/javascripts/jquery.nanoscroller.js",
               "node_modules/moment/moment.js"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "applications/impower/assets"
+              ]
+            },
             "styles": [
               "node_modules/primeng/resources/primeng.min.css",
               "node_modules/primeicons/primeicons.css",
@@ -211,6 +221,11 @@
               "applications/cpq-maps/src/favicon.ico",
               "applications/cpq-maps/src/assets"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "applications/cpq-maps/src/assets"
+              ]
+            },
             "styles": [
               "applications/cpq-maps/src/assets/cpq-maps.css",
               "applications/cpq-maps/src/styles.css"
@@ -281,6 +296,11 @@
             "polyfills": "applications/cpq-maps/src/polyfills.ts",
             "tsConfig": "applications/cpq-maps/tsconfig.spec.json",
             "karmaConfig": "applications/cpq-maps/karma.conf.js",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "applications/cpq-maps/src/assets"
+              ]
+            },
             "styles": [
               "applications/cpq-maps/src/styles.css"
             ],
