@@ -13,6 +13,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../v
 import { AppStateService } from 'app/services/app-state.service';
 import { CreateGaugeMetric, CreateUsageMetric } from 'app/state/usage/usage.actions';
 import { CreateMapUsageMetric, CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
+import { ImpowerMainComponent } from '../impower-main/impower-main.component';
 
 @Component({
     selector: 'app-menu',
@@ -143,7 +144,7 @@ export class AppSubMenuComponent {
     _reset: boolean;
     activeIndex: number;
 
-    constructor(public app: AppComponent) { }
+    constructor(public app: ImpowerMainComponent) { }
 
     itemClick(event: Event, item: MenuItem, index: number)  {
         if (this.root) {

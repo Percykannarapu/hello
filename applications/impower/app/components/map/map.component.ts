@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { EsriApi, selectors } from '@val/esri';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -26,7 +26,7 @@ const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
 export class MapComponent implements OnInit {
   currentAnalysisLevel$: Observable<string>;
   mapHeight$: BehaviorSubject<number> = new BehaviorSubject<number>(400);
-  selectedPanelButton: any;
+  selectedPanelButton: number;
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
               private appTradeAreaService: AppTradeAreaService,
@@ -34,6 +34,7 @@ export class MapComponent implements OnInit {
               private impGeoService: ImpGeofootprintGeoService,
               private rendererService: AppRendererService,
               private confirmationService: ConfirmationService,
+              private cd: ChangeDetectorRef,
               private store$: Store<FullAppState>,
               private config: AppConfig) {}
 
@@ -128,11 +129,14 @@ export class MapComponent implements OnInit {
 
   private geosRespectingFilters(features: __esri.Graphic[]) : void {
     const currentProject = this.appStateService.currentProject$.getValue();
-    // if (currentProject == null || geosInObj == null || geos == null || geos.length === 0) return;
     const response = this.checkFilters(features, currentProject);
     const isRespectingFilters: boolean = response.outerCheck;
     const filteredFeatures: __esri.Graphic[] = response.filteredFeatures;
-    if (!isRespectingFilters) {
+    let singleSelectFlag: boolean;
+    if (this.selectedPanelButton === 1) {
+      singleSelectFlag = this.appGeoService.checkGeoOnSingleSelect(features);
+    }
+    if (!isRespectingFilters && !singleSelectFlag) {
       this.confirmationService.confirm({
         message: 'You are about to select geographies outside of your desired filtered criteria. Are you sure you want to include these geographies?',
         header: 'Filter Warning',
@@ -145,6 +149,7 @@ export class MapComponent implements OnInit {
           this.appMapService.selectMultipleGeocode(features, this.selectedPanelButton, false, filteredFeatures);
         }
       });
+      this.cd.markForCheck();
     } else {
       this.appStateService.filterFlag.next(true);
       this.appMapService.selectMultipleGeocode(features, this.selectedPanelButton, true);
@@ -152,7 +157,7 @@ export class MapComponent implements OnInit {
   }
 
   private onPolysSelected(polys: __esri.Graphic[]) : void {
-    if (this.selectedPanelButton === 3) {
+    if (this.selectedPanelButton === 3 || this.selectedPanelButton === 1) {
       this.geosRespectingFilters(polys);
     } else if (this.selectedPanelButton === 8) {
       this.appMapService.selectMultipleGeocode(polys, this.selectedPanelButton);

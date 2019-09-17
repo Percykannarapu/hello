@@ -338,7 +338,7 @@
     },
     "@schematics/angular:component": {
       "prefix": "val",
-      "styleext": "css"
+      "styleext": "scss"
     },
     "@schematics/angular:directive": {
       "prefix": "val"

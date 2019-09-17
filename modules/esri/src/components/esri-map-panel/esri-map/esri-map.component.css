@@ -1,12 +1,13 @@
 .esriMapContainer {
-    resize: both;
-    overflow: auto;
+  resize: vertical;
+  overflow: auto;
+  height: 100%;
 }
 .esri-view {
-    height: 100%;
+  height: 100%;
 }
 .panel-container {
-      position: relative;
-      width: 100%;
-      height: 98%;
+  position: relative;
+  width: 100%;
+  height: 98%;
 }
