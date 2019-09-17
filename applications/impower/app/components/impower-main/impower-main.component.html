@@ -1,0 +1,53 @@
+<div class="layout-wrapper" [ngClass]="{'layout-compact':layoutCompact}" (click)="onLayoutClick()">
+
+  <div #layoutContainer class="layout-container menu-layout-static menu-layout-horizontal"
+       [ngClass]="{ 'layout-menu-overlay-active': overlayMenuActive,
+            'layout-menu-static-inactive': staticMenuDesktopInactive,
+            'layout-menu-static-active': staticMenuMobileActive }">
+
+    <val-app-header></val-app-header>
+
+    <div class="layout-menu" [ngClass]="{'layout-menu-dark':darkMenu}" (click)="onMenuClick($event)">
+      <div #layoutMenuScroller class="nano">
+        <div class="nano-content menu-scroll-content">
+          <div class="ui-g ui-g-nopad menu-bar">
+            <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noMenu" class="ui-g-6 ui-g-nopad">
+              <app-menu [reset]="resetMenu"></app-menu>
+            </div>
+            <div *ngIf="currentProject$ | async as currentProject; else noProject" class="ui-g-4 ui-g-nopad">
+              <span *ngIf="currentProject.projectId > 0" class="val-project-name">
+                {{ currentProject.projectId }} - {{ currentProject.projectName | truncate:40:' ...' }}
+              </span>
+            </div>
+            <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noClear" class="ui-g-2 ui-g-nopad clear-container">
+              <p-button label="Clear Messages" (onClick)="onClearMessages()"></p-button>
+            </div>
+            <ng-template #noMenu>
+              <div class="ui-g-6 ui-g-nopad">&nbsp;</div>
+            </ng-template>
+            <ng-template #noProject>
+              <div class="ui-g-4 ui-g-nopad">&nbsp;</div>
+            </ng-template>
+            <ng-template #noClear>
+              <div class="ui-g-2 ui-g-nopad">&nbsp;</div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout-main">
+      <val-project></val-project>
+      <val-dashboard></val-dashboard>
+      <val-app-footer></val-app-footer>
+    </div>
+
+    <p-confirmDialog icon="fa fa-question-circle" width="500"></p-confirmDialog>
+    <val-busy-indicator></val-busy-indicator>
+    <val-confirmation-dialog></val-confirmation-dialog>
+    <val-print-view></val-print-view>
+    <div class="layout-mask"></div>
+  </div>
+
+  <p-toast styleClass="val-toast-top-right"></p-toast>
+</div>

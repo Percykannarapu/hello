@@ -15,6 +15,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { ColorBoxComponent } from '../color-box/color-box.component';
 
 @Component({
+  selector: 'val-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   encapsulation: ViewEncapsulation.None

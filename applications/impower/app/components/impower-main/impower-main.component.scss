@@ -1,0 +1,19 @@
+@import "~assets/valassis-variables";
+
+.val-project-name {
+  float: right;
+  color: $darkGray03;
+  font-weight: bold;
+  font-size: 1.25em;
+}
+
+.menu-bar {
+  display: flex;
+  align-items: center;
+}
+
+.clear-container {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 2em;
+}

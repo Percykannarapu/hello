@@ -144,6 +144,8 @@ import { EsriModule } from '@val/esri';
 import { EnvironmentData } from '../environments/environment';
 import { AppEditSiteService } from './services/app-editsite.service';
 import { PrintViewComponent } from './components/print-view/print-view.component';
+import { BatchMapComponent } from './components/batch-map/batch-map.component';
+import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
 
 @NgModule({
     imports: [
@@ -266,7 +268,9 @@ import { PrintViewComponent } from './components/print-view/print-view.component
         ConfirmationDialogComponent,
         UploadMustCoverComponent,
         EditLocationsComponent,
-        PrintViewComponent
+        PrintViewComponent,
+        BatchMapComponent,
+        ImpowerMainComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},
