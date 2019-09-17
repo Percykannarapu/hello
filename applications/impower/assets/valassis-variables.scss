@@ -2,6 +2,7 @@
 // /assets/sass/overrides/*_variables.scss
 @import "branding-variables";
 
+$transparent: #00000000;
 $primaryColor: $blueBird;
 $primaryDarkColor: $brandBlue;
 $primaryLightColor: $babyBlue;
@@ -31,7 +32,7 @@ $accordionHeaderBgColor: $lightGray04;
 $accordionHeaderTextColor: $midGray01;
 $accordionHeaderHoverBgColor: $hoverBgColor;
 $accordionHeaderHoverTextColor: $midGray01;
-
+$radioButtonBorderColor: $midGray02;
 $horizontalLightMenuRouterLinkActiveColor: $midGray01;
 $horizontalLayoutMenuItemTextColor: $midGray01;
 $horizontalLayoutMenuItemHoverBgColor: $hoverBgColor;

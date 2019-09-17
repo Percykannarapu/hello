@@ -100,7 +100,7 @@ body {
 
   .md-inputfield {
     > label {
-      color: $midGray04;
+      color: $midGray03;
     }
   }
 
@@ -181,7 +181,7 @@ body {
           background-color: $valTableHeaderBgColor;
           .ui-column-resizer {
             font-size: 12px;
-            color: $darkGray01;
+            color: $transparent;
           }
           i {
             font-size: 1em;
@@ -387,7 +387,7 @@ body {
       }
     }
     +label {
-      color: $midGray03;
+      color: $radioButtonBorderColor;
       &.ui-label-active {
         color: $darkGray03;
       }
