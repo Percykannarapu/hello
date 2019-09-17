@@ -56,7 +56,8 @@ export class MapUIEffects {
   calculateEqualIntervals = this.actions$.pipe(
     ofType(MapUIActionTypes.CalculateEqualIntervals),
     map(action => this.shadingService.calculateEqualIntervals(action.payload)),
-    map(payload => new SetClassBreakValues(payload))
+    map(payload => new SetClassBreakValues(payload)),
+    map(() => new RenderShading({ recreateLayer: false }))
   );
 
   @Effect()
