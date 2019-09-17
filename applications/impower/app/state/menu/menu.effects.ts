@@ -111,7 +111,9 @@ export class MenuEffects {
     filter(([, analysisLevel, geos]) => (analysisLevel != null && analysisLevel.length > 0) || (geos != null && geos.length > 0)),
     map(([, analysisLevel, geos]) => {
       const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
-      const minScale = this.config.layers[analysisLevel.toLowerCase()].boundaries.minScale;
+      const minScale = (analysisLevel === 'Digital ATZ') ?
+                       this.config.layers['digital_atz'].boundaries.minScale :                                     
+                       this.config.layers[analysisLevel.toLowerCase()].boundaries.minScale;
      return new SetPrintRenderer({geos, portalId, minScale: minScale});
     }),
     );
