@@ -93,7 +93,7 @@
         stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
-            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20192!Og5bv8s7W5tbTIlJVaFz7pvsy -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
+            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y2019!1bLOT2CrhOMXe3Q3C9GY7Lg9i -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
           }
         }
       }
@@ -123,7 +123,7 @@
         }
       }
     }
-    
+
     stage('Deploy to QA') {
       when {
         branch 'qa'
@@ -207,16 +207,16 @@
               cd /robotTestcases/jenkins/reportLogs
             '''
             slackColor = '#FFFE89'
-            /*emailext attachmentsPattern: 'log.html', 
+            /*emailext attachmentsPattern: 'log.html',
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
-                     mimeType: 'text/html', attachLog: true, 
-                     subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed", 
+                     mimeType: 'text/html', attachLog: true,
+                     subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed",
                      to: 'reddyn@valassis.com KannarapuP@valassis.com'*/
             echo 'Test completed'
           }
           finally{
             echo 'finally publish reports'
-            
+
             step(
               [
                 $class : 'RobotPublisher',
