@@ -38,6 +38,7 @@ export function initializer(store: Store<AppState>) {
 }
 
 const PUBLIC_COMPONENTS = [
+  EsriMapComponent,
   EsriMapPanelComponent,
   EsriGeographyPopupComponent
 ];
@@ -58,7 +59,6 @@ const PUBLIC_COMPONENTS = [
   ],
   declarations: [
     EsriToolbarComponent,
-    EsriMapComponent,
     EsriLabelConfigComponent,
     ...PUBLIC_COMPONENTS,
   ],

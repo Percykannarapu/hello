@@ -208,8 +208,7 @@ body {
   }
 }
 
-.val-button-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+#mapPanel .ui-toolbar {
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
