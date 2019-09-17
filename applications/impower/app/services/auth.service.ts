@@ -52,7 +52,6 @@ class CustomEncoder implements HttpParameterCodec {
   }
 
   encodeValue(value: string) : string {
-    console.log('Encoding value: ' + value +  'to:'  + encodeURIComponent(value));
     return encodeURIComponent(value);
   }
 
