@@ -12,6 +12,7 @@ import { MapUIState } from '../state/map-ui/map-ui.reducer';
 import { SetLegendData } from '../state/shared/shared.actions';
 import { SharedState } from '../state/shared/shared.reducers';
 import { ConfigService } from './config.service';
+import { SetVariableShading } from '../state/map-ui/map-ui.actions';
 
 function formatNumber(value: number) {
   const localeOptions = {
@@ -342,6 +343,14 @@ export class ShadingService {
         const currentBreak = (interval * (i + 1)) + payload.selectedVar.minValue;
         classBreakValues.push(currentBreak);
       }
+
+      const classifications: VariableRanges[] = [];
+      classifications.push({ minValue: null, maxValue: classBreakValues[0] });
+      for (let i = 1; i < classBreakValues.length; ++i) {
+        classifications.push({ minValue: classBreakValues[i - 1], maxValue: classBreakValues[i] });
+      }
+      classifications.push({ minValue: classBreakValues[classBreakValues.length - 1], maxValue: null });
+      this.store$.dispatch(new SetVariableShading({ classifications, selectedVarName: payload.selectedVar.name }));
     }
 
     return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar,

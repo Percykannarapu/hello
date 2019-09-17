@@ -9,7 +9,7 @@ import { ShadingService } from '../../services/shading.service';
 import { localSelectors } from '../app.selectors';
 import { FullState } from '../index';
 import { SetAppReady } from '../shared/shared.actions';
-import { InitializeVariableOptions, RenderShading, ShadingActions, MapUIActionTypes, SetClassBreakValues } from './map-ui.actions';
+import { InitializeVariableOptions, RenderShading, ShadingActions, MapUIActionTypes, SetClassBreakValues, SetVariableShading } from './map-ui.actions';
 
 @Injectable()
 export class MapUIEffects {
@@ -56,8 +56,7 @@ export class MapUIEffects {
   calculateEqualIntervals = this.actions$.pipe(
     ofType(MapUIActionTypes.CalculateEqualIntervals),
     map(action => this.shadingService.calculateEqualIntervals(action.payload)),
-    map(payload => new SetClassBreakValues(payload)),
-    map(() => new RenderShading({ recreateLayer: false }))
+    map(payload => new SetClassBreakValues(payload))
   );
 
   @Effect()
