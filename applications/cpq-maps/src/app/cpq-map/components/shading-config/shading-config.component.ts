@@ -169,7 +169,8 @@ export class ShadingConfigComponent implements OnInit {
       breakCount: breakCount,
       selectedVar: this.selectedVar,
       selectedNumericMethod: selectedNumericMethod,
-      classBreakValues: this.classBreakValues
+      classBreakValues: this.classBreakValues,
+      isRowCheckOrUncheck: false
     }));
   }
 

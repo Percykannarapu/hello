@@ -110,8 +110,7 @@ export class GridComponent implements OnInit {
       this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak,
       selectedVar: this.selectedVar,
       selectedNumericMethod: this.selectedNumericMethod,
-      classBreakValues: this.classBreakValues}));
-      setTimeout(() => this.store$.dispatch(new RenderShading({ recreateLayer: false })), 0);
+      classBreakValues: this.classBreakValues, isRowCheckOrUncheck: true}));
    }
       
   }
@@ -136,7 +135,8 @@ export class GridComponent implements OnInit {
       this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak,
                                                         selectedVar: this.selectedVar,
                                                         selectedNumericMethod: this.selectedNumericMethod,
-                                                        classBreakValues: this.classBreakValues}));
+                                                        classBreakValues: this.classBreakValues,
+                                                        isRowCheckOrUncheck: true}));
   }
 
   private setGridSize(isSmall: boolean) {

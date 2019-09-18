@@ -54,7 +54,8 @@ export class CalculateEqualIntervals implements Action{
   constructor(public payload: {breakCount: number,
                                selectedVar: VarDefinition,
                                selectedNumericMethod: NumericVariableShadingMethod,
-                               classBreakValues: number[] }){}
+                               classBreakValues: number[],
+                               isRowCheckOrUncheck?: boolean }){}
 }
 
 export class SetShadingType implements Action {
@@ -67,7 +68,7 @@ export class SetClassBreakValues implements Action{
   constructor(public payload: {classBreakValues: number[],
                                breakCount: number,
                                selectedVar: VarDefinition,
-                               selectedNumericMethod: NumericVariableShadingMethod}){}
+                               selectedNumericMethod: NumericVariableShadingMethod }){}
 }
 
 export class SetAnneShading implements Action {

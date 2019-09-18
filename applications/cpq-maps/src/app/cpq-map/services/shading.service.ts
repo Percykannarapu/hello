@@ -334,7 +334,7 @@ export class ShadingService {
     }
   }
 
-  calculateEqualIntervals(payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod, classBreakValues: number[]}) {
+  calculateEqualIntervals(payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod, classBreakValues: number[], isRowCheckOrUncheck?: boolean}) {
     let classBreakValues = payload.selectedNumericMethod != NumericVariableShadingMethod.CustomClassifications ? [80, 120, 140] : payload.classBreakValues;
     const interval = (payload.selectedVar.maxValue - payload.selectedVar.minValue) / payload.breakCount;
     if (payload.selectedNumericMethod != NumericVariableShadingMethod.StandardIndex && payload.selectedNumericMethod != NumericVariableShadingMethod.CustomClassifications){
@@ -343,14 +343,15 @@ export class ShadingService {
         const currentBreak = (interval * (i + 1)) + payload.selectedVar.minValue;
         classBreakValues.push(currentBreak);
       }
-
-      const classifications: VariableRanges[] = [];
-      classifications.push({ minValue: null, maxValue: classBreakValues[0] });
-      for (let i = 1; i < classBreakValues.length; ++i) {
-        classifications.push({ minValue: classBreakValues[i - 1], maxValue: classBreakValues[i] });
+      if (payload.isRowCheckOrUncheck != null && payload.isRowCheckOrUncheck){
+        const classifications: VariableRanges[] = [];
+        classifications.push({ minValue: null, maxValue: classBreakValues[0] });
+        for (let i = 1; i < classBreakValues.length; ++i) {
+          classifications.push({ minValue: classBreakValues[i - 1], maxValue: classBreakValues[i] });
+        }
+        classifications.push({ minValue: classBreakValues[classBreakValues.length - 1], maxValue: null });
+        this.store$.dispatch(new SetVariableShading({ classifications, selectedVarName: payload.selectedVar.name }));
       }
-      classifications.push({ minValue: classBreakValues[classBreakValues.length - 1], maxValue: null });
-      this.store$.dispatch(new SetVariableShading({ classifications, selectedVarName: payload.selectedVar.name }));
     }
 
     return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar,
