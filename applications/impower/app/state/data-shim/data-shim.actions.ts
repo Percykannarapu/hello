@@ -103,7 +103,7 @@ export class ExportApioNationalData implements Action {
 
 export class FiltersChanged implements Action {
   readonly type = DataShimActionTypes.FiltersChanged;
-  constructor(public payload: { filterChanged?: ProjectFilterChanged }) {}
+  constructor(public payload: { filterChanged?: ProjectFilterChanged, filterFlag?: boolean }) {}
 }
 
 export class CalculateMetrics implements Action {

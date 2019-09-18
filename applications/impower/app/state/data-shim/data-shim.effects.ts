@@ -77,8 +77,7 @@ export class DataShimEffects {
     ofType<RequestAttributesComplete>(GeoAttributeActionTypes.RequestAttributesComplete),
     withLatestFrom(this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
     tap(([a, attrs, geos, project]) => this.appDataShimService.prepGeoFields(geos, attrs, project)),
-    filter(([action]) =>  action.payload.flag === false),
-    map(() => new FiltersChanged({ filterChanged: null }))
+    map(([action]) => new FiltersChanged({ filterChanged: null, filterFlag: action.payload.flag }))
   );
 
   @Effect()
@@ -111,7 +110,9 @@ export class DataShimEffects {
   filtersChanged$ = this.actions$.pipe(
     ofType<FiltersChanged>(DataShimActionTypes.FiltersChanged),
     withLatestFrom(this.filterableGeos$, this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentProject$),
-    tap(([action, geos, attributes, project]) => this.appDataShimService.filterGeos(geos, attributes, project, action.payload.filterChanged)),
+    tap(([action, geos, attributes, project]) => {
+      if (!action.payload.filterFlag) this.appDataShimService.filterGeos(geos, attributes, project, action.payload.filterChanged);
+      }),
     map(() => new CalculateMetrics())
   );
 
