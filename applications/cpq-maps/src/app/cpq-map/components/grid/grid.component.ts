@@ -106,13 +106,14 @@ export class GridComponent implements OnInit {
    this.store$.dispatch(new InitializeMapUI());
    //this.store$.dispatch(new SetShadingType({shadingType: this.shadeBy}));
    // console.log('selectedClassBreak::', this.selectedClassBreak, 'selectedVar::', this.selectedVar);
-   if (this.selectedVar != null && this.shadeBy === ShadingType.VARIABLE)
+   if (this.selectedVar != null && this.shadeBy === ShadingType.VARIABLE){
       this.store$.dispatch(new CalculateEqualIntervals({breakCount: this.selectedClassBreak,
-                                                        selectedVar: this.selectedVar,
-                                                        selectedNumericMethod: this.selectedNumericMethod,
-                                                        classBreakValues: this.classBreakValues}));
+      selectedVar: this.selectedVar,
+      selectedNumericMethod: this.selectedNumericMethod,
+      classBreakValues: this.classBreakValues}));
+      setTimeout(() => this.store$.dispatch(new RenderShading({ recreateLayer: false })), 0);
+   }
       
-    setTimeout(() => this.store$.dispatch(new RenderShading({ recreateLayer: false })), 0);
   }
 
   onFilter(event: { filters: any, filteredValue: fromGridSelectors.GridRowBase[] }) {
