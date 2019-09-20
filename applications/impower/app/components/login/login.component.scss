@@ -5,17 +5,20 @@
 }
 
 .login-form {
-  width: 33%;
+  width: 35em;
   padding: 0.25em;
-  margin-top: 0.5em;
 }
 
 .login-header {
   background-color: $lightGray02;
-  padding-top: 1em;
-  padding-bottom: 1em;
+  padding: 1em 0;
+  border: 1px solid $lightGray01;
   h1 {
     font-size: 250%;
+    margin: 0.5em 0;
   }
 }
 
+.footer {
+  padding: 0.5em;
+}
