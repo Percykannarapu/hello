@@ -1,4 +1,5 @@
 import { RouterReducerState } from '@ngrx/router-store';
+import { createSelector } from '@ngrx/store';
 import { BatchMapState } from './batch-map/batch-map.reducer';
 import { RouterStateUrl } from './shared/utils';
 import { DataShimState } from './data-shim/data-shim.reducer';
@@ -23,4 +24,9 @@ export interface LocalAppState {
 
 export const getRenderingSlice = (state: LocalAppState) => state.rendering;
 export const getMenuSlice = (state: LocalAppState) => state.menu;
-export const getRouterSlice = (state: LocalAppState) => state.router;
+const getRouterSlice = (state: LocalAppState) => state.router;
+
+// since we don't actually have router actions/reducer/effects, just stash the selectors here
+export const getRouteUrl = createSelector(getRouterSlice, state => state.state.url);
+export const getRouteParams = createSelector(getRouterSlice, state => state.state.params);
+export const getRouteQueryParams = createSelector(getRouterSlice, state => state.state.queryParams);

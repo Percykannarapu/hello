@@ -2,13 +2,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { EsriMapService, EsriUtils, selectors } from '@val/esri';
 import { Observable, Subject } from 'rxjs';
-import { filter, map, skip, take, takeUntil, withLatestFrom } from 'rxjs/operators';
+import { filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { AppMapService } from '../../services/app-map.service';
-import { FullAppState, getRouterSlice } from '../../state/app.interfaces';
+import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode, SetMapReady } from '../../state/batch-map/batch-map.actions';
 import { getBatchMapReady, getLastSiteFlag, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
 import { CreateNewProject, ProjectLoad } from '../../state/data-shim/data-shim.actions';
-import Timeout = NodeJS.Timeout;
 
 @Component({
   templateUrl: './batch-map.component.html',
@@ -19,6 +18,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   mapViewIsReady$: Observable<boolean>;
   nextSiteNumber$: Observable<string>;
   isLastSite$: Observable<boolean>;
+  height$: Observable<number>;
   private destroyed$ = new Subject<void>();
 
   constructor(private store$: Store<FullAppState>,
@@ -35,6 +35,9 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.mapViewIsReady$ = this.store$.select(getBatchMapReady);
     this.nextSiteNumber$ = this.store$.select(getNextSiteNumber);
     this.isLastSite$ = this.store$.select(getLastSiteFlag);
+    this.height$ = this.store$.select(getRouteQueryParams).pipe(
+      map(params => params.height == null || Number.isNaN(Number(params.height)) ? 850 : Number(params.height))
+    );
   }
 
   ngOnDestroy() {
@@ -54,10 +57,9 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.store$.select(getBatchMapReady).pipe(
       filter(ready => ready),
       take(1),
-      withLatestFrom(this.store$.select(getRouterSlice)),
-      map(([, slice]) => slice.state.params),
-      filter(params => params.id != null)
-    ).subscribe(params => this.loadBatchProject(params.id));
+      withLatestFrom(this.store$.select(getRouteParams)),
+      filter(([, params]) => params.id != null)
+    ).subscribe(([, params]) => this.loadBatchProject(params.id));
   }
 
   private loadBatchProject(projectId: number) : void {

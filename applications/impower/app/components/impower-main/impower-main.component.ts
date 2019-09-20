@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppStateService } from '../../services/app-state.service';
-import { FullAppState, getRouterSlice } from '../../state/app.interfaces';
+import { FullAppState, getRouteUrl } from '../../state/app.interfaces';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
 
@@ -76,10 +76,10 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit, D
 
   ngOnInit() {
     this.currentProject$ = this.stateService.currentProject$;
-    this.store$.select(getRouterSlice).pipe(
-      filter(slice => slice != null && slice.state != null && slice.state.url != null)
-    ).subscribe(slice => {
-      this.currentRoute = slice.state.url;
+    this.store$.select(getRouteUrl).pipe(
+      filter(url => url != null)
+    ).subscribe(url => {
+      this.currentRoute = url;
       this.cd.markForCheck();
     });
   }
