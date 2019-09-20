@@ -1,4 +1,5 @@
 import { RouterReducerState } from '@ngrx/router-store';
+import { BatchMapState } from './batch-map/batch-map.reducer';
 import { RouterStateUrl } from './shared/utils';
 import { DataShimState } from './data-shim/data-shim.reducer';
 import { MenuState } from './menu/menu.reducer';
@@ -17,6 +18,7 @@ export interface LocalAppState {
   homeGeo: HomeGeoState;
   datastore: fromDataStore.ImpowerDatastoreState;
   rendering: RenderingState;
+  batchMap: BatchMapState;
 }
 
 export const getRenderingSlice = (state: LocalAppState) => state.rendering;

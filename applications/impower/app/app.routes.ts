@@ -17,7 +17,9 @@ export const routes: Routes = [
   {path: 'poc', component: PocComponent},
   {path: 'poc map', component: PocMapComponent},
   {path: 'sample', component: SampleComponent},
-  {path: 'batch-map', component: BatchMapComponent}
+
+  {path: 'batch-map', component: BatchMapComponent},
+  {path: 'batch-map/:id', component: BatchMapComponent}
 ];
 
 export const AppRoutes: ModuleWithProviders = RouterModule.forRoot(routes);

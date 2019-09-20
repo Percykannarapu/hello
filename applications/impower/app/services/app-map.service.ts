@@ -52,12 +52,17 @@ export class AppMapService implements OnDestroy {
     if (this.competitorTradeAreaSubscription) this.competitorTradeAreaSubscription.unsubscribe();
   }
 
-  public setupMap() : void {
+  public setupMap(isBatchMapping: boolean = false) : void {
 
     const homeView = this.mapService.mapView.viewpoint;
     // Create the layer groups and load the portal items
     this.appLayerService.initializeLayers().subscribe ({
       complete: () => {
+        if (isBatchMapping) {
+          // if we're batch mapping, we want no widgets on the UI except for a custom legend
+          this.mapService.mapView.ui.remove('zoom');
+          return;
+        }
         // setup the map widgets
         this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });
         this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
@@ -151,7 +156,7 @@ export class AppMapService implements OnDestroy {
               const filterFlag: boolean = (filteredGraphicsList.filter(filteredGraphic => filteredGraphic.attributes.geocode === graphic.attributes.geocode).length > 0);
               events.push({ geocode, geometry: point, filterFlag: filterFlag });
             }
-          }         
+          }
         } else {
           events.push({ geocode, geometry: point });
         }
@@ -211,7 +216,7 @@ export class AppMapService implements OnDestroy {
           this.store$.dispatch(new ErrorNotification({message: 'You are attempting to add or remove a geo at the wrong analysis level', notificationTitle: 'Invalid Add/Remove'}));
         }
     }
-    
+
     this.collectSelectionUsage(selectedFeature, 'popupAction');
   }
 

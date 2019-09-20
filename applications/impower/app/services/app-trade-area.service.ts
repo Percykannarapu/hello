@@ -208,6 +208,7 @@ export class AppTradeAreaService {
   }
 
   public zoomToTradeArea() {
+    console.log('Zooming');
     const latitudes: number[] = [];
     const longitudes: number[] = [];
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();

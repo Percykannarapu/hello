@@ -146,6 +146,7 @@ import { AppEditSiteService } from './services/app-editsite.service';
 import { PrintViewComponent } from './components/print-view/print-view.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
+import { BatchMapFooterComponent } from './components/batch-map/batch-map-footer/batch-map-footer.component';
 
 @NgModule({
     imports: [
@@ -270,7 +271,8 @@ import { ImpowerMainComponent } from './components/impower-main/impower-main.com
         EditLocationsComponent,
         PrintViewComponent,
         BatchMapComponent,
-        ImpowerMainComponent
+        ImpowerMainComponent,
+        BatchMapFooterComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

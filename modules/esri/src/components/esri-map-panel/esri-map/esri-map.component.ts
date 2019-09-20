@@ -17,6 +17,7 @@ export class EsriMapComponent implements OnInit {
   @Input() height: number;
   @Input() cursor: string;
   @Input() baseMap: string;
+  @Input() manuallyResizable: boolean = true;
 
   @Output() mapClicked = new EventEmitter<__esri.MapViewImmediateClickEvent>();
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
@@ -50,7 +51,7 @@ export class EsriMapComponent implements OnInit {
         map(result => result.newValue),
         startWith(false)
       );
-      combineLatest(updating$, stationary$, center$, scale$).pipe(
+      combineLatest([updating$, stationary$, center$, scale$]).pipe(
         filter(([u, s]) => !u && s)
       ).subscribe(() => this.viewChanged.emit(this.mapService.mapView));
 

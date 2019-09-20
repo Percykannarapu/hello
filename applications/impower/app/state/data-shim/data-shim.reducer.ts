@@ -7,7 +7,7 @@ export interface DataShimState {
 }
 
 const initialState: DataShimState = {
-  projectIsLoaded: true,
+  projectIsLoaded: false,
   projectIsLoading: false,
   projectIsSaving: false
 };

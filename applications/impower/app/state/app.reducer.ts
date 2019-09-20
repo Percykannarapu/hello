@@ -4,6 +4,7 @@ import { LogLevels } from '@val/common';
 import { environment } from '../../environments/environment';
 import { masterDataStoreReducer } from '../impower-datastore/state/impower-datastore.interfaces';
 import { LocalAppState } from './app.interfaces';
+import { batchMapReducer } from './batch-map/batch-map.reducer';
 import { dataShimReducer } from './data-shim/data-shim.reducer';
 import { homeGeoReducer } from './homeGeocode/homeGeo.reducer';
 import { menuReducer } from './menu/menu.reducer';
@@ -15,7 +16,8 @@ export const appReducer: ActionReducerMap<LocalAppState> = {
   menu: menuReducer,
   homeGeo: homeGeoReducer,
   datastore: masterDataStoreReducer,
-  rendering: renderingReducer
+  rendering: renderingReducer,
+  batchMap: batchMapReducer
 };
 
 export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<LocalAppState> {

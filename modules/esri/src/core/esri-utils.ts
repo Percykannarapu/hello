@@ -7,16 +7,16 @@ export interface TokenResponse {
   ssl: boolean;
 }
 
-export interface WatchResult<T, K extends keyof T> {
+export interface WatchResult<T extends __esri.Accessor, K extends keyof T> {
   newValue: T[K];
   oldValue: T[K];
   propName: K;
   target: T;
 }
 
-type mapViewEventNames = 'resize' | 'layerview-create' | 'layerview-destroy' | 'click' | 
-                        'double-click' | 'immediate-click' | 'hold' | 'drag' | 'mouse-wheel' | 
-                        'key-down' | 'key-up' | 'pointer-down' | 'pointer-move' | 'pointer-up' | 
+type mapViewEventNames = 'resize' | 'layerview-create' | 'layerview-destroy' | 'click' |
+                        'double-click' | 'immediate-click' | 'hold' | 'drag' | 'mouse-wheel' |
+                        'key-down' | 'key-up' | 'pointer-down' | 'pointer-move' | 'pointer-up' |
                         'pointer-enter' | 'pointer-leave' | 'focus' | 'blur';
 
 type mapViewEventResults =
@@ -116,11 +116,11 @@ export class EsriUtils {
   }
 
   public static setupWatch<T extends __esri.Accessor, K extends keyof T>(instance: T, prop: K) : Observable<WatchResult<T, K>> {
-    return Observable.create(observer => {
+    return new Observable<WatchResult<T, K>>(observer => {
       let handle;
       try {
-        handle = instance.watch(prop as string, (newValue, oldValue, propName, target) => {
-          observer.next({ newValue, oldValue, propName, target });
+        handle = instance.watch(prop as string, (newValue, oldValue, propName: any, target: T) => {
+          observer.next({newValue, oldValue, propName, target});
         });
       } catch (err) {
         observer.error(err);
@@ -132,7 +132,7 @@ export class EsriUtils {
   }
 
   public static handleEvent<T>(instance: __esri.Evented, event: string) : Observable<T> {
-    return Observable.create(observer => {
+    return new Observable<T>(observer => {
       let handle;
       try {
         handle = instance.on(event, e => observer.next(e));
@@ -164,7 +164,7 @@ export class EsriUtils {
   public static handleMapViewEvent(mapView: __esri.MapView, event: 'focus') : Observable<__esri.MapViewFocusEvent>;
   public static handleMapViewEvent(mapView: __esri.MapView, event: 'blur') : Observable<__esri.MapViewBlurEvent>;
   public static handleMapViewEvent(mapView: __esri.MapView, event: mapViewEventNames) : Observable<mapViewEventResults> {
-    return Observable.create(observer => {
+    return new Observable<mapViewEventResults>(observer => {
       let handle;
       try {
         handle = mapView.on(event, e => observer.next(e));

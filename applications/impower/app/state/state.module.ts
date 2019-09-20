@@ -7,6 +7,7 @@ import { RouterStateSerializer, StoreRouterConnectingModule } from '@ngrx/router
 import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
 import { appMetaReducers, appReducer } from './app.reducer';
+import { BatchMapEffects } from './batch-map/batch-map.effects';
 import { CustomSerializer } from './shared/utils';
 import { UsageEffects } from './usage/usage.effects';
 import { MenuEffects } from './menu/menu.effects';
@@ -33,7 +34,8 @@ import { RenderingEffects } from './rendering/rendering.effects';
       DataShimNotificationEffects,
       DataShimUsageEffects,
       HomeGeoEffects,
-      RenderingEffects
+      RenderingEffects,
+      BatchMapEffects
     ]),
     StoreRouterConnectingModule.forRoot(),
     StoreDevtoolsModule.instrument({

@@ -1,2 +1,8 @@
-<val-esri-map cursor="default" height="900" [baseMap]="'streets'">
+<val-esri-map cursor="default" height="850" [baseMap]="'streets'" [manuallyResizable]="false">
 </val-esri-map>
+<val-batch-map-footer
+  [isReady]="mapViewIsReady$ | async"
+  [nextSiteNumber]="nextSiteNumber$ | async"
+  [isLastSite]="isLastSite$ | async"
+  (goToSite)="onGoToSite($event)">
+</val-batch-map-footer>
