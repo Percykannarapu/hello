@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriMapService, EsriUtils, selectors } from '@val/esri';
+import { selectors } from '@val/esri';
 import { Observable, Subject } from 'rxjs';
 import { filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { AppMapService } from '../../services/app-map.service';
@@ -22,12 +22,9 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject<void>();
 
   constructor(private store$: Store<FullAppState>,
-              private appMapService: AppMapService,
-              private esriMapService: EsriMapService) { }
+              private appMapService: AppMapService) { }
 
   ngOnInit() {
-    this.store$.dispatch(new SetBatchMode());
-    this.store$.dispatch(new CreateNewProject());
     this.store$.select(selectors.getMapReady).pipe(
       filter(ready => ready),
       take(1),
@@ -38,6 +35,8 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.height$ = this.store$.select(getRouteQueryParams).pipe(
       map(params => params.height == null || Number.isNaN(Number(params.height)) ? 850 : Number(params.height))
     );
+    this.store$.dispatch(new SetBatchMode());
+    this.store$.dispatch(new CreateNewProject());
   }
 
   ngOnDestroy() {
@@ -50,7 +49,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
 
   private setupMap() : void {
     console.log('Setup Map called');
-    EsriUtils.setupWatch(this.esriMapService.mapView, 'updating').pipe(
+    this.appMapService.watchMapViewProperty('updating').pipe(
       takeUntil(this.destroyed$)
     ).subscribe(result => this.store$.dispatch(new SetMapReady({ mapReady: !result.newValue })));
     this.appMapService.setupMap(true);
