@@ -13,6 +13,7 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ColorBoxComponent } from '../color-box/color-box.component';
+import { CampaignDetailsComponent } from '../campaign-details/campaign-details.component';
 
 @Component({
   selector: 'val-dashboard',
@@ -49,6 +50,10 @@ export class DashboardComponent implements OnInit {
 
     @ViewChild('performanceColorBox', { static: true })
     private performanceColorBox: ColorBoxComponent;
+
+    @ViewChild('campaignDetailsComponent', { static: true })
+    private campaignDetailsComponent: CampaignDetailsComponent;
+    
 
     private colorBoxesByGroup: Map<string, ColorBoxComponent> = new Map<string, ColorBoxComponent>();
 
@@ -156,4 +161,9 @@ export class DashboardComponent implements OnInit {
     triggerCollapseOnToggle(collapsed: boolean) {
         this.appStateService.triggerChangeInCollapse(collapsed);
     }
+
+    onCampaignDetailsClose(){
+        this.campaignDetailsComponent.onDiscoveryFormClose();
+    }
+
 }

@@ -9,8 +9,8 @@
                     [flags]="flagMapBlue"
                     displayOverlay="true"
                     [dismissible]="true"
-                    #campaignColorBox>
-       <val-campaign-details></val-campaign-details>
+                    #campaignColorBox (overlayClosed)= "onCampaignDetailsClose()">
+       <val-campaign-details #campaignDetailsComponent></val-campaign-details>
      </val-color-box>
    </div>
 

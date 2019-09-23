@@ -34,12 +34,12 @@ export class AppMenuComponent implements OnInit {
 
         this.model = [
             { label: 'Dashboard', icon: 'ui-icon-dashboard', routerLink: ['/'] },
-            { label: 'Save', id: 'saveProject', icon: 'ui-icon-save', command: () => this.store$.dispatch(new SaveAndReloadProject()) },
+            { label: 'Save', id: 'saveProject', icon: 'ui-icon-save', command: () => this.saveProject() },
             { label: 'Projects', icon: 'ui-icon-storage',
               items: [
                   { label: 'Create New', icon: 'fa fa-files-o', command: () =>  this.createNewProject() },
                   { label: 'Open Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
-                  { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.store$.dispatch(new SaveAndReloadProject()) }
+                  { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.saveProject() }
               ]
             },
             { label: 'Export', icon: 'ui-icon-file-download',
@@ -54,6 +54,13 @@ export class AppMenuComponent implements OnInit {
               ]
             }
         ];
+    }
+
+    private saveProject(){
+        this.stateService.closeOverlays();
+        setTimeout(() => {
+            this.store$.dispatch(new SaveAndReloadProject()); 
+        }, 500);
     }
 
     private exportLocations(locationType: SuccessfulLocationTypeCodes) : void {

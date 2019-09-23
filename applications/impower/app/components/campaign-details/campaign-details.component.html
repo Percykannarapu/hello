@@ -5,7 +5,8 @@
                          [radSuggestions]="currentRadSuggestions$ | async"
                          (formChanged)="onDiscoveryFormChanged($event)"
                          (radSearchRequest)="onRadSearch($event)"
-                         (trackerSearchRequest)="onTrackerSearch($event)">
+                         (trackerSearchRequest)="onTrackerSearch($event)" 
+                         #discoveryFormComponent>
     </val-discovery-input>
   </p-tabPanel>
 </p-tabView>

@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/api';
 import { debounceTime, map } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../../models/val-discovery.model';
 import { ProjectCpmTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-discovery.service';
+import { AppStateService } from 'app/services/app-state.service';
 
 @Component({
   selector: 'val-discovery-input',
@@ -21,6 +22,9 @@ export class DiscoveryInputComponent implements OnInit {
       this.setControlStates(val);
     }
   }
+
+  @ViewChild('ElementRef', {static: true})
+  form: ElementRef;
 
   @Input() radSuggestions: RadLookupUIModel[];
   @Input() projectTrackerSuggestions: ProjectTrackerUIModel[];
@@ -76,7 +80,7 @@ export class DiscoveryInputComponent implements OnInit {
       cpmAnne: new FormControl({ value: null }, { updateOn: 'blur' }),
       cpmSolo: new FormControl({ value: null }, { updateOn: 'blur' })
     });
-
+    
     this.discoveryForm.valueChanges.pipe(
       debounceTime(250),
       map(formData => new ValDiscoveryUIModel(formData))
@@ -108,4 +112,8 @@ export class DiscoveryInputComponent implements OnInit {
       this.discoveryForm.controls['selectedAnalysisLevel'].setValue(analysisLevel, { emitEvent: false });
     }
   }
+
+ onFormClose(){
+   this.form.nativeElement.blur();
+ }
 }
