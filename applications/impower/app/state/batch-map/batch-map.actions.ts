@@ -1,10 +1,15 @@
 import { Action } from '@ngrx/store';
 
 export enum BatchMapActionTypes {
+  CreateBatchMap = '[BatchMap] Create Batch Map',
   SetBatchMode = '[BatchMap] Set Batch Mode',
   MoveToSite = '[BatchMap] Move To Site',
   SiteMoved = '[BatchMap] Site Moved',
   SetMapReady = '[BatchMap] Set Map Ready'
+}
+
+export class CreateBatchMap implements Action {
+  readonly type = BatchMapActionTypes.CreateBatchMap;
 }
 
 export class SetBatchMode implements Action {
@@ -26,4 +31,4 @@ export class SetMapReady implements Action {
     constructor(public payload: { mapReady: boolean }) {}
 }
 
-export type BatchMapActions = SetBatchMode | MoveToSite | SiteMoved | SetMapReady;
+export type BatchMapActions = CreateBatchMap | SetBatchMode | MoveToSite | SiteMoved | SetMapReady;

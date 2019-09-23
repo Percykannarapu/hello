@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { debounceTime, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { ErrorNotification, SuccessNotification } from '@val/messaging';
+import { of } from 'rxjs';
+import { catchError, debounceTime, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { BatchMapService } from '../../services/batch-map.service';
 import { LocalAppState } from '../app.interfaces';
@@ -11,6 +13,17 @@ import { getBatchMapReady, getBatchMode } from './batch-map.selectors';
 
 @Injectable()
 export class BatchMapEffects {
+
+  @Effect()
+  createBatchMap$ = this.actions$.pipe(
+    ofType(BatchMapActionTypes.CreateBatchMap),
+    withLatestFrom(this.appStateService.currentProject$),
+    filter(([, project]) => this.batchMapService.validateProjectReadiness(project)),
+    switchMap(([, project]) => this.batchMapService.requestBatchMap(project).pipe(
+      map(() => new SuccessNotification({ notificationTitle: 'Batch Map', message: 'The Batch Map is processing...'})),
+      catchError(e => of(new ErrorNotification({ notificationTitle: 'Batch Map', message: 'There was an error requesting the Batch Map', additionalErrorInfo: e})))
+    ))
+  );
 
   @Effect()
   batchModeProjectLoad$ = this.actions$.pipe(

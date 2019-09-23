@@ -82,10 +82,11 @@ export class EnvironmentData {
       boundary: '12bae62392eb47aeb887b6509da557b5',
       centroid: undefined
     }
-  };  
+  };
 
   public static serviceUrls = {
     homeGeocode: `${EnvironmentData.esri.portalServer}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`,
-    valPrintService : `${EnvironmentData.esri.portalServer}arcgis-server2/rest/services/PrintCurrentView/GPServer/PrintCurrentView`
+    valPrintService : `${EnvironmentData.esri.portalServer}arcgis-server2/rest/services/PrintCurrentView/GPServer/PrintCurrentView`,
+    batchPrintService: `${EnvironmentData.fuseBaseUrl}v1/impower/print`
   };
 }

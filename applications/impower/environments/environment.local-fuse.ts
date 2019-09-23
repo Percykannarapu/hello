@@ -76,7 +76,8 @@ export class EnvironmentData {
 
   public static serviceUrls = {
     homeGeocode: `${EnvironmentData.esri.portalServer}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`,
-    valPrintService : `${EnvironmentData.esri.portalServer}arcgis-server2/rest/services/CurrentMapView/GPServer/CurrentMapView`
+    valPrintService : `${EnvironmentData.esri.portalServer}arcgis-server2/rest/services/CurrentMapView/GPServer/CurrentMapView`,
+    batchPrintService: `${EnvironmentData.fuseBaseUrl}v1/impower/print`
 
   };
 }

@@ -2,17 +2,16 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ConfirmationPayload, ShowConfirmation, ErrorNotification } from '@val/messaging';
+import { ConfirmationPayload, ErrorNotification, ShowConfirmation } from '@val/messaging';
+import { AppStateService } from 'app/services/app-state.service';
+import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { MenuItem } from 'primeng/api';
 import { filter, take } from 'rxjs/operators';
-import { AppComponent } from '../../app.component';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, SaveAndCreateNew, SaveAndReloadProject, OpenPrintViewDialog } from '../../state/menu/menu.actions';
+import { CreateBatchMap } from '../../state/batch-map/batch-map.actions';
+import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, OpenPrintViewDialog, SaveAndCreateNew, SaveAndReloadProject } from '../../state/menu/menu.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { AppStateService } from 'app/services/app-state.service';
-import { CreateGaugeMetric, CreateUsageMetric } from 'app/state/usage/usage.actions';
-import { CreateMapUsageMetric, CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { ImpowerMainComponent } from '../impower-main/impower-main.component';
 
 @Component({
@@ -50,7 +49,8 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Export Competitors', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor) },
                   { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
                   { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportToValassisDigital()) },
-                  { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() }
+                  { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
+                  { label: 'Create Batch Map', icon: 'fa fa-book', command: () => this.store$.dispatch(new CreateBatchMap()) }
               ]
             }
         ];
@@ -66,14 +66,15 @@ export class AppMenuComponent implements OnInit {
     private exportLocations(locationType: SuccessfulLocationTypeCodes) : void {
       this.store$.dispatch(new ExportLocations({ locationType }));
     }
+
     private exportCurrentView(){
-    const analysisLevel = this.stateService.analysisLevel$.getValue();
-        if (analysisLevel != null && analysisLevel.length > 0){
-           this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'current~view~map~export', 1));
-             this.store$.dispatch(new OpenPrintViewDialog());
-        }
-        else
-            this.store$.dispatch(new ErrorNotification({message: 'Analysis Level is required to print Current view'}));
+      const analysisLevel = this.stateService.analysisLevel$.getValue();
+      if (analysisLevel != null && analysisLevel.length > 0){
+        this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'current~view~map~export', 1));
+        this.store$.dispatch(new OpenPrintViewDialog());
+      }
+      else
+        this.store$.dispatch(new ErrorNotification({message: 'Analysis Level is required to print Current view'}));
     }
 
     public createNewProject() {
