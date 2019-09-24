@@ -3,7 +3,7 @@ import { select, Store } from '@ngrx/store';
 import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
 import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, finalize, map, take, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, finalize, map, take, tap, toArray } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
@@ -183,6 +183,7 @@ export class AppLayerService {
     } else {
       result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
     }
+    result.outFields = Array.from(fieldsToUse);
     result.overwriteActions = true;
    return new EsriApi.PopupTemplate(result);
   }
