@@ -129,7 +129,7 @@
           */
       }
     }
-    stage('Static analysis') {
+    /*stage('Static analysis') {
       parallel {
         stage('Scan imPower with Sonarqube') {
           when { branch 'dev' }
@@ -151,7 +151,7 @@
           }
         }
       }
-    }
+    }*/
     stage('Run Tests') {
       when {
         expression {
