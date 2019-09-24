@@ -16,8 +16,9 @@ export class EsriPrintingService {
         titleText: templateOptions.title,
         authorText: templateOptions.author,
         customTextElements: [{
-          'description': templateOptions.customTextElements[0],
-          'projectID': templateOptions.customTextElements[1],
+          'description': templateOptions.customTextElements[0]
+        }, {
+          'projectID': templateOptions.customTextElements[1]
         }]
       } ;
       const template = new EsriApi.PrintTemplate({

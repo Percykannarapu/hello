@@ -42,7 +42,7 @@ export class PrintViewComponent implements OnInit {
     const formData = {
       title: dialogFields.title,
       author: dialogFields.subTitle,
-      customTextElements: [dialogFields.geoInfo, currentProjectID]
+      customTextElements: [dialogFields.geoInfo, currentProjectID.toString()]
     };
     this.store$.dispatch(new PrintMap({ templateOptions: formData, serviceUrl: this.config.serviceUrls.valPrintService}));
     this.printForm.reset();
