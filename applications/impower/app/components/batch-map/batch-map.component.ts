@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { selectors } from '@val/esri';
 import { Observable, Subject } from 'rxjs';
@@ -8,6 +9,14 @@ import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/a
 import { MoveToSite, SetBatchMode, SetMapReady } from '../../state/batch-map/batch-map.actions';
 import { getBatchMapReady, getLastSiteFlag, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
 import { CreateNewProject, ProjectLoad } from '../../state/data-shim/data-shim.actions';
+
+interface BatchMapQueryParams {
+  height: number;
+}
+
+const defaultQueryParams: BatchMapQueryParams = {
+  height: 850
+};
 
 @Component({
   templateUrl: './batch-map.component.html',
@@ -19,10 +28,21 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   nextSiteNumber$: Observable<string>;
   isLastSite$: Observable<boolean>;
   height$: Observable<number>;
+
+  private typedParams$: Observable<BatchMapQueryParams>;
   private destroyed$ = new Subject<void>();
 
   constructor(private store$: Store<FullAppState>,
               private appMapService: AppMapService) { }
+
+  private static convertParams(params: Params) : BatchMapQueryParams {
+    const result = {
+      ...defaultQueryParams,
+    };
+    if (params.height != null && !Number.isNaN(Number(params.height))) result.height = Number(params.height);
+
+    return result;
+  }
 
   ngOnInit() {
     this.store$.select(selectors.getMapReady).pipe(
@@ -32,8 +52,11 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.mapViewIsReady$ = this.store$.select(getBatchMapReady);
     this.nextSiteNumber$ = this.store$.select(getNextSiteNumber);
     this.isLastSite$ = this.store$.select(getLastSiteFlag);
-    this.height$ = this.store$.select(getRouteQueryParams).pipe(
-      map(params => params.height == null || Number.isNaN(Number(params.height)) ? 850 : Number(params.height))
+    this.typedParams$ = this.store$.select(getRouteQueryParams).pipe(
+      map(params => BatchMapComponent.convertParams(params))
+    );
+    this.height$ = this.typedParams$.pipe(
+      map(params => params.height)
     );
     this.store$.dispatch(new SetBatchMode());
     this.store$.dispatch(new CreateNewProject());
