@@ -378,7 +378,7 @@ export class ShadingService {
           value: 1,
           symbol: new EsriApi.SimpleFillSymbol({
             style: pattern,
-            color: [0, 0, 0, 1]
+            color: [0, 0, 0, 0.5]
           })
         }],
         valueExpression: expression,
