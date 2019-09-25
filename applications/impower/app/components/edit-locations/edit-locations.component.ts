@@ -9,7 +9,7 @@ import { AppStateService } from '../../services/app-state.service';
 import { AppEditSiteService } from '../../services/app-editsite.service';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { Store, select } from '@ngrx/store';
-import { Observable, of } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
 import { map, switchMap, debounceTime, tap, reduce, mergeMap } from 'rxjs/operators';
 import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
@@ -59,10 +59,10 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       marketName: '',
       marketCode: '',
       coord: ['', this.appEditSiteService.latLonValidator()],
-      homeZip: new FormControl('',  { updateOn: 'blur', asyncValidators: this.validateGeo('CL_ZIPTAB14', 'geocode, ZIP, DMA, DMA_Name, COUNTY', 'Not a valid Home ZIP')}),
-      homeAtz: new FormControl('',  { updateOn: 'blur', asyncValidators: this.validateGeo('CL_ATZTAB14', 'geocode,ZIP', 'Not a valid Home ATZ')}),
-      homeDigitalAtz: new FormControl('',  { updateOn: 'blur', asyncValidators: this.validateGeo('VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ', 'Not a valid Home DTZ')}),
-      homePcr: new FormControl('',  { updateOn: 'blur', asyncValidators: this.validateGeo('CL_PCRTAB14', 'geocode,ZIP, ZIP_ATZ, DMA, DMA_Name, COUNTY', 'Not a valid Home PCR')}),
+      homeZip: new FormControl('',  {  asyncValidators: this.validateGeo('CL_ZIPTAB14', 'geocode, ZIP, DMA, DMA_Name, COUNTY', 'Not a valid Home ZIP')}),
+      homeAtz: new FormControl('',  {  asyncValidators: this.validateGeo('CL_ATZTAB14', 'geocode,ZIP', 'Not a valid Home ATZ')}),
+      homeDigitalAtz: new FormControl('',  {  asyncValidators: this.validateGeo('VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ', 'Not a valid Home DTZ')}),
+      homePcr: new FormControl('',  {  asyncValidators: this.validateGeo('CL_PCRTAB14', 'geocode,ZIP, ZIP_ATZ, DMA, DMA_Name, COUNTY', 'Not a valid Home PCR')}),
     });
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
   }
@@ -82,15 +82,29 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       //const tablename = 'CL_ZIPTAB14';
       const reqPayload = {'tableName': tablename, 'fieldNames': fieldNames, 'geocodeList': [c.value] };
       
+       if (c.pristine) 
+            return of(null);
+       
+       return timer(60).pipe(
+         switchMap(() => this.appLocationService.getHomegeocodeData(reqPayload, 'v1/targeting/base/homegeo/homegeocode').
+          pipe(map(response => {
+                if (response.payload.length == 0){
+                  return {homeGeoValid: errorMsg};
+                }
+                else return null;  
+              }), tap(() => this.cd.markForCheck())
+          )    
+         )
+       );     
 
-      return this.appLocationService.getHomegeocodeData(reqPayload, 'v1/targeting/base/homegeo/homegeocode').
+     /* return this.appLocationService.getHomegeocodeData(reqPayload, 'v1/targeting/base/homegeo/homegeocode').
               pipe(map(response => {
                   if (response.payload.length == 0){
                     return {homeGeoValid: errorMsg};
                   }
                   else return null;
               }),
-              tap(() => this.cd.markForCheck()));
+              tap(() => this.cd.markForCheck()));*/
     };
   }
 
