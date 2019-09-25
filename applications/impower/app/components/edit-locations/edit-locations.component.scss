@@ -1,3 +1,4 @@
+@import "~assets/valassis-variables";
 :host >>> .ui-dialog-mask {
     z-index: 9 !important;
 }
@@ -21,4 +22,10 @@ span.ui-inputgroup-addon {
   
 .ui-inputgroup .md-inputfield label {
   top: 1px;
+}
+
+.validation-messages {
+  > span {
+    color: $inputErrorTextColor;
+  }
 }

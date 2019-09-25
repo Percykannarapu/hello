@@ -770,7 +770,7 @@ export class AppLocationService {
     return merge(...obs, 4);
   }
 
-  private getHomegeocodeData(requestPayload: any, url: string)  {
+  public getHomegeocodeData(requestPayload: any, url: string)  {
     return this.restService.post(url, requestPayload);
   }
 
