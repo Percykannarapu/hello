@@ -127,7 +127,8 @@ export class AppMapService implements OnDestroy {
           this.geoSelected.next(eventData);
         });
     } else {
-      this.geoSelected.next([{ geocode, geometry }]);
+      this.appStateService.filterFlag.next(true);
+      this.geoSelected.next([{ geocode, geometry, filterFlag: true }]);
     }
   }
 
