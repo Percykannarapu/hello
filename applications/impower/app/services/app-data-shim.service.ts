@@ -74,6 +74,7 @@ export class AppDataShimService {
   load(id: number) : Observable<number> {
     this.clearAll();
     this.targetAudienceService.clearAll();
+    this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
     return this.appProjectService.load(id);
   }
@@ -93,6 +94,7 @@ export class AppDataShimService {
   createNew() : number {
     this.clearAll();
     this.targetAudienceService.clearAll();
+    this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
     return this.appProjectService.createNew();
   }

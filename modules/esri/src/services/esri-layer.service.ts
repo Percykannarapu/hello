@@ -21,6 +21,7 @@ export class EsriLayerService {
   constructor(private mapService: EsriMapService) {}
 
   public clearClientLayers(groupName: string) : void {
+    if (this.mapService.mapView == null || this.mapService.mapView.map == null || this.mapService.mapView.map.layers == null) return;
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
     console.log('Clearing', groupName, 'layer');
     if (EsriUtils.layerIsGroup(group)) {
@@ -273,7 +274,7 @@ export class EsriLayerService {
     Object.entries(layerExpressions).forEach(([layerId, options]) => {
       const currentLayer = this.getPortalLayerById(layerId);
       if (currentLayer != null) {
-        currentLayer.labelingInfo = this.createLabelConfig(currentLayer, labelConfig.font, labelConfig.size, options);
+        currentLayer.labelingInfo = this.createLabelConfig(currentLayer, labelConfig.size, options);
         currentLayer.labelsVisible = labelConfig.enabled;
       }
     });
@@ -283,11 +284,11 @@ export class EsriLayerService {
     }
   }
 
-  private createLabelConfig(layer: __esri.FeatureLayer, fontName: string, fontSize: number, layerOptions: EsriLabelLayerOptions) : __esri.LabelClass[] {
+  private createLabelConfig(layer: __esri.FeatureLayer, fontSize: number, layerOptions: EsriLabelLayerOptions) : __esri.LabelClass[] {
     if (layerOptions == null) return null;
     const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
     const offset = layerOptions.fontSizeOffset || 0;
-    const font = new EsriApi.Font({ family: fontName, size: (fontSize + offset), weight: 'bold' });
+    const font = new EsriApi.Font({ family: 'arial', size: (fontSize + offset), weight: 'bold' });
     if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol) && EsriUtils.symbolIsSimpleLine(layer.renderer.symbol.outline)) {
       textSymbol.color = layer.renderer.symbol.outline.color;
     } else {

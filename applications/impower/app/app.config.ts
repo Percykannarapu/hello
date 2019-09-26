@@ -30,6 +30,8 @@ export class AppConfig implements LoggingConfiguration {
   public maxRadiusTradeAreas = 3;
   public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
 
+  public isBatchMode = false;
+
   // Not used anymore
   // public radDataService = 'https://valvcshad001vm.val.vlss.local/server/rest/services/RAD/GPServer/RAD';
   // public maxGeosPerGeoInfoQuery = 400;
@@ -54,6 +56,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       boundaries: { // DMA_Boundaries
         id: EnvironmentData.layerIds.dma.boundary,
+        simplifiedId: null,
         name: 'DMA Boundaries',
         defaultVisibility: true,
         popupTitle: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
@@ -71,6 +74,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       boundaries: { // Counties
         id: EnvironmentData.layerIds.counties.boundary,
+        simplifiedId: null,
         name: 'County Boundaries',
         defaultVisibility: true,
         popupTitle: 'County: {COUNTY_NAM}, {STATE_ABBR}',
@@ -88,6 +92,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       boundaries: { // WRAP_Top_Vars
         id: EnvironmentData.layerIds.wrap.boundary,
+        simplifiedId: EnvironmentData.layerIds.wrap.simplifiedBoundary,
         name: 'Wrap Boundaries',
         defaultVisibility: true,
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
@@ -105,6 +110,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       centroids: { // ZIP_Centroids
         id: EnvironmentData.layerIds.zip.centroid,
+        simplifiedId: null,
         name: 'ZIP Centroids',
         defaultVisibility: false,
         sortOrder: 1,
@@ -115,6 +121,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       boundaries: { // ZIP Top Vars
         id: EnvironmentData.layerIds.zip.boundary,
+        simplifiedId: EnvironmentData.layerIds.zip.simplifiedBoundary,
         name: 'ZIP Boundaries',
         defaultVisibility: true,
         sortOrder: 0,
@@ -137,6 +144,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       centroids: { // ATZ_Centroids
         id: EnvironmentData.layerIds.atz.centroid,
+        simplifiedId: null,
         name: 'ATZ Centroids',
         defaultVisibility: false,
         sortOrder: 1,
@@ -147,6 +155,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       boundaries: { // ATZ_Top_Vars
         id: EnvironmentData.layerIds.atz.boundary,
+        simplifiedId: EnvironmentData.layerIds.atz.simplifiedBoundary,
         name: 'ATZ Boundaries',
         defaultVisibility: true,
         sortOrder: 0,
@@ -169,6 +178,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       centroids: { // DIG_ATZ_Centroids
         id: EnvironmentData.layerIds.dtz.centroid,
+        simplifiedId: null,
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
         sortOrder: 1,
@@ -179,6 +189,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       boundaries: { // DIG_ATZ_Top_Vars
         id: EnvironmentData.layerIds.dtz.boundary,
+        simplifiedId: null,
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
         sortOrder: 0,
@@ -201,6 +212,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       centroids: {
         id: EnvironmentData.layerIds.pcr.centroid,
+        simplifiedId: null,
         name: 'PCR Centroids',
         defaultVisibility: false,
         sortOrder: 1,
@@ -211,6 +223,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       boundaries: {
         id: EnvironmentData.layerIds.pcr.boundary,
+        simplifiedId: null,
         name: 'PCR Boundaries',
         defaultVisibility: true,
         sortOrder: 0,
@@ -231,13 +244,21 @@ export class AppConfig implements LoggingConfiguration {
   public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
     switch ((analysisLevel || '').toLowerCase()) {
       case 'zip':
-        return boundary ? this.layers.zip.boundaries.id : this.layers.zip.centroids.id;
+        return boundary
+          ? this.isBatchMode ? this.layers.zip.boundaries.simplifiedId : this.layers.zip.boundaries.id
+          : this.layers.zip.centroids.id;
       case 'atz':
-        return boundary ? this.layers.atz.boundaries.id : this.layers.atz.centroids.id;
+        return boundary
+          ? this.isBatchMode ? this.layers.atz.boundaries.simplifiedId : this.layers.atz.boundaries.id
+          : this.layers.atz.centroids.id;
       case 'digital atz':
-        return boundary ? this.layers.digital_atz.boundaries.id : this.layers.digital_atz.centroids.id;
+        return boundary
+          ? this.layers.digital_atz.boundaries.id
+          : this.layers.digital_atz.centroids.id;
       case 'pcr':
-        return boundary ? this.layers.pcr.boundaries.id : this.layers.pcr.centroids.id;
+        return boundary
+          ? this.layers.pcr.boundaries.id
+          : this.layers.pcr.centroids.id;
       default:
         throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);
     }

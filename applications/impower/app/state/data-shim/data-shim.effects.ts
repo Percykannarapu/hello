@@ -3,11 +3,12 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
 import { of } from 'rxjs';
-import { catchError, concatMap, map, switchMap, tap, withLatestFrom, filter } from 'rxjs/operators';
-import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComplete, RequestAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { GeoAttributeActionTypes, RehydrateAttributesComplete, RequestAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
+import { getBatchMode } from '../batch-map/batch-map.selectors';
 import { CalculateMetrics, CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged,
   ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess, ProjectLoadFinish, IsProjectReload } from './data-shim.actions';
 import { RehydrateAfterLoad } from 'app/impower-datastore/state/transient/transient.actions';
@@ -52,9 +53,10 @@ export class DataShimEffects {
   projectLoad$ = this.actions$.pipe(
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
-      withLatestFrom(this.appDataShimService.currentGeocodeSet$),
-//    map(([projectId, geocodes]) => new RehydrateAttributes({ ...action.payload, geocodes })),
-      map(([projectId, geocodes]) => new RehydrateAfterLoad({ ...action.payload, geocodes })),
+      withLatestFrom(this.appDataShimService.currentGeocodeSet$, this.store$.select(getBatchMode)),
+      map(([, geocodes, isBatch]) => isBatch
+        ? new ProjectLoadSuccess(action.payload)
+        : new RehydrateAfterLoad({ ...action.payload, geocodes })),
       catchError(err => of(new ProjectLoadFailure({ err, isReload: false }))),
     )),
   );

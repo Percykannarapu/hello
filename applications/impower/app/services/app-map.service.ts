@@ -56,12 +56,12 @@ export class AppMapService implements OnDestroy {
 
     const homeView = this.mapService.mapView.viewpoint;
     // Create the layer groups and load the portal items
-    this.appLayerService.initializeLayers().subscribe ({
+    this.appLayerService.initializeLayers(isBatchMapping).subscribe ({
       complete: () => {
         if (isBatchMapping) {
           // if we're batch mapping, we want no widgets on the UI except for a custom legend
           this.mapService.mapView.ui.remove('zoom');
-          return;
+          // return;
         }
         // setup the map widgets
         this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });

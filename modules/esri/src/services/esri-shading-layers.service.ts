@@ -19,7 +19,7 @@ export class EsriShadingLayersService {
               private domainFactory: EsriDomainFactoryService) { }
 
   createShadingLayer(config: AllShadingConfigurations, visualVariable?: __esri.ColorVariable, groupName: string = 'Shading') : Observable<__esri.FeatureLayer> {
-    return this.layerService.createPortalLayer(config.layerId, config.layerName, undefined, true).pipe(
+    return this.layerService.createPortalLayer(config.layerId, config.layerName, 1155600, true).pipe(
       map(layer => this.createAndAttachRenderer(layer, config, visualVariable)),
       tap(layer => {
         const group = this.layerService.createClientGroup(groupName, true, true);
@@ -71,7 +71,7 @@ export class EsriShadingLayersService {
       if (existingLayer != null && existingLayer != undefined) this.layerService.removeLayer(layerName);
     } else if (geos.length > 0) {
       const arcade = this.rendererService.generateArcadeForGeos(geos);
-      if (!this.layerService.getFeatureLayer(layerName)) { 
+      if (!this.layerService.getFeatureLayer(layerName)) {
         const defaultSymbol = EsriRendererService.createSymbol([0, 0, 0, 0], [0, 0, 0, 0], 0);
         const uniqueValues: any = [];
         uniqueValues.push({
@@ -79,9 +79,9 @@ export class EsriShadingLayersService {
           symbol: EsriRendererService.createSymbol([0, 255, 0, 0.25], [0, 0, 0, 0], 0),
           label: 'Selected Geo'
         });
-        const layerConfiguration: UniqueValueShadingConfiguration = new UniqueValueShadingConfiguration(layerId, layerName, arcade, 'Selected Geos', defaultSymbol, uniqueValues);     
+        const layerConfiguration: UniqueValueShadingConfiguration = new UniqueValueShadingConfiguration(layerId, layerName, arcade, 'Selected Geos', defaultSymbol, uniqueValues);
         this.createShadingLayer(layerConfiguration).subscribe(layer => {
-          const group1 = this.layerService.getGroup('Shading');          
+          const group1 = this.layerService.getGroup('Shading');
         });
       } else if (this.layerService.getFeatureLayer(layerName)) {
         const existingLayer = this.layerService.getFeatureLayer(layerName);

@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import { selectors } from '@val/esri';
 import { Observable, Subject } from 'rxjs';
 import { filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
+import { AppConfig } from '../../app.config';
 import { AppMapService } from '../../services/app-map.service';
 import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode, SetMapReady } from '../../state/batch-map/batch-map.actions';
@@ -33,6 +34,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject<void>();
 
   constructor(private store$: Store<FullAppState>,
+              private config: AppConfig,
               private appMapService: AppMapService) { }
 
   private static convertParams(params: Params) : BatchMapQueryParams {
@@ -58,6 +60,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.height$ = this.typedParams$.pipe(
       map(params => params.height)
     );
+    this.config.isBatchMode = true;
     this.store$.dispatch(new SetBatchMode());
     this.store$.dispatch(new CreateNewProject());
   }

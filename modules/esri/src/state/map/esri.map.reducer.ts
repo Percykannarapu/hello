@@ -3,7 +3,7 @@ import { EsriMapActions, EsriMapActionTypes } from './esri.map.actions';
 import { EsriMapToolbarButtonActionTypes } from './esri.map-button.actions';
 
 export interface EsriLabelConfiguration {
-  font: string;
+  //font: string;
   size: number;
   enabled: boolean;
   pobEnabled: boolean;
@@ -45,7 +45,7 @@ const initialState: EsriMapState = {
   selectedFeatures: [],
   selectedLayerId: null,
   labelConfiguration: {
-    font: 'sans-serif',
+    //font: 'sans-serif',
     size: 10,
     enabled: true,
     pobEnabled: false,

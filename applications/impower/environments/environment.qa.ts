@@ -41,30 +41,37 @@ export class EnvironmentData {
   public static layerIds: AllLayerIds = {
     dma: {
       boundary: '5c8d7e4a824f4aa0b254925348f2a14a',
+      simplifiedBoundary: undefined,
       centroid: undefined
     },
     counties: {
       boundary: '39b51d9d498f4107bc69ac30f31ac115',
+      simplifiedBoundary: undefined,
       centroid: undefined
     },
     zip: {
       boundary: '23a54308e914496aa24d94a9b36776a0',
+      simplifiedBoundary: 'a73b8263dd5b49efbf3826d120a73f62',
       centroid: '88120ac630d746239b133296e87b8e1f'
     },
     atz: {
       boundary: 'c0ee701ee95f4bbdbc15ded2a37ca802',
+      simplifiedBoundary: 'cfb386fa58944550b0a5c7f76fbab111',
       centroid: 'fd4b078fc2424dd5a48af860dc421431'
     },
     dtz: {
       boundary: 'a4449b3ee55442af881f6ac660ca8163',
+      simplifiedBoundary: undefined,
       centroid: '377018a24ba14afa9e02e56110b3a568'
     },
     pcr: {
       boundary: '53482efa44914dc199f3833276ddb5a1',
+      simplifiedBoundary: undefined,
       centroid: 'ab655c84473748159307fe18962138d1'
     },
     wrap: {
       boundary: '12bae62392eb47aeb887b6509da557b5',
+      simplifiedBoundary: 'de4c03f1d5964e64828465558c14b893',
       centroid: undefined
     }
   };

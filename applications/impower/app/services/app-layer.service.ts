@@ -39,11 +39,6 @@ export class AppLayerService {
     ).subscribe(() => {
       this.appStateService.analysisLevel$.subscribe(al => this.setDefaultLayerVisibility(al));
     });
-
-    combineLatest(this.appStateService.applicationIsReady$, this.layerService.layersReady$).pipe(
-      filter(([appIsReady, layersReady]) => !appIsReady && layersReady),
-      distinctUntilChanged()
-    ).subscribe(() => this.clearClientLayers());
   }
 
   private setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
@@ -72,12 +67,12 @@ export class AppLayerService {
     }
   }
 
-  public initializeLayers() : Observable<__esri.FeatureLayer> {
+  public initializeLayers(isBatchMapping: boolean = false) : Observable<__esri.FeatureLayer> {
     const sortedLayerDefs = Object.values(this.appConfig.layers);
     sortedLayerDefs.sort((a, b) => a.group.sortOrder - b.group.sortOrder);
     const results: Observable<__esri.FeatureLayer>[] = [];
     sortedLayerDefs.forEach(layerGroup => {
-      const layerObservables = this.initializeLayerGroup(layerGroup);
+      const layerObservables = this.initializeLayerGroup(layerGroup, isBatchMapping);
       results.push(...layerObservables);
     });
     return merge(...results, 2).pipe(
@@ -94,14 +89,16 @@ export class AppLayerService {
     );
   }
 
-  private initializeLayerGroup(groupDefinition: LayerGroupDefinition) : Observable<__esri.FeatureLayer>[] {
+  private initializeLayerGroup(groupDefinition: LayerGroupDefinition, isBatchMapping: boolean) : Observable<__esri.FeatureLayer>[] {
     const layerObservables: Observable<__esri.FeatureLayer>[] = [];
     const group = this.layerService.createPortalGroup(groupDefinition.group.name, false);
     this.addVisibilityWatch(group);
     const layerDefinitions = [ groupDefinition.centroids, groupDefinition.boundaries ].filter(l => l != null);
     layerDefinitions.forEach(layerDef => {
       const layerSortIndex = layerDef.sortOrder || 0;
-      const layerPipeline = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
+      const isSimplifiedLayer = isBatchMapping && layerDef.simplifiedId != null;
+      const layerId = isSimplifiedLayer ? layerDef.simplifiedId : layerDef.id;
+      const layerPipeline = this.layerService.createPortalLayer(layerId, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
         tap(layer => this.setupIndividualLayer(layer, layerDef)),
         tap(layer => group.add(layer, layerSortIndex)),
       );

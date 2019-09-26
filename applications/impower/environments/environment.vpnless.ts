@@ -54,30 +54,37 @@ export class EnvironmentData {
   public static layerIds: AllLayerIds = {
     dma: {
       boundary: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/DMA_Boundaries_Portal_CopyAllData/FeatureServer`,
+      simplifiedBoundary: undefined,
       centroid: undefined
     },
     counties: {
       boundary: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/County_Boundaries_Portal_CopyAllData/FeatureServer`,
+      simplifiedBoundary: undefined,
       centroid: undefined
     },
     zip: {
       boundary: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_CopyAllData/FeatureServer`,
+      simplifiedBoundary: 'a73b8263dd5b49efbf3826d120a73f62',
       centroid: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/ZIP_Centroids_CopyAllData/FeatureServer`
     },
     atz: {
       boundary: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_CopyAllData/FeatureServer`,
+      simplifiedBoundary: 'cfb386fa58944550b0a5c7f76fbab111',
       centroid: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/ATZ_Centroids_CopyAllData/FeatureServer`
     },
     dtz: {
       boundary: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/DIG_ATZ_Top_Vars_CopyAllData/FeatureServer`,
+      simplifiedBoundary: undefined,
       centroid: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/DIG_ATZ_Centroids_CopyAllData/FeatureServer`
     },
     pcr: {
       boundary: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/PCR_Top_Vars_Portal_CopyAllData/FeatureServer`,
+      simplifiedBoundary: undefined,
       centroid: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/PCR_Centroids_Portal_CopyAllData/FeatureServer`
     },
     wrap: {
       boundary: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/WRAP_Top_Vars_Portal_Copy_All_Data/FeatureServer`,
+      simplifiedBoundary: 'de4c03f1d5964e64828465558c14b893',
       centroid: undefined
     }
   };
