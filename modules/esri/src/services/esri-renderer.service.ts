@@ -36,9 +36,9 @@ export class EsriRendererService {
               private layerService: EsriLayerService,
               ) {}
 
-  private static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
-  private static createSymbol(fillColor: number[] | __esri.Color, outlineColor: number[] | __esri.Color, outlineWidth: number) : __esri.SimpleFillSymbol;
-  private static createSymbol(fillColor: number[] | __esri.Color, outlineOrColor: number[] | __esri.Color | __esri.SimpleLineSymbol, outlineWidth?: number) : __esri.SimpleFillSymbol {
+  public static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
+  public static createSymbol(fillColor: number[] | __esri.Color, outlineColor: number[] | __esri.Color, outlineWidth: number) : __esri.SimpleFillSymbol;
+  public static createSymbol(fillColor: number[] | __esri.Color, outlineOrColor: number[] | __esri.Color | __esri.SimpleLineSymbol, outlineWidth?: number) : __esri.SimpleFillSymbol {
     let currentOutline: Partial<__esri.SimpleLineSymbol>;
     if (this.objectIsSimpleLine(outlineOrColor)) {
       currentOutline = outlineOrColor.clone();
@@ -331,7 +331,7 @@ export class EsriRendererService {
     }
   }
 
-  private generateArcadeForGeos(geos: string[]) : string {
+  public generateArcadeForGeos(geos: string[]) : string {
     const arcadeValues: Array<string> = [];
     geos.forEach( geo => arcadeValues.push(`\"${geo}\":1`));
     const arcade = `var geos = {${arcadeValues}};

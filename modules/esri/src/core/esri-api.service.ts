@@ -15,6 +15,8 @@ export class EsriApi {
     'esri/renderers/smartMapping/symbology/color',
     'esri/renderers/smartMapping/statistics/histogram',
     'esri/renderers/visualVariables/support/ColorStop',
+    'esri/renderers/DotDensityRenderer',
+    'esri/renderers/ClassBreaksRenderer',
     'esri/renderers/UniqueValueRenderer',
     'esri/renderers/SimpleRenderer',
     'esri/core/lang',
@@ -63,6 +65,8 @@ export class EsriApi {
   public static symbologyColor: __esri.symbologyColor;
   public static histogram: __esri.histogram;
   public static ColorStop: __esri.ColorStopConstructor;
+  public static DotDensityRenderer: __esri.DotDensityRendererConstructor;
+  public static ClassBreaksRenderer: __esri.ClassBreaksRendererConstructor;
   public static UniqueValueRenderer: __esri.UniqueValueRendererConstructor;
   public static SimpleRenderer: __esri.SimpleRendererConstructor;
   public static lang: __esri.lang;
@@ -126,6 +130,8 @@ export class EsriApi {
       EsriApi.symbologyColor,
       EsriApi.histogram,
       EsriApi.ColorStop,
+      EsriApi.DotDensityRenderer,
+      EsriApi.ClassBreaksRenderer,
       EsriApi.UniqueValueRenderer,
       EsriApi.SimpleRenderer,
       EsriApi.lang,

@@ -68,6 +68,14 @@ export class EsriUtils {
     return r != null && r.hasOwnProperty('type') && r['type'] === 'unique-value';
   }
 
+  public static rendererIsClassBreaks(r: __esri.Renderer) : r is __esri.ClassBreaksRenderer {
+    return r != null && r.hasOwnProperty('type') && r['type'] === 'class-breaks';
+  }
+
+  public static rendererIsDotDensity(r: __esri.Renderer) : r is __esri.DotDensityRenderer {
+    return r != null && r.hasOwnProperty('type') && r['type'] === 'dot-density';
+  }
+
   public static symbolIsSimpleFill(s: __esri.Symbol) : s is __esri.SimpleFillSymbol {
     return s != null && s.type === 'simple-fill';
   }

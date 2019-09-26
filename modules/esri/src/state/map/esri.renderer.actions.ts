@@ -6,6 +6,7 @@ export enum EsriRendererActionTypes {
   SetShadingData = '[Esri Renderer] Set Shading Data',
   ClearShadingData = '[Esri Renderer] Clear Shading Data',
 
+  SelectedGeosShading = '[Esri Renderer] Selected Geos Shading',
   SetSelectedGeos = '[Esri Renderer] Set Selected Geos',
   ClearSelectedGeos = '[Esri Renderer] Clear Selected Geos',
   SetHighlightOptions = '[Esri Renderer] Set highlight options',
@@ -25,6 +26,11 @@ export class ClearShadingData implements Action {
     readonly type = EsriRendererActionTypes.ClearShadingData;
 }
 
+export class SelectedGeosShading implements Action {
+    readonly type = EsriRendererActionTypes.SelectedGeosShading;
+    constructor(public payload: { dataDic: Map<string, boolean>, geos: string[], layerId: string}) {}
+}
+
 export class SetSelectedGeos implements Action {
   readonly type = EsriRendererActionTypes.SetSelectedGeos;
   constructor(public payload: Array<string>) { }
@@ -37,6 +43,7 @@ export class ClearSelectedGeos implements Action {
 export type EsriRendererActions =
   SetShadingData
   | ClearShadingData
+  | SelectedGeosShading
   | SetSelectedGeos
   | ClearSelectedGeos
   | SetHighlightOptions

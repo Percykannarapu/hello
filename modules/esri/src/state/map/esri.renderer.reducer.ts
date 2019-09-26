@@ -76,6 +76,8 @@ export function rendererReducer(state = initialState, action: ReducerActions) : 
 
     case EsriRendererActionTypes.SetSelectedGeos:
       return { ...state, selectedGeocodes: action.payload };
+    case EsriRendererActionTypes.SelectedGeosShading:
+      return { ...state, selectedGeocodes: action.payload.geos};
     case EsriRendererActionTypes.SetHighlightOptions:
       return { 
         ...state, 

@@ -86,4 +86,33 @@ export class EsriDomainFactoryService {
       }
     });
   }
+
+  createSimpleRenderer(symbol: __esri.Symbol) : __esri.SimpleRenderer {
+    return new EsriApi.SimpleRenderer({
+      symbol,
+    });
+  }
+
+  createUniqueValueRenderer(defaultSymbol: __esri.Symbol, infos: __esri.UniqueValueInfo[]) : __esri.UniqueValueRenderer {
+    return new EsriApi.UniqueValueRenderer({
+      defaultSymbol,
+      uniqueValueInfos: [...infos]
+    });
+  }
+
+  createClassBreakRenderer(defaultSymbol: __esri.Symbol, classBreaks: __esri.ClassBreaksRendererClassBreakInfos[]) : __esri.ClassBreaksRenderer {
+    return new EsriApi.ClassBreaksRenderer({
+      defaultSymbol,
+      classBreakInfos: [...classBreaks]
+    });
+  }
+
+  createDotDensityRenderer(outline: __esri.symbols.SimpleLineSymbol, referenceDotValue: number, referenceScale: number, attributes: __esri.AttributeColorInfo[]) : __esri.DotDensityRenderer {
+    return new EsriApi.DotDensityRenderer({
+      outline,
+      referenceDotValue,
+      referenceScale,
+      attributes
+    });
+  }
 }

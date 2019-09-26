@@ -1,18 +1,20 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { calculateStatistics } from '@val/common';
-import { ClearSelectedGeos, ColorPalette, EsriRendererService, SetSelectedGeos, SetShadingData } from '@val/esri';
+import { ColorPalette, EsriRendererService, SetShadingData, SelectedGeosShading } from '@val/esri';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
 import * as fromMapVarSelectors from 'app/impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { BehaviorSubject } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { filter, take, debounceTime } from 'rxjs/operators';
 import { ShadingData } from '../../../../modules/esri/src/state/map/esri.renderer.reducer';
 import { LocalAppState } from '../state/app.interfaces';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
+import { AppConfig } from 'app/app.config';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 @Injectable()
 export class AppRendererService {
@@ -21,20 +23,29 @@ export class AppRendererService {
   private mapAudienceBS$ = new BehaviorSubject<Audience[]>([]);
 
   constructor(private appStateService: AppStateService,
+              private impGeoService: ImpGeofootprintGeoService,
               private dataService: TargetAudienceService,
               private esriRenderer: EsriRendererService,
+              private config: AppConfig,
               private store$: Store<LocalAppState>) {
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.appStateService.uniqueSelectedGeocodes$.pipe (
+      this.impGeoService.storeObservable.pipe(
         filter(geos => geos != null),
-      ).subscribe(geos => {
-        if (geos.length > 0) {
-          this.store$.dispatch(new SetSelectedGeos(geos));
-        } else {
-          this.store$.dispatch(new ClearSelectedGeos());
+        debounceTime(500),
+      ).subscribe(g => {
+        const analysisLevel = this.appStateService.analysisLevel$.getValue();
+        if (analysisLevel !== null && analysisLevel !== undefined) {
+          const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
+          const geos: string[] = [];
+          const dataDic: Map<string, boolean> = new Map<string, boolean>();
+          g.forEach(geo => dataDic.set(geo.geocode, geo.isActive));
+          g.forEach((geo) => {
+            if (geo.isActive) geos.push(geo.geocode);
+          });
+          this.store$.dispatch(new SelectedGeosShading({ dataDic, geos, layerId }));
         }
       });
       // Subscribe to store selectors
