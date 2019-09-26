@@ -86,8 +86,8 @@ export class AppMapService implements OnDestroy {
           }
           // Execute the selectThis() function if the select-this action is clicked
           if (event.action.id === 'select-this') {
-            this.selectThis();
             this.selectedButton = 1;
+            this.selectThis();
           }
         });
 
