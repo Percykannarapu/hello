@@ -64,12 +64,12 @@ export class EnvironmentData {
     },
     zip: {
       boundary: '23a54308e914496aa24d94a9b36776a0',
-      simplifiedBoundary: 'a73b8263dd5b49efbf3826d120a73f62',
+      simplifiedBoundary: 'fb4295cfef1743f9a8a12c1d444effeb',
       centroid: '88120ac630d746239b133296e87b8e1f'
     },
     atz: {
       boundary: 'c0ee701ee95f4bbdbc15ded2a37ca802',
-      simplifiedBoundary: 'cfb386fa58944550b0a5c7f76fbab111',
+      simplifiedBoundary: '269894235d7946d19500e4bbf3ea9b09',
       centroid: 'fd4b078fc2424dd5a48af860dc421431'
     },
     dtz: {
@@ -84,7 +84,7 @@ export class EnvironmentData {
     },
     wrap: {
       boundary: '12bae62392eb47aeb887b6509da557b5',
-      simplifiedBoundary: 'de4c03f1d5964e64828465558c14b893',
+      simplifiedBoundary: 'f9594a876236492dab4bb667c28e18a5',
       centroid: undefined
     }
   };
