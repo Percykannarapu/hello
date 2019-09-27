@@ -82,7 +82,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       //const tablename = 'CL_ZIPTAB14';
       const reqPayload = {'tableName': tablename, 'fieldNames': fieldNames, 'geocodeList': [c.value] };
       
-       if (c.pristine) 
+       if (c.pristine || c.value == null || c.value === '') 
             return of(null);
        
        return timer(60).pipe(
@@ -96,15 +96,6 @@ export class EditLocationsComponent implements OnInit, OnChanges {
           )    
          )
        );     
-
-     /* return this.appLocationService.getHomegeocodeData(reqPayload, 'v1/targeting/base/homegeo/homegeocode').
-              pipe(map(response => {
-                  if (response.payload.length == 0){
-                    return {homeGeoValid: errorMsg};
-                  }
-                  else return null;
-              }),
-              tap(() => this.cd.markForCheck()));*/
     };
   }
 
