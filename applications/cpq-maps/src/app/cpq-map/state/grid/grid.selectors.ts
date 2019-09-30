@@ -58,21 +58,21 @@ const gridRowProjector = (shared: SharedState, detailEntities: RfpUiEditDetail[]
       ownerGroup: d.ownerGroup,
       siteName: siteNamesByFk.get(d.fkSite),
       isSelected: d.isSelected,
-      var1Value: d.var1IsNumber === 1 ? 
-        Number(d.var1Value) : 
-        (d.var1Name || '').toLocaleLowerCase().includes('wrap') ?
-          d.var1Value.replace(/[\/]/g, '/<wbr>') :
-          d.var1Value,
+      var1Value: d.var1IsNumber === 1 ?
+          d.var1Value == null ? null : Number(d.var1Value) :
+            (d.var1Name || '').toLocaleLowerCase().includes('wrap') ?
+              d.var1Value.replace(/[\/]/g, '/<wbr>') :
+              d.var1Value,
       var2Value: d.var2IsNumber === 1 ?
-        Number(d.var2Value) :
-        (d.var2Name || '').toLocaleLowerCase().includes('wrap') ?
-          d.var2Value.replace(/[\/]/g, '/<wbr>') :
-          d.var2Value,
+          d.var2Value == null ? null : Number(d.var2Value) :
+            (d.var2Name || '').toLocaleLowerCase().includes('wrap') ?
+              d.var2Value.replace(/[\/]/g, '/<wbr>') :
+              d.var2Value,
       var3Value: d.var3IsNumber === 1 ?
-        Number(d.var3Value) :
-        (d.var3Name || '').toLocaleLowerCase().includes('wrap') ?
-          d.var3Value.replace(/[\/]/g, '/<wbr>') :
-          d.var3Value
+          d.var3Value == null ? null : Number(d.var3Value) :
+            (d.var3Name || '').toLocaleLowerCase().includes('wrap') ?
+              d.var3Value.replace(/[\/]/g, '/<wbr>') :
+              d.var3Value
     } as GridRow));
   }
 };
