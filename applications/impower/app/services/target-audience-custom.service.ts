@@ -13,7 +13,7 @@ import { groupBy, filterArray, safe } from '@val/common';
 import { FieldContentTypeCodes, ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification, SuccessNotification } from '@val/messaging';
+import { ErrorNotification, SuccessNotification, WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { AppProjectPrefService } from './app-project-pref.service';
@@ -26,6 +26,8 @@ import { Audience } from 'app/impower-datastore/state/transient/audience/audienc
 import { AddAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { UpdateAudiences } from './../impower-datastore/state/transient/audience/audience.actions';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { AppConfig } from 'app/app.config';
+import { EsriQueryService } from '@val/esri';
 
 const audienceUpload: Parser<CustomAudienceData> = {
   columnParsers: [
@@ -53,6 +55,8 @@ export class TargetAudienceCustomService {
               private projectVarService: ImpProjectVarService,
               private appProjectPrefService: AppProjectPrefService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
+              private esriQueryService: EsriQueryService,
+              private appConfig: AppConfig,
               private logger: AppLoggingService,
               private store$: Store<LocalAppState>) {
 
@@ -251,6 +255,7 @@ export class TargetAudienceCustomService {
         this.handleError(`There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
       }
       if (successCount > 0) {
+        this.validateGeos(data, fileName, header);
         const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
         if (uniqueGeos.size !== data.parsedData.length)
           this.handleError('The file should contain unique geocodes. Please remove duplicates and resubmit the file.');
@@ -359,8 +364,8 @@ export class TargetAudienceCustomService {
           //   this.audienceService.addAudience(audienceDefinition/*, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos)*/);
           // });
           // console.log('### parseCustomVarData - adding audience - for project var - done');
-
-          this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Custom Audience Upload'}));
+          const geos = data.parsedData.length == 1 ? 'Geo' : 'Geos';  
+          this.store$.dispatch(new SuccessNotification({ message: `Valid ${geos} have been uploaded successfully`, notificationTitle: 'Custom Audience Upload'}));
         }
       }
     } catch (e) {
@@ -453,5 +458,43 @@ export class TargetAudienceCustomService {
 
   private handleError(message: string) : void {
     this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
+  }
+
+  private validateGeos(data: ParseResponse<CustomAudienceData>, fileNmae: string, header: string){
+    const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.stateService.analysisLevel$.getValue());
+    const outfields = ['geocode', 'latitude', 'longitude'];
+    const queryResult = new Set<string>();
+    const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
+    const errorGeo: CustomAudienceData[] = [];
+    const successGeo = [];
+    this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
+      map(graphics => graphics.map(g => g.attributes)),
+      map(attrs => {
+        attrs.forEach(r => queryResult.add(r.geocode));
+        return queryResult;
+      })
+     ).subscribe(qResult => {
+      const fields = header.split(',');
+      const records: string[] = [];
+      records.push(header + '\n');
+       data.parsedData.forEach(record => {
+         if (!qResult.has(record.geocode)){
+           let row = '';
+          for (let i = 0; i <= fields.length - 1; i++ ){
+            row = fields[i].toLocaleUpperCase() === 'GEOCODE' ? row + `${record.geocode},` : row + `${record[fields[i]]},`;
+          }            
+          records.push(row.substring(0, row.length - 1) + '\n');
+         }
+       });
+      console.log('filteredData===>', records);
+      const a = document.createElement('a');
+      const blob = new Blob(records, { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      a.href = url;
+      a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
+      a.click();
+      const geos = records.length == 2 ? 'Geo' : 'Geos'; 
+      this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Audience Upload Warning'}));
+     });
   }
 }
