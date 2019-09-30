@@ -110,7 +110,7 @@ export class AppExportService {
   private locationExportImpl(siteType: SuccessfulLocationTypeCodes, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filename: string, currentProject: ImpProject, homeGeoIssueOnly: boolean = false) : number {
     const storeFilter: (loc: ImpGeofootprintLocation) => boolean = 
             loc => loc.clientLocationTypeCode === siteType && (!homeGeoIssueOnly || loc.impGeofootprintLocAttribs.some(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y'));
-    const pluralType = `${siteType}s`;
+            const pluralType = `${siteType}s`;
     const isDigital = exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital;
     const metricCount =  this.impGeofootprintLocationService.get().filter(storeFilter).length;
    if (metricCount === 0 && exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues ){

@@ -537,7 +537,7 @@ export class SiteListComponent implements OnInit {
     */
    public onHGCIssuesLog() {
      
-    const site: SuccessfulLocationTypeCodes = ImpClientLocationTypeCodes.Site;
+    const locType: SuccessfulLocationTypeCodes = this.selectedListType === 'Site'? ImpClientLocationTypeCodes.Site : ImpClientLocationTypeCodes.Competitor;
     //this.confirmationService.confirm({
     //   message: 'Home Geocode Issues Log',
     //   header: 'There are no home geocoding issues to report',
@@ -547,7 +547,7 @@ export class SiteListComponent implements OnInit {
 
     //      }
     //});
-    this.store$.dispatch(new ExportHGCIssuesLog({locationType: site}));
+    this.store$.dispatch(new ExportHGCIssuesLog({locationType: locType}));
  }
    /**
     * When the user clicks the "Magnifying glass" icon, this will zoom the map to that location
