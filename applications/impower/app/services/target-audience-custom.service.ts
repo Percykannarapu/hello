@@ -296,7 +296,8 @@ export class TargetAudienceCustomService {
                 audienceMap.set(column, audDataDefinition);
 
                 // Create a new audience
-                this.store$.dispatch(new AddAudience({ audience: audDataDefinition }));
+                if (!isReload)
+                    this.store$.dispatch(new AddAudience({ audience: audDataDefinition }));
 
                 const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
                 this.store$.dispatch(new CreateAudienceUsageMetric('custom', 'upload', metricText, successCount));
