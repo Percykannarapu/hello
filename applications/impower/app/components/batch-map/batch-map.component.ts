@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { selectors } from '@val/esri';
+import { EsriMapService, selectors } from '@val/esri';
 import { Observable, Subject } from 'rxjs';
 import { filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
@@ -35,7 +35,8 @@ export class BatchMapComponent implements OnInit, OnDestroy {
 
   constructor(private store$: Store<FullAppState>,
               private config: AppConfig,
-              private appMapService: AppMapService) { }
+              private appMapService: AppMapService,
+              private esriMapService: EsriMapService) { }
 
   private static convertParams(params: Params) : BatchMapQueryParams {
     const result = {
@@ -75,7 +76,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
 
   private setupMap() : void {
     console.log('Setup Map called');
-    this.appMapService.watchMapViewProperty('updating').pipe(
+    this.esriMapService.watchMapViewProperty('updating').pipe(
       takeUntil(this.destroyed$)
     ).subscribe(result => this.store$.dispatch(new SetMapReady({ mapReady: !result.newValue })));
     this.appMapService.setupMap(true);

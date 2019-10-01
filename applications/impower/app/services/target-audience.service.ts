@@ -2,7 +2,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended, isNumber, mapByExtended } from '@val/common';
-import { ClearShadingData } from '@val/esri';
+import { ClearRenderingData } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { BehaviorSubject, combineLatest, concat, merge, Observable, Subscription } from 'rxjs';
@@ -364,10 +364,10 @@ export class TargetAudienceService implements OnDestroy {
           const element = window.document.createElement('a');
           document.body.appendChild(element);
           element.href = downloadUrl;
-          
+
           element['download'] = fileName;
           element.target = '_blank';
-          
+
           element.click();
         }, null, () => {
           //TODO: send a request to fuse to delete the file
@@ -471,7 +471,7 @@ export class TargetAudienceService implements OnDestroy {
     switch (shadingAudience.length) {
       case 0:
         if (this.shadingSub) this.shadingSub.unsubscribe();
-        this.store$.dispatch(new ClearShadingData());
+        this.store$.dispatch(new ClearRenderingData());
         break;
 
       case 1:

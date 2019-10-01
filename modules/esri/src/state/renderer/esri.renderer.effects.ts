@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { EsriMapActionTypes } from './esri.map.actions';
-import { SetSelectedGeos, EsriRendererActionTypes, SetShadingData, SelectedGeosShading } from './esri.renderer.actions';
+import { EsriMapActionTypes } from '../map/esri.map.actions';
+import { SetSelectedGeos, EsriRendererActionTypes, SetRenderingData, SelectedGeosShading } from './esri.renderer.actions';
 import { EsriApi } from '../../core/esri-api.service';
 import { EsriQueryService } from '../../services/esri-query.service';
 import { EsriRendererService } from '../../services/esri-renderer.service';
@@ -16,14 +16,14 @@ export class EsriRendererEffects {
 
   @Effect({ dispatch: false })
   enableShading$ = this.actions$.pipe(
-    ofType<SetShadingData>(EsriRendererActionTypes.SetShadingData),
+    ofType<SetRenderingData>(EsriRendererActionTypes.SetRenderingData),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
     tap(([action, mapState]) => this.rendererService.setShadingRenderer(mapState, action.payload.data, action.payload.isNumericData, action.payload.statistics, action.payload.legend, action.payload.theme))
   );
 
   @Effect({ dispatch: false })
   disableShading$ = this.actions$.pipe(
-    ofType(EsriRendererActionTypes.ClearShadingData),
+    ofType(EsriRendererActionTypes.ClearRenderingData),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapState))),
     tap(([action, mapState]) => this.rendererService.restoreSimpleRenderer(mapState))
   );
@@ -48,7 +48,7 @@ export class EsriRendererEffects {
   selectedGeosShading$ = this.actions$.pipe(
     ofType<SelectedGeosShading>(EsriRendererActionTypes.SelectedGeosShading),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-    tap(([action]) => this.shadingService.selectedGeosShading(action.payload.geos, action.payload.layerId))
+    tap(([action]) => this.shadingService.selectedGeosShading(action.payload.geos, action.payload.layerId, action.payload.minScale))
   );
 
   @Effect({ dispatch: false })

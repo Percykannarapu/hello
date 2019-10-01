@@ -3,7 +3,7 @@ import { apiReducer } from './api/esri.api.reducer';
 import { authReducer } from './auth/esri.auth.reducer';
 import { EsriState } from './esri.selectors';
 import { mapReducer } from './map/esri.map.reducer';
-import { rendererReducer } from './map/esri.renderer.reducer';
+import { rendererReducer } from './renderer/esri.renderer.reducer';
 
 export const esriReducers: ActionReducerMap<EsriState> = {
   api: apiReducer,

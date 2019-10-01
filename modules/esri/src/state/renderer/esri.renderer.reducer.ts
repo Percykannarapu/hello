@@ -1,4 +1,4 @@
-import { EsriMapActionTypes, ResetMapState } from './esri.map.actions';
+import { EsriMapActionTypes, ResetMapState } from '../map/esri.map.actions';
 import { EsriRendererActions, EsriRendererActionTypes } from './esri.renderer.actions';
 import { ColorPalette } from '../../models/color-palettes';
 
@@ -56,7 +56,7 @@ export function rendererReducer(state = initialState, action: ReducerActions) : 
       return {
         ...initialState
       };
-    case EsriRendererActionTypes.SetShadingData:
+    case EsriRendererActionTypes.SetRenderingData:
       return {
         ...state,
         shadingData: { ...action.payload.data },
@@ -65,7 +65,7 @@ export function rendererReducer(state = initialState, action: ReducerActions) : 
         colorPallete: action.payload.theme,
         enableShading: true,
       };
-    case EsriRendererActionTypes.ClearShadingData:
+    case EsriRendererActionTypes.ClearRenderingData:
       return {
         ...state,
         shadingData: initialState.shadingData,
@@ -79,10 +79,10 @@ export function rendererReducer(state = initialState, action: ReducerActions) : 
     case EsriRendererActionTypes.SelectedGeosShading:
       return { ...state, selectedGeocodes: action.payload.geos};
     case EsriRendererActionTypes.SetHighlightOptions:
-      return { 
-        ...state, 
-        highlightMode: action.payload.higlightMode, 
-        highlightLayerGroup: action.payload.layerGroup, 
+      return {
+        ...state,
+        highlightMode: action.payload.highlightMode,
+        highlightLayerGroup: action.payload.layerGroup,
         highlightLayer: action.payload.layer,
         shadingGroups: action.payload.groups,
       };

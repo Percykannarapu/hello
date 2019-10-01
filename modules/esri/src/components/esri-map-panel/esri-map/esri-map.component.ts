@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { debounce, debounceTime, filter, map, pairwise, startWith, take, withLatestFrom } from 'rxjs/operators';
+import { filter, map, startWith, take } from 'rxjs/operators';
 import { EsriMapService } from '../../../services/esri-map.service';
 import { AppState, selectors } from '../../../state/esri.selectors';
 import { select, Store } from '@ngrx/store';
 import { InitializeMap } from '../../../state/map/esri.map.actions';
-import { EsriUtils, WatchResult } from '../../../core/esri-utils';
+import { EsriUtils } from '../../../core/esri-utils';
 import { combineLatest } from 'rxjs';
 
 @Component({

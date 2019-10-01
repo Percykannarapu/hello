@@ -2,7 +2,7 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { EsriAuthState } from './auth/esri.auth.reducer';
 import { EsriApiState } from './api/esri.api.reducer';
 import { EsriMapState } from './map/esri.map.reducer';
-import { EsriRendererState } from './map/esri.renderer.reducer';
+import { EsriRendererState } from './renderer/esri.renderer.reducer';
 
 export interface AppState {
   esri: EsriState;

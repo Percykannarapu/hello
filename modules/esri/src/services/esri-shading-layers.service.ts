@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, take, tap } from 'rxjs/operators';
+import { SelectedShadingLayerName } from '../../settings';
 import { EsriUtils } from '../core/esri-utils';
-import { AllShadingConfigurations, ConfigurationTypes, UniqueValueShadingConfiguration } from '../models/shading-configuration';
+import { AllShadingConfigurations, ConfigurationTypes, SimpleShadingConfiguration } from '../models/shading-configuration';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
-import { EsriRendererService } from './esri-renderer.service';
 import { EsriMapService } from './esri-map.service';
+import { EsriRendererService } from './esri-renderer.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,9 +20,11 @@ export class EsriShadingLayersService {
               private domainFactory: EsriDomainFactoryService) { }
 
   createShadingLayer(config: AllShadingConfigurations, visualVariable?: __esri.ColorVariable, groupName: string = 'Shading') : Observable<__esri.FeatureLayer> {
-    return this.layerService.createPortalLayer(config.layerId, config.layerName, 1155600, true).pipe(
+    return this.layerService.createPortalLayer(config.layerId, config.layerName, config.minScale, true).pipe(
+      tap(layer => layer.definitionExpression = config.expression),
       map(layer => this.createAndAttachRenderer(layer, config, visualVariable)),
       tap(layer => {
+        console.log('Shading Layer Created', layer);
         const group = this.layerService.createClientGroup(groupName, true, true);
         if (group) group.add(layer);
       })
@@ -36,7 +39,7 @@ export class EsriShadingLayersService {
     layer.renderer = renderer;
     layer.popupEnabled = false;
     layer.labelsVisible = false;
-    layer.legendEnabled = false;
+    layer.legendEnabled = config.type === ConfigurationTypes.Simple;
     return layer;
   }
 
@@ -64,33 +67,18 @@ export class EsriShadingLayersService {
     }
   }
 
-  selectedGeosShading(geos: string[], layerId: string) {
-    const layerName: string = 'Selected';
-    if (geos.length === 0) {
-      const existingLayer = this.layerService.getFeatureLayer(layerName);
-      if (existingLayer != null && existingLayer != undefined) this.layerService.removeLayer(layerName);
-    } else if (geos.length > 0) {
-      const arcade = this.rendererService.generateArcadeForGeos(geos);
-      if (!this.layerService.getFeatureLayer(layerName)) {
-        const defaultSymbol = EsriRendererService.createSymbol([0, 0, 0, 0], [0, 0, 0, 0], 0);
-        const uniqueValues: any = [];
-        uniqueValues.push({
-          value: '1',
-          symbol: EsriRendererService.createSymbol([0, 255, 0, 0.25], [0, 0, 0, 0], 0),
-          label: 'Selected Geo'
-        });
-        const layerConfiguration: UniqueValueShadingConfiguration = new UniqueValueShadingConfiguration(layerId, layerName, arcade, 'Selected Geos', defaultSymbol, uniqueValues);
-        this.createShadingLayer(layerConfiguration).subscribe(layer => {
-          const group1 = this.layerService.getGroup('Shading');
-        });
-      } else if (this.layerService.getFeatureLayer(layerName)) {
-        const existingLayer = this.layerService.getFeatureLayer(layerName);
-        if (EsriUtils.rendererIsUnique(existingLayer.renderer)) {
-          const copyRenderer = EsriUtils.clone(existingLayer.renderer);
-          copyRenderer.valueExpression = arcade;
-          existingLayer.renderer = copyRenderer;
-        }
-      }
+  selectedGeosShading(geos: string[], layerId: string, minScale: number) {
+    const query = `geocode IN (${geos.map(g => `'${g}'`).join(',')})`;
+    const existingLayer = this.layerService.getFeatureLayer(SelectedShadingLayerName);
+    if (existingLayer == null) {
+      const shadedSymbol = this.domainFactory.createSimpleFillSymbol([0, 255, 0, 0.25], this.domainFactory.createSimpleLineSymbol([0, 0, 0, 0]));
+      const layerConfiguration = new SimpleShadingConfiguration(layerId, SelectedShadingLayerName, minScale, 'Selected Geos', shadedSymbol, query);
+      this.createShadingLayer(layerConfiguration).pipe(
+        tap(layer => layer.outFields = ['geocode']),
+        take(1)
+      ).subscribe(); // the take(1) ensures we clean up the subscription
+    } else {
+      existingLayer.definitionExpression = query;
     }
   }
 }

@@ -107,7 +107,7 @@ export class AppLayerService {
    public setupLegend() {
       if (this.legendCreated) return;
       const node = this.generateLegendHTML();
-      const expand: __esri.Expand = new EsriApi.Expand({ content: node, view: this.esriMapService.mapView });
+      const expand: __esri.Expand = new EsriApi.widgets.Expand({ content: node, view: this.esriMapService.mapView });
       expand.expandIconClass = 'esri-icon-maps';
       expand.expandTooltip = 'Open Legend';
       this.esriMapService.mapView.ui.add(expand, 'top-right');

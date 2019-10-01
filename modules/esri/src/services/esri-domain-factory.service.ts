@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
+import { AutoCastColor, FillPattern, LineStyle } from '../models/esri-types';
 
 @Injectable()
 export class EsriDomainFactoryService {
@@ -113,6 +114,22 @@ export class EsriDomainFactoryService {
       referenceDotValue,
       referenceScale,
       attributes
+    });
+  }
+
+  createSimpleLineSymbol(color: AutoCastColor, width: number | string = 1, style: LineStyle = 'solid') : __esri.symbols.SimpleLineSymbol {
+    return new EsriApi.SimpleLineSymbol({
+      color,
+      width,
+      style
+    });
+  }
+
+  createSimpleFillSymbol(color: AutoCastColor, outline: __esri.symbols.SimpleLineSymbol, style: FillPattern = 'solid') : __esri.symbols.SimpleFillSymbol {
+    return new EsriApi.SimpleFillSymbol({
+      color,
+      outline,
+      style
     });
   }
 }

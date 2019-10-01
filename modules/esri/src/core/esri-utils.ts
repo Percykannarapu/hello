@@ -61,19 +61,19 @@ export class EsriUtils {
   }
 
   public static rendererIsSimple(r: __esri.Renderer) : r is __esri.SimpleRenderer {
-    return r != null && r.hasOwnProperty('type') && r['type'] === 'simple';
+    return r != null && r.type === 'simple';
   }
 
   public static rendererIsUnique(r: __esri.Renderer) : r is __esri.UniqueValueRenderer {
-    return r != null && r.hasOwnProperty('type') && r['type'] === 'unique-value';
+    return r != null && r.type === 'unique-value';
   }
 
   public static rendererIsClassBreaks(r: __esri.Renderer) : r is __esri.ClassBreaksRenderer {
-    return r != null && r.hasOwnProperty('type') && r['type'] === 'class-breaks';
+    return r != null && r.type === 'class-breaks';
   }
 
   public static rendererIsDotDensity(r: __esri.Renderer) : r is __esri.DotDensityRenderer {
-    return r != null && r.hasOwnProperty('type') && r['type'] === 'dot-density';
+    return r != null && r.type === 'dot-density';
   }
 
   public static symbolIsSimpleFill(s: __esri.Symbol) : s is __esri.SimpleFillSymbol {
@@ -85,7 +85,7 @@ export class EsriUtils {
   }
 
   public static itemIsPoint(p: any) : p is __esri.Point {
-    return p != null && p.type != null && p.type === 'point';
+    return p != null && p.type === 'point';
   }
 
   public static getDistance(a: __esri.Point, b: __esri.Point) : number;

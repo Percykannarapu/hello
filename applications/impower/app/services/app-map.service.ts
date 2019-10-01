@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, WatchResult } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -166,10 +166,6 @@ export class AppMapService implements OnDestroy {
     });
     this.selectedButton = button;
     this.geoSelected.next(events);
-  }
-
-  public watchMapViewProperty<T extends keyof __esri.MapView>(propertyName: T) : Observable<WatchResult<__esri.MapView, T>> {
-    return EsriUtils.setupWatch(this.mapService.mapView, propertyName);
   }
 
   /**

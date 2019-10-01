@@ -2,7 +2,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { select, Store, StoreModule } from '@ngrx/store';
+import { Store, StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
@@ -33,7 +33,7 @@ import { EsriPrintingService } from './src/services/esri-printing-service';
 
 export function initializer(store: Store<AppState>) {
   return function () {
-    return store.pipe(select(selectors.getEsriFeatureReady), filter(ready => ready), take(1)).toPromise();
+    return store.select(selectors.getEsriFeatureReady).pipe(filter(ready => ready), take(1)).toPromise();
   };
 }
 

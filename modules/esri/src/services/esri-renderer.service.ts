@@ -4,7 +4,7 @@ import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapState } from '../state/map/esri.map.reducer';
-import { ShadingData, Statistics } from '../state/map/esri.renderer.reducer';
+import { ShadingData, Statistics } from '../state/renderer/esri.renderer.reducer';
 import { ColorPalette, getColorPalette } from '../models/color-palettes';
 import { tap, map} from 'rxjs/operators';
 import { merge } from 'rxjs';
@@ -36,9 +36,9 @@ export class EsriRendererService {
               private layerService: EsriLayerService,
               ) {}
 
-  public static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
-  public static createSymbol(fillColor: number[] | __esri.Color, outlineColor: number[] | __esri.Color, outlineWidth: number) : __esri.SimpleFillSymbol;
-  public static createSymbol(fillColor: number[] | __esri.Color, outlineOrColor: number[] | __esri.Color | __esri.SimpleLineSymbol, outlineWidth?: number) : __esri.SimpleFillSymbol {
+  private static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
+  private static createSymbol(fillColor: number[] | __esri.Color, outlineColor: number[] | __esri.Color, outlineWidth: number) : __esri.SimpleFillSymbol;
+  private static createSymbol(fillColor: number[] | __esri.Color, outlineOrColor: number[] | __esri.Color | __esri.SimpleLineSymbol, outlineWidth?: number) : __esri.SimpleFillSymbol {
     let currentOutline: Partial<__esri.SimpleLineSymbol>;
     if (this.objectIsSimpleLine(outlineOrColor)) {
       currentOutline = outlineOrColor.clone();

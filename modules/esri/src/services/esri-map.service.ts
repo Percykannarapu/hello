@@ -1,4 +1,5 @@
 import { ElementRef, Inject, Injectable } from '@angular/core';
+import { EsriUtils, WatchResult } from '../core/esri-utils';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
@@ -38,7 +39,7 @@ export class EsriMapService {
     this.mapView.graphics.removeAll();
   }
 
-  public setWidget(type) {
+  setWidget(type) {
     switch (type) {
       case 'measure':
         this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
@@ -92,6 +93,10 @@ export class EsriMapService {
         }
         break;
     }
+  }
+
+  watchMapViewProperty<T extends keyof __esri.MapView>(propertyName: T) : Observable<WatchResult<__esri.MapView, T>> {
+    return EsriUtils.setupWatch(this.mapView, propertyName);
   }
 
   createBasicWidget(constructor: __esri.WidgetConstructor, properties?: any, position: string = 'top-left') : void {
