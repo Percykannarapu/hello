@@ -240,7 +240,7 @@ export class TargetAudienceCustomService {
     }
   }
 
-  public parseCustomVarData(dataBuffer: string, fileName: string, justColumn?: string) : GeoVar[] {
+  public parseCustomVarData(dataBuffer: string, fileName: string, justColumn?: string, isReload: boolean = false) : GeoVar[] {
     // console.log('### parseCustomVarData - fired - dataBuffer size:', dataBuffer.length, 'filename:', fileName, 'justColumn:', justColumn);
     let results: GeoVar[] = [];
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
@@ -255,7 +255,8 @@ export class TargetAudienceCustomService {
         this.handleError(`There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
       }
       if (successCount > 0) {
-        this.validateGeos(data, fileName, header);
+        if (!isReload)
+            this.validateGeos(data, fileName, header);
         const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
         if (uniqueGeos.size !== data.parsedData.length)
           this.handleError('The file should contain unique geocodes. Please remove duplicates and resubmit the file.');
@@ -364,8 +365,12 @@ export class TargetAudienceCustomService {
           //   this.audienceService.addAudience(audienceDefinition/*, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos)*/);
           // });
           // console.log('### parseCustomVarData - adding audience - for project var - done');
-          const geos = data.parsedData.length == 1 ? 'Geo' : 'Geos';  
-          this.store$.dispatch(new SuccessNotification({ message: `Valid ${geos} have been uploaded successfully`, notificationTitle: 'Custom Audience Upload'}));
+           
+          if (!isReload){
+            const geos = data.parsedData.length == 1 ? 'Geo' : 'Geos'; 
+            this.store$.dispatch(new SuccessNotification({ message: `Valid ${geos} have been uploaded successfully`, notificationTitle: 'Custom Audience Upload'}));
+          }
+              
         }
       }
     } catch (e) {
@@ -424,7 +429,7 @@ export class TargetAudienceCustomService {
       this.logger.info.log('reloadVarsFromPrefs - custom var prefs.Count = ' + ((prefs != null) ? prefs.length : null));
 
       if (prefs != null && prefs.length > 0) {
-        prefs.forEach(customVarPref => result.push(...this.parseCustomVarData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref, justColumn)));
+        prefs.forEach(customVarPref => result.push(...this.parseCustomVarData(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref, justColumn, true)));
       }
     }
     catch (e) {
@@ -494,7 +499,7 @@ export class TargetAudienceCustomService {
       a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
       a.click();
       const geos = records.length == 2 ? 'Geo' : 'Geos'; 
-      this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Audience Upload Warning'}));
+      this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
      });
   }
 }
