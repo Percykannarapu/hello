@@ -272,6 +272,14 @@ body {
     }
   }
 
+  .ui-panel-content,
+  .ui-widget-content {
+    p-dropdown,
+    p-multiSelect {
+      line-height: 1em;
+    }
+  }
+
   .ui-widget-content:not(.ui-picklist-list):not(.ui-accordion-content) {
     border: none;
   }
