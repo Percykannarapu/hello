@@ -492,15 +492,16 @@ export class TargetAudienceCustomService {
           records.push(row.substring(0, row.length - 1) + '\n');
          }
        });
-      console.log('filteredData===>', records);
-      const a = document.createElement('a');
-      const blob = new Blob(records, { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      a.href = url;
-      a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
-      a.click();
-      const geos = records.length == 2 ? 'Geo' : 'Geos'; 
-      this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
+       if (records.length > 1){
+          const a = document.createElement('a');
+          const blob = new Blob(records, { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          a.href = url;
+          a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
+          a.click();
+          const geos = records.length == 2 ? 'Geo' : 'Geos'; 
+          this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
+       }
      });
   }
 }
