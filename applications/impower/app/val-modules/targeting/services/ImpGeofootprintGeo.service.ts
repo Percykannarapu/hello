@@ -437,7 +437,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
 
       // Look for headers formed like 'xxxxx (yyyy)'
-      const matchRegex = /{(.*)}\s*(\(.*\))/gm;
+      const matchRegex = /(.*)\s*(\(.*\))/gm;
       let m;
       const matches: string[] = [];
       while ((m = matchRegex.exec(header)) !== null) {
@@ -451,19 +451,18 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       // If the header contained an audienceSource name in parens, pull out the actual audienceName to match on
       let audienceName = header;
       let audienceSourceName = null;
-      if (matches.length >= 2) {
-        audienceName = matches[1].trim();
-        audienceSourceName = matches[2];
-      }
-
       let audience = null;
-      if (audienceSourceName != null){
-        audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName && audienceSourceName.includes(aud.audienceSourceName));
+ //   if (audienceSourceName != null){
+    if (header.toLowerCase().includes('(interest)')  || header.toLowerCase().includes('(in-market)')){
+      if (matches.length >= 2) {
+         audienceName = matches[1].trim();
+         audienceSourceName = matches[2];
+        }
+       audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName && audienceSourceName.includes(aud.audienceSourceName));
       }
       else{
         audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName);
       }
-
       if (audience != null) {
         const geoVar = state.geoVarsBS$.value.find(gv => gv.geocode === geo.geocode);
         if (geoVar != null) {
@@ -491,7 +490,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
         }
       }
       return result;
-   }
+}
 
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
@@ -503,7 +502,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.exportAudiencesBS$.value.forEach(impVar => {
         // If more than one variable has this audience name, add the source name to the header
         const dupeNameCount = (this.allAudiencesBS$.getValue() != null) ? this.allAudiencesBS$.getValue().filter(aud => aud.audienceName === impVar.audienceName).length : 0;
-        const header = (dupeNameCount <= 1) ? impVar.audienceName : impVar.audienceName + ' {(' + impVar.audienceSourceName + ')}';
+        const header = (dupeNameCount <= 1) ? impVar.audienceName : impVar.audienceName + ' (' + impVar.audienceSourceName + ')';
         exportColumns.splice(insertAtPos++, 0, { header: header, row: this.exportVarAttributes});
       });
    }
