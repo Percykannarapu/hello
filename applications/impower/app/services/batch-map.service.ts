@@ -17,6 +17,8 @@ import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/Imp
 export class BatchMapService {
 
   private originalGeoState: Record<number, boolean> = null;
+  readonly printUrl: string = 'v1/impower/business/print';
+
 
   constructor(private geoService: ImpGeofootprintGeoService,
               private esriMapService: EsriMapService,
@@ -28,8 +30,7 @@ export class BatchMapService {
     const payload = {
       projectId: project.projectId
     };
-    // return this.restService.post(this.config.serviceUrls.batchPrintService, payload);
-    return throwError('Not Yet Implemented');
+    return this.restService.post(`${this.printUrl}?size=letter&orientation=landscape&email=amcirillo@valassis.com&projectId=${project.projectId}`, {});
   }
 
   validateProjectReadiness(project: ImpProject) : boolean {
