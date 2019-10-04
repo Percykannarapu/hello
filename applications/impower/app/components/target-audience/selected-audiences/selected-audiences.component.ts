@@ -236,7 +236,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   public formatString(audienceSourceType: string) : string{
-    const charsToReplace = {'+': '+<wbr>', '_': '_wbr', '.': '.<wbr>', '-' : '-<wbr>'};
+    const charsToReplace = {'+': '+<wbr>', '_': '_<wbr>', '.': '.<wbr>', '-' : '-<wbr>'};
     let formattedString = audienceSourceType;
     formattedString = formattedString.replace(/[+_.-]/g, char => charsToReplace[char]);
     return formattedString;
