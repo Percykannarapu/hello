@@ -234,4 +234,11 @@ export class SelectedAudiencesComponent implements OnInit {
     this.store$.dispatch(new MoveAudienceDn({ audienceIdentifier: audience.audienceIdentifier }));
     this.varService.syncProjectVars();
   }
+
+  public formatString(audienceSourceType: string) : string{
+    const charsToReplace = {'+': '+<wbr>', '_': '_wbr', '.': '.<wbr>', '-' : '-<wbr>'};
+    let formattedString = audienceSourceType;
+    formattedString = formattedString.replace(/[+_.-]/g, char => charsToReplace[char]);
+    return formattedString;
+  }
 }
