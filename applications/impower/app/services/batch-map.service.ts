@@ -26,11 +26,11 @@ export class BatchMapService {
               private restService: RestDataService,
               private store$: Store<LocalAppState>) { }
 
-  requestBatchMap(project: ImpProject) : Observable<any> {
+  requestBatchMap(project: ImpProject, email: string) : Observable<any> {
     const payload = {
       projectId: project.projectId
     };
-    return this.restService.post(`${this.printUrl}?size=letter&orientation=landscape&email=amcirillo@valassis.com&projectId=${project.projectId}`, {});
+    return this.restService.post(`${this.printUrl}?size=letter&orientation=landscape&email=${email}&projectId=${project.projectId}`, {});
   }
 
   validateProjectReadiness(project: ImpProject) : boolean {

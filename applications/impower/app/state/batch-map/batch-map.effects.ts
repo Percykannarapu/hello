@@ -18,8 +18,8 @@ export class BatchMapEffects {
   createBatchMap$ = this.actions$.pipe(
     ofType(BatchMapActionTypes.CreateBatchMap),
     withLatestFrom(this.appStateService.currentProject$),
-    filter(([, project]) => this.batchMapService.validateProjectReadiness(project)),
-    switchMap(([, project]) => this.batchMapService.requestBatchMap(project).pipe(
+    filter(([action, project]) => this.batchMapService.validateProjectReadiness(project)),
+    switchMap(([action, project]) => this.batchMapService.requestBatchMap(project, action.payload.email).pipe(
       map(response => new SuccessNotification({ notificationTitle: 'Batch Map', message: `The Batch Map is processing, id ${response.jobId}`})),
       catchError(e => of(new ErrorNotification({ notificationTitle: 'Batch Map', message: 'There was an error requesting the Batch Map', additionalErrorInfo: e})))
     ))

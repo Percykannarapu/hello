@@ -10,6 +10,7 @@ export enum BatchMapActionTypes {
 
 export class CreateBatchMap implements Action {
   readonly type = BatchMapActionTypes.CreateBatchMap;
+  constructor(public payload: { email: string }) {}
 }
 
 export class SetBatchMode implements Action {

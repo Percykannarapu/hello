@@ -50,7 +50,7 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
                   { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportToValassisDigital()) },
                   { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
-                  { label: 'Create Batch Map', icon: 'fa fa-book', command: () => this.store$.dispatch(new CreateBatchMap()) }
+                  { label: 'Create Batch Map', icon: 'fa fa-book', command: () => this.store$.dispatch(new CreateBatchMap({email: `${this.userService.getUser().username}@valassis.com`})) }
               ]
             }
         ];
@@ -59,7 +59,7 @@ export class AppMenuComponent implements OnInit {
     private saveProject(){
         this.stateService.closeOverlays();
         setTimeout(() => {
-            this.store$.dispatch(new SaveAndReloadProject()); 
+            this.store$.dispatch(new SaveAndReloadProject());
         }, 500);
     }
 
