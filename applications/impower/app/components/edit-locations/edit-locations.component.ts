@@ -80,7 +80,8 @@ export class EditLocationsComponent implements OnInit, OnChanges {
   validateGeo(tablename: string, fieldNames: string, errorMsg: string) : AsyncValidatorFn  {
     return (c: AbstractControl) : Promise<{[key: string] : any} | null> | Observable<{[key: string] : any} | null> => {
       //const tablename = 'CL_ZIPTAB14';
-      const reqPayload = {'tableName': tablename, 'fieldNames': fieldNames, 'geocodeList': [c.value] };
+      const value: string = c.value != null ? c.value.toUpperCase() : null;
+      const reqPayload = {'tableName': tablename, 'fieldNames': fieldNames, 'geocodeList': [value] };
       
        if (c.pristine || c.value == null || c.value === '') 
             return of(null);

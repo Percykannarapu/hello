@@ -78,7 +78,7 @@
         <div class="ui-g-3 p-t-15">
           <div class="ui-inputgroup">
             <span class="md-inputfield">
-              <input pInputText id="homeZipInput" class="ui-g-12" formControlName="homeZip" autocomplete="off" />
+              <input pInputText id="homeZipInput" class="ui-g-12" formControlName="homeZip" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
               <span class="ui-inputgroup-addon" *ngIf="!hasErrors('homeZip')">&nbsp;</span>
               <span class="ui-inputgroup-addon" *ngIf="hasErrors('homeZip')">
                 <i class="ui-icon-error error-icon" title="Not a valid Home ZIP"></i>
@@ -90,7 +90,7 @@
           <div class="ui-g-3">
               <div class="ui-inputgroup">
                 <span class="md-inputfield">
-                  <input pInputText id="homeAtzInput" class="ui-g-12" formControlName="homeAtz" autocomplete="off" />
+                  <input pInputText id="homeAtzInput" class="ui-g-12" formControlName="homeAtz" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
                   <span class="ui-inputgroup-addon" *ngIf="!hasErrors('homeAtz')">&nbsp;</span>
                   <span class="ui-inputgroup-addon" *ngIf="hasErrors('homeAtz')">
                     <i class="ui-icon-error error-icon" title="Not a valid Home ATZ"></i>
@@ -102,7 +102,7 @@
           <div class="ui-g-3 p-t-15">
             <div class="ui-inputgroup">
               <span class="md-inputfield">
-                <input pInputText id="homeDigitalAtzInput" class="ui-g-12" formControlName="homeDigitalAtz" autocomplete="off" />
+                <input pInputText id="homeDigitalAtzInput" class="ui-g-12" formControlName="homeDigitalAtz" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
                 <span class="ui-inputgroup-addon" *ngIf="!hasErrors('homeDigitalAtz')">&nbsp;</span>
                 <span class="ui-inputgroup-addon" *ngIf="hasErrors('homeDigitalAtz')">
                   <i class="ui-icon-error error-icon" title="Not a valid Home DTZ"></i>
@@ -115,7 +115,7 @@
           <div class="ui-g-3 p-t-15">
             <div class="ui-inputgroup">
                 <span class="md-inputfield">
-                  <input pInputText id="homePcrInput" class="ui-g-12" formControlName="homePcr" autocomplete="off" />
+                  <input pInputText id="homePcrInput" class="ui-g-12" formControlName="homePcr" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
                   <span class="ui-inputgroup-addon" *ngIf="!hasErrors('homePcr')">&nbsp;</span>
                   <span class="ui-inputgroup-addon" *ngIf="hasErrors('homePcr')">
                     <i class="ui-icon-error error-icon" title="Not a valid Home PCR"></i>
