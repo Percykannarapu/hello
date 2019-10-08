@@ -18,7 +18,7 @@ export class BatchMapEffects {
   createBatchMap$ = this.actions$.pipe(
     ofType(BatchMapActionTypes.CreateBatchMap),
     withLatestFrom(this.appStateService.currentProject$),
-    filter(([action, project]) => this.batchMapService.validateProjectReadiness(project)),
+    filter(([, project]) => this.batchMapService.validateProjectReadiness(project)),
     switchMap(([action, project]) => this.batchMapService.requestBatchMap(project, action.payload.email).pipe(
       map(response => new SuccessNotification({ notificationTitle: 'Batch Map', message: `The Batch Map is processing, id ${response.jobId}`})),
       catchError(e => of(new ErrorNotification({ notificationTitle: 'Batch Map', message: 'There was an error requesting the Batch Map', additionalErrorInfo: e})))
@@ -30,7 +30,12 @@ export class BatchMapEffects {
     ofType(DataShimActionTypes.ProjectLoadFinish),
     withLatestFrom(this.store$.select(getBatchMode)),
     filter(([, batchMode]) => batchMode),
-    map(() => new MoveToSite({ siteNum: null }))
+    switchMap(() => this.store$.select(getBatchMapReady).pipe(
+      debounceTime(250),
+      filter(ready => ready),
+      take(1),
+      map(() => new MoveToSite({ siteNum: null }))
+    )),
   );
 
   @Effect()
@@ -39,11 +44,16 @@ export class BatchMapEffects {
     withLatestFrom(this.appStateService.currentProject$),
     filter(([, project]) => project != null && project.projectId != null),
     switchMap(([action, project]) => this.store$.select(getBatchMapReady).pipe(
-      debounceTime(500),
+      debounceTime(250),
       filter(ready => ready),
       take(1),
       map(() => this.batchMapService.moveToSite(project, action.payload.siteNum)),
-      map(payload => new SiteMoved(payload))
+      switchMap((payload) => this.store$.select(getBatchMapReady).pipe(
+        debounceTime(250),
+        filter(ready => ready),
+        take(1),
+        map(() => new SiteMoved(payload))
+      )),
     )),
   );
 

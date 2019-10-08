@@ -2,13 +2,13 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { EsriMapService, selectors } from '@val/esri';
-import { Observable, Subject } from 'rxjs';
+import { combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppMapService } from '../../services/app-map.service';
 import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode, SetMapReady } from '../../state/batch-map/batch-map.actions';
-import { getBatchMapReady, getLastSiteFlag, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
+import { getBatchMapReady, getLastSiteFlag, getMapMoving, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
 import { CreateNewProject, ProjectLoad } from '../../state/data-shim/data-shim.actions';
 
 interface BatchMapQueryParams {
@@ -52,7 +52,9 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       filter(ready => ready),
       take(1),
     ).subscribe(() => this.setupMap());
-    this.mapViewIsReady$ = this.store$.select(getBatchMapReady);
+    this.mapViewIsReady$ = combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving)]).pipe(
+      map(([ready, moving]) => ready && !moving)
+    );
     this.nextSiteNumber$ = this.store$.select(getNextSiteNumber);
     this.isLastSite$ = this.store$.select(getLastSiteFlag);
     this.typedParams$ = this.store$.select(getRouteQueryParams).pipe(
@@ -77,7 +79,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   private setupMap() : void {
     console.log('Setup Map called');
     this.esriMapService.watchMapViewProperty('updating').pipe(
-      takeUntil(this.destroyed$)
+      takeUntil(this.destroyed$),
     ).subscribe(result => this.store$.dispatch(new SetMapReady({ mapReady: !result.newValue })));
     this.appMapService.setupMap(true);
     this.store$.select(getBatchMapReady).pipe(

@@ -5,13 +5,15 @@ export interface BatchMapState {
   nextSiteNum: string;
   isLastSite: boolean;
   mapReady: boolean;
+  moving: boolean;
 }
 
 export const initialState: BatchMapState = {
   batchMode: false,
   nextSiteNum: null,
   isLastSite: false,
-  mapReady: false
+  mapReady: false,
+  moving: true
 };
 
 export function batchMapReducer(state = initialState, action: BatchMapActions) : BatchMapState {
@@ -30,12 +32,14 @@ export function batchMapReducer(state = initialState, action: BatchMapActions) :
       return {
         ...state,
         nextSiteNum: action.payload.siteNum,
-        isLastSite: action.payload.isLastSite
+        isLastSite: action.payload.isLastSite,
+        moving: false
       };
     case BatchMapActionTypes.MoveToSite:
       return {
         ...state,
-        nextSiteNum: null
+        nextSiteNum: null,
+        moving: true,
       };
     default:
       return state;
