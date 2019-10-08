@@ -101,7 +101,8 @@ export class CampaignDetailsComponent implements OnInit {
             this.previousForm.cpmAnne !== newValues.cpmAnne ||
             this.previousForm.cpmSolo !== newValues.cpmSolo ||
             this.previousForm.cpmValassis !== newValues.cpmValassis ||
-            this.previousForm.cpmBlended !== newValues.cpmBlended) {
+            this.previousForm.cpmBlended !== newValues.cpmBlended || 
+            this.previousForm.selectedSeason !== newValues.selectedSeason ) {
           this.store$.dispatch(new CalculateMetrics());
         }
       }

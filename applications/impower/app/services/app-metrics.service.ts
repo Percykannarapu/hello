@@ -312,7 +312,7 @@ export class ValMetricsService implements OnDestroy {
   public updateDefinitions(attributes: { [geocode: string] : GeoAttribute }, geocodes: string[], project: ImpProject) : MetricDefinition<any>[] {
     if (project == null || attributes == null) return;
     this.currentProject = project;
-    this.isWinter = this.stateService.season$.getValue() === Season.Winter;
+    this.isWinter = project.impGeofootprintMasters[0].methSeason === 'W';
 
     for (const definition of this.metricDefinitions) {
       const values: any[] = [];
