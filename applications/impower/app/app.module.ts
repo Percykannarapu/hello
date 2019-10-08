@@ -147,6 +147,8 @@ import { PrintViewComponent } from './components/print-view/print-view.component
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
 import { BatchMapFooterComponent } from './components/batch-map/batch-map-footer/batch-map-footer.component';
+import { SidebarModule } from 'primeng/sidebar';
+import { ShadingSettingsComponent } from './components/shading-settings/shading-settings.component';
 
 @NgModule({
     imports: [
@@ -212,6 +214,7 @@ import { BatchMapFooterComponent } from './components/batch-map/batch-map-footer
         CommonModule,
         NgStringPipesModule,
         CardModule,
+        SidebarModule,
         EsriModule.forRoot({
           portalServerRootUrl: EnvironmentData.esri.portalServer,
           auth: {
@@ -272,7 +275,8 @@ import { BatchMapFooterComponent } from './components/batch-map/batch-map-footer
         PrintViewComponent,
         BatchMapComponent,
         ImpowerMainComponent,
-        BatchMapFooterComponent
+        BatchMapFooterComponent,
+        ShadingSettingsComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

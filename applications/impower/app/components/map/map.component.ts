@@ -27,6 +27,7 @@ export class MapComponent implements OnInit {
   currentAnalysisLevel$: Observable<string>;
   mapHeight$: BehaviorSubject<number> = new BehaviorSubject<number>(400);
   selectedPanelButton: number;
+  
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
               private appTradeAreaService: AppTradeAreaService,
@@ -89,6 +90,7 @@ export class MapComponent implements OnInit {
   private setupApplication() : void {
     this.appMapService.setupMap();
     this.setupMapFromStorage();
+    this.appStateService.audienceSideBar$.next(false);
   }
 
   private checkFilters(features: __esri.Graphic[], currentProject: ImpProject) : any {
@@ -183,5 +185,9 @@ export class MapComponent implements OnInit {
     } else {
       this.mapHeight$.next(heightNum);
     }
+  }
+
+  audienceSideBar(){
+    this.appStateService.audienceSideBar$.next(true);
   }
 }

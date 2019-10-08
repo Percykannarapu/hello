@@ -80,6 +80,7 @@ export class AppStateService {
 
   public filterFlag: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public filterFlag$: Observable<boolean> = this.filterFlag.asObservable();
+  public audienceSideBar$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
 
   constructor(private projectService: AppProjectService,
               private locationService: ImpGeofootprintLocationService,

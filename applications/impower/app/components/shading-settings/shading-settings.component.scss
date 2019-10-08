@@ -1,0 +1,23 @@
+
+.app-sidenav-content {
+  margin-top: 25px;
+}
+.shading-settings-card {
+  margin-top: 0.5em;
+}
+
+.shading-controls {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  grid-gap: 0.5em;
+}
+
+.shade-audience-control{
+  margin-top: 0.5em;
+  margin-bottom: 1cm;
+}
+
+.shade-theme-control{
+  margin-top: 1cm;
+  margin-bottom: 1cm;
+}

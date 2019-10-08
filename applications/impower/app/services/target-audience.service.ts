@@ -71,7 +71,7 @@ export class TargetAudienceService implements OnDestroy {
   public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
   public  timingMap: Map<string, number> = new Map<string, number>();
-  private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
+  public  allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   private mapAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   private natExportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
 
