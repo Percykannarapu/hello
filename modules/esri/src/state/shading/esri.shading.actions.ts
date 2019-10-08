@@ -1,32 +1,15 @@
-import { Action } from '@ngrx/store';
+import { createAction, props } from '@ngrx/store';
 
-export enum EsriShadingActionTypes {
-  MapViewChanged = '[Esri.Shading] Map View Changed',
-  GeoSelectionChanged = '[Esri.Shading] Geo Selection Changed',
-  ClearSelectionData = '[Esri.Shading] Clear Selection Data',
-  ClearShadingData = '[Esri.Shading] Clear Shading Data'
-}
+export const mapViewChanged = createAction(
+  '[Esri.Shading] Map View Changed',
+  props<{ visibleGeos: string[] }>()
+);
 
-export class MapViewChanged implements Action {
-  readonly type = EsriShadingActionTypes.MapViewChanged;
-  constructor(public payload: { visibleGeos: string[] }) {}
-}
+export const geoSelectionChanged = createAction(
+  '[Esri.Shading] Geo Selection Changed',
+  props<{ selectedGeos: string[], layerId: string, minScale: number, geoType: string }>()
+);
 
-export class GeoSelectionChanged implements Action {
-  readonly type = EsriShadingActionTypes.GeoSelectionChanged;
-  constructor(public payload: { selectedGeos: string[], layerId: string, minScale: number }) {}
-}
+export const clearShadingData = createAction('[Esri.Shading] Clear Shading Data');
 
-export class ClearShadingData implements Action {
-  readonly type = EsriShadingActionTypes.ClearShadingData;
-}
-
-export class ClearSelectionData implements Action {
-  readonly type = EsriShadingActionTypes.ClearSelectionData;
-}
-
-export type EsriShadingActions =
-  MapViewChanged |
-  GeoSelectionChanged |
-  ClearSelectionData |
-  ClearShadingData;
+export const clearSelectionData = createAction('[Esri.Shading] Clear Selection Data');

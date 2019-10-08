@@ -66,7 +66,7 @@ export class EnvironmentData {
     },
     dtz: {
       boundary: 'a4449b3ee55442af881f6ac660ca8163',
-      simplifiedBoundary: undefined,
+      simplifiedBoundary: '0dff970830cb4b14b58596a57e7f1518',
       centroid: '377018a24ba14afa9e02e56110b3a568'
     },
     pcr: {
@@ -76,7 +76,7 @@ export class EnvironmentData {
     },
     wrap: {
       boundary: '12bae62392eb47aeb887b6509da557b5',
-      simplifiedBoundary: 'de4c03f1d5964e64828465558c14b893',
+      simplifiedBoundary: 'f9594a876236492dab4bb667c28e18a5',
       centroid: undefined
     }
   };

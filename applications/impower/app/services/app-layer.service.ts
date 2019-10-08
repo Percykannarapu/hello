@@ -3,9 +3,10 @@ import { select, Store } from '@ngrx/store';
 import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
 import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
 import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, finalize, map, take, tap, toArray } from 'rxjs/operators';
+import { distinctUntilChanged, filter, finalize, map, pairwise, startWith, take, tap, toArray } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
+import { LayerSetupComplete } from '../state/data-shim/data-shim.actions';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
@@ -37,34 +38,26 @@ export class AppLayerService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.appStateService.analysisLevel$.subscribe(al => this.setDefaultLayerVisibility(al));
+      this.appStateService.analysisLevel$.pipe(
+        startWith(''),
+        pairwise()
+      ).subscribe(([prev, curr]) => this.setDefaultLayerVisibility(prev, curr));
     });
   }
 
-  private setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
+  private setDefaultLayerVisibility(previousAnalysisLevel: string, currentAnalysisLevel: string) : void {
     this.logger.info.log('Setting default layer visibility for', currentAnalysisLevel);
-   //
-    this.layerService.getAllPortalGroups().forEach(g => g.visible = false);
-    if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 ){
-      const portalId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
-      const groupKeys: string[] = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
-      this.logger.debug.log('New visible groups', groupKeys);
-      if (groupKeys != null && groupKeys.length > 0) {
-        const layerGroups = groupKeys.map(g => this.appConfig.layers[g]);
-        if (layerGroups != null && layerGroups.length > 0) {
-          layerGroups.forEach(layerGroup => {
-            if (this.layerService.portalGroupExists(layerGroup.group.name)) {
-              this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
-            }
-             /* comment for US9547
-
-             if (layerGroup.boundaries.id !== portalId){
-               this.layerService.getPortalLayerById(layerGroup.boundaries.id).popupEnabled = false;
-             }*/
-          });
-        }
+    const previousGroupKeys = this.analysisLevelToGroupNameMap[previousAnalysisLevel] || [];
+    const currentGroupKeys = this.analysisLevelToGroupNameMap[currentAnalysisLevel] || [];
+    const previousGroupNames = new Set(previousGroupKeys.map(g => this.appConfig.layers[g].group.name));
+    const currentGroupNames = new Set(currentGroupKeys.map(g => this.appConfig.layers[g].group.name));
+    this.layerService.getAllPortalGroups().forEach(g => {
+      if (currentGroupNames.has(g.title)) {
+        g.visible = true;
+      } else if (previousGroupNames.has(g.title)) {
+        g.visible = false;
       }
-    }
+    });
   }
 
   public initializeLayers(isBatchMapping: boolean = false) : Observable<__esri.FeatureLayer> {
@@ -85,6 +78,7 @@ export class AppLayerService {
           map(config => config.pobEnabled),
           distinctUntilChanged()
         ).subscribe(showPOBs => this.updateLabelExpressions(showPOBs));
+        this.store$.dispatch(new LayerSetupComplete());
       })
     );
   }
@@ -98,7 +92,7 @@ export class AppLayerService {
       const layerSortIndex = layerDef.sortOrder || 0;
       const isSimplifiedLayer = isBatchMapping && layerDef.simplifiedId != null;
       const layerId = isSimplifiedLayer ? layerDef.simplifiedId : layerDef.id;
-      const layerPipeline = this.layerService.createPortalLayer(layerId, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
+      const layerPipeline = this.layerService.createPortalLayer(layerId, layerDef.name, layerDef.minScale, layerDef.defaultVisibility, { legendEnabled: false }).pipe(
         tap(layer => this.setupIndividualLayer(layer, layerDef)),
         tap(layer => group.add(layer, layerSortIndex)),
       );

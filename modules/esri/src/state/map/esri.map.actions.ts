@@ -15,7 +15,9 @@ export enum EsriMapActionTypes {
   FeaturesSelected = '[Esri Map] Features Selected',
   SetSelectedLayer = '[Esri Map] Set Selected Layer Id',
   SetLabelConfiguration = '[Esri Map] Set Label Configuration',
-  
+  HideLabels = '[Esri Map] Hide Labels on Map',
+  ShowLabels = '[Esri Map] Show Labels on Map',
+
   PrintMap = '[Esri Map] Print Map',
   SetPrintRenderer = '[Esri Map] Set Shading Renderer for Print Service',
   DeletePrintRenderer = '[Esri Map] Remove Shading Renderer',
@@ -48,7 +50,7 @@ export class SetMapHeight implements Action {
 
 export class SetMapViewpoint implements Action {
   readonly type = EsriMapActionTypes.SetMapViewPoint;
-  constructor(public payload: { newViewpoint: __esri.Viewpoint }){}
+  constructor(public payload: { newViewpointJson: string }){}
 }
 
 export class SetPopupVisibility implements Action {
@@ -79,6 +81,14 @@ export class FeaturesSelected implements Action {
 export class SetLabelConfiguration implements Action {
   readonly type = EsriMapActionTypes.SetLabelConfiguration;
   constructor(public payload: { labelConfiguration: EsriLabelConfiguration }){}
+}
+
+export class HideLabels implements Action {
+  readonly type = EsriMapActionTypes.HideLabels;
+}
+
+export class ShowLabels implements Action {
+  readonly type = EsriMapActionTypes.ShowLabels;
 }
 
 export class SetLayerLabelExpressions implements Action {
@@ -128,6 +138,8 @@ export type EsriMapActions =
   | EsriMapToolbarButtonActions
   | SetSelectedLayer
   | SetLabelConfiguration
+  | HideLabels
+  | ShowLabels
   | SetLayerLabelExpressions
   | ResetMapState
   | PrintMap

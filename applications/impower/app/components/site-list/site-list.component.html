@@ -160,7 +160,7 @@
     </val-failed-geocode-grid>
   </div>
 
-  <p-dialog header="Edit Location" [(visible)]="showDialog" [modal]="true" width="700" [responsive]="true" appendTo="body" (onHide)="onDialogHide()">
+  <p-dialog header="Edit Location" [(visible)]="showDialog" [modal]="true" [responsive]="true" appendTo="body" (onHide)="onDialogHide()" [style]="{ width: '700px' }">
     <val-edit-locations [oldData]="selectedRowData" [displayData]="displayData" (submitSite)="manuallyGeocode($event, selectedListType)" (closeDialog)="onDialogHide()"></val-edit-locations>
   </p-dialog>
 </div>

@@ -1,12 +1,12 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
+import { UniversalCoordinates } from '@val/common';
+import { Observable } from 'rxjs';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
-import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
-import { EsriMapService } from './esri-map.service';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { UniversalCoordinates } from '@val/common';
 import { MapSymbols } from '../models/esri-types';
 import { CopyCoordinatesToClipboard } from '../state/map/esri.map.actions';
+import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
+import { EsriMapService } from './esri-map.service';
 
 const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data === 'string'  ? 'string' : 'double';
 
@@ -14,11 +14,8 @@ const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data =
 export class EsriLayerService {
 
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
-  private layerStatuses: Map<string, boolean> = new Map<string, boolean>();
-  private layersReady: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  public layersReady$: Observable<boolean> = this.layersReady.asObservable();
 
-  constructor(private mapService: EsriMapService) {}
+  constructor(private mapService: EsriMapService, private zone: NgZone) {}
 
   public clearClientLayers(groupName: string) : void {
     if (this.mapService.mapView == null || this.mapService.mapView.map == null || this.mapService.mapView.map.layers == null) return;
@@ -147,22 +144,33 @@ export class EsriLayerService {
     return group;
   }
 
-  public createPortalLayer(portalId: string, layerTitle: string, minScale: number, defaultVisibility: boolean) : Observable<__esri.FeatureLayer> {
+  public createPortalLayer(portalId: string, layerTitle: string, minScale: number, defaultVisibility: boolean, additionalLayerAttributes?: Partial<__esri.FeatureLayer>) : Observable<__esri.FeatureLayer> {
     const isUrlRequest = portalId.toLowerCase().startsWith('http');
     const loader: any = isUrlRequest ? EsriApi.Layer.fromArcGISServerUrl : EsriApi.Layer.fromPortalItem;
     const itemLoadSpec = isUrlRequest ? { url: portalId } : { portalItem: {id: portalId } };
-    return new Observable(subject => {
-      loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
-        currentLayer.visible = defaultVisibility;
-        currentLayer.title = layerTitle;
-        currentLayer.minScale = minScale;
-        EsriUtils.setupWatch(currentLayer, 'loaded').subscribe(result => this.determineLayerStatuses(result.target));
-        subject.next(currentLayer);
-        subject.complete();
-      }).catch(reason => {
-        subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason });
-      });
-    });
+    return new Observable(subject => this.zone.runOutsideAngular(() => {
+        loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
+          currentLayer.visible = defaultVisibility;
+          currentLayer.title = layerTitle;
+          currentLayer.minScale = minScale;
+          if (additionalLayerAttributes != null) {
+            Object.entries(additionalLayerAttributes).forEach(([key, value]) => {
+              currentLayer[key] = value;
+            });
+          }
+          currentLayer.when(() => {
+            this.zone.run(() => {
+              subject.complete();
+            });
+          }, reason => {
+            this.zone.run(() => subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason }));
+          });
+          this.zone.run(() => subject.next(currentLayer));
+        }).catch(reason => {
+          this.zone.run(() => subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason }));
+        });
+      })
+    );
   }
 
   public coordinateToGraphic(coordinate: UniversalCoordinates,  symbol?: MapSymbols) : __esri.Graphic {
@@ -177,14 +185,22 @@ export class EsriLayerService {
     return graphic;
   }
 
-  public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], bottom: boolean = false) : __esri.GraphicsLayer {
+  public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], addToLegend: boolean = false, bottom: boolean = false) : __esri.GraphicsLayer {
     const group = this.createClientGroup(groupName, true, bottom);
     const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
+    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     group.layers.unshift(layer);
+    if (addToLegend && legendRef != null) {
+      if (bottom) {
+        legendRef.layerInfos.unshift({ layer });
+      } else {
+        legendRef.layerInfos.push({ layer });
+      }
+    }
     return layer;
   }
 
-  public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string, renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[]) : __esri.FeatureLayer {
+  public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string, renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[], legendText: boolean = false) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
     const group = this.createClientGroup(groupName, true);
     const layerType = sourceGraphics[0].geometry.type;
@@ -210,12 +226,15 @@ export class EsriLayerService {
       title: layerName,
       renderer: renderer,
       labelsVisible: labelsVisible,
-      labelingInfo: labelInfo
+      labelingInfo: labelInfo,
     });
 
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
     group.layers.add(layer);
-
+    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
+    if (legendText && legendRef != null) {
+      legendRef.layerInfos.push({ layer });
+    }
     return layer;
   }
 
@@ -249,25 +268,6 @@ export class EsriLayerService {
       .forEach(l => {
         if (EsriUtils.layerIsFeature(l)) l.popupEnabled = popupsEnabled;
       });
-  }
-
-  /**
-  * Determine if the layers are ready for use yet and notify observers if they are
-  * @param layer an Esri layer to examine
-  */
-  private determineLayerStatuses(layer: __esri.Layer) {
-    if (layer.loaded) {
-      this.layerStatuses.set(layer.title, true);
-    }
-    let loaded = true;
-    for (const layerName of Array.from(this.layerStatuses.keys())) {
-      if (!this.layerStatuses.get(layerName)) {
-        loaded = false;
-      }
-    }
-    if (loaded) {
-      this.layersReady.next(true);
-    }
   }
 
   public setLabels(labelConfig: EsriLabelConfiguration, layerExpressions: { [layerId: string] : EsriLabelLayerOptions }) : void {

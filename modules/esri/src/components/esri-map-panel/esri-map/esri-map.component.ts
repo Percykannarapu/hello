@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnInit, Output, ViewChild } from '@angular/core';
 import { filter, map, startWith, take } from 'rxjs/operators';
 import { EsriMapService } from '../../../services/esri-map.service';
 import { AppState, selectors } from '../../../state/esri.selectors';
@@ -25,7 +25,9 @@ export class EsriMapComponent implements OnInit {
   @ViewChild('mapViewNode', { static: true }) private mapViewEl: ElementRef;
 
   constructor(private mapService: EsriMapService,
-              private store: Store<AppState>) { }
+              private store: Store<AppState>,
+              private cd: ChangeDetectorRef,
+              private zone: NgZone) { }
 
   public ngOnInit() {
     this.store.dispatch(new InitializeMap({ domContainer: this.mapViewEl, baseMap: this.baseMap }));
@@ -35,29 +37,31 @@ export class EsriMapComponent implements OnInit {
       take(1)
     ).subscribe(() => {
       this.viewChanged.emit(this.mapService.mapView); // one startup firing to get the initial viewpoint
-      EsriUtils.handleMapViewEvent(this.mapService.mapView, 'immediate-click')
-        .subscribe(e => this.mapClicked.emit(e));
-      const center$ = EsriUtils.setupWatch(this.mapService.mapView, 'center').pipe(
-        filter(result => this.compareCenters(result.newValue, result.oldValue))
-      );
-      const scale$ = EsriUtils.setupWatch(this.mapService.mapView, 'scale').pipe(
-        filter(result => result.oldValue !== result.newValue)
-      );
-      const updating$ = EsriUtils.setupWatch(this.mapService.mapView, 'updating').pipe(
-        map(result => result.newValue),
-        startWith(true)
-      );
-      const stationary$ = EsriUtils.setupWatch(this.mapService.mapView, 'stationary').pipe(
-        map(result => result.newValue),
-        startWith(false)
-      );
-      combineLatest([updating$, stationary$, center$, scale$]).pipe(
-        filter(([u, s]) => !u && s)
-      ).subscribe(() => this.viewChanged.emit(this.mapService.mapView));
+      this.zone.runOutsideAngular(() => {
+        EsriUtils.handleMapViewEvent(this.mapService.mapView, 'immediate-click')
+          .subscribe(e => this.mapClicked.emit(e));
+        const center$ = EsriUtils.setupWatch(this.mapService.mapView, 'center').pipe(
+          filter(result => this.compareCenters(result.newValue, result.oldValue))
+        );
+        const scale$ = EsriUtils.setupWatch(this.mapService.mapView, 'scale').pipe(
+          filter(result => result.oldValue !== result.newValue)
+        );
+        const updating$ = EsriUtils.setupWatch(this.mapService.mapView, 'updating').pipe(
+          map(result => result.newValue),
+          startWith(true)
+        );
+        const stationary$ = EsriUtils.setupWatch(this.mapService.mapView, 'stationary').pipe(
+          map(result => result.newValue),
+          startWith(false)
+        );
+        combineLatest([updating$, stationary$, center$, scale$]).pipe(
+          filter(([u, s]) => !u && s)
+        ).subscribe(() => this.zone.run(() => this.viewChanged.emit(this.mapService.mapView)));
 
-      this.mapService.mapView.map.allLayers.forEach(layer => EsriUtils.setupWatch(layer, 'visible').subscribe(result => {
-        this.viewChanged.emit(this.mapService.mapView);
-      }));
+        this.mapService.mapView.map.allLayers.forEach(layer =>
+          EsriUtils.setupWatch(layer, 'visible')
+            .subscribe(() => this.zone.run(() => this.viewChanged.emit(this.mapService.mapView))));
+      });
     });
   }
 

@@ -1,16 +1,17 @@
-import { ClearGeoVars } from './../impower-datastore/state/transient/geo-vars/geo-vars.actions';
-import { ApplyAudiences } from './../impower-datastore/state/transient/audience/audience.actions';
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { dedupeSimpleSet, distinctArray, filterArray, groupBy, isNumber, mapArray, mapArrayToEntity, setsAreEqual } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
-import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
-import { catchError, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
-import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
+import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
+import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, pairwise, startWith, switchMap, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
+import { ApplyAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
+import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { ClearGeoVars } from '../impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
-import { projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { CachedObservable } from '../val-modules/api/models/CachedObservable';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
@@ -21,9 +22,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
-import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { AppProjectService } from './app-project.service';
-import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 
 export enum Season {
   Summer = 'summer',
@@ -130,7 +129,7 @@ export class AppStateService {
 
   private setupApplicationReadyObservable() : void {
     this.applicationIsReady$ =
-      combineLatest([this.esriLayerService.layersReady$, this.store$.select(projectIsReady)]).pipe(
+      combineLatest([this.store$.select(layersAreReady), this.store$.select(projectIsReady)]).pipe(
         map(([layersReady, projectReady]) => layersReady && projectReady),
         distinctUntilChanged()
       );

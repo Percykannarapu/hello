@@ -44,25 +44,25 @@ export class EsriRendererEffects {
   //   ))
   // );
 
-  @Effect({ dispatch: false})
-  selectedGeosShading$ = this.actions$.pipe(
-    ofType<SelectedGeosShading>(EsriRendererActionTypes.SelectedGeosShading),
-    withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-    tap(([action]) => this.shadingService.selectedGeosShading(action.payload.geos, action.payload.layerId, action.payload.minScale))
-  );
+  // @Effect({ dispatch: false})
+  // selectedGeosShading$ = this.actions$.pipe(
+  //   ofType<SelectedGeosShading>(EsriRendererActionTypes.SelectedGeosShading),
+  //   withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
+  //   tap(([action]) => this.shadingService.selectedGeosShading(action.payload.geos, action.payload.layerId, action.payload.minScale))
+  // );
 
-  @Effect({ dispatch: false })
-  shadeSelectedGeos$ = this.actions$.pipe(
-    ofType<SetSelectedGeos>(EsriRendererActionTypes.SetSelectedGeos),
-    filter(action => action.payload.length > 0),
-    map(action => action.payload.map(geo => `'${geo}'`).join(',')),
-    map(geoString => new EsriApi.Query({ where: `geocode IN (${geoString})` })),
-    withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
-    filter(([query, state]) => state.renderer.highlightMode === HighlightMode.SHADE),
-    switchMap(([query, state]) => this.queryService.executeQuery(state.map.selectedLayerId, query, true).pipe(
-      tap(features => this.rendererService.shadeSelection(features, state.renderer.highlightLayerGroup, state.renderer.highlightLayer))
-    ))
-  );
+  // @Effect({ dispatch: false })
+  // shadeSelectedGeos$ = this.actions$.pipe(
+  //   ofType<SetSelectedGeos>(EsriRendererActionTypes.SetSelectedGeos),
+  //   filter(action => action.payload.length > 0),
+  //   map(action => action.payload.map(geo => `'${geo}'`).join(',')),
+  //   map(geoString => new EsriApi.Query({ where: `geocode IN (${geoString})` })),
+  //   withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriState))),
+  //   filter(([query, state]) => state.renderer.highlightMode === HighlightMode.SHADE),
+  //   switchMap(([query, state]) => this.queryService.executeQuery(state.map.selectedLayerId, query, true).pipe(
+  //     tap(features => this.rendererService.shadeSelection(features, state.renderer.highlightLayerGroup, state.renderer.highlightLayer))
+  //   ))
+  // );
 
   @Effect({ dispatch: false })
   shadeSelectedGeoGroups$ = this.actions$.pipe(

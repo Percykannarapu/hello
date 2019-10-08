@@ -319,7 +319,7 @@ export class EsriRendererService {
     if (this.layerService.getAllLayerNames().filter(name => name === layerName).length > 0) {
       this.layerService.removeLayer(layerName);
     }
-    this.layerService.createGraphicsLayer(groupName, layerName, graphics, true);
+    this.layerService.createGraphicsLayer(groupName, layerName, graphics, false, true);
   }
 
   public highlightSelection(layerId: string, objectIds: number[]) {
@@ -345,7 +345,7 @@ export class EsriRendererService {
   }
 
 
-  public createUniqueValueRenderer(geos: string[], mapState: EsriMapState) : Partial<__esri.UniqueValueRenderer>{
+  public createUniqueValueRenderer(geos: string[]) : Partial<__esri.UniqueValueRenderer>{
       const arcade = this.generateArcadeForGeos(geos);
       let renderer: Partial<__esri.UniqueValueRenderer> ;
       const result: any = [];
@@ -365,7 +365,7 @@ export class EsriRendererService {
       return renderer;
     }
 
-  public setRendererForPrint(geos: string[], mapState: EsriMapState, portalId: string, minScale: number){
+  public setRendererForPrint(geos: string[], portalId: string, minScale: number){
     const portalLayer = this.layerService.getPortalLayerById(portalId);
     const audienceSelections = this.layerService.createPortalLayer( portalId, 'Text Variables', minScale, true).pipe(
         tap(audienceLayer => {
@@ -394,7 +394,7 @@ export class EsriRendererService {
               newLayer.spatialReference = {wkid: 4326} as __esri.SpatialReference;
               newLayer.popupEnabled = false;
               newLayer.labelsVisible = false;
-              newLayer.renderer = this.createUniqueValueRenderer(geos, mapState) as __esri.UniqueValueRenderer;
+              newLayer.renderer = this.createUniqueValueRenderer(geos) as __esri.UniqueValueRenderer;
               this.mapService.mapView.map.add(newLayer);
               }),
             );

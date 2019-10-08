@@ -3,6 +3,7 @@ import { EsriAuthState } from './auth/esri.auth.reducer';
 import { EsriApiState } from './api/esri.api.reducer';
 import { EsriMapState } from './map/esri.map.reducer';
 import { EsriRendererState } from './renderer/esri.renderer.reducer';
+import { EsriShadingState } from './shading/esri.shading.reducer';
 
 export interface AppState {
   esri: EsriState;
@@ -13,6 +14,7 @@ export interface EsriState {
   auth: EsriAuthState;
   map: EsriMapState;
   renderer: EsriRendererState;
+  shading: EsriShadingState;
 }
 
 const getEsriState = createFeatureSelector<AppState, EsriState>('esri');

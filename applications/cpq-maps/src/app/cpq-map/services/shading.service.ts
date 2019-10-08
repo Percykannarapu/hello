@@ -368,11 +368,11 @@ export class ShadingService {
 
     if (recreateLayer == false) return;
 
-    this.layerService.createPortalLayer(layerConfig.boundaries.id, layerName, layerConfig.boundaries.minScale, showLayer).subscribe(newLayer => {
-      newLayer.legendEnabled = false;
-      newLayer.labelsVisible = false;
-      newLayer.popupEnabled = false;
-      newLayer.renderer = new EsriApi.UniqueValueRenderer({
+    const layerProps: Partial<__esri.FeatureLayer> = {
+      legendEnabled : false,
+      labelsVisible : false,
+      popupEnabled : false,
+      renderer : new EsriApi.UniqueValueRenderer({
         defaultSymbol: new EsriApi.SimpleFillSymbol({ color: [0, 0, 0, 0], outline: { color: [0, 0, 0, 0] } }),
         uniqueValueInfos: [{
           value: 1,
@@ -382,9 +382,11 @@ export class ShadingService {
           })
         }],
         valueExpression: expression,
-      });
-      group.add(newLayer);
-    });
+      })
+    };
+
+    this.layerService.createPortalLayer(layerConfig.boundaries.id, layerName, layerConfig.boundaries.minScale, showLayer, layerProps)
+      .subscribe(newLayer => group.add(newLayer));
   }
 
 }

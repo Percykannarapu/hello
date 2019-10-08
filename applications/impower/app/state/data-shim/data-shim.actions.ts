@@ -27,7 +27,9 @@ export enum DataShimActionTypes {
   CalculateMetrics = '[Application Data Shim] Calculate Color box metrics',
 
   ProjectLoadFinish = '[Application Data Shim] Project Load Finish',
-  IsProjectReload = '[Application Data Shim] Project Reload'
+  IsProjectReload = '[Application Data Shim] Project Reload',
+
+  LayerSetupComplete = '[Application Data Shim] Layer Setup Complete'
 }
 
 export class ProjectSaveAndNew implements Action {
@@ -114,6 +116,9 @@ export class ProjectLoadFinish implements Action {
   readonly type = DataShimActionTypes.ProjectLoadFinish;
 }
 
+export class LayerSetupComplete implements Action {
+  readonly type = DataShimActionTypes.LayerSetupComplete;
+}
 
 
 export type DataShimActions =
@@ -134,4 +139,5 @@ export type DataShimActions =
   FiltersChanged |
   CalculateMetrics|
   IsProjectReload|
-  ProjectLoadFinish;
+  ProjectLoadFinish |
+  LayerSetupComplete;

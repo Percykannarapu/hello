@@ -4,16 +4,23 @@ export interface DataShimState {
   projectIsLoaded: boolean;
   projectIsLoading: boolean;
   projectIsSaving: boolean;
+  layersAreReady: boolean;
 }
 
 const initialState: DataShimState = {
   projectIsLoaded: false,
   projectIsLoading: false,
-  projectIsSaving: false
+  projectIsSaving: false,
+  layersAreReady: false,
 };
 
 export function dataShimReducer(state = initialState, action: DataShimActions) : DataShimState {
   switch (action.type) {
+    case DataShimActionTypes.LayerSetupComplete:
+      return {
+        ...state,
+        layersAreReady: true,
+      };
     case DataShimActionTypes.ProjectSaveAndLoad:
     case DataShimActionTypes.ProjectSaveAndNew:
       return {

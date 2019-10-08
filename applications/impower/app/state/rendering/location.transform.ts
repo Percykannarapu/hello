@@ -7,7 +7,7 @@ export class LocationDrawDefinition {
   groupName: string;
   layerName: string;
   sites: __esri.Graphic[];
-  constructor(siteType: SuccessfulLocationTypeCodes,
+  constructor(public siteType: SuccessfulLocationTypeCodes,
               public color: [number, number, number, number],
               public symbolPath: string,
               public labelExpression: string,

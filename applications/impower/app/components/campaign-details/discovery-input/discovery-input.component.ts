@@ -5,7 +5,8 @@ import { debounceTime, map } from 'rxjs/operators';
 import { ValDiscoveryUIModel } from '../../../models/val-discovery.model';
 import { ProjectCpmTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-discovery.service';
-import { AppStateService } from 'app/services/app-state.service';
+import { Store } from '@ngrx/store';
+import { FullAppState } from 'app/state/app.interfaces';
 
 @Component({
   selector: 'val-discovery-input',
@@ -40,7 +41,8 @@ export class DiscoveryInputComponent implements OnInit {
 
   cpmTypes = ProjectCpmTypeCodes;
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder,
+              private store$: Store<FullAppState>) { }
 
   ngOnInit() : void {
     this.allAnalysisLevels = [
@@ -92,6 +94,7 @@ export class DiscoveryInputComponent implements OnInit {
   }
 
   private onFormChanged(currentData: ValDiscoveryUIModel) : void {
+    // this.store$.dispatch(new HideLabels());
     switch (currentData.cpmType) {
       case ProjectCpmTypeCodes.Blended:
         currentData.cpmValassis = null;

@@ -1,5 +1,6 @@
 
-import { EsriShadingActions, EsriShadingActionTypes } from './esri.shading.actions';
+import { createReducer, on } from '@ngrx/store';
+import { geoSelectionChanged } from './esri.shading.actions';
 
 interface ShadingData {
   [varId: string] : number | string;
@@ -10,22 +11,17 @@ interface GeoData {
   ownerSite: string;
 }
 
-export interface State {
+export interface EsriShadingState {
   geoShadingData: {
     [geocode: string] : ShadingData & GeoData;
   };
 }
 
-export const initialState: State = {
+export const initialState: EsriShadingState = {
   geoShadingData: {}
 };
 
-export function reducer(state = initialState, action: EsriShadingActions) : State {
-  switch (action.type) {
-    case EsriShadingActionTypes.MapViewChanged:
-    case EsriShadingActionTypes.GeoSelectionChanged:
-    case EsriShadingActionTypes.ClearShadingData:
-    default:
-      return state;
-  }
-}
+export const shadingReducer = createReducer(
+  initialState,
+  on(geoSelectionChanged, (state, { selectedGeos }) => ({ ...state }))
+);

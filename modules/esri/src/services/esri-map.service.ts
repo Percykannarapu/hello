@@ -1,4 +1,4 @@
-import { ElementRef, Inject, Injectable } from '@angular/core';
+import { ElementRef, Inject, Injectable, NgZone } from '@angular/core';
 import { EsriUtils, WatchResult } from '../core/esri-utils';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
@@ -8,31 +8,43 @@ import { from, Observable } from 'rxjs';
 @Injectable()
 export class EsriMapService {
   public mapView: __esri.MapView;
+  public widgetMap: Map<string, __esri.Widget> = new Map<string, __esri.Widget>();
   public measureWidget: any = null;
 
   constructor(private domainService: EsriDomainFactoryService,
+              private zone: NgZone,
               @Inject(EsriAppSettingsToken) private config: EsriAppSettings) {}
 
   initializeMap(container: ElementRef, baseMapId: string) : Observable<any> {
-    const newMapParams = Object.assign({}, this.config.defaultMapParams);
-    newMapParams.basemap = EsriApi.BaseMap.fromId(baseMapId);
-    const map = new EsriApi.Map(newMapParams);
-    const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
-    newMapViewProps.container = container.nativeElement;
-    newMapViewProps.map = map;
-    this.mapView = new EsriApi.MapView(newMapViewProps);
-    const result = new Promise((resolve, reject) => this.mapView.when(resolve, reject));
-    return from(result);
+    return new Observable<any>(sub => {
+      this.zone.runOutsideAngular(() => {
+        const newMapParams = Object.assign({}, this.config.defaultMapParams);
+        newMapParams.basemap = EsriApi.BaseMap.fromId(baseMapId);
+        const map = new EsriApi.Map(newMapParams);
+        const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
+        newMapViewProps.container = container.nativeElement;
+        newMapViewProps.map = map;
+        const mapView = new EsriApi.MapView(newMapViewProps);
+        mapView.when(() => {
+          this.zone.run(() => {
+            this.mapView = mapView;
+            sub.next();
+          });
+        }, err => this.zone.run(() => sub.error(err)));
+      });
+    });
   }
 
   zoomOnMap(xStats: { min: number, max: number }, yStats: { min: number, max: number }, pointCount: number) : void {
-    if (pointCount === 0) return;
-    this.mapView.extent = this.domainService.createExtent(xStats, yStats, 0.15);
-    if (pointCount === 1) {
-      this.mapView.zoom = 12;
-    } else {
-      this.mapView.zoom -= 1;
-    }
+    this.zone.runOutsideAngular(() => {
+      if (pointCount === 0) return;
+      this.mapView.extent = this.domainService.createExtent(xStats, yStats, 0.15);
+      if (pointCount === 1) {
+        this.mapView.zoom = 12;
+      } else {
+        this.mapView.zoom -= 1;
+      }
+    });
   }
 
   clearGraphics() : void {
@@ -102,12 +114,14 @@ export class EsriMapService {
   createBasicWidget(constructor: __esri.WidgetConstructor, properties?: any, position: string = 'top-left') : void {
     const newProperties = { view: this.mapView, ...properties };
     const result = new constructor(newProperties);
+    this.widgetMap.set(result.declaredClass, result);
     this.addWidget(result, position);
   }
 
   createHiddenWidget(constructor: __esri.WidgetConstructor, widgetProperties?: any, expanderProperties?: __esri.ExpandProperties, position: string = 'top-left') : void {
     const newWidgetProps = { view: this.mapView, container: document.createElement('div'), ...widgetProperties };
     const result = new constructor(newWidgetProps);
+    this.widgetMap.set(result.declaredClass, result);
     const newExpanderProps = { view: this.mapView, ...expanderProperties, content: result.container };
     const expander = new EsriApi.widgets.Expand(newExpanderProps);
     this.addWidget(expander, position);

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { calculateStatistics } from '@val/common';
-import { ClearSelectionData, ColorPalette, EsriLayerService, EsriMapService, EsriRendererService, EsriUtils, GeoSelectionChanged, MapViewChanged, SetRenderingData } from '@val/esri';
+import { clearSelectionData, ColorPalette, EsriLayerService, EsriMapService, EsriRendererService, EsriUtils, geoSelectionChanged, mapViewChanged, SetRenderingData } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -127,8 +127,8 @@ export class AppRendererService {
     if (this.mapViewWatcher) this.mapViewWatcher.unsubscribe();
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
     if (this.selectedGeoAnalysisLevel !== analysisLevel) {
-      this.store$.dispatch(new ClearSelectionData());
       this.selectedGeoAnalysisLevel = analysisLevel;
+      setTimeout(() => this.store$.dispatch(clearSelectionData()), 0);
     }
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
     const primaryAnalysisLayer = this.esriLayerService.getPortalLayerById(layerId);
@@ -140,7 +140,7 @@ export class AppRendererService {
       switchMap(result => from(EsriUtils.esriPromiseToEs6(result.target.queryFeatures())).pipe(
         map(featureSet => featureSet.features.map(f => f.attributes.geocode))
       ))
-    ).subscribe(visibleGeos => this.store$.dispatch(new MapViewChanged({ visibleGeos })));
+    ).subscribe(visibleGeos => this.store$.dispatch(mapViewChanged({ visibleGeos })));
 
     this.selectedWatcher = geoDataStore.pipe(
       filter(geos => geos != null),
@@ -153,7 +153,7 @@ export class AppRendererService {
         if (c.isActive) p.push(c.geocode);
         return p;
       }, []);
-      this.store$.dispatch(new GeoSelectionChanged({ selectedGeos, layerId, minScale }));
+      this.store$.dispatch(geoSelectionChanged({ selectedGeos, layerId, minScale, geoType: `${analysisLevel}s` }));
     });
   }
 }

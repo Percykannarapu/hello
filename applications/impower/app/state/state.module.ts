@@ -23,7 +23,15 @@ import { RenderingEffects } from './rendering/rendering.effects';
   imports: [
     CommonModule,
     // NOTE: StoreModule.forRoot() must be in the imports array BEFORE any other ngrx imports
-    StoreModule.forRoot(appReducer, { metaReducers: appMetaReducers }),
+    StoreModule.forRoot(appReducer, {
+      metaReducers: appMetaReducers,
+      runtimeChecks: {
+        strictStateImmutability: false,
+        strictActionImmutability: false,
+        strictStateSerializability: false,
+        strictActionSerializability: false
+      }
+    }),
     EffectsModule.forRoot([
       AppEffects,
       UsageEffects,
@@ -41,6 +49,7 @@ import { RenderingEffects } from './rendering/rendering.effects';
     StoreDevtoolsModule.instrument({
       name: 'imPower Application',
       logOnly: environment.production,
+      actionsBlocklist: ['Usage', 'Map View Changed']
     }),
   ],
   declarations: []

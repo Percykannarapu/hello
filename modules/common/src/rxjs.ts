@@ -52,6 +52,9 @@ export const retryOnTimeout = <T>(attempts: number) => (source$: Observable<T>) 
 };
 
 export type ActionWithPayload<T> = Action & { payload: T };
+/**
+ * @deprecated Use Action & Effect Creators to eliminate the need for this helper
+ */
 export function toPayload<T, U>() : (source$: Observable<ActionWithPayload<T>>) => Observable<T>;
 export function toPayload<T, U>(selector: (payload: T) => U) : (source$: Observable<ActionWithPayload<T>>) => Observable<U>;
 export function toPayload<T, U>(selector?: (payload: T) => U) : (source$: Observable<ActionWithPayload<T>>) => Observable<T | U> {

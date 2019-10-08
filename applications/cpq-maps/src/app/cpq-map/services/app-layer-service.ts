@@ -49,8 +49,13 @@ export class AppLayerService {
             newExpression = this.configService.layers['zip'].boundaries.labelExpression;
             break;
       }
-      const layerExpressions: any = state.esri.map.layerExpressions;
-      layerExpressions[updateId].expression = newExpression;
+     const layerExpressions: any = {
+       ...state.esri.map.layerExpressions
+     };
+     layerExpressions[updateId] = {
+       ...layerExpressions[updateId],
+       expression: newExpression
+     };
       this.store$.dispatch(new SetLayerLabelExpressions({ expressions: layerExpressions }));
    }
 
@@ -87,8 +92,13 @@ export class AppLayerService {
                              return Concatenate([$feature.geocode, distrQty], TextFormatting.NewLine);`;
             break;
       }
-      const layerExpressions: any = state.esri.map.layerExpressions;
-      layerExpressions[updateId].expression = newExpression;
+     const layerExpressions: any = {
+       ...state.esri.map.layerExpressions
+     };
+      layerExpressions[updateId] = {
+        ...layerExpressions[updateId],
+        expression: newExpression
+      };
       this.store$.dispatch(new SetLayerLabelExpressions({ expressions: layerExpressions }));
    }
 
@@ -131,7 +141,7 @@ export class AppLayerService {
    public initializeGraphicGroup(graphics: __esri.Graphic[], groupName: string, layerName: string, addToBottomOfList: boolean = false) : void {
      const layer = this.esriLayerService.getGraphicsLayer(layerName);
      if (layer == null) {
-       this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics, addToBottomOfList);
+       this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics, true, addToBottomOfList);
      } else {
        layer.graphics.removeAll();
        layer.graphics.addMany(graphics);
