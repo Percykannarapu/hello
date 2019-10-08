@@ -7,25 +7,38 @@
         <span>&nbsp;</span>  
         <div class="shade-audience-control">
             <div>
-                <p-dropdown [options]="checkedAudienceList" [(ngModel)]="selectedAudience" placeholder="Select Audience" [virtualScroll]="true" [itemSize]="40" 
-                autoWidth="false" [style]="{'width':'100%'}" (onChange)="onChangeAudience()"[filter]="false"></p-dropdown>
+              <span class="md-inputfield">
+                  <p-dropdown id="selectAudience" [options]="checkedAudienceList" [(ngModel)]="selectedAudience" placeholder="&nbsp;" [virtualScroll]="true" [itemSize]="40" 
+                  autoWidth="false" [style]="{'width':'100%'}" (onChange)="onChangeAudience()"[filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>
+                  <label for="selectAudience">Select Audience</label>
+              </span>  
             </div>
         </div>
         <div class="shade-theme-control">
             <div>
-                <p-dropdown [options]="shadedVaiableonMap" [(ngModel)]="selectedVariable" placeholder="Choose Thematic Extent"   
-                autoWidth="false" [style]="{'width':'100%'}" [filter]="false"></p-dropdown>
+              <span class="md-inputfield">
+                  <p-dropdown id="shadedVariable" [options]="shadedVaiableonMap" [(ngModel)]="selectedVariable" placeholder="&nbsp;"   
+                  autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>
+                  <label for="shadedVariable">Choose Thematic Extent</label>
+              </span>
             </div>
         </div>
         
         <div class="shade-theme-control">
             <span>&nbsp;</span>    
-            <div>   <p-dropdown [options]="allThemes"
-                              (onChange)="onThemeChange($event)"
-                              [(ngModel)]="currentTheme"
-                              [autoWidth]="false" dropdownIcon="fa fa-caret-down"
-                              [style]="{ width:'100%' }" >
+            <div>   
+                <span class="md-inputfield">
+                    <p-dropdown id="theme" 
+                    [options]="allThemes"
+                    (onChange)="onThemeChange($event)"
+                    [(ngModel)]="currentTheme"
+                    [autoWidth]="false" dropdownIcon="fa fa-caret-down"
+                    [style]="{ width:'100%' }" 
+                    placeholder="&nbsp;"
+                    dropdownIcon="fa fa-caret-down">
                     </p-dropdown>
+                    <label for="theme">Select Theme</label>
+                </span>
             </div>
         </div>    
         <button pButton type="button" label="Apply" (click)="applyShading()"></button>

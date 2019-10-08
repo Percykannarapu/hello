@@ -28,7 +28,7 @@ export class ShadingSettingsComponent implements OnInit {
   currentTheme: string;
 
   shadedVaiableonMap: SelectItem[] = [];
-  selectedVariable: string = 'Choose Thematic Extent';
+  selectedVariable: string = 'Selected Geos only';
 
 
   constructor(private appStateService: AppStateService,
@@ -44,7 +44,7 @@ export class ShadingSettingsComponent implements OnInit {
       });
     }
     this.allThemes.sort((a, b) => a.label.localeCompare(b.label));
-    this.currentTheme = AppRendererService.currentDefaultTheme;
+    //this.currentTheme = AppRendererService.currentDefaultTheme;
 
     this.shadedVaiableonMap.push({label: 'Selected Geos only', value: 'Selected Geos only'});
     this.shadedVaiableonMap.push({label: 'Whole Map', value: 'Whole Map'});
