@@ -4,12 +4,11 @@ import { take, tap } from 'rxjs/operators';
 import { SelectedShadingLayerName } from '../../settings';
 import { EsriUtils } from '../core/esri-utils';
 import { AllShadingConfigurations, ConfigurationTypes, SimpleShadingConfiguration } from '../models/shading-configuration';
+import { EsriState } from '../state/esri.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 import { EsriRendererService } from './esri-renderer.service';
-import { ShowLabels } from '../state/map/esri.map.actions';
-import { FullAppState } from 'app/state/app.interfaces';
 import { Store } from '@ngrx/store';
 
 @Injectable({
@@ -18,7 +17,7 @@ import { Store } from '@ngrx/store';
 export class EsriShadingLayersService {
 
   constructor(private layerService: EsriLayerService,
-              private store$: Store<FullAppState>,
+              private store$: Store<EsriState>,
               private mapService: EsriMapService,
               private rendererService: EsriRendererService,
               private domainFactory: EsriDomainFactoryService) { }
