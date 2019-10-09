@@ -1,9 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { EsriMapService, selectors } from '@val/esri';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppMapService } from '../../services/app-map.service';
 import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
@@ -36,7 +36,8 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   constructor(private store$: Store<FullAppState>,
               private config: AppConfig,
               private appMapService: AppMapService,
-              private esriMapService: EsriMapService) { }
+              private esriMapService: EsriMapService,
+              private cd: ChangeDetectorRef) { }
 
   private static convertParams(params: Params) : BatchMapQueryParams {
     const result = {
@@ -53,7 +54,10 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       take(1),
     ).subscribe(() => this.setupMap());
     this.mapViewIsReady$ = combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving)]).pipe(
-      map(([ready, moving]) => ready && !moving)
+      map(([ready, moving]) => ready && !moving),
+      distinctUntilChanged(),
+      debounceTime(250),
+      tap(() => this.cd.markForCheck())
     );
     this.nextSiteNumber$ = this.store$.select(getNextSiteNumber);
     this.isLastSite$ = this.store$.select(getLastSiteFlag);
