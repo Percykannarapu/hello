@@ -79,9 +79,11 @@ export class AppDataShimService {
     return this.appProjectService.load(id);
   }
 
-  onLoadSuccess() : void {
+  onLoadSuccess(isBatch: boolean) : void {
     this.appTradeAreaService.setCurrentDefaults();
-    this.appTradeAreaService.zoomToTradeArea();
+    if (!isBatch) {
+      this.appTradeAreaService.zoomToTradeArea();
+    }
     /**recalculating mustcovers disabled for DE2271 */
     this.appGeoService.reloadMustCovers();
     this.appLayerService.updateLabelExpressions(false);

@@ -93,7 +93,8 @@ export class DataShimEffects {
   @Effect()
   loadSuccess$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectLoadSuccess),
-    tap(() => this.appDataShimService.onLoadSuccess()),
+    withLatestFrom(this.store$.select(getBatchMode)),
+    tap(([, isBatch]) => this.appDataShimService.onLoadSuccess(isBatch)),
     map(() => new ProjectLoadFinish())
   );
 
