@@ -56,7 +56,6 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.mapViewIsReady$ = combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving)]).pipe(
       map(([ready, moving]) => ready && !moving),
       distinctUntilChanged(),
-      debounceTime(250),
       tap(() => this.cd.markForCheck())
     );
     this.nextSiteNumber$ = this.store$.select(getNextSiteNumber);
