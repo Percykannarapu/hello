@@ -30,12 +30,7 @@ export class BatchMapEffects {
     ofType(DataShimActionTypes.ProjectLoadFinish),
     withLatestFrom(this.store$.select(getBatchMode)),
     filter(([, batchMode]) => batchMode),
-    switchMap(() => this.store$.select(getBatchMapReady).pipe(
-      debounceTime(250),
-      filter(ready => ready),
-      take(1),
-      map(() => new MoveToSite({ siteNum: null }))
-    )),
+    map(() => new MoveToSite({ siteNum: null }))
   );
 
   @Effect()
