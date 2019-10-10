@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { EsriMapService, selectors } from '@val/esri';
@@ -25,9 +25,9 @@ const defaultQueryParams: BatchMapQueryParams = {
 })
 export class BatchMapComponent implements OnInit, OnDestroy {
 
-  mapViewIsReady$: Observable<boolean>;
-  nextSiteNumber$: Observable<string>;
-  isLastSite$: Observable<boolean>;
+  mapViewIsReady: boolean;
+  nextSiteNumber: string;
+  isLastSite: boolean;
   height$: Observable<number>;
 
   private typedParams$: Observable<BatchMapQueryParams>;
@@ -37,7 +37,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
               private config: AppConfig,
               private appMapService: AppMapService,
               private esriMapService: EsriMapService,
-              private cd: ChangeDetectorRef) { }
+              private zone: NgZone) { }
 
   private static convertParams(params: Params) : BatchMapQueryParams {
     const result = {
@@ -53,12 +53,19 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       filter(ready => ready),
       take(1),
     ).subscribe(() => this.setupMap());
-    this.mapViewIsReady$ = combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving)]).pipe(
+
+    combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving)]).pipe(
       map(([ready, moving]) => ready && !moving),
-      tap(() => this.cd.detectChanges()),
-    );
-    this.nextSiteNumber$ = this.store$.select(getNextSiteNumber);
-    this.isLastSite$ = this.store$.select(getLastSiteFlag);
+      takeUntil(this.destroyed$)
+    ).subscribe(ready => this.zone.run(() => this.mapViewIsReady = ready));
+
+    this.store$.select(getNextSiteNumber).pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(siteNum => this.zone.run(() => this.nextSiteNumber = siteNum));
+    this.store$.select(getLastSiteFlag).pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(lastSite => this.zone.run(() => this.isLastSite = lastSite));
+
     this.typedParams$ = this.store$.select(getRouteQueryParams).pipe(
       map(params => BatchMapComponent.convertParams(params))
     );
@@ -79,7 +86,6 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   }
 
   private setupMap() : void {
-    console.log('Setup Map called');
     this.esriMapService.watchMapViewProperty('updating').pipe(
       takeUntil(this.destroyed$),
     ).subscribe(result => this.store$.dispatch(new SetMapReady({ mapReady: !result.newValue })));
