@@ -70,14 +70,14 @@ export class AppLayerService {
     });
     return merge(...results, 2).pipe(
       finalize(() => {
-        this.updateLabelExpressions(false);
+        this.updateLabelExpressions(false, isBatchMapping);
         this.resumeLayerWatch(this.pausableWatches);
         // set up sub for future label expression changes
         this.store$.pipe(
           select(selectors.getEsriLabelConfiguration),
           map(config => config.pobEnabled),
           distinctUntilChanged()
-        ).subscribe(showPOBs => this.updateLabelExpressions(showPOBs));
+        ).subscribe(showPOBs => this.updateLabelExpressions(showPOBs, isBatchMapping));
         this.store$.dispatch(new LayerSetupComplete());
       })
     );
@@ -113,10 +113,12 @@ export class AppLayerService {
     });
   }
 
-  public updateLabelExpressions(showPOBs: boolean) : void {
+  public updateLabelExpressions(showPOBs: boolean, isBatchMode: boolean = false) : void {
     const groupDefs = Object.values(this.appConfig.layers);
     const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
-    const labelLayerMap = mapByExtended(allLayers, l => l.id, l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset, colorOverride: l.labelColorOverride }));
+    const labelLayerMap = mapByExtended(allLayers,
+        l => isBatchMode && l.simplifiedId ? l.simplifiedId : l.id,
+        l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset, colorOverride: l.labelColorOverride }));
     this.store$.dispatch(new SetLayerLabelExpressions({ expressions: mapToEntity(labelLayerMap) }));
   }
 

@@ -55,8 +55,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     ).subscribe(() => this.setupMap());
     this.mapViewIsReady$ = combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving)]).pipe(
       map(([ready, moving]) => ready && !moving),
-      distinctUntilChanged(),
-      tap(() => this.cd.markForCheck())
+      tap(() => this.cd.detectChanges()),
     );
     this.nextSiteNumber$ = this.store$.select(getNextSiteNumber);
     this.isLastSite$ = this.store$.select(getLastSiteFlag);
@@ -76,7 +75,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   }
 
   onGoToSite(siteNum: string) : void {
-    this.store$.dispatch(new MoveToSite({ siteNum }));
+    if (siteNum != null) this.store$.dispatch(new MoveToSite({ siteNum }));
   }
 
   private setupMap() : void {
