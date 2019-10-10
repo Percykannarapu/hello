@@ -28,6 +28,7 @@ export class UploadMustCoverComponent implements OnInit {
    public currentAnalysisLevel$: Observable<string>;
    public totalUploadedRowCount = 0;
    private fileName: string;
+   public isMustCoverExists: boolean;
 
    @ViewChild('mustCoverUpload', { static: true }) private mustCoverUploadEl: FileUpload;
 
@@ -49,6 +50,10 @@ export class UploadMustCoverComponent implements OnInit {
     this.impGeofootprintGeoService.uploadFailuresObs$.subscribe(result => {
       if (this.impGeofootprintGeoService.uploadFailures.length == 0)
       this.impGeofootprintGeoService.uploadFailures.push(...result);
+    });
+
+    this.appStateService.currentProject$.subscribe(project => {
+       this.isMustCoverExists = project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER');
     });
 
    }
@@ -87,14 +92,15 @@ export class UploadMustCoverComponent implements OnInit {
         //ensure mustcover are active
         const uniqueGeoSet = new Set(uniqueGeos);
         this.impGeofootprintGeoService.get().forEach(geo => {
-        if (uniqueGeoSet.has(geo.geocode)){
-        geo.isActive = true;
-      }
-      }
-   );
-this.impGeofootprintGeoService.makeDirty();
-        this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length;
-      }
+            if (uniqueGeoSet.has(geo.geocode)){
+                  geo.isActive = true;
+               }
+         }
+      );
+      this.isMustCoverExists = uniqueGeos.length > 0;
+      this.impGeofootprintGeoService.makeDirty();
+            this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length;
+            }
     );
    }
 

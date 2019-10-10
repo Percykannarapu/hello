@@ -1,10 +1,23 @@
 <div class="ui-g">
    <div class="ui-g-12">
      <div class="upload-label">Upload a list of geographies that must be in the geofootprint.</div>
+      
+     <div class="ui-g-12" *ngIf="isMustCoverExists">  
+      <div class="ui-g-3" style="margin-top: -15px;margin-bottom:-10px;">
+         <div  class="warning-label" >
+          Must Covers Exists
+         </div>
+       </div>
+     </div> 
+     <div class="ui-g-12">
+        <div class="ui-g-3">
+            <p-fileUpload #mustCoverUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
+                      [pTooltip]="tooltip" [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isDisable">
+            </p-fileUpload>
+        </div>
 
-     <p-fileUpload #mustCoverUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
-                   [pTooltip]="tooltip" [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isDisable">
-     </p-fileUpload>
+     </div >
+     
 
      <div *ngIf="impGeofootprintGeoService.uploadFailures.length > 0" class="ui-g-7">
         <p-table [value]="impGeofootprintGeoService.uploadFailures" [paginator]="true" [rows]="5">
