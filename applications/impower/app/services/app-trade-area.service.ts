@@ -278,7 +278,7 @@ export class AppTradeAreaService {
   private calculateStatsAndZoom(latitudes: number[], longitudes: number[]) : void {
     const xStats = calculateStatistics(longitudes);
     const yStats = calculateStatistics(latitudes);
-    this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length);
+    this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length).subscribe();
   }
 
   public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {

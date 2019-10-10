@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { calculateStatistics } from '@val/common';
-import { EsriMapService } from '@val/esri';
+import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { Observable, throwError } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocalAppState } from '../state/app.interfaces';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -19,9 +20,9 @@ export class BatchMapService {
   private originalGeoState: Record<number, boolean> = null;
   readonly printUrl: string = 'v1/impower/business/print';
 
-
   constructor(private geoService: ImpGeofootprintGeoService,
               private esriMapService: EsriMapService,
+              private esriQueryService: EsriQueryService,
               private config: AppConfig,
               private restService: RestDataService,
               private store$: Store<LocalAppState>) { }
@@ -49,7 +50,7 @@ export class BatchMapService {
     return result;
   }
 
-  moveToSite(project: ImpProject, siteNum: string) : { siteNum: string, isLastSite: boolean } {
+  moveToSite(project: ImpProject, siteNum: string) : Observable<{ siteNum: string, isLastSite: boolean }> {
     if (this.originalGeoState == null) {
       this.recordOriginalState(project);
     }
@@ -66,13 +67,14 @@ export class BatchMapService {
         currentGeos.forEach(g => {
           g.isActive = this.originalGeoState[g.ggId];
         });
-        this.setMapLocation(currentGeos);
       } else {
         currentGeos.forEach(g => g.isActive = false);
       }
     }
     this.geoService.update(null, null);
-    return result;
+    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos()).pipe(
+      map(() => result)
+    );
   }
 
   private recordOriginalState(project: ImpProject) : void {
@@ -83,9 +85,25 @@ export class BatchMapService {
     });
   }
 
-  private setMapLocation(geos: ReadonlyArray<ImpGeofootprintGeo>) : void {
-    const xStats = calculateStatistics(geos.filter(g => g.isActive).map(d => d.xcoord));
-    const yStats = calculateStatistics(geos.filter(g => g.isActive).map(d => d.ycoord));
-    this.esriMapService.zoomOnMap(xStats, yStats, geos.filter(g => g.isActive).length);
+  private setMapLocation(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>) : Observable<void> {
+    const geocodes = geos.filter(g => g.isActive).map(g => g.geocode);
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
+    return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
+      switchMap((polys) => {
+        const xStats = calculateStatistics(polys.reduce((p, c) => {
+          p.push(c.geometry.extent.xmax, c.geometry.extent.xmin);
+          return p;
+        }, []));
+        const yStats = calculateStatistics(polys.reduce((p, c) => {
+          p.push(c.geometry.extent.ymax, c.geometry.extent.ymin);
+          return p;
+        }, []));
+        xStats.min -= 0.01;
+        xStats.max += 0.01;
+        yStats.min -= 0.01;
+        yStats.max += 0.01;
+        return this.esriMapService.zoomOnMap(xStats, yStats, geos.filter(g => g.isActive).length);
+      })
+    );
   }
 }

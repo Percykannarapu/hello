@@ -1,9 +1,9 @@
 import { ElementRef, Inject, Injectable, NgZone } from '@angular/core';
-import { EsriUtils, WatchResult } from '../core/esri-utils';
-import { EsriApi } from '../core/esri-api.service';
+import { Observable } from 'rxjs';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
+import { EsriApi } from '../core/esri-api.service';
+import { EsriUtils, WatchResult } from '../core/esri-utils';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
-import { from, Observable } from 'rxjs';
 
 @Injectable()
 export class EsriMapService {
@@ -35,15 +35,33 @@ export class EsriMapService {
     });
   }
 
-  zoomOnMap(xStats: { min: number, max: number }, yStats: { min: number, max: number }, pointCount: number) : void {
-    this.zone.runOutsideAngular(() => {
-      if (pointCount === 0) return;
-      this.mapView.extent = this.domainService.createExtent(xStats, yStats, 0.15);
-      if (pointCount === 1) {
-        this.mapView.zoom = 12;
-      } else {
-        this.mapView.zoom -= 1;
-      }
+  zoomOnMap(xStats: { min: number, max: number }, yStats: { min: number, max: number }, pointCount: number) : Observable<void> {
+    return new Observable<void>(subscriber => {
+      this.zone.runOutsideAngular(() => {
+        if (pointCount === 0) {
+          this.zone.run(() => {
+            subscriber.next();
+            subscriber.complete();
+          });
+        } else {
+          const options = { animate: false };
+          let target: __esri.Point | __esri.Polygon;
+          if (pointCount === 1) {
+            target = new EsriApi.Point({ x: xStats.min, y: yStats.min });
+            options['zoom'] = 12;
+          } else {
+            const polyExtent = this.domainService.createExtent(xStats, yStats);
+            target = EsriApi.Polygon.fromExtent(polyExtent);
+          }
+          const result = EsriUtils.esriPromiseToEs6(this.mapView.goTo(target, options));
+          this.zone.run(() => {
+            result.catch(() => subscriber.error()).then(() => {
+              subscriber.next();
+              subscriber.complete();
+            });
+          });
+        }
+      });
     });
   }
 

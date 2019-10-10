@@ -202,7 +202,7 @@ export class SiteListContainerComponent implements OnInit {
       // this.store$.dispatch(new ValidateEditedHomeGeoAttributes({oldData, siteOrSites, siteType, editedTags, attributeList}));
     }
     else {
-      if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) { 
+      if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) {
           siteOrSites['latitude'] = null;
           siteOrSites['longitude'] = null;
           this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
@@ -291,7 +291,7 @@ export class SiteListContainerComponent implements OnInit {
       // console.debug("-".padEnd(80, "-"));
       // console.debug("SITE LIST CONTAINER - onZoomToLocation", loc);
       // console.debug("-".padEnd(80, "-"));
-      this.esriMapService.zoomOnMap({ min: loc.xcoord, max: loc.xcoord }, { min: loc.ycoord, max: loc.ycoord }, 1);
+      this.esriMapService.zoomOnMap({ min: loc.xcoord, max: loc.xcoord }, { min: loc.ycoord, max: loc.ycoord }, 1).subscribe();
       this.appStateService.closeOverlays();
    }
 }

@@ -21,7 +21,6 @@ export class EsriApi {
     'esri/layers/FeatureLayer',
     'esri/core/watchUtils',
     'esri/PopupTemplate',
-    'esri/geometry/Polyline',
     'esri/Viewpoint',
     'esri/Graphic',
     'esri/symbols/SimpleFillSymbol',
@@ -29,8 +28,11 @@ export class EsriApi {
     'esri/Color',
     'esri/geometry/Point',
     'esri/geometry/Multipoint',
-    'esri/tasks/support/Query',
+    'esri/geometry/Polyline',
     'esri/geometry/Extent',
+    'esri/geometry/projection',
+    'esri/geometry/Polygon',
+    'esri/tasks/support/Query',
     'esri/tasks/Geoprocessor',
     'esri/tasks/support/FeatureSet',
     'esri/popup/FieldInfo',
@@ -39,7 +41,6 @@ export class EsriApi {
     'esri/symbols/Font',
     'esri/symbols/SimpleLineSymbol',
     'esri/layers/GraphicsLayer',
-    'esri/geometry/projection',
     'esri/tasks/PrintTask',
     'esri/tasks/support/PrintParameters',
     'esri/tasks/support/PrintTemplate'
@@ -62,7 +63,6 @@ export class EsriApi {
   public static FeatureLayer: __esri.FeatureLayerConstructor;
   public static watchUtils: __esri.watchUtils;
   public static PopupTemplate: __esri.PopupTemplateConstructor;
-  public static PolyLine: __esri.PolylineConstructor;
   public static Viewpoint: __esri.ViewpointConstructor;
   public static Graphic: __esri.GraphicConstructor;
   public static SimpleFillSymbol: __esri.SimpleFillSymbolConstructor;
@@ -70,8 +70,11 @@ export class EsriApi {
   public static Color: __esri.ColorConstructor;
   public static Point: __esri.PointConstructor;
   public static Multipoint: __esri.MultipointConstructor;
-  public static Query: __esri.QueryConstructor;
+  public static PolyLine: __esri.PolylineConstructor;
   public static Extent: __esri.ExtentConstructor;
+  public static projection: __esri.projection;
+  public static Polygon: __esri.PolygonConstructor;
+  public static Query: __esri.QueryConstructor;
   public static Geoprocessor: __esri.GeoprocessorConstructor;
   public static FeatureSet: __esri.FeatureSetConstructor;
   public static FieldInfo: __esri.FieldInfoConstructor;
@@ -80,7 +83,6 @@ export class EsriApi {
   public static Font: __esri.FontConstructor;
   public static SimpleLineSymbol: __esri.SimpleLineSymbolConstructor;
   public static GraphicsLayer: __esri.GraphicsLayerConstructor;
-  public static projection: __esri.projection;
   public static PrintTask: __esri.PrintTaskConstructor;
   public static PrintParameters: __esri.PrintParametersConstructor;
   public static PrintTemplate: __esri.PrintTemplateConstructor;
@@ -118,7 +120,6 @@ export class EsriApi {
       EsriApi.FeatureLayer,
       EsriApi.watchUtils,
       EsriApi.PopupTemplate,
-      EsriApi.PolyLine,
       EsriApi.Viewpoint,
       EsriApi.Graphic,
       EsriApi.SimpleFillSymbol,
@@ -126,8 +127,11 @@ export class EsriApi {
       EsriApi.Color,
       EsriApi.Point,
       EsriApi.Multipoint,
-      EsriApi.Query,
+      EsriApi.PolyLine,
       EsriApi.Extent,
+      EsriApi.projection,
+      EsriApi.Polygon,
+      EsriApi.Query,
       EsriApi.Geoprocessor,
       EsriApi.FeatureSet,
       EsriApi.FieldInfo,
@@ -136,7 +140,6 @@ export class EsriApi {
       EsriApi.Font,
       EsriApi.SimpleLineSymbol,
       EsriApi.GraphicsLayer,
-      EsriApi.projection,
       EsriApi.PrintTask,
       EsriApi.PrintParameters,
       EsriApi.PrintTemplate

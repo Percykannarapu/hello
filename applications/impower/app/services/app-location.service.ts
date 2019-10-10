@@ -285,7 +285,7 @@ export class AppLocationService {
   public zoomToLocations(locations: ImpGeofootprintLocation[]) {
     const xStats = calculateStatistics(locations.map(d => d.xcoord));
     const yStats = calculateStatistics(locations.map(d => d.ycoord));
-    this.esriMapService.zoomOnMap(xStats, yStats, locations.length);
+    this.esriMapService.zoomOnMap(xStats, yStats, locations.length).subscribe();
   }
 
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {

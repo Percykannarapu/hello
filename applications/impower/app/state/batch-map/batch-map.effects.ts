@@ -38,7 +38,7 @@ export class BatchMapEffects {
     ofType(BatchMapActionTypes.MoveToSite),
     withLatestFrom(this.appStateService.currentProject$),
     filter(([, project]) => project != null && project.projectId != null),
-    map(([action, project]) => this.batchMapService.moveToSite(project, action.payload.siteNum)),
+    switchMap(([action, project]) => this.batchMapService.moveToSite(project, action.payload.siteNum)),
     switchMap((payload) => this.store$.select(getBatchMapReady).pipe(
       debounceTime(250),
       filter(ready => ready),
