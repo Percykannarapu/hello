@@ -4,7 +4,7 @@
 export enum ColorPalette {
   Cpqmaps = '20 Colors (text vars only)',
   Advantagedarker2 = '5 Advantage-Darker',
-  EsriPurple = 'Esri High To Low',
+  EsriPurple = 'Gradient - Purple',
 }
 
 export enum AllColorPalettes {
