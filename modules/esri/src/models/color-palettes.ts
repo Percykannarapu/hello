@@ -76,7 +76,7 @@ export enum AllColorPalettes {
   Bluetored = '20 Blue to Red',
   Lightcolors2 = '20 Light Colors #2',
   Darkcolors = '20 Dark Colors',
-  EsriPurple = 'Esri High To Low',
+  EsriPurple = 'Gradient - Purple',
 }
 
 export function getColorPalette(palette: ColorPalette) : number[][] {
