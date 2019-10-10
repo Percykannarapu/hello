@@ -13,6 +13,7 @@ import { CreateBatchMap } from '../../state/batch-map/batch-map.actions';
 import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, OpenPrintViewDialog, SaveAndCreateNew, SaveAndReloadProject } from '../../state/menu/menu.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpowerMainComponent } from '../impower-main/impower-main.component';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
     selector: 'app-menu',
@@ -23,7 +24,10 @@ export class AppMenuComponent implements OnInit {
     model: MenuItem[];
     isLoggedIn: boolean = false;
 
-    constructor(private store$: Store<LocalAppState>, private userService: UserService, private stateService: AppStateService) { }
+    constructor(private store$: Store<LocalAppState>, 
+                private userService: UserService, 
+                private stateService: AppStateService,
+                private locationService: ImpGeofootprintLocationService) { }
 
     ngOnInit() {
         this.userService.userObservable.pipe(
@@ -51,7 +55,7 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportToValassisDigital()) },
                   { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
                   { label: 'Create Batch Map', icon: 'fa fa-book', command: () => {
-                    this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'batch~map', 1));
+                    this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'batch~map', this.locationService.get().length));
                     this.store$.dispatch(new CreateBatchMap({email: `${this.userService.getUser().username}@valassis.com`}))
                   } }
               ]
