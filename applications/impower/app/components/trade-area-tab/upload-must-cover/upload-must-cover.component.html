@@ -5,7 +5,7 @@
      <div class="ui-g-12" *ngIf="isMustCoverExists">  
       <div class="ui-g-3" style="margin-top: -15px;margin-bottom:-10px;">
          <div  class="warning-label" >
-          Must Covers Exists
+          Must Covers Exist
          </div>
        </div>
      </div> 
@@ -15,6 +15,10 @@
                       [pTooltip]="tooltip" [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isDisable">
             </p-fileUpload>
         </div>
+
+        <div class="ui-g-3">
+            <button pButton type="button" label="Delete Must Covers"  [disabled]="!isMustCoverExists" (click)="deleteMustCovers()" ></button>
+         </div>
 
      </div >
      

@@ -10,6 +10,7 @@ import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
+import { ConfirmationService } from 'primeng/api';
 
 interface CustomMCDefinition {
   Number: number;
@@ -37,6 +38,7 @@ export class UploadMustCoverComponent implements OnInit {
               , private appStateService: AppStateService
               , private appProjectPrefService: AppProjectPrefService
               , private geoService: ImpGeofootprintGeoService
+              , private confirmationService: ConfirmationService
               , private store$: Store<LocalAppState>) { 
                 this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
               }
@@ -149,5 +151,26 @@ export class UploadMustCoverComponent implements OnInit {
       }
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
+   }
+
+   deleteMustCovers(){
+
+      this.confirmationService.confirm({
+         message: 'Do you want to delete all the Must Cover geos?',
+         header: 'Delete Must Cover Confirmation',
+         icon: 'ui-icon-delete',
+
+         accept: () => {
+            this.impGeofootprintGeoService.clearMustCovers();
+            this.isMustCoverExists = false;
+         },
+         reject: () => {
+            this.isMustCoverExists = true;
+         }
+
+      });
+
+      
+
    }
 }
