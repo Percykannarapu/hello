@@ -148,6 +148,7 @@ import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
 import { SidebarModule } from 'primeng/sidebar';
 import { ShadingSettingsComponent } from './components/shading-settings/shading-settings.component';
+import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
 
 @NgModule({
     imports: [
@@ -274,7 +275,8 @@ import { ShadingSettingsComponent } from './components/shading-settings/shading-
         PrintViewComponent,
         BatchMapComponent,
         ImpowerMainComponent,
-        ShadingSettingsComponent
+        ShadingSettingsComponent,
+        BatchMapDialogComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

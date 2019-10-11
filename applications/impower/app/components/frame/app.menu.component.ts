@@ -9,7 +9,7 @@ import { MenuItem } from 'primeng/api';
 import { filter, take } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { CreateBatchMap } from '../../state/batch-map/batch-map.actions';
+import { OpenBatchMapDialog } from '../../state/batch-map/batch-map.actions';
 import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, OpenPrintViewDialog, SaveAndCreateNew, SaveAndReloadProject } from '../../state/menu/menu.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpowerMainComponent } from '../impower-main/impower-main.component';
@@ -56,8 +56,7 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
                   { label: 'Create Batch Map', icon: 'fa fa-book', command: () => {
                     this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'batch~map', this.locationService.get().length));
-                    this.store$.dispatch(new CreateBatchMap({email: `${this.userService.getUser().username}@valassis.com`}))
-                  } }
+                    this.store$.dispatch(new OpenBatchMapDialog())} }
               ]
             }
         ];

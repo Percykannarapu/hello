@@ -6,7 +6,7 @@ import { ErrorNotification } from '@val/messaging';
 import { Observable, throwError } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { LocalAppState } from '../state/app.interfaces';
+import { LocalAppState, BatchMapPayload } from '../state/app.interfaces';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -27,11 +27,15 @@ export class BatchMapService {
               private restService: RestDataService,
               private store$: Store<LocalAppState>) { }
 
-  requestBatchMap(project: ImpProject, email: string) : Observable<any> {
-    const payload = {
-      projectId: project.projectId
+  requestBatchMap(project: ImpProject, email: string, payload: BatchMapPayload) : Observable<any> {
+    const requestPayload = {
+      // projectId: project.projectId,
+      email: payload.email,
+      title: payload.title,
+      subTitle: payload.subTitle
     };
-    return this.restService.post(`${this.printUrl}?size=letter&orientation=landscape&email=${email}&projectId=${project.projectId}`, {});
+
+    return this.restService.post(`${this.printUrl}?size=letter&orientation=landscape&email=${email}&projectId=${project.projectId}`, requestPayload);
   }
 
   validateProjectReadiness(project: ImpProject) : boolean {
