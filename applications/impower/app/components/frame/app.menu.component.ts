@@ -14,6 +14,7 @@ import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, Export
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpowerMainComponent } from '../impower-main/impower-main.component';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { BatchMapService } from 'app/services/batch-map.service';
 
 @Component({
     selector: 'app-menu',
@@ -27,7 +28,8 @@ export class AppMenuComponent implements OnInit {
     constructor(private store$: Store<LocalAppState>, 
                 private userService: UserService, 
                 private stateService: AppStateService,
-                private locationService: ImpGeofootprintLocationService) { }
+                private locationService: ImpGeofootprintLocationService,
+                private batchService: BatchMapService) { }
 
     ngOnInit() {
         this.userService.userObservable.pipe(
@@ -54,9 +56,7 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
                   { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportToValassisDigital()) },
                   { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
-                  { label: 'Create Batch Map', icon: 'fa fa-book', command: () => {
-                    this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'batch~map', this.locationService.get().length));
-                    this.store$.dispatch(new OpenBatchMapDialog())} }
+                  { label: 'Create Batch Map', icon: 'fa fa-book', command: () => this.createBatchMap() }
               ]
             }
         ];
@@ -81,6 +81,15 @@ export class AppMenuComponent implements OnInit {
       }
       else
         this.store$.dispatch(new ErrorNotification({message: 'Analysis Level is required to print Current view'}));
+    }
+
+    private createBatchMap(){
+      const currentProject = this.stateService.currentProject$.getValue();
+      const isProjectSaved = this.batchService.validateProjectReadiness(currentProject);
+      if (isProjectSaved) {
+        this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'batch~map', this.locationService.get().length));
+        this.store$.dispatch(new OpenBatchMapDialog());
+      }
     }
 
     public createNewProject() {
