@@ -11,6 +11,11 @@ import { LocalAppState } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
 import { ConfirmationService } from 'primeng/api';
+import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
+import { ImpProjectPref } from 'app/val-modules/targeting/models/ImpProjectPref';
+import { DAOBaseStatus } from 'app/val-modules/api/models/BaseModel';
+import { AppProjectService } from 'app/services/app-project.service';
+import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
 
 interface CustomMCDefinition {
   Number: number;
@@ -34,11 +39,11 @@ export class UploadMustCoverComponent implements OnInit {
    @ViewChild('mustCoverUpload', { static: true }) private mustCoverUploadEl: FileUpload;
 
    constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService
-              , private appGeoService: AppGeoService
               , private appStateService: AppStateService
               , private appProjectPrefService: AppProjectPrefService
-              , private geoService: ImpGeofootprintGeoService
               , private confirmationService: ConfirmationService
+              , private impProjectPrefService: ImpProjectPrefService 
+              , private impProjectService: ImpProjectService
               , private store$: Store<LocalAppState>) { 
                 this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
               }
@@ -50,12 +55,16 @@ export class UploadMustCoverComponent implements OnInit {
     });
 
     this.impGeofootprintGeoService.uploadFailuresObs$.subscribe(result => {
-      if (this.impGeofootprintGeoService.uploadFailures.length == 0)
-      this.impGeofootprintGeoService.uploadFailures.push(...result);
+      if (this.impGeofootprintGeoService.uploadFailures.length == 0){
+         this.impGeofootprintGeoService.uploadFailures.push(...result);
+         this.isMustCoverExists = true;
+      }
     });
 
     this.appStateService.currentProject$.subscribe(project => {
-       this.isMustCoverExists = project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER');
+       this.isMustCoverExists = project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER' && pref.val != null);
+       if (this.impGeofootprintGeoService.uploadFailures.length > 0)
+         this.isMustCoverExists = true;
     });
 
    }
@@ -100,6 +109,8 @@ export class UploadMustCoverComponent implements OnInit {
          }
       );
       this.isMustCoverExists = uniqueGeos.length > 0;
+      if (this.impGeofootprintGeoService.uploadFailures.length > 0)
+         this.isMustCoverExists = true;
       this.impGeofootprintGeoService.makeDirty();
             this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length;
             }
@@ -161,8 +172,29 @@ export class UploadMustCoverComponent implements OnInit {
          icon: 'ui-icon-delete',
 
          accept: () => {
-            this.impGeofootprintGeoService.clearMustCovers();
-            this.isMustCoverExists = false;
+            
+            // Just for reference
+            /*
+            const impProjectPrefs: ImpProjectPref[] = [];
+            this.impProjectPrefService.get().filter(pref => pref.prefGroup === 'MUSTCOVER').forEach(pref => {
+               pref.baseStatus = DAOBaseStatus.DELETE;
+               impProjectPrefs.push(pref);
+            })
+            this.impProjectPrefService.postDBRemoves('Targeting', 'ImpProjectPref', 'v1', impProjectPrefs)
+             .subscribe(postResultCode => {
+               console.log('post completed, calling completeDBRemoves');
+               this.impProjectPrefService.completeDBRemoves(impProjectPrefs);
+               
+             });*/
+             this.impGeofootprintGeoService.clearMustCovers();
+             this.isMustCoverExists = false;
+            //this.impProjectPrefService.clearAll();
+            //this.impProjectPrefService.add(prefs);
+            //this.appProjectService.deleteProjectPrefs(this.impProjectPrefService.get().filter(pref => pref.prefGroup === ProjectPrefGroupCodes.MustCover));
+            this.impProjectService.get()[0].impProjectPrefs = this.impProjectPrefService.get().filter(pref => pref.prefGroup !== ProjectPrefGroupCodes.MustCover);;
+            this.impGeofootprintGeoService.uploadFailures = [];
+            if (this.impGeofootprintGeoService.uploadFailures.length > 0)
+               this.isMustCoverExists = true;
          },
          reject: () => {
             this.isMustCoverExists = true;
