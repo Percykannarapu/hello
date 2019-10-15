@@ -90,7 +90,8 @@ export class BatchMapService {
   }
 
   private setMapLocation(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>) : Observable<void> {
-    const geocodes = geos.filter(g => g.isActive).map(g => g.geocode);
+    const activeGeos = geos.filter(g => g.isActive);
+    const geocodes = activeGeos.map(g => g.geocode);
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
       switchMap((polys) => {
@@ -106,7 +107,8 @@ export class BatchMapService {
         xStats.max += 0.01;
         yStats.min -= 0.01;
         yStats.max += 0.01;
-        return this.esriMapService.zoomOnMap(xStats, yStats, geos.filter(g => g.isActive).length);
+        const polyCount = activeGeos.length > 0 ? activeGeos.length + 1 : 0;
+        return this.esriMapService.zoomOnMap(xStats, yStats, polyCount);
       })
     );
   }
