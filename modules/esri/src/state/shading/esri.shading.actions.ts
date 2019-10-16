@@ -6,10 +6,13 @@ export const mapViewChanged = createAction(
 );
 
 export const geoSelectionChanged = createAction(
-  '[Esri.Shading] Geo Selection Changed',
-  props<{ selectedGeos: string[], layerId: string, minScale: number, geoType: string }>()
+  '[Esri.Shading] Feature Selection Changed',
+  props<{ selectedFeatureIds: string[], layerId: string, minScale: number, featureTypeName: string }>()
 );
 
 export const clearShadingData = createAction('[Esri.Shading] Clear Shading Data');
 
-export const clearSelectionData = createAction('[Esri.Shading] Clear Selection Data');
+export const clearSelectionData = createAction(
+  '[Esri.Shading] Clear Selection Data',
+  props<{ featureTypeName: string }>()
+);

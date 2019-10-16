@@ -4,6 +4,7 @@ import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils, WatchResult } from '../core/esri-utils';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
+import MapViewBaseGoToTarget = __esri.MapViewBaseGoToTarget;
 
 @Injectable()
 export class EsriMapService {
@@ -45,10 +46,12 @@ export class EsriMapService {
           });
         } else {
           const options = { animate: false };
-          let target: __esri.Point | __esri.Polygon;
+          let target: __esri.Polygon | MapViewBaseGoToTarget;
           if (pointCount === 1) {
-            target = new EsriApi.Point({ x: xStats.min, y: yStats.min });
-            options['zoom'] = 12;
+            target = {
+              target: new EsriApi.Point({ x: xStats.min, y: yStats.min }),
+              zoom: 11
+            };
           } else {
             const polyExtent = this.domainService.createExtent(xStats, yStats);
             target = EsriApi.Polygon.fromExtent(polyExtent);
@@ -143,6 +146,24 @@ export class EsriMapService {
     const newExpanderProps = { view: this.mapView, ...expanderProperties, content: result.container };
     const expander = new EsriApi.widgets.Expand(newExpanderProps);
     this.addWidget(expander, position);
+  }
+
+  addLayerToLegend(layer: __esri.Layer, title: string, addToBottom: boolean = false) : void {
+    const legendRef = this.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
+    if (legendRef != null) {
+      if (addToBottom) {
+        legendRef.layerInfos.unshift({ title, layer });
+      } else {
+        legendRef.layerInfos.push({ title, layer });
+      }
+    }
+  }
+
+  removeLayerFromLegend(layer: __esri.Layer) : void {
+    const legendRef = this.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
+    if (legendRef != null) {
+      legendRef.layerInfos = [ ...legendRef.layerInfos.filter(li => li.layer !== layer) ];
+    }
   }
 
   private addWidget(item: __esri.Widget, position: string);

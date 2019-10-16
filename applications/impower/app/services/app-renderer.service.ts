@@ -127,8 +127,9 @@ export class AppRendererService {
     if (this.mapViewWatcher) this.mapViewWatcher.unsubscribe();
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
     if (this.selectedGeoAnalysisLevel !== analysisLevel) {
+      const previousAnalysisLevel = this.selectedGeoAnalysisLevel;
+      setTimeout(() => this.store$.dispatch(clearSelectionData({ featureTypeName: previousAnalysisLevel })), 0);
       this.selectedGeoAnalysisLevel = analysisLevel;
-      setTimeout(() => this.store$.dispatch(clearSelectionData()), 0);
     }
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
     const primaryAnalysisLayer = this.esriLayerService.getPortalLayerById(layerId);
@@ -153,7 +154,7 @@ export class AppRendererService {
         if (c.isActive) p.push(c.geocode);
         return p;
       }, []);
-      this.store$.dispatch(geoSelectionChanged({ selectedGeos, layerId, minScale, geoType: `${analysisLevel}s` }));
+      this.store$.dispatch(geoSelectionChanged({ selectedFeatureIds: selectedGeos, layerId, minScale, featureTypeName: analysisLevel }));
     });
   }
 }

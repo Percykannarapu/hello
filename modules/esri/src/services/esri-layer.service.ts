@@ -188,19 +188,14 @@ export class EsriLayerService {
   public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], addToLegend: boolean = false, bottom: boolean = false) : __esri.GraphicsLayer {
     const group = this.createClientGroup(groupName, true, bottom);
     const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
-    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     group.layers.unshift(layer);
-    if (addToLegend && legendRef != null) {
-      if (bottom) {
-        legendRef.layerInfos.unshift({ layer });
-      } else {
-        legendRef.layerInfos.push({ layer });
-      }
+    if (addToLegend) {
+      this.mapService.addLayerToLegend(layer, layerName, bottom);
     }
     return layer;
   }
 
-  public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string, renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[], legendText: boolean = false) : __esri.FeatureLayer {
+  public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string, renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[], addToLegend: boolean = false) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
     const group = this.createClientGroup(groupName, true);
     const layerType = sourceGraphics[0].geometry.type;
@@ -231,9 +226,8 @@ export class EsriLayerService {
 
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
     group.layers.add(layer);
-    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
-    if (legendText && legendRef != null) {
-      legendRef.layerInfos.push({ layer });
+    if (addToLegend) {
+      this.mapService.addLayerToLegend(layer, layerName);
     }
     return layer;
   }
