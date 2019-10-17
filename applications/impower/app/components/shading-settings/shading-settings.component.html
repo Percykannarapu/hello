@@ -41,13 +41,14 @@
                       <label for="theme">Theme</label>
                   </span>
               </div>
+          </div>
+          <div class="ui-g-10">
+            <button pButton type="button" label="Clear Thematic Shading" icon="ui-icon-clear" (click)= clearShading($event)></button>
           </div>    
-          <div class="ui-g-4">
+          <div class="ui-g-2">
               <button pButton type="save" label="Apply" icon="ui-icon-send" [disabled]="shadeSettingsForm.invalid"></button>
           </div>
-          <div class="ui-g-4">
-              <button pButton type="button" label="Clear Shading" icon="ui-icon-clear" (click)= clearShading($event)></button>
-          </div>
+          
         </p-sidebar>
       </div> 
     </p-card> 
