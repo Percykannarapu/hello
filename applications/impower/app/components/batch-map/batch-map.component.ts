@@ -8,7 +8,7 @@ import { AppConfig } from '../../app.config';
 import { AppMapService } from '../../services/app-map.service';
 import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode, SetMapReady } from '../../state/batch-map/batch-map.actions';
-import { getBatchMapReady, getLastSiteFlag, getMapMoving, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
+import { getBatchMapReady, getLastSiteFlag, getMapMoving, getNextSiteNumber, getCurrentSiteNum } from '../../state/batch-map/batch-map.selectors';
 import { CreateNewProject, ProjectLoad } from '../../state/data-shim/data-shim.actions';
 
 interface BatchMapQueryParams {
@@ -29,6 +29,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   nextSiteNumber: string;
   isLastSite: boolean;
   height$: Observable<number>;
+  currentSiteNumber: string;
 
   private typedParams$: Observable<BatchMapQueryParams>;
   private destroyed$ = new Subject<void>();
@@ -75,6 +76,9 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.config.isBatchMode = true;
     this.store$.dispatch(new SetBatchMode());
     this.store$.dispatch(new CreateNewProject());
+    this.store$.select(getCurrentSiteNum).subscribe(s => {
+      this.currentSiteNumber = s;
+    });
   }
 
   ngOnDestroy() {

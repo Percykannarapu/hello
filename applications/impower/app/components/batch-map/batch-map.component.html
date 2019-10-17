@@ -5,7 +5,9 @@
   <span id="readyFlag" *ngIf="nextSiteNumber != null">
     <button id="nextSiteLink" (click)="onGoToSite(nextSiteNumber)">Goto Next Site</button>
   </span>
+  <span id="currentSiteNum" *ngIf="mapViewIsReady">
+    {{currentSiteNumber}}
+  </span>
   <span id="isLastSite" *ngIf="isLastSite">
-    Last Site!
   </span>
 </div>

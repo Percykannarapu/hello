@@ -7,6 +7,7 @@ export interface BatchMapState {
   mapReady: boolean;
   moving: boolean;
   displayBatchMapDialog: boolean;
+  currentSiteNum: string;
 }
 
 export const initialState: BatchMapState = {
@@ -16,6 +17,7 @@ export const initialState: BatchMapState = {
   mapReady: false,
   moving: true,
   displayBatchMapDialog: false,
+  currentSiteNum: null
 };
 
 export function batchMapReducer(state = initialState, action: BatchMapActions) : BatchMapState {
@@ -50,10 +52,15 @@ export function batchMapReducer(state = initialState, action: BatchMapActions) :
           displayBatchMapDialog: true
         };
       case BatchMapActionTypes.CloseBatchMapDialog:
-          return {
-            ...state,
-            displayBatchMapDialog: false
-          };  
+        return {
+          ...state,
+          displayBatchMapDialog: false
+        };
+      case BatchMapActionTypes.SetCurrentSiteNum:
+        return {
+          ...state,
+          currentSiteNum: action.payload.currentSiteNum
+        };
     default:
       return state;
   }

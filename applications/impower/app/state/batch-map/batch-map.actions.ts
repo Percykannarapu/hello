@@ -8,7 +8,8 @@ export enum BatchMapActionTypes {
   SiteMoved = '[BatchMap] Site Moved',
   SetMapReady = '[BatchMap] Set Map Ready',
   OpenBatchMapDialog = '[Batch Map] Open Batch Map Dialog',
-  CloseBatchMapDialog = '[Batch Map] Close Batch Map Dialog'
+  CloseBatchMapDialog = '[Batch Map] Close Batch Map Dialog',
+  SetCurrentSiteNum = '[Batch Map] Set Current Site Number'
 }
 
 export class CreateBatchMap implements Action {
@@ -43,4 +44,9 @@ export class CloseBatchMapDialog implements Action {
   readonly type = BatchMapActionTypes.CloseBatchMapDialog;
 }
 
-export type BatchMapActions = OpenBatchMapDialog | CloseBatchMapDialog | CreateBatchMap | SetBatchMode | MoveToSite | SiteMoved | SetMapReady;
+export class SetCurrentSiteNum implements Action {
+  readonly type = BatchMapActionTypes.SetCurrentSiteNum;
+  constructor(public payload: { currentSiteNum: string }) {}
+}
+
+export type BatchMapActions = OpenBatchMapDialog | CloseBatchMapDialog | CreateBatchMap | SetBatchMode | MoveToSite | SiteMoved | SetMapReady | SetCurrentSiteNum;

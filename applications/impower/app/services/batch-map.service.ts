@@ -11,6 +11,7 @@ import { RestDataService } from '../val-modules/common/services/restdata.service
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { SetCurrentSiteNum } from 'app/state/batch-map/batch-map.actions';
 
 @Injectable({
   providedIn: 'root'
@@ -71,6 +72,7 @@ export class BatchMapService {
         currentGeos.forEach(g => {
           g.isActive = this.originalGeoState[g.ggId];
         });
+        this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));
       } else {
         currentGeos.forEach(g => g.isActive = false);
       }
