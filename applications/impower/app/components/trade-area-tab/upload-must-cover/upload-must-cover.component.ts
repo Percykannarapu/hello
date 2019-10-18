@@ -12,9 +12,6 @@ import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/servic
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
 import { ConfirmationService } from 'primeng/api';
 import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
-import { ImpProjectPref } from 'app/val-modules/targeting/models/ImpProjectPref';
-import { DAOBaseStatus } from 'app/val-modules/api/models/BaseModel';
-import { AppProjectService } from 'app/services/app-project.service';
 import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
 
 interface CustomMCDefinition {
@@ -172,25 +169,8 @@ export class UploadMustCoverComponent implements OnInit {
          icon: 'ui-icon-delete',
 
          accept: () => {
-            
-            // Just for reference
-            /*
-            const impProjectPrefs: ImpProjectPref[] = [];
-            this.impProjectPrefService.get().filter(pref => pref.prefGroup === 'MUSTCOVER').forEach(pref => {
-               pref.baseStatus = DAOBaseStatus.DELETE;
-               impProjectPrefs.push(pref);
-            })
-            this.impProjectPrefService.postDBRemoves('Targeting', 'ImpProjectPref', 'v1', impProjectPrefs)
-             .subscribe(postResultCode => {
-               console.log('post completed, calling completeDBRemoves');
-               this.impProjectPrefService.completeDBRemoves(impProjectPrefs);
-               
-             });*/
              this.impGeofootprintGeoService.clearMustCovers();
              this.isMustCoverExists = false;
-            //this.impProjectPrefService.clearAll();
-            //this.impProjectPrefService.add(prefs);
-            //this.appProjectService.deleteProjectPrefs(this.impProjectPrefService.get().filter(pref => pref.prefGroup === ProjectPrefGroupCodes.MustCover));
             this.impProjectService.get()[0].impProjectPrefs = this.impProjectPrefService.get().filter(pref => pref.prefGroup !== ProjectPrefGroupCodes.MustCover);;
             this.impGeofootprintGeoService.uploadFailures = [];
             if (this.impGeofootprintGeoService.uploadFailures.length > 0)
