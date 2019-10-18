@@ -1,5 +1,5 @@
 import { createSelector } from '@ngrx/store';
-import { LocalAppState, getMenuSlice } from '../app.interfaces';
+import { LocalAppState } from '../app.interfaces';
 
 const getBatchMapSlice = (state: LocalAppState) => state.batchMap;
 export const getBatchMode = createSelector(getBatchMapSlice, state => state.batchMode);
