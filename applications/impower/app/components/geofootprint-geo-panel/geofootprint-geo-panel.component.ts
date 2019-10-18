@@ -256,4 +256,8 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    public onForceRedraw() {
       this.impGeofootprintGeoService.makeDirty();
    }
+
+  public triggerCollapseOnToggle(collapsed: boolean) {
+    this.appStateService.triggerChangeInCollapse(collapsed);
+  }
 }

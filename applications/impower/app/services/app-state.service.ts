@@ -59,6 +59,7 @@ export class AppStateService {
   public uniqueVisibleGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueSelectedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueIdentifiedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
+  public totalGeoCount$: Observable<number>;
 
   public siteTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
   public competitorTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
@@ -80,7 +81,6 @@ export class AppStateService {
 
   public filterFlag: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public filterFlag$: Observable<boolean> = this.filterFlag.asObservable();
-  public audienceSideBar$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
 
   constructor(private projectService: AppProjectService,
               private locationService: ImpGeofootprintLocationService,
@@ -198,6 +198,11 @@ export class AppStateService {
   }
 
   private setupGeocodeObservables() : void {
+    this.totalGeoCount$ = this.geoService.storeObservable.pipe(
+      filter(geos => geos != null),
+      map(geos => geos.length),
+      startWith(0)
+    );
     this.geoService.storeObservable.pipe(
       filterArray(geo => geo.isActive),
       mapArray(geo => geo.geocode),

@@ -3,6 +3,10 @@
 @import "assets/sass/variables";
 @import "assets/sass/theme/variables";
 
+body {
+  overflow-x: hidden;
+}
+
 .impower.splash-screen {
   background: url("~assets/layout/images/valassis-splash-logo.png") no-repeat center;
 }

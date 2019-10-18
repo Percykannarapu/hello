@@ -37,13 +37,21 @@
     </div>
 
     <div class="layout-main">
-      <val-project></val-project>
-      <val-dashboard></val-dashboard>
-      <val-shading-settings></val-shading-settings>
+      <div class="main-content">
+        <div class="primary-content">
+          <val-dashboard></val-dashboard>
+          <val-map></val-map>
+          <val-geofootprint-geo-panel></val-geofootprint-geo-panel>
+        </div>
+        <div class="side-panel-content">
+          <val-shading-settings></val-shading-settings>
+        </div>
+      </div>
       <val-app-footer></val-app-footer>
     </div>
 
     <p-confirmDialog icon="fa fa-question-circle" [style]="{ width: '500px' }"></p-confirmDialog>
+    <val-project></val-project>
     <val-busy-indicator></val-busy-indicator>
     <val-confirmation-dialog></val-confirmation-dialog>
     <val-print-view></val-print-view>

@@ -1,19 +1,13 @@
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppStateService } from 'app/services/app-state.service';
-import { MenuItem } from 'primeng/api';
-import { Observable } from 'rxjs';
-import { RadService } from '../../services/rad.service';
-import { UserService } from '../../services/user.service';
-import { LocalAppState } from '../../state/app.interfaces';
-import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
-import { MetricOperations, MetricService } from '../../val-modules/common/services/metric.service';
-import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ColorBoxComponent } from '../color-box/color-box.component';
-import { CampaignDetailsComponent } from '../campaign-details/campaign-details.component';
+import {Component, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {MenuItem} from 'primeng/api';
+import {RadService} from '../../services/rad.service';
+import {UserService} from '../../services/user.service';
+import {LocalAppState} from '../../state/app.interfaces';
+import {CreateNewProject} from '../../state/data-shim/data-shim.actions';
+import {MetricOperations, MetricService} from '../../val-modules/common/services/metric.service';
+import {CampaignDetailsComponent} from '../campaign-details/campaign-details.component';
+import {ColorBoxComponent} from '../color-box/color-box.component';
 
 @Component({
   selector: 'val-dashboard',
@@ -53,13 +47,8 @@ export class DashboardComponent implements OnInit {
 
     @ViewChild('campaignDetailsComponent', { static: true })
     private campaignDetailsComponent: CampaignDetailsComponent;
-    
 
     private colorBoxesByGroup: Map<string, ColorBoxComponent> = new Map<string, ColorBoxComponent>();
-
-    public locations$: Observable<ImpGeofootprintLocation[]>;
-    public geos$: Observable<ImpGeofootprintGeo[]>;
-    public listCollapsed$: Observable<any>;
 
     // note about "unused" services:
     // This is the only place these services are being injected, so leave them.
@@ -67,9 +56,6 @@ export class DashboardComponent implements OnInit {
     constructor(private metricService: MetricService,
                 private radService: RadService,
                 private userService: UserService,
-                private impLocationService: ImpGeofootprintLocationService,
-                private impGeoService: ImpGeofootprintGeoService,
-                private appStateService: AppStateService,
                 private store$: Store<LocalAppState>) { }
 
     ngOnInit() {
@@ -152,14 +138,6 @@ export class DashboardComponent implements OnInit {
                 }
             ]
         };
-
-        this.locations$ = this.impLocationService.storeObservable;
-        this.geos$ = this.impGeoService.storeObservable;
-        this.listCollapsed$ = this.appStateService.getCollapseObservable();
-    }
-
-    triggerCollapseOnToggle(collapsed: boolean) {
-        this.appStateService.triggerChangeInCollapse(collapsed);
     }
 
     onCampaignDetailsClose(){
