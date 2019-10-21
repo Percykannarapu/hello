@@ -56,7 +56,7 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
                   { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportToValassisDigital()) },
                   { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
-                  { label: 'Create Site Maps', icon: 'fa fa-book', command: () => this.createBatchMap() }
+                  // { label: 'Create Site Maps', icon: 'fa fa-book', command: () => this.createBatchMap() }
               ]
             }
         ];
