@@ -119,6 +119,10 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
       this.shadeSettingsForm.controls['variable'].setValue(this.appProjectPrefService.getPref('Thematic-Extent').val);
       AppRendererService.currentDefaultTheme = ColorPalette[theme];
     }
+    else{
+      this.shadeSettingsForm.controls['currentTheme'].setValue(AppRendererService.currentDefaultTheme);
+      this.shadeSettingsForm.controls['variable'].setValue('Whole Map');
+    }
     this.showRenderControls = showRender;
   }
 
