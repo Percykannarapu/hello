@@ -1,28 +1,29 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { AppStateService } from 'app/services/app-state.service';
-import { SelectItem } from 'primeng/api';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { LocalAppState, FullAppState } from '../../state/app.interfaces';
-import { Store, select } from '@ngrx/store';
+import {Component, Input, OnChanges, OnInit, SimpleChanges, ViewEncapsulation} from '@angular/core';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {Store} from '@ngrx/store';
+import {AnyFn} from '@ngrx/store/src/selector';
+import {ColorPalette} from '@val/esri';
+import {SelectMappingAudience} from 'app/impower-datastore/state/transient/audience/audience.actions';
+import {Audience} from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { SelectMappingAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
-import { TargetAudienceService } from 'app/services/target-audience.service';
-import { AppRendererService } from 'app/services/app-renderer.service';
-import { ColorPalette, selectors } from '@val/esri';
-import { filter, take } from 'rxjs/operators';
-import { AudienceDataDefinition } from 'app/models/audience-data.model';
-import { AnyFn } from '@ngrx/store/src/selector';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { AppProjectPrefService } from 'app/services/app-project-pref.service';
+import {AppProjectPrefService} from 'app/services/app-project-pref.service';
+import {AppRendererService} from 'app/services/app-renderer.service';
+import {AppStateService} from 'app/services/app-state.service';
+import {TargetAudienceService} from 'app/services/target-audience.service';
+import {SelectItem} from 'primeng/api';
+import {Observable} from 'rxjs';
+import {filter} from 'rxjs/operators';
+import {LocalAppState} from '../../state/app.interfaces';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 @Component({
   selector: 'val-shading-settings',
   templateUrl: './shading-settings.component.html',
-  styleUrls: ['./shading-settings.component.scss']
+  styleUrls: ['./shading-settings.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class ShadingSettingsComponent implements OnInit, OnChanges {
-  sideNavVisible = false; 
+  sideNavVisible = false;
   checkedAudienceList: SelectItem[] = [];
   audiences$: Observable<Audience[]>;
   showRenderControls: boolean = false;
@@ -30,7 +31,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
   allThemes: SelectItem[] = [];
 
   shadedVaiableonMap: SelectItem[] = [];
-  
+
 
   @Input() displayData: AnyFn;
 
@@ -42,10 +43,10 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
   constructor(private appStateService: AppStateService,
     private varService: TargetAudienceService,
     private store$: Store<LocalAppState>,
-    private fullState$: Store<FullAppState>,
     private appProjectPrefService: AppProjectPrefService,
+    private impGeofootprintGeoService: ImpGeofootprintGeoService,
     private fb: FormBuilder) {
-    
+
     const allThemes = ColorPalette;
     const keys = Object.keys(allThemes);
     for (const key of keys) {
@@ -82,16 +83,10 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
 
     this.shadeSettingsForm = this.fb.group({
       audience: ['', Validators.required],
-      variable: ['Selected Geos only', Validators.required],
+      variable: ['Whole Map', Validators.required],
       currentTheme: [AppRendererService.currentDefaultTheme, Validators.required],
     });
     this.appStateService.clearUI$.subscribe(() => this.shadeSettingsForm.reset());
-    
-    this.fullState$.pipe(
-      select(selectors.getMapReady),
-      filter(ready => ready),
-      take(1)
-    ).subscribe(() => this.appStateService.audienceSideBar$.subscribe(flag => this.sideNavVisible = flag));
   }
 
   private onLoadProject() {
@@ -108,16 +103,25 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
     const activeAudiences = allAudiences.filter(audience => audience.showOnMap);
     if (activeAudiences.length > 0){
         showRender = true;
+        const theme = this.appProjectPrefService.getPref('Theme').val;
         this.shadeSettingsForm.controls['audience'].setValue(activeAudiences[0]);
-        this.shadeSettingsForm.controls['currentTheme'].setValue(this.appProjectPrefService.getPref('Theme').val);
+        this.shadeSettingsForm.controls['currentTheme'].setValue(ColorPalette[theme]);
         this.shadeSettingsForm.controls['variable'].setValue(this.appProjectPrefService.getPref('Thematic-Extent').val);
+        AppRendererService.currentDefaultTheme = ColorPalette[theme];
+        //this.applyAudience(activeAudiences[0]);
     }
     else if (allAudiences.length > 0){
       const audienceName = this.appProjectPrefService.getPref('audience').val;
+      const theme = this.appProjectPrefService.getPref('Theme').val;
       const inActiveAudiences = this.varService.allAudiencesBS$.getValue().filter(aud => `${aud.audienceSourceName}: ${aud.audienceName}` === audienceName);
       this.shadeSettingsForm.controls['audience'].setValue(inActiveAudiences[0]);
-      this.shadeSettingsForm.controls['currentTheme'].setValue(this.appProjectPrefService.getPref('Theme').val);
+      this.shadeSettingsForm.controls['currentTheme'].setValue(ColorPalette[theme]);
       this.shadeSettingsForm.controls['variable'].setValue(this.appProjectPrefService.getPref('Thematic-Extent').val);
+      AppRendererService.currentDefaultTheme = ColorPalette[theme];
+    }
+    else{
+      this.shadeSettingsForm.controls['currentTheme'].setValue(AppRendererService.currentDefaultTheme);
+      this.shadeSettingsForm.controls['variable'].setValue('Whole Map');
     }
     this.showRenderControls = showRender;
   }
@@ -133,7 +137,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
     /*this.shadeSettingsForm.reset();
     this.shadeSettingsForm.controls['variable'].setValue('Selected Geos only');
     this.shadeSettingsForm.controls['currentTheme'].setValue(AppRendererService.currentDefaultTheme);*/
-    
+
     this.applyAudience(this.shadeSettingsForm.controls['audience'].value);
 
   }
@@ -149,15 +153,16 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
   }
 
   applyAudience(aud: Audience){
-    
+    this.impGeofootprintGeoService.makeDirty();
     this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: aud.audienceIdentifier, isActive: aud.showOnMap }));
     // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
     this.varService.syncProjectVars();
     this.showRenderControls = aud.showOnMap;
     this.sideNavVisible = false;
 
-    this.appProjectPrefService.createPref('map-settings', 'Thematic-Extent', this.shadeSettingsForm.controls['variable'].value, 'string');
-    this.appProjectPrefService.createPref('map-settings', 'Theme', this.shadeSettingsForm.controls['currentTheme'].value, 'string');
+    let keys = Object.keys(ColorPalette).filter(x => ColorPalette[x] == AppRendererService.currentDefaultTheme);
 
+    this.appProjectPrefService.createPref('map-settings', 'Thematic-Extent', this.shadeSettingsForm.controls['variable'].value, 'string');
+    this.appProjectPrefService.createPref('map-settings', 'Theme', keys[0], 'string');
   }
 }

@@ -22,6 +22,14 @@ export interface LocalAppState {
   batchMap: BatchMapState;
 }
 
+export interface BatchMapPayload {
+  email: string;
+  title: string;
+  subTitle: string;
+  size?: string;
+  layout?: string;
+}
+
 export const getRenderingSlice = (state: LocalAppState) => state.rendering;
 export const getMenuSlice = (state: LocalAppState) => state.menu;
 const getRouterSlice = (state: LocalAppState) => state.router;

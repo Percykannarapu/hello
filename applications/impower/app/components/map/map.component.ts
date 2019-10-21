@@ -1,19 +1,19 @@
-import { Component, OnInit, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
-import { select, Store } from '@ngrx/store';
-import { EsriApi, selectors } from '@val/esri';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
-import { AppConfig } from '../../app.config';
-import { AppGeoService } from '../../services/app-geo.service';
-import { AppMapService } from '../../services/app-map.service';
-import { AppRendererService } from '../../services/app-renderer.service';
-import { AppStateService } from '../../services/app-state.service';
-import { AppTradeAreaService } from '../../services/app-trade-area.service';
-import { FullAppState } from '../../state/app.interfaces';
-import { CreateMapUsageMetric, CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { ConfirmationService } from 'primeng/api';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {select, Store} from '@ngrx/store';
+import {EsriApi, selectors} from '@val/esri';
+import {ConfirmationService} from 'primeng/api';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {filter, take} from 'rxjs/operators';
+import {AppConfig} from '../../app.config';
+import {AppGeoService} from '../../services/app-geo.service';
+import {AppMapService} from '../../services/app-map.service';
+import {AppRendererService} from '../../services/app-renderer.service';
+import {AppStateService} from '../../services/app-state.service';
+import {AppTradeAreaService} from '../../services/app-trade-area.service';
+import {FullAppState} from '../../state/app.interfaces';
+import {CreateMapUsageMetric, CreateProjectUsageMetric} from '../../state/usage/targeting-usage.actions';
+import {ImpProject} from '../../val-modules/targeting/models/ImpProject';
+import {ImpGeofootprintGeoService} from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
@@ -27,7 +27,7 @@ export class MapComponent implements OnInit {
   currentAnalysisLevel$: Observable<string>;
   mapHeight$: BehaviorSubject<number> = new BehaviorSubject<number>(400);
   selectedPanelButton: number;
-  
+
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
               private appTradeAreaService: AppTradeAreaService,
@@ -90,7 +90,6 @@ export class MapComponent implements OnInit {
   private setupApplication() : void {
     this.appMapService.setupMap();
     this.setupMapFromStorage();
-    this.appStateService.audienceSideBar$.next(false);
   }
 
   private checkFilters(features: __esri.Graphic[], currentProject: ImpProject) : any {
@@ -187,7 +186,4 @@ export class MapComponent implements OnInit {
     }
   }
 
-  audienceSideBar(){
-    this.appStateService.audienceSideBar$.next(true);
-  }
 }

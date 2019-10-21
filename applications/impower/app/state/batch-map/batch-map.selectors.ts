@@ -7,3 +7,5 @@ export const getBatchMapReady = createSelector(getBatchMapSlice, state => state.
 export const getNextSiteNumber = createSelector(getBatchMapSlice, state => state.nextSiteNum);
 export const getLastSiteFlag = createSelector(getBatchMapSlice, state => state.isLastSite);
 export const getMapMoving = createSelector(getBatchMapSlice, state => state.moving);
+export const getBatchMapDialog = createSelector(getBatchMapSlice, state => state.displayBatchMapDialog);
+export const getCurrentSiteNum = createSelector(getBatchMapSlice, state => state.currentSiteNum);

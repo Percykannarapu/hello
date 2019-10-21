@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { take, tap } from 'rxjs/operators';
-import { SelectedShadingLayerName } from '../../settings';
+import { SelectedShadingLayerPrefix } from '../../settings';
 import { EsriUtils } from '../core/esri-utils';
 import { AllShadingConfigurations, ConfigurationTypes, SimpleShadingConfiguration } from '../models/shading-configuration';
 import { EsriState } from '../state/esri.selectors';
@@ -21,6 +21,10 @@ export class EsriShadingLayersService {
               private mapService: EsriMapService,
               private rendererService: EsriRendererService,
               private domainFactory: EsriDomainFactoryService) { }
+
+  static createSelectedFeatureLayerName(featureTypeName: string) : string {
+    return `${SelectedShadingLayerPrefix} ${featureTypeName}s`;
+  }
 
   createShadingLayer(config: AllShadingConfigurations, visualVariable?: __esri.ColorVariable, groupName: string = 'Shading') : Observable<__esri.FeatureLayer> {
     const layerProps: Partial<__esri.FeatureLayer> = {
@@ -72,25 +76,27 @@ export class EsriShadingLayersService {
     }
   }
 
-  selectedGeosShading(geos: string[], layerId: string, minScale: number, geoType: string) {
-    if (geos.length === 0) {
-      return;
-    }
-    const query = `geocode IN (${geos.map(g => `'${g}'`).join(',')})`;
-    const existingLayer = this.layerService.getFeatureLayer(SelectedShadingLayerName);
+  selectedFeaturesShading(featureIds: string[], layerId: string, minScale: number, featureTypeName: string, featureIdField: string = 'geocode') : void {
+    const layerName = EsriShadingLayersService.createSelectedFeatureLayerName(featureTypeName);
+    const existingLayer = this.layerService.getFeatureLayer(layerName);
+    const query = `${featureIdField} IN (${featureIds.map(g => `'${g}'`).join(',')})`;
     if (existingLayer == null) {
       const shadedSymbol = this.domainFactory.createSimpleFillSymbol([0, 255, 0, 0.25], this.domainFactory.createSimpleLineSymbol([0, 0, 0, 0]));
-      const layerConfiguration = new SimpleShadingConfiguration(layerId, SelectedShadingLayerName, minScale, geoType, shadedSymbol, query);
+      const layerConfiguration = new SimpleShadingConfiguration(layerId, layerName, minScale, layerName, shadedSymbol, query);
       this.createShadingLayer(layerConfiguration).pipe(
-        take(1)
-      ).subscribe(layer => {
-        const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
-        if (legendRef != null) {
-          legendRef.layerInfos.push({ title: 'Selected Geos', layer });
-        }
-      }); // the take(1) ensures we clean up the subscription
+        take(1) // ensures we clean up the subscription
+      ).subscribe(layer => this.mapService.addLayerToLegend(layer, 'Selected Geos'));
     } else {
       existingLayer.definitionExpression = query;
+    }
+  }
+
+  clearFeatureSelection(featureTypeName: string) : void {
+    const layerName = EsriShadingLayersService.createSelectedFeatureLayerName(featureTypeName);
+    const existingLayer = this.layerService.getFeatureLayer(layerName);
+    if (existingLayer != null) {
+      this.mapService.removeLayerFromLegend(existingLayer);
+      this.layerService.removeLayer(layerName);
     }
   }
 }

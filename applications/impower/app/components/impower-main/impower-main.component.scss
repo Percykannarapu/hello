@@ -17,3 +17,21 @@
   justify-content: flex-end;
   padding-right: 2em;
 }
+
+.layout-main {
+  width: 100%;
+  .main-content {
+    display: flex;
+    flex-direction: row;
+    .primary-content {
+      flex: 1;
+      max-width: calc(100% - 1.3em);
+    }
+    .side-panel-content {
+      width: 1.3em;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+  }
+}

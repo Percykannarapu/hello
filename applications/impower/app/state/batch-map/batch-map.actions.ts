@@ -1,16 +1,20 @@
 import { Action } from '@ngrx/store';
+import { BatchMapPayload } from '../app.interfaces';
 
 export enum BatchMapActionTypes {
   CreateBatchMap = '[BatchMap] Create Batch Map',
   SetBatchMode = '[BatchMap] Set Batch Mode',
   MoveToSite = '[BatchMap] Move To Site',
   SiteMoved = '[BatchMap] Site Moved',
-  SetMapReady = '[BatchMap] Set Map Ready'
+  SetMapReady = '[BatchMap] Set Map Ready',
+  OpenBatchMapDialog = '[Batch Map] Open Batch Map Dialog',
+  CloseBatchMapDialog = '[Batch Map] Close Batch Map Dialog',
+  SetCurrentSiteNum = '[Batch Map] Set Current Site Number'
 }
 
 export class CreateBatchMap implements Action {
   readonly type = BatchMapActionTypes.CreateBatchMap;
-  constructor(public payload: { email: string }) {}
+  constructor(public payload: { templateFields: BatchMapPayload }) {}
 }
 
 export class SetBatchMode implements Action {
@@ -32,4 +36,17 @@ export class SetMapReady implements Action {
     constructor(public payload: { mapReady: boolean }) {}
 }
 
-export type BatchMapActions = CreateBatchMap | SetBatchMode | MoveToSite | SiteMoved | SetMapReady;
+export class OpenBatchMapDialog implements Action {
+  readonly type = BatchMapActionTypes.OpenBatchMapDialog;
+}
+
+export class CloseBatchMapDialog implements Action {
+  readonly type = BatchMapActionTypes.CloseBatchMapDialog;
+}
+
+export class SetCurrentSiteNum implements Action {
+  readonly type = BatchMapActionTypes.SetCurrentSiteNum;
+  constructor(public payload: { currentSiteNum: string }) {}
+}
+
+export type BatchMapActions = OpenBatchMapDialog | CloseBatchMapDialog | CreateBatchMap | SetBatchMode | MoveToSite | SiteMoved | SetMapReady | SetCurrentSiteNum;

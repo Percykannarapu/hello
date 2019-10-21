@@ -1,57 +1,50 @@
-<div class="ui-g">
-  <form novalidate  [formGroup]="shadeSettingsForm" (submit)="onSubmit(shadeSettingsForm.value)" autocomplete="off">
-     
+<div class="sidebar-control">
+  <a href="#" (click)="sideNavVisible = true"><span class="fa fa-chevron-up"></span>&nbsp;Map Settings</a>
+</div>
+<p-sidebar [(visible)]="sideNavVisible" position="right" styleClass="ui-sidebar-md transparent-back" [showCloseIcon]="false">
+  <div class="sidebar-content-wrapper">
+    <div class="sidebar-content-tab">
+      <div class="sidebar-control">
+        <a href="#" (click)="sideNavVisible = false"><span class="fa fa-chevron-down"></span>&nbsp;Map Settings</a>
+      </div>
+    </div>
     <p-card>
-      <div class="app-sidenav-content" class="ui-g-12">
-          <p-sidebar [(visible)]="sideNavVisible" position="right" [baseZIndex]="20000" styleClass="ui-sidebar-md">
-            <div class="shading-settings-card">  <h1 style="font-weight:normal">Map Settings</h1></div>
-          
-          <span>&nbsp;</span>  
-          <div class="shade-audience-control">
-              <div>
-                <span class="md-inputfield">
-                    <p-dropdown id="selectAudience" formControlName="audience" [options]="checkedAudienceList"  placeholder="&nbsp;"  
-                    autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>
-                    <label for="selectAudience">Audience</label>
-                </span>  
-              </div>
-          </div>
-          <div class="shade-theme-control">
-              <div>
-                <span class="md-inputfield">
-                    <p-dropdown id="shadedVariable" formControlName="variable" [options]="shadedVaiableonMap"  placeholder="&nbsp;"   
-                    autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>
-                    <label for="shadedVariable">Thematic Extent</label>
-                </span>
-              </div>
-          </div>
-          
-          <div class="shade-audience-control">
-              <div>   
-                  <span class="md-inputfield">
-                      <p-dropdown id="theme" 
-                      formControlName="currentTheme"
-                      [options]="allThemes"
-                      (onChange)="onThemeChange($event)"
-                      [autoWidth]="false" dropdownIcon="fa fa-caret-down"
-                      [style]="{ width:'100%' }" 
-                      placeholder="&nbsp;"
-                      dropdownIcon="fa fa-caret-down">
-                      </p-dropdown>
-                      <label for="theme">Theme</label>
-                  </span>
-              </div>
-          </div>    
-          <div class="ui-g-4">
-              <button pButton type="save" label="Apply" icon="ui-icon-send" [disabled]="shadeSettingsForm.invalid"></button>
-          </div>
-          <div class="ui-g-4">
-              <button pButton type="button" label="Clear Shading" icon="ui-icon-clear" (click)= clearShading($event)></button>
-          </div>
-        </p-sidebar>
-      </div> 
-    </p-card> 
-  </form> 
-</div>  
-    
+      <form novalidate  [formGroup]="shadeSettingsForm" (submit)="onSubmit(shadeSettingsForm.value)" autocomplete="off" class="shading-controls-form">
+        <h1>Map Settings</h1>
+        <div>
+          <span class="md-inputfield">
+            <p-dropdown id="selectAudience" formControlName="audience" [options]="checkedAudienceList"  placeholder="&nbsp;"
+                        autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>
+            <label for="selectAudience">Audience</label>
+          </span>
+        </div>
+        <div>
+          <span class="md-inputfield">
+            <p-dropdown id="shadedVariable" formControlName="variable" [options]="shadedVaiableonMap"  placeholder="&nbsp;"
+                        autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down" [disabled]="true"></p-dropdown>
+            <label for="shadedVariable">Thematic Extent</label>
+          </span>
+        </div>
+        <div>
+          <span class="md-inputfield">
+            <p-dropdown id="theme"
+                        formControlName="currentTheme"
+                        [options]="allThemes"
+                        (onChange)="onThemeChange($event)"
+                        [autoWidth]="false"
+                        [style]="{ width:'100%' }"
+                        placeholder="&nbsp;"
+                        dropdownIcon="fa fa-caret-down">
+            </p-dropdown>
+            <label for="theme">Theme</label>
+          </span>
+        </div>
+        <div class="button-container">
+          <button pButton type="button" label="Clear Thematic Shading" icon="ui-icon-clear" (click)= clearShading($event)></button>
+          <button pButton type="save" label="Apply" icon="ui-icon-send" [disabled]="shadeSettingsForm.invalid"></button>
+        </div>
+      </form>
+    </p-card>
+  </div>
+</p-sidebar>
 

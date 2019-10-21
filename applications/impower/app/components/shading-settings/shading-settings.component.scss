@@ -1,23 +1,57 @@
-
-.app-sidenav-content {
-  margin-top: 25px;
-}
-.shading-settings-card {
-  margin-top: 0.5em;
-}
-
-.shading-controls {
-  display: grid;
-  grid-template-columns: 1fr 4fr;
-  grid-gap: 0.5em;
+@import "valassis-variables";
+form.shading-controls-form {
+  > div {
+    padding-top: 1em;
+    padding-bottom: 1.5em;
+  }
 }
 
-.shade-audience-control{
-  margin-top: 0.5em;
-  margin-bottom: 1cm;
+body .ui-sidebar.transparent-back {
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0;
 }
 
-.shade-theme-control{
-  margin-top: 1cm;
-  margin-bottom: 1cm;
+.sidebar-content-wrapper {
+  display: flex;
+  height: 100%;
+  .sidebar-content-tab {
+    width: 1.4em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  p-card {
+    flex: 1;
+    height: 100%;
+    .ui-card.ui-widget-content {
+      height: 100%;
+      padding: 0 1em 1em;
+    }
+  }
+}
+
+.sidebar-control {
+  margin-top: 5em;
+  margin-left: 0.6em;
+  a {
+    padding: 0.1em 0.5em 0.3em;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background-color: $darkGray03;
+    color: $lightGray04;
+    display: inline-block;
+    white-space: nowrap;
+    transform-origin: left center;
+    transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+  }
+}
+
+.shading-controls-form {
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+  }
 }

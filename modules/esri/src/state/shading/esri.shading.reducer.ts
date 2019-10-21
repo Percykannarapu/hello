@@ -23,5 +23,5 @@ export const initialState: EsriShadingState = {
 
 export const shadingReducer = createReducer(
   initialState,
-  on(geoSelectionChanged, (state, { selectedGeos }) => ({ ...state }))
+  on(geoSelectionChanged, (state, { selectedFeatureIds }) => ({ ...state }))
 );

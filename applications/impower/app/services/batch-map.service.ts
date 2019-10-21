@@ -6,11 +6,12 @@ import { ErrorNotification } from '@val/messaging';
 import { Observable, throwError } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { LocalAppState } from '../state/app.interfaces';
+import { LocalAppState, BatchMapPayload } from '../state/app.interfaces';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { SetCurrentSiteNum } from 'app/state/batch-map/batch-map.actions';
 
 @Injectable({
   providedIn: 'root'
@@ -27,11 +28,15 @@ export class BatchMapService {
               private restService: RestDataService,
               private store$: Store<LocalAppState>) { }
 
-  requestBatchMap(project: ImpProject, email: string) : Observable<any> {
-    const payload = {
-      projectId: project.projectId
+  requestBatchMap(project: ImpProject, email: string, payload: BatchMapPayload) : Observable<any> {
+    const requestPayload = {
+      // projectId: project.projectId,
+      email: payload.email,
+      title: payload.title,
+      subTitle: payload.subTitle
     };
-    return this.restService.post(`${this.printUrl}?size=letter&orientation=landscape&email=${email}&projectId=${project.projectId}`, {});
+
+    return this.restService.post(`${this.printUrl}?size=letter&orientation=landscape&email=${email}&projectId=${project.projectId}`, requestPayload);
   }
 
   validateProjectReadiness(project: ImpProject) : boolean {
@@ -67,6 +72,7 @@ export class BatchMapService {
         currentGeos.forEach(g => {
           g.isActive = this.originalGeoState[g.ggId];
         });
+        this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));
       } else {
         currentGeos.forEach(g => g.isActive = false);
       }
@@ -86,7 +92,8 @@ export class BatchMapService {
   }
 
   private setMapLocation(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>) : Observable<void> {
-    const geocodes = geos.filter(g => g.isActive).map(g => g.geocode);
+    const activeGeos = geos.filter(g => g.isActive);
+    const geocodes = activeGeos.map(g => g.geocode);
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
       switchMap((polys) => {
@@ -102,7 +109,8 @@ export class BatchMapService {
         xStats.max += 0.01;
         yStats.min -= 0.01;
         yStats.max += 0.01;
-        return this.esriMapService.zoomOnMap(xStats, yStats, geos.filter(g => g.isActive).length);
+        const polyCount = activeGeos.length > 0 ? activeGeos.length + 1 : 0;
+        return this.esriMapService.zoomOnMap(xStats, yStats, polyCount);
       })
     );
   }
