@@ -134,6 +134,7 @@ export class EsriUtils {
         observer.error(err);
       }
       return () => {
+        console.log('Handle removal for', prop);
         if (handle) handle.remove();
       };
     });

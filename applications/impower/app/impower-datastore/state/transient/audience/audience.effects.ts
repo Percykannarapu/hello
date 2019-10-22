@@ -1,3 +1,4 @@
+import {getMapVarIds} from '../map-vars/map-vars.selectors';
 import { AppStateService } from './../../../../services/app-state.service';
 import { TargetAudienceCustomService } from './../../../../services/target-audience-custom.service';
 import { OfflineSourceTypes } from './../../../../services/target-audience-tda.service';
@@ -11,7 +12,7 @@ import { Store, select } from '@ngrx/store';
 import { FullAppState } from 'app/state/app.interfaces';
 import { of, EMPTY } from 'rxjs';
 import { UpsertGeoVars } from '../geo-vars/geo-vars.actions';
-import { groupByExtended, formatMilli } from '@val/common';
+import {groupByExtended, formatMilli, dedupeSimpleSet} from '@val/common';
 import { GeoVar } from '../geo-vars/geo-vars.model';
 import { TargetAudienceOnlineService, OnlineSourceTypes } from 'app/services/target-audience-online.service';
 import { AppConfig } from 'app/app.config';
@@ -138,16 +139,18 @@ export class AudiencesEffects {
   fetchMapVar$ = this.actions$.pipe(
     ofType<FetchMapVar>(AudienceActionTypes.FetchMapVar),
     //tap(action => this.logger.info.log('### fetchMapVar - geos(' + action.payload.geos.length + '):', action.payload.geos)),
-    tap(action => {
+    withLatestFrom(this.store$.select(getMapVarIds)),
+    map(([action, existingGeos]) => [action, dedupeSimpleSet(new Set(action.payload.geos), new Set(existingGeos as string[]))] as [FetchMapVar, Set<string>]),
+    filter(([, geos]) => geos.size > 0),
+    tap(() => {
       mapVarsStart = performance.now();
       stats.totalMapVars = 0;
-      this.store$.dispatch(new ClearMapVars());
       this.store$.dispatch(new StartBusyIndicator({key: shadingKey, message: 'Retrieving shading data'}));
     }),
-    tap(action => this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(action.payload.geos) }))),
+    tap(([, newGeos]) => this.store$.dispatch(new MapVarCacheGeos({ geocodes: newGeos }))),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesOnMap)),
                    this.store$.pipe(select(fromAudienceSelectors.allAudiences))),
-    switchMap(([action, selectedAudiences, allAudiences]) => this.actions$.pipe(
+    switchMap(([[action, newGeos], selectedAudiences, allAudiences]) => this.actions$.pipe(
       ofType<MapVarCacheGeosComplete | MapVarCacheGeosFailure>(MapVarActionTypes.MapVarCacheGeosComplete, MapVarActionTypes.MapVarCacheGeosFailure),
         take(1),
         tap(errorAction => { if (errorAction.type === MapVarActionTypes.MapVarCacheGeosFailure) {
