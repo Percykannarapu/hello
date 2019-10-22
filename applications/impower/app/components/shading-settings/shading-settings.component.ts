@@ -2,7 +2,7 @@ import {Component, Input, OnChanges, OnInit, SimpleChanges, ViewEncapsulation} f
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {Store} from '@ngrx/store';
 import {AnyFn} from '@ngrx/store/src/selector';
-import {ColorPalette} from '@val/esri';
+import {ColorPalette, ClearRenderingData} from '@val/esri';
 import {SelectMappingAudience} from 'app/impower-datastore/state/transient/audience/audience.actions';
 import {Audience} from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -90,6 +90,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
   }
 
   private onLoadProject() {
+    this.store$.dispatch(new ClearRenderingData());
     let showRender = false;
    /* this.varService.allAudiencesBS$.getValue().forEach(audience => {
       if (audience.showOnMap) {
