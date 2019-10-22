@@ -78,8 +78,8 @@ export class DashboardComponent implements OnInit {
 
         this.metricMapPurple = new Map([
             ['Median Household Income', '0'],
-            ['% \'17 HHs Families with Related Children < 18 Yrs', '0'],
-            ['% \'17 Pop Hispanic or Latino', '0'],
+            ['% CY HHs Families with Related Children < 18 Yrs', '0'],
+            ['% CY Pop Hispanic or Latino', '0'],
             ['Casual Dining: 10+ Times Past 30 Days', '0']
         ]);
         this.flagMapPurple = new Map<string, boolean>();
