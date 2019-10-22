@@ -83,7 +83,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
 
     this.shadeSettingsForm = this.fb.group({
       audience: ['', Validators.required],
-      variable: ['Whole Map', Validators.required],
+      //variable: ['Whole Map', Validators.required],
       currentTheme: [AppRendererService.currentDefaultTheme, Validators.required],
     });
     this.appStateService.clearUI$.subscribe(() => this.shadeSettingsForm.reset());
