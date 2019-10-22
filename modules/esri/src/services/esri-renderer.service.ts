@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import {SelectedShadingLayerPrefix} from '../../settings';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriMapService } from './esri-map.service';
@@ -92,9 +93,15 @@ export class EsriRendererService {
   }
 
   public restoreSimpleRenderer(mapState: EsriMapState) {
-    if (this.simpleRenderer != null && EsriUtils.rendererIsSimple(this.simpleRenderer)) {
-      const lv = this.getLayerView(mapState.selectedLayerId);
-      lv.layer.renderer = this.simpleRenderer;
+    if (this.simpleRenderer != null && EsriUtils.rendererIsSimple(this.simpleRenderer) && this.mapService.mapView != null) {
+      // const lv = this.getLayerView(mapState.selectedLayerId);
+      // lv.layer.renderer = this.simpleRenderer;
+      this.mapService.mapView.map.allLayers.filter(l => EsriUtils.layerIsPortalFeature(l)).forEach((l: __esri.FeatureLayer) => {
+        if (!l.title.startsWith(SelectedShadingLayerPrefix) && !EsriUtils.rendererIsSimple(l.renderer) && this.simpleRenderer != null) {
+          l.renderer = this.simpleRenderer;
+          this.simpleRenderer = null;
+        }
+      });
     }
   }
 
