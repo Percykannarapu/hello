@@ -13,6 +13,7 @@ import {TargetAudienceService} from 'app/services/target-audience.service';
 import {SelectItem} from 'primeng/api';
 import {Observable} from 'rxjs';
 import {filter} from 'rxjs/operators';
+import {ClearMapVars} from '../../impower-datastore/state/transient/map-vars/map-vars.actions';
 import {LocalAppState} from '../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 
@@ -154,7 +155,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
   }
 
   applyAudience(aud: Audience){
-    this.impGeofootprintGeoService.makeDirty();
+    this.store$.dispatch(new ClearMapVars());
     this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: aud.audienceIdentifier, isActive: aud.showOnMap }));
     // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
     this.varService.syncProjectVars();
