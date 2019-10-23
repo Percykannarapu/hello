@@ -26,6 +26,8 @@ export interface BatchMapPayload {
   email: string;
   title: string;
   subTitle: string;
+  subSubTitle: string;
+  projectId: number;
   size?: string;
   layout?: string;
 }

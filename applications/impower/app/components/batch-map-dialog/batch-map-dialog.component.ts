@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Store, select } from '@ngrx/store';
-import { LocalAppState } from 'app/state/app.interfaces';
+import { LocalAppState, BatchMapPayload } from 'app/state/app.interfaces';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AppConfig } from 'app/app.config';
 import { AppStateService } from 'app/services/app-state.service';
@@ -18,12 +18,12 @@ export class BatchMapDialogComponent implements OnInit {
 
   showBatchMapDialog$: Observable<boolean>;
   batchMapForm: FormGroup;
- 
+  currentProjectId: number;
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
     private stateService: AppStateService,
-    private userService: UserService) { 
+    private userService: UserService) {
     }
 
   ngOnInit() {
@@ -32,13 +32,16 @@ export class BatchMapDialogComponent implements OnInit {
       subTitle: '',
     });
     this.showBatchMapDialog$ = this.store$.select(getBatchMapDialog);
+    this.stateService.currentProject$.subscribe(p => this.currentProjectId = p.projectId);
   }
 
   onSubmit(dialogFields: any) {
-    const formData = {
+    const formData: BatchMapPayload = {
       email: `${this.userService.getUser().username}@valassis.com`,
       title: dialogFields.title,
       subTitle: dialogFields.subTitle,
+      subSubTitle: dialogFields.subSubTitle,
+      projectId: this.currentProjectId
     };
 
     this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
