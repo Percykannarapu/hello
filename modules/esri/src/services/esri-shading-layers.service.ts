@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { take, tap } from 'rxjs/operators';
 import { SelectedShadingLayerPrefix } from '../../settings';
 import { EsriUtils } from '../core/esri-utils';
@@ -76,18 +76,20 @@ export class EsriShadingLayersService {
     }
   }
 
-  selectedFeaturesShading(featureIds: string[], layerId: string, minScale: number, featureTypeName: string, featureIdField: string = 'geocode') : void {
+  selectedFeaturesShading(featureIds: string[], layerId: string, minScale: number, featureTypeName: string, featureIdField: string = 'geocode') : Observable<any> {
     const layerName = EsriShadingLayersService.createSelectedFeatureLayerName(featureTypeName);
     const existingLayer = this.layerService.getFeatureLayer(layerName);
     const query = `${featureIdField} IN (${featureIds.map(g => `'${g}'`).join(',')})`;
     if (existingLayer == null) {
       const shadedSymbol = this.domainFactory.createSimpleFillSymbol([0, 255, 0, 0.25], this.domainFactory.createSimpleLineSymbol([0, 0, 0, 0]));
       const layerConfiguration = new SimpleShadingConfiguration(layerId, layerName, minScale, layerName, shadedSymbol, query);
-      this.createShadingLayer(layerConfiguration).pipe(
-        take(1) // ensures we clean up the subscription
-      ).subscribe(layer => this.mapService.addLayerToLegend(layer, 'Selected Geos'));
+      return this.createShadingLayer(layerConfiguration).pipe(
+        take(1), // ensures we clean up the subscription
+        tap(layer => this.mapService.addLayerToLegend(layer, 'Selected Geos'))
+      );
     } else {
       existingLayer.definitionExpression = query;
+      return EMPTY;
     }
   }
 
