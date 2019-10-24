@@ -41,7 +41,9 @@ export class BatchMapDialogComponent implements OnInit {
       title: dialogFields.title,
       subTitle: dialogFields.subTitle,
       subSubTitle: dialogFields.subSubTitle,
-      projectId: this.currentProjectId
+      projectId: this.currentProjectId,
+      size: 'lettter',
+      layout: 'landscape'
     };
 
     this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
