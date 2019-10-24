@@ -46,7 +46,7 @@ export class BatchMapDialogComponent implements OnInit {
       subTitle: dialogFields.subTitle,
       subSubTitle: dialogFields.subSubTitle,
       projectId: this.currentProjectId,
-      size: 'lettter',
+      size: 'letter',
       layout: 'landscape',
       numSites: this.numSites
     };
