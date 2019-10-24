@@ -28,8 +28,9 @@ export interface BatchMapPayload {
   subTitle: string;
   subSubTitle: string;
   projectId: number;
-  size?: string;
-  layout?: string;
+  size: string;
+  layout: string;
+  numSites: number;
 }
 
 export const getRenderingSlice = (state: LocalAppState) => state.rendering;
