@@ -19,7 +19,7 @@ export class BatchMapDialogComponent implements OnInit {
   showBatchMapDialog$: Observable<boolean>;
   batchMapForm: FormGroup;
   currentProjectId: number;
-  numSites: number;
+  numSites: number = 0;
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
@@ -35,7 +35,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.showBatchMapDialog$ = this.store$.select(getBatchMapDialog);
     this.stateService.currentProject$.subscribe(p => {
       this.currentProjectId = p.projectId;
-      this.numSites = p.getImpGeofootprintLocations.length;
+      p.impGeofootprintMasters.forEach(m => this.numSites += m.impGeofootprintLocations.length);
     });
   }
 
