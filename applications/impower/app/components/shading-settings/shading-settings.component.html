@@ -1,11 +1,19 @@
 <div class="sidebar-control">
-  <a href="#" (click)="sideNavVisible = true"><span class="fa fa-chevron-up"></span>&nbsp;Map Settings</a>
+  <a href="#" (click)="sideNavVisible = true">
+    <span class="fa fa-chevron-up">
+      <span class="ui-widget">&nbsp;Map Settings</span>
+    </span>
+  </a>
 </div>
 <p-sidebar [(visible)]="sideNavVisible" position="right" styleClass="ui-sidebar-md transparent-back" [showCloseIcon]="false">
   <div class="sidebar-content-wrapper">
     <div class="sidebar-content-tab">
       <div class="sidebar-control">
-        <a href="#" (click)="sideNavVisible = false"><span class="fa fa-chevron-down"></span>&nbsp;Map Settings</a>
+        <a href="#" (click)="sideNavVisible = false">
+          <span class="fa fa-chevron-down">
+            <span class="ui-widget">&nbsp;Map Settings</span>
+          </span>
+        </a>
       </div>
     </div>
     <p-card>
