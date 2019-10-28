@@ -112,7 +112,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
         AppRendererService.currentDefaultTheme = ColorPalette[theme];
         //this.applyAudience(activeAudiences[0]);
     }
-    else if (allAudiences.length > 0){
+    else if (allAudiences.length > 0 && this.appProjectPrefService.getPref('audience') != null){
       const audienceName = this.appProjectPrefService.getPref('audience').val;
       const theme = this.appProjectPrefService.getPref('Theme').val;
       const inActiveAudiences = this.varService.allAudiencesBS$.getValue().filter(aud => `${aud.audienceSourceName}: ${aud.audienceName}` === audienceName);
