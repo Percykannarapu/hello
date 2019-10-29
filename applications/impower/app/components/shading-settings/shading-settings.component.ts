@@ -12,7 +12,7 @@ import {AppStateService} from 'app/services/app-state.service';
 import {TargetAudienceService} from 'app/services/target-audience.service';
 import {SelectItem} from 'primeng/api';
 import {Observable} from 'rxjs';
-import {filter} from 'rxjs/operators';
+import {filter, withLatestFrom} from 'rxjs/operators';
 import {ClearMapVars} from '../../impower-datastore/state/transient/map-vars/map-vars.actions';
 import {LocalAppState} from '../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -77,10 +77,9 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
     });
 
     this.appStateService.applicationIsReady$.pipe(
-      filter(ready => ready)
-    ).subscribe(() => {
-      this.onLoadProject();
-      });
+      filter(ready => ready),
+      withLatestFrom(this.varService.allAudiencesBS$)
+    ).subscribe(([, audiences]) => this.onLoadProject(audiences) );
 
     this.shadeSettingsForm = this.fb.group({
       audience: ['', Validators.required],
@@ -90,7 +89,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
     this.appStateService.clearUI$.subscribe(() => this.shadeSettingsForm.reset());
   }
 
-  private onLoadProject() {
+  private onLoadProject(allAudiences: Audience[]) {
     this.store$.dispatch(new ClearRenderingData());
     let showRender = false;
    /* this.varService.allAudiencesBS$.getValue().forEach(audience => {
@@ -101,7 +100,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
       this.shadeSettingsForm.controls['currentTheme'].setValue(this.appProjectPrefService.getPref('Theme').val);
       this.shadeSettingsForm.controls['variable'].setValue(this.appProjectPrefService.getPref('Thematic-Extent').val);
     });*/
-    const allAudiences  = this.varService.allAudiencesBS$.getValue();
+    //const allAudiences  = this.varService.allAudiencesBS$.getValue();
     const activeAudiences = allAudiences.filter(audience => audience.showOnMap);
     if (activeAudiences.length > 0){
         showRender = true;
