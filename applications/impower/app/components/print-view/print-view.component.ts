@@ -1,14 +1,13 @@
-import { Component, OnInit} from '@angular/core';
-import { LocalAppState } from 'app/state/app.interfaces';
-import { Store, select } from '@ngrx/store';
-import { printViewDialogFlag } from 'app/state/menu/menu.reducer';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { PrintMap, EsriLayerService, DeletePrintRenderer } from '@val/esri';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { AppConfig } from 'app/app.config';
-import { ClosePrintViewDialog } from 'app/state/menu/menu.actions';
-import { AppStateService } from 'app/services/app-state.service';
+import {Component, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {select, Store} from '@ngrx/store';
+import {DeletePrintRenderer, PrintMap} from '@val/esri';
+import {AppConfig} from 'app/app.config';
+import {AppStateService} from 'app/services/app-state.service';
+import {LocalAppState} from 'app/state/app.interfaces';
+import {ClosePrintViewDialog} from 'app/state/menu/menu.actions';
+import {Observable} from 'rxjs';
+import {printViewDialogFlag} from '../../state/menu/menu.selectors';
 
 @Component({
   selector: 'val-print-view',
@@ -34,7 +33,7 @@ export class PrintViewComponent implements OnInit {
       subTitle: '',
       geoInfo: '',
     });
-    this.displayDialog$ = this.store$.pipe(select(printViewDialogFlag));
+    this.displayDialog$ = this.store$.select(printViewDialogFlag);
   }
 
   onSubmit(dialogFields: any) {
@@ -59,5 +58,5 @@ export class PrintViewComponent implements OnInit {
       this.store$.dispatch(new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, true)}));
       this.store$.dispatch(new ClosePrintViewDialog);
   }
-  
+
 }

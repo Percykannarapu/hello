@@ -16,3 +16,8 @@ export const clearSelectionData = createAction(
   '[Esri.Shading] Clear Selection Data',
   props<{ featureTypeName: string }>()
 );
+
+export const addLayerToLegend = createAction(
+  '[Esri.Shading] Add Layer to Legend',
+  props<{ layerUniqueId: string, title: string, addToBottom?: boolean }>()
+);

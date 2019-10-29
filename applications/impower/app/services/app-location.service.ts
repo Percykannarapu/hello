@@ -1,32 +1,30 @@
 import { Injectable } from '@angular/core';
-import { ClearLocations, RenderLocations } from '../state/rendering/rendering.actions';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { Store } from '@ngrx/store';
+import { calculateStatistics, filterArray, groupByExtended, isNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
+import { ErrorNotification, WarningNotification } from '@val/messaging';
+import { ConfirmationService } from 'primeng/components/common/confirmationservice';
+import { combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
+import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
+import { LocationQuadTree } from '../models/location-quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
+import { FullAppState } from '../state/app.interfaces';
+import { ClearLocations, RenderLocations } from '../state/rendering/rendering.actions';
+import { MetricService } from '../val-modules/common/services/metric.service';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeofootprintLocAttrib';
+import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { AppGeocodingService } from './app-geocoding.service';
-import { combineLatest, merge, Observable, EMPTY, of, forkJoin } from 'rxjs';
-import { filter, map, pairwise, startWith, withLatestFrom, take, reduce, mergeMap, switchMap } from 'rxjs/operators';
-import { MetricService } from '../val-modules/common/services/metric.service';
-import { AppConfig } from '../app.config';
-import { AppStateService } from './app-state.service';
-import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
-import { AppTradeAreaService } from './app-trade-area.service';
-import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { AppLoggingService } from './app-logging.service';
-import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { ConfirmationService } from 'primeng/components/common/confirmationservice';
-import { Store } from '@ngrx/store';
-import { FullAppState } from '../state/app.interfaces';
-import { ErrorNotification, WarningNotification } from '@val/messaging';
-import { LocationQuadTree } from '../models/location-quad-tree';
-import { toUniversalCoordinates, mapByExtended, isNumber } from '@val/common';
-import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService, selectors, EsriQueryService } from '@val/esri';
-import { calculateStatistics, filterArray, groupByExtended, mapBy, simpleFlatten } from '@val/common';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { select } from '@ngrx/store';
+import { AppGeocodingService } from './app-geocoding.service';
+import { AppLoggingService } from './app-logging.service';
+import { AppStateService } from './app-state.service';
+import { AppTradeAreaService } from './app-trade-area.service';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -86,8 +84,7 @@ export class AppLocationService {
     this.activeClientLocations$ = this.appStateService.activeClientLocations$;
     this.activeCompetitorLocations$ = this.appStateService.activeCompetitorLocations$;
 
-    this.store$.pipe(
-      select(selectors.getMapReady),
+    this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
       take(1)
     ).subscribe(() => this.initializeSubscriptions());
@@ -620,7 +617,6 @@ export class AppLocationService {
     let warningNotificationFlag = 'N';
     locations.forEach(loc => {
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
-
       if (currentAttributes != null){
         Object.keys(currentAttributes).filter(key => key.startsWith('home') && key != 'homeDmaName').forEach(key => {
           if (newHomeGeoToAnalysisLevelMap[key] != null) {
@@ -630,16 +626,16 @@ export class AppLocationService {
             // validate homegeo rules
 
             if (loc.origPostalCode != null && loc.origPostalCode.length > 0 && (loc.locZip.substr(0, 5) !== loc.origPostalCode.substr(0, 5))) {
-                  homeGeocodeIssue = 'Y';
-                  warningNotificationFlag = 'Y';
+              homeGeocodeIssue = 'Y';
+              warningNotificationFlag = 'Y';
             }
             if (newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County'
               && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && loc.locZip.length > 0 && firstHomeGeoValue.substr(0, 5) !== loc.locZip.substr(0, 5)))){
-                  homeGeocodeIssue = 'Y';
-                   warningNotificationFlag = 'Y';
+                homeGeocodeIssue = 'Y';
+                warningNotificationFlag = 'Y';
             }
             if (currentAttributes['homePcr'] === currentAttributes['homeZip'] || (currentAttributes[key] == null
-                || loc.geocoderMatchCode != null && loc.geocoderMatchCode.startsWith('Z') || loc.geocoderLocationCode != null && loc.geocoderLocationCode.startsWith('Z'))){
+              || loc.geocoderMatchCode != null && loc.geocoderMatchCode.startsWith('Z') || loc.geocoderLocationCode != null && loc.geocoderLocationCode.startsWith('Z'))){
                 homeGeocodeIssue = 'Y';
                 warningNotificationFlag = 'Y';
             }
@@ -650,29 +646,6 @@ export class AppLocationService {
             }
           }
         });
-      }
-      this.queryService.queryAttributeIn(this.config.layers.dma.boundaries.id, 'dma_code', [currentAttributes['homeDma']], false, ['dma_name']).subscribe(
-        graphics => {
-          if (graphics != null && graphics.length != 0) {
-            currentAttributes['homeDmaName'] = graphics[0].attributes.dma_name;
-          }
-        },
-        err => console.error('There was an error querying the layer', err),
-        () => {
-          if (currentAttributes != null) {
-            Object.keys(currentAttributes).filter(key => key == 'homeDmaName').forEach(key => {
-              if (newHomeGeoToAnalysisLevelMap[key] != null) {
-                if (currentAttributes[key] != null && currentAttributes[key] !== '')   {
-                  const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
-                  const newAttribute = this.domainFactory.createLocationAttribute(loc, newHomeGeoToAnalysisLevelMap[key], firstHomeGeoValue);
-                  if (newAttribute != null)
-                    impAttributesToAdd.push(newAttribute);
-                }
-              }
-            });
-          }
-        });
-      if (currentAttributes != null) {
         Object.keys(currentAttributes).filter(key => key == 'homeDmaName').forEach(key => {
           if (newHomeGeoToAnalysisLevelMap[key] != null) {
             if (currentAttributes[key] != null && currentAttributes[key] !== '')   {
@@ -684,11 +657,38 @@ export class AppLocationService {
           }
         });
       }
-     const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'Home Geocode Issue', homeGeocodeIssue);
-     if (newAttribute1 != null)
-        impAttributesToAdd.push(newAttribute1);
-     homeGeocodeIssue = 'N';
+      const newAttribute1 = this.domainFactory.createLocationAttribute(loc, 'Home Geocode Issue', homeGeocodeIssue);
+      if (newAttribute1 != null) impAttributesToAdd.push(newAttribute1);
+      homeGeocodeIssue = 'N';
     });
+
+    const homeDMAs = new Set(attributes.filter(a => a['homeDmaName'] == null || a['homeDmaName'] === '').map(a => a['homeDma']).filter(a => a != null && a !== ''));
+    const dmaLookup = {};
+    if (homeDMAs.size > 0) {
+      this.queryService.queryAttributeIn(this.config.layers.dma.boundaries.id, 'dma_code', Array.from(homeDMAs), false, ['dma_code', 'dma_name']).pipe(
+        filter(g => g != null)
+      ).subscribe(
+        graphics => {
+          graphics.forEach(g => {
+            dmaLookup[g.attributes.dma_code] = g.attributes.dma_name;
+          });
+        },
+        err => console.error('There was an error querying the layer', err),
+        () => {
+          const dmaAttrsToAdd = [];
+          locations.forEach(l => {
+            const currentAttributes = attributesBySiteNumber.get(l.locationNumber);
+            if (currentAttributes != null) {
+              const dmaName = dmaLookup[currentAttributes['homeDma']];
+              if (dmaName != null) {
+                const newAttribute = this.domainFactory.createLocationAttribute(l, 'Home DMA Name', dmaName);
+                if (newAttribute != null) dmaAttrsToAdd.push(newAttribute);
+              }
+            }
+          });
+          this.impLocAttributeService.add(dmaAttrsToAdd);
+        });
+    }
     if (warningNotificationFlag === 'Y'){
       this.store$.dispatch(new WarningNotification({ notificationTitle: 'Home Geocode Warning', message: 'Issues found while calculating Home Geocodes, please check the Locations Grid.' }));
     }

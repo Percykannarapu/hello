@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { filter, map, switchMap, tap } from 'rxjs/operators';
+import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriShadingLayersService } from '../../services/esri-shading-layers.service';
 import { AppState } from '../esri.selectors';
-import { clearSelectionData, geoSelectionChanged } from './esri.shading.actions';
+import { addLayerToLegend, clearSelectionData, geoSelectionChanged } from './esri.shading.actions';
 
 @Injectable()
 export class EsriShadingEffects {
@@ -13,9 +14,9 @@ export class EsriShadingEffects {
     this.actions$.pipe(
       ofType(geoSelectionChanged),
       filter(payload => payload.selectedFeatureIds != null && payload.selectedFeatureIds.length > 0),
-      switchMap(payload => this.shadingService.selectedFeaturesShading(payload.selectedFeatureIds, payload.layerId, payload.minScale, payload.featureTypeName))
-    ),
-    { dispatch: false }
+      switchMap(payload => this.shadingService.selectedFeaturesShading(payload.selectedFeatureIds, payload.layerId, payload.minScale, payload.featureTypeName)),
+      map(id => addLayerToLegend({ layerUniqueId: id, title: null }))
+    )
   );
 
   inActiveGeosShading$ = createEffect(() =>
@@ -33,7 +34,15 @@ export class EsriShadingEffects {
     { dispatch: false }
   );
 
+  addLayerToLegend$ = createEffect(() => this.actions$.pipe(
+      ofType(addLayerToLegend),
+      tap(payload => this.layerService.addLayerToLegend(payload.layerUniqueId, payload.title, payload.addToBottom))
+    ),
+    { dispatch: false }
+  );
+
   constructor(private actions$: Actions,
               private store$: Store<AppState>,
-              private shadingService: EsriShadingLayersService) {}
+              private shadingService: EsriShadingLayersService,
+              private layerService: EsriLayerService) {}
 }

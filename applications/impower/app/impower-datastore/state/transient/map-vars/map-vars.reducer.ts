@@ -29,10 +29,8 @@ export function reducer(state = initialState, action: MapVarActions) : State {
     case MapVarActionTypes.AddMapVars: {
       if (action.payload.mapVars == null || action.payload.mapVars.length === 0) return state;
       const mergedEntities = [];
-      groupBy(action.payload.mapVars, 'geocode').forEach((mapvars, geocode) => {
-          let entity = {};
-          mapvars.forEach(mapvar => entity = { ...entity, ...mapvar });
-          mergedEntities.push(entity);
+      groupBy(action.payload.mapVars, 'geocode').forEach((mapvars) => {
+          mergedEntities.push(Object.assign({}, ...mapvars));
       });
       return adapter.addMany(mergedEntities, state);
     }
@@ -41,10 +39,8 @@ export function reducer(state = initialState, action: MapVarActions) : State {
       if (action.payload.mapVars == null || action.payload.mapVars.length === 0) return state;
 
       const mergedEntities = [];
-      groupBy(action.payload.mapVars, 'geocode').forEach((mapvars, geocode) => {
-          let entity = {};
-          mapvars.forEach(mapvar => entity = { ...entity, ...mapvar });
-          mergedEntities.push(entity);
+      groupBy(action.payload.mapVars, 'geocode').forEach((mapvars) => {
+          mergedEntities.push(Object.assign({}, ...mapvars));
       });
       return adapter.upsertMany(mergedEntities, state);
     }

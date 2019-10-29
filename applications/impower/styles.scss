@@ -222,3 +222,22 @@ body {
   padding-top: 5px;
   padding-bottom: 5px;
 }
+
+// esri styling overrides
+body {
+  div.esri-ui {
+    .esri-legend {
+      .esri-legend__service {
+        padding: 5px 8px;
+        > h3 {
+          margin: 0;
+        }
+        > .esri-legend__layer {
+          > .esri-legend__layer-table {
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+  }
+}

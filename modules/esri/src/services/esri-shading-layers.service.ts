@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable } from 'rxjs';
-import { take, tap } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { Observable, of } from 'rxjs';
+import { map, take, tap } from 'rxjs/operators';
 import { SelectedShadingLayerPrefix } from '../../settings';
 import { EsriUtils } from '../core/esri-utils';
 import { AllShadingConfigurations, ConfigurationTypes, SimpleShadingConfiguration } from '../models/shading-configuration';
 import { EsriState } from '../state/esri.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
-import { EsriMapService } from './esri-map.service';
 import { EsriRendererService } from './esri-renderer.service';
-import { Store } from '@ngrx/store';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +17,6 @@ export class EsriShadingLayersService {
 
   constructor(private layerService: EsriLayerService,
               private store$: Store<EsriState>,
-              private mapService: EsriMapService,
               private rendererService: EsriRendererService,
               private domainFactory: EsriDomainFactoryService) { }
 
@@ -76,7 +74,7 @@ export class EsriShadingLayersService {
     }
   }
 
-  selectedFeaturesShading(featureIds: string[], layerId: string, minScale: number, featureTypeName: string, featureIdField: string = 'geocode') : Observable<any> {
+  selectedFeaturesShading(featureIds: string[], layerId: string, minScale: number, featureTypeName: string, featureIdField: string = 'geocode') : Observable<string> {
     const layerName = EsriShadingLayersService.createSelectedFeatureLayerName(featureTypeName);
     const existingLayer = this.layerService.getFeatureLayer(layerName);
     const query = `${featureIdField} IN (${featureIds.map(g => `'${g}'`).join(',')})`;
@@ -85,11 +83,11 @@ export class EsriShadingLayersService {
       const layerConfiguration = new SimpleShadingConfiguration(layerId, layerName, minScale, layerName, shadedSymbol, query);
       return this.createShadingLayer(layerConfiguration).pipe(
         take(1), // ensures we clean up the subscription
-        tap(layer => this.mapService.addLayerToLegend(layer, 'Selected Geos'))
+        map(layer => layer.id),
       );
     } else {
       existingLayer.definitionExpression = query;
-      return EMPTY;
+      return of(existingLayer.id);
     }
   }
 
@@ -97,7 +95,7 @@ export class EsriShadingLayersService {
     const layerName = EsriShadingLayersService.createSelectedFeatureLayerName(featureTypeName);
     const existingLayer = this.layerService.getFeatureLayer(layerName);
     if (existingLayer != null) {
-      this.mapService.removeLayerFromLegend(existingLayer);
+      this.layerService.removeLayerFromLegend(existingLayer.id);
       this.layerService.removeLayer(layerName);
     }
   }

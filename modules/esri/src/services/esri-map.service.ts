@@ -148,24 +148,6 @@ export class EsriMapService {
     this.addWidget(expander, position);
   }
 
-  addLayerToLegend(layer: __esri.Layer, title: string, addToBottom: boolean = false) : void {
-    const legendRef = this.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
-    if (legendRef != null) {
-      if (addToBottom) {
-        legendRef.layerInfos.unshift({ title, layer });
-      } else {
-        legendRef.layerInfos.push({ title, layer });
-      }
-    }
-  }
-
-  removeLayerFromLegend(layer: __esri.Layer) : void {
-    const legendRef = this.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
-    if (legendRef != null) {
-      legendRef.layerInfos = [ ...legendRef.layerInfos.filter(li => li.layer !== layer) ];
-    }
-  }
-
   private addWidget(item: __esri.Widget, position: string);
   private addWidget(item: ElementRef | __esri.Widget, position: string) {
     if (item instanceof ElementRef) {

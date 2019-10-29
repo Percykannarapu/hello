@@ -1,9 +1,9 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import {select, Store} from '@ngrx/store';
 import {EsriApi, selectors} from '@val/esri';
 import {ConfirmationService} from 'primeng/api';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {filter, take} from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { debounceTime, filter, take, takeUntil } from 'rxjs/operators';
 import {AppConfig} from '../../app.config';
 import {AppGeoService} from '../../services/app-geo.service';
 import {AppMapService} from '../../services/app-map.service';
@@ -23,10 +23,12 @@ const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit {
+export class MapComponent implements OnInit, OnDestroy {
   currentAnalysisLevel$: Observable<string>;
   mapHeight$: BehaviorSubject<number> = new BehaviorSubject<number>(400);
   selectedPanelButton: number;
+
+  private destroyed$ = new Subject<void>();
 
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
@@ -36,8 +38,7 @@ export class MapComponent implements OnInit {
               private rendererService: AppRendererService,
               private confirmationService: ConfirmationService,
               private cd: ChangeDetectorRef,
-              private store$: Store<FullAppState>,
-              private config: AppConfig) {}
+              private store$: Store<FullAppState>) {}
 
   ngOnInit() {
     console.log('Initializing Application Map Component');
@@ -51,6 +52,10 @@ export class MapComponent implements OnInit {
       select(selectors.getEsriFeaturesSelected),
       filter(features => features != null && features.length > 0)
     ).subscribe(features => this.onPolysSelected(features));
+  }
+
+  public ngOnDestroy() : void {
+    this.destroyed$.next();
   }
 
   fnSelectedButton(button) {
@@ -79,15 +84,16 @@ export class MapComponent implements OnInit {
   }
 
   onViewExtentChanged(view: __esri.MapView) : void {
-    const analysisLevel = this.appStateService.analysisLevel$.getValue();
-    if (analysisLevel != null) {
-      const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-      this.appStateService.setVisibleGeocodes(layerId);
-    }
     this.saveMapViewData(view);
   }
 
   private setupApplication() : void {
+    this.appStateService.notifyMapReady();
+    this.appMapService.watchMapViewProperty('stationary').pipe(
+      filter(result => result.newValue),
+      debounceTime(500),
+      takeUntil(this.destroyed$)
+    ).subscribe(() => this.appStateService.refreshVisibleGeos());
     this.appMapService.setupMap();
     this.setupMapFromStorage();
   }

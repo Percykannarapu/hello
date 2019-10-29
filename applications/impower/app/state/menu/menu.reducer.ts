@@ -1,6 +1,4 @@
-import { MenuActions, MenuActionTypes } from './menu.actions';
-import { createSelector } from '@ngrx/store';
-import { getMenuSlice } from '../app.interfaces';
+import {MenuActions, MenuActionTypes} from './menu.actions';
 
 export interface MenuState {
   displayOpenExistingDialog: boolean;
@@ -11,10 +9,6 @@ const initialState: MenuState = {
   displayOpenExistingDialog: false,
   displayPrintViewDialog: false
 };
-
-export const openExistingDialogFlag = createSelector(getMenuSlice, state => state.displayOpenExistingDialog);
-
-export const printViewDialogFlag = createSelector(getMenuSlice, state => state.displayPrintViewDialog);
 
 export function menuReducer(state = initialState, action: MenuActions) {
   switch (action.type) {

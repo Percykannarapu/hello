@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
 import { CreateBatchMap, CloseBatchMapDialog } from 'app/state/batch-map/batch-map.actions';
 import { UserService } from 'app/services/user.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -33,9 +34,9 @@ export class BatchMapDialogComponent implements OnInit {
       subTitle: '',
     });
     this.showBatchMapDialog$ = this.store$.select(getBatchMapDialog);
-    this.stateService.currentProject$.subscribe(p => {
+    this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
       this.currentProjectId = p.projectId;
-      p.impGeofootprintMasters.forEach(m => this.numSites += m.impGeofootprintLocations.length);
+      this.numSites = p.getImpGeofootprintLocations().length;
     });
   }
 
@@ -52,8 +53,7 @@ export class BatchMapDialogComponent implements OnInit {
     };
 
     this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
-    this.store$.dispatch(new CloseBatchMapDialog);
-    this.batchMapForm.reset();
+    this.closeDialog();
   }
 
   hasErrors(controlKey: string) : boolean {
@@ -61,9 +61,9 @@ export class BatchMapDialogComponent implements OnInit {
     return (control.dirty || control.untouched || control.value == null) && (control.errors != null);
   }
 
-  closeDialog(event: any){
+  closeDialog(){
       this.batchMapForm.reset();
-      this.store$.dispatch(new CloseBatchMapDialog);
+      this.store$.dispatch(new CloseBatchMapDialog());
   }
 
 }

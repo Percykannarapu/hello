@@ -49,7 +49,9 @@ import { RenderingEffects } from './rendering/rendering.effects';
     StoreDevtoolsModule.instrument({
       name: 'imPower Application',
       logOnly: environment.production,
-      actionsBlocklist: ['Usage', 'Map View Changed']
+      actionsBlocklist: ['Usage', 'Map View Changed'],
+      stateSanitizer: environment.production ? () => ({}) : (state) => state,
+      actionSanitizer: environment.production ? (action) => ({ type: action.type }) : (action) => action,
     }),
   ],
   declarations: []

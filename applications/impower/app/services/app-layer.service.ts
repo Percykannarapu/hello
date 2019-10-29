@@ -33,16 +33,11 @@ export class AppLayerService {
               private appConfig: AppConfig,
               @Inject(EsriAppSettingsToken) private esriAppSettings: EsriAppSettings,
               private store$: Store<FullAppState>) {
-    this.store$.pipe(
-      select(selectors.getMapReady),
-      filter(ready => ready),
-      take(1)
-    ).subscribe(() => {
-      this.appStateService.analysisLevel$.pipe(
-        startWith(''),
-        pairwise()
-      ).subscribe(([prev, curr]) => this.setDefaultLayerVisibility(prev, curr));
-    });
+    this.appStateService.analysisLevel$.pipe(
+      filter(al => al != null),
+      startWith(''),
+      pairwise()
+    ).subscribe(([prev, curr]) => this.setDefaultLayerVisibility(prev, curr));
   }
 
   private setDefaultLayerVisibility(previousAnalysisLevel: string, currentAnalysisLevel: string) : void {

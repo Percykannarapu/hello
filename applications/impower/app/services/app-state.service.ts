@@ -5,7 +5,8 @@ import {EsriLayerService, EsriMapService, EsriQueryService} from '@val/esri';
 import {selectGeoAttributes} from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import {ImpProjectVarService} from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import {BehaviorSubject, combineLatest, Observable, Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap, throttleTime, withLatestFrom} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
 import {ApplyAudiences} from '../impower-datastore/state/transient/audience/audience.actions';
 import {RequestAttributes} from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import {ClearGeoVars} from '../impower-datastore/state/transient/geo-vars/geo-vars.actions';
@@ -34,9 +35,11 @@ export enum Season {
 })
 export class AppStateService {
 
+  private mapIsReady = new Subject<void>();
+
   private refreshDynamicContent = new Subject<any>();
   public refreshDynamicContent$: Observable<any> = this.refreshDynamicContent.asObservable().pipe(throttleTime(500));
-  public applicationIsReady$: Observable<boolean>;
+  public applicationIsReady$ = new BehaviorSubject(false);
 
   private closeOverlayPanel = new Subject<string>();
   public closeOverlayPanel$: Observable<string> = this.closeOverlayPanel.asObservable();
@@ -75,7 +78,7 @@ export class AppStateService {
 
   public projectVarsDict$: CachedObservable<any> = new BehaviorSubject<any>(null);
 
-  private setVisibleGeosForLayer$ = new Subject<string>();
+  private getVisibleGeos$ = new Subject<void>();
 
   private isCollapsed = new BehaviorSubject<boolean>(false);
 
@@ -91,14 +94,19 @@ export class AppStateService {
               private esriLayerService: EsriLayerService,
               private esriQueryService: EsriQueryService,
               private logger: AppLoggingService,
+              private config: AppConfig,
               private store$: Store<FullAppState>) {
-    this.setupApplicationReadyObservable();
-    this.setupProjectObservables();
     this.setupLocationObservables();
-    this.setupGeocodeObservables();
-    this.setupTradeAreaObservables();
-    this.setupProvidedTaObservables();
-    this.setupProjectVarObservables();
+    this.mapIsReady.pipe(
+      take(1)
+    ).subscribe(() => {
+      this.setupApplicationReadyObservable();
+      this.setupProjectObservables();
+      this.setupGeocodeObservables();
+      this.setupTradeAreaObservables();
+      this.setupProvidedTaObservables();
+      this.setupProjectVarObservables();
+    });
   }
 
   public setProvidedTradeAreas(newValue: boolean, siteType: SuccessfulLocationTypeCodes) : void {
@@ -124,16 +132,19 @@ export class AppStateService {
     this.clearUI.next();
   }
 
-  public setVisibleGeocodes(layerId: string) : void {
-    this.setVisibleGeosForLayer$.next(layerId);
+  public refreshVisibleGeos() : void {
+    this.getVisibleGeos$.next();
+  }
+
+  public notifyMapReady() : void {
+    this.mapIsReady.next();
   }
 
   private setupApplicationReadyObservable() : void {
-    this.applicationIsReady$ =
-      combineLatest([this.store$.select(layersAreReady), this.store$.select(projectIsReady)]).pipe(
-        map(([layersReady, projectReady]) => layersReady && projectReady),
-        distinctUntilChanged()
-      );
+    combineLatest([this.store$.select(layersAreReady), this.store$.select(projectIsReady)]).pipe(
+      map(([layersReady, projectReady]) => layersReady && projectReady),
+      distinctUntilChanged()
+    ).subscribe(this.applicationIsReady$);
   }
 
   private setupProjectObservables() : void {
@@ -243,10 +254,12 @@ export class AppStateService {
       this.store$.dispatch(new ApplyAudiences({analysisLevel: this.analysisLevel$.getValue()}));
     });
 
-    this.setVisibleGeosForLayer$.pipe(
-      debounceTime(500),
+    this.getVisibleGeos$.pipe(
+      withLatestFrom(this.analysisLevel$),
+      filter(([, analysisLevel]) => analysisLevel != null && analysisLevel.length > 0),
+      map(([, analysisLevel]) => this.config.getLayerIdForAnalysisLevel(analysisLevel)),
       switchMap(layerId => this.esriQueryService.queryPortalLayerView(layerId).pipe(
-        map(graphics => graphics.map(g => g.attributes.geocode))
+        map(graphics => graphics.filter(g => g.attributes.pob !== 'B').map(g => g.attributes.geocode))
       )),
       map(geos => Array.from(new Set(geos)))
     ).subscribe(this.uniqueVisibleGeocodes$ as BehaviorSubject<string[]>);

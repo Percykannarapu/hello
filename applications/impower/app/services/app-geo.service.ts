@@ -68,8 +68,7 @@ export class AppGeoService {
     this.currentGeos$ = this.impGeoService.storeObservable;
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
 
-    this.store$.pipe(
-      select(selectors.getMapReady),
+    this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
@@ -123,7 +122,7 @@ export class AppGeoService {
         }
       } else {
         if (this.appMapService.selectedButton !== 8) {
-          (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);  
+          (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);
         }
       }
     } else if (this.appMapService.selectedButton === 1) {
@@ -132,9 +131,9 @@ export class AppGeoService {
       } else if (allIdentifiedGeos.has(geocode) && filterFlag) {
         this.reactivateGeosByGeocode(geocode);
       } else if (!(allIdentifiedGeos.has(geocode))) {
-        (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);  
+        (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);
       }
-    }  
+    }
   }
 
   public checkGeoOnSingleSelect(features: __esri.Graphic[]) : boolean {

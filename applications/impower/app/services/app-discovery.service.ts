@@ -1,17 +1,17 @@
-import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
-import { filter, map, take, tap } from 'rxjs/operators';
-import { AppStateService } from './app-state.service';
-import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ImpRadLookupService } from '../val-modules/targeting/services/ImpRadLookup.service';
-import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
-import { AppLoggingService } from './app-logging.service';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification } from '@val/messaging';
-import { filterByFields, mapArray, mapBy } from '@val/common';
+import {Injectable} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {filterByFields, formatDateForFuse, mapArray, mapBy} from '@val/common';
+import {ErrorNotification} from '@val/messaging';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {filter, map, take, tap} from 'rxjs/operators';
+import {LocalAppState} from '../state/app.interfaces';
+import {RestDataService} from '../val-modules/common/services/restdata.service';
+import {ImpMetricName} from '../val-modules/metrics/models/ImpMetricName';
+import {ImpProject} from '../val-modules/targeting/models/ImpProject';
+import {ImpRadLookup} from '../val-modules/targeting/models/ImpRadLookup';
+import {ImpRadLookupService} from '../val-modules/targeting/services/ImpRadLookup.service';
+import {AppLoggingService} from './app-logging.service';
+import {AppStateService} from './app-state.service';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {
@@ -35,8 +35,7 @@ export class ProjectTrackerUIModel {
 }
 
 export class CounterMetrics {
-  constructor(public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number
-  ) { }
+  constructor(public usageMetricName: ImpMetricName, public metricText: string, public metricValue: number) { }
 }
 
 @Injectable()
@@ -97,9 +96,10 @@ export class AppDiscoveryService {
 
   private selectRadProduct(project: ImpProject) {
     if (!this.radCacheRetrieved) {
-      this.getRadData().subscribe(null, null, () => {
-        this.updateRadSuggestions('');
-        this.selectRadProduct(project);
+      this.getRadData().subscribe({ complete: () => {
+          this.updateRadSuggestions('');
+          this.selectRadProduct(project);
+        }
       });
     } else {
       if (project.radProduct == null && project.industryCategoryCode == null) {
@@ -118,31 +118,22 @@ export class AppDiscoveryService {
       this.getProjectTrackerData(project.projectTrackerId).subscribe(items => {
         const trackerItem = items.filter(tracker => tracker.projectId === project.projectTrackerId)[0];
         if (trackerItem != null) this.selectedProjectTracker.next(trackerItem);
-      }, null, () => {
       });
     }
   }
 
-  private formatDate(date) : string {
-    const zeroPad = Intl.NumberFormat(undefined, { minimumIntegerDigits: 2 }).format;
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    return `${year}-${zeroPad(month)}-${zeroPad(day)}`;
-  }
-
   private getProjectTrackerData(searchString) : Observable<ProjectTrackerUIModel[]> {
+    const projectTrackerUrl = 'v1/targeting/base/impimsprojectsview/search?q=impImsprojectsViewSearch';
+    const fieldList = 'PROJECT_ID projectId,PROJECT_NAME projectName,TARGETOR targetor,CLIENT_NAME clientName,ACCOUNT_NUMBER accountNumber';
     const updatedDateTo = new Date();
     updatedDateTo.setDate(updatedDateTo.getDate() + 1);
     const updatedDateFrom = new Date();
     updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
-      return this.restDataService.get(`v1/targeting/base/impimsprojectsview/search?q=impImsprojectsViewSearch&fields=PROJECT_ID projectId,PROJECT_NAME projectName,
-            TARGETOR targetor,CLIENT_NAME clientName,ACCOUNT_NUMBER accountNumber&searchString=${searchString}&updatedDateFrom=${this.formatDate(updatedDateFrom)}&updatedDateTo=${this.formatDate(updatedDateTo)}&sort=UPDATED_DATE&sortDirection=desc`).pipe(
-              // tap(rawResult => this.logger.info('Fuse response', rawResult)),
-          map((result: any) => result.payload.rows || []),
-          map(data => data.map(tracker => new ProjectTrackerUIModel(tracker))),
-
-    );  
+    const queryUrl = `${projectTrackerUrl}&fields=${fieldList}&searchString=${searchString}&updatedDateFrom=${formatDateForFuse(updatedDateFrom)}&updatedDateTo=${formatDateForFuse(updatedDateTo)}&sort=UPDATED_DATE&sortDirection=desc`;
+    return this.restDataService.get(queryUrl).pipe(
+        map((result: any) => result.payload.rows || []),
+        map(data => data.map(tracker => new ProjectTrackerUIModel(tracker)))
+    );
   }
 
   private getRadData() : Observable<RadLookupUIModel[]> {
@@ -168,11 +159,6 @@ export class AppDiscoveryService {
     );
     this.impRadService.get(true);
     return result;
-  }
-
-  public getProjectData(projectId: number) : Observable<ImpProject[]> {
-   return this.restDataService.get(`v1/targeting/base/impproject/${projectId}/search?q=impproject`).
-   pipe(map( ( res: any) => res.payload.rows || []));
   }
 
   private sortRadCache(data: RadLookupUIModel[]) : void {
@@ -205,27 +191,27 @@ export class AppDiscoveryService {
       counterMetrics.push(new CounterMetrics(usageMetricName, impProject.methAnalysis, null));
     }
     if (impProject.estimatedBlendedCpm != null) {
-      const blendedCpm = impProject.estimatedBlendedCpm != null ? impProject.estimatedBlendedCpm : null;
+      const blendedCpm = impProject.estimatedBlendedCpm;
       usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'blended-cpm', action: actionName });
       counterMetrics.push(new CounterMetrics(usageMetricName, null, blendedCpm));
     }
     if (impProject.smValassisCpm != null) {
-      const valassisCpm = impProject.smValassisCpm != null ? impProject.smValassisCpm : null;
+      const valassisCpm = impProject.smValassisCpm;
       usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'valassis-cpm', action: actionName });
       counterMetrics.push(new CounterMetrics(usageMetricName, null, valassisCpm));
     }
     if (impProject.smAnneCpm != null) {
-      const anneCPM = impProject.smAnneCpm != null ? impProject.smAnneCpm : null;
+      const anneCPM = impProject.smAnneCpm;
       usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'anne-cpm', action: actionName });
       counterMetrics.push(new CounterMetrics(usageMetricName, null, anneCPM));
     }
     if (impProject.smSoloCpm != null) {
-      const soloCpm = impProject.smSoloCpm != null ? impProject.smSoloCpm : null;
+      const soloCpm = impProject.smSoloCpm;
       usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'solo-cpm', action: actionName });
       counterMetrics.push(new CounterMetrics(usageMetricName, null, soloCpm));
     }
     if (impProject.totalBudget != null) {
-      const totalBudget = impProject.totalBudget != null ? impProject.totalBudget : null;
+      const totalBudget = impProject.totalBudget;
       usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'colorbox-input', target: 'dollar-budget', action: actionName });
       counterMetrics.push(new CounterMetrics(usageMetricName, null, totalBudget));
     }
@@ -273,7 +259,7 @@ export class AppDiscoveryService {
   public updateRadSuggestions(searchTerm: string) {
     if (!this.radCacheRetrieved) {
       // need to populate the cache before filtering suggestions
-      this.getRadData().subscribe(null, null, () => this.updateRadSuggestions(searchTerm));
+      this.getRadData().subscribe({ complete: () => this.updateRadSuggestions(searchTerm) });
     } else {
       // cache exists, filter suggestions
       if (searchTerm == null || searchTerm.trim().length === 0) {

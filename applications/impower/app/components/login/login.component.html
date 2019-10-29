@@ -1,36 +1,38 @@
-<val-app-header></val-app-header>
-<div class="val-centered login-container">
+<div class="layout-wrapper layout-compact">
+  <val-app-header></val-app-header>
+  <div class="val-centered login-container">
     <div class="login-form card">
-        <div class="login-header val-centered">
-          <h1>imPower Login</h1>
-        </div>
-        <form #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" novalidate class="ui-g val-centered">
-          <div class="ui-g-6">
-            <div class="ui-g-12">
-              <div class="ui-inputgroup">
-                <span class="ui-inputgroup-addon"><i class="fa fa-user-o"></i></span>
-                <span class="md-inputfield">
-                  <input id="username" type="text" name="username" class="ui-g-12" ngModel pInputText autofocus >
-                  <label for="username">Username</label>
-                </span>
-              </div>
-            </div>
-            <div class="ui-g-12">
-              <div class="ui-inputgroup">
-                <span class="ui-inputgroup-addon"><i class="fa fa-user-secret"></i></span>
-                <span class="md-inputfield">
-                  <input id="password" type="password" name="password" class="ui-g-12" ngModel pInputText >
-                  <label for="password">Password</label>
-                </span>
-              </div>
-            </div>
-            <div class="ui-g-12">
-              <button type="submit" label="Sign In" icon="ui-icon-person" class="ui-g-12" pButton></button>
+      <div class="login-header val-centered">
+        <h1>imPower Login</h1>
+      </div>
+      <form #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" novalidate class="ui-g val-centered">
+        <div class="ui-g-6">
+          <div class="ui-g-12">
+            <div class="ui-inputgroup">
+              <span class="ui-inputgroup-addon"><i class="fa fa-user-o"></i></span>
+              <span class="md-inputfield">
+                <input id="username" type="text" name="username" class="ui-g-12" ngModel pInputText autofocus >
+                <label for="username">Username</label>
+              </span>
             </div>
           </div>
-        </form>
+          <div class="ui-g-12">
+            <div class="ui-inputgroup">
+              <span class="ui-inputgroup-addon"><i class="fa fa-user-secret"></i></span>
+              <span class="md-inputfield">
+                <input id="password" type="password" name="password" class="ui-g-12" ngModel pInputText >
+                <label for="password">Password</label>
+              </span>
+            </div>
+          </div>
+          <div class="ui-g-12">
+            <button type="submit" label="Sign In" icon="ui-icon-person" class="ui-g-12" pButton></button>
+          </div>
+        </div>
+      </form>
     </div>
-</div>
-<div class="footer">
-  <val-app-footer></val-app-footer>
+  </div>
+  <div class="footer">
+    <val-app-footer></val-app-footer>
+  </div>
 </div>

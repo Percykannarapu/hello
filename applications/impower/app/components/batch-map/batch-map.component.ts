@@ -6,6 +6,7 @@ import { combineLatest, Observable, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppMapService } from '../../services/app-map.service';
+import { AppStateService } from '../../services/app-state.service';
 import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode, SetMapReady } from '../../state/batch-map/batch-map.actions';
 import { getBatchMapReady, getLastSiteFlag, getMapMoving, getNextSiteNumber, getCurrentSiteNum } from '../../state/batch-map/batch-map.selectors';
@@ -36,6 +37,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
 
   constructor(private store$: Store<FullAppState>,
               private config: AppConfig,
+              private appStateService: AppStateService,
               private appMapService: AppMapService,
               private esriMapService: EsriMapService,
               private zone: NgZone) { }
@@ -93,6 +95,11 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.esriMapService.watchMapViewProperty('updating').pipe(
       takeUntil(this.destroyed$),
     ).subscribe(result => this.store$.dispatch(new SetMapReady({ mapReady: !result.newValue })));
+    this.appMapService.watchMapViewProperty('stationary').pipe(
+      filter(result => result.newValue),
+      debounceTime(500),
+      takeUntil(this.destroyed$)
+    ).subscribe(() => this.appStateService.refreshVisibleGeos());
     this.appMapService.setupMap(true);
     this.store$.select(getBatchMapReady).pipe(
       filter(ready => ready),

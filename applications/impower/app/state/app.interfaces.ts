@@ -34,7 +34,6 @@ export interface BatchMapPayload {
 }
 
 export const getRenderingSlice = (state: LocalAppState) => state.rendering;
-export const getMenuSlice = (state: LocalAppState) => state.menu;
 const getRouterSlice = (state: LocalAppState) => state.router;
 
 // since we don't actually have router actions/reducer/effects, just stash the selectors here

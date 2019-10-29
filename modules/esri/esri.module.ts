@@ -45,6 +45,7 @@ const PUBLIC_COMPONENTS = [
 
 @NgModule({
   imports: [
+    StoreModule.forFeature('esri', esriReducers),
     CommonModule,
     HttpClientModule,
     TreeTableModule,
@@ -54,7 +55,6 @@ const PUBLIC_COMPONENTS = [
     DropdownModule,
     InputSwitchModule,
     FormsModule,
-    StoreModule.forFeature('esri', esriReducers),
     EffectsModule.forFeature(allEffects),
   ],
   declarations: [

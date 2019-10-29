@@ -14,6 +14,7 @@ const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data =
 export class EsriLayerService {
 
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
+  private layersShowingInLegend = new Set<string>();
 
   constructor(private mapService: EsriMapService, private zone: NgZone) {}
 
@@ -56,6 +57,10 @@ export class EsriLayerService {
 
   public getLayer(layerName: string) : __esri.Layer {
     return this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
+  }
+
+  public getLayerByUniqueId(layerUniqueId: string) : __esri.Layer {
+    return this.mapService.mapView.map.allLayers.find(l => l.id === layerUniqueId);
   }
 
   public getFeatureLayer(layerName: string) : __esri.FeatureLayer {
@@ -190,7 +195,7 @@ export class EsriLayerService {
     const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
     group.layers.unshift(layer);
     if (addToLegend) {
-      this.mapService.addLayerToLegend(layer, layerName, bottom);
+      this.addLayerToLegend(layer.id, layerName, bottom);
     }
     return layer;
   }
@@ -227,7 +232,7 @@ export class EsriLayerService {
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
     group.layers.add(layer);
     if (addToLegend) {
-      this.mapService.addLayerToLegend(layer, layerName);
+      this.addLayerToLegend(layer.id, layerName);
     }
     return layer;
   }
@@ -275,6 +280,27 @@ export class EsriLayerService {
     const siteLayer = this.getFeatureLayer('Project Sites');
     if (siteLayer != null) {
       siteLayer.labelsVisible = labelConfig.siteEnabled;
+    }
+  }
+
+  addLayerToLegend(layerUniqueId: string, title: string, addToBottom: boolean = false) : void {
+    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
+    const layer = this.getLayerByUniqueId(layerUniqueId);
+    if (legendRef != null && layer != null && !this.layersShowingInLegend.has(layerUniqueId)) {
+      if (addToBottom) {
+        legendRef.layerInfos.unshift({ title, layer });
+      } else {
+        legendRef.layerInfos.push({ title, layer });
+      }
+      this.layersShowingInLegend.add(layerUniqueId);
+    }
+  }
+
+  removeLayerFromLegend(layerUniqueId: string) : void {
+    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
+    if (legendRef != null) {
+      legendRef.layerInfos = [ ...legendRef.layerInfos.filter(li => li.layer.id !== layerUniqueId) ];
+      this.layersShowingInLegend.delete(layerUniqueId);
     }
   }
 

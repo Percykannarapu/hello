@@ -42,6 +42,10 @@ export class LoginComponent {
         this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
         this.store$.dispatch(new ErrorNotification({ message: 'Please check your username and password and try again', notificationTitle: 'Login Error' }));
       }
+    }, err => {
+      this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+      this.store$.dispatch(new ErrorNotification({ message: 'Please check your username and password and try again', notificationTitle: 'Login Error' }));
+      console.error('Unable to authenticate', err);
     });
   }
 

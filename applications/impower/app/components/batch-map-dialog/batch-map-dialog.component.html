@@ -1,4 +1,4 @@
-<p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog($event)" [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '300px'}" [maximizable]="false">
+<p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()" [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '300px'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main">
           <p> <span style="color:red; font-size: 1.2em"> Please save project before creating maps </span></p>
@@ -7,7 +7,7 @@
             <form novalidate  [formGroup]="batchMapForm" autocomplete="off">
               <div class="ui-g-12" >
                 <span class="md-inputfield">
-                    <input id="fileName" type="text" formControlName="title" pInputText class="val-full-width"> 
+                    <input id="fileName" type="text" formControlName="title" pInputText class="val-full-width">
                     <span class="ui-inputgroup-addon" *ngIf="!hasErrors('title')">&nbsp;</span>
                     <label for="fileName">Title (required)</label>
                 </span>
@@ -15,12 +15,12 @@
            <div>&nbsp;</div>
               <div class="ui-g-12">
                 <span class="md-inputfield">
-                  <input id ="subTitle" type="text" formControlName="subTitle" pInputText class="val-full-width"> 
+                  <input id ="subTitle" type="text" formControlName="subTitle" pInputText class="val-full-width">
                   <label for="subTitle"> Sub Title </label>
                 </span>
-              </div> 
-            </form>  
-          </div>       
+              </div>
+            </form>
+          </div>
     </div>
   </div>
 <p-footer>

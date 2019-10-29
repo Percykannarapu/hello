@@ -9,7 +9,7 @@ import { ObjectUtils } from 'primeng/components/utils/objectutils';
 import { MultiSelect } from 'primeng/multiselect';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map, publishReplay, refCount, tap } from 'rxjs/operators';
+import { filter, map, publishReplay, refCount, tap } from 'rxjs/operators';
 import { isString } from 'util';
 import { FieldContentTypeCodes } from '../../impower-datastore/state/models/impower-model.enums';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -282,7 +282,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.allVars$ = this.allVarsBS$.asObservable();
 
       // Whenever the project changes, update the grid export file name
-      this.project$.subscribe(project => {
+      this.project$.pipe(filter(p => p != null)).subscribe(project => {
          this._geoGrid.exportFilename = 'geo-grid' + ((project != null && project.projectId != null) ? '-' + project.projectId.toString() : '') + '-export';
 
          // In the event of a project load, clear the grid filters

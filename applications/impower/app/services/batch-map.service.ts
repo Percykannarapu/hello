@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics } from '@val/common';
+import {calculateStatistics, expandRange} from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { Observable, throwError } from 'rxjs';
@@ -90,18 +90,16 @@ export class BatchMapService {
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
       switchMap((polys) => {
-        const xStats = calculateStatistics(polys.reduce((p, c) => {
+        let xStats = calculateStatistics(polys.reduce((p, c) => {
           p.push(c.geometry.extent.xmax, c.geometry.extent.xmin);
           return p;
         }, []));
-        const yStats = calculateStatistics(polys.reduce((p, c) => {
+        let yStats = calculateStatistics(polys.reduce((p, c) => {
           p.push(c.geometry.extent.ymax, c.geometry.extent.ymin);
           return p;
         }, []));
-        xStats.min -= 0.01;
-        xStats.max += 0.01;
-        yStats.min -= 0.01;
-        yStats.max += 0.01;
+        xStats = expandRange(xStats, 0.01);
+        yStats = expandRange(yStats, 0.01);
         const polyCount = activeGeos.length > 0 ? activeGeos.length + 1 : 0;
         return this.esriMapService.zoomOnMap(xStats, yStats, polyCount);
       })

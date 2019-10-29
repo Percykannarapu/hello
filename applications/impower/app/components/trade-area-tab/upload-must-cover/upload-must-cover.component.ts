@@ -3,6 +3,7 @@ import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
 import { FileUpload } from 'primeng/fileupload';
 import { Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import * as xlsx from 'xlsx';
 import { AppGeoService } from '../../../services/app-geo.service';
 import { AppProjectPrefService } from '../../../services/app-project-pref.service';
@@ -39,15 +40,15 @@ export class UploadMustCoverComponent implements OnInit {
               , private appStateService: AppStateService
               , private appProjectPrefService: AppProjectPrefService
               , private confirmationService: ConfirmationService
-              , private impProjectPrefService: ImpProjectPrefService 
+              , private impProjectPrefService: ImpProjectPrefService
               , private impProjectService: ImpProjectService
-              , private store$: Store<LocalAppState>) { 
+              , private store$: Store<LocalAppState>) {
                 this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
               }
 
    ngOnInit() {
     this.appStateService.analysisLevel$.subscribe(val => {
-      this.isDisable = val != null ? false : true; 
+      this.isDisable = (val == null);
       this.tooltip = this.isDisable ? 'Please select an Analysis Level before uploading a Must Cover file' : 'CSV or Excel format required: Geocode';
     });
 
@@ -58,7 +59,7 @@ export class UploadMustCoverComponent implements OnInit {
       }
     });
 
-    this.appStateService.currentProject$.subscribe(project => {
+    this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
        this.isMustCoverExists = project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER' && pref.val != null);
        if (this.impGeofootprintGeoService.uploadFailures.length > 0)
          this.isMustCoverExists = true;
@@ -182,7 +183,7 @@ export class UploadMustCoverComponent implements OnInit {
 
       });
 
-      
+
 
    }
 }

@@ -73,7 +73,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
   ngOnInit() {
 
-    this.stateService.currentProject$.subscribe(project => {
+    this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
       this.isCustomTAExists = project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0));
     });
 

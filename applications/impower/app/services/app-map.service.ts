@@ -1,9 +1,9 @@
-import { Injectable, NgZone, OnDestroy } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, WatchResult } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { debounceTime, first } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../state/usage/targeting-usage.actions';
@@ -23,15 +23,15 @@ export interface GeoClickEvent {
 }
 
 @Injectable()
-export class AppMapService implements OnDestroy {
-  private geoSelected = new BehaviorSubject<GeoClickEvent[]>([]);
-  private clientTradeAreaSubscription: Subscription;
-  private competitorTradeAreaSubscription: Subscription;
-  private currentGeocodes = new Set<string>();
-  private layerSelectionRefresh: () => void;
+export class AppMapService {
 
-  public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
   public selectedButton: number;
+
+  private geoSelected = new BehaviorSubject<GeoClickEvent[]>([]);
+  public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
+
+  private currentGeocodes = new Set<string>();
+
   constructor(private appStateService: AppStateService,
               private appLayerService: AppLayerService,
               private rendererService: AppRendererService,
@@ -42,16 +42,7 @@ export class AppMapService implements OnDestroy {
               private logger: AppLoggingService,
               private config: AppConfig,
               private zone: NgZone,
-              private store$: Store<LocalAppState>) {
-    this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
-      if (this.layerSelectionRefresh) this.layerSelectionRefresh();
-    });
-  }
-
-  ngOnDestroy() : void {
-    if (this.clientTradeAreaSubscription) this.clientTradeAreaSubscription.unsubscribe();
-    if (this.competitorTradeAreaSubscription) this.competitorTradeAreaSubscription.unsubscribe();
-  }
+              private store$: Store<LocalAppState>) {}
 
   public setupMap(isBatchMapping: boolean = false) : void {
     let mapViewSetupComplete = false;
@@ -174,6 +165,10 @@ export class AppMapService implements OnDestroy {
     });
     this.selectedButton = button;
     this.geoSelected.next(events);
+  }
+
+  watchMapViewProperty<T extends keyof __esri.MapView>(propertyName: T) : Observable<WatchResult<__esri.MapView, T>> {
+    return this.mapService.watchMapViewProperty(propertyName);
   }
 
   /**

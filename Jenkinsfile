@@ -23,11 +23,7 @@
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
           echo 'install all the stuff'
-          sh '''
-            if [ ! -d "node_modules" ]; then
-              npm install
-            fi
-            '''
+          sh "npm ci"
         }
       }
     }

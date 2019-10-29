@@ -35,3 +35,11 @@ export function calculateStatistics(data: number[]) : Statistics {
   }
   return result;
 }
+
+export function expandRange<T extends { min: number, max: number }>(data: T, expansionAmount: number) : T {
+  return {
+    ...data,
+    min: data.min - expansionAmount,
+    max: data.max + expansionAmount
+  };
+}
