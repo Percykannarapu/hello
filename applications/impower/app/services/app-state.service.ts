@@ -1,29 +1,29 @@
-import {Injectable} from '@angular/core';
-import {select, Store} from '@ngrx/store';
-import {dedupeSimpleSet, distinctArray, filterArray, groupBy, isNumber, mapArray, mapArrayToEntity} from '@val/common';
-import {EsriLayerService, EsriMapService, EsriQueryService} from '@val/esri';
-import {selectGeoAttributes} from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import {ImpProjectVarService} from 'app/val-modules/targeting/services/ImpProjectVar.service';
-import {BehaviorSubject, combineLatest, Observable, Subject} from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { select, Store } from '@ngrx/store';
+import { dedupeSimpleSet, distinctArray, filterArray, groupBy, isNumber, mapArray, mapArrayToEntity } from '@val/common';
+import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
+import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
+import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
+import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, startWith, switchMap, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import {ApplyAudiences} from '../impower-datastore/state/transient/audience/audience.actions';
-import {RequestAttributes} from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
-import {ClearGeoVars} from '../impower-datastore/state/transient/geo-vars/geo-vars.actions';
-import {ChangeAnalysisLevel} from '../state/app.actions';
-import {FullAppState} from '../state/app.interfaces';
-import {layersAreReady, projectIsReady} from '../state/data-shim/data-shim.selectors';
-import {CachedObservable} from '../val-modules/api/models/CachedObservable';
-import {ImpGeofootprintLocation} from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import {ImpGeofootprintMaster} from '../val-modules/targeting/models/ImpGeofootprintMaster';
-import {ImpGeofootprintTradeArea} from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import {ImpProject} from '../val-modules/targeting/models/ImpProject';
-import {ImpGeofootprintGeoService} from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import {ImpGeofootprintLocationService} from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import {ImpGeofootprintTradeAreaService} from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import {ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes} from '../val-modules/targeting/targeting.enums';
-import {AppLoggingService} from './app-logging.service';
-import {AppProjectService} from './app-project.service';
+import { ApplyAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
+import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { ClearGeoVars } from '../impower-datastore/state/transient/geo-vars/geo-vars.actions';
+import { ChangeAnalysisLevel } from '../state/app.actions';
+import { FullAppState } from '../state/app.interfaces';
+import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { CachedObservable } from '../val-modules/api/models/CachedObservable';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { AppLoggingService } from './app-logging.service';
+import { AppProjectService } from './app-project.service';
 
 export enum Season {
   Summer = 'summer',
@@ -189,22 +189,22 @@ export class AppStateService {
   private setupLocationObservables() : void {
     this.allLocations$ = this.locationService.storeObservable.pipe(
       filter(locations => locations != null),
-      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0 && (l.clientLocationTypeCode === 'Site' || l.clientLocationTypeCode === 'Competitor'))
+      filterArray(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
     );
     this.activeLocations$ = this.allLocations$.pipe(
       filterArray(l => l.isActive)
     );
     this.allClientLocations$ = this.allLocations$.pipe(
-      filterArray(l => l.clientLocationTypeCode === 'Site')
+      filterArray(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site)
     );
     this.allCompetitorLocations$ = this.allLocations$.pipe(
-      filterArray(l => l.clientLocationTypeCode === 'Competitor')
+      filterArray(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
     );
     this.activeClientLocations$ = this.allClientLocations$.pipe(
-      filterArray(l => l.isActive === true)
+      filterArray(l => l.isActive)
     );
     this.activeCompetitorLocations$ = this.allCompetitorLocations$.pipe(
-      filterArray(l => l.isActive === true)
+      filterArray(l => l.isActive)
     );
   }
 
@@ -303,9 +303,5 @@ export class AppStateService {
 
   triggerChangeInCollapse(collapse: boolean){
     this.isCollapsed.next(collapse);
-  }
-
-  stopObservingCollapse(){
-    this.isCollapsed.complete();
   }
 }

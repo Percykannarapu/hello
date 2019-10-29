@@ -5,7 +5,7 @@ import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService, Esr
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
-import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocationQuadTree } from '../models/location-quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -130,14 +130,14 @@ export class AppLocationService {
     );
 
     const successfulLocations$ = locationsWithType$.pipe(
-      filterArray(loc => loc.clientLocationTypeCode === 'Site' || loc.clientLocationTypeCode === 'Competitor')
+      filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
     );
     const siteCount$ = successfulLocations$.pipe(
-      filterArray(loc => loc.clientLocationTypeCode === 'Site'),
+      filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site),
       map(locs => locs.length)
     );
     const competitorCount$ = successfulLocations$.pipe(
-      filterArray(loc => loc.clientLocationTypeCode === 'Competitor'),
+      filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor),
       map(locs => locs.length)
     );
 
@@ -152,19 +152,21 @@ export class AppLocationService {
     ).subscribe(() => this.store$.dispatch(new ClearLocations({ type: ImpClientLocationTypeCodes.Competitor })));
 
     this.failedClientLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Failed Site'))
+      map(locations => locations.filter(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite)),
+      startWith([])
     );
     this.failedCompetitorLocations$ = locationsWithType$.pipe(
-      map(locations => locations.filter(l => l.clientLocationTypeCode === 'Failed Competitor'))
+      map(locations => locations.filter(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedCompetitor)),
+      startWith([])
     );
     this.failureCount$ = combineLatest([this.failedClientLocations$, this.failedCompetitorLocations$]).pipe(
-      startWith([[], []]),
-      map(([site, competitor]) => site.length + competitor.length)
+      map(([site, competitor]) => site.length + competitor.length),
+      startWith(0),
     );
     this.hasFailures$ = this.failureCount$.pipe(map(count => count > 0));
 
-    this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Site'));
-    this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, 'Competitor'));
+    this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, ImpClientLocationTypeCodes.Site));
+    this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, ImpClientLocationTypeCodes.Competitor));
     this.appStateService.analysisLevel$
       .pipe(
         withLatestFrom(this.appStateService.applicationIsReady$),
