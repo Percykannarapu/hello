@@ -92,6 +92,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   }
 
   private setupMap() : void {
+    this.appStateService.notifyMapReady();
     this.esriMapService.watchMapViewProperty('updating').pipe(
       takeUntil(this.destroyed$),
     ).subscribe(result => this.store$.dispatch(new SetMapReady({ mapReady: !result.newValue })));
