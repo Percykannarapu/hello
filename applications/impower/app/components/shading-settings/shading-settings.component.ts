@@ -56,7 +56,6 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
         value: allThemes[key]
       });
     }
-    this.allThemes.sort((a, b) => a.label.localeCompare(b.label));
     //this.currentTheme = AppRendererService.currentDefaultTheme;
 
     this.shadedVaiableonMap.push({label: 'Selected Geos only', value: 'Selected Geos only'});
