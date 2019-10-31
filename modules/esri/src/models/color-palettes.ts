@@ -2,8 +2,13 @@
 
 // these are the only palettes used in the application for now
 export enum ColorPalette {
+  Brightcolors = '6 Bright Colors',
+  SixDarkColors = '6 Dark Colors',
   Cpqmaps = '20 Colors (text vars only)',
-  Advantagedarker2 = '5 Advantage-Darker',
+  Bivariateredblue3 = '6 Bivariate Red-Blue',
+  Blue = '6 Blue',
+  Red = '6 Red',
+  Orange = '6 Orange',
   EsriPurple = 'Gradient - Purple',
 }
 
@@ -66,6 +71,7 @@ export enum AllColorPalettes {
   Red = '6 Red',
   Pastelshades3 = '6 Pastel Shades',
   Brightcolors = '6 Bright Colors',
+  SixDarkColors = '6 Dark Colors',
   Valassisrange3color = 'Valassis Range - 3 color',
   Valassisrange4color = 'Valassis Range - 4 color',
   Valassisrank4color = 'Valassis Rank - 4 color',
@@ -201,6 +207,8 @@ export function getAllColorPalettes(palette: string) : number[][] {
       return PastelShades3;
     case AllColorPalettes.Brightcolors:
       return BrightColors;
+    case AllColorPalettes.SixDarkColors:
+      return SixDarkColors;
     case AllColorPalettes.Valassisrange3color:
       return ValassisRange3color;
     case AllColorPalettes.Valassisrange4color:
@@ -294,3 +302,4 @@ const LightColors2: number[][] = [[128, 255, 75], [255, 215, 185], [246, 255, 18
 const DarkColors: number[][] = [[235, 131, 235], [169, 209, 175], [173, 158, 208], [253, 254, 171], [234, 145, 157], [127, 245, 247], [255, 203, 223], [245, 180, 151], [177, 218, 220], [128, 135, 254], [187, 255, 207], [217, 178, 234], [255, 125, 133], [249, 255, 121], [94, 205, 214], [255, 224, 215], [213, 255, 167], [215, 175, 255], [255, 227, 160], [255, 132, 170]];
 const cpqmaps: number[][] = [[108, 139, 202], [211, 114, 149], [255, 255, 102], [134, 188, 182], [255, 167, 79], [170, 113, 213], [250, 191, 210], [160, 205, 232], [242, 142, 43], [89, 161, 79], [157, 118, 96], [92, 154, 254], [241, 206, 99], [140, 209, 125], [255, 157, 154], [186, 176, 172], [73, 152, 148], [212, 166, 200], [225, 87, 89], [182, 153, 45]];
 const esriPurple: number[][] = [[255, 252, 212], [231, 174, 157], [206, 96, 101], [136, 49, 79], [66, 2, 57]];
+const SixDarkColors: number[][] = [[114, 175, 216], [165, 219, 85], [241, 159, 39], [218, 49, 69], [200, 125, 255], [250, 255, 130]];
