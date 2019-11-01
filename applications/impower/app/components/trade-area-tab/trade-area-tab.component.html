@@ -25,14 +25,14 @@
       </competitor-content>
     </val-site-type-selector>
   </p-accordionTab>
-  <p-accordionTab header="Audience" [transitionOptions]="'0ms'">
+  <!--<p-accordionTab header="Audience" [transitionOptions]="'0ms'">
       <val-audience-tradearea [currentAudienceTAConfig]="(audienceTAConfig$ | async)"
                               [currentAudiences]="(currentAudiences$ | async)"
                               [currentLocationsCount]="(currentLocationsCount$ | async)"
                               (updatedFormData)="onUpdatedAudienceTAData($event)"
                               (runAudienceTA)="onRunAudienceTA($event)">
         Loading Audience Trade Areas...</val-audience-tradearea>
-    </p-accordionTab>
+    </p-accordionTab> -->
   <p-accordionTab header="Custom" [transitionOptions]="'0ms'">
     <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
   </p-accordionTab>
