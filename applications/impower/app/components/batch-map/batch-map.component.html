@@ -8,6 +8,10 @@
   <span id="currentSiteNum" *ngIf="mapViewIsReady">
     {{currentSiteNumber}}
   </span>
+  <span id="readyFlag" *ngIf="nextSiteNumber != null">
+    <input #gotoSpecificSiteInput id="gotoSpecificSiteInput" type="text">
+    <button id="gotoSpecificSiteButton" (click)="onGoToSpecificSite()">Goto Specific Site</button>
+  </span>
   <span id="isLastSite" *ngIf="isLastSite">
   </span>
 </div>

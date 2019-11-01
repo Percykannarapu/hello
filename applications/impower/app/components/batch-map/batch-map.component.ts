@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { EsriMapService, selectors } from '@val/esri';
@@ -31,6 +31,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   isLastSite: boolean;
   height$: Observable<number>;
   currentSiteNumber: string;
+  @ViewChild('gotoSpecificSiteInput', {static: false}) specificSiteRef: ElementRef;
 
   private typedParams$: Observable<BatchMapQueryParams>;
   private destroyed$ = new Subject<void>();
@@ -89,6 +90,11 @@ export class BatchMapComponent implements OnInit, OnDestroy {
 
   onGoToSite(siteNum: string) : void {
     if (siteNum != null) this.store$.dispatch(new MoveToSite({ siteNum }));
+  }
+
+  onGoToSpecificSite() : void {
+    if (this.specificSiteRef != null)
+      this.store$.dispatch(new MoveToSite({ siteNum: this.specificSiteRef.nativeElement.value }));
   }
 
   private setupMap() : void {
