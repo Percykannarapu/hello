@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import {calculateStatistics, expandRange} from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';

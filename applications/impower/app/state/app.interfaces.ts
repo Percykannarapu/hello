@@ -30,7 +30,7 @@ export interface BatchMapPayload {
   projectId: number;
   size: string;
   layout: string;
-  numSites: number;
+  siteIds: Array<string>;
 }
 
 export const getRenderingSlice = (state: LocalAppState) => state.rendering;
@@ -39,4 +39,4 @@ const getRouterSlice = (state: LocalAppState) => state.router;
 // since we don't actually have router actions/reducer/effects, just stash the selectors here
 export const getRouteUrl = createSelector(getRouterSlice, state => state.state.url);
 export const getRouteParams = createSelector(getRouterSlice, state => state.state.params);
-export const getRouteQueryParams = createSelector(getRouterSlice, state => state.state.queryParams);
+export const getRouteQueryParams = createSelector(getRouterSlice, state => state != null ? state.state.queryParams : null);

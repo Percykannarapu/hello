@@ -49,11 +49,17 @@ export class BatchMapDialogComponent implements OnInit {
       projectId: this.currentProjectId,
       size: 'letter',
       layout: 'landscape',
-      numSites: this.numSites
+      siteIds: this.getSiteIds()
     };
 
     this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     this.closeDialog();
+  }
+
+  private getSiteIds() : Array<string> {
+    const siteIds: Array<string> = [];
+    this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.forEach(s => siteIds.push(s.locationNumber));
+    return siteIds;
   }
 
   hasErrors(controlKey: string) : boolean {

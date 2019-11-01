@@ -6,7 +6,7 @@ import { of } from 'rxjs';
 import { catchError, debounceTime, filter, map, switchMap, take, withLatestFrom, tap } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { BatchMapService } from '../../services/batch-map.service';
-import { LocalAppState } from '../app.interfaces';
+import { LocalAppState, getRouteQueryParams } from '../app.interfaces';
 import { DataShimActionTypes } from '../data-shim/data-shim.actions';
 import { BatchMapActions, BatchMapActionTypes, MoveToSite, SiteMoved, CreateBatchMap, OpenBatchMapDialog } from './batch-map.actions';
 import { getBatchMapReady, getBatchMode, getBatchMapDialog } from './batch-map.selectors';
@@ -30,7 +30,9 @@ export class BatchMapEffects {
     ofType(DataShimActionTypes.ProjectLoadFinish),
     withLatestFrom(this.store$.select(getBatchMode)),
     filter(([, batchMode]) => batchMode),
-    map(() => new MoveToSite({ siteNum: null }))
+    withLatestFrom(this.store$.select(getRouteQueryParams)),
+    map(([, params]) => params.startingSite != null ? params.startingSite : null),
+    map(siteNum => new MoveToSite({ siteNum: siteNum }))
   );
 
   @Effect()
