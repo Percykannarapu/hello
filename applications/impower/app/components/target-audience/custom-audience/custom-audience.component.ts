@@ -98,7 +98,7 @@ export class CustomAudienceComponent implements OnInit {
       header: 'Delete Custom Data',
       icon: 'ui-icon-delete',
       accept: () => {
-        if (audience != null && audience.showOnMap){
+        if (audience != null){
           this.store$.dispatch(new ClearMapVars());
           this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier, isActive: audience.showOnMap }));
         }
