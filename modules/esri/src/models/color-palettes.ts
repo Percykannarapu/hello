@@ -6,9 +6,9 @@ export enum ColorPalette {
   SixDarkColors = '6 Dark Colors',
   Cpqmaps = '20 Colors (text vars only)',
   Bivariateredblue3 = '6 Bivariate Red-Blue',
-  Blue = '6 Blue',
-  Red = '6 Red',
-  Orange = '6 Orange',
+  Blue = 'Gradient - Blue',
+  Red = 'Gradient - Red',
+  Orange = 'Gradient - Orange',
   EsriPurple = 'Gradient - Purple',
 }
 
@@ -66,9 +66,9 @@ export enum AllColorPalettes {
   Bivariategreenyellow3 = '6 Bivariate Green-Yellow',
   Bivariateyellowgreen3 = '6 Bivariate Yellow-Green',
   Green = '6 Green',
-  Blue = '6 Blue',
-  Orange = '6 Orange',
-  Red = '6 Red',
+  Blue = 'Gradient - Blue',
+  Orange = 'Gradient - Orange',
+  Red = 'Gradient - Red',
   Pastelshades3 = '6 Pastel Shades',
   Brightcolors = '6 Bright Colors',
   SixDarkColors = '6 Dark Colors',
@@ -285,9 +285,9 @@ const BivariateRedBlue3: number[][] = [[255, 105, 135], [255, 165, 175], [255, 2
 const BivariateGreenYellow3: number[][] = [[50, 175, 50], [110, 220, 110], [150, 255, 150], [255, 255, 200], [255, 255, 150], [255, 255, 0]];
 const BivariateYellowGreen3: number[][] = [[255, 255, 0], [255, 255, 150], [255, 255, 200], [150, 255, 150], [110, 220, 110], [50, 175, 50]];
 const Green: number[][] = [[0, 110, 50], [0, 175, 50], [50, 225, 50], [150, 255, 100], [200, 255, 150], [200, 255, 200]];
-const Blue: number[][] = [[0, 75, 255], [0, 150, 255], [100, 200, 255], [0, 255, 255], [150, 255, 255], [200, 255, 255]];
-const Orange: number[][] = [[255, 165, 50], [255, 185, 0], [255, 210, 110], [255, 200, 150], [255, 225, 200], [255, 240, 200]];
-const Red: number[][] = [[255, 50, 50], [255, 85, 100], [255, 130, 130], [255, 150, 150], [255, 190, 190], [255, 230, 230]];
+const Blue: number[][] = [[200, 255, 255], [150, 255, 255], [0, 255, 255], [100, 200, 255], [0, 150, 255], [0, 75, 255]];
+const Orange: number[][] = [[255, 240, 200], [255, 225, 200], [255, 200, 150], [255, 210, 110], [255, 185, 0], [255, 165, 50]];
+const Red: number[][] = [[255, 230, 230], [255, 190, 190], [255, 150, 150], [255, 130, 130], [255, 85, 100], [255, 50, 50]];
 const PastelShades3: number[][] = [[255, 190, 230], [155, 215, 255], [200, 255, 175], [255, 210, 170], [255, 255, 150], [200, 200, 255]];
 const BrightColors: number[][] = [[255, 255, 0], [255, 125, 225], [0, 150, 255], [0, 255, 0], [200, 75, 220], [255, 190, 50]];
 const ValassisRange3color: number[][] = [[254, 242, 102], [255, 176, 16], [237, 23, 31]];
