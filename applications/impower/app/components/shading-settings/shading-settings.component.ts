@@ -16,6 +16,7 @@ import {filter, withLatestFrom} from 'rxjs/operators';
 import {ClearMapVars} from '../../impower-datastore/state/transient/map-vars/map-vars.actions';
 import {LocalAppState} from '../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { mapBy } from '@val/common';
 
 @Component({
   selector: 'val-shading-settings',
@@ -45,7 +46,6 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
     private varService: TargetAudienceService,
     private store$: Store<LocalAppState>,
     private appProjectPrefService: AppProjectPrefService,
-    private impGeofootprintGeoService: ImpGeofootprintGeoService,
     private fb: FormBuilder) {
 
     const allThemes = ColorPalette;
@@ -71,8 +71,12 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
 
   ngOnInit() : void {
     this.store$.select(fromAudienceSelectors.allAudiences).subscribe(audiences => {
-        this.checkedAudienceList = [];
-        audiences.forEach(aud => this.checkedAudienceList.push({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud}));
+      const audinecesNames = mapBy(this.checkedAudienceList, 'label');
+      audiences.forEach(aud => {
+        if (!audinecesNames.has(`${aud.audienceSourceName}: ${aud.audienceName}`)){
+          this.checkedAudienceList.push({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud});
+        }
+      });
     });
 
     this.appStateService.applicationIsReady$.pipe(
@@ -91,15 +95,6 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
   private onLoadProject(allAudiences: Audience[]) {
     this.store$.dispatch(new ClearRenderingData());
     let showRender = false;
-   /* this.varService.allAudiencesBS$.getValue().forEach(audience => {
-      if (audience.showOnMap) {
-        showRender = true;
-        this.shadeSettingsForm.controls['audience'].setValue(audience);
-      }
-      this.shadeSettingsForm.controls['currentTheme'].setValue(this.appProjectPrefService.getPref('Theme').val);
-      this.shadeSettingsForm.controls['variable'].setValue(this.appProjectPrefService.getPref('Thematic-Extent').val);
-    });*/
-    //const allAudiences  = this.varService.allAudiencesBS$.getValue();
     const activeAudiences = allAudiences.filter(audience => audience.showOnMap);
     if (activeAudiences.length > 0){
         showRender = true;
@@ -160,7 +155,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
     this.showRenderControls = aud.showOnMap;
     this.sideNavVisible = false;
 
-    let keys = Object.keys(ColorPalette).filter(x => ColorPalette[x] == AppRendererService.currentDefaultTheme);
+    const keys = Object.keys(ColorPalette).filter(x => ColorPalette[x] == AppRendererService.currentDefaultTheme);
 
     this.appProjectPrefService.createPref('map-settings', 'Thematic-Extent', this.shadeSettingsForm.controls['variable'].value, 'string');
     this.appProjectPrefService.createPref('map-settings', 'Theme', keys[0], 'string');
