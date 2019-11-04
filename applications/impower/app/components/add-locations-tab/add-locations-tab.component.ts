@@ -78,7 +78,7 @@ export class AddLocationsTabComponent implements OnInit {
 
     this.searchCategories$ = this.businessSearchService.getCategories();
     this.appStateService.clearUI$.subscribe(() => {
-      this.businessSearchComponent.clear();
+      //this.businessSearchComponent.clear();
       this.manualSiteEntry.clear();
       this.manualCompetitorEntry.clear();
     });
