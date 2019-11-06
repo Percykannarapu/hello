@@ -2,7 +2,7 @@ import {Component, Input, OnChanges, OnInit, SimpleChanges, ViewEncapsulation} f
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {Store} from '@ngrx/store';
 import {AnyFn} from '@ngrx/store/src/selector';
-import {ColorPalette, ClearRenderingData} from '@val/esri';
+import {ColorPalette, ClearRenderingData, EsriMapService, EsriUtils, EsriApi} from '@val/esri';
 import {SelectMappingAudience} from 'app/impower-datastore/state/transient/audience/audience.actions';
 import {Audience} from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -46,6 +46,7 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
     private varService: TargetAudienceService,
     private store$: Store<LocalAppState>,
     private appProjectPrefService: AppProjectPrefService,
+    private mapService: EsriMapService,
     private fb: FormBuilder) {
 
     const allThemes = ColorPalette;
@@ -93,6 +94,18 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
   }
 
   private onLoadProject(allAudiences: Audience[]) {
+    if (this.appProjectPrefService.getPref('basemap') != null && this.appProjectPrefService.getPref('basemap').val != null){
+      const savedBaseMap = JSON.parse(this.appProjectPrefService.getPref('basemap').val);
+      this.mapService.widgetMap.get('esri.widgets.BasemapGallery').set('activeBasemap',  EsriApi.BaseMap.fromJSON(savedBaseMap));
+    }
+    else{
+      const value: any = this.mapService.widgetMap.get('esri.widgets.BasemapGallery').get('source');
+      const basMapList: any[] = value.basemaps.items;
+      const baseMap: __esri.Basemap = basMapList.filter(bmap => bmap.id === 'streets-vector')[0];
+      this.mapService.widgetMap.get('esri.widgets.BasemapGallery').set('activeBasemap', baseMap);
+      this.appProjectPrefService.createPref('legend-settings', 'basemap', JSON.stringify(baseMap.toJSON()), 'string');
+    }
+
     this.store$.dispatch(new ClearRenderingData());
     let showRender = false;
     const activeAudiences = allAudiences.filter(audience => audience.showOnMap);

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { calculateStatistics, filterArray, groupBy, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, map, take, withLatestFrom } from 'rxjs/operators';
+import { EsriMapService, EsriQueryService, EsriUtils, EsriApi } from '@val/esri';
+import { BehaviorSubject, Observable, merge } from 'rxjs';
+import { filter, map, take, withLatestFrom, reduce } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
 import { RenderTradeAreas } from '../state/rendering/rendering.actions';
@@ -24,8 +24,12 @@ import { ClearAudiencesAndVars } from 'app/impower-datastore/state/transient/tra
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { RestDataService } from 'app/val-modules/common/services/restdata.service';
+import { RestResponse } from 'app/models/RestResponse';
+import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
+import { AppProjectPrefService } from './app-project-pref.service';
 
-interface TradeAreaDefinition {
+export class TradeAreaDefinition {
   store: string;
   geocode: string;
   message: string;
@@ -54,6 +58,8 @@ export class AppTradeAreaService {
               private esriQueryService: EsriQueryService,
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
+              private restService: RestDataService,
+              private appProjectPrefService: AppProjectPrefService,
               private store$: Store<FullAppState>) {
     this.currentDefaults.set(ImpClientLocationTypeCodes.Site, []);
     this.currentDefaults.set(ImpClientLocationTypeCodes.Competitor, []);
@@ -276,9 +282,17 @@ export class AppTradeAreaService {
   }
 
   private calculateStatsAndZoom(latitudes: number[], longitudes: number[]) : void {
+    let extent = null;
+    if (this.appProjectPrefService.getPref('extent') != null && this.appProjectPrefService.getPref('extent').val != null){
+      extent = JSON.parse(this.appProjectPrefService.getPref('extent').val);
+    }
     const xStats = calculateStatistics(longitudes);
     const yStats = calculateStatistics(latitudes);
-    this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length).subscribe();
+    this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length).subscribe(() => {
+      if (extent != null){
+        this.esriMapService.mapView.extent = EsriApi.Extent.fromJSON(extent);
+      }
+    });
   }
 
   public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {
@@ -311,10 +325,10 @@ export class AppTradeAreaService {
     return this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType);
   }
 
-  public applyCustomTradeArea(data: TradeAreaDefinition[]){
+  public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null){
     this.uploadFailures = [];
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
-    const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
+    
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
     const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
     const matchedTradeAreas = new Set<TradeAreaDefinition>();
@@ -332,47 +346,152 @@ export class AppTradeAreaService {
     const outfields = ['geocode', 'latitude', 'longitude'];
     const queryResult = new Map<string, {latitude: number, longitude: number}>();
     const geosToQuery = new Set(Array.from(matchedTradeAreas).map(ta => ta.geocode));
+    const geos = new Set<string>();
+    if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
 
-    this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(geosToQuery), false, outfields).pipe(
-      map(graphics => graphics.map(g => g.attributes)),
-      map(attrs => attrs.map(a => ({ geocode: a.geocode, latitude: Number(a.latitude), longitude: Number(a.longitude) })))
-    ).subscribe(
-      results => results.forEach(r => queryResult.set(r.geocode, { latitude: r.latitude, longitude: r.longitude })),
-      err => console.log('There was an error querying the ArcGIS layer', err),
-      () => {
-        const geosToAdd: ImpGeofootprintGeo[] = [];
-        const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
-        matchedTradeAreas.forEach(ta => {
-          // make sure the query returned a geocode+lat+lon for each of the uploaded data rows
-          if (!queryResult.has(ta.geocode)) {
-            ta.message = 'Geocode not found';
-            this.uploadFailures = [...this.uploadFailures, ta];
-          } else {
-            const loc = locationsByNumber.get(ta.store);
-            const layerData = queryResult.get(ta.geocode);
-            // make sure the lat/lon data from the layer is valid
-            if (Number.isNaN(layerData.latitude) || Number.isNaN(layerData.longitude)) {
-              console.error(`Invalid Layer Data found for geocode ${ta.geocode}`, layerData);
-            } else {
-              // finally build the tradeArea (if necessary) and geo
-              const distance = EsriUtils.getDistance(layerData.longitude, layerData.latitude, loc.xcoord, loc.ycoord);
-              let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
-              if (currentTradeArea == null) {
-                currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
-                tradeAreasToAdd.push(currentTradeArea);
-              }
-              const newGeo = this.domainFactory.createGeo(currentTradeArea, ta.geocode, layerData.longitude, layerData.latitude, distance);
-              geosToAdd.push(newGeo);
+        const portalLayerId = fileAnalysisLevel == null ? this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel) : this.appConfig.getLayerIdForAnalysisLevel(fileAnalysisLevel);
+        this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(geosToQuery), false, outfields).pipe(
+          map(graphics => graphics.map(g => g.attributes)),
+          map(attrs => attrs.map(a => ({ geocode: a.geocode, latitude: Number(a.latitude), longitude: Number(a.longitude) })))
+        ).subscribe(
+          results => results.forEach(r => {
+            queryResult.set(r.geocode, { latitude: r.latitude, longitude: r.longitude });
+            geos.add(r.geocode);
+          }),
+          err => console.log('There was an error querying the ArcGIS layer', err),
+          () => {
+            if (currentAnalysisLevel !== fileAnalysisLevel){
+              this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geos), 
+                                                              queryResult: queryResult, 
+                                                              fileAnalysisLevel: fileAnalysisLevel,
+                                                              matchedTradeAreas: Array.from(matchedTradeAreas)})); 
             }
-          }
-        });
-        // stuff all the results into appropriate data stores
-        this.impGeoService.add(geosToAdd);
-        this.impTradeAreaService.add(tradeAreasToAdd);
-        this.appGeoService.ensureMustCovers();
-       // this.uploadFailuresObs$ = of(this.uploadFailures);
-       this.uploadFailuresSub.next(this.uploadFailures);
+            else{
+              const geosToAdd: ImpGeofootprintGeo[] = [];
+              const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
+              matchedTradeAreas.forEach(ta => {
+                // make sure the query returned a geocode+lat+lon for each of the uploaded data rows
+                if (!queryResult.has(ta.geocode)) {
+                  ta.message = 'Geocode not found';
+                  this.uploadFailures = [...this.uploadFailures, ta];
+                } else {
+                  const loc = locationsByNumber.get(ta.store);
+                  const layerData = queryResult.get(ta.geocode);
+                  // make sure the lat/lon data from the layer is valid
+                  if (Number.isNaN(layerData.latitude) || Number.isNaN(layerData.longitude)) {
+                    console.error(`Invalid Layer Data found for geocode ${ta.geocode}`, layerData);
+                  } else {
+                    // finally build the tradeArea (if necessary) and geo
+                    const distance = EsriUtils.getDistance(layerData.longitude, layerData.latitude, loc.xcoord, loc.ycoord);
+                    let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
+                    if (currentTradeArea == null) {
+                      currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
+                      tradeAreasToAdd.push(currentTradeArea);
+                    }
+                    const newGeo = this.domainFactory.createGeo(currentTradeArea, ta.geocode, layerData.longitude, layerData.latitude, distance);
+                    geosToAdd.push(newGeo);
+                  }
+                }
+              });
+              // stuff all the results into appropriate data stores
+              this.impGeoService.add(geosToAdd);
+              this.impTradeAreaService.add(tradeAreasToAdd);
+              this.appGeoService.ensureMustCovers();
+              // this.uploadFailuresObs$ = of(this.uploadFailures);
+              this.uploadFailuresSub.next(this.uploadFailures);
+
+            }
+          });
+        }else {
+        console.log('file analysis level', fileAnalysisLevel);
+        this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geosToQuery), 
+                                                        queryResult: queryResult, 
+                                                        fileAnalysisLevel: fileAnalysisLevel,
+                                                        matchedTradeAreas: Array.from(matchedTradeAreas)})); 
+      }    
+  }
+
+   /**
+     * select field should depend on currect analysis level
+     * usTable field also need to depend on currect Analysis level
+     * wherefield  should depend on file analysis level 
+     * hhcField should depend on current analysis level
+     */
+  public rollDownService(geos: string[], fileAnalysisLevel: string){
+    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+    const usTable = this.getUstable(currentAnalysisLevel);
+    const selectField = currentAnalysisLevel === 'Digital ATZ' ? 'DTZ' : currentAnalysisLevel;
+    const whereField = fileAnalysisLevel === 'Digital ATZ' ? 'DTZ' : fileAnalysisLevel;
+    const hhcField = 'summer'; //TODO: need to get the value from discovey tab
+    
+    const chunked_arr = [];
+    let index = 0;
+    while (index < geos.length) {
+      chunked_arr.push(geos.slice(index, 999 + index));
+      index += 999;
+    }
+    const obs = chunked_arr.map(geoList => {
+      const reqPayload = {'usTable': usTable, 'selectField': selectField, 'whereField': whereField, 'geoList': geos};
+      return this.restService.post('v1/targeting/base/rolldown/rolldowngeocode', reqPayload);
       });
+
+    return merge(...obs, 4).pipe(
+      map( response => {
+        return response.payload;
+      }),
+      reduce((acc, result) => [...acc, ...result], []),
+    );
+  }
+
+  public validateRolldownGeos(payload: any[], queryResult: Map<string, {latitude: number, longitude: number}>,  matchedTradeAreas: any[]){
+    let failedGeos: any[] = [];
+    const successGeos: any[] = [];
+    //console.log('validate geos:::', matchedTradeAreas, payload);
+    const payloadByGeocode = mapBy(payload, 'orgGeo');
+    const matchedTradeAreaByGeocode = mapBy(Array.from(matchedTradeAreas), 'geocode');
+    matchedTradeAreas.forEach(ta => {
+      if (!queryResult.has(ta.geocode)) {
+          ta.message = 'Geocode not found';
+          //this.uploadFailures = [...this.uploadFailures, ta];
+          failedGeos = [...failedGeos, ta];
+      }
+        //failedGeos.filter(rec => rec.geocode === ta.geocode).length === 0 &&
+      else if ( !payloadByGeocode.has(ta.geocode)){
+          ta.message = 'Rolldown Geocode not found';
+          failedGeos = [...failedGeos, ta];
+      }
+    });
+    payload.forEach(record => {
+      record.locNumber = matchedTradeAreaByGeocode.get(record.orgGeo).store;
+    });
+    const resultMap = {failedGeos: failedGeos, payload: payload};
+    return resultMap;
+  }
+
+  public persistRolldownTAGeos(payload: any[], failedGeos: any[]){
+    const geosToAdd: ImpGeofootprintGeo[] = [];
+    const tradeAreasToAdd: ImpGeofootprintTradeArea[] = []; 
+    const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
+    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
+    payload.forEach(record => {
+      const loc = locationsByNumber.get(record.locNumber);
+      const layerData = {x: record.x, y: record.y};
+      const distance = EsriUtils.getDistance(layerData.x, layerData.y, loc.xcoord, loc.ycoord);
+      let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
+        if (currentTradeArea == null) {
+          currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
+          tradeAreasToAdd.push(currentTradeArea);
+        }
+      const newGeo = this.domainFactory.createGeo(currentTradeArea, record.geocode, layerData.x, layerData.y, distance);
+      geosToAdd.push(newGeo);
+    });
+    this.uploadFailures = this.uploadFailures.concat(failedGeos);
+    // stuff all the results into appropriate data stores
+    this.impGeoService.add(geosToAdd);
+    this.impTradeAreaService.add(tradeAreasToAdd);
+    this.appGeoService.ensureMustCovers();
+    // this.uploadFailuresObs$ = of(this.uploadFailures);
+    this.uploadFailuresSub.next(this.uploadFailures);  
   }
 
   public setCurrentDefaults(){
@@ -398,5 +517,20 @@ export class AppTradeAreaService {
       }
     }
 
+  }
+
+  private getUstable(analysisLevel: string){
+    switch (analysisLevel){
+      case 'ZIP' :
+        return 'CL_ZIP_US';
+      case 'ATZ' :
+        return 'CL_ATZ_US';
+      case 'Digital ATZ':
+        return 'VAL_DIG_US';
+      case 'PCR':
+        return 'CL_PCR_US';
+      default:
+        return null;
+    }
   }
 }

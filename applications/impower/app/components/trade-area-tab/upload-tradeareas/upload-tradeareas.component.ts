@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, SelectItem } from 'primeng/api';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { FileUpload } from 'primeng/fileupload';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -49,6 +49,10 @@ export class UploadTradeAreasComponent implements OnInit {
   public currentAnalysisLevel$: Observable<string>;
   public deleteFlag: boolean = false;
 
+  allAnalysisLevels: SelectItem[] = []; 
+  fileAnalysisLevels: SelectItem[] = []; 
+  fileAnalysisSelected: string;
+
   public deleteConfirmFlag$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
 
@@ -73,6 +77,19 @@ export class UploadTradeAreasComponent implements OnInit {
 
   ngOnInit() {
 
+    this.allAnalysisLevels = [
+      {label: 'ZIP', value: 'ZIP'},
+      {label: 'ATZ', value: 'ATZ'},
+      {label: 'Digital ATZ', value: 'Digital ATZ'},
+      {label: 'PCR', value: 'PCR'},
+      {label: 'Wrap Zone', value: 'WRAP_MKT_ID'},
+      {label: 'County', value: 'COUNTY'},
+      {label: 'State', value: 'STATE'},
+      {label: 'DMA', value: 'DMA'},
+      {label: 'Infoscan', value: 'INFOSCAN_CODE'},
+      {label: 'Scantrack', value: 'SCANTRACK_CODE'}
+    ];
+
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
       this.isCustomTAExists = project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0));
     });
@@ -85,6 +102,24 @@ export class UploadTradeAreasComponent implements OnInit {
 
     this.tradeAreaService.uploadFailuresObs$.subscribe(result => {
       this.uploadFailures.push(...result);
+    });
+
+    this.currentAnalysisLevel$.subscribe(val => {
+      this.fileAnalysisSelected = val;
+      switch (val){
+        case 'ZIP' :
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'ATZ' && v.value !== 'PCR' && v.value !== 'DTZ');
+            break;
+        case 'ATZ' :  
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'DTZ' && v.value !== 'PCR');  
+            break;
+        case 'Digital ATZ':
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'PCR');
+            break;
+        default:
+            this.fileAnalysisLevels = this.allAnalysisLevels;
+            break;    
+      }  
     });
   }
 
@@ -196,7 +231,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
   private processUploadedTradeArea(data: TradeAreaDefinition[]) : void {
     this.totalUploadedRowCount += data.length;
-    this.tradeAreaService.applyCustomTradeArea(data);
+    this.tradeAreaService.applyCustomTradeArea(data, this.fileAnalysisSelected);
 
   }
 

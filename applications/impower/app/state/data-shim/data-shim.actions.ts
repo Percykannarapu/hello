@@ -1,6 +1,7 @@
 import { Action } from '@ngrx/store';
 import { ProjectFilterChanged } from '../../models/ui-enums';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { TradeAreaDefinition } from 'app/services/app-trade-area.service';
 
 export enum DataShimActionTypes {
   ProjectSaveSuccess = '[Application Data Shim] Project Saved Successfully',
@@ -29,7 +30,9 @@ export enum DataShimActionTypes {
   ProjectLoadFinish = '[Application Data Shim] Project Load Finish',
   IsProjectReload = '[Application Data Shim] Project Reload',
 
-  LayerSetupComplete = '[Application Data Shim] Layer Setup Complete'
+  LayerSetupComplete = '[Application Data Shim] Layer Setup Complete',
+
+  TradeAreaRollDownGeos = '[Application Data Shim] TradeArea RollDown Geos'
 }
 
 export class ProjectSaveAndNew implements Action {
@@ -120,6 +123,12 @@ export class LayerSetupComplete implements Action {
   readonly type = DataShimActionTypes.LayerSetupComplete;
 }
 
+export class TradeAreaRollDownGeos implements Action {
+  readonly type = DataShimActionTypes.TradeAreaRollDownGeos;
+  constructor(public payload: { geos: string[], queryResult:  Map<string, {latitude: number, longitude: number}>,
+                                fileAnalysisLevel: string, matchedTradeAreas: TradeAreaDefinition[]
+                              }) {}
+}
 
 export type DataShimActions =
   ProjectSaveAndNew |
@@ -140,4 +149,5 @@ export type DataShimActions =
   CalculateMetrics|
   IsProjectReload|
   ProjectLoadFinish |
-  LayerSetupComplete;
+  LayerSetupComplete |
+  TradeAreaRollDownGeos;

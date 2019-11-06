@@ -12,6 +12,7 @@ import { AppLayerService } from './app-layer.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppRendererService } from './app-renderer.service';
 import { AppStateService, Season } from './app-state.service';
+import { AppProjectPrefService } from './app-project-pref.service';
 
 export interface GeoClickEvent {
   geocode: string;
@@ -42,6 +43,7 @@ export class AppMapService {
               private logger: AppLoggingService,
               private config: AppConfig,
               private zone: NgZone,
+              private appProjectPrefService: AppProjectPrefService,
               private store$: Store<LocalAppState>) {}
 
   public setupMap(isBatchMapping: boolean = false) : void {
@@ -94,6 +96,15 @@ export class AppMapService {
             if (result.newValue === false) {
               this.zone.run(() => this.componentGenerator.cleanUpGeoPopup());
             }
+          });
+
+          const currectBaseMap: __esri.Basemap = this.mapService.widgetMap.get('esri.widgets.BasemapGallery').get('activeBasemap');
+          this.appProjectPrefService.createPref('legend-settings', 'basemap', JSON.stringify(currectBaseMap.toJSON()), 'string');
+          EsriUtils.setupWatch(this.mapService.mapView.map, 'basemap').subscribe(val => {
+            this.appProjectPrefService.createPref('legend-settings', 'basemap',  JSON.stringify(val.newValue.toJSON()), 'string');
+          });
+          EsriUtils.setupWatch(this.mapService.mapView, 'extent').subscribe(extent => {
+            this.appProjectPrefService.createPref('map-extent', 'extent',  JSON.stringify(extent.newValue.toJSON()), 'string');
           });
         });
       }

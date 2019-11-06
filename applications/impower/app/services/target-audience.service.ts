@@ -258,7 +258,7 @@ export class TargetAudienceService implements OnDestroy {
         this.projectVarService.update(projectVar, newProjectVar);
       }
     }
-    if (audience.showOnMap) {
+    /*if (audience.showOnMap) {
       const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
       for (const pv of otherVars) {
         const newPv = Object.assign(pv);
@@ -266,7 +266,7 @@ export class TargetAudienceService implements OnDestroy {
         newPv.isShadedOnMap = false; // gotta turn off all the others since we can only shade by one variable
         this.projectVarService.update(pv, newPv);
       }
-    }
+    }*/
     //for US8712 when user saves the projects checkboxes also need to save DB to maintains state
    /* if (audience.allowNationalExport) {
       const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));

@@ -10,8 +10,9 @@ import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
 import { getBatchMode } from '../batch-map/batch-map.selectors';
 import { CalculateMetrics, CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged,
-  ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess, ProjectLoadFinish, IsProjectReload } from './data-shim.actions';
+  ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess, ProjectLoadFinish, IsProjectReload, TradeAreaRollDownGeos } from './data-shim.actions';
 import { RehydrateAfterLoad } from 'app/impower-datastore/state/transient/transient.actions';
+import { AppTradeAreaService } from 'app/services/app-trade-area.service';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimEffects {
@@ -132,6 +133,17 @@ export class DataShimEffects {
     map(action => this.appDataShimService.isProjectReload(action.payload.isReload))
   );
 
+  @Effect({dispatch: false})
+  tradeAreaRollDownGeos$ = this.actions$.pipe(
+    ofType<TradeAreaRollDownGeos>(DataShimActionTypes.TradeAreaRollDownGeos),
+    switchMap(action => this.appTradeService.rollDownService(action.payload.geos, action.payload.fileAnalysisLevel).pipe(
+      map(response => this.appTradeService.validateRolldownGeos(response, action.payload.queryResult, action.payload.matchedTradeAreas)),
+      map(result => this.appTradeService.persistRolldownTAGeos(result.payload, result.failedGeos))
+    ))
+  );
+
+  
+
 
   // These are for the NgRx store
   // @Effect()
@@ -148,5 +160,6 @@ export class DataShimEffects {
 
   constructor(private actions$: Actions,
               private store$: Store<FullAppState>,
-              private appDataShimService: AppDataShimService) {}
+              private appDataShimService: AppDataShimService,
+              private appTradeService: AppTradeAreaService) {}
 }
