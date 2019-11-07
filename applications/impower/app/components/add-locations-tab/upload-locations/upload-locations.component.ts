@@ -25,7 +25,7 @@ export class UploadLocationsComponent {
     const reader = new FileReader();
     const lineBreakRegEx = /\r\n|\n/;
     const name: String = event.files[0].name;
-    if (name.includes('.xls')) {
+    if (name.toLowerCase().includes('.xls')) {
       reader.readAsBinaryString(event.files[0]);
       reader.onload = () => {
         const csvBlob = UploadLocationsComponent.excelToCsv(reader.result);
