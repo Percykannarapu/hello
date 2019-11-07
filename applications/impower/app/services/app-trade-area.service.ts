@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { calculateStatistics, filterArray, groupBy, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils, EsriApi } from '@val/esri';
-import { BehaviorSubject, Observable, merge } from 'rxjs';
+import { BehaviorSubject, Observable, merge, forkJoin } from 'rxjs';
 import { filter, map, take, withLatestFrom, reduce } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
@@ -444,24 +444,25 @@ export class AppTradeAreaService {
     );
   }
 
-  public validateRolldownGeos(payload: any[], queryResult: Map<string, {latitude: number, longitude: number}>,  matchedTradeAreas: any[]){
+  public validateRolldownGeos(payload: any[], queryResult: Map<string, {latitude: number, longitude: number}>,  matchedTradeAreas: any[], fileAnalysisLevel: string){
     let failedGeos: any[] = [];
     const successGeos: any[] = [];
     //console.log('validate geos:::', matchedTradeAreas, payload);
     const payloadByGeocode = mapBy(payload, 'orgGeo');
     const matchedTradeAreaByGeocode = mapBy(Array.from(matchedTradeAreas), 'geocode');
-    matchedTradeAreas.forEach(ta => {
-      if (!queryResult.has(ta.geocode)) {
-          ta.message = 'Geocode not found';
-          //this.uploadFailures = [...this.uploadFailures, ta];
-          failedGeos = [...failedGeos, ta];
-      }
-        //failedGeos.filter(rec => rec.geocode === ta.geocode).length === 0 &&
-      else if ( !payloadByGeocode.has(ta.geocode)){
-          ta.message = 'Rolldown Geocode not found';
-          failedGeos = [...failedGeos, ta];
-      }
-    });
+    if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ')
+        matchedTradeAreas.forEach(ta => {
+          if (!queryResult.has(ta.geocode)) {
+              ta.message = 'Geocode not found';
+              //this.uploadFailures = [...this.uploadFailures, ta];
+              failedGeos = [...failedGeos, ta];
+          }
+            //failedGeos.filter(rec => rec.geocode === ta.geocode).length === 0 &&
+          else if ( !payloadByGeocode.has(ta.geocode)){
+              ta.message = 'Rolldown Geocode not found';
+              failedGeos = [...failedGeos, ta];
+          }
+        });
     payload.forEach(record => {
       record.locNumber = matchedTradeAreaByGeocode.get(record.orgGeo).store;
     });

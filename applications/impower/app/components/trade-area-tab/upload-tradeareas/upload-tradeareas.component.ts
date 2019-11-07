@@ -108,10 +108,10 @@ export class UploadTradeAreasComponent implements OnInit {
       this.fileAnalysisSelected = val;
       switch (val){
         case 'ZIP' :
-            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'ATZ' && v.value !== 'PCR' && v.value !== 'DTZ');
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'ATZ' && v.value !== 'PCR' && v.value !== 'Digital ATZ');
             break;
         case 'ATZ' :  
-            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'DTZ' && v.value !== 'PCR');  
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'Digital ATZ' && v.value !== 'PCR');  
             break;
         case 'Digital ATZ':
             this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'PCR');
