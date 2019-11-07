@@ -77,7 +77,13 @@ export class ShadingSettingsComponent implements OnInit, OnChanges {
         if (!audinecesNames.has(`${aud.audienceSourceName}: ${aud.audienceName}`)){
           this.checkedAudienceList.push({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud});
         }
+        if (audiences.length < this.checkedAudienceList.length){
+              this.checkedAudienceList = [];
+              this.checkedAudienceList.push({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud});
+        }
       });
+      if (audiences.length == 0)
+          this.checkedAudienceList = [];
     });
 
     this.appStateService.applicationIsReady$.pipe(
