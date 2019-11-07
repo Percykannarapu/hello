@@ -422,7 +422,8 @@ export class AppTradeAreaService {
     const usTable = this.getUstable(currentAnalysisLevel);
     const selectField = currentAnalysisLevel === 'Digital ATZ' ? 'DTZ' : currentAnalysisLevel;
     const whereField = fileAnalysisLevel === 'Digital ATZ' ? 'DTZ' : fileAnalysisLevel;
-    const hhcField = 'summer'; //TODO: need to get the value from discovey tab
+    const seasonField = 'HHLD_S'; //TODO: need to get the value from discovey tab
+    const tab14TableName = currentAnalysisLevel === 'Digital ATZ' ? 'VAL_DIGTAB14' : `CL_${currentAnalysisLevel}TAB14`;
     
     const chunked_arr = [];
     let index = 0;
@@ -431,7 +432,7 @@ export class AppTradeAreaService {
       index += 999;
     }
     const obs = chunked_arr.map(geoList => {
-      const reqPayload = {'usTable': usTable, 'selectField': selectField, 'whereField': whereField, 'geoList': geos};
+      const reqPayload = {'usTable': usTable, 'selectField': selectField, 'whereField': whereField, 'geoList': geos, 'seasonField': seasonField, 'tab14TableName': tab14TableName};
       return this.restService.post('v1/targeting/base/rolldown/rolldowngeocode', reqPayload);
       });
 
