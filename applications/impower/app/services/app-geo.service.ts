@@ -8,7 +8,7 @@ import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/op
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { LocationQuadTree } from '../models/location-quad-tree';
+import { QuadTree } from '../models/quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
@@ -220,7 +220,7 @@ export class AppGeoService {
   }
 
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
-    const quadTree = new LocationQuadTree(locations);
+    const quadTree = new QuadTree(locations);
     const result = quadTree.partition(250, 500);
     this.logger.debug.log('QuadTree partitions', quadTree);
     return result.filter(chunk => chunk && chunk.length > 0);

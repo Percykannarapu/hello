@@ -1,12 +1,13 @@
 
 import { createReducer, on } from '@ngrx/store';
 import { geoSelectionChanged } from './esri.shading.actions';
+import { ColorPalette } from '../../models/color-palettes';
 
-interface ShadingData {
+export interface ShadingData {
   [varId: string] : number | string;
 }
 
-interface GeoData {
+export interface GeoData {
   selected: boolean;
   ownerSite: string;
 }
@@ -15,10 +16,12 @@ export interface EsriShadingState {
   geoShadingData: {
     [geocode: string] : ShadingData & GeoData;
   };
+  theme: ColorPalette;
 }
 
 export const initialState: EsriShadingState = {
-  geoShadingData: {}
+  geoShadingData: {},
+  theme: ColorPalette.EsriPurple
 };
 
 export const shadingReducer = createReducer(

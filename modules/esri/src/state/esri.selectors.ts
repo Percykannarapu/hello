@@ -36,6 +36,8 @@ const getEsriSketchViewModel = createSelector(getEsriMapState, state => state.sk
 const getMapReady = createSelector(getEsriMapState, state => state.mapIsReady);
 const getEsriFeaturesSelected = createSelector(getEsriMapState, state => state.selectedFeatures);
 
+const getEsriRendererIsShaded = createSelector(getEsriRendererState, state => state.enableShading);
+
 // These are the publicly available selectors
 export const selectors = {
   getEsriFeatureReady,
@@ -43,7 +45,8 @@ export const selectors = {
   getEsriFeaturesSelected,
   getEsriLabelConfiguration,
   getEsriViewpointState,
-  getEsriSelectedLayer
+  getEsriSelectedLayer,
+  getEsriRendererIsShaded
 };
 
 export const internalSelectors = {

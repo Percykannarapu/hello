@@ -1,17 +1,20 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
+import { ColorPalette } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { LocalAppState } from '../state/app.interfaces';
+import { SetPalette } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppGeoService } from './app-geo.service';
 import { AppLocationService } from './app-location.service';
 import { ValMetricsService } from './app-metrics.service';
+import { AppProjectPrefService } from './app-project-pref.service';
 import { AppProjectService } from './app-project.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
@@ -39,6 +42,7 @@ export class AppDataShimService {
   currentMustCovers$: Observable<Set<string>>;
 
   constructor(private appProjectService: AppProjectService,
+              private appPrefService: AppProjectPrefService,
               private appLocationService: AppLocationService,
               private appTradeAreaService: AppTradeAreaService,
               private appGeoService: AppGeoService,
@@ -76,7 +80,12 @@ export class AppDataShimService {
     this.targetAudienceService.clearAll();
     this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
-    return this.appProjectService.load(id);
+    return this.appProjectService.load(id).pipe(
+      tap(() => {
+        const palette: ColorPalette = this.appPrefService.getPrefVal('Theme') as ColorPalette;
+        this.store$.dispatch(new SetPalette({ palette }));
+      })
+    );
   }
 
   onLoadSuccess(isBatch: boolean) : void {

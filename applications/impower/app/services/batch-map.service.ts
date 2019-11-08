@@ -1,18 +1,21 @@
 import { Injectable } from '@angular/core';
-import { Params } from '@angular/router';
-import { Store, resultMemoize } from '@ngrx/store';
-import {calculateStatistics, expandRange} from '@val/common';
+import { Store } from '@ngrx/store';
+import { calculateStatistics, expandRange } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
-import { Observable, throwError, timer, race } from 'rxjs';
-import { map, switchMap, debounceTime, tap, filter, take } from 'rxjs/operators';
+import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
+import { Observable, race, timer } from 'rxjs';
+import { debounceTime, filter, map, switchMap, take } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { LocalAppState, BatchMapPayload } from '../state/app.interfaces';
+import { BatchMapPayload, LocalAppState } from '../state/app.interfaces';
+import { getBatchMapReady } from '../state/batch-map/batch-map.selectors';
+import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
+import { AppMapService } from './app-map.service';
+import { AppStateService } from './app-state.service';
 
 @Injectable({
   providedIn: 'root'
@@ -26,8 +29,25 @@ export class BatchMapService {
               private esriMapService: EsriMapService,
               private esriQueryService: EsriQueryService,
               private config: AppConfig,
+              private appStateService: AppStateService,
+              private appMapService: AppMapService,
               private restService: RestDataService,
               private store$: Store<LocalAppState>) { }
+
+  initBatchMapping(projectId: number) : void {
+    this.appStateService.notifyMapReady();
+    this.esriMapService.watchMapViewProperty('updating').pipe(
+      debounceTime(1000),
+    ).subscribe(result => this.store$.dispatch(new SetMapReady({ mapReady: !result.newValue })));
+    this.esriMapService.watchMapViewProperty('stationary').pipe(
+      filter(result => result.newValue),
+    ).subscribe(() => this.appStateService.refreshVisibleGeos());
+    this.appMapService.setupMap(true);
+    this.store$.select(getBatchMapReady).pipe(
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isReload: false })));
+  }
 
   requestBatchMap(payload: BatchMapPayload) : Observable<any> {
     return this.restService.post(this.printUrl, payload);

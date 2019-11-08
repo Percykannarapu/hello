@@ -17,28 +17,27 @@
       </div>
     </div>
     <p-card>
-      <form novalidate  [formGroup]="shadeSettingsForm" (submit)="onSubmit(shadeSettingsForm.value)" autocomplete="off" class="shading-controls-form">
+      <form novalidate  [formGroup]="shadeSettingsForm" (submit)="onSubmit()" autocomplete="off" class="shading-controls-form">
         <h1>Map Settings</h1>
         <div>
           <span class="md-inputfield">
-            <p-dropdown id="selectAudience" formControlName="audience" [options]="checkedAudienceList"  placeholder="&nbsp;"
+            <p-dropdown id="selectAudience" formControlName="audience" [options]="allAudiences$ | async" placeholder="&nbsp;"
                         autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>
             <label for="selectAudience">Audience</label>
           </span>
         </div>
-        <!--<div>
-          <span class="md-inputfield">
-            <p-dropdown id="shadedVariable" formControlName="variable" [options]="shadedVaiableonMap"  placeholder="&nbsp;"
-                        autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down" [disabled]="true"></p-dropdown>
-            <label for="shadedVariable">Thematic Extent</label>
-          </span>
-        </div> -->
+<!--        <div>-->
+<!--          <span class="md-inputfield">-->
+<!--            <p-dropdown id="shadedVariable" formControlName="variable" [options]="shadedVariableOnMap"-->
+<!--                        autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>-->
+<!--            <label for="shadedVariable">Thematic Extent</label>-->
+<!--          </span>-->
+<!--        </div>-->
         <div>
           <span class="md-inputfield">
             <p-dropdown id="theme"
                         formControlName="currentTheme"
                         [options]="allThemes"
-                        (onChange)="onThemeChange($event)"
                         [autoWidth]="false"
                         [style]="{ width:'100%' }"
                         placeholder="&nbsp;"
@@ -48,8 +47,8 @@
           </span>
         </div>
         <div class="button-container">
-          <button pButton type="button" label="Clear Thematic Shading" icon="ui-icon-clear" (click)= clearShading($event)></button>
-          <button pButton type="save" label="Apply" icon="ui-icon-send" [disabled]="shadeSettingsForm.invalid"></button>
+          <button pButton type="button" label="Clear Thematic Shading" icon="ui-icon-clear" (click)= clearShading()></button>
+          <button pButton type="submit" label="Apply" icon="ui-icon-send"></button>
         </div>
       </form>
     </p-card>

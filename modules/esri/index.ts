@@ -22,6 +22,7 @@ export * from './src/services/esri-map-interaction.service';
 export * from './src/services/esri-query.service';
 export * from './src/services/esri-renderer.service';
 export * from './src/services/esri-shading-layers.service';
+export * from './src/services/esri.service';
 
 export { EsriState, AppState, selectors } from './src/state/esri.selectors';
 export { HighlightMode } from './src/state/renderer/esri.renderer.reducer';

@@ -39,7 +39,7 @@ export class AppStateService {
 
   private refreshDynamicContent = new Subject<any>();
   public refreshDynamicContent$: Observable<any> = this.refreshDynamicContent.asObservable().pipe(throttleTime(500));
-  public applicationIsReady$ = new BehaviorSubject(false);
+  public applicationIsReady$ = new BehaviorSubject<boolean>(false);
 
   private closeOverlayPanel = new Subject<string>();
   public closeOverlayPanel$: Observable<string> = this.closeOverlayPanel.asObservable();

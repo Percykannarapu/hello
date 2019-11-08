@@ -25,6 +25,8 @@ import { EsriMapInteractionService } from './src/services/esri-map-interaction.s
 import { EsriMapService } from './src/services/esri-map.service';
 import { EsriQueryService } from './src/services/esri-query.service';
 import { EsriRendererService } from './src/services/esri-renderer.service';
+import { EsriShadingLayersService } from './src/services/esri-shading-layers.service';
+import { EsriService } from './src/services/esri.service';
 import { allEffects } from './src/state/esri.effects';
 import { esriReducers } from './src/state/esri.reducers';
 import { AppState, selectors } from './src/state/esri.selectors';
@@ -81,6 +83,7 @@ export class EsriModule {
         { provide: EsriLoaderToken, useFactory: provideEsriLoaderOptions, deps: [forRootOptionsToken] },
         { provide: EsriAuthenticationToken, useFactory: provideEsriAuthOptions, deps: [forRootOptionsToken] },
         { provide: EsriAppSettingsToken, useFactory: provideEsriAppOptions, deps: [forRootOptionsToken] },
+        EsriService,
         EsriDomainFactoryService,
         EsriGeoprocessorService,
         EsriIdentityService,
@@ -90,6 +93,7 @@ export class EsriModule {
         EsriQueryService,
         EsriRendererService,
         EsriPrintingService,
+        EsriShadingLayersService,
         { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] }
       ]
     };

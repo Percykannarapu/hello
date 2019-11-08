@@ -1,9 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { calculateStatistics, filterArray, groupBy, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriMapService, EsriQueryService, EsriUtils, EsriApi } from '@val/esri';
-import { BehaviorSubject, Observable, merge, forkJoin } from 'rxjs';
-import { filter, map, take, withLatestFrom, reduce } from 'rxjs/operators';
+import { EsriApi, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
+import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
+import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
+import { RestDataService } from 'app/val-modules/common/services/restdata.service';
+import { BehaviorSubject, merge, Observable } from 'rxjs';
+import { filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
 import { RenderTradeAreas } from '../state/rendering/rendering.actions';
@@ -19,15 +24,8 @@ import { ImpGeofootprintVarService } from '../val-modules/targeting/services/Imp
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppGeoService } from './app-geo.service';
 import { AppLoggingService } from './app-logging.service';
-import { AppStateService } from './app-state.service';
-import { ClearAudiencesAndVars } from 'app/impower-datastore/state/transient/transient.actions';
-import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
-import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
-import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
-import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { RestResponse } from 'app/models/RestResponse';
-import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { AppProjectPrefService } from './app-project-pref.service';
+import { AppStateService } from './app-state.service';
 
 export class TradeAreaDefinition {
   store: string;
@@ -328,7 +326,7 @@ export class AppTradeAreaService {
   public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null){
     this.uploadFailures = [];
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
-    
+
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
     const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
     const matchedTradeAreas = new Set<TradeAreaDefinition>();
@@ -361,10 +359,10 @@ export class AppTradeAreaService {
           err => console.log('There was an error querying the ArcGIS layer', err),
           () => {
             if (currentAnalysisLevel !== fileAnalysisLevel){
-              this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geos), 
-                                                              queryResult: queryResult, 
+              this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geos),
+                                                              queryResult: queryResult,
                                                               fileAnalysisLevel: fileAnalysisLevel,
-                                                              matchedTradeAreas: Array.from(matchedTradeAreas)})); 
+                                                              matchedTradeAreas: Array.from(matchedTradeAreas)}));
             }
             else{
               const geosToAdd: ImpGeofootprintGeo[] = [];
@@ -404,17 +402,17 @@ export class AppTradeAreaService {
           });
         }else {
         console.log('file analysis level', fileAnalysisLevel);
-        this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geosToQuery), 
-                                                        queryResult: queryResult, 
+        this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geosToQuery),
+                                                        queryResult: queryResult,
                                                         fileAnalysisLevel: fileAnalysisLevel,
-                                                        matchedTradeAreas: Array.from(matchedTradeAreas)})); 
-      }    
+                                                        matchedTradeAreas: Array.from(matchedTradeAreas)}));
+      }
   }
 
    /**
      * select field should depend on currect analysis level
      * usTable field also need to depend on currect Analysis level
-     * wherefield  should depend on file analysis level 
+     * wherefield  should depend on file analysis level
      * hhcField should depend on current analysis level
      */
   public rollDownService(geos: string[], fileAnalysisLevel: string){
@@ -424,7 +422,7 @@ export class AppTradeAreaService {
     const whereField = fileAnalysisLevel === 'Digital ATZ' ? 'DTZ' : fileAnalysisLevel;
     const seasonField = 'HHLD_S'; //TODO: need to get the value from discovey tab
     const tab14TableName = currentAnalysisLevel === 'Digital ATZ' ? 'VAL_DIGTAB14' : `CL_${currentAnalysisLevel}TAB14`;
-    
+
     const chunked_arr = [];
     let index = 0;
     while (index < geos.length) {
@@ -472,7 +470,7 @@ export class AppTradeAreaService {
 
   public persistRolldownTAGeos(payload: any[], failedGeos: any[]){
     const geosToAdd: ImpGeofootprintGeo[] = [];
-    const tradeAreasToAdd: ImpGeofootprintTradeArea[] = []; 
+    const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
     const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
     payload.forEach(record => {
@@ -493,7 +491,7 @@ export class AppTradeAreaService {
     this.impTradeAreaService.add(tradeAreasToAdd);
     this.appGeoService.ensureMustCovers();
     // this.uploadFailuresObs$ = of(this.uploadFailures);
-    this.uploadFailuresSub.next(this.uploadFailures);  
+    this.uploadFailuresSub.next(this.uploadFailures);
   }
 
   public setCurrentDefaults(){

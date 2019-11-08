@@ -1,6 +1,6 @@
 import { ComponentFactoryResolver, Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, SetLayerLabelExpressions } from '@val/esri';
+import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, EsriService } from '@val/esri';
 import { LegendComponent } from '../components/legend/legend.component';
 import { FullState } from '../state';
 import { MapUIState } from '../state/map-ui/map-ui.reducer';
@@ -16,6 +16,7 @@ export class AppLayerService {
                private esriMapService: EsriMapService,
                private queryService: EsriQueryService,
                private esriFactory: EsriDomainFactoryService,
+               private esri: EsriService,
                private store$: Store<FullState>,
                private configService: ConfigService,
                private shadingService: ShadingService,
@@ -56,7 +57,7 @@ export class AppLayerService {
        ...layerExpressions[updateId],
        expression: newExpression
      };
-      this.store$.dispatch(new SetLayerLabelExpressions({ expressions: layerExpressions }));
+     this.esri.setLayerLabelExpressions(layerExpressions);
    }
 
    private showDistrQty(state: FullState) {
@@ -99,7 +100,7 @@ export class AppLayerService {
         ...layerExpressions[updateId],
         expression: newExpression
       };
-      this.store$.dispatch(new SetLayerLabelExpressions({ expressions: layerExpressions }));
+      this.esri.setLayerLabelExpressions(layerExpressions);
    }
 
    private createArcadeDictionary(state: FullState) : string {

@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
-import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
-import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, finalize, map, pairwise, startWith, take, tap, toArray } from 'rxjs/operators';
+import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriService, LayerDefinition, LayerGroupDefinition, selectors } from '@val/esri';
+import { merge, Observable } from 'rxjs';
+import { distinctUntilChanged, filter, finalize, map, pairwise, startWith, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
 import { LayerSetupComplete } from '../state/data-shim/data-shim.actions';
@@ -27,6 +27,7 @@ export class AppLayerService {
 
   constructor(private layerService: EsriLayerService,
               private esriFactory: EsriDomainFactoryService,
+              private esri: EsriService,
               private appStateService: AppStateService,
               private generator: AppComponentGeneratorService,
               private logger: AppLoggingService,
@@ -114,7 +115,7 @@ export class AppLayerService {
     const labelLayerMap = mapByExtended(allLayers,
         l => isBatchMode && l.simplifiedId ? l.simplifiedId : l.id,
         l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset, colorOverride: l.labelColorOverride }));
-    this.store$.dispatch(new SetLayerLabelExpressions({ expressions: mapToEntity(labelLayerMap) }));
+    this.esri.setLayerLabelExpressions(mapToEntity(labelLayerMap));
   }
 
   private getLabelExpression(l: LayerDefinition, showPOBs: boolean) : string {

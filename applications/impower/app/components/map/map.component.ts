@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import {select, Store} from '@ngrx/store';
-import {EsriApi, selectors} from '@val/esri';
+import { EsriApi, selectors } from '@val/esri';
 import {ConfirmationService} from 'primeng/api';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { debounceTime, filter, take, takeUntil } from 'rxjs/operators';
@@ -14,6 +14,7 @@ import {FullAppState} from '../../state/app.interfaces';
 import {CreateMapUsageMetric, CreateProjectUsageMetric} from '../../state/usage/targeting-usage.actions';
 import {ImpProject} from '../../val-modules/targeting/models/ImpProject';
 import {ImpGeofootprintGeoService} from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { getMapVars } from '../../impower-datastore/state/transient/map-vars/map-vars.selectors';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
@@ -52,6 +53,12 @@ export class MapComponent implements OnInit, OnDestroy {
       select(selectors.getEsriFeaturesSelected),
       filter(features => features != null && features.length > 0)
     ).subscribe(features => this.onPolysSelected(features));
+    this.store$.pipe(
+      select(getMapVars)
+    ).subscribe((mapVars) => {
+      console.log('In Map Component selector:::');
+      // this.rendererService.getMapVars(mapVars);
+    });
   }
 
   public ngOnDestroy() : void {

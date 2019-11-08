@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriUtils, LayerDefinition, selectors, SetLayerLabelExpressions, SetPopupVisibility } from '@val/esri';
+import { simpleFlatten } from '@val/common';
+import { EsriApi, EsriLayerService, EsriMapService, EsriService, EsriUtils, LayerDefinition, selectors } from '@val/esri';
 import { merge, Observable } from 'rxjs';
-import { tap, reduce, finalize, map, distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, finalize, map, reduce, tap } from 'rxjs/operators';
 import { EsriLabelLayerOptions } from '../../../../../../modules/esri/src/state/map/esri.map.reducer';
 import { FullState } from '../state';
 import { ConfigService } from './config.service';
@@ -17,6 +17,7 @@ export class AppMapService {
 
   constructor(private layerService: EsriLayerService,
               private mapService: EsriMapService,
+              private esri: EsriService,
               private config: ConfigService,
               private store$: Store<FullState>) { }
 
@@ -40,7 +41,7 @@ export class AppMapService {
         popup.highlightEnabled = false;
         popup.actionsMenuEnabled = false;
         EsriApi.projection.load();
-        this.store$.dispatch(new SetPopupVisibility({ isVisible: true }));
+        this.esri.setPopupVisibility(true);
       })
     );
   }
@@ -103,7 +104,7 @@ export class AppMapService {
         fontSizeOffset: l.labelFontSizeOffset
       };
     });
-    this.store$.dispatch(new SetLayerLabelExpressions({ expressions: newExpressions }));
+    this.esri.setLayerLabelExpressions(newExpressions);
   }
 
   private getLabelExpression(l: LayerDefinition, showPOBs: boolean) : string {

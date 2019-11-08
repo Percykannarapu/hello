@@ -1,14 +1,15 @@
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { toUniversalCoordinates } from '@val/common';
 import { EsriApi, EsriUtils } from '@val/esri';
 
-export class LocationQuadTree {
 
-  private quadrants: LocationQuadTree[] = [];
+type NonArray<T> = T extends (infer R)[] ? R : T;
+export class QuadTree<T extends NonArray<Parameters<typeof toUniversalCoordinates>[0]>> {
+
+  private quadrants: QuadTree<T>[] = [];
   private height: number = null;
   private width: number = null;
 
-  constructor(private locations: ImpGeofootprintLocation[], private readonly extent?: __esri.Extent) {
+  constructor(private locations: T[], private readonly extent?: __esri.Extent) {
     if (extent == null) {
       const locationPoints: number[][] = toUniversalCoordinates(locations).map(uc => [uc.x, uc.y]);
       const multiPoint = new EsriApi.Multipoint({ points: locationPoints });
@@ -16,10 +17,10 @@ export class LocationQuadTree {
     }
   }
 
-  partition(maxChunkSize: number, maxQuadDimension?: number) : ImpGeofootprintLocation[][] {
+  partition(maxChunkSize: number, maxQuadDimension?: number) : T[][] {
     if (this.needsToPartition(maxChunkSize, maxQuadDimension)) {
       this.subdivide();
-      const result: ImpGeofootprintLocation[][] = [];
+      const result: T[][] = [];
       this.quadrants.forEach(q => {
         result.push(...q.partition(maxChunkSize, maxQuadDimension));
       });
@@ -54,7 +55,8 @@ export class LocationQuadTree {
     const l2 = [];
     const l3 = [];
     this.locations.forEach(loc => {
-      const pt = new EsriApi.Point({ x: loc.xcoord, y: loc.ycoord });
+      const uc = toUniversalCoordinates(loc);
+      const pt = new EsriApi.Point({ x: uc.x, y: uc.y });
       if (q0.contains(pt)) {
         l0.push(loc);
       } else if (q1.contains(pt)) {
@@ -68,10 +70,10 @@ export class LocationQuadTree {
         throw new Error('Location could not be allocated to quadrant during partition');
       }
     });
-    this.quadrants.push(new LocationQuadTree(l0, q0));
-    this.quadrants.push(new LocationQuadTree(l1, q1));
-    this.quadrants.push(new LocationQuadTree(l2, q2));
-    this.quadrants.push(new LocationQuadTree(l3, q3));
+    this.quadrants.push(new QuadTree(l0, q0));
+    this.quadrants.push(new QuadTree(l1, q1));
+    this.quadrants.push(new QuadTree(l2, q2));
+    this.quadrants.push(new QuadTree(l3, q3));
     this.locations = [];
   }
 }

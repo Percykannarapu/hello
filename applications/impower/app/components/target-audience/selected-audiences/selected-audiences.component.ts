@@ -28,8 +28,6 @@ export class SelectedAudiencesComponent implements OnInit {
   audiences$: Observable<Audience[]>;
   showRenderControls: boolean = false;
   hasAudiences: boolean = false;
-  allThemes: SelectItem[] = [];
-  currentTheme: string;
   public showDialog: boolean = false;
   public audienceUnselect: Audience;
   public dialogboxWarningmsg: string = '';
@@ -42,17 +40,6 @@ export class SelectedAudiencesComponent implements OnInit {
               private confirmationService: ConfirmationService,
               private logger: AppLoggingService,
               private store$: Store<LocalAppState>) {
-    // this is how you convert an enum into a list of drop-down values
-    const allThemes = ColorPalette;
-    const keys = Object.keys(allThemes);
-    for (const key of keys) {
-      this.allThemes.push({
-        label: allThemes[key],
-        value: allThemes[key]
-      });
-    }
-    this.allThemes.sort((a, b) => a.label.localeCompare(b.label));
-    this.currentTheme = AppRendererService.currentDefaultTheme;
     this.store$.select(fromAudienceSelectors.getAudiencesNationalExtract).subscribe(this.nationalAudiencesBS$);
   }
 
@@ -101,28 +88,24 @@ export class SelectedAudiencesComponent implements OnInit {
     const audiences = this.varService.getAudiences();
     const mappedAudience = audiences.find(a => a.showOnMap === true);
     this.logger.debug.log('mappedAudience:::', mappedAudience);
-    if (mappedAudience != null) {
-      const analysisLevel = this.appStateService.analysisLevel$.getValue();
-      const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
-      let metricText = null;
-      if (mappedAudience.audienceSourceType === 'Custom') {
-        metricText = 'CUSTOM' + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
-      } else {
-         metricText = variableId + '~' + mappedAudience.audienceName.replace('~', ':') + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
-         metricText = metricText + (mappedAudience.allowNationalExport ? `~IndexBase=${mappedAudience.selectedDataSet}` : '');
-      }
-      this.store$.dispatch(new CreateMapUsageMetric('thematic-shading', 'activated', metricText));
-      this.store$.dispatch(new CreateGaugeMetric({ gaugeAction: 'map-thematic-shading-activated'}));
-    }
+    // if (mappedAudience != null) {
+    //   const analysisLevel = this.appStateService.analysisLevel$.getValue();
+    //   const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
+    //   let metricText = null;
+    //   if (mappedAudience.audienceSourceType === 'Custom') {
+    //     metricText = 'CUSTOM' + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
+    //   } else {
+    //      metricText = variableId + '~' + mappedAudience.audienceName.replace('~', ':') + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
+    //      metricText = metricText + (mappedAudience.allowNationalExport ? `~IndexBase=${mappedAudience.selectedDataSet}` : '');
+    //   }
+    //   this.store$.dispatch(new CreateMapUsageMetric('thematic-shading', 'activated', metricText));
+    //   this.store$.dispatch(new CreateGaugeMetric({ gaugeAction: 'map-thematic-shading-activated'}));
+    // }
     if (this.appStateService.analysisLevel$.getValue() == null || this.appStateService.analysisLevel$.getValue().length === 0) {
       this.store$.dispatch(new WarningNotification({ message: 'You must select an Analysis Level in order to apply the selected audience variable(s)', notificationTitle: 'Apply Selected Audience' }));
       return;
     }
     this.varService.applyAudienceSelection();
-  }
-
-  public onThemeChange(event: { value: ColorPalette }) : void {
-    AppRendererService.currentDefaultTheme = event.value;
   }
 
   public closeDialog(){
@@ -137,17 +120,17 @@ export class SelectedAudiencesComponent implements OnInit {
     this.showDialog = false;
   }
 
-  onMapSelected(audience: Audience) : void {
-    this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier, isActive: audience.showOnMap }));
-    // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
-    this.varService.syncProjectVars();
-    this.showRenderControls = audience.showOnMap;
-    //this.varService.updateProjectVars(audience, false);
-    // this.audiences$.pipe(
-    //   map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
-    //   take(1),
-    // ).subscribe(unMapped => unMapped.forEach(a => a.showOnMap = false)); // with take(1), this subscription will immediately close
-  }
+  // onMapSelected(audience: Audience) : void {
+  //   this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier, isActive: audience.showOnMap }));
+  //   // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
+  //   this.varService.syncProjectVars();
+  //   this.showRenderControls = audience.showOnMap;
+  //   //this.varService.updateProjectVars(audience, false);
+  //   // this.audiences$.pipe(
+  //   //   map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
+  //   //   take(1),
+  //   // ).subscribe(unMapped => unMapped.forEach(a => a.showOnMap = false)); // with take(1), this subscription will immediately close
+  // }
 
   onShowGridSelected(audience: Audience) : void {
     this.varService.updateProjectVars(audience);
@@ -187,7 +170,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onRemove(audience) {
-   const message = 'Do you want to delete the following audience from your project? <br/> <br/>' + 
+   const message = 'Do you want to delete the following audience from your project? <br/> <br/>' +
                     `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
    this.confirmationService.confirm({
     message: message,

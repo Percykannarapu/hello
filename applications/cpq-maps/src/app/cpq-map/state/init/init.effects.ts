@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { SetSelectedLayer } from '@val/esri';
+import { EsriService } from '@val/esri';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { of, zip } from 'rxjs';
 import { catchError, concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
@@ -81,14 +81,14 @@ export class InitEffects {
   finalizeAppLoad$ = this.getDataSuccess$.pipe(
     withLatestFrom(this.store$.pipe(select(localSelectors.getSelectedAnalysisLevel))),
     tap(() => this.appMapService.setMapWatches()),
-    map(([, analysisLevel]) => new SetSelectedLayer({ layerId: this.config.layers[analysisLevel].boundaries.id }))
+    map(([, analysisLevel]) => analysisLevel),
   );
 
   @Effect()
   loadComplete$ = zip(this.loadPreferences$, this.finalizeAppLoad$).pipe(
-    concatMap(([prefs, layer]) => [
+    tap(([, analysisLevel]) => this.esri.setSelectedLayer(this.config.layers[analysisLevel].boundaries.id)),
+    concatMap(([prefs]) => [
       prefs,
-      layer,
       new InitializeMapUI()
     ])
   );
@@ -125,6 +125,7 @@ export class InitEffects {
   constructor(private actions$: Actions<InitActions>,
               private store$: Store<FullState>,
               private config: ConfigService,
+              private esri: EsriService,
               private entityHelper: EntityHelper,
               private appSiteService: AppSiteService,
               private appMapService: AppMapService,

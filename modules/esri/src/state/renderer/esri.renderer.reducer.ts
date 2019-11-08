@@ -71,7 +71,7 @@ export function rendererReducer(state = initialState, action: ReducerActions) : 
         shadingData: initialState.shadingData,
         isNumericData: initialState.isNumericData,
         statistics: initialState.statistics,
-        enableShading: true,
+        enableShading: false,
       };
 
     case EsriRendererActionTypes.SetSelectedGeos:

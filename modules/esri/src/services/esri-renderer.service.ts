@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
 import {SelectedShadingLayerPrefix} from '../../settings';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
+import { AppState } from '../state/esri.selectors';
+import { addLayerToLegend } from '../state/shading/esri.shading.actions';
 import { EsriMapService } from './esri-map.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapState } from '../state/map/esri.map.reducer';
@@ -35,7 +38,7 @@ export class EsriRendererService {
 
   constructor(private mapService: EsriMapService,
               private layerService: EsriLayerService,
-              ) {}
+              private store$: Store<AppState>) {}
 
   private static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
   private static createSymbol(fillColor: number[] | __esri.Color, outlineColor: number[] | __esri.Color, outlineWidth: number) : __esri.SimpleFillSymbol;
@@ -59,11 +62,12 @@ export class EsriRendererService {
   }
 
   private static getThemeColors(rendererSetup: RendererSetup, dataLength: number) : __esri.Color[] {
+    console.log('Getting theme palette', rendererSetup);
     const colorPalette = getColorPalette(rendererSetup.colors);
     if (colorPalette == null) {
       return this.getRandomColors(dataLength);
     }
-    return colorPalette.map(rgb => new EsriApi.Color([...rgb, 0.65])) ;
+    return colorPalette.map(rgb => new EsriApi.Color([...rgb, 0.35])) ;
   }
 
   private static getRandomColors(dataLength?: number) : __esri.Color[] {
@@ -82,7 +86,7 @@ export class EsriRendererService {
       red = (EsriRendererService.randomSeeds[i][0] + 255) / 2;
       green = (EsriRendererService.randomSeeds[i][1] + 255) / 2;
       blue = (EsriRendererService.randomSeeds[i][2] + 255) / 2;
-      const color: __esri.Color = new EsriApi.Color({ r: red, g: green, b: blue, a: 0.65 });
+      const color: __esri.Color = new EsriApi.Color({ r: red, g: green, b: blue, a: 0.35 });
       result.push(color);
     }
     return result;
@@ -182,6 +186,7 @@ export class EsriRendererService {
     };
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = renderer as __esri.UniqueValueRenderer;
+      this.store$.dispatch(addLayerToLegend({ layerUniqueId: lv.layer.id, title: null }));
     } else {
       lv.layer.renderer = this.simpleRenderer.clone();
       setTimeout(() => this.createClassBreaksRenderer(data, mapState, theme), 0);
@@ -192,21 +197,22 @@ export class EsriRendererService {
     const arcade = this.generateArcade(data, true);
     const setup = this.createRendererSetup(mapState, theme);
     const baseRenderer = this.createBaseRenderer(setup.symbol, setup.rendererSetup.outline);
-    const themeColors = EsriRendererService.getThemeColors(setup.rendererSetup, Object.keys(data).length);
+    const continuousColors = EsriRendererService.getThemeColors(setup.rendererSetup, Object.keys(data).length);
     if (legend != null) {
       setup.rendererSetup.rampLabel = legend;
     }
     const colorVariable: any = {
       type: 'color',
       valueExpression: arcade,
-      stops: this.generateContinuousStops(themeColors, statistics),
-      legendOptions: { showLegend: true, title: setup.rendererSetup.rampLabel}
+      stops: this.generateContinuousStops(continuousColors, statistics),
+      legendOptions: { showLegend: true, title: setup.rendererSetup.rampLabel }
     };
     const lv = this.getLayerView(mapState.selectedLayerId);
     baseRenderer.visualVariables = [colorVariable];
     //baseRenderer.defaultSymbol = EsriRendererService.createSymbol([255, 255, 255, 0], [0, 0, 0, 1], 2);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = baseRenderer.clone();
+      this.store$.dispatch(addLayerToLegend({ layerUniqueId: lv.layer.id, title: null }));
     } else {
       lv.layer.renderer = this.simpleRenderer.clone();
       setTimeout(() => this.createMultiVariateRenderer(data, mapState, statistics, legend, theme), 0);

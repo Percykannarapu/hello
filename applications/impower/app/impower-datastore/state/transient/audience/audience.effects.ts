@@ -1,3 +1,4 @@
+import { ProjectLoadSuccess } from '../../../../state/data-shim/data-shim.actions';
 import {getMapVarIds} from '../map-vars/map-vars.selectors';
 import { AppStateService } from './../../../../services/app-state.service';
 import { TargetAudienceCustomService } from './../../../../services/target-audience-custom.service';
@@ -689,9 +690,9 @@ export class AudiencesEffects {
     }),
     withLatestFrom(this.appStateService.analysisLevel$),
 //  map(([, analysisLevel]) => new ApplyAudiences({ analysisLevel: analysisLevel }))
-    concatMap(([, analysisLevel]) => [
+    concatMap(([action, analysisLevel]) => [
       new ApplyAudiences({ analysisLevel: analysisLevel }),
-      new RehydrateShading()
+      new RehydrateShading(action.payload)
     ])
   );
 
@@ -699,10 +700,12 @@ export class AudiencesEffects {
   rehydrateShading$ = this.actions$.pipe(
     ofType<RehydrateShading>(AudienceActionTypes.RehydrateShading),
     tap(action => mapVarsStart = performance.now()),
-    withLatestFrom(this.store$.select(fromAudienceSelectors.getAudiencesOnMap)),
-    map(([, audiencesOnMap]) => {
+    tap(() => {
       //console.log('### rehydrateShading - audiencesOnMap:', audiencesOnMap);
       this.targetAudienceService.rehydrateShading();
+    }),
+    tap(action => {
+      if (action.payload.notifyLoadSuccess) this.store$.dispatch(new ProjectLoadSuccess(action.payload));
     })
   );
 

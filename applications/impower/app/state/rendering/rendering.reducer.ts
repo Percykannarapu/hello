@@ -1,13 +1,16 @@
+import { ColorPalette } from '@val/esri';
 import { RenderingActions, RenderingActionTypes } from './rendering.actions';
 
 export interface RenderingState {
   lastRadiusRenderCount: number;
   lastAudienceRenderCount: number;
+  currentPalette: ColorPalette;
 }
 
 export const initialState: RenderingState = {
   lastRadiusRenderCount: 0,
-  lastAudienceRenderCount: 0
+  lastAudienceRenderCount: 0,
+  currentPalette: ColorPalette.EsriPurple
 };
 
 export function renderingReducer(state = initialState, action: RenderingActions) : RenderingState {
@@ -29,7 +32,11 @@ export function renderingReducer(state = initialState, action: RenderingActions)
         ...state,
         lastRadiusRenderCount: radiusCount
       };
-
+    case RenderingActionTypes.SetPalette:
+      return {
+        ...state,
+        currentPalette: action.payload.palette
+      };
     default:
       return state;
   }

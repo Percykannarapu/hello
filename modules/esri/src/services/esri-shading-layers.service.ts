@@ -4,15 +4,16 @@ import { Observable, of } from 'rxjs';
 import { map, take, tap } from 'rxjs/operators';
 import { SelectedShadingLayerPrefix } from '../../settings';
 import { EsriUtils } from '../core/esri-utils';
-import { AllShadingConfigurations, ConfigurationTypes, SimpleShadingConfiguration } from '../models/shading-configuration';
+import { FillPattern } from '../models/esri-types';
+import { AllShadingConfigurations, ConfigurationTypes, SimpleShadingConfiguration, UniqueValueShadingConfiguration } from '../models/shading-configuration';
 import { EsriState } from '../state/esri.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriRendererService } from './esri-renderer.service';
+import { MapVar } from '../../../../applications/impower/app/impower-datastore/state/transient/map-vars/map-vars.model';
+import * as EsriArcadeUtils from '../core/esri-arcade.utils';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class EsriShadingLayersService {
 
   constructor(private layerService: EsriLayerService,
@@ -32,7 +33,8 @@ export class EsriShadingLayersService {
       labelsVisible: false,
       legendEnabled: true,
       outFields: ['geocode'],
-      renderer: this.createFullRenderer(config, visualVariable)
+      renderer: this.createFullRenderer(config, visualVariable),
+      opacity: config.opacity
     };
     return this.layerService.createPortalLayer(config.layerId, config.layerName, config.minScale, true, layerProps).pipe(
       tap(layer => {
@@ -74,13 +76,16 @@ export class EsriShadingLayersService {
     }
   }
 
-  selectedFeaturesShading(featureIds: string[], layerId: string, minScale: number, featureTypeName: string, featureIdField: string = 'geocode') : Observable<string> {
+  selectedFeaturesShading(featureIds: string[], layerId: string, minScale: number, featureTypeName: string, useCrossHatching: boolean, featureIdField: string = 'geocode') : Observable<string> {
     const layerName = EsriShadingLayersService.createSelectedFeatureLayerName(featureTypeName);
     const existingLayer = this.layerService.getFeatureLayer(layerName);
     const query = `${featureIdField} IN (${featureIds.map(g => `'${g}'`).join(',')})`;
     if (existingLayer == null) {
-      const shadedSymbol = this.domainFactory.createSimpleFillSymbol([0, 255, 0, 0.25], this.domainFactory.createSimpleLineSymbol([0, 0, 0, 0]));
-      const layerConfiguration = new SimpleShadingConfiguration(layerId, layerName, minScale, layerName, shadedSymbol, query);
+      const color: [number, number, number] = useCrossHatching ? [0, 0, 0] : [0, 255, 0];
+      const opacity = useCrossHatching ? 1 : 0.25;
+      const style: FillPattern = useCrossHatching ? 'forward-diagonal' : 'solid';
+      const shadedSymbol = this.domainFactory.createSimpleFillSymbol(color, this.domainFactory.createSimpleLineSymbol([0, 0, 0, 0]), style);
+      const layerConfiguration = new SimpleShadingConfiguration(layerId, layerName, minScale, opacity, layerName, shadedSymbol, query);
       return this.createShadingLayer(layerConfiguration).pipe(
         take(1), // ensures we clean up the subscription
         map(layer => layer.id),
@@ -89,6 +94,31 @@ export class EsriShadingLayersService {
       existingLayer.definitionExpression = query;
       return of(existingLayer.id);
     }
+  }
+
+  public convertArrayToRecord(mapVars: MapVar[]) : string {
+    const obj = {};
+    mapVars.forEach((item) => {
+      const keys = Object.keys(item);
+      const index = keys.findIndex(key => key === 'geocode');
+      keys.splice(index, 1);
+      obj[item.geocode] = item[keys[0]];
+    });
+    const arcade = EsriArcadeUtils.createNumericArcade(obj);
+    return arcade;
+  }
+
+  audienceShading(mapVars: MapVar[], layerId: string, minScale: number) : Observable<string> {
+    const arcadeExpression = this.convertArrayToRecord(mapVars);
+    const layerName = 'audience Shading Layer';
+    const existingLayer = this.layerService.getFeatureLayer(layerName);
+    const defaultSymbol = this.domainFactory.createSimpleFillSymbol([0, 255, 0], this.domainFactory.createSimpleLineSymbol([0, 0, 0, 0]));
+    const layerConfiguration = new UniqueValueShadingConfiguration(layerId, layerName, minScale, 0.25, arcadeExpression, layerName, defaultSymbol, []);
+
+    return this.createShadingLayer(layerConfiguration).pipe(
+      take(1),
+      map(layer => layer.id),
+    );
   }
 
   clearFeatureSelection(featureTypeName: string) : void {

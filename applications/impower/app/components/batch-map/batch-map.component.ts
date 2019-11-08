@@ -1,16 +1,15 @@
-import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { EsriMapService, selectors } from '@val/esri';
+import { selectors as esriSelectors } from '@val/esri';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
-import { AppMapService } from '../../services/app-map.service';
-import { AppStateService } from '../../services/app-state.service';
+import { BatchMapService } from '../../services/batch-map.service';
 import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
-import { MoveToSite, SetBatchMode, SetMapReady } from '../../state/batch-map/batch-map.actions';
-import { getBatchMapReady, getLastSiteFlag, getMapMoving, getNextSiteNumber, getCurrentSiteNum } from '../../state/batch-map/batch-map.selectors';
-import { CreateNewProject, ProjectLoad } from '../../state/data-shim/data-shim.actions';
+import { MoveToSite, SetBatchMode } from '../../state/batch-map/batch-map.actions';
+import { getBatchMapReady, getCurrentSiteNum, getLastSiteFlag, getMapMoving, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
+import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
 
 interface BatchMapQueryParams {
   height: number;
@@ -37,10 +36,8 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject<void>();
 
   constructor(private store$: Store<FullAppState>,
+              private batchMapService: BatchMapService,
               private config: AppConfig,
-              private appStateService: AppStateService,
-              private appMapService: AppMapService,
-              private esriMapService: EsriMapService,
               private zone: NgZone) { }
 
   private static convertParams(params: Params) : BatchMapQueryParams {
@@ -53,22 +50,26 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.store$.select(selectors.getMapReady).pipe(
+    this.store$.select(esriSelectors.getMapReady).pipe(
       filter(ready => ready),
       take(1),
-    ).subscribe(() => this.setupMap());
+      withLatestFrom(this.store$.select(getRouteParams)),
+      filter(([, params]) => params.id != null)
+    ).subscribe(([, params]) => this.batchMapService.initBatchMapping(params.id));
 
     combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving)]).pipe(
       map(([ready, moving]) => ready && !moving),
       takeUntil(this.destroyed$)
     ).subscribe(ready => this.zone.run(() => this.mapViewIsReady = ready));
-
     this.store$.select(getNextSiteNumber).pipe(
       takeUntil(this.destroyed$)
     ).subscribe(siteNum => this.zone.run(() => this.nextSiteNumber = siteNum));
     this.store$.select(getLastSiteFlag).pipe(
       takeUntil(this.destroyed$)
     ).subscribe(lastSite => this.zone.run(() => this.isLastSite = lastSite));
+    this.store$.select(getCurrentSiteNum).pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(s => this.zone.run(() => this.currentSiteNumber = s));
 
     this.typedParams$ = this.store$.select(getRouteQueryParams).pipe(
       map(params => BatchMapComponent.convertParams(params))
@@ -79,9 +80,6 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.config.isBatchMode = true;
     this.store$.dispatch(new SetBatchMode());
     this.store$.dispatch(new CreateNewProject());
-    this.store$.select(getCurrentSiteNum).subscribe(s => {
-      this.currentSiteNumber = s;
-    });
   }
 
   ngOnDestroy() {
@@ -95,28 +93,5 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   onGoToSpecificSite() : void {
     if (this.specificSiteRef != null)
       this.store$.dispatch(new MoveToSite({ siteNum: this.specificSiteRef.nativeElement.value }));
-  }
-
-  private setupMap() : void {
-    this.appStateService.notifyMapReady();
-    this.esriMapService.watchMapViewProperty('updating').pipe(
-      takeUntil(this.destroyed$),
-    ).subscribe(result => this.store$.dispatch(new SetMapReady({ mapReady: !result.newValue })));
-    this.appMapService.watchMapViewProperty('stationary').pipe(
-      filter(result => result.newValue),
-      debounceTime(500),
-      takeUntil(this.destroyed$)
-    ).subscribe(() => this.appStateService.refreshVisibleGeos());
-    this.appMapService.setupMap(true);
-    this.store$.select(getBatchMapReady).pipe(
-      filter(ready => ready),
-      take(1),
-      withLatestFrom(this.store$.select(getRouteParams)),
-      filter(([, params]) => params.id != null)
-    ).subscribe(([, params]) => this.loadBatchProject(params.id));
-  }
-
-  private loadBatchProject(projectId: number) : void {
-    this.store$.dispatch(new ProjectLoad({ projectId, isReload: false }));
   }
 }

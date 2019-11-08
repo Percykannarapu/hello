@@ -7,7 +7,7 @@ import { ConfirmationService } from 'primeng/components/common/confirmationservi
 import { combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
 import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { LocationQuadTree } from '../models/location-quad-tree';
+import { QuadTree } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { FullAppState } from '../state/app.interfaces';
 import { ClearLocations, RenderLocations } from '../state/rendering/rendering.actions';
@@ -288,7 +288,7 @@ export class AppLocationService {
   }
 
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
-    const quadTree = new LocationQuadTree(locations);
+    const quadTree = new QuadTree(locations);
     const result = quadTree.partition(1000);
     this.logger.debug.log('QuadTree partitions', quadTree);
     return result.filter(chunk => chunk && chunk.length > 0);

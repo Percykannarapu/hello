@@ -4,6 +4,7 @@ import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { RehydrateAudiences, RehydrateShading } from '../../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttributeActionTypes, RehydrateAttributesComplete, RequestAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { AppDataShimService } from '../../services/app-data-shim.service';
@@ -56,7 +57,8 @@ export class DataShimEffects {
     switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
       withLatestFrom(this.appDataShimService.currentGeocodeSet$, this.store$.select(getBatchMode)),
       map(([, geocodes, isBatch]) => isBatch
-        ? new ProjectLoadSuccess(action.payload)
+        //? new ProjectLoadSuccess(action.payload)
+        ? new RehydrateAudiences({ ...action.payload, notifyLoadSuccess: true })
         : new RehydrateAfterLoad({ ...action.payload, geocodes })),
       catchError(err => of(new ProjectLoadFailure({ err, isReload: false }))),
     )),

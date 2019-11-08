@@ -1,11 +1,14 @@
 import { Injectable, NgZone } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { UniversalCoordinates } from '@val/common';
 import { Observable } from 'rxjs';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
 import { MapSymbols } from '../models/esri-types';
+import { AppState } from '../state/esri.selectors';
 import { CopyCoordinatesToClipboard } from '../state/map/esri.map.actions';
 import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
+import { addLayerToLegend } from '../state/shading/esri.shading.actions';
 import { EsriMapService } from './esri-map.service';
 
 const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data === 'string'  ? 'string' : 'double';
@@ -16,7 +19,9 @@ export class EsriLayerService {
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
   private layersShowingInLegend = new Set<string>();
 
-  constructor(private mapService: EsriMapService, private zone: NgZone) {}
+  constructor(private mapService: EsriMapService,
+              private store$: Store<AppState>,
+              private zone: NgZone) {}
 
   public clearClientLayers(groupName: string) : void {
     if (this.mapService.mapView == null || this.mapService.mapView.map == null || this.mapService.mapView.map.layers == null) return;
@@ -195,12 +200,14 @@ export class EsriLayerService {
     const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
     group.layers.unshift(layer);
     if (addToLegend) {
-      this.addLayerToLegend(layer.id, layerName, bottom);
+      layer.when(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: layerName, addToBottom: bottom })));
     }
     return layer;
   }
 
-  public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string, renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[], addToLegend: boolean = false) : __esri.FeatureLayer {
+  public createClientLayer(groupName: string, layerName: string, sourceGraphics: __esri.Graphic[], oidFieldName: string,
+                           renderer: __esri.Renderer, popupTemplate: __esri.PopupTemplate, labelInfo: __esri.LabelClass[],
+                           addToLegend: boolean = false, legendHeader: string = null) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
     const group = this.createClientGroup(groupName, true);
     const layerType = sourceGraphics[0].geometry.type;
@@ -232,7 +239,7 @@ export class EsriLayerService {
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
     group.layers.add(layer);
     if (addToLegend) {
-      this.addLayerToLegend(layer.id, layerName);
+      layer.when(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: legendHeader })));
     }
     return layer;
   }
@@ -284,13 +291,15 @@ export class EsriLayerService {
   }
 
   addLayerToLegend(layerUniqueId: string, title: string, addToBottom: boolean = false) : void {
+    console.log('Adding layer to legend', title);
     const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     const layer = this.getLayerByUniqueId(layerUniqueId);
+
     if (legendRef != null && layer != null && !this.layersShowingInLegend.has(layerUniqueId)) {
       if (addToBottom) {
-        legendRef.layerInfos.unshift({ title, layer });
+        legendRef.layerInfos = [ { title, layer }, ...legendRef.layerInfos ];
       } else {
-        legendRef.layerInfos.push({ title, layer });
+        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer } ];
       }
       this.layersShowingInLegend.add(layerUniqueId);
     }
