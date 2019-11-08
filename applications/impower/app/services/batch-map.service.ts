@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Params } from '@angular/router';
-import { Store } from '@ngrx/store';
+import { Store, resultMemoize } from '@ngrx/store';
 import {calculateStatistics, expandRange} from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
-import { Observable, throwError } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { Observable, throwError, timer, race } from 'rxjs';
+import { map, switchMap, debounceTime, tap, filter, take } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocalAppState, BatchMapPayload } from '../state/app.interfaces';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { SetCurrentSiteNum } from 'app/state/batch-map/batch-map.actions';
+import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 
 @Injectable({
   providedIn: 'root'
@@ -72,9 +72,26 @@ export class BatchMapService {
       }
     }
     this.geoService.update(null, null);
+    this.forceMapUpdate();
     return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos()).pipe(
       map(() => result)
     );
+  }
+
+  private forceMapUpdate() {
+    const mapReady$ = this.esriMapService.watchMapViewProperty('updating').pipe(
+      debounceTime(500),
+      map(result => result.newValue),
+      filter(result => !result),
+    );
+
+    const timeout$ = timer(180000).pipe(
+      map(() => false)
+    ); // 3 minutes
+
+    race(mapReady$, timeout$).pipe(
+      take(1)
+      ).subscribe(() => this.store$.dispatch(new SetMapReady({ mapReady: true })));
   }
 
   private recordOriginalState(project: ImpProject) : void {
