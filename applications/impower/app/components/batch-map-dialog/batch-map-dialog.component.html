@@ -1,7 +1,7 @@
-<p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()" [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '300px'}" [maximizable]="false">
+<p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()" [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '350px'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main">
-          <p> <span style="color:red; font-size: 1.2em"> Please save project before creating maps </span></p>
+          <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are reflected on map </span></p>
             <p>Site # will be included in the header, in addition to the Title and Sub-Title specified below</p>
           <div class="dialog-body">
             <form novalidate  [formGroup]="batchMapForm" autocomplete="off">
@@ -19,6 +19,9 @@
                   <label for="subTitle"> Sub Title </label>
                 </span>
               </div>
+              <div class="ui-g-12">
+                <p>A link will be emailed to you when your maps are ready</p>
+              </div>                
             </form>
           </div>
     </div>
