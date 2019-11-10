@@ -12,6 +12,8 @@ import { BehaviorSubject } from 'rxjs';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { ConfirmationService } from 'primeng/api';
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
+import { TargetAudienceService } from 'app/services/target-audience.service';
+import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
 
 @Component({
   selector: 'val-custom-audience',
@@ -26,6 +28,8 @@ export class CustomAudienceComponent implements OnInit {
 
   constructor(private appProjectPrefService: AppProjectPrefService,
     private confirmationService: ConfirmationService,
+    private varService: TargetAudienceService,
+    private impProjectPrefService: ImpProjectPrefService,
               private store$: Store<LocalAppState>) {}
   
   ngOnInit() { 
@@ -101,6 +105,18 @@ export class CustomAudienceComponent implements OnInit {
         if (audience != null){
           this.store$.dispatch(new ClearMapVars());
           this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier, isActive: audience.showOnMap }));
+          //this.appProjectPrefService.createPref('map-settings', 'audience', `${audience.audienceSourceName}: ${audience.audienceName}`, 'string');
+          const oldPref  = this.appProjectPrefService.getPref('audience');
+          const newPref  = this.appProjectPrefService.getPref('audience');
+          
+          if (oldPref != null && newPref !== null){
+            newPref.isActive = false;
+            this.impProjectPrefService.update(oldPref, newPref);
+          }
+          
+          this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+          this.varService.syncProjectVars();
+         // this.showRenderControls = aud.showOnMap;
         }
         this.store$.dispatch(new DeleteAudiences({ids: ids}));
       },
