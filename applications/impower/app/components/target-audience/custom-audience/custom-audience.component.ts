@@ -94,7 +94,6 @@ export class CustomAudienceComponent implements OnInit {
         aud.showOnMap = false;
         audience = aud;
       }
-      
       ids.push(aud.audienceIdentifier);
     });
     this.confirmationService.confirm({
@@ -113,12 +112,13 @@ export class CustomAudienceComponent implements OnInit {
             newPref.isActive = false;
             this.impProjectPrefService.update(oldPref, newPref);
           }
-          
-          this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-          this.varService.syncProjectVars();
-         // this.showRenderControls = aud.showOnMap;
         }
+        this.audiences.forEach(aud => {
+          this.varService.removeAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
+        });
+        this.varService.syncProjectVars();
         this.store$.dispatch(new DeleteAudiences({ids: ids}));
+       
       },
       reject: () => {}
     });
