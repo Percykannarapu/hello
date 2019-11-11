@@ -48,7 +48,7 @@
         </div>
         <div class="button-container">
           <button pButton type="button" label="Clear Thematic Shading" icon="ui-icon-clear" (click)= clearShading()></button>
-          <button pButton type="submit" label="Apply" icon="ui-icon-send"></button>
+          <button pButton type="submit" label="Apply" icon="ui-icon-send" [disabled]="shadeSettingsForm.invalid"></button>
         </div>
       </form>
     </p-card>

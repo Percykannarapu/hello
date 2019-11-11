@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { ClearRenderingData, ColorPalette, EsriApi, EsriMapService } from '@val/esri';
+import { ColorPalette, EsriApi, EsriMapService } from '@val/esri';
 import { SelectMappingAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -11,7 +11,7 @@ import { AppStateService } from 'app/services/app-state.service';
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
-import { filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, withLatestFrom } from 'rxjs/operators';
 import { ClearMapVars } from '../../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { LocalAppState } from '../../state/app.interfaces';
 import { SetPalette } from '../../state/rendering/rendering.actions';
@@ -25,7 +25,7 @@ import { getCurrentColorPalette } from '../../state/rendering/rendering.selector
 })
 export class ShadingSettingsComponent implements OnInit {
   private static readonly defaultPalette = ColorPalette.EsriPurple;
-  private static readonly defaultExtent = 'Whole Map';
+  // private static readonly defaultExtent = 'Whole Map';
 
   sideNavVisible = false;
   allAudiences$: Observable<SelectItem[]>;
@@ -55,17 +55,11 @@ export class ShadingSettingsComponent implements OnInit {
 
   ngOnInit() : void {
     this.allAudiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
-      map(audiences => audiences.map(aud => ({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud}))),
-      tap(audiences => {
-        if (this.shadeSettingsForm.controls['audience'].value == null && audiences.length > 0) {
-          this.shadeSettingsForm.controls['audience'].setValue(audiences[0].value);
-        }
-      })
+      map(audiences => audiences.map(aud => ({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud})))
     );
 
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
-      take(1),
       withLatestFrom(this.varService.allAudiencesBS$, this.store$.select(getCurrentColorPalette))
     ).subscribe(([, audiences, palette]) => this.onLoadProject(audiences, palette) );
 
@@ -74,7 +68,7 @@ export class ShadingSettingsComponent implements OnInit {
       // variable: [ShadingSettingsComponent.defaultExtent, Validators.required],
       currentTheme: [ShadingSettingsComponent.defaultPalette, Validators.required],
     });
-    this.appStateService.clearUI$.subscribe(() => this.shadeSettingsForm.reset({}, { emitEvent: false }));
+    this.appStateService.clearUI$.subscribe(() => this.resetFormToDefaults());
   }
 
   private onLoadProject(allAudiences: Audience[], palette: ColorPalette) {
@@ -89,7 +83,6 @@ export class ShadingSettingsComponent implements OnInit {
       this.mapService.widgetMap.get('esri.widgets.BasemapGallery').set('activeBasemap', baseMap);
       this.appProjectPrefService.createPref('legend-settings', 'basemap', JSON.stringify(baseMap.toJSON()), 'string');
     }
-    this.store$.dispatch(new ClearRenderingData());
     const activeAudience = allAudiences.filter(a => a.showOnMap)[0] || null;
     // const extentPref = this.appProjectPrefService.getPref('Thematic-Extent');
     // const extentSetting = extentPref == null ? ShadingSettingsComponent.defaultExtent : extentPref.val;
@@ -101,22 +94,19 @@ export class ShadingSettingsComponent implements OnInit {
   }
 
   clearShading() {
-    const aud = this.shadeSettingsForm.controls['audience'].value as Audience;
-    aud.showOnMap = false;
-    this.applyAudience(aud);
-    this.appProjectPrefService.createPref('map-settings', 'audience', `${aud.audienceSourceName}: ${aud.audienceName}`, 'string');
+    this.applyAudience(false);
+    this.resetFormToDefaults();
   }
 
   onSubmit() {
-    const aud = this.shadeSettingsForm.controls['audience'].value as Audience;
-    aud.showOnMap = true;
-    this.applyAudience(aud);
-    this.sideNavVisible = false;
+    this.applyAudience(true);
   }
 
-  applyAudience(aud: Audience) : void {
+  applyAudience(showOnMap: boolean) : void {
+    const aud = this.shadeSettingsForm.controls['audience'].value as Audience;
+    aud.showOnMap = showOnMap;
     const palette: ColorPalette = this.shadeSettingsForm.controls['currentTheme'].value;
-    //this.rendererService.audienceShading(aud);
+    // this.rendererService.audienceShading(aud);
     this.store$.dispatch(new ClearMapVars());
     this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: aud.audienceIdentifier, isActive: aud.showOnMap }));
     this.store$.dispatch(new SetPalette({ palette }));
@@ -125,5 +115,15 @@ export class ShadingSettingsComponent implements OnInit {
 
     // this.appProjectPrefService.createPref('map-settings', 'Thematic-Extent', this.shadeSettingsForm.controls['variable'].value, 'string');
     this.appProjectPrefService.createPref('map-settings', 'Theme', palette, 'string');
+    this.appProjectPrefService.createPref('map-settings', 'audience', `${aud.audienceSourceName}: ${aud.audienceName}`, 'string');
+    this.sideNavVisible = false;
+  }
+
+  private resetFormToDefaults() {
+    this.shadeSettingsForm.reset({
+      audience: null,
+      currentTheme: ShadingSettingsComponent.defaultPalette
+    }, { emitEvent: false });
+    this.shadeSettingsForm.markAsPristine();
   }
 }
