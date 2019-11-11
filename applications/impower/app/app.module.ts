@@ -149,6 +149,8 @@ import { ImpowerMainComponent } from './components/impower-main/impower-main.com
 import { SidebarModule } from 'primeng/sidebar';
 import { ShadingSettingsComponent } from './components/shading-settings/shading-settings.component';
 import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
+import { CombinedAudienceComponent } from './components/target-audience/combined-audience/combined-audience.component';
+import { EditCombinedAudiencesComponent } from './components/target-audience/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
 
 @NgModule({
     imports: [
@@ -276,7 +278,9 @@ import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map
         BatchMapComponent,
         ImpowerMainComponent,
         ShadingSettingsComponent,
-        BatchMapDialogComponent
+        BatchMapDialogComponent,
+        CombinedAudienceComponent,
+        EditCombinedAudiencesComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

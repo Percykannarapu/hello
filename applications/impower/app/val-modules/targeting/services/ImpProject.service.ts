@@ -64,6 +64,7 @@ export class ImpProjectService extends DataStore<ImpProject>
              // tagged as 'UPDATE' (for existing entities) or 'INSERT' (for new entities)
              p.setTreeProperty('baseStatus', DAOBaseStatus.UPDATE);
            });
+           console.log('test load::',loadCache);
            this.load(loadCache);
            observer.next(id);
            observer.complete();

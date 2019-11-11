@@ -88,6 +88,8 @@ export class ImpDomainFactoryService {
     if (parent == null) throw new Error('Project Var factory requires a valid Project instance');
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
     const isCustom = audience.audienceSourceType === 'Custom';
+    const isCombined = audience.isCombined;
+
     const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
     let existingVar;
 
@@ -119,8 +121,9 @@ export class ImpDomainFactoryService {
       projectVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       projectVar.sortOrder = audience.seq; // audience.audienceCounter;
       projectVar.customVarExprDisplay = `${audience.audienceName} (${audience.audienceSourceName})`;
-      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : 'Online') + `/${audience.audienceSourceName}/${varPk}`;
-      projectVar.impProject = parent;
+      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' ?
+                                      (audience.combinedAudiences != null ? audience.combinedAudiences.toString() : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));    
+       projectVar.impProject = parent;
       parent.impProjectVars.push(projectVar);
       return projectVar;
     } else {
@@ -141,7 +144,8 @@ export class ImpDomainFactoryService {
       existingVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       existingVar.sortOrder = audience.seq; // audience.audienceCounter;
       existingVar.customVarExprDisplay = `${audience.audienceName} (${audience.audienceSourceName})`;
-      existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : 'Online') + `/${audience.audienceSourceName}/${varPk}`;
+      existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' ?
+                                        (audience.combinedAudiences != null ? audience.combinedAudiences.toString() : ' ' ): 'Online' + `/${audience.audienceSourceName}/${varPk}`));
       existingVar.impProject = parent;
       if (existingVar.baseStatus === DAOBaseStatus.UNCHANGED) existingVar.baseStatus = DAOBaseStatus.UPDATE;
       return existingVar;
@@ -152,7 +156,7 @@ export class ImpDomainFactoryService {
       if (parent == null) throw new Error('Project Pref factory requires a valid Project instance');
       if (pref == null) throw new Error('Project Preferences cannot have a null pref (Key)');
 
-      const existingPref = parent.impProjectPrefs.find(impPref => impPref.prefGroup === group && impPref.pref === pref);
+      const existingPref = parent.impProjectPrefs.find(impPref => impPref.prefGroup === group && impPref.pref === pref && impPref.val === impPref.val);
       if (existingPref == null) {
          const result = new ImpProjectPref({
             dirty:         true,

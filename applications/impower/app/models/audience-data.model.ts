@@ -13,12 +13,14 @@ export interface AudienceDataDefinition {
   selectedDataSet?: string;
   dataSetOptions?: { label: string, value: string }[];
   audienceSourceName: string;
-  audienceSourceType: 'Online' | 'Offline' | 'Custom';
+  audienceSourceType: 'Online' | 'Offline' | 'Custom' | 'Combined';
   secondaryId?: string;
   audienceTAConfig?: AudienceTradeAreaConfig;
   fieldconte: FieldContentTypeCodes;
   requiresGeoPreCaching: boolean;
   seq: number;
+  isCombined?: boolean;
+  combinedAudiences?: Array<string>;
 }
 
 export interface AudienceTradeAreaConfig {

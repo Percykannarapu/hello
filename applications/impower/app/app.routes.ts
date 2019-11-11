@@ -8,7 +8,6 @@ import { PocComponent } from './poc/poc.component';
 import { PocMapComponent } from './poc/poc.map';
 import { SampleComponent } from './poc/sample/sample.component';
 import { AuthService } from './services/auth.service';
-import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
 
 export const routes: Routes = [
   {path: '', component: ImpowerMainComponent, canActivate: [AuthService]},

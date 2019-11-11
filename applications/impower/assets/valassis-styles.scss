@@ -516,6 +516,9 @@ body {
   }
 
   .ui-listbox {
+    .ui-listbox-header {
+      background-color: $lightGray01;
+    }
     .ui-listbox-list {
       > li:first-child {
         margin-top: 0.25em;
