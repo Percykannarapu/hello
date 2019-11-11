@@ -113,8 +113,9 @@ export class ShadingSettingsComponent implements OnInit {
     // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
     this.varService.syncProjectVars();
 
+    const paletteKey = Object.keys(ColorPalette).filter(p => ColorPalette[p] === palette)[0];
     // this.appProjectPrefService.createPref('map-settings', 'Thematic-Extent', this.shadeSettingsForm.controls['variable'].value, 'string');
-    this.appProjectPrefService.createPref('map-settings', 'Theme', palette, 'string');
+    this.appProjectPrefService.createPref('map-settings', 'Theme', paletteKey, 'string');
     this.appProjectPrefService.createPref('map-settings', 'audience', `${aud.audienceSourceName}: ${aud.audienceName}`, 'string');
     this.sideNavVisible = false;
   }
