@@ -11,7 +11,7 @@ import { AppStateService } from 'app/services/app-state.service';
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
-import { filter, map, withLatestFrom } from 'rxjs/operators';
+import { filter, map, withLatestFrom, tap } from 'rxjs/operators';
 import { ClearMapVars } from '../../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { LocalAppState } from '../../state/app.interfaces';
 import { SetPalette } from '../../state/rendering/rendering.actions';
@@ -55,7 +55,12 @@ export class ShadingSettingsComponent implements OnInit {
 
   ngOnInit() : void {
     this.allAudiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
-      map(audiences => audiences.map(aud => ({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud})))
+      map(audiences => audiences.map(aud => ({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud.audienceIdentifier}))),
+      tap(audiences => {
+        if (this.shadeSettingsForm.controls['audience'].value == null && audiences.length > 0) {
+          this.shadeSettingsForm.controls['audience'].setValue(audiences[0].value.audienceIdentifier);
+        }
+      })  
     );
 
     this.appStateService.applicationIsReady$.pipe(
@@ -87,7 +92,7 @@ export class ShadingSettingsComponent implements OnInit {
     // const extentPref = this.appProjectPrefService.getPref('Thematic-Extent');
     // const extentSetting = extentPref == null ? ShadingSettingsComponent.defaultExtent : extentPref.val;
 
-    this.shadeSettingsForm.controls['audience'].setValue(activeAudience, { emitEvent: false });
+    this.shadeSettingsForm.controls['audience'].setValue(activeAudience == null ? null : activeAudience.audienceIdentifier, { emitEvent: false });
     this.shadeSettingsForm.controls['currentTheme'].setValue(palette, { emitEvent: false });
     // this.shadeSettingsForm.controls['variable'].setValue(extentSetting, { emitEvent: false });
     this.shadeSettingsForm.markAsPristine();
@@ -103,7 +108,8 @@ export class ShadingSettingsComponent implements OnInit {
   }
 
   applyAudience(showOnMap: boolean) : void {
-    const aud = this.shadeSettingsForm.controls['audience'].value as Audience;
+    //const aud = this.shadeSettingsForm.controls['audience'].value as Audience;
+    const aud = this.varService.allAudiencesBS$.value.filter(audience => this.shadeSettingsForm.controls['audience'].value === audience.audienceIdentifier)[0];
     aud.showOnMap = showOnMap;
     const palette: ColorPalette = this.shadeSettingsForm.controls['currentTheme'].value;
     // this.rendererService.audienceShading(aud);
