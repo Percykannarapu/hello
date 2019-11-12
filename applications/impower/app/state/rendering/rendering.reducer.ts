@@ -5,12 +5,14 @@ export interface RenderingState {
   lastRadiusRenderCount: number;
   lastAudienceRenderCount: number;
   currentPalette: ColorPalette;
+  legacyRenderingEnabled: boolean;
 }
 
 export const initialState: RenderingState = {
   lastRadiusRenderCount: 0,
   lastAudienceRenderCount: 0,
-  currentPalette: ColorPalette.EsriPurple
+  currentPalette: ColorPalette.EsriPurple,
+  legacyRenderingEnabled: false
 };
 
 export function renderingReducer(state = initialState, action: RenderingActions) : RenderingState {
@@ -36,6 +38,11 @@ export function renderingReducer(state = initialState, action: RenderingActions)
       return {
         ...state,
         currentPalette: action.payload.palette
+      };
+    case RenderingActionTypes.SetLegacyRenderingEnable:
+      return {
+        ...state,
+        legacyRenderingEnabled: action.payload.isEnabled
       };
     default:
       return state;

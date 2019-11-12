@@ -14,7 +14,7 @@ import { debounceTime, distinctUntilChanged, filter, map, pairwise, startWith, s
 import { ShadingData } from '../../../../modules/esri/src/state/renderer/esri.renderer.reducer';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { FullAppState } from '../state/app.interfaces';
-import { getCurrentColorPalette } from '../state/rendering/rendering.selectors';
+import { getCurrentColorPalette, getLegacyRenderingEnabled } from '../state/rendering/rendering.selectors';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
@@ -145,11 +145,10 @@ export class AppRendererService {
       ))
     ).subscribe(visibleGeos => this.store$.dispatch(mapViewChanged({ visibleGeos })));
 
-    const isShaded$ = this.store$.select(selectors.getEsriRendererIsShaded).pipe(
-      pairwise(),
-      filter(([prev, curr]) => prev !== curr),
+    const isShaded$ = combineLatest([this.store$.select(selectors.getEsriRendererIsShaded), this.store$.select(getLegacyRenderingEnabled)]).pipe(
+      map(([esri, app]) => esri || app),
+      distinctUntilChanged(),
       tap(() => this.store$.dispatch(clearSelectionData({ featureTypeName: analysisLevel }))),
-      map(([, curr]) => curr),
       startWith(false)
     );
 

@@ -87,20 +87,21 @@ export class CustomAudienceComponent implements OnInit {
   }
 
   public deleteCustomData(){
-    const ids: string[] = [];
-    let audience: Audience = null;
-    this.audiences.forEach(aud => {
-      if (aud.showOnMap == true){
-        aud.showOnMap = false;
-        audience = aud;
-      }
-      ids.push(aud.audienceIdentifier);
-    });
+    
     this.confirmationService.confirm({
       message: 'Are you sure you want to delete all custom data?',
       header: 'Delete Custom Data',
       icon: 'ui-icon-delete',
       accept: () => {
+        const ids: string[] = [];
+        let audience: Audience = null;
+        this.audiences.forEach(aud => {
+          if (aud.showOnMap == true){
+            aud.showOnMap = false;
+            audience = aud;
+          }
+          ids.push(aud.audienceIdentifier);
+        });
         if (audience != null){
           this.store$.dispatch(new ClearMapVars());
           this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier, isActive: audience.showOnMap }));
@@ -110,10 +111,11 @@ export class CustomAudienceComponent implements OnInit {
           
           if (oldPref != null && newPref !== null){
             newPref.isActive = false;
-            this.impProjectPrefService.update(oldPref, newPref);
+            this.impProjectPrefService.update(oldPref, null);
           }
         }
         this.audiences.forEach(aud => {
+          this.varService.addDeletedAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
           this.varService.removeAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
         });
         this.varService.syncProjectVars();

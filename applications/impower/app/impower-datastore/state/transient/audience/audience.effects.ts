@@ -24,12 +24,14 @@ import { MapVarCacheGeos, MapVarCacheGeosFailure, MapVarCacheGeosComplete, MapVa
 import { Audience } from './audience.model';
 import { MapVar } from '../map-vars/map-vars.model';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { AudienceActionTypes, ApplyAudiences, AudienceActions, FetchOnlineInterest, FetchOnlinePixel, FetchOnlineVLH, FetchOfflineTDA, FetchOnlineInMarket, AddAudience, FetchOnlineInterestCompleted, FetchOnlineInMarketCompleted,
-         FetchOnlinePixelCompleted, FetchOnlineVLHCompleted, FetchOfflineTDACompletedMap, FetchOnlineFailed, FetchCountIncrement, FetchCountDecrement, ApplyAudiencesCompleted, FetchOfflineTDACompleted, FetchOfflineFailed,
-         FetchCustom, FetchCustomCompleted, FetchCustomFromPrefs, FetchCustomFailed, FetchMapVar, FetchOnlineInterestMap, FetchOnlineVLHMap, FetchOnlinePixelMap, FetchOfflineTDAMap, FetchCustomFromPrefsMap, FetchOnlineInMarketMap,
-         FetchOnlineInterestCompletedMap, FetchOnlineInMarketCompletedMap, FetchOnlinePixelCompletedMap, FetchOnlineVLHCompletedMap, FetchOnlineFailedMap, FetchOfflineFailedMap, FetchCustomCompletedMap, FetchCustomFailedMap,
-         MoveAudienceUp, UpsertAudiences, MoveAudienceDn, SequenceChanged, ApplyAudiencesRecordStats, RehydrateAudiences, FetchAudienceTradeArea, FetchAudienceTradeAreaCompleted, FetchAudienceTradeAreaFailed, FetchAudienceTradeAreaMap,
-         FetchAudienceTradeAreaCompletedMap, FetchAudienceTradeAreaFailedMap, RehydrateShading, SelectMappingAudience, UpdateAudiences} from './audience.actions';
+import {
+  AudienceActionTypes, ApplyAudiences, AudienceActions, FetchOnlineInterest, FetchOnlinePixel, FetchOnlineVLH, FetchOfflineTDA, FetchOnlineInMarket, AddAudience, FetchOnlineInterestCompleted, FetchOnlineInMarketCompleted,
+  FetchOnlinePixelCompleted, FetchOnlineVLHCompleted, FetchOfflineTDACompletedMap, FetchOnlineFailed, FetchCountIncrement, FetchCountDecrement, ApplyAudiencesCompleted, FetchOfflineTDACompleted, FetchOfflineFailed,
+  FetchCustom, FetchCustomCompleted, FetchCustomFromPrefs, FetchCustomFailed, FetchMapVar, FetchOnlineInterestMap, FetchOnlineVLHMap, FetchOnlinePixelMap, FetchOfflineTDAMap, FetchCustomFromPrefsMap, FetchOnlineInMarketMap,
+  FetchOnlineInterestCompletedMap, FetchOnlineInMarketCompletedMap, FetchOnlinePixelCompletedMap, FetchOnlineVLHCompletedMap, FetchOnlineFailedMap, FetchOfflineFailedMap, FetchCustomCompletedMap, FetchCustomFailedMap,
+  MoveAudienceUp, UpsertAudiences, MoveAudienceDn, SequenceChanged, ApplyAudiencesRecordStats, RehydrateAudiences, FetchAudienceTradeArea, FetchAudienceTradeAreaCompleted, FetchAudienceTradeAreaFailed, FetchAudienceTradeAreaMap,
+  FetchAudienceTradeAreaCompletedMap, FetchAudienceTradeAreaFailedMap, RehydrateShading, SelectMappingAudience, UpdateAudiences, FetchMapVarCompleted
+} from './audience.actions';
 import { Stats, initialStatState } from './audience.reducer';
 import { TargetAudienceAudienceTA } from 'app/services/target-audience-audienceta';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -721,6 +723,16 @@ export class AudiencesEffects {
       return [new UpdateAudiences({ audiences: updates }),
               new RehydrateShading()];
     })
+  );
+
+  @Effect()
+  finalizeMapFetch$ = this.actions$.pipe(
+    ofType(AudienceActionTypes.FetchAudienceTradeAreaCompletedMap, AudienceActionTypes.FetchAudienceTradeAreaFailedMap,
+      AudienceActionTypes.FetchCustomCompletedMap, AudienceActionTypes.FetchCustomFailedMap,
+      AudienceActionTypes.FetchOfflineFailedMap, AudienceActionTypes.FetchOfflineTDACompletedMap,
+      AudienceActionTypes.FetchOnlineFailedMap, AudienceActionTypes.FetchOnlineInMarketCompletedMap, AudienceActionTypes.FetchOnlineInterestCompletedMap,
+      AudienceActionTypes.FetchOnlinePixelCompletedMap, AudienceActionTypes.FetchOnlineVLHCompletedMap),
+    map(() => new FetchMapVarCompleted())
   );
 
   constructor(private actions$: Actions<AudienceActions>,

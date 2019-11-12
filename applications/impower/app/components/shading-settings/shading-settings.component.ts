@@ -5,16 +5,17 @@ import { ColorPalette, EsriApi, EsriMapService } from '@val/esri';
 import { SelectMappingAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { AudienceDataDefinition } from 'app/models/audience-data.model';
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { AppRendererService } from 'app/services/app-renderer.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
-import { filter, map, withLatestFrom, tap } from 'rxjs/operators';
+import { filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { ClearMapVars } from '../../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { LocalAppState } from '../../state/app.interfaces';
-import { SetPalette } from '../../state/rendering/rendering.actions';
+import { SetLegacyRenderingEnable, SetPalette } from '../../state/rendering/rendering.actions';
 import { getCurrentColorPalette } from '../../state/rendering/rendering.selectors';
 
 @Component({
@@ -56,13 +57,8 @@ export class ShadingSettingsComponent implements OnInit {
   ngOnInit() : void {
     this.allAudiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       map(audiences => audiences.map(aud => ({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud.audienceIdentifier}))),
-      tap(audiences => {
-        if (this.shadeSettingsForm.controls['audience'].value == null && audiences.length > 0) {
-          this.shadeSettingsForm.controls['audience'].setValue(audiences[0].value.audienceIdentifier);
-        }
-      })  
+      tap(() => this.shadeSettingsForm.updateValueAndValidity())
     );
-
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
       withLatestFrom(this.varService.allAudiencesBS$, this.store$.select(getCurrentColorPalette))
@@ -70,10 +66,14 @@ export class ShadingSettingsComponent implements OnInit {
 
     this.shadeSettingsForm = this.fb.group({
       audience: [null, Validators.required],
+      //audience: new FormControl('', {asyncValidators: this.validateAudience()}),
       // variable: [ShadingSettingsComponent.defaultExtent, Validators.required],
       currentTheme: [ShadingSettingsComponent.defaultPalette, Validators.required],
     });
     this.appStateService.clearUI$.subscribe(() => this.resetFormToDefaults());
+
+    this.varService.deletedAudiences$.subscribe(result => this.resetFormOnDeleteAudience(result));
+
   }
 
   private onLoadProject(allAudiences: Audience[], palette: ColorPalette) {
@@ -104,6 +104,7 @@ export class ShadingSettingsComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.varService.allAudiencesBS$.value.length > 0)
     this.applyAudience(true);
   }
 
@@ -116,6 +117,7 @@ export class ShadingSettingsComponent implements OnInit {
     this.store$.dispatch(new ClearMapVars());
     this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: aud.audienceIdentifier, isActive: aud.showOnMap }));
     this.store$.dispatch(new SetPalette({ palette }));
+    this.store$.dispatch(new SetLegacyRenderingEnable({ isEnabled: showOnMap }));
     // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
     this.varService.syncProjectVars();
 
@@ -132,5 +134,24 @@ export class ShadingSettingsComponent implements OnInit {
       currentTheme: ShadingSettingsComponent.defaultPalette
     }, { emitEvent: false });
     this.shadeSettingsForm.markAsPristine();
+  }
+
+  public hasErrors(controlKey: string) : boolean{
+
+    if (this.shadeSettingsForm != null){
+      const control = this.shadeSettingsForm.get(controlKey);
+      return (control.dirty || control.touched) && (control.errors != null);
+    }
+    /*if (this.varService.allAudiencesBS$.value.filter(aud => aud.showOnMap).length > 0){
+      this.shadeSettingsForm.setErrors({error: 'error'});
+      return true;
+    }
+    else return false;*/
+  }
+
+  public resetFormOnDeleteAudience(audiences: AudienceDataDefinition[]){
+    if (audiences.filter(aud => aud.audienceIdentifier === this.shadeSettingsForm.get('audience').value).length > 0){
+      this.shadeSettingsForm.get('audience').setValue(null);
+    }
   }
 }

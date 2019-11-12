@@ -1,6 +1,6 @@
-import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
-import { Audience } from './audience.model';
+import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { AudienceActions, AudienceActionTypes } from './audience.actions';
+import { Audience } from './audience.model';
 
 export interface Stats {
   fetchTimes: any;
@@ -17,6 +17,7 @@ export interface State extends EntityState<Audience> {
     outstandingVarFetches: number;
   };
   stats: Stats;
+  mapIsFetching: boolean;
 }
 
 function sortBySeq(e1: Audience, e2: Audience) {
@@ -42,7 +43,8 @@ export const initialState: State = adapter.getInitialState({
   scratch: {
     outstandingVarFetches: 0,
   },
-  stats: { ...initialStatState, fetchTimes: {}, counts: {} }
+  stats: { ...initialStatState, fetchTimes: {}, counts: {} },
+  mapIsFetching: false
 });
 
 export function reducer(
@@ -108,6 +110,14 @@ export function reducer(
 
     case AudienceActionTypes.FetchCountDecrement: {
       return {...state, scratch: {...state.scratch, outstandingVarFetches: (state.scratch.outstandingVarFetches > 0) ? state.scratch.outstandingVarFetches - 1 : 0}};
+    }
+
+    case AudienceActionTypes.FetchMapVar: {
+      return { ...state, mapIsFetching: true };
+    }
+
+    case AudienceActionTypes.FetchMapVarCompleted : {
+      return { ...state, mapIsFetching: false };
     }
 
     default: {

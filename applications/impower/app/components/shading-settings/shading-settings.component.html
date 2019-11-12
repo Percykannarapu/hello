@@ -23,6 +23,10 @@
           <span class="md-inputfield">
             <p-dropdown id="selectAudience" formControlName="audience" [options]="allAudiences$ | async" placeholder="&nbsp;"
                         autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>
+            <span class="ui-inputfield-addon" *ngIf="!hasErrors('audience')">&nbsp;</span>
+            <span class="ui-inputfield-addon" *ngIf="hasErrors('audience')">
+                
+              </span>            
             <label for="selectAudience">Audience</label>
           </span>
         </div>
