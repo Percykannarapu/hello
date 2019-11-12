@@ -5,7 +5,7 @@ import { Store } from '@ngrx/store';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { getAllAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { filter, tap, map, take, combineLatest } from 'rxjs/operators';
-import { SelectItem } from 'primeng/api';
+import { SelectItem, ConfirmationService } from 'primeng/api';
 import { mapArray } from '@val/common';
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
@@ -13,6 +13,9 @@ import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { SuccessNotification } from '@val/messaging';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EditCombinedAudiencesComponent } from './edit-combined-audiences/edit-combined-audiences.component';
+import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
+import { AppStateService } from 'app/services/app-state.service';
+import { CreateAudienceUsageMetric } from 'app/state/usage/targeting-usage.actions';
 
 @Component({
   selector: 'val-combined-audience',
@@ -34,6 +37,8 @@ export class CombinedAudienceComponent implements OnInit {
               private fb: FormBuilder,
               private varService: TargetAudienceService,
               private appProjectPrefService: AppProjectPrefService,
+              private confirmationService: ConfirmationService,
+              private appStateService: AppStateService,
               ) { 
 
   }
@@ -116,7 +121,22 @@ export class CombinedAudienceComponent implements OnInit {
   }
 
   onDelete(audience: Audience){
-    this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+    const message = 'Are you sure you want to delete the following combined variable? <br/> <br/>' +
+    `${audience.audienceName}`;
+    this.confirmationService.confirm({
+      message: message,
+      header: 'Delete Combined Variable',
+      icon: 'ui-icon-delete',
+      accept: () => {
+        this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+        this.store$.dispatch(new RemoveVar({varPk: audience.audienceIdentifier}));
+
+        let metricText = null;
+        metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
+        this.store$.dispatch(new CreateAudienceUsageMetric('combined audience', 'delete', metricText));
+      },
+      reject: () => {}
+    });
   }
 
   

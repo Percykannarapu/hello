@@ -35,9 +35,6 @@ export class EditCombinedAudiencesComponent implements OnInit {
   }
   
   formatString(audienceName: string){
-    console.log('Variable Names::', audienceName);
-    return audienceName.replace(',', ',<wbr>');
-    // audienceName.replace(',', <wbr>);
-
+    return audienceName.replace(',', '<wbr>');
   }
 }

@@ -15,8 +15,8 @@
              <tr [pSelectableRow]="audience">
                 
                 <td *ngFor="let col of columns">
-                        {{audience[col.field]}}:
-                        <i class="fa fa-comment"  pTooltip="{{formatString(audience.combinedVariableNames)}}" [escape]="false"> </i> 
+                        {{audience[col.field]}} |
+                        <i class="fa fa-comment"  pTooltip="{{audience.combinedVariableNames}}"> </i> 
                 </td>
                 <td>
                     <i class="fa fa-pencil val-clickable" (click)="onEditAudiences(audience)" ></i>
