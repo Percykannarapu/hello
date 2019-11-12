@@ -33,3 +33,5 @@ export const getAudienceIdFromName = createSelector(allAudiences, (audiences: Au
   const aud = audiences.find(audience => audience.audienceName === props.audienceName);
   return (aud != null) ? aud.audienceIdentifier : null;
 });
+
+export const getMapAudienceIsFetching = createSelector(audienceSlice, state => state.mapIsFetching);

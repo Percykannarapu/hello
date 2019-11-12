@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
-import { ColorPalette } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
@@ -9,7 +8,7 @@ import { AllColorPalettes } from '../../../../modules/esri/src/models/color-pale
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { LocalAppState } from '../state/app.interfaces';
-import { SetPalette } from '../state/rendering/rendering.actions';
+import { SetLegacyRenderingEnable, SetPalette } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppGeoService } from './app-geo.service';
@@ -82,10 +81,13 @@ export class AppDataShimService {
     this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
     return this.appProjectService.load(id).pipe(
-      tap(() => {
+      tap(project => {
         const paletteKey = this.appPrefService.getPrefVal('Theme');
         if (paletteKey != null) this.store$.dispatch(new SetPalette({ palette: AllColorPalettes[paletteKey] }));
-      })
+        const mappedAudienceCount = project.impProjectVars.filter(pv => pv.isShadedOnMap).length;
+        this.store$.dispatch(new SetLegacyRenderingEnable({ isEnabled: mappedAudienceCount > 0 }));
+      }),
+      map(project => project.projectId)
     );
   }
 
@@ -108,6 +110,7 @@ export class AppDataShimService {
     this.targetAudienceService.clearAll();
     this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
+    this.store$.dispatch(new SetLegacyRenderingEnable({ isEnabled: false }));
     return this.appProjectService.createNew();
   }
 

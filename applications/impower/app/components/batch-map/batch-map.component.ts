@@ -3,8 +3,9 @@ import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { selectors as esriSelectors } from '@val/esri';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
+import { getMapAudienceIsFetching } from '../../impower-datastore/state/transient/audience/audience.selectors';
 import { BatchMapService } from '../../services/batch-map.service';
 import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode } from '../../state/batch-map/batch-map.actions';
@@ -57,10 +58,12 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       filter(([, params]) => params.id != null)
     ).subscribe(([, params]) => this.batchMapService.initBatchMapping(params.id));
 
-    combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving)]).pipe(
-      map(([ready, moving]) => ready && !moving),
+    combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving), this.store$.select(getMapAudienceIsFetching)]).pipe(
+      map(([ready, moving, fetching]) => ready && !moving && !fetching),
+      debounceTime(1000),
       takeUntil(this.destroyed$)
     ).subscribe(ready => this.zone.run(() => this.mapViewIsReady = ready));
+
     this.store$.select(getNextSiteNumber).pipe(
       takeUntil(this.destroyed$)
     ).subscribe(siteNum => this.zone.run(() => this.nextSiteNumber = siteNum));
@@ -87,11 +90,11 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   }
 
   onGoToSite(siteNum: string) : void {
+    this.mapViewIsReady = false;
     if (siteNum != null) this.store$.dispatch(new MoveToSite({ siteNum }));
   }
 
   onGoToSpecificSite() : void {
-    if (this.specificSiteRef != null)
-      this.store$.dispatch(new MoveToSite({ siteNum: this.specificSiteRef.nativeElement.value }));
+    if (this.specificSiteRef != null) this.onGoToSite(this.specificSiteRef.nativeElement.value);
   }
 }

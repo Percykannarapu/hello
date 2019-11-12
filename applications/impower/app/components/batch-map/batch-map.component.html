@@ -8,7 +8,7 @@
   <span id="currentSiteNum" *ngIf="mapViewIsReady">
     {{currentSiteNumber}}
   </span>
-  <span id="readyFlag" *ngIf="nextSiteNumber != null">
+  <span *ngIf="nextSiteNumber != null">
     <input #gotoSpecificSiteInput id="gotoSpecificSiteInput" type="text">
     <button id="gotoSpecificSiteButton" (click)="onGoToSpecificSite()">Goto Specific Site</button>
   </span>

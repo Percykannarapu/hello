@@ -50,9 +50,9 @@ export class ImpProjectService extends DataStore<ImpProject>
      this.transactionManager.stopTransaction();
    }
 
-   loadFromServer(id: number) : Observable<number> {
+   loadFromServer(id: number) : Observable<ImpProject> {
      if (id == null) return EMPTY;
-     return Observable.create(observer => {
+     return new Observable<ImpProject>(observer => {
        const loadCache: ImpProject[] = [];
        this.rest.get(`${dataUrl}/${id}`).subscribe(
          response => loadCache.push(new ImpProject(response.payload)),
@@ -64,12 +64,10 @@ export class ImpProjectService extends DataStore<ImpProject>
              // tagged as 'UPDATE' (for existing entities) or 'INSERT' (for new entities)
              p.setTreeProperty('baseStatus', DAOBaseStatus.UPDATE);
            });
-           console.log('test load::',loadCache);
            this.load(loadCache);
-           observer.next(id);
+           observer.next(loadCache[0]);
            observer.complete();
-         }
-       );
+         });
      });
    }
 

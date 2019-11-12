@@ -42,7 +42,7 @@ export class AppProjectService {
     this.currentProject$.subscribe(project => this.currentProjectRef = project);
   }
 
-  load(id: number) : Observable<number> {
+  load(id: number) : Observable<ImpProject> {
     return this.impProjectService.loadFromServer(id);
   }
 

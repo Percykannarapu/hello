@@ -5,8 +5,9 @@ import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { Observable, race, timer } from 'rxjs';
-import { debounceTime, filter, map, reduce, switchMap, take } from 'rxjs/operators';
+import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { BatchMapPayload, LocalAppState } from '../state/app.interfaces';
 import { getBatchMapReady } from '../state/batch-map/batch-map.selectors';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
@@ -36,9 +37,14 @@ export class BatchMapService {
 
   initBatchMapping(projectId: number) : void {
     this.appStateService.notifyMapReady();
+
     this.esriMapService.watchMapViewProperty('updating').pipe(
       debounceTime(1000),
-    ).subscribe(result => this.store$.dispatch(new SetMapReady({ mapReady: !result.newValue })));
+      withLatestFrom(this.store$.select(getMapAudienceIsFetching)),
+      map(([result, isFetching]) => !isFetching && !result.newValue)
+    ).subscribe(ready => this.store$.dispatch(new SetMapReady({ mapReady: ready })));
+
+
     this.esriMapService.watchMapViewProperty('stationary').pipe(
       filter(result => result.newValue),
     ).subscribe(() => this.appStateService.refreshVisibleGeos());
@@ -70,7 +76,6 @@ export class BatchMapService {
   }
 
   moveToSite(project: ImpProject, siteNum: string) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    console.log('Move To Site called');
     if (this.originalGeoState == null) {
       this.recordOriginalState(project);
     }
