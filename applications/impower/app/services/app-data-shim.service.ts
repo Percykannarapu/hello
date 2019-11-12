@@ -5,6 +5,7 @@ import { ColorPalette } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { AllColorPalettes } from '../../../../modules/esri/src/models/color-palettes';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { LocalAppState } from '../state/app.interfaces';
@@ -82,8 +83,8 @@ export class AppDataShimService {
     this.appStateService.clearUserInterface();
     return this.appProjectService.load(id).pipe(
       tap(() => {
-        const palette: ColorPalette = this.appPrefService.getPrefVal('Theme') as ColorPalette;
-        this.store$.dispatch(new SetPalette({ palette }));
+        const paletteKey = this.appPrefService.getPrefVal('Theme');
+        if (paletteKey != null) this.store$.dispatch(new SetPalette({ palette: AllColorPalettes[paletteKey] }));
       })
     );
   }

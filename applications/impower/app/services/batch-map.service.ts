@@ -5,7 +5,7 @@ import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { Observable, race, timer } from 'rxjs';
-import { debounceTime, filter, map, switchMap, take } from 'rxjs/operators';
+import { debounceTime, filter, map, reduce, switchMap, take } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { BatchMapPayload, LocalAppState } from '../state/app.interfaces';
 import { getBatchMapReady } from '../state/batch-map/batch-map.selectors';
@@ -70,6 +70,7 @@ export class BatchMapService {
   }
 
   moveToSite(project: ImpProject, siteNum: string) : Observable<{ siteNum: string, isLastSite: boolean }> {
+    console.log('Move To Site called');
     if (this.originalGeoState == null) {
       this.recordOriginalState(project);
     }
@@ -127,6 +128,7 @@ export class BatchMapService {
     const geocodes = activeGeos.map(g => g.geocode);
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
+      reduce((a, c) => [...a, ...c], []),
       switchMap((polys) => {
         let xStats = calculateStatistics(polys.reduce((p, c) => {
           p.push(c.geometry.extent.xmax, c.geometry.extent.xmin);
@@ -136,8 +138,8 @@ export class BatchMapService {
           p.push(c.geometry.extent.ymax, c.geometry.extent.ymin);
           return p;
         }, []));
-        xStats = expandRange(xStats, 0.01);
-        yStats = expandRange(yStats, 0.01);
+        xStats = expandRange(xStats, xStats.distance * 0.1);
+        yStats = expandRange(yStats, yStats.distance * 0.1);
         const polyCount = activeGeos.length > 0 ? activeGeos.length + 1 : 0;
         return this.esriMapService.zoomOnMap(xStats, yStats, polyCount);
       })
