@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { Store } from '@ngrx/store';
@@ -39,6 +39,7 @@ export class CombinedAudienceComponent implements OnInit {
               private appProjectPrefService: AppProjectPrefService,
               private confirmationService: ConfirmationService,
               private appStateService: AppStateService,
+              private cd: ChangeDetectorRef,
               ) { 
 
   }
@@ -60,7 +61,6 @@ export class CombinedAudienceComponent implements OnInit {
     this.combinedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null ),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined')),
-      filter(filteredSet => filteredSet.length > 0),
       );
   }
   combineAudiences(audienceFields: any){
@@ -113,12 +113,16 @@ export class CombinedAudienceComponent implements OnInit {
   }
 
   onEdit(selectedAudience: Audience){
+    // this.selectedCoulmns = selectedAudience.
     this.audienceForm = this.fb.group({
       combinedAudName: selectedAudience.audienceName,
       audienceList: selectedAudience.combinedVariableNames,
     });
 
   }
+  // updateSelections(){
+
+  // }
 
   onDelete(audience: Audience){
     const message = 'Are you sure you want to delete the following combined variable? <br/> <br/>' +
@@ -130,7 +134,7 @@ export class CombinedAudienceComponent implements OnInit {
       accept: () => {
         this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
         this.store$.dispatch(new RemoveVar({varPk: audience.audienceIdentifier}));
-
+        
         let metricText = null;
         metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
         this.store$.dispatch(new CreateAudienceUsageMetric('combined audience', 'delete', metricText));
