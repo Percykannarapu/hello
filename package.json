@@ -38,6 +38,7 @@
     "primeicons": "^2.0.0",
     "primeng": "8.0.2",
     "rxjs": "^6.5.3",
+    "stacktrace-js": "^2.0.1",
     "xlsx": "^0.15.1",
     "zone.js": "^0.10.2"
   },
