@@ -56,6 +56,7 @@ export class ShadingSettingsComponent implements OnInit {
 
   ngOnInit() : void {
     this.allAudiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
+      map(activeAudiences => activeAudiences.filter(aud => aud.audienceSourceType !== 'Combined')),
       map(audiences => audiences.map(aud => ({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud.audienceIdentifier}))),
       tap(() => this.shadeSettingsForm.updateValueAndValidity())
     );
