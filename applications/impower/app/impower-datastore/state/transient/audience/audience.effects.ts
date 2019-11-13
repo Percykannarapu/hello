@@ -144,6 +144,9 @@ export class AudiencesEffects {
     //tap(action => this.logger.info.log('### fetchMapVar - geos(' + action.payload.geos.length + '):', action.payload.geos)),
     withLatestFrom(this.store$.select(getMapVarIds)),
     map(([action, existingGeos]) => [action, dedupeSimpleSet(new Set(action.payload.geos), new Set(existingGeos as string[]))] as [FetchMapVar, Set<string>]),
+    tap(([, geos]) => {
+      if (geos.size === 0) this.store$.dispatch(new FetchMapVarCompleted());
+    }),
     filter(([, geos]) => geos.size > 0),
     tap(() => {
       mapVarsStart = performance.now();
