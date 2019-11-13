@@ -79,7 +79,7 @@ export class EnvironmentData {
     },
     pcr: {
       boundary: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/PCR_Top_Vars_Portal_CopyAllData/FeatureServer`,
-      simplifiedBoundary: undefined,
+      simplifiedBoundary: 'b2b002057e714a73b7760f4a4511534a',
       centroid: `${EnvironmentData.esri.portalServer}/arcgis-server/rest/services/Hosted/PCR_Centroids_Portal_CopyAllData/FeatureServer`
     },
     wrap: {
