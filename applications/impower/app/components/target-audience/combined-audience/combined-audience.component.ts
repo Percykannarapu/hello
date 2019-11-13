@@ -1,21 +1,29 @@
 import { Component, OnInit, ViewEncapsulation, ViewChild, ChangeDetectorRef } from '@angular/core';
-import { Observable } from 'rxjs';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+
 import { Store } from '@ngrx/store';
+
+import { mapArray } from '@val/common';
+import { SuccessNotification } from '@val/messaging';
+
+import { Observable } from 'rxjs';
+
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { getAllAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
+
 import { filter, tap, map, take, combineLatest } from 'rxjs/operators';
+
 import { SelectItem, ConfirmationService } from 'primeng/api';
-import { mapArray } from '@val/common';
+
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
-import { SuccessNotification } from '@val/messaging';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { EditCombinedAudiencesComponent } from './edit-combined-audiences/edit-combined-audiences.component';
 import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { AppStateService } from 'app/services/app-state.service';
 import { CreateAudienceUsageMetric } from 'app/state/usage/targeting-usage.actions';
+
+import { EditCombinedAudiencesComponent } from './edit-combined-audiences/edit-combined-audiences.component';
 
 @Component({
   selector: 'val-combined-audience',
@@ -64,11 +72,7 @@ export class CombinedAudienceComponent implements OnInit {
       );
   }
   combineAudiences(audienceFields: any){
-    const formData = {
-      combinedAudName: audienceFields.combinedAudName,
-      audienceList: audienceFields.audienceList
-    };
-
+   
     const combinedAudIds: string[] = [];
     if (audienceFields.audienceList.length > 0){
       audienceFields.audienceList.forEach(audience => {
@@ -113,17 +117,13 @@ export class CombinedAudienceComponent implements OnInit {
   }
 
   onEdit(selectedAudience: Audience){
-    // this.selectedCoulmns = selectedAudience.
     this.audienceForm = this.fb.group({
       combinedAudName: selectedAudience.audienceName,
       audienceList: selectedAudience.combinedVariableNames,
     });
 
   }
-  // updateSelections(){
-
-  // }
-
+  
   onDelete(audience: Audience){
     const message = 'Are you sure you want to delete the following combined variable? <br/> <br/>' +
     `${audience.audienceName}`;
