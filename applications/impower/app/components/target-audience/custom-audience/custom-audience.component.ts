@@ -107,10 +107,10 @@ export class CustomAudienceComponent implements OnInit {
           this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier, isActive: audience.showOnMap }));
           //this.appProjectPrefService.createPref('map-settings', 'audience', `${audience.audienceSourceName}: ${audience.audienceName}`, 'string');
           const oldPref  = this.appProjectPrefService.getPref('audience');
-          const newPref  = this.appProjectPrefService.getPref('audience');
+          //const newPref  = this.appProjectPrefService.getPref('audience');
           
-          if (oldPref != null && newPref !== null){
-            newPref.isActive = false;
+          if (oldPref != null ){
+            //newPref.isActive = false;
             this.impProjectPrefService.update(oldPref, null);
           }
         }

@@ -1,10 +1,10 @@
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { Injectable } from '@angular/core';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
-import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
+import { EMPTY, Observable, BehaviorSubject, merge } from 'rxjs';
 import { AppLoggingService } from './app-logging.service';
 import { TargetAudienceService } from './target-audience.service';
-import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, tap, withLatestFrom, switchMap, reduce, mergeMap } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { AppStateService } from './app-state.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
@@ -465,6 +465,7 @@ export class TargetAudienceCustomService {
   private handleError(message: string) : void {
     this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
   }
+  
 
   private validateGeos(data: ParseResponse<CustomAudienceData>, fileNmae: string, header: string){
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.stateService.analysisLevel$.getValue());
@@ -473,7 +474,53 @@ export class TargetAudienceCustomService {
     const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
     const errorGeo: CustomAudienceData[] = [];
     const successGeo = [];
-    this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
+    const chunked_arr = [];
+    let index = 0;
+    while (index < Array.from(uniqueGeos).length) {
+      chunked_arr.push(Array.from(uniqueGeos).slice(index, 2000 + index));
+      index += 2000;
+    }
+    const obs = chunked_arr.map(geoList => {
+        return this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', geoList, false, outfields).pipe(
+          map(graphics => graphics.map(g => g.attributes)),
+          map(attrs => {
+            attrs.forEach(r => queryResult.add(r.geocode));
+            return queryResult;
+          })
+        );
+    });
+
+    merge(...obs, 4).pipe(
+      map( response => {
+        return Array.from(response);
+      }),
+      reduce((acc, result) => [...acc, ...result], []),
+    ).subscribe(result => {
+      const qResult = new Set(result);
+      const fields = header.split(',');
+      const records: string[] = [];
+      records.push(header + '\n');
+       data.parsedData.forEach(record => {
+         if (!qResult.has(record.geocode)){
+           let row = '';
+          for (let i = 0; i <= fields.length - 1; i++ ){
+            row = fields[i].toLocaleUpperCase() === 'GEOCODE' ? row + `${record.geocode},` : row + `${record[fields[i]]},`;
+          }            
+          records.push(row.substring(0, row.length - 1) + '\n');
+         }
+       });
+       if (records.length > 1){
+          const a = document.createElement('a');
+          const blob = new Blob(records, { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          a.href = url;
+          a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
+          a.click();
+          const geos = records.length == 2 ? 'Geo' : 'Geos'; 
+          this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
+       }
+    });
+   /* this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
       map(graphics => graphics.map(g => g.attributes)),
       map(attrs => {
         attrs.forEach(r => queryResult.add(r.geocode));
@@ -502,6 +549,6 @@ export class TargetAudienceCustomService {
           const geos = records.length == 2 ? 'Geo' : 'Geos'; 
           this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
        }
-     });
+     });*/
   }
 }
