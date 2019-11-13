@@ -31,6 +31,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   isLastSite: boolean;
   height$: Observable<number>;
   currentSiteNumber: string;
+  lastError: string = null;
   @ViewChild('gotoSpecificSiteInput', {static: false}) specificSiteRef: ElementRef;
 
   private typedParams$: Observable<BatchMapQueryParams>;
@@ -39,7 +40,15 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   constructor(private store$: Store<FullAppState>,
               private batchMapService: BatchMapService,
               private config: AppConfig,
-              private zone: NgZone) { }
+              private zone: NgZone) {
+    const stdErr = console.error;
+    console.error = (...args) => {
+      this.zone.run(() => {
+        this.lastError = args.join('<br>');
+      });
+      stdErr(...args);
+    };
+  }
 
   private static convertParams(params: Params) : BatchMapQueryParams {
     const result = {

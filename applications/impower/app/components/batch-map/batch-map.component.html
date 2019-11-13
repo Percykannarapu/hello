@@ -15,3 +15,6 @@
   <span id="isLastSite" *ngIf="isLastSite">
   </span>
 </div>
+
+<div id="errorDisplay" class="batch-map-error" [innerHTML]="lastError" *ngIf="lastError != null">
+</div>

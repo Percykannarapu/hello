@@ -177,7 +177,6 @@ export class EsriQueryService {
   }
 
   public queryPortalLayerView(layerId: string) : Observable<__esri.Graphic[]> {
-    console.log('Querying LayerView');
     if (layerId == null || layerId.length === 0) return of([]);
     const layer = this.layerService.getPortalLayerById(layerId);
     return this.queryLayerView([layer], null);
