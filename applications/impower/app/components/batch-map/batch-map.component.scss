@@ -1,3 +1,11 @@
+@import "valassis-variables";
+
+.batch-map-error {
+  padding: 1em;
+  font-size: 12pt;
+  color: $inputErrorTextColor;
+}
+
 #readyFlag, #isLastSite {
   padding: 0 2em;
 }
