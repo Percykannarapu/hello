@@ -105,15 +105,16 @@ export class BatchMapService {
   }
 
   private forceMapUpdate() {
+    const timeout = 120000; // 2 minutes
     const mapReady$ = this.esriMapService.watchMapViewProperty('updating').pipe(
       debounceTime(500),
       map(result => result.newValue),
       filter(result => !result),
     );
 
-    const timeout$ = timer(180000).pipe(
+    const timeout$ = timer(timeout).pipe(
       map(() => false)
-    ); // 3 minutes
+    );
 
     race(mapReady$, timeout$).pipe(
       take(1)
