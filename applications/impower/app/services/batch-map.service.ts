@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, expandRange } from '@val/common';
+import { calculateStatistics, expandRange, groupByExtended } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
@@ -122,6 +122,17 @@ export class BatchMapService {
 
   private recordOriginalState(project: ImpProject) : void {
     const currentGeos = project.getImpGeofootprintGeos();
+    const geosByGeocode = groupByExtended(currentGeos, g => g.geocode);
+    // this is a hack to "dedupe" geos that are assigned to multiple sites
+    geosByGeocode.forEach(commonGeos => {
+      if (commonGeos.length > 1) {
+        commonGeos.sort((a, b) => a.distance - b.distance);
+        const originalState = commonGeos[0].isActive;
+        commonGeos.forEach(g => g.isActive = false);
+        commonGeos[0].isActive = originalState;
+      }
+    });
+    // end hack
     this.originalGeoState = {};
     currentGeos.forEach(geo => {
       this.originalGeoState[geo.ggId] = geo.isActive;

@@ -189,9 +189,9 @@ export function mapToEntity<T>(sourceMap: Map<string | number, T>) : { [key: str
  * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
  * @returns {Map<T[K], T | R>}
  */
-export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K) : Map<T[K], T>;
-export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector: (item: T) => R) : Map<T[K], R>;
-export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector?: (item: T) => R) : Map<T[K], T | R> {
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[] | ReadonlyArray<T>, fieldName: K) : Map<T[K], T>;
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[] | ReadonlyArray<T>, fieldName: K, valueSelector: (item: T) => R) : Map<T[K], R>;
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[] | ReadonlyArray<T>, fieldName: K, valueSelector?: (item: T) => R) : Map<T[K], T | R> {
   return mapByExtended(items, (i) => i[fieldName], valueSelector);
 }
 
@@ -203,9 +203,9 @@ export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(i
  * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
  * @returns {Map<T[K], T | R>}
  */
-export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K) : Map<K, T>;
-export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector: (item: T) => R) : Map<K, R>;
-export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector?: (item: T) => R) : Map<K, T | R> {
+export function mapByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K) : Map<K, T>;
+export function mapByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector: (item: T) => R) : Map<K, R>;
+export function mapByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector?: (item: T) => R) : Map<K, T | R> {
   const result = new Map<K, T | R>();
   const tx: ((item: T) => T | R) = valueSelector != null ? valueSelector : (i) => i;
   if (items == null || items.length === 0) return result;
