@@ -37,7 +37,6 @@ export class CombinedAudienceComponent implements OnInit {
   selectedColumns: Audience[];
   audienceForm: FormGroup;
   hasCombinedAudiences: boolean = false;
-  combinedVariableNames: string[] = [];  
 
 
 
@@ -75,9 +74,11 @@ export class CombinedAudienceComponent implements OnInit {
   combineAudiences(audienceFields: any){
    
     const combinedAudIds: string[] = [];
+    const combinedVariableNames: string[] = [];  
+
     if (audienceFields.audienceList.length > 0){
       audienceFields.audienceList.forEach(audience => {
-      this.combinedVariableNames.push(audience.audienceName);
+      combinedVariableNames.push(audience.audienceName);
       combinedAudIds.push(audience.audienceIdentifier);
     }
     );
@@ -98,7 +99,7 @@ export class CombinedAudienceComponent implements OnInit {
       seq: fkId,
       isCombined: true,
       combinedAudiences: combinedAudIds,
-      combinedVariableNames: this.combinedVariableNames.join()
+      combinedVariableNames: combinedVariableNames.join()
     };
     this.varService.addAudience(combinedAud);
     this.store$.dispatch(new SuccessNotification({ message: 'The following audiences are created successfully:' + combinedAud.audienceName, notificationTitle: 'Combine Audience' }));
