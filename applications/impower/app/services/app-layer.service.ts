@@ -110,6 +110,7 @@ export class AppLayerService {
   }
 
   public updateLabelExpressions(showPOBs: boolean, isBatchMode: boolean = false) : void {
+    console.log('Updating Labels. BatchMode::', isBatchMode);
     const groupDefs = Object.values(this.appConfig.layers);
     const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
     const labelLayerMap = mapByExtended(allLayers,
@@ -123,7 +124,7 @@ export class AppLayerService {
       if (showPOBs) {
         return l.labelExpression;
       } else {
-        return `IIF($feature.pob == "B", "", ${l.labelExpression})`;
+        return `if (HasKey($feature, "pob")) { return IIF($feature.pob == "B", "", ${l.labelExpression}); } else { return ${l.labelExpression}; }`;
       }
     } else {
       return l.labelExpression;

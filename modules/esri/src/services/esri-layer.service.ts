@@ -279,6 +279,7 @@ export class EsriLayerService {
   public setLabels(labelConfig: EsriLabelConfiguration, layerExpressions: { [layerId: string] : EsriLabelLayerOptions }) : void {
     Object.entries(layerExpressions).forEach(([layerId, options]) => {
       const currentLayer = this.getPortalLayerById(layerId);
+      console.log('Setting label config for', layerId, currentLayer);
       if (currentLayer != null) {
         currentLayer.labelingInfo = this.createLabelConfig(currentLayer, labelConfig.size, options);
         currentLayer.labelsVisible = labelConfig.enabled;

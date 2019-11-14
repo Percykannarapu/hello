@@ -224,7 +224,7 @@ export class AppConfig implements LoggingConfiguration {
       },
       boundaries: {
         id: EnvironmentData.layerIds.pcr.boundary,
-        simplifiedId: null,
+        simplifiedId: EnvironmentData.layerIds.pcr.simplifiedBoundary,
         name: 'PCR Boundaries',
         defaultVisibility: true,
         sortOrder: 0,
@@ -258,7 +258,7 @@ export class AppConfig implements LoggingConfiguration {
           : this.layers.digital_atz.centroids.id;
       case 'pcr':
         return boundary
-          ? this.layers.pcr.boundaries.id
+          ? this.isBatchMode ? this.layers.pcr.boundaries.simplifiedId : this.layers.pcr.boundaries.id
           : this.layers.pcr.centroids.id;
       default:
         throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);

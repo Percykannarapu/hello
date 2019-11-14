@@ -98,7 +98,7 @@ export class AppDataShimService {
     }
     /**recalculating mustcovers disabled for DE2271 */
     this.appGeoService.reloadMustCovers();
-    this.appLayerService.updateLabelExpressions(false);
+    this.appLayerService.updateLabelExpressions(false, isBatch);
   }
 
   onLoadFinished() : void {

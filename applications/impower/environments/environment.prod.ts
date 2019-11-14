@@ -65,7 +65,7 @@ export class EnvironmentData {
     },
     pcr: {
       boundary: '2fe987a3c8b74c18a719433e69644bb0',
-      simplifiedBoundary: undefined,
+      simplifiedBoundary: '60b63871c250465e9071dffa167ed3f3',
       centroid: '8ac8074ac3c44d91bce4271928ac7e20'
     },
     wrap: {
