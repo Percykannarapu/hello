@@ -16,7 +16,7 @@
                 
                 <td *ngFor="let col of columns">
                         {{audience[col.field]}} 
-                        <i class="fa fa-comment"  pTooltip="{{audience.combinedVariableNames}}"> </i> 
+                        <span class="fa fa-comment"  pTooltip="{{formatString(audience.combinedVariableNames)}}" [escape]="false"> </span> 
                 </td>
                 <!-- <td>
                     <i class="fa fa-pencil val-clickable" (click)="onEditAudiences(audience)" ></i>

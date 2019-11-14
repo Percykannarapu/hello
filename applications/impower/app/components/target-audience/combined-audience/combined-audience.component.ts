@@ -99,7 +99,7 @@ export class CombinedAudienceComponent implements OnInit {
       seq: fkId,
       isCombined: true,
       combinedAudiences: combinedAudIds,
-      combinedVariableNames: combinedVariableNames.join()
+      combinedVariableNames: combinedVariableNames.join('~')
     };
     this.varService.addAudience(combinedAud);
     this.store$.dispatch(new SuccessNotification({ message: 'The following audiences are created successfully:' + combinedAud.audienceName, notificationTitle: 'Combine Audience' }));

@@ -32,7 +32,10 @@ export class EditCombinedAudiencesComponent implements OnInit {
     this.onDelete.emit(currentAudience);
   }
   
-  formatString(audienceName: string){
-    return audienceName.replace(',', ',<wbr>');
+  formatString(combinedVariables: string){
+    let formattedString = combinedVariables;
+    console.log('inside:::', formattedString);
+    formattedString = formattedString.replace('~', '<br>');
+    return formattedString;
   }
 }
