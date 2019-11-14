@@ -110,7 +110,6 @@ export class AppLayerService {
   }
 
   public updateLabelExpressions(showPOBs: boolean, isBatchMode: boolean = false) : void {
-    console.log('Updating Labels. BatchMode::', isBatchMode);
     const groupDefs = Object.values(this.appConfig.layers);
     const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
     const labelLayerMap = mapByExtended(allLayers,
