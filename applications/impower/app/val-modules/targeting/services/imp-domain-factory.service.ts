@@ -122,7 +122,7 @@ export class ImpDomainFactoryService {
       projectVar.isActive = true;
       projectVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       projectVar.sortOrder = audience.seq; // audience.audienceCounter;
-      projectVar.customVarExprDisplay = source.toUpperCase() === 'COMBINED_TDA' ? `${audience.audienceName} (${audience.combinedVariableNames})` : `${audience.audienceName} (${audience.audienceSourceName})`;
+      projectVar.customVarExprDisplay = source.toUpperCase() === 'COMBINED_TDA' ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
       projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' ?
                                       (audience.combinedAudiences != null ? JSON.stringify(audience.combinedAudiences) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));    
        projectVar.impProject = parent;

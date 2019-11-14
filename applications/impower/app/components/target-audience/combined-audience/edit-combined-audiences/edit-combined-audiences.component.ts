@@ -34,8 +34,7 @@ export class EditCombinedAudiencesComponent implements OnInit {
   
   formatString(combinedVariables: string){
     let formattedString = combinedVariables;
-    console.log('inside:::', formattedString);
-    formattedString = formattedString.replace('~', '<br>');
+    formattedString = formattedString.replace(/[~]/g, '<br>');
     return formattedString;
   }
 }
