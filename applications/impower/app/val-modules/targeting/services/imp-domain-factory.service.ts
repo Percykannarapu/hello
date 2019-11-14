@@ -1,20 +1,22 @@
 import { Injectable } from '@angular/core';
-import { AppConfig } from '../../../app.config';
+
+import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
+
+import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
-import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
+import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { ImpProject } from '../models/ImpProject';
-import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { ImpProjectPref } from '../models/ImpProjectPref';
+import { ImpProjectVar } from '../models/ImpProjectVar';
+import { AppConfig } from '../../../app.config';
+import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
-import { ImpProjectPref } from '../models/ImpProjectPref';
-import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
-import { ImpProjectVar } from '../models/ImpProjectVar';
-import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
 
 function isNumber(value: any) : value is number {
   return value != null && value !== '' && !Number.isNaN(Number(value));
@@ -89,8 +91,8 @@ export class ImpDomainFactoryService {
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
     const isCustom = audience.audienceSourceType === 'Custom';
     const isCombined = audience.isCombined;
+    const source = isCombined ? audience.audienceSourceType : audience.audienceSourceType + '_' + audience.audienceSourceName;
 
-    const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
     let existingVar;
 
     if (isCustom) {

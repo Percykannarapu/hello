@@ -25,16 +25,14 @@ export class EditCombinedAudiencesComponent implements OnInit {
   }
 
   onEditAudiences(currentAudience: Audience){
-    console.log('edit audience::', currentAudience);
     this.onEdit.emit(currentAudience);
 
   }
   onDeleteAudiences(currentAudience: Audience){
-    console.log('delete audience', currentAudience);
     this.onDelete.emit(currentAudience);
   }
   
   formatString(audienceName: string){
-    return audienceName.replace(',', '<wbr>');
+    return audienceName.replace(',', ',<wbr>');
   }
 }
