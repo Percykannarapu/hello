@@ -92,7 +92,7 @@ export class CombinedAudienceComponent implements OnInit {
       exportInGeoFootprint: true,
       exportNationally: false,
       allowNationalExport: false,
-      audienceSourceName: '',
+      audienceSourceName: 'TDA',
       audienceSourceType: 'Combined',
       fieldconte: FieldContentTypeCodes.Percent,
       requiresGeoPreCaching: false,
@@ -132,6 +132,7 @@ export class CombinedAudienceComponent implements OnInit {
       header: 'Delete Combined Variable',
       icon: 'ui-icon-delete',
       accept: () => {
+        this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
         this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
         this.store$.dispatch(new RemoveVar({varPk: audience.audienceIdentifier}));
         
