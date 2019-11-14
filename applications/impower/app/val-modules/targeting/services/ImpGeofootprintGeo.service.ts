@@ -6,29 +6,36 @@
  **
  ** ImpGeofootprintGeo.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import { TransactionManager } from '../../common/services/TransactionManager.service';
-import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
-import { RestDataService } from '../../common/services/restdata.service';
-import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
-import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
+
 import { select, Store } from '@ngrx/store';
-import { LocalAppState } from '../../../state/app.interfaces';
+
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
-import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
-import { FieldContentTypeCodes } from './../../../impower-datastore/state/models/impower-model.enums';
 import { roundTo } from '@val/common';
+import { EsriQueryService } from '@val/esri';
+
+import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
+
+import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
+
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
 import { AppConfig } from 'app/app.config';
-import { EsriQueryService } from '@val/esri';
+
 import { map } from 'rxjs/operators';
+
+import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
+import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
+import { LocalAppState } from '../../../state/app.interfaces';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
+import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { FieldContentTypeCodes } from './../../../impower-datastore/state/models/impower-model.enums';
+import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
+import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 
 interface CustomMCDefinition {
   Number: number;
@@ -452,6 +459,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       let audienceName = header;
       let audienceSourceName = null;
       let audience = null;
+      const audiences = state.exportAudiencesBS$.getValue();
  //   if (audienceSourceName != null){
     if (header.toLowerCase().includes('(interest)')  || header.toLowerCase().includes('(in-market)')){
       if (matches.length >= 2) {
@@ -473,6 +481,18 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                 break;
 
               case FieldContentTypeCodes.Percent:
+                  for (const aud in audiences){
+                     if (audiences[aud].isCombined && audiences[aud].exportInGeoFootprint){
+                        for (const gVar in geoVar) {
+                           if (gVar != null){
+                              geoVar[audiences[aud].audienceIdentifier] = audiences[aud].combinedAudiences.reduce((p, c) => {
+                                 p += geoVar[c] as number;
+                                 return p;
+                              }, 0);
+                           }
+                        }
+                     }
+                  }
               case FieldContentTypeCodes.Ratio:
                 result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(2);
                 break;
