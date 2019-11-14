@@ -7,7 +7,7 @@
                 <th *ngFor="let col of columns">
                     {{col.header}}
                 </th>
-                <th style="width: 4em">Edit</th>
+                <!-- <th style="width: 4em">Edit</th> -->
                 <th style="width: 4em">Delete</th>
             </tr>
         </ng-template>
@@ -18,9 +18,9 @@
                         {{audience[col.field]}} 
                         <i class="fa fa-comment"  pTooltip="{{audience.combinedVariableNames}}"> </i> 
                 </td>
-                <td>
+                <!-- <td>
                     <i class="fa fa-pencil val-clickable" (click)="onEditAudiences(audience)" ></i>
-                </td>
+                </td> -->
                 <td>
                     <i class="val-clickable fa fa-trash" (click)="onDeleteAudiences(audience)"></i>
                 </td>

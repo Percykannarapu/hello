@@ -24,6 +24,7 @@ import { AppStateService } from 'app/services/app-state.service';
 import { CreateAudienceUsageMetric } from 'app/state/usage/targeting-usage.actions';
 
 import { EditCombinedAudiencesComponent } from './edit-combined-audiences/edit-combined-audiences.component';
+import { ImpGeofootprintVarService } from 'app/val-modules/targeting/services/ImpGeofootprintVar.service';
 
 @Component({
   selector: 'val-combined-audience',
@@ -36,7 +37,6 @@ export class CombinedAudienceComponent implements OnInit {
   selectedColumns: Audience[];
   audienceForm: FormGroup;
   hasCombinedAudiences: boolean = false;
-  audId: number = 1;
   combinedVariableNames: string[] = [];  
 
 
@@ -48,6 +48,7 @@ export class CombinedAudienceComponent implements OnInit {
               private confirmationService: ConfirmationService,
               private appStateService: AppStateService,
               private cd: ChangeDetectorRef,
+              private impVarService: ImpGeofootprintVarService
               ) { 
 
   }
@@ -81,7 +82,7 @@ export class CombinedAudienceComponent implements OnInit {
     }
     );
   }
-    const fkId = this.audId++;
+    const fkId =  this.impVarService.getNextStoreId();
     const combinedAud: Audience = {
       audienceIdentifier: fkId.toString(),
       audienceName: audienceFields.combinedAudName,
@@ -101,8 +102,6 @@ export class CombinedAudienceComponent implements OnInit {
     };
     this.varService.addAudience(combinedAud);
     this.store$.dispatch(new SuccessNotification({ message: 'The following audiences are created successfully:' + combinedAud.audienceName, notificationTitle: 'Combine Audience' }));
-
-    this.appProjectPrefService.createPref('combined-audience', 'audience', combinedAud.audienceName, 'string');
     this.audienceForm.reset();
 
   }

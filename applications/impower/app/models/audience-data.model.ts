@@ -21,6 +21,7 @@ export interface AudienceDataDefinition {
   seq: number;
   isCombined?: boolean;
   combinedAudiences?: Array<string>;
+  combinedVariableNames?: string;
 }
 
 export interface AudienceTradeAreaConfig {
