@@ -3,6 +3,7 @@ import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
 import { FileUpload } from 'primeng/fileupload';
 import { Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import * as xlsx from 'xlsx';
 import { AppGeoService } from '../../../services/app-geo.service';
 import { AppProjectPrefService } from '../../../services/app-project-pref.service';
@@ -10,6 +11,9 @@ import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
+import { ConfirmationService } from 'primeng/api';
+import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
+import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
 
 interface CustomMCDefinition {
   Number: number;
@@ -28,27 +32,37 @@ export class UploadMustCoverComponent implements OnInit {
    public currentAnalysisLevel$: Observable<string>;
    public totalUploadedRowCount = 0;
    private fileName: string;
+   public isMustCoverExists: boolean;
 
    @ViewChild('mustCoverUpload', { static: true }) private mustCoverUploadEl: FileUpload;
 
    constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService
-              , private appGeoService: AppGeoService
               , private appStateService: AppStateService
               , private appProjectPrefService: AppProjectPrefService
-              , private geoService: ImpGeofootprintGeoService
-              , private store$: Store<LocalAppState>) { 
+              , private confirmationService: ConfirmationService
+              , private impProjectPrefService: ImpProjectPrefService
+              , private impProjectService: ImpProjectService
+              , private store$: Store<LocalAppState>) {
                 this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
               }
 
    ngOnInit() {
     this.appStateService.analysisLevel$.subscribe(val => {
-      this.isDisable = val != null ? false : true; 
+      this.isDisable = (val == null);
       this.tooltip = this.isDisable ? 'Please select an Analysis Level before uploading a Must Cover file' : 'CSV or Excel format required: Geocode';
     });
 
     this.impGeofootprintGeoService.uploadFailuresObs$.subscribe(result => {
-      if (this.impGeofootprintGeoService.uploadFailures.length == 0)
-      this.impGeofootprintGeoService.uploadFailures.push(...result);
+      if (this.impGeofootprintGeoService.uploadFailures.length == 0){
+         this.impGeofootprintGeoService.uploadFailures.push(...result);
+         this.isMustCoverExists = true;
+      }
+    });
+
+    this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
+       this.isMustCoverExists = project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER' && pref.val != null);
+       if (this.impGeofootprintGeoService.uploadFailures.length > 0)
+         this.isMustCoverExists = true;
     });
 
    }
@@ -87,14 +101,17 @@ export class UploadMustCoverComponent implements OnInit {
         //ensure mustcover are active
         const uniqueGeoSet = new Set(uniqueGeos);
         this.impGeofootprintGeoService.get().forEach(geo => {
-        if (uniqueGeoSet.has(geo.geocode)){
-        geo.isActive = true;
-      }
-      }
-   );
-this.impGeofootprintGeoService.makeDirty();
-        this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length;
-      }
+            if (uniqueGeoSet.has(geo.geocode)){
+                  geo.isActive = true;
+               }
+         }
+      );
+      this.isMustCoverExists = uniqueGeos.length > 0;
+      if (this.impGeofootprintGeoService.uploadFailures.length > 0)
+         this.isMustCoverExists = true;
+      this.impGeofootprintGeoService.makeDirty();
+            this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length;
+            }
     );
    }
 
@@ -143,5 +160,30 @@ this.impGeofootprintGeoService.makeDirty();
       }
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
+   }
+
+   deleteMustCovers(){
+
+      this.confirmationService.confirm({
+         message: 'Do you want to delete all the Must Cover geos?',
+         header: 'Delete Must Cover Confirmation',
+         icon: 'ui-icon-delete',
+
+         accept: () => {
+             this.impGeofootprintGeoService.clearMustCovers();
+             this.isMustCoverExists = false;
+            this.impProjectService.get()[0].impProjectPrefs = this.impProjectPrefService.get().filter(pref => pref.prefGroup !== ProjectPrefGroupCodes.MustCover);;
+            this.impGeofootprintGeoService.uploadFailures = [];
+            if (this.impGeofootprintGeoService.uploadFailures.length > 0)
+               this.isMustCoverExists = true;
+         },
+         reject: () => {
+            this.isMustCoverExists = true;
+         }
+
+      });
+
+
+
    }
 }

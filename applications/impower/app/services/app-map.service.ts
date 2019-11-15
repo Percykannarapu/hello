@@ -1,8 +1,8 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, WatchResult } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocalAppState } from '../state/app.interfaces';
@@ -12,6 +12,7 @@ import { AppLayerService } from './app-layer.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppRendererService } from './app-renderer.service';
 import { AppStateService, Season } from './app-state.service';
+import { AppProjectPrefService } from './app-project-pref.service';
 
 export interface GeoClickEvent {
   geocode: string;
@@ -19,18 +20,19 @@ export interface GeoClickEvent {
     x: number;
     y: number;
   };
+  filterFlag?: boolean;
 }
 
 @Injectable()
-export class AppMapService implements OnDestroy {
-  private geoSelected = new BehaviorSubject<GeoClickEvent[]>([]);
-  private clientTradeAreaSubscription: Subscription;
-  private competitorTradeAreaSubscription: Subscription;
-  private currentGeocodes = new Set<string>();
-  private layerSelectionRefresh: () => void;
+export class AppMapService {
 
-  public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
   public selectedButton: number;
+
+  private geoSelected = new BehaviorSubject<GeoClickEvent[]>([]);
+  public geoSelected$: Observable<GeoClickEvent[]> = this.geoSelected.asObservable();
+
+  private currentGeocodes = new Set<string>();
+
   constructor(private appStateService: AppStateService,
               private appLayerService: AppLayerService,
               private rendererService: AppRendererService,
@@ -40,55 +42,70 @@ export class AppMapService implements OnDestroy {
               private mapService: EsriMapService,
               private logger: AppLoggingService,
               private config: AppConfig,
-              private store$: Store<LocalAppState>) {
-    this.appStateService.uniqueSelectedGeocodes$.subscribe(() => {
-      if (this.layerSelectionRefresh) this.layerSelectionRefresh();
-    });
-  }
+              private zone: NgZone,
+              private appProjectPrefService: AppProjectPrefService,
+              private store$: Store<LocalAppState>) {}
 
-  ngOnDestroy() : void {
-    if (this.clientTradeAreaSubscription) this.clientTradeAreaSubscription.unsubscribe();
-    if (this.competitorTradeAreaSubscription) this.competitorTradeAreaSubscription.unsubscribe();
-  }
-
-  public setupMap() : void {
-
+  public setupMap(isBatchMapping: boolean = false) : void {
+    let mapViewSetupComplete = false;
     const homeView = this.mapService.mapView.viewpoint;
     // Create the layer groups and load the portal items
-    this.appLayerService.initializeLayers().subscribe ({
-      complete: () => {
-        // setup the map widgets
-        this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });
-        this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
-        this.mapService.createHiddenWidget(EsriApi.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
-        this.mapService.createHiddenWidget(EsriApi.widgets.Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend', group: 'left-column' });
-        const source = new EsriApi.widgets.LocalBasemapsSource({
-          basemaps: this.config.basemaps.map(b => EsriApi.BaseMap.fromId(b))
-        });
-        this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' });
-        this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
-
-        const popup: __esri.Popup = this.mapService.mapView.popup;
-        popup.actionsMenuEnabled = false;
-        popup.highlightEnabled = false;
-
-        // Event handler that fires each time a popup action is clicked.
-        popup.on('trigger-action', (event) => {
-          // Execute the measureThis() function if the measure-this action is clicked
-          if (event.action.id === 'measure-this') {
-            this.measureThis();
+    this.appLayerService.initializeLayers(isBatchMapping).subscribe({
+      next: () => {
+        if (mapViewSetupComplete) return;
+        mapViewSetupComplete = true;
+        this.zone.runOutsideAngular(() => {
+          if (isBatchMapping) {
+            // if we're batch mapping, we want no widgets on the UI except for a custom legend
+            this.mapService.mapView.ui.remove('zoom');
+            this.mapService.createBasicWidget(EsriApi.widgets.Legend, {}, 'top-right');
+            return;
           }
-          // Execute the selectThis() function if the select-this action is clicked
-          if (event.action.id === 'select-this') {
-            this.selectThis();
-          }
-        });
+          // setup the map widgets
+          this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });
+          this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
+          this.mapService.createHiddenWidget(EsriApi.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
+          this.mapService.createHiddenWidget(EsriApi.widgets.Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend', group: 'left-column' });
+          const source = new EsriApi.widgets.LocalBasemapsSource({
+            basemaps: this.config.basemaps.map(b => EsriApi.BaseMap.fromId(b))
+          });
+          this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' });
+          this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
 
-        EsriUtils.setupWatch(popup, 'visible').pipe(debounceTime(1000)).subscribe(result => {
-          this.logger.debug.log('Popup visible watch fired', result);
-          if (result.newValue === false) {
-            this.componentGenerator.cleanUpGeoPopup();
-          }
+          const popup: __esri.Popup = this.mapService.mapView.popup;
+          popup.actionsMenuEnabled = false;
+          popup.highlightEnabled = false;
+
+          // Event handler that fires each time a popup action is clicked.
+          popup.on('trigger-action', (event) => {
+            // Execute the measureThis() function if the measure-this action is clicked
+            if (event.action.id === 'measure-this') {
+              this.measureThis();
+            }
+            // Execute the selectThis() function if the select-this action is clicked
+            if (event.action.id === 'select-this') {
+              this.zone.run(() => {
+                this.selectedButton = 1;
+                this.selectThis();
+              });
+            }
+          });
+
+          EsriUtils.setupWatch(popup, 'visible').pipe(debounceTime(1000)).subscribe(result => {
+            this.logger.debug.log('Popup visible watch fired', result);
+            if (result.newValue === false) {
+              this.zone.run(() => this.componentGenerator.cleanUpGeoPopup());
+            }
+          });
+
+          const currectBaseMap: __esri.Basemap = this.mapService.widgetMap.get('esri.widgets.BasemapGallery').get('activeBasemap');
+          this.appProjectPrefService.createPref('legend-settings', 'basemap', JSON.stringify(currectBaseMap.toJSON()), 'string');
+          EsriUtils.setupWatch(this.mapService.mapView.map, 'basemap').subscribe(val => {
+            this.appProjectPrefService.createPref('legend-settings', 'basemap',  JSON.stringify(val.newValue.toJSON()), 'string');
+          });
+          EsriUtils.setupWatch(this.mapService.mapView, 'extent').subscribe(extent => {
+            this.appProjectPrefService.createPref('map-extent', 'extent',  JSON.stringify(extent.newValue.toJSON()), 'string');
+          });
         });
       }
     });
@@ -120,11 +137,12 @@ export class AppMapService implements OnDestroy {
           this.geoSelected.next(eventData);
         });
     } else {
-      this.geoSelected.next([{ geocode, geometry }]);
+      this.appStateService.filterFlag.next(true);
+      this.geoSelected.next([{ geocode, geometry, filterFlag: true }]);
     }
   }
 
-  public selectMultipleGeocode(graphicsList: __esri.Graphic[], button) {
+  public selectMultipleGeocode(graphicsList: __esri.Graphic[], button, confirmFlag?: boolean, filteredGraphicsList?: __esri.Graphic[]) {
     const events: GeoClickEvent[] = [];
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
     if (layerId == null || layerId.length === 0) return;
@@ -140,11 +158,28 @@ export class AppMapService implements OnDestroy {
         } else {
           this.collectSelectionUsage(graphic, 'multiSelectTool');
         }
-        events.push({ geocode, geometry: point });
+        if (confirmFlag !== null && confirmFlag !== undefined) {
+          if (confirmFlag) {
+              events.push({ geocode, geometry: point, filterFlag: true});
+          } else if (!confirmFlag && filteredGraphicsList !== null && filteredGraphicsList !== undefined) {
+            if (filteredGraphicsList.length === 0) {
+              events.push({ geocode, geometry: point, filterFlag: false });
+            } else {
+              const filterFlag: boolean = (filteredGraphicsList.filter(filteredGraphic => filteredGraphic.attributes.geocode === graphic.attributes.geocode).length > 0);
+              events.push({ geocode, geometry: point, filterFlag: filterFlag });
+            }
+          }
+        } else {
+          events.push({ geocode, geometry: point });
+        }
       }
     });
     this.selectedButton = button;
     this.geoSelected.next(events);
+  }
+
+  watchMapViewProperty<T extends keyof __esri.MapView>(propertyName: T) : Observable<WatchResult<__esri.MapView, T>> {
+    return this.mapService.watchMapViewProperty(propertyName);
   }
 
   /**
@@ -197,7 +232,7 @@ export class AppMapService implements OnDestroy {
           this.store$.dispatch(new ErrorNotification({message: 'You are attempting to add or remove a geo at the wrong analysis level', notificationTitle: 'Invalid Add/Remove'}));
         }
     }
-    
+
     this.collectSelectionUsage(selectedFeature, 'popupAction');
   }
 

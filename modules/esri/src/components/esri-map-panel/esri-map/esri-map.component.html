@@ -1,5 +1,5 @@
 <div class="esriMapContainer" [style.height]="height+'px'">
-    <div class="panel-container">
+    <div class="panel-container" [ngClass]="{ resizable: manuallyResizable }">
         <div #mapViewNode [ngStyle]="{ 'cursor': cursor }"> </div>
     </div>
 </div>

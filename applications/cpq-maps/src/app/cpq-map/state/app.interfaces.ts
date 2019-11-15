@@ -1,3 +1,5 @@
+export type GridSize = 'small' | 'large' | 'none';
+
 export interface PrintModel {
   clientName: string;
   layerSource: string;
@@ -33,15 +35,42 @@ export interface FullPayload {
   tradeArea: string;
 }
 
-export interface ResultType{
+export interface ResultType {
   paramName?: string;
   dataType?: string;
   value: string;
 }
 
 export interface LegendData {
-  sortOrder: number;
   groupName: string;
-  color: number[];
   hhc: number;
+  color?: number[];
+  sortOrder?: number;
+  image?: string;
+}
+
+export enum ShadingType {
+  SITE,
+  ZIP,
+  WRAP_ZONE,
+  ATZ_INDICATOR,
+  VARIABLE
+}
+
+export enum NumericVariableShadingMethod {
+  StandardIndex = 'Standard Index',
+  CustomClassifications = 'Custom Classifications',
+  EqualIntervals = 'Equal Intervals'
+}
+
+export interface VariableRanges {
+  minValue?: number;
+  maxValue?: number;
+}
+
+export interface VarDefinition {
+  name: string;
+  isNumber: boolean;
+  minValue?: number;
+  maxValue?: number;
 }

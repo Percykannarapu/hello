@@ -3,6 +3,14 @@
     <div class="shading-controls-container">
       <h4>Shading Controls</h4>
       <div class="shading-controls">
+        <span>&nbsp;</span>
+        <div>
+          <p-checkbox label="Shade ANNE" [ngModel]="shadeAnne$ | async" binary="true" (onChange)="anneChanged($event)"></p-checkbox>
+        </div>
+        <span>&nbsp;</span>
+        <div>
+          <p-checkbox label="Shade Solo" [ngModel]="shadeSolo$ | async" binary="true" (onChange)="soloChanged($event)"></p-checkbox>
+        </div>
         <span>Shade By:</span>
         <div>
           <p-dropdown (onChange)="onShadingOptionChange($event)" [options]="shadingTypeOptions" [(ngModel)]="selectedShadingType"></p-dropdown>

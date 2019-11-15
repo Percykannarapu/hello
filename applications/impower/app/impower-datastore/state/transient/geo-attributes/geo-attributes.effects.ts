@@ -28,11 +28,11 @@ export class GeoAttributesEffects {
   @Effect()
   requestAttributes$ = this.actions$.pipe(
     ofType<RequestAttributes>(GeoAttributeActionTypes.RequestAttributes),
-    map(action => action.payload.geocodes),
+    // map(action => action.payload.geocodes),
     withLatestFrom(this.store$.pipe(select(selectors.getEsriSelectedLayer))),
-    switchMap(([newGeos, layerId]) => this.featureLoaderService.loadAttributesFromFeatures(layerId, newGeos, boundaryAttributes).pipe(
+    switchMap(([action, layerId]) => this.featureLoaderService.loadAttributesFromFeatures(layerId, action.payload.geocodes, boundaryAttributes).pipe(
       concatMap(results => [new UpsertGeoAttributes({ geoAttributes: results }),
-                                   new RequestAttributesComplete()]),
+                                   new RequestAttributesComplete({ flag: action.payload.flag })]),
       catchError(err => of(new RequestAttributeFailure({ err })))
     ))
   );

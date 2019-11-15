@@ -3,10 +3,18 @@
     <span>{{legendTitle}}</span>
   </div>
   <ul>
-    <li *ngFor="let row of legendData">
+    <li *ngFor="let row of colorLegendData">
       <span class="legend-color-chip" [style.backgroundColor]="row.colorHex">&nbsp;</span>
       <span class="legend-name">{{row.name}}</span>
       <span>({{row.hhc | number:'1.0-0'}}&nbsp;HH)</span>
+    </li>
+  </ul>
+  <hr *ngIf="imageLegendData.length > 0 && colorLegendData.length > 0">
+  <ul *ngIf="imageLegendData.length > 0">
+    <li *ngFor="let row of imageLegendData">
+      <span class="legend-crosshatch" [ngClass]="row.crosshatch"></span>
+      <span class="legend-name">{{row.name}}</span>
+      <span *ngIf="row.hhc != null">({{row.hhc | number:'1.0-0'}}&nbsp;HH not incl. in TA)</span>
     </li>
   </ul>
 </div>

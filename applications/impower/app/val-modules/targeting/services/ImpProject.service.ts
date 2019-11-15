@@ -18,6 +18,7 @@ import { UserService } from '../../../services/user.service';
 import { Observable, EMPTY } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { TradeAreaMergeTypeCodes } from '../targeting.enums';
 import { ImpProjectPrefService } from './ImpProjectPref.service';
 import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
 import { ImpProjectVarService } from './ImpProjectVar.service';
@@ -50,9 +51,9 @@ export class ImpProjectService extends DataStore<ImpProject>
      this.transactionManager.stopTransaction();
    }
 
-   loadFromServer(id: number) : Observable<number> {
+   loadFromServer(id: number) : Observable<ImpProject> {
      if (id == null) return EMPTY;
-     return Observable.create(observer => {
+     return new Observable<ImpProject>(observer => {
        const loadCache: ImpProject[] = [];
        this.rest.get(`${dataUrl}/${id}`).subscribe(
          response => loadCache.push(new ImpProject(response.payload)),
@@ -65,10 +66,9 @@ export class ImpProjectService extends DataStore<ImpProject>
              p.setTreeProperty('baseStatus', DAOBaseStatus.UPDATE);
            });
            this.load(loadCache);
-           observer.next(id);
+           observer.next(loadCache[0]);
            observer.complete();
-         }
-       );
+         });
      });
    }
 

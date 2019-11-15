@@ -6,7 +6,7 @@ import {
 } from '@ngrx/store';
 import { environment } from '../../../environments/environment';
 import { LocalState } from './';
-import { shadingReducer } from './shading/shading.reducer';
+import { mapUIReducer } from './map-ui/map-ui.reducer';
 import { sharedReducer } from './shared/shared.reducers';
 import { advertiserInfoReducer } from './advertiserInfo/advertiser-info.reducer';
 import { cbxReportReducer } from './cbxReport/cbx-report.reducer';
@@ -27,6 +27,7 @@ import { rfpUiEditDetailreducer } from './rfpUiEditDetail/rfp-ui-edit-detail.red
 import { rfpUiReviewreducer } from './rfpUiReview/rfp-ui-review.reducer';
 import { rfpUiEditreducer } from './rfpUiEdit/rfp-ui-edit.reducer';
 import { rfpUiEditWrapReducer } from './rfpUiEditWrap/rfp-ui-edit-wrap.reducer';
+import { mediaPlanPrefReducer } from './mediaPlanPref/media-plan-pref.reducer';
 
 export const reducers: ActionReducerMap<LocalState> = {
   shared: sharedReducer,
@@ -49,7 +50,8 @@ export const reducers: ActionReducerMap<LocalState> = {
   rfpUiReview: rfpUiReviewreducer,
   rfpUiEdit: rfpUiEditreducer,
   rfpUiEditWrap: rfpUiEditWrapReducer,
-  shading: shadingReducer
+  mapUI: mapUIReducer,
+  mediaPlanPref: mediaPlanPrefReducer
 };
 
 export function logger(reducer: ActionReducer<LocalState>) : ActionReducer<LocalState> {

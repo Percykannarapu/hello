@@ -1,0 +1,56 @@
+@import "valassis-variables";
+form.shading-controls-form {
+  > div {
+    padding-top: 1em;
+    padding-bottom: 1.5em;
+  }
+}
+
+body .ui-sidebar.transparent-back {
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.sidebar-content-wrapper {
+  display: flex;
+  height: 100%;
+  .sidebar-content-tab {
+    width: 1.4em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  p-card {
+    flex: 1;
+    height: 100%;
+    .ui-card.ui-widget-content {
+      height: 100%;
+      padding: 0 1em 1em;
+    }
+  }
+}
+
+.sidebar-control {
+  margin-left: 0.6em;
+  a {
+    padding: 0.1em 0.5em 0.3em;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background-color: $darkGray03;
+    color: $lightGray04;
+    display: inline-block;
+    white-space: nowrap;
+    transform-origin: left center;
+    transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+  }
+}
+
+.shading-controls-form {
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+  }
+}

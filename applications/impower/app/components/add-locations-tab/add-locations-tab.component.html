@@ -1,5 +1,5 @@
-<p-tabView class="val-child-tabs">
-  <p-tabPanel header="Upload">
+<p-accordion>
+  <p-accordionTab header="Upload" [transitionOptions]="'0ms'">
     <val-site-type-selector label="Add as:">
       <site-content>
         <val-upload-locations label="Select Site File" (upload)="onUpload($event, siteTypes.Site)"></val-upload-locations>
@@ -15,8 +15,8 @@
                              (resubmit)="resubmit($event)"
                              (accept)="accept($event)">
     </val-failed-geocode-grid>
-  </p-tabPanel>
-  <p-tabPanel header="Manually Add">
+  </p-accordionTab>
+  <p-accordionTab header="Manually Add" [transitionOptions]="'0ms'">
     <val-site-type-selector label="Add as:">
       <site-content>
         <val-manual-entry #manualSiteEntry [showLoadButtons]="!isProd" (submitSite)="manuallyGeocode($event, siteTypes.Site)"></val-manual-entry>
@@ -32,8 +32,8 @@
                              (resubmit)="resubmit($event)"
                              (accept)="accept($event)">
     </val-failed-geocode-grid>
-  </p-tabPanel>
-  <p-tabPanel header="Business Search">
+  </p-accordionTab>
+  <!--<p-accordionTab header="Business Search" [transitionOptions]="'0ms'">
     <val-business-search #businessSearch
                          [allCategories]="searchCategories$ | async"
                          [searchResults]="searchResults$ | async"
@@ -43,5 +43,5 @@
                          (searchForBusinesses)="onBusinessSearch($event)">
       Loading business search component...
     </val-business-search>
-  </p-tabPanel>
-</p-tabView>
+  </p-accordionTab> -->
+</p-accordion>

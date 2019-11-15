@@ -1,3 +1,5 @@
+import { ProjectLoadSuccess } from '../../../../state/data-shim/data-shim.actions';
+import {getMapVarIds} from '../map-vars/map-vars.selectors';
 import { AppStateService } from './../../../../services/app-state.service';
 import { TargetAudienceCustomService } from './../../../../services/target-audience-custom.service';
 import { OfflineSourceTypes } from './../../../../services/target-audience-tda.service';
@@ -11,7 +13,7 @@ import { Store, select } from '@ngrx/store';
 import { FullAppState } from 'app/state/app.interfaces';
 import { of, EMPTY } from 'rxjs';
 import { UpsertGeoVars } from '../geo-vars/geo-vars.actions';
-import { groupByExtended, formatMilli } from '@val/common';
+import {groupByExtended, formatMilli, dedupeSimpleSet} from '@val/common';
 import { GeoVar } from '../geo-vars/geo-vars.model';
 import { TargetAudienceOnlineService, OnlineSourceTypes } from 'app/services/target-audience-online.service';
 import { AppConfig } from 'app/app.config';
@@ -22,12 +24,14 @@ import { MapVarCacheGeos, MapVarCacheGeosFailure, MapVarCacheGeosComplete, MapVa
 import { Audience } from './audience.model';
 import { MapVar } from '../map-vars/map-vars.model';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { AudienceActionTypes, ApplyAudiences, AudienceActions, FetchOnlineInterest, FetchOnlinePixel, FetchOnlineVLH, FetchOfflineTDA, FetchOnlineInMarket, AddAudience, FetchOnlineInterestCompleted, FetchOnlineInMarketCompleted,
-         FetchOnlinePixelCompleted, FetchOnlineVLHCompleted, FetchOfflineTDACompletedMap, FetchOnlineFailed, FetchCountIncrement, FetchCountDecrement, ApplyAudiencesCompleted, FetchOfflineTDACompleted, FetchOfflineFailed,
-         FetchCustom, FetchCustomCompleted, FetchCustomFromPrefs, FetchCustomFailed, FetchMapVar, FetchOnlineInterestMap, FetchOnlineVLHMap, FetchOnlinePixelMap, FetchOfflineTDAMap, FetchCustomFromPrefsMap, FetchOnlineInMarketMap,
-         FetchOnlineInterestCompletedMap, FetchOnlineInMarketCompletedMap, FetchOnlinePixelCompletedMap, FetchOnlineVLHCompletedMap, FetchOnlineFailedMap, FetchOfflineFailedMap, FetchCustomCompletedMap, FetchCustomFailedMap,
-         MoveAudienceUp, UpsertAudiences, MoveAudienceDn, SequenceChanged, ApplyAudiencesRecordStats, RehydrateAudiences, FetchAudienceTradeArea, FetchAudienceTradeAreaCompleted, FetchAudienceTradeAreaFailed, FetchAudienceTradeAreaMap,
-         FetchAudienceTradeAreaCompletedMap, FetchAudienceTradeAreaFailedMap, RehydrateShading, SelectMappingAudience, UpdateAudiences} from './audience.actions';
+import {
+  AudienceActionTypes, ApplyAudiences, AudienceActions, FetchOnlineInterest, FetchOnlinePixel, FetchOnlineVLH, FetchOfflineTDA, FetchOnlineInMarket, AddAudience, FetchOnlineInterestCompleted, FetchOnlineInMarketCompleted,
+  FetchOnlinePixelCompleted, FetchOnlineVLHCompleted, FetchOfflineTDACompletedMap, FetchOnlineFailed, FetchCountIncrement, FetchCountDecrement, ApplyAudiencesCompleted, FetchOfflineTDACompleted, FetchOfflineFailed,
+  FetchCustom, FetchCustomCompleted, FetchCustomFromPrefs, FetchCustomFailed, FetchMapVar, FetchOnlineInterestMap, FetchOnlineVLHMap, FetchOnlinePixelMap, FetchOfflineTDAMap, FetchCustomFromPrefsMap, FetchOnlineInMarketMap,
+  FetchOnlineInterestCompletedMap, FetchOnlineInMarketCompletedMap, FetchOnlinePixelCompletedMap, FetchOnlineVLHCompletedMap, FetchOnlineFailedMap, FetchOfflineFailedMap, FetchCustomCompletedMap, FetchCustomFailedMap,
+  MoveAudienceUp, UpsertAudiences, MoveAudienceDn, SequenceChanged, ApplyAudiencesRecordStats, RehydrateAudiences, FetchAudienceTradeArea, FetchAudienceTradeAreaCompleted, FetchAudienceTradeAreaFailed, FetchAudienceTradeAreaMap,
+  FetchAudienceTradeAreaCompletedMap, FetchAudienceTradeAreaFailedMap, RehydrateShading, SelectMappingAudience, UpdateAudiences, FetchMapVarCompleted
+} from './audience.actions';
 import { Stats, initialStatState } from './audience.reducer';
 import { TargetAudienceAudienceTA } from 'app/services/target-audience-audienceta';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -138,16 +142,21 @@ export class AudiencesEffects {
   fetchMapVar$ = this.actions$.pipe(
     ofType<FetchMapVar>(AudienceActionTypes.FetchMapVar),
     //tap(action => this.logger.info.log('### fetchMapVar - geos(' + action.payload.geos.length + '):', action.payload.geos)),
-    tap(action => {
+    withLatestFrom(this.store$.select(getMapVarIds)),
+    map(([action, existingGeos]) => [action, dedupeSimpleSet(new Set(action.payload.geos), new Set(existingGeos as string[]))] as [FetchMapVar, Set<string>]),
+    tap(([, geos]) => {
+      if (geos.size === 0) this.store$.dispatch(new FetchMapVarCompleted());
+    }),
+    filter(([, geos]) => geos.size > 0),
+    tap(() => {
       mapVarsStart = performance.now();
       stats.totalMapVars = 0;
-      this.store$.dispatch(new ClearMapVars());
       this.store$.dispatch(new StartBusyIndicator({key: shadingKey, message: 'Retrieving shading data'}));
     }),
-    tap(action => this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(action.payload.geos) }))),
+    tap(([, newGeos]) => this.store$.dispatch(new MapVarCacheGeos({ geocodes: newGeos }))),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesOnMap)),
                    this.store$.pipe(select(fromAudienceSelectors.allAudiences))),
-    switchMap(([action, selectedAudiences, allAudiences]) => this.actions$.pipe(
+    switchMap(([[action, newGeos], selectedAudiences, allAudiences]) => this.actions$.pipe(
       ofType<MapVarCacheGeosComplete | MapVarCacheGeosFailure>(MapVarActionTypes.MapVarCacheGeosComplete, MapVarActionTypes.MapVarCacheGeosFailure),
         take(1),
         tap(errorAction => { if (errorAction.type === MapVarActionTypes.MapVarCacheGeosFailure) {
@@ -686,9 +695,9 @@ export class AudiencesEffects {
     }),
     withLatestFrom(this.appStateService.analysisLevel$),
 //  map(([, analysisLevel]) => new ApplyAudiences({ analysisLevel: analysisLevel }))
-    concatMap(([, analysisLevel]) => [
+    concatMap(([action, analysisLevel]) => [
       new ApplyAudiences({ analysisLevel: analysisLevel }),
-      new RehydrateShading()
+      new RehydrateShading(action.payload)
     ])
   );
 
@@ -696,10 +705,12 @@ export class AudiencesEffects {
   rehydrateShading$ = this.actions$.pipe(
     ofType<RehydrateShading>(AudienceActionTypes.RehydrateShading),
     tap(action => mapVarsStart = performance.now()),
-    withLatestFrom(this.store$.select(fromAudienceSelectors.getAudiencesOnMap)),
-    map(([, audiencesOnMap]) => {
+    tap(() => {
       //console.log('### rehydrateShading - audiencesOnMap:', audiencesOnMap);
       this.targetAudienceService.rehydrateShading();
+    }),
+    tap(action => {
+      if (action.payload.notifyLoadSuccess) this.store$.dispatch(new ProjectLoadSuccess(action.payload));
     })
   );
 
@@ -715,6 +726,16 @@ export class AudiencesEffects {
       return [new UpdateAudiences({ audiences: updates }),
               new RehydrateShading()];
     })
+  );
+
+  @Effect()
+  finalizeMapFetch$ = this.actions$.pipe(
+    ofType(AudienceActionTypes.FetchAudienceTradeAreaCompletedMap, AudienceActionTypes.FetchAudienceTradeAreaFailedMap,
+      AudienceActionTypes.FetchCustomCompletedMap, AudienceActionTypes.FetchCustomFailedMap,
+      AudienceActionTypes.FetchOfflineFailedMap, AudienceActionTypes.FetchOfflineTDACompletedMap,
+      AudienceActionTypes.FetchOnlineFailedMap, AudienceActionTypes.FetchOnlineInMarketCompletedMap, AudienceActionTypes.FetchOnlineInterestCompletedMap,
+      AudienceActionTypes.FetchOnlinePixelCompletedMap, AudienceActionTypes.FetchOnlineVLHCompletedMap),
+    map(() => new FetchMapVarCompleted())
   );
 
   constructor(private actions$: Actions<AudienceActions>,

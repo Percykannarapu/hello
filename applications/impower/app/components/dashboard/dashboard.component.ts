@@ -1,24 +1,25 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { Store, select } from '@ngrx/store';
-import { AppStateService } from 'app/services/app-state.service';
-import { MenuItem } from 'primeng/api';
-import { Observable } from 'rxjs';
-import { RadService } from '../../services/rad.service';
-import { UserService } from '../../services/user.service';
-import { FullAppState } from '../../state/app.interfaces';
-import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
-import { MetricOperations, MetricService } from '../../val-modules/common/services/metric.service';
-import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ColorBoxComponent } from '../color-box/color-box.component';
-import { AppLocationService } from 'app/services/app-location.service';
-import { take, filter } from 'rxjs/operators';
-import { selectors } from '@val/esri';
+import { ClearImpGeofootprintGeos } from './../../impower-datastore/state/persistent/geo/imp-geofootprint-geo.actions';
+import {Component, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
+import {Store, select} from '@ngrx/store';
+import {MenuItem} from 'primeng/api';
+import {Observable} from 'rxjs';
+import {RadService} from '../../services/rad.service';
+import {UserService} from '../../services/user.service';
+import {FullAppState} from '../../state/app.interfaces';
+import {CreateNewProject} from '../../state/data-shim/data-shim.actions';
+import {MetricOperations, MetricService} from '../../val-modules/common/services/metric.service';
+import {CampaignDetailsComponent} from '../campaign-details/campaign-details.component';
+import {ColorBoxComponent} from '../color-box/color-box.component';
+import {AppStateService} from 'app/services/app-state.service';
+import {AppLocationService} from 'app/services/app-location.service';
+import {take, filter} from 'rxjs/operators';
+import {selectors} from '@val/esri';
 
 @Component({
-    templateUrl: './dashboard.component.html'
+  selector: 'val-dashboard',
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class DashboardComponent implements OnInit {
     chartData: any;
@@ -50,12 +51,11 @@ export class DashboardComponent implements OnInit {
     @ViewChild('performanceColorBox', { static: true })
     private performanceColorBox: ColorBoxComponent;
 
-    private colorBoxesByGroup: Map<string, ColorBoxComponent> = new Map<string, ColorBoxComponent>();
+    @ViewChild('campaignDetailsComponent', { static: true })
+    private campaignDetailsComponent: CampaignDetailsComponent;
 
-    public locations$: Observable<ImpGeofootprintLocation[]>;
-    public geos$: Observable<ImpGeofootprintGeo[]>;
-    public listCollapsed$: Observable<any>;
     public hasLocationFailures$: Observable<boolean>;
+    private colorBoxesByGroup: Map<string, ColorBoxComponent> = new Map<string, ColorBoxComponent>();
 
     // note about "unused" services:
     // This is the only place these services are being injected, so leave them.
@@ -64,8 +64,6 @@ export class DashboardComponent implements OnInit {
                 private radService: RadService,
                 private userService: UserService,
                 private appLocationService: AppLocationService,
-                private impLocationService: ImpGeofootprintLocationService,
-                private impGeoService: ImpGeofootprintGeoService,
                 private appStateService: AppStateService,
                 private store$: Store<FullAppState>) { }
 
@@ -89,8 +87,8 @@ export class DashboardComponent implements OnInit {
 
         this.metricMapPurple = new Map([
             ['Median Household Income', '0'],
-            ['% \'17 HHs Families with Related Children < 18 Yrs', '0'],
-            ['% \'17 Pop Hispanic or Latino', '0'],
+            ['% CY HHs Families with Related Children < 18 Yrs', '0'],
+            ['% CY Pop Hispanic or Latino', '0'],
             ['Casual Dining: 10+ Times Past 30 Days', '0']
         ]);
         this.flagMapPurple = new Map<string, boolean>();
@@ -150,13 +148,8 @@ export class DashboardComponent implements OnInit {
             ]
         };
 
-        this.locations$ = this.impLocationService.storeObservable;
-        this.geos$ = this.impGeoService.storeObservable;
-        this.listCollapsed$ = this.appStateService.getCollapseObservable();
-
         // Conditionally show the Failed Locations Tab when there are failures
-        this.store$.pipe(
-          select(selectors.getMapReady),
+        this.appStateService.applicationIsReady$.pipe(
           filter(ready => ready),
           take(1)
         ).subscribe(() => {
@@ -164,12 +157,8 @@ export class DashboardComponent implements OnInit {
         });
     }
 
-    triggerCollapseOnToggle(collapsed: boolean) {
-        this.appStateService.triggerChangeInCollapse(collapsed);
+    onCampaignDetailsClose(){
+        this.campaignDetailsComponent.onDiscoveryFormClose();
     }
 
-    showSideBar($event) {
-        this.display = $event;
-        //this.mapService.plotMarker($event.x, $event.y);
-    }
 }

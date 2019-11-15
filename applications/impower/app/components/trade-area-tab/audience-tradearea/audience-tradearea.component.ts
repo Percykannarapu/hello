@@ -11,6 +11,7 @@ import { AppTradeAreaService } from '../../../services/app-trade-area.service';
 import { of } from 'rxjs';
 import { withLatestFrom, mergeMap } from 'rxjs/operators';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { WarningNotification } from '@val/messaging';
 
 @Component({
   selector: 'val-audience-tradearea',
@@ -151,7 +152,10 @@ export class AudienceTradeareaComponent implements OnInit, OnChanges {
   }
 
   public onClickApply() {
-    this.runAudienceTA.emit(true);
+    if (this.stateService.analysisLevel$.getValue() === 'PCR')
+      this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: 'Audience Trade Area not available at PCR level' }));
+    else
+      this.runAudienceTA.emit(true);
     this.tradeareaService.tradeareaType = 'audience';
     const metricText = `analysisLevel=${this.stateService.analysisLevel$.getValue()}
                         ~siteCount=${this.currentLocationsCount}

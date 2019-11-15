@@ -15,6 +15,7 @@ export class AppSiteService {
   createSiteFeatureLayer(edits: RfpUiEdit[], details: RfpUiEditDetail[], radius: number, groupName: string, layerName: string) : void {
     const siteGraphics = this.createSiteGraphics(edits, details, radius);
     const renderer = new EsriApi.SimpleRenderer({
+      label: 'Client Locations',
       symbol: new EsriApi.SimpleMarkerSymbol({
         color: [0, 0, 255, 1],
         path: MapSymbols.STAR,
@@ -25,7 +26,7 @@ export class AppSiteService {
       })
     });
     const label = this.esriFactory.createLabelClass(new EsriApi.Color([0, 0, 255, 1]), '$feature.siteName');
-    this.layerService.createClientLayer(groupName, layerName, siteGraphics, 'OBJECTID', renderer, null, [label]);
+    this.layerService.createClientLayer(groupName, layerName, siteGraphics, 'OBJECTID', renderer, null, [label], true);
   }
 
   private createSiteGraphics(edits: RfpUiEdit[], details: RfpUiEditDetail[], radius: number) : __esri.Graphic[] {

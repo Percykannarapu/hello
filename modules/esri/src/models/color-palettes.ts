@@ -2,9 +2,14 @@
 
 // these are the only palettes used in the application for now
 export enum ColorPalette {
+  Brightcolors = '6 Bright Colors',
+  SixDarkColors = '6 Dark Colors',
   Cpqmaps = '20 Colors (text vars only)',
-  Advantagedarker2 = '5 Advantage-Darker',
-  EsriPurple = 'Esri High To Low',
+  Bivariateredblue3 = '6 Bivariate Red-Blue',
+  Blue = 'Gradient - Blue',
+  Red = 'Gradient - Red',
+  Orange = 'Gradient - Orange',
+  EsriPurple = 'Gradient - Purple',
 }
 
 export enum AllColorPalettes {
@@ -61,11 +66,12 @@ export enum AllColorPalettes {
   Bivariategreenyellow3 = '6 Bivariate Green-Yellow',
   Bivariateyellowgreen3 = '6 Bivariate Yellow-Green',
   Green = '6 Green',
-  Blue = '6 Blue',
-  Orange = '6 Orange',
-  Red = '6 Red',
+  Blue = 'Gradient - Blue',
+  Orange = 'Gradient - Orange',
+  Red = 'Gradient - Red',
   Pastelshades3 = '6 Pastel Shades',
   Brightcolors = '6 Bright Colors',
+  SixDarkColors = '6 Dark Colors',
   Valassisrange3color = 'Valassis Range - 3 color',
   Valassisrange4color = 'Valassis Range - 4 color',
   Valassisrank4color = 'Valassis Rank - 4 color',
@@ -76,7 +82,7 @@ export enum AllColorPalettes {
   Bluetored = '20 Blue to Red',
   Lightcolors2 = '20 Light Colors #2',
   Darkcolors = '20 Dark Colors',
-  EsriPurple = 'Esri High To Low',
+  EsriPurple = 'Gradient - Purple',
 }
 
 export function getColorPalette(palette: ColorPalette) : number[][] {
@@ -201,6 +207,8 @@ export function getAllColorPalettes(palette: string) : number[][] {
       return PastelShades3;
     case AllColorPalettes.Brightcolors:
       return BrightColors;
+    case AllColorPalettes.SixDarkColors:
+      return SixDarkColors;
     case AllColorPalettes.Valassisrange3color:
       return ValassisRange3color;
     case AllColorPalettes.Valassisrange4color:
@@ -273,13 +281,14 @@ const BrightColors2: number[][] = [[255, 255, 0], [255, 125, 255], [0, 150, 255]
 const AdvantageLighter3: number[][] = [[185, 215, 255], [172, 252, 255], [170, 255, 180], [255, 255, 185], [255, 200, 150], [255, 200, 200]];
 const AdvantageDarker3: number[][] = [[200, 125, 255], [100, 150, 255], [125, 255, 125], [250, 255, 130], [255, 210, 50], [255, 130, 120]];
 const BivariateBlueRed3: number[][] = [[0, 125, 225], [125, 175, 255], [180, 240, 255], [255, 210, 215], [255, 165, 175], [255, 105, 135]];
-const BivariateRedBlue3: number[][] = [[255, 105, 135], [255, 165, 175], [255, 210, 215], [180, 240, 255], [125, 175, 255], [0, 125, 225]];
+const BivariateRedBlue3: number[][] = [[0, 125, 225], [125, 175, 255], [180, 240, 255], [255, 210, 215], [255, 165, 175], [255, 105, 135]];
+// const BivariateRedBlue3: number[][] = [[255, 105, 135], [255, 165, 175], [255, 210, 215], [180, 240, 255], [125, 175, 255], [0, 125, 225]];
 const BivariateGreenYellow3: number[][] = [[50, 175, 50], [110, 220, 110], [150, 255, 150], [255, 255, 200], [255, 255, 150], [255, 255, 0]];
 const BivariateYellowGreen3: number[][] = [[255, 255, 0], [255, 255, 150], [255, 255, 200], [150, 255, 150], [110, 220, 110], [50, 175, 50]];
 const Green: number[][] = [[0, 110, 50], [0, 175, 50], [50, 225, 50], [150, 255, 100], [200, 255, 150], [200, 255, 200]];
-const Blue: number[][] = [[0, 75, 255], [0, 150, 255], [100, 200, 255], [0, 255, 255], [150, 255, 255], [200, 255, 255]];
-const Orange: number[][] = [[255, 165, 50], [255, 185, 0], [255, 210, 110], [255, 200, 150], [255, 225, 200], [255, 240, 200]];
-const Red: number[][] = [[255, 50, 50], [255, 85, 100], [255, 130, 130], [255, 150, 150], [255, 190, 190], [255, 230, 230]];
+const Blue: number[][] = [[200, 255, 255], [150, 255, 255], [0, 255, 255], [100, 200, 255], [0, 150, 255], [0, 75, 255]];
+const Orange: number[][] = [[255, 240, 200], [255, 225, 200], [255, 200, 150], [255, 210, 110], [255, 185, 0], [255, 165, 50]];
+const Red: number[][] = [[255, 230, 230], [255, 190, 190], [255, 150, 150], [255, 130, 130], [255, 85, 100], [255, 50, 50]];
 const PastelShades3: number[][] = [[255, 190, 230], [155, 215, 255], [200, 255, 175], [255, 210, 170], [255, 255, 150], [200, 200, 255]];
 const BrightColors: number[][] = [[255, 255, 0], [255, 125, 225], [0, 150, 255], [0, 255, 0], [200, 75, 220], [255, 190, 50]];
 const ValassisRange3color: number[][] = [[254, 242, 102], [255, 176, 16], [237, 23, 31]];
@@ -294,3 +303,4 @@ const LightColors2: number[][] = [[128, 255, 75], [255, 215, 185], [246, 255, 18
 const DarkColors: number[][] = [[235, 131, 235], [169, 209, 175], [173, 158, 208], [253, 254, 171], [234, 145, 157], [127, 245, 247], [255, 203, 223], [245, 180, 151], [177, 218, 220], [128, 135, 254], [187, 255, 207], [217, 178, 234], [255, 125, 133], [249, 255, 121], [94, 205, 214], [255, 224, 215], [213, 255, 167], [215, 175, 255], [255, 227, 160], [255, 132, 170]];
 const cpqmaps: number[][] = [[108, 139, 202], [211, 114, 149], [255, 255, 102], [134, 188, 182], [255, 167, 79], [170, 113, 213], [250, 191, 210], [160, 205, 232], [242, 142, 43], [89, 161, 79], [157, 118, 96], [92, 154, 254], [241, 206, 99], [140, 209, 125], [255, 157, 154], [186, 176, 172], [73, 152, 148], [212, 166, 200], [225, 87, 89], [182, 153, 45]];
 const esriPurple: number[][] = [[255, 252, 212], [231, 174, 157], [206, 96, 101], [136, 49, 79], [66, 2, 57]];
+const SixDarkColors: number[][] = [[114, 175, 216], [165, 219, 85], [241, 159, 39], [218, 49, 69], [200, 125, 255], [250, 255, 130]];

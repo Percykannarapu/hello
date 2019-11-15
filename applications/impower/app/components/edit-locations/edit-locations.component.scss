@@ -1,0 +1,31 @@
+@import "~assets/valassis-variables";
+:host >>> .ui-dialog-mask {
+    z-index: 9 !important;
+}
+
+.error-icon {
+    color: #e62a10;
+  }
+
+span.ui-inputgroup-addon {
+  border-style: none;
+}
+
+.md-inputfield input.ng-touched.ng-invalid ~ label {
+  color: #e62a10;
+}
+  
+.ui-inputgroup .md-inputfield input:focus ~ label,
+.ui-inputgroup .md-inputfield input.ui-state-filled ~ label {
+  top: -1em;
+}
+  
+.ui-inputgroup .md-inputfield label {
+  top: 1px;
+}
+
+.validation-messages {
+  > span {
+    color: $inputErrorTextColor;
+  }
+}

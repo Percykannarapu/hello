@@ -1,17 +1,20 @@
-import { Component, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { AppConfig } from '../../app.config';
-import { AppMapService } from '../../services/app-map.service';
-import { AppStateService } from '../../services/app-state.service';
-import { AppGeoService } from '../../services/app-geo.service';
-import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { AppTradeAreaService } from '../../services/app-trade-area.service';
-import { AppRendererService } from '../../services/app-renderer.service';
-import { select, Store } from '@ngrx/store';
-import { filter, take } from 'rxjs/operators';
-import { FullAppState, LocalAppState } from '../../state/app.interfaces';
-import { CreateMapUsageMetric, CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import {select, Store} from '@ngrx/store';
 import { EsriApi, selectors } from '@val/esri';
+import {ConfirmationService} from 'primeng/api';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { debounceTime, filter, take, takeUntil } from 'rxjs/operators';
+import {AppConfig} from '../../app.config';
+import {AppGeoService} from '../../services/app-geo.service';
+import {AppMapService} from '../../services/app-map.service';
+import {AppRendererService} from '../../services/app-renderer.service';
+import {AppStateService} from '../../services/app-state.service';
+import {AppTradeAreaService} from '../../services/app-trade-area.service';
+import {FullAppState} from '../../state/app.interfaces';
+import {CreateMapUsageMetric, CreateProjectUsageMetric} from '../../state/usage/targeting-usage.actions';
+import {ImpProject} from '../../val-modules/targeting/models/ImpProject';
+import {ImpGeofootprintGeoService} from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { getMapVars } from '../../impower-datastore/state/transient/map-vars/map-vars.selectors';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
@@ -19,20 +22,24 @@ const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
 @Component({
   selector: 'val-map',
   templateUrl: './map.component.html',
-  styleUrls: ['./map.component.css']
+  styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit {
+export class MapComponent implements OnInit, OnDestroy {
   currentAnalysisLevel$: Observable<string>;
   mapHeight$: BehaviorSubject<number> = new BehaviorSubject<number>(400);
-  selectedPanelButton: any;
+  selectedPanelButton: number;
+
+  private destroyed$ = new Subject<void>();
+
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
               private appTradeAreaService: AppTradeAreaService,
               private appGeoService: AppGeoService,
               private impGeoService: ImpGeofootprintGeoService,
               private rendererService: AppRendererService,
-              private store$: Store<FullAppState>,
-              private config: AppConfig) {}
+              private confirmationService: ConfirmationService,
+              private cd: ChangeDetectorRef,
+              private store$: Store<FullAppState>) {}
 
   ngOnInit() {
     console.log('Initializing Application Map Component');
@@ -46,6 +53,16 @@ export class MapComponent implements OnInit {
       select(selectors.getEsriFeaturesSelected),
       filter(features => features != null && features.length > 0)
     ).subscribe(features => this.onPolysSelected(features));
+    this.store$.pipe(
+      select(getMapVars)
+    ).subscribe((mapVars) => {
+      console.log('In Map Component selector:::');
+      // this.rendererService.getMapVars(mapVars);
+    });
+  }
+
+  public ngOnDestroy() : void {
+    this.destroyed$.next();
   }
 
   fnSelectedButton(button) {
@@ -74,21 +91,91 @@ export class MapComponent implements OnInit {
   }
 
   onViewExtentChanged(view: __esri.MapView) : void {
-    const analysisLevel = this.appStateService.analysisLevel$.getValue();
-    if (analysisLevel != null) {
-      const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-      this.appStateService.setVisibleGeocodes(layerId);
-    }
     this.saveMapViewData(view);
   }
 
   private setupApplication() : void {
+    this.appStateService.notifyMapReady();
+    this.appMapService.watchMapViewProperty('stationary').pipe(
+      filter(result => result.newValue),
+      debounceTime(500),
+      takeUntil(this.destroyed$)
+    ).subscribe(() => this.appStateService.refreshVisibleGeos());
     this.appMapService.setupMap();
     this.setupMapFromStorage();
   }
 
+  private checkFilters(features: __esri.Graphic[], currentProject: ImpProject) : any {
+    const includeValassis = currentProject.isIncludeValassis;
+    const includeAnne = currentProject.isIncludeAnne;
+    const includeSolo = currentProject.isIncludeSolo;
+    const includePob = !currentProject.isExcludePob;
+    let outerCheck: boolean = true;
+    const filteredFeatures: __esri.Graphic[] = [];
+    features.forEach((feature, index) => {
+      const currentAttribute = feature.attributes;
+      if (currentAttribute != null) {
+        let innerCheck: boolean = true;
+        switch (currentAttribute['owner_group_primary']) {
+          case 'VALASSIS':
+          innerCheck = includeValassis ? (innerCheck && true) : false;
+            break;
+          case 'ANNE':
+          innerCheck = includeAnne ? (innerCheck && true) : false;
+            break;
+          default:
+          innerCheck = innerCheck;
+        }
+        if (currentAttribute['cov_frequency'] === 'Solo') {
+          innerCheck = includeSolo ? (innerCheck && true) : false;
+        }
+        if (currentAttribute['pob'] === 'B') {
+          innerCheck = includePob ? (innerCheck && true) : false;
+        }
+        if (innerCheck) {
+          filteredFeatures.push(feature);
+        }
+        outerCheck = outerCheck && innerCheck;
+      }
+    });
+    return { outerCheck, filteredFeatures };
+  }
+
+  private geosRespectingFilters(features: __esri.Graphic[]) : void {
+    const currentProject = this.appStateService.currentProject$.getValue();
+    const response = this.checkFilters(features, currentProject);
+    const isRespectingFilters: boolean = response.outerCheck;
+    const filteredFeatures: __esri.Graphic[] = response.filteredFeatures;
+    let singleSelectFlag: boolean;
+    if (this.selectedPanelButton === 1) {
+      singleSelectFlag = this.appGeoService.checkGeoOnSingleSelect(features);
+    }
+    if (!isRespectingFilters && !singleSelectFlag) {
+      this.confirmationService.confirm({
+        message: 'You are about to select geographies outside of your desired filtered criteria. Are you sure you want to include these geographies?',
+        header: 'Filter Warning',
+        accept: () => {
+          this.appStateService.filterFlag.next(true);
+          this.appMapService.selectMultipleGeocode(features, this.selectedPanelButton, true);
+        },
+        reject: () => {
+          this.appStateService.filterFlag.next(true);
+          this.appMapService.selectMultipleGeocode(features, this.selectedPanelButton, false, filteredFeatures);
+        }
+      });
+      this.cd.markForCheck();
+    } else {
+      this.appStateService.filterFlag.next(true);
+      this.appMapService.selectMultipleGeocode(features, this.selectedPanelButton, true);
+    }
+  }
+
   private onPolysSelected(polys: __esri.Graphic[]) : void {
-    this.appMapService.selectMultipleGeocode(polys, this.selectedPanelButton);
+    if (this.selectedPanelButton === 3 || this.selectedPanelButton === 1) {
+      this.geosRespectingFilters(polys);
+    } else if (this.selectedPanelButton === 8) {
+      this.appMapService.selectMultipleGeocode(polys, this.selectedPanelButton);
+    }
   }
 
   private saveMapViewData(mapView: __esri.MapView) {
@@ -111,4 +198,5 @@ export class MapComponent implements OnInit {
       this.mapHeight$.next(heightNum);
     }
   }
+
 }

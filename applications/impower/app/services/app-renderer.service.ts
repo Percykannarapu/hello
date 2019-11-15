@@ -1,99 +1,60 @@
 import { Injectable } from '@angular/core';
-import { Subscription, BehaviorSubject } from 'rxjs';
-import { ShadingData } from '../../../../modules/esri/src/state/map/esri.renderer.reducer';
-import { TargetAudienceService } from './target-audience.service';
-import { filter, withLatestFrom } from 'rxjs/operators';
-import { AppStateService } from './app-state.service';
 import { Store } from '@ngrx/store';
-import { LocalAppState } from '../state/app.interfaces';
-import { calculateStatistics, mapToEntity } from '@val/common';
-import { ClearSelectedGeos, ClearShadingData, ColorPalette, EsriRendererService, SetSelectedGeos, SetShadingData } from '@val/esri';
-import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
+import { calculateStatistics } from '@val/common';
+import { audienceShading, clearSelectionData, ColorPalette, EsriLayerService, EsriMapService, EsriRendererService, EsriUtils, geoSelectionChanged, mapViewChanged, selectors, SetRenderingData } from '@val/esri';
+import { AppConfig } from 'app/app.config';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
-import * as fromMapVarSelectors from 'app/impower-datastore/state/transient/map-vars/map-vars.selectors';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
+import * as fromMapVarSelectors from 'app/impower-datastore/state/transient/map-vars/map-vars.selectors';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
+import { BehaviorSubject, combineLatest, from, Observable, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { ShadingData } from '../../../../modules/esri/src/state/renderer/esri.renderer.reducer';
+import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
+import { FullAppState } from '../state/app.interfaces';
+import { getCurrentColorPalette, getLegacyRenderingEnabled } from '../state/rendering/rendering.selectors';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { AppStateService } from './app-state.service';
+import { TargetAudienceService } from './target-audience.service';
 
 @Injectable()
 export class AppRendererService {
-  public static currentDefaultTheme: ColorPalette = ColorPalette.EsriPurple;
-
-  private geoSubscription: Subscription;
-  private dataSubscription: Subscription;
-
   private mapAudienceBS$ = new BehaviorSubject<Audience[]>([]);
+  private mapViewWatcher: Subscription;
+  private selectedWatcher: Subscription;
+
+  private previousAnalysisLevel: string;
 
   constructor(private appStateService: AppStateService,
+              private impGeoService: ImpGeofootprintGeoService,
               private dataService: TargetAudienceService,
               private esriRenderer: EsriRendererService,
-              private store$: Store<LocalAppState>) {
-    this.geoSubscription = this.appStateService.uniqueSelectedGeocodes$.pipe (
-      filter(geos => geos != null),
-      withLatestFrom(this.appStateService.applicationIsReady$),
-    ).subscribe(([geos, ready]) => {
-      if (geos.length > 0) {
-        this.store$.dispatch(new SetSelectedGeos(geos));
-      } else if (ready) {
-        this.store$.dispatch(new ClearSelectedGeos());
-      }
+              private esriMapService: EsriMapService,
+              private esriLayerService: EsriLayerService,
+              private config: AppConfig,
+              private store$: Store<FullAppState>) {
+    this.appStateService.applicationIsReady$.pipe(
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.appStateService.analysisLevel$.pipe(
+        filter(a => a != null)
+      ).subscribe(al => {
+        this.setupGeoWatchers(al, this.impGeoService.storeObservable);
+      });
+      // Subscribe to store selectors
+      this.store$.select(fromAudienceSelectors.getAudiencesOnMap).subscribe(this.mapAudienceBS$);
+      this.store$.select(fromMapVarSelectors.allMapVars).pipe(
+        withLatestFrom(this.store$.select(getCurrentColorPalette))
+      ).subscribe(([mapVars, palette]) => this.updateMapVarData(mapVars, palette));
     });
-
-    // Subscribe to store selectors
-    this.store$.select(fromAudienceSelectors.getAudiencesOnMap).subscribe(this.mapAudienceBS$);
-    this.store$.select(fromMapVarSelectors.allMapVars).subscribe(mapVars => this.updateMapVarData(mapVars));
   }
-/*
-  public updateData(newData: { [geocode: string] : ImpGeofootprintVar }) : void {
-    const result: ShadingData = {};
-    let isNumericData = false;
-    Object.keys(newData).forEach(geocode => {
-      result[geocode] = newData[geocode].value;
-      if (!Number.isNaN(Number(newData[geocode].value)) && newData[geocode].value != null)
-         isNumericData = true;
-    });
 
-    if (Object.keys(newData).length > 0) {
-      const newAction = new SetShadingData({ data: result, isNumericData: isNumericData, theme: AppRendererService.currentDefaultTheme });
-      if (isNumericData) newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
-      //US9347 - Variable Title in the Legend
-      const audiences = Array.from(this.dataService.audienceMap.values()).filter(a => a.showOnMap === true);
-      let legendText = null;
-      let legendOption =  null;
-
-      if (audiences[0].audienceSourceType === 'Online'){
-
-        if (audiences[0].audienceSourceName === 'Audience-TA'){
-          let scoreTypeLabel: string = null;
-          scoreTypeLabel = audiences[0].audienceTAConfig.scoreType;
-          if (scoreTypeLabel === 'national'){
-            scoreTypeLabel = scoreTypeLabel.charAt(0).toUpperCase() + scoreTypeLabel.slice(1);
-          }
-          legendText = audiences[0].audienceName + ' ' + audiences[0].audienceSourceName + ' ' + scoreTypeLabel;
-        }
-        else if ((audiences[0].audienceSourceName === 'VLH') || (audiences[0].audienceSourceName === 'Pixel')){
-          legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
-          legendText = audiences[0].audienceName + ' ' +  legendOption.label;
-        }
-        else{
-          legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
-          legendText = audiences[0].audienceName + ' ' + audiences[0].audienceSourceName + ' ' + legendOption.label;
-        }
-      }
-      else{
-        legendText = audiences[0].audienceName;
-      }
-      if (legendText != null){
-        newAction.payload.legend = legendText;
-      }
-        this.store$.dispatch(newAction);
-    } else {
-      this.store$.dispatch(new ClearShadingData());
-    }
-  }
-*/
-  public updateMapVarData(newData: MapVar[]) : void {
+  public updateMapVarData(newData: MapVar[], currentPalette: ColorPalette) : void {
     const audiences = this.mapAudienceBS$.value;
-    const mapAudience = (audiences != null || audiences.length > 0) ? audiences[0] : null;
+    const mapAudience = (audiences != null && audiences.length > 0) ? audiences[0] : null;
     const audNumeric = (mapAudience != null) ? mapAudience.fieldconte != FieldContentTypeCodes.Char : true;
     if (mapAudience == null) {
       console.log('updateMapVarData - No audiences specified for shading');
@@ -128,14 +89,13 @@ export class AppRendererService {
          console.log('updateMapVarData - No audiences specified for shading');
       else {
         isNumericData = audiences[0].fieldconte != FieldContentTypeCodes.Char;
-        const newAction = new SetShadingData({ data: result, isNumericData: isNumericData, theme: AppRendererService.currentDefaultTheme });
+        const newAction = new SetRenderingData({ data: result, isNumericData: isNumericData, theme: currentPalette });
         if (isNumericData)
           newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
 
         if (audiences[0].audienceSourceType === 'Online') {
           if (audiences[0].audienceSourceName === 'Audience-TA') {
-            let scoreTypeLabel: string = null;
-            scoreTypeLabel = audiences[0].audienceTAConfig.scoreType;
+            let scoreTypeLabel = audiences[0].audienceTAConfig.scoreType;
             if (scoreTypeLabel === 'national') {
               scoreTypeLabel = scoreTypeLabel.charAt(0).toUpperCase() + scoreTypeLabel.slice(1);
             }
@@ -163,5 +123,67 @@ export class AppRendererService {
       // Below is causing the esri renderer error
       //this.store$.dispatch(new ClearShadingData());
     }
+  }
+
+  async setupGeoWatchers(analysisLevel: string, geoDataStore: Observable<ImpGeofootprintGeo[]>) : Promise<void> {
+    if (this.mapViewWatcher) this.mapViewWatcher.unsubscribe();
+    if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
+    if (this.previousAnalysisLevel !== analysisLevel) {
+      const previousAnalysisLevel = this.previousAnalysisLevel;
+      setTimeout(() => this.store$.dispatch(clearSelectionData({ featureTypeName: previousAnalysisLevel })), 0);
+      this.previousAnalysisLevel = analysisLevel;
+    }
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
+    const primaryAnalysisLayer = this.esriLayerService.getPortalLayerById(layerId);
+
+    const layerView = await this.esriMapService.mapView.whenLayerView(primaryAnalysisLayer) as __esri.FeatureLayerView;
+    this.mapViewWatcher = EsriUtils.setupWatch(layerView, 'updating').pipe(
+      filter(result => !result.newValue),
+      debounceTime(500),
+      switchMap(result => from(EsriUtils.esriPromiseToEs6(result.target.queryFeatures())).pipe(
+        map(featureSet => featureSet.features.map(f => f.attributes.geocode))
+      ))
+    ).subscribe(visibleGeos => this.store$.dispatch(mapViewChanged({ visibleGeos })));
+
+    const isShaded$ = combineLatest([this.store$.select(selectors.getEsriRendererIsShaded), this.store$.select(getLegacyRenderingEnabled)]).pipe(
+      map(([esri, app]) => esri || app),
+      distinctUntilChanged(),
+      tap(() => this.store$.dispatch(clearSelectionData({ featureTypeName: analysisLevel }))),
+      startWith(false)
+    );
+
+    this.selectedWatcher = combineLatest([geoDataStore, isShaded$]).pipe(
+      filter(([geos]) => geos != null),
+      debounceTime(500),
+    ).subscribe(([geos, isShaded]) => {
+      const minScale = (analysisLevel === 'Digital ATZ') ?
+        this.config.layers['digital_atz'].boundaries.minScale :
+        this.config.layers[analysisLevel.toLowerCase()].boundaries.minScale;
+      const selectedGeos = geos.reduce((p, c) => {
+        if (c.isActive) p.push(c.geocode);
+        return p;
+      }, []);
+      this.store$.dispatch(geoSelectionChanged({ selectedFeatureIds: selectedGeos, layerId, minScale, featureTypeName: analysisLevel, useCrossHatching: isShaded }));
+    });
+  }
+
+  audienceShading(aud: Audience) {
+    const val$ = withLatestFrom(
+      this.store$.select(getMapVars),
+      this.appStateService.analysisLevel$,
+      ( val, mapVars, analysis) => ({val, mapVars, analysis})
+    );
+    this.store$.pipe(
+      val$,
+      distinctUntilChanged((prev, curr) => prev.mapVars.length === curr.mapVars.length)
+    ).subscribe((val) => {
+      const layerId = this.config.getLayerIdForAnalysisLevel(val.analysis, true);
+      const minScale = (val.analysis === 'Digital ATZ') ?
+        this.config.layers['digital_atz'].boundaries.minScale :
+        this.config.layers[val.analysis.toLowerCase()].boundaries.minScale;
+      this.store$.dispatch(audienceShading({ mapVars: val.mapVars, layerId, minScale }));
+    }, (err) => {
+      console.error('ERROR', err);
+    });
   }
 }

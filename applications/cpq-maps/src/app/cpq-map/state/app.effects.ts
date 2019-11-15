@@ -16,10 +16,10 @@ import { RfpUiEditWrapService } from '../services/rfpEditWrap-service';
 import { ShadingService } from '../services/shading.service';
 import { localSelectors } from './app.selectors';
 import { FullState, LocalState } from './index';
+import { MapUIActionTypes, RenderShading } from './map-ui/map-ui.actions';
 import { RfpUiEditDetailActions, RfpUiEditDetailActionTypes } from './rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { RfpUiEditWrapActions, RfpUiEditWrapActionTypes } from './rfpUiEditWrap/rfp-ui-edit-wrap.actions';
-import { RenderShading } from './shading/shading.actions';
-import { GeneratePdf, GeneratePfdFailed, GeneratePdfSucceeded, NavigateToReviewPage, SaveFailed, SaveSucceeded, SharedActions, SharedActionTypes } from './shared/shared.actions';
+import { GeneratePdf, GeneratePdfSucceeded, GeneratePfdFailed, NavigateToReviewPage, SaveFailed, SaveSucceeded, SharedActions, SharedActionTypes } from './shared/shared.actions';
 
 @Injectable()
 export class AppEffects {
@@ -57,8 +57,8 @@ export class AppEffects {
   // or disable the labels on the map
   @Effect({ dispatch: false })
   isDistryQtyEnabled$ = this.actions$.pipe(
-    ofType(SharedActionTypes.SetIsDistrQtyEnabled),
-    withLatestFrom(this.fullStore$.pipe(select(state => state))),
+    ofType(MapUIActionTypes.SetIsDistributionVisible),
+    withLatestFrom(this.fullStore$),
     tap(([, state]) => this.appLayerService.updateLabels(state))
   );
 
@@ -66,7 +66,7 @@ export class AppEffects {
   @Effect({ dispatch: false })
   rfpUiEditWrapUpserted$ = this.actions$.pipe(
     ofType(RfpUiEditWrapActionTypes.UpsertRfpUiEditWraps),
-    withLatestFrom(this.fullStore$.pipe(select(state => state))),
+    withLatestFrom(this.fullStore$),
     tap(([action, state]) => this.rfpUiEditWrapService.toggleWrapZoneGeos(action.payload.rfpUiEditWraps, state))
   );
 
@@ -81,9 +81,8 @@ export class AppEffects {
   saveMediaPlans$ = this.actions$.pipe(
     ofType(SharedActionTypes.SaveMediaPlan),
     tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.appConfig.ApplicationBusyKey, message: 'Saving Media Plan...' }))),
-    withLatestFrom(this.store$.pipe(select(localSelectors.getRfpUiEditDetailEntity))),
-    map(([action, entity]) => [action.payload.updateIds.map(u => entity[u]), action.payload.addIds.map(a => entity[a])]),
-    switchMap(([updates, adds]) => this.entityHelper.saveMediaPlan(updates, adds).pipe(
+    withLatestFrom(this.store$),
+    switchMap(([, state]) => this.entityHelper.saveMediaPlan(state).pipe(
       map(() => new SaveSucceeded()),
       catchError(err => of(new SaveFailed({ err })))
     ))
@@ -107,7 +106,7 @@ export class AppEffects {
     map(() => new StopBusyIndicator({ key: this.appConfig.ApplicationBusyKey }))
   );
 
-  @Effect() 
+  @Effect()
   generatePdf$ = this.actions$.pipe(
     ofType<GeneratePdf>(SharedActionTypes.GeneratePdf),
     tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.appConfig.ApplicationBusyKey, message: 'Generating map book' }))),

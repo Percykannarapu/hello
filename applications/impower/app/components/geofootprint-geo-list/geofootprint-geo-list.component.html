@@ -63,7 +63,7 @@
                   </label>
                </div>
                <div class="ui-g-4 ui-g-nopad grid-caption-right-group">
-                  <p-multiSelect defaultLabel="Choose Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" class="val-column-picker-light"></p-multiSelect>
+                  <p-multiSelect defaultLabel="Choose Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" class="val-column-picker-light" dropdownIcon="fa fa-caret-down"></p-multiSelect>
                   <span>
                     <label>Remove Dupes</label>
                     &nbsp;
@@ -85,11 +85,15 @@
                </th>
             </tr>
             <tr class="second-header">
-               <th style="width: 30px; padding: 0.6em 0 0 0.4em">
-                 <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" class="val-short-square-button" (click)="onFilterSelected()" style="width: 20px; height: 20px; padding: 0em; margin: 0px;"></button>
+               <th>
+                 <div class="val-center-controls">
+                   <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" class="val-toolbar-button" (click)="onFilterSelected()"></button>
+                 </div>
                </th>
-               <th style="width: 30px; padding: 1.25em 0 0 0.4em">
-                 <button type="button" pButton icon="fa fa-eraser" pTooltip="Clear Filters" class="val-short-square-button" style="color: #edb3ce" (click)="onClickResetFilters()"></button>
+               <th>
+                 <div class="val-center-controls">
+                   <button type="button" pButton icon="fa fa-eraser" pTooltip="Clear Filters" class="val-toolbar-button eraser-button" (click)="onClickResetFilters()"></button>
+                 </div>
                </th>
 
                <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
@@ -149,13 +153,11 @@
          <ng-template pTemplate="body" let-flatGeo let-selectedColumns="columns">
             <tr [pSelectableRow]="flatGeo" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">
                <td style="width: 30px; padding-left: 0.4em">
-                  <p-tableCheckbox [value]="flatGeo" selectionMode="multiple" [resizable]="false"
+                  <p-tableCheckbox [value]="flatGeo" selectionMode="multiple"
                                    pTooltip="{{flatGeo['sitesTooltip']}}" tooltipPosition="right"></p-tableCheckbox>
                </td>
                <td style="width: 30px">
-                  <button (click)="onClickDeleteGeo(flatGeo)" type="button" icon="ui-icon-trash" pButton class="ui-button-danger"
-                     pTooltip="Permanently Remove Geo" tooltipPosition="right" >
-                  </button>
+                  <i (click)="onClickDeleteGeo(flatGeo)" class="val-clickable fa fa-trash" pTooltip="Permanently Remove Geo" tooltipPosition="right" ></i>
                </td>
 
                <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
@@ -166,7 +168,7 @@
                         <i *ngIf="flatGeo['home_geo']==1" class="fa fa-home"></i>
                      </div>
                      <div class="ui-g-2 ui-g-nopad">
-                        <button (click)="onZoomToGeo(flatGeo)" icon="ui-icon-zoom-in" pButton></button>
+                        <i (click)="onZoomToGeo(flatGeo)" class="val-clickable fa fa-search" ></i>
                      </div>
                   </div>
 

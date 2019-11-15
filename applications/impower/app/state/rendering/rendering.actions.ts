@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import { ColorPalette } from '@val/esri';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
@@ -10,7 +11,10 @@ export enum RenderingActionTypes {
   RenderRadiusTradeAreas = '[Rendering] Render Radius TAs',
 
   RenderLocations = '[Rendering] Render Locations',
-  ClearLocations = '[Rendering] Clear Locations'
+  ClearLocations = '[Rendering] Clear Locations',
+
+  SetPalette = '[Rendering] Set Current Palette',
+  SetLegacyRenderingEnable = '[Rendering] Set Legacy Renderer Enabled'
 }
 
 export class RenderTradeAreas implements Action {
@@ -42,11 +46,23 @@ export class ClearLocations implements Action {
     constructor(public payload: { type: SuccessfulLocationTypeCodes }) {}
 }
 
+export class SetPalette implements Action {
+    readonly type = RenderingActionTypes.SetPalette;
+    constructor(public payload: { palette: ColorPalette }) {}
+}
+
+export class SetLegacyRenderingEnable implements Action {
+    readonly type = RenderingActionTypes.SetLegacyRenderingEnable;
+    constructor(public payload: { isEnabled: boolean }) {}
+}
+
 export type RenderingActions =
   RenderTradeAreas |
   ClearTradeAreas |
   RenderAudienceTradeAreas |
   RenderRadiusTradeAreas |
   RenderLocations |
-  ClearLocations
+  ClearLocations |
+  SetPalette |
+  SetLegacyRenderingEnable
   ;

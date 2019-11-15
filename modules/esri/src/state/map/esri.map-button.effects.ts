@@ -64,6 +64,7 @@ export class EsriMapButtonEffects {
     ofType(EsriMapToolbarButtonActionTypes.SelectMultiPolySelected),
     tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
     this.resetSketchViewGraphics(),
+    tap(() => this.esriMapService.setWidget('select')),
     mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Rectangle).pipe(
                           takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
     mergeMap(geometry => this.mapInteractionService.selectFeatures(geometry)),
@@ -75,6 +76,7 @@ export class EsriMapButtonEffects {
     ofType(EsriMapToolbarButtonActionTypes.UnselectMultiPolySelected),
     tap(() => this.store$.dispatch(new SetPopupVisibility({ isVisible: false }))),
     this.resetSketchViewGraphics(),
+    tap(() => this.esriMapService.setWidget('select')),
     mergeMap(() => this.mapInteractionService.startSketchModel(EsriGraphicTypeCodes.Rectangle).pipe(
                           takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
     mergeMap(geometry => this.mapInteractionService.selectFeatures(geometry)),

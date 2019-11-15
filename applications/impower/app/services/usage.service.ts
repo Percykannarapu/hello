@@ -1,19 +1,19 @@
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { FullAppState } from '../state/app.interfaces';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
 import { ImpMetricCounter } from '../val-modules/metrics/models/ImpMetricCounter';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpMetricNameService } from '../val-modules/metrics/services/ImpMetricName.service';
 import { RestResponse } from '../models/RestResponse';
 import { UserService } from './user.service';
-import { DataStore } from '../val-modules/common/services/datastore.service';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http';
 import { map, mergeMap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ImpMetricGauge } from '../val-modules/metrics/models/ImpMetricGauge';
 import { HttpClient } from '@angular/common/http';
 import { AppStateService } from './app-state.service';
-
 
 export class Metrics{
   constructor(
@@ -28,10 +28,11 @@ export class UsageService {
   private fetchRetries: number = 0;
 
   constructor(private userService: UserService,
-    private restClient: RestDataService,
-    private impMetricNameService: ImpMetricNameService,
-    private appConfig: AppConfig, private http: HttpClient, private stateService: AppStateService) {
-     }
+              private restClient: RestDataService,
+              private impMetricNameService: ImpMetricNameService,
+              private appConfig: AppConfig,
+              private http: HttpClient,
+              private stateService: AppStateService) {}
 
 
     public createCounterMetrics(counterMetrics: Metrics[]) {
@@ -78,7 +79,7 @@ export class UsageService {
     }
 
     //If there is no OAuth token available yet wait a few seconds and try again
-    if (RestDataService.getConfig().oauthToken == null) {
+    if (RestDataService.getConfig() != null && RestDataService.getConfig().oauthToken == null) {
       setTimeout(() => { this.createCounterMetric(metricName, metricText, metricValue); }, 2000);
     }
 
@@ -130,7 +131,7 @@ export class UsageService {
     }
 
     //If there is no OAuth token available yet wait a few seconds and try again
-    if (RestDataService.getConfig().oauthToken == null) {
+    if (RestDataService.getConfig() != null && RestDataService.getConfig().oauthToken == null) {
       setTimeout(() => { this.createCounterMetric(metricName, metricText, metricValue); }, 2000);
     }
 
@@ -186,7 +187,10 @@ export class UsageService {
    * @param metricValue The number that will be saved on this counter
    */
   private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
-    const impProjectId = this.stateService.currentProject$.getValue().projectId;
+    const currentProject = this.stateService.currentProject$.getValue();
+    if (RestDataService.getConfig() == null || currentProject == null) return EMPTY;
+
+    const impProjectId = currentProject.projectId;
 
     // Create the new counter to be persisted
     const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();
@@ -200,7 +204,7 @@ export class UsageService {
     impMetricCounter.modifyDate = new Date(Date.now());
     impMetricCounter.modifyUser = this.userService.getUser().userId;
     impMetricCounter.origSystemRefId = impProjectId != null ? impProjectId.toString() : null;
-    impMetricCounter.projectTrackerId = this.stateService.currentProject$.getValue().projectTrackerId;
+    impMetricCounter.projectTrackerId = currentProject.projectTrackerId;
 
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + RestDataService.getConfig().oauthToken);
 
@@ -216,6 +220,8 @@ export class UsageService {
    * @param metricValue The number that will be saved on this counter
    */
   private _createGaugeMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
+    if (RestDataService.getConfig() == null) return EMPTY;
+
     const impProjectId = this.stateService.projectId$.getValue();
 
     // Create the new counter to be persisted

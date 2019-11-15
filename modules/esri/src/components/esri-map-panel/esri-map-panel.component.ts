@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { select, Store } from '@ngrx/store';
+import { buttonToCursorMap, SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { AppState, internalSelectors } from '../../state/esri.selectors';
 import { MeasureDistanceSelected, PopupButtonSelected, SelectMultiPolySelected, SelectSinglePolySelected, UnselectMultiPolySelected, XYButtonSelected } from '../../state/map/esri.map-button.actions';
-import { buttonToCursorMap, SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { MapClicked, SetMapHeight, SetMapViewpoint } from '../../state/map/esri.map.actions';
 
 @Component({
@@ -14,8 +14,8 @@ import { MapClicked, SetMapHeight, SetMapViewpoint } from '../../state/map/esri.
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EsriMapPanelComponent {
-  currentMapState$: Observable<SelectedButtonTypeCodes> = this.store.pipe(select(internalSelectors.getEsriMapButtonState));
-  height$: Observable<number> = this.store.pipe(select(internalSelectors.getEsriMapHeight));
+  currentMapState$: Observable<SelectedButtonTypeCodes> = this.store.select(internalSelectors.getEsriMapButtonState);
+  height$: Observable<number> = this.store.select(internalSelectors.getEsriMapHeight);
   cursor$: Observable<string> = this.currentMapState$.pipe(map(state => buttonToCursorMap[state]));
   SelectedButtonTypeCodes = SelectedButtonTypeCodes;
 
@@ -29,14 +29,14 @@ export class EsriMapPanelComponent {
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
   @Output() selectedButton = new EventEmitter();
 
-  constructor(private store: Store<AppState>) { }
+  constructor(private store: Store<AppState>) {}
 
   onMapClick(location:  __esri.MapViewImmediateClickEvent) : void {
-    this.store.dispatch(new MapClicked({ event: location }));
+    this.store.dispatch(new MapClicked({ event: { ...location } }));
   }
 
   onViewChanged(mapView: __esri.MapView) : void {
-    this.store.dispatch(new SetMapViewpoint({ newViewpoint: mapView.viewpoint }));
+    this.store.dispatch(new SetMapViewpoint({ newViewpointJson: mapView.viewpoint.toJSON() }));
     this.viewChanged.emit(mapView);
   }
 

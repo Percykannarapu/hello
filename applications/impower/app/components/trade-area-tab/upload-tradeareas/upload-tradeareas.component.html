@@ -1,6 +1,6 @@
 <div class="ui-g">
     <div class="ui-g-12">
-      <div class="ui-g-9">
+      <div class="ui-g-12">
         <div class="ui-g-3">
           <label>Define for:</label>
         </div>
@@ -10,6 +10,24 @@
         <div class="ui-g-3">
           <p-radioButton name="uploadListType1" value="Competitor" label="Competitors" [(ngModel)]="listType1"></p-radioButton>
         </div>
+      </div>
+      <br>
+      &nbsp;
+      <div class="ui-g-12">
+        
+          <span class="md-inputfield">
+            <p-dropdown id="analysisLevel"
+                        [options]="fileAnalysisLevels"
+                        [autoWidth]="false"
+                        [style]="{ width:'40%' }"
+                        placeholder="&nbsp;"
+                        [(ngModel)]="fileAnalysisSelected"
+                        dropdownIcon="fa fa-caret-down"
+                        [disabled]="!(currentAnalysisLevel$ | async)">
+            </p-dropdown>
+            <label for="analysisLevel">Analysis Level of upload file</label>
+          </span>
+        
       </div>
       <div class="ui-g-12" *ngIf="isCustomTAExists">
           <div class="ui-g-3" style="margin-top: -15px;margin-bottom:-10px;">
@@ -24,7 +42,7 @@
                         pTooltip="CSV or Excel format required: Site #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
           </p-fileUpload>
         </div>
-        <div class="ui-g-3">        
+        <div class="ui-g-3">
           <button pButton type="button" label="Delete Custom TA"  [disabled]="!isCustomTAExists" (click)="deleteCustomTradeArea()" ></button>
        </div>
        <div class="ui-g-6"></div>
@@ -34,11 +52,11 @@
           Please select an Analysis Level before uploading a custom trade area
         </div>
       </div>
-    </div>  
+    </div>
     <div>
         <p-confirmDialog icon="pi pi-exclamation-triangle" key="delete" appendTo="body"></p-confirmDialog>
-    </div> 
-    <div *ngIf="uploadFailures.length > 0" class="ui-g-7">
+    </div>
+    <div *ngIf="uploadFailures.length > 0" class="ui-g-12">
       <p-table [value]="uploadFailures" [paginator]="true" [rows]="5">
         <ng-template pTemplate="caption">
           <div>
@@ -57,27 +75,27 @@
         <ng-template pTemplate="body" let-rowData>
           <tr>
             <td pEditableColumn>
-              <p-cellEditor>
-                <ng-template pTemplate="input">
-                  <input pInputText type="text" [(ngModel)]="rowData.geocode">
-                </ng-template>
-                <ng-template pTemplate="output">
-                  {{rowData.geocode}}
-                </ng-template>
-              </p-cellEditor>
+                  <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <input pInputText type="text" [(ngModel)]="rowData.geocode">
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{rowData.geocode}}
+                      </ng-template>
+                    </p-cellEditor>
             </td>
             <td pEditableColumn>
-              <p-cellEditor>
-                <ng-template pTemplate="input">
-                  <input pInputText type="text" [(ngModel)]="rowData.store">
-                </ng-template>
-                <ng-template pTemplate="output">
-                  {{rowData.store}}
-                </ng-template>
-              </p-cellEditor>
+                    <p-cellEditor>
+                        <ng-template pTemplate="input">
+                          <input pInputText type="text" [(ngModel)]="rowData.store">
+                        </ng-template>
+                        <ng-template pTemplate="output">
+                          {{rowData.store}}
+                        </ng-template>
+                      </p-cellEditor>
             </td>
             <td>
-              {{rowData.message}}
+                    {{rowData.message}}
             </td>
             <td>
               <div class="val-centered">
@@ -85,7 +103,7 @@
               </div>
             </td>
             <td>
-              <div class="val-centered">
+              <div class="val-centered" >
                 <button (click)="onRemove(rowData)" icon="ui-icon-delete" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
               </div>
             </td>

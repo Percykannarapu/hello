@@ -1,5 +1,6 @@
-// fixes Array.isArray not typing a readonly array as an array
+// tslint:disable:no-bitwise
 
+// fixes Array.isArray not typing a readonly array as an array
 declare global {
   interface ArrayConstructor {
     isArray(arg: any) : arg is ReadonlyArray<any>;
@@ -188,9 +189,9 @@ export function mapToEntity<T>(sourceMap: Map<string | number, T>) : { [key: str
  * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
  * @returns {Map<T[K], T | R>}
  */
-export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K) : Map<T[K], T>;
-export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector: (item: T) => R) : Map<T[K], R>;
-export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[], fieldName: K, valueSelector?: (item: T) => R) : Map<T[K], T | R> {
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[] | ReadonlyArray<T>, fieldName: K) : Map<T[K], T>;
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[] | ReadonlyArray<T>, fieldName: K, valueSelector: (item: T) => R) : Map<T[K], R>;
+export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(items: T[] | ReadonlyArray<T>, fieldName: K, valueSelector?: (item: T) => R) : Map<T[K], T | R> {
   return mapByExtended(items, (i) => i[fieldName], valueSelector);
 }
 
@@ -202,9 +203,9 @@ export function mapBy<T extends { [key: string] : any }, K extends keyof T, R>(i
  * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
  * @returns {Map<T[K], T | R>}
  */
-export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K) : Map<K, T>;
-export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector: (item: T) => R) : Map<K, R>;
-export function mapByExtended<T, K, R>(items: T[], keySelector: (item: T) => K, valueSelector?: (item: T) => R) : Map<K, T | R> {
+export function mapByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K) : Map<K, T>;
+export function mapByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector: (item: T) => R) : Map<K, R>;
+export function mapByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector?: (item: T) => R) : Map<K, T | R> {
   const result = new Map<K, T | R>();
   const tx: ((item: T) => T | R) = valueSelector != null ? valueSelector : (i) => i;
   if (items == null || items.length === 0) return result;
@@ -370,12 +371,12 @@ export function isNumber(value: any) : value is number {
  * 0.001999786764383  0.001ms     Capped sub milliseconds to 3 decimals
  * 0.000199786764383  0ms         Below sub milli 3 dec is just instant
  */
-export function formatMilli(a,k?,sub?,s?,m?,h?,e?){
-  return k=Math.trunc(a%1e3), sub=Math.floor((a%1e3-k)*1000)/1000, s=a/1e3%60|0, e=(s+k/1000+'').length, m=a/6e4%60|0, h=a/36e5%24|0,
-    (h?h+'h ':'')+
-    (m?m+'m':'')+
-    (h || m || s >= 10 ? (s != 0 ? (m?' ':'')+s+'s':''): (s >= 1 ? (e <= 5 ? s+k/1000 : (s+k/1000).toFixed(3)) + 's' : '')) +
-    (!h && !m && s == 0 && k >= 1 ? (k/1000) + 's' : '') +
+export function formatMilli(a, k?, sub?, s?, m?, h?, e?){
+  return k = Math.trunc(a % 1e3), sub = Math.floor((a % 1e3 - k) * 1000) / 1000, s = a / 1e3 % 60 | 0, e = (s + k / 1000 + '').length, m = a / 6e4 % 60 | 0, h = a / 36e5 % 24 | 0,
+    (h ? h + 'h ' : '') +
+    (m ? m + 'm' : '') +
+    (h || m || s >= 10 ? (s != 0 ? (m ? ' ' : '') + s + 's' : '') : (s >= 1 ? (e <= 5 ? s + k / 1000 : (s + k / 1000).toFixed(3)) + 's' : '')) +
+    (!h && !m && s == 0 && k >= 1 ? (k / 1000) + 's' : '') +
     (!h && !m && !s && !k ? sub + 'ms' : '');
 }
 
@@ -404,8 +405,27 @@ export function getUuid() : string {
   );
 }
 
-export function pad(value: string | number, width: number, z: string = '0') {
+export function pad(value: string | number, width: number, z: string = '0') : string {
   let str = '' + value;
   while (str.length < width) str = z + str;
   return str;
+}
+
+/**
+ * Formats a date into a string that our current Fuse environment is capable of parsing
+ * @param date - the date to format
+ * @return string - the date formatted as 'YYYY-MM-DD'
+ */
+export function formatDateForFuse(date: Date) : string {
+  const zeroPad = Intl.NumberFormat(undefined, { minimumIntegerDigits: 2 }).format;
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${year}-${zeroPad(month)}-${zeroPad(day)}`;
+}
+
+export function strToBool(value: string) : boolean {
+  if (value == null) return false;
+  const lcValue = value.toLowerCase();
+  return /^true$|^t$|^yes$|^y$|^1$/.test(lcValue);
 }

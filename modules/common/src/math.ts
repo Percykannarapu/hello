@@ -5,6 +5,7 @@ export interface Statistics {
   max: number;
   variance: number;
   stdDeviation: number;
+  distance: number;
 }
 
 export function calculateStatistics(data: number[]) : Statistics {
@@ -15,7 +16,8 @@ export function calculateStatistics(data: number[]) : Statistics {
     min: Number.POSITIVE_INFINITY,
     max: Number.NEGATIVE_INFINITY,
     variance: 0,
-    stdDeviation: 0
+    stdDeviation: 0,
+    distance: 0
   };
   const dataLength = data.length;
   let sumOfSquares = 0;
@@ -33,5 +35,14 @@ export function calculateStatistics(data: number[]) : Statistics {
     result.variance = deviation / (dataLength - 1);
     result.stdDeviation = Math.sqrt(result.variance);
   }
+  result.distance = Math.abs(result.max - result.min);
   return result;
+}
+
+export function expandRange<T extends { min: number, max: number }>(data: T, expansionAmount: number) : T {
+  return {
+    ...data,
+    min: data.min - expansionAmount,
+    max: data.max + expansionAmount
+  };
 }

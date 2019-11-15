@@ -9,23 +9,18 @@ export class EsriApi {
     'esri/Map',
     'esri/Basemap',
     'esri/views/MapView',
-    'esri/core/Collection',
     'esri/support/actions/ActionButton',
-    'esri/renderers/smartMapping/creators/color',
-    'esri/renderers/smartMapping/symbology/color',
-    'esri/renderers/smartMapping/statistics/histogram',
-    'esri/renderers/visualVariables/support/ColorStop',
+    'esri/renderers/DotDensityRenderer',
+    'esri/renderers/ClassBreaksRenderer',
     'esri/renderers/UniqueValueRenderer',
     'esri/renderers/SimpleRenderer',
     'esri/core/lang',
     'esri/geometry/geometryEngine',
-    'esri/geometry/geometryEngineAsync',
     'esri/layers/Layer',
     'esri/layers/GroupLayer',
     'esri/layers/FeatureLayer',
     'esri/core/watchUtils',
     'esri/PopupTemplate',
-    'esri/geometry/Polyline',
     'esri/Viewpoint',
     'esri/Graphic',
     'esri/symbols/SimpleFillSymbol',
@@ -33,20 +28,19 @@ export class EsriApi {
     'esri/Color',
     'esri/geometry/Point',
     'esri/geometry/Multipoint',
-    'esri/tasks/support/Query',
+    'esri/geometry/Polyline',
     'esri/geometry/Extent',
+    'esri/geometry/projection',
+    'esri/geometry/Polygon',
+    'esri/tasks/support/Query',
     'esri/tasks/Geoprocessor',
     'esri/tasks/support/FeatureSet',
-    'esri/layers/support/Field',
     'esri/popup/FieldInfo',
     'esri/layers/support/LabelClass',
     'esri/symbols/TextSymbol',
     'esri/symbols/Font',
     'esri/symbols/SimpleLineSymbol',
     'esri/layers/GraphicsLayer',
-    'esri/geometry/projection',
-    'esri/geometry/SpatialReference',
-    'esri/widgets/Expand',
     'esri/tasks/PrintTask',
     'esri/tasks/support/PrintParameters',
     'esri/tasks/support/PrintTemplate'
@@ -57,23 +51,18 @@ export class EsriApi {
   public static Map: __esri.MapConstructor;
   public static BaseMap: __esri.BasemapConstructor;
   public static MapView: __esri.MapViewConstructor;
-  public static Collection: __esri.Collection;
   public static ActionButton: __esri.ActionButtonConstructor;
-  public static colorRendererCreator: __esri.color;
-  public static symbologyColor: __esri.symbologyColor;
-  public static histogram: __esri.histogram;
-  public static ColorStop: __esri.ColorStopConstructor;
+  public static DotDensityRenderer: __esri.DotDensityRendererConstructor;
+  public static ClassBreaksRenderer: __esri.ClassBreaksRendererConstructor;
   public static UniqueValueRenderer: __esri.UniqueValueRendererConstructor;
   public static SimpleRenderer: __esri.SimpleRendererConstructor;
   public static lang: __esri.lang;
   public static geometryEngine: __esri.geometryEngine;
-  public static geometryEngineAsync: __esri.geometryEngineAsync;
   public static Layer: __esri.LayerConstructor;
   public static GroupLayer: __esri.GroupLayerConstructor;
   public static FeatureLayer: __esri.FeatureLayerConstructor;
   public static watchUtils: __esri.watchUtils;
   public static PopupTemplate: __esri.PopupTemplateConstructor;
-  public static PolyLine: __esri.PolylineConstructor;
   public static Viewpoint: __esri.ViewpointConstructor;
   public static Graphic: __esri.GraphicConstructor;
   public static SimpleFillSymbol: __esri.SimpleFillSymbolConstructor;
@@ -81,20 +70,19 @@ export class EsriApi {
   public static Color: __esri.ColorConstructor;
   public static Point: __esri.PointConstructor;
   public static Multipoint: __esri.MultipointConstructor;
-  public static Query: __esri.QueryConstructor;
+  public static PolyLine: __esri.PolylineConstructor;
   public static Extent: __esri.ExtentConstructor;
+  public static projection: __esri.projection;
+  public static Polygon: __esri.PolygonConstructor;
+  public static Query: __esri.QueryConstructor;
   public static Geoprocessor: __esri.GeoprocessorConstructor;
   public static FeatureSet: __esri.FeatureSetConstructor;
-  public static Field: __esri.FieldConstructor;
   public static FieldInfo: __esri.FieldInfoConstructor;
   public static LabelClass: __esri.LabelClassConstructor;
   public static TextSymbol: __esri.TextSymbolConstructor;
   public static Font: __esri.FontConstructor;
   public static SimpleLineSymbol: __esri.SimpleLineSymbolConstructor;
   public static GraphicsLayer: __esri.GraphicsLayerConstructor;
-  public static projection: __esri.projection;
-  public static SpatialReference: __esri.SpatialReferenceConstructor;
-  public static Expand: __esri.ExpandConstructor;
   public static PrintTask: __esri.PrintTaskConstructor;
   public static PrintParameters: __esri.PrintParametersConstructor;
   public static PrintTemplate: __esri.PrintTemplateConstructor;
@@ -120,23 +108,18 @@ export class EsriApi {
       EsriApi.Map,
       EsriApi.BaseMap,
       EsriApi.MapView,
-      EsriApi.Collection,
       EsriApi.ActionButton,
-      EsriApi.colorRendererCreator,
-      EsriApi.symbologyColor,
-      EsriApi.histogram,
-      EsriApi.ColorStop,
+      EsriApi.DotDensityRenderer,
+      EsriApi.ClassBreaksRenderer,
       EsriApi.UniqueValueRenderer,
       EsriApi.SimpleRenderer,
       EsriApi.lang,
       EsriApi.geometryEngine,
-      EsriApi.geometryEngineAsync,
       EsriApi.Layer,
       EsriApi.GroupLayer,
       EsriApi.FeatureLayer,
       EsriApi.watchUtils,
       EsriApi.PopupTemplate,
-      EsriApi.PolyLine,
       EsriApi.Viewpoint,
       EsriApi.Graphic,
       EsriApi.SimpleFillSymbol,
@@ -144,20 +127,19 @@ export class EsriApi {
       EsriApi.Color,
       EsriApi.Point,
       EsriApi.Multipoint,
-      EsriApi.Query,
+      EsriApi.PolyLine,
       EsriApi.Extent,
+      EsriApi.projection,
+      EsriApi.Polygon,
+      EsriApi.Query,
       EsriApi.Geoprocessor,
       EsriApi.FeatureSet,
-      EsriApi.Field,
       EsriApi.FieldInfo,
       EsriApi.LabelClass,
       EsriApi.TextSymbol,
       EsriApi.Font,
       EsriApi.SimpleLineSymbol,
       EsriApi.GraphicsLayer,
-      EsriApi.projection,
-      EsriApi.SpatialReference,
-      EsriApi.Expand,
       EsriApi.PrintTask,
       EsriApi.PrintParameters,
       EsriApi.PrintTemplate

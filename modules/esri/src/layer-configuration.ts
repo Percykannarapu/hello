@@ -5,6 +5,7 @@ export interface CustomPopUpDefinition {
 
 interface LayerBase {
   id: string;
+  simplifiedId: string;
   name: string;
   defaultVisibility: boolean;
   sortOrder?: number;
@@ -39,5 +40,5 @@ export interface AllLayers {
 }
 
 export interface AllLayerIds {
-  [key: string] : { centroid: string, boundary: string };
+  [key: string] : { centroid: string, boundary: string, simplifiedBoundary: string };
 }

@@ -59,7 +59,7 @@ export class FilterData {
 @Component({
   selector: 'val-table-filter-numeric',
   templateUrl: './table-filter-numeric.component.html',
-  styleUrls: ['./table-filter-numeric.component.css']
+  styleUrls: ['./table-filter-numeric.component.scss']
 })
 export class TableFilterNumericComponent implements OnInit {
    @Input()  fieldHeader: string;

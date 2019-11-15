@@ -15,11 +15,14 @@ export enum EsriMapActionTypes {
   FeaturesSelected = '[Esri Map] Features Selected',
   SetSelectedLayer = '[Esri Map] Set Selected Layer Id',
   SetLabelConfiguration = '[Esri Map] Set Label Configuration',
-  
+  HideLabels = '[Esri Map] Hide Labels on Map',
+  ShowLabels = '[Esri Map] Show Labels on Map',
+
   PrintMap = '[Esri Map] Print Map',
   SetPrintRenderer = '[Esri Map] Set Shading Renderer for Print Service',
   DeletePrintRenderer = '[Esri Map] Remove Shading Renderer',
   PrintJobComplete = '[Esri Map] Print Job Complete',
+  PrintMapFailure = '[Esri Map] Print Job Failed',
 
   SetLayerLabelExpressions = '[Esri Map] Set Layer Label Expressions',
 
@@ -47,7 +50,7 @@ export class SetMapHeight implements Action {
 
 export class SetMapViewpoint implements Action {
   readonly type = EsriMapActionTypes.SetMapViewPoint;
-  constructor(public payload: { newViewpoint: __esri.Viewpoint }){}
+  constructor(public payload: { newViewpointJson: string }){}
 }
 
 export class SetPopupVisibility implements Action {
@@ -80,6 +83,14 @@ export class SetLabelConfiguration implements Action {
   constructor(public payload: { labelConfiguration: EsriLabelConfiguration }){}
 }
 
+export class HideLabels implements Action {
+  readonly type = EsriMapActionTypes.HideLabels;
+}
+
+export class ShowLabels implements Action {
+  readonly type = EsriMapActionTypes.ShowLabels;
+}
+
 export class SetLayerLabelExpressions implements Action {
   readonly type = EsriMapActionTypes.SetLayerLabelExpressions;
   constructor(public payload: { expressions: { [layerId: string] : EsriLabelLayerOptions } }) {}
@@ -91,7 +102,7 @@ export class ResetMapState implements Action {
 
 export class PrintMap implements Action{
   readonly type = EsriMapActionTypes.PrintMap;
-  constructor(public payload: { templateOptions: {title: string, author: string }, serviceUrl: string}){}
+  constructor(public payload: { templateOptions: {title: string, author: string, customTextElements: any }, serviceUrl: string}){}
 }
 
 export class SetPrintRenderer implements Action{
@@ -101,12 +112,17 @@ export class SetPrintRenderer implements Action{
 
 export class DeletePrintRenderer implements Action{
   readonly type = EsriMapActionTypes.DeletePrintRenderer;
-  constructor(public payload: {layerName: string}){}
+  constructor(public payload: {portalId: string}){}
 }
 
 export class PrintJobComplete implements Action {
   readonly type = EsriMapActionTypes.PrintJobComplete;
-  constructor(public payload: { result: string }) {}
+  constructor(public payload: { result: any }) {}
+}
+
+export class PrintMapFailure implements Action {
+  readonly type = EsriMapActionTypes.PrintMapFailure;
+  constructor(public payload: { err: any }) {}
 }
 
 export type EsriMapActions =
@@ -122,10 +138,13 @@ export type EsriMapActions =
   | EsriMapToolbarButtonActions
   | SetSelectedLayer
   | SetLabelConfiguration
+  | HideLabels
+  | ShowLabels
   | SetLayerLabelExpressions
   | ResetMapState
   | PrintMap
   | SetPrintRenderer
   | PrintJobComplete
+  | PrintMapFailure
   | DeletePrintRenderer
   ;

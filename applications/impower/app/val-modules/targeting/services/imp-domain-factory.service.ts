@@ -1,20 +1,22 @@
 import { Injectable } from '@angular/core';
-import { AppConfig } from '../../../app.config';
+
+import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
+
+import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
-import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
+import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { ImpProject } from '../models/ImpProject';
-import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { ImpProjectPref } from '../models/ImpProjectPref';
+import { ImpProjectVar } from '../models/ImpProjectVar';
+import { AppConfig } from '../../../app.config';
+import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
-import { ImpProjectPref } from '../models/ImpProjectPref';
-import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
-import { ImpProjectVar } from '../models/ImpProjectVar';
-import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
 
 function isNumber(value: any) : value is number {
   return value != null && value !== '' && !Number.isNaN(Number(value));
@@ -88,7 +90,9 @@ export class ImpDomainFactoryService {
     if (parent == null) throw new Error('Project Var factory requires a valid Project instance');
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
     const isCustom = audience.audienceSourceType === 'Custom';
+    const isCombined = audience.isCombined;
     const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
+
     let existingVar;
 
     if (isCustom) {
@@ -118,9 +122,10 @@ export class ImpDomainFactoryService {
       projectVar.isActive = true;
       projectVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       projectVar.sortOrder = audience.seq; // audience.audienceCounter;
-      projectVar.customVarExprDisplay = `${audience.audienceName} (${audience.audienceSourceName})`;
-      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : 'Online') + `/${audience.audienceSourceName}/${varPk}`;
-      projectVar.impProject = parent;
+      projectVar.customVarExprDisplay = source.toUpperCase() === 'COMBINED_TDA' ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
+      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' ?
+                                      (audience.combinedAudiences != null ? JSON.stringify(audience.combinedAudiences) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));    
+       projectVar.impProject = parent;
       parent.impProjectVars.push(projectVar);
       return projectVar;
     } else {
@@ -140,8 +145,9 @@ export class ImpDomainFactoryService {
       existingVar.isActive = true;
       existingVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       existingVar.sortOrder = audience.seq; // audience.audienceCounter;
-      existingVar.customVarExprDisplay = `${audience.audienceName} (${audience.audienceSourceName})`;
-      existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : 'Online') + `/${audience.audienceSourceName}/${varPk}`;
+      existingVar.customVarExprDisplay = source.toUpperCase() === 'COMBINED_TDA' ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
+      existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' ?
+                                        (audience.combinedAudiences != null ? JSON.stringify(audience.combinedAudiences) : ' ' ) : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
       existingVar.impProject = parent;
       if (existingVar.baseStatus === DAOBaseStatus.UNCHANGED) existingVar.baseStatus = DAOBaseStatus.UPDATE;
       return existingVar;
@@ -152,7 +158,7 @@ export class ImpDomainFactoryService {
       if (parent == null) throw new Error('Project Pref factory requires a valid Project instance');
       if (pref == null) throw new Error('Project Preferences cannot have a null pref (Key)');
 
-      const existingPref = parent.impProjectPrefs.find(impPref => impPref.prefGroup === group && impPref.pref === pref);
+      const existingPref = parent.impProjectPrefs.find(impPref => impPref.prefGroup === group && impPref.pref === pref && impPref.val === impPref.val);
       if (existingPref == null) {
          const result = new ImpProjectPref({
             dirty:         true,
@@ -190,7 +196,7 @@ export class ImpDomainFactoryService {
     }
   }
 
-  createLocation(parent: ImpProject, res: ValGeocodingResponse, siteType: string, analysisLevel?: string, data?: ValGeocodingRequest[]) : ImpGeofootprintLocation {
+  createLocation(parent: ImpProject, res: ValGeocodingResponse, siteType: string, isLocationEdit: boolean, analysisLevel?: string, data?: ValGeocodingRequest[]) : ImpGeofootprintLocation {
     if (parent == null || parent.impGeofootprintMasters == null || parent.impGeofootprintMasters[0] == null) throw new Error('Location factory requires a valid ImpProject instance with a valid ImpGeofootprintMaster instance');
     const nonAttributeProps = new Set<string>(['Latitude', 'Longitude', 'Address', 'City', 'State', 'ZIP', 'Number',
       'Name', 'Market', 'Market Code', 'Group', 'Description', 'Original Address', 'Original City', 'Original State',
@@ -210,10 +216,10 @@ export class ImpDomainFactoryService {
       locZip: res.ZIP,
       xcoord: Number(res.Longitude),
       ycoord: Number(res.Latitude),
-      origAddress1: res['Original Address'] != null ? ((!res['previousAddress1']) ? res['Original Address'].trim() : res['previousAddress1'].trim()) : '' ,
-      origCity: res['Original City'] != null ? ((!res['previousCity']) ? res['Original City'].trim() : res['previousCity'].trim()) : '' ,
-      origState: res['Original State'] != null ? ((!res['previousState']) ? res['Original State'].trim() : res['previousState'].trim()) : '' ,
-      origPostalCode: res['Original ZIP'] != null ?  ((!res['previousZip']) ? res['Original ZIP'].trim() : res['previousZip'].trim()) : '' ,
+      origAddress1: (res['Original Address'] != null || isLocationEdit) ? ((!res['previousAddress1']) ? res['Original Address'].trim() : res['previousAddress1'].trim()) : '' ,
+      origCity: (res['Original City'] != null || isLocationEdit) ? ((!res['previousCity']) ? res['Original City'].trim() : res['previousCity'].trim()) : '' ,
+      origState: (res['Original State'] != null || isLocationEdit) ? ((!res['previousState']) ? res['Original State'].trim() : res['previousState'].trim()) : '' ,
+      origPostalCode: (res['Original ZIP'] != null || isLocationEdit) ?  ((!res['previousZip']) ? res['Original ZIP'].trim() : res['previousZip'].trim()) : '' ,
       recordStatusCode: res['Geocode Status'],
       geocoderMatchCode: res['Match Code'],
       geocoderLocationCode: res['Match Quality'],

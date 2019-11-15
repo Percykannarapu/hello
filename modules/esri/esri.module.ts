@@ -2,7 +2,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { select, Store, StoreModule } from '@ngrx/store';
+import { Store, StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
@@ -25,6 +25,8 @@ import { EsriMapInteractionService } from './src/services/esri-map-interaction.s
 import { EsriMapService } from './src/services/esri-map.service';
 import { EsriQueryService } from './src/services/esri-query.service';
 import { EsriRendererService } from './src/services/esri-renderer.service';
+import { EsriShadingLayersService } from './src/services/esri-shading-layers.service';
+import { EsriService } from './src/services/esri.service';
 import { allEffects } from './src/state/esri.effects';
 import { esriReducers } from './src/state/esri.reducers';
 import { AppState, selectors } from './src/state/esri.selectors';
@@ -33,17 +35,19 @@ import { EsriPrintingService } from './src/services/esri-printing-service';
 
 export function initializer(store: Store<AppState>) {
   return function () {
-    return store.pipe(select(selectors.getEsriFeatureReady), filter(ready => ready), take(1)).toPromise();
+    return store.select(selectors.getEsriFeatureReady).pipe(filter(ready => ready), take(1)).toPromise();
   };
 }
 
 const PUBLIC_COMPONENTS = [
+  EsriMapComponent,
   EsriMapPanelComponent,
   EsriGeographyPopupComponent
 ];
 
 @NgModule({
   imports: [
+    StoreModule.forFeature('esri', esriReducers),
     CommonModule,
     HttpClientModule,
     TreeTableModule,
@@ -53,12 +57,10 @@ const PUBLIC_COMPONENTS = [
     DropdownModule,
     InputSwitchModule,
     FormsModule,
-    StoreModule.forFeature('esri', esriReducers),
     EffectsModule.forFeature(allEffects),
   ],
   declarations: [
     EsriToolbarComponent,
-    EsriMapComponent,
     EsriLabelConfigComponent,
     ...PUBLIC_COMPONENTS,
   ],
@@ -81,6 +83,7 @@ export class EsriModule {
         { provide: EsriLoaderToken, useFactory: provideEsriLoaderOptions, deps: [forRootOptionsToken] },
         { provide: EsriAuthenticationToken, useFactory: provideEsriAuthOptions, deps: [forRootOptionsToken] },
         { provide: EsriAppSettingsToken, useFactory: provideEsriAppOptions, deps: [forRootOptionsToken] },
+        EsriService,
         EsriDomainFactoryService,
         EsriGeoprocessorService,
         EsriIdentityService,
@@ -90,6 +93,7 @@ export class EsriModule {
         EsriQueryService,
         EsriRendererService,
         EsriPrintingService,
+        EsriShadingLayersService,
         { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] }
       ]
     };

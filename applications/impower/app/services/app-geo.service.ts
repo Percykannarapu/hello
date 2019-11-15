@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriQueryService, EsriUtils, selectors } from '@val/esri';
+import { EsriQueryService, EsriUtils, selectors, EsriLayerService } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { LocationQuadTree } from '../models/location-quad-tree';
+import { QuadTree } from '../models/quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
@@ -57,6 +57,7 @@ export class AppGeoService {
               private varService: ImpGeofootprintVarService,
               private impGeoService: ImpGeofootprintGeoService,
               private appProjectPrefService: AppProjectPrefService,
+              private layerService: EsriLayerService,
               private queryService: EsriQueryService,
               private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
@@ -67,8 +68,7 @@ export class AppGeoService {
     this.currentGeos$ = this.impGeoService.storeObservable;
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
 
-    this.store$.pipe(
-      select(selectors.getMapReady),
+    this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
@@ -110,20 +110,44 @@ export class AppGeoService {
     this.impGeoService.makeDirty();
   }
 
-  public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }) {
+  public toggleGeoSelection(geocode: string, geometry: { x: number, y: number }, filterFlag?: boolean) {
     const allSelectedGeos = new Set(this.appStateService.uniqueSelectedGeocodes$.getValue());
     const allIdentifiedGeos = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
-    if (allSelectedGeos.has(geocode) && this.appMapService.selectedButton !== 3) {
-      this.deselectGeosByGeocode(geocode);
-    } else if (allIdentifiedGeos.has(geocode)) {
-      if (this.appMapService.selectedButton !== 8) {
-        this.reactivateGeosByGeocode(geocode);
+    if (this.appMapService.selectedButton === 3 || this.appMapService.selectedButton === 8) {
+      if ((allSelectedGeos.has(geocode) && this.appMapService.selectedButton !== 3) || (allIdentifiedGeos.has(geocode) && this.appMapService.selectedButton === 8)) {
+        this.deselectGeosByGeocode(geocode);
+      } else if (allIdentifiedGeos.has(geocode)) {
+        if (this.appMapService.selectedButton !== 8 && filterFlag) {
+          this.reactivateGeosByGeocode(geocode);
+        }
+      } else {
+        if (this.appMapService.selectedButton !== 8) {
+          (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);
+        }
       }
-    } else {
-      if (this.appMapService.selectedButton !== 8) {
-        this.addGeoToManualTradeArea(geocode, geometry);
+    } else if (this.appMapService.selectedButton === 1) {
+      if (allSelectedGeos.has(geocode)) {
+        this.deselectGeosByGeocode(geocode);
+      } else if (allIdentifiedGeos.has(geocode) && filterFlag) {
+        this.reactivateGeosByGeocode(geocode);
+      } else if (!(allIdentifiedGeos.has(geocode))) {
+        (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);
       }
     }
+  }
+
+  public checkGeoOnSingleSelect(features: __esri.Graphic[]) : boolean {
+    const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue());
+    if (layerId == null || layerId.length === 0) return;
+    const layer = this.layerService.getPortalLayerById(layerId);
+    let singleSelectFlag: boolean = false;
+    features.forEach(feature => {
+      if (feature.layer === layer) {
+        const geoFound = this.impGeoService.get().filter(geo => geo.geocode === feature.attributes.geocode);
+        singleSelectFlag = (geoFound.length === 0) ? false : (geoFound[0].isActive ? true : false);
+      }
+    });
+    return singleSelectFlag;
   }
 
   public deleteGeos(geos: ImpGeofootprintGeo[]) : void {
@@ -190,13 +214,13 @@ export class AppGeoService {
       filter(events => events != null && events.length > 0)
     ).subscribe(events => {
       events.forEach(event => {
-        this.toggleGeoSelection(event.geocode, event.geometry);
+        (event.filterFlag !== null && event.filterFlag !== undefined) ? this.toggleGeoSelection(event.geocode, event.geometry, event.filterFlag) : this.toggleGeoSelection(event.geocode, event.geometry);
       });
     });
   }
 
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
-    const quadTree = new LocationQuadTree(locations);
+    const quadTree = new QuadTree(locations);
     const result = quadTree.partition(250, 500);
     this.logger.debug.log('QuadTree partitions', quadTree);
     return result.filter(chunk => chunk && chunk.length > 0);
@@ -752,7 +776,7 @@ export class AppGeoService {
     this.impGeoService.update(null, null);
   }
 
-  private addGeoToManualTradeArea(geocode: string, geometry: { x: number; y: number }) : void {
+  private addGeoToManualTradeArea(geocode: string, geometry: { x: number; y: number }, filterFlag?: boolean) : void {
     const locations = this.locationService.get().filter(loc => loc.clientLocationTypeCode === 'Site');
     let minDistance = Number.MAX_VALUE;
     const closestLocation = locations.reduce((previous, current) => {
@@ -770,6 +794,7 @@ export class AppGeoService {
       this.tradeAreaService.add([tradeArea]);
     }
     const newGeo = this.domainFactory.createGeo(tradeArea, geocode, geometry.x, geometry.y, minDistance);
+    if (filterFlag !== null && filterFlag !== undefined) newGeo.isActive = filterFlag;
     this.impGeoService.add([newGeo]);
   }
 

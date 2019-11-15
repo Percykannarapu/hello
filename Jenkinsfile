@@ -23,11 +23,7 @@
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
           echo 'install all the stuff'
-          sh '''
-            if [ ! -d "node_modules" ]; then
-              npm install
-            fi
-            '''
+          sh "npm ci"
         }
       }
     }
@@ -57,25 +53,6 @@
         }
       }
     }
-    stage('Run checkmarx') {
-      steps {
-        echo 'Running checkmarx stage'
-        script {
-          echo 'Running checkmarx scan in script block'
-          step([$class: 'CxScanBuilder', comment: '', credentialsId: '', excludeFolders: '', excludeOpenSourceFolders: '', exclusionsSetting: 'global', failBuildOnNewResults: true, failBuildOnNewSeverity: 'HIGH', incremental: true, generatePdfReport: true, filterPattern: '''!**/_cvs/**/*, !**/.svn/**/*,   !**/.hg/**/*,   !**/.git/**/*,  !**/.bzr/**/*, !**/bin/**/*, !**/node_modules/**/*, !**/.sonar*/**/*, !node_modules/**/*
-          !**/obj/**/*,  !**/backup/**/*, !**/.idea/**/*, !**/*.DS_Store, !**/*.ipr,     !**/*.iws,
-          !**/*.bak,     !**/*.tmp,       !**/*.aac,      !**/*.aif,      !**/*.iff,     !**/*.m3u, !**/*.mid, !**/*.mp3,
-          !**/*.mpa,     !**/*.ra,        !**/*.wav,      !**/*.wma,      !**/*.3g2,     !**/*.3gp, !**/*.asf, !**/*.asx,
-          !**/*.avi,     !**/*.flv,       !**/*.mov,      !**/*.mp4,      !**/*.mpg,     !**/*.rm,  !**/*.swf, !**/*.vob,
-          !**/*.wmv,     !**/*.bmp,       !**/*.gif,      !**/*.jpg,      !**/*.png,     !**/*.psd, !**/*.tif, !**/*.swf,
-          !**/*.jar,     !**/*.zip,       !**/*.rar,      !**/*.exe,      !**/*.dll,     !**/*.pdb, !**/*.7z,  !**/*.gz,
-          !**/*.tar.gz,  !**/*.tar,       !**/*.gz,       !**/*.ahtm,     !**/*.ahtml,   !**/*.fhtml, !**/*.hdm,
-          !**/*.hdml,    !**/*.hsql,      !**/*.ht,       !**/*.hta,      !**/*.htc,     !**/*.htd, !**/*.war, !**/*.ear,
-          !**/*.htmls,   !**/*.ihtml,     !**/*.mht,      !**/*.mhtm,     !**/*.mhtml,   !**/*.ssi, !**/*.stm,
-          !**/*.stml,    !**/*.ttml,      !**/*.txn,      !**/*.xhtm,     !**/*.xhtml,   !**/*.class, !**/*.iml, !Checkmarx/Reports/*.*''', fullScanCycle: 1000, groupId: '54765168-4478-41b2-8cb3-3714a1df4b4b', includeOpenSourceFolders: '', osaArchiveIncludePatterns: '*.zip, *.war, *.ear, *.tgz', osaInstallBeforeScan: false, password: '{AQAAABAAAAAQAtw2NIROwdWnClQnFbJAhswYkn/VGVX1gw7FaOJb67E=}', preset: '100005', projectName: 'test-checkmarx', sastEnabled: true, serverUrl: 'http://sa1w-cxmngr-p1', sourceEncoding: '1', username: '', vulnerabilityThresholdResult: 'FAILURE', waitForResultsEnabled: true])
-        }
-      }
-    }
     stage('Deploy dev apps') {
       parallel {
         stage('Deploy imPower dev') {
@@ -93,7 +70,7 @@
         stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
-            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20192!Og5bv8s7W5tbTIlJVaFz7pvsy -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
+            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20193!0ydZmmV4NZPEvzSRTSiNLouS -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
           }
         }
       }
@@ -118,12 +95,12 @@
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
           echo 'build for production'
           sh '''
-             node --max-old-space-size=8192  ./node_modules/.bin/ng build -prod --no-progress --env=dev
+             node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=production --progress=false
              '''
         }
       }
     }
-    
+
     stage('Deploy to QA') {
       when {
         branch 'qa'
@@ -148,7 +125,7 @@
           */
       }
     }
-    stage('Static analysis') {
+    /*stage('Static analysis') {
       parallel {
         stage('Scan imPower with Sonarqube') {
           when { branch 'dev' }
@@ -170,7 +147,7 @@
           }
         }
       }
-    }
+    }*/
     stage('Run Tests') {
       when {
         expression {
@@ -207,16 +184,16 @@
               cd /robotTestcases/jenkins/reportLogs
             '''
             slackColor = '#FFFE89'
-            /*emailext attachmentsPattern: 'log.html', 
+            /*emailext attachmentsPattern: 'log.html',
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
-                     mimeType: 'text/html', attachLog: true, 
-                     subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed", 
+                     mimeType: 'text/html', attachLog: true,
+                     subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed",
                      to: 'reddyn@valassis.com KannarapuP@valassis.com'*/
             echo 'Test completed'
           }
           finally{
             echo 'finally publish reports'
-            
+
             step(
               [
                 $class : 'RobotPublisher',

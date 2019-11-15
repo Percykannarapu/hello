@@ -1,7 +1,7 @@
 import * as fromEsri from '@val/esri';
 import * as fromMessaging from '@val/messaging';
 import { AdvertiserInfoState } from './advertiserInfo/advertiser-info.reducer';
-import { ShadingState } from './shading/shading.reducer';
+import { MapUIState } from './map-ui/map-ui.reducer';
 import { CbxReportState } from './cbxReport/cbx-report.reducer';
 import { CbxReportParamState } from './cbxReportParam/cbx-report-param.reducer';
 import { CbxReportTypeState } from './cbxReportType/cbx-report-type.reducer';
@@ -21,6 +21,7 @@ import { RfpUiEditWrapState } from './rfpUiEditWrap/rfp-ui-edit-wrap.reducer';
 import { RfpUiReviewState } from './rfpUiReview/rfp-ui-review.reducer';
 import { SharedState } from './shared/shared.reducers';
 import { TargetAudienceState } from './targetAudience/target-audience.reducer';
+import { MediaPlanPrefState } from './mediaPlanPref/media-plan-pref.reducer';
 
 export interface FullState extends LocalState, fromEsri.AppState, fromMessaging.AppState {}
 
@@ -45,6 +46,7 @@ export interface LocalState {
    rfpUiReview: RfpUiReviewState;
    rfpUiEdit: RfpUiEditState;
    rfpUiEditWrap: RfpUiEditWrapState;
-   shading: ShadingState;
+   mapUI: MapUIState;
+   mediaPlanPref: MediaPlanPrefState;
 }
 

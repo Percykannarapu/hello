@@ -2,7 +2,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended, isNumber, mapByExtended } from '@val/common';
-import { ClearShadingData } from '@val/esri';
+import { ClearRenderingData } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { BehaviorSubject, combineLatest, concat, merge, Observable, Subscription } from 'rxjs';
@@ -71,7 +71,7 @@ export class TargetAudienceService implements OnDestroy {
   public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
   public  timingMap: Map<string, number> = new Map<string, number>();
-  private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
+  public  allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   private mapAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   private natExportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
 
@@ -258,7 +258,7 @@ export class TargetAudienceService implements OnDestroy {
         this.projectVarService.update(projectVar, newProjectVar);
       }
     }
-    if (audience.showOnMap) {
+    /*if (audience.showOnMap) {
       const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
       for (const pv of otherVars) {
         const newPv = Object.assign(pv);
@@ -266,7 +266,7 @@ export class TargetAudienceService implements OnDestroy {
         newPv.isShadedOnMap = false; // gotta turn off all the others since we can only shade by one variable
         this.projectVarService.update(pv, newPv);
       }
-    }
+    }*/
     //for US8712 when user saves the projects checkboxes also need to save DB to maintains state
    /* if (audience.allowNationalExport) {
       const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
@@ -290,7 +290,7 @@ export class TargetAudienceService implements OnDestroy {
     return false;
   }
 
-  private removeProjectVar(sourceType: 'Online' | 'Offline' | 'Custom', sourceName: string, audienceIdentifier: string) {
+  private removeProjectVar(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined', sourceName: string, audienceIdentifier: string) {
     for (const projectVar of this.projectVarService.get()) {
       const parts = projectVar.source.split('~');
       const source = sourceType + '_' + sourceName;
@@ -305,7 +305,7 @@ export class TargetAudienceService implements OnDestroy {
     }
   }
 
-  public removeAudience(sourceType: 'Online' | 'Offline' | 'Custom', sourceName: string, audienceIdentifier: string) : void {
+  public removeAudience(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined', sourceName: string, audienceIdentifier: string) : void {
     this.store$.dispatch(new DeleteAudience ({ id: audienceIdentifier }));
 
     const sourceId = this.createKey(sourceType, sourceName);
@@ -321,7 +321,7 @@ export class TargetAudienceService implements OnDestroy {
     }
   }
 
-  public addDeletedAudience(sourceType: 'Online' | 'Offline' | 'Custom', sourceName: string, audienceIdentifier: string) : void {
+  public addDeletedAudience(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined', sourceName: string, audienceIdentifier: string) : void {
     const sourceId = this.createKey(sourceType, sourceName);
     const audienceId = this.createKey(sourceId, audienceIdentifier);
     if (this.audienceMap.has(audienceId)) {
@@ -364,10 +364,10 @@ export class TargetAudienceService implements OnDestroy {
           const element = window.document.createElement('a');
           document.body.appendChild(element);
           element.href = downloadUrl;
-          
+
           element['download'] = fileName;
           element.target = '_blank';
-          
+
           element.click();
         }, null, () => {
           //TODO: send a request to fuse to delete the file
@@ -471,7 +471,7 @@ export class TargetAudienceService implements OnDestroy {
     switch (shadingAudience.length) {
       case 0:
         if (this.shadingSub) this.shadingSub.unsubscribe();
-        this.store$.dispatch(new ClearShadingData());
+        this.store$.dispatch(new ClearRenderingData());
         break;
 
       case 1:

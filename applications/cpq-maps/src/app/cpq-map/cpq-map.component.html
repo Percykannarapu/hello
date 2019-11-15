@@ -18,9 +18,9 @@
 
 <p-sidebar [appendTo]="appRoot" [(visible)]="sideNavVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
   <div class="app-sidenav-content">
-    <val-map-controls (onGridSizeChange)="gridSize = $event"></val-map-controls>
+    <cpq-map-controls (onGridSizeChange)="gridSize = $event"></cpq-map-controls>
 <!--    <val-dev-tools></val-dev-tools>-->
-    <val-shading-config></val-shading-config>
+    <cpq-shading-config></cpq-shading-config>
   </div>
 </p-sidebar>
 

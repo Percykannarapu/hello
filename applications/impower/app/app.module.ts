@@ -144,6 +144,13 @@ import { EsriModule } from '@val/esri';
 import { EnvironmentData } from '../environments/environment';
 import { AppEditSiteService } from './services/app-editsite.service';
 import { PrintViewComponent } from './components/print-view/print-view.component';
+import { BatchMapComponent } from './components/batch-map/batch-map.component';
+import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
+import { SidebarModule } from 'primeng/sidebar';
+import { ShadingSettingsComponent } from './components/shading-settings/shading-settings.component';
+import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
+import { CombinedAudienceComponent } from './components/target-audience/combined-audience/combined-audience.component';
+import { EditCombinedAudiencesComponent } from './components/target-audience/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
 import { FailedLocationsTabComponent } from './components/failed-locations-tab/failed-locations-tab.component';
 
 @NgModule({
@@ -210,6 +217,7 @@ import { FailedLocationsTabComponent } from './components/failed-locations-tab/f
         CommonModule,
         NgStringPipesModule,
         CardModule,
+        SidebarModule,
         EsriModule.forRoot({
           portalServerRootUrl: EnvironmentData.esri.portalServer,
           auth: {
@@ -268,6 +276,12 @@ import { FailedLocationsTabComponent } from './components/failed-locations-tab/f
         UploadMustCoverComponent,
         EditLocationsComponent,
         PrintViewComponent,
+        BatchMapComponent,
+        ImpowerMainComponent,
+        ShadingSettingsComponent,
+        BatchMapDialogComponent,
+        CombinedAudienceComponent,
+        EditCombinedAudiencesComponent,
         FailedLocationsTabComponent
     ],
     providers: [

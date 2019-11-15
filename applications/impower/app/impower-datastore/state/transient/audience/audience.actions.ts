@@ -373,12 +373,15 @@ export class GetDataFromGeos implements Action {
   constructor(public payload: {analysisLevel: string, selectedAudiences: Audience[], geos: string[]}) {}
 }
 
+type RehydratePayload = { notifyLoadSuccess: false } | { notifyLoadSuccess: true, projectId: number, isReload: boolean };
 export class RehydrateAudiences implements Action {
   readonly type = AudienceActionTypes.RehydrateAudiences;
+  constructor(public payload: RehydratePayload = { notifyLoadSuccess: false }) {}
 }
 
 export class RehydrateShading implements Action {
   readonly type = AudienceActionTypes.RehydrateShading;
+  constructor(public payload: RehydratePayload = { notifyLoadSuccess: false }) {}
 }
 
 export class MoveAudienceUp implements Action {
@@ -399,7 +402,6 @@ export class SelectMappingAudience implements Action {
   readonly type = AudienceActionTypes.SelectMappingAudience;
   constructor(public payload: {audienceIdentifier: string, isActive: boolean}) {}
 }
-
 
 export type AudienceActions =
     LoadAudiences

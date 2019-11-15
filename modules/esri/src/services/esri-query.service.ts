@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@angular/core';
+import { chunkArray, retryOnTimeout } from '@val/common';
+import { EMPTY, merge, Observable, of, Subscription } from 'rxjs';
+import {expand, filter, map, take, tap} from 'rxjs/operators';
+import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
-import { EMPTY, merge, Observable, of, Subscription } from 'rxjs';
-import { expand, filter, map, tap } from 'rxjs/operators';
 import { EsriMapService } from './esri-map.service';
-import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
-import { chunkArray, retryOnTimeout } from '@val/common';
 
 type txCallback<T> = (graphic: __esri.Graphic) => T;
 type compositeData = string[] | number[] | __esri.PointProperties[];
@@ -185,43 +185,29 @@ export class EsriQueryService {
   public queryLayerView(layers: __esri.FeatureLayer[], extent: __esri.Extent, returnGeometry: boolean = false) : Observable<__esri.Graphic[]> {
     const observableResult: Observable<__esri.Graphic[]>[] = [];
     for (const currentLayer of layers) {
-      const layerResult = Observable.create(observer => {
+      const layerResult = new Observable<__esri.Graphic[]>(observer => {
         this.mapService.mapView.whenLayerView(currentLayer).then((layerView: __esri.FeatureLayerView) => {
-          let queryCall: () => void;
-          if (extent != null) {
-            const query = new EsriApi.Query({
-              geometry: extent,
-              returnGeometry: returnGeometry,
-              // outFields: ['geocode']
-            });
-            queryCall = () => {
-              layerView.queryFeatures(query).then(results => {
-                observer.next(results.features);
-                observer.complete();
-              });
-            };
-          } else {
-            queryCall = () => {
-              layerView.queryFeatures().then(results => {
-                observer.next(results.features);
-                observer.complete();
-              });
-            };
-          }
-
+          const query = extent == null ? undefined : new EsriApi.Query({
+            geometry: extent,
+            returnGeometry: returnGeometry,
+          });
           if (layerView.updating) {
-            const layerId = layerView.layer.id;
-            if (this.layerViewSub.has(layerId) && this.layerViewSub.get(layerId)) this.layerViewSub.get(layerId).unsubscribe();
-            this.layerViewSub[layerId] = EsriUtils.setupWatch(layerView, 'updating').pipe(
-              filter(u => !u.newValue)
-            ).subscribe(() => {
-              queryCall();
-            }, null, () => {
-              if (this.layerViewSub.has(layerId) && this.layerViewSub.get(layerId)) this.layerViewSub.get(layerId).unsubscribe();
-              this.layerViewSub.delete(layerId);
-            });
+            setTimeout(() => {
+              EsriUtils.setupWatch(layerView, 'updating').pipe(
+                filter(u => !u.newValue),
+                take(1)
+              ).subscribe(() => {
+                layerView.queryFeatures(query).then(results => {
+                  observer.next(results.features);
+                  observer.complete();
+                });
+              });
+            }, 0);
           } else {
-            queryCall();
+            layerView.queryFeatures(query).then(results => {
+              observer.next(results.features);
+              observer.complete();
+            });
           }
         });
       });

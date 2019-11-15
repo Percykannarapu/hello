@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
+
 import { AudienceDataDefinition } from '../../models/audience-data.model';
-import { ImpProjectState } from '../state/models/imp-project-state';
-import { ImpGeofootprintMasterState } from '../state/models/imp-geofootprint-master-state';
-import { ImpProjectVarState } from '../state/models/imp-project-var-state';
 import { UserService } from '../../services/user.service';
+import { ImpGeofootprintMasterState } from '../state/models/imp-geofootprint-master-state';
 import { ImpProjectPrefState } from '../state/models/imp-project-pref-state';
+import { ImpProjectState } from '../state/models/imp-project-state';
+import { ImpProjectVarState } from '../state/models/imp-project-var-state';
 import { DAOBaseStatus, TradeAreaTypeCodes } from '../state/models/impower-model.enums';
 
 @Injectable({
@@ -66,7 +67,7 @@ export class StateModelFactoryService {
 
   createProjectVar(parentId: number, varPk: number, audience: AudienceDataDefinition, isActive: boolean = true) : ImpProjectVarState {
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
-    const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
+    const source = audience.audienceSourceType !== 'Combined'? audience.audienceSourceType + '_' + audience.audienceSourceName : 'Combined';
     const isCustom = audience.audienceSourceType === 'Custom';
     return new ImpProjectVarState({
       pvId: StateModelFactoryService.getNextId(),

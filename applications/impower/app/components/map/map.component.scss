@@ -1,0 +1,10 @@
+@import "~assets/esri-variables";
+.analysis-wrapper {
+  height: $esriToolbarButtonFontSize * 2;
+  display: flex;
+  align-items: center;
+}
+
+.map-panel-wrapper {
+  padding: 0.5em;
+}

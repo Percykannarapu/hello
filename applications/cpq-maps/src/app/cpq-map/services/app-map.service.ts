@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriUtils, LayerDefinition, selectors, SetLayerLabelExpressions, SetPopupVisibility } from '@val/esri';
+import { simpleFlatten } from '@val/common';
+import { EsriApi, EsriLayerService, EsriMapService, EsriService, EsriUtils, LayerDefinition, selectors } from '@val/esri';
 import { merge, Observable } from 'rxjs';
-import { tap, reduce, finalize, map, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { distinctUntilChanged, finalize, map, reduce, tap } from 'rxjs/operators';
+import { EsriLabelLayerOptions } from '../../../../../../modules/esri/src/state/map/esri.map.reducer';
 import { FullState } from '../state';
 import { ConfigService } from './config.service';
 
@@ -16,6 +17,7 @@ export class AppMapService {
 
   constructor(private layerService: EsriLayerService,
               private mapService: EsriMapService,
+              private esri: EsriService,
               private config: ConfigService,
               private store$: Store<FullState>) { }
 
@@ -39,7 +41,7 @@ export class AppMapService {
         popup.highlightEnabled = false;
         popup.actionsMenuEnabled = false;
         EsriApi.projection.load();
-        this.store$.dispatch(new SetPopupVisibility({ isVisible: true }));
+        this.esri.setPopupVisibility(true);
       })
     );
   }
@@ -77,16 +79,13 @@ export class AppMapService {
     const group = this.layerService.getPortalGroup(groupName);
     const layerObservables: Observable<__esri.FeatureLayer>[] = [];
     layerDefinitions.forEach(layerDef => {
-      const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
+      const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility, { popupEnabled: false }).pipe(
         tap(newLayer => {
-          newLayer.popupEnabled = false;
-          newLayer.when(() => {
-            if (EsriUtils.rendererIsSimple(newLayer.renderer)) {
-              const renderer: import ('esri/renderers/SimpleRenderer') = newLayer.renderer.clone();
-              renderer.symbol.color = new EsriApi.Color([128, 128, 128, 0.01]);
-              newLayer.renderer = renderer;
-            }
-          });
+          if (EsriUtils.rendererIsSimple(newLayer.renderer)) {
+            const renderer: import ('esri/renderers/SimpleRenderer') = newLayer.renderer.clone();
+            renderer.symbol.color = new EsriApi.Color([128, 128, 128, 0.01]);
+            newLayer.renderer = renderer;
+          }
           group.add(newLayer);
         })
       );
@@ -98,8 +97,14 @@ export class AppMapService {
   public updateLabelExpressions(showPOBs: boolean) : void {
     const groupDefs = Object.values(this.config.layers);
     const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
-    const labelLayerMap = mapByExtended(allLayers, l => l.id, l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset }));
-    this.store$.dispatch(new SetLayerLabelExpressions({ expressions: mapToEntity(labelLayerMap) }));
+    const newExpressions: { [layerId: string] : EsriLabelLayerOptions } = {};
+    allLayers.forEach(l => {
+      newExpressions[l.id] = {
+        expression: this.getLabelExpression(l, showPOBs),
+        fontSizeOffset: l.labelFontSizeOffset
+      };
+    });
+    this.esri.setLayerLabelExpressions(newExpressions);
   }
 
   private getLabelExpression(l: LayerDefinition, showPOBs: boolean) : string {

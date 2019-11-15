@@ -7,7 +7,8 @@ import { RouterStateSerializer, StoreRouterConnectingModule } from '@ngrx/router
 import { EffectsModule } from '@ngrx/effects';
 import { AppEffects } from './app.effects';
 import { appMetaReducers, appReducer } from './app.reducer';
-import { CustomSerializer } from './shared/utils';
+import { BatchMapEffects } from './batch-map/batch-map.effects';
+import { CustomSerializer } from './shared/router.serializer';
 import { UsageEffects } from './usage/usage.effects';
 import { MenuEffects } from './menu/menu.effects';
 import { DataShimEffects } from './data-shim/data-shim.effects';
@@ -22,7 +23,15 @@ import { RenderingEffects } from './rendering/rendering.effects';
   imports: [
     CommonModule,
     // NOTE: StoreModule.forRoot() must be in the imports array BEFORE any other ngrx imports
-    StoreModule.forRoot(appReducer, { metaReducers: appMetaReducers }),
+    StoreModule.forRoot(appReducer, {
+      metaReducers: appMetaReducers,
+      runtimeChecks: {
+        strictStateImmutability: false,
+        strictActionImmutability: false,
+        strictStateSerializability: false,
+        strictActionSerializability: false
+      }
+    }),
     EffectsModule.forRoot([
       AppEffects,
       UsageEffects,
@@ -33,12 +42,16 @@ import { RenderingEffects } from './rendering/rendering.effects';
       DataShimNotificationEffects,
       DataShimUsageEffects,
       HomeGeoEffects,
-      RenderingEffects
+      RenderingEffects,
+      BatchMapEffects
     ]),
     StoreRouterConnectingModule.forRoot(),
     StoreDevtoolsModule.instrument({
       name: 'imPower Application',
       logOnly: environment.production,
+      actionsBlocklist: ['Usage', 'Map View Changed'],
+      stateSanitizer: environment.production ? () => ({}) : (state) => state,
+      actionSanitizer: environment.production ? (action) => ({ type: action.type }) : (action) => action,
     }),
   ],
   declarations: []

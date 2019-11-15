@@ -1,17 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { CloseExistingProjectDialog, DiscardThenLoadProject, ExportGeofootprint, ExportLocations, MenuActionTypes, SaveThenLoadProject, PrintActionTypes, PrintMapSuccess, ClosePrintViewDialog} from './menu.actions';
-import { concatMap, filter, map, withLatestFrom, tap, switchMap } from 'rxjs/operators';
+import { concatMap, filter, map, withLatestFrom, tap, switchMap, catchError } from 'rxjs/operators';
 import * as fromDataShims from '../data-shim/data-shim.actions';
 import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { CreateProjectUsageMetric } from '../usage/targeting-usage.actions';
 import { ClearAllNotifications, AppState, ErrorNotification, SuccessNotification, StopBusyIndicator, StartBusyIndicator } from '@val/messaging';
 import { AppDataShimService } from '../../services/app-data-shim.service';
-import { SetPrintRenderer, PrintMap, EsriMapActionTypes, PrintJobComplete } from '@val/esri';
+import { SetPrintRenderer, PrintMap, EsriMapActionTypes, PrintJobComplete, DeletePrintRenderer, PrintMapFailure } from '@val/esri';
 import { AppStateService } from 'app/services/app-state.service';
 import { AppConfig } from 'app/app.config';
 import { Store } from '@ngrx/store';
 import { AppExportService } from 'app/services/app-export.service';
+import { of } from 'rxjs';
 
 
 @Injectable({
@@ -110,7 +111,10 @@ export class MenuEffects {
     filter(([, analysisLevel, geos]) => (analysisLevel != null && analysisLevel.length > 0) || (geos != null && geos.length > 0)),
     map(([, analysisLevel, geos]) => {
       const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
-     return new SetPrintRenderer({geos, portalId, minScale: undefined});
+      const minScale = (analysisLevel === 'Digital ATZ') ?
+                       this.config.layers['digital_atz'].boundaries.minScale :                                     
+                       this.config.layers[analysisLevel.toLowerCase()].boundaries.minScale;
+     return new SetPrintRenderer({geos, portalId, minScale: minScale});
     }),
     );
   
@@ -120,26 +124,32 @@ export class MenuEffects {
     tap(() => this.store$.dispatch(new StartBusyIndicator({ key: 'Map Book', message: 'Generating map book' }))),
   );
 
-
-  @Effect({dispatch: false})
-  handlePrintError$ = this.actions$.pipe(
-    ofType(PrintActionTypes.PrintMapFailure),
-    tap(() => this.store$.dispatch(new ErrorNotification({message: 'There was an error generating current view map book' }))),
-    );
-
-
   @Effect({dispatch: false})
   handlePrintSuccess$ = this.actions$.pipe(
      ofType<PrintMapSuccess>(PrintActionTypes.PrintMapSuccess),
       tap(action =>  this.exportService.downloadPDF(action.payload.url)),
-      tap(() => this.store$.dispatch(new SuccessNotification({message: 'The Current View PDF was generated successfully in a new tab' }))),
+      tap(() => this.store$.dispatch(new SuccessNotification({message: 'The Current View PDF was generated successfully in a new tab' })))
    );
 
+  @Effect()
+  handlePrintError$ = this.actions$.pipe(
+     ofType<PrintMapFailure>(EsriMapActionTypes.PrintMapFailure),
+     withLatestFrom(this.stateService.analysisLevel$),
+     filter((analysisLevel) => (analysisLevel != null && analysisLevel.length > 0)),
+     concatMap(([action, analysisLevel]) => [
+      new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(analysisLevel)}),
+      new StopBusyIndicator({ key: 'Map Book'}),
+      new ClosePrintViewDialog(),
+      new ErrorNotification({message: 'There was an error generating current view map book' })
+     ])
+  );
 
    @Effect({dispatch: false})
    handlePrintComplete$ = this.actions$.pipe(
      ofType<PrintJobComplete>(EsriMapActionTypes.PrintJobComplete),
-     tap((action) => {
+     withLatestFrom(this.stateService.analysisLevel$),
+     tap(([action, analysisLevel]) => {
+       this.store$.dispatch(new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(analysisLevel)}));
        this.store$.dispatch(new StopBusyIndicator({ key: 'Map Book'}));
        this.store$.dispatch(new ClosePrintViewDialog());
        this.store$.dispatch(new PrintMapSuccess({url: action.payload.result}));

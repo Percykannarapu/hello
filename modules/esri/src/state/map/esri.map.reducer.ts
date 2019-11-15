@@ -3,7 +3,7 @@ import { EsriMapActions, EsriMapActionTypes } from './esri.map.actions';
 import { EsriMapToolbarButtonActionTypes } from './esri.map-button.actions';
 
 export interface EsriLabelConfiguration {
-  font: string;
+  //font: string;
   size: number;
   enabled: boolean;
   pobEnabled: boolean;
@@ -22,7 +22,7 @@ export interface EsriMapState {
   mapInitializationError: any;
   selectedButton: SelectedButtonTypeCodes;
   containerHeight: number;
-  mapViewpoint: __esri.Viewpoint;
+  mapViewpoint: string;
   popupsVisible: boolean;
   sketchView: __esri.SketchViewModel;
   selectedFeatures: __esri.Graphic[];
@@ -45,13 +45,13 @@ const initialState: EsriMapState = {
   selectedFeatures: [],
   selectedLayerId: null,
   labelConfiguration: {
-    font: 'sans-serif',
+    //font: 'sans-serif',
     size: 10,
     enabled: true,
     pobEnabled: false,
     siteEnabled: true,
   },
-  layerExpressions: null
+  layerExpressions: {}
 };
 
 export function mapReducer(state = initialState, action: EsriMapActions) : EsriMapState {
@@ -93,15 +93,19 @@ export function mapReducer(state = initialState, action: EsriMapActions) : EsriM
     case EsriMapActionTypes.SetMapHeight:
       return { ...state, containerHeight: action.payload.newMapHeight };
     case EsriMapActionTypes.SetMapViewPoint:
-      return { ...state, mapViewpoint: action.payload.newViewpoint };
+      return { ...state, mapViewpoint: action.payload.newViewpointJson };
     case EsriMapActionTypes.SetPopupVisibility:
       return { ...state, popupsVisible: action.payload.isVisible };
     case EsriMapActionTypes.SetLabelConfiguration:
-      return { ...state, labelConfiguration: action.payload.labelConfiguration };
+      return { ...state, labelConfiguration: { ...action.payload.labelConfiguration } };
     case EsriMapActionTypes.SetLayerLabelExpressions:
-      return { ...state, layerExpressions: action.payload.expressions };
+      return { ...state, layerExpressions: { ...action.payload.expressions } };
 
     // Other actions
+    case EsriMapActionTypes.HideLabels:
+      return { ...state, labelConfiguration: { ...state.labelConfiguration, enabled: false}};
+    case EsriMapActionTypes.ShowLabels:
+      return { ...state, labelConfiguration: { ...state.labelConfiguration, enabled: true}};
     case EsriMapActionTypes.FeaturesSelected:
       return { ...state, selectedFeatures: [ ...action.payload.features] };
     case EsriMapActionTypes.SetSelectedLayer:

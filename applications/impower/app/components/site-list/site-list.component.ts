@@ -10,6 +10,7 @@ import { filter, map, startWith, take } from 'rxjs/operators';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppLocationService } from '../../services/app-location.service';
 import { AppProjectService } from '../../services/app-project.service';
+import { AppStateService } from '../../services/app-state.service';
 import { FullAppState, LocalAppState } from '../../state/app.interfaces';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { HomeGeocode, ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
@@ -35,7 +36,7 @@ export class FlatSite {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SiteListComponent implements OnInit {
-     first: number = 0; 
+     first: number = 0;
    @Input('impGeofootprintLocations')
    set locations(val: ImpGeofootprintLocation[]) {
       this.allLocationsBS$.next(val);
@@ -65,7 +66,7 @@ export class SiteListComponent implements OnInit {
    set activeCompetitorLocations(val: ImpGeofootprintLocation[]) {
       this.activeCompetitorLocationsBS$.next(val);
    }
-   
+
    @Input('impGeofootprintGeos')
    set impGeofootprintGeos(val: ImpGeofootprintGeo[]) {
 //    console.log("SITE-LIST COMPONENT GOT GEOS: ", val);
@@ -89,10 +90,10 @@ export class SiteListComponent implements OnInit {
 
    @Output()
     resubmitFailedGrid = new EventEmitter();
-   
+
    // Get grid filter components to clear them
    @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
-   
+
    // Input Behavior subjects
    private allLocationsBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
    private allLocationAttribsBS$ = new BehaviorSubject<ImpGeofootprintLocAttrib[]>([]);
@@ -180,16 +181,12 @@ export class SiteListComponent implements OnInit {
 
    public showDialog: boolean = false;
 
-   constructor(
-      private appLocationService: AppLocationService,
-      private confirmationService: ConfirmationService,
-      private appProjectService: AppProjectService,
-      private cd: ChangeDetectorRef,
-      private impLocationService: ImpGeofootprintLocationService,
-      private impLocAttributeService: ImpGeofootprintLocAttribService,
-      //private valGeocodingRequest: ValGeocodingRequest,
-      private store$: Store<LocalAppState>,
-      private fullStateStore$: Store<FullAppState>) {}
+  constructor(private appLocationService: AppLocationService,
+              private confirmationService: ConfirmationService,
+              private appProjectService: AppProjectService,
+              private appStateService: AppStateService,
+              private impLocationService: ImpGeofootprintLocationService,
+              private store$: Store<FullAppState>) {}
 
    ngOnInit() {
       // Observe the behavior subjects on the input parameters
@@ -197,21 +194,20 @@ export class SiteListComponent implements OnInit {
 
       this.allLocations$ = this.allLocationsBS$.asObservable();
       this.allLocationAttribs$ = this.allLocationAttribsBS$.asObservable();
-      
+
       this.onListTypeChange('Site');
 
-      this.fullStateStore$.pipe(
-        select(selectors.getMapReady),
+      this.appStateService.applicationIsReady$.pipe(
         filter(ready => ready),
         take(1)
       ).subscribe(() => {
-        this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
+        this.failures$ = combineLatest([this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$]).pipe(
           map(([sites, competitors]) => [...sites, ...competitors])
         );
         this.hasFailures$ = this.appLocationService.hasFailures$;
         this.totalCount$ = this.appLocationService.totalCount$;
       });
-      
+
       for (const column of this.flatSiteGridColumns) {
          this.columnOptions.push({ label: column.header, value: column });
          this.selectedColumns.push(column);
@@ -223,7 +219,7 @@ export class SiteListComponent implements OnInit {
 //      this.flatAllSites$ = this.allGeos$.pipe(withLatestFrom(this.currentAllSites$)
 //                                             ,map(([geos, locs]) => this.createComposite(locs, geos)));
 
-/* DPG 11/8/18 - Put back taking out to try rolling into create composite      
+/* DPG 11/8/18 - Put back taking out to try rolling into create composite
       this.allGeos$.subscribe(geos => {
          if (geos != null && geos.length > 0) {
             setTimeout(() => {
@@ -243,7 +239,7 @@ export class SiteListComponent implements OnInit {
          });*/
    }
 
-/* ROLLED INTO CREATE COMPOSITE   
+/* ROLLED INTO CREATE COMPOSITE
    public fnCalcHHC(geoData) {
       console.log("-".padEnd(80, "-"));
       console.log("SITE-LIST-COMPONENT - fnCalcHHC", geoData);
@@ -320,12 +316,12 @@ export class SiteListComponent implements OnInit {
     this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
    }
 
-   manuallyGeocode(site: ValGeocodingRequest, siteType){  
+   manuallyGeocode(site: ValGeocodingRequest, siteType){
      site.Group = this.selectedRowData.groupName;
      site.Description = this.selectedRowData.description;
      site.RADIUS1 = this.selectedRowData.radius1;
      site.RADIUS2 = this.selectedRowData.radius2;
-     site.RADIUS3 = this.selectedRowData.radius3; 
+     site.RADIUS3 = this.selectedRowData.radius3;
      site.previousAddress1 = this.selectedRowData.origAddress1;
      site.previousCity = this.selectedRowData.origCity;
      site.previousState = this.selectedRowData.origState;
@@ -338,7 +334,7 @@ export class SiteListComponent implements OnInit {
       setTimeout(() => {
           this.first = 0;
       }, 0);
-          
+
     this.selectedListType = data;
 
       // Choose to set current observables to sites or competitors
@@ -382,7 +378,7 @@ export class SiteListComponent implements OnInit {
             this.getShadingData(analysisLevel, newGeos, shadingAudience[0]);
           }
         }
-      );   */                                      
+      );   */
 
       this.flatActiveSites$ = this.flatAllSites$.pipe(filterArray(flatLoc => flatLoc.loc.isActive === true));
 
@@ -480,9 +476,9 @@ export class SiteListComponent implements OnInit {
    }
 
    /**
-    * When the user clicks the trashcan icon on a given location row, this prompts 
+    * When the user clicks the trashcan icon on a given location row, this prompts
     * to confirm the location deletion.
-    * 
+    *
     * @param row The location to delete
     */
    public onRowDelete(row: ImpGeofootprintLocation) {
@@ -525,19 +521,19 @@ export class SiteListComponent implements OnInit {
       const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
       const reCalculateHomeGeos = true;
       const isLocationEdit =  false;
-      this.store$.dispatch(new ReCalcHomeGeos({locations: locations, 
-                                               siteType: siteType, 
-                                               reCalculateHomeGeos: reCalculateHomeGeos, 
+      this.store$.dispatch(new ReCalcHomeGeos({locations: locations,
+                                               siteType: siteType,
+                                               reCalculateHomeGeos: reCalculateHomeGeos,
                                                isLocationEdit: isLocationEdit}));
      }
    }
 
       /**
-    * When the user clicks the "HGC Issues Log" button, 
+    * When the user clicks the "HGC Issues Log" button,
     */
    public onHGCIssuesLog() {
-     
-    const site: SuccessfulLocationTypeCodes = ImpClientLocationTypeCodes.Site;
+
+    const locType: SuccessfulLocationTypeCodes = this.selectedListType === 'Site'? ImpClientLocationTypeCodes.Site : ImpClientLocationTypeCodes.Competitor;
     //this.confirmationService.confirm({
     //   message: 'Home Geocode Issues Log',
     //   header: 'There are no home geocoding issues to report',
@@ -547,7 +543,7 @@ export class SiteListComponent implements OnInit {
 
     //      }
     //});
-    this.store$.dispatch(new ExportHGCIssuesLog({locationType: site}));
+    this.store$.dispatch(new ExportHGCIssuesLog({locationType: locType}));
  }
    /**
     * When the user clicks the "Magnifying glass" icon, this will zoom the map to that location
@@ -584,7 +580,7 @@ export class SiteListComponent implements OnInit {
       this.activeSiteCount$ = this.currentActiveSites$.pipe(map(s => s.length));
    }
 
-   createComposite(locs: ImpGeofootprintLocation[], geos?: ImpGeofootprintGeo[]) : FlatSite[] 
+   createComposite(locs: ImpGeofootprintLocation[], geos?: ImpGeofootprintGeo[]) : FlatSite[]
    {
       // console.log("-".padEnd(80, "-"));
       // console.log("SITE-LIST - createComposite - Locs: ", (locs != null) ? locs.length : null, ", Geos: ", (geos != null) ? geos.length : null);
@@ -611,7 +607,7 @@ export class SiteListComponent implements OnInit {
                hhcMap.set(geo.impGeofootprintLocation.locationNumber, (hhcMap.get(geo.impGeofootprintLocation.locationNumber) || 0) + geo.hhc);
                if (geo.rank === 0) {
 //                  let hhc = allocHhcMap.get(geo.impGeofootprintLocation.locationNumber);
-//                  hhc = ((hhc != null && hhc != NaN) ? hhc : 0) + geo.hhc;   
+//                  hhc = ((hhc != null && hhc != NaN) ? hhc : 0) + geo.hhc;
                   allocHhcMap.set(geo.impGeofootprintLocation.locationNumber, (allocHhcMap.get(geo.impGeofootprintLocation.locationNumber) || 0) + geo.hhc);
                }
             }
@@ -642,7 +638,7 @@ export class SiteListComponent implements OnInit {
             const column = {'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
 
             // If the column isn't already in the list, add it
-            if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode)) 
+            if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode))
             {
                this.flatSiteGridColumns.push(column);
                this.columnOptions.push({ label: column.header, value: column });
@@ -667,7 +663,7 @@ export class SiteListComponent implements OnInit {
                   gridSite['radius3'] = loc.impGeofootprintTradeAreas[i].taRadius;
                 }
               }
-          }  
+          }
          //console.log("gridSite: ", gridSite);
          siteGridData.push(gridSite);
       });
@@ -678,19 +674,19 @@ export class SiteListComponent implements OnInit {
    }
 
   // Disabling dismissable events until we can get access to change detection in sub panels
-  onSetDismissable(dismissable: boolean) 
+  onSetDismissable(dismissable: boolean)
   {
     console.log('onSetDismissable: ', dismissable);
     // this.setContainerDismissable.emit(dismissable);
   }
 
-  onFilterShow() 
+  onFilterShow()
   {
     console.log('onFilterShow - fired');
     // this.onSetDismissable(false);
   }
 
-  onFilterHide() 
+  onFilterHide()
   {
     console.log('onFilterHide - fired');
     // this.onSetDismissable(true);

@@ -76,28 +76,55 @@
       </div>
       <div class="ui-g-12" style="padding: 0">
         <div class="ui-g-3 p-t-15">
+          <div class="ui-inputgroup">
             <span class="md-inputfield">
-              <input pInputText id="homeZipInput" class="ui-g-12" formControlName="homeZip" autocomplete="off" />
-              <label for="cityInput">Home ZIP</label>
+              <input pInputText id="homeZipInput" class="ui-g-12" formControlName="homeZip" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
+              <span class="ui-inputgroup-addon" *ngIf="!hasErrors('homeZip')">&nbsp;</span>
+              <span class="ui-inputgroup-addon" *ngIf="hasErrors('homeZip')">
+                <i class="ui-icon-error error-icon" title="Not a valid Home ZIP"></i>
+              </span>
+              <label  class="validation-float-label" for="homeZipInput">Home ZIP</label>
             </span>
+          </div>
           </div>
           <div class="ui-g-3">
-            <span class="md-inputfield">
-              <input pInputText id="homeAtzInput" class="ui-g-12" formControlName="homeAtz" autocomplete="off" />
-              <label for="stateInput">Home ATZ</label>
-            </span>
+              <div class="ui-inputgroup">
+                <span class="md-inputfield">
+                  <input pInputText id="homeAtzInput" class="ui-g-12" formControlName="homeAtz" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
+                  <span class="ui-inputgroup-addon" *ngIf="!hasErrors('homeAtz')">&nbsp;</span>
+                  <span class="ui-inputgroup-addon" *ngIf="hasErrors('homeAtz')">
+                    <i class="ui-icon-error error-icon" title="Not a valid Home ATZ"></i>
+                  </span>
+                  <label class="validation-float-label" for="stateInput">Home ATZ</label>
+                </span>
+              </div>  
           </div>
           <div class="ui-g-3 p-t-15">
-            <span class="md-inputfield">
-              <input pInputText id="homeDigitalAtzInput" class="ui-g-12" formControlName="homeDigitalAtz" autocomplete="off" />
-              <label for="zipInput">Home Digital ATZ</label>
-            </span>
+            <div class="ui-inputgroup">
+              <span class="md-inputfield">
+                <input pInputText id="homeDigitalAtzInput" class="ui-g-12" formControlName="homeDigitalAtz" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
+                <span class="ui-inputgroup-addon" *ngIf="!hasErrors('homeDigitalAtz')">&nbsp;</span>
+                <span class="ui-inputgroup-addon" *ngIf="hasErrors('homeDigitalAtz')">
+                  <i class="ui-icon-error error-icon" title="Not a valid Home DTZ"></i>
+                </span>
+                <label class="validation-float-label" for="zipInput">Home Digital ATZ</label>
+              </span>
+            </div>
+            
           </div>
           <div class="ui-g-3 p-t-15">
-            <span class="md-inputfield">
-              <input pInputText id="homePcrInput" class="ui-g-12" formControlName="homePcr" autocomplete="off" />
-              <label for="cityInput">Home PCR</label>
-            </span>
+            <div class="ui-inputgroup">
+                <span class="md-inputfield">
+                  <input pInputText id="homePcrInput" class="ui-g-12" formControlName="homePcr" autocomplete="off" oninput="this.value = this.value.toUpperCase()"/>
+                  <span class="ui-inputgroup-addon" *ngIf="!hasErrors('homePcr')">&nbsp;</span>
+                  <span class="ui-inputgroup-addon" *ngIf="hasErrors('homePcr')">
+                    <i class="ui-icon-error error-icon" title="Not a valid Home PCR"></i>
+                  </span>
+                  <label for="cityInput">Home PCR</label>
+                </span>
+            </div>
+
+            
           </div>
       </div>
       
@@ -106,7 +133,7 @@
             <button (click)="cancelDialog()" type="button" label="Cancel" icon="ui-icon-close" pButton class="ui-g-12"></button>
          </div>
          <div class="ui-g-4">
-            <button type="save" label="Save" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="editLocationsForm.invalid"></button>
+            <button type="save" label="Save" icon="ui-icon-send" pButton class="ui-g-12"  [disabled]="editLocationsForm.invalid"></button>
          </div>
       </div>
   </form>

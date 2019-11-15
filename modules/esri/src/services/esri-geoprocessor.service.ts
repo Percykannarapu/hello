@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriMapService } from './esri-map.service';
 
@@ -28,24 +28,35 @@ export class EsriGeoprocessorService {
 
   public processPrintJob<T>(printServiceUrl: string, servicePayload: __esri.PrintParameters) : Observable<T> {
 
-    const processor = new EsriApi.PrintTask({url: printServiceUrl});
+    const processor: any = new EsriApi.PrintTask({url: printServiceUrl});
+    const proxy_getPrintDefinition = processor._getPrintDefinition;
+    
+    processor._getPrintDefinition = function() {
+       return proxy_getPrintDefinition.apply(processor, arguments).then((result) => {
+         console.log('Print Payload::', result);
+         result.operationalLayers.forEach(layer => {
+           if (layer.title === 'Text Variables'){
+             layer.layerDefinition.drawingInfo.labelingInfo[0].removeDuplicates = 'none';
+           }
+         });
+         return result;
+       });
+ 
+    };
+
 
    return Observable.create(async observer => {
       try {
         const printResult = await processor.execute(servicePayload);
-        console.log('printResults:::', printResult);
-
-        // if (printResult == null) {
-          //   observer.error(printResult);
-          // } else {
-            // const dataResult = await processor.getResultData(printResult.jobId, 'reportUrl');
-            observer.next(printResult);
+        if (printResult != null && printResult.url != null) {
+            observer.next(printResult.url);
             observer.complete();
-          // }
-      } catch (err) {
-        observer.error(err);
-      }
+          } 
+        } catch (err) {
+          observer.error(err);
+        }
     });
+    
   }
 
 }

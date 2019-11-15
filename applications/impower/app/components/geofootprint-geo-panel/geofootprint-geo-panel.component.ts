@@ -143,7 +143,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    // -----------------------------------------------------------
    public onZoomGeo(geo: ImpGeofootprintGeo) {
       if (geo != null) {
-         this.esriMapService.zoomOnMap({ min: geo.xcoord, max: geo.xcoord }, { min: geo.ycoord, max: geo.ycoord }, 1);
+         this.esriMapService.zoomOnMap({ min: geo.xcoord, max: geo.xcoord }, { min: geo.ycoord, max: geo.ycoord }, 1).subscribe();
       }
    }
 
@@ -256,4 +256,8 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    public onForceRedraw() {
       this.impGeofootprintGeoService.makeDirty();
    }
+
+  public triggerCollapseOnToggle(collapsed: boolean) {
+    this.appStateService.triggerChangeInCollapse(collapsed);
+  }
 }

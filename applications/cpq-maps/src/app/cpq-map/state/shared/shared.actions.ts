@@ -1,10 +1,11 @@
 import { Action } from '@ngrx/store';
 import { LegendData, ResultType } from '../app.interfaces';
+import { MapUIState } from '../map-ui/map-ui.reducer';
+import { SharedState } from './shared.reducers';
 
 export enum SharedActionTypes {
   SetAppReady = '[Shared Actions] Set App Ready',
   SetIsWrap = '[Shared Actions] Set isWrap',
-  SetIsDistrQtyEnabled = '[Shared Actions] Set isDistrQtyEnabled',
   SaveMediaPlan = '[Shared Actions] Save Media Plan',
   SaveSucceeded = '[Shared Actions] Save Succeeded',
   SaveFailed = '[Shared Actions] Save Failed',
@@ -15,7 +16,10 @@ export enum SharedActionTypes {
 
   NavigateToReviewPage = '[Shared Actions] Navigate to Review Page',
   SetLegendData = '[Shared Actions] Set Legend Data',
-  SetLegendHTML = '[Shared Actions] Set Legend HTML'
+  SetLegendHTML = '[Shared Actions] Set Legend HTML',
+
+  LoadMapPreferences = '[Shared Actions] Load Map Preferences',
+  SetPrefsDirty = '[Shared Actions] Mark Map Preferences Dirty'
 }
 
 export class SetLegendHTML implements Action {
@@ -33,11 +37,6 @@ export class SetAppReady implements Action {
   constructor(public payload: boolean) { }
 }
 
-export class SetIsDistrQtyEnabled implements Action {
-  readonly type = SharedActionTypes.SetIsDistrQtyEnabled;
-  constructor(public payload: { isDistrQtyEnabled: boolean }) { }
-}
-
 export class SetIsWrap implements Action {
   readonly type = SharedActionTypes.SetIsWrap;
   constructor(public payload: { isWrap: boolean }) { }
@@ -45,7 +44,6 @@ export class SetIsWrap implements Action {
 
 export class SaveMediaPlan implements Action {
     readonly type = SharedActionTypes.SaveMediaPlan;
-    constructor(public payload: { updateIds: number[], addIds: number[] }) {}
 }
 
 export class SaveSucceeded implements Action {
@@ -76,10 +74,18 @@ export class GeneratePdfSucceeded implements Action {
   constructor(public payload: { response: ResultType }) {}
 }
 
+export class SetMapPreferences implements Action {
+  readonly type = SharedActionTypes.LoadMapPreferences;
+  constructor(public payload: { mapUISlice: MapUIState }) { }
+}
+
+export class SetPrefsDirty implements Action {
+  readonly type = SharedActionTypes.SetPrefsDirty;
+}
+
 export type SharedActions =
   SetAppReady
   | SetIsWrap
-  | SetIsDistrQtyEnabled
   | SaveMediaPlan
   | SaveSucceeded
   | SaveFailed
@@ -89,5 +95,7 @@ export type SharedActions =
   | GeneratePdf
   | GeneratePfdFailed
   | GeneratePdfSucceeded
+  | SetMapPreferences
+  | SetPrefsDirty
   ;
 

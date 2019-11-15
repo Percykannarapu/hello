@@ -2,15 +2,33 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
+import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
+import { RehydrateAfterLoad } from 'app/impower-datastore/state/transient/transient.actions';
+import { AppTradeAreaService } from 'app/services/app-trade-area.service';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { GeoAttributeActionTypes, RehydrateAttributes, RehydrateAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
-import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
+import { RehydrateAudiences } from '../../impower-datastore/state/transient/audience/audience.actions';
+import { GeoAttributeActionTypes, RehydrateAttributesComplete, RequestAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
-import { CalculateMetrics, CreateNewProject, CreateNewProjectComplete, DataShimActionTypes, FiltersChanged,
-  ProjectLoad, ProjectLoadFailure, ProjectLoadSuccess, ProjectSaveAndLoad, ProjectSaveFailure, ProjectSaveSuccess, ProjectLoadFinish, IsProjectReload } from './data-shim.actions';
-import { RehydrateAfterLoad } from 'app/impower-datastore/state/transient/transient.actions';
+import { getBatchMode } from '../batch-map/batch-map.selectors';
+import { getTypedBatchQueryParams } from '../shared/router.interfaces';
+import {
+  CalculateMetrics,
+  CreateNewProject,
+  CreateNewProjectComplete,
+  DataShimActionTypes,
+  FiltersChanged,
+  IsProjectReload,
+  ProjectLoad,
+  ProjectLoadFailure,
+  ProjectLoadFinish,
+  ProjectLoadSuccess,
+  ProjectSaveAndLoad,
+  ProjectSaveFailure,
+  ProjectSaveSuccess,
+  TradeAreaRollDownGeos
+} from './data-shim.actions';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimEffects {
@@ -53,8 +71,9 @@ export class DataShimEffects {
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
       withLatestFrom(this.appDataShimService.currentGeocodeSet$),
-//    map(([projectId, geocodes]) => new RehydrateAttributes({ ...action.payload, geocodes })),
-      map(([projectId, geocodes]) => new RehydrateAfterLoad({ ...action.payload, geocodes })),
+      map(([, geocodes]) => action.payload.isBatchMode
+        ? new RehydrateAudiences({ ...action.payload, notifyLoadSuccess: true })
+        : new RehydrateAfterLoad({ ...action.payload, geocodes })),
       catchError(err => of(new ProjectLoadFailure({ err, isReload: false }))),
     )),
   );
@@ -74,10 +93,10 @@ export class DataShimEffects {
 
   @Effect()
   requestSuccess$ = this.actions$.pipe(
-    ofType(GeoAttributeActionTypes.RequestAttributesComplete),
+    ofType<RequestAttributesComplete>(GeoAttributeActionTypes.RequestAttributesComplete),
     withLatestFrom(this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
     tap(([a, attrs, geos, project]) => this.appDataShimService.prepGeoFields(geos, attrs, project)),
-    map(() => new FiltersChanged({ filterChanged: null }))
+    map(([action]) => new FiltersChanged({ filterChanged: null, filterFlag: action.payload.flag }))
   );
 
   @Effect()
@@ -91,7 +110,8 @@ export class DataShimEffects {
   @Effect()
   loadSuccess$ = this.actions$.pipe(
     ofType(DataShimActionTypes.ProjectLoadSuccess),
-    tap(() => this.appDataShimService.onLoadSuccess()),
+    withLatestFrom(this.store$.select(getBatchMode)),
+    tap(([, isBatch]) => this.appDataShimService.onLoadSuccess(isBatch)),
     map(() => new ProjectLoadFinish())
   );
 
@@ -110,7 +130,9 @@ export class DataShimEffects {
   filtersChanged$ = this.actions$.pipe(
     ofType<FiltersChanged>(DataShimActionTypes.FiltersChanged),
     withLatestFrom(this.filterableGeos$, this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentProject$),
-    tap(([action, geos, attributes, project]) => this.appDataShimService.filterGeos(geos, attributes, project, action.payload.filterChanged)),
+    tap(([action, geos, attributes, project]) => {
+      if (!action.payload.filterFlag) this.appDataShimService.filterGeos(geos, attributes, project, action.payload.filterChanged);
+      }),
     map(() => new CalculateMetrics())
   );
 
@@ -127,6 +149,14 @@ export class DataShimEffects {
     map(action => this.appDataShimService.isProjectReload(action.payload.isReload))
   );
 
+  @Effect({dispatch: false})
+  tradeAreaRollDownGeos$ = this.actions$.pipe(
+    ofType<TradeAreaRollDownGeos>(DataShimActionTypes.TradeAreaRollDownGeos),
+    switchMap(action => this.appTradeService.rollDownService(action.payload.geos, action.payload.fileAnalysisLevel).pipe(
+      map(response => this.appTradeService.validateRolldownGeos(response, action.payload.queryResult, action.payload.matchedTradeAreas, action.payload.fileAnalysisLevel)),
+      map(result => this.appTradeService.persistRolldownTAGeos(result.payload, result.failedGeos))
+    ))
+  );
 
   // These are for the NgRx store
   // @Effect()
@@ -143,5 +173,6 @@ export class DataShimEffects {
 
   constructor(private actions$: Actions,
               private store$: Store<FullAppState>,
-              private appDataShimService: AppDataShimService) {}
+              private appDataShimService: AppDataShimService,
+              private appTradeService: AppTradeAreaService) {}
 }

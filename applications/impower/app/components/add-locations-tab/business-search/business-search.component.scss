@@ -1,5 +1,12 @@
+@import "~assets/valassis-variables";
+
 .business-search-result-list {
   width: 100%;
+  &.ui-listbox .ui-listbox-header {
+    border: none;
+    border-radius: 0;
+    background-color: $lightGray01;
+  }
   .ui-listbox-list-wrapper {
     max-height: 23.5em;
     ul.ui-listbox-list {
@@ -23,10 +30,10 @@
 
 .business-search {
   .has-error-border {
-    border-bottom: 1px solid red;
+    border-bottom: 1px solid $brandRed;
   }
   .has-error {
-    color:red;
+    color:$brandRed;
   }
   .ui-picklist {
     ul.ui-picklist-list {

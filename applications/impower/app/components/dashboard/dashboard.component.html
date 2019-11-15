@@ -3,14 +3,14 @@
     <div id= "campaignDetails" class="ui-g-12 ui-md-6 ui-lg-3">
      <!-- Home for Blue Household Count Box Overlay -->
      <val-color-box header="Campaign Details"
-                    boxStyle="colorboxPicker-teal"
+                    boxStyle="campaign-details-colorbox"
                     icon="done_all"
                     [model]="metricMapBlue"
                     [flags]="flagMapBlue"
                     displayOverlay="true"
                     [dismissible]="true"
-                    #campaignColorBox>
-       <val-campaign-details></val-campaign-details>
+                    #campaignColorBox (overlayClosed)= "onCampaignDetailsClose()">
+       <val-campaign-details #campaignDetailsComponent></val-campaign-details>
      </val-color-box>
    </div>
 
@@ -18,7 +18,7 @@
       <!-- Home for Green Sites Box Overlay -->
       <!-- onSetDismissable(true) -->
       <val-color-box header="Locations"
-                     boxStyle="colorboxPicker-green"
+                     boxStyle="locations-colorbox"
                      icon="my_location"
                      [model]="metricMapGreen"
                      displayOverlay="true"
@@ -26,7 +26,7 @@
                      #locationsColorBox>
         <p-tabView>
           <p-tabPanel header="Add Locations">
-            <val-add-locations-tab></val-add-locations-tab>
+            <val-add-locations-tab #addLocations></val-add-locations-tab>
           </p-tabPanel>
           <div *ngIf="(hasLocationFailures$ | async)">
             <p-tabPanel header="Failed Locations">
@@ -46,7 +46,7 @@
     <div id="targetAudience" class="ui-g-12 ui-md-6 ui-lg-3">
       <!-- Home for Target Audience Box Overlay -->
       <val-color-box  header="Target Audience"
-                      boxStyle="colorboxPicker-slate"
+                      boxStyle="target-audience-colorbox"
                       icon="tune"
                       [model]="metricMapPurple"
                       [flags]="flagMapPurple"
@@ -57,54 +57,22 @@
       </val-color-box>
     </div>
 
-    <div id="performance" class="ui-g-12 ui-md-6 ui-lg-3">
+    <div id="performance" class="ui-g-12 ui-md-6 ui-lg-3"
+         pTooltip="Predicted Response is the number of households expected to act on the offer received.
+
+                   Predicted Topline Sales Generated is the sales likely to be generated from the recommended media.
+
+                   Cost per Response is the estimated investment per predicted response.">
       <!-- Home for Performance ColorBox Overlay -->
       <val-color-box   header="Performance"
                        boxStyle="colorboxPicker-blue"
                        icon="send"
-                       pTooltip="Predicted Response is the number of households expected to act on the offer received.
-
-                                Predicted Topline Sales Generated is the sales likely to be generated from the recommended media.
-
-                                Cost per Response is the estimated investment per predicted response."
                        [model]="metricMapTeal"
                        [flags]="flagMapTeal"
                        displayOverlay="false"
                        [dismissible]="true"
                        #performanceColorBox>
-        <!-- For now we are removing the tab panel since there is no content for it currently
-        <p-tabView>
-            <p-tabPanel header="RAD Service">
-               <val-raddata></val-raddata>
-            </p-tabPanel>
-            <p-tabPanel header="Header Tab 2">
-               Content 2
-            </p-tabPanel>
-            <p-tabPanel header="Header Tab 3">
-               <p-panel class="colorboxPicker-blue">
-                  <p-header>
-                     <div>🚨🚧 Under Construction 🚧🚨</div>
-                     Some sort of chart that tells somebody something
-                  </p-header>
-                  <p-chart type="line" [data]="chartData" responsive="true"></p-chart>
-               </p-panel>
-            </p-tabPanel>
-         </p-tabView>-->
       </val-color-box>
     </div>
     <!-- COLORBOX COMPONENTS END -->
-
-    <!-- <div class="ui-g-12 ui-md-6 ui-lg-12 no_vertical_space"> -->
-    <div class="ui-g-12 no_vertical_space">
-      <val-map></val-map>
-      <p-panel id="geosPanel" [toggleable]="true" class="val-flush-to-edges" collapsed="true" (onAfterToggle)="triggerCollapseOnToggle($event.collapsed)">
-        <p-header style="text-align: center;" pTooltip="Locations: {{(locations$ | async)?.length}}, Geos: {{(geos$ | async)?.length}}">Locations / Geographies</p-header>
-
-        <val-geofootprint-geo-panel></val-geofootprint-geo-panel>
-      </p-panel>
-    </div>
-
-    <div>
-      <br><br><br>
-    </div>
   </div>

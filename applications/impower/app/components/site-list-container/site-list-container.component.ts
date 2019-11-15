@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef} from '@angular/core';
 import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { AppLocationService } from '../../services/app-location.service';
 import { Observable } from 'rxjs';
@@ -55,7 +55,8 @@ export class SiteListContainerComponent implements OnInit {
       private esriMapService: EsriMapService,
       private confirmationService: ConfirmationService,
       private store$: Store<LocalAppState>,
-      private appEditSiteService: AppEditSiteService) {}
+      private appEditSiteService: AppEditSiteService,
+      private cd: ChangeDetectorRef) {}
 
    ngOnInit() {
       // Subscribe to the data stores
@@ -202,21 +203,13 @@ export class SiteListContainerComponent implements OnInit {
       // this.store$.dispatch(new ValidateEditedHomeGeoAttributes({oldData, siteOrSites, siteType, editedTags, attributeList}));
     }
     else {
-      if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) { 
+      if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) {
           siteOrSites['latitude'] = null;
           siteOrSites['longitude'] = null;
           this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
       } else if (ifLatLongChanged) {
-        // const newLocation: ValGeocodingRequest = oldData;
-          newLocation.recordStatusCode = 'PROVIDED';
-          newLocation.xcoord = Number(siteOrSites['longitude']);
-          newLocation.ycoord = Number(siteOrSites['latitude']);
-         // const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
-        //  const reCalculateHomeGeos = false;
-        //  const isLocationEdit =  true;
-        this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
-        //  this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
-         this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+          this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
+          this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
       } else {
         const editedLocation: ImpGeofootprintLocation = oldData;
         editedLocation.locationNumber = siteOrSites['number'];
@@ -296,10 +289,9 @@ export class SiteListContainerComponent implements OnInit {
    }
 
    public onZoomToLocation(loc: ImpGeofootprintLocation) {
-      // console.debug("-".padEnd(80, "-"));
-      // console.debug("SITE LIST CONTAINER - onZoomToLocation", loc);
-      // console.debug("-".padEnd(80, "-"));
-      this.esriMapService.zoomOnMap({ min: loc.xcoord, max: loc.xcoord }, { min: loc.ycoord, max: loc.ycoord }, 1);
+      this.esriMapService.zoomOnMap({ min: loc.xcoord, max: loc.xcoord }, { min: loc.ycoord, max: loc.ycoord }, 1).subscribe(() => {
+        this.cd.markForCheck();
+      });
       this.appStateService.closeOverlays();
    }
 }

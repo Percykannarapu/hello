@@ -1,6 +1,6 @@
 import { BaseModelPayload } from './BaseModel';
 
-export interface MediaPlanPref extends BaseModelPayload
+export interface MediaPlanPrefPayload extends BaseModelPayload
 {
   prefId:       number;         /// Primary Key
   mediaPlanId:  number;         /// Foreign Key to CBX_MEDIA_PLANS

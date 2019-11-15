@@ -135,7 +135,10 @@ export class TradeAreaTabComponent implements OnInit {
     const prevRadii = cachedValue.map(ta => ta.radius);
     if (JSON.stringify(newRadii) === JSON.stringify(prevRadii)) {
       // radii didn't change, so only visibility has changed
-      this.tradeAreaService.updateTradeAreaSelection(newModel.tradeAreas.filter(ta => ta.radius != null).map((ta, i) => ({ taNumber: i + 1, isSelected: ta.isShowing })), siteType);
+      //this.tradeAreaService.updateTradeAreaSelection(newModel.tradeAreas.filter(ta => ta.radius != null).map((ta, i) => ({ taNumber: i + 1, isSelected: ta.isShowing })), siteType);
+      //Apply again the trade areas
+      const transformedAreas = newModel.tradeAreas.map(ta => ({ radius: numberOrNull(ta.radius), selected: ta.isShowing }));
+      this.tradeAreaService.applyRadiusTradeArea(transformedAreas, siteType);
       isValid = false;
     }
     if (isValid) {

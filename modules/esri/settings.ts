@@ -1,5 +1,7 @@
 import { EsriAppSettings, EsriAuthenticationParams, EsriConfigOptions } from './src/configuration';
 
+export const SelectedShadingLayerPrefix = 'Selected';
+
 export const defaultEsriUrlFragments = {
   portal: 'arcgis/',
   generator: 'sharing/rest/generateToken',

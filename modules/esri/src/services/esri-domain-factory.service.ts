@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
+import { AutoCastColor, FillPattern, LineStyle } from '../models/esri-types';
 
 @Injectable()
 export class EsriDomainFactoryService {
@@ -84,6 +85,51 @@ export class EsriDomainFactoryService {
       labelExpressionInfo: {
         expression: expression
       }
+    });
+  }
+
+  createSimpleRenderer(symbol: __esri.Symbol) : __esri.SimpleRenderer {
+    return new EsriApi.SimpleRenderer({
+      symbol,
+    });
+  }
+
+  createUniqueValueRenderer(defaultSymbol: __esri.Symbol, infos: __esri.UniqueValueInfo[]) : __esri.UniqueValueRenderer {
+    return new EsriApi.UniqueValueRenderer({
+      defaultSymbol,
+      uniqueValueInfos: [...infos]
+    });
+  }
+
+  createClassBreakRenderer(defaultSymbol: __esri.Symbol, classBreaks: __esri.ClassBreaksRendererClassBreakInfos[]) : __esri.ClassBreaksRenderer {
+    return new EsriApi.ClassBreaksRenderer({
+      defaultSymbol,
+      classBreakInfos: [...classBreaks]
+    });
+  }
+
+  createDotDensityRenderer(outline: __esri.symbols.SimpleLineSymbol, referenceDotValue: number, referenceScale: number, attributes: __esri.AttributeColorInfo[]) : __esri.DotDensityRenderer {
+    return new EsriApi.DotDensityRenderer({
+      outline,
+      referenceDotValue,
+      referenceScale,
+      attributes
+    });
+  }
+
+  createSimpleLineSymbol(color: AutoCastColor, width: number | string = 1, style: LineStyle = 'solid') : __esri.symbols.SimpleLineSymbol {
+    return new EsriApi.SimpleLineSymbol({
+      color,
+      width,
+      style
+    });
+  }
+
+  createSimpleFillSymbol(color: AutoCastColor, outline: __esri.symbols.SimpleLineSymbol, style: FillPattern = 'solid') : __esri.symbols.SimpleFillSymbol {
+    return new EsriApi.SimpleFillSymbol({
+      color,
+      outline,
+      style
     });
   }
 }

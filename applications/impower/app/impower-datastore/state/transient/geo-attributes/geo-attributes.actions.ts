@@ -25,11 +25,12 @@ export enum GeoAttributeActionTypes {
 
 export class RequestAttributes implements Action {
   readonly type = GeoAttributeActionTypes.RequestAttributes;
-  constructor(public payload: { geocodes: Set<string> }) {}
+  constructor(public payload: { geocodes: Set<string>, flag?: boolean }) {}
 }
 
 export class RequestAttributesComplete implements Action {
     readonly type = GeoAttributeActionTypes.RequestAttributesComplete;
+    constructor(public payload: { flag: boolean }) {}
 }
 
 export class RequestAttributeFailure implements Action {

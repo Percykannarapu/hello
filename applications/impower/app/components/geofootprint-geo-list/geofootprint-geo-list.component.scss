@@ -1,6 +1,6 @@
 @import "~assets/valassis-variables";
 
-.grid-caption-left-group {
+#geoGrid .grid-caption-left-group {
   display: flex;
   align-items: flex-end;
   > * {
@@ -9,7 +9,7 @@
   }
 }
 
-.grid-caption-center-group {
+#geoGrid .grid-caption-center-group {
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -19,7 +19,7 @@
   }
 }
 
-.grid-caption-right-group {
+#geoGrid .grid-caption-right-group {
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
@@ -29,14 +29,47 @@
   }
 }
 
-.second-header {
+#geoGrid .second-header {
   > th {
     background-color: $valTableHeaderSecondaryBgColor;
   }
 }
 
-.empty-grid {
+#geoGrid .empty-grid {
   > td {
     border-width: 0;
+  }
+}
+
+#geoGrid .ui-table {
+  .ui-table-tbody {
+    > tr:nth-child(even) {
+      color: $midGray03;
+      &.ui-state-highlight {
+        color: $darkGray01;
+      }
+    }
+    > tr:nth-child(odd) {
+      color: $midGray03;
+      &.ui-state-highlight {
+        color: $darkGray01;
+      }
+    }
+  }
+}
+
+#geoGrid .val-clickable {
+  padding: 0;
+}
+
+#geoGrid .eraser-button {
+  span {
+    color: $brandRed;
+  }
+  &:hover {
+    span {
+      color: $lightGray04;
+      background-color: $brandRed;
+    }
   }
 }

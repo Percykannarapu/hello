@@ -53,6 +53,7 @@ export class ConfigService {
       },
       boundaries: { // WRAP_Top_Vars
         id: environment.layerIds.wrap.boundary,
+        simplifiedId: null,
         name: 'Wrap Boundaries',
         defaultVisibility: true,
         sortOrder: 0,
@@ -72,6 +73,7 @@ export class ConfigService {
       },
       centroids: { // ZIP_Centroids
         id: environment.layerIds.zip.centroid,
+        simplifiedId: null,
         name: 'ZIP Centroids',
         defaultVisibility: false,
         sortOrder: 1,
@@ -81,6 +83,7 @@ export class ConfigService {
       },
       boundaries: { // ZIP Top Vars
         id: environment.layerIds.zip.boundary,
+        simplifiedId: null,
         name: 'ZIP Boundaries',
         defaultVisibility: true,
         sortOrder: 0,
@@ -100,6 +103,7 @@ export class ConfigService {
       },
       centroids: { // ATZ_Centroids
         id: environment.layerIds.atz.centroid,
+        simplifiedId: null,
         name: 'ATZ Centroids',
         defaultVisibility: false,
         sortOrder: 1,
@@ -109,6 +113,7 @@ export class ConfigService {
       },
       boundaries: { // ATZ_Top_Vars
         id: environment.layerIds.atz.boundary,
+        simplifiedId: null,
         name: 'ATZ Boundaries',
         defaultVisibility: true,
         sortOrder: 0,
@@ -128,6 +133,7 @@ export class ConfigService {
       },
       centroids: { // DIG_ATZ_Centroids
         id: environment.layerIds.dtz.centroid,
+        simplifiedId: null,
         name: 'Digital ATZ Centroids',
         defaultVisibility: false,
         sortOrder: 1,
@@ -137,6 +143,7 @@ export class ConfigService {
       },
       boundaries: { // DIG_ATZ_Top_Vars
         id: environment.layerIds.dtz.boundary,
+        simplifiedId: null,
         name: 'Digital ATZ Boundaries',
         defaultVisibility: true,
         sortOrder: 0,

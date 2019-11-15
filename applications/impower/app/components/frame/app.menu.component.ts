@@ -2,14 +2,19 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ConfirmationPayload, ShowConfirmation } from '@val/messaging';
+import { ConfirmationPayload, ErrorNotification, ShowConfirmation } from '@val/messaging';
+import { AppStateService } from 'app/services/app-state.service';
+import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { MenuItem } from 'primeng/api';
 import { filter, take } from 'rxjs/operators';
-import { AppComponent } from '../../app.component';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, SaveAndCreateNew, SaveAndReloadProject, OpenPrintViewDialog } from '../../state/menu/menu.actions';
+import { OpenBatchMapDialog } from '../../state/batch-map/batch-map.actions';
+import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, OpenPrintViewDialog, SaveAndCreateNew, SaveAndReloadProject } from '../../state/menu/menu.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { ImpowerMainComponent } from '../impower-main/impower-main.component';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { BatchMapService } from 'app/services/batch-map.service';
 
 @Component({
     selector: 'app-menu',
@@ -20,7 +25,11 @@ export class AppMenuComponent implements OnInit {
     model: MenuItem[];
     isLoggedIn: boolean = false;
 
-    constructor(private store$: Store<LocalAppState>, private userService: UserService) { }
+    constructor(private store$: Store<LocalAppState>,
+                private userService: UserService,
+                private stateService: AppStateService,
+                private locationService: ImpGeofootprintLocationService,
+                private batchService: BatchMapService) { }
 
     ngOnInit() {
         this.userService.userObservable.pipe(
@@ -30,12 +39,12 @@ export class AppMenuComponent implements OnInit {
 
         this.model = [
             { label: 'Dashboard', icon: 'ui-icon-dashboard', routerLink: ['/'] },
-            { label: 'Save', id: 'saveProject', icon: 'ui-icon-save', command: () => this.store$.dispatch(new SaveAndReloadProject()) },
+            { label: 'Save', id: 'saveProject', icon: 'ui-icon-save', command: () => this.saveProject() },
             { label: 'Projects', icon: 'ui-icon-storage',
               items: [
                   { label: 'Create New', icon: 'fa fa-files-o', command: () =>  this.createNewProject() },
                   { label: 'Open Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
-                  { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.store$.dispatch(new SaveAndReloadProject()) }
+                  { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.saveProject() }
               ]
             },
             { label: 'Export', icon: 'ui-icon-file-download',
@@ -46,14 +55,41 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Export Competitors', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor) },
                   { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
                   { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportToValassisDigital()) },
-                  { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.store$.dispatch(new OpenPrintViewDialog()) }
+                  { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
+                  { label: 'Create Site Maps', icon: 'fa fa-book', command: () => this.createBatchMap() }
               ]
             }
         ];
     }
 
+    private saveProject(){
+        this.stateService.closeOverlays();
+        setTimeout(() => {
+            this.store$.dispatch(new SaveAndReloadProject());
+        }, 500);
+    }
+
     private exportLocations(locationType: SuccessfulLocationTypeCodes) : void {
       this.store$.dispatch(new ExportLocations({ locationType }));
+    }
+
+    private exportCurrentView(){
+      const analysisLevel = this.stateService.analysisLevel$.getValue();
+      if (analysisLevel != null && analysisLevel.length > 0){
+        this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'current~view~map~export', 1));
+        this.store$.dispatch(new OpenPrintViewDialog());
+      }
+      else
+        this.store$.dispatch(new ErrorNotification({message: 'Analysis Level is required to print Current view'}));
+    }
+
+    private createBatchMap(){
+      const currentProject = this.stateService.currentProject$.getValue();
+      const isProjectSaved = this.batchService.validateProjectReadiness(currentProject);
+      if (isProjectSaved) {
+        this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'batch~map', this.locationService.get().length));
+        this.store$.dispatch(new OpenBatchMapDialog());
+      }
     }
 
     public createNewProject() {
@@ -131,7 +167,7 @@ export class AppSubMenuComponent {
     _reset: boolean;
     activeIndex: number;
 
-    constructor(public app: AppComponent) { }
+    constructor(public app: ImpowerMainComponent) { }
 
     itemClick(event: Event, item: MenuItem, index: number)  {
         if (this.root) {

@@ -1,19 +1,18 @@
 <div class="ui-g ui-g-nopad">
-  <div class="ui-g-5">
+  <div class="ui-g-12">
     <label>Manage for:</label>
     &nbsp;
     <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
     &nbsp;
     <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
   </div>
-  <div class="ui-g-7">
+  <div class="ui-g-12">
     <button pButton type="button" label="Calc Home Geocodes" (click)="calcHomeGeocode()"></button>
     &nbsp;&nbsp;
-    <button pButton type="button" label="HGC Issues Log" (click)="onHGCIssuesLog()" [disabled] ="selectedListType === 'Competitor'"></button>
+    <button pButton type="button" label="HGC Issues Log" (click)="onHGCIssuesLog()" ></button>
     &nbsp;&nbsp;
     <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
   </div>
-
 
   <div id="locGrid" class="ui-g-12">
     <p-table #locGrid
@@ -21,7 +20,7 @@
              [value]="flatAllSites$ | async"
              [selection]="flatActiveSites$ | async"
              [resizableColumns]="true" columnResizeMode="expand"
-             [reorderableColumns]="true"
+             [reorderableColumns]="false"
              sortMode="multiple"
              [responsive]="true"
              [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50,100,200,500,1000]"
@@ -47,7 +46,7 @@
           </div>
           <div class="ui-g=4 ui-g-nopad grid-caption-right-group">
             <div>
-              <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
+              <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" dropdownIcon="fa fa-caret-down"></p-multiSelect>
             </div>
           </div>
         </div>
@@ -114,17 +113,14 @@
 
       <ng-template pTemplate="body" let-flatLoc let-columns="selectedColumns">
         <tr [pSelectableRow]="flatLoc">
-          <!-- <td>
-             <p-tableCheckbox [value]="flatLoc" selectionMode="multiple" [ngStyle]="{'width':'30px'}" [resizable]="false"></p-tableCheckbox>
-          </td> -->
-          <td style="width: 4em">
-            <button type="button" pButton (click)="onEdit(flatLoc.loc)" icon="fa fa-pencil-square-o" style="margin: auto; display: block; width:25px;height:25px"></button>
+          <td>
+            <i class="fa fa-pencil val-clickable" (click)="onEdit(flatLoc.loc)" ></i>
           </td>
-          <td style="width: 4em">
-            <button (click)="onRowZoom(flatLoc.loc)" icon="ui-icon-zoom-in" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
+          <td>
+            <i (click)="onRowZoom(flatLoc.loc)" class="fa fa-search val-clickable"></i>
           </td>
-          <td style="width: 4em">
-            <button type="button" pButton (click)="onRowDelete(flatLoc.loc)" icon="ui-icon-trash" style="margin: auto; display: block; width:25px;height:25px"></button>
+          <td>
+            <i (click)="onRowDelete(flatLoc.loc)" class="val-clickable fa fa-trash"></i>
           </td>
 
           <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
@@ -164,7 +160,7 @@
     </val-failed-geocode-grid>
   </div>
 
-  <p-dialog header="Edit Location" [(visible)]="showDialog" [modal]="true" width="700" [responsive]="true" appendTo="body" (onHide)="onDialogHide()">
+  <p-dialog header="Edit Location" [(visible)]="showDialog" [modal]="true" [responsive]="true" appendTo="body" (onHide)="onDialogHide()" [style]="{ width: '700px' }">
     <val-edit-locations [oldData]="selectedRowData" [displayData]="displayData" (submitSite)="manuallyGeocode($event, selectedListType)" (closeDialog)="onDialogHide()"></val-edit-locations>
   </p-dialog>
 </div>

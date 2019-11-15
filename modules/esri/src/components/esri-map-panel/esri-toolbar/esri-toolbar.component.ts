@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { SelectedButtonTypeCodes } from '../../../core/esri.enums';
 
 @Component({
   selector: 'val-esri-toolbar',
   templateUrl: './esri-toolbar.component.html',
-  styleUrls: ['./esri-toolbar.component.css'],
+  styleUrls: ['./esri-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EsriToolbarComponent {
@@ -18,5 +18,5 @@ export class EsriToolbarComponent {
   @Output() multiSelectClicked = new EventEmitter();
   @Output() multiUnselectClicked = new EventEmitter();
   @Output() measureToolClicked = new EventEmitter();
-  @Output() xyButtonClicked = new EventEmitter(); 
+  @Output() xyButtonClicked = new EventEmitter();
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { combineLatest, Observable } from 'rxjs';
 import { User } from '../../models/User';
 import { AppDiscoveryService, ProjectTrackerUIModel, RadLookupUIModel } from '../../services/app-discovery.service';
@@ -15,6 +15,7 @@ import { Store } from '@ngrx/store';
 import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { filterArray } from '@val/common';
 import { CalculateMetrics } from '../../state/data-shim/data-shim.actions';
+import { DiscoveryInputComponent } from './discovery-input/discovery-input.component';
 
 @Component({
   selector: 'val-campaign-details',
@@ -30,6 +31,10 @@ export class CampaignDetailsComponent implements OnInit {
 
   private previousForm: ValDiscoveryUIModel = null;
   private usageTargetMap: { [key: string] : string };
+
+
+  @ViewChild('discoveryFormComponent', { static: true })
+  private discoveryFormComponent: DiscoveryInputComponent;
 
   constructor(private appStateService: AppStateService,
               private appDiscoveryService: AppDiscoveryService,
@@ -96,7 +101,8 @@ export class CampaignDetailsComponent implements OnInit {
             this.previousForm.cpmAnne !== newValues.cpmAnne ||
             this.previousForm.cpmSolo !== newValues.cpmSolo ||
             this.previousForm.cpmValassis !== newValues.cpmValassis ||
-            this.previousForm.cpmBlended !== newValues.cpmBlended) {
+            this.previousForm.cpmBlended !== newValues.cpmBlended || 
+            this.previousForm.selectedSeason !== newValues.selectedSeason ) {
           this.store$.dispatch(new CalculateMetrics());
         }
       }
@@ -153,4 +159,10 @@ export class CampaignDetailsComponent implements OnInit {
     const metricsText = previousValue == null ? newText : changeText;
     this.store$.dispatch(new CreateProjectUsageMetric(target, 'changed', metricsText));
   }
+
+  onDiscoveryFormClose(){
+    this.discoveryFormComponent.onFormClose();
+  }
+
+
 }

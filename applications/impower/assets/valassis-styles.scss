@@ -1,0 +1,646 @@
+// This is a file of style overrides for the base PrimeNG themes. This file is referenced in
+// /assets/sass/overrides/*_styles.scss
+
+// These are meant to be overrides of styles in the base themes/layouts that are not themselves variable based
+
+@import "valassis-variables";
+
+body {
+  h1, h2, h3, h4, h5, h6 {
+    color: $darkGray01;
+  }
+
+  input {
+    color: $midGray01;
+  }
+
+  form {
+    div {
+      &.ui-g-1, &.ui-g-2, &.ui-g-3, &.ui-g-4, &.ui-g-5, &.ui-g-6, &.ui-g-7, &.ui-g-8, &.ui-g-9, &.ui-g-10, &.ui-g-11, &.ui-g-12 {
+        &:not(.ui-g-nopad) {
+          padding: 1em 0.5em 0.5em;
+        }
+      }
+    }
+  }
+
+  .ui-button,
+  .ui-datepicker-buttonpane > button {
+    background-color: #00000000;
+    border: 1px solid $brandBlue;
+    box-shadow: none;
+    &:enabled:not(:focus):hover,
+    &:enabled:focus {
+      color: $lightGray04;
+    }
+    &.ui-button-icon-only:enabled:not(:focus):hover {
+      > span {
+        color: $lightGray04;
+      }
+    }
+    &.ui-autocomplete-dropdown,
+    &.ui-spinner-button {
+      border: none;
+      &:enabled:not(:focus):hover span,
+      &:enabled span {
+        color: $darkGray03
+      }
+      &:enabled:not(:focus):hover span {
+        background-color: $hoverBgColor;
+      }
+    }
+    &.ui-togglebutton {
+      span {
+        color: $brandBlue;
+      }
+      &:not(.ui-state-disabled):hover {
+        span {
+          color: $lightGray04;
+        }
+      }
+      &.ui-state-active {
+        border-color: $darkGray03;
+        &:not(.ui-state-disabled):hover {
+          background-color: $accentDarkColor;
+          span {
+            color: $darkGray03;
+          }
+        }
+        span {
+          color: $darkGray03;
+        }
+      }
+    }
+  }
+
+  .ui-selectbutton.ui-buttonset {
+    .ui-button {
+      border-color: $darkGray03;
+      color: $darkGray03;
+      &:not(.ui-state-disabled):not(.ui-state-active):hover {
+        background-color: $hoverBgColor;
+      }
+      &.ui-state-active {
+        background-color: $darkGray03;
+        color: $lightGray04;
+      }
+    }
+  }
+
+  .ui-spinner {
+    .ui-spinner-button{
+      &:not(.ui-state-disabled):not(.ui-state-active):hover {
+        background-color: $hoverBgColor;
+      }
+    }
+  }
+
+  .card {
+    background-color: $lightGray04;
+  }
+
+  .md-inputfield {
+    > label {
+      color: $midGray03;
+    }
+  }
+
+  .ui-inputgroup {
+    .md-inputfield {
+      input:focus ~ label, input.ui-state-filled ~ label {
+        top: -1em;
+      }
+      label {
+        top: 1px;
+      }
+    }
+    .ui-inputgroup-addon {
+      display: flex;
+    }
+  }
+
+  .layout-container .layout-menu {
+    top: $valTitleHeight !important;
+    background-color: $lightGray04 !important;
+  }
+
+  .ui-table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+    .ui-table-caption {
+      &.ui-widget-header {
+        background-color: $valTableCaptionBgColor;
+        border-color: $valTableCaptionBgColor;
+        color: $valTableCaptionTextColor;
+      }
+      .ui-inputgroup {
+        .ui-inputgroup-addon {
+          color: $valTableCaptionMutedTextColor;
+          padding-bottom: 2px;
+        }
+        .md-inputfield {
+          input {
+            color: $valTableCaptionTextColor;
+          }
+          label {
+            color: $valTableCaptionMutedTextColor;
+          }
+        }
+      }
+      .ui-multiselect {
+        .ui-multiselect-label-container {
+          span {
+            color: $valTableCaptionMutedTextColor;
+          }
+        }
+        .ui-multiselect-trigger {
+          .ui-multiselect-trigger-icon {
+            color: $valTableCaptionMutedTextColor;
+          }
+        }
+      }
+      .ui-button {
+        background-color: #00000000;
+        color: $contentBgColor;
+        border-color: $contentBgColor;
+        &:enabled:not(.ui-focus):hover {
+          background-color: $contentBgColor;
+          color: $valTableCaptionBgColor;
+          border-color: $valTableCaptionBgColor;
+        }
+        &.ui-button-icon-only:enabled:not(:focus):hover {
+          > span {
+            color: $valTableCaptionBgColor;
+          }
+        }
+      }
+    }
+    .ui-table-thead {
+      > tr {
+        > th {
+          background-color: $valTableHeaderBgColor;
+          .ui-column-resizer {
+            font-size: 12px;
+            color: $transparent;
+          }
+          i {
+            font-size: 1em;
+          }
+        }
+      }
+    }
+    .ui-sortable-column {
+      &:not(.ui-state-highlight):hover {
+        background-color: $valTableHeaderHoverBgColor;
+        a, a:hover, .ui-sortable-column-icon {
+          background-color: $valTableHeaderHoverBgColor;
+        }
+      }
+    }
+    .ui-table-tbody {
+      .ui-button {
+        &.ui-button-icon-only {
+          width: 1.25em;
+          height: 1.25em;
+          font-size: 0.8em;
+          padding: 0;
+          .ui-button-icon-left {
+            margin-top: -0.4em;
+          }
+        }
+      }
+      > tr > td {
+        border-left: 1px solid $contentBorderColor;
+      }
+      > tr > td:first-child {
+        border-left: 0 none;
+      }
+      > tr:nth-child(even) {
+        background-color: $tableBodyRowBgColor;
+        color: $valDeselectedTextColor;
+        &.ui-state-highlight {
+          background-color: $valSelectedTableRowBgColor;
+          color: $darkGray01;
+        }
+      }
+      > tr:nth-child(odd) {
+        background-color: $tableOddRowBgColor;
+        color: $valDeselectedTextColor;
+        &.ui-state-highlight {
+          background-color: $valSelectedOddRowBgColor;
+          color: $darkGray01;
+        }
+      }
+    }
+    .ui-table-scrollable-body-table {
+      margin-bottom: 0.25em;
+    }
+  }
+
+  .ui-fileupload-choose {
+    &.ui-button {
+      &.ui-button-text-icon-left {
+        padding: 0 2em;
+        > .ui-button-icon-left {
+          display: none;
+        }
+      }
+    }
+    &:not(.ui-state-disabled):hover, &.ui-state-focus {
+      &.ui-button {
+        background-color: $hoverBgColor;
+      }
+    }
+    &:not(.ui-state-disabled):active {
+      &.ui-button {
+        background-color: $hoverBgColor;
+      }
+    }
+  }
+
+  .ui-widget-header {
+    font-weight: $headerFontWeight;
+    border: 1px solid $dividerColor;
+    &:not(.ui-dataview-header) {
+      .ui-inputtext {
+        width: 100%;
+      }
+    }
+    .ui-dropdown-label {
+      color: $textColor;
+    }
+  }
+
+  .ui-panel-content,
+  .ui-widget-content {
+    p-dropdown,
+    p-multiSelect {
+      line-height: 1em;
+    }
+  }
+
+  .ui-widget-content:not(.ui-picklist-list):not(.ui-accordion-content) {
+    border: none;
+  }
+
+  .ui-multiselect-panel {
+    * {
+      font-size: $c-fontSize;
+    }
+  }
+
+  .ui-dropdown {
+    min-width: auto;
+  }
+
+  .ui-overlaypanel {
+    margin-top: 5px;
+    &:after, &:before {
+      content: none;
+    }
+    .ui-overlaypanel-close {
+      top: 0.5em;
+      right: 1em;
+      background-color: $headerBgColor;
+      @include no-shadow();
+      &:hover {
+        background-color: $hoverBgColor;
+      }
+    }
+  }
+
+  .ui-overlaypanel-content {
+    padding: 0.5em 0;
+  }
+
+  .ui-tabview {
+    &.ui-tabview-top {
+      .ui-tabview-nav {
+        background-color: $headerBgColor;
+        > li {
+          border: none;
+          transition: none;
+          &.ui-state-active {
+            border-bottom: 2px solid $darkGray01;
+          }
+          &:not(.ui-state-active):not(.ui-state-disabled):hover {
+            background-color: $primaryLightColor;
+            border-bottom: 2px solid $primaryLightColor;
+          }
+          &:focus {
+            outline-width: 0;
+          }
+        }
+      }
+    }
+    .ui-tabview-panel {
+      border-width: 1px;
+      border-top-width: 0;
+    }
+  }
+
+  .ui-accordion {
+    .ui-accordion-header:not(.ui-state-active) + .ui-accordion-content-wrapper {
+      height: 0;
+    }
+    .ui-accordion-header {
+      .ui-accordion-toggle-icon {
+        color: $accordionHeaderTextColor;
+      }
+
+      > a {
+        color: $accordionHeaderTextColor;
+      }
+
+      &:not(.ui-state-active):not(.ui-state-disabled):hover {
+        > a {
+          color: $accordionHeaderHoverTextColor;
+        }
+        .ui-accordion-toggle-icon {
+          color: $accordionHeaderHoverTextColor;
+        }
+      }
+
+      &.ui-state-active {
+        background-color: $darkGray03;
+        color: $lightGray04;
+
+        > a {
+          color: $lightGray04;
+        }
+
+        .ui-accordion-toggle-icon {
+          color: $lightGray04;
+        }
+      }
+    }
+  }
+
+  .ui-radiobutton {
+    .ui-radiobutton-box {
+      &:before {
+        content: normal;
+      }
+
+      &.ui-state-focus {
+        border-color: $darkGray03;
+      }
+
+      &.ui-state-active {
+        border-color: $darkGray03;
+      }
+
+      .pi-circle-on {
+        background-color: $darkGray03;
+      }
+    }
+    +label {
+      color: $radioButtonBorderColor;
+      &.ui-label-active {
+        color: $darkGray03;
+      }
+    }
+  }
+
+  .ui-chkbox .ui-chkbox-box:before {
+    content: normal
+  }
+
+  .ui-treenode-content:not(.ui-treenode-selectable) div.ui-chkbox {
+    display: none;
+    visibility: hidden;
+  }
+
+  .ui-toolbar {
+    background-color: $lightGray02;
+    border-color: $lightGray02;
+  }
+
+  .ui-inputswitch {
+
+    .ui-inputswitch-slider {
+      background-color: $lightGray01;
+
+      &:before {
+        background-color: $lightGray03;
+      }
+    }
+
+    &.ui-inputswitch-checked {
+      .ui-inputswitch-slider {
+        background-color: $primaryLightColor;
+
+        &:before {
+          background-color: $primaryColor
+        }
+      }
+
+      &:not(.ui-state-disabled):hover {
+        .ui-inputswitch-slider {
+          background-color: $primaryLightColor;
+        }
+      }
+
+      &.ui-inputswitch-focus {
+        .ui-inputswitch-slider {
+          background: $primaryLightColor;
+        }
+      }
+    }
+  }
+
+  .ui-toast {
+    .ui-toast-message {
+
+      &.ui-toast-message-info {
+        background-color: $brightNavy;
+        color: $lightGray04;
+
+        .ui-toast-message-content {
+          .ui-toast-close-icon {
+            color: $lightGray04;
+            &:hover {
+              background-color: lighten($brightNavy,20%);
+            }
+          }
+        }
+      }
+
+      &.ui-toast-message-success {
+        background-color: $valSuccessBgColor;
+        color: $lightGray04;
+
+        .ui-toast-message-content {
+          .ui-toast-close-icon {
+            color: $lightGray04;
+            &:hover {
+              background-color: lighten($valSuccessBgColor,20%);
+            }
+          }
+        }
+      }
+
+      &.ui-toast-message-warn {
+        background-color: $paleYellow;
+        color: $darkGray01;
+        .ui-toast-message-content {
+          .ui-toast-close-icon {
+            color: $darkGray01;
+            &:hover {
+              background-color: lighten($paleYellow,20%);
+            }
+          }
+        }
+      }
+
+      &.ui-toast-message-error {
+        background-color: $darkerRed;
+        color: $lightGray04;
+        .ui-toast-message-content {
+          .ui-toast-close-icon {
+            color: $lightGray04;
+            &:hover {
+              background-color: lighten($darkerRed,20%);
+            }
+          }
+        }
+      }
+    }
+
+    .ui-toast-icon {
+      &.pi-exclamation-triangle {
+        color: $darkGray01;
+      }
+    }
+  }
+
+  .ui-listbox {
+    .ui-listbox-header {
+      background-color: $lightGray01;
+    }
+    .ui-listbox-list {
+      > li:first-child {
+        margin-top: 0.25em;
+      }
+      > li:last-child {
+        margin-bottom: 0.25em;
+      }
+    }
+  }
+
+  .ui-dialog {
+    .ui-dialog-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: $lightGray04;
+      background-color: $midGray02;
+      &:before, &:after {
+        content: none;
+      }
+      .ui-dialog-title {
+        font-size: 1em;
+      }
+      .ui-dialog-titlebar-icon {
+        margin: 0;
+        .pi {
+          color: $lightGray04;
+          font-size: 1em;
+        }
+        &:hover {
+          background-color: $midGray04;
+          .pi {
+            color: $darkGray03;
+          }
+        }
+      }
+    }
+    .ui-dialog-content {
+      padding: 1em;
+    }
+  }
+
+  .ui-tooltip {
+    .ui-tooltip-text {
+      background-color: $valTooltipBgColor;
+      color: $valTooltipTextColor;
+    }
+    &.ui-tooltip-top {
+      .ui-tooltip-arrow {
+        border-top-color: $valTooltipBgColor;
+      }
+    }
+    &.ui-tooltip-bottom {
+      .ui-tooltip-arrow {
+        border-bottom-color: $valTooltipBgColor;
+      }
+    }
+    &.ui-tooltip-left {
+      .ui-tooltip-arrow {
+        border-left-color: $valTooltipBgColor;
+      }
+    }
+    &.ui-tooltip-right {
+      .ui-tooltip-arrow {
+        border-right-color: $valTooltipBgColor;
+      }
+    }
+  }
+
+  .ui-paginator {
+    background-color: $valTableHeaderBgColor;
+    border: 1px solid $midGray03;
+
+    > a {
+      color: $darkGray03;
+
+      &:not(.ui-state-disabled):not(.ui-state-active):hover {
+        background-color: $midGray03;
+      }
+    }
+
+    .ui-paginator-pages {
+      a {
+        color: $headerTextColor;
+
+        &:not(.ui-state-active):hover {
+          background-color: $midGray03;
+        }
+
+        &.ui-state-active {
+          background-color: $darkGray03;
+          color: $lightGray04;
+        }
+      }
+    }
+  }
+
+}
+
+@media (min-width: 1025px) {
+
+  .layout-wrapper.layout-compact {
+    .layout-container {
+      &.menu-layout-horizontal {
+        .layout-main {
+          padding-top: 95px;
+        }
+      }
+    }
+  }
+  body {
+    .ui-dialog {
+      .ui-dialog-titlebar {
+        .ui-dialog-title {
+          font-size: 1.5em;
+        }
+        .ui-dialog-titlebar-icon {
+          .pi {
+            font-size: 1.5em;
+          }
+        }
+      }
+    }
+  }
+}

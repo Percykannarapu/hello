@@ -1,0 +1,61 @@
+<div class="sidebar-control">
+  <a href="#" (click)="sideNavVisible = true">
+    <span class="fa fa-chevron-up">
+      <span class="ui-widget">&nbsp;Map Settings</span>
+    </span>
+  </a>
+</div>
+<p-sidebar [(visible)]="sideNavVisible" position="right" styleClass="ui-sidebar-md transparent-back" [showCloseIcon]="false">
+  <div class="sidebar-content-wrapper">
+    <div class="sidebar-content-tab">
+      <div class="sidebar-control">
+        <a href="#" (click)="sideNavVisible = false">
+          <span class="fa fa-chevron-down">
+            <span class="ui-widget">&nbsp;Map Settings</span>
+          </span>
+        </a>
+      </div>
+    </div>
+    <p-card>
+      <form novalidate  [formGroup]="shadeSettingsForm" (submit)="onSubmit()" autocomplete="off" class="shading-controls-form">
+        <h1>Map Settings</h1>
+        <div>
+          <span class="md-inputfield">
+            <p-dropdown id="selectAudience" formControlName="audience" [options]="allAudiences$ | async" placeholder="&nbsp;"
+                        autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>
+            <span class="ui-inputfield-addon" *ngIf="!hasErrors('audience')">&nbsp;</span>
+            <span class="ui-inputfield-addon" *ngIf="hasErrors('audience')">
+                
+              </span>            
+            <label for="selectAudience">Audience</label>
+          </span>
+        </div>
+<!--        <div>-->
+<!--          <span class="md-inputfield">-->
+<!--            <p-dropdown id="shadedVariable" formControlName="variable" [options]="shadedVariableOnMap"-->
+<!--                        autoWidth="false" [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"></p-dropdown>-->
+<!--            <label for="shadedVariable">Thematic Extent</label>-->
+<!--          </span>-->
+<!--        </div>-->
+        <div>
+          <span class="md-inputfield">
+            <p-dropdown id="theme"
+                        formControlName="currentTheme"
+                        [options]="allThemes"
+                        [autoWidth]="false"
+                        [style]="{ width:'100%' }"
+                        placeholder="&nbsp;"
+                        dropdownIcon="fa fa-caret-down">
+            </p-dropdown>
+            <label for="theme">Theme</label>
+          </span>
+        </div>
+        <div class="button-container">
+          <button pButton type="button" label="Clear Thematic Shading" icon="ui-icon-clear" (click)= clearShading()></button>
+          <button pButton type="submit" label="Apply" icon="ui-icon-send" [disabled]="shadeSettingsForm.invalid"></button>
+        </div>
+      </form>
+    </p-card>
+  </div>
+</p-sidebar>
+

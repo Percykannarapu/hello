@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { SetSelectedLayer } from '@val/esri';
+import { EsriService } from '@val/esri';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { of } from 'rxjs';
+import { of, zip } from 'rxjs';
 import { catchError, concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { MediaPlanPref } from '../../../val-modules/mediaexpress/models/MediaPlanPref';
 import { AppLayerService } from '../../services/app-layer-service';
 import { AppMapService } from '../../services/app-map.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
@@ -14,8 +15,8 @@ import { ConfigService } from '../../services/config.service';
 import { EntityHelper } from '../../services/entity-helper-service';
 import { localSelectors } from '../app.selectors';
 import { FullState } from '../index';
-import { InitializeShading } from '../shading/shading.actions';
-import { SetAppReady } from '../shared/shared.actions';
+import { InitializeMapUI } from '../map-ui/map-ui.actions';
+import { SetMapPreferences } from '../shared/shared.actions';
 import { GetMediaPlanData, GetMediaPlanDataFailed, GetMediaPlanDataSucceeded, InitActions, InitActionTypes, MapSetupFailed, MapSetupSucceeded } from './init.actions';
 
 @Injectable()
@@ -69,14 +70,26 @@ export class InitEffects {
 
   getDataSuccess$ = this.actions$.pipe(ofType(InitActionTypes.GetMediaPlanDataSucceeded));
 
-  @Effect()
+  loadPreferences$ = this.getDataSuccess$.pipe(
+    map(action => action.payload.normalizedEntities.mapPreferences),
+    map(prefs => [
+      prefs.filter(p => p.pref === 'MAP UI SLICE')[0] || {} as MediaPlanPref,
+    ]),
+    map(([mapUI]) => new SetMapPreferences({ mapUISlice: JSON.parse(mapUI.val || null) || {} }))
+  );
+
   finalizeAppLoad$ = this.getDataSuccess$.pipe(
-    withLatestFrom(this.store$, this.store$.pipe(select(localSelectors.getSelectedAnalysisLevel))),
-    tap(([, state]) => this.appLayerService.updateLabels(state)),
+    withLatestFrom(this.store$.pipe(select(localSelectors.getSelectedAnalysisLevel))),
     tap(() => this.appMapService.setMapWatches()),
-    concatMap(([, , analysisLevel]) => [
-      new SetSelectedLayer({ layerId: this.config.layers[analysisLevel].boundaries.id }),
-      new InitializeShading()
+    map(([, analysisLevel]) => analysisLevel),
+  );
+
+  @Effect()
+  loadComplete$ = zip(this.loadPreferences$, this.finalizeAppLoad$).pipe(
+    tap(([, analysisLevel]) => this.esri.setSelectedLayer(this.config.layers[analysisLevel].boundaries.id)),
+    concatMap(([prefs]) => [
+      prefs,
+      new InitializeMapUI()
     ])
   );
 
@@ -99,7 +112,7 @@ export class InitEffects {
     withLatestFrom(this.store$.pipe(select(localSelectors.getRfpUiEditEntities)),
                    this.store$.pipe(select(localSelectors.getSharedState))),
     map(([, edits, shared]) => this.appSiteService.createSiteRadii(edits, shared.radius)),
-    tap(graphics => this.appLayerService.initializeGraphicLayer(graphics, 'Sites', 'Trade Areas')),
+    tap(graphics => this.appLayerService.initializeGraphicGroup(graphics, 'Sites', 'Trade Areas')),
   );
 
   @Effect({ dispatch: false })
@@ -112,6 +125,7 @@ export class InitEffects {
   constructor(private actions$: Actions<InitActions>,
               private store$: Store<FullState>,
               private config: ConfigService,
+              private esri: EsriService,
               private entityHelper: EntityHelper,
               private appSiteService: AppSiteService,
               private appMapService: AppMapService,

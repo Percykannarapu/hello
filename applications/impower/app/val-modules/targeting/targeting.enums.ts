@@ -60,7 +60,11 @@ export enum TradeAreaMergeTypeCodes {
 
 export namespace TradeAreaMergeTypeCodes {
   export function parse(code: string) : TradeAreaMergeTypeCodes {
-    return TradeAreaMergeTypeCodes[code];
+    if (code == null) return null;
+    for (const key of Object.keys(TradeAreaMergeTypeCodes)) {
+      if (code.toUpperCase() === TradeAreaMergeTypeCodes[key].toUpperCase()) return TradeAreaMergeTypeCodes[key];
+    }
+    throw new Error('Invalid Trade Area Merge Type Code');
   }
 }
 

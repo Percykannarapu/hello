@@ -1,9 +1,11 @@
 import { ComponentFactoryResolver, Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, SetLayerLabelExpressions } from '@val/esri';
+import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, EsriService } from '@val/esri';
 import { LegendComponent } from '../components/legend/legend.component';
 import { FullState } from '../state';
+import { MapUIState } from '../state/map-ui/map-ui.reducer';
 import { ConfigService } from './config.service';
+import { ShadingService } from './shading.service';
 
 @Injectable({
    providedIn: 'root'
@@ -14,15 +16,17 @@ export class AppLayerService {
                private esriMapService: EsriMapService,
                private queryService: EsriQueryService,
                private esriFactory: EsriDomainFactoryService,
+               private esri: EsriService,
                private store$: Store<FullState>,
                private configService: ConfigService,
+               private shadingService: ShadingService,
                private resolver: ComponentFactoryResolver,
                private injector: Injector) { }
 
    private legendCreated = false;
 
    public updateLabels(state: FullState) {
-      if (state.shared.isDistrQtyEnabled) {
+      if (state.mapUI.isDistrQtyEnabled) {
          this.showDistrQty(state);
       } else {
          this.restoreDefaultLabels(state);
@@ -46,9 +50,14 @@ export class AppLayerService {
             newExpression = this.configService.layers['zip'].boundaries.labelExpression;
             break;
       }
-      const layerExpressions: any = state.esri.map.layerExpressions;
-      layerExpressions[updateId].expression = newExpression;
-      this.store$.dispatch(new SetLayerLabelExpressions({ expressions: layerExpressions }));
+     const layerExpressions: any = {
+       ...state.esri.map.layerExpressions
+     };
+     layerExpressions[updateId] = {
+       ...layerExpressions[updateId],
+       expression: newExpression
+     };
+     this.esri.setLayerLabelExpressions(layerExpressions);
    }
 
    private showDistrQty(state: FullState) {
@@ -84,9 +93,14 @@ export class AppLayerService {
                              return Concatenate([$feature.geocode, distrQty], TextFormatting.NewLine);`;
             break;
       }
-      const layerExpressions: any = state.esri.map.layerExpressions;
-      layerExpressions[updateId].expression = newExpression;
-      this.store$.dispatch(new SetLayerLabelExpressions({ expressions: layerExpressions }));
+     const layerExpressions: any = {
+       ...state.esri.map.layerExpressions
+     };
+      layerExpressions[updateId] = {
+        ...layerExpressions[updateId],
+        expression: newExpression
+      };
+      this.esri.setLayerLabelExpressions(layerExpressions);
    }
 
    private createArcadeDictionary(state: FullState) : string {
@@ -104,7 +118,7 @@ export class AppLayerService {
    public setupLegend() {
       if (this.legendCreated) return;
       const node = this.generateLegendHTML();
-      const expand: __esri.Expand = new EsriApi.Expand({ content: node, view: this.esriMapService.mapView });
+      const expand: __esri.Expand = new EsriApi.widgets.Expand({ content: node, view: this.esriMapService.mapView });
       expand.expandIconClass = 'esri-icon-maps';
       expand.expandTooltip = 'Open Legend';
       this.esriMapService.mapView.ui.add(expand, 'top-right');
@@ -125,13 +139,22 @@ export class AppLayerService {
      }
    }
 
-   public initializeGraphicLayer(graphics: __esri.Graphic[], groupName: string, layerName: string, addToBottomOfList: boolean = false) : void {
+   public initializeGraphicGroup(graphics: __esri.Graphic[], groupName: string, layerName: string, addToBottomOfList: boolean = false) : void {
      const layer = this.esriLayerService.getGraphicsLayer(layerName);
      if (layer == null) {
-       this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics, addToBottomOfList);
+       this.esriLayerService.createGraphicsLayer(groupName, layerName, graphics, true, addToBottomOfList);
      } else {
        layer.graphics.removeAll();
        layer.graphics.addMany(graphics);
      }
    }
+
+  public setupAnneSoloLayers(mapUIState: MapUIState, groupName: string, analysisLevel: string, recreateLayers: boolean) : void {
+    const anneName = 'ANNE Geographies';
+    const soloName = 'Solo Geographies';
+    const group = this.esriLayerService.getGroup(groupName);
+    const layerConfig = this.configService.layers[analysisLevel];
+    this.shadingService.setupCrossHatchLayer(layerConfig, anneName, group, 'IIF($feature.owner_group_primary == "ANNE", 1, 0)', mapUIState.shadeAnne, recreateLayers, mapUIState.annePattern);
+    this.shadingService.setupCrossHatchLayer(layerConfig, soloName, group, 'IIF($feature.cov_frequency == "Solo", 1, 0)', mapUIState.shadeSolo, recreateLayers, mapUIState.soloPattern);
+  }
 }

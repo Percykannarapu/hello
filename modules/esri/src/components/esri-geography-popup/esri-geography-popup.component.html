@@ -5,7 +5,7 @@
     <tr>
       <td class="val-custom-cell">
         <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-        {{rowData.name}}
+        <span [innerHTML]="rowData.name"></span>
       </td>
       <td *ngIf="!rowData.isNumber" class="val-custom-cell">
         {{rowData.value}}

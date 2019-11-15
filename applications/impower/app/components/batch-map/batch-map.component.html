@@ -1,0 +1,20 @@
+<val-esri-map cursor="default" [height]="height$ | async" [baseMap]="'streets'" [manuallyResizable]="false">
+</val-esri-map>
+
+<div class="batch-map-footer" *ngIf="mapViewIsReady">
+  <span id="readyFlag" *ngIf="nextSiteNumber != null">
+    <button id="nextSiteLink" (click)="onGoToSite(nextSiteNumber)">Goto Next Site</button>
+  </span>
+  <span id="currentSiteNum" *ngIf="mapViewIsReady">
+    {{currentSiteNumber}}
+  </span>
+  <span *ngIf="nextSiteNumber != null">
+    <input #gotoSpecificSiteInput id="gotoSpecificSiteInput" type="text">
+    <button id="gotoSpecificSiteButton" (click)="onGoToSpecificSite()">Goto Specific Site</button>
+  </span>
+  <span id="isLastSite" *ngIf="isLastSite">
+  </span>
+</div>
+
+<div id="errorDisplay" class="batch-map-error" [innerHTML]="lastError" *ngIf="lastError != null">
+</div>

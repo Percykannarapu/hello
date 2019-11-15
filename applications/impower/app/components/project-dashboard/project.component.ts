@@ -1,20 +1,22 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { select, Store } from '@ngrx/store';
-import { ConfirmationPayload, ShowConfirmation } from '@val/messaging';
-import { SelectItem } from 'primeng/api';
-import { forkJoin, Observable } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
-import { AppLocationService } from '../../services/app-location.service';
-import { AppStateService } from '../../services/app-state.service';
-import { AppTradeAreaService } from '../../services/app-trade-area.service';
-import { TargetAudienceService } from '../../services/target-audience.service';
-import { UserService } from '../../services/user.service';
-import { LocalAppState } from '../../state/app.interfaces';
-import { CloseExistingProjectDialog, DiscardThenLoadProject, SaveThenLoadProject } from '../../state/menu/menu.actions';
-import { openExistingDialogFlag } from '../../state/menu/menu.reducer';
-import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { RestDataService } from '../../val-modules/common/services/restdata.service';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import {AfterViewInit, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {formatDateForFuse} from '@val/common';
+import {ConfirmationPayload, ShowConfirmation} from '@val/messaging';
+import {SelectItem} from 'primeng/api';
+import {Observable} from 'rxjs';
+import {filter, map, take, tap} from 'rxjs/operators';
+import {AppLocationService} from '../../services/app-location.service';
+import {AppStateService} from '../../services/app-state.service';
+import {AppTradeAreaService} from '../../services/app-trade-area.service';
+import {TargetAudienceService} from '../../services/target-audience.service';
+import {UserService} from '../../services/user.service';
+import {LocalAppState} from '../../state/app.interfaces';
+import {CloseExistingProjectDialog, DiscardThenLoadProject, SaveThenLoadProject} from '../../state/menu/menu.actions';
+import {openExistingDialogFlag} from '../../state/menu/menu.selectors';
+import {CreateProjectUsageMetric} from '../../state/usage/targeting-usage.actions';
+import {RestDataService} from '../../val-modules/common/services/restdata.service';
+import {ImpProject} from '../../val-modules/targeting/models/ImpProject';
+import {ImpGeofootprintLocationService} from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
     selector: 'val-project',
@@ -23,6 +25,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
 
+    private readonly projectSearchUrl = 'v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange';
     private _showDialog: boolean = false;
 
     // This is a workaround for a PrimeNg bug where dialogs aren't firing onHide() properly
@@ -40,204 +43,158 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     public selectedRow;
     public allProjectsData: any;
     public myProjectsData: any;
-    public selectedListType: 'myProject' | 'allProjects';
+    public selectedListType: 'myProject' | 'allProjects' = 'myProject';
     public selectedColumns: any[] = [];
     public columnOptions: SelectItem[] = [];
     public currentProjectData: any[] = [];
 
     public allColumns: any[] = [
         // { field: '',                     header: 'Select',                        size: '60px'},
-        { field: 'projectId',                    header: 'imPower ID',                    size: '10%'},
-        { field: 'projectTrackerId',             header: 'Project Tracker ID',            size: '12%'},
+        { field: 'projectId',                    header: 'imPower ID',                    size: '11%'},
+        { field: 'projectTrackerId',             header: 'Project Tracker ID',            size: '15%'},
         { field: 'projectName',                  header: 'imPower Project Name',          size: '24%'},
-        { field: 'projectTrackerClientName',     header: 'Client Name',                   size: '24%'},
+        { field: 'projectTrackerClientName',     header: 'Client Name',                   size: '20%'},
         { field: 'modifyUserLoginname',          header: 'Username',                      size: '10%'},
         { field: 'modifyDate',                   header: 'Last Modified Date',            size: '20%'}
       ];
-    constructor(private restService: RestDataService,
-                private userService: UserService,
-                private impGeofootprintLocationService: ImpGeofootprintLocationService,
-                private appLocationService: AppLocationService,
-                private appTradeAreaService: AppTradeAreaService,
-                private stateService: AppStateService,
-                private targetAudienceService: TargetAudienceService,
-                private store$: Store<LocalAppState>,
-                private cd: ChangeDetectorRef){
+  constructor(private restService: RestDataService,
+              private userService: UserService,
+              private impGeofootprintLocationService: ImpGeofootprintLocationService,
+              private appLocationService: AppLocationService,
+              private appTradeAreaService: AppTradeAreaService,
+              private stateService: AppStateService,
+              private targetAudienceService: TargetAudienceService,
+              private store$: Store<LocalAppState>,
+              private cd: ChangeDetectorRef) {
 
-                  this.timeLines = [
-                    {label: 'Last 6 Months',  value: 'sixMonths'},
-                    {label: 'Current Month',  value: 'currentMonth'},
-                    {label: 'Last 4 Weeks',   value: 'fourweeks'},
-                    {label: 'Last 3 Months',  value: 'threeMonths'},
-                    {label: 'Last 12 Months', value: 'tweleMonths'},
-                    {label: 'Current Year',   value: 'currentYear'},
-                    {label: 'Previous Year',  value: 'previousYear'}
-                ];
-
+    this.timeLines = [
+      {label: 'Last 6 Months',  value: 'sixMonths'},
+      {label: 'Current Month',  value: 'currentMonth'},
+      {label: 'Last 4 Weeks',   value: 'fourweeks'},
+      {label: 'Last 3 Months',  value: 'threeMonths'},
+      {label: 'Last 12 Months', value: 'tweleMonths'},
+      {label: 'Current Year',   value: 'currentYear'},
+      {label: 'Previous Year',  value: 'previousYear'}
+    ];
+    for (const column of this.allColumns) {
+      this.columnOptions.push({ label: column.header, value: column });
+      this.selectedColumns.push(column);
     }
+  }
 
-    ngOnInit() {
-      this.selectedListType = 'myProject';
-      this.store$.pipe(select(openExistingDialogFlag)).subscribe(flag => this._showDialog = flag);
-      for (const column of this.allColumns) {
-        this.columnOptions.push({ label: column.header, value: column });
-        this.selectedColumns.push(column);
-      }
-    }
+  ngOnInit() {
+    this.store$.select(openExistingDialogFlag).subscribe(flag => this._showDialog = flag);
+  }
 
-    ngAfterViewInit(){
-      this.stateService.applicationIsReady$.pipe(
-        filter(isReady => isReady)
-      ).subscribe(() => {
-        this.selectedListType = 'myProject';
-        const updatedDateFrom = this.todayDate;
-        const updatedDateTo = new Date();
-        updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
-
-        this.getAllProjectsData(updatedDateFrom, updatedDateTo).subscribe(data => {
-          this.allProjectsData = data;
-        }, null , () =>  this.searchFilterMetric());
-
-        this.getMyProjectData(updatedDateFrom, updatedDateTo).subscribe(data => {
-          this.myProjectsData = data;
-          this.currentProjectData = this.myProjectsData;
-        });
-      });
-    }
-
-    onFilter() {
-      this.cd.markForCheck();
-    }
-
-    private getAllProjectsData(updatedDateFrom, updatedDateTo) : Observable<any>{
-      updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
-      updatedDateTo.setDate(updatedDateTo.getDate() + 1);
-      updatedDateFrom = this.formatDate(updatedDateFrom);
-      updatedDateTo = this.formatDate(updatedDateTo);
-      return this.restService.get(`v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange&&updatedDateFrom=${updatedDateFrom}&&updatedDateTo=${updatedDateTo}`).pipe(
-        map((result: any) => result.payload.rows)
-       );
-    }
-
-    private getMyProjectData(updatedDateFrom, updatedDateTo) : Observable<any>{
-      updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
-      updatedDateTo.setDate(updatedDateTo.getDate() + 1);
-      updatedDateFrom = this.formatDate(updatedDateFrom);
-      updatedDateTo = this.formatDate(updatedDateTo);
-      return this.restService.get(`v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange&&modifyUser=${this.userService.getUser().userId}&&updatedDateFrom=${updatedDateFrom}&&updatedDateTo=${updatedDateTo}`).pipe(
-        map((response) => response.payload.rows));
-    }
-
-    onListTypeChange(data: 'myProject' | 'allProjects') {
-      this.selectedListType = data;
-     
-      if (this.selectedListType === 'myProject'){
-          this.currentProjectData = this.myProjectsData;
-      }
-      else {
-        this.currentProjectData = this.allProjectsData;
-      }
-      this.searchFilterMetric();
-    }
-
-    onSelectTimeFrame(event: string){
-      const updatedDateFrom = new Date();
+  ngAfterViewInit() {
+    this.stateService.applicationIsReady$.pipe(
+      filter(isReady => isReady),
+      take(1)
+    ).subscribe(() => {
+      const updatedDateFrom = this.todayDate;
       const updatedDateTo = new Date();
-      this.selectedTimeLine = event;
-     
+      updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
 
-      if (event.toLowerCase() === 'sixmonths'){
-        updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
-      }
-      if (event.toLowerCase() === 'currentmonth'){
-        updatedDateFrom.setDate(1);
-        updatedDateTo.setDate(30);
-      }
-      if (event.toLowerCase() === 'fourweeks'){
-         updatedDateFrom.setDate(updatedDateFrom.getDate() - 28);
-      }
-      if (event.toLowerCase() === 'threemonths'){
-        updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 3);
-      }
-      if (event.toLowerCase() === 'twelemonths'){
-        updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 12);
-      }
-      if (event.toLowerCase() === 'currentyear'){
-        updatedDateFrom.setMonth(1);
-        updatedDateFrom.setDate(1);
-        updatedDateTo.setMonth(12);
-        updatedDateTo.setDate(31);
-      }
-      if (event.toLowerCase() === 'previousyear'){
-        updatedDateFrom.setMonth(1);
-        updatedDateFrom.setDate(1);
-        updatedDateFrom.setFullYear(updatedDateFrom.getFullYear() - 1);
-        updatedDateTo.setMonth(12);
-        updatedDateTo.setDate(31);
-        updatedDateTo.setFullYear(updatedDateTo.getFullYear() - 1);
-      }
+      this.getAllProjectsData(updatedDateFrom, updatedDateTo).subscribe({ complete: () => this.onListTypeChange(this.selectedListType)});
+    });
+  }
 
-      const allProject$ =  this.getAllProjectsData(updatedDateFrom, updatedDateTo).pipe(
-        tap(data => {
-          this.allProjectsData = data;
-        }));
+  onFilter() {
+    this.cd.markForCheck();
+  }
 
-        const myProject$ =  this.getMyProjectData(updatedDateFrom, updatedDateTo).pipe(
-          tap(data => {
-            this.myProjectsData = data;
-          }));
-       
-      forkJoin(allProject$, myProject$).subscribe(null, null, () => {
+  private getAllProjectsData(updatedDateFrom: Date, updatedDateTo: Date) : Observable<ImpProject[]>{
+    updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
+    updatedDateTo.setDate(updatedDateTo.getDate() + 1);
+    const searchQuery = `${this.projectSearchUrl}&&updatedDateFrom=${formatDateForFuse(updatedDateFrom)}&&updatedDateTo=${formatDateForFuse(updatedDateTo)}`;
+    return this.restService.get(searchQuery).pipe(
+      map((result: any) => result.payload.rows as ImpProject[]),
+      tap(data => this.allProjectsData = data),
+      tap(data => this.myProjectsData = data.filter(p => p.modifyUser === this.userService.getUser().userId))
+     );
+  }
 
-        if (this.selectedListType === 'myProject'){
-          this.currentProjectData = this.myProjectsData;
-          this.searchFilterMetric();
+  onListTypeChange(data: 'myProject' | 'allProjects') {
+    this.selectedListType = data;
+
+    if (this.selectedListType === 'myProject'){
+        this.currentProjectData = this.myProjectsData;
+    } else {
+      this.currentProjectData = this.allProjectsData;
+    }
+    this.searchFilterMetric();
+  }
+
+  onSelectTimeFrame(event: string){
+    const updatedDateFrom = new Date();
+    const updatedDateTo = new Date();
+    this.selectedTimeLine = event;
+
+    if (event.toLowerCase() === 'sixmonths'){
+      updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+    }
+    if (event.toLowerCase() === 'currentmonth'){
+      updatedDateFrom.setDate(1);
+      updatedDateTo.setDate(30);
+    }
+    if (event.toLowerCase() === 'fourweeks'){
+       updatedDateFrom.setDate(updatedDateFrom.getDate() - 28);
+    }
+    if (event.toLowerCase() === 'threemonths'){
+      updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 3);
+    }
+    if (event.toLowerCase() === 'twelemonths'){
+      updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 12);
+    }
+    if (event.toLowerCase() === 'currentyear'){
+      updatedDateFrom.setMonth(1);
+      updatedDateFrom.setDate(1);
+      updatedDateTo.setMonth(12);
+      updatedDateTo.setDate(31);
+    }
+    if (event.toLowerCase() === 'previousyear'){
+      updatedDateFrom.setMonth(1);
+      updatedDateFrom.setDate(1);
+      updatedDateFrom.setFullYear(updatedDateFrom.getFullYear() - 1);
+      updatedDateTo.setMonth(12);
+      updatedDateTo.setDate(31);
+      updatedDateTo.setFullYear(updatedDateTo.getFullYear() - 1);
+    }
+
+    this.getAllProjectsData(updatedDateFrom, updatedDateTo).subscribe({ complete: () => this.onListTypeChange(this.selectedListType)});
+  }
+
+  public onDoubleClick(data: { projectId: number }) {
+     this.loadProject(data.projectId);
+  }
+
+  public loadProject(projectId: number) {
+    const locData = this.impGeofootprintLocationService.get();
+    if (locData.length > 0) {
+      const payload: ConfirmationPayload = {
+        title: 'Save Work',
+        message: 'Would you like to save your work before proceeding?',
+        canBeClosed: true,
+        accept: {
+          result: new SaveThenLoadProject({ projectToLoad: projectId })
+        },
+        reject: {
+          result: new DiscardThenLoadProject({ projectToLoad: projectId })
         }
-        else {
-          this.currentProjectData = this.allProjectsData;
-          this.searchFilterMetric();
-        }
-      });    
+      };
+      this.store$.dispatch(new ShowConfirmation(payload));
+    } else {
+      this.store$.dispatch(new DiscardThenLoadProject({ projectToLoad: projectId }));
     }
+  }
 
-    public formatDate(date) {
-      const year = date.getFullYear().toString();
-      const month = (date.getMonth() + 101).toString().substring(1);
-      const day = (date.getDate() + 100).toString().substring(1);
-      return year + '-' + month + '-' + day;
-    }
+  private searchFilterMetric(){
+    const metricText  = `userFilter=${this.selectedListType}~timeFilter=${this.selectedTimeLine}`;
+    const searchResultLength = this.currentProjectData != null ? this.currentProjectData.length : 0;
+    this.store$.dispatch(new CreateProjectUsageMetric('project', 'search', metricText, searchResultLength));
+  }
 
-    public onDoubleClick(data: { projectId: number }) {
-       this.loadProject(data.projectId);
-    }
-
-    public loadProject(projectId: number) {
-      const locData = this.impGeofootprintLocationService.get();
-      if (locData.length > 0) {
-        const payload: ConfirmationPayload = {
-          title: 'Save Work',
-          message: 'Would you like to save your work before proceeding?',
-          canBeClosed: true,
-          accept: {
-            result: new SaveThenLoadProject({ projectToLoad: projectId })
-          },
-          reject: {
-            result: new DiscardThenLoadProject({ projectToLoad: projectId })
-          }
-        };
-        this.store$.dispatch(new ShowConfirmation(payload));
-      } else {
-        this.store$.dispatch(new DiscardThenLoadProject({ projectToLoad: projectId }));
-      }
-    }
-
-    private searchFilterMetric(){
-      const metricText  = `userFilter=${this.selectedListType}~timeFilter=${this.selectedTimeLine}`;
-      const searchResultLength = this.currentProjectData != null ? this.currentProjectData.length : 0;
-      this.store$.dispatch(new CreateProjectUsageMetric('project', 'search', metricText, searchResultLength));
-    }
-
-    onDialogHide() : void {
-      this.store$.dispatch(new CloseExistingProjectDialog());
-    }
+  onDialogHide() : void {
+    this.store$.dispatch(new CloseExistingProjectDialog());
+  }
 }

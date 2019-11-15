@@ -1,12 +1,17 @@
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import {SelectedShadingLayerPrefix} from '../../settings';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
+import { AppState } from '../state/esri.selectors';
+import { addLayerToLegend } from '../state/shading/esri.shading.actions';
 import { EsriMapService } from './esri-map.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapState } from '../state/map/esri.map.reducer';
-import { ShadingData, Statistics } from '../state/map/esri.renderer.reducer';
+import { ShadingData, Statistics } from '../state/renderer/esri.renderer.reducer';
 import { ColorPalette, getColorPalette } from '../models/color-palettes';
-import { tap, map } from 'rxjs/operators';
+import { tap, map} from 'rxjs/operators';
+import { merge } from 'rxjs';
 
 interface OutlineSetup {
   defaultWidth: number;
@@ -33,7 +38,7 @@ export class EsriRendererService {
 
   constructor(private mapService: EsriMapService,
               private layerService: EsriLayerService,
-              ) {}
+              private store$: Store<AppState>) {}
 
   private static createSymbol(fillColor: number[] | __esri.Color, outline: __esri.SimpleLineSymbol) : __esri.SimpleFillSymbol;
   private static createSymbol(fillColor: number[] | __esri.Color, outlineColor: number[] | __esri.Color, outlineWidth: number) : __esri.SimpleFillSymbol;
@@ -57,11 +62,12 @@ export class EsriRendererService {
   }
 
   private static getThemeColors(rendererSetup: RendererSetup, dataLength: number) : __esri.Color[] {
+    console.log('Getting theme palette', rendererSetup);
     const colorPalette = getColorPalette(rendererSetup.colors);
     if (colorPalette == null) {
       return this.getRandomColors(dataLength);
     }
-    return colorPalette.map(rgb => new EsriApi.Color([...rgb, 0.65])) ;
+    return colorPalette.map(rgb => new EsriApi.Color([...rgb, 0.35])) ;
   }
 
   private static getRandomColors(dataLength?: number) : __esri.Color[] {
@@ -80,7 +86,7 @@ export class EsriRendererService {
       red = (EsriRendererService.randomSeeds[i][0] + 255) / 2;
       green = (EsriRendererService.randomSeeds[i][1] + 255) / 2;
       blue = (EsriRendererService.randomSeeds[i][2] + 255) / 2;
-      const color: __esri.Color = new EsriApi.Color({ r: red, g: green, b: blue, a: 0.65 });
+      const color: __esri.Color = new EsriApi.Color({ r: red, g: green, b: blue, a: 0.35 });
       result.push(color);
     }
     return result;
@@ -91,9 +97,15 @@ export class EsriRendererService {
   }
 
   public restoreSimpleRenderer(mapState: EsriMapState) {
-    if (this.simpleRenderer != null && EsriUtils.rendererIsSimple(this.simpleRenderer)) {
-      const lv = this.getLayerView(mapState.selectedLayerId);
-      lv.layer.renderer = this.simpleRenderer;
+    if (this.simpleRenderer != null && EsriUtils.rendererIsSimple(this.simpleRenderer) && this.mapService.mapView != null) {
+      // const lv = this.getLayerView(mapState.selectedLayerId);
+      // lv.layer.renderer = this.simpleRenderer;
+      this.mapService.mapView.map.allLayers.filter(l => EsriUtils.layerIsPortalFeature(l)).forEach((l: __esri.FeatureLayer) => {
+        if (!l.title.startsWith(SelectedShadingLayerPrefix) && !EsriUtils.rendererIsSimple(l.renderer) && this.simpleRenderer != null) {
+          l.renderer = this.simpleRenderer;
+          this.simpleRenderer = null;
+        }
+      });
     }
   }
 
@@ -164,15 +176,17 @@ export class EsriRendererService {
     uniqueData.sort();
     const setup = this.createRendererSetup(mapState, theme);
     const uvi = this.generateClassBreaks(uniqueData, setup.rendererSetup);
+    const lv = this.getLayerView(mapState.selectedLayerId);
     const renderer: Partial<__esri.UniqueValueRenderer> = {
       type: 'unique-value',
       valueExpression: arcade,
       uniqueValueInfos: uvi,
-      defaultSymbol: setup.symbol
+      defaultSymbol: setup.symbol,
+      defaultLabel: lv.layer.title
     };
-    const lv = this.getLayerView(mapState.selectedLayerId);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = renderer as __esri.UniqueValueRenderer;
+      this.store$.dispatch(addLayerToLegend({ layerUniqueId: lv.layer.id, title: null }));
     } else {
       lv.layer.renderer = this.simpleRenderer.clone();
       setTimeout(() => this.createClassBreaksRenderer(data, mapState, theme), 0);
@@ -183,21 +197,22 @@ export class EsriRendererService {
     const arcade = this.generateArcade(data, true);
     const setup = this.createRendererSetup(mapState, theme);
     const baseRenderer = this.createBaseRenderer(setup.symbol, setup.rendererSetup.outline);
-    const themeColors = EsriRendererService.getThemeColors(setup.rendererSetup, Object.keys(data).length);
+    const continuousColors = EsriRendererService.getThemeColors(setup.rendererSetup, Object.keys(data).length);
     if (legend != null) {
       setup.rendererSetup.rampLabel = legend;
     }
     const colorVariable: any = {
       type: 'color',
       valueExpression: arcade,
-      stops: this.generateContinuousStops(themeColors, statistics),
-      legendOptions: { showLegend: true, title: setup.rendererSetup.rampLabel}
+      stops: this.generateContinuousStops(continuousColors, statistics),
+      legendOptions: { showLegend: true, title: setup.rendererSetup.rampLabel }
     };
     const lv = this.getLayerView(mapState.selectedLayerId);
     baseRenderer.visualVariables = [colorVariable];
     //baseRenderer.defaultSymbol = EsriRendererService.createSymbol([255, 255, 255, 0], [0, 0, 0, 1], 2);
     if (EsriUtils.rendererIsSimple(lv.layer.renderer)) {
       lv.layer.renderer = baseRenderer.clone();
+      this.store$.dispatch(addLayerToLegend({ layerUniqueId: lv.layer.id, title: null }));
     } else {
       lv.layer.renderer = this.simpleRenderer.clone();
       setTimeout(() => this.createMultiVariateRenderer(data, mapState, statistics, legend, theme), 0);
@@ -261,7 +276,8 @@ export class EsriRendererService {
     dataValues.forEach((value, i) => {
       result.push({
           value: value,
-          symbol: EsriRendererService.createSymbol(themeColors[i % themeColors.length], setup.outline.defaultColor, setup.outline.defaultWidth)
+          symbol: EsriRendererService.createSymbol(themeColors[i % themeColors.length], setup.outline.defaultColor, setup.outline.defaultWidth),
+          label: value
         });
     });
     return result;
@@ -316,7 +332,7 @@ export class EsriRendererService {
     if (this.layerService.getAllLayerNames().filter(name => name === layerName).length > 0) {
       this.layerService.removeLayer(layerName);
     }
-    this.layerService.createGraphicsLayer(groupName, layerName, graphics, true);
+    this.layerService.createGraphicsLayer(groupName, layerName, graphics, false, true);
   }
 
   public highlightSelection(layerId: string, objectIds: number[]) {
@@ -328,7 +344,7 @@ export class EsriRendererService {
     }
   }
 
-  private generateArcadeForGeos(geos: string[]) : string {
+  public generateArcadeForGeos(geos: string[]) : string {
     const arcadeValues: Array<string> = [];
     geos.forEach( geo => arcadeValues.push(`\"${geo}\":1`));
     const arcade = `var geos = {${arcadeValues}};
@@ -342,18 +358,17 @@ export class EsriRendererService {
   }
 
 
-  public createUniqueValueRenderer(geos: string[], mapState: EsriMapState) : Partial<__esri.UniqueValueRenderer>{
-      console.log('call to create unique value renderer');
+  public createUniqueValueRenderer(geos: string[]) : Partial<__esri.UniqueValueRenderer>{
       const arcade = this.generateArcadeForGeos(geos);
       let renderer: Partial<__esri.UniqueValueRenderer> ;
       const result: any = [];
       const defaultSymbol = EsriRendererService.createSymbol([0, 0, 0, 0], [0, 0, 0, 0], 1);
-
-        result.push({
+      result.push({
             value: '1',
             symbol: EsriRendererService.createSymbol([0, 255, 0, 0.25], [0, 0, 0, 0], 1),
-          });
-     renderer =  {
+            label: 'Selected Geos'
+      });
+      renderer =  {
         type: 'unique-value',
         field: 'geocode',
         defaultSymbol: defaultSymbol,
@@ -363,18 +378,40 @@ export class EsriRendererService {
       return renderer;
     }
 
-    
-  public setRendererForPrint(geos: string[], mapState: EsriMapState, portalId: string, minScale: number, visibility: boolean){
-    console.log('creating shading renderer for Print');
-    return  this.layerService.createPortalLayer(portalId, 'Selected Geos', minScale, true).pipe(
+  public setRendererForPrint(geos: string[], portalId: string, minScale: number){
+    const portalLayer = this.layerService.getPortalLayerById(portalId);
+    const audienceSelections = this.layerService.createPortalLayer( portalId, 'Text Variables', minScale, true).pipe(
+        tap(audienceLayer => {
+          portalLayer.visible = false;
+          portalLayer.labelsVisible = false;
+          portalLayer.legendEnabled = false;
+          audienceLayer.labelingInfo = portalLayer.labelingInfo.map(l => l.clone());
+          audienceLayer.labelingInfo[0].symbol['font'].size = 7;
+          audienceLayer.labelsVisible = true;
+          const copyRenderer = EsriUtils.clone(portalLayer.renderer);
+          audienceLayer.renderer = copyRenderer;
+          audienceLayer.legendEnabled = true;
+          if (EsriUtils.rendererIsUnique(copyRenderer)){
+            if ((copyRenderer.uniqueValueInfos[0].value as string).startsWith('Selected')){
+              copyRenderer.uniqueValueInfos = [];
+            }
+            copyRenderer.defaultLabel = portalLayer.title;
+          } else if (EsriUtils.rendererIsSimple(copyRenderer)) {
+            copyRenderer.label = portalLayer.title;
+          }
+          this.mapService.mapView.map.layers.unshift(audienceLayer);
+        })
+      );
+    const geoSelections =  this.layerService.createPortalLayer(portalId, 'Selected Geos', minScale, true).pipe(
              tap(newLayer => {
               newLayer.spatialReference = {wkid: 4326} as __esri.SpatialReference;
               newLayer.popupEnabled = false;
               newLayer.labelsVisible = false;
-              newLayer.renderer = this.createUniqueValueRenderer(geos, mapState) as __esri.UniqueValueRenderer;
+              newLayer.renderer = this.createUniqueValueRenderer(geos) as __esri.UniqueValueRenderer;
               this.mapService.mapView.map.add(newLayer);
               }),
             );
+      return merge(audienceSelections, geoSelections);
   }
 
   public clearHighlight() : void {

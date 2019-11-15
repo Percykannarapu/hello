@@ -1,0 +1,20 @@
+@import "~assets/valassis-variables";
+
+.error-icon {
+  color: $brandRed;
+}
+
+/*
+  The styles below here fix various color and alignment issues on only this form
+ */
+span.ui-inputgroup-addon {
+  border-style: none;
+}
+
+.ui-inputtext.ng-touched.ng-invalid {
+  background-image: linear-gradient(to bottom, $brandRed, $brandRed), linear-gradient(to bottom, $brandRed, $brandRed);
+}
+
+.md-inputfield input.ng-touched.ng-invalid ~ label {
+  color: $brandRed;
+}

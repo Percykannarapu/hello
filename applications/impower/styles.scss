@@ -3,8 +3,12 @@
 @import "assets/sass/variables";
 @import "assets/sass/theme/variables";
 
+body {
+  overflow-x: hidden;
+}
+
 .impower.splash-screen {
-  background: $primaryDarkColor url("assets/layout/images/logo.png") no-repeat center;
+  background: url("~assets/layout/images/valassis-splash-logo.png") no-repeat center;
 }
 
 .impower > .splash-loader-container {
@@ -12,153 +16,6 @@
   margin-left: -45px;
 }
 
-// PrimeNg Overrides
-.layout-container.menu-layout-horizontal .layout-menu {
-  top: $valTitleHeight !important;
-}
-
-.layout-wrapper.layout-compact .layout-container.menu-layout-horizontal .layout-main {
-  padding-top: $valHeaderHeight !important;
-}
-
-div.ui-treenode-content:not(.ui-treenode-selectable) div.ui-chkbox {
-  display: none;
-  visibility: hidden;
-}
-
-body {
-  .ui-table {
-    border-spacing: 0;
-    .ui-table-thead {
-      > tr {
-        > th {
-          .ui-column-resizer {
-            color: #00000000;
-          }
-          i {
-            font-size: 1em;
-          }
-        }
-      }
-    }
-    .ui-sortable-column {
-      &:not(.ui-state-highlight):hover {
-        background-color: $valTableHeaderHoverBgColor;
-        a, a:hover {
-          background-color: $valTableHeaderHoverBgColor;
-        }
-      }
-    }
-    .ui-table-tbody {
-      .ui-button {
-        &.ui-button-icon-only {
-          width: 1.25em;
-          height: 1.25em;
-          font-size: 0.8em;
-          padding: 0;
-          .ui-button-icon-left {
-            margin-top: -0.4em;
-          }
-        }
-      }
-      > tr > td {
-        border-left: 1px solid $contentBorderColor;
-      }
-      > tr > td:first-child {
-        border-left: 0 none;
-      }
-      > tr:nth-child(even) {
-        color: $valDeselectedTextColor;
-        &.home-geo {
-          background-color: lighten($accentLightColor, 25%);
-        }
-        &.ui-state-highlight {
-          background-color: $valSelectedTableRowBgColor;
-          color: black;
-          &.home-geo {
-            background-color: $accentColor;
-          }
-        }
-      }
-      > tr:nth-child(odd) {
-        color: $valDeselectedTextColor;
-        &.home-geo {
-          background-color: lighten($accentColor, 25%);
-        }
-        &.ui-state-highlight {
-          background-color: $valSelectedOddRowBgColor;
-          color: black;
-          &.home-geo {
-            background-color: $accentDarkColor;
-          }
-        }
-      }
-    }
-    .ui-table-scrollable-body-table {
-      margin-bottom: 0.25em;
-    }
-  }
-
-  .ui-fileupload-choose {
-    &.ui-button {
-      &.ui-button-text-icon-left {
-        padding: 0 2em;
-        > .ui-button-icon-left {
-          display: none;
-        }
-      }
-    }
-  }
-
-  .ui-widget-header {
-    &:not(.ui-dataview-header) {
-      .ui-inputtext {
-        width: 100%;
-      }
-    }
-    .ui-dropdown-label {
-      color: $textColor;
-    }
-  }
-
-  .ui-multiselect-panel {
-    * {
-      font-size: $c-fontSize;
-    }
-  }
-
-  .ui-dropdown {
-    min-width: auto;
-  }
-
-  .ui-overlaypanel:after,
-  .ui-overlaypanel:before {
-    content: none;
-  }
-
-  .dashboard {
-    .ui-overlaypanel {
-      margin-top: 5px;
-    }
-  }
-
-  .ui-tabview {
-    .ui-tabview-panel {
-      border-width: 1px;
-      border-top-width: 0;
-    }
-  }
-
-  .ui-radiobutton .ui-radiobutton-box:before {
-    content: normal;
-  }
-
-  .ui-chkbox .ui-chkbox-box:before {
-    content: normal
-  }
-}
-
-// Valassis-specific options
 .val-centered {
   display: flex;
   align-items: center;
@@ -180,104 +37,16 @@ body {
   }
 }
 
-.ui-tabview.ui-tabview-top > ul.ui-tabview-nav > li:focus {
-  outline-width: 0;
+.campaign-details-colorbox .ui-overlaypanel {
+  width: 50%;
 }
 
-#targetAudience div.ui-tabview {
-  p-tabPanel {
-    div.ui-tabview-panel {
-      max-width: 50em;
-    }
-    &[header="Selected Audiences"] div.ui-tabview-panel {
-      max-width: 100em;
-    }
-  }
+.locations-colorbox .ui-overlaypanel {
+  width: 50%;
 }
 
-.val-child-tabs > .ui-tabview {
-  &.ui-tabview-top > .ui-tabview-nav {
-    background-color: $valBackgroundGrey;
-  }
-  > ul.ui-tabview-nav {
-    > li {
-      background-color: $primaryColor;
-      border-bottom-color: $primaryColor;
-    }
-    > li.ui-state-active {
-      background-color: $accentColor;
-      border-bottom-color: $accentColor;
-    }
-    > li:not(.ui-state-active):not(.ui-state-disabled):hover {
-      background-color: $primaryLightColor !important;
-      border-bottom-color: $primaryDarkColor !important;
-    }
-    > li a {
-      color: white !important;
-    }
-  }
-}
-
-// html form layout fixes and changes
-form {
-  div.ui-g-1:not(.ui-g-nopad),
-  div.ui-g-2:not(.ui-g-nopad),
-  div.ui-g-3:not(.ui-g-nopad),
-  div.ui-g-4:not(.ui-g-nopad),
-  div.ui-g-5:not(.ui-g-nopad),
-  div.ui-g-6:not(.ui-g-nopad),
-  div.ui-g-7:not(.ui-g-nopad),
-  div.ui-g-8:not(.ui-g-nopad),
-  div.ui-g-9:not(.ui-g-nopad),
-  div.ui-g-10:not(.ui-g-nopad),
-  div.ui-g-11:not(.ui-g-nopad),
-  div.ui-g-12:not(.ui-g-nopad) {
-    padding: 1em 0.5em 0.5em;
-  }
-}
-
-body .ui-inputgroup .md-inputfield {
-  input:focus ~ label, input.ui-state-filled ~ label {
-    top: -1em;
-  }
-  label {
-    top: 1px;
-  }
-}
-
-body .ui-table .ui-table-caption .ui-inputgroup {
-  .ui-inputgroup-addon {
-    color: $valReversedDisabledColor;
-    padding-bottom: 2px;
-  }
-  .md-inputfield {
-    input {
-      color: $valReversedTextColor;
-    }
-    label {
-      color: $valReversedDisabledColor;
-    }
-  }
-}
-
-/*-- Top Info Box Overlay Panel Styles */
-.green-panel .ui-overlaypanel-content {
-  background: #436f3b
-}
-.blue-panel .ui-overlaypanel-content {
-  background: #4275a5
-}
-.purple-panel .ui-overlaypanel-content {
-  background: #503d8e
-}
-.teal-panel .ui-overlaypanel-content {
-  background: #2a5c53
-}
-.light-teal-panel .ui-panel .ui-panel-content {
-  background: #3EC1B2
-}
-.light-teal-panel .ui-panel .ui-panel-titlebar {
-  background: #2F9688
+.target-audience-colorbox .ui-overlaypanel {
+  width: 50%;
 }
 
 // widen the main menu so the full National Extract text can fit on one line
@@ -294,375 +63,6 @@ body .ui-table .ui-table-caption .ui-inputgroup {
 .val-full-width {
   width: 100% !important;
 }
-
-.colorboxPicker {
-  padding: 0 !important;
-  text-align: center;
-  overflow: hidden;
-  /* border: 1px solid black; -- Happy accident that outlined everything in colorbox black */
-  /* margin-bottom: 0 !important; */
-  margin: 0 !important;
-  -moz-border-radius: 0;
-  -webkit-border-radius: 0;
-  border-radius: 0 2px 2px 0;
-}
-
-.colorboxPicker.spinner {
-  -moz-border-radius: 0 2px 2px 0;
-  -webkit-border-radius: 0 2px 2px 0;
-  border-radius: 0 2px 2px 0;
-}
-
-card.colorboxPicker.spinner {
-  -moz-border-radius: 0 2px 2px 0;
-  -webkit-border-radius: 0 2px 2px 0;
-  border-radius: 0 2px 2px 0;
-}
-
-.colorboxPicker i {
-  /* font-size: 36px; */
-  /* font-size: 4.5vh; */
-  /* font-size: 100%; */
-  text-align: center;
-  width: 100%;
-  height: 100%;
-  /* margin-top: 10;          */
-  color: #ffffff; }
-
-.colorboxPicker .colorboxPicker-name {
-  font-size: 1em;
-  display: inline-block;
-  width: 100%;
-  margin: 0 0 8px 0;
-  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.69);
-  color: #ffffff; }
-
-.colorboxPicker .colorboxPicker-count {
-  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.69);
-  width: 100%;
-  color: #ffffff;
-  font-size: 2.7em;
-  /* font-size: 36px; */ }
-
-.colorboxPicker .colorboxPicker-count {
-  font-weight: bold; }
-
-.colorboxPicker.header span {
-  margin: 0 0 0 0;
-  font-size: 100%; }
-
-.colorboxPicker.icon {
-  height: 100%; }
-
-.colorboxPicker.icon.child {
-  width: 100%;
-  height: 100%;
-  font-size: 280%;
-  padding-top: 0.28em !important; }
-
-.colorboxPicker.spinner {
-  /* max-width:50%;
-  max-height:50%; */
-  font-size: 1em;
-  -webkit-user-select: none;
-  /* Safari */
-  -moz-user-select: none;
-  /* Firefox */
-  -ms-user-select: none;
-  /* IE10+/Edge */
-  user-select: none;
-  /* Standard */ }
-
-.colorboxPicker-green .ui-overlaypanel {
-  width: 52% !important; }
-
-.colorboxPicker.colorboxPicker-green {
-  background-color: #50844a; }
-
-.colorboxPicker.spinner.colorboxPicker-green div {
-  background-color: #50844a; }
-
-.colorboxPicker.spinner.colorboxPicker-green div:first-child {
-  vertical-align: middle;
-  background-color: #50844a; }
-
-.colorboxPicker.colorboxPicker-green div:hover {
-  background-color: #406b3b; }
-
-.colorboxPicker.spinner.colorboxPicker-green div:hover {
-  background-color: #365c31; }
-
-.colorboxPicker.colorboxPicker-green div:first-child:hover {
-  background-color: #365c31; }
-
-.colorboxPicker-green .ui-overlaypanel-content {
-  background: #365c31; }
-
-.colorboxPicker.colorboxPicker-green div:first-child {
-  background-color: #365c31; }
-
-.colorboxPicker-green .ui-overlaypanel {
-  border: 1px solid #264223;
-  border-radius: 0; }
-
-.colorboxPicker.colorboxPicker-green.header {
-  background-color: #264223; }
-
-.colorboxPicker.colorboxPicker-greener {
-  background-color: #659e5b; }
-
-.colorboxPicker.spinner.colorboxPicker-greener div {
-  background-color: #659e5b; }
-
-.colorboxPicker.spinner.colorboxPicker-greener div:first-child {
-  background-color: #659e5b; }
-
-.colorboxPicker.colorboxPicker-greener div:hover {
-  background-color: #55854d; }
-
-.colorboxPicker.colorboxPicker-greener div:first-child:hover {
-  background-color: #55854d; }
-
-.colorboxPicker-greener .ui-overlaypanel-content {
-  background: #436f3b; }
-
-.colorboxPicker.colorboxPicker-greener div:first-child {
-  background-color: #436f3b; }
-
-.colorboxPicker-greener .ui-overlaypanel {
-  border: 1px solid #34572e;
-  border-radius: 0; }
-
-.colorboxPicker.colorboxPicker-greener.header {
-  max-height: 25px;
-  background-color: #34572e; }
-
-.colorboxPicker.colorboxPicker-ochre {
-  background-color: #84794a; }
-
-.colorboxPicker.spinner.colorboxPicker-ochre div {
-  background-color: #84794a; }
-
-.colorboxPicker.spinner.colorboxPicker-ochre div:first-child {
-  background-color: #84794a; }
-
-.colorboxPicker.colorboxPicker-ochre div:hover {
-  background-color: #6b623b; }
-
-.colorboxPicker.spinner.colorboxPicker-ochre div:hover {
-  background-color: #6b623b; }
-
-.colorboxPicker.colorboxPicker-ochre div:first-child:hover {
-  background-color: #6b623b; }
-
-.colorboxPicker-ochre .ui-overlaypanel-content {
-  background: #5c5331; }
-
-.colorboxPicker.colorboxPicker-ochre div:first-child {
-  background-color: #5c5331; }
-
-.colorboxPicker-ochre .ui-overlaypanel {
-  border: 1px solid #423c23;
-  border-radius: 0; }
-
-.colorboxPicker.colorboxPicker-ochre.header {
-  max-height: 25px;
-  background-color: #423c23; }
-
-.colorboxPicker.colorboxPicker-blue {
-  background-color: #4a5a84; }
-
-.colorboxPicker.spinner.colorboxPicker-blue div {
-  background-color: #4a5a84; }
-
-.colorboxPicker.spinner.colorboxPicker-blue div:first-child {
-  background-color: #4a5a84; }
-
-.colorboxPicker.colorboxPicker-blue div:hover {
-  background-color: #3b486b; }
-
-.colorboxPicker.spinner.colorboxPicker-blue div:hover {
-  background-color: #313e5c; }
-
-.colorboxPicker.colorboxPicker-blue div:first-child:hover {
-  background-color: #313e5c; }
-
-.colorboxPicker-blue .ui-overlaypanel-content {
-  background: #313e5c; }
-
-.colorboxPicker.colorboxPicker-blue div:first-child {
-  background-color: #313e5c; }
-
-.colorboxPicker-blue .ui-overlaypanel {
-  border: 1px solid #232b42;
-  border-radius: 0; }
-
-.colorboxPicker.colorboxPicker-blue.header {
-  max-height: 25px;
-  background-color: #232b42; }
-
-.colorboxPicker.colorboxPicker-purple {
-  background-color: #5d4a84; }
-
-.colorboxPicker.spinner.colorboxPicker-purple div {
-  background-color: #5d4a84; }
-
-.colorboxPicker.spinner.colorboxPicker-purple div:first-child {
-  background-color: #5d4a84; }
-
-.colorboxPicker.colorboxPicker-purple div:hover {
-  background-color: #4b3b6b; }
-
-.colorboxPicker.spinner.colorboxPicker-purple div:hover {
-  background-color: #3e315c; }
-
-.colorboxPicker.colorboxPicker-purple div:first-child:hover {
-  background-color: #3e315c; }
-
-.colorboxPicker-purple .ui-overlaypanel-content {
-  background: #3e315c; }
-
-.colorboxPicker.colorboxPicker-purple div:first-child {
-  background-color: #3e315c; }
-
-.colorboxPicker-purple .ui-overlaypanel {
-  border: 1px solid #2e2342;
-  border-radius: 0; }
-
-.colorboxPicker.colorboxPicker-purple.header {
-  max-height: 25px;
-  background-color: #2e2342; }
-
-.colorboxPicker.colorboxPicker-slate {
-  background-color: #4a7184; }
-
-.colorboxPicker.spinner.colorboxPicker-slate div {
-  background-color: #4a7184; }
-
-.colorboxPicker.spinner.colorboxPicker-slate div:first-child {
-  background-color: #4a7184; }
-
-.colorboxPicker.colorboxPicker-slate div:hover {
-  background-color: #3b5b6b; }
-
-.colorboxPicker.spinner.colorboxPicker-slate div:hover {
-  background-color: #3b5b6b; }
-
-.colorboxPicker.colorboxPicker-slate div:first-child:hover {
-  background-color: #3b5b6b; }
-
-.colorboxPicker-slate .ui-overlaypanel-content {
-  background: #314f5c; }
-
-.colorboxPicker.colorboxPicker-slate div:first-child {
-  background-color: #314f5c; }
-
-.colorboxPicker-slate .ui-overlaypanel {
-  border: 1px solid #233842;
-  border-radius: 0; }
-
-.colorboxPicker.colorboxPicker-slate.header {
-  max-height: 25px;
-  background-color: #233842; }
-
-.colorboxPicker.colorboxPicker-olive {
-  background-color: #70844a; }
-
-.colorboxPicker.spinner.colorboxPicker-olive div {
-  background-color: #70844a; }
-
-.colorboxPicker.spinner.colorboxPicker-olive div:first-child {
-  background-color: #70844a; }
-
-.colorboxPicker.colorboxPicker-olive div:hover {
-  background-color: #5a6b3b; }
-
-.colorboxPicker.spinner.colorboxPicker-olive div:hover {
-  background-color: #5a6b3b; }
-
-.colorboxPicker.colorboxPicker-olive div:first-child:hover {
-  background-color: #5a6b3b; }
-
-.colorboxPicker-olive .ui-overlaypanel-content {
-  background: #4e5c31; }
-
-.colorboxPicker.colorboxPicker-olive div:first-child {
-  background-color: #4e5c31; }
-
-.colorboxPicker-olive .ui-overlaypanel {
-  border: 1px solid #374223;
-  border-radius: 0; }
-
-.colorboxPicker.colorboxPicker-olive.header {
-  max-height: 25px;
-  background-color: #374223; }
-
-.colorboxPicker.colorboxPicker-rose {
-  background-color: #844a5c; }
-
-.colorboxPicker.spinner.colorboxPicker-rose div {
-  background-color: #844a5c; }
-
-.colorboxPicker.spinner.colorboxPicker-rose div:first-child {
-  background-color: #844a5c; }
-
-.colorboxPicker.colorboxPicker-rose div:hover {
-  background-color: #6b3b49; }
-
-.colorboxPicker.spinner.colorboxPicker-rose div:hover {
-  background-color: #6b3b49; }
-
-.colorboxPicker.colorboxPicker-rose div:first-child:hover {
-  background-color: #6b3b49; }
-
-.colorboxPicker-rose .ui-overlaypanel-content {
-  background: #5c313f; }
-
-.colorboxPicker.colorboxPicker-rose div:first-child {
-  background-color: #5c313f; }
-
-.colorboxPicker-rose .ui-overlaypanel {
-  border: 1px solid #42232c;
-  border-radius: 0; }
-
-.colorboxPicker.colorboxPicker-rose.header {
-  max-height: 25px;
-  background-color: #42232c; }
-
-.colorboxPicker-teal .ui-overlaypanel {
-  width: 53% !important; }
-
-.colorboxPicker.colorboxPicker-teal {
-  background-color: #4a847a; }
-
-.colorboxPicker.spinner.colorboxPicker-teal div {
-  background-color: #4a847a; }
-
-.colorboxPicker.spinner.colorboxPicker-teal div:first-child {
-  background-color: #4a847a; }
-
-.colorboxPicker.colorboxPicker-teal div:hover {
-  background-color: #3b6b63; }
-
-.colorboxPicker.spinner.colorboxPicker-teal div:hover {
-  background-color: #3b6b63; }
-
-.colorboxPicker.colorboxPicker-teal div:first-child:hover {
-  background-color: #3b6b63; }
-
-.colorboxPicker-teal .ui-overlaypanel-content {
-  background: #315c53; }
-
-.colorboxPicker.colorboxPicker-teal div:first-child {
-  background-color: #315c53; }
-
-.colorboxPicker-teal .ui-overlaypanel {
-  border: 1px solid #23423c;
-  border-radius: 0; }
-
-.colorboxPicker.colorboxPicker-teal.header {
-  max-height: 25px;
-  background-color: #23423c; }
 
 .val-flush-to-edges {
   .ui-panel-content.ui-widget-content {
@@ -706,6 +106,7 @@ card.colorboxPicker.spinner {
 }
 
 .val-audience-tree {
+  padding: 0;
   .ui-tree {
     width: 100%;
     min-height: 15em;
@@ -714,17 +115,14 @@ card.colorboxPicker.spinner {
     overflow-y: auto;
   }
 }
-.valTabViewPaleBlue div.ui-tabview-panels {
-  background: #e7eff6;
+
+.val-audience-wrapper {
+  padding-top: 1em;
 }
 
 .form-wrapper .field-list .field {
   position: relative;
   margin: -20px 0px 24px;
-}
-
-.val-green-tab .ui-tabview.ui-tabview-top > .ui-tabview-nav {
-  background-color: #D9E5D0;
 }
 
 .val-icon-button.ui-button {
@@ -745,10 +143,6 @@ card.colorboxPicker.spinner {
   height: 2em;
   line-height: 1.25em; }
 
-.val-short-button .ui-button-text.ui-clickable {
-  padding: 0;
-  line-height: 1.25em; }
-
 .val-short-square-button.ui-button.ui-button-icon-only {
   -moz-border-radius: 4%;
   -webkit-border-radius: 4%;
@@ -763,4 +157,87 @@ card.colorboxPicker.spinner {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.val-clickable {
+  padding: 0.5em;
+  cursor: pointer;
+  border-radius: 50%;
+  &:hover {
+    color: $lightGray04;
+    background-color: $primaryDarkColor;
+  }
+}
+
+.val-non-clickable {
+  padding: 0.5em;
+  border-radius: 50%;
+  color: #00000000;
+}
+
+.val-center-controls {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body {
+  .ui-button {
+    &.ui-button-icon-only {
+      &.val-toolbar-button {
+        padding: 0;
+        border: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 0;
+      }
+    }
+    &.val-filter-button {
+      font-size: 0.75em;
+      border: none;
+      background-color: $blueBird;
+      color: $lightGray04;
+      height: 2em;
+      padding: 0 0.5em;
+      box-shadow: 0 1px 2.5px 0 rgba(0, 0, 0, 0.26), 0 1px 5px 0 rgba(0, 0, 0, 0.16);
+      margin: 0 5px;
+      &:enabled:not(:focus):hover {
+        background-color: $brandBlue;
+      }
+      > .ui-button-text {
+        line-height: 0.75em;
+      }
+    }
+  }
+
+  .ui-dialog.load-project-dialog {
+    .ui-dialog-content {
+      padding: 0 0.5em;
+    }
+  }
+}
+
+#mapPanel .ui-toolbar {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+// esri styling overrides
+body {
+  div.esri-ui {
+    .esri-legend {
+      .esri-legend__service {
+        padding: 5px 8px;
+        > h3 {
+          margin: 0;
+        }
+        > .esri-legend__layer {
+          > .esri-legend__layer-table {
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+  }
 }

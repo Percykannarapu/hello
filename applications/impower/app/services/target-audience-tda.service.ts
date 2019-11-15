@@ -13,6 +13,9 @@ import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
+import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
+import { AppProjectPrefService } from './app-project-pref.service';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -147,6 +150,33 @@ export class TargetAudienceTdaService {
           }
         }
       }
+      if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
+        for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
+          const groupedAudiences = JSON.parse(projectVar.customVarExprQuery);
+          const audience: AudienceDataDefinition = {
+            audienceName: projectVar.fieldname,
+            audienceIdentifier: projectVar.varPk.toString(),
+            audienceSourceType: 'Combined',
+            audienceSourceName: 'TDA',
+            exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
+            showOnGrid: projectVar.isIncludedInGeoGrid,
+            showOnMap: projectVar.isShadedOnMap,
+            exportNationally: false,
+            allowNationalExport: false,
+            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
+            requiresGeoPreCaching: true,
+            seq: projectVar.sortOrder,
+            isCombined: true,
+            combinedAudiences: groupedAudiences,
+            combinedVariableNames: projectVar.customVarExprDisplay
+          };
+
+          if (projectVar.source.toLowerCase().match('combined')) {
+            this.audienceService.addAudience(audience, null, true);
+          }
+        }
+      }
+
     }
     catch (error) {
       console.error(error);

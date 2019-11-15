@@ -34,7 +34,7 @@ export class AddLocationsTabComponent implements OnInit {
   @ViewChild('manualCompetitorEntry', { static: true }) manualCompetitorEntry: ManualEntryComponent;
 
   isProd: boolean = environment.production;
-  businessSearchLimit: number = 20000; 
+  businessSearchLimit: number = 20000;
 
   hasFailures$: Observable<boolean>;
   totalCount$: Observable<number>;
@@ -58,27 +58,26 @@ export class AddLocationsTabComponent implements OnInit {
 
   ngOnInit() {
     this.appEditSiteService.editLocationData$.subscribe(message => {
-      if (message != undefined && message != null) {     
+      if (message != null) {
         this.manuallyGeocode(message.siteData, message.type, message.isEdit);
-      }   
+      }
     });
 
-    this.store$.pipe(
-      select(selectors.getMapReady),
+    this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.failures$ = combineLatest(this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$).pipe(
+      this.failures$ = combineLatest([this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$]).pipe(
         map(([sites, competitors]) => [...sites, ...competitors])
       );
       this.hasFailures$ = this.appLocationService.hasFailures$;
       this.totalCount$ = this.appLocationService.totalCount$;
     });
 
-    
+
     this.searchCategories$ = this.businessSearchService.getCategories();
     this.appStateService.clearUI$.subscribe(() => {
-      this.businessSearchComponent.clear();
+      //this.businessSearchComponent.clear();
       this.manualSiteEntry.clear();
       this.manualCompetitorEntry.clear();
     });
@@ -92,7 +91,7 @@ export class AddLocationsTabComponent implements OnInit {
 
   validateHomeDmaIfExists(requests: ValGeocodingRequest[]) {
     requests.forEach(req => {
-      if (req['Home DMA'] != null && req['Home DMA'] != undefined && req['Home DMA'].length != 0 && parseInt(req['Home DMA'], 10) != NaN && req['Home DMA'].length === 3) req['Home DMA'] = '0' + req['Home DMA'];
+      if (req['Home DMA'] != null && req['Home DMA'] != undefined && req['Home DMA'].length != 0 && !Number.isNaN(parseInt(req['Home DMA'], 10)) && req['Home DMA'].length === 3) req['Home DMA'] = '0' + req['Home DMA'];
     });
   }
 
@@ -171,7 +170,7 @@ export class AddLocationsTabComponent implements OnInit {
     //console.log('Processing requests:', siteOrSites);
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
     const reCalculateHomeGeos = false;
-    const isLocationEdit =  isEdit;
+    const isLocationEdit: boolean =  (isEdit !== null && isEdit !== undefined) ? isEdit : false;
     //this.store$.dispatch(new StartBusyIndicatorx({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
     this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
     /*const locationCache: ImpGeofootprintLocation[] = [];

@@ -1,5 +1,5 @@
 <div class="business-search ui-g ui-g-nopad">
-  <div class="ui-g-6">
+  <div class="ui-g-6 ui-g-nopad">
     <p-card>
       <div class="ui-helper-clearfix">
         <div class="ui-g-12">
@@ -10,11 +10,10 @@
                <label for="search">Search SIC codes</label>
             </span>
           </div>
-
         </div>
         <p-pickList [source]="sourceCategories$ | async" [showSourceControls]="false" [showTargetControls]="false" sourceHeader="Available SIC Codes"
-                    targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'200px'}"
-                    [targetStyle]="{'height':'200px'}" [responsive]="true">
+                    targetHeader="Selected SIC Codes" [target]="targetCategories" [sourceStyle]="{'height':'10em'}"
+                    [targetStyle]="{'height':'10em'}" [responsive]="true">
           <ng-template let-category pTemplate="item">
             <div class="ui-helper-clearfix">
               <div style="font-size:12px;float:left">{{category.name}}</div>
@@ -75,7 +74,7 @@
       </div>
     </p-card>
   </div>
-  <div class="ui-g-6">
+  <div class="ui-g-6 ui-g-nopad">
     <p-card subtitle="Search Results (maximum {{resultLimit | number:'1.0-0'}})">
       <div class="ui-g ui-helper-clearfix">
         <div class="ui-g-12">
@@ -91,6 +90,7 @@
                 {{result.value.address}}, {{result.value.city}}, {{result.value.state}} {{result.value.zip}}
               </div>
             </ng-template>
+
           </p-listbox>
 
         </div>

@@ -30,9 +30,9 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
   get mergeType() { return this.radiusForm.get('mergeType'); }
 
   tradeAreaMergeTypes: SelectItem[] = [
-    { label: 'No Merge', value: TradeAreaMergeTypeCodes.NoMerge },
-    { label: 'Merge Each', value: TradeAreaMergeTypeCodes.MergeEach },
-    { label: 'Merge All', value: TradeAreaMergeTypeCodes.MergeAll }
+    { value: TradeAreaMergeTypeCodes.NoMerge, label: TradeAreaMergeTypeCodes.NoMerge },
+    { value: TradeAreaMergeTypeCodes.MergeEach, label: TradeAreaMergeTypeCodes.MergeEach },
+    { value: TradeAreaMergeTypeCodes.MergeAll, label: TradeAreaMergeTypeCodes.MergeAll }
   ];
 
   constructor(private fb: FormBuilder, private tradeareaService: AppTradeAreaService) {}
@@ -91,12 +91,12 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
     if (changes['currentTradeAreas'] != null && JSON.stringify(changes['currentTradeAreas'].currentValue) !== JSON.stringify(this.radiusForm.get('tradeAreas').value)) {
       this.radiusForm.patchValue({
         tradeAreas: this.currentTradeAreas
-      });
+      }, { emitEvent: false });
     }
     if (changes['currentMergeType'] != null && changes['currentMergeType'] != this.radiusForm.get('mergeType').value) {
       this.radiusForm.patchValue({
         mergeType: this.currentMergeType
-      });
+      }, { emitEvent: false });
     }
   }
 

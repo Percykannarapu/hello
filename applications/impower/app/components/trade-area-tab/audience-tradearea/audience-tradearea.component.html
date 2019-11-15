@@ -1,5 +1,5 @@
-<div class="ui-g" style="background: #D8E5D1; margin-bottom: 0;">
-  <div class="ui-g-6 card nopad">
+<div class="ui-g ui-g-nopad">
+  <div class="ui-g-6 ui-g-nopad">
     <p-tabView>
       <p-tabPanel header="Interest and In-Market">
         <div class="narrow-layout">
@@ -15,36 +15,34 @@
     </p-tabView>
   </div>
 
-  <div class="ui-g-6 card nopad val-audience-trade-area-config">
+  <div class="ui-g-6 ui-g-nopad val-audience-trade-area-config">
     <p-panel header="Trade Area Configuration">
-      <form class="ui-g" novalidate [formGroup]="configForm" autocomplete="off">
+      <form class="ui-g ui-g-nopad" novalidate [formGroup]="configForm" autocomplete="off">
         <div class="ui-g-12 ui-g-nopad">
           <div class="ui-g-6">
-                    <span class="ui-float-label">
-                        <input id="ata-min-miles" type="text" size="30" pInputText formControlName="minRadius"
-                               style="width:97%">
-                        <label for="ata-min-miles">Minimum radius</label>
-                    </span>
+            <span class="md-inputfield">
+              <input id="ata-min-miles" type="text" pInputText formControlName="minRadius">
+              <label for="ata-min-miles">Minimum radius</label>
+            </span>
           </div>
           <div class="ui-g-6">
-                    <span class="ui-float-label">
-                        <input id="ata-max-miles" type="text" size="30" pInputText formControlName="maxRadius"
-                               style="width: 100%">
-                        <label for="ata-max-miles" style="width: 100%">Maximum radius</label>
-                    </span>
+            <span class="md-inputfield">
+              <input id="ata-max-miles" type="text" pInputText formControlName="maxRadius">
+              <label for="ata-max-miles">Maximum radius</label>
+            </span>
           </div>
           <div class="ui-g-12">
-            <label style="width: 100%">Must cover minimum radius:</label>
-            <a class="val-spacer-left"></a>
-            <p-checkbox formControlName="includeMustCover" binary="true"
+            <label>Must cover minimum radius:&nbsp;
+              <p-checkbox formControlName="includeMustCover" binary="true"
                         pTooltip="Force all geographies in the must cover radius to be selected regardless of their score"></p-checkbox>
+            </label>
           </div>
           <div class="ui-g-6">
             Driving variable in addition to distance:
           </div>
           <div class="ui-g-6">
             <p-dropdown #audienceTAVar (onChange)="onVarDropdownChange($event)" [options]="varSelectorOptions"
-                        formControlName="audience"
+                        formControlName="audience" dropdownIcon="fa fa-caret-down"
                         placeholder="Select a variable" [style]="{'width':'100%'}"></p-dropdown>
           </div>
         </div>

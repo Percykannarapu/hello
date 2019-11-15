@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { isNumber } from '@val/common';
-import { filter, takeUntil, map, tap } from 'rxjs/operators';
+import { filter, map, takeUntil } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { localSelectors } from '../../state/app.selectors';
 import { FullState } from '../../state';
@@ -15,12 +15,14 @@ import { NavigateToReviewPage, SaveMediaPlan, GeneratePdf } from '../../state/sh
 })
 export class HeaderBarComponent implements OnInit, OnDestroy {
 
-  private updateIds: number[] = [];
-  private addIds: number[] = [];
   private componentDestroyed$ = new Subject();
-  
+
   appReady$: Observable<boolean>;
   isSaving$: Observable<boolean>;
+  addCount$: Observable<number>;
+  updateCount$: Observable<number>;
+  prefsChanged$: Observable<boolean>;
+
   generateDisabled$: Observable<boolean>;
 
   totalDistribution: number;
@@ -31,24 +33,25 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   rfpName: string;
   productName: string;
   rfpId: string;
-  get hasAdditions() { return this.addIds.length > 0; }
-
-  get isClean() {
-    return this.updateIds.length === 0 && this.addIds.length === 0;
-  }
 
   constructor(private store$: Store<FullState>) { }
 
   ngOnInit() {
-    this.store$.pipe(
-      select(localSelectors.getRfpUiEditDetailEntities),
+    this.appReady$ = this.store$.select(localSelectors.getAppReady);
+    this.isSaving$ = this.store$.select(localSelectors.getIsSaving);
+    this.addCount$ = this.store$.select(localSelectors.getAddIds).pipe(map(ids => ids.length));
+    this.updateCount$ = this.store$.select(localSelectors.getUpdateIds).pipe(map(ids => ids.length));
+    this.prefsChanged$ = this.store$.select(localSelectors.getPrefsChanged);
+
+    this.generateDisabled$ = this.store$.select(localSelectors.getFilteredGeos);
+
+    this.store$.select(localSelectors.getRfpUiEditDetailEntities).pipe(
       takeUntil(this.componentDestroyed$)
     ).subscribe(state => {
       this.calcMetrics(state);
     });
 
-    this.store$.pipe(
-      select(localSelectors.getHeaderInfo),
+    this.store$.select(localSelectors.getHeaderInfo).pipe(
       filter(header => header != null),
       takeUntil(this.componentDestroyed$)
     ).subscribe(headers => {
@@ -58,19 +61,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
       this.productName = headers.productName;
       this.mediaPlanGroupNumber = headers.mediaPlanGroup;
       this.rfpId = headers.rfpId;
-      this.addIds = headers.addIds;
-      this.updateIds = headers.updateIds;
     });
-
-    this.appReady$ = this.store$.pipe(
-      select(localSelectors.getAppReady)
-    );
-    this.isSaving$ = this.store$.pipe(
-      select(localSelectors.getIsSaving)
-    );
-    
-    this.generateDisabled$ = this.store$.pipe(select(localSelectors.getFilteredGeos));
-
   }
 
   ngOnDestroy() : void {
@@ -82,10 +73,10 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
   }
 
   onSave() {
-    this.store$.dispatch(new SaveMediaPlan({ addIds: this.addIds, updateIds: this.updateIds }));
+    this.store$.dispatch(new SaveMediaPlan());
   }
 
-  exportMaps(){
+  exportMaps() {
     this.store$.dispatch(new GeneratePdf());
   }
 

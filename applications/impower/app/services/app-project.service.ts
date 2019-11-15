@@ -42,7 +42,7 @@ export class AppProjectService {
     this.currentProject$.subscribe(project => this.currentProjectRef = project);
   }
 
-  load(id: number) : Observable<number> {
+  load(id: number) : Observable<ImpProject> {
     return this.impProjectService.loadFromServer(id);
   }
 
@@ -50,6 +50,7 @@ export class AppProjectService {
     const localProject = project == null ? this.impProjectService.get()[0] : project;
     const saveUrl = 'v1/targeting/base/impproject/deleteSave';
     localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
+    console.log('before cleanup::', JSON.stringify(localProject));
     this.cleanupProject(localProject);
     this.logger.info.log('Project being saved', JSON.stringify(localProject));
     return this.restService.post(saveUrl, localProject).pipe(

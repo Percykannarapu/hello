@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { mapByExtended } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
+import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, FillPattern, getColorPalette, LayerGroupDefinition } from '@val/esri';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { LocalState } from '../state';
-import { LegendData } from '../state/app.interfaces';
-import { ShadingState, ShadingType, VarDefinition, VariableRanges, NumericVariableShadingMethod } from '../state/shading/shading.reducer';
+import { LegendData, NumericVariableShadingMethod, ShadingType, VarDefinition, VariableRanges } from '../state/app.interfaces';
+import { MapUIState } from '../state/map-ui/map-ui.reducer';
 import { SetLegendData } from '../state/shared/shared.actions';
+import { SharedState } from '../state/shared/shared.reducers';
 import { ConfigService } from './config.service';
-import { localSelectors } from '../state/app.selectors';
-import { SetClassBreakValues } from '../state/shading/shading.actions';
+import { SetVariableShading } from '../state/map-ui/map-ui.actions';
 
 function formatNumber(value: number) {
   const localeOptions = {
@@ -52,7 +52,7 @@ export class ShadingService {
     }
   }
 
-  private static getLegendTitle(shadingData: ShadingState) : string {
+  private static getLegendTitle(shadingData: MapUIState) : string {
     switch (shadingData.shadingType) {
       case ShadingType.SITE:
         return 'Site Name';
@@ -100,28 +100,28 @@ export class ShadingService {
     return definitions;
   }
 
-  setShader(analysisLevel: string, shadingData: ShadingState, edits: RfpUiEdit[], details: RfpUiEditDetail[], createLayer: boolean) : Observable<__esri.Graphic[]> {
+  setShader(shared: SharedState, shadingData: MapUIState, edits: RfpUiEdit[], details: RfpUiEditDetail[], createLayer: boolean) : Observable<__esri.Graphic[]> {
     this.sortMap.clear();
     if (createLayer) {
-      return this.createShadingDetails(analysisLevel, shadingData, edits, details);
+      return this.createShadingDetails(shared, shadingData, edits, details);
     } else {
-      return this.editShadingDetails(analysisLevel, shadingData, details);
+      return this.editShadingDetails(shadingData, shared, edits, details);
     }
   }
 
-  private createShadingDetails(analysisLevel: string, shadingData: ShadingState, edits: RfpUiEdit[], details: RfpUiEditDetail[]) : Observable<__esri.Graphic[]> {
+  private createShadingDetails(shared: SharedState, shadingData: MapUIState, edits: RfpUiEdit[], details: RfpUiEditDetail[]) : Observable<__esri.Graphic[]> {
     this.generateSiteGeoMap(edits, details);
-    return this.generateGraphics(analysisLevel, details).pipe(
+    return this.generateGraphics(shared.analysisLevel, details).pipe(
       tap(graphics => this.enrichGraphics(graphics, shadingData, details)),
-      tap(graphics => this.generateLegend(analysisLevel, graphics, shadingData)),
-      tap(graphics => this.zoomOnStartup(graphics))
+      tap(graphics => this.generateLegend(shared, graphics, shadingData, edits, details)),
+      tap(graphics => this.zoomOnStartup(graphics)),
     );
   }
 
-  private editShadingDetails(analysisLevel: string, shadingData: ShadingState, details: RfpUiEditDetail[]) : Observable<__esri.Graphic[]> {
+  private editShadingDetails(shadingData: MapUIState, shared: SharedState, edits: RfpUiEdit[], details: RfpUiEditDetail[]) : Observable<__esri.Graphic[]> {
     return this.getCurrentGraphics().pipe(
       tap(graphics => this.enrichGraphics(graphics, shadingData, details)),
-      tap(graphics => this.generateLegend(analysisLevel, graphics, shadingData)),
+      tap(graphics => this.generateLegend(shared, graphics, shadingData, edits, details)),
     );
   }
 
@@ -153,7 +153,7 @@ export class ShadingService {
     return of(layer.graphics.toArray());
   }
 
-  private enrichGraphics(graphics: __esri.Graphic[], shadingData: ShadingState, details: RfpUiEditDetail[]) : void {
+  private enrichGraphics(graphics: __esri.Graphic[], shadingData: MapUIState, details: RfpUiEditDetail[]) : void {
     const detailsByGeocode = mapByExtended(details, d => d.geocode);
     const shadingAttribute = ShadingService.getShadingGroupAttributeName(shadingData.shadingType);
     for (const graphic of graphics) {
@@ -181,7 +181,7 @@ export class ShadingService {
     }
   }
 
-  private assignDemographicMetadata(graphic: __esri.Graphic, detail: RfpUiEditDetail, shadingData: ShadingState) {
+  private assignDemographicMetadata(graphic: __esri.Graphic, detail: RfpUiEditDetail, shadingData: MapUIState) {
     graphic.setAttribute('householdCount', detail.distribution);
     let varName;
     switch (shadingData.selectedVarName) {
@@ -244,11 +244,13 @@ export class ShadingService {
     throw new Error('Error generating variable suffix');
   }
 
-  private generateLegend(analysisLevel: string, graphics: __esri.Graphic[], shadingData: ShadingState) : void {
+  public generateLegend(shared: SharedState, graphics: __esri.Graphic[], shadingData: MapUIState, siteData: RfpUiEdit[], siteDetails: RfpUiEditDetail[]) : void {
     const legend = new Map<string, { color: number[], hhc: number }>();
-    const palette = shadingData.basePalette;
-    const layerId = this.configService.layers[analysisLevel].boundaries.id;
-    const layer = this.layerService.getPortalLayerById(layerId);
+    const palette = getColorPalette(shadingData.selectedPalette);
+    const layerId = this.configService.layers[shared.analysisLevel].boundaries.id;
+    const layers = this.layerService.getPortalLayersById(layerId);
+    const shadingGroup = this.layerService.getGroup('Shading');
+    const layer = layers.filter(l => l['parent'] !== shadingGroup)[0];
     graphics.sort((a, b) => {
       const groupA: string = a.getAttribute('SHADING_GROUP');
       const groupB: string = b.getAttribute('SHADING_GROUP');
@@ -280,10 +282,49 @@ export class ShadingService {
       if (this.sortMap.has(k)) {
         legendSettings.push({ groupName: k, color: v.color, hhc: v.hhc, sortOrder: this.sortMap.get(k) });
       } else {
-        legendSettings.push({ groupName: k, color: v.color, hhc: v.hhc, sortOrder: null });
+        legendSettings.push({ groupName: k, color: v.color, hhc: v.hhc });
       }
     });
-    this.store$.dispatch(new SetLegendData({ legendData: legendSettings, legendTitle: ShadingService.getLegendTitle(shadingData) }));
+
+    if ((shadingData.shadeAnne || shadingData.shadeSolo)) {
+      if (shared.radius != null && shared.radius > 0) {
+        const promoEndDate = new Date(shared.promoDateTo);
+        const countAttr = promoEndDate.getMonth() >= 4 && promoEndDate.getMonth() <= 8 ? 'hhld_s' : 'hhld_w';
+        const points = siteData.map(s => new EsriApi.Point({ latitude: s.siteLat, longitude: s.siteLong }));
+        const hhCountMap = mapByExtended(siteDetails, s => s.geocode, s => s.distribution);
+        const selectedGeos = new Set(siteDetails.filter(s => s.isSelected).map(s => s.geocode));
+        this.queryService.queryPointWithBuffer(layerId, points, shared.radius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'hhld_w', 'hhld_s', 'latitude', 'longitude'])
+          .subscribe(results => {
+            let anneCount = 0;
+            let soloCount = 0;
+            results.forEach(r => {
+              const currentPoint = new EsriApi.Point({ latitude: r.attributes.latitude, longitude: r.attributes.longitude });
+              const useResult = points.some(p => EsriUtils.getDistance(p, currentPoint) <= shared.radius) && !selectedGeos.has(r.attributes.geocode);
+              if (useResult) {
+                if (r.attributes.owner_group_primary === 'ANNE') anneCount += hhCountMap.get(r.attributes.geocode) || Number(r.attributes[countAttr]);
+                if (r.attributes.cov_frequency === 'Solo') soloCount += hhCountMap.get(r.attributes.geocode) || Number(r.attributes[countAttr]);
+              }
+            });
+            if (shadingData.shadeAnne) {
+              legendSettings.push({ groupName: 'ANNE Geographies', hhc: anneCount, image: shadingData.annePattern, sortOrder: 0 });
+            }
+            if (shadingData.shadeSolo) {
+              legendSettings.push({ groupName: 'Solo Geographies', hhc: soloCount, image: shadingData.soloPattern, sortOrder: 1 });
+            }
+            this.store$.dispatch(new SetLegendData({ legendData: legendSettings, legendTitle: ShadingService.getLegendTitle(shadingData) }));
+          });
+      } else {
+        if (shadingData.shadeAnne) {
+          legendSettings.push({ groupName: 'ANNE Geographies', hhc: null, image: shadingData.annePattern, sortOrder: 0 });
+        }
+        if (shadingData.shadeSolo) {
+          legendSettings.push({ groupName: 'Solo Geographies', hhc: null, image: shadingData.soloPattern, sortOrder: 1 });
+        }
+        this.store$.dispatch(new SetLegendData({ legendData: legendSettings, legendTitle: ShadingService.getLegendTitle(shadingData) }));
+      }
+    } else {
+      this.store$.dispatch(new SetLegendData({ legendData: legendSettings, legendTitle: ShadingService.getLegendTitle(shadingData) }));
+    }
   }
 
   private zoomOnStartup(graphics: __esri.Graphic[]) {
@@ -293,19 +334,59 @@ export class ShadingService {
     }
   }
 
-  calculateEqualIntervals(payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod}) {
-    let classBreakValues = [80, 120, 140];
+  calculateEqualIntervals(payload: {breakCount: number, selectedVar: VarDefinition, selectedNumericMethod: NumericVariableShadingMethod, classBreakValues: number[], isRowCheckOrUncheck?: boolean}) {
+    let classBreakValues = payload.selectedNumericMethod != NumericVariableShadingMethod.CustomClassifications ? [80, 120, 140] : payload.classBreakValues;
     const interval = (payload.selectedVar.maxValue - payload.selectedVar.minValue) / payload.breakCount;
-    if (payload.selectedNumericMethod != NumericVariableShadingMethod.StandardIndex){
+    if (payload.selectedNumericMethod != NumericVariableShadingMethod.StandardIndex && payload.selectedNumericMethod != NumericVariableShadingMethod.CustomClassifications){
       classBreakValues = [];
       for (let i = 0; i < payload.breakCount - 1; ++i) {
         const currentBreak = (interval * (i + 1)) + payload.selectedVar.minValue;
         classBreakValues.push(currentBreak);
       }
+      if (payload.isRowCheckOrUncheck != null && payload.isRowCheckOrUncheck){
+        const classifications: VariableRanges[] = [];
+        classifications.push({ minValue: null, maxValue: classBreakValues[0] });
+        for (let i = 1; i < classBreakValues.length; ++i) {
+          classifications.push({ minValue: classBreakValues[i - 1], maxValue: classBreakValues[i] });
+        }
+        classifications.push({ minValue: classBreakValues[classBreakValues.length - 1], maxValue: null });
+        this.store$.dispatch(new SetVariableShading({ classifications, selectedVarName: payload.selectedVar.name }));
+      }
     }
-      
-    return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar, 
+
+    return {classBreakValues: classBreakValues, breakCount: payload.breakCount, selectedVar: payload.selectedVar,
             selectedNumericMethod: payload.selectedNumericMethod};
+  }
+
+  public setupCrossHatchLayer(layerConfig: LayerGroupDefinition, layerName: string, group: __esri.GroupLayer, expression: string, showLayer: boolean, recreateLayer: boolean, pattern: FillPattern) : void {
+    const foundLayer = this.layerService.getFeatureLayer(layerName);
+
+    if (foundLayer != null) {
+      foundLayer.visible = showLayer;
+      return;
+    }
+
+    if (recreateLayer == false) return;
+
+    const layerProps: Partial<__esri.FeatureLayer> = {
+      legendEnabled : false,
+      labelsVisible : false,
+      popupEnabled : false,
+      renderer : new EsriApi.UniqueValueRenderer({
+        defaultSymbol: new EsriApi.SimpleFillSymbol({ color: [0, 0, 0, 0], outline: { color: [0, 0, 0, 0] } }),
+        uniqueValueInfos: [{
+          value: 1,
+          symbol: new EsriApi.SimpleFillSymbol({
+            style: pattern,
+            color: [0, 0, 0, 0.5]
+          })
+        }],
+        valueExpression: expression,
+      })
+    };
+
+    this.layerService.createPortalLayer(layerConfig.boundaries.id, layerName, layerConfig.boundaries.minScale, showLayer, layerProps)
+      .subscribe(newLayer => group.add(newLayer));
   }
 
 }

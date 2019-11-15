@@ -72,6 +72,7 @@ export const selectGridGeoVars = createSelector(
     const transformedEntity = transformEntity(geoVars, (varName, val) => {
       if ((audiences.hasOwnProperty(varName) && audiences[varName].showOnGrid))
         result.numVars++;
+
       switch (audiences.hasOwnProperty(varName) ? audiences[varName].fieldconte : 'unknown') {
         case 'COUNT':
         case 'MEDIAN':
@@ -96,6 +97,8 @@ export const selectGridGeoVars = createSelector(
         return varName;
     });
 
+
+
     const entityMap: Map<string, any> = groupEntityToArray(Object.keys(geoVars).map(key => geoVars[key]),
       (k) => {
         if (k === 'geocode')
@@ -108,6 +111,22 @@ export const selectGridGeoVars = createSelector(
       });
 
     result.geoVars = transformedEntity as Dictionary<GeoVar>;
+    
+    for (const aud in audiences){
+      if (audiences[aud].isCombined && audiences[aud].showOnGrid){
+          for (const geovar in result.geoVars) {
+            if (geovar != null){
+            result.geoVars[geovar][audiences[aud].audienceIdentifier] = audiences[aud].combinedAudiences.reduce((p, c) => {
+              p += geoVars[geovar][c] as number;
+              return p;
+            }, 0);
+
+          }
+        }
+      }
+
+      }
+
 
     // Track the distinct list of values for CHAR and min/max for numerics
     entityMap.forEach((value, varPk) => {

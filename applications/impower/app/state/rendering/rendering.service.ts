@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@angular/core';
 import { mapArrayToEntity } from '@val/common';
 import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService } from '@val/esri';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { defaultLocationPopupFields, LocationDrawDefinition } from './location.transform';
 import { TradeAreaDrawDefinition } from './trade-area.transform';
-import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +19,7 @@ export class RenderingService {
 
   clearTradeAreas() : void {
     const layersToRemove = this.esriMapService.mapView.map.allLayers.toArray()
-      .filter(l => l.title.toLowerCase().includes('audience') || l.title.toLowerCase().includes('radius'));
+      .filter(l => l.title !== null && (l.title.toLowerCase().includes('audience') || l.title.toLowerCase().includes('radius')));
     this.logger.debug.log('Removing', layersToRemove.length, 'layers');
     layersToRemove.forEach(l => this.esriLayerService.removeLayer(l.title));
   }
@@ -65,7 +65,9 @@ export class RenderingService {
   }
 
   private createNewSiteLayer(definition: LocationDrawDefinition) {
+    const legendName = definition.siteType == ImpClientLocationTypeCodes.Site ? 'Client Locations' : 'Competitor Locations';
     const siteRenderer =  new EsriApi.SimpleRenderer({
+      label: legendName,
       symbol: new EsriApi.SimpleMarkerSymbol({
         style: 'path',
         path: definition.symbolPath,
@@ -84,7 +86,7 @@ export class RenderingService {
     });
     const labelColor = new EsriApi.Color(definition.color);
     const labelClass: __esri.LabelClass = this.esriFactory.createLabelClass(labelColor, definition.labelExpression);
-    this.esriLayerService.createClientLayer(definition.groupName, definition.layerName, definition.sites, 'parentId', siteRenderer, popupTemplate, [labelClass]);
+    this.esriLayerService.createClientLayer(definition.groupName, definition.layerName, definition.sites, 'parentId', siteRenderer, popupTemplate, [labelClass], true);
   }
 
   private updateSiteLayer(currentLayer: __esri.FeatureLayer, definition: LocationDrawDefinition) {

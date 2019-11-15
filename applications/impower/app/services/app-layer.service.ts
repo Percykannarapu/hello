@@ -1,11 +1,12 @@
 import { Inject, Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
-import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, LayerDefinition, LayerGroupDefinition, selectors, SetLayerLabelExpressions } from '@val/esri';
-import { combineLatest, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, finalize, map, take, tap } from 'rxjs/operators';
+import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriService, LayerDefinition, LayerGroupDefinition, selectors } from '@val/esri';
+import { merge, Observable } from 'rxjs';
+import { distinctUntilChanged, filter, finalize, map, pairwise, startWith, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
+import { LayerSetupComplete } from '../state/data-shim/data-shim.actions';
 import { CreateMapUsageMetric } from '../state/usage/targeting-usage.actions';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLoggingService } from './app-logging.service';
@@ -26,82 +27,68 @@ export class AppLayerService {
 
   constructor(private layerService: EsriLayerService,
               private esriFactory: EsriDomainFactoryService,
+              private esri: EsriService,
               private appStateService: AppStateService,
               private generator: AppComponentGeneratorService,
               private logger: AppLoggingService,
               private appConfig: AppConfig,
               @Inject(EsriAppSettingsToken) private esriAppSettings: EsriAppSettings,
               private store$: Store<FullAppState>) {
-    this.store$.pipe(
-      select(selectors.getMapReady),
-      filter(ready => ready),
-      take(1)
-    ).subscribe(() => {
-      this.appStateService.analysisLevel$.subscribe(al => this.setDefaultLayerVisibility(al));
-    });
-
-    combineLatest(this.appStateService.applicationIsReady$, this.layerService.layersReady$).pipe(
-      filter(([appIsReady, layersReady]) => !appIsReady && layersReady),
-      distinctUntilChanged()
-    ).subscribe(() => this.clearClientLayers());
+    this.appStateService.analysisLevel$.pipe(
+      filter(al => al != null),
+      startWith(''),
+      pairwise()
+    ).subscribe(([prev, curr]) => this.setDefaultLayerVisibility(prev, curr));
   }
 
-  private setDefaultLayerVisibility(currentAnalysisLevel: string) : void {
+  private setDefaultLayerVisibility(previousAnalysisLevel: string, currentAnalysisLevel: string) : void {
     this.logger.info.log('Setting default layer visibility for', currentAnalysisLevel);
-   //
-    this.layerService.getAllPortalGroups().forEach(g => g.visible = false);
-    if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 ){
-      const portalId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
-      const groupKeys: string[] = this.analysisLevelToGroupNameMap[currentAnalysisLevel];
-      this.logger.debug.log('New visible groups', groupKeys);
-      if (groupKeys != null && groupKeys.length > 0) {
-        const layerGroups = groupKeys.map(g => this.appConfig.layers[g]);
-        if (layerGroups != null && layerGroups.length > 0) {
-          layerGroups.forEach(layerGroup => {
-            if (this.layerService.portalGroupExists(layerGroup.group.name)) {
-              this.layerService.getPortalGroup(layerGroup.group.name).visible = true;
-            }
-             /* comment for US9547
-
-             if (layerGroup.boundaries.id !== portalId){
-               this.layerService.getPortalLayerById(layerGroup.boundaries.id).popupEnabled = false;
-             }*/
-          });
-        }
+    const previousGroupKeys = this.analysisLevelToGroupNameMap[previousAnalysisLevel] || [];
+    const currentGroupKeys = this.analysisLevelToGroupNameMap[currentAnalysisLevel] || [];
+    const previousGroupNames = new Set(previousGroupKeys.map(g => this.appConfig.layers[g].group.name));
+    const currentGroupNames = new Set(currentGroupKeys.map(g => this.appConfig.layers[g].group.name));
+    this.layerService.getAllPortalGroups().forEach(g => {
+      if (currentGroupNames.has(g.title)) {
+        g.visible = true;
+      } else if (previousGroupNames.has(g.title)) {
+        g.visible = false;
       }
-    }
+    });
   }
 
-  public initializeLayers() : Observable<__esri.FeatureLayer> {
+  public initializeLayers(isBatchMapping: boolean = false) : Observable<__esri.FeatureLayer> {
     const sortedLayerDefs = Object.values(this.appConfig.layers);
     sortedLayerDefs.sort((a, b) => a.group.sortOrder - b.group.sortOrder);
     const results: Observable<__esri.FeatureLayer>[] = [];
     sortedLayerDefs.forEach(layerGroup => {
-      const layerObservables = this.initializeLayerGroup(layerGroup);
+      const layerObservables = this.initializeLayerGroup(layerGroup, isBatchMapping);
       results.push(...layerObservables);
     });
     return merge(...results, 2).pipe(
       finalize(() => {
-        this.updateLabelExpressions(false);
+        this.updateLabelExpressions(false, isBatchMapping);
         this.resumeLayerWatch(this.pausableWatches);
         // set up sub for future label expression changes
         this.store$.pipe(
           select(selectors.getEsriLabelConfiguration),
           map(config => config.pobEnabled),
           distinctUntilChanged()
-        ).subscribe(showPOBs => this.updateLabelExpressions(showPOBs));
+        ).subscribe(showPOBs => this.updateLabelExpressions(showPOBs, isBatchMapping));
+        this.store$.dispatch(new LayerSetupComplete());
       })
     );
   }
 
-  private initializeLayerGroup(groupDefinition: LayerGroupDefinition) : Observable<__esri.FeatureLayer>[] {
+  private initializeLayerGroup(groupDefinition: LayerGroupDefinition, isBatchMapping: boolean) : Observable<__esri.FeatureLayer>[] {
     const layerObservables: Observable<__esri.FeatureLayer>[] = [];
     const group = this.layerService.createPortalGroup(groupDefinition.group.name, false);
     this.addVisibilityWatch(group);
     const layerDefinitions = [ groupDefinition.centroids, groupDefinition.boundaries ].filter(l => l != null);
     layerDefinitions.forEach(layerDef => {
       const layerSortIndex = layerDef.sortOrder || 0;
-      const layerPipeline = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility).pipe(
+      const isSimplifiedLayer = isBatchMapping && layerDef.simplifiedId != null;
+      const layerId = isSimplifiedLayer ? layerDef.simplifiedId : layerDef.id;
+      const layerPipeline = this.layerService.createPortalLayer(layerId, layerDef.name, layerDef.minScale, layerDef.defaultVisibility, { legendEnabled: false }).pipe(
         tap(layer => this.setupIndividualLayer(layer, layerDef)),
         tap(layer => group.add(layer, layerSortIndex)),
       );
@@ -122,11 +109,13 @@ export class AppLayerService {
     });
   }
 
-  public updateLabelExpressions(showPOBs: boolean) : void {
+  public updateLabelExpressions(showPOBs: boolean, isBatchMode: boolean = false) : void {
     const groupDefs = Object.values(this.appConfig.layers);
     const allLayers = simpleFlatten(groupDefs.map(g => [g.centroids, g.boundaries])).filter(l => l != null);
-    const labelLayerMap = mapByExtended(allLayers, l => l.id, l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset, colorOverride: l.labelColorOverride }));
-    this.store$.dispatch(new SetLayerLabelExpressions({ expressions: mapToEntity(labelLayerMap) }));
+    const labelLayerMap = mapByExtended(allLayers,
+        l => isBatchMode && l.simplifiedId ? l.simplifiedId : l.id,
+        l => ({ expression: this.getLabelExpression(l, showPOBs), fontSizeOffset: l.labelFontSizeOffset, colorOverride: l.labelColorOverride }));
+    this.esri.setLayerLabelExpressions(mapToEntity(labelLayerMap));
   }
 
   private getLabelExpression(l: LayerDefinition, showPOBs: boolean) : string {
@@ -134,7 +123,7 @@ export class AppLayerService {
       if (showPOBs) {
         return l.labelExpression;
       } else {
-        return `IIF($feature.pob == "B", "", ${l.labelExpression})`;
+        return `if (HasKey($feature, "pob")) { return IIF($feature.pob == "B", "", ${l.labelExpression}); } else { return ${l.labelExpression}; }`;
       }
     } else {
       return l.labelExpression;
@@ -183,6 +172,7 @@ export class AppLayerService {
     } else {
       result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
     }
+    result.outFields = Array.from(fieldsToUse);
     result.overwriteActions = true;
    return new EsriApi.PopupTemplate(result);
   }

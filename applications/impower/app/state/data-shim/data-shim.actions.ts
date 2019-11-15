@@ -1,6 +1,7 @@
 import { Action } from '@ngrx/store';
 import { ProjectFilterChanged } from '../../models/ui-enums';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { TradeAreaDefinition } from 'app/services/app-trade-area.service';
 
 export enum DataShimActionTypes {
   ProjectSaveSuccess = '[Application Data Shim] Project Saved Successfully',
@@ -27,7 +28,11 @@ export enum DataShimActionTypes {
   CalculateMetrics = '[Application Data Shim] Calculate Color box metrics',
 
   ProjectLoadFinish = '[Application Data Shim] Project Load Finish',
-  IsProjectReload = '[Application Data Shim] Project Reload'
+  IsProjectReload = '[Application Data Shim] Project Reload',
+
+  LayerSetupComplete = '[Application Data Shim] Layer Setup Complete',
+
+  TradeAreaRollDownGeos = '[Application Data Shim] TradeArea RollDown Geos'
 }
 
 export class ProjectSaveAndNew implements Action {
@@ -60,7 +65,9 @@ export class ProjectSaveFailure implements Action {
 
 export class ProjectLoad implements Action {
   readonly type = DataShimActionTypes.ProjectLoad;
-  constructor(public payload: { projectId: number, isReload: boolean }) {}
+  constructor(public payload: { projectId: number, isReload: boolean, isBatchMode?: boolean }) {
+    payload.isBatchMode = payload.isBatchMode || false;
+  }
 }
 
 export class ProjectLoadSuccess implements Action {
@@ -103,7 +110,7 @@ export class ExportApioNationalData implements Action {
 
 export class FiltersChanged implements Action {
   readonly type = DataShimActionTypes.FiltersChanged;
-  constructor(public payload: { filterChanged?: ProjectFilterChanged }) {}
+  constructor(public payload: { filterChanged?: ProjectFilterChanged, filterFlag?: boolean }) {}
 }
 
 export class CalculateMetrics implements Action {
@@ -114,7 +121,16 @@ export class ProjectLoadFinish implements Action {
   readonly type = DataShimActionTypes.ProjectLoadFinish;
 }
 
+export class LayerSetupComplete implements Action {
+  readonly type = DataShimActionTypes.LayerSetupComplete;
+}
 
+export class TradeAreaRollDownGeos implements Action {
+  readonly type = DataShimActionTypes.TradeAreaRollDownGeos;
+  constructor(public payload: { geos: string[], queryResult:  Map<string, {latitude: number, longitude: number}>,
+                                fileAnalysisLevel: string, matchedTradeAreas: TradeAreaDefinition[]
+                              }) {}
+}
 
 export type DataShimActions =
   ProjectSaveAndNew |
@@ -134,4 +150,6 @@ export type DataShimActions =
   FiltersChanged |
   CalculateMetrics|
   IsProjectReload|
-  ProjectLoadFinish;
+  ProjectLoadFinish |
+  LayerSetupComplete |
+  TradeAreaRollDownGeos;

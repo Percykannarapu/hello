@@ -1,26 +1,26 @@
-import { SortMeta } from 'primeng/api';
-import { ObjectUtils } from 'primeng/components/utils/objectutils';
-import { MultiSelect } from 'primeng/multiselect';
-import { FieldContentTypeCodes } from '../../impower-datastore/state/models/impower-model.enums';
-import { isString } from 'util';
-import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { LoggingService } from '../../val-modules/common/services/logging.service';
-import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
-import { Component, OnDestroy, OnInit, ViewChild, ViewChildren, QueryList, Input, ChangeDetectionStrategy, EventEmitter, Output } from '@angular/core';
-import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
-import { map, tap, refCount, publishReplay } from 'rxjs/operators';
-import { SelectItem } from 'primeng/components/common/selectitem';
-import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
-import { Table } from 'primeng/table';
-import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { distinctArray, mapArray, resolveFieldData, roundTo } from '@val/common';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import { GridGeoVar } from 'app/impower-datastore/state/transient/transient.reducer';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import { SortMeta } from 'primeng/api';
+import { SelectItem } from 'primeng/components/common/selectitem';
+import { ObjectUtils } from 'primeng/components/utils/objectutils';
+import { MultiSelect } from 'primeng/multiselect';
+import { Table } from 'primeng/table';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { filter, map, publishReplay, refCount, tap } from 'rxjs/operators';
+import { isString } from 'util';
+import { FieldContentTypeCodes } from '../../impower-datastore/state/models/impower-model.enums';
+import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { AppStateService } from '../../services/app-state.service';
+import { LoggingService } from '../../val-modules/common/services/logging.service';
+import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
+import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
+import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
+import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
 
 export interface FlatGeo {
   fgId: number;
@@ -41,7 +41,8 @@ interface AttributeEntity { [geocode: string] : GeoAttribute; }
   selector: 'val-geofootprint-geo-list',
   templateUrl: './geofootprint-geo-list.component.html',
   styleUrls: ['./geofootprint-geo-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 {
@@ -281,7 +282,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.allVars$ = this.allVarsBS$.asObservable();
 
       // Whenever the project changes, update the grid export file name
-      this.project$.subscribe(project => {
+      this.project$.pipe(filter(p => p != null)).subscribe(project => {
          this._geoGrid.exportFilename = 'geo-grid' + ((project != null && project.projectId != null) ? '-' + project.projectId.toString() : '') + '-export';
 
          // In the event of a project load, clear the grid filters

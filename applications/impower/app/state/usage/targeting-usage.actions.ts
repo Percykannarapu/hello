@@ -36,6 +36,12 @@ export class CreateMapUsageMetric extends CreateTargetingUsageMetric {
   }
 }
 
+export class CreateMapExportUsageMetric extends CreateTargetingUsageMetric {
+  constructor(target: string, action: string, metricText?: string, metricValue?: number) {
+    super('map', target, action, metricText, metricValue);
+  }
+}
+
 export class CreateTradeAreaUsageMetric extends CreateTargetingUsageMetric {
   constructor(target: string, action: string, metricText?: string, metricValue?: number) {
     super('tradearea', target, action, metricText, metricValue);

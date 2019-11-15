@@ -1,16 +1,18 @@
-import { ClearGeoVars } from './../impower-datastore/state/transient/geo-vars/geo-vars.actions';
-import { ApplyAudiences } from './../impower-datastore/state/transient/audience/audience.actions';
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { dedupeSimpleSet, distinctArray, filterArray, groupBy, isNumber, mapArray, mapArrayToEntity, setsAreEqual } from '@val/common';
+import { dedupeSimpleSet, distinctArray, filterArray, groupBy, isNumber, mapArray, mapArrayToEntity } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
-import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
-import { catchError, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
-import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
+import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
+import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, startWith, switchMap, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
+import { ApplyAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
+import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { ClearGeoVars } from '../impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
-import { projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { CachedObservable } from '../val-modules/api/models/CachedObservable';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
@@ -21,9 +23,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
-import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { AppProjectService } from './app-project.service';
-import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 
 export enum Season {
   Summer = 'summer',
@@ -35,9 +35,11 @@ export enum Season {
 })
 export class AppStateService {
 
+  private mapIsReady = new Subject<void>();
+
   private refreshDynamicContent = new Subject<any>();
   public refreshDynamicContent$: Observable<any> = this.refreshDynamicContent.asObservable().pipe(throttleTime(500));
-  public applicationIsReady$: Observable<boolean>;
+  public applicationIsReady$ = new BehaviorSubject<boolean>(false);
 
   private closeOverlayPanel = new Subject<string>();
   public closeOverlayPanel$: Observable<string> = this.closeOverlayPanel.asObservable();
@@ -60,6 +62,7 @@ export class AppStateService {
   public uniqueVisibleGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueSelectedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueIdentifiedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
+  public totalGeoCount$: Observable<number>;
 
   public siteTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
   public competitorTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
@@ -75,9 +78,12 @@ export class AppStateService {
 
   public projectVarsDict$: CachedObservable<any> = new BehaviorSubject<any>(null);
 
-  private setVisibleGeosForLayer$ = new Subject<string>();
+  private getVisibleGeos$ = new Subject<void>();
 
   private isCollapsed = new BehaviorSubject<boolean>(false);
+
+  public filterFlag: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public filterFlag$: Observable<boolean> = this.filterFlag.asObservable();
 
   constructor(private projectService: AppProjectService,
               private locationService: ImpGeofootprintLocationService,
@@ -88,14 +94,19 @@ export class AppStateService {
               private esriLayerService: EsriLayerService,
               private esriQueryService: EsriQueryService,
               private logger: AppLoggingService,
+              private config: AppConfig,
               private store$: Store<FullAppState>) {
-    this.setupApplicationReadyObservable();
-    this.setupProjectObservables();
     this.setupLocationObservables();
-    this.setupGeocodeObservables();
-    this.setupTradeAreaObservables();
-    this.setupProvidedTaObservables();
-    this.setupProjectVarObservables();
+    this.mapIsReady.pipe(
+      take(1)
+    ).subscribe(() => {
+      this.setupApplicationReadyObservable();
+      this.setupProjectObservables();
+      this.setupGeocodeObservables();
+      this.setupTradeAreaObservables();
+      this.setupProvidedTaObservables();
+      this.setupProjectVarObservables();
+    });
   }
 
   public setProvidedTradeAreas(newValue: boolean, siteType: SuccessfulLocationTypeCodes) : void {
@@ -121,16 +132,19 @@ export class AppStateService {
     this.clearUI.next();
   }
 
-  public setVisibleGeocodes(layerId: string) : void {
-    this.setVisibleGeosForLayer$.next(layerId);
+  public refreshVisibleGeos() : void {
+    this.getVisibleGeos$.next();
+  }
+
+  public notifyMapReady() : void {
+    this.mapIsReady.next();
   }
 
   private setupApplicationReadyObservable() : void {
-    this.applicationIsReady$ =
-      combineLatest([this.esriLayerService.layersReady$, this.store$.select(projectIsReady)]).pipe(
-        map(([layersReady, projectReady]) => layersReady && projectReady),
-        distinctUntilChanged()
-      );
+    combineLatest([this.store$.select(layersAreReady), this.store$.select(projectIsReady)]).pipe(
+      map(([layersReady, projectReady]) => layersReady && projectReady),
+      distinctUntilChanged()
+    ).subscribe(this.applicationIsReady$);
   }
 
   private setupProjectObservables() : void {
@@ -175,26 +189,31 @@ export class AppStateService {
   private setupLocationObservables() : void {
     this.allLocations$ = this.locationService.storeObservable.pipe(
       filter(locations => locations != null),
-      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0 && (l.clientLocationTypeCode === 'Site' || l.clientLocationTypeCode === 'Competitor'))
+      filterArray(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
     );
     this.activeLocations$ = this.allLocations$.pipe(
       filterArray(l => l.isActive)
     );
     this.allClientLocations$ = this.allLocations$.pipe(
-      filterArray(l => l.clientLocationTypeCode === 'Site')
+      filterArray(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site)
     );
     this.allCompetitorLocations$ = this.allLocations$.pipe(
-      filterArray(l => l.clientLocationTypeCode === 'Competitor')
+      filterArray(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
     );
     this.activeClientLocations$ = this.allClientLocations$.pipe(
-      filterArray(l => l.isActive === true)
+      filterArray(l => l.isActive)
     );
     this.activeCompetitorLocations$ = this.allCompetitorLocations$.pipe(
-      filterArray(l => l.isActive === true)
+      filterArray(l => l.isActive)
     );
   }
 
   private setupGeocodeObservables() : void {
+    this.totalGeoCount$ = this.geoService.storeObservable.pipe(
+      filter(geos => geos != null),
+      map(geos => geos.length),
+      startWith(0)
+    );
     this.geoService.storeObservable.pipe(
       filterArray(geo => geo.isActive),
       mapArray(geo => geo.geocode),
@@ -223,23 +242,26 @@ export class AppStateService {
       filter(geoSet => geoSet.size > 0),
       withLatestFrom(completeAttributes$),
       map(([requestedGeos, currentGeos]) => dedupeSimpleSet(requestedGeos, new Set(currentGeos))),
-      withLatestFrom(this.applicationIsReady$),
+      withLatestFrom(this.applicationIsReady$, this.filterFlag$),
       filter(([newGeos, isReady]) => newGeos.size > 0 && isReady),
-    ).subscribe(([geoSet]) => {
-      this.store$.dispatch(new RequestAttributes({ geocodes: geoSet }));
+    ).subscribe(([geoSet, , filterFlag]) => {
+      if (filterFlag !== null && filterFlag !== undefined) {
+        this.store$.dispatch(new RequestAttributes({ geocodes: geoSet, flag: filterFlag }));
+      }else {
+        this.store$.dispatch(new RequestAttributes({ geocodes: geoSet}));
+      }
       this.store$.dispatch(new ClearGeoVars());
       this.store$.dispatch(new ApplyAudiences({analysisLevel: this.analysisLevel$.getValue()}));
     });
 
-    this.setVisibleGeosForLayer$.pipe(
+    this.getVisibleGeos$.pipe(
+      withLatestFrom(this.analysisLevel$),
+      filter(([, analysisLevel]) => analysisLevel != null && analysisLevel.length > 0),
+      map(([, analysisLevel]) => this.config.getLayerIdForAnalysisLevel(analysisLevel)),
       switchMap(layerId => this.esriQueryService.queryPortalLayerView(layerId).pipe(
-        map(graphics => graphics.map(g => g.attributes.geocode))
+        map(graphics => graphics.filter(g => g.attributes.pob !== 'B').map(g => g.attributes.geocode))
       )),
-      map(geos => new Set(geos)),
-      startWith(null),
-      pairwise(),
-      filter(([previous, current]) => !setsAreEqual(current, previous)),
-      map(([, geoSet]) => Array.from(geoSet)),
+      map(geos => Array.from(new Set(geos)))
     ).subscribe(this.uniqueVisibleGeocodes$ as BehaviorSubject<string[]>);
   }
 
@@ -281,9 +303,5 @@ export class AppStateService {
 
   triggerChangeInCollapse(collapse: boolean){
     this.isCollapsed.next(collapse);
-  }
-
-  stopObservingCollapse(){
-    this.isCollapsed.complete();
   }
 }
