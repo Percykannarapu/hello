@@ -1,22 +1,18 @@
 import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Params } from '@angular/router';
-
 import { Store } from '@ngrx/store';
-
 import { isError } from '@val/common';
 import { selectors as esriSelectors } from '@val/esri';
-
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { debounceTime, filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
-
+import * as StackTrace from 'stacktrace-js';
 import { AppConfig } from '../../app.config';
+import { getMapAudienceIsFetching } from '../../impower-datastore/state/transient/audience/audience.selectors';
 import { BatchMapService } from '../../services/batch-map.service';
 import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode } from '../../state/batch-map/batch-map.actions';
 import { getBatchMapReady, getCurrentSiteNum, getLastSiteFlag, getMapMoving, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
 import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
-import { getMapAudienceIsFetching } from '../../impower-datastore/state/transient/audience/audience.selectors';
-// import * as StackTrace from 'stacktrace-js';
 
 interface BatchMapQueryParams {
   height: number;
@@ -48,18 +44,18 @@ export class BatchMapComponent implements OnInit, OnDestroy {
               private config: AppConfig,
               private zone: NgZone) {
     const stdErr = console.error;
-  //   console.error = (...args) => {
-  //     this.zone.run(() => {
-  //       if (isError(args[1])) {
-  //         StackTrace.fromError(args[1]).then(frames => {
-  //           this.lastError = args[0] + '<br>' + args[1].message + '<br>' + frames.filter(f => !f.fileName.includes('node_modules')).join('<br>');
-  //         });
-  //       } else {
-  //         this.lastError = args.join('<br>');
-  //       }
-  //     });
-  //     stdErr(...args);
-  //   };
+    console.error = (...args) => {
+      this.zone.run(() => {
+        if (isError(args[1])) {
+          StackTrace.fromError(args[1]).then(frames => {
+            this.lastError = args[0] + '<br>' + args[1].message + '<br>' + frames.filter(f => !f.fileName.includes('node_modules')).join('<br>');
+          });
+        } else {
+          this.lastError = args.join('<br>');
+        }
+      });
+      stdErr(...args);
+    };
   }
 
   private static convertParams(params: Params) : BatchMapQueryParams {
