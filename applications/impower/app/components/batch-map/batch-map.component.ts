@@ -45,15 +45,15 @@ export class BatchMapComponent implements OnInit, OnDestroy {
               private zone: NgZone) {
     const stdErr = console.error;
     console.error = (...args) => {
-      this.zone.run(() => {
-        if (isError(args[1])) {
-          StackTrace.fromError(args[1]).then(frames => {
-            this.lastError = args[0] + '<br>' + args[1].message + '<br>' + frames.filter(f => !f.fileName.includes('node_modules')).join('<br>');
-          });
-        } else {
-          this.lastError = args.join('<br>');
-        }
-      });
+      let errorMessage: string;
+      if (isError(args[1])) {
+        StackTrace.fromError(args[1]).then(frames => {
+          errorMessage = args[0] + '<br>' + args[1].message + '<br>' + frames.filter(f => !f.fileName.includes('node_modules')).join('<br>');
+        });
+      } else {
+        errorMessage = args.join('<br>');
+      }
+      this.zone.run(() => this.lastError = errorMessage);
       stdErr(...args);
     };
   }
