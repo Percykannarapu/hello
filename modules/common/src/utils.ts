@@ -423,3 +423,9 @@ export function formatDateForFuse(date: Date) : string {
   const day = date.getDate();
   return `${year}-${zeroPad(month)}-${zeroPad(day)}`;
 }
+
+export function strToBool(value: string) : boolean {
+  if (value == null) return false;
+  const lcValue = value.toLowerCase();
+  return /^true$|^t$|^yes$|^y$|^1$/.test(lcValue);
+}

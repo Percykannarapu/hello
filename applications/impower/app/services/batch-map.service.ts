@@ -11,10 +11,12 @@ import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/a
 import { BatchMapPayload, LocalAppState } from '../state/app.interfaces';
 import { getBatchMapReady } from '../state/batch-map/batch-map.selectors';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
+import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { AppMapService } from './app-map.service';
 import { AppStateService } from './app-state.service';
 
@@ -27,6 +29,7 @@ export class BatchMapService {
   readonly printUrl: string = 'v1/impower/business/print';
 
   constructor(private geoService: ImpGeofootprintGeoService,
+              private locationService: ImpGeofootprintLocationService,
               private esriMapService: EsriMapService,
               private esriQueryService: EsriQueryService,
               private config: AppConfig,
@@ -52,7 +55,7 @@ export class BatchMapService {
     this.store$.select(getBatchMapReady).pipe(
       filter(ready => ready),
       take(1)
-    ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isReload: false })));
+    ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isReload: false, isBatchMode: true })));
   }
 
   requestBatchMap(payload: BatchMapPayload) : Observable<any> {
@@ -75,7 +78,7 @@ export class BatchMapService {
     return result;
   }
 
-  moveToSite(project: ImpProject, siteNum: string) : Observable<{ siteNum: string, isLastSite: boolean }> {
+  moveToSite(project: ImpProject, siteNum: string, hideNeighborSites: boolean) : Observable<{ siteNum: string, isLastSite: boolean }> {
     if (this.originalGeoState == null) {
       this.recordOriginalState(project);
     }
@@ -92,6 +95,10 @@ export class BatchMapService {
         currentGeos.forEach(g => {
           g.isActive = this.originalGeoState[g.ggId];
         });
+        if (hideNeighborSites) {
+          this.store$.dispatch(new RenderLocations({ locations: [currentSite] }));
+          this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas }));
+        }
         this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));
       } else {
         currentGeos.forEach(g => g.isActive = false);

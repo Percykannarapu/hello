@@ -82,6 +82,7 @@ export class AppDataShimService {
     this.appStateService.clearUserInterface();
     return this.appProjectService.load(id).pipe(
       tap(project => {
+        console.log('Project loaded', project);
         const paletteKey = this.appPrefService.getPrefVal('Theme');
         if (paletteKey != null) this.store$.dispatch(new SetPalette({ palette: AllColorPalettes[paletteKey] }));
         const mappedAudienceCount = project.impProjectVars.filter(pv => pv.isShadedOnMap).length;

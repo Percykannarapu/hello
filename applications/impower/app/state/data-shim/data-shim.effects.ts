@@ -12,6 +12,7 @@ import { GeoAttributeActionTypes, RehydrateAttributesComplete, RequestAttributes
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
 import { getBatchMode } from '../batch-map/batch-map.selectors';
+import { getTypedBatchQueryParams } from '../shared/router.interfaces';
 import {
   CalculateMetrics,
   CreateNewProject,
@@ -69,9 +70,8 @@ export class DataShimEffects {
   projectLoad$ = this.actions$.pipe(
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
-      withLatestFrom(this.appDataShimService.currentGeocodeSet$, this.store$.select(getBatchMode)),
-      map(([, geocodes, isBatch]) => isBatch
-        //? new ProjectLoadSuccess(action.payload)
+      withLatestFrom(this.appDataShimService.currentGeocodeSet$),
+      map(([, geocodes]) => action.payload.isBatchMode
         ? new RehydrateAudiences({ ...action.payload, notifyLoadSuccess: true })
         : new RehydrateAfterLoad({ ...action.payload, geocodes })),
       catchError(err => of(new ProjectLoadFailure({ err, isReload: false }))),

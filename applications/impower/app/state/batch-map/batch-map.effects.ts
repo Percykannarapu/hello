@@ -3,13 +3,14 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { of } from 'rxjs';
-import { catchError, debounceTime, filter, map, switchMap, take, withLatestFrom, tap } from 'rxjs/operators';
+import { catchError, debounceTime, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { BatchMapService } from '../../services/batch-map.service';
-import { LocalAppState, getRouteQueryParams } from '../app.interfaces';
+import { LocalAppState } from '../app.interfaces';
 import { DataShimActionTypes } from '../data-shim/data-shim.actions';
-import { BatchMapActions, BatchMapActionTypes, MoveToSite, SiteMoved, CreateBatchMap, OpenBatchMapDialog } from './batch-map.actions';
-import { getBatchMapReady, getBatchMode, getBatchMapDialog } from './batch-map.selectors';
+import { getTypedBatchQueryParams } from '../shared/router.interfaces';
+import { BatchMapActions, BatchMapActionTypes, MoveToSite, SiteMoved } from './batch-map.actions';
+import { getBatchMapReady, getBatchMode } from './batch-map.selectors';
 
 @Injectable()
 export class BatchMapEffects {
@@ -30,17 +31,17 @@ export class BatchMapEffects {
     ofType(DataShimActionTypes.ProjectLoadFinish),
     withLatestFrom(this.store$.select(getBatchMode)),
     filter(([, batchMode]) => batchMode),
-    withLatestFrom(this.store$.select(getRouteQueryParams)),
-    map(([, params]) => params.startingSite != null ? params.startingSite : null),
+    withLatestFrom(this.store$.select(getTypedBatchQueryParams)),
+    map(([, params]) => params.startingSite),
     map(siteNum => new MoveToSite({ siteNum: siteNum }))
   );
 
   @Effect()
   loadBatchMaps$ = this.actions$.pipe(
     ofType(BatchMapActionTypes.MoveToSite),
-    withLatestFrom(this.appStateService.currentProject$),
+    withLatestFrom(this.appStateService.currentProject$, this.store$.select(getTypedBatchQueryParams)),
     filter(([, project]) => project != null && project.projectId != null),
-    switchMap(([action, project]) => this.batchMapService.moveToSite(project, action.payload.siteNum)),
+    switchMap(([action, project, query]) => this.batchMapService.moveToSite(project, action.payload.siteNum, query.hideNeighboringSites)),
     switchMap((payload) => this.store$.select(getBatchMapReady).pipe(
       debounceTime(250),
       filter(ready => ready),

@@ -1,5 +1,4 @@
 import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { isError } from '@val/common';
 import { selectors as esriSelectors } from '@val/esri';
@@ -9,18 +8,11 @@ import * as StackTrace from 'stacktrace-js';
 import { AppConfig } from '../../app.config';
 import { getMapAudienceIsFetching } from '../../impower-datastore/state/transient/audience/audience.selectors';
 import { BatchMapService } from '../../services/batch-map.service';
-import { FullAppState, getRouteParams, getRouteQueryParams } from '../../state/app.interfaces';
+import { FullAppState } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode } from '../../state/batch-map/batch-map.actions';
 import { getBatchMapReady, getCurrentSiteNum, getLastSiteFlag, getMapMoving, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
 import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
-
-interface BatchMapQueryParams {
-  height: number;
-}
-
-const defaultQueryParams: BatchMapQueryParams = {
-  height: 850
-};
+import { BatchMapQueryParams, getRouteParams, getTypedBatchQueryParams } from '../../state/shared/router.interfaces';
 
 @Component({
   templateUrl: './batch-map.component.html',
@@ -59,16 +51,9 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     };
   }
 
-  private static convertParams(params: Params) : BatchMapQueryParams {
-    const result = {
-      ...defaultQueryParams,
-    };
-    if (params.height != null && !Number.isNaN(Number(params.height))) result.height = Number(params.height);
-
-    return result;
-  }
-
   ngOnInit() {
+    this.typedParams$ = this.store$.select(getTypedBatchQueryParams);
+
     this.store$.select(esriSelectors.getMapReady).pipe(
       filter(ready => ready),
       take(1),
@@ -92,9 +77,6 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       takeUntil(this.destroyed$)
     ).subscribe(s => this.zone.run(() => this.currentSiteNumber = s));
 
-    this.typedParams$ = this.store$.select(getRouteQueryParams).pipe(
-      map(params => BatchMapComponent.convertParams(params))
-    );
     this.height$ = this.typedParams$.pipe(
       map(params => params.height)
     );

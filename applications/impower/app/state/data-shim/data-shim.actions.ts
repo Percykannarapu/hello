@@ -65,7 +65,9 @@ export class ProjectSaveFailure implements Action {
 
 export class ProjectLoad implements Action {
   readonly type = DataShimActionTypes.ProjectLoad;
-  constructor(public payload: { projectId: number, isReload: boolean }) {}
+  constructor(public payload: { projectId: number, isReload: boolean, isBatchMode?: boolean }) {
+    payload.isBatchMode = payload.isBatchMode || false;
+  }
 }
 
 export class ProjectLoadSuccess implements Action {

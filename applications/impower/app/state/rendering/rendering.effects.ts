@@ -21,9 +21,9 @@ export class RenderingEffects {
     withLatestFrom(this.store$.pipe(select(selectors.getMapReady))),
     filter(([, mapReady]) => mapReady),
     map(([action]) => groupByExtended(action.payload.tradeAreas, ta => TradeAreaTypeCodes.parse(ta.taType))),
-    withLatestFrom(this.store$.pipe(select(getRenderingSlice))),
-    filter(([typeMap, counts]) => (typeMap.get(TradeAreaTypeCodes.Radius) || []).length !== counts.lastRadiusRenderCount || (typeMap.get(TradeAreaTypeCodes.Audience) || []).length !== counts.lastAudienceRenderCount),
-    map(([typeMap]) => typeMap)
+    // withLatestFrom(this.store$.pipe(select(getRenderingSlice))),
+    // filter(([typeMap, counts]) => (typeMap.get(TradeAreaTypeCodes.Radius) || []).length !== counts.lastRadiusRenderCount || (typeMap.get(TradeAreaTypeCodes.Audience) || []).length !== counts.lastAudienceRenderCount),
+    // map(([typeMap]) => typeMap)
   );
 
   @Effect()
