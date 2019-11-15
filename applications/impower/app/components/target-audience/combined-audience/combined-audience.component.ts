@@ -60,8 +60,7 @@ export class CombinedAudienceComponent implements OnInit {
     this.groupedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(audiences => audiences != null),
       map(aud => aud.filter(a => a.audienceSourceType === 'Offline' && a.fieldconte === 'PERCENT')),
-      filter(a => a.length > 0),
-      tap(audiences => this.hasCombinedAudiences = true),
+      tap(audiences => this.hasCombinedAudiences = audiences.length > 0),
       map(audList => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
       mapArray(audience => ({label: audience.audienceName, value: audience})),
       );
