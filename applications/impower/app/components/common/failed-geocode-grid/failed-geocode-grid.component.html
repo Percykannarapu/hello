@@ -44,14 +44,23 @@
         <th class="button-column" style="padding: 0 0 0 1.6em">
           <button type="button" pButton icon="fa fa-eraser" pTooltip="Clear Filters" class="val-short-square-button" style="color:#edb3ce;vertical-align: text-bottom;" (click)="onClickResetFilters()"></button>
         </th>
-        <th class="button-column"></th>
-        <th class="button-column"></th>
+        <th class="button-column">
+          <div>
+            <button (click)="onResubmitSelected()" icon="ui-icon-refresh" pButton pTooltip="Resubmit all selected sites" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
+          </div>
+        </th>
+        <th class="button-column">
+          <div>
+            <button (click)="onAcceptSelected()" icon="ui-icon-check" pButton pTooltip="Accept all selected XY coordinates" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
+          </div>
+        </th>
         <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
           <input *ngSwitchCase="'locationNumber'" pInputText type="number" (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
           <input *ngSwitchCase="'origAddress1'"   pInputText type="text"   (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
           <input *ngSwitchCase="'origPostalCode'" pInputText type="number" (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
           <input *ngSwitchCase="'coordinates'"    pInputText type="text"   (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
           <input *ngSwitchCase="'locationName'"   pInputText type="text"   (input)="failureGrid.filter($event.target.value, col.field, col.matchMode)" [value]="(failureGrid.filters != null && failureGrid.filters[col.field]) ? failureGrid.filters[col.field].value : ''" >
+          <val-table-filter-lov *ngSwitchCase="'isActive'"             field="isActive"             [source]="selectedLov"            (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)" (onShow)="onFilterShow($event)" (onHide)="onFilterHide($event)"></val-table-filter-lov>
           <val-table-filter-lov *ngSwitchCase="'origCity'"             field="origCity"             [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)" (onShow)="onFilterShow($event)" (onHide)="onFilterHide($event)"></val-table-filter-lov>
           <val-table-filter-lov *ngSwitchCase="'origState'"            field="origState"            [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
           <val-table-filter-lov *ngSwitchCase="'recordStatusCode'"     field="recordStatusCode"     [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
@@ -59,7 +68,11 @@
           <val-table-filter-lov *ngSwitchCase="'geocoderLocationCode'" field="geocoderLocationCode" [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
           <val-table-filter-lov *ngSwitchCase="'marketName'"           field="marketName"           [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
         </th>
-        <th class="button-column"></th>
+        <th class="button-column">
+          <div>
+            <button (click)="onRemoveSelected()" icon="ui-icon-delete" pButton></button>
+          </div>
+        </th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-site>
@@ -71,7 +84,7 @@
         </td>
         <td class="button-column">
           <div>
-            <button (click)="resubmit.emit(site)" icon="ui-icon-refresh" pButton></button>
+            <button (click)="resubmit.emit([site])" icon="ui-icon-refresh" pButton></button>
           </div>
         </td>
         <td class="button-column">
@@ -80,7 +93,10 @@
           </div>
         </td>
         <ng-container *ngFor="let column of selectedColumns">
-          <td *ngIf="column.isEditable" pEditableColumn [style.width]="column.width" [ngSwitch]="column.field">
+          <td *ngIf="column.isEditable && column.field == 'isActive'" [style.width]="column.width" [ngSwitch]="column.field">
+            <p-checkbox *ngSwitchCase="'isActive'" [(ngModel)]="site[column.field]" binary="true" (click)="setHasSelectedSites()"></p-checkbox>
+          </td>
+          <td *ngIf="column.isEditable && column.field !== 'isActive'" pEditableColumn [style.width]="column.width" [ngSwitch]="column.field">
             <ng-container *ngSwitchCase="'coordinates'">
               <p-cellEditor>
                 <ng-template pTemplate="input">

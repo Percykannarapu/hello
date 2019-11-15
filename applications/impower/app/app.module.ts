@@ -144,6 +144,7 @@ import { EsriModule } from '@val/esri';
 import { EnvironmentData } from '../environments/environment';
 import { AppEditSiteService } from './services/app-editsite.service';
 import { PrintViewComponent } from './components/print-view/print-view.component';
+import { FailedLocationsTabComponent } from './components/failed-locations-tab/failed-locations-tab.component';
 
 @NgModule({
     imports: [
@@ -266,7 +267,8 @@ import { PrintViewComponent } from './components/print-view/print-view.component
         ConfirmationDialogComponent,
         UploadMustCoverComponent,
         EditLocationsComponent,
-        PrintViewComponent
+        PrintViewComponent,
+        FailedLocationsTabComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

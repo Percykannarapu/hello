@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { Store, select } from '@ngrx/store';
 import { AppStateService } from 'app/services/app-state.service';
 import { MenuItem } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { RadService } from '../../services/rad.service';
 import { UserService } from '../../services/user.service';
-import { LocalAppState } from '../../state/app.interfaces';
+import { FullAppState } from '../../state/app.interfaces';
 import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
 import { MetricOperations, MetricService } from '../../val-modules/common/services/metric.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -13,6 +13,9 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ColorBoxComponent } from '../color-box/color-box.component';
+import { AppLocationService } from 'app/services/app-location.service';
+import { take, filter } from 'rxjs/operators';
+import { selectors } from '@val/esri';
 
 @Component({
     templateUrl: './dashboard.component.html'
@@ -52,6 +55,7 @@ export class DashboardComponent implements OnInit {
     public locations$: Observable<ImpGeofootprintLocation[]>;
     public geos$: Observable<ImpGeofootprintGeo[]>;
     public listCollapsed$: Observable<any>;
+    public hasLocationFailures$: Observable<boolean>;
 
     // note about "unused" services:
     // This is the only place these services are being injected, so leave them.
@@ -59,10 +63,11 @@ export class DashboardComponent implements OnInit {
     constructor(private metricService: MetricService,
                 private radService: RadService,
                 private userService: UserService,
+                private appLocationService: AppLocationService,
                 private impLocationService: ImpGeofootprintLocationService,
                 private impGeoService: ImpGeofootprintGeoService,
                 private appStateService: AppStateService,
-                private store$: Store<LocalAppState>) { }
+                private store$: Store<FullAppState>) { }
 
     ngOnInit() {
         this.store$.dispatch(new CreateNewProject());
@@ -148,6 +153,15 @@ export class DashboardComponent implements OnInit {
         this.locations$ = this.impLocationService.storeObservable;
         this.geos$ = this.impGeoService.storeObservable;
         this.listCollapsed$ = this.appStateService.getCollapseObservable();
+
+        // Conditionally show the Failed Locations Tab when there are failures
+        this.store$.pipe(
+          select(selectors.getMapReady),
+          filter(ready => ready),
+          take(1)
+        ).subscribe(() => {
+          this.hasLocationFailures$ = this.appLocationService.hasFailures$;
+        });
     }
 
     triggerCollapseOnToggle(collapsed: boolean) {

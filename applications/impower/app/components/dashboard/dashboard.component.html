@@ -28,6 +28,11 @@
           <p-tabPanel header="Add Locations">
             <val-add-locations-tab></val-add-locations-tab>
           </p-tabPanel>
+          <div *ngIf="(hasLocationFailures$ | async)">
+            <p-tabPanel header="Failed Locations">
+              <val-failed-locations-tab>Loading Failed Locations...</val-failed-locations-tab>
+            </p-tabPanel>
+          </div>
           <p-tabPanel header="Manage Locations">
             <val-site-list-container>Loading Site List...</val-site-list-container>
           </p-tabPanel>

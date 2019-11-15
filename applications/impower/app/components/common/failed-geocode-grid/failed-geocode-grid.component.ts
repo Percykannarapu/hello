@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, ViewChildren, QueryList, ViewChild } from '@angular/core';
 import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -30,6 +30,7 @@ export class FailedGeocodeGridComponent implements OnInit {
     this._failedSites = val;
     this._failedSites.forEach(loc => loc['coordinates'] = this.getCoordinates(loc));
     this.failedSitesBS$.next(val);
+    this.setHasSelectedSites();
   }
   get failedSites() {
     // Sorting by sequence lets columns maintain position when toggled on and off
@@ -40,11 +41,12 @@ export class FailedGeocodeGridComponent implements OnInit {
   @Input() totalCount: number = 0;
   @Input() type: string;
 
-  @Output() resubmit = new EventEmitter<ImpGeofootprintLocation>();
-  @Output() accept = new EventEmitter<ImpGeofootprintLocation>();
-  @Output() remove = new EventEmitter<ImpGeofootprintLocation>();
+  @Output() resubmit = new EventEmitter<ImpGeofootprintLocation[]>();
+  @Output() accept = new EventEmitter<ImpGeofootprintLocation[]>();
+  @Output() remove = new EventEmitter<ImpGeofootprintLocation[]>();
 
   gridColumns: GeocodeFailureGridField[] = [
+    { seq:  0, field: 'isActive',             header: '🗹',            width: '2.5em', isEditable: true, matchMode: 'contains' },
     { seq:  1, field: 'locationNumber',       header: 'Number',        width: '5em',  isEditable: false, matchMode: 'contains' },
     { seq:  2, field: 'origAddress1',         header: 'Address',       width: '14em', isEditable: true,  matchMode: 'contains' },
     { seq:  3, field: 'origCity',             header: 'City',          width: '9em',  isEditable: true,  matchMode: 'contains' },
@@ -61,6 +63,8 @@ export class FailedGeocodeGridComponent implements OnInit {
   // Track unique values for text variables for filtering
   public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
   private failedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
+  public  selectedLov = [{isActive: true}, {isActive: false}];
+  public  hasSelectedSites: boolean = false;
 
   // Get the grid as a view child to attach custom filters
   @ViewChild('failureGrid', { static: true }) public _failureGrid: Table;
@@ -74,7 +78,6 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   public  selectedColumns: any[] = [];
   public  columnOptions: SelectItem[] = [];
-
   public  multiSortMeta: SortMeta[] = [];
 
   constructor(private appLocationService: AppLocationService,
@@ -89,10 +92,21 @@ export class FailedGeocodeGridComponent implements OnInit {
 
     // Default sort
     this.multiSortMeta.push({field: 'locationNumber', order: 1});
+
+    // Initially deactivate failed sites
+    this.failedSitesBS$.getValue().forEach(site => site.isActive = false);
+
+    this.failedSitesBS$.subscribe(sites => {
+      this.hasSelectedSites = (sites.filter(site => site.isActive).length > 0);
+    });
   }
 
   canBeAccepted(site: ImpGeofootprintLocation) : boolean {
     return site.recordStatusCode !== 'ERROR' && site.recordStatusCode !== '';
+  }
+
+  setHasSelectedSites() : boolean {
+    return this.hasSelectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive).length > 0;
   }
 
   getCoordinates(site: ImpGeofootprintLocation) : string {
@@ -133,7 +147,7 @@ export class FailedGeocodeGridComponent implements OnInit {
     event.target.value = ''; // clear the text area
   }
 
-  onAccept(site: ImpGeofootprintLocation) : void {
+  private prepSiteForAccept(site: ImpGeofootprintLocation) {
     if (!this.edited.has(site)) {
       site.recordStatusCode = 'SUCCESS';
     }
@@ -146,7 +160,37 @@ export class FailedGeocodeGridComponent implements OnInit {
     if (locAttribs != null && !(/^\d{4}$/.test(locAttribs.attributeValue) || /^\d{3}$/.test(locAttribs.attributeValue))) {
       site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue = '';
     }
-    this.accept.emit(site);
+  }
+
+  onAccept(site: ImpGeofootprintLocation) : void {
+    this.prepSiteForAccept(site);
+    this.accept.emit([site]);
+  }
+
+  onAcceptSelected() : void {
+    const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
+    selectedSites.forEach(site => {
+      this.prepSiteForAccept(site);
+      console.log('### selected:', site.locationName, ', status:', site.recordStatusCode,
+                  ', locAttribs:', site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeCode, '-', site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue);
+    });
+    this.accept.emit(selectedSites);
+  }
+
+  onResubmitSelected() : void {
+    const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
+    selectedSites.forEach(site => {
+      console.log('### Resubmitting:', site.locationName, ', status:', site.recordStatusCode);
+    });
+    this.resubmit.emit(selectedSites);
+  }
+
+  onRemoveSelected() : void {
+    const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
+    selectedSites.forEach(site => {
+      console.log('### Removing:', site.locationName, ', status:', site.recordStatusCode);
+    });
+    this.remove.emit(selectedSites);
   }
 
   openGoogleMap(site: ImpGeofootprintLocation) : void {
