@@ -63,8 +63,7 @@ export class AddLocationsTabComponent implements OnInit {
       }
     });
 
-    this.store$.pipe(
-      select(selectors.getMapReady),
+    this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
