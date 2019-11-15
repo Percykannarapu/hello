@@ -49,11 +49,12 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       if (isError(args[1])) {
         StackTrace.fromError(args[1]).then(frames => {
           errorMessage = args[0] + '<br>' + args[1].message + '<br>' + frames.filter(f => !f.fileName.includes('node_modules')).join('<br>');
+          this.zone.run(() => this.lastError = errorMessage);
         });
       } else {
         errorMessage = args.join('<br>');
+        this.zone.run(() => this.lastError = errorMessage);
       }
-      this.zone.run(() => this.lastError = errorMessage);
       stdErr(...args);
     };
   }
