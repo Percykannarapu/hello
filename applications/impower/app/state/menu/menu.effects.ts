@@ -7,7 +7,7 @@ import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targetin
 import { CreateProjectUsageMetric } from '../usage/targeting-usage.actions';
 import { ClearAllNotifications, AppState, ErrorNotification, SuccessNotification, StopBusyIndicator, StartBusyIndicator } from '@val/messaging';
 import { AppDataShimService } from '../../services/app-data-shim.service';
-import { SetPrintRenderer, PrintMap, EsriMapActionTypes, PrintJobComplete, DeletePrintRenderer, PrintMapFailure } from '@val/esri';
+import { PrintMap, EsriMapActionTypes, PrintJobComplete, PrintMapFailure } from '@val/esri';
 import { AppStateService } from 'app/services/app-state.service';
 import { AppConfig } from 'app/app.config';
 import { Store } from '@ngrx/store';
@@ -104,19 +104,6 @@ export class MenuEffects {
     map(() => new fromDataShims.ExportApioNationalData())
   );
 
-  @Effect()
-  exportMap$ = this.actions$.pipe(
-    ofType(MenuActionTypes.OpenPrintViewDialog),
-    withLatestFrom(this.stateService.analysisLevel$, this.stateService.uniqueSelectedGeocodes$),
-    filter(([, analysisLevel, geos]) => (analysisLevel != null && analysisLevel.length > 0) || (geos != null && geos.length > 0)),
-    map(([, analysisLevel, geos]) => {
-      const portalId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
-      const minScale = (analysisLevel === 'Digital ATZ') ?
-                       this.config.layers['digital_atz'].boundaries.minScale :                                     
-                       this.config.layers[analysisLevel.toLowerCase()].boundaries.minScale;
-     return new SetPrintRenderer({geos, portalId, minScale: minScale});
-    }),
-    );
   
   @Effect({dispatch: false})
   showBusySpinner$ = this.actions$.pipe(
@@ -137,7 +124,6 @@ export class MenuEffects {
      withLatestFrom(this.stateService.analysisLevel$),
      filter((analysisLevel) => (analysisLevel != null && analysisLevel.length > 0)),
      concatMap(([action, analysisLevel]) => [
-      new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(analysisLevel)}),
       new StopBusyIndicator({ key: 'Map Book'}),
       new ClosePrintViewDialog(),
       new ErrorNotification({message: 'There was an error generating current view map book' })
@@ -149,7 +135,6 @@ export class MenuEffects {
      ofType<PrintJobComplete>(EsriMapActionTypes.PrintJobComplete),
      withLatestFrom(this.stateService.analysisLevel$),
      tap(([action, analysisLevel]) => {
-       this.store$.dispatch(new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(analysisLevel)}));
        this.store$.dispatch(new StopBusyIndicator({ key: 'Map Book'}));
        this.store$.dispatch(new ClosePrintViewDialog());
        this.store$.dispatch(new PrintMapSuccess({url: action.payload.result}));

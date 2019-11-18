@@ -14,7 +14,6 @@ import { EsriRendererService } from '../../services/esri-renderer.service';
 import { AppState, internalSelectors, selectors } from '../esri.selectors';
 import {
   CopyCoordinatesToClipboard,
-  DeletePrintRenderer,
   EsriMapActionTypes,
   FeaturesSelected,
   InitializeMap,
@@ -25,7 +24,6 @@ import {
   PrintMap,
   PrintMapFailure,
   SetPopupVisibility,
-  SetPrintRenderer
 } from './esri.map.actions';
 
 @Injectable()
@@ -85,33 +83,12 @@ export class EsriMapEffects {
     .pipe(
       concatMap(response =>
         [
-          // new DeletePrintRenderer(),
           new PrintJobComplete({result: response})
         ]),
         catchError(err => of(new PrintMapFailure({ err })))
       ),
   ),
   );
-
-  @Effect({dispatch: false})
-  setShadingRenderer$ = this.actions$.pipe(
-    ofType<SetPrintRenderer>(EsriMapActionTypes.SetPrintRenderer),
-    switchMap(action => this.esriRendererService.setRendererForPrint(action.payload.geos, action.payload.portalId, action.payload.minScale)),
-  );
-
-  @Effect({dispatch: false})
-  removeShadingRenderer$ = this.actions$.pipe(
-    ofType<DeletePrintRenderer>(EsriMapActionTypes.DeletePrintRenderer),
-    tap((action) => {
-      this.layerService.removeLayer('Selected Geos');
-      this.layerService.removeLayer('Text Variables');
-      const portalLayer = this.layerService.getPortalLayerById(action.payload.portalId);
-      portalLayer.visible = true;
-      portalLayer.labelsVisible = true;
-      portalLayer.legendEnabled = true;
-    })
-  );
-
 
   constructor(private actions$: Actions,
               private store$: Store<AppState>,

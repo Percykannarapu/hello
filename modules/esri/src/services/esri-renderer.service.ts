@@ -378,42 +378,6 @@ export class EsriRendererService {
       return renderer;
     }
 
-  public setRendererForPrint(geos: string[], portalId: string, minScale: number){
-    const portalLayer = this.layerService.getPortalLayerById(portalId);
-    const audienceSelections = this.layerService.createPortalLayer( portalId, 'Text Variables', minScale, true).pipe(
-        tap(audienceLayer => {
-          portalLayer.visible = false;
-          portalLayer.labelsVisible = false;
-          portalLayer.legendEnabled = false;
-          audienceLayer.labelingInfo = portalLayer.labelingInfo.map(l => l.clone());
-          audienceLayer.labelingInfo[0].symbol['font'].size = 7;
-          audienceLayer.labelsVisible = true;
-          const copyRenderer = EsriUtils.clone(portalLayer.renderer);
-          audienceLayer.renderer = copyRenderer;
-          audienceLayer.legendEnabled = true;
-          if (EsriUtils.rendererIsUnique(copyRenderer)){
-            if ((copyRenderer.uniqueValueInfos[0].value as string).startsWith('Selected')){
-              copyRenderer.uniqueValueInfos = [];
-            }
-            copyRenderer.defaultLabel = portalLayer.title;
-          } else if (EsriUtils.rendererIsSimple(copyRenderer)) {
-            copyRenderer.label = portalLayer.title;
-          }
-          this.mapService.mapView.map.layers.unshift(audienceLayer);
-        })
-      );
-    const geoSelections =  this.layerService.createPortalLayer(portalId, 'Selected Geos', minScale, true).pipe(
-             tap(newLayer => {
-              newLayer.spatialReference = {wkid: 4326} as __esri.SpatialReference;
-              newLayer.popupEnabled = false;
-              newLayer.labelsVisible = false;
-              newLayer.renderer = this.createUniqueValueRenderer(geos) as __esri.UniqueValueRenderer;
-              this.mapService.mapView.map.add(newLayer);
-              }),
-            );
-      return merge(audienceSelections, geoSelections);
-  }
-
   public clearHighlight() : void {
     console.log('Clearing Highlights');
     if (this.highlightHandler != null) this.highlightHandler.remove();
