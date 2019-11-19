@@ -39,7 +39,6 @@ export class FailedGeocodeGridComponent implements OnInit {
  }
 
   @Input() totalCount: number = 0;
-  @Input() type: string;
 
   @Output() resubmit = new EventEmitter<ImpGeofootprintLocation[]>();
   @Output() accept = new EventEmitter<ImpGeofootprintLocation[]>();
@@ -171,25 +170,25 @@ export class FailedGeocodeGridComponent implements OnInit {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
     selectedSites.forEach(site => {
       this.prepSiteForAccept(site);
-      console.log('### selected:', site.locationName, ', status:', site.recordStatusCode,
-                  ', locAttribs:', site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeCode, '-', site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue);
+      // console.log('### selected:', site.locationName, ', status:', site.recordStatusCode,
+      //             ', locAttribs:', site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeCode, '-', site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue);
     });
     this.accept.emit(selectedSites);
   }
 
   onResubmitSelected() : void {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
-    selectedSites.forEach(site => {
-      console.log('### Resubmitting:', site.locationName, ', status:', site.recordStatusCode);
-    });
+    // selectedSites.forEach(site => {
+    //   console.log('### Resubmitting:', site.locationName, ', status:', site.recordStatusCode);
+    // });
     this.resubmit.emit(selectedSites);
   }
 
   onRemoveSelected() : void {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
-    selectedSites.forEach(site => {
-      console.log('### Removing:', site.locationName, ', status:', site.recordStatusCode);
-    });
+    // selectedSites.forEach(site => {
+    //   console.log('### Removing:', site.locationName, ', status:', site.recordStatusCode);
+    // });
     this.remove.emit(selectedSites);
   }
 

@@ -101,7 +101,7 @@ console.log('### failed-locations-tab - processSiteRequests sites:', sites);
     siteTypes.forEach(siteType => {
       geocodingRequests = [];
       const currentSiteType = ImpClientLocationTypeCodes.parse(siteType);
-      const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
+      const updatedSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
 
       sites.filter(site => site.clientLocationTypeCode === siteType).forEach(site => {
         site.impGeofootprintLocAttribs.forEach(attr => {
@@ -131,7 +131,7 @@ console.log('### failed-locations-tab - processSiteRequests sites:', sites);
         this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
       });
       // Process this site types requests
-      this.processSiteRequests(geocodingRequests, newSiteType, true);
+      this.processSiteRequests(geocodingRequests, updatedSiteType, true);
     });
   }
 }

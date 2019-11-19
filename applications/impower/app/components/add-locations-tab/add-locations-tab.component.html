@@ -8,13 +8,6 @@
         <val-upload-locations label="Select Competitor File" (upload)="onUpload($event, siteTypes.Competitor)"></val-upload-locations>
       </competitor-content>
     </val-site-type-selector>
-    <val-failed-geocode-grid *ngIf="hasFailures$ | async"
-                             [failedSites]="failures$ | async"
-                             [totalCount]="totalCount$ | async"
-                             (remove)="remove($event)"
-                             (resubmit)="resubmit($event)"
-                             (accept)="accept($event)">
-    </val-failed-geocode-grid>
   </p-accordionTab>
   <p-accordionTab header="Manually Add" [transitionOptions]="'0ms'">
     <val-site-type-selector label="Add as:">
@@ -25,13 +18,6 @@
         <val-manual-entry #manualCompetitorEntry [showLoadButtons]="!isProd" (submitSite)="manuallyGeocode($event, siteTypes.Competitor)"></val-manual-entry>
       </competitor-content>
     </val-site-type-selector>
-    <val-failed-geocode-grid *ngIf="hasFailures$ | async"
-                             [failedSites]="failures$ | async"
-                             [totalCount]="totalCount$ | async"
-                             (remove)="remove($event)"
-                             (resubmit)="resubmit($event)"
-                             (accept)="accept($event)">
-    </val-failed-geocode-grid>
   </p-accordionTab>
   <!--<p-accordionTab header="Business Search" [transitionOptions]="'0ms'">
     <val-business-search #businessSearch

@@ -286,35 +286,6 @@ export class SiteListComponent implements OnInit {
    }
 */
 
-   remove(site: ImpGeofootprintLocation) {
-    this.appLocationService.deleteLocations([site]);
-   }
-
-   reSubmit(site: ImpGeofootprintLocation){
-    this.resubmitFailedGrid.emit(site);
-   }
-
-   accept(site: ImpGeofootprintLocation) {
-    site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
-    if (site.recordStatusCode === 'PROVIDED'){
-      const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
-      site.impGeofootprintLocAttribs.forEach(attr => {
-        if (homeGeoColumnsSet.has(attr.attributeCode)){
-          attr.attributeValue = '';
-        }
-      });
-      site['homeGeoFound'] = null;
-      site.impGeofootprintTradeAreas = [];
-      const reCalculateHomeGeos = false;
-      const isLocationEdit =  false;
-      const locations = [site];
-      this.store$.dispatch(new HomeGeocode({locations, isLocationEdit, reCalculateHomeGeos}));
-    }
-    else
-      this.appLocationService.notifySiteChanges();
-    const metricText = AppLocationService.createMetricTextForLocation(site);
-    this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
-   }
 
    manuallyGeocode(site: ValGeocodingRequest, siteType){
      site.Group = this.selectedRowData.groupName;
