@@ -25,7 +25,8 @@
         </div>
         <div class="ui-g-4 ui-g-nopad ui-inputgroup" align="right" style="justify-content:flex-end">
           <p-multiSelect defaultLabel="Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" class="val-column-picker-light"></p-multiSelect>
-          <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="Export" pTooltip="Export all failed locations" class="val-icon-button" (click)="failureGrid.exportCSV()" style="margin-left: 0.75em;"></button>
+          <button type="button" pButton icon="fa fa-check-square-o" iconPos="left" label="{{getSelectButtonText(true)}}" pTooltip="{{getSelectButtonText(false)}}" class="val-icon-button" (click)="onSelectSites()" style="margin-left: 0.75em;white-space: nowrap"></button>
+          <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="Export" pTooltip="Export all failed locations" class="val-icon-button" (click)="failureGrid.exportCSV()" style="margin-left: 0.25em;"></button>
         </div>
       </div>
     </ng-template>

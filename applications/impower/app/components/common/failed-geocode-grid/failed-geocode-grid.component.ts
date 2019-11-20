@@ -45,7 +45,7 @@ export class FailedGeocodeGridComponent implements OnInit {
   @Output() remove = new EventEmitter<ImpGeofootprintLocation[]>();
 
   gridColumns: GeocodeFailureGridField[] = [
-    { seq:  0, field: 'isActive',             header: '🗹',            width: '2.5em', isEditable: true, matchMode: 'contains' },
+    { seq:  0, field: 'isActive',             header: '🗹',            width: '2.4em', isEditable: true, matchMode: 'contains' },
     { seq:  1, field: 'locationNumber',       header: 'Number',        width: '5em',  isEditable: false, matchMode: 'contains' },
     { seq:  2, field: 'origAddress1',         header: 'Address',       width: '14em', isEditable: true,  matchMode: 'contains' },
     { seq:  3, field: 'origCity',             header: 'City',          width: '9em',  isEditable: true,  matchMode: 'contains' },
@@ -170,25 +170,17 @@ export class FailedGeocodeGridComponent implements OnInit {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
     selectedSites.forEach(site => {
       this.prepSiteForAccept(site);
-      // console.log('### selected:', site.locationName, ', status:', site.recordStatusCode,
-      //             ', locAttribs:', site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeCode, '-', site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue);
     });
     this.accept.emit(selectedSites);
   }
 
   onResubmitSelected() : void {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
-    // selectedSites.forEach(site => {
-    //   console.log('### Resubmitting:', site.locationName, ', status:', site.recordStatusCode);
-    // });
     this.resubmit.emit(selectedSites);
   }
 
   onRemoveSelected() : void {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
-    // selectedSites.forEach(site => {
-    //   console.log('### Removing:', site.locationName, ', status:', site.recordStatusCode);
-    // });
     this.remove.emit(selectedSites);
   }
 
@@ -198,20 +190,34 @@ export class FailedGeocodeGridComponent implements OnInit {
     window.open(googleMapUri, '_blank', strWindowFeatures);
   }
 
-   /**
-    * Clears out the filters from the grid and reset the filter components
-    */
-   onClickResetFilters()
-   {
-      // Clear the multi select filters
-      if (this.lovFilters)
-         this.lovFilters.forEach(lov => {
-           lov.clearFilter();
-         });
+  // Sets isActive to true for all sites
+  onSelectSites() : void {
+    const failedSites = this.failedSitesBS$.getValue();
+    const hasFilters  = this.hasFilters();
+    let setHasActive: Boolean = false;
+    failedSites.forEach(site => {
+      if (!hasFilters || this._failureGrid.filteredValue.includes(site))
+      {
+        site.isActive = true;
+        setHasActive = true;
+      }
+    });
+    if (setHasActive)
+      this.setHasSelectedSites();
+  }
 
-      // Reset the grid and grid filters
-      this._failureGrid.reset();
-   }
+  //Clears out the filters from the grid and reset the filter components
+  onClickResetFilters()
+  {
+    // Clear the multi select filters
+    if (this.lovFilters)
+        this.lovFilters.forEach(lov => {
+          lov.clearFilter();
+        });
+
+    // Reset the grid and grid filters
+    this._failureGrid.reset();
+  }
 
   // Table-Filter-LOV events
   onFilterRemoved(field: string) {
@@ -224,5 +230,18 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   onFilterHide(field: string) {
     //console.log('### onFilterHide - field', field);
+  }
+
+  // Returns true if the grid has a filter applied
+  hasFilters() : boolean
+  {
+    return (this._failureGrid.filteredValue != null && this._failureGrid.filteredValue.length > 0);
+  }
+
+  // Switches the select button label and tooltip based on if a filter is applied
+  getSelectButtonText(asLabel: boolean) : string
+  {
+    return (asLabel) ? this.hasFilters() ? 'Filtered' : 'All'
+                     : this.hasFilters() ? 'Select all locations in the filtered list' : 'Select all locations';
   }
 }
