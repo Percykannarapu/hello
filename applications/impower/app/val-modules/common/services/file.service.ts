@@ -13,12 +13,17 @@ export interface ParseRule {
   required?: boolean;
   dataProcess?: (data: string) => any;
   found?: boolean;
+  invalidLength?: boolean;
+  uniqueHeader?: boolean;
+  width?: number;
 }
 
 export interface ParseResponse<T> {
   failedRows: string[];
   parsedData: T[];
   duplicateKeys: string[];
+  invalidColLengthHeaders: string[];
+  duplicateHeaders: string[];
 }
 
 export interface Parser<T> {
@@ -27,6 +32,7 @@ export interface Parser<T> {
   headerValidator?: (found: ParseRule[]) => boolean;
   dataValidator?: (currentRow: T) => boolean;
   fileValidator?: (allData: T[]) => boolean;
+  createNullParser?: (header: string, isUnique: boolean) => ParseRule;
 }
 
 export class FileService {
@@ -53,8 +59,17 @@ export class FileService {
     const result: ParseResponse<T> = {
       failedRows: [],
       parsedData: [],
-      duplicateKeys: []
+      duplicateKeys: [],
+      invalidColLengthHeaders: [],
+      duplicateHeaders: [],
     };
+    parseEngine.forEach(header => {
+          if (header.invalidLength)
+              result.invalidColLengthHeaders.push(header.outputFieldName);
+          if (header.uniqueHeader)
+              result.duplicateHeaders.push(header.outputFieldName);
+
+    });
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
       // replace commas embedded inside nested quotes, then remove the quotes.
@@ -101,6 +116,7 @@ export class FileService {
     const result: ParseRule[] = [];
     const requiredHeaders: ParseRule[] = columnParsers.filter(p => p.required === true);
     const uniqueHeaders: ParseRule[] = columnParsers.filter(p => p.mustBeUnique === true);
+    const uniqueHeaderSet = new Set<string>();
     // reset the column parser for a new file
     columnParsers.forEach(p => {
       p.found = false;
@@ -118,7 +134,10 @@ export class FileService {
           break;
         }
       }
-      if (!matched) result.push(FileService.createNullParser(headerColumns[i]));
+      //if (!matched) result.push(FileService.createNullParser(headerColumns[i]));
+
+      if (!matched) result.push(parser.createNullParser(headerColumns[i], uniqueHeaderSet.has(headerColumns[i])));
+      uniqueHeaderSet.add(headerColumns[i]);
     }
 
     const reqHeaders = requiredHeaders.filter(p => !p.found);
