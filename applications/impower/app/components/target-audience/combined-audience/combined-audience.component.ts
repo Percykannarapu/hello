@@ -1,30 +1,23 @@
 import { Component, OnInit, ViewEncapsulation, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-
 import { Store } from '@ngrx/store';
-
 import { mapArray } from '@val/common';
 import { SuccessNotification } from '@val/messaging';
-
 import { Observable } from 'rxjs';
-
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { getAllAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
-
 import { filter, tap, map, take, combineLatest } from 'rxjs/operators';
-
 import { SelectItem, ConfirmationService } from 'primeng/api';
-
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { AppStateService } from 'app/services/app-state.service';
 import { CreateAudienceUsageMetric } from 'app/state/usage/targeting-usage.actions';
-
 import { EditCombinedAudiencesComponent } from './edit-combined-audiences/edit-combined-audiences.component';
 import { ImpGeofootprintVarService } from 'app/val-modules/targeting/services/ImpGeofootprintVar.service';
+import { UpsertAudience} from 'app/impower-datastore/state/transient/audience/audience.actions';
 
 @Component({
   selector: 'val-combined-audience',
@@ -37,8 +30,8 @@ export class CombinedAudienceComponent implements OnInit {
   selectedColumns: Audience[];
   audienceForm: FormGroup;
   hasCombinedAudiences: boolean = false;
-
-
+  allAudiences: Audience[];
+  currentAudience: any;
 
   constructor(private store$: Store<LocalAppState>,
               private fb: FormBuilder,
@@ -56,12 +49,16 @@ export class CombinedAudienceComponent implements OnInit {
     this.audienceForm = this.fb.group({
       combinedAudName: ['', Validators.required],
       audienceList: '',
+      audienceId: '',
     });
     this.groupedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(audiences => audiences != null),
-      map(aud => aud.filter(a => a.audienceSourceType === 'Offline' && a.fieldconte === 'PERCENT')),
+      map(aud => {
+        this.allAudiences = aud;
+        return aud.filter(a => a.audienceSourceType === 'Offline' && a.fieldconte === 'PERCENT');
+      }), 
       tap(audiences => this.hasCombinedAudiences = audiences.length > 0),
-      map(audList => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
+      map(audList =>  audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
       mapArray(audience => ({label: audience.audienceName, value: audience})),
       );
       
@@ -69,58 +66,91 @@ export class CombinedAudienceComponent implements OnInit {
       filter(allAudiences => allAudiences != null ),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined')),
       );
-  }
-  combineAudiences(audienceFields: any){
-   
-    const combinedAudIds: string[] = [];
-    const combinedVariableNames: string[] = [];  
-
-    if (audienceFields.audienceList.length > 0){
-      audienceFields.audienceList.forEach(audience => {
-      combinedVariableNames.push(audience.audienceName);
-      combinedAudIds.push(audience.audienceIdentifier);
     }
-    );
-  }
-    const fkId =  this.impVarService.getNextStoreId();
-    const combinedAud: Audience = {
-      audienceIdentifier: fkId.toString(),
-      audienceName: audienceFields.combinedAudName,
-      showOnMap: false,
-      showOnGrid: false,
-      exportInGeoFootprint: true,
-      exportNationally: false,
-      allowNationalExport: false,
-      audienceSourceName: 'TDA',
-      audienceSourceType: 'Combined',
-      fieldconte: FieldContentTypeCodes.Percent,
-      requiresGeoPreCaching: false,
-      seq: fkId,
-      isCombined: true,
-      combinedAudiences: combinedAudIds,
-      combinedVariableNames: combinedVariableNames.join('~')
-    };
-    this.varService.addAudience(combinedAud);
-    this.store$.dispatch(new SuccessNotification({ message: 'The following audiences are created successfully:' + combinedAud.audienceName, notificationTitle: 'Combine Audience' }));
-    this.audienceForm.reset();
+  combineAudiences(audienceFields: any){
+        const combinedAudIds: string[] = [];
+        const combinedVariableNames: string[] = [];
+        if (audienceFields.audienceList.length > 0){
+            audienceFields.audienceList.forEach(audience => {
+            combinedVariableNames.push(audience.audienceName);
+            combinedAudIds.push(audience.audienceIdentifier);
+          }
+          );
+        }
+        if (audienceFields.audienceId != null && audienceFields.audienceId.length === 0){
+            const fkId =  this.impVarService.getNextStoreId();
+            const combinedAud: Audience = {
+              audienceIdentifier: fkId.toString(),
+              audienceName: audienceFields.combinedAudName,
+              showOnMap: false,
+              showOnGrid: false,
+              exportInGeoFootprint: true,
+              exportNationally: false,
+              allowNationalExport: false,
+              audienceSourceName: 'TDA',
+              audienceSourceType: 'Combined',
+              fieldconte: FieldContentTypeCodes.Percent,
+              requiresGeoPreCaching: false,
+              seq: fkId,
+              isCombined: true,
+              combinedAudiences: combinedAudIds,
+              combinedVariableNames: combinedVariableNames.join('~')
+            };
+            this.varService.addAudience(combinedAud);
+            this.store$.dispatch(new SuccessNotification({ message: 'The following audiences are created successfully:' + combinedAud.audienceName, notificationTitle: 'Combine Audience' }));
+          
+        } else{
+          this.currentAudience = this.allAudiences.filter(a => a.audienceIdentifier === audienceFields.audienceId);
+         const editedAudience: Audience = {
+          audienceIdentifier: audienceFields.audienceId,
+          audienceName: audienceFields.combinedAudName,
+          showOnMap: this.currentAudience[0].showOnMap,
+          showOnGrid: this.currentAudience[0].showOnGrid,
+          exportInGeoFootprint: this.currentAudience[0].exportInGeoFootprint,
+          exportNationally: this.currentAudience[0].exportNationally,
+          allowNationalExport: this.currentAudience[0].allowNationalExport,
+          audienceSourceName: this.currentAudience[0].audienceSourceName,
+          audienceSourceType: this.currentAudience[0].audienceSourceType,
+          fieldconte: this.currentAudience[0].fieldconte,
+          requiresGeoPreCaching: this.currentAudience[0].requiresGeoPreCaching,
+          seq: this.currentAudience[0].seq,
+          isCombined: this.currentAudience[0].isCombined,
+          combinedAudiences: combinedAudIds,
+          combinedVariableNames: combinedVariableNames.join('~')
+        };
 
+        this.store$.dispatch(new UpsertAudience({ audience:  editedAudience}));
+        this.store$.dispatch(new SuccessNotification({ message: 'The following audiences are updated successfully:' + editedAudience.audienceName, notificationTitle: 'Combine Audience' }));
+
+      }
+      this.currentAudience = '';
+      this.audienceForm.reset();
   }
 
   hasErrors(controlKey: string) : boolean {
     const control = this.audienceForm.get(controlKey);
-    return (control.untouched || control.value == null) && (control.errors != null);
+    return (control.value == null) && (control.errors != null);
   }
+
   resetForm(){
     this.selectedColumns = null;
     this.audienceForm.reset();
   }
 
   onEdit(selectedAudience: Audience){
+    const currentSelections: Audience[] = [];
+    selectedAudience.combinedAudiences.forEach(previous => {
+          this.allAudiences.forEach(current => {
+          if (current != null && current.audienceIdentifier === previous)
+             currentSelections.push(current);
+          });
+        });
     this.audienceForm = this.fb.group({
       combinedAudName: selectedAudience.audienceName,
-      audienceList: selectedAudience.combinedVariableNames,
+      audienceList: currentSelections,
+      audienceId: selectedAudience.audienceIdentifier
     });
-
+    this.selectedColumns = currentSelections;
   }
   
   onDelete(audience: Audience){
@@ -145,14 +175,4 @@ export class CombinedAudienceComponent implements OnInit {
 
   
 }
-
-
-
-
-
-
-
-
-
-
 
