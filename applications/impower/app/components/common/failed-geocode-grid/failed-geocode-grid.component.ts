@@ -181,7 +181,8 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   onRemoveSelected() : void {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
-    this.remove.emit(selectedSites);
+    if (selectedSites.length > 0)
+       this.remove.emit(selectedSites);
   }
 
   openGoogleMap(site: ImpGeofootprintLocation) : void {

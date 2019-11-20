@@ -71,7 +71,7 @@
         </th>
         <th class="button-column">
           <div>
-            <button (click)="onRemoveSelected()" icon="ui-icon-delete" pButton></button>
+            <button (click)="onRemoveSelected()" icon="ui-icon-delete" pButton pTooltip="Remove all selected locations" [disabled]="!hasSelectedSites"></button>
           </div>
         </th>
       </tr>
