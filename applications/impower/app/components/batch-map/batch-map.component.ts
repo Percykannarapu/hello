@@ -66,7 +66,6 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       debounceTime(1000),
       takeUntil(this.destroyed$)
     ).subscribe(ready => this.zone.run(() => this.mapViewIsReady = ready));
-
     this.store$.select(getNextSiteNumber).pipe(
       takeUntil(this.destroyed$)
     ).subscribe(siteNum => this.zone.run(() => this.nextSiteNumber = siteNum));

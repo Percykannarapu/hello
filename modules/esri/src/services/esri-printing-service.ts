@@ -11,7 +11,6 @@ export class EsriPrintingService {
   constructor(private esriMapService: EsriMapService){}
 
     public createPrintPayload(templateOptions: {title: string, author: string, customTextElements: any}) : __esri.PrintParameters {
-
       const currentLayout: any  = {
         titleText: templateOptions.title,
         authorText: templateOptions.author,

@@ -1,17 +1,16 @@
 import { Inject, Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { groupByExtended } from '@val/common';
 import { EsriAppSettings, EsriAppSettingsToken, selectors } from '@val/esri';
 import { concatMap, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { FullAppState, getRenderingSlice } from '../app.interfaces';
+import { FullAppState } from '../app.interfaces';
 import { prepareLocations } from './location.transform';
-import { ClearTradeAreas, RenderAudienceTradeAreas, RenderingActionTypes, RenderLocations, RenderRadiusTradeAreas, RenderTradeAreas, ClearLocations } from './rendering.actions';
+import { ClearLocations, ClearTradeAreas, RenderAudienceTradeAreas, RenderingActionTypes, RenderLocations, RenderRadiusTradeAreas, RenderTradeAreas } from './rendering.actions';
 import { RenderingService } from './rendering.service';
 import { prepareAudienceTradeAreas, prepareRadiusTradeAreas } from './trade-area.transform';
-import { select } from '@ngrx/store';
 
 @Injectable()
 export class RenderingEffects {

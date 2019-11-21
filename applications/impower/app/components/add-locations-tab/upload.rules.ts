@@ -1,6 +1,7 @@
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { Parser, ParseRule } from '../../val-modules/common/services/file.service';
 
+
 const latLongProcessor = (data: string) => {
   if (data != null && data !== '' && !Number.isNaN(Number(data)))
     return data;
@@ -82,33 +83,36 @@ const stateCodeProcessor = (data: string) => {
 } ;
 
 export const siteListUpload: Parser<ValGeocodingRequest> = {
+  
   columnParsers: [
-    { headerIdentifier: ['street', 'address', 'addr'], outputFieldName: 'street' },
-    { headerIdentifier: ['city', 'cty'], outputFieldName: 'city' },
-    { headerIdentifier: ['state', 'st'], outputFieldName: 'state', dataProcess: stateCodeProcessor },
-    { headerIdentifier: ['zip', 'zipcode', 'zip code', 'code', 'postal', 'postal code'], outputFieldName: 'zip' },
-    { headerIdentifier: ['y', 'y (optional)', 'y(optional)', 'y optional', 'latitude', 'lat'], outputFieldName: 'latitude', dataProcess: latLongProcessor },
-    { headerIdentifier: ['x', 'x (optional)', 'x(optional)', 'x optional', 'longitude', 'long', 'lon'], outputFieldName: 'longitude', dataProcess: latLongProcessor },
-    { headerIdentifier: [/\bname\b/i, /\bfirm\b/i], outputFieldName: 'name', required: false },
-    { headerIdentifier: [/\bnumber\b/i, /\bnbr\b/i, /\bid\b/i, /\bnum\b/i, /#/], outputFieldName: 'number', required: true, mustBeUnique: true },
-    { headerIdentifier: ['market', 'mkt', 'market (optional)', 'market(optional)', 'market (opt)', 'market(opt)'], outputFieldName: 'Market' },
-    { headerIdentifier: ['marketCode', 'mktcode', 'market code', 'Market Code'], outputFieldName: 'Market Code' },
-    { headerIdentifier: ['description', 'desc', 'Description'], outputFieldName: 'Description' },
-    { headerIdentifier: ['group', 'groupname', ' group name', 'Group Name', 'Group'], outputFieldName: 'Group' },
+    { headerIdentifier: ['street', 'address', 'addr'], outputFieldName: 'street', width: 60 },
+    { headerIdentifier: ['city', 'cty'], outputFieldName: 'city' , width: 60},
+    { headerIdentifier: ['state', 'st'], outputFieldName: 'state', dataProcess: stateCodeProcessor, width: 2 },
+    { headerIdentifier: ['zip', 'zipcode', 'zip code', 'code', 'postal', 'postal code'], outputFieldName: 'zip', width: 10 },
+    { headerIdentifier: ['y', 'y (optional)', 'y(optional)', 'y optional', 'latitude', 'lat'], outputFieldName: 'latitude', dataProcess: latLongProcessor, width: 11 },
+    { headerIdentifier: ['x', 'x (optional)', 'x(optional)', 'x optional', 'longitude', 'long', 'lon'], outputFieldName: 'longitude', dataProcess: latLongProcessor, width: 11 },
+    { headerIdentifier: [/\bname\b/i, /\bfirm\b/i], outputFieldName: 'name', required: false, width: 80 },
+    { headerIdentifier: [/\bnumber\b/i, /\bnbr\b/i, /\bid\b/i, /\bnum\b/i, /#/], outputFieldName: 'number', required: true, mustBeUnique: true, width: 80 },
+    { headerIdentifier: ['market', 'mkt', 'market (optional)', 'market(optional)', 'market (opt)', 'market(opt)'], outputFieldName: 'Market', width: 80 },
+    { headerIdentifier: ['marketCode', 'mktcode', 'market code', 'Market Code'], outputFieldName: 'Market Code', width: 30 },
+    { headerIdentifier: ['description', 'desc', 'Description'], outputFieldName: 'Description', width: 240 },
+    { headerIdentifier: ['group', 'groupname', ' group name', 'Group Name', 'Group'], outputFieldName: 'Group', width: 80 },
     { headerIdentifier: ['radius1', 'radius 1', 'RADIUS1', 'RADIUS 1', 'Radius1', 'Radius 1'], outputFieldName: 'RADIUS1' },
     { headerIdentifier: ['radius2', 'radius 2', 'RADIUS2', 'RADIUS 2', 'Radius2', 'Radius 2'], outputFieldName: 'RADIUS2' },
     { headerIdentifier: ['radius3', 'radius 3', 'RADIUS3', 'RADIUS 3', 'Radius3', 'Radius 3'], outputFieldName: 'RADIUS3' },
-    { headerIdentifier: ['Home Zip Code','home zip code', 'Home ZIP Code', 'Home Zip', 'Home ZIP'], outputFieldName: 'Home Zip Code' },
-    { headerIdentifier: ['Home ATZ','home ATZ', 'home atz'], outputFieldName: 'Home ATZ' },
-    { headerIdentifier: ['Home Carrier Route', 'Home PCR', 'home pcr', 'Home pcr', 'home cr', 'Home cr', 'Home CR'], outputFieldName: 'Home Carrier Route' },
-    { headerIdentifier: ['Home Digital ATZ', 'Home DTZ', 'home dtz', 'Home dtz' ,'home digital atz'], outputFieldName: 'Home Digital ATZ' },
-    { headerIdentifier: ['Home County','home county'], outputFieldName: 'Home County' },
-    { headerIdentifier: ['Home DMA', 'home dma', 'Home dma'], outputFieldName: 'Home DMA' }
+    { headerIdentifier: ['Home Zip Code', 'home zip code', 'Home ZIP Code', 'Home Zip', 'Home ZIP'], outputFieldName: 'Home Zip Code', width: 9 },
+    { headerIdentifier: ['Home ATZ', 'home ATZ', 'home atz'], outputFieldName: 'Home ATZ', width: 8 },
+    { headerIdentifier: ['Home Carrier Route', 'Home PCR', 'home pcr', 'Home pcr', 'home cr', 'Home cr', 'Home CR'], outputFieldName: 'Home Carrier Route', width: 9 },
+    { headerIdentifier: ['Home Digital ATZ', 'Home DTZ', 'home dtz', 'Home dtz' , 'home digital atz'], outputFieldName: 'Home Digital ATZ', width: 9 },
+    { headerIdentifier: ['Home County', 'home county'], outputFieldName: 'Home County', width: 5 },
+    { headerIdentifier: ['Home DMA', 'home dma', 'Home dma'], outputFieldName: 'Home DMA', width: 5 }
   ],
+  
   headerValidator: (foundHeaders: ParseRule[]) : boolean => {
     let cityFound = false;
     let stateFound = false;
     let zipFound = false;
+    
     for (const header of foundHeaders) {
       cityFound = cityFound || (header.outputFieldName === 'city');
       stateFound = stateFound || (header.outputFieldName === 'state');
@@ -155,5 +159,10 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
       result = false;
     }
     return result;
-  }
+  },
+
+   createNullParser: (header: string, isUnique: boolean) : ParseRule => {
+     const invalidLength = header.length > 30 ? true : false;
+     return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data , invalidLength: invalidLength, uniqueHeader: isUnique};
+   } 
 }; 

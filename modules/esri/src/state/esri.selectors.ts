@@ -2,7 +2,6 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { EsriAuthState } from './auth/esri.auth.reducer';
 import { EsriApiState } from './api/esri.api.reducer';
 import { EsriMapState } from './map/esri.map.reducer';
-import { EsriRendererState } from './renderer/esri.renderer.reducer';
 import { EsriShadingState } from './shading/esri.shading.reducer';
 
 export interface AppState {
@@ -13,7 +12,6 @@ export interface EsriState {
   api: EsriApiState;
   auth: EsriAuthState;
   map: EsriMapState;
-  renderer: EsriRendererState;
   shading: EsriShadingState;
 }
 
@@ -22,7 +20,7 @@ const getEsriState = createFeatureSelector<AppState, EsriState>('esri');
 const getEsriApiState = createSelector(getEsriState, state => state.api);
 const getEsriAuthState = createSelector(getEsriState, state => state.auth);
 const getEsriMapState = createSelector(getEsriState, state => state.map);
-const getEsriRendererState = createSelector(getEsriState, state => state.renderer);
+const getEsriShadingSlice = createSelector(getEsriState, state => state.shading);
 
 const getEsriFeatureReady = createSelector(getEsriApiState, getEsriAuthState, (api, auth) => api.isLoaded && auth.isAuthenticated);
 
@@ -36,7 +34,8 @@ const getEsriSketchViewModel = createSelector(getEsriMapState, state => state.sk
 const getMapReady = createSelector(getEsriMapState, state => state.mapIsReady);
 const getEsriFeaturesSelected = createSelector(getEsriMapState, state => state.selectedFeatures);
 
-const getEsriRendererIsShaded = createSelector(getEsriRendererState, state => state.enableShading);
+const getEsriShadingIsShaded = createSelector(getEsriShadingSlice, state => state.isShaded);
+const getEsriShadingTheme = createSelector(getEsriShadingSlice, state => state.theme);
 
 // These are the publicly available selectors
 export const selectors = {
@@ -46,7 +45,11 @@ export const selectors = {
   getEsriLabelConfiguration,
   getEsriViewpointState,
   getEsriSelectedLayer,
-  getEsriRendererIsShaded
+};
+
+export const shadingSelectors = {
+  isShaded: getEsriShadingIsShaded,
+  theme: getEsriShadingTheme
 };
 
 export const internalSelectors = {
@@ -55,6 +58,5 @@ export const internalSelectors = {
   getEsriMapButtonState,
   getEsriSketchViewModel,
   getEsriMapHeight,
-  getEsriLayerLabelExpressions,
-  getEsriRendererState
+  getEsriLayerLabelExpressions
 };

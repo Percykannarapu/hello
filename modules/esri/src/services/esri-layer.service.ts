@@ -16,6 +16,7 @@ const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data =
 @Injectable()
 export class EsriLayerService {
 
+  private legendShimmed: boolean = false;
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
   private layersShowingInLegend = new Set<string>();
 
@@ -200,7 +201,7 @@ export class EsriLayerService {
     const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
     group.layers.unshift(layer);
     if (addToLegend) {
-      layer.when(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: layerName, addToBottom: bottom })));
+      layer.when(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: layerName })));
     }
     return layer;
   }
@@ -290,19 +291,31 @@ export class EsriLayerService {
     }
   }
 
-  addLayerToLegend(layerUniqueId: string, title: string, addToBottom: boolean = false) : void {
-    console.log('Adding layer to legend', title);
+  addLayerToLegend(layerUniqueId: string, title: string) : void {
     const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     const layer = this.getLayerByUniqueId(layerUniqueId);
 
-    if (legendRef != null && layer != null && !this.layersShowingInLegend.has(layerUniqueId)) {
-      if (addToBottom) {
-        legendRef.layerInfos = [ { title, layer }, ...legendRef.layerInfos ];
-      } else {
-        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer } ];
+    if (legendRef != null) {
+      if (this.legendShimmed == false) {
+        legendRef['legacyRender'] = legendRef.scheduleRender;
+        legendRef.scheduleRender = (...args) => {
+          this.cleanLegendElements(legendRef.activeLayerInfos);
+          return legendRef['legacyRender'](...args);
+        };
+        this.legendShimmed = true;
       }
-      this.layersShowingInLegend.add(layerUniqueId);
+      if (layer != null && !this.layersShowingInLegend.has(layerUniqueId)) {
+        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer } ];
+        this.layersShowingInLegend.add(layerUniqueId);
+      }
     }
+  }
+
+  private cleanLegendElements(layerInfos: __esri.Collection<__esri.ActiveLayerInfo>) : void {
+    layerInfos.forEach(ali => {
+      ali.legendElements.forEach(le => le.infos = le.infos.filter((si: any) => si.label != null && si.label !== ''));
+      ali.legendElements = ali.legendElements.filter(le => le.infos.length > 0);
+    });
   }
 
   removeLayerFromLegend(layerUniqueId: string) : void {

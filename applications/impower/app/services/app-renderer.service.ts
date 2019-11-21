@@ -1,36 +1,28 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics } from '@val/common';
-import { audienceShading, clearSelectionData, ColorPalette, EsriLayerService, EsriMapService, EsriRendererService, EsriUtils, geoSelectionChanged, mapViewChanged, selectors, SetRenderingData } from '@val/esri';
+import { applyAudienceShading, clearSelectionData, ColorPalette, EsriLayerService, EsriMapService, EsriUtils, geoSelectionChanged, mapViewChanged, shadingSelectors } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
-import * as fromMapVarSelectors from 'app/impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
-import { BehaviorSubject, combineLatest, from, Observable, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
-import { ShadingData } from '../../../../modules/esri/src/state/renderer/esri.renderer.reducer';
+import { combineLatest, from, Observable, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { FullAppState } from '../state/app.interfaces';
-import { getCurrentColorPalette, getLegacyRenderingEnabled } from '../state/rendering/rendering.selectors';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
 
 @Injectable()
 export class AppRendererService {
-  private mapAudienceBS$ = new BehaviorSubject<Audience[]>([]);
   private mapViewWatcher: Subscription;
   private selectedWatcher: Subscription;
+  private mapShadingWatcher: Subscription;
 
   private previousAnalysisLevel: string;
 
   constructor(private appStateService: AppStateService,
               private impGeoService: ImpGeofootprintGeoService,
               private dataService: TargetAudienceService,
-              private esriRenderer: EsriRendererService,
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
               private config: AppConfig,
@@ -44,85 +36,7 @@ export class AppRendererService {
       ).subscribe(al => {
         this.setupGeoWatchers(al, this.impGeoService.storeObservable);
       });
-      // Subscribe to store selectors
-      this.store$.select(fromAudienceSelectors.getAudiencesOnMap).subscribe(this.mapAudienceBS$);
-      this.store$.select(fromMapVarSelectors.allMapVars).pipe(
-        withLatestFrom(this.store$.select(getCurrentColorPalette))
-      ).subscribe(([mapVars, palette]) => this.updateMapVarData(mapVars, palette));
     });
-  }
-
-  public updateMapVarData(newData: MapVar[], currentPalette: ColorPalette) : void {
-    const audiences = this.mapAudienceBS$.value;
-    const mapAudience = (audiences != null && audiences.length > 0) ? audiences[0] : null;
-    const audNumeric = (mapAudience != null) ? mapAudience.fieldconte != FieldContentTypeCodes.Char : true;
-    if (mapAudience == null) {
-      console.log('updateMapVarData - No audiences specified for shading');
-      return;
-    }
-
-    const result: ShadingData = {};
-    let isNumericData = false;
-
-    for (let i = 0; i < newData.length; i++) {
-      let finalValue: number = 0;
-      let stringValue: string = '';
-      let numericCount = 0;
-      for (const [varPk, varValue] of Object.entries(newData[i])) {
-        if (varPk !== 'geocode') {
-          if (audNumeric) {
-            if (!Number.isNaN(Number(varValue)) && varValue != null) {
-              finalValue += parseFloat(varValue.toString());
-              numericCount++;
-            }
-          }
-          else
-            stringValue = varValue.toString();
-        }
-      }
-      result[newData[i].geocode] = (audNumeric) ? finalValue : stringValue;
-    }
-    if (Object.keys(newData).length > 0) {
-      let legendText = null;
-      let legendOption =  null;
-      if (audiences == null || audiences.length === 0)
-         console.log('updateMapVarData - No audiences specified for shading');
-      else {
-        isNumericData = audiences[0].fieldconte != FieldContentTypeCodes.Char;
-        const newAction = new SetRenderingData({ data: result, isNumericData: isNumericData, theme: currentPalette });
-        if (isNumericData)
-          newAction.payload.statistics = calculateStatistics(Object.values(result) as number[]);
-
-        if (audiences[0].audienceSourceType === 'Online') {
-          if (audiences[0].audienceSourceName === 'Audience-TA') {
-            let scoreTypeLabel = audiences[0].audienceTAConfig.scoreType;
-            if (scoreTypeLabel === 'national') {
-              scoreTypeLabel = scoreTypeLabel.charAt(0).toUpperCase() + scoreTypeLabel.slice(1);
-            }
-            legendText = audiences[0].audienceName + ' ' + audiences[0].audienceSourceName + ' ' + scoreTypeLabel;
-          }
-          else if ((audiences[0].audienceSourceName === 'VLH') || (audiences[0].audienceSourceName === 'Pixel')){
-            legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
-            legendText = audiences[0].audienceName + ' ' +  legendOption.label;
-          }
-          else {
-            legendOption = audiences[0].dataSetOptions.find(l => l.value === audiences[0]. selectedDataSet);
-            legendText = audiences[0].audienceName + ' ' + audiences[0].audienceSourceName + ' ' + legendOption.label;
-          }
-        }
-        else {
-          legendText = audiences[0].audienceName;
-        }
-        if (legendText != null) {
-          newAction.payload.legend = legendText;
-        }
-        this.store$.dispatch(newAction);
-      }
-    }
-    else {
-      // Below is causing the esri renderer error
-      //this.store$.dispatch(new ClearShadingData());
-    }
   }
 
   async setupGeoWatchers(analysisLevel: string, geoDataStore: Observable<ImpGeofootprintGeo[]>) : Promise<void> {
@@ -145,11 +59,9 @@ export class AppRendererService {
       ))
     ).subscribe(visibleGeos => this.store$.dispatch(mapViewChanged({ visibleGeos })));
 
-    const isShaded$ = combineLatest([this.store$.select(selectors.getEsriRendererIsShaded), this.store$.select(getLegacyRenderingEnabled)]).pipe(
-      map(([esri, app]) => esri || app),
+    const isShaded$ = this.store$.select(shadingSelectors.isShaded).pipe(
       distinctUntilChanged(),
-      tap(() => this.store$.dispatch(clearSelectionData({ featureTypeName: analysisLevel }))),
-      startWith(false)
+      tap(() => this.store$.dispatch(clearSelectionData({ featureTypeName: analysisLevel })))
     );
 
     this.selectedWatcher = combineLatest([geoDataStore, isShaded$]).pipe(
@@ -167,21 +79,18 @@ export class AppRendererService {
     });
   }
 
-  audienceShading(aud: Audience) {
-    const val$ = withLatestFrom(
-      this.store$.select(getMapVars),
-      this.appStateService.analysisLevel$,
-      ( val, mapVars, analysis) => ({val, mapVars, analysis})
-    );
-    this.store$.pipe(
-      val$,
-      distinctUntilChanged((prev, curr) => prev.mapVars.length === curr.mapVars.length)
-    ).subscribe((val) => {
-      const layerId = this.config.getLayerIdForAnalysisLevel(val.analysis, true);
-      const minScale = (val.analysis === 'Digital ATZ') ?
+  audienceShading(aud: Audience, theme: ColorPalette) {
+    const isTextVariable = (aud.fieldconte === 'CHAR');
+    if (this.mapShadingWatcher) this.mapShadingWatcher.unsubscribe();
+    this.mapShadingWatcher = this.store$.select(getMapVars).pipe(
+      filter(mapVars => mapVars.length > 0),
+      withLatestFrom(this.appStateService.analysisLevel$),
+    ).subscribe(([mapVars, analysis]) => {
+      const layerId = this.config.getLayerIdForAnalysisLevel(analysis, true);
+      const minScale = (analysis === 'Digital ATZ') ?
         this.config.layers['digital_atz'].boundaries.minScale :
-        this.config.layers[val.analysis.toLowerCase()].boundaries.minScale;
-      this.store$.dispatch(audienceShading({ mapVars: val.mapVars, layerId, minScale }));
+        this.config.layers[analysis.toLowerCase()].boundaries.minScale;
+      this.store$.dispatch(applyAudienceShading({ mapVars: mapVars, layerId, minScale, theme, audienceName: aud.audienceName, isTextVariable }));
     }, (err) => {
       console.error('ERROR', err);
     });

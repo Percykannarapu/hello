@@ -29,7 +29,7 @@ export class UniqueValueShadingConfiguration implements ShadingConfiguration {
               public arcadeExpression: string,
               public defaultLegendName: string,
               public defaultSymbol: __esri.Symbol,
-              public uniqueValues: __esri.UniqueValueInfo[],
+              public uniqueValues: __esri.UniqueValueRendererUniqueValueInfos[],
               public expression?: string) {}
 }
 

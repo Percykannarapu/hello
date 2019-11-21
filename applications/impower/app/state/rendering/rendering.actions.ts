@@ -12,9 +12,6 @@ export enum RenderingActionTypes {
 
   RenderLocations = '[Rendering] Render Locations',
   ClearLocations = '[Rendering] Clear Locations',
-
-  SetPalette = '[Rendering] Set Current Palette',
-  SetLegacyRenderingEnable = '[Rendering] Set Legacy Renderer Enabled'
 }
 
 export class RenderTradeAreas implements Action {
@@ -46,23 +43,11 @@ export class ClearLocations implements Action {
     constructor(public payload: { type: SuccessfulLocationTypeCodes }) {}
 }
 
-export class SetPalette implements Action {
-    readonly type = RenderingActionTypes.SetPalette;
-    constructor(public payload: { palette: ColorPalette }) {}
-}
-
-export class SetLegacyRenderingEnable implements Action {
-    readonly type = RenderingActionTypes.SetLegacyRenderingEnable;
-    constructor(public payload: { isEnabled: boolean }) {}
-}
-
 export type RenderingActions =
   RenderTradeAreas |
   ClearTradeAreas |
   RenderAudienceTradeAreas |
   RenderRadiusTradeAreas |
   RenderLocations |
-  ClearLocations |
-  SetPalette |
-  SetLegacyRenderingEnable
+  ClearLocations
   ;

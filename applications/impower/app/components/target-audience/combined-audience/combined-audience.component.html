@@ -11,6 +11,9 @@
 
 <div class="ui-g">
 <div class="ui-g-12" >
+    <input type="hidden" formControlName="audienceId">  
+</div>
+<div class="ui-g-12" >
     <span class="md-inputfield">
       <input id="combinedAudName" type="text" formControlName="combinedAudName" pInputText size="40">
       <span class="ui-inputgroup-addon" *ngIf="!hasErrors('combinedAudName')">&nbsp;</span>
@@ -26,7 +29,7 @@
     <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
 
   </div>
-  <div *ngIf="hasCombinedAudiences" class="ui-g-8">
+  <div *ngIf="hasCombinedAudiences && !hasErrors('combinedAudName')" class="ui-g-8">
       <button type="submit" pButton label="Combine Audience Variables" [disabled]="audienceForm.invalid" (click)="combineAudiences(audienceForm.value)" ></button>
 
 </div>

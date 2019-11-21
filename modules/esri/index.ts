@@ -20,16 +20,14 @@ export * from './src/services/esri-layer.service';
 export * from './src/services/esri-map.service';
 export * from './src/services/esri-map-interaction.service';
 export * from './src/services/esri-query.service';
-export * from './src/services/esri-renderer.service';
 export * from './src/services/esri-shading-layers.service';
 export * from './src/services/esri.service';
 
-export { EsriState, AppState, selectors } from './src/state/esri.selectors';
-export { HighlightMode } from './src/state/renderer/esri.renderer.reducer';
+export * from './src/state/esri.actions';
+export { EsriState, AppState, selectors, shadingSelectors } from './src/state/esri.selectors';
 export { ColorPalette, getColorPalette } from './src/models/color-palettes';
 export * from './src/state/api/esri.api.actions';
 export * from './src/state/auth/esri.auth.actions';
 export * from './src/state/map/esri.map.actions';
-export * from './src/state/renderer/esri.renderer.actions';
 export * from './src/state/shading/esri.shading.actions';
 export * from './src/models/esri-types';

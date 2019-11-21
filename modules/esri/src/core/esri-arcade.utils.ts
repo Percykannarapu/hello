@@ -4,14 +4,15 @@ export function createGeoArcade(geocodes: Record<string, boolean>, selectedResul
   Object.entries(geocodes).forEach(([k, v]) => arcadeDataValue[k] = v ? selectedResult : unselectedResult);
   const arcade = `var geos = ${JSON.stringify(arcadeDataValue)};
                   return DefaultValue(geos[$feature.geocode], ${nullEncoded});`;
-  console.log('Arcade Generated', arcade);
   return arcade;
 }
 
-export function createNumericArcade(data: Record<string, number>, nullResult: string = null, featureName: string = 'geocode') : string {
+export function createDataArcade(data: Record<string, number | string>, nullResult: string = null, featureName: string = 'geocode') : string {
   const nullEncoded = nullResult == null ? 'null' : `'${nullResult}'`;
   const arcade = `var data = ${JSON.stringify(data)};
-                  return DefaultValue(geos[$feature.${featureName}], ${nullEncoded});`;
-  console.log('Arcade Generated', arcade);
+                  if(hasKey(data, $feature.${featureName})) {
+                      return data[$feature.${featureName}];
+                  }
+                  return ${nullEncoded};`;
   return arcade;
 }
