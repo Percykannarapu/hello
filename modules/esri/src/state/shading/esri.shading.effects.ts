@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { filter, map, switchMap, tap } from 'rxjs/operators';
+import { filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriMapService } from '../../services/esri-map.service';
 import { EsriShadingLayersService } from '../../services/esri-shading-layers.service';
 import { AppState } from '../esri.selectors';
-import { addLayerToLegend, clearSelectionData, geoSelectionChanged, audienceShading } from './esri.shading.actions';
+import { addLayerToLegend, clearSelectionData, geoSelectionChanged, applyAudienceShading, clearAudienceShading } from './esri.shading.actions';
 
 @Injectable()
 export class EsriShadingEffects {
@@ -16,17 +16,24 @@ export class EsriShadingEffects {
       ofType(geoSelectionChanged),
       filter(payload => payload.selectedFeatureIds != null && payload.selectedFeatureIds.length > 0),
       switchMap(payload => this.shadingService.selectedFeaturesShading(payload.selectedFeatureIds, payload.layerId, payload.minScale, payload.featureTypeName, payload.useCrossHatching)),
-      map(id => addLayerToLegend({ layerUniqueId: id, title: 'Selected Geos' }))
+      map(id => addLayerToLegend({ layerUniqueId: id, title: null }))
     )
   );
 
   audienceShading$ = createEffect(() =>
       this.actions$.pipe(
-        ofType(audienceShading),
-        switchMap(payload => this.shadingService.audienceShading(payload.mapVars, payload.layerId, payload.minScale)),
-        map(id => addLayerToLegend({ layerUniqueId: id, title: 'Audience Shading'}))
-      ),
-      { dispatch: false }
+        ofType(applyAudienceShading),
+        switchMap(payload => this.shadingService.audienceShading(payload.mapVars, payload.layerId, payload.minScale, payload.theme, payload.audienceName, payload.isTextVariable)),
+        map(([id, title]) => addLayerToLegend({ layerUniqueId: id, title: title }))
+      )
+  );
+
+  clearShading$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(clearAudienceShading),
+      tap(() => this.shadingService.clearAudienceShading())
+    ),
+    { dispatch: false }
   );
 
   inActiveGeosShading$ = createEffect(() =>
@@ -46,7 +53,7 @@ export class EsriShadingEffects {
 
   addLayerToLegend$ = createEffect(() => this.actions$.pipe(
       ofType(addLayerToLegend),
-      tap(payload => this.layerService.addLayerToLegend(payload.layerUniqueId, payload.title, payload.addToBottom))
+      tap(payload => this.layerService.addLayerToLegend(payload.layerUniqueId, payload.title))
     ),
     { dispatch: false }
   );

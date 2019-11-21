@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { InitialEsriState, loadInitialState } from '../state/esri.actions';
 import { EsriState } from '../state/esri.selectors';
 import { ResetMapState, SetLayerLabelExpressions, SetPopupVisibility, SetSelectedLayer } from '../state/map/esri.map.actions';
 import { EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
@@ -23,5 +24,9 @@ export class EsriService {
 
   setLayerLabelExpressions(expressions: { [layerId: string] : EsriLabelLayerOptions }) : void {
     this.store$.dispatch(new SetLayerLabelExpressions({ expressions }));
+  }
+
+  loadInitialState(initialState: InitialEsriState) : void {
+    this.store$.dispatch(loadInitialState(initialState));
   }
 }

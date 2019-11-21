@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, expandRange, groupByExtended } from '@val/common';
+import { calculateStatistics, expandRange , groupByExtended } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';

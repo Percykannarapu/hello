@@ -10,21 +10,8 @@ import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { EsriMapService } from '../../services/esri-map.service';
 import { EsriPrintingService } from '../../services/esri-printing-service';
-import { EsriRendererService } from '../../services/esri-renderer.service';
 import { AppState, internalSelectors, selectors } from '../esri.selectors';
-import {
-  CopyCoordinatesToClipboard,
-  EsriMapActionTypes,
-  FeaturesSelected,
-  InitializeMap,
-  InitializeMapFailure,
-  InitializeMapSuccess,
-  MapClicked,
-  PrintJobComplete,
-  PrintMap,
-  PrintMapFailure,
-  SetPopupVisibility,
-} from './esri.map.actions';
+import { CopyCoordinatesToClipboard, EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, PrintJobComplete, PrintMap, PrintMapFailure, SetPopupVisibility, } from './esri.map.actions';
 
 @Injectable()
 export class EsriMapEffects {
@@ -42,7 +29,7 @@ export class EsriMapEffects {
   handleMapClick$ = this.actions$.pipe(
     ofType<MapClicked>(EsriMapActionTypes.MapClicked),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapButtonState))),
-    filter(([action, state]) => state === SelectedButtonTypeCodes.SelectSinglePoly),
+    filter(([, state]) => state === SelectedButtonTypeCodes.SelectSinglePoly),
     mergeMap(([action]) => this.mapInteractionService.processClick(action.payload.event)),
     map(features => new FeaturesSelected({ features }))
   );
@@ -51,7 +38,7 @@ export class EsriMapEffects {
   handleMapClickHandler$ = this.actions$.pipe(
     ofType<MapClicked>(EsriMapActionTypes.MapClicked),
     withLatestFrom(this.store$.pipe(select(internalSelectors.getEsriMapButtonState))),
-    filter(([action, state]) => state === SelectedButtonTypeCodes.XY),
+    filter(([, state]) => state === SelectedButtonTypeCodes.XY),
     map( action => new CopyCoordinatesToClipboard({ event: action[0].payload.event}))
   );
 
@@ -71,7 +58,7 @@ export class EsriMapEffects {
   handleLabels$ = this.actions$.pipe(
     ofType(EsriMapActionTypes.SetLabelConfiguration, EsriMapActionTypes.SetLayerLabelExpressions, EsriMapActionTypes.HideLabels, EsriMapActionTypes.ShowLabels),
     withLatestFrom(this.store$.pipe(select(selectors.getEsriLabelConfiguration)), this.store$.pipe(select(internalSelectors.getEsriLayerLabelExpressions))),
-    tap(([action, labelConfig, layerConfig]) => this.layerService.setLabels(labelConfig, layerConfig))
+    tap(([, labelConfig, layerConfig]) => this.layerService.setLabels(labelConfig, layerConfig))
   );
 
   @Effect()
@@ -94,7 +81,6 @@ export class EsriMapEffects {
               private store$: Store<AppState>,
               private mapService: EsriMapService,
               private layerService: EsriLayerService,
-              private esriRendererService: EsriRendererService,
               private mapInteractionService: EsriMapInteractionService,
               private geoprocessorService: EsriGeoprocessorService,
               private printingService: EsriPrintingService,

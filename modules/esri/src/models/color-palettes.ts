@@ -1,6 +1,8 @@
 /* tslint:disable:max-line-length */
 
 // these are the only palettes used in the application for now
+import { EsriApi } from '../core/esri-api.service';
+
 export enum ColorPalette {
   Brightcolors = '6 Bright Colors',
   SixDarkColors = '6 Dark Colors',
@@ -83,6 +85,11 @@ export enum AllColorPalettes {
   Lightcolors2 = '20 Light Colors #2',
   Darkcolors = '20 Dark Colors',
   EsriPurple = 'Gradient - Purple',
+}
+
+export function getColorPaletteAsEsriColor(palette: ColorPalette, alpha: number) : __esri.Color[] {
+  const colorPalette = getColorPalette(palette);
+  return colorPalette.map(rgb => new EsriApi.Color([...rgb, alpha])) ;
 }
 
 export function getColorPalette(palette: ColorPalette) : number[][] {
@@ -230,6 +237,8 @@ export function getAllColorPalettes(palette: string) : number[][] {
     case AllColorPalettes.Darkcolors:
       return DarkColors;
     case AllColorPalettes.EsriPurple:
+      return esriPurple;
+    default:
       return esriPurple;
   }
 }

@@ -1,12 +1,5 @@
 // tslint:disable:no-bitwise
 
-// fixes Array.isArray not typing a readonly array as an array
-declare global {
-  interface ArrayConstructor {
-    isArray(arg: any) : arg is ReadonlyArray<any>;
-  }
-}
-
 /**
  * Splits an array into chunks of a maximum size
  * @param {T[] | U[]} arr: The original array to split

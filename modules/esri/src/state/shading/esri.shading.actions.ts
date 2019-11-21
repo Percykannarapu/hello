@@ -12,12 +12,15 @@ export const geoSelectionChanged = createAction(
   props<{ selectedFeatureIds: string[], layerId: string, minScale: number, useCrossHatching: boolean, featureTypeName: string }>()
 );
 
-export const clearShadingData = createAction('[Esri.Shading] Clear Shading Data');
-
 export const applyAudienceShading = createAction(
   '[Esri.Shading] Apply Audience Shading',
-  props<{ theme: ColorPalette, audienceVariable: string }>()
-  );
+  props<{ mapVars: MapVar[], layerId: string, minScale: number, theme: ColorPalette, audienceName: string, isTextVariable: boolean }>()
+);
+
+export const clearAudienceShading = createAction(
+  '[Esri.Shading] Clear Shading Data',
+  props<{ resetSelectionShading: boolean }>()
+);
 
 export const clearSelectionData = createAction(
   '[Esri.Shading] Clear Selection Data',
@@ -26,10 +29,5 @@ export const clearSelectionData = createAction(
 
 export const addLayerToLegend = createAction(
   '[Esri.Shading] Add Layer to Legend',
-  props<{ layerUniqueId: string, title: string, addToBottom?: boolean }>()
-);
-
-export const audienceShading = createAction(
-  '[Esri.Shading] Audience Shading',
-  props<{ mapVars: MapVar[], layerId: string, minScale: number}>()
+  props<{ layerUniqueId: string, title: string }>()
 );

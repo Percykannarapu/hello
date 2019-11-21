@@ -1,30 +1,34 @@
-
 import { createReducer, on } from '@ngrx/store';
-import { geoSelectionChanged } from './esri.shading.actions';
+import { InitialEsriState, loadInitialState } from '../esri.actions';
+import { applyAudienceShading, clearAudienceShading, geoSelectionChanged } from './esri.shading.actions';
 import { ColorPalette } from '../../models/color-palettes';
 
-export interface ShadingData {
-  [varId: string] : number | string;
-}
-
-export interface GeoData {
-  selected: boolean;
-  ownerSite: string;
-}
-
 export interface EsriShadingState {
-  geoShadingData: {
-    [geocode: string] : ShadingData & GeoData;
-  };
   theme: ColorPalette;
+  isShaded: boolean;
 }
 
 export const initialState: EsriShadingState = {
-  geoShadingData: {},
-  theme: ColorPalette.EsriPurple
+  theme: ColorPalette.EsriPurple,
+  isShaded: false
 };
 
 export const shadingReducer = createReducer(
   initialState,
-  on(geoSelectionChanged, (state, { selectedFeatureIds }) => ({ ...state }))
+  on(loadInitialState, (state, payload: InitialEsriState) => {
+      return {
+        ...state,
+        ...initialState,
+        ...payload.shading
+      };
+  }),
+  on(geoSelectionChanged, (state, { selectedFeatureIds }) => ({ ...state })),
+  on(applyAudienceShading, (state) => ({...state, isShaded: true })),
+  on(clearAudienceShading, (state, { resetSelectionShading }) => {
+    if (resetSelectionShading) {
+      return { ...state, isShaded: false };
+    } else {
+      return state;
+    }
+  })
 );
