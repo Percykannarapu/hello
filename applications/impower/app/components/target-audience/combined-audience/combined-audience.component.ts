@@ -77,7 +77,7 @@ export class CombinedAudienceComponent implements OnInit {
           }
           );
         }
-        if (audienceFields.audienceId != null && audienceFields.audienceId.length === 0){
+        if (audienceFields.audienceId == null || audienceFields.audienceId.length === 0){
             const fkId =  this.impVarService.getNextStoreId();
             const combinedAud: Audience = {
               audienceIdentifier: fkId.toString(),
