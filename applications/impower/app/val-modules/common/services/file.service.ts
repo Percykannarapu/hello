@@ -24,6 +24,7 @@ export interface ParseResponse<T> {
   duplicateKeys: string[];
   invalidColLengthHeaders: string[];
   duplicateHeaders: string[];
+  invalidRowHeaders: T;
 }
 
 export interface Parser<T> {
@@ -62,6 +63,7 @@ export class FileService {
       duplicateKeys: [],
       invalidColLengthHeaders: [],
       duplicateHeaders: [],
+      invalidRowHeaders: {} as T
     };
     parseEngine.forEach(header => {
           if (header.invalidLength)
@@ -70,6 +72,7 @@ export class FileService {
               result.duplicateHeaders.push(header.outputFieldName);
 
     });
+    const invalidColumns: T = {} as T;
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
       // replace commas embedded inside nested quotes, then remove the quotes.
@@ -89,6 +92,9 @@ export class FileService {
               result.duplicateKeys.push(currentColumnValue);
             }
           }
+          if (parseEngine[j].width < currentColumnValue.length){
+            invalidColumns[parseEngine[j].outputFieldName] = parseEngine[j].width;
+          }
         }
         if (emptyRowCheck.length === 0) continue; // Don't flag the row as failed if it was empty - just ignore it
         if (parser.dataValidator(dataResult)) {
@@ -103,7 +109,8 @@ export class FileService {
       //     result.failedRows.push(dataRows[i]);
       // result.failedRows.push(null);
       return null;
-    } 
+    }
+    result.invalidRowHeaders = invalidColumns;
       return result;
   }
 

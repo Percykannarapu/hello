@@ -39,6 +39,15 @@ export class AppGeocodingService {
             this.store$.dispatch(new ErrorNotification({ message: 'Column headers must be 30 characters or less, please fix the file and upload again.', notificationTitle: 'Invalid Headers' }));    
         throw new Error();
       }
+      if (Object.keys(data.invalidRowHeaders).length > 0){
+
+        Object.keys(data.invalidRowHeaders).map((headerCol) => {
+          //console.log('index values====>', record[headerCol], headerCol);
+          this.store$.dispatch(new ErrorNotification({message: `Invalid length for Column:${headerCol} exceeding more than ${data.invalidRowHeaders[headerCol]}`, notificationTitle: 'Invalid Data'}));
+        });
+        
+        throw new Error();
+      }
       if (data == null ) {
         this.store$.dispatch(new ErrorNotification({ message: `Please define radii values >0 and <= 50 for all ${siteType}s.`, notificationTitle: 'Location Upload Error' }));
       } else {

@@ -85,8 +85,10 @@ export class AddLocationsTabComponent implements OnInit {
 
   onUpload(csvData: string[], siteType: SuccessfulLocationTypeCodes) {
     const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListUpload);
-    this.validateHomeDmaIfExists(requests);
-    this.processSiteRequests(requests, siteType);
+    if (requests.length > 0){
+      this.validateHomeDmaIfExists(requests);
+      this.processSiteRequests(requests, siteType);
+    }
   }
 
   validateHomeDmaIfExists(requests: ValGeocodingRequest[]) {

@@ -85,8 +85,8 @@ const stateCodeProcessor = (data: string) => {
 export const siteListUpload: Parser<ValGeocodingRequest> = {
   
   columnParsers: [
-    { headerIdentifier: ['street', 'address', 'addr'], outputFieldName: 'street', width: 64 },
-    { headerIdentifier: ['city', 'cty'], outputFieldName: 'city' , width: 64},
+    { headerIdentifier: ['street', 'address', 'addr'], outputFieldName: 'street', width: 60 },
+    { headerIdentifier: ['city', 'cty'], outputFieldName: 'city' , width: 60},
     { headerIdentifier: ['state', 'st'], outputFieldName: 'state', dataProcess: stateCodeProcessor, width: 2 },
     { headerIdentifier: ['zip', 'zipcode', 'zip code', 'code', 'postal', 'postal code'], outputFieldName: 'zip', width: 10 },
     { headerIdentifier: ['y', 'y (optional)', 'y(optional)', 'y optional', 'latitude', 'lat'], outputFieldName: 'latitude', dataProcess: latLongProcessor, width: 11 },
