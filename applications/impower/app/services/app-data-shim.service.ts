@@ -22,6 +22,7 @@ import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
+import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -53,7 +54,8 @@ export class AppDataShimService {
               private metricService: ValMetricsService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private esriService: EsriService,
-              private store$: Store<LocalAppState>) {
+              private store$: Store<LocalAppState>,
+              private impProjVarService: ImpProjectVarService) {
     this.currentProject$ = this.appProjectService.currentProject$;
     this.currentGeos$ = this.appGeoService.currentGeos$;
     this.currentGeocodeSet$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
@@ -85,6 +87,7 @@ export class AppDataShimService {
       tap(project => {
         const paletteKey = this.appPrefService.getPrefVal('Theme');
         const mappedAudienceCount = project.impProjectVars.filter(pv => pv.isShadedOnMap).length;
+        this.impProjVarService.currStoreId = project.impProjectVars.length + 1; // reset dataStore counter on load 
         const state: InitialEsriState = {
           shading: {
             isShaded: mappedAudienceCount > 0
