@@ -32,7 +32,11 @@ const tradeAreaUpload: Parser<TradeAreaDefinition> = {
     { headerIdentifier: ['STORE', 'SITE', 'LOC', 'Site #', 'NUMBER'], outputFieldName: 'store', required: true},
     { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true},
   ],
-  headerValidator: (found: ParseRule[]) => found.length === 2
+  headerValidator: (found: ParseRule[]) => found.length === 2,
+  
+  createNullParser: (header: string, isUnique?: boolean) : ParseRule => {
+    return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data};
+  }
 };
 
 @Component({

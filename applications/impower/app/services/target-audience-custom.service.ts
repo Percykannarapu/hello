@@ -1,6 +1,6 @@
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { Injectable } from '@angular/core';
-import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
+import { FileService, Parser, ParseResponse, ParseRule } from '../val-modules/common/services/file.service';
 import { EMPTY, Observable, BehaviorSubject, merge } from 'rxjs';
 import { AppLoggingService } from './app-logging.service';
 import { TargetAudienceService } from './target-audience.service';
@@ -32,7 +32,10 @@ import { EsriQueryService } from '@val/esri';
 const audienceUpload: Parser<CustomAudienceData> = {
   columnParsers: [
     { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
-  ]
+  ],
+  createNullParser: (header: string, isUnique?: boolean) : ParseRule => {
+    return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data};
+  } 
 };
 
 interface CustomAudienceData {

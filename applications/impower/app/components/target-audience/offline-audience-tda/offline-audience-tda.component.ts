@@ -55,7 +55,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
   public ngOnInit() : void {
     const message = 'There was an error during retrieval of the Offline Audience descriptions. Please refresh your browser to try again.';
     this.audienceService.getAudienceDescriptions().subscribe(
-      folder => this.allNodes.push(OfflineAudienceTdaComponent.asFolder(folder)),
+      folder =>  {
+        if (folder.children.length > 0)
+          this.allNodes.push(OfflineAudienceTdaComponent.asFolder(folder));
+      },
       (err) => {
         console.error(err);
         this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'TDA Connection Error' }));

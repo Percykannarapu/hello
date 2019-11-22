@@ -34,7 +34,7 @@ import { TransactionManager } from '../../common/services/TransactionManager.ser
 import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
 import { RestDataService } from '../../common/services/restdata.service';
 import { FieldContentTypeCodes } from './../../../impower-datastore/state/models/impower-model.enums';
-import { FileService, Parser, ParseResponse } from '../../../val-modules/common/services/file.service';
+import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modules/common/services/file.service';
 import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 
 interface CustomMCDefinition {
@@ -57,7 +57,10 @@ interface UploadMustCoverData {
 const mustCoverUpload: Parser<UploadMustCoverData> = {
    columnParsers: [
       { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
-   ]
+   ],
+   createNullParser: (header: string, isUnique?: boolean) : ParseRule => {
+      return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data};
+    }
 };
 
 @Injectable()
