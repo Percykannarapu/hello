@@ -87,7 +87,15 @@ export class AppDataShimService {
       tap(project => {
         const paletteKey = this.appPrefService.getPrefVal('Theme');
         const mappedAudienceCount = project.impProjectVars.filter(pv => pv.isShadedOnMap).length;
-        this.impProjVarService.currStoreId = project.impProjectVars.length + 1; // reset dataStore counter on load 
+        const varPks = [];
+        project.impProjectVars.filter(a => {
+          if (a.source.split('_')[0].toLowerCase() === 'combined' || a.source.split('_')[0].toLowerCase() === 'custom')
+            varPks.push(a.varPk);  
+        });
+        const varWithMaxId = varPks.reduce((p, c) => {
+          return Math.max(p, c);
+        });
+        this.impProjVarService.currStoreId = varWithMaxId + 1; // reset dataStore counter on load 
         const state: InitialEsriState = {
           shading: {
             isShaded: mappedAudienceCount > 0
