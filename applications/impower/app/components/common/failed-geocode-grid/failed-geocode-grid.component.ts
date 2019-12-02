@@ -64,6 +64,7 @@ export class FailedGeocodeGridComponent implements OnInit {
   private failedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
   public  selectedLov = [{isActive: true}, {isActive: false}];
   public  hasSelectedSites: boolean = false;
+  public  numSelectedSites: number = 0;
 
   // Get the grid as a view child to attach custom filters
   @ViewChild('failureGrid', { static: true }) public _failureGrid: Table;
@@ -105,7 +106,8 @@ export class FailedGeocodeGridComponent implements OnInit {
   }
 
   setHasSelectedSites() : boolean {
-    return this.hasSelectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive).length > 0;
+    this.numSelectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive).length;
+    return this.hasSelectedSites =  this.numSelectedSites > 0;
   }
 
   getCoordinates(site: ImpGeofootprintLocation) : string {

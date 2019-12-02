@@ -47,12 +47,12 @@
         </th>
         <th class="button-column">
           <div>
-            <button (click)="onResubmitSelected()" icon="ui-icon-refresh" pButton pTooltip="Resubmit all selected sites" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
+            <button (click)="onResubmitSelected()" icon="ui-icon-refresh" pButton pTooltip="Resubmit {{numSelectedSites}} selected sites" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
           </div>
         </th>
         <th class="button-column">
           <div>
-            <button (click)="onAcceptSelected()" icon="ui-icon-check" pButton pTooltip="Accept all selected XY coordinates" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
+            <button (click)="onAcceptSelected()" icon="ui-icon-check" pButton pTooltip="Accept {{numSelectedSites}} selected XY coordinates" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
           </div>
         </th>
         <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
@@ -71,7 +71,7 @@
         </th>
         <th class="button-column">
           <div>
-            <button (click)="onRemoveSelected()" icon="ui-icon-delete" pButton pTooltip="Remove all selected locations" [disabled]="!hasSelectedSites"></button>
+            <button (click)="onRemoveSelected()" icon="ui-icon-delete" pButton pTooltip="Remove {{numSelectedSites}} selected locations" [disabled]="!hasSelectedSites"></button>
           </div>
         </th>
       </tr>
