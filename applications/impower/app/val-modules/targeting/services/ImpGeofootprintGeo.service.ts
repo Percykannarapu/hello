@@ -650,14 +650,15 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
              this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
           }
 
-          const portalLayerId = fileAnalysisLevel === analysisLevel ? this.appConfig.getLayerIdForAnalysisLevel(analysisLevel) : this.appConfig.getLayerIdForAnalysisLevel(fileAnalysisLevel);
+          
           //this.appConfig.getLayerIdForAnalysisLevel(analysisLevel);
 
           const outfields = ['geocode', 'latitude', 'longitude'];
           const queryResult = new Set<string>();
           const queryResultMap = new Map<string, {latitude: number, longitude: number}>();
           if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
-          
+            const portalLayerId = fileAnalysisLevel === analysisLevel ? this.appConfig.getLayerIdForAnalysisLevel(analysisLevel) : this.appConfig.getLayerIdForAnalysisLevel(fileAnalysisLevel);
+
             return this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
                map(graphics => graphics.map(g => g.attributes)),
                map(attrs => {
@@ -678,7 +679,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             );
          }
          else {
-            this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(queryResult), 
+            this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(uniqueGeos), 
                                                             queryResult: queryResultMap, fileAnalysisLevel: fileAnalysisLevel, 
                                                             fileName: fileName, uploadedGeos: data.parsedData}));
          }
