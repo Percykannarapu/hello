@@ -97,7 +97,7 @@ export class CombinedAudienceComponent implements OnInit {
               combinedVariableNames: combinedVariableNames.join('~')
             };
             this.varService.addAudience(combinedAud);
-            this.store$.dispatch(new SuccessNotification({ message: 'The following audience was created successfully:' + '\n' + combinedAud.audienceName, notificationTitle: 'Combine Audience' }));
+            this.store$.dispatch(new SuccessNotification({ message: 'The following audience was created successfully: \n' + combinedAud.audienceName, notificationTitle: 'Combine Audience' }));
           
         } else{
           this.currentAudience = this.allAudiences.filter(a => a.audienceIdentifier === audienceFields.audienceId);
@@ -120,7 +120,7 @@ export class CombinedAudienceComponent implements OnInit {
         };
 
         this.store$.dispatch(new UpsertAudience({ audience:  editedAudience}));
-        this.store$.dispatch(new SuccessNotification({ message: 'The following audience was updated successfully:' + '\n' + editedAudience.audienceName, notificationTitle: 'Combine Audience' }));
+        this.store$.dispatch(new SuccessNotification({ message: 'The following audience was updated successfully: \n' + editedAudience.audienceName, notificationTitle: 'Combine Audience' }));
 
       }
       this.currentAudience = '';
