@@ -11,7 +11,7 @@ import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 
 import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
-import { roundTo } from '@val/common';
+import { roundTo, mapBy } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
@@ -36,6 +36,7 @@ import { RestDataService } from '../../common/services/restdata.service';
 import { FieldContentTypeCodes } from './../../../impower-datastore/state/models/impower-model.enums';
 import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modules/common/services/file.service';
 import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { MustCoverRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 
 interface CustomMCDefinition {
   Number: number;
@@ -79,14 +80,15 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    private exportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
    private geoVarsBS$ = new BehaviorSubject<GeoVar[]>([]);
    private uploadFailuresSub: BehaviorSubject<CustomMCDefinition[]> = new BehaviorSubject<CustomMCDefinition[]>([]);
-  public uploadFailuresObs$: Observable<CustomMCDefinition[]> = this.uploadFailuresSub.asObservable();
-  public uploadFailures: CustomMCDefinition[] = [];
+   public uploadFailuresObs$: Observable<CustomMCDefinition[]> = this.uploadFailuresSub.asObservable();
+   public uploadFailures: CustomMCDefinition[] = [];
 
 
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
                private appConfig: AppConfig,
                private esriQueryService: EsriQueryService,
+              // private appProjectPrefService: AppProjectPrefService,
                private store$: Store<LocalAppState>)
    {
       super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
@@ -496,6 +498,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                         }
                      }
                   }
+                  break;
               case FieldContentTypeCodes.Ratio:
                 result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(2);
                 break;
@@ -615,13 +618,13 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // MUST COVER METHODS
    // -----------------------------------------------------------
-   public parseMustCoverFile(dataBuffer: string, fileName: string, analysisLevel: string) : Observable<any> {
+   public parseMustCoverFile(dataBuffer: string, fileName: string, analysisLevel: string, fileAnalysisLevel: string = null) : Observable<any> {
     //console.debug("### parseMustCoverFile fired");
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
     const errorTitle: string = 'Must Cover Geographies Upload';
-    const errorGeo: CustomMCDefinition[] = [];
-    const successGeo = [];
+    
+    
     //const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
     try {
@@ -647,28 +650,38 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
              this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
           }
 
-          const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(analysisLevel);
+          const portalLayerId = fileAnalysisLevel === analysisLevel ? this.appConfig.getLayerIdForAnalysisLevel(analysisLevel) : this.appConfig.getLayerIdForAnalysisLevel(fileAnalysisLevel);
+          //this.appConfig.getLayerIdForAnalysisLevel(analysisLevel);
 
           const outfields = ['geocode', 'latitude', 'longitude'];
           const queryResult = new Set<string>();
-
-          return this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
-            map(graphics => graphics.map(g => g.attributes)),
-            map(attrs => {
-              attrs.forEach(r => queryResult.add(r.geocode));
-              let i = 0;
-              uniqueGeos.forEach(geo => {
-                const customMc: CustomMCDefinition = { Number: i++, geocode: geo };
-                queryResult.has(geo) ? successGeo.push(geo) : errorGeo.push(customMc);        });
-
-              this.uploadFailuresSub.next(errorGeo);
-               // Keep track of the current must cover upload filename
-               this.currentMustCoverFileName = fileName;
-               this.setMustCovers(successGeo, true);
-               console.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
-               return successGeo;
-            })
-           );
+          const queryResultMap = new Map<string, {latitude: number, longitude: number}>();
+          if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
+          
+            return this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
+               map(graphics => graphics.map(g => g.attributes)),
+               map(attrs => {
+                 attrs.forEach(r => {
+                    queryResultMap.set(r.geocode, { latitude: r.latitude, longitude: r.longitude });
+                    queryResult.add(r.geocode);
+                 });
+                 
+                  if (analysisLevel !== fileAnalysisLevel){
+                     this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(queryResult), queryResult: queryResultMap, 
+                                                                     fileAnalysisLevel: fileAnalysisLevel, fileName: fileName, 
+                                                                     uploadedGeos: data.parsedData}));
+                  }
+                  else{
+                     this.validateMustCoverGeos(Array.from(uniqueGeos), queryResult, fileName);
+                  }
+               })
+            );
+         }
+         else {
+            this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(queryResult), 
+                                                            queryResult: queryResultMap, fileAnalysisLevel: fileAnalysisLevel, 
+                                                            fileName: fileName, uploadedGeos: data.parsedData}));
+         }
        }
       }
       catch (e) {
@@ -721,6 +734,35 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          //console.debug("### setMustCovers alerting subscribers of " + this.mustCovers.length + " mustcovers");
          this.allMustCoverBS$.next(this.mustCovers);
       }
+   }
+
+   public validateMustCoverGeos(uniqueGeos: string[], queryResult: Set<string>, fileName: string){
+      const successGeo = [];
+      const errorGeo: CustomMCDefinition[] = [];
+      let i = 0;
+      uniqueGeos.forEach(geo => {
+      const customMc: CustomMCDefinition = { Number: i++, geocode: geo };
+      queryResult.has(geo) ? successGeo.push(geo) : errorGeo.push(customMc);        });
+   
+      this.uploadFailuresSub.next(errorGeo);
+                  // Keep track of the current must cover upload filename
+      this.currentMustCoverFileName = fileName;
+      this.setMustCovers(successGeo, true);
+   }
+
+   public persistMustCoverRollDownGeos(payload: any[], failedGeos: any[], fileName: string){
+      const successGeo = [];
+      const errorGeo: CustomMCDefinition[] = [];
+      let i = 0;
+      payload.forEach(record => successGeo.push(record.geocode));
+      failedGeos.forEach(geo => {
+         const customMc: CustomMCDefinition = { Number: i++, geocode: geo.geocode };
+         errorGeo.push(customMc);
+      });
+      this.uploadFailuresSub.next(errorGeo);
+      this.currentMustCoverFileName = fileName;
+      this.setMustCovers(successGeo, true);
+      console.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
    }
 
 }

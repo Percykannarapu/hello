@@ -9,6 +9,21 @@
          </div>
        </div>
      </div> 
+     &nbsp;
+    <div class="ui-g-12">
+          <span class="md-inputfield">
+            <p-dropdown id="analysisLevel"
+                        [options]="fileAnalysisLevels"
+                        [autoWidth]="false"
+                        [style]="{ width:'40%' }"
+                        placeholder="&nbsp;"
+                        [(ngModel)]="fileAnalysisSelected"
+                        dropdownIcon="fa fa-caret-down"
+                        [disabled]="!(currentAnalysisLevel$ | async)">
+            </p-dropdown>
+            <label for="analysisLevel">Analysis Level of upload file</label>
+          </span>
+     </div>
      <div class="ui-g-12">
         <div class="ui-g-3">
             <p-fileUpload #mustCoverUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"

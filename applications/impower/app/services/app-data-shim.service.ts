@@ -217,4 +217,10 @@ export class AppDataShimService {
     if (!isReload)
         this.impGeofootprintGeoService.uploadFailures = [];
   }
+
+  persistMustCoverRollDownGeos(payLoad: any[], fileName: string, failedGeos: any[]){
+
+    this.impGeofootprintGeoService.persistMustCoverRollDownGeos(payLoad, failedGeos,  fileName);
+  }
+
 }
