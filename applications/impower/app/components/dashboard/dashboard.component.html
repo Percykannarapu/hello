@@ -29,8 +29,8 @@
             <val-add-locations-tab #addLocations></val-add-locations-tab>
           </p-tabPanel>
           <div *ngIf="(hasLocationFailures$ | async)">
-            <p-tabPanel header="Failed Locations">
-              <val-failed-locations-tab>Loading Failed Locations...</val-failed-locations-tab>
+            <p-tabPanel header="Interactive Geocoding">
+                <val-failed-locations-tab>Loading Failed Locations...</val-failed-locations-tab>
             </p-tabPanel>
           </div>
           <p-tabPanel header="Manage Locations">

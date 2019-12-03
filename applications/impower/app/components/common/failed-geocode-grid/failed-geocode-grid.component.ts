@@ -36,7 +36,7 @@ export class FailedGeocodeGridComponent implements OnInit {
     // Sorting by sequence lets columns maintain position when toggled on and off
     this.selectedColumns.sort((a, b) => a.seq - b.seq);
     return this._failedSites;
- }
+  }
 
   @Input() totalCount: number = 0;
 
@@ -79,6 +79,13 @@ export class FailedGeocodeGridComponent implements OnInit {
   public  selectedColumns: any[] = [];
   public  columnOptions: SelectItem[] = [];
   public  multiSortMeta: SortMeta[] = [];
+
+  // Control table cell / header wrapping
+  private tableWrapOn: string = 'val-table val-tbody-wrap';
+  private tableWrapOff: string = 'val-table val-tbody-nowrap';
+  public  tableWrapStyle: string = this.tableWrapOff;
+  public  tableWrapIcon: string = 'ui-icon-menu';
+  public  tableHdrSlice: boolean = false;
 
   constructor(private appLocationService: AppLocationService,
               private impGeofootprintLocationService: ImpGeofootprintLocationService) {}
@@ -220,6 +227,24 @@ export class FailedGeocodeGridComponent implements OnInit {
 
     // Reset the grid and grid filters
     this._failureGrid.reset();
+  }
+
+  /**
+  * Used to toggle the gizmo icon and styles used to turn word wrapping on and off in the grid
+  */
+  public onToggleTableWrap() {
+    if (this.tableWrapStyle === this.tableWrapOn)
+    {
+        this.tableWrapStyle = this.tableWrapOff;
+        this.tableWrapIcon = 'ui-icon-menu';
+        //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
+    }
+    else
+    {
+        this.tableWrapStyle = this.tableWrapOn;
+        this.tableWrapIcon = 'ui-icon-wrap-text';
+        //this.tableHdrSlice = false;
+    }
   }
 
   // Table-Filter-LOV events
