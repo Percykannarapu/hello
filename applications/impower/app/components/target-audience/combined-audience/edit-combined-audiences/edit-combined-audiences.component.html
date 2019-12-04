@@ -1,7 +1,7 @@
 <div class="ui-g-12" *ngIf="editAudiences != null && editAudiences.length > 0">
   List of Combined Audiences
   &nbsp;
-    <p-table [columns]="audienceList" [value]="editAudiences" [scrollable]="true" [resizableColumns]="true" scrollHeight="20em" [alwaysShowPaginator]="false" [style]="{width:'20em'}">
+    <p-table [columns]="audienceList" [value]="editAudiences" [scrollable]="true" [resizableColumns]="true" scrollHeight="20em" [alwaysShowPaginator]="false" [style]="{width:'40em'}">
         <ng-template pTemplate="colgroup" let-columns>
             <colgroup>
                 <col *ngFor="let col of columns" [style.width]="col.width">

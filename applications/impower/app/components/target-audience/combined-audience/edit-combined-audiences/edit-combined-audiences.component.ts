@@ -20,7 +20,7 @@ export class EditCombinedAudiencesComponent implements OnInit {
   ngOnInit() {
 
     this.audienceList = [
-      {field: 'audienceName', header: 'Audience Name', width: '10em'}
+      {field: 'audienceName', header: 'Audience Name', width: '30em'}
     ];
   }
 
