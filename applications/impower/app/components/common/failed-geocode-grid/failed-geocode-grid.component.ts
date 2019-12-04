@@ -1,4 +1,4 @@
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, ViewChildren, QueryList, ViewChild } from '@angular/core';
 import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -7,6 +7,7 @@ import { SelectItem } from 'primeng/components/common/selectitem';
 import { SortMeta } from 'primeng/api';
 import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';
 import { Table } from 'primeng/table';
+import { filterArray } from '@val/common';
 
 export interface GeocodeFailureGridField {
   seq: number;
@@ -62,6 +63,7 @@ export class FailedGeocodeGridComponent implements OnInit {
   // Track unique values for text variables for filtering
   public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
   private failedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
+  private selectedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
   public  selectedLov = [{isActive: true}, {isActive: false}];
   public  hasSelectedSites: boolean = false;
   public  numSelectedSites: number = 0;
@@ -103,6 +105,9 @@ export class FailedGeocodeGridComponent implements OnInit {
     // Initially deactivate failed sites
     this.failedSitesBS$.getValue().forEach(site => site.isActive = false);
 
+    // Initially deselect in the grid
+    this.selectedSitesBS$.next([]);
+
     this.failedSitesBS$.subscribe(sites => {
       this.hasSelectedSites = (sites.filter(site => site.isActive).length > 0);
     });
@@ -114,6 +119,7 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   setHasSelectedSites() : boolean {
     this.numSelectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive).length;
+    this.selectedSitesBS$.next(this.failedSitesBS$.getValue().filter(site => site.isActive));
     return this.hasSelectedSites =  this.numSelectedSites > 0;
   }
 
@@ -230,8 +236,8 @@ export class FailedGeocodeGridComponent implements OnInit {
   }
 
   /**
-  * Used to toggle the gizmo icon and styles used to turn word wrapping on and off in the grid
-  */
+   * Used to toggle the gizmo icon and styles used to turn word wrapping on and off in the grid
+   */
   public onToggleTableWrap() {
     if (this.tableWrapStyle === this.tableWrapOn)
     {

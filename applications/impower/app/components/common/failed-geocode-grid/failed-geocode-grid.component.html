@@ -3,12 +3,13 @@
            class="{{tableWrapStyle}}"
            [columns]="selectedColumns"
            [globalFilterFields]="selectedColumns"
-           [value]="failedSites"
+           [value]="failedSitesBS$ | async"
+           [selection]="selectedSitesBS$ | async"
            [resizableColumns]="true"
            sortMode="multiple" [multiSortMeta]="multiSortMeta"
            [responsive]="true"
            [paginator]="true" [rows]="10" [rowsPerPageOptions]="[3,5,10,15,25,50,100,200,500,1000]"
-           [scrollable]="true">
+           scrollable="true" scrollWidth="100%">
     <ng-template pTemplate="caption">
       <div class="ui-g">
         <div class="ui-g-3 ui-g-nopad grid-caption-left-group" align="left">
@@ -78,7 +79,7 @@
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-site>
-      <tr>
+      <tr [pSelectableRow]="site">
         <td class="button-column">
           <div>
             <button (click)="openGoogleMap(site)" icon="fa fa-map-marker" pButton></button>
