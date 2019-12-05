@@ -487,7 +487,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
               case FieldContentTypeCodes.Percent:
                   for (const aud in audiences){
-                     if (audiences[aud].isCombined && audiences[aud].exportInGeoFootprint){
+                     if (audiences[aud].isCombined  && audiences[aud].exportInGeoFootprint){
                         for (const gVar in geoVar) {
                            if (gVar != null){
                               geoVar[audiences[aud].audienceIdentifier] = audiences[aud].combinedAudiences.reduce((p, c) => {
