@@ -18,7 +18,6 @@
     <p-table #locGrid
              [columns]="flatSiteGridColumns"
              [value]="flatAllSites$ | async"
-             [selection]="flatActiveSites$ | async"
              [resizableColumns]="true" columnResizeMode="expand"
              [reorderableColumns]="false"
              sortMode="multiple"
