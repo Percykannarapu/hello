@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, ViewChildren, QueryList, ViewChild } from '@angular/core';
 import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -7,7 +7,6 @@ import { SelectItem } from 'primeng/components/common/selectitem';
 import { SortMeta } from 'primeng/api';
 import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';
 import { Table } from 'primeng/table';
-import { filterArray } from '@val/common';
 
 export interface GeocodeFailureGridField {
   seq: number;
@@ -133,7 +132,6 @@ export class FailedGeocodeGridComponent implements OnInit {
   }
 
   setCoordinates(event: any, site: ImpGeofootprintLocation) : void {
-    console.log('Row edited result', event);
     const enteredValue = event.target.value as string;
     if (enteredValue == null || enteredValue.length === 0) {
       site.recordStatusCode = '';
@@ -201,7 +199,7 @@ export class FailedGeocodeGridComponent implements OnInit {
   }
 
   openGoogleMap(site: ImpGeofootprintLocation) : void {
-    const googleMapUri = `https://www.google.com/maps/place/${site.locAddress},${site.locCity},${site.locState},${site.locZip}`;
+    const googleMapUri = `https://www.google.com/maps/place/${site.origAddress1},${site.origCity},${site.origState},${site.origPostalCode}`;
     const strWindowFeatures = 'height=1000px,width=1000px';
     window.open(googleMapUri, '_blank', strWindowFeatures);
   }
@@ -227,9 +225,9 @@ export class FailedGeocodeGridComponent implements OnInit {
   {
     // Clear the multi select filters
     if (this.lovFilters)
-        this.lovFilters.forEach(lov => {
-          lov.clearFilter();
-        });
+      this.lovFilters.forEach(lov => {
+        lov.clearFilter();
+      });
 
     // Reset the grid and grid filters
     this._failureGrid.reset();
@@ -239,17 +237,15 @@ export class FailedGeocodeGridComponent implements OnInit {
    * Used to toggle the gizmo icon and styles used to turn word wrapping on and off in the grid
    */
   public onToggleTableWrap() {
-    if (this.tableWrapStyle === this.tableWrapOn)
-    {
-        this.tableWrapStyle = this.tableWrapOff;
-        this.tableWrapIcon = 'ui-icon-menu';
-        //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
+    if (this.tableWrapStyle === this.tableWrapOn) {
+      this.tableWrapStyle = this.tableWrapOff;
+      this.tableWrapIcon = 'ui-icon-menu';
+      //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
     }
-    else
-    {
-        this.tableWrapStyle = this.tableWrapOn;
-        this.tableWrapIcon = 'ui-icon-wrap-text';
-        //this.tableHdrSlice = false;
+    else {
+      this.tableWrapStyle = this.tableWrapOn;
+      this.tableWrapIcon = 'ui-icon-wrap-text';
+      //this.tableHdrSlice = false;
     }
   }
 
