@@ -33,6 +33,7 @@ export class LoginComponent {
       this.store$.dispatch(new ErrorNotification({ message: 'You must enter both a username and password', notificationTitle: 'Login Error' }));
       return;
     }
+    loginForm.form.disable({ emitEvent: false });
     this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: this.spinnerMessage }));
     this.authService.authenticate(loginForm.value.username, loginForm.value.password).subscribe(authenticated => {
       if (authenticated) {
