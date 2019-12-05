@@ -74,4 +74,7 @@ $inputHeaderPadding: 0.5em;
 $listItemPadding: 0 0.5em;
 $contentPadding: 0 0.5em;
 
-
+$valImportantElementBgColor: darken($darkerRed, 10%);
+$valImportantElementBgColorActive: $darkerRed;
+$valImportantElementColor: $paleYellow;
+$valImportantElementColorActive: darken($primaryYellow, 20%);

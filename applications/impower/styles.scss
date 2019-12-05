@@ -241,3 +241,22 @@ body {
     }
   }
 }
+
+// val-important-element style for tabs
+// usage ex: <p-tabPanel header="Attention!" headerStyleClass="val-important-element">
+.ui-tabview {
+  > ul.ui-tabview-nav {
+    > li.val-important-element {
+      background-color: $valImportantElementBgColor !important;
+      .ui-tabview-title {
+        color: $valImportantElementColor;
+      }
+      &.ui-state-active{
+        background-color: $valImportantElementBgColorActive !important;
+        .ui-tabview-title {
+          color: $valImportantElementColorActive;
+        }
+      }
+    }
+  }
+}
