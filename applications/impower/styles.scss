@@ -30,8 +30,13 @@ body {
   text-align: end;
 }
 
-.val-toast-top-right {
-  top: ($valHeaderHeight + 3px) !important;
+.val-toast {
+  &.val-main {
+    top: ($valHeaderHeight + 3px) !important;
+  }
+  &.val-login {
+    top: ($valTitleHeight + 3px) !important;
+  }
   span.pi.ui-toast-icon {
     font-size: 2em;
   }

@@ -1,24 +1,39 @@
 import { Injectable } from '@angular/core';
+import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { applyAudienceShading, clearSelectionData, ColorPalette, EsriLayerService, EsriMapService, EsriUtils, geoSelectionChanged, mapViewChanged, shadingSelectors } from '@val/esri';
+import { calculateStatistics } from '@val/common';
+import {
+  clearFeaturesOfInterest,
+  clearShadingDefinitions,
+  ConfigurationTypes,
+  createDataArcade,
+  EsriLayerService,
+  EsriMapService,
+  generateContinuousValues,
+  generateUniqueValues,
+  getColorPalette,
+  loadShadingDefinitions,
+  setFeaturesOfInterest,
+  ShadingDefinition,
+  shadingSelectors,
+  updateShadingDefinition
+} from '@val/esri';
 import { AppConfig } from 'app/app.config';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { combineLatest, from, Observable, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { MapVar } from '../impower-datastore/state/transient/map-vars/map-vars.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { FullAppState } from '../state/app.interfaces';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
 
 @Injectable()
 export class AppRendererService {
-  private mapViewWatcher: Subscription;
   private selectedWatcher: Subscription;
-  private mapShadingWatcher: Subscription;
-
-  private previousAnalysisLevel: string;
 
   constructor(private appStateService: AppStateService,
               private impGeoService: ImpGeofootprintGeoService,
@@ -32,67 +47,133 @@ export class AppRendererService {
       take(1)
     ).subscribe(() => {
       this.appStateService.analysisLevel$.pipe(
-        filter(a => a != null)
+        withLatestFrom(this.appStateService.applicationIsReady$),
+        filter(([al, ready]) => al != null && ready),
+        map(([al]) => al),
+        distinctUntilChanged()
       ).subscribe(al => {
-        this.setupGeoWatchers(al, this.impGeoService.storeObservable);
+        this.store$.dispatch(clearFeaturesOfInterest());
+        this.store$.dispatch(clearShadingDefinitions());
+        const defaultSelection = this.createSelectionShadingDefinition(al, false);
+        this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions: [defaultSelection] }));
+        this.setupGeoWatchers(this.impGeoService.storeObservable);
       });
+      this.setupMapVarWatcher();
     });
   }
 
-  async setupGeoWatchers(analysisLevel: string, geoDataStore: Observable<ImpGeofootprintGeo[]>) : Promise<void> {
-    if (this.mapViewWatcher) this.mapViewWatcher.unsubscribe();
+  private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>) : void {
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
-    if (this.previousAnalysisLevel !== analysisLevel) {
-      const previousAnalysisLevel = this.previousAnalysisLevel;
-      setTimeout(() => this.store$.dispatch(clearSelectionData({ featureTypeName: previousAnalysisLevel })), 0);
-      this.previousAnalysisLevel = analysisLevel;
-    }
-    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
-    const primaryAnalysisLayer = this.esriLayerService.getPortalLayerById(layerId);
-
-    const layerView = await this.esriMapService.mapView.whenLayerView(primaryAnalysisLayer) as __esri.FeatureLayerView;
-    this.mapViewWatcher = EsriUtils.setupWatch(layerView, 'updating').pipe(
-      filter(result => !result.newValue),
+    this.selectedWatcher = geoDataStore.pipe(
+      filter(geos => geos != null),
       debounceTime(500),
-      switchMap(result => from(EsriUtils.esriPromiseToEs6(result.target.queryFeatures())).pipe(
-        map(featureSet => featureSet.features.map(f => f.attributes.geocode))
-      ))
-    ).subscribe(visibleGeos => this.store$.dispatch(mapViewChanged({ visibleGeos })));
+      map(geos => Array.from(new Set(geos.map(g => g.geocode)))),
+      tap(geocodes => geocodes.sort())
+    ).subscribe(features => this.store$.dispatch(setFeaturesOfInterest({ features })));
+  }
 
-    const isShaded$ = this.store$.select(shadingSelectors.isShaded).pipe(
-      distinctUntilChanged(),
-      tap(() => this.store$.dispatch(clearSelectionData({ featureTypeName: analysisLevel })))
-    );
-
-    this.selectedWatcher = combineLatest([geoDataStore, isShaded$]).pipe(
-      filter(([geos]) => geos != null),
-      debounceTime(500),
-    ).subscribe(([geos, isShaded]) => {
-      const minScale = (analysisLevel === 'Digital ATZ') ?
-        this.config.layers['digital_atz'].boundaries.minScale :
-        this.config.layers[analysisLevel.toLowerCase()].boundaries.minScale;
-      const selectedGeos = geos.reduce((p, c) => {
-        if (c.isActive) p.push(c.geocode);
-        return p;
-      }, []);
-      this.store$.dispatch(geoSelectionChanged({ selectedFeatureIds: selectedGeos, layerId, minScale, featureTypeName: analysisLevel, useCrossHatching: isShaded }));
+  private setupMapVarWatcher() {
+    this.store$.select(getMapVars).pipe(
+      filter(mapVars => mapVars.length > 0),
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(shadingSelectors.theme)),
+    ).subscribe(([mapVars, layerDefs, theme]) => {
+      const varPk = Object.keys(mapVars[0]).filter(key => key !== 'geocode').map(key => Number(key))[0];
+      if (varPk != null) {
+        const shadingLayer = layerDefs.filter(ld => ld.id === varPk)[0];
+        if (shadingLayer != null) {
+          const shadingDefinition: Update<ShadingDefinition> = { id: varPk, changes: {} };
+          const arcadeExpression = this.convertMapVarsToArcade(mapVars, varPk);
+          const palette = getColorPalette(theme);
+          switch (shadingLayer.shadingType) {
+            case ConfigurationTypes.Unique:
+              const uniqueValues = Array.from(new Set(mapVars.map(v => v[varPk].toString())));
+              shadingDefinition.changes = {
+                arcadeExpression,
+                breakDefinitions: generateUniqueValues(uniqueValues, palette)
+              };
+              break;
+            case ConfigurationTypes.Ramp:
+              const stats = calculateStatistics(mapVars.map(mv => Number(mv[varPk])));
+              shadingDefinition.changes = {
+                arcadeExpression,
+                breakDefinitions: generateContinuousValues(stats, palette)
+              };
+              break;
+          }
+          this.store$.dispatch(updateShadingDefinition({ shadingDefinition }));
+        }
+      }
     });
   }
 
-  audienceShading(aud: Audience, theme: ColorPalette) {
-    const isTextVariable = (aud.fieldconte === 'CHAR');
-    if (this.mapShadingWatcher) this.mapShadingWatcher.unsubscribe();
-    this.mapShadingWatcher = this.store$.select(getMapVars).pipe(
-      filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.appStateService.analysisLevel$),
-    ).subscribe(([mapVars, analysis]) => {
-      const layerId = this.config.getLayerIdForAnalysisLevel(analysis, true);
-      const minScale = (analysis === 'Digital ATZ') ?
-        this.config.layers['digital_atz'].boundaries.minScale :
-        this.config.layers[analysis.toLowerCase()].boundaries.minScale;
-      this.store$.dispatch(applyAudienceShading({ mapVars: mapVars, layerId, minScale, theme, audienceName: aud.audienceName, isTextVariable }));
-    }, (err) => {
-      console.error('ERROR', err);
+  createShadingDefinitionsFromLegacy(project: ImpProject) : ShadingDefinition[] {
+    const result: ShadingDefinition[] = [];
+
+    if (project == null || project.methAnalysis == null || project.methAnalysis.length === 0) return result;
+
+    const shadingData: ImpProjectVar[] = project.impProjectVars.filter(p => p.isShadedOnMap);
+    const legacyPrefs = (project.impProjectPrefs || []).filter(p => p.prefGroup === 'map-settings');
+    const isFiltered = legacyPrefs.filter(p => p.pref === 'Thematic-Extent' && p.val === 'Selected Geos only').length > 0;
+    const selectionDefinition = this.createSelectionShadingDefinition(project.methAnalysis, shadingData.length > 0);
+    if (shadingData.length === 0 || !isFiltered) {
+      result.push(selectionDefinition);
+    }
+    shadingData.forEach((sd, index) => {
+      result.push(this.createVariableShadingDefinition(sd, project.methAnalysis, isFiltered, index + 1));
     });
+    return result;
+  }
+
+  private createSelectionShadingDefinition(analysisLevel: string, isAlsoShaded: boolean) : ShadingDefinition {
+    const layerConfig = this.config.getLayerConfigForAnalysisLevel(analysisLevel);
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
+    return {
+      id: 0,
+      sortOrder: 0,
+      sourcePortalId: layerId,
+      layerName: `Selected ${analysisLevel}s`,
+      showLegendHeader: false,
+      opacity: isAlsoShaded ? 1 : 0.25,
+      minScale: layerConfig.boundaries.minScale,
+      defaultSymbolDefinition: {
+        fillColor: isAlsoShaded ? [0, 0, 0, 1] : [0, 255, 0, 1],
+        fillType: isAlsoShaded ? 'backward-diagonal' : 'solid',
+        legendName: `Selected ${analysisLevel}s`
+      },
+      filterByFeaturesOfInterest: true,
+      filterField: 'geocode',
+      shadingType: ConfigurationTypes.Simple
+    };
+  }
+
+  private createVariableShadingDefinition(projectVar: ImpProjectVar, analysisLevel: string, isFiltered: boolean, index: number) : ShadingDefinition {
+    const layerConfig = this.config.getLayerConfigForAnalysisLevel(analysisLevel);
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
+    const isNumeric = projectVar.fieldconte !== 'CHAR';
+    return {
+      id: projectVar.varPk,
+      sortOrder: index,
+      sourcePortalId: layerId,
+      layerName: projectVar.fieldname,
+      legendHeader: projectVar.fieldname,
+      showLegendHeader: !isNumeric,
+      opacity: 0.5,
+      minScale: layerConfig.boundaries.minScale,
+      defaultSymbolDefinition: {
+        fillColor: [0, 0, 0, 0],
+        fillType: 'none'
+      },
+      filterByFeaturesOfInterest: isFiltered,
+      filterField: 'geocode',
+      shadingType: isNumeric ? ConfigurationTypes.Ramp : ConfigurationTypes.Unique
+    };
+  }
+
+  private convertMapVarsToArcade(mapVars: MapVar[], varPk: number) : string {
+    const obj: Record<string, string | number> = mapVars.reduce((result, mapVar) => {
+      result[mapVar.geocode] = mapVar[varPk];
+      return result;
+    }, {});
+    return createDataArcade(obj);
   }
 }

@@ -116,11 +116,12 @@ export class EsriLayerService {
     return result;
   }
 
-  public removeLayer(layerName: string) : void {
-    const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
+  public removeLayer(layer: __esri.Layer) : void {
     if (layer != null) {
       const parent = (layer as any).parent;
+      this.removeLayerFromLegend(layer.id);
       if (EsriUtils.layerIsGroup(parent)) {
+        console.log(`Removing layer "${layer.title}" from group "${parent.title}"`);
         parent.layers.remove(layer);
       } else {
         this.mapService.mapView.map.layers.remove(layer);
@@ -297,31 +298,30 @@ export class EsriLayerService {
 
     if (legendRef != null) {
       if (this.legendShimmed == false) {
+        console.log('Legend Ref', legendRef);
         legendRef['legacyRender'] = legendRef.scheduleRender;
         legendRef.scheduleRender = (...args) => {
-          this.cleanLegendElements(legendRef.activeLayerInfos);
+          legendRef.activeLayerInfos.forEach(ali => {
+            ali.legendElements.forEach(le => le.infos = le.infos.filter((si: any) => si.label != null && si.label !== ''));
+            ali.legendElements = ali.legendElements.filter(le => le.infos.length > 0);
+          });
           return legendRef['legacyRender'](...args);
         };
         this.legendShimmed = true;
       }
       if (layer != null && !this.layersShowingInLegend.has(layerUniqueId)) {
+        // can't use .push() here - a new array instance is needed to trigger the
+        // internal mechanics to convert these to activeLayerInfos
         legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer } ];
         this.layersShowingInLegend.add(layerUniqueId);
       }
     }
   }
 
-  private cleanLegendElements(layerInfos: __esri.Collection<__esri.ActiveLayerInfo>) : void {
-    layerInfos.forEach(ali => {
-      ali.legendElements.forEach(le => le.infos = le.infos.filter((si: any) => si.label != null && si.label !== ''));
-      ali.legendElements = ali.legendElements.filter(le => le.infos.length > 0);
-    });
-  }
-
   removeLayerFromLegend(layerUniqueId: string) : void {
     const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     if (legendRef != null) {
-      legendRef.layerInfos = [ ...legendRef.layerInfos.filter(li => li.layer.id !== layerUniqueId) ];
+      legendRef.layerInfos = legendRef.layerInfos.filter(li => li.layer.id !== layerUniqueId);
       this.layersShowingInLegend.delete(layerUniqueId);
     }
   }

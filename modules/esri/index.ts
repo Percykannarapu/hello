@@ -11,6 +11,7 @@ export * from './src/core/esri.enums';
 export * from './src/core/esri.models';
 export * from './src/core/esri-api.service';
 export * from './src/core/esri-utils';
+export * from './src/core/esri-arcade.utils';
 export * from './src/core/esri-widgets';
 
 export * from './src/services/esri-domain-factory.service';
@@ -30,4 +31,5 @@ export * from './src/state/api/esri.api.actions';
 export * from './src/state/auth/esri.auth.actions';
 export * from './src/state/map/esri.map.actions';
 export * from './src/state/shading/esri.shading.actions';
+export * from './src/models/shading-configuration';
 export * from './src/models/esri-types';

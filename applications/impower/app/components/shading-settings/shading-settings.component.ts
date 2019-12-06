@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { clearAudienceShading, ColorPalette, EsriApi, EsriMapService, shadingSelectors } from '@val/esri';
+import { ColorPalette, EsriApi, EsriMapService, setTheme, shadingSelectors } from '@val/esri';
 import { SelectMappingAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -12,9 +12,10 @@ import { AppStateService } from 'app/services/app-state.service';
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import { ClearMapVars } from '../../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { FullAppState } from '../../state/app.interfaces';
+import { PrepShadingDefinitions } from '../../state/rendering/rendering.actions';
 
 @Component({
   selector: 'val-shading-settings',
@@ -24,7 +25,7 @@ import { FullAppState } from '../../state/app.interfaces';
 })
 export class ShadingSettingsComponent implements OnInit, OnDestroy {
   private static readonly defaultPalette = ColorPalette.EsriPurple;
-  // private static readonly defaultExtent = 'Whole Map';
+  private static readonly defaultExtent = 'Whole Map';
 
   sideNavVisible = false;
   allAudiences$: Observable<SelectItem[]>;
@@ -32,7 +33,7 @@ export class ShadingSettingsComponent implements OnInit, OnDestroy {
   shadedVariableOnMap: SelectItem[] = [];
   shadeSettingsForm: FormGroup;
 
-  isDestroyed$ = new Subject<void>();
+  private isDestroyed$ = new Subject<void>();
 
   constructor(private appStateService: AppStateService,
               private rendererService: AppRendererService,
@@ -57,7 +58,7 @@ export class ShadingSettingsComponent implements OnInit, OnDestroy {
   ngOnInit() : void {
     this.shadeSettingsForm = this.fb.group({
       audience: [null, Validators.required],
-      // variable: [ShadingSettingsComponent.defaultExtent, Validators.required],
+      variable: [ShadingSettingsComponent.defaultExtent, Validators.required],
       currentTheme: [ShadingSettingsComponent.defaultPalette, Validators.required],
     });
 
@@ -78,22 +79,6 @@ export class ShadingSettingsComponent implements OnInit, OnDestroy {
         takeUntil(this.isDestroyed$),
         withLatestFrom(this.varService.allAudiencesBS$, this.store$.select(shadingSelectors.theme))
       ).subscribe(([, audiences, palette]) => this.onLoadProject(audiences, palette));
-
-      const mapAudiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
-        map(aud => aud.filter(a => a.showOnMap)),
-        takeUntil(this.isDestroyed$)
-      );
-      mapAudiences$.pipe(
-        filter(audience => audience.length > 0)
-      ).subscribe(audience => {
-        const palette: ColorPalette = this.shadeSettingsForm.controls['currentTheme'].value;
-        this.rendererService.audienceShading(audience[0], palette);
-      });
-      mapAudiences$.pipe(
-        map(aud => aud.length),
-        distinctUntilChanged(),
-        filter(length => length === 0),
-      ).subscribe(() => this.store$.dispatch(clearAudienceShading({ resetSelectionShading: true })));
     });
 
     this.appStateService.clearUI$.pipe(takeUntil(this.isDestroyed$)).subscribe(() => this.resetFormToDefaults());
@@ -120,12 +105,12 @@ export class ShadingSettingsComponent implements OnInit, OnDestroy {
 
   private onLoadProject(allAudiences: Audience[], palette: ColorPalette) {
     const activeAudience = allAudiences.filter(a => a.showOnMap)[0] || null;
-    // const extentPref = this.appProjectPrefService.getPref('Thematic-Extent');
-    // const extentSetting = extentPref == null ? ShadingSettingsComponent.defaultExtent : extentPref.val;
+    const extentPref = this.appProjectPrefService.getPref('Thematic-Extent');
+    const extentSetting = extentPref == null ? ShadingSettingsComponent.defaultExtent : extentPref.val;
 
     this.shadeSettingsForm.controls['audience'].setValue(activeAudience == null ? null : activeAudience.audienceIdentifier, { emitEvent: false });
     this.shadeSettingsForm.controls['currentTheme'].setValue(palette, { emitEvent: false });
-    // this.shadeSettingsForm.controls['variable'].setValue(extentSetting, { emitEvent: false });
+    this.shadeSettingsForm.controls['variable'].setValue(extentSetting, { emitEvent: false });
     this.shadeSettingsForm.markAsPristine();
   }
 
@@ -144,22 +129,25 @@ export class ShadingSettingsComponent implements OnInit, OnDestroy {
     const aud = this.varService.allAudiencesBS$.value.filter(audience => this.shadeSettingsForm.controls['audience'].value === audience.audienceIdentifier)[0];
     aud.showOnMap = showOnMap;
     const palette: ColorPalette = this.shadeSettingsForm.controls['currentTheme'].value;
+    const paletteKey = Object.keys(ColorPalette).filter(p => ColorPalette[p] === palette)[0];
+    this.appProjectPrefService.createPref('map-settings', 'Thematic-Extent', this.shadeSettingsForm.controls['variable'].value, 'string');
+    this.appProjectPrefService.createPref('map-settings', 'Theme', paletteKey, 'string');
+    this.appProjectPrefService.createPref('map-settings', 'audience', `${aud.audienceSourceName}: ${aud.audienceName}`, 'string');
+
     this.store$.dispatch(new ClearMapVars());
-    this.store$.dispatch(clearAudienceShading({ resetSelectionShading: false }));
     this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: aud.audienceIdentifier, isActive: aud.showOnMap }));
     // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
     this.varService.syncProjectVars();
+    this.store$.dispatch(setTheme({ theme: palette }));
+    this.store$.dispatch(new PrepShadingDefinitions());
 
-    const paletteKey = Object.keys(ColorPalette).filter(p => ColorPalette[p] === palette)[0];
-    // this.appProjectPrefService.createPref('map-settings', 'Thematic-Extent', this.shadeSettingsForm.controls['variable'].value, 'string');
-    this.appProjectPrefService.createPref('map-settings', 'Theme', paletteKey, 'string');
-    this.appProjectPrefService.createPref('map-settings', 'audience', `${aud.audienceSourceName}: ${aud.audienceName}`, 'string');
     this.sideNavVisible = false;
   }
 
   private resetFormToDefaults() {
     this.shadeSettingsForm.reset({
       audience: null,
+      variable: ShadingSettingsComponent.defaultExtent,
       currentTheme: ShadingSettingsComponent.defaultPalette
     }, { emitEvent: false });
     this.shadeSettingsForm.markAsPristine();

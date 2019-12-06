@@ -1,8 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
-import { EsriApi } from '../core/esri-api.service';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
+import { EsriApi } from '../core/esri-api.service';
 import { AutoCastColor, FillPattern, LineStyle } from '../models/esri-types';
-import { AllShadingConfigurations } from '../models/shading-configuration';
 
 @Injectable()
 export class EsriDomainFactoryService {

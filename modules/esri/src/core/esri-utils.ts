@@ -64,6 +64,10 @@ export class EsriUtils {
     return r != null && r.type === 'simple';
   }
 
+  public static rendererIsNotSimple(r: __esri.Renderer) : r is __esri.UniqueValueRenderer | __esri.ClassBreaksRenderer | __esri.DotDensityRenderer {
+    return this.rendererIsUnique(r) || this.rendererIsClassBreaks(r) || this.rendererIsDotDensity(r);
+  }
+
   public static rendererIsUnique(r: __esri.Renderer) : r is __esri.UniqueValueRenderer {
     return r != null && r.type === 'unique-value';
   }
@@ -134,7 +138,6 @@ export class EsriUtils {
         observer.error(err);
       }
       return () => {
-        console.log('Handle removal for', prop);
         if (handle) handle.remove();
       };
     });

@@ -1,7 +1,7 @@
 import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isError } from '@val/common';
-import { selectors as esriSelectors } from '@val/esri';
+import { EsriShadingLayersService, selectors as esriSelectors } from '@val/esri';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { debounceTime, filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
 import * as StackTrace from 'stacktrace-js';
@@ -33,6 +33,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
 
   constructor(private store$: Store<FullAppState>,
               private batchMapService: BatchMapService,
+              private esriRendererService: EsriShadingLayersService,
               private config: AppConfig,
               private zone: NgZone) {
     const stdErr = console.error;
@@ -82,6 +83,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.config.isBatchMode = true;
     this.store$.dispatch(new SetBatchMode());
     this.store$.dispatch(new CreateNewProject());
+    this.esriRendererService.initializeShadingWatchers();
   }
 
   ngOnDestroy() {

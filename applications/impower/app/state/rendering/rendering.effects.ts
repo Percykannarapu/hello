@@ -2,8 +2,9 @@ import { Inject, Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { groupByExtended } from '@val/common';
-import { EsriAppSettings, EsriAppSettingsToken, selectors } from '@val/esri';
+import { clearShadingDefinitions, EsriAppSettings, EsriAppSettingsToken, loadShadingDefinitions, selectors } from '@val/esri';
 import { concatMap, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { AppRendererService } from '../../services/app-renderer.service';
 import { AppStateService } from '../../services/app-state.service';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { FullAppState } from '../app.interfaces';
@@ -80,9 +81,21 @@ export class RenderingEffects {
     tap(definitions => this.renderingService.renderTradeAreas(definitions))
   );
 
+  @Effect()
+  prepShadingDefinitions$ = this.actions$.pipe(
+    ofType(RenderingActionTypes.PrepShadingDefinitions),
+    withLatestFrom(this.appStateService.currentProject$),
+    map(([, project]) => this.appRenderingService.createShadingDefinitionsFromLegacy(project)),
+    concatMap(shadingDefinitions => ([
+      clearShadingDefinitions(),
+      loadShadingDefinitions({ shadingDefinitions })
+    ]))
+  );
+
   constructor(private actions$: Actions,
               private store$: Store<FullAppState>,
               @Inject(EsriAppSettingsToken) private esriSettings: EsriAppSettings,
               private appStateService: AppStateService,
-              private renderingService: RenderingService) {}
+              private renderingService: RenderingService,
+              private appRenderingService: AppRendererService) {}
 }

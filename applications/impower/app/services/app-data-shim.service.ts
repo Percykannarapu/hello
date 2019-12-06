@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
-import { EsriService, InitialEsriState } from '@val/esri';
+import { clearFeaturesOfInterest, clearShadingDefinitions, ColorPalette, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { AllColorPalettes } from '../../../../modules/esri/src/models/color-palettes';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
-import { LocalAppState } from '../state/app.interfaces';
+import { FullAppState } from '../state/app.interfaces';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppGeoService } from './app-geo.service';
@@ -18,11 +18,11 @@ import { AppLocationService } from './app-location.service';
 import { ValMetricsService } from './app-metrics.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppProjectService } from './app-project.service';
+import { AppRendererService } from './app-renderer.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
-import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -53,8 +53,9 @@ export class AppDataShimService {
               private targetAudienceCustomService: TargetAudienceCustomService,
               private metricService: ValMetricsService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
+              private appRendererService: AppRendererService,
               private esriService: EsriService,
-              private store$: Store<LocalAppState>,
+              private store$: Store<FullAppState>,
               private impProjVarService: ImpProjectVarService) {
     this.currentProject$ = this.appProjectService.currentProject$;
     this.currentGeos$ = this.appGeoService.currentGeos$;
@@ -83,26 +84,35 @@ export class AppDataShimService {
     this.targetAudienceService.clearAll();
     this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
+    this.store$.dispatch(clearFeaturesOfInterest());
+    this.store$.dispatch(clearShadingDefinitions());
     return this.appProjectService.load(id).pipe(
-      tap(project => {
-        const paletteKey = this.appPrefService.getPrefVal('Theme');
-        const mappedAudienceCount = project.impProjectVars.filter(pv => pv.isShadedOnMap).length;
-        const varPks = (project.impProjectVars || []).filter(pv => {
-          const sourceParts = pv.source.split('_');
-          return sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'custom');
-        }).map(pv => pv.varPk);
-        const varWithMaxId = Math.max(...varPks);
-        this.impProjVarService.currStoreId = varWithMaxId + 1; // reset dataStore counter on load
-        const state: InitialEsriState = {
-          shading: {
-            isShaded: mappedAudienceCount > 0
-          }
-        };
-        if (paletteKey != null) state.shading.theme = AllColorPalettes[paletteKey];
-        this.esriService.loadInitialState(state);
-      }),
+      tap(project => this.onLoad(project)),
       map(project => project.projectId)
     );
+  }
+
+  private onLoad(project: ImpProject) : void {
+    const maxVarPk = (project.impProjectVars || []).reduce((result, projectVar) => {
+      const sourceParts = projectVar.source.split('_');
+      if (sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'custom') && projectVar.varPk > result) {
+        return projectVar.varPk;
+      } else {
+        return result;
+      }
+    }, -1);
+    this.impProjVarService.currStoreId = maxVarPk + 1; // reset dataStore counter on load
+    const paletteKey = this.appPrefService.getPrefVal('Theme');
+    const theme = ColorPalette[paletteKey];
+    const geocodes = new Set(project.getImpGeofootprintGeos().map(g => g.geocode));
+    const state: InitialEsriState = {
+      shading: {
+        featuresOfInterest: Array.from(geocodes),
+        theme
+      }
+    };
+    const shadingDefinitions = this.appRendererService.createShadingDefinitionsFromLegacy(project);
+    this.esriService.loadInitialState(state, shadingDefinitions);
   }
 
   onLoadSuccess(isBatch: boolean) : void {
@@ -124,8 +134,9 @@ export class AppDataShimService {
     this.targetAudienceService.clearAll();
     this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
-    this.esriService.loadInitialState({});
-    return this.appProjectService.createNew();
+    const projectId = this.appProjectService.createNew();
+    this.esriService.loadInitialState({}, []);
+    return projectId;
   }
 
   validateProject(project: ImpProject) : boolean {

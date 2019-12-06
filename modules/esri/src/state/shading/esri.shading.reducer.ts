@@ -1,34 +1,78 @@
+import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
-import { InitialEsriState, loadInitialState } from '../esri.actions';
-import { applyAudienceShading, clearAudienceShading, geoSelectionChanged } from './esri.shading.actions';
 import { ColorPalette } from '../../models/color-palettes';
+import { ShadingDefinition } from '../../models/shading-configuration';
+import { loadInitialState } from '../esri.actions';
+import * as ShadingActions from './esri.shading.actions';
 
-export interface EsriShadingState {
+export interface EsriShadingState extends EntityState<ShadingDefinition> {
   theme: ColorPalette;
-  isShaded: boolean;
+  featuresOfInterest: string[];
 }
 
-export const initialState: EsriShadingState = {
+function sortComparer(a: ShadingDefinition, b: ShadingDefinition) : number {
+  return a.sortOrder - b.sortOrder;
+}
+
+const adapter: EntityAdapter<ShadingDefinition> = createEntityAdapter<ShadingDefinition>({
+  sortComparer
+});
+
+const initialState: EsriShadingState = adapter.getInitialState({
   theme: ColorPalette.EsriPurple,
-  isShaded: false
-};
+  featuresOfInterest: []
+});
 
 export const shadingReducer = createReducer(
   initialState,
-  on(loadInitialState, (state, payload: InitialEsriState) => {
+  on(loadInitialState, (state, { shading }) => {
       return {
         ...state,
         ...initialState,
-        ...payload.shading
+        ...shading
       };
   }),
-  on(geoSelectionChanged, (state, { selectedFeatureIds }) => ({ ...state })),
-  on(applyAudienceShading, (state) => ({...state, isShaded: true })),
-  on(clearAudienceShading, (state, { resetSelectionShading }) => {
-    if (resetSelectionShading) {
-      return { ...state, isShaded: false };
-    } else {
-      return state;
-    }
-  })
+
+  on(ShadingActions.setFeaturesOfInterest, (state, { features }) => ({ ...state, featuresOfInterest: features })),
+  on(ShadingActions.clearFeaturesOfInterest, (state) => ({ ...state, featuresOfInterest: initialState.featuresOfInterest })),
+  on(ShadingActions.setTheme, (state, { theme }) => ({ ...state, theme })),
+  on(ShadingActions.resetTheme, (state) => ({ ...state, theme: initialState.theme })),
+
+  on(ShadingActions.addShadingDefinition,
+    (state, action) => adapter.addOne(action.shadingDefinition, state)
+  ),
+  on(ShadingActions.upsertShadingDefinition,
+    (state, action) => adapter.upsertOne(action.shadingDefinition, state)
+  ),
+  on(ShadingActions.addShadingDefinitions,
+    (state, action) => adapter.addMany(action.shadingDefinitions, state)
+  ),
+  on(ShadingActions.upsertShadingDefinitions,
+    (state, action) => adapter.upsertMany(action.shadingDefinitions, state)
+  ),
+  on(ShadingActions.updateShadingDefinition,
+    (state, action) => adapter.updateOne(action.shadingDefinition, state)
+  ),
+  on(ShadingActions.updateShadingDefinitions,
+    (state, action) => adapter.updateMany(action.shadingDefinitions, state)
+  ),
+  on(ShadingActions.deleteShadingDefinition,
+    (state, action) => adapter.removeOne(action.id, state)
+  ),
+  on(ShadingActions.deleteShadingDefinitions,
+    (state, action) => adapter.removeMany(action.ids, state)
+  ),
+  on(ShadingActions.loadShadingDefinitions,
+    (state, action) => adapter.addAll(action.shadingDefinitions, state)
+  ),
+  on(ShadingActions.clearShadingDefinitions,
+    state => adapter.removeAll(state)
+  ),
 );
+
+export const {
+  selectIds,
+  selectEntities,
+  selectAll,
+  selectTotal,
+} = adapter.getSelectors();

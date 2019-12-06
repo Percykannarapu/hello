@@ -17,9 +17,7 @@ body .ui-sidebar.transparent-back {
   height: 100%;
   .sidebar-content-tab {
     width: 1.4em;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    padding-top: ($valSidebarButtonPadding + 6.5em);
   }
   p-card {
     flex: 1;

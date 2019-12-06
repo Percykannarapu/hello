@@ -1,68 +1,115 @@
+import { Statistics } from '@val/common';
+import { FillPattern, RgbaTuple, RgbTuple } from './esri-types';
+
 export enum ConfigurationTypes {
   Simple = 'Simple',
   Unique = 'Unique',
   ClassBreak = 'ClassBreak',
+  Ramp = 'Ramp',
   DotDensity = 'DotDensity'
 }
 
-export interface ShadingConfiguration {
-  readonly type: ConfigurationTypes;
+export interface RampProperties extends __esri.ColorVariableProperties {
+  type: 'color';
 }
 
-export class SimpleShadingConfiguration implements ShadingConfiguration {
-  public readonly type = ConfigurationTypes.Simple;
-  constructor(public layerId: string,
-              public layerName: string,
-              public minScale: number,
-              public opacity: number,
-              public defaultLegendName: string,
-              public defaultSymbol: __esri.Symbol,
-              public expression?: string) {}
+export interface SymbolDefinition {
+  fillColor: RgbaTuple;
+  fillType: FillPattern;
+  outlineColor?: RgbaTuple;
+  legendName?: string;
 }
 
-export class UniqueValueShadingConfiguration implements ShadingConfiguration {
-  public readonly type = ConfigurationTypes.Unique;
-  constructor(public layerId: string,
-              public layerName: string,
-              public minScale: number,
-              public opacity: number,
-              public arcadeExpression: string,
-              public defaultLegendName: string,
-              public defaultSymbol: __esri.Symbol,
-              public uniqueValues: __esri.UniqueValueRendererUniqueValueInfos[],
-              public expression?: string) {}
+export interface ClassBreakDefinition extends SymbolDefinition {
+  minValue: number;
+  maxValue: number;
 }
 
-export class ClassBreakShadingConfiguration implements ShadingConfiguration {
-  public readonly type = ConfigurationTypes.ClassBreak;
-  constructor(public layerId: string,
-              public layerName: string,
-              public minScale: number,
-              public opacity: number,
-              public arcadeExpression: string,
-              public defaultLegendName: string,
-              public defaultSymbol: __esri.Symbol,
-              public classBreaks: __esri.ClassBreaksRendererClassBreakInfos[],
-              public classBreakLegendOptions: __esri.ClassBreaksRendererLegendOptions,
-              public expression?: string) {}
+export interface UniqueValueDefinition extends SymbolDefinition {
+  value: string;
 }
 
-export class DotDensityShadingConfiguration implements ShadingConfiguration {
-  public readonly type = ConfigurationTypes.DotDensity;
-  constructor(public layerId: string,
-              public layerName: string,
-              public minScale: number,
-              public opacity: number,
-              public legendOptions: __esri.DotDensityRendererLegendOptions,
-              public outline: __esri.symbols.SimpleLineSymbol,
-              public dotValue: number,
-              public referenceScale: number,
-              public colorStops: __esri.AttributeColorInfo[],
-              public expression?: string) {}
+export interface ContinuousDefinition {
+  stopColor: RgbTuple;
+  stopValue: number;
+  stopName: string;
 }
 
-export type AllShadingConfigurations =
-  SimpleShadingConfiguration |
-  UniqueValueShadingConfiguration |
-  ClassBreakShadingConfiguration |
-  DotDensityShadingConfiguration;
+interface ShadingDefinitionBase {
+  id: number;
+  sourcePortalId: string;
+  sortOrder: number;
+  destinationLayerUniqueId?: string;
+  layerName: string;
+  legendHeader?: string;
+  showLegendHeader: boolean;
+  minScale: number;
+  opacity: number;
+  defaultSymbolDefinition: SymbolDefinition;
+  filterByFeaturesOfInterest: boolean;
+  filterField: string;
+}
+
+export interface SimpleShadingDefinition extends ShadingDefinitionBase {
+  shadingType: ConfigurationTypes.Simple;
+}
+
+export interface UniqueShadingDefinition extends ShadingDefinitionBase {
+  shadingType: ConfigurationTypes.Unique;
+  arcadeExpression?: string;
+  breakDefinitions?: UniqueValueDefinition[];
+}
+
+export interface RampShadingDefinition extends ShadingDefinitionBase {
+  shadingType: ConfigurationTypes.Ramp;
+  arcadeExpression?: string;
+  breakDefinitions?: ContinuousDefinition[];
+}
+
+export interface ClassBreakShadingDefinition extends ShadingDefinitionBase {
+  shadingType: ConfigurationTypes.ClassBreak;
+  arcadeExpression?: string;
+  breakDefinitions?: ClassBreakDefinition[];
+}
+
+export type ShadingDefinition = SimpleShadingDefinition | UniqueShadingDefinition | RampShadingDefinition | ClassBreakShadingDefinition;
+
+export function generateUniqueValues(uniqueValues: string[], palette: RgbTuple[]) : UniqueValueDefinition[] {
+  const values = [...uniqueValues];
+  values.sort();
+  let i = 0;
+  return values.map((uv) => {
+    return {
+      fillColor: RgbTuple.withAlpha(palette[i++ % palette.length], 1),
+      fillType: 'solid',
+      legendName: uv,
+      outlineColor: [0, 0, 0, 0],
+      value: uv
+    };
+  });
+}
+
+export function generateContinuousValues(stats: Statistics, palette: RgbTuple[]) : ContinuousDefinition[] {
+  const result: ContinuousDefinition[] = [];
+  const round = (n: number) => Math.round(n * 100) / 100;
+  const mean = stats.mean;
+  const std = stats.stdDeviation;
+  const themeCount = palette.length;
+  const stepSize = 2 / (themeCount - 1);
+  const multipliers: number[] = new Array<number>(palette.length);
+  multipliers[0] = -1;
+  result.push({ stopColor: palette[0], stopValue: mean - std, stopName: `< ${round(mean - std)}` });
+  for (let n = 1; n < themeCount; ++n) {
+    multipliers[n] = multipliers[n - 1] + stepSize;
+    const currentValue = mean + (std * multipliers[n]);
+    let currentLabel = null;
+    if (multipliers[n] === 0) {
+      currentLabel = `${round(mean)}`;
+    }
+    if (n === themeCount - 1) {
+      currentLabel = `> ${round(currentValue)}`;
+    }
+    result.push({ stopColor: palette[n], stopValue: currentValue, stopName: currentLabel });
+  }
+  return result;
+}
