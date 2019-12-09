@@ -44,7 +44,7 @@ export class AppGeocodingService {
 
         Object.keys(data.invalidRowHeaders).map((headerCol) => {
           //console.log('index values====>', record[headerCol], headerCol);
-          this.store$.dispatch(new ErrorNotification({message: `Invalid length for Column:${headerCol} exceeding more than ${data.invalidRowHeaders[headerCol]}`, notificationTitle: 'Invalid Data'}));
+          this.store$.dispatch(new ErrorNotification({message: `The ${headerCol} column cannot exceed ${data.invalidRowHeaders[headerCol]} characters per site`, notificationTitle: 'Invalid Upload Data'}));
         });
         data.parsedData = [];
         //throw new Error();
