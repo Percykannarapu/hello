@@ -20,8 +20,8 @@ import {
 } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { Observable, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { debounceTime, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { MapVar } from '../impower-datastore/state/transient/map-vars/map-vars.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { FullAppState } from '../state/app.interfaces';
@@ -46,11 +46,9 @@ export class AppRendererService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.appStateService.analysisLevel$.pipe(
-        withLatestFrom(this.appStateService.applicationIsReady$),
+      combineLatest([this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$]).pipe(
         filter(([al, ready]) => al != null && ready),
         map(([al]) => al),
-        distinctUntilChanged(),
         withLatestFrom(this.appStateService.currentProject$)
       ).subscribe(([al, project]) => {
         this.store$.dispatch(clearFeaturesOfInterest());
@@ -70,7 +68,10 @@ export class AppRendererService {
     this.selectedWatcher = geoDataStore.pipe(
       filter(geos => geos != null),
       debounceTime(500),
-      map(geos => Array.from(new Set(geos.map(g => g.geocode)))),
+      map(geos => Array.from(new Set(geos.reduce((a, c) => {
+        if (c.isActive) a.push(c.geocode);
+        return a;
+      }, [])))),
       tap(geocodes => geocodes.sort())
     ).subscribe(features => this.store$.dispatch(setFeaturesOfInterest({ features })));
   }
