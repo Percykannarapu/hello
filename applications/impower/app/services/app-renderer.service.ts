@@ -164,7 +164,7 @@ export class AppRendererService {
       minScale: layerConfig.boundaries.minScale,
       defaultSymbolDefinition: {
         fillColor: [0, 0, 0, 0],
-        fillType: 'none'
+        fillType: 'solid'
       },
       filterByFeaturesOfInterest: isFiltered,
       filterField: 'geocode',
