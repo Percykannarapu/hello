@@ -464,7 +464,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       let audienceName = header;
       let audienceSourceName = null;
       let audience = null;
-      const audiences = state.exportAudiencesBS$.getValue();
+      const exportAudiences = state.exportAudiencesBS$.getValue();
  //   if (audienceSourceName != null){
     if (header.toLowerCase().includes('(interest)')  || header.toLowerCase().includes('(in-market)')){
       if (matches.length >= 2) {
@@ -486,18 +486,16 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                 break;
 
               case FieldContentTypeCodes.Percent:
-                  for (const aud in audiences){
-                     if (audiences[aud].isCombined  && audiences[aud].exportInGeoFootprint){
-                        for (const gVar in geoVar) {
-                           if (gVar != null){
-                              geoVar[audiences[aud].audienceIdentifier] = audiences[aud].combinedAudiences.reduce((p, c) => {
+                  for (const aud in exportAudiences){
+                     if (exportAudiences[aud].isCombined && exportAudiences[aud].exportInGeoFootprint){
+                              geoVar[exportAudiences[aud].audienceIdentifier] = exportAudiences[aud].combinedAudiences.reduce((p, c) => {
                                  p += geoVar[c] as number;
                                  return p;
                               }, 0);
+                              result = geoVar[exportAudiences[aud].audienceIdentifier].toString();
                            }
-                        }
-                     }
                   }
+                  result = geoVar[audience.audienceIdentifier].toString();
                   break;
               case FieldContentTypeCodes.Ratio:
                 result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(2);
