@@ -98,7 +98,7 @@ export class AppDataShimService {
       if (sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'custom') && projectVar.varPk > result) {
         return projectVar.varPk;
       } else {
-        return result;
+        return ++result;
       }
     }, -1);
     this.impProjVarService.currStoreId = maxVarPk + 1; // reset dataStore counter on load
