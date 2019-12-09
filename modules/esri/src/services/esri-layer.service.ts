@@ -298,7 +298,6 @@ export class EsriLayerService {
 
     if (legendRef != null) {
       if (this.legendShimmed == false) {
-        console.log('Legend Ref', legendRef);
         legendRef['legacyRender'] = legendRef.scheduleRender;
         legendRef.scheduleRender = (...args) => {
           legendRef.activeLayerInfos.forEach(ali => {

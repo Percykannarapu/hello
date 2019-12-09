@@ -95,13 +95,14 @@ export class AppDataShimService {
   private onLoad(project: ImpProject) : void {
     const maxVarPk = (project.impProjectVars || []).reduce((result, projectVar) => {
       const sourceParts = projectVar.source.split('_');
-      if (sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'custom') && projectVar.varPk > result) {
-        return projectVar.varPk;
+      if (sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'custom')) {
+        return Math.max(projectVar.varPk, result);
       } else {
-        return ++result;
+        return result;
       }
     }, -1);
     this.impProjVarService.currStoreId = maxVarPk + 1; // reset dataStore counter on load
+    console.log('Data store seed', this.impProjVarService.currStoreId);
     const paletteKey = this.appPrefService.getPrefVal('Theme');
     const theme = ColorPalette[paletteKey];
     const geocodes = new Set(project.getImpGeofootprintGeos().map(g => g.geocode));
