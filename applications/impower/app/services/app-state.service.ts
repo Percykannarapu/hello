@@ -136,6 +136,10 @@ export class AppStateService {
     this.getVisibleGeos$.next();
   }
 
+  public clearVisibleGeos() : void {
+    (this.uniqueVisibleGeocodes$ as BehaviorSubject<string[]>).next([]);
+  }
+
   public notifyMapReady() : void {
     this.mapIsReady.next();
   }

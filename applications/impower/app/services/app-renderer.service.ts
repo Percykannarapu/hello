@@ -50,13 +50,16 @@ export class AppRendererService {
         withLatestFrom(this.appStateService.applicationIsReady$),
         filter(([al, ready]) => al != null && ready),
         map(([al]) => al),
-        distinctUntilChanged()
-      ).subscribe(al => {
+        distinctUntilChanged(),
+        withLatestFrom(this.appStateService.currentProject$)
+      ).subscribe(([al, project]) => {
         this.store$.dispatch(clearFeaturesOfInterest());
         this.store$.dispatch(clearShadingDefinitions());
-        const defaultSelection = this.createSelectionShadingDefinition(al, false);
-        this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions: [defaultSelection] }));
+        const shadingDefinitions = this.createShadingDefinitionsFromLegacy(project, al);
+        this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
+        this.appStateService.clearVisibleGeos();
         this.setupGeoWatchers(this.impGeoService.storeObservable);
+        setTimeout(() => this.appStateService.refreshVisibleGeos());
       });
       this.setupMapVarWatcher();
     });
@@ -106,20 +109,20 @@ export class AppRendererService {
     });
   }
 
-  createShadingDefinitionsFromLegacy(project: ImpProject) : ShadingDefinition[] {
+  createShadingDefinitionsFromLegacy(project: ImpProject, altAnalysisLevel?: string) : ShadingDefinition[] {
     const result: ShadingDefinition[] = [];
-
-    if (project == null || project.methAnalysis == null || project.methAnalysis.length === 0) return result;
+    const usableAnalysisLevel = project.methAnalysis || altAnalysisLevel;
+    if (usableAnalysisLevel == null || usableAnalysisLevel.length === 0) return result;
 
     const shadingData: ImpProjectVar[] = project.impProjectVars.filter(p => p.isShadedOnMap);
     const legacyPrefs = (project.impProjectPrefs || []).filter(p => p.prefGroup === 'map-settings');
     const isFiltered = legacyPrefs.filter(p => p.pref === 'Thematic-Extent' && p.val === 'Selected Geos only').length > 0;
-    const selectionDefinition = this.createSelectionShadingDefinition(project.methAnalysis, shadingData.length > 0);
+    const selectionDefinition = this.createSelectionShadingDefinition(usableAnalysisLevel, shadingData.length > 0);
     if (shadingData.length === 0 || !isFiltered) {
       result.push(selectionDefinition);
     }
     shadingData.forEach((sd, index) => {
-      result.push(this.createVariableShadingDefinition(sd, project.methAnalysis, isFiltered, index + 1));
+      result.push(this.createVariableShadingDefinition(sd, usableAnalysisLevel, isFiltered, index + 1));
     });
     return result;
   }

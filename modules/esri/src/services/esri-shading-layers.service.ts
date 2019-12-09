@@ -71,7 +71,7 @@ export class EsriShadingLayersService {
 
   private updateLayerFilter(config: ShadingDefinition, newFeatureCsv: string) : void {
     const layer = this.layerService.getLayerByUniqueId(config.destinationLayerUniqueId);
-    const query = `${config.filterField} IN (${newFeatureCsv})`;
+    const query = newFeatureCsv.length > 0 ? `${config.filterField} IN (${newFeatureCsv})` : '1 = 0';
     if (EsriUtils.layerIsFeature(layer)) {
       layer.definitionExpression = query;
     }

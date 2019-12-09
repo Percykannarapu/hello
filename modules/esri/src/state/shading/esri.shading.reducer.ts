@@ -33,7 +33,7 @@ export const shadingReducer = createReducer(
       };
   }),
 
-  on(ShadingActions.setFeaturesOfInterest, (state, { features }) => ({ ...state, featuresOfInterest: features })),
+  on(ShadingActions.setFeaturesOfInterest, (state, { features }) => ({ ...state, featuresOfInterest: [...features] })),
   on(ShadingActions.clearFeaturesOfInterest, (state) => ({ ...state, featuresOfInterest: initialState.featuresOfInterest })),
   on(ShadingActions.setTheme, (state, { theme }) => ({ ...state, theme })),
   on(ShadingActions.resetTheme, (state) => ({ ...state, theme: initialState.theme })),

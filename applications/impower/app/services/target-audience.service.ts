@@ -474,7 +474,8 @@ export class TargetAudienceService implements OnDestroy {
 
       case 1:
         const visibleGeos$ = this.appStateService.uniqueVisibleGeocodes$;
-        this.shadingSub = combineLatest(this.appStateService.analysisLevel$, visibleGeos$)
+        if (this.shadingSub) this.shadingSub.unsubscribe();
+        this.shadingSub = combineLatest([this.appStateService.analysisLevel$, visibleGeos$])
           .subscribe(([analysisLevel, visibleGeos]) => this.getShadingData(analysisLevel, visibleGeos, shadingAudience[0]));
         // console.log('### rehydrateShading visibleGeos:', visibleGeos$.getValue().length, visibleGeos$.getValue());
         // if (visibleGeos$.getValue().length > 0)

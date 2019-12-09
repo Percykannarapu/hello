@@ -37,7 +37,7 @@ const getEsriFeaturesSelected = createSelector(getEsriMapState, state => state.s
 
 const getEsriShadingTheme = createSelector(getEsriShadingSlice, state => state.theme);
 const getEsriShadingFeatures = createSelector(getEsriShadingSlice, state => state.featuresOfInterest);
-const getEsriShadingFeaturesCsv = createSelector(getEsriShadingFeatures, features => (features as any[]).map(f => `'${f}'`).join(','));
+const getEsriShadingFeaturesCsv = createSelector(getEsriShadingFeatures, features => features.map(f => `'${f}'`).join(','));
 const getEsriShadingDefs = createSelector(getEsriShadingSlice, fromShading.selectAll);
 const getEsriShadingDefsForCreate = createSelector(getEsriShadingDefs, layers => layers.filter(shadingDefinitionIsReady));
 const getEsriShadingDefsForUpdate = createSelector(getEsriShadingDefs, layers => layers.filter(l => l.destinationLayerUniqueId != null));
