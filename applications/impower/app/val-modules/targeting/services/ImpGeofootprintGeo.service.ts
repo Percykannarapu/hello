@@ -479,7 +479,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       if (audience != null) {
         const geoVar = state.geoVarsBS$.value.find(gv => gv.geocode === geo.geocode);
         if (geoVar != null) {
-          if (geoVar[audience.audienceIdentifier] != null) {
+          if ((!audience.isCombined && geoVar[audience.audienceIdentifier] != null) || audience.isCombined) {
             switch (audience.fieldconte) {
               case FieldContentTypeCodes.Char:
                 result = geoVar[audience.audienceIdentifier].toString();
