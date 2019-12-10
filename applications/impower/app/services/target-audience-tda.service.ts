@@ -164,7 +164,7 @@ export class TargetAudienceTdaService {
             exportNationally: false,
             allowNationalExport: false,
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
-            requiresGeoPreCaching: true,
+            requiresGeoPreCaching: false,
             seq: projectVar.sortOrder,
             isCombined: true,
             combinedAudiences: groupedAudiences,

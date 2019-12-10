@@ -20,8 +20,8 @@ import {
 } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { Observable, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { debounceTime, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { MapVar } from '../impower-datastore/state/transient/map-vars/map-vars.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { FullAppState } from '../state/app.interfaces';
@@ -46,17 +46,18 @@ export class AppRendererService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.appStateService.analysisLevel$.pipe(
-        withLatestFrom(this.appStateService.applicationIsReady$),
+      combineLatest([this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$]).pipe(
         filter(([al, ready]) => al != null && ready),
         map(([al]) => al),
-        distinctUntilChanged()
-      ).subscribe(al => {
+        withLatestFrom(this.appStateService.currentProject$)
+      ).subscribe(([al, project]) => {
         this.store$.dispatch(clearFeaturesOfInterest());
         this.store$.dispatch(clearShadingDefinitions());
-        const defaultSelection = this.createSelectionShadingDefinition(al, false);
-        this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions: [defaultSelection] }));
+        const shadingDefinitions = this.createShadingDefinitionsFromLegacy(project, al);
+        this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
+        this.appStateService.clearVisibleGeos();
         this.setupGeoWatchers(this.impGeoService.storeObservable);
+        setTimeout(() => this.appStateService.refreshVisibleGeos());
       });
       this.setupMapVarWatcher();
     });
@@ -67,7 +68,10 @@ export class AppRendererService {
     this.selectedWatcher = geoDataStore.pipe(
       filter(geos => geos != null),
       debounceTime(500),
-      map(geos => Array.from(new Set(geos.map(g => g.geocode)))),
+      map(geos => Array.from(new Set(geos.reduce((a, c) => {
+        if (c.isActive) a.push(c.geocode);
+        return a;
+      }, [])))),
       tap(geocodes => geocodes.sort())
     ).subscribe(features => this.store$.dispatch(setFeaturesOfInterest({ features })));
   }
@@ -106,20 +110,20 @@ export class AppRendererService {
     });
   }
 
-  createShadingDefinitionsFromLegacy(project: ImpProject) : ShadingDefinition[] {
+  createShadingDefinitionsFromLegacy(project: ImpProject, altAnalysisLevel?: string) : ShadingDefinition[] {
     const result: ShadingDefinition[] = [];
-
-    if (project == null || project.methAnalysis == null || project.methAnalysis.length === 0) return result;
+    const usableAnalysisLevel = project.methAnalysis || altAnalysisLevel;
+    if (usableAnalysisLevel == null || usableAnalysisLevel.length === 0) return result;
 
     const shadingData: ImpProjectVar[] = project.impProjectVars.filter(p => p.isShadedOnMap);
     const legacyPrefs = (project.impProjectPrefs || []).filter(p => p.prefGroup === 'map-settings');
     const isFiltered = legacyPrefs.filter(p => p.pref === 'Thematic-Extent' && p.val === 'Selected Geos only').length > 0;
-    const selectionDefinition = this.createSelectionShadingDefinition(project.methAnalysis, shadingData.length > 0);
+    const selectionDefinition = this.createSelectionShadingDefinition(usableAnalysisLevel, shadingData.length > 0);
     if (shadingData.length === 0 || !isFiltered) {
       result.push(selectionDefinition);
     }
     shadingData.forEach((sd, index) => {
-      result.push(this.createVariableShadingDefinition(sd, project.methAnalysis, isFiltered, index + 1));
+      result.push(this.createVariableShadingDefinition(sd, usableAnalysisLevel, isFiltered, index + 1));
     });
     return result;
   }
@@ -161,7 +165,7 @@ export class AppRendererService {
       minScale: layerConfig.boundaries.minScale,
       defaultSymbolDefinition: {
         fillColor: [0, 0, 0, 0],
-        fillType: 'none'
+        fillType: 'solid'
       },
       filterByFeaturesOfInterest: isFiltered,
       filterField: 'geocode',

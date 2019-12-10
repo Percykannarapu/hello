@@ -13,19 +13,22 @@ import { filterArray, mapArray, mapBy, safe } from '@val/common';
 import { FullAppState } from 'app/state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { getMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.selectors';
-import { getAllAudiences, getAudiencesOnMap } from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { getAllAudiences, getAudiencesOnMap, allAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { ImpProjectVar } from 'app/val-modules/targeting/models/ImpProjectVar';
+import { getGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
+import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 
-const convertToNodeVariable = (mapVar: MapVar, audience: Audience, impVar: ImpProjectVar) : NodeVariable => {
+const convertToNodeVariable = (mapVar: MapVar | GeoVar, audience: any, impVar: any) : NodeVariable => {
   const fieldType = audience.fieldconte.toUpperCase();
   const digits: number = fieldType === 'RATIO' || fieldType === 'PERCENT' ? 2 : 0;
+  
   return {
-    value: mapVar[audience.audienceIdentifier], //(projectVarsDict[variable.varPk]||safe).isNumber ? variable.valueNumber : variable.valueString,
+    value: audience.audienceSourceType === 'Combined' ? audience.combinedAudiences.map(val => mapVar[val]).reduce((a, b) => a + b) : mapVar[audience.audienceIdentifier], 
     digitRounding: digits,
     isNumber: impVar.isNumber,
-    name: impVar.customVarExprDisplay
+    name: audience.audienceSourceType === 'Combined' ? audience.audienceName : impVar.customVarExprDisplay
   };
 };
 
@@ -41,6 +44,7 @@ export class AppComponentGeneratorService {
 
   private mapVars: MapVar[] = [];
   private audiences: Audience[] = [];
+  private geoVars: GeoVar[] = [];
 
   constructor(private appStateService: AppStateService,
               private targetAudienceService: TargetAudienceService,
@@ -56,11 +60,13 @@ export class AppComponentGeneratorService {
       filter(mapVars => mapVars.length > 0),
     ).subscribe(data => this.mapVars = data);
 
-    this.store$.select(getAudiencesOnMap).pipe(
+    this.store$.select(allAudiences).pipe(
       filter(audiences => audiences.length > 0),
     ).subscribe(data => this.audiences = data);
 
-    
+    this.store$.select(getGeoVars).pipe(
+      filter(geoVars => geoVars.length > 0)
+    ).subscribe(data => this.geoVars = data);
 
   }
 
@@ -98,27 +104,18 @@ export class AppComponentGeneratorService {
     this.logger.debug.log('Setting popup values', geocode, feature.graphic.attributes, fields, popupDefinition);
     const mapVars: MapVar[] = this.mapVars.filter(mapVar => mapVar.geocode === geocode);
     const impProjectVars: ImpProjectVar[] = this.appStateService.currentProject$.getValue().impProjectVars.filter(impVar => impVar.isShadedOnMap);
+    const mapAudiences = this.audiences.filter(aud => aud.showOnMap);
 
     if (this.cachedGeoPopup != null && this.cachedGeoPopup.size > 0 && mapVars.length > 0)
-       this.cachedGeoPopup.get(geocode).instance.mapVar = convertToNodeVariable(mapVars[0], this.audiences[0], impProjectVars[0]);
-
-    
-    /*this.shadingSub = this.targetAudienceService.shadingData$.pipe(
-      filter(dataDictionary => dataDictionary.has(geocode) && this.cachedGeoPopup != null),
-      map(dataDictionary => dataDictionary.get(geocode)),
-      distinctUntilChanged(),
-      map(variable => convertToNodeVariable(variable, this.appStateService.projectVarsDict$.getValue()))
-    ).subscribe(nodeData => this.cachedGeoPopup.get(geocode).instance.mapVar = nodeData);
-    if (this.audienceSub) this.audienceSub.unsubscribe();
-    this.audienceSub = this.impGeofootprintVarService.storeObservable.pipe(
-      filter(() => this.cachedGeoPopup.size > 0),
-      filterArray(v => v.geocode === geocode),
-      map(allVars => Array.from(mapBy(allVars, 'varPk').values())),
-      mapArray(v => convertToNodeVariable(v, this.appStateService.projectVarsDict$.getValue())),
-    ).subscribe(nodeData => {
-      if ( this.cachedGeoPopup.has(geocode)) 
-        this.cachedGeoPopup.get(geocode).instance.geoVars = nodeData;
-    }); */
+       this.cachedGeoPopup.get(geocode).instance.mapVar = convertToNodeVariable(mapVars[0], mapAudiences[0], impProjectVars[0]);
+    const geoVars: GeoVar[] = this.geoVars.filter(geoVar => geoVar.geocode === geocode);
+    const nodeVariables: NodeVariable[] = [];
+    if (this.cachedGeoPopup != null && this.cachedGeoPopup.size > 0 && this.cachedGeoPopup.has(geocode) && geoVars.length > 0){
+      this.audiences.forEach(aud => 
+        nodeVariables.push(convertToNodeVariable(geoVars[0], aud, this.appStateService.currentProject$.getValue().impProjectVars.filter( v => v.varPk.toString() === aud.audienceIdentifier)[0]) )
+      );
+      this.cachedGeoPopup.get(geocode).instance.geoVars = nodeVariables;
+    }
 
     const invest = this.calcInvestment(feature.graphic.attributes);
     feature.graphic.setAttribute('Investment', invest != null && invest !== '0.00' ? `$${invest}` : 'N/A');

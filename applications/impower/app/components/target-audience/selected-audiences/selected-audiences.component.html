@@ -77,7 +77,7 @@
     Please select or upload Audience Data from one of the other tabs.
   </div>
 
-  <p-dialog header="Selected Audiences Error" [(visible)]="showDialog" [modal]="true" [responsive]="true" appendTo="body" [style]="{ width: '710px' }">
+  <p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="true" [responsive]="true" appendTo="body" [style]="{ width: '710px' }">
     <div>
       <span>
           {{dialogboxWarningmsg}}
