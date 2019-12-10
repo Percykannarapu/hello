@@ -1,4 +1,4 @@
-<div class="failure-grid">
+<div class="failure-grid" id="failureGrid">
   <p-table #failureGrid
            class="{{tableWrapStyle}}"
            [columns]="selectedColumns"
@@ -26,14 +26,14 @@
         </div>
         <div class="ui-g-4 ui-g-nopad grid-caption-right-group" align="right">
           <p-multiSelect defaultLabel="Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" class="val-column-picker-light"></p-multiSelect>
-          <button type="button" pButton icon="fa fa-check-square-o" iconPos="left" label="{{getSelectButtonText(true)}}" pTooltip="{{getSelectButtonText(false)}}" class="val-icon-button" (click)="onSelectSites()" style="margin-left: 0.75em;white-space: nowrap"></button>
-          <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="Export" pTooltip="Export all failed locations" class="val-icon-button" (click)="failureGrid.exportCSV()" style="margin-left: 0.25em;"></button>
+          <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="Export" pTooltip="Export all failed locations" class="val-icon-button" (click)="failureGrid.exportCSV()" style="margin-left: 0.75em;white-space: nowrap"></button>
           <button type="button" pButton icon="{{tableWrapIcon}}" iconPos="left" pTooltip="Toggle to Word Wrap" (click)="onToggleTableWrap()" class="val-icon-button" style="margin-left: 0.25em;"></button>
         </div>
       </div>
     </ng-template>
     <ng-template pTemplate="header">
       <tr>
+        <th style="width: 30px; padding-left: 0.4em"><p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectSites(headerFilter)" class="val-table-hdr" pTooltip="{{getSelectButtonText(false)}}"> </p-checkbox></th>
         <th class="button-column">Google&reg; Map</th>
         <th class="button-column">Resubmit Address</th>
         <th class="button-column">Accept XY</th>
@@ -44,17 +44,22 @@
         <th class="button-column">Remove</th>
       </tr>
       <tr class="second-header">
-        <th class="button-column" style="padding: 0.3em 0 0 1.6em">
-          <button type="button" pButton icon="fa fa-eraser" pTooltip="Clear Filters" class="val-short-square-button" style="color:#edb3ce;vertical-align: text-bottom;" (click)="onClickResetFilters()"></button>
+        <th class="button-column-hdr" style="font-size: 1em; padding: 0.4em 0 0 0.4em">
+          <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" class="val-toolbar-button" (click)="onFilterSelected()"></button>
         </th>
-        <th class="button-column">
+        <th class="button-column-hdr">
           <div>
-            <button (click)="onResubmitSelected()" icon="ui-icon-refresh" pButton pTooltip="Resubmit {{numSelectedSites}} selected sites" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
+            <button pButton type="button" icon="fa fa-eraser" pTooltip="Clear Filters" class="ui-button-red-emphasis" (click)="onClickResetFilters()"></button>
           </div>
         </th>
-        <th class="button-column">
+        <th class="button-column-hdr">
           <div>
-            <button (click)="onAcceptSelected()" icon="ui-icon-check" pButton pTooltip="Accept {{numSelectedSites}} selected XY coordinates" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
+            <button (click)="onResubmitSelected()" class="val-toolbar-button" icon="ui-icon-refresh" pButton pTooltip="Resubmit {{numSelectedSites}} selected sites" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
+          </div>
+        </th>
+        <th class="button-column-hdr">
+          <div>
+            <button (click)="onAcceptSelected()" class="val-toolbar-button" icon="ui-icon-check" pButton pTooltip="Accept {{numSelectedSites}} selected XY coordinates" [disabled]="!hasSelectedSites" class="affect-selected-button"></button>
           </div>
         </th>
         <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
@@ -71,15 +76,18 @@
           <val-table-filter-lov *ngSwitchCase="'geocoderLocationCode'" field="geocoderLocationCode" [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
           <val-table-filter-lov *ngSwitchCase="'marketName'"           field="marketName"           [source]="failedSitesBS$ | async" (filterApplied)="failureGrid.filter($event, col.field, 'in');" (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
         </th>
-        <th class="button-column">
+        <th class="button-column-hdr">
           <div>
-            <button (click)="onRemoveSelected()" icon="ui-icon-delete" pButton pTooltip="Remove {{numSelectedSites}} selected locations" [disabled]="!hasSelectedSites"></button>
+            <button (click)="onRemoveSelected()" icon="fa fa-trash" class="ui-button-red-emphasis" pButton pTooltip="Remove {{numSelectedSites}} selected locations" [disabled]="!hasSelectedSites"></button>
           </div>
         </th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-site>
       <tr [pSelectableRow]="site">
+        <td style="width: 30px; padding-left: 0.4em">
+          <p-checkbox [(ngModel)]="site['isActive']" binary="true" (click)="setHasSelectedSites()" pTooltip="Deactivate site" tooltipPosition="right"></p-checkbox>
+        </td>
         <td class="button-column">
           <div>
             <button (click)="openGoogleMap(site)" icon="fa fa-map-marker" pButton></button>
@@ -96,9 +104,6 @@
           </div>
         </td>
         <ng-container *ngFor="let column of selectedColumns">
-          <td *ngIf="column.isEditable && column.field == 'isActive'" [style.width]="column.width" [ngSwitch]="column.field">
-            <p-checkbox *ngSwitchCase="'isActive'" [(ngModel)]="site[column.field]" binary="true" (click)="setHasSelectedSites()"></p-checkbox>
-          </td>
           <td *ngIf="column.isEditable && column.field !== 'isActive'" pEditableColumn [style.width]="column.width" [ngSwitch]="column.field">
             <ng-container *ngSwitchCase="'coordinates'">
               <p-cellEditor>
@@ -127,7 +132,7 @@
         </ng-container>
         <td  class="button-column">
           <div>
-            <button (click)="remove.emit(site)" icon="ui-icon-delete" pButton></button>
+            <button (click)="remove.emit(site)" icon="fa fa-trash" class="ui-button-red-emphasis" pButton></button>
           </div>
         </td>
       </tr>

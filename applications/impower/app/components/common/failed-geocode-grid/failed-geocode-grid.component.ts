@@ -1,5 +1,5 @@
 import { BehaviorSubject } from 'rxjs';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, ViewChildren, QueryList, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, ViewChildren, QueryList, ViewChild, ViewEncapsulation } from '@angular/core';
 import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -21,7 +21,8 @@ export interface GeocodeFailureGridField {
   selector: 'val-failed-geocode-grid',
   templateUrl: './failed-geocode-grid.component.html',
   styleUrls: ['./failed-geocode-grid.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class FailedGeocodeGridComponent implements OnInit {
 
@@ -45,7 +46,6 @@ export class FailedGeocodeGridComponent implements OnInit {
   @Output() remove = new EventEmitter<ImpGeofootprintLocation[]>();
 
   gridColumns: GeocodeFailureGridField[] = [
-    { seq:  0, field: 'isActive',             header: '🗹',            width: '2.4em', isEditable: true, matchMode: 'contains' },
     { seq:  1, field: 'locationNumber',       header: 'Number',        width: '5em',  isEditable: false, matchMode: 'contains' },
     { seq:  2, field: 'origAddress1',         header: 'Address',       width: '14em', isEditable: true,  matchMode: 'contains' },
     { seq:  3, field: 'origCity',             header: 'City',          width: '9em',  isEditable: true,  matchMode: 'contains' },
@@ -88,6 +88,18 @@ export class FailedGeocodeGridComponent implements OnInit {
   public  tableWrapIcon: string = 'ui-icon-menu';
   public  tableHdrSlice: boolean = false;
 
+  // Grid filter UI variables
+  private filterAllIcon = 'fa fa-check-square';
+  private filterSelectedIcon = 'fa fa-check-square-o';
+  private filterDeselectedIcon = 'fa fa-square';
+  private filterAllTip = 'Selected & Deselected';
+  private filterSelectedTip = 'All Selected';
+  private filterDeselectedTip = 'All Deselected';
+
+  // Filter selected rows
+  public  isSelectedFilterState: string = this.filterAllIcon;
+  public  isSelectedToolTip: string = this.filterAllTip;
+  
   constructor(private appLocationService: AppLocationService,
               private impGeofootprintLocationService: ImpGeofootprintLocationService) {}
 
@@ -204,20 +216,66 @@ export class FailedGeocodeGridComponent implements OnInit {
     window.open(googleMapUri, '_blank', strWindowFeatures);
   }
 
+  /**
+   * Ensures that the header checkbox is in sync with the actual state of the geos.isActive flag.
+   * If one geo is inactive, then the header checkbox is unselected.  If all geos are selected, its checked.
+   */
+  public syncHeaderFilter() {
+    /*
+    if (this._failureGrid.filteredValue != null)
+       this.headerFilter = !this._failureGrid.filteredValue.some(flatGeo => flatGeo.geo.isActive === false);
+    else
+       this.headerFilter = !this._failureGrid._value.some(site => site.isActive === false);
+       */
+  }
+
+  public applyHeaderFilter() {
+    /*
+    if (this._failureGrid.filteredValue != null)
+       this.onSetFilteredGeos.emit({value: this.headerFilter, geos: this._failureGrid.filteredValue.map(flatGeo => flatGeo.geo)});
+    else
+      this.onSetAllGeos.emit({value: this.headerFilter});
+      */
+  }
+
   // Sets isActive to true for all sites
-  onSelectSites() : void {
+  onSelectSites(value: boolean) : void {
     const failedSites = this.failedSitesBS$.getValue();
     const hasFilters  = this.hasFilters();
-    let setHasActive: Boolean = false;
     failedSites.forEach(site => {
       if (!hasFilters || this._failureGrid.filteredValue.includes(site))
-      {
-        site.isActive = true;
-        setHasActive = true;
-      }
+        site.isActive = value;        
     });
-    if (setHasActive)
-      this.setHasSelectedSites();
+    this.setHasSelectedSites();
+  }
+
+  onFilterSelected()
+  {
+     let filterVal: boolean = true;
+     switch (this.isSelectedFilterState) {
+       case this.filterSelectedIcon:
+         this.isSelectedFilterState = this.filterDeselectedIcon;
+         this.isSelectedToolTip = this.filterDeselectedTip;
+         filterVal = false;
+         break;
+
+       case this.filterDeselectedIcon:
+         this.isSelectedFilterState = this.filterAllIcon;
+         this.isSelectedToolTip = this.filterAllTip;
+         filterVal = null;
+         break;
+
+       default:
+         this.isSelectedFilterState = this.filterSelectedIcon;
+         this.isSelectedToolTip = this.filterSelectedTip;
+         filterVal = true;
+         break;
+     }
+     if (this._failureGrid.rows > 0) {
+       this._failureGrid.filter(filterVal, 'isActive', 'equals');
+//       this.onForceRedraw.emit();
+     }
+//     this.onForceRedraw.emit();
   }
 
   //Clears out the filters from the grid and reset the filter components

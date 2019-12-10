@@ -265,3 +265,19 @@ body {
     }
   }
 }
+
+// Eraser button - red without outline default, white with red outline on hover
+.ui-button.ui-state-default.ui-button-red-emphasis, .ui-buttonset.ui-button-red-emphasis > .ui-button.ui-state-default  {
+  color: $brandRed;
+  border-color: darken($brandRed, 15%);
+
+  &:enabled:hover {
+      background-color: $brandRed;
+      color: $lightGray04;
+  }
+
+  &:enabled:focus {
+      outline: 0 none;
+      background-color: lighten($brandRed,10%);
+  }
+}
