@@ -23,11 +23,12 @@ import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.
 const convertToNodeVariable = (mapVar: MapVar | GeoVar, audience: any, impVar: any) : NodeVariable => {
   const fieldType = audience.fieldconte.toUpperCase();
   const digits: number = fieldType === 'RATIO' || fieldType === 'PERCENT' ? 2 : 0;
+  
   return {
-    value: mapVar[audience.audienceIdentifier], //(projectVarsDict[variable.varPk]||safe).isNumber ? variable.valueNumber : variable.valueString,
+    value: audience.audienceSourceType === 'Combined' ? audience.combinedAudiences.map(val => mapVar[val]).reduce((a, b) => a + b) : mapVar[audience.audienceIdentifier], 
     digitRounding: digits,
     isNumber: impVar.isNumber,
-    name: impVar.customVarExprDisplay
+    name: audience.audienceSourceType === 'Combined' ? audience.audienceName : impVar.customVarExprDisplay
   };
 };
 
