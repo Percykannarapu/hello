@@ -84,6 +84,9 @@ export class AddLocationsTabComponent implements OnInit {
   }
 
   onUpload(csvData: string[], siteType: SuccessfulLocationTypeCodes) {
+    this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode == siteType).forEach(site => {
+      this.geocoderService.duplicateKeyMap.get(siteType).add(site.locationNumber);
+    });
     const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListUpload);
     if (requests.length > 0){
       this.validateHomeDmaIfExists(requests);
