@@ -7,6 +7,9 @@ import { SelectItem } from 'primeng/components/common/selectitem';
 import { SortMeta, ConfirmationService } from 'primeng/api';
 import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';
 import { Table } from 'primeng/table';
+import { WarningNotification } from '@val/messaging';
+import { LocalAppState } from 'app/state/app.interfaces';
+import { Store } from '@ngrx/store';
 
 export interface GeocodeFailureGridField {
   seq: number;
@@ -102,6 +105,7 @@ export class FailedGeocodeGridComponent implements OnInit {
   
   constructor(private appLocationService: AppLocationService,
               private confirmationService: ConfirmationService,
+              private store$: Store<LocalAppState>,
               private impGeofootprintLocationService: ImpGeofootprintLocationService) {}
 
   ngOnInit() {
@@ -194,11 +198,18 @@ export class FailedGeocodeGridComponent implements OnInit {
   }
 
   onAcceptSelected() : void {
-    const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
+    const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive && site.xcoord != null && site.ycoord != null);
+    const inelligibleSites = this.failedSitesBS$.getValue().filter(site => site.isActive && site.xcoord === null && site.ycoord === null);
     selectedSites.forEach(site => {
       this.prepSiteForAccept(site);
     });
     this.accept.emit(selectedSites);
+    
+    if (inelligibleSites.length > 0) {
+      let inelligibleSiteMsg = 'The following sites were not\n accepted due to missing\n coordinates:\n\n';
+      inelligibleSites.forEach(site => inelligibleSiteMsg += site.locationNumber + ' - ' + site.origAddress1 + ' \n');
+      this.store$.dispatch(new WarningNotification({ notificationTitle: 'Interactive Geocoding Warning', message: inelligibleSiteMsg }));
+    }
   }
 
   onResubmitSelected() : void {
