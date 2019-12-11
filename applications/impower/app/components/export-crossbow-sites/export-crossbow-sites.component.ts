@@ -57,11 +57,10 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
     private cd: ChangeDetectorRef
   ) {
     this.groups = [];
-    for (const column of this.columns) {
+    this.columns.forEach(column => {
       this.selectedColumns.push(column);
-    }
+    });
   }
-
 
   ngOnInit() {
     this.store$.select(openExportCrossbowSitesFlag).subscribe(flag => this._showDialog = flag);
@@ -88,7 +87,6 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
 
     this.isGroupFlag = value === 'group' ? true : false;
     this.selectedProfileType = value;
-
     if (this.selectedProfileType === 'group'){
       this.exportService.getGroups(this.payload).subscribe((data) => {
         const groups = data.payload.rows;
@@ -97,8 +95,7 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
           this.groups.push({label: group[1], value: group[0]});
         }
         this.cd.markForCheck();
-      }
-      );
+      });
     } else {
       this.exportService.getPrivateCrossbowProfiles(this.payload).subscribe((data) => {
         this.selectedGroup = null;
@@ -106,7 +103,6 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
         this.cd.markForCheck();
       });
     }
-
   }
 
   public onSelectingGroup(groupId: number) {
@@ -115,9 +111,7 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
     this.exportService.getGroupProfiles(this.payload).subscribe({
       next: data => this.profileData = data.payload.rows,
       complete: () => this.onProfileTypeChange(this.selectedProfileType)
-    }
-    );
-
+    });
   }
 
   public onFilter() : void {
@@ -141,18 +135,17 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
     const csvData: string[] = [];
     const headers: string = 'Site #, Site Name, Owner, Franchisee, Address, City, State, Zip, X, Y';
     csvData.push(headers);
-
-    for (const row of data) {
+    data.forEach(row => {
       let buffer: string = '';
-     for (const column of this.exportColumns) {
-       if (row[column] === null) {
-        buffer += '" ",';
-       } else {
-        buffer += '"' + row[column] + '",';
-       }
-     }
-     csvData.push(buffer);
-    }
+      this.exportColumns.forEach(column => {
+        if (row[column] === null) {
+          buffer += '" ",';
+         } else {
+          buffer += '"' + row[column] + '",';
+         }
+      });
+      csvData.push(buffer);
+    });
     this.impGeoService.downloadExport('Profile Sites.csv', csvData);
   }
 }
