@@ -4,7 +4,7 @@ import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { SelectItem } from 'primeng/components/common/selectitem';
-import { SortMeta } from 'primeng/api';
+import { SortMeta, ConfirmationService } from 'primeng/api';
 import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';
 import { Table } from 'primeng/table';
 
@@ -101,6 +101,7 @@ export class FailedGeocodeGridComponent implements OnInit {
   public  isSelectedToolTip: string = this.filterAllTip;
   
   constructor(private appLocationService: AppLocationService,
+              private confirmationService: ConfirmationService,
               private impGeofootprintLocationService: ImpGeofootprintLocationService) {}
 
   ngOnInit() {
@@ -206,8 +207,15 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   onRemoveSelected() : void {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
-    if (selectedSites.length > 0)
-       this.remove.emit(selectedSites);
+    if (selectedSites.length > 0) {    
+    this.confirmationService.confirm({
+      message: 'Are you sure you wish to delete the ' + selectedSites.length + ' selected locations?',
+      header: 'Delete All Selected Locations',
+      accept: () => {
+          this.remove.emit(selectedSites);
+        }
+      });
+    }
   }
 
   openGoogleMap(site: ImpGeofootprintLocation) : void {
