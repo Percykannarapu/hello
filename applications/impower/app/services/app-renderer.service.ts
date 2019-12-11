@@ -46,20 +46,44 @@ export class AppRendererService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      combineLatest([this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$]).pipe(
-        filter(([al, ready]) => al != null && ready),
-        map(([al]) => al),
-        withLatestFrom(this.appStateService.currentProject$)
-      ).subscribe(([al, project]) => {
-        this.store$.dispatch(clearFeaturesOfInterest());
-        this.store$.dispatch(clearShadingDefinitions());
-        const shadingDefinitions = this.createShadingDefinitionsFromLegacy(project, al);
-        this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
-        this.appStateService.clearVisibleGeos();
-        this.setupGeoWatchers(this.impGeoService.storeObservable);
-        setTimeout(() => this.appStateService.refreshVisibleGeos());
-      });
+      if (this.config.isBatchMode) {
+        console.log('Batch mode detected');
+        this.setupBatchModeInit();
+      } else {
+        this.setupAnalysisLevelWatcher();
+      }
       this.setupMapVarWatcher();
+    });
+  }
+
+  private setupBatchModeInit() : void {
+    combineLatest([this.appStateService.analysisLevel$, this.appStateService.applicationIsReady$]).pipe(
+      filter(([al, ready]) => al != null && ready),
+      map(([al]) => al),
+      withLatestFrom(this.appStateService.currentProject$)
+    ).subscribe(([al, project]) => {
+      this.store$.dispatch(clearFeaturesOfInterest());
+      this.store$.dispatch(clearShadingDefinitions());
+      const shadingDefinitions = this.createShadingDefinitionsFromLegacy(project, al);
+      this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
+      this.appStateService.clearVisibleGeos();
+      this.setupGeoWatchers(this.impGeoService.storeObservable);
+      setTimeout(() => this.appStateService.refreshVisibleGeos());
+    });
+  }
+
+  private setupAnalysisLevelWatcher() : void {
+    this.appStateService.analysisLevel$.pipe(
+      withLatestFrom(this.appStateService.applicationIsReady$),
+      filter(([al, ready]) => al != null && ready),
+      map(([al]) => al),
+      withLatestFrom(this.appStateService.currentProject$)
+    ).subscribe(([al, project]) => {
+      this.store$.dispatch(clearFeaturesOfInterest());
+      this.store$.dispatch(clearShadingDefinitions());
+      const shadingDefinitions = this.createShadingDefinitionsFromLegacy(project, al);
+      this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
+      this.setupGeoWatchers(this.impGeoService.storeObservable);
     });
   }
 

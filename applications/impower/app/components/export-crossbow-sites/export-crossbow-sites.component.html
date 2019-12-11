@@ -1,4 +1,3 @@
-<p>export-crossbow-sites works!</p>
 <p-dialog [(visible)]="showDialog"  [modal]="true" [closeOnEscape]="true" [closable]="true" [draggable]="true" [style]="{ width: '900px' }">
   <p-header>
     Export Crossbow Site List
@@ -12,20 +11,20 @@
         <p-dropdown [options]="groups" placeholder="Select a Group" [(ngModel)]="selectedGroup" (ngModelChange)="onSelectingGroup($event)" [disabled]="!isGroupFlag" [style]="{'width':'400px'}" dropdownIcon="fa fa-caret-down">
         </p-dropdown>
       </div>
-      
-      <div class="ui-g-12 ui-g-nopad">     
-        <p-table #profileGrid [columns]="columns" 
-              [value]="profileData" 
-              [(selection)]="row" 
+
+      <div class="ui-g-12 ui-g-nopad">
+        <p-table #profileGrid [columns]="columns"
+              [value]="profileData"
+              [(selection)]="row"
               selectionMode="single"
-              dataKey="profileId" 
-              [responsive]="true" 
-              columnResizeMode="expand" 
+              dataKey="profileId"
+              [responsive]="true"
+              columnResizeMode="expand"
               [resizableColumns]="false"
-              [reorderableColumns]="false" 
-              [paginator]="true" [rows]="10" 
+              [reorderableColumns]="false"
+              [paginator]="true" [rows]="10"
               (onFilter)="onFilter()">
-      
+
           <ng-template pTemplate="caption">
             <div class="ui-g ui-g-nopad">
               <div class="ui-g-4 ui-g-nopad grid-caption-left-group">
@@ -43,7 +42,7 @@
               </div>
             </div>
           </ng-template>
-      
+
           <ng-template pTemplate="header" class="ui-g ui-g-nopad">
             <tr>
               <th *ngFor="let col of selectedColumns" [pSortableColumn]="col.field" [style.width]="col.size">
@@ -76,11 +75,11 @@
         </p-table>
       </div>
     </div>
-        
+
     <div class="dialog-buttons spacer">
       <button pButton type="button" (click)="onCancel()" label="Cancel"></button>
       <button pButton type="button" (click)="onExport(row.profileId)" label="Export" [disabled]="row == null"></button>
-    </div>    
+    </div>
   </div>
 </p-dialog>
 

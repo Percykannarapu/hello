@@ -70,10 +70,12 @@ export class EsriShadingLayersService {
   }
 
   private updateLayerFilter(config: ShadingDefinition, newFeatureCsv: string) : void {
+    console.log('Updating Layer Filter');
     const layer = this.layerService.getLayerByUniqueId(config.destinationLayerUniqueId);
     const query = newFeatureCsv.length > 0 ? `${config.filterField} IN (${newFeatureCsv})` : '1 = 0';
     if (EsriUtils.layerIsFeature(layer)) {
       layer.definitionExpression = query;
+      console.log('Updated layer definition expression', layer.definitionExpression);
     }
   }
 
