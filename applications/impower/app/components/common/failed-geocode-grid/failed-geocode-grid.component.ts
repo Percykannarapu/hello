@@ -206,6 +206,18 @@ export class FailedGeocodeGridComponent implements OnInit {
     this.resubmit.emit(selectedSites);
   }
 
+  onRemove(site: ImpGeofootprintLocation) : void {
+    if (site != null) {
+    this.confirmationService.confirm({
+      message: 'Delete location: ' + site.locationNumber + ' - ' + site.origAddress1 + '?',
+      header: 'Delete Location',
+      accept: () => {
+          this.remove.emit([site]);
+        }
+      });
+    }
+  }
+
   onRemoveSelected() : void {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
     if (selectedSites.length > 0) {    
