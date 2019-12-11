@@ -188,6 +188,7 @@ export class FailedGeocodeGridComponent implements OnInit {
   }
 
   onAccept(site: ImpGeofootprintLocation) : void {
+    site.isActive = true;
     this.prepSiteForAccept(site);
     this.accept.emit([site]);
   }
