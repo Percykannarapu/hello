@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { CrossBowSitesPayload } from '../app.interfaces';
 
 export enum MenuActionTypes {
   SaveAndReloadProject = '[Application Menu] Save and Reload Project',
@@ -15,7 +16,9 @@ export enum MenuActionTypes {
   ExportLocations = '[Application Menu] Export Locations',
   ExportApioNationalData = '[Application Menu] Export Online Audience National Data',
   ExportToValassisDigital = '[Application Menu] Export Sites to Valassis Digital',
-  
+
+  OpenExportCrossbowSitesDialog = '[Application Menu] Open Export Crossbow Sites Dialog',
+  CloseExportCrossbowSitesDialog = '[Application Menu] Close Export Crossbow Sites Dialog',
   OpenPrintViewDialog = '[Application Menu] Open Print View Dialog',
   ClosePrintViewDialog = '[Application Menu] Close Print View Dialog',
 
@@ -72,6 +75,14 @@ export class ExportToValassisDigital implements Action {
   readonly type = MenuActionTypes.ExportToValassisDigital;
 }
 
+export class OpenExportCrossbowSitesDialog implements Action {
+  readonly type = MenuActionTypes.OpenExportCrossbowSitesDialog;
+}
+
+export class CloseExportCrossbowSitesDialog implements Action {
+  readonly type = MenuActionTypes.CloseExportCrossbowSitesDialog;
+}
+
 export class OpenPrintViewDialog implements Action {
   readonly type = MenuActionTypes.OpenPrintViewDialog;
 }
@@ -100,6 +111,8 @@ export type MenuActions =
   ExportLocations |
   ExportApioNationalData |
   ExportToValassisDigital |
+  OpenExportCrossbowSitesDialog |
+  CloseExportCrossbowSitesDialog |
   OpenPrintViewDialog |
   ClosePrintViewDialog;
 

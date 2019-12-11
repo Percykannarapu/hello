@@ -10,7 +10,7 @@ import { filter, take } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { OpenBatchMapDialog } from '../../state/batch-map/batch-map.actions';
-import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, OpenPrintViewDialog, SaveAndCreateNew, SaveAndReloadProject } from '../../state/menu/menu.actions';
+import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, OpenPrintViewDialog, SaveAndCreateNew, SaveAndReloadProject, OpenExportCrossbowSitesDialog } from '../../state/menu/menu.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpowerMainComponent } from '../impower-main/impower-main.component';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -55,6 +55,7 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Export Competitors', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor) },
                   { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
                   { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportToValassisDigital()) },
+                  { label: 'Export Crossbow Sites', icon: 'ui-icon-store', command: () => this.store$.dispatch(new OpenExportCrossbowSitesDialog()) },
                   { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
                   { label: 'Create Site Maps', icon: 'fa fa-book', command: () => this.createBatchMap() }
               ]

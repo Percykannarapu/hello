@@ -12,8 +12,10 @@ import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actio
 import { TargetAudienceService } from './target-audience.service';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
-import { LocalAppState } from '../state/app.interfaces';
+import { LocalAppState, CrossBowSitesPayload } from '../state/app.interfaces';
 import { ErrorNotification } from '@val/messaging';
+import { RestDataService } from 'app/val-modules/common/services/restdata.service';
+import { RestResponse } from 'app/models/RestResponse';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for exporting data
@@ -25,10 +27,13 @@ import { ErrorNotification } from '@val/messaging';
 })
 export class AppExportService {
 
+  readonly crossbowUrl: string = 'v1/targeting/base/targetingprofile';
+
   constructor(private impGeofootprintLocationService: ImpGeofootprintLocationService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private targetAudienceService: TargetAudienceService,
               private impProjectService: ImpProjectService,
+              private restService: RestDataService,
               private store$: Store<LocalAppState>,
               private config: AppConfig) { }
 
@@ -48,7 +53,7 @@ export class AppExportService {
         observer.error(err);
       }
     });
-  }
+  } 
 
   exportLocations(siteType: SuccessfulLocationTypeCodes, currentProject: ImpProject) : Observable<CreateUsageMetric> {
     return Observable.create((observer: Subject<CreateUsageMetric>) => {
@@ -105,6 +110,29 @@ export class AppExportService {
         observer.error(err);
       }
     });
+  }
+
+  getPrivateCrossbowProfiles(payload: CrossBowSitesPayload) : Observable<RestResponse> {
+    const userIdUrl: string = this.crossbowUrl + '/search?q=targetingProfileSearch' + `&userId=${payload.id}`;
+    // const userIdUrl: string = this.crossbowUrl + '/search?q=targetingProfileSearch' + `&userId=13660`;
+    return this.restService.get(userIdUrl);
+  }
+
+  getGroups(payload: CrossBowSitesPayload) : Observable<RestResponse> {
+    const groupsUrl: string = this.crossbowUrl + '/search?q=targetingGroupSearch' + `&userId=${payload.id}`;
+    // const groupsUrl: string = this.crossbowUrl + `/search?q=targetingGroupSearch&userId=13660`;
+    return this.restService.get(groupsUrl);
+  }
+
+  getGroupProfiles(payload: CrossBowSitesPayload) : Observable<RestResponse> {
+    const groupProfileUrl: string = this.crossbowUrl + '/search?q=targetingProfileSearch' + `&groupId=${payload.groupId}`;
+    // const groupProfileUrl: string = this.crossbowSitesUrl + '/search?q=targetingProfileSearch' + `&groupId=30`;
+    return this.restService.get(groupProfileUrl);
+  }
+
+  getCrossbowSites(payload: CrossBowSitesPayload) : Observable<RestResponse> {
+    const sitesUrl: string = this.crossbowUrl + '/search?q=targetingProfileSites' + `&profileId=${payload.profileId}&siteType=0`;
+    return this.restService.get(sitesUrl);
   }
 
   private locationExportImpl(siteType: SuccessfulLocationTypeCodes, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filename: string, currentProject: ImpProject, homeGeoIssueOnly: boolean = false) : number {

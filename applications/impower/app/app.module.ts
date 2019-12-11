@@ -152,6 +152,7 @@ import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map
 import { CombinedAudienceComponent } from './components/target-audience/combined-audience/combined-audience.component';
 import { EditCombinedAudiencesComponent } from './components/target-audience/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
 import { FailedLocationsTabComponent } from './components/failed-locations-tab/failed-locations-tab.component';
+import { ExportCrossbowSitesComponent } from './export-crossbow-sites/export-crossbow-sites.component';
 
 @NgModule({
     imports: [
@@ -282,7 +283,8 @@ import { FailedLocationsTabComponent } from './components/failed-locations-tab/f
         BatchMapDialogComponent,
         CombinedAudienceComponent,
         EditCombinedAudiencesComponent,
-        FailedLocationsTabComponent
+        FailedLocationsTabComponent,
+        ExportCrossbowSitesComponent
     ],
     providers: [
       {provide: LocationStrategy, useClass: HashLocationStrategy},

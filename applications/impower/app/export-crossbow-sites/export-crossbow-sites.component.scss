@@ -1,0 +1,20 @@
+.search-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  padding: 1em;
+}
+
+.table-header {
+  align-content: center;
+}
+
+.spacer{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5em;
+  padding-top: 1em;
+}

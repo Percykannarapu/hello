@@ -32,5 +32,12 @@ export interface BatchMapPayload {
   siteIds: Array<string>;
 }
 
+export interface CrossBowSitesPayload {
+  email: string;
+  id: number;
+  profileId?: number;
+  groupId?: number;
+}
+
 export const getRenderingSlice = (state: LocalAppState) => state.rendering;
 

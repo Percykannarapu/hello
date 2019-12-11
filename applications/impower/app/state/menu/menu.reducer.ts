@@ -3,11 +3,13 @@ import {MenuActions, MenuActionTypes} from './menu.actions';
 export interface MenuState {
   displayOpenExistingDialog: boolean;
   displayPrintViewDialog: boolean;
+  displayCrossbowSitesDialog: boolean;
 }
 
 const initialState: MenuState = {
   displayOpenExistingDialog: false,
-  displayPrintViewDialog: false
+  displayPrintViewDialog: false,
+  displayCrossbowSitesDialog: false,
 };
 
 export function menuReducer(state = initialState, action: MenuActions) {
@@ -32,6 +34,16 @@ export function menuReducer(state = initialState, action: MenuActions) {
           ...state,
           displayPrintViewDialog: false
         };
+    case MenuActionTypes.OpenExportCrossbowSitesDialog:
+      return {
+          ...state,
+          displayCrossbowSitesDialog: true
+      };
+    case MenuActionTypes.CloseExportCrossbowSitesDialog:
+      return {
+        ...state,
+        displayCrossbowSitesDialog: false
+      };
     default:
       return state;
   }
