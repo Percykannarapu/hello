@@ -1,13 +1,13 @@
-import { Component, OnInit, ChangeDetectorRef, AfterViewInit } from '@angular/core';
-import {Store} from '@ngrx/store';
-import { LocalAppState, CrossBowSitesPayload } from '../state/app.interfaces';
-import { openExportCrossbowSitesFlag } from '../state/menu/menu.selectors';
-import { CloseExportCrossbowSitesDialog } from 'app/state/menu/menu.actions';
-import { filter, take } from 'rxjs/operators';
-import { UserService } from 'app/services/user.service';
-import { AppStateService } from 'app/services/app-state.service';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { AppExportService } from 'app/services/app-export.service';
+import { AppStateService } from 'app/services/app-state.service';
+import { UserService } from 'app/services/user.service';
+import { CloseExportCrossbowSitesDialog } from 'app/state/menu/menu.actions';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { filter, take } from 'rxjs/operators';
+import { CrossBowSitesPayload, LocalAppState } from '../../state/app.interfaces';
+import { openExportCrossbowSitesFlag } from '../../state/menu/menu.selectors';
 
 @Component({
   selector: 'val-export-crossbow-sites',
@@ -33,8 +33,8 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
     id: this.user.userId
   };
 
-  public get showDialog() : boolean { 
-    return this._showDialog; 
+  public get showDialog() : boolean {
+    return this._showDialog;
   }
   public set showDialog(currentValue: boolean) {
     if (currentValue === false && currentValue !== this._showDialog) {
@@ -70,15 +70,15 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.stateService.applicationIsReady$.pipe(
       filter(isReady => isReady),
-      take(1),     
+      take(1),
     ).subscribe(() => {
       this.onProfileTypeChange(this.selectedProfileType);
-    }); 
+    });
   }
 
   public onCancel() : void {
     this.onDialogHide();
-  } 
+  }
 
   public onDialogHide() : void {
     this.store$.dispatch(new CloseExportCrossbowSitesDialog());
@@ -117,7 +117,7 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
       complete: () => this.onProfileTypeChange(this.selectedProfileType)
     }
     );
-    
+
   }
 
   public onFilter() : void {
