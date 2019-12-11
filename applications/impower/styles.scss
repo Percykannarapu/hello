@@ -281,3 +281,8 @@ body {
       background-color: lighten($brandRed,10%);
   }
 }
+
+// Allows \n in toast messages for multiple line messages
+.ui-toast-detail {
+  white-space: pre-line;
+}
