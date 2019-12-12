@@ -50,6 +50,7 @@ export class UploadTradeAreasComponent implements OnInit {
   public uploadFailures: TradeAreaDefinition[] = [];
   public totalUploadedRowCount = 0;
   public isCustomTAExists: boolean;
+  public isDisable: boolean = true;
   public currentAnalysisLevel$: Observable<string>;
   public deleteFlag: boolean = false;
 
@@ -109,7 +110,6 @@ export class UploadTradeAreasComponent implements OnInit {
     });
 
     this.currentAnalysisLevel$.subscribe(val => {
-      this.fileAnalysisSelected = val;
       switch (val){
         case 'ZIP' :
             this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'ATZ' && v.value !== 'PCR' && v.value !== 'Digital ATZ');
@@ -163,6 +163,8 @@ export class UploadTradeAreasComponent implements OnInit {
     this.fileUploadEl.clear();
     // workaround for https://github.com/primefaces/primeng/issues/4816
     this.fileUploadEl.basicFileInput.nativeElement.value = '';
+    this.isDisable = true;
+    this.fileAnalysisSelected = null;
   }
 
   // to process excel upload data
@@ -231,6 +233,10 @@ export class UploadTradeAreasComponent implements OnInit {
       this.store$.dispatch(new StopBusyIndicator({ key}));
       this.store$.dispatch(new ErrorNotification({ message: 'Upload file must contain a Site # column and a Geocode column.', notificationTitle: 'Error Uploading Custom TA' }));
     }
+  }
+
+  public onFileAnalysisChange() : void {
+    this.isDisable = false;
   }
 
   private processUploadedTradeArea(data: TradeAreaDefinition[]) : void {

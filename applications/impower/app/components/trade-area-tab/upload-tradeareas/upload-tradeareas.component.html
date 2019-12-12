@@ -22,6 +22,7 @@
                         [style]="{ width:'40%' }"
                         placeholder="&nbsp;"
                         [(ngModel)]="fileAnalysisSelected"
+                        (ngModelChange)="onFileAnalysisChange()"
                         dropdownIcon="fa fa-caret-down"
                         [disabled]="!(currentAnalysisLevel$ | async)">
             </p-dropdown>
@@ -38,7 +39,7 @@
       </div>
       <div class="ui-g-12">
         <div class="ui-g-3">
-          <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="!(currentAnalysisLevel$ | async)"
+          <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="isDisable"
                         pTooltip="CSV or Excel format required: Site #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
           </p-fileUpload>
         </div>
