@@ -1,27 +1,28 @@
-import {Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef} from '@angular/core';
-import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
-import { AppLocationService } from '../../services/app-location.service';
-import { Observable } from 'rxjs';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { map } from 'rxjs/operators';
-import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { AppStateService } from '../../services/app-state.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import { LocalAppState } from '../../state/app.interfaces';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { AppGeocodingService } from '../../services/app-geocoding.service';
-import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { EsriMapService } from '@val/esri';
-import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
+import { ConfirmationService } from 'primeng/api';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { toUniversalCoordinates } from '../../../../../modules/common/src/coordinates';
+import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { AppEditSiteService } from '../../services/app-editsite.service';
-import { ConfirmationService } from 'primeng/api';
+import { AppGeocodingService } from '../../services/app-geocoding.service';
+import { AppLocationService } from '../../services/app-location.service';
+import { AppStateService } from '../../services/app-state.service';
+import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { LocalAppState } from '../../state/app.interfaces';
+import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 @Component({
   selector: 'val-site-list-container',
@@ -262,7 +263,7 @@ export class SiteListContainerComponent implements OnInit {
    }
 
    public onZoomToLocation(loc: ImpGeofootprintLocation) {
-      this.esriMapService.zoomOnMap({ min: loc.xcoord, max: loc.xcoord }, { min: loc.ycoord, max: loc.ycoord }, 1).subscribe(() => {
+      this.esriMapService.zoomToPoints(toUniversalCoordinates([loc])).subscribe(() => {
         this.cd.markForCheck();
       });
       this.appStateService.closeOverlays();

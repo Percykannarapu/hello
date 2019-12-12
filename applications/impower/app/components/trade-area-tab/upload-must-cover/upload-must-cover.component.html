@@ -18,6 +18,7 @@
                         [style]="{ width:'40%' }"
                         placeholder="&nbsp;"
                         [(ngModel)]="fileAnalysisSelected"
+                        (ngModelChange)="onFileAnalysisChange()"
                         dropdownIcon="fa fa-caret-down"
                         [disabled]="!(currentAnalysisLevel$ | async)">
             </p-dropdown>

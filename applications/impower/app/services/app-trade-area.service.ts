@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, filterArray, groupBy, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriApi, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { filterArray, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
-import { filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
 import { RenderTradeAreas } from '../state/rendering/rendering.actions';
@@ -32,6 +32,13 @@ export class TradeAreaDefinition {
   geocode: string;
   message: string;
 }
+
+const UsTableMap = {
+  'ZIP': 'CL_ZIP_US',
+  'ATZ': 'CL_ATZ_US',
+  'Digital ATZ': 'VAL_DIG_US',
+  'PCR': 'CL_PCR_US'
+};
 
 @Injectable()
 export class AppTradeAreaService {
@@ -190,67 +197,48 @@ export class AppTradeAreaService {
     this.applyRadiusTradeAreasToLocations(tradeAreas, currentLocations);
   }
 
-  public updateTradeAreaSelection(tradeAreas: { taNumber: number, isSelected: boolean }[], siteType: SuccessfulLocationTypeCodes) {
-    const taNumbers = new Set(tradeAreas.map(ta => ta.taNumber));
-    const currentTradeAreas = this.getAllTradeAreas(siteType).filter(ta => ta.taType === 'RADIUS' && taNumbers.has(ta.taNumber));
-    const selectedMap = groupBy(tradeAreas, 'taNumber');
-    if (currentTradeAreas.length > 0) {
-      let geoStateChanged = false;
-      currentTradeAreas.forEach(ta => {
-        ta.isActive = selectedMap.get(ta.taNumber)[0].isSelected;
-        if (ta.impGeofootprintGeos != null && ta.impGeofootprintGeos.length > 0) {
-          geoStateChanged = true;
-          ta.impGeofootprintGeos
-            .filter(geo => geo.geocode !== ta.impGeofootprintLocation.homeGeocode)
-            .forEach(geo => geo.isActive = selectedMap.get(ta.taNumber)[0].isSelected);
-        }
-      }); // currentTradeAreas for each
-      // notify subscribers when state has changed
-      if (geoStateChanged) this.impGeoService.update(null, null);
-      this.impTradeAreaService.update(null, null);
-    }
-  }
+  // public updateTradeAreaSelection(tradeAreas: { taNumber: number, isSelected: boolean }[], siteType: SuccessfulLocationTypeCodes) {
+  //   const taNumbers = new Set(tradeAreas.map(ta => ta.taNumber));
+  //   const currentTradeAreas = this.getAllTradeAreas(siteType).filter(ta => ta.taType === 'RADIUS' && taNumbers.has(ta.taNumber));
+  //   const selectedMap = groupBy(tradeAreas, 'taNumber');
+  //   if (currentTradeAreas.length > 0) {
+  //     let geoStateChanged = false;
+  //     currentTradeAreas.forEach(ta => {
+  //       ta.isActive = selectedMap.get(ta.taNumber)[0].isSelected;
+  //       if (ta.impGeofootprintGeos != null && ta.impGeofootprintGeos.length > 0) {
+  //         geoStateChanged = true;
+  //         ta.impGeofootprintGeos
+  //           .filter(geo => geo.geocode !== ta.impGeofootprintLocation.homeGeocode)
+  //           .forEach(geo => geo.isActive = selectedMap.get(ta.taNumber)[0].isSelected);
+  //       }
+  //     }); // currentTradeAreas for each
+  //     // notify subscribers when state has changed
+  //     if (geoStateChanged) this.impGeoService.update(null, null);
+  //     this.impTradeAreaService.update(null, null);
+  //   }
+  // }
 
   public zoomToTradeArea() {
-    console.log('Zooming');
-    const latitudes: number[] = [];
-    const longitudes: number[] = [];
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
     if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0) {
       // analysisLevel exists - zoom to Trade Area
-      const layerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel, false);
+      const layerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
       if (layerId == null) return;
       this.stateService.uniqueIdentifiedGeocodes$.pipe(
         filter(geos => geos != null && geos.length > 0),
-        take(1)
-      ).subscribe(geocodes => {
-        const query$ = this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, false, ['latitude', 'longitude']);
-        query$.subscribe(
-          selections => {
-            selections.forEach(g => {
-              if (g.attributes.latitude != null && !Number.isNaN(Number(g.attributes.latitude))) {
-                latitudes.push(Number(g.attributes.latitude));
-              }
-              if (g.attributes.longitude != null && !Number.isNaN(Number(g.attributes.longitude))) {
-                longitudes.push(Number(g.attributes.longitude));
-              }
-            });
-          },
-          err => { this.logger.error.log('Error getting lats and longs from layer', err); },
-          () => this.calculateStatsAndZoom(latitudes, longitudes)
-        );
-      });
+        take(1),
+        switchMap(geos => this.esriQueryService.queryAttributeIn(layerId, 'geocode', geos, true)),
+        reduce((a, c) => [...a, ...c], []),
+        switchMap(polys => this.esriMapService.zoomToPolys(polys))
+      ).subscribe();
     } else {
-      // analysisLevel doesn't exist yet - zoom to site list
-      const currentSiteCoords = this.impLocationService.get()
-        .filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
-        .map(loc => toUniversalCoordinates(loc));
-      currentSiteCoords.forEach(coordinate => {
-        latitudes.push(coordinate.y);
-        longitudes.push(coordinate.x);
-      });
-      this.calculateStatsAndZoom(latitudes, longitudes);
+      this.impLocationService.storeObservable.pipe(
+        map(data => data.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)),
+        map(locations => toUniversalCoordinates(locations)),
+        take(1),
+        switchMap(coords => this.esriMapService.zoomToPoints(coords))
+      ).subscribe();
     }
   }
 
@@ -277,20 +265,6 @@ export class AppTradeAreaService {
     this.appGeoService.clearAll();
     this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
     this.impTradeAreaService.stopTx();
-  }
-
-  private calculateStatsAndZoom(latitudes: number[], longitudes: number[]) : void {
-    let extent = null;
-    if (this.appProjectPrefService.getPref('extent') != null && this.appProjectPrefService.getPref('extent').val != null){
-      extent = JSON.parse(this.appProjectPrefService.getPref('extent').val);
-    }
-    const xStats = calculateStatistics(longitudes);
-    const yStats = calculateStatistics(latitudes);
-    this.esriMapService.zoomOnMap(xStats, yStats, latitudes.length).subscribe(() => {
-      if (extent != null){
-        this.esriMapService.mapView.extent = EsriApi.Extent.fromJSON(extent);
-      }
-    });
   }
 
   public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {
@@ -417,7 +391,7 @@ export class AppTradeAreaService {
      */
   public rollDownService(geos: string[], fileAnalysisLevel: string){
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
-    const usTable = this.getUstable(currentAnalysisLevel);
+    const usTable = UsTableMap[currentAnalysisLevel];
     const selectField = currentAnalysisLevel === 'Digital ATZ' ? 'DTZ' : currentAnalysisLevel;
     const whereField = fileAnalysisLevel === 'Digital ATZ' ? 'DTZ' : fileAnalysisLevel;
     const seasonField = 'HHLD_S'; //TODO: need to get the value from discovey tab
@@ -429,7 +403,7 @@ export class AppTradeAreaService {
       chunked_arr.push(geos.slice(index, 999 + index));
       index += 999;
     }
-    const obs = chunked_arr.map(geoList => {
+    const obs = chunked_arr.map(() => {
       const reqPayload = {'usTable': usTable, 'selectField': selectField, 'whereField': whereField, 'geoList': geos, 'seasonField': seasonField, 'tab14TableName': tab14TableName};
       return this.restService.post('v1/targeting/base/rolldown/rolldowngeocode', reqPayload);
       });
@@ -442,20 +416,16 @@ export class AppTradeAreaService {
     );
   }
 
-  public validateRolldownGeos(payload: any[], queryResult: Map<string, {latitude: number, longitude: number}>,  matchedTradeAreas: any[], fileAnalysisLevel: string){
+  public validateRolldownGeos(payload: any[], queryResult: Map<string, {latitude: number, longitude: number}>,  matchedTradeAreas: any[], fileAnalysisLevel: string) {
     let failedGeos: any[] = [];
-    const successGeos: any[] = [];
-    //console.log('validate geos:::', matchedTradeAreas, payload);
     const payloadByGeocode = mapBy(payload, 'orgGeo');
     const matchedTradeAreaByGeocode = mapBy(Array.from(matchedTradeAreas), 'geocode');
     if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ')
         matchedTradeAreas.forEach(ta => {
           if (!queryResult.has(ta.geocode)) {
               ta.message = 'Geocode not found';
-              //this.uploadFailures = [...this.uploadFailures, ta];
               failedGeos = [...failedGeos, ta];
           }
-            //failedGeos.filter(rec => rec.geocode === ta.geocode).length === 0 &&
           else if ( !payloadByGeocode.has(ta.geocode)){
               ta.message = 'Rolldown Geocode not found';
               failedGeos = [...failedGeos, ta];
@@ -464,8 +434,7 @@ export class AppTradeAreaService {
     payload.forEach(record => {
       record.locNumber = matchedTradeAreaByGeocode.get(record.orgGeo).store;
     });
-    const resultMap = {failedGeos: failedGeos, payload: payload};
-    return resultMap;
+    return { failedGeos, payload };
   }
 
   public persistRolldownTAGeos(payload: any[], failedGeos: any[]){
@@ -499,10 +468,9 @@ export class AppTradeAreaService {
     const tradeAreas = this.impTradeAreaService.get();
 
     const tas: { radius: number, selected: boolean }[] = [];
-    if (loc.length > 0 &&  loc != null && loc[0].radius1 == null && loc[0].radius2 == null && loc[0].radius3 == null){
+    if (loc != null &&  loc.length > 0 && loc[0].radius1 == null && loc[0].radius2 == null && loc[0].radius3 == null){
       const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(loc[0].clientLocationTypeCode));
       const radiusSet = new Set<Number>();
-      //tradeAreas.forEach(ta => radiusSet.add(ta.taRadius));
        tradeAreas.forEach(ta => {
          if (ta.taType.toUpperCase() === TradeAreaTypeCodes.Radius.toUpperCase()){
            radiusSet.add(ta.taRadius);
@@ -517,20 +485,5 @@ export class AppTradeAreaService {
       }
     }
 
-  }
-
-  private getUstable(analysisLevel: string){
-    switch (analysisLevel){
-      case 'ZIP' :
-        return 'CL_ZIP_US';
-      case 'ATZ' :
-        return 'CL_ATZ_US';
-      case 'Digital ATZ':
-        return 'VAL_DIG_US';
-      case 'PCR':
-        return 'CL_PCR_US';
-      default:
-        return null;
-    }
   }
 }

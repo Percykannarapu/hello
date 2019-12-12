@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, filterArray, groupByExtended, isNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, groupByExtended, isNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
-import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { QuadTree } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -282,9 +282,7 @@ export class AppLocationService {
   }
 
   public zoomToLocations(locations: ImpGeofootprintLocation[]) {
-    const xStats = calculateStatistics(locations.map(d => d.xcoord));
-    const yStats = calculateStatistics(locations.map(d => d.ycoord));
-    this.esriMapService.zoomOnMap(xStats, yStats, locations.length).subscribe();
+    this.esriMapService.zoomToPoints(toUniversalCoordinates(locations)).subscribe();
   }
 
   private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
