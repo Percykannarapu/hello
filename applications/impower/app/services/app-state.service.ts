@@ -162,7 +162,7 @@ export class AppStateService {
     this.projectService.currentNullableProject$.pipe(
       map(project => project == null ? null : project.methAnalysis),
       distinctUntilChanged(),
-      filter(analysisLevel => analysisLevel != null),
+      filter(analysisLevel => analysisLevel != null && analysisLevel.length > 0),
       tap(analysisLevel => this.store$.dispatch(new ChangeAnalysisLevel({analysisLevel: analysisLevel})))
     ).subscribe(this.analysisLevel$ as BehaviorSubject<string>);
 
@@ -260,9 +260,8 @@ export class AppStateService {
 
     this.getVisibleGeos$.pipe(
       withLatestFrom(this.analysisLevel$),
-      filter(([, analysisLevel]) => analysisLevel != null && analysisLevel.length > 0),
       map(([, analysisLevel]) => this.config.getLayerIdForAnalysisLevel(analysisLevel)),
-      switchMap(layerId => this.esriQueryService.queryPortalLayerView(layerId).pipe(
+      switchMap(layerId => this.esriQueryService.queryExtent(layerId).pipe(
         map(graphics => graphics.filter(g => g.attributes.pob !== 'B').map(g => g.attributes.geocode))
       )),
       map(geos => Array.from(new Set(geos)))

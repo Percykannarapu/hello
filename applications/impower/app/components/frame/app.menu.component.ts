@@ -4,17 +4,28 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ConfirmationPayload, ErrorNotification, ShowConfirmation } from '@val/messaging';
 import { AppStateService } from 'app/services/app-state.service';
+import { BatchMapService } from 'app/services/batch-map.service';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { MenuItem } from 'primeng/api';
 import { filter, take } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { OpenBatchMapDialog } from '../../state/batch-map/batch-map.actions';
-import { DiscardAndCreateNew, ExportApioNationalData, ExportGeofootprint, ExportLocations, ExportToValassisDigital, OpenExistingProjectDialog, OpenPrintViewDialog, SaveAndCreateNew, SaveAndReloadProject, OpenExportCrossbowSitesDialog } from '../../state/menu/menu.actions';
+import {
+  DiscardAndCreateNew,
+  ExportApioNationalData,
+  ExportGeofootprint,
+  ExportLocations,
+  ExportToValassisDigital,
+  OpenExistingProjectDialog,
+  OpenExportCrossbowSitesDialog,
+  OpenPrintViewDialog,
+  SaveAndCreateNew,
+  SaveAndReloadProject
+} from '../../state/menu/menu.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpowerMainComponent } from '../impower-main/impower-main.component';
-import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { BatchMapService } from 'app/services/batch-map.service';
 
 @Component({
     selector: 'app-menu',
@@ -162,7 +173,7 @@ export class AppMenuComponent implements OnInit {
 })
 export class AppSubMenuComponent {
 
-    @Input() item: MenuItem;
+    @Input() item: MenuItem | MenuItem[];
     @Input() root: boolean;
     @Input() visible: boolean;
     _reset: boolean;

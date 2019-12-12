@@ -1,9 +1,18 @@
 import { ElementRef, Inject, Injectable, NgZone } from '@angular/core';
+import { calculateStatistics, expandRange, Statistics, UniversalCoordinates } from '@val/common';
 import { Observable } from 'rxjs';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils, WatchResult } from '../core/esri-utils';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
+
+function calculateExpandedStats(xData: number[], yData: number[], expansionAmount: number) : [Statistics, Statistics] {
+  let xStats = calculateStatistics(xData);
+  let yStats = calculateStatistics(yData);
+  if (xStats != null) xStats = expandRange(xStats, xStats.distance * expansionAmount);
+  if (yStats != null) yStats = expandRange(yStats, yStats.distance * expansionAmount);
+  return [xStats, yStats];
+}
 
 @Injectable()
 export class EsriMapService {
@@ -31,35 +40,55 @@ export class EsriMapService {
     });
   }
 
-  zoomOnMap(xStats: { min: number, max: number }, yStats: { min: number, max: number }, pointCount: number) : Observable<void> {
+  zoomToPolys(polys: __esri.Graphic[], bufferPercent: number = 0.1) : Observable<void> {
+    const xData = polys.reduce((p, c) => {
+      if (EsriUtils.geometryIsPolygon(c.geometry)) {
+        p.push(c.geometry.extent.xmax, c.geometry.extent.xmin);
+      }
+      return p;
+    }, [] as number[]);
+    const yData = polys.reduce((p, c) => {
+      if (EsriUtils.geometryIsPolygon(c.geometry)) {
+        p.push(c.geometry.extent.ymax, c.geometry.extent.ymin);
+      }
+      return p;
+    }, [] as number[]);
+    const [xStats, yStats] = calculateExpandedStats(xData, yData, bufferPercent);
+    const polyCount = polys.length > 0 ? polys.length + 1 : 0;
+    return this.zoomOnMap(xStats, yStats, polyCount);
+  }
+
+  zoomToPoints(points: UniversalCoordinates[], bufferPercent: number = 0.1) : Observable<void> {
+    const xData = points.map(c => c.x);
+    const yData = points.map(c => c.y);
+    const [xStats, yStats] = calculateExpandedStats(xData, yData, bufferPercent);
+    return this.zoomOnMap(xStats, yStats, points.length);
+  }
+
+  private zoomOnMap(xStats: { min: number, max: number }, yStats: { min: number, max: number }, pointCount: number) : Observable<void> {
     return new Observable<void>(subscriber => {
-      this.zone.runOutsideAngular(() => {
-        if (pointCount === 0) {
-          this.zone.run(() => {
+      if (pointCount === 0 || xStats == null || yStats == null) {
+        subscriber.next();
+        subscriber.complete();
+      } else {
+        const options = { animate: false };
+        let target: __esri.Polygon | __esri.MapViewBaseGoToTarget;
+        if (pointCount === 1) {
+          target = {
+            target: new EsriApi.Point({ x: xStats.min, y: yStats.min }),
+            zoom: 11
+          };
+        } else {
+          const polyExtent = this.domainService.createExtent(xStats, yStats);
+          target = EsriApi.Polygon.fromExtent(polyExtent);
+        }
+        EsriUtils.esriPromiseToEs6(this.mapView.goTo(target, options))
+          .catch(err => subscriber.error(err))
+          .then(() => {
             subscriber.next();
             subscriber.complete();
           });
-        } else {
-          const options = { animate: false };
-          let target: __esri.Polygon | __esri.MapViewBaseGoToTarget;
-          if (pointCount === 1) {
-            target = {
-              target: new EsriApi.Point({ x: xStats.min, y: yStats.min }),
-              zoom: 11
-            };
-          } else {
-            const polyExtent = this.domainService.createExtent(xStats, yStats);
-            target = EsriApi.Polygon.fromExtent(polyExtent);
-          }
-          const result = EsriUtils.esriPromiseToEs6(this.mapView.goTo(target, options));
-          this.zone.run(() => {
-            result.catch(() => subscriber.error()).then(() => {
-              subscriber.next();
-              subscriber.complete();
-            });
-          });
-        }
-      });
+      }
     });
   }
 

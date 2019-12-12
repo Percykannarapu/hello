@@ -10,6 +10,7 @@ import { ConfirmationService } from 'primeng/api';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
+import { toUniversalCoordinates } from '../../../../../modules/common/src/coordinates';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { AppGeoService } from '../../services/app-geo.service';
 import { AppStateService } from '../../services/app-state.service';
@@ -143,7 +144,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    // -----------------------------------------------------------
    public onZoomGeo(geo: ImpGeofootprintGeo) {
       if (geo != null) {
-         this.esriMapService.zoomOnMap({ min: geo.xcoord, max: geo.xcoord }, { min: geo.ycoord, max: geo.ycoord }, 1).subscribe();
+         this.esriMapService.zoomToPoints(toUniversalCoordinates([geo])).subscribe();
       }
    }
 

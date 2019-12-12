@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { chunkArray, retryOnTimeout } from '@val/common';
-import { EMPTY, merge, Observable, of, Subscription } from 'rxjs';
-import {expand, filter, map, take, tap} from 'rxjs/operators';
+import { EMPTY, merge, Observable, of } from 'rxjs';
+import { expand, filter, map, take } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
@@ -17,7 +17,6 @@ const SIMULTANEOUS_STREAMS = 3;
 export class EsriQueryService {
 
   private static config: EsriAppSettings;
-  private layerViewSub = new Map<string, Subscription>();
 
   constructor(@Inject(EsriAppSettingsToken) config: EsriAppSettings,
               private layerService: EsriLayerService,
@@ -174,6 +173,15 @@ export class EsriQueryService {
     const dataStreams = chunkArray<string, number>(queryData, chunkSize);
     const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, queryField));
     return this.query(layerId, queries, transform);
+  }
+
+  public queryExtent(layerId: string, extent?: __esri.Extent) : Observable<__esri.Graphic[]> {
+    const query = new EsriApi.Query({
+      geometry: extent == null ? this.mapService.mapView.extent : extent,
+      returnGeometry: false,
+      outFields: ['geocode', 'pob']
+    });
+    return this.query(layerId, [query]);
   }
 
   public queryPortalLayerView(layerId: string) : Observable<__esri.Graphic[]> {
