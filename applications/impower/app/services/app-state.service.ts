@@ -260,6 +260,7 @@ export class AppStateService {
 
     this.getVisibleGeos$.pipe(
       withLatestFrom(this.analysisLevel$),
+      filter(([, analysisLevel]) => analysisLevel != null && analysisLevel.length > 0),
       map(([, analysisLevel]) => this.config.getLayerIdForAnalysisLevel(analysisLevel)),
       switchMap(layerId => this.esriQueryService.queryExtent(layerId).pipe(
         map(graphics => graphics.filter(g => g.attributes.pob !== 'B').map(g => g.attributes.geocode))
