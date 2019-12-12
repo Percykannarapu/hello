@@ -85,33 +85,6 @@ export class SiteListContainerComponent implements OnInit {
    // GRID OUTPUT EVENTS
    // -----------------------------------------------------------
 
-  resubmit(site: ImpGeofootprintLocation) {
-    const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
-    site.impGeofootprintLocAttribs.forEach(attr => {
-      if (homeGeoColumnsSet.has(attr.attributeCode)){
-        attr.attributeValue = '';
-      }
-    });
-    const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
-    const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
-    let isRadii: boolean = false;
-    if (site.radius1 != null || site.radius2 != null || site.radius3 != null){
-      isRadii = true;
-    }
-    const newRequest = new ValGeocodingRequest(site, true, isRadii);
-    newRequest['resubmit'] = true;
-    newRequest['Original Address'] = site.locAddress;
-    newRequest['Original City'] = site.locCity;
-    newRequest['Original State'] = site.locState;
-    newRequest['Original ZIP'] = site.locZip;
-    delete newRequest['latitude'];
-    delete newRequest['longitude'];
-    this.processEditRequests(newRequest, newSiteType, site, true);
-    this.appLocationService.deleteLocations([site]);
-    const metricText = AppLocationService.createMetricTextForLocation(site);
-    this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
-  }
-
    public onEditLocations(data) {
      const siteType = data.siteType;
      const site = data.site;

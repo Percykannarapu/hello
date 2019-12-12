@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {select, Store} from '@ngrx/store';
-import {DeletePrintRenderer, PrintMap} from '@val/esri';
+import {PrintMap} from '@val/esri';
 import {AppConfig} from 'app/app.config';
 import {AppStateService} from 'app/services/app-state.service';
 import {LocalAppState} from 'app/state/app.interfaces';
@@ -55,7 +55,6 @@ export class PrintViewComponent implements OnInit {
   closeDialog(event: any){
       this.printForm.reset();
       this.currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
-      this.store$.dispatch(new DeletePrintRenderer({portalId: this.config.getLayerIdForAnalysisLevel(this.currentAnalysisLevel, true)}));
       this.store$.dispatch(new ClosePrintViewDialog);
   }
 

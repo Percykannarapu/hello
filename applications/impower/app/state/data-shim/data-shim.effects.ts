@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Actions, Effect, ofType } from '@ngrx/effects';
+import { Actions, Effect, ofType, act } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
@@ -12,6 +12,7 @@ import { GeoAttributeActionTypes, RehydrateAttributesComplete, RequestAttributes
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
 import { getBatchMode } from '../batch-map/batch-map.selectors';
+import { getTypedBatchQueryParams } from '../shared/router.interfaces';
 import {
   CalculateMetrics,
   CreateNewProject,
@@ -26,7 +27,8 @@ import {
   ProjectSaveAndLoad,
   ProjectSaveFailure,
   ProjectSaveSuccess,
-  TradeAreaRollDownGeos
+  TradeAreaRollDownGeos,
+  MustCoverRollDownGeos
 } from './data-shim.actions';
 
 @Injectable({ providedIn: 'root' })
@@ -69,9 +71,8 @@ export class DataShimEffects {
   projectLoad$ = this.actions$.pipe(
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
-      withLatestFrom(this.appDataShimService.currentGeocodeSet$, this.store$.select(getBatchMode)),
-      map(([, geocodes, isBatch]) => isBatch
-        //? new ProjectLoadSuccess(action.payload)
+      withLatestFrom(this.appDataShimService.currentGeocodeSet$),
+      map(([, geocodes]) => action.payload.isBatchMode
         ? new RehydrateAudiences({ ...action.payload, notifyLoadSuccess: true })
         : new RehydrateAfterLoad({ ...action.payload, geocodes })),
       catchError(err => of(new ProjectLoadFailure({ err, isReload: false }))),
@@ -155,6 +156,18 @@ export class DataShimEffects {
     switchMap(action => this.appTradeService.rollDownService(action.payload.geos, action.payload.fileAnalysisLevel).pipe(
       map(response => this.appTradeService.validateRolldownGeos(response, action.payload.queryResult, action.payload.matchedTradeAreas, action.payload.fileAnalysisLevel)),
       map(result => this.appTradeService.persistRolldownTAGeos(result.payload, result.failedGeos))
+    ))
+  );
+
+  @Effect({dispatch: false})
+  mustCoverRollDownGeos$ = this.actions$.pipe(
+    ofType<MustCoverRollDownGeos>(DataShimActionTypes.MustCoverRollDownGeos),
+    switchMap(action => this.appTradeService.rollDownService(action.payload.geos, action.payload.fileAnalysisLevel).pipe(
+      /*map(response => this.appDataShimService.validateMustCoverRollDownGeos(response, action.payload.fileName, 
+                                                                            action.payload.uploadedGeos, action.payload.fileAnalysisLevel,
+                                                                            action.payload.geos))*/
+      map(response => this.appTradeService.validateRolldownGeos(response, action.payload.queryResult, action.payload.uploadedGeos, action.payload.fileAnalysisLevel)),
+      map(result => this.appDataShimService.persistMustCoverRollDownGeos(result.payload, action.payload.fileName, result.failedGeos))                                                                      
     ))
   );
 

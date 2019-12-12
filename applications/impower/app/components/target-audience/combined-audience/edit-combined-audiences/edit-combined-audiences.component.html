@@ -1,26 +1,31 @@
 <div class="ui-g-12" *ngIf="editAudiences != null && editAudiences.length > 0">
   List of Combined Audiences
   &nbsp;
-    <p-table [columns]="audienceList" [value]="editAudiences" [rows]="8" [alwaysShowPaginator]="false" [autoLayout]="true" [style]="{width:'20em'}">
+    <p-table [columns]="audienceList" [value]="editAudiences" [scrollable]="true" [resizableColumns]="true" scrollHeight="20em" [alwaysShowPaginator]="false" [style]="{width:'40em'}">
+        <ng-template pTemplate="colgroup" let-columns>
+            <colgroup>
+                <col *ngFor="let col of columns" [style.width]="col.width">
+            </colgroup>
+        </ng-template>
         <ng-template pTemplate="header" let-columns >
             <tr>
-                <th *ngFor="let col of columns">
+                <th *ngFor="let col of columns" pResizableColumn>
                     {{col.header}}
                 </th>
-                <!-- <th style="width: 4em">Edit</th> -->
+                <th style="width: 4em">Edit</th>
                 <th style="width: 4em">Delete</th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-audience let-columns="columns">
              <tr [pSelectableRow]="audience">
                 
-                <td *ngFor="let col of columns">
+                <td *ngFor="let col of columns" class="ui-resizable-column">
                         {{audience[col.field]}} 
                         <span class="fa fa-comment"  pTooltip="{{formatString(audience.combinedVariableNames)}}" [escape]="false"> </span> 
                 </td>
-                <!-- <td>
+                <td>
                     <i class="fa fa-pencil val-clickable" (click)="onEditAudiences(audience)" ></i>
-                </td> -->
+                </td>
                 <td>
                     <i class="val-clickable fa fa-trash" (click)="onDeleteAudiences(audience)"></i>
                 </td>

@@ -21,7 +21,10 @@ export class RenderingService {
     const layersToRemove = this.esriMapService.mapView.map.allLayers.toArray()
       .filter(l => l.title !== null && (l.title.toLowerCase().includes('audience') || l.title.toLowerCase().includes('radius')));
     this.logger.debug.log('Removing', layersToRemove.length, 'layers');
-    layersToRemove.forEach(l => this.esriLayerService.removeLayer(l.title));
+    layersToRemove.forEach(l => {
+      const layer = this.esriLayerService.getLayer(l.title);
+      this.esriLayerService.removeLayer(layer);
+    });
   }
 
   clearLocations(type: SuccessfulLocationTypeCodes) : void {

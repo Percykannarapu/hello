@@ -1,7 +1,5 @@
 import { RouterReducerState } from '@ngrx/router-store';
-import { createSelector } from '@ngrx/store';
 import { BatchMapState } from './batch-map/batch-map.reducer';
-import { RouterStateUrl } from './shared/utils';
 import { DataShimState } from './data-shim/data-shim.reducer';
 import { MenuState } from './menu/menu.reducer';
 import * as fromEsri from '@val/esri';
@@ -9,6 +7,7 @@ import { HomeGeoState } from './homeGeocode/homeGeo.reducer';
 import * as fromDataStore from '../impower-datastore/state/impower-datastore.interfaces';
 import * as fromMessaging from '@val/messaging';
 import { RenderingState } from './rendering/rendering.reducer';
+import { RouterStateUrl } from './shared/router.interfaces';
 
 export interface FullAppState extends LocalAppState, fromEsri.AppState, fromMessaging.AppState {}
 
@@ -33,10 +32,12 @@ export interface BatchMapPayload {
   siteIds: Array<string>;
 }
 
-export const getRenderingSlice = (state: LocalAppState) => state.rendering;
-const getRouterSlice = (state: LocalAppState) => state.router;
+export interface CrossBowSitesPayload {
+  email: string;
+  id: number;
+  profileId?: number;
+  groupId?: number;
+}
 
-// since we don't actually have router actions/reducer/effects, just stash the selectors here
-export const getRouteUrl = createSelector(getRouterSlice, state => state.state.url);
-export const getRouteParams = createSelector(getRouterSlice, state => state.state.params);
-export const getRouteQueryParams = createSelector(getRouterSlice, state => state != null ? state.state.queryParams : null);
+export const getRenderingSlice = (state: LocalAppState) => state.rendering;
+

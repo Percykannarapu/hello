@@ -4,7 +4,6 @@ import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils, WatchResult } from '../core/esri-utils';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
-import MapViewBaseGoToTarget = __esri.MapViewBaseGoToTarget;
 
 @Injectable()
 export class EsriMapService {
@@ -16,23 +15,19 @@ export class EsriMapService {
               private zone: NgZone,
               @Inject(EsriAppSettingsToken) private config: EsriAppSettings) {}
 
-  initializeMap(container: ElementRef, baseMapId: string) : Observable<any> {
+  initializeMap(container: ElementRef, baseMapId: string) : Observable<void> {
     return new Observable<any>(sub => {
-      this.zone.runOutsideAngular(() => {
-        const newMapParams = Object.assign({}, this.config.defaultMapParams);
-        newMapParams.basemap = EsriApi.BaseMap.fromId(baseMapId);
-        const map = new EsriApi.Map(newMapParams);
-        const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
-        newMapViewProps.container = container.nativeElement;
-        newMapViewProps.map = map;
-        const mapView = new EsriApi.MapView(newMapViewProps);
-        mapView.when(() => {
-          this.zone.run(() => {
-            this.mapView = mapView;
-            sub.next();
-          });
-        }, err => this.zone.run(() => sub.error(err)));
-      });
+      const newMapParams = Object.assign({}, this.config.defaultMapParams);
+      newMapParams.basemap = EsriApi.BaseMap.fromId(baseMapId);
+      const map = new EsriApi.Map(newMapParams);
+      const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
+      newMapViewProps.container = container.nativeElement;
+      newMapViewProps.map = map;
+      const mapView = new EsriApi.MapView(newMapViewProps);
+      mapView.when(() => {
+        this.mapView = mapView;
+        sub.next();
+      }, err => sub.error(err));
     });
   }
 
@@ -46,7 +41,7 @@ export class EsriMapService {
           });
         } else {
           const options = { animate: false };
-          let target: __esri.Polygon | MapViewBaseGoToTarget;
+          let target: __esri.Polygon | __esri.MapViewBaseGoToTarget;
           if (pointCount === 1) {
             target = {
               target: new EsriApi.Point({ x: xStats.min, y: yStats.min }),

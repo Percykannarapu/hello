@@ -30,8 +30,13 @@ body {
   text-align: end;
 }
 
-.val-toast-top-right {
-  top: ($valHeaderHeight + 3px) !important;
+.val-toast {
+  &.val-main {
+    top: ($valHeaderHeight + 3px) !important;
+  }
+  &.val-login {
+    top: ($valTitleHeight + 3px) !important;
+  }
   span.pi.ui-toast-icon {
     font-size: 2em;
   }
@@ -240,4 +245,44 @@ body {
       }
     }
   }
+}
+
+// val-important-element style for tabs
+// usage ex: <p-tabPanel header="Attention!" headerStyleClass="val-important-element">
+.ui-tabview {
+  > ul.ui-tabview-nav {
+    > li.val-important-element {
+      background-color: $valImportantElementBgColor !important;
+      .ui-tabview-title {
+        color: $valImportantElementColor;
+      }
+      &.ui-state-active{
+        background-color: $valImportantElementBgColorActive !important;
+        .ui-tabview-title {
+          color: $valImportantElementColorActive;
+        }
+      }
+    }
+  }
+}
+
+// Eraser button - red without outline default, white with red outline on hover
+.ui-button.ui-state-default.ui-button-red-emphasis, .ui-buttonset.ui-button-red-emphasis > .ui-button.ui-state-default  {
+  color: $brandRed;
+  border-color: darken($brandRed, 15%);
+
+  &:enabled:hover {
+      background-color: $brandRed;
+      color: $lightGray04;
+  }
+
+  &:enabled:focus {
+      outline: 0 none;
+      background-color: lighten($brandRed,10%);
+  }
+}
+
+// Allows \n in toast messages for multiple line messages
+.ui-toast-detail {
+  white-space: pre-line;
 }

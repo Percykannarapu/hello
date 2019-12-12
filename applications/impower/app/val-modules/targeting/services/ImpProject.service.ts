@@ -18,6 +18,7 @@ import { UserService } from '../../../services/user.service';
 import { Observable, EMPTY } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { TradeAreaMergeTypeCodes } from '../targeting.enums';
 import { ImpProjectPrefService } from './ImpProjectPref.service';
 import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
 import { ImpProjectVarService } from './ImpProjectVar.service';

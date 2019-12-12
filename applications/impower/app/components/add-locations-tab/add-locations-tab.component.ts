@@ -84,69 +84,20 @@ export class AddLocationsTabComponent implements OnInit {
   }
 
   onUpload(csvData: string[], siteType: SuccessfulLocationTypeCodes) {
+    this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode == siteType).forEach(site => {
+      this.geocoderService.duplicateKeyMap.get(siteType).add(site.locationNumber);
+    });
     const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListUpload);
-    this.validateHomeDmaIfExists(requests);
-    this.processSiteRequests(requests, siteType);
+    if (requests.length > 0){
+      this.validateHomeDmaIfExists(requests);
+      this.processSiteRequests(requests, siteType);
+    }
   }
 
   validateHomeDmaIfExists(requests: ValGeocodingRequest[]) {
     requests.forEach(req => {
       if (req['Home DMA'] != null && req['Home DMA'] != undefined && req['Home DMA'].length != 0 && !Number.isNaN(parseInt(req['Home DMA'], 10)) && req['Home DMA'].length === 3) req['Home DMA'] = '0' + req['Home DMA'];
     });
-  }
-
-  remove(site: ImpGeofootprintLocation) {
-    this.appLocationService.deleteLocations([site]);
-  }
-
-  accept(site: ImpGeofootprintLocation) {
-    site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
-    if (site.recordStatusCode === 'PROVIDED'){
-      const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
-      site.impGeofootprintLocAttribs.forEach(attr => {
-        if (homeGeoColumnsSet.has(attr.attributeCode)){
-          attr.attributeValue = '';
-        }
-      });
-      site.impGeofootprintTradeAreas = [];
-      site['homeGeoFound'] = null;
-      const reCalculateHomeGeos = false;
-      const isLocationEdit =  false;
-      const locations = [site];
-      this.store$.dispatch(new HomeGeocode({locations, isLocationEdit, reCalculateHomeGeos}));
-    }
-    else
-      this.appLocationService.notifySiteChanges();
-    const metricText = AppLocationService.createMetricTextForLocation(site);
-    this.store$.dispatch(new CreateLocationUsageMetric('failure', 'accept', metricText));
-  }
-
-  resubmit(site: ImpGeofootprintLocation) {
-    const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
-    site.impGeofootprintLocAttribs.forEach(attr => {
-      if (homeGeoColumnsSet.has(attr.attributeCode)){
-        attr.attributeValue = '';
-      }
-    });
-    const currentSiteType = ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode);
-    const newSiteType = ImpClientLocationTypeCodes.markSuccessful(currentSiteType);
-    let isRadii: boolean = false;
-    if (site.radius1 != null || site.radius2 != null || site.radius3 != null){
-      isRadii = true;
-    }
-
-    const newRequest = new ValGeocodingRequest(site, true, isRadii);
-    newRequest['resubmit'] = true;
-    newRequest['Original Address'] = site.locAddress;
-    newRequest['Original City'] = site.locCity;
-    newRequest['Original State'] = site.locState;
-    newRequest['Original ZIP'] = site.locZip;
-    delete newRequest['latitude'];
-    delete newRequest['longitude'];
-    this.appLocationService.deleteLocations([site]);
-    this.processSiteRequests(newRequest, newSiteType, true);
-    const metricText = AppLocationService.createMetricTextForLocation(site);
-    this.store$.dispatch(new CreateLocationUsageMetric('failure', 'resubmit', metricText));
   }
 
   manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, isEdit?: boolean){

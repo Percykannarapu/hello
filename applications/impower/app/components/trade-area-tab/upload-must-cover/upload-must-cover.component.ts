@@ -11,7 +11,7 @@ import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, SelectItem } from 'primeng/api';
 import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
 import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
 
@@ -34,6 +34,10 @@ export class UploadMustCoverComponent implements OnInit {
    private fileName: string;
    public isMustCoverExists: boolean;
 
+   allAnalysisLevels: SelectItem[] = []; 
+   fileAnalysisLevels: SelectItem[] = []; 
+   fileAnalysisSelected: string;
+
    @ViewChild('mustCoverUpload', { static: true }) private mustCoverUploadEl: FileUpload;
 
    constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService
@@ -47,6 +51,20 @@ export class UploadMustCoverComponent implements OnInit {
               }
 
    ngOnInit() {
+    
+      this.allAnalysisLevels = [
+         {label: 'ZIP', value: 'ZIP'},
+         {label: 'ATZ', value: 'ATZ'},
+         {label: 'Digital ATZ', value: 'Digital ATZ'},
+         {label: 'PCR', value: 'PCR'},
+         {label: 'Wrap Zone', value: 'WRAP_MKT_ID'},
+         {label: 'County', value: 'COUNTY'},
+         {label: 'State', value: 'STATE'},
+         {label: 'DMA', value: 'DMA'},
+         {label: 'Infoscan', value: 'INFOSCAN_CODE'},
+         {label: 'Scantrack', value: 'SCANTRACK_CODE'}
+       ];  
+
     this.appStateService.analysisLevel$.subscribe(val => {
       this.isDisable = (val == null);
       this.tooltip = this.isDisable ? 'Please select an Analysis Level before uploading a Must Cover file' : 'CSV or Excel format required: Geocode';
@@ -56,6 +74,7 @@ export class UploadMustCoverComponent implements OnInit {
       if (this.impGeofootprintGeoService.uploadFailures.length == 0){
          this.impGeofootprintGeoService.uploadFailures.push(...result);
          this.isMustCoverExists = true;
+         this.impGeofootprintGeoService.makeDirty();
       }
     });
 
@@ -65,12 +84,35 @@ export class UploadMustCoverComponent implements OnInit {
          this.isMustCoverExists = true;
     });
 
+    this.impGeofootprintGeoService.allMustCoverBS$.subscribe(geos => {
+         if (geos.length > 0)
+          this.processMuctCovers(geos);
+    });
+
+    this.currentAnalysisLevel$.subscribe(val => {
+      this.fileAnalysisSelected = val;
+      switch (val){
+        case 'ZIP' :
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'ATZ' && v.value !== 'PCR' && v.value !== 'Digital ATZ');
+            break;
+        case 'ATZ' :  
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'Digital ATZ' && v.value !== 'PCR');  
+            break;
+        case 'Digital ATZ':
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'PCR');
+            break;
+        default:
+            this.fileAnalysisLevels = this.allAnalysisLevels;
+            break;    
+      }  
+    });
+
    }
 
    public onResubmit(data: CustomMCDefinition){
      let csvData = 'Geocode \n';
      csvData = csvData + data.geocode;
-     //this.onRemove(data);
+     this.onRemove(data);
     this.parseMustcovers(csvData, this.fileName, true, data);
 
    }
@@ -82,37 +124,28 @@ export class UploadMustCoverComponent implements OnInit {
 
 
    private parseMustcovers(dataBuffer: string, fileName: string, isResubmit: boolean = false, customMCDefinition?: CustomMCDefinition){
-    let uniqueGeos: string[] = [];
-    this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, this.appStateService.analysisLevel$.getValue()).subscribe(
-      geos => {
-          if (geos.length > 0){
-            uniqueGeos = geos;
+    //let uniqueGeos: string[] = [];
+    const analysisLevel = this.appStateService.analysisLevel$.getValue();
+    this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, analysisLevel, this.fileAnalysisSelected).subscribe(() => {
+      const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
+      this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
+    });
+   }
 
-          }
-      }, null , () => {
-        // Create a new project pref for the upload file
-        const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
-        this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
-        this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcovetText + name, uniqueGeos.join(', '));
-        if (isResubmit && uniqueGeos.length > 0){
-          this.onRemove(customMCDefinition);
-        }
-        this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length;
-        //ensure mustcover are active
-        const uniqueGeoSet = new Set(uniqueGeos);
-        this.impGeofootprintGeoService.get().forEach(geo => {
-            if (uniqueGeoSet.has(geo.geocode)){
-                  geo.isActive = true;
-               }
-         }
-      );
-      this.isMustCoverExists = uniqueGeos.length > 0;
-      if (this.impGeofootprintGeoService.uploadFailures.length > 0)
-         this.isMustCoverExists = true;
+   private processMuctCovers(geos: string[]){
+      const mustcovetText =  'Must Cover Upload';
+      this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcovetText + name, geos.join(', '));
+      this.totalUploadedRowCount = geos.length + this.impGeofootprintGeoService.uploadFailures.length;
+      //ensure mustcover are active
+      const uniqueGeoSet = new Set(geos);
+      this.impGeofootprintGeoService.get().forEach(geo => {
+          if (uniqueGeoSet.has(geo.geocode)){
+                geo.isActive = true;
+             }
+       });
+      this.isMustCoverExists = geos.length > 0; 
       this.impGeofootprintGeoService.makeDirty();
-            this.totalUploadedRowCount = uniqueGeos.length + this.impGeofootprintGeoService.uploadFailures.length;
-            }
-    );
+      this.totalUploadedRowCount = geos.length + this.impGeofootprintGeoService.uploadFailures.length;
    }
 
    public uploadFile(event: any) : void {
@@ -172,7 +205,7 @@ export class UploadMustCoverComponent implements OnInit {
          accept: () => {
              this.impGeofootprintGeoService.clearMustCovers();
              this.isMustCoverExists = false;
-            this.impProjectService.get()[0].impProjectPrefs = this.impProjectPrefService.get().filter(pref => pref.prefGroup !== ProjectPrefGroupCodes.MustCover);;
+            this.impProjectService.get()[0].impProjectPrefs = this.impProjectPrefService.get().filter(pref => pref.prefGroup !== ProjectPrefGroupCodes.MustCover);
             this.impGeofootprintGeoService.uploadFailures = [];
             if (this.impGeofootprintGeoService.uploadFailures.length > 0)
                this.isMustCoverExists = true;

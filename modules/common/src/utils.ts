@@ -1,12 +1,5 @@
 // tslint:disable:no-bitwise
 
-// fixes Array.isArray not typing a readonly array as an array
-declare global {
-  interface ArrayConstructor {
-    isArray(arg: any) : arg is ReadonlyArray<any>;
-  }
-}
-
 /**
  * Splits an array into chunks of a maximum size
  * @param {T[] | U[]} arr: The original array to split
@@ -422,4 +415,10 @@ export function formatDateForFuse(date: Date) : string {
   const month = date.getMonth() + 1;
   const day = date.getDate();
   return `${year}-${zeroPad(month)}-${zeroPad(day)}`;
+}
+
+export function strToBool(value: string) : boolean {
+  if (value == null) return false;
+  const lcValue = value.toLowerCase();
+  return /^true$|^t$|^yes$|^y$|^1$/.test(lcValue);
 }

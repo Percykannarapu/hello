@@ -32,7 +32,10 @@ export enum DataShimActionTypes {
 
   LayerSetupComplete = '[Application Data Shim] Layer Setup Complete',
 
-  TradeAreaRollDownGeos = '[Application Data Shim] TradeArea RollDown Geos'
+  TradeAreaRollDownGeos = '[Application Data Shim] TradeArea RollDown Geos',
+  MustCoverRollDownGeos = '[Application Data Shim] MustCover RollDown Geos'
+
+
 }
 
 export class ProjectSaveAndNew implements Action {
@@ -65,7 +68,9 @@ export class ProjectSaveFailure implements Action {
 
 export class ProjectLoad implements Action {
   readonly type = DataShimActionTypes.ProjectLoad;
-  constructor(public payload: { projectId: number, isReload: boolean }) {}
+  constructor(public payload: { projectId: number, isReload: boolean, isBatchMode?: boolean }) {
+    payload.isBatchMode = payload.isBatchMode || false;
+  }
 }
 
 export class ProjectLoadSuccess implements Action {
@@ -130,6 +135,11 @@ export class TradeAreaRollDownGeos implements Action {
                               }) {}
 }
 
+export class MustCoverRollDownGeos implements Action {
+  readonly type = DataShimActionTypes.MustCoverRollDownGeos;
+  constructor(public payload: { geos: string[], queryResult:  Map<string, {latitude: number, longitude: number}>, fileAnalysisLevel: string, fileName: string, uploadedGeos: any[]}) {}
+}
+
 export type DataShimActions =
   ProjectSaveAndNew |
   ProjectSaveAndLoad |
@@ -150,4 +160,5 @@ export type DataShimActions =
   IsProjectReload|
   ProjectLoadFinish |
   LayerSetupComplete |
-  TradeAreaRollDownGeos;
+  TradeAreaRollDownGeos|
+  MustCoverRollDownGeos;

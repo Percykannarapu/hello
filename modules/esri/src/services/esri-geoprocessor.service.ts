@@ -34,10 +34,17 @@ export class EsriGeoprocessorService {
     processor._getPrintDefinition = function() {
        return proxy_getPrintDefinition.apply(processor, arguments).then((result) => {
          console.log('Print Payload::', result);
-         result.operationalLayers.forEach(layer => {
-           if (layer.title === 'Text Variables'){
-             layer.layerDefinition.drawingInfo.labelingInfo[0].removeDuplicates = 'none';
+         result.operationalLayers.forEach(l => {
+           if (l.showLabels){
+            l.layerDefinition.drawingInfo.labelingInfo[0].removeDuplicates = 'none';
+            if (l.title === 'ZIP Boundaries'){
+              l.layerDefinition.drawingInfo.labelingInfo[0].symbol.font.size = 9;
+             }
+             if (l.title === 'ATZ Boundaries' || l.title === 'Digital ATZ Boundaries' || l.title === 'PCR Boundaries'){
+              l.layerDefinition.drawingInfo.labelingInfo[0].symbol.font.size = 7;
+             }
            }
+            
          });
          return result;
        });

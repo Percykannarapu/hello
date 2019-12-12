@@ -24,7 +24,6 @@ import { EsriLayerService } from './src/services/esri-layer.service';
 import { EsriMapInteractionService } from './src/services/esri-map-interaction.service';
 import { EsriMapService } from './src/services/esri-map.service';
 import { EsriQueryService } from './src/services/esri-query.service';
-import { EsriRendererService } from './src/services/esri-renderer.service';
 import { EsriShadingLayersService } from './src/services/esri-shading-layers.service';
 import { EsriService } from './src/services/esri.service';
 import { allEffects } from './src/state/esri.effects';
@@ -91,7 +90,6 @@ export class EsriModule {
         EsriMapService,
         EsriMapInteractionService,
         EsriQueryService,
-        EsriRendererService,
         EsriPrintingService,
         EsriShadingLayersService,
         { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] }

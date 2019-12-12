@@ -1,132 +1,161 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable, of } from 'rxjs';
-import { map, take, tap } from 'rxjs/operators';
-import { SelectedShadingLayerPrefix } from '../../settings';
+import { Observable } from 'rxjs';
+import { map, pairwise, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
-import { FillPattern } from '../models/esri-types';
-import { AllShadingConfigurations, ConfigurationTypes, SimpleShadingConfiguration, UniqueValueShadingConfiguration } from '../models/shading-configuration';
-import { EsriState } from '../state/esri.selectors';
+import { ConfigurationTypes, RampProperties, ShadingDefinition, SymbolDefinition } from '../models/shading-configuration';
+import { AppState, shadingSelectors } from '../state/esri.selectors';
+import { addLayerToLegend, updateShadingDefinition } from '../state/shading/esri.shading.actions';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
-import { EsriRendererService } from './esri-renderer.service';
-import { MapVar } from '../../../../applications/impower/app/impower-datastore/state/transient/map-vars/map-vars.model';
-import * as EsriArcadeUtils from '../core/esri-arcade.utils';
 
 @Injectable()
 export class EsriShadingLayersService {
 
   constructor(private layerService: EsriLayerService,
-              private store$: Store<EsriState>,
-              private rendererService: EsriRendererService,
-              private domainFactory: EsriDomainFactoryService) { }
+              private store$: Store<AppState>,
+              private domainFactory: EsriDomainFactoryService) {}
 
-  static createSelectedFeatureLayerName(featureTypeName: string) : string {
-    return `${SelectedShadingLayerPrefix} ${featureTypeName}s`;
+  initializeShadingWatchers() : void {
+    this.setupLayerCreationWatcher();
+    this.setupFeaturesOfInterestWatcher();
+    this.setupRendererUpdatesWatcher();
+    this.setupLayerRemovalWatcher();
   }
 
-  createShadingLayer(config: AllShadingConfigurations, visualVariable?: __esri.ColorVariable, groupName: string = 'Shading') : Observable<__esri.FeatureLayer> {
+  private setupLayerCreationWatcher() : void {
+    this.store$.select(shadingSelectors.layerDefsToCreate).pipe(
+      withLatestFrom(this.store$.select(shadingSelectors.featuresCsv))
+    ).subscribe(([defs, features]) => {
+      defs.forEach(d => {
+        this.createGeneralizedShadingLayer(d, features).pipe(
+          take(1)
+        ).subscribe(id => {
+          this.store$.dispatch(updateShadingDefinition({ shadingDefinition: { id: d.id, changes: { destinationLayerUniqueId: id }}}));
+          this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: d.showLegendHeader ? d.legendHeader : null }));
+        });
+      });
+    });
+  }
+
+  private setupFeaturesOfInterestWatcher() : void {
+    const filteredLayerDefs$ = this.store$.select(shadingSelectors.layerDefsForUpdate).pipe(map(defs => defs.filter(d => d.filterByFeaturesOfInterest)));
+    this.store$.select(shadingSelectors.featuresCsv).pipe(
+      withLatestFrom(filteredLayerDefs$),
+    ).subscribe(([features, defs]) => {
+      defs.forEach(d => this.updateLayerFilter(d, features));
+    });
+  }
+
+  private setupRendererUpdatesWatcher() : void {
+    this.store$.select(shadingSelectors.layerDefsForUpdate).pipe(
+      map(defs => defs.filter(d => d.shadingType !== ConfigurationTypes.Simple && d.arcadeExpression != null)),
+      withLatestFrom(this.store$.select(shadingSelectors.featuresCsv))
+    ).subscribe(([defs, features]) => {
+      defs.forEach(d => {
+        this.updateGeneralizedShadingLayer(d, features);
+      });
+    });
+  }
+
+  private setupLayerRemovalWatcher() : void {
+    this.store$.select(shadingSelectors.layerUniqueIds).pipe(
+      startWith([]),
+      pairwise(),
+      map(([previous, current]) => {
+        const currentSet = new Set(current);
+        return previous.filter(id => !currentSet.has(id));
+      })
+    ).subscribe(ids => this.deleteRenderingLayers(ids));
+  }
+
+  private updateLayerFilter(config: ShadingDefinition, newFeatureCsv: string) : void {
+    console.log('Updating Layer Filter');
+    const layer = this.layerService.getLayerByUniqueId(config.destinationLayerUniqueId);
+    const query = newFeatureCsv.length > 0 ? `${config.filterField} IN (${newFeatureCsv})` : '1 = 0';
+    if (EsriUtils.layerIsFeature(layer)) {
+      layer.definitionExpression = query;
+      console.log('Updated layer definition expression', layer.definitionExpression);
+    }
+  }
+
+  private updateGeneralizedShadingLayer(config: ShadingDefinition, newFeatureCsv?: string) : void {
+    const layer = this.layerService.getLayerByUniqueId(config.destinationLayerUniqueId);
+    if (EsriUtils.layerIsFeature(layer)) {
+      const props = {
+        renderer: this.createGeneralizedRenderer(config)
+      };
+      if (newFeatureCsv != null && config.filterByFeaturesOfInterest) {
+        props['definitionExpression'] = `${config.filterField} IN (${newFeatureCsv})`;
+      }
+      layer.set(props);
+    }
+  }
+
+  private createGeneralizedShadingLayer(config: ShadingDefinition, featureFilter?: string, groupName: string = 'Shading') : Observable<string> {
     const layerProps: Partial<__esri.FeatureLayer> = {
-      definitionExpression: config.expression,
       popupEnabled: false,
       labelingInfo: [],
       labelsVisible: false,
       legendEnabled: true,
-      outFields: ['geocode'],
-      renderer: this.createFullRenderer(config, visualVariable),
+      outFields: [config.filterField || 'geocode'],
+      renderer: this.createGeneralizedRenderer(config),
       opacity: config.opacity
     };
-    return this.layerService.createPortalLayer(config.layerId, config.layerName, config.minScale, true, layerProps).pipe(
+    if (config.filterByFeaturesOfInterest && featureFilter != null) {
+      if (featureFilter.length > 0) {
+        layerProps.definitionExpression = `${config.filterField} IN (${featureFilter})`;
+      } else {
+        layerProps.definitionExpression = '1 = 0';
+      }
+    }
+    return this.layerService.createPortalLayer(config.sourcePortalId, config.layerName, config.minScale, true, layerProps).pipe(
       tap(layer => {
         const group = this.layerService.createClientGroup(groupName, true, true);
-        if (group) group.add(layer);
-      })
+        if (group) {
+          group.layers.unshift(layer);
+        }
+      }),
+      map(layer => layer.id)
     );
   }
 
-  private createFullRenderer(config: AllShadingConfigurations, visualVariable?: __esri.ColorVariable) : __esri.Renderer {
-    const renderer = this.createConfiguredRenderer(config);
-    if (visualVariable && (EsriUtils.rendererIsSimple(renderer) || EsriUtils.rendererIsClassBreaks(renderer) || EsriUtils.rendererIsUnique(renderer))) {
-      renderer.visualVariables = [ visualVariable ];
-    }
-    return renderer;
-  }
-
-  private createConfiguredRenderer(config: AllShadingConfigurations) : __esri.Renderer {
-    switch (config.type) {
-      case ConfigurationTypes.DotDensity:
-        const densityResult = this.domainFactory.createDotDensityRenderer(config.outline, config.dotValue, config.referenceScale, config.colorStops);
-        densityResult.legendOptions = config.legendOptions;
-        return densityResult;
+  private createGeneralizedRenderer(config: ShadingDefinition) : __esri.Renderer {
+    const defaultSymbol = this.createSymbolFromDefinition(config.defaultSymbolDefinition);
+    switch (config.shadingType) {
       case ConfigurationTypes.Simple:
-        const simpleResult = this.domainFactory.createSimpleRenderer(config.defaultSymbol);
-        simpleResult.label = config.defaultLegendName;
+        const simpleResult = this.domainFactory.createSimpleRenderer(defaultSymbol);
+        simpleResult.label = config.defaultSymbolDefinition.legendName;
         return simpleResult;
       case ConfigurationTypes.Unique:
-        const uniqueResult = this.domainFactory.createUniqueValueRenderer(config.defaultSymbol, config.uniqueValues);
-        uniqueResult.defaultLabel = config.defaultLegendName;
-        uniqueResult.valueExpression = config.arcadeExpression;
-        return uniqueResult;
-      case ConfigurationTypes.ClassBreak:
-        const classResult = this.domainFactory.createClassBreakRenderer(config.defaultSymbol, config.classBreaks);
-        classResult.defaultLabel = config.defaultLegendName;
-        classResult.valueExpression = config.arcadeExpression;
-        classResult.legendOptions = config.classBreakLegendOptions;
-        return classResult;
+        const classBreaks: __esri.UniqueValueRendererUniqueValueInfos[] = config.breakDefinitions.map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
+        const result = this.domainFactory.createUniqueValueRenderer(defaultSymbol, classBreaks);
+        result.defaultLabel = config.defaultSymbolDefinition.legendName;
+        result.valueExpression = config.arcadeExpression;
+        return result;
+      case ConfigurationTypes.Ramp:
+        const visVar: RampProperties = {
+          type: 'color',
+          valueExpression: config.arcadeExpression,
+          legendOptions: { title: config.layerName },
+          stops: config.breakDefinitions.map(c => ({ color: c.stopColor, label: c.stopName, value: c.stopValue }))
+        };
+        return this.domainFactory.createSimpleRenderer(defaultSymbol, visVar);
+      default:
+        return null;
     }
   }
 
-  selectedFeaturesShading(featureIds: string[], layerId: string, minScale: number, featureTypeName: string, useCrossHatching: boolean, featureIdField: string = 'geocode') : Observable<string> {
-    const layerName = EsriShadingLayersService.createSelectedFeatureLayerName(featureTypeName);
-    const existingLayer = this.layerService.getFeatureLayer(layerName);
-    const query = `${featureIdField} IN (${featureIds.map(g => `'${g}'`).join(',')})`;
-    if (existingLayer == null) {
-      const color: [number, number, number] = useCrossHatching ? [0, 0, 0] : [0, 255, 0];
-      const opacity = useCrossHatching ? 1 : 0.25;
-      const style: FillPattern = useCrossHatching ? 'forward-diagonal' : 'solid';
-      const shadedSymbol = this.domainFactory.createSimpleFillSymbol(color, this.domainFactory.createSimpleLineSymbol([0, 0, 0, 0]), style);
-      const layerConfiguration = new SimpleShadingConfiguration(layerId, layerName, minScale, opacity, layerName, shadedSymbol, query);
-      return this.createShadingLayer(layerConfiguration).pipe(
-        take(1), // ensures we clean up the subscription
-        map(layer => layer.id),
-      );
-    } else {
-      existingLayer.definitionExpression = query;
-      return of(existingLayer.id);
-    }
+  private createSymbolFromDefinition(def: SymbolDefinition) : __esri.Symbol {
+    const outline = this.domainFactory.createSimpleLineSymbol(def.outlineColor || [0, 0, 0, 0]);
+    return this.domainFactory.createSimpleFillSymbol(def.fillColor, outline, def.fillType);
   }
 
-  public convertArrayToRecord(mapVars: MapVar[]) : string {
-    const obj = {};
-    mapVars.forEach((item) => {
-      const keys = Object.keys(item);
-      const index = keys.findIndex(key => key === 'geocode');
-      keys.splice(index, 1);
-      obj[item.geocode] = item[keys[0]];
+  private deleteRenderingLayers(ids: string[]) {
+    ids.forEach(id => {
+      const layer = this.layerService.getLayerByUniqueId(id);
+      console.log('Removing Layer', layer);
+      if (layer != null) this.layerService.removeLayer(layer);
     });
-    const arcade = EsriArcadeUtils.createNumericArcade(obj);
-    return arcade;
-  }
-
-  audienceShading(mapVars: MapVar[], layerId: string, minScale: number) : Observable<string> {
-    const arcadeExpression = this.convertArrayToRecord(mapVars);
-    const layerName = 'audience Shading Layer';
-    const existingLayer = this.layerService.getFeatureLayer(layerName);
-    const defaultSymbol = this.domainFactory.createSimpleFillSymbol([0, 255, 0], this.domainFactory.createSimpleLineSymbol([0, 0, 0, 0]));
-    const layerConfiguration = new UniqueValueShadingConfiguration(layerId, layerName, minScale, 0.25, arcadeExpression, layerName, defaultSymbol, []);
-
-    return this.createShadingLayer(layerConfiguration).pipe(
-      take(1),
-      map(layer => layer.id),
-    );
-  }
-
-  clearFeatureSelection(featureTypeName: string) : void {
-    const layerName = EsriShadingLayersService.createSelectedFeatureLayerName(featureTypeName);
-    const existingLayer = this.layerService.getFeatureLayer(layerName);
-    if (existingLayer != null) {
-      this.layerService.removeLayerFromLegend(existingLayer.id);
-      this.layerService.removeLayer(layerName);
-    }
   }
 }

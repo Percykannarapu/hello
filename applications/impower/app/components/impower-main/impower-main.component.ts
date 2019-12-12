@@ -2,12 +2,11 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, D
 import { Store } from '@ngrx/store';
 import { ClearAllNotifications } from '@val/messaging';
 import { Observable } from 'rxjs';
-import {filter, map, startWith} from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppStateService } from '../../services/app-state.service';
-import { FullAppState, getRouteUrl } from '../../state/app.interfaces';
-import {ImpGeofootprintGeo} from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import {ImpGeofootprintLocation} from '../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { FullAppState } from '../../state/app.interfaces';
+import { getRouteUrl } from '../../state/shared/router.interfaces';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
 

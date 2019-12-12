@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
-import { EsriApi } from '../core/esri-api.service';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
+import { EsriApi } from '../core/esri-api.service';
 import { AutoCastColor, FillPattern, LineStyle } from '../models/esri-types';
 
 @Injectable()
@@ -88,23 +88,26 @@ export class EsriDomainFactoryService {
     });
   }
 
-  createSimpleRenderer(symbol: __esri.Symbol) : __esri.SimpleRenderer {
+  createSimpleRenderer(symbol: __esri.Symbol, visualVariable?: __esri.ColorVariableProperties) : __esri.SimpleRenderer {
     return new EsriApi.SimpleRenderer({
       symbol,
+      visualVariables: [ visualVariable ]
     });
   }
 
-  createUniqueValueRenderer(defaultSymbol: __esri.Symbol, infos: __esri.UniqueValueInfo[]) : __esri.UniqueValueRenderer {
+  createUniqueValueRenderer(defaultSymbol: __esri.Symbol, infos: __esri.UniqueValueRendererUniqueValueInfos[], visualVariable?: __esri.ColorVariableProperties) : __esri.UniqueValueRenderer {
     return new EsriApi.UniqueValueRenderer({
       defaultSymbol,
-      uniqueValueInfos: [...infos]
+      uniqueValueInfos: [...infos],
+      visualVariables: [ visualVariable ]
     });
   }
 
-  createClassBreakRenderer(defaultSymbol: __esri.Symbol, classBreaks: __esri.ClassBreaksRendererClassBreakInfos[]) : __esri.ClassBreaksRenderer {
+  createClassBreakRenderer(defaultSymbol: __esri.Symbol, classBreaks: __esri.ClassBreaksRendererClassBreakInfos[], visualVariable?: __esri.ColorVariableProperties) : __esri.ClassBreaksRenderer {
     return new EsriApi.ClassBreaksRenderer({
       defaultSymbol,
-      classBreakInfos: [...classBreaks]
+      classBreakInfos: [...classBreaks],
+      visualVariables: [ visualVariable ]
     });
   }
 

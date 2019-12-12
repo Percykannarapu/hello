@@ -29,9 +29,7 @@
     }
     .side-panel-content {
       width: 1.3em;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      padding-top: $valSidebarButtonPadding;
     }
   }
 }

@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { buttonToCursorMap, SelectedButtonTypeCodes } from '../../core/esri.enums';
+import { EsriShadingLayersService } from '../../services/esri-shading-layers.service';
 import { AppState, internalSelectors } from '../../state/esri.selectors';
 import { MeasureDistanceSelected, PopupButtonSelected, SelectMultiPolySelected, SelectSinglePolySelected, UnselectMultiPolySelected, XYButtonSelected } from '../../state/map/esri.map-button.actions';
 import { MapClicked, SetMapHeight, SetMapViewpoint } from '../../state/map/esri.map.actions';
@@ -13,7 +14,7 @@ import { MapClicked, SetMapHeight, SetMapViewpoint } from '../../state/map/esri.
   styleUrls: ['./esri-map-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EsriMapPanelComponent {
+export class EsriMapPanelComponent implements OnInit {
   currentMapState$: Observable<SelectedButtonTypeCodes> = this.store.select(internalSelectors.getEsriMapButtonState);
   height$: Observable<number> = this.store.select(internalSelectors.getEsriMapHeight);
   cursor$: Observable<string> = this.currentMapState$.pipe(map(state => buttonToCursorMap[state]));
@@ -29,7 +30,12 @@ export class EsriMapPanelComponent {
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
   @Output() selectedButton = new EventEmitter();
 
-  constructor(private store: Store<AppState>) {}
+  constructor(private store: Store<AppState>,
+              private shadingService: EsriShadingLayersService) {}
+
+  ngOnInit() : void {
+    this.shadingService.initializeShadingWatchers();
+  }
 
   onMapClick(location:  __esri.MapViewImmediateClickEvent) : void {
     this.store.dispatch(new MapClicked({ event: { ...location } }));

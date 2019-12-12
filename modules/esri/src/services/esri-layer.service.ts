@@ -16,6 +16,7 @@ const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data =
 @Injectable()
 export class EsriLayerService {
 
+  private legendShimmed: boolean = false;
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
   private layersShowingInLegend = new Set<string>();
 
@@ -115,11 +116,12 @@ export class EsriLayerService {
     return result;
   }
 
-  public removeLayer(layerName: string) : void {
-    const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
+  public removeLayer(layer: __esri.Layer) : void {
     if (layer != null) {
       const parent = (layer as any).parent;
+      this.removeLayerFromLegend(layer.id);
       if (EsriUtils.layerIsGroup(parent)) {
+        console.log(`Removing layer "${layer.title}" from group "${parent.title}"`);
         parent.layers.remove(layer);
       } else {
         this.mapService.mapView.map.layers.remove(layer);
@@ -200,7 +202,7 @@ export class EsriLayerService {
     const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
     group.layers.unshift(layer);
     if (addToLegend) {
-      layer.when(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: layerName, addToBottom: bottom })));
+      layer.when(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: layerName })));
     }
     return layer;
   }
@@ -290,25 +292,35 @@ export class EsriLayerService {
     }
   }
 
-  addLayerToLegend(layerUniqueId: string, title: string, addToBottom: boolean = false) : void {
-    console.log('Adding layer to legend', title);
+  addLayerToLegend(layerUniqueId: string, title: string) : void {
     const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     const layer = this.getLayerByUniqueId(layerUniqueId);
 
-    if (legendRef != null && layer != null && !this.layersShowingInLegend.has(layerUniqueId)) {
-      if (addToBottom) {
-        legendRef.layerInfos = [ { title, layer }, ...legendRef.layerInfos ];
-      } else {
-        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer } ];
+    if (legendRef != null) {
+      if (this.legendShimmed == false) {
+        legendRef['legacyRender'] = legendRef.scheduleRender;
+        legendRef.scheduleRender = (...args) => {
+          legendRef.activeLayerInfos.forEach(ali => {
+            ali.legendElements.forEach(le => le.infos = le.infos.filter((si: any) => si.label != null && si.label !== ''));
+            ali.legendElements = ali.legendElements.filter(le => le.infos.length > 0);
+          });
+          return legendRef['legacyRender'](...args);
+        };
+        this.legendShimmed = true;
       }
-      this.layersShowingInLegend.add(layerUniqueId);
+      if (layer != null && !this.layersShowingInLegend.has(layerUniqueId)) {
+        // can't use .push() here - a new array instance is needed to trigger the
+        // internal mechanics to convert these to activeLayerInfos
+        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer } ];
+        this.layersShowingInLegend.add(layerUniqueId);
+      }
     }
   }
 
   removeLayerFromLegend(layerUniqueId: string) : void {
     const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     if (legendRef != null) {
-      legendRef.layerInfos = [ ...legendRef.layerInfos.filter(li => li.layer.id !== layerUniqueId) ];
+      legendRef.layerInfos = legendRef.layerInfos.filter(li => li.layer.id !== layerUniqueId);
       this.layersShowingInLegend.delete(layerUniqueId);
     }
   }

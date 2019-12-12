@@ -1,13 +1,19 @@
+import { ClearImpGeofootprintGeos } from './../../impower-datastore/state/persistent/geo/imp-geofootprint-geo.actions';
 import {Component, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
-import {Store} from '@ngrx/store';
+import {Store, select} from '@ngrx/store';
 import {MenuItem} from 'primeng/api';
+import {Observable} from 'rxjs';
 import {RadService} from '../../services/rad.service';
 import {UserService} from '../../services/user.service';
-import {LocalAppState} from '../../state/app.interfaces';
+import {FullAppState} from '../../state/app.interfaces';
 import {CreateNewProject} from '../../state/data-shim/data-shim.actions';
 import {MetricOperations, MetricService} from '../../val-modules/common/services/metric.service';
 import {CampaignDetailsComponent} from '../campaign-details/campaign-details.component';
 import {ColorBoxComponent} from '../color-box/color-box.component';
+import {AppStateService} from 'app/services/app-state.service';
+import {AppLocationService} from 'app/services/app-location.service';
+import {take, filter} from 'rxjs/operators';
+import {selectors} from '@val/esri';
 
 @Component({
   selector: 'val-dashboard',
@@ -48,6 +54,7 @@ export class DashboardComponent implements OnInit {
     @ViewChild('campaignDetailsComponent', { static: true })
     private campaignDetailsComponent: CampaignDetailsComponent;
 
+    public hasLocationFailures$: Observable<boolean>;
     private colorBoxesByGroup: Map<string, ColorBoxComponent> = new Map<string, ColorBoxComponent>();
 
     // note about "unused" services:
@@ -56,7 +63,9 @@ export class DashboardComponent implements OnInit {
     constructor(private metricService: MetricService,
                 private radService: RadService,
                 private userService: UserService,
-                private store$: Store<LocalAppState>) { }
+                private appLocationService: AppLocationService,
+                private appStateService: AppStateService,
+                private store$: Store<FullAppState>) { }
 
     ngOnInit() {
         this.store$.dispatch(new CreateNewProject());
@@ -138,6 +147,14 @@ export class DashboardComponent implements OnInit {
                 }
             ]
         };
+
+        // Conditionally show the Failed Locations Tab when there are failures
+        this.appStateService.applicationIsReady$.pipe(
+          filter(ready => ready),
+          take(1)
+        ).subscribe(() => {
+          this.hasLocationFailures$ = this.appLocationService.hasFailures$;
+        });
     }
 
     onCampaignDetailsClose(){

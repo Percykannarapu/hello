@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { LogLevels } from '@val/common';
 import { environment, EnvironmentData } from '../environments/environment';
-import { AllLayers, EsriLoaderToken, EsriConfigOptions } from '@val/esri';
+import { AllLayers, EsriLoaderToken, EsriConfigOptions, LayerGroupDefinition } from '@val/esri';
 import { LoggingConfiguration } from './val-modules/common/services/logging.service';
 
 @Injectable()
@@ -242,26 +242,25 @@ export class AppConfig implements LoggingConfiguration {
     }
   };
 
-  public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
+  public getLayerConfigForAnalysisLevel(analysisLevel: string) : LayerGroupDefinition {
     switch ((analysisLevel || '').toLowerCase()) {
       case 'zip':
-        return boundary
-          ? this.isBatchMode ? this.layers.zip.boundaries.simplifiedId : this.layers.zip.boundaries.id
-          : this.layers.zip.centroids.id;
+        return this.layers.zip;
       case 'atz':
-        return boundary
-          ? this.isBatchMode ? this.layers.atz.boundaries.simplifiedId : this.layers.atz.boundaries.id
-          : this.layers.atz.centroids.id;
+        return this.layers.atz;
       case 'digital atz':
-        return boundary
-          ? this.layers.digital_atz.boundaries.id
-          : this.layers.digital_atz.centroids.id;
+        return this.layers.digital_atz;
       case 'pcr':
-        return boundary
-          ? this.isBatchMode ? this.layers.pcr.boundaries.simplifiedId : this.layers.pcr.boundaries.id
-          : this.layers.pcr.centroids.id;
+        return this.layers.pcr;
       default:
-        throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerIdForAnalysisLevel`);
+        throw new Error(`Invalid analysis level '${analysisLevel}' passed into AppConfig::getLayerConfigForAnalysisLevel`);
     }
+  }
+
+  public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
+    const config = this.getLayerConfigForAnalysisLevel(analysisLevel);
+    return boundary
+      ? this.isBatchMode ? config.boundaries.simplifiedId || config.boundaries.id : config.boundaries.id
+      : (config.centroids || { id: null }).id;
   }
 }

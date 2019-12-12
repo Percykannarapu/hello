@@ -164,7 +164,7 @@ export class TargetAudienceTdaService {
             exportNationally: false,
             allowNationalExport: false,
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
-            requiresGeoPreCaching: true,
+            requiresGeoPreCaching: false,
             seq: projectVar.sortOrder,
             isCombined: true,
             combinedAudiences: groupedAudiences,
@@ -217,7 +217,7 @@ export class TargetAudienceTdaService {
     const allObservables: Observable<TdaAudienceDescription>[] = [];
     for (const currentParent of allParents) {
       const currentObservable$ =
-        this.restService.get(`v1/targeting/base/cldesctab/search?q=cldesctab&tablename=${currentParent.identifier}`).pipe(
+        this.restService.get(`v1/targeting/base/cldesctab/search?q=cldesctab&tablename=${currentParent.identifier}&includeInImp=1`).pipe(
           map(result => result.payload.rows as TdaVariableResponse[]),
           tap(data => data.forEach(d => this.rawAudienceData.set(d.pk, d))),
           map(data => data.map(d => new TdaAudienceDescription(d))),

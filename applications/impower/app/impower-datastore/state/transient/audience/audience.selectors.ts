@@ -13,7 +13,7 @@ export const getAudiencesOnMap = createSelector(allAudiences, (audiences: Audien
 export const getAudiencesForTA = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.audienceTAConfig != null));
 export const getAudiencesForTAOnMap = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.audienceTAConfig != null && audience.showOnMap));
 export const getAudiencesNationalExtract = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportNationally));
-export const getAudiencesAppliable = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => (audience.showOnGrid || audience.exportInGeoFootprint) && audience.audienceTAConfig == null));
+export const getAudiencesAppliable = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.audienceTAConfig == null));
 
 export const selectAudienceIds = createSelector(audienceSlice, fromAudience.selectIds);
 export const selectAudienceEntities = createSelector(audienceSlice, fromAudience.selectEntities);

@@ -26,7 +26,7 @@
             </div>
           </div>
           <div class="ui-g-12">
-            <button type="submit" label="Sign In" icon="ui-icon-person" class="ui-g-12" pButton></button>
+            <button type="submit" label="Sign In" icon="ui-icon-person" class="ui-g-12" pButton [disabled]="loginForm.disabled"></button>
           </div>
         </div>
       </form>
@@ -35,4 +35,6 @@
   <div class="footer">
     <val-app-footer></val-app-footer>
   </div>
+  <val-busy-indicator></val-busy-indicator>
+  <p-toast styleClass="val-toast val-login"></p-toast>
 </div>

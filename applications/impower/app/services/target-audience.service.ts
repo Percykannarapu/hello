@@ -2,13 +2,18 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended, isNumber, mapByExtended } from '@val/common';
-import { ClearRenderingData } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
+import { ApplyAudiences, ClearAudiences, ClearAudienceStats, DeleteAudience, FetchMapVar, RehydrateAudiences, UpsertAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
+import { EnvironmentData } from 'environments/environment';
 import { BehaviorSubject, combineLatest, concat, merge, Observable, Subscription } from 'rxjs';
 import { debounceTime, filter, map, mergeMap, pairwise, reduce, startWith, tap } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import { AppConfig } from '../app.config';
+import { ClearGeoVars } from '../impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { RestResponse } from '../models/RestResponse';
 import { LocalAppState } from '../state/app.interfaces';
@@ -22,13 +27,6 @@ import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-d
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { AppStateService } from './app-state.service';
-import { DeleteAudience, ClearAudiences, UpsertAudience, ApplyAudiences, FetchMapVar, ClearAudienceStats, RehydrateAudiences } from 'app/impower-datastore/state/transient/audience/audience.actions';
-import { ClearGeoVars } from './../impower-datastore/state/transient/geo-vars/geo-vars.actions';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
-import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { EnvironmentData } from 'environments/environment';
-import { url } from 'inspector';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string, transactionId: number) => Observable<any[]>;
@@ -471,12 +469,13 @@ export class TargetAudienceService implements OnDestroy {
     switch (shadingAudience.length) {
       case 0:
         if (this.shadingSub) this.shadingSub.unsubscribe();
-        this.store$.dispatch(new ClearRenderingData());
+        // this.store$.dispatch(new ClearRenderingData());
         break;
 
       case 1:
         const visibleGeos$ = this.appStateService.uniqueVisibleGeocodes$;
-        this.shadingSub = combineLatest(this.appStateService.analysisLevel$, visibleGeos$)
+        if (this.shadingSub) this.shadingSub.unsubscribe();
+        this.shadingSub = combineLatest([this.appStateService.analysisLevel$, visibleGeos$])
           .subscribe(([analysisLevel, visibleGeos]) => this.getShadingData(analysisLevel, visibleGeos, shadingAudience[0]));
         // console.log('### rehydrateShading visibleGeos:', visibleGeos$.getValue().length, visibleGeos$.getValue());
         // if (visibleGeos$.getValue().length > 0)

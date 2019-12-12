@@ -5,7 +5,7 @@ import { Geocode, HomeGeoActionTypes, HomeGeocode, PersistLocations, ZoomtoLocat
 import { Actions, ofType, Effect} from '@ngrx/effects';
 import { switchMap } from 'rxjs/internal/operators/switchMap';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
-import { tap, map, concatMap } from 'rxjs/operators';
+import { tap, map, concatMap, mergeMap } from 'rxjs/operators';
 import { StopBusyIndicator, InfoNotification } from '@val/messaging';
 import { catchError } from 'rxjs/internal/operators/catchError';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
@@ -20,15 +20,16 @@ export class HomeGeoEffects {
    @Effect()
    geocoding$ = this.actions$.pipe(
       ofType<Geocode>(HomeGeoActionTypes.Geocode),
-     switchMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
+    //switchMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
+      mergeMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
         concatMap(locations => [
            new ZoomtoLocations({locations}),
            new StopBusyIndicator({ key: 'ADD_LOCATION_TAB_SPINNER' }),
            new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
         ]),
-        catchError(err => 
+        catchError(err =>
           of(new ErrorNotification({message: 'System encountered an error processing your request.  Please try again', notificationTitle: 'Geocoding'}),
-             new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'}) 
+             new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'})
             )
         )
      ))
@@ -51,16 +52,16 @@ export class HomeGeoEffects {
       ofType<HomeGeocode>(HomeGeoActionTypes.HomeGeocode),
       map(action => this.appHomeGeocodingService.validateLocations(action.payload)),
       switchMap(locMap => this.appHomeGeocodingService.queryHomeGeocode(locMap).pipe(
-        map(attributes => new DetermineDTZHomeGeos({attributes, 
-                locationsMap: locMap.LocMap, 
-                isLocationEdit: locMap.isLocationEdit, 
+        map(attributes => new DetermineDTZHomeGeos({attributes,
+                locationsMap: locMap.LocMap,
+                isLocationEdit: locMap.isLocationEdit,
                 reCalculateHomeGeos: locMap.reCalculateHomeGeos,
                 totalLocs: locMap.totalLocs})),
         catchError(err => of(
           new ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo'}),
           new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
         ))
-      )) 
+      ))
    );
 
    @Effect()
@@ -68,7 +69,7 @@ export class HomeGeoEffects {
       ofType<DetermineDTZHomeGeos>(HomeGeoActionTypes.DetermineDTZHomeGeos),
       switchMap(action => this.appHomeGeocodingService.determineHomeDTZ(action.payload).pipe(
         concatMap(attributes => [
-          new ProcessHomeGeoAttributes({attributes, totalLocs: action.payload.totalLocs, 
+          new ProcessHomeGeoAttributes({attributes, totalLocs: action.payload.totalLocs,
                                         isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
           new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
           new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
@@ -89,7 +90,7 @@ export class HomeGeoEffects {
       tap(action => this.appHomeGeocodingService.persistLocations(action.payload))
    );
 
-   
+
 
    @Effect({ dispatch: false })
    zoomtoLocations$ = this.actions$.pipe(
@@ -103,9 +104,9 @@ export class HomeGeoEffects {
       switchMap(action => this.appLocationService.validateHomeGeoAttributesOnEdit(action.payload.attributeList, action.payload.editedTags).pipe(
          map(val => {
             if (val.filter(item => item.length > 0).length === val.length){
-               return new SaveOnValidationSuccess({ oldData: action.payload.oldData, editedTags: action.payload.editedTags, attributeList: action.payload.attributeList });            
+               return new SaveOnValidationSuccess({ oldData: action.payload.oldData, editedTags: action.payload.editedTags, attributeList: action.payload.attributeList });
             } else {
-               return new InfoNotification({ notificationTitle: 'Invalid HomeGeos', message: 'There are invalid values for one/more HomeGeoFields. Please provide valid values instead', sticky: false, life: 5000 });          
+               return new InfoNotification({ notificationTitle: 'Invalid HomeGeos', message: 'There are invalid values for one/more HomeGeoFields. Please provide valid values instead', sticky: false, life: 5000 });
             }
          })
       ))
@@ -117,8 +118,8 @@ export class HomeGeoEffects {
       tap(action => this.appLocationService.editLocationOnValidationSuccess(action.payload.oldData, action.payload.editedTags, action.payload.attributeList))
    );
 
-   constructor(private actions$: Actions, 
+   constructor(private actions$: Actions,
                private appHomeGeocodingService: AppHomeGeocodingService,
                private appLocationService: AppLocationService) {}
-   
+
 }

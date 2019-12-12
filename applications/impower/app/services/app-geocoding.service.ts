@@ -32,6 +32,23 @@ export class AppGeocodingService {
     let result = [];
     try {
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, parser, this.duplicateKeyMap.get(siteType));
+      if (data.duplicateHeaders.length > 0 || data.invalidColLengthHeaders.length > 0){
+        if (data.duplicateHeaders.length > 0)
+            this.store$.dispatch(new ErrorNotification({ message: 'The upload file contains duplicate headers, please fix the file and upload again.', notificationTitle: 'Duplicate Headers' }));
+        if (data.invalidColLengthHeaders.length > 0)
+            this.store$.dispatch(new ErrorNotification({ message: 'Column headers must be 30 characters or less, please fix the file and upload again.', notificationTitle: 'Invalid Headers' }));    
+        //throw new Error();
+        data.parsedData = [];
+      }
+      if (Object.keys(data.invalidRowHeaders).length > 0){
+
+        Object.keys(data.invalidRowHeaders).map((headerCol) => {
+          //console.log('index values====>', record[headerCol], headerCol);
+          this.store$.dispatch(new ErrorNotification({message: `The ${headerCol} column cannot exceed ${data.invalidRowHeaders[headerCol]} characters per site`, notificationTitle: 'Invalid Upload Data'}));
+        });
+        data.parsedData = [];
+        //throw new Error();
+      }
       if (data == null ) {
         this.store$.dispatch(new ErrorNotification({ message: `Please define radii values >0 and <= 50 for all ${siteType}s.`, notificationTitle: 'Location Upload Error' }));
       } else {

@@ -1,12 +1,14 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { NgForm } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { ClearAllNotifications, ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { from, Observable, of, throwError } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
+import { User } from '../../models/User';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
-import { User } from '../../models/User';
-import { Store } from '@ngrx/store';
 import { LocalAppState } from '../../state/app.interfaces';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { OauthConfiguration, RestDataService } from '../../val-modules/common/services/restdata.service';
 
 @Component({
@@ -29,59 +31,43 @@ export class LoginComponent {
    * @param loginForm the login form data from the UI
    */
   public onSubmit(loginForm: NgForm) {
-    if (loginForm.value.username === '' || loginForm.value.password === '') {
+    const authError = { message: 'Please check your username and password and try again', notificationTitle: 'Login Error' };
+    const userError = { message: 'Unable to look up user info', notificationTitle: 'Login Error' };
+    const username = loginForm.value.username;
+    const pass = loginForm.value.password;
+    if (username === '' || pass === '') {
       this.store$.dispatch(new ErrorNotification({ message: 'You must enter both a username and password', notificationTitle: 'Login Error' }));
       return;
     }
+    loginForm.form.disable({ emitEvent: false });
+    this.store$.dispatch(new ClearAllNotifications());
     this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: this.spinnerMessage }));
-    this.authService.authenticate(loginForm.value.username, loginForm.value.password).subscribe(authenticated => {
-      if (authenticated) {
-          this.bootstrapDataStore();
-          this.fetchUserInfo(loginForm.value.username);
-      } else {
+
+    this.authService.authenticate(username, pass).pipe(
+      switchMap(result => result
+        ? this.configOauthAndFetchUserId(username).pipe(catchError(err => throwError({ ...authError, additionalErrorInfo: err })))
+        : throwError(authError)),
+      switchMap(user => user != null
+        ? this.createUserAndNavigate(username, user).pipe(catchError(err => throwError({ ...userError, additionalErrorInfo: err })))
+        : throwError(userError)),
+      catchError(err => of(this.store$.dispatch(new ErrorNotification(err)))),
+      tap(() => {
+        loginForm.form.enable({ emitEvent: false });
         this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-        this.store$.dispatch(new ErrorNotification({ message: 'Please check your username and password and try again', notificationTitle: 'Login Error' }));
-      }
-    }, err => {
-      this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-      this.store$.dispatch(new ErrorNotification({ message: 'Please check your username and password and try again', notificationTitle: 'Login Error' }));
-      console.error('Unable to authenticate', err);
-    });
+      }),
+    ).subscribe();
   }
 
-  /**
-   * Lookup the AM_USER record from the Fuse service
-   * @param username
-   */
-  private fetchUserInfo(username: string) {
-    this.userService.fetchUserRecord(username).subscribe(user => {
-      if (user != null) {
-        this.createUser(username, user);
-        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-        this.router.navigate(['/']);
-      } else {
-        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-        this.store$.dispatch(new ErrorNotification({ message: 'Unable to look up user info', notificationTitle: 'Login Error' }));
-      }
-    }, err => {
-      this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-      this.store$.dispatch(new ErrorNotification({ message: 'Unable to look up user info', notificationTitle: 'Login Error' }));
-      console.error('Unable to look up user info', err);
-    });
-  }
-
-  /**
-   * Boostrap the data store with the oauth token that was acquired on login
-   */
-  private bootstrapDataStore() {
+  private configOauthAndFetchUserId(username: string) {
     const config: OauthConfiguration = new OauthConfiguration();
     config.oauthToken = this.authService.getOauthToken();
     config.tokenExpiration = this.authService.getTokenExpiration();
     config.tokenRefreshFunction = () => this.authService.refreshToken();
     RestDataService.bootstrap(config);
+    return this.userService.fetchUserRecord(username);
   }
 
-  private createUser(username: string, user: User) {
+  private createUserAndNavigate(username: string, user: User) : Observable<any> {
     user.clientName = null;
     user.creationDate = null;
     user.deactivationDate = null;
@@ -90,6 +76,7 @@ export class LoginComponent {
     user.userRoles = null;
     this.userService.setUser(user);
     this.userService.storeUserCookie(user);
+    return from(this.router.navigate(['/']));
   }
 
 }
