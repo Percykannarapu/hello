@@ -27,7 +27,7 @@ interface CustomMCDefinition {
 })
 export class UploadMustCoverComponent implements OnInit {
    private readonly spinnerId = 'MUST_COVERS_UPLOAD';
-   public isDisable: boolean;
+   public isDisable: boolean = true;
    public tooltip;
    public currentAnalysisLevel$: Observable<string>;
    public totalUploadedRowCount = 0;
@@ -66,7 +66,6 @@ export class UploadMustCoverComponent implements OnInit {
        ];  
 
     this.appStateService.analysisLevel$.subscribe(val => {
-      this.isDisable = (val == null);
       this.tooltip = this.isDisable ? 'Please select an Analysis Level before uploading a Must Cover file' : 'CSV or Excel format required: Geocode';
     });
 
@@ -90,7 +89,6 @@ export class UploadMustCoverComponent implements OnInit {
     });
 
     this.currentAnalysisLevel$.subscribe(val => {
-      this.fileAnalysisSelected = val;
       switch (val){
         case 'ZIP' :
             this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'ATZ' && v.value !== 'PCR' && v.value !== 'Digital ATZ');
@@ -193,6 +191,12 @@ export class UploadMustCoverComponent implements OnInit {
       }
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
+      this.isDisable = true;
+      this.fileAnalysisSelected = null;
+   }
+
+   onFileAnalysisChange() : void {
+      this.isDisable = false;
    }
 
    deleteMustCovers(){
