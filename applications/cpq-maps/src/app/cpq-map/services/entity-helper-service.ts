@@ -88,15 +88,15 @@ export class EntityHelper {
   }
 
   private prepUpdates(state: LocalState) : Observable<RestResponse> {
-    const updates = state.shared.editedLineItemIds.map(id => state.rfpUiEditDetail.entities[id]);
+    const updates = state.shared.editedLineItemIds.map(id => state.rfpUiEditDetail.entities[id]).filter(rfp => rfp.commonMbuId == null);
     const updatePayload = updates.map(u => ({ id: u.commonMbuId, value: u.isSelected }));
-    return updates.length > 0 && updates.filter(rfp => rfp.commonMbuId == null).length == 0
+    return updates.length > 0
       ? this.restService.post(this.setSelectedUrl, updatePayload)
       : EMPTY;
   }
 
   private prepMiniMediaPlan(state: LocalState) : Observable<RestResponse> {
-    const adds = state.shared.newLineItemIds.map(id => state.rfpUiEditDetail.entities[id]);
+    const adds = state.shared.newLineItemIds.map(id => state.rfpUiEditDetail.entities[id]).filter(rfp => rfp.commonMbuId != null);
     const addPayload =  {
       products: [{
         product: {
@@ -105,7 +105,7 @@ export class EntityHelper {
         }
       }]
     };
-    return adds.length > 0 && adds.filter(rfp => rfp.commonMbuId == null).length == 0
+    return adds.length > 0
       ? this.restService.post(this.addNewUrl.replace('%id%', adds[0].mediaPlanId.toString()), addPayload)
       : EMPTY;
   }
