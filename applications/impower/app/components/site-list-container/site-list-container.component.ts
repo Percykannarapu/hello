@@ -106,14 +106,15 @@ export class SiteListContainerComponent implements OnInit {
    }
 
    private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData, resubmit?: boolean) {
-    //console.log('Processing requests:', siteOrSites);
     const newLocation: ValGeocodingRequest = oldData;
+    const attrbs: ImpGeofootprintLocAttrib[] = oldData.impGeofootprintLocAttribs;
     const ifAddressChanged: boolean = (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street']);
     const ifLatLongChanged: boolean = newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude'];
-    const anyChangeinHomeGeoFields: boolean = (oldData.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue != siteOrSites['Home Zip Code']) ||
-    (oldData.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue != siteOrSites['Home ATZ']) ||
-    (oldData.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue != siteOrSites['Home Digital ATZ']) ||
-    (oldData.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']);
+    const homeZipFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Zip Code').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue != siteOrSites['Home Zip Code']) : false);
+    const homeAtzFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home ATZ').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue != siteOrSites['Home ATZ']) : false);
+    const homeDigitalAtzFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue != siteOrSites['Home Digital ATZ']) : false);
+    const homeCarrierRouteFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']) : false);
+    const anyChangeinHomeGeoFields: boolean = homeZipFlag || homeAtzFlag || homeDigitalAtzFlag || homeCarrierRouteFlag;
     if ((ifAddressChanged || ifLatLongChanged) && anyChangeinHomeGeoFields) {
       this.confirmationService.confirm({
         message: 'Geocoding and/or Home Geocoding is required and will override any changes made to the Home Geocode fields.',
