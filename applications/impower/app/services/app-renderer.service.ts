@@ -52,7 +52,8 @@ export class AppRendererService {
       } else {
         this.setupAnalysisLevelWatcher();
       }
-      this.setupMapVarWatcher();
+      this.setupGeoWatchers(this.impGeoService.storeObservable);
+      this.setupMapVarWatcher(this.impGeoService.storeObservable);
     });
   }
 
@@ -67,7 +68,6 @@ export class AppRendererService {
       const shadingDefinitions = this.createShadingDefinitionsFromLegacy(project, al);
       this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
       this.appStateService.clearVisibleGeos();
-      this.setupGeoWatchers(this.impGeoService.storeObservable);
       setTimeout(() => this.appStateService.refreshVisibleGeos());
     });
   }
@@ -83,7 +83,6 @@ export class AppRendererService {
       this.store$.dispatch(clearShadingDefinitions());
       const shadingDefinitions = this.createShadingDefinitionsFromLegacy(project, al);
       this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
-      this.setupGeoWatchers(this.impGeoService.storeObservable);
     });
   }
 
@@ -100,36 +99,43 @@ export class AppRendererService {
     ).subscribe(features => this.store$.dispatch(setFeaturesOfInterest({ features })));
   }
 
-  private setupMapVarWatcher() {
+  private setupMapVarWatcher(geoDataStore: Observable<ImpGeofootprintGeo[]>) {
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(shadingSelectors.theme)),
-    ).subscribe(([mapVars, layerDefs, theme]) => {
-      const varPk = Object.keys(mapVars[0]).filter(key => key !== 'geocode').map(key => Number(key))[0];
-      if (varPk != null) {
-        const shadingLayer = layerDefs.filter(ld => ld.id === varPk)[0];
-        if (shadingLayer != null) {
-          const shadingDefinition: Update<ShadingDefinition> = { id: varPk, changes: {} };
-          const arcadeExpression = this.convertMapVarsToArcade(mapVars, varPk);
-          const palette = getColorPalette(theme);
-          switch (shadingLayer.shadingType) {
-            case ConfigurationTypes.Unique:
-              const uniqueValues = Array.from(new Set(mapVars.map(v => v[varPk].toString())));
-              shadingDefinition.changes = {
-                arcadeExpression,
-                breakDefinitions: generateUniqueValues(uniqueValues, palette)
-              };
-              break;
-            case ConfigurationTypes.Ramp:
-              const stats = calculateStatistics(mapVars.map(mv => Number(mv[varPk])));
-              shadingDefinition.changes = {
-                arcadeExpression,
-                breakDefinitions: generateContinuousValues(stats, palette)
-              };
-              break;
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(shadingSelectors.theme), geoDataStore),
+    ).subscribe(([mapVars, layerDefs, theme, geos]) => {
+      const varPks = Object.keys(mapVars[0]).filter(key => key !== 'geocode').map(key => Number(key));
+      if (varPks != null) {
+        const currentGfpGeos = new Set(geos.filter(g => g.isActive).map(g => g.geocode));
+        const filteredMapVars = mapVars.filter(mv => currentGfpGeos.has(mv.geocode));
+        varPks.forEach(varPk => {
+          const shadingLayers = layerDefs.filter(ld => ld.id === varPk);
+          if (shadingLayers != null) {
+            shadingLayers.forEach(shadingLayer => {
+              const currentMapVars = shadingLayer.filterByFeaturesOfInterest ? filteredMapVars : mapVars;
+              const shadingDefinition: Update<ShadingDefinition> = { id: varPk, changes: {} };
+              const arcadeExpression = this.convertMapVarsToArcade(currentMapVars, varPk);
+              const palette = getColorPalette(theme);
+              switch (shadingLayer.shadingType) {
+                case ConfigurationTypes.Unique:
+                  const uniqueValues = Array.from(new Set(currentMapVars.map(v => v[varPk].toString())));
+                  shadingDefinition.changes = {
+                    arcadeExpression,
+                    breakDefinitions: generateUniqueValues(uniqueValues, palette)
+                  };
+                  break;
+                case ConfigurationTypes.Ramp:
+                  const stats = calculateStatistics(currentMapVars.map(mv => Number(mv[varPk])));
+                  shadingDefinition.changes = {
+                    arcadeExpression,
+                    breakDefinitions: generateContinuousValues(stats, palette)
+                  };
+                  break;
+              }
+              this.store$.dispatch(updateShadingDefinition({ shadingDefinition }));
+            });
           }
-          this.store$.dispatch(updateShadingDefinition({ shadingDefinition }));
-        }
+        });
       }
     });
   }
