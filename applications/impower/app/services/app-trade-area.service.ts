@@ -420,17 +420,27 @@ export class AppTradeAreaService {
     let failedGeos: any[] = [];
     const payloadByGeocode = mapBy(payload, 'orgGeo');
     const matchedTradeAreaByGeocode = mapBy(Array.from(matchedTradeAreas), 'geocode');
-    if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ')
-        matchedTradeAreas.forEach(ta => {
-          if (!queryResult.has(ta.geocode)) {
-              ta.message = 'Geocode not found';
-              failedGeos = [...failedGeos, ta];
-          }
-          else if ( !payloadByGeocode.has(ta.geocode)){
-              ta.message = 'Rolldown Geocode not found';
-              failedGeos = [...failedGeos, ta];
-          }
-        });
+    if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
+      matchedTradeAreas.forEach(ta => {
+        if (!queryResult.has(ta.geocode)) {
+            ta.message = 'Geocode not found';
+            failedGeos = [...failedGeos, ta];
+        }
+        else if ( !payloadByGeocode.has(ta.geocode)){
+            ta.message = 'Rolldown Geocode not found';
+            failedGeos = [...failedGeos, ta];
+        }
+      });
+    }
+    else{
+      matchedTradeAreas.forEach(ta => {
+         if ( !payloadByGeocode.has(ta.geocode)){
+            ta.message = `Rolldown ${fileAnalysisLevel} not found`;
+            failedGeos = [...failedGeos, ta];
+        }
+      });
+    }
+        
     payload.forEach(record => {
       record.locNumber = matchedTradeAreaByGeocode.get(record.orgGeo).store;
     });

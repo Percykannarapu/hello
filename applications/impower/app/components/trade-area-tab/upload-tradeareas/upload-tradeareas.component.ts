@@ -164,7 +164,7 @@ export class UploadTradeAreasComponent implements OnInit {
     // workaround for https://github.com/primefaces/primeng/issues/4816
     this.fileUploadEl.basicFileInput.nativeElement.value = '';
     this.isDisable = true;
-    this.fileAnalysisSelected = null;
+    //this.fileAnalysisSelected = null;
   }
 
   // to process excel upload data
@@ -235,13 +235,15 @@ export class UploadTradeAreasComponent implements OnInit {
     }
   }
 
-  public onFileAnalysisChange() : void {
+  public onFileAnalysisChange(event: any) : void {
+    this.fileAnalysisSelected = event;
     this.isDisable = false;
   }
 
   private processUploadedTradeArea(data: TradeAreaDefinition[]) : void {
     this.totalUploadedRowCount += data.length;
     this.tradeAreaService.applyCustomTradeArea(data, this.fileAnalysisSelected);
+    this.fileAnalysisSelected = null;
 
   }
 

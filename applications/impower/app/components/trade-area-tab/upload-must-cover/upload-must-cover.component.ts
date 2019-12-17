@@ -127,6 +127,7 @@ export class UploadMustCoverComponent implements OnInit {
     this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, analysisLevel, this.fileAnalysisSelected).subscribe(() => {
       const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
       this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
+      this.fileAnalysisSelected = null;
     });
    }
 
@@ -192,11 +193,12 @@ export class UploadMustCoverComponent implements OnInit {
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
       this.isDisable = true;
-      this.fileAnalysisSelected = null;
+      //this.fileAnalysisSelected = null;
    }
 
-   onFileAnalysisChange() : void {
+   onFileAnalysisChange(event: any) : void {
       this.isDisable = false;
+      this.fileAnalysisSelected = event;
    }
 
    deleteMustCovers(){
