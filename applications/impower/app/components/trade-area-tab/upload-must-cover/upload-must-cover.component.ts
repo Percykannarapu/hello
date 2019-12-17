@@ -127,7 +127,7 @@ export class UploadMustCoverComponent implements OnInit {
     this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, analysisLevel, this.fileAnalysisSelected).subscribe(() => {
       const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
       this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
-      this.fileAnalysisSelected = null;
+      //this.fileAnalysisSelected = null;
     });
    }
 
@@ -192,7 +192,7 @@ export class UploadMustCoverComponent implements OnInit {
       }
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
-      this.isDisable = true;
+      //this.isDisable = true;
       //this.fileAnalysisSelected = null;
    }
 
@@ -209,12 +209,14 @@ export class UploadMustCoverComponent implements OnInit {
          icon: 'ui-icon-delete',
 
          accept: () => {
-             this.impGeofootprintGeoService.clearMustCovers();
-             this.isMustCoverExists = false;
+            this.impGeofootprintGeoService.clearMustCovers();
+            this.isMustCoverExists = false;
             this.impProjectService.get()[0].impProjectPrefs = this.impProjectPrefService.get().filter(pref => pref.prefGroup !== ProjectPrefGroupCodes.MustCover);
             this.impGeofootprintGeoService.uploadFailures = [];
-            if (this.impGeofootprintGeoService.uploadFailures.length > 0)
-               this.isMustCoverExists = true;
+            /*if (this.impGeofootprintGeoService.uploadFailures.length > 0)
+               this.isMustCoverExists = true;*/
+            this.fileAnalysisSelected = null;
+            this.isDisable = true;   
          },
          reject: () => {
             this.isMustCoverExists = true;

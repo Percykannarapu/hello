@@ -163,7 +163,7 @@ export class UploadTradeAreasComponent implements OnInit {
     this.fileUploadEl.clear();
     // workaround for https://github.com/primefaces/primeng/issues/4816
     this.fileUploadEl.basicFileInput.nativeElement.value = '';
-    this.isDisable = true;
+    //this.isDisable = true;
     //this.fileAnalysisSelected = null;
   }
 
@@ -243,8 +243,6 @@ export class UploadTradeAreasComponent implements OnInit {
   private processUploadedTradeArea(data: TradeAreaDefinition[]) : void {
     this.totalUploadedRowCount += data.length;
     this.tradeAreaService.applyCustomTradeArea(data, this.fileAnalysisSelected);
-    this.fileAnalysisSelected = null;
-
   }
 
   public deleteCustomTradeArea() : void {
@@ -267,6 +265,8 @@ export class UploadTradeAreasComponent implements OnInit {
           });
         }
         this.uploadFailures = [];
+        this.fileAnalysisSelected = null;
+        this.isDisable = true;
       }
     });
   }
