@@ -70,7 +70,7 @@
         stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
-            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20193!0ydZmmV4NZPEvzSRTSiNLouS -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
+            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20194!oyHOMG8OYGxM9Lk0j6k6gvIkM -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
           }
         }
       }
