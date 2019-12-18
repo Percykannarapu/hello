@@ -1,13 +1,8 @@
 <div class="ui-g">
    <div class="ui-g-12">
      <div class="upload-label">Upload a list of geographies that must be in the geofootprint.</div>
-      
-     <div class="ui-g-12" *ngIf="isMustCoverExists">  
-      <div class="ui-g-3" style="margin-top: -15px;margin-bottom:-10px;">
-         <div  class="warning-label" >
-          Must Covers Exist
-         </div>
-       </div>
+     <div  *ngIf="isMustCoverExists" class="valassis-brand-label">  
+            Must Cover geography applied
      </div> 
      &nbsp;
     <div class="ui-g-12">
@@ -38,12 +33,15 @@
 
      </div >
      
-
+     
      <div *ngIf="impGeofootprintGeoService.uploadFailures.length > 0" class="ui-g-7">
+        <div class="upload-label">
+            Below is a list of geocodes that are either invalid or un-reachable by Valassis media
+         </div>
         <p-table [value]="impGeofootprintGeoService.uploadFailures" [paginator]="true" [rows]="5">
             <ng-template pTemplate="caption">
                 <div>
-                  Detected {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{currentAnalysisLevel$ | async}} upload failures out of {{totalUploadedRowCount}} rows
+                  Detected {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{fileAnalysisSelected$ | async}} upload failures out of {{totalUploadedRowCount}} rows
                 </div>
             </ng-template>
             <ng-template pTemplate="header">
