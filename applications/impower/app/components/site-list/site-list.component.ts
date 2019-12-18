@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
-import { selectors } from '@val/esri';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { MultiSelect } from 'primeng/multiselect';
 import { Table } from 'primeng/table';
@@ -13,7 +12,7 @@ import { AppProjectService } from '../../services/app-project.service';
 import { AppStateService } from '../../services/app-state.service';
 import { FullAppState, LocalAppState } from '../../state/app.interfaces';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
-import { HomeGeocode, ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
+import { ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -21,6 +20,7 @@ import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/Imp
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { TableFilterLovComponent } from '../common/table-filter-lov/table-filter-lov.component';
 
 export class FlatSite {
   fgId: number;
@@ -94,6 +94,9 @@ export class SiteListComponent implements OnInit {
   // Get grid filter components to clear them
   @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
 
+  // Get grid filter components to clear them
+  @ViewChildren(TableFilterLovComponent) lovFilters: QueryList<TableFilterLovComponent>;
+
   // Input Behavior subjects
   private allLocationsBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
   private allLocationAttribsBS$ = new BehaviorSubject<ImpGeofootprintLocAttrib[]>([]);
@@ -125,15 +128,15 @@ export class SiteListComponent implements OnInit {
   public flatActiveSites$: Observable<FlatSite[]>;
 
   // Observables for unique values to filter on in the grid
-  public uniqueCity$: Observable<SelectItem[]>;
-  public uniqueState$: Observable<SelectItem[]>;
-  public uniqueMarket$: Observable<SelectItem[]>;
-  public uniqueMarketCode$: Observable<SelectItem[]>;
-  public uniqueRecStatuses$: Observable<SelectItem[]>;
-  public uniqueMatchCodes$: Observable<SelectItem[]>;
-  public uniqueMatchQualities$: Observable<SelectItem[]>;
-  public uniqueOrigCity$: Observable<SelectItem[]>;
-  public uniqueOrigState$: Observable<SelectItem[]>;
+  // public uniqueCity$: Observable<SelectItem[]>;
+  // public uniqueState$: Observable<SelectItem[]>;
+  // public uniqueMarket$: Observable<SelectItem[]>;
+  // public uniqueMarketCode$: Observable<SelectItem[]>;
+  // public uniqueRecStatuses$: Observable<SelectItem[]>;
+  // public uniqueMatchCodes$: Observable<SelectItem[]>;
+  // public uniqueMatchQualities$: Observable<SelectItem[]>;
+  // public uniqueOrigCity$: Observable<SelectItem[]>;
+  // public uniqueOrigState$: Observable<SelectItem[]>;
 
   public columnOptions: SelectItem[] = [];
 
@@ -179,6 +182,32 @@ export class SiteListComponent implements OnInit {
 
   public showDialog: boolean = false;
 
+  // Selection variables
+  private selectedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
+  public  selectedLov = [{isActive: true}, {isActive: false}];
+  public  hasSelectedSites: boolean = false;
+  public  numSelectedSites: number = 0;
+
+  // Grid filter UI variables
+  public  headerFilter: boolean;
+  private filterAllIcon = 'fa fa-check-square';
+  private filterSelectedIcon = 'fa fa-check-square-o';
+  private filterDeselectedIcon = 'fa fa-square';
+  private filterAllTip = 'Selected & Deselected';
+  private filterSelectedTip = 'All Selected';
+  private filterDeselectedTip = 'All Deselected';
+
+  // Filter selected rows
+  public  isSelectedFilterState: string = this.filterAllIcon;
+  public  isSelectedToolTip: string = this.filterAllTip;
+
+  // Control table cell / header wrapping
+  private tableWrapOn: string = 'val-table val-tbody-wrap';
+  private tableWrapOff: string = 'val-table val-tbody-nowrap';
+  public  tableWrapStyle: string = this.tableWrapOff;
+  public  tableWrapIcon: string = 'ui-icon-menu';
+  public  tableHdrSlice: boolean = false;
+    
   constructor(private appLocationService: AppLocationService,
               private confirmationService: ConfirmationService,
               private appProjectService: AppProjectService,
@@ -210,6 +239,9 @@ export class SiteListComponent implements OnInit {
         this.columnOptions.push({ label: column.header, value: column });
         this.selectedColumns.push(column);
     }
+
+    // Set initial value of the header check box
+    this.syncHeaderFilter();
   }
 
   manuallyGeocode(site: ValGeocodingRequest, siteType) {
@@ -251,7 +283,7 @@ export class SiteListComponent implements OnInit {
     // ----------------------------------------------------------------------
     // Table filter observables
     // ----------------------------------------------------------------------
-
+/*
     // Create an observable for unique cities (By hand method)
     this.uniqueCity$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
                                                   map(locs => Array.from(new Set(locs.map(loc => loc.locCity)))
@@ -303,7 +335,7 @@ export class SiteListComponent implements OnInit {
     this.uniqueOrigState$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
                                                        mapArray(loc => loc.origState),
                                                        distinctArray(),
-                                                       mapArray(str => new Object({ label: str, value: str}) as SelectItem));
+                                                       mapArray(str => new Object({ label: str, value: str}) as SelectItem));*/
 
     this.setCounts();
   }
@@ -501,6 +533,112 @@ export class SiteListComponent implements OnInit {
     return siteGridData;
   }
 
+  /**
+   * Ensures that the header checkbox is in sync with the actual state of the location isActive flag.
+   * If one site is inactive, then the header checkbox is unselected.  If all sites are selected, its checked.
+   */
+  public syncHeaderFilter() {
+    if (this._locGrid.filteredValue != null)
+      this.headerFilter = !this._locGrid.filteredValue.some(flatSite => flatSite.loc.isActive === false);
+    else
+      this.headerFilter = !this._locGrid._value.some(flatSite => flatSite.loc.isActive === false);
+  }
+
+  setHasSelectedSites() : boolean {
+    this.numSelectedSites = this.allLocationsBS$.getValue().filter(site => site.isActive).length;
+    this.selectedSitesBS$.next(this.allLocationsBS$.getValue().filter(site => site.isActive));
+    this.syncHeaderFilter();
+    return this.hasSelectedSites =  this.numSelectedSites > 0;
+  }
+
+  // Sets isActive to value for all sites
+  onSelectSites(value: boolean) : void {
+    const locations  = this.allLocationsBS$.getValue();
+    const hasFilters = this.hasFilters();
+    console.log('### onSelectSites - value:', value, ', hasFilters:', hasFilters);
+    locations.forEach(site => {
+      console.log('### onSelectSites - site:', site.locationNumber, ', isActive (before):', site.isActive);
+      // if (!hasFilters || this._locGrid.filteredValue.includes(site))
+      if (!hasFilters || this._locGrid.filteredValue.some((flatSite) => flatSite.locationNumber === site.locationNumber))
+        site.isActive = value;
+      console.log('### onSelectSites - site:', site.locationNumber, ', isActive (after):', site.isActive);
+    });
+    this.setHasSelectedSites();
+  }
+
+  /**
+   * Performs a three way toggle that filters the grid by selection (isActive)
+   * 1) Show selected and deselected,  2) Selected only,  3) Deselected only
+   */
+  onFilterBySelection()
+  {
+    let filterVal: boolean = true;
+    switch (this.isSelectedFilterState) {
+      case this.filterSelectedIcon:
+        this.isSelectedFilterState = this.filterDeselectedIcon;
+        this.isSelectedToolTip = this.filterDeselectedTip;
+        filterVal = false;
+        break;
+
+      case this.filterDeselectedIcon:
+        this.isSelectedFilterState = this.filterAllIcon;
+        this.isSelectedToolTip = this.filterAllTip;
+        filterVal = null;
+        break;
+
+      default:
+        this.isSelectedFilterState = this.filterSelectedIcon;
+        this.isSelectedToolTip = this.filterSelectedTip;
+        filterVal = true;
+        break;
+    }
+    if (this._locGrid.rows > 0) {
+      this._locGrid.filter(filterVal, 'loc.isActive', 'equals');
+    }
+  }
+
+  // Returns true if the grid has a filter applied
+  hasFilters() : boolean
+  {
+    return (this._locGrid.filteredValue != null && this._locGrid.filteredValue.length > 0);
+  }
+
+  // Switches the select button label and tooltip based on if a filter is applied
+  getSelectButtonText(asLabel: boolean) : string
+  {
+    return (asLabel) ? this.hasFilters() ? 'Filtered' : 'All'
+                     : this.hasFilters() ? 'Select all locations in the filtered list' : 'Select all locations';
+  }
+
+  //Clears out the filters from the grid and reset the filter components
+  onClickResetFilters()
+  {
+    // Clear the multi select filters
+    if (this.lovFilters)
+      this.lovFilters.forEach(lov => {
+        lov.clearFilter();
+      });
+
+    // Reset the grid and grid filters
+    this._locGrid.reset();
+  }
+
+  /**
+   * Used to toggle the gizmo icon and styles used to turn word wrapping on and off in the grid
+   */
+  public onToggleTableWrap() {
+    if (this.tableWrapStyle === this.tableWrapOn) {
+      this.tableWrapStyle = this.tableWrapOff;
+      this.tableWrapIcon = 'ui-icon-menu';
+      //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
+    }
+    else {
+      this.tableWrapStyle = this.tableWrapOn;
+      this.tableWrapIcon = 'ui-icon-wrap-text';
+      //this.tableHdrSlice = false;
+    }
+  }
+  
   // Disabling dismissable events until we can get access to change detection in sub panels
   onSetDismissable(dismissable: boolean)
   {

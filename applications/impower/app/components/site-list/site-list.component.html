@@ -2,9 +2,9 @@
   <div class="ui-g-12">
     <label>Manage for:</label>
     &nbsp;
-    <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+    <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
     &nbsp;
-    <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
+    <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
   </div>
   <div class="ui-g-12">
     <button pButton type="button" label="Calc Home Geocodes" (click)="calcHomeGeocode()"></button>
@@ -16,6 +16,7 @@
 
   <div id="locGrid" class="ui-g-12">
     <p-table #locGrid
+             class="{{tableWrapStyle}}"
              [columns]="flatSiteGridColumns"
              [value]="flatAllSites$ | async"
              [resizableColumns]="true" columnResizeMode="expand"
@@ -31,7 +32,7 @@
 
       <ng-template pTemplate="caption">
         <div class="ui-g ui-g-nopad">
-          <div class="ui-g-4 ui-g-nopad grid-caption-left-group">
+          <div class="ui-g-4 ui-g-nopad grid-caption-left-group" align="left">
             <div class="ui-inputgroup">
               <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
               <span class="md-inputfield">
@@ -43,16 +44,16 @@
           <div class="ui-g-4 ui-g-nopad grid-caption-center-group">
             <label pTooltip="Selected {{activeSiteCount$ | async}} / {{allSiteCount$ | async}} sites" tooltipPosition="top">Site List</label>
           </div>
-          <div class="ui-g=4 ui-g-nopad grid-caption-right-group">
-            <div>
-              <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" dropdownIcon="fa fa-caret-down"></p-multiSelect>
-            </div>
+          <div class="ui-g-4 ui-g-nopad grid-caption-right-group" align="right">
+            <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" dropdownIcon="fa fa-caret-down"></p-multiSelect>
+            <button type="button" pButton icon="{{tableWrapIcon}}" iconPos="left" pTooltip="Toggle to Word Wrap" (click)="onToggleTableWrap()" class="val-icon-button" style="margin-left: 0.25em;"></button>
           </div>
         </div>
       </ng-template>
 
       <ng-template pTemplate="colgroup" let-columns>
         <colgroup>
+          <col style="width: 30px; padding-left: 0.4em">
           <col style="width: 4em">
           <col style="width: 4em">
           <col style="width: 4em">
@@ -62,7 +63,7 @@
 
       <ng-template pTemplate="header" class="ui-g ui-g-nopad">
         <tr>
-          <!-- <th style="width: 30px"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th> -->
+          <th style="width: 30px; padding-left: 0.4em"><p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectSites(headerFilter)" class="val-table-hdr" pTooltip="{{getSelectButtonText(false)}}"> </p-checkbox></th>
           <th style="width: 4em">Edit</th>
           <th style="width: 4em">Zoom</th>
           <th style="width: 4em">Delete</th>
@@ -72,9 +73,16 @@
           </th>
         </tr>
         <tr class="second-header">
+          <th class="button-column-hdr" style="font-size: 1em; padding: 0.4em 0 0 0.4em">
+            <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" class="val-toolbar-button" (click)="onFilterBySelection()"></button>
+          </th>  
           <th style="width: 4em"></th>
           <th style="width: 4em"></th>
-          <th style="width: 4em"></th>
+          <th class="button-column">
+            <div>
+              <button pButton type="button" icon="fa fa-eraser" pTooltip="Clear Filters" class="ui-button-red-emphasis" (click)="onClickResetFilters()" style="width: 1em"></button>
+            </div>
+          </th>  
           <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="overflow: visible">
             <input *ngSwitchCase="'locationNumber'"     pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(locGrid.filters != null && locGrid.filters[col.field]) ? locGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
             <input *ngSwitchCase="'locationName'"       pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(locGrid.filters != null && locGrid.filters[col.field]) ? locGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
@@ -95,15 +103,25 @@
             <input *ngSwitchCase="'origAddress1'"       pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(locGrid.filters != null && locGrid.filters[col.field]) ? locGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
             <input *ngSwitchCase="'origPostalCode'"     pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(locGrid.filters != null && locGrid.filters[col.field]) ? locGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
 
-            <p-multiSelect *ngSwitchCase="'locState'"             appendTo="body" [options]="uniqueState$ | async"          defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect>
-            <p-multiSelect *ngSwitchCase="'locCity'"              appendTo="body" [options]="uniqueCity$ | async"           defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect>
-            <p-multiSelect *ngSwitchCase="'marketName'"           appendTo="body" [options]="uniqueMarket$ | async"         defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect>
-            <p-multiSelect *ngSwitchCase="'marketCode'"           appendTo="body" [options]="uniqueMarketCode$ | async"     defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect>
-            <p-multiSelect *ngSwitchCase="'recordStatusCode'"     appendTo="body" [options]="uniqueRecStatuses$ | async"    defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect>
-            <p-multiSelect *ngSwitchCase="'geocoderMatchCode'"    appendTo="body" [options]="uniqueMatchCodes$ | async"     defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect>
-            <p-multiSelect *ngSwitchCase="'geocoderLocationCode'" appendTo="body" [options]="uniqueMatchQualities$ | async" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect>
-            <p-multiSelect *ngSwitchCase="'origState'"            appendTo="body" [options]="uniqueOrigState$ | async"      defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect>
-            <p-multiSelect *ngSwitchCase="'origCity'"             appendTo="body" [options]="uniqueOrigCity$ | async"       defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect>
+            <!-- <p-multiSelect *ngSwitchCase="'locState'"             appendTo="body" [options]="uniqueState$ | async"          defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect> -->
+            <!-- <p-multiSelect *ngSwitchCase="'locCity'"              appendTo="body" [options]="uniqueCity$ | async"           defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect> -->
+            <!-- <p-multiSelect *ngSwitchCase="'marketName'"           appendTo="body" [options]="uniqueMarket$ | async"         defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect> -->
+            <!-- <p-multiSelect *ngSwitchCase="'marketCode'"           appendTo="body" [options]="uniqueMarketCode$ | async"     defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect> -->
+            <!-- <p-multiSelect *ngSwitchCase="'recordStatusCode'"     appendTo="body" [options]="uniqueRecStatuses$ | async"    defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect> -->
+            <!-- <p-multiSelect *ngSwitchCase="'geocoderMatchCode'"    appendTo="body" [options]="uniqueMatchCodes$ | async"     defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect> -->
+            <!-- <p-multiSelect *ngSwitchCase="'geocoderLocationCode'" appendTo="body" [options]="uniqueMatchQualities$ | async" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect> -->
+            <!-- <p-multiSelect *ngSwitchCase="'origState'"            appendTo="body" [options]="uniqueOrigState$ | async"      defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect> -->
+            <!-- <p-multiSelect *ngSwitchCase="'origCity'"             appendTo="body" [options]="uniqueOrigCity$ | async"       defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="locGrid.filter($event.value, col.field, 'in'); onFilter();"></p-multiSelect> -->
+
+            <val-table-filter-lov *ngSwitchCase="'locState'"             field="locState"             [source]="flatAllSites$ | async" (filterApplied)="locGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
+            <val-table-filter-lov *ngSwitchCase="'locCity'"              field="locCity"              [source]="flatAllSites$ | async" (filterApplied)="locGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
+            <val-table-filter-lov *ngSwitchCase="'marketName'"           field="marketName"           [source]="flatAllSites$ | async" (filterApplied)="locGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
+            <val-table-filter-lov *ngSwitchCase="'marketCode'"           field="marketCode"           [source]="flatAllSites$ | async" (filterApplied)="locGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
+            <val-table-filter-lov *ngSwitchCase="'recordStatusCode'"     field="recordStatusCode"     [source]="flatAllSites$ | async" (filterApplied)="locGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
+            <val-table-filter-lov *ngSwitchCase="'geocoderMatchCode'"    field="geocoderMatchCode"    [source]="flatAllSites$ | async" (filterApplied)="locGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
+            <val-table-filter-lov *ngSwitchCase="'geocoderLocationCode'" field="geocoderLocationCode" [source]="flatAllSites$ | async" (filterApplied)="locGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
+            <val-table-filter-lov *ngSwitchCase="'origState'"            field="origState"            [source]="flatAllSites$ | async" (filterApplied)="locGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
+            <val-table-filter-lov *ngSwitchCase="'origCity'"             field="origCity"             [source]="flatAllSites$ | async" (filterApplied)="locGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
 
             <input *ngSwitchDefault pInputText type="text" (input)="locGrid.filter($event.target.value, col.field, 'contains')" [ngStyle]="{'width':'100%'}">
           </th>
@@ -112,18 +130,26 @@
 
       <ng-template pTemplate="body" let-flatLoc let-columns="selectedColumns">
         <tr [pSelectableRow]="flatLoc">
-          <td>
-            <i class="fa fa-pencil val-clickable" (click)="onEdit(flatLoc.loc)" ></i>
+          <td style="width: 30px; padding-left: 0.4em">
+            <p-checkbox [(ngModel)]="flatLoc.loc.isActive" binary="true" (click)="setHasSelectedSites()" pTooltip="Deactivate site" tooltipPosition="right"></p-checkbox>
           </td>
-          <td>
-            <i (click)="onRowZoom(flatLoc.loc)" class="fa fa-search val-clickable"></i>
+          <td class="button-column">
+            <div>
+              <i class="fa fa-pencil val-clickable" (click)="onEdit(flatLoc.loc)" ></i>
+            </div>
           </td>
-          <td>
-            <i (click)="onRowDelete(flatLoc.loc)" class="val-clickable fa fa-trash"></i>
+          <td class="button-column">
+            <div>
+              <i (click)="onRowZoom(flatLoc.loc)" class="fa fa-search val-clickable"></i>
+            </div>
+          </td>
+          <td class="button-column">
+            <div>
+              <i (click)="onRowDelete(flatLoc.loc)" class="val-clickable fa fa-trash"></i>
+            </div>
           </td>
 
           <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
-
             <!-- Format various columns -->
             <div *ngSwitchCase = "'totalHHC'">                {{flatLoc['totalHHC'] | number:'1.0-0'}} </div>
             <div *ngSwitchCase = "'totalAllocatedHHC'">       {{flatLoc['totalAllocatedHHC'] | number:'1.0-0'}} </div>
