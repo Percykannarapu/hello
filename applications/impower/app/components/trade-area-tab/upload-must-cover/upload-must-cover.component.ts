@@ -70,11 +70,11 @@ export class UploadMustCoverComponent implements OnInit {
     });
 
     this.impGeofootprintGeoService.uploadFailuresObs$.subscribe(result => {
-      if (this.impGeofootprintGeoService.uploadFailures.length == 0){
+      //if (this.impGeofootprintGeoService.uploadFailures.length == 0){
          this.impGeofootprintGeoService.uploadFailures.push(...result);
          this.isMustCoverExists = true;
          this.impGeofootprintGeoService.makeDirty();
-      }
+      //}
     });
 
     this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {

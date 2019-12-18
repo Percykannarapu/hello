@@ -738,7 +738,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public validateMustCoverGeos(uniqueGeos: string[], queryResult: Set<string>, fileName: string){
       const successGeo = [];
       const errorGeo: CustomMCDefinition[] = [];
-      let i = 0;
+      let i = this.uploadFailures.length > 0 ? Math.max(...this.uploadFailures.map(geo => geo.Number)) + 1 : 0;
       uniqueGeos.forEach(geo => {
       const customMc: CustomMCDefinition = { Number: i++, geocode: geo };
       queryResult.has(geo) ? successGeo.push(geo) : errorGeo.push(customMc);        });
@@ -752,7 +752,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public persistMustCoverRollDownGeos(payload: any[], failedGeos: any[], fileName: string){
       const successGeo = [];
       const errorGeo: CustomMCDefinition[] = [];
-      let i = 0;
+      let i = this.uploadFailures.length > 0 ? Math.max(...this.uploadFailures.map(geo => geo.Number)) + 1 : 0;
+      //let i = 0;
       payload.forEach(record => successGeo.push(record.geocode));
       failedGeos.forEach(geo => {
          const customMc: CustomMCDefinition = { Number: i++, geocode: geo.geocode };
