@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
 import { clearFeaturesOfInterest, clearShadingDefinitions, ColorPalette, EsriService, InitialEsriState } from '@val/esri';
-import { ErrorNotification } from '@val/messaging';
+import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Observable } from 'rxjs';
@@ -225,14 +225,24 @@ export class AppDataShimService {
   }
 
   isProjectReload(isReload: boolean){
-    //clean mustcover failure grid
     if (!isReload)
         this.impGeofootprintGeoService.uploadFailures = [];
   }
 
   persistMustCoverRollDownGeos(payLoad: any[], fileName: string, failedGeos: any[]){
+     return this.impGeofootprintGeoService.persistMustCoverRollDownGeos(payLoad, failedGeos,  fileName);
+  }
 
-    this.impGeofootprintGeoService.persistMustCoverRollDownGeos(payLoad, failedGeos,  fileName);
+  mustCoverRolldownComplete(isResubmit: boolean, failedGeos: string[]){
+    const uploadFailures = this.impGeofootprintGeoService.uploadFailures.map(geo => geo.geocode);
+    const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
+    const isError = isResubmit && new Set(uploadFailures).has(failedGeos[0]) ? true : false;
+    if (isError){
+      this.store$.dispatch(new ErrorNotification({ message: 'The resubmitted geocode is not valid, please try again', notificationTitle: mustcovetText}));
+    }
+    else
+        this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
+
   }
 
 }

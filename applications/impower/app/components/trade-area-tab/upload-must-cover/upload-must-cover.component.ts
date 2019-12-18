@@ -124,11 +124,7 @@ export class UploadMustCoverComponent implements OnInit {
    private parseMustcovers(dataBuffer: string, fileName: string, isResubmit: boolean = false, customMCDefinition?: CustomMCDefinition){
     //let uniqueGeos: string[] = [];
     const analysisLevel = this.appStateService.analysisLevel$.getValue();
-    this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, analysisLevel, this.fileAnalysisSelected).subscribe(() => {
-      const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
-      this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
-      //this.fileAnalysisSelected = null;
-    });
+    this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, analysisLevel, isResubmit, this.fileAnalysisSelected).subscribe();
    }
 
    private processMuctCovers(geos: string[]){
