@@ -616,7 +616,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // MUST COVER METHODS
    // -----------------------------------------------------------
-   public parseMustCoverFile(dataBuffer: string, fileName: string, analysisLevel: string, fileAnalysisLevel: string = null) : Observable<any> {
+   public parseMustCoverFile(dataBuffer: string, fileName: string, analysisLevel: string, isResubmit: boolean, fileAnalysisLevel: string = null) : Observable<any> {
     //console.debug("### parseMustCoverFile fired");
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
@@ -668,7 +668,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                   if (analysisLevel !== fileAnalysisLevel){
                      this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(queryResult), queryResult: queryResultMap, 
                                                                      fileAnalysisLevel: fileAnalysisLevel, fileName: fileName, 
-                                                                     uploadedGeos: data.parsedData}));
+                                                                     uploadedGeos: data.parsedData, isResubmit: isResubmit}));
                   }
                   else{
                      this.validateMustCoverGeos(Array.from(uniqueGeos), queryResult, fileName);
@@ -679,12 +679,12 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          else {
             this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(uniqueGeos), 
                                                             queryResult: queryResultMap, fileAnalysisLevel: fileAnalysisLevel, 
-                                                            fileName: fileName, uploadedGeos: data.parsedData}));
+                                                            fileName: fileName, uploadedGeos: data.parsedData, isResubmit: isResubmit}));
          }
        }
       }
       catch (e) {
-        this.reportError(errorTitle, `${e}`);
+        this.store$.dispatch(new ErrorNotification({ message: 'Geocode is a required column in the upload file', notificationTitle: 'Must Cover Upload' }));
       }
       return EMPTY;
     }
@@ -738,7 +738,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public validateMustCoverGeos(uniqueGeos: string[], queryResult: Set<string>, fileName: string){
       const successGeo = [];
       const errorGeo: CustomMCDefinition[] = [];
-      let i = 0;
+      let i = this.uploadFailures.length > 0 ? Math.max(...this.uploadFailures.map(geo => geo.Number)) + 1 : 0;
       uniqueGeos.forEach(geo => {
       const customMc: CustomMCDefinition = { Number: i++, geocode: geo };
       queryResult.has(geo) ? successGeo.push(geo) : errorGeo.push(customMc);        });
@@ -752,7 +752,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public persistMustCoverRollDownGeos(payload: any[], failedGeos: any[], fileName: string){
       const successGeo = [];
       const errorGeo: CustomMCDefinition[] = [];
-      let i = 0;
+      let i = this.uploadFailures.length > 0 ? Math.max(...this.uploadFailures.map(geo => geo.Number)) + 1 : 0;
+      //let i = 0;
       payload.forEach(record => successGeo.push(record.geocode));
       failedGeos.forEach(geo => {
          const customMc: CustomMCDefinition = { Number: i++, geocode: geo.geocode };
@@ -762,6 +763,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.currentMustCoverFileName = fileName;
       this.setMustCovers(successGeo, true);
       console.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
+      return errorGeo.map(geo => geo.geocode);
    }
 
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, EventEmitter, Output } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
 import { FileUpload } from 'primeng/fileupload';
@@ -26,17 +26,19 @@ interface CustomMCDefinition {
   styleUrls: ['./upload-must-cover.component.css']
 })
 export class UploadMustCoverComponent implements OnInit {
+   
    private readonly spinnerId = 'MUST_COVERS_UPLOAD';
    public isDisable: boolean = true;
    public tooltip;
    public currentAnalysisLevel$: Observable<string>;
    public totalUploadedRowCount = 0;
    private fileName: string;
-   public isMustCoverExists: boolean;
+   //public isMustCoverExists: boolean;
 
    allAnalysisLevels: SelectItem[] = []; 
    fileAnalysisLevels: SelectItem[] = []; 
    fileAnalysisSelected: string;
+   @Output() isMustCoverExists = new EventEmitter<boolean>();
 
    @ViewChild('mustCoverUpload', { static: true }) private mustCoverUploadEl: FileUpload;
 
@@ -70,17 +72,17 @@ export class UploadMustCoverComponent implements OnInit {
     });
 
     this.impGeofootprintGeoService.uploadFailuresObs$.subscribe(result => {
-      if (this.impGeofootprintGeoService.uploadFailures.length == 0){
          this.impGeofootprintGeoService.uploadFailures.push(...result);
-         this.isMustCoverExists = true;
+         this.impGeofootprintGeoService.uploadFailures.sort(( a, b ) => (a.geocode > b.geocode) ? 1 : -1 );
+         this.isMustCoverExists.emit(true);
          this.impGeofootprintGeoService.makeDirty();
-      }
+         this.totalUploadedRowCount = this.impGeofootprintGeoService.allMustCoverBS$.value.length + this.impGeofootprintGeoService.uploadFailures.length;
     });
 
     this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
-       this.isMustCoverExists = project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER' && pref.val != null);
+       this.isMustCoverExists.emit(project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER' && pref.val != null));
        if (this.impGeofootprintGeoService.uploadFailures.length > 0)
-         this.isMustCoverExists = true;
+         this.isMustCoverExists.emit(true);
     });
 
     this.impGeofootprintGeoService.allMustCoverBS$.subscribe(geos => {
@@ -124,11 +126,7 @@ export class UploadMustCoverComponent implements OnInit {
    private parseMustcovers(dataBuffer: string, fileName: string, isResubmit: boolean = false, customMCDefinition?: CustomMCDefinition){
     //let uniqueGeos: string[] = [];
     const analysisLevel = this.appStateService.analysisLevel$.getValue();
-    this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, analysisLevel, this.fileAnalysisSelected).subscribe(() => {
-      const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
-      this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
-      this.fileAnalysisSelected = null;
-    });
+    this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, analysisLevel, isResubmit, this.fileAnalysisSelected).subscribe();
    }
 
    private processMuctCovers(geos: string[]){
@@ -142,7 +140,7 @@ export class UploadMustCoverComponent implements OnInit {
                 geo.isActive = true;
              }
        });
-      this.isMustCoverExists = geos.length > 0; 
+      this.isMustCoverExists.emit(geos.length > 0); 
       this.impGeofootprintGeoService.makeDirty();
       this.totalUploadedRowCount = geos.length + this.impGeofootprintGeoService.uploadFailures.length;
    }
@@ -192,7 +190,7 @@ export class UploadMustCoverComponent implements OnInit {
       }
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
-      this.isDisable = true;
+      //this.isDisable = true;
       //this.fileAnalysisSelected = null;
    }
 
@@ -209,20 +207,22 @@ export class UploadMustCoverComponent implements OnInit {
          icon: 'ui-icon-delete',
 
          accept: () => {
-             this.impGeofootprintGeoService.clearMustCovers();
-             this.isMustCoverExists = false;
+            this.impGeofootprintGeoService.clearMustCovers();
+            this.isMustCoverExists.emit(false);
             this.impProjectService.get()[0].impProjectPrefs = this.impProjectPrefService.get().filter(pref => pref.prefGroup !== ProjectPrefGroupCodes.MustCover);
             this.impGeofootprintGeoService.uploadFailures = [];
-            if (this.impGeofootprintGeoService.uploadFailures.length > 0)
-               this.isMustCoverExists = true;
+            /*if (this.impGeofootprintGeoService.uploadFailures.length > 0)
+               this.isMustCoverExists = true;*/
+            this.fileAnalysisSelected = null;
+            this.isDisable = true;   
          },
          reject: () => {
-            this.isMustCoverExists = true;
+            this.isMustCoverExists.emit(true);
          }
-
       });
+   }
 
-
-
+   disableDeleteBtn(){
+      return this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0 ;
    }
 }

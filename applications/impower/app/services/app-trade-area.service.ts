@@ -433,9 +433,10 @@ export class AppTradeAreaService {
       });
     }
     else{
+      const analysisLevel = fileAnalysisLevel === 'WRAP_MKT_ID' ? 'Wrap Zone' : fileAnalysisLevel === 'INFOSCAN_CODE' ? 'Infoscan' : fileAnalysisLevel;
       matchedTradeAreas.forEach(ta => {
          if ( !payloadByGeocode.has(ta.geocode)){
-            ta.message = `Rolldown ${fileAnalysisLevel} not found`;
+            ta.message = `Rolldown ${analysisLevel} not found`;
             failedGeos = [...failedGeos, ta];
         }
       });

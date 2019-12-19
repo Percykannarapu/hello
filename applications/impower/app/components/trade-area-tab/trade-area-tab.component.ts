@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { filter, map, take, tap, distinctUntilChanged } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
@@ -61,6 +61,8 @@ export class TradeAreaTabComponent implements OnInit {
 
   private siteCounts = new Map<SuccessfulLocationTypeCodes, number>();
   private tradeAreaUiCache = new Map<SuccessfulLocationTypeCodes, TradeAreaModel[]>();
+  isMustCoverExists: string;
+  
 
   constructor(private stateService: AppStateService,
               private appProjectService: AppProjectService,
@@ -225,5 +227,9 @@ export class TradeAreaTabComponent implements OnInit {
       this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
     }
     );
+  }
+
+  isMustCover(event: any){
+    this.isMustCoverExists = event ? 'Must Cover - Exists' : 'MustCover';
   }
 }
