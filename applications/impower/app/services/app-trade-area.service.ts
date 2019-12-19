@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, isNumber, mapBy, simpleFlatten, toUniversalCoordinates, groupBy } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
@@ -419,7 +419,7 @@ export class AppTradeAreaService {
   public validateRolldownGeos(payload: any[], queryResult: Map<string, {latitude: number, longitude: number}>,  matchedTradeAreas: any[], fileAnalysisLevel: string) {
     let failedGeos: any[] = [];
     const payloadByGeocode = mapBy(payload, 'orgGeo');
-    const matchedTradeAreaByGeocode = mapBy(Array.from(matchedTradeAreas), 'geocode');
+    const matchedTradeAreaByGeocode = groupBy(Array.from(matchedTradeAreas), 'geocode');
     if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
       matchedTradeAreas.forEach(ta => {
         if (!queryResult.has(ta.geocode)) {
@@ -441,10 +441,26 @@ export class AppTradeAreaService {
         }
       });
     }
-        
+
     payload.forEach(record => {
-      record.locNumber = matchedTradeAreaByGeocode.get(record.orgGeo).store;
+      const dupTradeAreas = matchedTradeAreaByGeocode.get(record.orgGeo);
+      if (dupTradeAreas.length > 1){
+        let i = 0;
+        dupTradeAreas.forEach(rec => {
+            if (i == 0)
+                record.locNumber = rec.store;
+            else 
+                payload.push({'geocode': record.geocode, 'x': record.x, 
+                              'y': record.y, 'season': record.season, 
+                              'orgGeo': record.orgGeo, 'locNumber': rec.store});
+            i++;
+         });
+      }
+      else {
+        record.locNumber = matchedTradeAreaByGeocode.get(record.orgGeo)[0].store;
+      }
     });
+    
     return { failedGeos, payload };
   }
 
