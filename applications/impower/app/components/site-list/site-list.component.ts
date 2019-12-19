@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { distinctArray, filterArray, mapArray, resolveFieldData } from '@val/common';
+import { filterArray, resolveFieldData } from '@val/common';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { MultiSelect } from 'primeng/multiselect';
 import { Table } from 'primeng/table';
@@ -13,12 +13,10 @@ import { AppStateService } from '../../services/app-state.service';
 import { FullAppState, LocalAppState } from '../../state/app.interfaces';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
-import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { TableFilterLovComponent } from '../common/table-filter-lov/table-filter-lov.component';
 
@@ -106,10 +104,6 @@ export class SiteListComponent implements OnInit {
   private activeCompetitorLocationsBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
   private impGeofootprintGeosBS$ = new BehaviorSubject<ImpGeofootprintGeo[]>([]);
 
-  // Data store observables
-  private allLocations$: Observable<ImpGeofootprintLocation[]>;
-  private allLocationAttribs$: Observable<ImpGeofootprintLocAttrib[]>;
-
   public selectedListType: 'Site' | 'Competitor';
   public currentAllSites$: Observable<ImpGeofootprintLocation[]>;
   public currentActiveSites$: Observable<ImpGeofootprintLocation[]>;
@@ -126,17 +120,6 @@ export class SiteListComponent implements OnInit {
   // Observables for flattened rows of locations and attributes
   public flatAllSites$: Observable<FlatSite[]>;
   public flatActiveSites$: Observable<FlatSite[]>;
-
-  // Observables for unique values to filter on in the grid
-  // public uniqueCity$: Observable<SelectItem[]>;
-  // public uniqueState$: Observable<SelectItem[]>;
-  // public uniqueMarket$: Observable<SelectItem[]>;
-  // public uniqueMarketCode$: Observable<SelectItem[]>;
-  // public uniqueRecStatuses$: Observable<SelectItem[]>;
-  // public uniqueMatchCodes$: Observable<SelectItem[]>;
-  // public uniqueMatchQualities$: Observable<SelectItem[]>;
-  // public uniqueOrigCity$: Observable<SelectItem[]>;
-  // public uniqueOrigState$: Observable<SelectItem[]>;
 
   public columnOptions: SelectItem[] = [];
 
@@ -219,9 +202,6 @@ export class SiteListComponent implements OnInit {
     // Observe the behavior subjects on the input parameters
     this.allGeos$ = this.impGeofootprintGeosBS$.asObservable().pipe(startWith(null));
 
-    this.allLocations$ = this.allLocationsBS$.asObservable();
-    this.allLocationAttribs$ = this.allLocationAttribsBS$.asObservable();
-
     this.onListTypeChange('Site');
 
     this.appStateService.applicationIsReady$.pipe(
@@ -279,63 +259,6 @@ export class SiteListComponent implements OnInit {
                                       .pipe(map(([locs, geos]) => this.createComposite(locs, geos)));
 
     this.flatActiveSites$ = this.flatAllSites$.pipe(filterArray(flatLoc => flatLoc.loc.isActive === true));
-
-    // ----------------------------------------------------------------------
-    // Table filter observables
-    // ----------------------------------------------------------------------
-/*
-    // Create an observable for unique cities (By hand method)
-    this.uniqueCity$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
-                                                  map(locs => Array.from(new Set(locs.map(loc => loc.locCity)))
-                                                 .map(str => new Object({ label: str, value: str}) as SelectItem)));
-
-    // Create an observable for unique states (By helper methods)
-    this.uniqueState$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
-                                                   mapArray(loc => loc.locState),
-                                                   distinctArray(),
-                                                   mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    // Create an observable for unique market names
-    this.uniqueMarket$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
-                                                    mapArray(loc => loc.marketName),
-                                                    distinctArray(),
-                                                    mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    // Create an observable for unique market codes
-    this.uniqueMarketCode$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
-                                                        mapArray(loc => loc.marketCode),
-                                                        distinctArray(),
-                                                        mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    // Create an observable for unique market codes
-    this.uniqueRecStatuses$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
-                                                         mapArray(loc => loc.recordStatusCode),
-                                                         distinctArray(),
-                                                         mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    // Create an observable for unique geocoder match codes
-    this.uniqueMatchCodes$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
-                                                        mapArray(loc => loc.geocoderMatchCode),
-                                                        distinctArray(),
-                                                        mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    // Create an observable for unique geocoder match qualities
-    this.uniqueMatchQualities$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
-                                                            mapArray(loc => loc.geocoderLocationCode),
-                                                            distinctArray(),
-                                                            mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    // Create an observable for unique original cities
-    this.uniqueOrigCity$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
-                                                      mapArray(loc => loc.origCity),
-                                                      distinctArray(),
-                                                      mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    // Create an observable for unique original states
-    this.uniqueOrigState$ = this.currentAllSites$.pipe(filterArray(loc => loc.isActive === true),
-                                                       mapArray(loc => loc.origState),
-                                                       distinctArray(),
-                                                       mapArray(str => new Object({ label: str, value: str}) as SelectItem));*/
 
     this.setCounts();
   }
@@ -639,25 +562,6 @@ export class SiteListComponent implements OnInit {
     }
   }
   
-  // Disabling dismissable events until we can get access to change detection in sub panels
-  onSetDismissable(dismissable: boolean)
-  {
-    console.log('onSetDismissable: ', dismissable);
-    // this.setContainerDismissable.emit(dismissable);
-  }
-
-  onFilterShow()
-  {
-    console.log('onFilterShow - fired');
-    // this.onSetDismissable(false);
-  }
-
-  onFilterHide()
-  {
-    console.log('onFilterHide - fired');
-    // this.onSetDismissable(true);
-  }
-
   onFilter(event: any)
   {
      //this.cd.markForCheck();
