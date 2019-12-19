@@ -1,9 +1,9 @@
 <div class="ui-g">
    <div class="ui-g-12">
      <div class="upload-label">Upload a list of geographies that must be in the geofootprint.</div>
-     <div  *ngIf="isMustCoverExists" class="valassis-brand-label">  
+     <!--<div  *ngIf="isMustCoverExists" class="valassis-brand-label">  
             Must Cover geography applied
-     </div> 
+     </div> -->
      &nbsp;
     <div class="ui-g-12">
           <span class="md-inputfield">
@@ -28,7 +28,7 @@
         </div>
 
         <div class="ui-g-3">
-            <button pButton type="button" label="Delete Must Covers"  [disabled]="!isMustCoverExists" (click)="deleteMustCovers()" ></button>
+            <button pButton type="button" label="Delete Must Covers"  [disabled]="!disableDeleteBtn()" (click)="deleteMustCovers()" ></button>
          </div>
 
      </div >
@@ -41,7 +41,7 @@
         <p-table [value]="impGeofootprintGeoService.uploadFailures" [paginator]="true" [rows]="5">
             <ng-template pTemplate="caption">
                 <div>
-                  Detected {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{fileAnalysisSelected$ | async}} upload failures out of {{totalUploadedRowCount}} rows
+                  Detected {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{fileAnalysisSelected}} upload failures out of {{totalUploadedRowCount}} rows
                 </div>
             </ng-template>
             <ng-template pTemplate="header">

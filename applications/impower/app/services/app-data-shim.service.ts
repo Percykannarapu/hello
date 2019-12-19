@@ -236,8 +236,8 @@ export class AppDataShimService {
   mustCoverRolldownComplete(isResubmit: boolean, failedGeos: string[]){
     const uploadFailures = this.impGeofootprintGeoService.uploadFailures.map(geo => geo.geocode);
     const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
-    const isError = isResubmit && new Set(uploadFailures).has(failedGeos[0]) ? true : false;
-    if (isError){
+   // const isError = isResubmit && new Set(uploadFailures).has(failedGeos[0]) ? true : false;
+    if (isResubmit && new Set(uploadFailures).has(failedGeos[0])){
       this.store$.dispatch(new ErrorNotification({ message: 'The resubmitted geocode is not valid, please try again', notificationTitle: mustcovetText}));
     }
     else

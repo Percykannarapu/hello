@@ -36,7 +36,8 @@
   <p-accordionTab header="Custom" [transitionOptions]="'0ms'">
     <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
   </p-accordionTab>
-  <p-accordionTab header="Must Cover" [transitionOptions]="'0ms'">
-    <val-upload-must-cover></val-upload-must-cover>
+  <p-accordionTab  header="{{isMustCoverExists}}" [transitionOptions]="'0ms'">
+    <val-upload-must-cover
+      (isMustCoverExists) = isMustCover($event)></val-upload-must-cover>
   </p-accordionTab>
 </p-accordion>

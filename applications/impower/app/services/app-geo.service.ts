@@ -617,7 +617,7 @@ export class AppGeoService {
     console.log('ensureMustCovers fired');
     const geosToPersist: Array<ImpGeofootprintGeo> = [];
     const key = 'ensureMustCovers';
-    this.store$.dispatch(new StartBusyIndicator({key: key, message: 'Ensuring Must Covers'}));
+    this.store$.dispatch(new StartBusyIndicator({key: key, message: 'Applying Must Cover'}));
     // Add the must covers to geosToPersist
     this.ensureMustCoversObs(null, null).subscribe(results => {
         //console.debug("### ensureMustCovers is pushing " + ((results != null) ? results.length : 0) + " geos");
