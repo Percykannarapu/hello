@@ -242,6 +242,11 @@ export class SiteListContainerComponent implements OnInit {
     console.error(errorMessage, errorObject);
   }
 
+  public onToggleLocations(event: any) {
+     //console.log('### site-list-container.onToggleLocations - event:', event);
+     this.siteListService.setLocationsActive(event.sites, event.isActive);
+  }
+
    public onDeleteLocations(event: any) {
       // console.debug("-".padEnd(80, "-"));
       // console.debug("SITE LIST CONTAINER - onDeleteAllLocations fired - location: ", event.locations);

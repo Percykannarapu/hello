@@ -218,6 +218,28 @@ export class AppLocationService {
       }
    }
 
+   public setLocationsActive(sites: ImpGeofootprintLocation[], newIsActive: boolean) : void {
+    //console.log('### setLocationsActive - Sites:', sites, ', newIsActive:', newIsActive);
+    sites.forEach(site => {
+      //console.log('### setLocationsActive - sites#:', site.locationNumber, ', isActive:', site.isActive);      
+      if (site != null) {
+        site.isActive = newIsActive;
+        site.impGeofootprintTradeAreas.forEach(ta => ta.isActive = newIsActive);
+        site.getImpGeofootprintGeos().forEach(geo => geo.isActive = newIsActive);
+      }
+
+      // Update the project hierarchy
+      const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations();
+      locations.forEach(loc => {
+        if (loc.locationNumber === site.locationNumber && loc.clientLocationTypeCode === site.clientLocationTypeCode) {
+            loc.getImpGeofootprintGeos().forEach(geo => geo.isActive = loc.isActive);
+            loc.impGeofootprintTradeAreas.forEach(ta => ta.isActive = loc.isActive);
+        }
+      });
+    });
+    this.impLocationService.makeDirty();
+  }
+
   public notifySiteChanges() : void {
     this.impLocationService.makeDirty();
   }
