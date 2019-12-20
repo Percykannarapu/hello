@@ -72,6 +72,9 @@ export class SiteListComponent implements OnInit {
   }
 
   @Output()
+  onToggleLocations: EventEmitter<{sites: ImpGeofootprintLocation[], isActive: boolean}> = new EventEmitter<{sites: null, isActive: false}>();
+
+  @Output()
   onDeleteLocations: EventEmitter<any> = new EventEmitter<any>();
 
   @Output()
@@ -90,7 +93,7 @@ export class SiteListComponent implements OnInit {
   resubmitFailedGrid = new EventEmitter();
 
   // Get grid filter components to clear them
-  @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
+//  @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
 
   // Get grid filter components to clear them
   @ViewChildren(TableFilterLovComponent) lovFilters: QueryList<TableFilterLovComponent>;
@@ -105,6 +108,7 @@ export class SiteListComponent implements OnInit {
   private impGeofootprintGeosBS$ = new BehaviorSubject<ImpGeofootprintGeo[]>([]);
 
   public selectedListType: 'Site' | 'Competitor';
+  public currentAllSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
   public currentAllSites$: Observable<ImpGeofootprintLocation[]>;
   public currentActiveSites$: Observable<ImpGeofootprintLocation[]>;
 
@@ -216,8 +220,8 @@ export class SiteListComponent implements OnInit {
     });
 
     for (const column of this.flatSiteGridColumns) {
-        this.columnOptions.push({ label: column.header, value: column });
-        this.selectedColumns.push(column);
+      this.columnOptions.push({ label: column.header, value: column });
+      this.selectedColumns.push(column);
     }
 
     // Set initial value of the header check box
@@ -247,10 +251,12 @@ export class SiteListComponent implements OnInit {
 
     // Choose to set current observables to sites or competitors
     if (this.selectedListType === 'Site') {
+      this.currentAllSitesBS$ = this.allClientLocationsBS$;
       this.currentAllSites$ = this.allClientLocationsBS$.asObservable();
       this.currentActiveSites$ = this.activeClientLocationsBS$.asObservable();
     }
     else {
+      this.currentAllSitesBS$ = this.allCompetitorLocationsBS$;
       this.currentAllSites$ = this.allCompetitorLocationsBS$.asObservable();
       this.currentActiveSites$ = this.activeCompetitorLocationsBS$.asObservable();
     }
@@ -336,15 +342,15 @@ export class SiteListComponent implements OnInit {
    * To force recalculate all homegeocodes
    */
   public calcHomeGeocode() {
-    if ( this.impLocationService.get().length > 0) {
-    const locations = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite);
-    const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
-    const reCalculateHomeGeos = true;
-    const isLocationEdit =  false;
-    this.store$.dispatch(new ReCalcHomeGeos({locations: locations,
-                                             siteType: siteType,
-                                             reCalculateHomeGeos: reCalculateHomeGeos,
-                                             isLocationEdit: isLocationEdit}));
+    if (this.impLocationService.get().length > 0) {
+      const locations = this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite);
+      const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
+      const reCalculateHomeGeos = true;
+      const isLocationEdit =  false;
+      this.store$.dispatch(new ReCalcHomeGeos({locations: locations,
+                                              siteType: siteType,
+                                              reCalculateHomeGeos: reCalculateHomeGeos,
+                                              isLocationEdit: isLocationEdit}));
     }
   }
 
@@ -352,7 +358,7 @@ export class SiteListComponent implements OnInit {
    * When the user clicks the "HGC Issues Log" button,
    */
   public onHGCIssuesLog() {
-    const locType: SuccessfulLocationTypeCodes = this.selectedListType === 'Site'? ImpClientLocationTypeCodes.Site : ImpClientLocationTypeCodes.Competitor;
+    const locType: SuccessfulLocationTypeCodes = this.selectedListType === 'Site' ? ImpClientLocationTypeCodes.Site : ImpClientLocationTypeCodes.Competitor;
     this.store$.dispatch(new ExportHGCIssuesLog({locationType: locType}));
   }
 
@@ -474,21 +480,23 @@ export class SiteListComponent implements OnInit {
     return this.hasSelectedSites =  this.numSelectedSites > 0;
   }
 
-  // Sets isActive to value for all sites
-  onSelectSites(value: boolean) : void {
-    const locations  = this.allLocationsBS$.getValue();
-    const hasFilters = this.hasFilters();
-    console.log('### onSelectSites - value:', value, ', hasFilters:', hasFilters);
-    locations.forEach(site => {
-      console.log('### onSelectSites - site:', site.locationNumber, ', isActive (before):', site.isActive);
-      // if (!hasFilters || this._locGrid.filteredValue.includes(site))
-      if (!hasFilters || this._locGrid.filteredValue.some((flatSite) => flatSite.locationNumber === site.locationNumber))
-        site.isActive = value;
-      console.log('### onSelectSites - site:', site.locationNumber, ', isActive (after):', site.isActive);
-    });
+  onSelectSite(site: ImpGeofootprintLocation) {
+    //console.log('### onSelectSite: site:', site, ', isSelected: ', site.isActive);
+    this.onToggleLocations.emit({sites: [site], isActive: site.isActive});
     this.setHasSelectedSites();
   }
 
+  onSelectSites(newIsActive: boolean) : void {
+    const hasFilters = this.hasFilters();
+    //this._locGrid.filteredValue.forEach(filteredSite => console.log('### onSelectSites - filteredSite:', filteredSite.locationNumber, ', filteredSite:', filteredSite));
+    const filteredSites: ImpGeofootprintLocation[] = this.currentAllSitesBS$.getValue().filter(site => !hasFilters 
+      || (this._locGrid.filteredValue.filter(flatSite => flatSite.loc.locationNumber === site.locationNumber)).length > 0);
+                                                                                        
+    filteredSites.forEach(site => site.isActive = newIsActive);
+    this.onToggleLocations.emit({sites: filteredSites, isActive: newIsActive});
+    this.setHasSelectedSites();
+  }
+  
   /**
    * Performs a three way toggle that filters the grid by selection (isActive)
    * 1) Show selected and deselected,  2) Selected only,  3) Deselected only
@@ -553,17 +561,17 @@ export class SiteListComponent implements OnInit {
     if (this.tableWrapStyle === this.tableWrapOn) {
       this.tableWrapStyle = this.tableWrapOff;
       this.tableWrapIcon = 'ui-icon-menu';
-      //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
     }
     else {
       this.tableWrapStyle = this.tableWrapOn;
       this.tableWrapIcon = 'ui-icon-wrap-text';
-      //this.tableHdrSlice = false;
     }
   }
   
   onFilter(event: any)
   {
-     //this.cd.markForCheck();
+    if (event != null) {
+      this.syncHeaderFilter();
+    }
   }
 }

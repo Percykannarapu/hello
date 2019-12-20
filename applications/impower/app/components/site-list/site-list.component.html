@@ -121,7 +121,7 @@
       <ng-template pTemplate="body" let-flatLoc let-columns="selectedColumns">
         <tr [pSelectableRow]="flatLoc">
           <td style="width: 30px; padding-left: 0.4em">
-            <p-checkbox [(ngModel)]="flatLoc.loc.isActive" binary="true" (click)="setHasSelectedSites()" pTooltip="Deactivate site" tooltipPosition="right"></p-checkbox>
+            <p-checkbox [(ngModel)]="flatLoc.loc.isActive" binary="true" (click)="onSelectSite(flatLoc.loc)" pTooltip="Deactivate site" tooltipPosition="right"></p-checkbox>
           </td>
           <td class="button-column">
             <div>
