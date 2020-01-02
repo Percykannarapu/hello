@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, resolveFieldData } from '@val/common';
-import { ConfirmationService, SelectItem } from 'primeng/api';
+import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
 import { MultiSelect } from 'primeng/multiselect';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
@@ -194,7 +194,10 @@ export class SiteListComponent implements OnInit {
   public  tableWrapStyle: string = this.tableWrapOff;
   public  tableWrapIcon: string = 'ui-icon-menu';
   public  tableHdrSlice: boolean = false;
-    
+
+  // Control table sorting
+  public  multiSortMeta: Array<SortMeta>;
+
   constructor(private appLocationService: AppLocationService,
               private confirmationService: ConfirmationService,
               private appProjectService: AppProjectService,
@@ -226,6 +229,10 @@ export class SiteListComponent implements OnInit {
 
     // Set initial value of the header check box
     this.syncHeaderFilter();
+
+    // Initialize the default sort order
+    this.multiSortMeta = [];
+    this.multiSortMeta.push({field: 'loc.locationNumber', order: 1});
   }
 
   manuallyGeocode(site: ValGeocodingRequest, siteType) {
