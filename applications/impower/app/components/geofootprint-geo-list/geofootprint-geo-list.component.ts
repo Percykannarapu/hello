@@ -22,11 +22,6 @@ import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar'
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
 
-export interface FlatGeo {
-  fgId: number;
-  geo: ImpGeofootprintGeo;
-}
-
 export interface ColMetric {
   tot:  number;
   cnt?: number;
@@ -341,8 +336,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
 
       // Setup a custom filter for the grid
-      this._geoGrid.filterConstraints['numericFilter']  = (value, filter) : boolean => FilterData.numericFilter(value, filter);
-      this._geoGrid.filterConstraints['distanceFilter'] = (value, filter) : boolean => FilterData.numericFilter(value, filter, 2);
+      this._geoGrid.filterConstraints['numericFilter']  = (value, nFilter) : boolean => FilterData.numericFilter(value, nFilter);
+      this._geoGrid.filterConstraints['distanceFilter'] = (value, dFilter) : boolean => FilterData.numericFilter(value, dFilter, 2);
 
       this.gridValues$ = Observable.create(observer => observer.next(this._geoGrid._value));
 
