@@ -92,7 +92,7 @@ export class AppRendererService {
       filter(geos => geos != null),
       debounceTime(500),
       map(geos => Array.from(new Set(geos.reduce((a, c) => {
-        if (c.isActive) a.push(c.geocode);
+        if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive) a.push(c.geocode);
         return a;
       }, [])))),
       tap(geocodes => geocodes.sort())
