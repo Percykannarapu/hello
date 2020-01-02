@@ -227,6 +227,12 @@ export class SiteListComponent implements OnInit {
       this.selectedColumns.push(column);
     }
 
+    this.initializeGridState();
+  }
+
+  private initializeGridState() {
+    this._locGrid.reset();
+
     // Set initial value of the header check box
     this.syncHeaderFilter();
 
@@ -274,6 +280,7 @@ export class SiteListComponent implements OnInit {
     this.flatActiveSites$ = this.flatAllSites$.pipe(filterArray(flatLoc => flatLoc.loc.isActive === true));
 
     this.setCounts();
+    this.initializeGridState();
   }
 
   public onRowSelect(event: any, isSelected: boolean) {
