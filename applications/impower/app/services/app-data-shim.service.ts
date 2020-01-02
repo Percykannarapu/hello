@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
 import { clearFeaturesOfInterest, clearShadingDefinitions, ColorPalette, EsriService, InitialEsriState } from '@val/esri';
-import { ErrorNotification, SuccessNotification } from '@val/messaging';
+import { ErrorNotification, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Observable } from 'rxjs';
@@ -233,18 +233,25 @@ export class AppDataShimService {
      return this.impGeofootprintGeoService.persistMustCoverRollDownGeos(payLoad, failedGeos,  fileName);
   }
 
-  mustCoverRolldownComplete(isResubmit: boolean, failedGeos: string[]){
-    const uploadFailures = this.impGeofootprintGeoService.uploadFailures.map(geo => geo.geocode);
-    const mustcovetText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
-   // const isError = isResubmit && new Set(uploadFailures).has(failedGeos[0]) ? true : false;
-    if (isResubmit && new Set(uploadFailures).has(failedGeos[0])){
-      this.store$.dispatch(new ErrorNotification({ message: 'The resubmitted geocode is not valid, please try again', notificationTitle: mustcovetText}));
+  rollDownComplete(isResubmit: boolean, resubmitGeo: string[], rollDownType: string){
+    let uploadFailures: string[];
+    let titleText: string;
+    if (rollDownType === 'TRADEAREA'){
+       uploadFailures =  this.appTradeAreaService.uploadFailures.map(geo => geo.geocode);
+       titleText = isResubmit ? 'Custom TA Resubmit' : 'Custom TA Upload';
+    }
+    if (rollDownType === 'MUSTCOVER'){
+      uploadFailures =  this.impGeofootprintGeoService.uploadFailures.map(geo => geo.geocode);
+       titleText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
+    }
+    
+    if (isResubmit && new Set(uploadFailures).has(resubmitGeo[0])){
+      this.store$.dispatch(new ErrorNotification({ message: 'The resubmitted geocode is not valid, please try again', notificationTitle: titleText}));
     }
     else if (!isResubmit && uploadFailures.length > 0)
-      this.store$.dispatch(new ErrorNotification({ message: 'The upload file contains invalid geocodes, please refer to the failure grid for a list.', notificationTitle: 'Must Cover Upload' }));
+      this.store$.dispatch(new WarningNotification({ message: 'The upload file contains invalid geocodes, please refer to the failure grid for a list.', notificationTitle: titleText }));
     else
-      this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: mustcovetText}));
-
+      this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: titleText}));
   }
 
 }
