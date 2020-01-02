@@ -29,7 +29,7 @@ import {
   ProjectSaveSuccess,
   TradeAreaRollDownGeos,
   MustCoverRollDownGeos,
-  MustCoverRollDownGeosComplete
+  RollDownGeosComplete
 } from './data-shim.actions';
 
 @Injectable({ providedIn: 'root' })
@@ -151,12 +151,13 @@ export class DataShimEffects {
     map(action => this.appDataShimService.isProjectReload(action.payload.isReload))
   );
 
-  @Effect({dispatch: false})
+  @Effect()
   tradeAreaRollDownGeos$ = this.actions$.pipe(
     ofType<TradeAreaRollDownGeos>(DataShimActionTypes.TradeAreaRollDownGeos),
     switchMap(action => this.appTradeService.rollDownService(action.payload.geos, action.payload.fileAnalysisLevel).pipe(
       map(response => this.appTradeService.validateRolldownGeos(response, action.payload.queryResult, action.payload.matchedTradeAreas, action.payload.fileAnalysisLevel)),
-      map(result => this.appTradeService.persistRolldownTAGeos(result.payload, result.failedGeos))
+      map(result => this.appTradeService.persistRolldownTAGeos(result.payload, result.failedGeos)),
+      map(failedGeos => new RollDownGeosComplete({failedGeos : failedGeos, isResubmit: action.payload.isResubmit, rollDownType: 'TRADEAREA'}))
     ))
   );
 
@@ -166,14 +167,14 @@ export class DataShimEffects {
     switchMap(action => this.appTradeService.rollDownService(action.payload.geos, action.payload.fileAnalysisLevel).pipe(
       map(response => this.appTradeService.validateRolldownGeos(response, action.payload.queryResult, action.payload.uploadedGeos, action.payload.fileAnalysisLevel)),
       map(result => this.appDataShimService.persistMustCoverRollDownGeos(result.payload, action.payload.fileName, result.failedGeos)),
-      map(failedGeos => new MustCoverRollDownGeosComplete({failedGeos : failedGeos, isResubmit: action.payload.isResubmit}))
+      map(failedGeos => new RollDownGeosComplete({failedGeos : failedGeos, isResubmit: action.payload.isResubmit, rollDownType: 'MUSTCOVER'}))
     ))
   );
 
   @Effect({dispatch: false})
   mustCoverRollDownGeosComplete$ = this.actions$.pipe(
-    ofType<MustCoverRollDownGeosComplete>(DataShimActionTypes.MustCoverRollDownGeosComplete),
-    map(action => this.appDataShimService.mustCoverRolldownComplete(action.payload.isResubmit, action.payload.failedGeos))
+    ofType<RollDownGeosComplete>(DataShimActionTypes.RollDownGeosComplete),
+    map(action => this.appDataShimService.rollDownComplete(action.payload.isResubmit, action.payload.failedGeos, action.payload.rollDownType))
   );
 
   // These are for the NgRx store

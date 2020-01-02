@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, EventEmitter, Output } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
@@ -49,7 +49,7 @@ export class UploadTradeAreasComponent implements OnInit {
   public impGeofootprintLocations: ImpGeofootprintLocation[];
   public uploadFailures: TradeAreaDefinition[] = [];
   public totalUploadedRowCount = 0;
-  public isCustomTAExists: boolean;
+  //public isCustomTAExists: boolean;
   public isDisable: boolean = true;
   public currentAnalysisLevel$: Observable<string>;
   public deleteFlag: boolean = false;
@@ -59,6 +59,7 @@ export class UploadTradeAreasComponent implements OnInit {
   fileAnalysisSelected: string;
 
   public deleteConfirmFlag$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  @Output() isCustomTAExists = new EventEmitter<boolean>();
 
 
   @ViewChild('tradeAreaUpload', { static: true }) private fileUploadEl: FileUpload;
@@ -96,7 +97,7 @@ export class UploadTradeAreasComponent implements OnInit {
     ];
 
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
-      this.isCustomTAExists = project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0));
+      this.isCustomTAExists.emit(project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0)))  ;
     });
 
     this.appEditSiteService.customTradeAreaData$.subscribe(message => {
@@ -130,7 +131,7 @@ export class UploadTradeAreasComponent implements OnInit {
   public onResubmit(data: TradeAreaDefinition) {
     this.onRemove(data);
     data.message = null;
-    this.processUploadedTradeArea([data]);
+    this.processUploadedTradeArea([data], true);
   }
 
   public onRemove(data: TradeAreaDefinition) {
@@ -211,7 +212,7 @@ export class UploadTradeAreasComponent implements OnInit {
               console.error('Failed Trade Area Upload Rows:', data.failedRows);
             }
             if (successCount > 0) {
-              this.isCustomTAExists = true;
+              this.isCustomTAExists.emit(true);
               this.processUploadedTradeArea(data.parsedData);
             }
             this.store$.dispatch(new StopBusyIndicator({ key}));
@@ -221,17 +222,17 @@ export class UploadTradeAreasComponent implements OnInit {
           }
         } else {
           this.store$.dispatch(new StopBusyIndicator({ key}));
-          this.store$.dispatch(new ErrorNotification({ message: 'Upload file contains duplicating Site/Geo Combinations.', notificationTitle: 'Error Uploading Custom TA' }));
+          this.store$.dispatch(new ErrorNotification({ message: 'Upload file contains duplicate Site/Geo combinations. Please fix the file and upload again.', notificationTitle: 'Custom TA Upload' }));
         }
       } catch (e) {
           console.log('There was an error parsing the uploaded data', e);
-          this.store$.dispatch(new ErrorNotification({ message: 'Upload file must contain a Site # column and a Geocode column.', notificationTitle: 'Error Uploading Custom TA' }));
+          this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
       } finally {
         this.store$.dispatch(new StopBusyIndicator({ key }));
       }
     } else {
       this.store$.dispatch(new StopBusyIndicator({ key}));
-      this.store$.dispatch(new ErrorNotification({ message: 'Upload file must contain a Site # column and a Geocode column.', notificationTitle: 'Error Uploading Custom TA' }));
+      this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
     }
   }
 
@@ -240,7 +241,7 @@ export class UploadTradeAreasComponent implements OnInit {
     this.isDisable = false;
   }
 
-  private processUploadedTradeArea(data: TradeAreaDefinition[]) : void {
+  private processUploadedTradeArea(data: TradeAreaDefinition[], isResubmit: boolean = false) : void {
     this.totalUploadedRowCount += data.length;
     this.tradeAreaService.applyCustomTradeArea(data, this.fileAnalysisSelected);
   }
@@ -253,7 +254,7 @@ export class UploadTradeAreasComponent implements OnInit {
       accept: () => {
         this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' || ta.taType === 'HOMEGEO'));
         this.appGeoService.ensureMustCovers();
-        this.isCustomTAExists = false;
+        this.isCustomTAExists.emit(false);
         if (this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'MANUAL' && ta.impGeofootprintGeos.length > 0).length > 0) {
           this.confirmationService.confirm({
             message: 'Would you like to also delete the manually selected geos?',

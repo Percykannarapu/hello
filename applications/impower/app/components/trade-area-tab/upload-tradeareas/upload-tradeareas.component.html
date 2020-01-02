@@ -30,13 +30,6 @@
           </span>
         
       </div>
-      <div class="ui-g-12" *ngIf="isCustomTAExists">
-          <div class="ui-g-3" style="margin-top: -15px;margin-bottom:-10px;">
-             <div  class="warning-label" >
-                Custom Trade Area Exists
-              </div>
-          </div>
-      </div>
       <div class="ui-g-12">
         <div class="ui-g-3">
           <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="isDisable"
@@ -57,25 +50,28 @@
     <div>
         <p-confirmDialog icon="pi pi-exclamation-triangle" key="delete" appendTo="body"></p-confirmDialog>
     </div>
-    <div *ngIf="uploadFailures.length > 0" class="ui-g-12">
-      <p-table [value]="uploadFailures" [paginator]="true" [rows]="5">
+    <div *ngIf="uploadFailures.length > 0" class="ui-g-7">
+      <div class="upload-label">
+            Below is a list of geocodes that are either invalid or un-reachable by Valassis media
+      </div>
+      <p-table [value]="uploadFailures" [paginator]="true" [rows]="5" width="80%">
         <ng-template pTemplate="caption">
           <div>
-            Detected {{(uploadFailures.length) || 0}} {{currentAnalysisLevel$ | async}} upload failures out of {{totalUploadedRowCount}} rows
+            Detected {{(uploadFailures.length) || 0}} {{fileAnalysisSelected}} upload failures out of {{totalUploadedRowCount}} rows
           </div>
         </ng-template>
-        <ng-template pTemplate="header">
+        <ng-template pTemplate="header" width="80%">
           <tr>
-            <th>Geocode</th>
-            <th>Number</th>
-            <th>Status</th>
-            <th>Resubmit</th>
-            <th>Remove</th>
+            <th width="30%">Geocode</th>
+            <th width="30%">Number</th>
+           
+            <th width="10%">Resubmit</th>
+            <th width="10%">Remove</th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-rowData>
+        <ng-template pTemplate="body" let-rowData width="80%">
           <tr>
-            <td pEditableColumn>
+            <td pEditableColumn width="30%"> 
                   <p-cellEditor>
                       <ng-template pTemplate="input">
                         <input pInputText type="text" [(ngModel)]="rowData.geocode">
@@ -85,7 +81,7 @@
                       </ng-template>
                     </p-cellEditor>
             </td>
-            <td pEditableColumn>
+            <td pEditableColumn width="30%">
                     <p-cellEditor>
                         <ng-template pTemplate="input">
                           <input pInputText type="text" [(ngModel)]="rowData.store">
@@ -95,15 +91,13 @@
                         </ng-template>
                       </p-cellEditor>
             </td>
-            <td>
-                    {{rowData.message}}
-            </td>
-            <td>
+            
+            <td width="10%">
               <div class="val-centered">
                 <button (click)="onResubmit(rowData)" icon="ui-icon-refresh" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
               </div>
             </td>
-            <td>
+            <td width="10%"> 
               <div class="val-centered" >
                 <button (click)="onRemove(rowData)" icon="ui-icon-delete" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
               </div>

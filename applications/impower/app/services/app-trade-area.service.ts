@@ -297,7 +297,7 @@ export class AppTradeAreaService {
     return this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType);
   }
 
-  public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null){
+  public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null, isResubmit: boolean = false){
     this.uploadFailures = [];
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
@@ -336,7 +336,7 @@ export class AppTradeAreaService {
               this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geos),
                                                               queryResult: queryResult,
                                                               fileAnalysisLevel: fileAnalysisLevel,
-                                                              matchedTradeAreas: Array.from(matchedTradeAreas)}));
+                                                              matchedTradeAreas: Array.from(matchedTradeAreas), isResubmit: isResubmit}));
             }
             else{
               const geosToAdd: ImpGeofootprintGeo[] = [];
@@ -379,7 +379,7 @@ export class AppTradeAreaService {
         this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geosToQuery),
                                                         queryResult: queryResult,
                                                         fileAnalysisLevel: fileAnalysisLevel,
-                                                        matchedTradeAreas: Array.from(matchedTradeAreas)}));
+                                                        matchedTradeAreas: Array.from(matchedTradeAreas), isResubmit: isResubmit}));
       }
   }
 
@@ -488,6 +488,7 @@ export class AppTradeAreaService {
     this.appGeoService.ensureMustCovers();
     // this.uploadFailuresObs$ = of(this.uploadFailures);
     this.uploadFailuresSub.next(this.uploadFailures);
+    return this.uploadFailures.map(row => row.geocode);
   }
 
   public setCurrentDefaults(){

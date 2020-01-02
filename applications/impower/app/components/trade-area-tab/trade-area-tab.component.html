@@ -33,10 +33,11 @@
                               (runAudienceTA)="onRunAudienceTA($event)">
         Loading Audience Trade Areas...</val-audience-tradearea>
     </p-accordionTab> -->
-  <p-accordionTab header="Custom" [transitionOptions]="'0ms'">
-    <val-upload-tradeareas #uploadTradeAreas>Loading...</val-upload-tradeareas>
+  <p-accordionTab header="{{customTaText}}" [transitionOptions]="'0ms'">
+    <val-upload-tradeareas 
+       (isCustomTAExists) = isCustomTa($event)>Loading...</val-upload-tradeareas>
   </p-accordionTab>
-  <p-accordionTab  header="{{isMustCoverExists}}" [transitionOptions]="'0ms'">
+  <p-accordionTab  header="{{mustCoverText}}" [transitionOptions]="'0ms'">
     <val-upload-must-cover
       (isMustCoverExists) = isMustCover($event)></val-upload-must-cover>
   </p-accordionTab>

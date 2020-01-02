@@ -61,7 +61,8 @@ export class TradeAreaTabComponent implements OnInit {
 
   private siteCounts = new Map<SuccessfulLocationTypeCodes, number>();
   private tradeAreaUiCache = new Map<SuccessfulLocationTypeCodes, TradeAreaModel[]>();
-  isMustCoverExists: string;
+  mustCoverText: string;
+  customTaText: string;
   
 
   constructor(private stateService: AppStateService,
@@ -230,6 +231,10 @@ export class TradeAreaTabComponent implements OnInit {
   }
 
   isMustCover(event: any){
-    this.isMustCoverExists = event ? 'Must Cover - Exists' : 'MustCover';
+    this.mustCoverText = event ? 'Must Cover - Exists' : 'MustCover';
+  }
+
+  isCustomTa(event: any){
+    this.customTaText = event ? 'Custom - Exists' : 'Custom';
   }
 }
