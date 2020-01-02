@@ -211,14 +211,14 @@
                <td style="width: 30px;">&nbsp;</td>
                <td style="width: 30px;">&nbsp;</td>
                <td *ngFor="let col of columns" [ngSwitch]="col.field" [class]="col.styleClass">
-                  <div *ngSwitchCase="'geo.distance'" [escape]="false"
+                  <div *ngSwitchCase="'geo.distance'" [escape]="false" [class]="col.styleClass"
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('distance').avg | number:'1.2-2'}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('distance').min | number:'1.2-2'}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('distance').max | number:'1.2-2'}}</td></tr></table>">
                      {{gridTotals.get('distance').avg | number:'1.2-2'}}
                   </div>
-                  <div *ngSwitchCase="'geo.hhc'" [escape]="false"
+                  <div *ngSwitchCase="'geo.hhc'" [escape]="false" [class]="col.styleClass"
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('hhc').tot | number:'1.0-0'}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('hhc').avg | number:'1.0-0'}}</td></tr>
@@ -226,7 +226,7 @@
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('hhc').max | number:'1.0-0'}}</td></tr></table>">
                                   {{gridTotals.get('hhc').tot | number:'1.0-0'}}
                   </div>
-                  <div *ngSwitchCase="'allocHhc'" [escape]="false"
+                  <div *ngSwitchCase="'allocHhc'" [escape]="false" [class]="col.styleClass"
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('allocHhc').tot | number:'1.0-0'}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('allocHhc').avg | number:'1.0-0'}}</td></tr>
@@ -234,14 +234,14 @@
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('allocHhc').max | number:'1.0-0'}}</td></tr></table>">
                      {{gridTotals.get('allocHhc').tot | number:'1.0-0'}}
                   </div>
-                  <div *ngSwitchCase="'cpm'" [escape]="false"
+                  <div *ngSwitchCase="'cpm'" [escape]="false" [class]="col.styleClass"
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('cpm').avg | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('cpm').min | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('cpm').max | currency}}</td></tr></table>">
                      {{gridTotals.get('cpm').avg | currency}}
                   </div>
-                  <div *ngSwitchCase="'investment'" [escape]="false"
+                  <div *ngSwitchCase="'investment'" [escape]="false" [class]="col.styleClass"
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('investment').tot | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('investment').avg | currency}}</td></tr>
@@ -249,7 +249,7 @@
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('investment').max | currency}}</td></tr></table>">
                      {{gridTotals.get('investment').tot | currency}}
                   </div>
-                  <div *ngSwitchCase="'allocInvestment'" [escape]="false"
+                  <div *ngSwitchCase="'allocInvestment'" [escape]="false" [class]="col.styleClass"
                         pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('allocInvestment').tot | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('allocInvestment').avg | currency}}</td></tr>
