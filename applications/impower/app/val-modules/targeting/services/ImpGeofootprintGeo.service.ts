@@ -645,11 +645,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
 
           if (uniqueGeos.size !== data.parsedData.length) {
-             this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
+             this.store$.dispatch(new WarningNotification({message: 'The upload file contains duplicate geocodes. Processing will continue, though you may want to re-evaluate the upload file.', 
+                                                           notificationTitle: 'Must Cover Upload'}));
+             //this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
           }
-
-          
-          //this.appConfig.getLayerIdForAnalysisLevel(analysisLevel);
 
           const outfields = ['geocode', 'latitude', 'longitude'];
           const queryResult = new Set<string>();
