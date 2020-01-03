@@ -231,8 +231,6 @@ export class SiteListComponent implements OnInit {
   }
 
   private initializeGridState() {
-    this._locGrid.reset();
-
     // Set initial value of the header check box
     this.syncHeaderFilter();
 
@@ -255,6 +253,8 @@ export class SiteListComponent implements OnInit {
   }
 
   public onListTypeChange(data: 'Site' | 'Competitor') {
+    this._locGrid.reset();
+
     this.first = null;
     setTimeout(() => {
       this.first = 0;
