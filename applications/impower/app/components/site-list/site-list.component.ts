@@ -1,8 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, resolveFieldData } from '@val/common';
 import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
-import { MultiSelect } from 'primeng/multiselect';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { filter, map, startWith, take } from 'rxjs/operators';
@@ -10,7 +9,7 @@ import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppLocationService } from '../../services/app-location.service';
 import { AppProjectService } from '../../services/app-project.service';
 import { AppStateService } from '../../services/app-state.service';
-import { FullAppState, LocalAppState } from '../../state/app.interfaces';
+import { FullAppState } from '../../state/app.interfaces';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -91,9 +90,6 @@ export class SiteListComponent implements OnInit {
 
   @Output()
   resubmitFailedGrid = new EventEmitter();
-
-  // Get grid filter components to clear them
-//  @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
 
   // Get grid filter components to clear them
   @ViewChildren(TableFilterLovComponent) lovFilters: QueryList<TableFilterLovComponent>;
@@ -200,7 +196,6 @@ export class SiteListComponent implements OnInit {
 
   constructor(private appLocationService: AppLocationService,
               private confirmationService: ConfirmationService,
-              private appProjectService: AppProjectService,
               private appStateService: AppStateService,
               private impLocationService: ImpGeofootprintLocationService,
               private store$: Store<FullAppState>) {}
@@ -495,14 +490,12 @@ export class SiteListComponent implements OnInit {
   }
 
   onSelectSite(site: ImpGeofootprintLocation) {
-    //console.log('### onSelectSite: site:', site, ', isSelected: ', site.isActive);
     this.onToggleLocations.emit({sites: [site], isActive: site.isActive});
     this.setHasSelectedSites();
   }
 
   onSelectSites(newIsActive: boolean) : void {
     const hasFilters = this.hasFilters();
-    //this._locGrid.filteredValue.forEach(filteredSite => console.log('### onSelectSites - filteredSite:', filteredSite.locationNumber, ', filteredSite:', filteredSite));
     const filteredSites: ImpGeofootprintLocation[] = this.currentAllSitesBS$.getValue().filter(site => !hasFilters 
       || (this._locGrid.filteredValue.filter(flatSite => flatSite.loc.locationNumber === site.locationNumber)).length > 0);
                                                                                         
@@ -587,5 +580,14 @@ export class SiteListComponent implements OnInit {
     if (event != null) {
       this.syncHeaderFilter();
     }
+  }
+
+  /**
+   * Returns the appropriate tooltip for activating / deactivating a site or competitor
+   * 
+   * @param loc The location whose isActive flag is being toggled
+   */
+  getSelectionTooltip(loc: ImpGeofootprintLocation) : string {
+    return (loc == null) ? null : ((loc.isActive) ? 'Deactivate' : 'Activate') + ' ' + this.selectedListType;
   }
 }
