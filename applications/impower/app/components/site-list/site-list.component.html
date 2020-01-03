@@ -19,6 +19,7 @@
              class="{{tableWrapStyle}}"
              [columns]="flatSiteGridColumns"
              [value]="flatAllSites$ | async"
+             [selection]="flatActiveSites$ | async"
              [resizableColumns]="true" columnResizeMode="expand"
              [reorderableColumns]="false"
              sortMode="multiple" [multiSortMeta]="multiSortMeta"
