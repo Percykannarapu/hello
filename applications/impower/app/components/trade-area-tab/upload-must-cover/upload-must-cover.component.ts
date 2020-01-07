@@ -67,9 +67,7 @@ export class UploadMustCoverComponent implements OnInit {
          {label: 'Scantrack', value: 'SCANTRACK_CODE'}
        ];  
 
-    this.appStateService.analysisLevel$.subscribe(val => {
-      this.tooltip = this.isDisable ? 'Please select an Analysis Level before uploading a Must Cover file' : 'CSV or Excel format required: Geocode';
-    });
+    this.tooltip = 'Please select an Analysis Level before uploading a Must Cover file';
 
     this.impGeofootprintGeoService.uploadFailuresObs$.subscribe(result => {
          this.impGeofootprintGeoService.uploadFailures.push(...result);
@@ -197,6 +195,7 @@ export class UploadMustCoverComponent implements OnInit {
    onFileAnalysisChange(event: any) : void {
       this.isDisable = false;
       this.fileAnalysisSelected = event;
+      this.tooltip = 'CSV or Excel format required: Geocode';
    }
 
    deleteMustCovers(){

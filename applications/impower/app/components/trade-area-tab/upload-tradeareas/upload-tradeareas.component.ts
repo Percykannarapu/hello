@@ -123,10 +123,7 @@ export class UploadTradeAreasComponent implements OnInit {
             break;    
       }  
     });
-
-    this.stateService.analysisLevel$.subscribe(val => {
-      this.tooltip = !this.isDisable ? 'Please select an Analysis Level before uploading a Custom TA file' : 'CSV or Excel format, required fields are Site #, Geocode';
-    });
+    this.tooltip = 'Please select an Analysis Level before uploading a Custom TA file';
   }
 
   public onResubmit(data: TradeAreaDefinition) {
@@ -238,6 +235,8 @@ export class UploadTradeAreasComponent implements OnInit {
   public onFileAnalysisChange(event: any) : void {
     this.fileAnalysisSelected = event;
     this.isDisable = false;
+    this.tooltip = 'CSV or Excel format, required fields are Site #, Geocode';
+    //!this.isDisable ? 'Please select an Analysis Level before uploading a Custom TA file' : 'CSV or Excel format, required fields are Site #, Geocode';
   }
 
   private processUploadedTradeArea(data: TradeAreaDefinition[], isResubmit: boolean = false) : void {
