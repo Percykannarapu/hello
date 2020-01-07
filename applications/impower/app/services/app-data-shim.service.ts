@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
 import { clearFeaturesOfInterest, clearShadingDefinitions, ColorPalette, EsriService, InitialEsriState } from '@val/esri';
-import { ErrorNotification, SuccessNotification, WarningNotification } from '@val/messaging';
+import { ErrorNotification, SuccessNotification, WarningNotification, StopBusyIndicator } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Observable } from 'rxjs';
@@ -239,6 +239,7 @@ export class AppDataShimService {
     if (rollDownType === 'TRADEAREA'){
        uploadFailures =  this.appTradeAreaService.uploadFailures.map(geo => geo.geocode);
        titleText = isResubmit ? 'Custom TA Resubmit' : 'Custom TA Upload';
+       this.store$.dispatch(new StopBusyIndicator({ key : 'CUSTOM_TRADEAREA' }));
     }
     if (rollDownType === 'MUSTCOVER'){
       uploadFailures =  this.impGeofootprintGeoService.uploadFailures.map(geo => geo.geocode);

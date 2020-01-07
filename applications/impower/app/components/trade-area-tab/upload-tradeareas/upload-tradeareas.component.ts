@@ -53,6 +53,7 @@ export class UploadTradeAreasComponent implements OnInit {
   public isDisable: boolean = true;
   public currentAnalysisLevel$: Observable<string>;
   public deleteFlag: boolean = false;
+  public tooltip;
 
   allAnalysisLevels: SelectItem[] = []; 
   fileAnalysisLevels: SelectItem[] = []; 
@@ -65,15 +66,10 @@ export class UploadTradeAreasComponent implements OnInit {
   @ViewChild('tradeAreaUpload', { static: true }) private fileUploadEl: FileUpload;
 
   constructor(private messageService: MessageService,
-    private appConfig: AppConfig,
     private appGeoService: AppGeoService,
     private stateService: AppStateService,
-    private esriQueryService: EsriQueryService,
     private tradeAreaService: AppTradeAreaService,
-    private impGeofootprintLocationService: ImpGeofootprintLocationService,
-    private impGeoService: ImpGeofootprintGeoService,
     private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
-    private domainFactory: ImpDomainFactoryService,
     private confirmationService: ConfirmationService,
     private appEditSiteService: AppEditSiteService,
     private store$: Store<LocalAppState>) {
@@ -108,6 +104,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
     this.tradeAreaService.uploadFailuresObs$.subscribe(result => {
       this.uploadFailures.push(...result);
+      this.uploadFailures.sort((a, b) => (a.geocode > b.geocode) ? 1 : -1);
     });
 
     this.currentAnalysisLevel$.subscribe(val => {
@@ -125,6 +122,10 @@ export class UploadTradeAreasComponent implements OnInit {
             this.fileAnalysisLevels = this.allAnalysisLevels;
             break;    
       }  
+    });
+
+    this.stateService.analysisLevel$.subscribe(val => {
+      this.tooltip = !this.isDisable ? 'Please select an Analysis Level before uploading a Custom TA file' : 'CSV or Excel format, required fields are Site #, Geocode';
     });
   }
 
@@ -215,21 +216,19 @@ export class UploadTradeAreasComponent implements OnInit {
               this.isCustomTAExists.emit(true);
               this.processUploadedTradeArea(data.parsedData);
             }
-            this.store$.dispatch(new StopBusyIndicator({ key}));
+            //this.store$.dispatch(new StopBusyIndicator({ key}));
           } else {
-            this.store$.dispatch(new StopBusyIndicator({ key}));
+            //his.store$.dispatch(new StopBusyIndicator({ key}));
             this.messageService.add({summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
           }
         } else {
-          this.store$.dispatch(new StopBusyIndicator({ key}));
+          //this.store$.dispatch(new StopBusyIndicator({ key}));
           this.store$.dispatch(new ErrorNotification({ message: 'Upload file contains duplicate Site/Geo combinations. Please fix the file and upload again.', notificationTitle: 'Custom TA Upload' }));
         }
       } catch (e) {
           console.log('There was an error parsing the uploaded data', e);
           this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
-      } finally {
-        this.store$.dispatch(new StopBusyIndicator({ key }));
-      }
+      } 
     } else {
       this.store$.dispatch(new StopBusyIndicator({ key}));
       this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
@@ -243,7 +242,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
   private processUploadedTradeArea(data: TradeAreaDefinition[], isResubmit: boolean = false) : void {
     this.totalUploadedRowCount += data.length;
-    this.tradeAreaService.applyCustomTradeArea(data, this.fileAnalysisSelected);
+    this.tradeAreaService.applyCustomTradeArea(data, this.fileAnalysisSelected, isResubmit);
   }
 
   public deleteCustomTradeArea() : void {
@@ -271,4 +270,8 @@ export class UploadTradeAreasComponent implements OnInit {
       }
     });
   }
+
+  disableDeleteBtn(){
+    return this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0;
+ }
 }
