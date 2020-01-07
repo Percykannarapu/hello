@@ -182,7 +182,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
   private parseCsvFile(dataBuffer: string) {
     const key = 'CUSTOM_TRADEAREA';
-    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Creating Custom Trade Area'}));
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Applying Custom Trade Area'}));
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
     if (header.split(/,/).length == 2) {
@@ -215,15 +215,16 @@ export class UploadTradeAreasComponent implements OnInit {
             }
             //this.store$.dispatch(new StopBusyIndicator({ key}));
           } else {
-            //his.store$.dispatch(new StopBusyIndicator({ key}));
+            this.store$.dispatch(new StopBusyIndicator({ key}));
             this.messageService.add({summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
           }
         } else {
-          //this.store$.dispatch(new StopBusyIndicator({ key}));
+          this.store$.dispatch(new StopBusyIndicator({ key}));
           this.store$.dispatch(new ErrorNotification({ message: 'Upload file contains duplicate Site/Geo combinations. Please fix the file and upload again.', notificationTitle: 'Custom TA Upload' }));
         }
       } catch (e) {
           console.log('There was an error parsing the uploaded data', e);
+          this.store$.dispatch(new StopBusyIndicator({ key}));
           this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
       } 
     } else {
