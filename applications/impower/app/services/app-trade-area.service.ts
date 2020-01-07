@@ -26,6 +26,7 @@ import { AppGeoService } from './app-geo.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { StopBusyIndicator } from '@val/messaging';
 
 export class TradeAreaDefinition {
   store: string;
@@ -371,6 +372,7 @@ export class AppTradeAreaService {
               this.appGeoService.ensureMustCovers();
               // this.uploadFailuresObs$ = of(this.uploadFailures);
               this.uploadFailuresSub.next(this.uploadFailures);
+              this.store$.dispatch(new StopBusyIndicator({ 'key': 'CUSTOM_TRADEAREA'}));
 
             }
           });
