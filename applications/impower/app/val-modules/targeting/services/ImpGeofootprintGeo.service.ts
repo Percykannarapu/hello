@@ -36,7 +36,7 @@ import { RestDataService } from '../../common/services/restdata.service';
 import { FieldContentTypeCodes } from './../../../impower-datastore/state/models/impower-model.enums';
 import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modules/common/services/file.service';
 import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { MustCoverRollDownGeos } from 'app/state/data-shim/data-shim.actions';
+import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
 
 interface CustomMCDefinition {
   Number: number;
@@ -670,7 +670,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                                                                      uploadedGeos: data.parsedData, isResubmit: isResubmit}));
                   }
                   else{
-                     this.validateMustCoverGeos(Array.from(uniqueGeos), queryResult, fileName);
+                     this.validateMustCoverGeos(Array.from(uniqueGeos), queryResult, fileName, isResubmit);
                   }
                })
             );
@@ -734,7 +734,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
    }
 
-   public validateMustCoverGeos(uniqueGeos: string[], queryResult: Set<string>, fileName: string){
+   public validateMustCoverGeos(uniqueGeos: string[], queryResult: Set<string>, fileName: string, isResubmit: boolean){
       const successGeo = [];
       const errorGeo: CustomMCDefinition[] = [];
       let i = this.uploadFailures.length > 0 ? Math.max(...this.uploadFailures.map(geo => geo.Number)) + 1 : 0;
@@ -746,6 +746,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                   // Keep track of the current must cover upload filename
       this.currentMustCoverFileName = fileName;
       this.setMustCovers(successGeo, true);
+      this.store$.dispatch(new RollDownGeosComplete({failedGeos: this.uploadFailures.map(row => row.geocode), isResubmit: isResubmit, rollDownType: 'MUSTCOVER'}));
    }
 
    public persistMustCoverRollDownGeos(payload: any[], failedGeos: any[], fileName: string){
