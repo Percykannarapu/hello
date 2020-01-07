@@ -23,7 +23,7 @@
      <div class="ui-g-12">
         <div class="ui-g-3">
             <p-fileUpload #mustCoverUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
-                      [pTooltip]="tooltip" [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isDisable">
+                      [pTooltip]="tooltip" [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isDisable" title="">
             </p-fileUpload>
         </div>
 
