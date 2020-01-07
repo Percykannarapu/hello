@@ -231,7 +231,7 @@ export class TradeAreaTabComponent implements OnInit {
   }
 
   isMustCover(event: any){
-    this.mustCoverText = event ? 'Must Cover - Exists' : 'MustCover';
+    this.mustCoverText = event ? 'Must Cover - Exists' : 'Must Cover';
   }
 
   isCustomTa(event: any){
