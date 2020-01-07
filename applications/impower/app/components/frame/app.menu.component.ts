@@ -54,7 +54,7 @@ export class AppMenuComponent implements OnInit {
             { label: 'Projects', icon: 'ui-icon-storage',
               items: [
                   { label: 'Create New', icon: 'fa fa-files-o', command: () =>  this.createNewProject() },
-                  { label: 'Open Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
+                  { label: 'Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
                   { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.saveProject() }
               ]
             },

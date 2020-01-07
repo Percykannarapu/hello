@@ -26,6 +26,7 @@ import {ImpGeofootprintLocationService} from '../../val-modules/targeting/servic
 export class ProjectComponent implements OnInit, AfterViewInit {
 
     private readonly projectSearchUrl = 'v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange';
+    private readonly cloneProjectUrl =  'v1/targeting/base/clone/cloneproject';
     private _showDialog: boolean = false;
 
     // This is a workaround for a PrimeNg bug where dialogs aren't firing onHide() properly
@@ -178,9 +179,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.getAllProjectsData(updatedDateFrom, updatedDateTo).subscribe({ complete: () => this.onListTypeChange(this.selectedListType)});
   }
 
-  public onDoubleClick(data: { projectId: number }) {
-     this.loadProject(data.projectId);
-  }
+  // public onDoubleClick(data: { projectId: number }) {
+  //    this.loadProject(data.projectId);
+  // }
 
   public loadProject(projectId: number) {
     const locData = this.impGeofootprintLocationService.get();
@@ -218,5 +219,12 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.allProjectsData = [];
     this._showDialog = flag;
 
+  }
+
+  public cloneProject(projectId:any){
+    const payload = {'projectId': projectId, 'userId' : this.userService.getUser().userId};
+      this.restService.post(this.cloneProjectUrl, payload).subscribe(response => {
+          console.log('response===>', response);
+     })
   }
 }

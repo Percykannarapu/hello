@@ -1,6 +1,6 @@
 <p-dialog styleClass="load-project-dialog" [(visible)]="showDialog" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true" [style]="{ width: '1000px' }">
     <p-header>
-      Load Project
+      Existing Projects
     </p-header>
     <div class="dialog-main">
       <div class="dialog-body">
@@ -84,6 +84,8 @@
       <div class="dialog-buttons">
         <div class="ui-g-2">
           <button pButton type="button" (click)="loadProject(selectedRow.projectId)" label="Load" [disabled]="selectedRow == null"></button>
+          <button pButton type="button" (click)="cloneProject(selectedRow.projectId)" label="Clone" [disabled]="selectedRow == null"></button>
+
         </div>
       </div>
     </div>
