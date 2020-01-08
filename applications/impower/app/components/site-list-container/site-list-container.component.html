@@ -6,6 +6,7 @@
    [allCompetitorLocations]="siteListService.allCompetitorLocations$ | async"
    [activeCompetitorLocations]="siteListService.activeCompetitorLocations$ | async"
    [impGeofootprintGeos]="allGeos$ | async"
+   (onToggleLocations)="onToggleLocations($event)"
    (onDeleteLocations)="onDeleteLocations($event)"
    (onDeleteAllLocations)="onDeleteAllLocations($event)"
    (onMakeDirty)="onMakeDirty()"

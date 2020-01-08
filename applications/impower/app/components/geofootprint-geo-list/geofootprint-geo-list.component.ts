@@ -1,3 +1,4 @@
+import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { distinctArray, mapArray, resolveFieldData, roundTo } from '@val/common';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
@@ -21,11 +22,6 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
-
-export interface FlatGeo {
-  fgId: number;
-  geo: ImpGeofootprintGeo;
-}
 
 export interface ColMetric {
   tot:  number;
@@ -293,7 +289,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       });
 
       // createComposite subscriptions
-      this.allLocations$.subscribe(locs => this.gridStats = {...this.gridStats, numLocsActive: (locs != null) ? locs.filter(loc => loc.isActive).length : 0});
+      this.allLocations$.subscribe(locs => this.gridStats = {...this.gridStats, numLocsActive: (locs != null) ? locs.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site && loc.isActive).length : 0});
 
       // Remember that combineLatest is going to fire the pipe for each subscriber to allImpGeofootprintGeos$.  In the template, we have two | async values:
       // displayedImpGeofootprintGeos$ and selectedImpGeofootprintGeos$, which creates two subscribers.  This would fire createComposite twice, which is an expensive
@@ -341,8 +337,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
 
       // Setup a custom filter for the grid
-      this._geoGrid.filterConstraints['numericFilter']  = (value, filter) : boolean => FilterData.numericFilter(value, filter);
-      this._geoGrid.filterConstraints['distanceFilter'] = (value, filter) : boolean => FilterData.numericFilter(value, filter, 2);
+      this._geoGrid.filterConstraints['numericFilter']  = (value, nFilter) : boolean => FilterData.numericFilter(value, nFilter);
+      this._geoGrid.filterConstraints['distanceFilter'] = (value, dFilter) : boolean => FilterData.numericFilter(value, dFilter, 2);
 
       this.gridValues$ = Observable.create(observer => observer.next(this._geoGrid._value));
 
@@ -581,7 +577,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       const varPkSet = new Set<number>();
       projectVars.forEach(pv => varPkSet.add(pv.varPk));
 
-      geos.forEach(geo => {
+      geos.filter(geo => geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea.isActive).forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo;
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;

@@ -21,6 +21,8 @@ import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-d
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpGeofootprintTradeAreaService } from './../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppGeocodingService } from './app-geocoding.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
@@ -63,6 +65,8 @@ export class AppLocationService {
   public cachedTradeAreas: ImpGeofootprintTradeArea[];
 
   constructor(private impLocationService: ImpGeofootprintLocationService,
+              private impTradeAreaService: ImpGeofootprintTradeAreaService,
+              private impGeoService: ImpGeofootprintGeoService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
               private appStateService: AppStateService,
               private appTradeAreaService: AppTradeAreaService,
@@ -109,7 +113,8 @@ export class AppLocationService {
 
   private initializeSubscriptions() {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
-      filter(locations => locations != null)
+      filter(locations => locations != null),
+      filterArray(loc => loc.isActive)
     );
     const locationsWithType$ = allLocations$.pipe(
       filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0),
@@ -217,6 +222,30 @@ export class AppLocationService {
          console.log('deleteLocations - EXCEPTION', error);
       }
    }
+
+   public setLocationsActive(sites: ImpGeofootprintLocation[], newIsActive: boolean) : void {
+    //console.log('### setLocationsActive - Sites:', sites, ', newIsActive:', newIsActive);
+    sites.forEach(site => {
+      //console.log('### setLocationsActive - sites#:', site.locationNumber, ', isActive:', site.isActive);      
+      if (site != null) {
+        site.isActive = newIsActive;
+        site.impGeofootprintTradeAreas.forEach(ta => ta.isActive = newIsActive);
+        site.getImpGeofootprintGeos().forEach(geo => geo.isActive = newIsActive);
+      }
+
+      // Update the project hierarchy
+      const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations();
+      locations.forEach(loc => {
+        if (loc.locationNumber === site.locationNumber && loc.clientLocationTypeCode === site.clientLocationTypeCode) {
+            loc.getImpGeofootprintGeos().forEach(geo => geo.isActive = loc.isActive);
+            loc.impGeofootprintTradeAreas.forEach(ta => ta.isActive = loc.isActive);
+        }
+      });
+    });
+    this.impLocationService.makeDirty();
+    this.impTradeAreaService.makeDirty();
+    this.impGeoService.makeDirty();
+  }
 
   public notifySiteChanges() : void {
     this.impLocationService.makeDirty();
