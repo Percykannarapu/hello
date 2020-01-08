@@ -188,9 +188,9 @@ export class UsageService {
    */
   private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
     const currentProject = this.stateService.currentProject$.getValue();
-    if (RestDataService.getConfig() == null || currentProject == null) return EMPTY;
+    //if (RestDataService.getConfig() == null || currentProject == null) return EMPTY;
 
-    const impProjectId = currentProject.projectId;
+    const impProjectId = currentProject != null ? currentProject.projectId : null;
 
     // Create the new counter to be persisted
     const impMetricCounter: ImpMetricCounter = new ImpMetricCounter();
@@ -204,7 +204,7 @@ export class UsageService {
     impMetricCounter.modifyDate = new Date(Date.now());
     impMetricCounter.modifyUser = this.userService.getUser().userId;
     impMetricCounter.origSystemRefId = impProjectId != null ? impProjectId.toString() : null;
-    impMetricCounter.projectTrackerId = currentProject.projectTrackerId;
+    impMetricCounter.projectTrackerId = currentProject != null ? currentProject.projectTrackerId : null;
 
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + RestDataService.getConfig().oauthToken);
 
