@@ -53,6 +53,7 @@ export class UploadTradeAreasComponent implements OnInit {
   public isDisable: boolean = true;
   public currentAnalysisLevel$: Observable<string>;
   public deleteFlag: boolean = false;
+  public tooltip;
 
   allAnalysisLevels: SelectItem[] = []; 
   fileAnalysisLevels: SelectItem[] = []; 
@@ -65,15 +66,10 @@ export class UploadTradeAreasComponent implements OnInit {
   @ViewChild('tradeAreaUpload', { static: true }) private fileUploadEl: FileUpload;
 
   constructor(private messageService: MessageService,
-    private appConfig: AppConfig,
     private appGeoService: AppGeoService,
     private stateService: AppStateService,
-    private esriQueryService: EsriQueryService,
     private tradeAreaService: AppTradeAreaService,
-    private impGeofootprintLocationService: ImpGeofootprintLocationService,
-    private impGeoService: ImpGeofootprintGeoService,
     private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
-    private domainFactory: ImpDomainFactoryService,
     private confirmationService: ConfirmationService,
     private appEditSiteService: AppEditSiteService,
     private store$: Store<LocalAppState>) {
@@ -108,6 +104,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
     this.tradeAreaService.uploadFailuresObs$.subscribe(result => {
       this.uploadFailures.push(...result);
+      this.uploadFailures.sort((a, b) => (a.geocode > b.geocode) ? 1 : -1);
     });
 
     this.currentAnalysisLevel$.subscribe(val => {
@@ -126,6 +123,7 @@ export class UploadTradeAreasComponent implements OnInit {
             break;    
       }  
     });
+    this.tooltip = 'Please select an Analysis Level before uploading a Custom TA file';
   }
 
   public onResubmit(data: TradeAreaDefinition) {
@@ -184,7 +182,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
   private parseCsvFile(dataBuffer: string) {
     const key = 'CUSTOM_TRADEAREA';
-    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Creating Custom Trade Area'}));
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Applying Custom Trade Area'}));
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
     if (header.split(/,/).length == 2) {
@@ -215,7 +213,7 @@ export class UploadTradeAreasComponent implements OnInit {
               this.isCustomTAExists.emit(true);
               this.processUploadedTradeArea(data.parsedData);
             }
-            this.store$.dispatch(new StopBusyIndicator({ key}));
+            //this.store$.dispatch(new StopBusyIndicator({ key}));
           } else {
             this.store$.dispatch(new StopBusyIndicator({ key}));
             this.messageService.add({summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
@@ -226,10 +224,9 @@ export class UploadTradeAreasComponent implements OnInit {
         }
       } catch (e) {
           console.log('There was an error parsing the uploaded data', e);
+          this.store$.dispatch(new StopBusyIndicator({ key}));
           this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
-      } finally {
-        this.store$.dispatch(new StopBusyIndicator({ key }));
-      }
+      } 
     } else {
       this.store$.dispatch(new StopBusyIndicator({ key}));
       this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
@@ -239,11 +236,13 @@ export class UploadTradeAreasComponent implements OnInit {
   public onFileAnalysisChange(event: any) : void {
     this.fileAnalysisSelected = event;
     this.isDisable = false;
+    this.tooltip = 'CSV or Excel format, required fields are Site #, Geocode';
+    //!this.isDisable ? 'Please select an Analysis Level before uploading a Custom TA file' : 'CSV or Excel format, required fields are Site #, Geocode';
   }
 
   private processUploadedTradeArea(data: TradeAreaDefinition[], isResubmit: boolean = false) : void {
     this.totalUploadedRowCount += data.length;
-    this.tradeAreaService.applyCustomTradeArea(data, this.fileAnalysisSelected);
+    this.tradeAreaService.applyCustomTradeArea(data, this.fileAnalysisSelected, isResubmit);
   }
 
   public deleteCustomTradeArea() : void {
@@ -271,4 +270,8 @@ export class UploadTradeAreasComponent implements OnInit {
       }
     });
   }
+
+  disableDeleteBtn(){
+    return this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0;
+ }
 }

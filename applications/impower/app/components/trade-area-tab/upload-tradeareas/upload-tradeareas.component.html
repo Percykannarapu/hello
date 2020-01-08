@@ -32,19 +32,14 @@
       </div>
       <div class="ui-g-12">
         <div class="ui-g-3">
-          <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" [disabled]="isDisable"
-                        pTooltip="CSV or Excel format required: Site #, Geocode" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true">
+          <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" 
+                        [pTooltip]="tooltip" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true" [disabled]="isDisable" title="">
           </p-fileUpload>
         </div>
         <div class="ui-g-3">
-          <button pButton type="button" label="Delete Custom TA"  [disabled]="!isCustomTAExists" (click)="deleteCustomTradeArea()" ></button>
+          <button pButton type="button" label="Delete Custom TA"  [disabled]="!disableDeleteBtn()" (click)="deleteCustomTradeArea()" ></button>
        </div>
        <div class="ui-g-6"></div>
-      </div>
-      <div class="ui-g-12">
-        <div *ngIf="!(currentAnalysisLevel$ | async)" class="warning-label" >
-          Please select an Analysis Level before uploading a custom trade area
-        </div>
       </div>
     </div>
     <div>
@@ -62,16 +57,16 @@
         </ng-template>
         <ng-template pTemplate="header" width="80%">
           <tr>
-            <th width="30%">Geocode</th>
-            <th width="30%">Number</th>
+            <th width="25%">Geocode</th>
+            <th width="25%">Number</th>
            
-            <th width="10%">Resubmit</th>
-            <th width="10%">Remove</th>
+            <th width="15%">Resubmit</th>
+            <th width="15%">Remove</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowData width="80%">
           <tr>
-            <td pEditableColumn width="30%"> 
+            <td pEditableColumn width="25%"> 
                   <p-cellEditor>
                       <ng-template pTemplate="input">
                         <input pInputText type="text" [(ngModel)]="rowData.geocode">
@@ -81,7 +76,7 @@
                       </ng-template>
                     </p-cellEditor>
             </td>
-            <td pEditableColumn width="30%">
+            <td pEditableColumn width="25%">
                     <p-cellEditor>
                         <ng-template pTemplate="input">
                           <input pInputText type="text" [(ngModel)]="rowData.store">
@@ -92,12 +87,12 @@
                       </p-cellEditor>
             </td>
             
-            <td width="10%">
+            <td width="15%">
               <div class="val-centered">
                 <button (click)="onResubmit(rowData)" icon="ui-icon-refresh" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
               </div>
             </td>
-            <td width="10%"> 
+            <td width="15%"> 
               <div class="val-centered" >
                 <button (click)="onRemove(rowData)" icon="ui-icon-delete" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
               </div>

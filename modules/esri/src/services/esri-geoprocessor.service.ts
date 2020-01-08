@@ -33,8 +33,11 @@ export class EsriGeoprocessorService {
     
     processor._getPrintDefinition = function() {
        return proxy_getPrintDefinition.apply(processor, arguments).then((result) => {
-         console.log('Print Payload::', result);
          result.operationalLayers.forEach(l => {
+          if ((l.title === 'Selected ATZs' || l.title === 'Selected ZIPs' || l.title === 'Selected PCRs' || l.title === 'Selected Digital ATZs') 
+                                && l.layerDefinition.drawingInfo.renderer.symbol.style === 'esriSFSBackwardDiagonal'){
+              l.opacity = 0.75;
+           }
            if (l.showLabels){
             l.layerDefinition.drawingInfo.labelingInfo[0].removeDuplicates = 'none';
             if (l.title === 'ZIP Boundaries'){

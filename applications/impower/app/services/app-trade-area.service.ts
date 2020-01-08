@@ -5,7 +5,7 @@ import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
-import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
+import { TradeAreaRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
@@ -26,6 +26,7 @@ import { AppGeoService } from './app-geo.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { StopBusyIndicator } from '@val/messaging';
 
 export class TradeAreaDefinition {
   store: string;
@@ -369,8 +370,9 @@ export class AppTradeAreaService {
               this.impGeoService.add(geosToAdd);
               this.impTradeAreaService.add(tradeAreasToAdd);
               this.appGeoService.ensureMustCovers();
-              // this.uploadFailuresObs$ = of(this.uploadFailures);
               this.uploadFailuresSub.next(this.uploadFailures);
+              this.store$.dispatch(new StopBusyIndicator({ 'key': 'CUSTOM_TRADEAREA'}));
+              this.store$.dispatch(new RollDownGeosComplete({failedGeos: this.uploadFailures.map(row => row.geocode), isResubmit: isResubmit, rollDownType: 'TRADEAREA'}));
 
             }
           });

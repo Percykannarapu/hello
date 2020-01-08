@@ -1,10 +1,10 @@
 import {AfterViewInit, ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import {Store} from '@ngrx/store';
+import {Store, select} from '@ngrx/store';
 import {formatDateForFuse} from '@val/common';
-import {ConfirmationPayload, ShowConfirmation} from '@val/messaging';
+import {ConfirmationPayload, ShowConfirmation, StartBusyIndicator, StopBusyIndicator} from '@val/messaging';
 import {SelectItem} from 'primeng/api';
-import {Observable} from 'rxjs';
-import {filter, map, take, tap} from 'rxjs/operators';
+import {Observable, pipe} from 'rxjs';
+import {filter, map, take, tap, switchMap} from 'rxjs/operators';
 import {AppLocationService} from '../../services/app-location.service';
 import {AppStateService} from '../../services/app-state.service';
 import {AppTradeAreaService} from '../../services/app-trade-area.service';
@@ -26,6 +26,7 @@ import {ImpGeofootprintLocationService} from '../../val-modules/targeting/servic
 export class ProjectComponent implements OnInit, AfterViewInit {
 
     private readonly projectSearchUrl = 'v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange';
+    private readonly cloneProjectUrl =  'v1/targeting/base/clone/cloneproject';
     private _showDialog: boolean = false;
 
     // This is a workaround for a PrimeNg bug where dialogs aren't firing onHide() properly
@@ -83,7 +84,20 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.store$.select(openExistingDialogFlag).subscribe(flag => this._showDialog = flag);
+    const updatedDateFrom = this.todayDate;
+    const updatedDateTo = new Date();
+    updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+
+    this.store$.select(openExistingDialogFlag).pipe(
+      tap(flag => {
+        this.clearDialog(flag);
+      }),
+      switchMap(flag => flag ? this.getAllProjectsData(updatedDateFrom, updatedDateTo) : [])
+    ).subscribe(data => {
+      if (data.length > 0){
+        this.onListTypeChange(this.selectedListType);
+      }
+    });
   }
 
   ngAfterViewInit() {
@@ -122,6 +136,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     } else {
       this.currentProjectData = this.allProjectsData;
     }
+    this.cd.markForCheck();
     this.searchFilterMetric();
   }
 
@@ -164,9 +179,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.getAllProjectsData(updatedDateFrom, updatedDateTo).subscribe({ complete: () => this.onListTypeChange(this.selectedListType)});
   }
 
-  public onDoubleClick(data: { projectId: number }) {
-     this.loadProject(data.projectId);
-  }
+  // public onDoubleClick(data: { projectId: number }) {
+  //    this.loadProject(data.projectId);
+  // }
 
   public loadProject(projectId: number) {
     const locData = this.impGeofootprintLocationService.get();
@@ -196,5 +211,28 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
   onDialogHide() : void {
     this.store$.dispatch(new CloseExistingProjectDialog());
+  }
+
+  private clearDialog(flag: boolean){
+    this.currentProjectData = [];
+    this.myProjectsData = [];
+    this.allProjectsData = [];
+    this._showDialog = flag;
+
+  }
+
+  public cloneProject(projectId: number){
+    const payload = {'projectId': projectId, 'userId' : this.userService.getUser().userId};
+     const key = 'CLONE_PROJECT';
+    this.store$.dispatch(new StartBusyIndicator({ key, message: `Cloning project ${projectId}`}));
+    const updatedDateFrom = this.todayDate;
+    const updatedDateTo = new Date();
+    updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+     this.restService.post(this.cloneProjectUrl, payload).pipe(
+       switchMap(() => this.getAllProjectsData(updatedDateFrom, updatedDateTo))
+     ).subscribe(() => {
+      this.onListTypeChange(this.selectedListType);
+      this.store$.dispatch(new StopBusyIndicator({ key}));
+     });
   }
 }
