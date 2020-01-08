@@ -1,7 +1,7 @@
 import {AfterViewInit, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {Store, select} from '@ngrx/store';
 import {formatDateForFuse} from '@val/common';
-import {ConfirmationPayload, ShowConfirmation} from '@val/messaging';
+import {ConfirmationPayload, ShowConfirmation, StartBusyIndicator, StopBusyIndicator} from '@val/messaging';
 import {SelectItem} from 'primeng/api';
 import {Observable, pipe} from 'rxjs';
 import {filter, map, take, tap, switchMap} from 'rxjs/operators';
@@ -221,10 +221,18 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
   }
 
-  public cloneProject(projectId:any){
+  public cloneProject(projectId: number){
     const payload = {'projectId': projectId, 'userId' : this.userService.getUser().userId};
-      this.restService.post(this.cloneProjectUrl, payload).subscribe(response => {
-          console.log('response===>', response);
-     })
+     const key = 'CLONE_PROJECT';
+    this.store$.dispatch(new StartBusyIndicator({ key, message: `Cloning project ${projectId}`}));
+    const updatedDateFrom = this.todayDate;
+    const updatedDateTo = new Date();
+    updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+     this.restService.post(this.cloneProjectUrl, payload).pipe(
+       switchMap(() => this.getAllProjectsData(updatedDateFrom, updatedDateTo))
+     ).subscribe(() => {
+      this.onListTypeChange(this.selectedListType);
+      this.store$.dispatch(new StopBusyIndicator({ key}));
+     });
   }
 }

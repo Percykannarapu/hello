@@ -82,10 +82,11 @@
       </div>
 
       <div class="dialog-buttons">
-        <div class="ui-g-2">
+        <div class="ui-g-1">
           <button pButton type="button" (click)="loadProject(selectedRow.projectId)" label="Load" [disabled]="selectedRow == null"></button>
+        </div>  
+        <div class="ui-g-1">
           <button pButton type="button" (click)="cloneProject(selectedRow.projectId)" label="Clone" [disabled]="selectedRow == null"></button>
-
         </div>
       </div>
     </div>

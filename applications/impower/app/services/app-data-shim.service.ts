@@ -249,8 +249,10 @@ export class AppDataShimService {
     if (isResubmit && new Set(uploadFailures).has(resubmitGeo[0])){
       this.store$.dispatch(new ErrorNotification({ message: 'The resubmitted geocode is not valid, please try again', notificationTitle: titleText}));
     }
-    else if (!isResubmit && uploadFailures.length > 0)
+    else if (!isResubmit && uploadFailures.length > 0){
       this.store$.dispatch(new WarningNotification({ message: 'The upload file contains invalid geocodes, please refer to the failure grid for a list.', notificationTitle: titleText }));
+      this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: titleText}));
+    }
     else
       this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: titleText}));
   }

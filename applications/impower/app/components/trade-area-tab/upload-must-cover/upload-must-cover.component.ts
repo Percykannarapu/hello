@@ -195,7 +195,7 @@ export class UploadMustCoverComponent implements OnInit {
    onFileAnalysisChange(event: any) : void {
       this.isDisable = false;
       this.fileAnalysisSelected = event;
-      this.tooltip = 'CSV or Excel format required: Geocode';
+      this.tooltip = 'CSV or Excel format, required field is Geocode';
    }
 
    deleteMustCovers(){
