@@ -15,6 +15,8 @@ import { AppLocationService } from 'app/services/app-location.service';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 
+const numberOrNull = (value: any) => value == null || value === '' || Number.isNaN(Number(value)) ? null : Number(value);
+
 @Component({
   selector: 'val-edit-locations',
   templateUrl: './edit-locations.component.html',
@@ -46,6 +48,11 @@ export class EditLocationsComponent implements OnInit, OnChanges {
     if  (this.displayData) {
       this.editLocationsForm.reset();
       this.editLocationsForm.patchValue(this.displayData);
+      [1, 2, 3].forEach(val => {
+        if (this.displayData[`radius${val}`] === undefined || this.displayData[`radius${val}`] === ''){
+          this.editLocationsForm.get(`radius${val}`).disable();
+        }
+      });    
     }
   }
   ngOnInit() {
@@ -63,6 +70,9 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       homeAtz: new FormControl('',  {  asyncValidators: this.validateGeo('CL_ATZTAB14', 'geocode,ZIP', 'Not a valid Home ATZ')}),
       homeDigitalAtz: new FormControl('',  {  asyncValidators: this.validateGeo('VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ', 'Not a valid Home DTZ')}),
       homePcr: new FormControl('',  {  asyncValidators: this.validateGeo('CL_PCRTAB14', 'geocode,ZIP, ZIP_ATZ, DMA, DMA_Name, COUNTY', 'Not a valid Home PCR')}),
+      radius1: [null, [this.isInRange(0, 50)]],
+      radius2: [null, [this.isInRange(0, 50)]],
+      radius3: [null, [this.isInRange(0, 50)]],
     });
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
   }
@@ -100,6 +110,19 @@ export class EditLocationsComponent implements OnInit, OnChanges {
     };
   }
 
+  private isInRange(minValue: number, maxValue: number) : ValidatorFn {
+    return function(control: AbstractControl) {
+      console.log('values::::', control);
+      const currentRadius = numberOrNull(control.value);
+      if (control.value != null && control.value !== '' && (currentRadius <= minValue || currentRadius > maxValue || Number.isNaN(Number(control.value)))) {
+        return  {
+          rangeValid: `You must enter a numeric value > ${minValue} and <= ${maxValue} for trade areas you want to apply.`
+        };
+      }
+      return null;
+    };
+  }
+
   onSubmit(data: any) {
     const formData = {
       name: data.locationName, 
@@ -115,7 +138,10 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       'Home Zip Code': data.homeZip,
       'Home ATZ': data.homeAtz,
       'Home Digital ATZ': data.homeDigitalAtz,
-      'Home Carrier Route': data.homePcr
+      'Home Carrier Route': data.homePcr,
+      RADIUS1: data.radius1,
+      RADIUS2: data.radius2,
+      RADIUS3: data.radius3
     };
     this.submitSite.emit(new ValGeocodingRequest(formData));
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-site', action: 'add' });
@@ -128,6 +154,6 @@ export class EditLocationsComponent implements OnInit, OnChanges {
   
   public formEdited() : void {
     this.editLocationsForm['controls']['coord'].setValue('');
-}
+  }
 
 }

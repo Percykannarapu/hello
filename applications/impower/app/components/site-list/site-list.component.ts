@@ -282,7 +282,8 @@ export class SiteListComponent implements OnInit {
     this.setLocationHierarchyActiveFlag(event.data, isSelected);
   }
 
-  public onEdit(row: ImpGeofootprintLocation) {
+  public onEdit(rowFlat: FlatSite) {
+    const row = rowFlat.loc;
     const locAttribs = row['impGeofootprintLocAttribs'];
     this.displayData = {
       locationNumber: row.locationNumber,
@@ -297,7 +298,10 @@ export class SiteListComponent implements OnInit {
       homeZip: locAttribs.filter(la => la.attributeCode === 'Home Zip Code').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue : '',
       homeAtz: locAttribs.filter(la => la.attributeCode === 'Home ATZ').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue : '',
       homeDigitalAtz: locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue : '',
-      homePcr: locAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue : ''
+      homePcr: locAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue : '',
+      radius1: rowFlat['radius1'],
+      radius2: rowFlat['radius2'],
+      radius3: rowFlat['radius3']
     };
     this.selectedRowData = row;
     this.showDialog = true;
