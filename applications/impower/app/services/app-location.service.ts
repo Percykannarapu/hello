@@ -113,28 +113,37 @@ export class AppLocationService {
 
   private initializeSubscriptions() {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
+      filter(locations => locations != null)
+    );
+    
+    const allActiveLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null),
       filterArray(loc => loc.isActive)
     );
-    const locationsWithType$ = allLocations$.pipe(
+
+    const allLocationsWithType$ = allLocations$.pipe(
       filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0),
     );
 
-    const locationsWithHomeGeos$ = locationsWithType$.pipe(
+    const activeLocationsWithType$ = allActiveLocations$.pipe(
+      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0),
+    );
+
+    const locationsWithHomeGeos$ = activeLocationsWithType$.pipe(
       filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue.length > 0)),
       filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3) )
     );
 
-    const locationsWithoutRadius$ = locationsWithType$.pipe(
+    const locationsWithoutRadius$ = activeLocationsWithType$.pipe(
       filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue.length > 0)),
       filterArray(loc => !(isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)) )
     );
 
-    this.totalCount$ = allLocations$.pipe(
+    this.totalCount$ = allActiveLocations$.pipe(
       map(locations => locations.length)
     );
 
-    const successfulLocations$ = locationsWithType$.pipe(
+    const successfulLocations$ = activeLocationsWithType$.pipe(
       filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
     );
     const siteCount$ = successfulLocations$.pipe(
@@ -156,11 +165,11 @@ export class AppLocationService {
       filter(([prev, curr]) => prev > 0 && curr === 0)
     ).subscribe(() => this.store$.dispatch(new ClearLocations({ type: ImpClientLocationTypeCodes.Competitor })));
 
-    this.failedClientLocations$ = locationsWithType$.pipe(
+    this.failedClientLocations$ = allLocationsWithType$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite)),
       startWith([])
     );
-    this.failedCompetitorLocations$ = locationsWithType$.pipe(
+    this.failedCompetitorLocations$ = allLocationsWithType$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedCompetitor)),
       startWith([])
     );

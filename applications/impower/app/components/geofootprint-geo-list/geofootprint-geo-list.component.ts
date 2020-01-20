@@ -577,7 +577,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       const varPkSet = new Set<number>();
       projectVars.forEach(pv => varPkSet.add(pv.varPk));
 
-      geos.filter(geo => geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea.isActive).forEach(geo => {
+      geos.filter(geo => geo.impGeofootprintLocation && geo.impGeofootprintTradeArea && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea.isActive).forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo;
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;
