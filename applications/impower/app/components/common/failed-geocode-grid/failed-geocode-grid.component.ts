@@ -10,6 +10,7 @@ import { Table } from 'primeng/table';
 import { WarningNotification } from '@val/messaging';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { Store } from '@ngrx/store';
+import { DAOBaseStatus } from 'app/val-modules/api/models/BaseModel';
 
 export interface GeocodeFailureGridField {
   seq: number;
@@ -189,6 +190,9 @@ export class FailedGeocodeGridComponent implements OnInit {
     if (locAttribs != null && !(/^\d{4}$/.test(locAttribs.attributeValue) || /^\d{3}$/.test(locAttribs.attributeValue))) {
       site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue = '';
     }
+    
+    // Set base status to trigger the creation of trade areas below it
+    site.baseStatus = DAOBaseStatus.INSERT;
   }
 
   onAccept(site: ImpGeofootprintLocation) : void {

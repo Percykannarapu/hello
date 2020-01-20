@@ -1,9 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { Store, select } from '@ngrx/store';
 import { FullAppState } from 'app/state/app.interfaces';
 import { map, filter, take } from 'rxjs/operators';
@@ -45,14 +42,14 @@ export class FailedLocationsTabComponent implements OnInit {
 
   processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
-console.log('### failed-locations-tab - processSiteRequests sites:', sites);
+    // console.log('### failed-locations-tab - processSiteRequests sites:', sites);
     const reCalculateHomeGeos = false;
     const isLocationEdit =  isEdit;
     this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
   }
 
   remove(site: ImpGeofootprintLocation | ImpGeofootprintLocation[]) {
-    console.log('### failed-locations-tabl.remove - #sites: ' + Array.isArray(site) ? (site as ImpGeofootprintLocation[]).length : 1);
+    // console.log('### failed-locations-tabl.remove - #sites: ' + Array.isArray(site) ? (site as ImpGeofootprintLocation[]).length : 1);
     this.appLocationService.deleteLocations(Array.isArray(site) ? site : [site]);
   }
 
@@ -91,11 +88,11 @@ console.log('### failed-locations-tab - processSiteRequests sites:', sites);
   }
 
   resubmit(sites: ImpGeofootprintLocation[]) {
-    console.log('### add-locations-tab - resubmit - fired');
+    // console.log('### add-locations-tab - resubmit - fired');
     let   geocodingRequests: ValGeocodingRequest[];
     const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
     const siteTypes = new Set(sites.map(site => site.clientLocationTypeCode));
-    siteTypes.forEach(siteType => console.log('### siteType:', siteType));
+    // siteTypes.forEach(siteType => console.log('### siteType:', siteType));
 
     // Process site requests on a per site type basis (sites, competitors)
     siteTypes.forEach(siteType => {
