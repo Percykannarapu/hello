@@ -65,13 +65,13 @@ export class BatchMapService {
   validateProjectReadiness(project: ImpProject) : boolean {
     const notificationTitle = 'Batch Map Issue';
     const projectNotSaved = 'The project must be saved before you can generate a batch map.';
-    const tooManySites = 'Batch Maps can only be generated for projects with 100 sites or less.';
+    const tooManySites = 'Batch Maps can only be generated for projects with 100 active sites or less.';
     let result = true;
     if (project.projectId == null) {
       this.store$.dispatch(new ErrorNotification({ message: projectNotSaved, notificationTitle }));
       result = false;
     }
-    if (project.getImpGeofootprintLocations().length > 100) {
+    if (project.getImpGeofootprintLocations().filter(l => l.isActive).length > 100) {
       this.store$.dispatch(new ErrorNotification({ message: tooManySites, notificationTitle }));
       result = false;
     }
@@ -82,7 +82,7 @@ export class BatchMapService {
     if (this.originalGeoState == null) {
       this.recordOriginalState(project);
     }
-    const locations = [ ...project.getImpGeofootprintLocations()];
+    const locations = [ ...project.getImpGeofootprintLocations().filter(l => l.isActive)];
     const result = { siteNum: siteNum, isLastSite: false };
     locations.sort((a, b) => a.locationNumber.localeCompare(b.locationNumber));
     for (let i = 0; i < locations.length; ++i) {
