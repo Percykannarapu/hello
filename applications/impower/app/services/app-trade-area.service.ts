@@ -402,11 +402,11 @@ export class AppTradeAreaService {
     const chunked_arr = [];
     let index = 0;
     while (index < geos.length) {
-      chunked_arr.push(geos.slice(index, 999 + index));
-      index += 999;
+      chunked_arr.push(geos.slice(index, 250 + index));
+      index += 250;
     }
-    const obs = chunked_arr.map(() => {
-      const reqPayload = {'usTable': usTable, 'selectField': selectField, 'whereField': whereField, 'geoList': geos, 'seasonField': seasonField, 'tab14TableName': tab14TableName};
+    const obs = chunked_arr.map( geoList => {
+      const reqPayload = {'usTable': usTable, 'selectField': selectField, 'whereField': whereField, 'geoList': geoList, 'seasonField': seasonField, 'tab14TableName': tab14TableName};
       return this.restService.post('v1/targeting/base/rolldown/rolldowngeocode', reqPayload);
       });
 
