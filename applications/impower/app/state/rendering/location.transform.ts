@@ -35,7 +35,8 @@ export const defaultLocationPopupFields = [
   { fieldName: 'origState', label: 'Original State' },
   { fieldName: 'origPostalCode', label: 'Original Zip' },
   { fieldName: 'clientLocationTypeCode', label: 'clientLocationTypeCode', visible: false },
-  { fieldName: 'locationName', label: 'locationName', visible: false }
+  { fieldName: 'locationName', label: 'locationName', visible: false },
+  { fieldName: 'labelName', label: 'labelName'  }
 ];
 
 function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) : __esri.Graphic {
@@ -47,10 +48,23 @@ function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) : __esri
     attributes: { parentId: oid == null ? oidCache++ : oid },
     visible: site.isActive
   });
+
+  let label = null;
+  site.impGeofootprintLocAttribs.forEach(attr => {
+    if (attr != null && attr.attributeCode.toString() === 'label'){
+        label = attr.attributeValue.toString();
+    }
+          
+  });
+  const attribute = site.impGeofootprintLocAttribs.filter(attr => attr != null && attr.attributeCode === label);
+  label = site[label] != null ? site[label].toString() : attribute != null && attribute.length > 0 ? attribute[0].attributeValue.toString() : site['locationNumber'];
+
   for (const field of defaultLocationPopupFields) {
     const fieldValue = site[field.fieldName];
-    graphic.attributes[field.fieldName] = fieldValue == null ? '' : fieldValue.toString();
+    //graphic.attributes[field.fieldName] = fieldValue == null ? '' : fieldValue.toString();
+    graphic.attributes[field.fieldName] = fieldValue == null ? field.fieldName === 'labelName' ? label : '' : fieldValue.toString();
   }
+  
   return graphic;
 }
 
@@ -59,7 +73,7 @@ export function prepareLocations(sites: ImpGeofootprintLocation[]) : LocationDra
   const result: LocationDrawDefinition[] = [];
   sitesByType.forEach((currentSites, siteType) => {
     const color: [number, number, number, number] = siteType === ImpClientLocationTypeCodes.Site ? [0, 0, 255, 1] : [255, 0, 0, 1];
-    const currentResult = new LocationDrawDefinition(siteType, color, MapSymbols.STAR, '$feature.locationNumber', '{clientLocationTypeCode}: {locationName}');
+    const currentResult = new LocationDrawDefinition(siteType, color, MapSymbols.STAR, '$feature.labelName', '{clientLocationTypeCode}: {labelName}');
     currentResult.sites = currentSites.map(l => createSiteGraphic(l));
     result.push(currentResult);
   });

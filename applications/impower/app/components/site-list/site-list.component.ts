@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, resolveFieldData } from '@val/common';
+import { filterArray, resolveFieldData, mapBy, groupByExtended } from '@val/common';
 import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
@@ -18,6 +18,8 @@ import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/Imp
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { TableFilterLovComponent } from '../common/table-filter-lov/table-filter-lov.component';
+import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintLocAttribService } from 'app/val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 
 export class FlatSite {
   fgId: number;
@@ -122,6 +124,9 @@ export class SiteListComponent implements OnInit {
   public flatActiveSites$: Observable<FlatSite[]>;
 
   public columnOptions: SelectItem[] = [];
+  public labelType: string = 'Site Label';
+  public labelOptions: SelectItem[] = [];
+  public selectedLabel: string;
 
   public flatSiteGridColumns: any[] =
     [{field: 'locationNumber',       header: 'Number',              width: '7em',   styleClass: '',                filterMatchMode: 'contains' },
@@ -198,6 +203,8 @@ export class SiteListComponent implements OnInit {
               private confirmationService: ConfirmationService,
               private appStateService: AppStateService,
               private impLocationService: ImpGeofootprintLocationService,
+              private domainFactory: ImpDomainFactoryService,
+              private impLocAttributeService: ImpGeofootprintLocAttribService,
               private store$: Store<FullAppState>) {}
 
   ngOnInit() {
@@ -215,14 +222,21 @@ export class SiteListComponent implements OnInit {
       );
       this.hasFailures$ = this.appLocationService.hasFailures$;
       this.totalCount$ = this.appLocationService.totalCount$;
+      
+     
     });
 
     for (const column of this.flatSiteGridColumns) {
       this.columnOptions.push({ label: column.header, value: column });
       this.selectedColumns.push(column);
     }
+     //this.currentAllSites$
+     this.impLocationService.storeObservable.subscribe(locations => {
+      this.createLabelDropdown(locations);
+    });
 
     this.initializeGridState();
+    
   }
 
   private initializeGridState() {
@@ -249,7 +263,7 @@ export class SiteListComponent implements OnInit {
 
   public onListTypeChange(data: 'Site' | 'Competitor') {
     this._locGrid.reset();
-
+    this.labelType = data === 'Site' ? 'Site Label' : 'Competitor Label';
     this.first = null;
     setTimeout(() => {
       this.first = 0;
@@ -268,6 +282,7 @@ export class SiteListComponent implements OnInit {
       this.currentAllSites$ = this.allCompetitorLocationsBS$.asObservable();
       this.currentActiveSites$ = this.activeCompetitorLocationsBS$.asObservable();
     }
+    this.createLabelDropdown(this.currentAllSitesBS$.value);
 
     this.flatAllSites$ = combineLatest(this.currentAllSites$, this.allGeos$)
                                       .pipe(map(([locs, geos]) => this.createComposite(locs, geos)));
@@ -439,17 +454,20 @@ export class SiteListComponent implements OnInit {
       gridSite.totalAllocatedHHC = allocHhcMap.get(loc.locationNumber);
 
       loc.impGeofootprintLocAttribs.forEach(attribute => {
-        gridSite[attribute.attributeCode] = attribute.attributeValue;
+        if (attribute != null && attribute.attributeCode !== 'label'){
+          gridSite[attribute.attributeCode] = attribute.attributeValue;
 
-        const column = {'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
-
-        // If the column isn't already in the list, add it
-        if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode))
-        {
-          this.flatSiteGridColumns.push(column);
-          this.columnOptions.push({ label: column.header, value: column });
-          this.selectedColumns.push(column);
+          const column = {'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
+  
+          // If the column isn't already in the list, add it
+          if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode))
+          {
+            this.flatSiteGridColumns.push(column);
+            this.columnOptions.push({ label: column.header, value: column });
+            this.selectedColumns.push(column);
+          }
         }
+        
       });
 
       gridSite['totalHHC'] = hhcMap.get(gridSite.loc.locationNumber);
@@ -593,5 +611,55 @@ export class SiteListComponent implements OnInit {
    */
   getSelectionTooltip(loc: ImpGeofootprintLocation) : string {
     return (loc == null) ? null : ((loc.isActive) ? 'Deactivate' : 'Activate') + ' ' + this.selectedListType;
+  }
+
+  onLabelChange(event: string){
+    this.createLabelAttr(this.labelOptions.filter(lbl => lbl.value === event)[0].value);
+  }
+
+  createLabelAttr(labelValue: any){
+    let isUpdate: boolean = false;
+    this.currentAllSitesBS$.getValue().forEach(loc => {
+      const existingLabel = loc.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'label');
+      if (existingLabel.length == 0){
+        this.domainFactory.createLocationAttribute(loc, 'label', labelValue);
+        isUpdate = true;
+        
+      }
+      else if (existingLabel[0].attributeValue !== labelValue){
+         existingLabel[0].attributeValue = labelValue;
+         isUpdate = true;
+     }
+    });
+    if (isUpdate) this.impLocationService.makeDirty();
+  }
+
+  createLabelDropdown(locations: ImpGeofootprintLocation[]){
+    let label = null;
+    this.labelOptions = [];
+    if (locations.length > 0) {
+      const sitesbyType = locations.filter(loc => loc.clientLocationTypeCode === this.selectedListType);
+      const labelOptionsSet = new Set<string>();
+      //mapBy(sitesbyType[0].impGeofootprintLocAttribs, 'attributeCode');
+      for (const column of this.flatSiteGridColumns) {
+        if (!labelOptionsSet.has(column.header.toString()) && column.header.toString() !== 'label'){
+          labelOptionsSet.add(column.header);
+          this.labelOptions.push({ label: column.header, value: column.field });
+        }
+      }
+      
+      sitesbyType[0].impGeofootprintLocAttribs.forEach(attr => {
+        if (attr != null && attr.attributeCode === 'label')
+            label = attr.attributeValue;
+        else if ( attr != null && !labelOptionsSet.has(attr.attributeCode.toString()) && !attr.attributeCode.includes('Home')){
+          labelOptionsSet.add(attr.attributeCode);
+          this.labelOptions.push({label: attr.attributeCode, value: attr.attributeCode});
+        }
+           
+      });
+      this.selectedLabel = label === null ? this.labelOptions.filter(lbl => lbl.label === 'Number')[0].value : this.labelOptions.filter(lbl => lbl.value === label)[0].value;
+      this.createLabelAttr(this.selectedLabel);
+    }
+
   }
 }

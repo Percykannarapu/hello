@@ -1,10 +1,29 @@
 <div class="ui-g ui-g-nopad">
+  &nbsp;
   <div class="ui-g-12">
-    <label>Manage for:</label>
-    &nbsp;
-    <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
-    &nbsp;
-    <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
+    
+        <div class="ui-g-6">
+              <label>Manage for:</label>
+              &nbsp;
+              <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
+              &nbsp;
+              <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        </div>
+      <div class="ui-g-6">
+          <span class="md-inputfield">
+              <p-dropdown defaultLabel="Choose Columns" id="selectLabel"  
+              [placeholder]="&nbsp;"
+              [options]="labelOptions" 
+              [(ngModel)]="selectedLabel" 
+              (ngModelChange)="onLabelChange($event)" 
+              filter="true" 
+              [style]="{'width': '50%'}" 
+              dropdownIcon="fa fa-caret-down">
+            </p-dropdown>
+            <label for="selectLabel">{{labelType}}</label>
+          </span>
+      </div>
   </div>
   <div class="ui-g-12">
     <button pButton type="button" label="Calc Home Geocodes" (click)="calcHomeGeocode()"></button>
