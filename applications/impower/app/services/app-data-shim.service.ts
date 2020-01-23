@@ -105,7 +105,7 @@ export class AppDataShimService {
     console.log('Data store seed', this.impProjVarService.currStoreId);
     const paletteKey = this.appPrefService.getPrefVal('Theme');
     const theme = ColorPalette[paletteKey];
-    const geocodes = new Set(project.getImpGeofootprintGeos().map(g => g.geocode));
+    const geocodes = new Set(project.getImpGeofootprintGeos().filter(g => g.isActive).map(g => g.geocode));
     const state: InitialEsriState = {
       shading: {
         featuresOfInterest: Array.from(geocodes),
