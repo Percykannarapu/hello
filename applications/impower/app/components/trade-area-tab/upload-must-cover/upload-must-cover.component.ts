@@ -72,15 +72,15 @@ export class UploadMustCoverComponent implements OnInit {
     this.impGeofootprintGeoService.uploadFailuresObs$.subscribe(result => {
          this.impGeofootprintGeoService.uploadFailures.push(...result);
          this.impGeofootprintGeoService.uploadFailures.sort(( a, b ) => (a.geocode > b.geocode) ? 1 : -1 );
-         this.isMustCoverExists.emit(true);
+         //this.isMustCoverExists.emit(true);
          this.impGeofootprintGeoService.makeDirty();
          this.totalUploadedRowCount = this.impGeofootprintGeoService.allMustCoverBS$.value.length + this.impGeofootprintGeoService.uploadFailures.length;
     });
 
     this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
        this.isMustCoverExists.emit(project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER' && pref.val != null));
-       if (this.impGeofootprintGeoService.uploadFailures.length > 0)
-         this.isMustCoverExists.emit(true);
+       /*if (this.impGeofootprintGeoService.uploadFailures.length > 0)
+         this.isMustCoverExists.emit(true);*/
     });
 
     this.impGeofootprintGeoService.allMustCoverBS$.subscribe(geos => {

@@ -36,7 +36,7 @@ export const defaultLocationPopupFields = [
   { fieldName: 'origPostalCode', label: 'Original Zip' },
   { fieldName: 'clientLocationTypeCode', label: 'clientLocationTypeCode', visible: false },
   { fieldName: 'locationName', label: 'locationName', visible: false },
-  { fieldName: 'labelName', label: 'labelName'  }
+  { fieldName: 'labelName', label: 'labelName', visible: false  }
 ];
 
 function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) : __esri.Graphic {

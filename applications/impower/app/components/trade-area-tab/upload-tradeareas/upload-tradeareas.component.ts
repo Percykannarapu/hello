@@ -93,6 +93,7 @@ export class UploadTradeAreasComponent implements OnInit {
     ];
 
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
+      console.log('currentProject is customTA', project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0)));
       this.isCustomTAExists.emit(project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0)))  ;
     });
 
@@ -105,6 +106,7 @@ export class UploadTradeAreasComponent implements OnInit {
     this.tradeAreaService.uploadFailuresObs$.subscribe(result => {
       this.uploadFailures.push(...result);
       this.uploadFailures.sort((a, b) => (a.geocode > b.geocode) ? 1 : -1);
+      this.isCustomTAExists.emit(this.impGeofootprintTradeAreaService.get().some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0));
     });
 
     this.currentAnalysisLevel$.subscribe(val => {
@@ -210,7 +212,7 @@ export class UploadTradeAreasComponent implements OnInit {
               console.error('Failed Trade Area Upload Rows:', data.failedRows);
             }
             if (successCount > 0) {
-              this.isCustomTAExists.emit(true);
+              //this.isCustomTAExists.emit(true);
               this.processUploadedTradeArea(data.parsedData);
             }
             //this.store$.dispatch(new StopBusyIndicator({ key}));
