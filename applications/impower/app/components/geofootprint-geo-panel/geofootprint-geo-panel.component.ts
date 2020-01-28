@@ -96,7 +96,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                                       }));
 
       this.allLocations$  = this.impGeofootprintLocationService.storeObservable
-                                .pipe(map(locs => Array.from(locs.filter(loc => loc.isActive))),
+                                .pipe(map(locs => Array.from(locs)),
                                       tap(locs => {
                                         if (locs != null && locs.length > 0) {
                                        // console.log("OBSERVABLE FIRED: impGeofootprintLocationService - Locs:", locs);

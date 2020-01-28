@@ -76,7 +76,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    @Input('impGeofootprintLocations')
    set locs(val: ImpGeofootprintLocation[]) {
-      this.allLocationsBS$.next(val);
+      this.gridStats = {...this.gridStats, numLocs: (val != null) ? val.length : 0};
+      this.allLocationsBS$.next(val.filter(loc => loc.isActive));
    }
 
    @Input('impGeofootprintGeos')
@@ -243,6 +244,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
    // Miscellaneous variables
    public  gridStats = {
+      numLocs: 0,
       numLocsActive: 0,
       numGeos: 0,
       numGeosActive: 0,

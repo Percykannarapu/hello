@@ -52,14 +52,14 @@
                                    <tr><td style='text-align:right;'>Selected Geos:</td><td>{{gridStats.numGeosActive}}</td></tr>
                                    <tr><td style='text-align:right;'>Unselected Geos:</td><td>{{gridStats.numGeosInactive}}</td></tr>
                                    <tr><td style='text-align:right;'>{{dupeMsg}}:</td><td>{{dupeCount}}</td></tr></table>">
-                     Locations: {{gridStats.numLocsActive}}, Geos: {{gridStats.numGeos}} - ({{geoGrid.totalRecords}} Filtered)
+                     Locations: {{gridStats.numLocsActive}} of {{gridStats.numLocs}}, Geos: {{gridStats.numGeos}} - ({{geoGrid.totalRecords}} Filtered)
                   </label>
                   <label *ngIf="geoGrid.filteredValue == null" style="padding: 0; text-align: center;" [escape]="false"
                          pTooltip="<table>
                                    <tr><td style='text-align:right;'>Selected Geos:</td><td>{{gridStats.numGeosActive}}</td></tr>
                                    <tr><td style='text-align:right;'>Unselected Geos:</td><td>{{gridStats.numGeosInactive}}</td></tr>
                                    <tr><td style='text-align:right;'>{{dupeMsg}}:</td><td>{{dupeCount}}</td></tr></table>">
-                     Locations: {{gridStats.numLocsActive}}, Geos: {{gridStats.numGeos}}
+                     Locations: {{gridStats.numLocsActive}} of {{gridStats.numLocs}}, Geos: {{gridStats.numGeos}}
                   </label>
                </div>
                <div class="ui-g-4 ui-g-nopad grid-caption-right-group">

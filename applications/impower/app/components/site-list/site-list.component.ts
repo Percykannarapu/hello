@@ -610,7 +610,12 @@ export class SiteListComponent implements OnInit {
    * @param loc The location whose isActive flag is being toggled
    */
   getSelectionTooltip(loc: ImpGeofootprintLocation) : string {
-    return (loc == null) ? null : ((loc.isActive) ? 'Deactivate' : 'Activate') + ' ' + this.selectedListType;
+    return (loc == null) ? null : ((loc.isActive) ? 'Visibly Turn Off' : 'Visibly Turn On') + ' ' + this.selectedListType;
+  }
+
+  getSelectionMessage() : string {
+    const numDeSelected = this.currentAllSitesBS$.getValue().length - this.currentAllSitesBS$.getValue().filter(site => site.isActive).length;
+    return (numDeSelected > 0) ? 'Only visible sites will appear in the map below, Geo grid and created Site Map PDFs. Site allocation for created site maps, site lists, and GeoFootPrint All will honor all uploaded sites for geographic allocation' : null;
   }
 
   onLabelChange(event: string){

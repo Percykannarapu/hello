@@ -32,7 +32,9 @@
     &nbsp;&nbsp;
     <button pButton type="button" label="Delete All" (click)="onDelete()"></button>
   </div>
-
+  <div *ngIf="getSelectionMessage() != null" class="alertMessage">
+    {{getSelectionMessage()}}
+  </div>
   <div id="locGrid" class="ui-g-12">
     <p-table #locGrid
              class="{{tableWrapStyle}}"

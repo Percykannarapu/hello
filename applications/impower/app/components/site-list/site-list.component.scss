@@ -28,3 +28,11 @@
     padding: 0; 
   }
 }
+
+.alertMessage {
+  margin:0em 0.65em 0em 0.65em;
+  padding:0em 0.65em 0em 0.65em;
+  color: white;
+  background-color:darkred;
+  outline: 2px solid red;
+}
