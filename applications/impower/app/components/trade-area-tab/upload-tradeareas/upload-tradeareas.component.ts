@@ -58,6 +58,7 @@ export class UploadTradeAreasComponent implements OnInit {
   allAnalysisLevels: SelectItem[] = []; 
   fileAnalysisLevels: SelectItem[] = []; 
   fileAnalysisSelected: string;
+  fileAnalysisLabel: string;
 
   public deleteConfirmFlag$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   @Output() isCustomTAExists = new EventEmitter<boolean>();
@@ -237,6 +238,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
   public onFileAnalysisChange(event: any) : void {
     this.fileAnalysisSelected = event;
+    this.fileAnalysisLabel = this.allAnalysisLevels.filter(analysis => analysis.value === this.fileAnalysisSelected)[0].label;
     this.isDisable = false;
     this.tooltip = 'CSV or Excel format, required fields are Site #, Geocode';
     //!this.isDisable ? 'Please select an Analysis Level before uploading a Custom TA file' : 'CSV or Excel format, required fields are Site #, Geocode';

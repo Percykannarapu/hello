@@ -38,6 +38,7 @@ export class UploadMustCoverComponent implements OnInit {
    allAnalysisLevels: SelectItem[] = []; 
    fileAnalysisLevels: SelectItem[] = []; 
    fileAnalysisSelected: string;
+   fileAnalysisLabel: string;
    @Output() isMustCoverExists = new EventEmitter<boolean>();
 
    @ViewChild('mustCoverUpload', { static: true }) private mustCoverUploadEl: FileUpload;
@@ -74,7 +75,6 @@ export class UploadMustCoverComponent implements OnInit {
          this.impGeofootprintGeoService.uploadFailures.sort(( a, b ) => (a.geocode > b.geocode) ? 1 : -1 );
          //this.isMustCoverExists.emit(true);
          this.impGeofootprintGeoService.makeDirty();
-         this.totalUploadedRowCount = this.impGeofootprintGeoService.allMustCoverBS$.value.length + this.impGeofootprintGeoService.uploadFailures.length;
     });
 
     this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
@@ -130,7 +130,6 @@ export class UploadMustCoverComponent implements OnInit {
    private processMuctCovers(geos: string[]){
       const mustcovetText =  'Must Cover Upload';
       this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcovetText + name, geos.join(', '));
-      this.totalUploadedRowCount = geos.length + this.impGeofootprintGeoService.uploadFailures.length;
       //ensure mustcover are active
       const uniqueGeoSet = new Set(geos);
       this.impGeofootprintGeoService.get().forEach(geo => {
@@ -140,7 +139,6 @@ export class UploadMustCoverComponent implements OnInit {
        });
       this.isMustCoverExists.emit(geos.length > 0); 
       this.impGeofootprintGeoService.makeDirty();
-      this.totalUploadedRowCount = geos.length + this.impGeofootprintGeoService.uploadFailures.length;
    }
 
    public uploadFile(event: any) : void {
@@ -160,6 +158,7 @@ export class UploadMustCoverComponent implements OnInit {
                   const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
                   const csvData  = xlsx.utils.sheet_to_csv(ws);
                   this.parseMustcovers(csvData, this.fileName);
+                  this.totalUploadedRowCount = csvData.split(/\r\n|\n/).length - 2;
                }
                catch (e) {
                   this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
@@ -174,6 +173,7 @@ export class UploadMustCoverComponent implements OnInit {
             reader.onload = () => {
                try {
                 this.parseMustcovers(reader.result.toString(), this.fileName);
+                this.totalUploadedRowCount = reader.result.toString().split(/\r\n|\n/).length - 2;
                }
                catch (e) {
                   this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
@@ -195,6 +195,7 @@ export class UploadMustCoverComponent implements OnInit {
    onFileAnalysisChange(event: any) : void {
       this.isDisable = false;
       this.fileAnalysisSelected = event;
+      this.fileAnalysisLabel = this.allAnalysisLevels.filter(analysis => analysis.value === this.fileAnalysisSelected)[0].label;
       this.tooltip = 'CSV or Excel format, required field is Geocode';
    }
 

@@ -52,7 +52,7 @@
       <p-table [value]="uploadFailures" [paginator]="true" [rows]="5" width="80%">
         <ng-template pTemplate="caption">
           <div>
-            Detected {{(uploadFailures.length) || 0}} {{fileAnalysisSelected}} upload failures out of {{totalUploadedRowCount}} rows
+            Detected {{(uploadFailures.length) || 0}} {{fileAnalysisLabel}} upload failures out of {{totalUploadedRowCount}} rows
           </div>
         </ng-template>
         <ng-template pTemplate="header" width="80%">
