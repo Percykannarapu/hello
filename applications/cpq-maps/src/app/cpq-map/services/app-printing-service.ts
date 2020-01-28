@@ -24,12 +24,12 @@ export class AppPrintingService {
   public createFeatureSet(payload: Partial<FullPayload>) : Observable<ResultType> {
     const shadingGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getGraphicsLayer('Selected Geos').graphics.clone();
     shadingGraphics.forEach(g => {
-      if ((g.attributes['siteName'] != null && g.attributes['siteName'].length > 0) || (g.attributes['SHADING_GROUP'] != null && g.attributes['SHADING_GROUP'].length > 0 )){
-        g.attributes['siteName'] = g.attributes['siteName'].replace(/[\/\\]/g, '-');
-        g.attributes['SHADING_GROUP'] = g.attributes['SHADING_GROUP'].replace(/[\/\\]/g, '-');
-        if (g.attributes['siteName'].length > 50 || g.attributes['SHADING_GROUP'].length > 50)
-          g.attributes['SHADING_GROUP'] = g.attributes['SHADING_GROUP'].substring(0, 50);
-          g.attributes['siteName'] = g.attributes['siteName'].substring(0, 50);
+      if (g.attributes['SHADING_GROUP'] != null && g.attributes['SHADING_GROUP'].length > 0 ){
+        // g.attributes['siteName'] = g.attributes['siteName'].replace(/[\/\\]/g, '-');
+        // g.attributes['SHADING_GROUP'] = g.attributes['SHADING_GROUP'].replace(/[\/\\]/g, '-');
+        if (g.attributes['SHADING_GROUP'].length > 50)
+          g.attributes['SHADING_GROUP'] = g.attributes['SHADING_GROUP'].substring(0, 49);
+          g.attributes['siteName'] = g.attributes['siteName'].substring(0, 49);
       }
       g.geometry = null; 
     });
@@ -38,13 +38,12 @@ export class AppPrintingService {
     const siteGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getFeatureLayer('Project Sites').source;
     siteGraphics.forEach(g => {
       if (g.attributes['siteName'] != null && g.attributes['siteName'].length > 0){
-        g.attributes['siteName'] = g.attributes['siteName'].replace(/[\/\\]/g, '-');
+        // g.attributes['siteName'] = g.attributes['siteName'].replace(/[\/\\]/g, '-');
         if (g.attributes['siteName'].length > 50)
-            g.attributes['siteName'] = g.attributes['siteName'].substring(0, 50);
+            g.attributes['siteName'] = g.attributes['siteName'].substring(0, 49);
       }
        delete g.attributes['OBJECTID'];
     });
-    console.log('shadingGraphics::', shadingGraphics.toArray());
     const printFeatures: PrintModel = { 
       clientName: payload.clientName,
       layerSource: payload.layerSource, 
