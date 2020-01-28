@@ -31,7 +31,7 @@ export class AppPrintingService {
       if (g.attributes['siteName'] != null && g.attributes['siteName'].length > 0){
         g.attributes['siteName'] = g.attributes['siteName'].replace(/[\/\\]/g, '-');
         if (g.attributes['siteName'].length > 50)
-            g.attributes['siteName'] = g.attributes['siteName'].slice(0, 49);
+            g.attributes['siteName'] = g.attributes['siteName'].substring(0, 50);
       }
        delete g.attributes['OBJECTID'];
     });
