@@ -54,7 +54,7 @@ export class BatchMapService {
     this.store$.select(getBatchMapReady).pipe(
       filter(ready => ready),
       take(1),
-      delay(8000)
+      delay(15000)
     ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isReload: false, isBatchMode: true })));
   }
 
