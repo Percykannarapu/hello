@@ -27,8 +27,14 @@ export class AppPrintingService {
     const geocodes = shadingGraphics.map(g => `'${g.getAttribute('geocode')}'`);
     const definitionExpression = `geocode in (${geocodes.join(',')})`;
     const siteGraphics: __esri.Collection<__esri.Graphic> = this.esriLayerService.getFeatureLayer('Project Sites').source;
-    siteGraphics.forEach(g => delete g.attributes['OBJECTID']);
-
+    siteGraphics.forEach(g => {
+      if (g.attributes['siteName'] != null && g.attributes['siteName'].length > 0){
+        g.attributes['siteName'] = g.attributes['siteName'].replace(/[\/\\]/g, '-');
+        if (g.attributes['siteName'].length > 50)
+            g.attributes['siteName'] = g.attributes['siteName'].slice(0, 49);
+      }
+       delete g.attributes['OBJECTID'];
+    });
     const printFeatures: PrintModel = { 
       clientName: payload.clientName,
       layerSource: payload.layerSource, 
