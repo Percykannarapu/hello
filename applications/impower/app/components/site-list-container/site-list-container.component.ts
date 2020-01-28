@@ -23,6 +23,7 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 
 @Component({
   selector: 'val-site-list-container',
@@ -57,6 +58,7 @@ export class SiteListContainerComponent implements OnInit {
       private confirmationService: ConfirmationService,
       private store$: Store<LocalAppState>,
       private appEditSiteService: AppEditSiteService,
+      private domainFactory: ImpDomainFactoryService,
       private cd: ChangeDetectorRef) {}
 
    ngOnInit() {
@@ -160,24 +162,32 @@ export class SiteListContainerComponent implements OnInit {
             || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== '') {
             editedTags.push('zip');
          }
+      } else if (attributeList[0].homeZip !== '' && homeZipFlag) {
+         this.domainFactory.createLocationAttribute(editedLocation[0], 'Home Zip Code', attributeList[0].homeZip);
       }
       if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ').length > 0) {
          if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== attributeList[0].homeAtz
             || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== '') {
             editedTags.push('atz');
          }
+      } else if (attributeList[0].homeAtz !== '' && homeAtzFlag) {
+         this.domainFactory.createLocationAttribute(editedLocation[0], 'Home ATZ', attributeList[0].homeAtz);
       }
       if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0) {
          if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== attributeList[0].homePcr
             || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== '') {
             editedTags.push('pcr');
          }
+      } else if (attributeList[0].homePcr !== '' && homeCarrierRouteFlag) {
+         this.domainFactory.createLocationAttribute(editedLocation[0], 'Home Carrier Route', attributeList[0].homePcr);
       }
       if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0) {
          if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== attributeList[0].homeDtz
             || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== '') {
             editedTags.push('dtz');
          }
+      } else if (attributeList[0].homeDtz !== '' && homeDigitalAtzFlag) {
+         this.domainFactory.createLocationAttribute(editedLocation[0], 'Home Digital ATZ', attributeList[0].homeDtz);
       }
       editedTags.forEach(tag => {
         editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];
