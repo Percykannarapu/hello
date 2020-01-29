@@ -7,8 +7,10 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
 import { RehydrateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -54,6 +56,7 @@ export class AppDataShimService {
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private appRendererService: AppRendererService,
               private esriService: EsriService,
+              private appConfig: AppConfig,
               private store$: Store<FullAppState>,
               private impProjVarService: ImpProjectVarService) {
     this.currentProject$ = this.appProjectService.currentProject$;
@@ -95,7 +98,9 @@ export class AppDataShimService {
     this.processCustomVarPks(project);
     this.setupEsriInitialState(project);
     this.store$.dispatch(new RehydrateAudiences());
-    //this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: project.methAnalysis, correlationId: getUuid() }));
+    if (this.appConfig.isBatchMode) {
+      this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: project.methAnalysis }));
+    }
   }
 
   private processCustomVarPks(project: ImpProject) : void {
@@ -127,7 +132,7 @@ export class AppDataShimService {
     shadingDefinitions.forEach(sd => delete sd.destinationLayerUniqueId);
     this.esriService.loadInitialState(state, shadingDefinitions);
     const savedBasemap = (project.impProjectPrefs || []).filter(pref => pref.pref === 'basemap')[0];
-    if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null)) {
+    if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null) && !this.appConfig.isBatchMode) {
       const parsedJson = JSON.parse(savedBasemap.largeVal || savedBasemap.val);
       this.esriService.setBasemap(parsedJson);
     }
