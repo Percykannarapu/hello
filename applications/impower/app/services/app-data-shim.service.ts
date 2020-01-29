@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
-import { clearFeaturesOfInterest, clearShadingDefinitions, ColorPalette, EsriService, InitialEsriState } from '@val/esri';
-import { ErrorNotification, SuccessNotification, WarningNotification, StopBusyIndicator } from '@val/messaging';
+import { clearFeaturesOfInterest, clearShadingDefinitions, EsriService, InitialEsriState } from '@val/esri';
+import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { RehydrateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
@@ -16,7 +17,6 @@ import { AppGeoService } from './app-geo.service';
 import { AppLayerService } from './app-layer.service';
 import { AppLocationService } from './app-location.service';
 import { ValMetricsService } from './app-metrics.service';
-import { AppProjectPrefService } from './app-project-pref.service';
 import { AppProjectService } from './app-project.service';
 import { AppRendererService } from './app-renderer.service';
 import { AppStateService } from './app-state.service';
@@ -43,7 +43,6 @@ export class AppDataShimService {
   currentMustCovers$: Observable<Set<string>>;
 
   constructor(private appProjectService: AppProjectService,
-              private appPrefService: AppProjectPrefService,
               private appLocationService: AppLocationService,
               private appTradeAreaService: AppTradeAreaService,
               private appGeoService: AppGeoService,
@@ -79,7 +78,7 @@ export class AppDataShimService {
     return this.appProjectService.save();
   }
 
-  load(id: number) : Observable<number> {
+  load(id: number) : Observable<string> {
     this.clearAll();
     this.targetAudienceService.clearAll();
     this.appLayerService.clearClientLayers();
@@ -88,11 +87,18 @@ export class AppDataShimService {
     this.store$.dispatch(clearShadingDefinitions());
     return this.appProjectService.load(id).pipe(
       tap(project => this.onLoad(project)),
-      map(project => project.projectId)
+      map(project => project.methAnalysis)
     );
   }
 
   private onLoad(project: ImpProject) : void {
+    this.processCustomVarPks(project);
+    this.setupEsriInitialState(project);
+    this.store$.dispatch(new RehydrateAudiences());
+    //this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: project.methAnalysis, correlationId: getUuid() }));
+  }
+
+  private processCustomVarPks(project: ImpProject) : void {
     const maxVarPk = (project.impProjectVars || []).reduce((result, projectVar) => {
       const sourceParts = projectVar.source.split('_');
       if (sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'custom')) {
@@ -101,19 +107,30 @@ export class AppDataShimService {
         return result;
       }
     }, -1);
-    this.impProjVarService.currStoreId = maxVarPk + 1; // reset dataStore counter on load
-    console.log('Data store seed', this.impProjVarService.currStoreId);
-    const paletteKey = this.appPrefService.getPrefVal('Theme');
-    const theme = ColorPalette[paletteKey];
-    const geocodes = new Set(project.getImpGeofootprintGeos().filter(g => g.isActive).map(g => g.geocode));
+    this.impProjVarService.currStoreId = maxVarPk + 1;
+  }
+
+  private setupEsriInitialState(project: ImpProject) : void {
+    const geocodes = new Set(project.getImpGeofootprintGeos().reduce((p, c) => {
+      if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive) p.push(c.geocode);
+      return p;
+    }, [] as string[]));
+    const sortedGeocodes = Array.from(geocodes);
+    sortedGeocodes.sort();
     const state: InitialEsriState = {
       shading: {
-        featuresOfInterest: Array.from(geocodes),
-        theme
+        featuresOfInterest: sortedGeocodes
       }
     };
-    const shadingDefinitions = this.appRendererService.createShadingDefinitionsFromLegacy(project);
+    const shadingDefinitions = this.appRendererService.getShadingDefinitions(project);
+    // just in case stuff was saved with a destination id
+    shadingDefinitions.forEach(sd => delete sd.destinationLayerUniqueId);
     this.esriService.loadInitialState(state, shadingDefinitions);
+    const savedBasemap = (project.impProjectPrefs || []).filter(pref => pref.pref === 'basemap')[0];
+    if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null)) {
+      const parsedJson = JSON.parse(savedBasemap.largeVal || savedBasemap.val);
+      this.esriService.setBasemap(parsedJson);
+    }
   }
 
   onLoadSuccess(isBatch: boolean) : void {
@@ -230,7 +247,7 @@ export class AppDataShimService {
   }
 
   persistMustCoverRollDownGeos(payLoad: any[], fileName: string, failedGeos: any[]){
-     return this.impGeofootprintGeoService.persistMustCoverRollDownGeos(payLoad, failedGeos,  fileName);
+   return this.impGeofootprintGeoService.persistMustCoverRollDownGeos(payLoad, failedGeos,  fileName);
   }
 
   rollDownComplete(isResubmit: boolean, resubmitGeo: string[], rollDownType: string){
@@ -245,7 +262,7 @@ export class AppDataShimService {
       uploadFailures =  this.impGeofootprintGeoService.uploadFailures.map(geo => geo.geocode);
        titleText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
     }
-    
+
     if (isResubmit && new Set(uploadFailures).has(resubmitGeo[0])){
       this.store$.dispatch(new ErrorNotification({ message: 'The resubmitted geocode is not valid, please try again', notificationTitle: titleText}));
     }

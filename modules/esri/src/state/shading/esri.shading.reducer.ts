@@ -1,12 +1,10 @@
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
-import { ColorPalette } from '../../models/color-palettes';
 import { ShadingDefinition } from '../../models/shading-configuration';
 import { loadInitialState } from '../esri.actions';
 import * as ShadingActions from './esri.shading.actions';
 
 export interface EsriShadingState extends EntityState<ShadingDefinition> {
-  theme: ColorPalette;
   featuresOfInterest: string[];
 }
 
@@ -19,7 +17,6 @@ const adapter: EntityAdapter<ShadingDefinition> = createEntityAdapter<ShadingDef
 });
 
 const initialState: EsriShadingState = adapter.getInitialState({
-  theme: ColorPalette.EsriPurple,
   featuresOfInterest: []
 });
 
@@ -35,8 +32,6 @@ export const shadingReducer = createReducer(
 
   on(ShadingActions.setFeaturesOfInterest, (state, { features }) => ({ ...state, featuresOfInterest: [...features] })),
   on(ShadingActions.clearFeaturesOfInterest, (state) => ({ ...state, featuresOfInterest: initialState.featuresOfInterest })),
-  on(ShadingActions.setTheme, (state, { theme }) => ({ ...state, theme })),
-  on(ShadingActions.resetTheme, (state) => ({ ...state, theme: initialState.theme })),
 
   on(ShadingActions.addShadingDefinition,
     (state, action) => adapter.addOne(action.shadingDefinition, state)
@@ -67,6 +62,9 @@ export const shadingReducer = createReducer(
   ),
   on(ShadingActions.clearShadingDefinitions,
     state => adapter.removeAll(state)
+  ),
+  on(ShadingActions.resetShading,
+    () => ({ ...initialState })
   ),
 );
 

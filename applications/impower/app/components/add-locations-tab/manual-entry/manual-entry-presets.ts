@@ -39,9 +39,9 @@ export const Madison = {
   coord: '38.05773,-81.825',
 };
 
-export const Nancys = {
+export const Nancy = {
    number: '50',
-   name: "Nancy's House",
+   name: `Nancy's House`,
    street: '9628 Sunnywood Trail',
    city: 'South Lyon',
    state: 'MI',
@@ -50,9 +50,9 @@ export const Nancys = {
    coord: '42.465074,-83.675303'
  };
 
-export const Erins = {
+export const Erin = {
    number: '60',
-   name: "Erin's House",
+   name: `Erin's House`,
    street: '21610 Manchester Ct',
    city: 'Farmington Hills',
    state: 'MI',

@@ -1,15 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, isNumber, mapBy, simpleFlatten, toUniversalCoordinates, groupBy } from '@val/common';
+import { filterArray, getUuid, groupBy, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { StopBusyIndicator } from '@val/messaging';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
-import { TradeAreaRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
+import { RollDownGeosComplete, TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { FullAppState } from '../state/app.interfaces';
 import { RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -26,7 +28,6 @@ import { AppGeoService } from './app-geo.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
-import { StopBusyIndicator } from '@val/messaging';
 
 export class TradeAreaDefinition {
   store: string;
@@ -71,13 +72,17 @@ export class AppTradeAreaService {
     this.currentDefaults.set(ImpClientLocationTypeCodes.Competitor, []);
     this.validAnalysisLevel$ = this.stateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
 
-    this.impTradeAreaService.storeObservable.pipe(
-      filter(ta => ta != null),
-      filterArray(ta => ta.impGeofootprintLocation != null && ta.isActive),
-    ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
+    this.stateService.applicationIsReady$.pipe(
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.impTradeAreaService.storeObservable.pipe(
+        filter(ta => ta != null),
+        filterArray(ta => ta.impGeofootprintLocation != null && ta.isActive),
+      ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
 
-    this.setupAnalysisLevelGeoClearObservable();
-
+      this.setupAnalysisLevelGeoClearObservable();
+    });
   }
 
   private setupAnalysisLevelGeoClearObservable() {
@@ -89,7 +94,7 @@ export class AppTradeAreaService {
       filter(([, , isReady]) => isReady),
       // halt the sequence if there are no geos
       filter(([, geos]) => geos != null && geos.length > 0),
-    ).subscribe(() => this.clearGeos());
+    ).subscribe(([al]) => this.clearGeos(al));
   }
 
   public onLocationsWithoutRadius(locations: ImpGeofootprintLocation[]) : void{
@@ -243,7 +248,7 @@ export class AppTradeAreaService {
     }
   }
 
-  private clearGeos() : void {
+  private clearGeos(newAnalysisLevel: string) : void {
     const allTradeAreas = this.impTradeAreaService.get();
     allTradeAreas.forEach(ta => {
       ta.impGeofootprintGeos = [];
@@ -266,6 +271,7 @@ export class AppTradeAreaService {
     this.appGeoService.clearAll();
     this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
     this.impTradeAreaService.stopTx();
+    this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: newAnalysisLevel, correlationId: getUuid() }));
   }
 
   public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {
@@ -451,9 +457,9 @@ export class AppTradeAreaService {
         dupTradeAreas.forEach(rec => {
             if (i == 0)
                 record.locNumber = rec.store;
-            else 
-                payload.push({'geocode': record.geocode, 'x': record.x, 
-                              'y': record.y, 'season': record.season, 
+            else
+                payload.push({'geocode': record.geocode, 'x': record.x,
+                              'y': record.y, 'season': record.season,
                               'orgGeo': record.orgGeo, 'locNumber': rec.store});
             i++;
          });
@@ -462,7 +468,7 @@ export class AppTradeAreaService {
         record.locNumber = matchedTradeAreaByGeocode.get(record.orgGeo)[0].store;
       }
     });
-    
+
     return { failedGeos, payload };
   }
 

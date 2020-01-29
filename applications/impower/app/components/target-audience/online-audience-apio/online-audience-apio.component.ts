@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { TreeNode } from 'primeng/api';
 import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
-import { TreeNode } from 'primeng/api';
 
 interface ApioTreeNode extends TreeNode {
   originalChildren?: ApioTreeNode[];
@@ -144,10 +144,9 @@ export class OnlineAudienceApioComponent implements OnInit {
       debounceTime(250),
       distinctUntilChanged()
     );
-    combineLatest(search$, this.includeFolder$).subscribe(([term, includeFolders]) => this.filterNodes(term, includeFolders));
-    // this.stateSetvice.clearUI$.subscribe(() => this.clearSelections());
+    combineLatest([search$, this.includeFolder$]).subscribe(([term, includeFolders]) => this.filterNodes(term, includeFolders));
 
-    this.parentAudienceService.audiences$.pipe(
+    this.parentAudienceService.allAudiencesBS$.pipe(
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && (a.audienceSourceName === OnlineSourceTypes.Interest || a.audienceSourceName === OnlineSourceTypes.InMarket)))
     ).subscribe(audiences => this.selectNodes(audiences, true));
 

@@ -1,8 +1,13 @@
 import { ElementRef, Inject, Injectable, NgZone } from '@angular/core';
 import { calculateStatistics, expandRange, Statistics, UniversalCoordinates } from '@val/common';
+import Basemap from 'esri/Basemap';
+import { Point, Polygon } from 'esri/geometry';
+import EsriMap from 'esri/Map';
+import MapView from 'esri/views/MapView';
+import DistanceMeasurement2D from 'esri/widgets/DistanceMeasurement2D';
+import Expand from 'esri/widgets/Expand';
 import { Observable } from 'rxjs';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
-import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils, WatchResult } from '../core/esri-utils';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 
@@ -26,17 +31,23 @@ export class EsriMapService {
 
   initializeMap(container: ElementRef, baseMapId: string) : Observable<void> {
     return new Observable<any>(sub => {
-      const newMapParams = Object.assign({}, this.config.defaultMapParams);
-      newMapParams.basemap = EsriApi.BaseMap.fromId(baseMapId);
-      const map = new EsriApi.Map(newMapParams);
-      const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
-      newMapViewProps.container = container.nativeElement;
-      newMapViewProps.map = map;
-      const mapView = new EsriApi.MapView(newMapViewProps);
-      mapView.when(() => {
-        this.mapView = mapView;
-        sub.next();
-      }, err => sub.error(err));
+      try {
+        const newMapParams = Object.assign({}, this.config.defaultMapParams);
+        newMapParams.basemap = Basemap.fromId(baseMapId);
+        const map = new EsriMap(newMapParams);
+        const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
+        newMapViewProps.container = container.nativeElement;
+        newMapViewProps.map = map;
+        const mapView = new MapView(newMapViewProps);
+        mapView.when(() => {
+          this.mapView = mapView;
+          sub.next();
+          sub.complete();
+        }, err => sub.error(err));
+      } catch (e) {
+        console.error('Map Initialization encountered an error', e);
+        sub.error(e);
+      }
     });
   }
 
@@ -65,6 +76,10 @@ export class EsriMapService {
     return this.zoomOnMap(xStats, yStats, points.length);
   }
 
+  setBasemap(basemap: Basemap) : void {
+    this.widgetMap.get('esri.widgets.BasemapGallery').set('activeBasemap',  basemap);
+  }
+
   private zoomOnMap(xStats: { min: number, max: number }, yStats: { min: number, max: number }, pointCount: number) : Observable<void> {
     return new Observable<void>(subscriber => {
       if (pointCount === 0 || xStats == null || yStats == null) {
@@ -75,12 +90,12 @@ export class EsriMapService {
         let target: __esri.Polygon | __esri.MapViewBaseGoToTarget;
         if (pointCount === 1) {
           target = {
-            target: new EsriApi.Point({ x: xStats.min, y: yStats.min }),
+            target: new Point({ x: xStats.min, y: yStats.min }),
             zoom: 11
           };
         } else {
           const polyExtent = this.domainService.createExtent(xStats, yStats);
-          target = EsriApi.Polygon.fromExtent(polyExtent);
+          target = Polygon.fromExtent(polyExtent);
         }
         EsriUtils.esriPromiseToEs6(this.mapView.goTo(target, options))
           .catch(err => subscriber.error(err))
@@ -99,7 +114,7 @@ export class EsriMapService {
   setWidget(type) {
     switch (type) {
       case 'measure':
-        this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
+        this.measureWidget = new DistanceMeasurement2D({
           view: this.mapView,
           unit: 'miles'
         });
@@ -109,7 +124,7 @@ export class EsriMapService {
         break;
       case 'select':
         if (!this.measureWidget) {
-          this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
+          this.measureWidget = new DistanceMeasurement2D({
             view: this.mapView,
             unit: 'miles'
           });
@@ -121,7 +136,7 @@ export class EsriMapService {
         break;
       case 'copy':
         if (!this.measureWidget) {
-          this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
+          this.measureWidget = new DistanceMeasurement2D({
             view: this.mapView,
             unit: 'miles'
           });
@@ -133,7 +148,7 @@ export class EsriMapService {
         break;
       case 'default':
         if (!this.measureWidget) {
-          this.measureWidget = new EsriApi.widgets.DistanceMeasurement2D({
+          this.measureWidget = new DistanceMeasurement2D({
             view: this.mapView,
             unit: 'miles'
           });
@@ -168,7 +183,7 @@ export class EsriMapService {
     const result = new constructor(newWidgetProps);
     this.widgetMap.set(result.declaredClass, result);
     const newExpanderProps = { view: this.mapView, ...expanderProperties, content: result.container };
-    const expander = new EsriApi.widgets.Expand(newExpanderProps);
+    const expander = new Expand(newExpanderProps);
     this.addWidget(expander, position);
   }
 

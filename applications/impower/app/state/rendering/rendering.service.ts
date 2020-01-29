@@ -1,6 +1,12 @@
 import { Inject, Injectable } from '@angular/core';
 import { mapArrayToEntity } from '@val/common';
-import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService } from '@val/esri';
+import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService } from '@val/esri';
+import Color from 'esri/Color';
+import geometryEngine from 'esri/geometry/geometryEngine';
+import Graphic from 'esri/Graphic';
+import PopupTemplate from 'esri/PopupTemplate';
+import { SimpleRenderer } from 'esri/renderers';
+import { SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol } from 'esri/symbols';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { defaultLocationPopupFields, LocationDrawDefinition } from './location.transform';
@@ -34,7 +40,7 @@ export class RenderingService {
   renderTradeAreas(defs: TradeAreaDrawDefinition[]) : void {
     this.logger.debug.log('definitions for trade areas', defs);
     defs.forEach(d => {
-      const symbol = new EsriApi.SimpleFillSymbol({
+      const symbol = new SimpleFillSymbol({
         style: 'solid',
         color: [0, 0, 0, 0],
         outline: {
@@ -43,10 +49,10 @@ export class RenderingService {
           width: 2
         }
       });
-      const geoBuffer = EsriApi.geometryEngine.geodesicBuffer(d.centers, d.buffer, 'miles', d.merge);
+      const geoBuffer = geometryEngine.geodesicBuffer(d.centers, d.buffer, 'miles', d.merge);
       const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
       const graphics = geometry.map(g => {
-        return new EsriApi.Graphic({
+        return new Graphic({
           geometry: g,
           symbol: symbol
         });
@@ -69,25 +75,25 @@ export class RenderingService {
 
   private createNewSiteLayer(definition: LocationDrawDefinition) {
     const legendName = definition.siteType == ImpClientLocationTypeCodes.Site ? 'Client Locations' : 'Competitor Locations';
-    const siteRenderer =  new EsriApi.SimpleRenderer({
+    const siteRenderer =  new SimpleRenderer({
       label: legendName,
-      symbol: new EsriApi.SimpleMarkerSymbol({
+      symbol: new SimpleMarkerSymbol({
         style: 'path',
         path: definition.symbolPath,
         size: 12,
         color: definition.color,
-        outline: new EsriApi.SimpleLineSymbol({
+        outline: new SimpleLineSymbol({
           color: [255, 255, 255, 0.75],
           width: 1
         })
       })
     });
-    const popupTemplate = new EsriApi.PopupTemplate({
+    const popupTemplate = new PopupTemplate({
       title: definition.popupTitleExpression,
       content: [{ type: 'fields' }],
       fieldInfos: defaultLocationPopupFields
     });
-    const labelColor = new EsriApi.Color(definition.color);
+    const labelColor = new Color(definition.color);
     const labelClass: __esri.LabelClass = this.esriFactory.createLabelClass(labelColor, definition.labelExpression);
     this.esriLayerService.createClientLayer(definition.groupName, definition.layerName, definition.sites, 'parentId', siteRenderer, popupTemplate, [labelClass], true);
   }

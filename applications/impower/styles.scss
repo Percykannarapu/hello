@@ -286,3 +286,16 @@ body {
 .ui-toast-detail {
   white-space: pre-line;
 }
+
+.md-inputfield input.ng-touched.ng-invalid {
+  background-image: linear-gradient(to bottom, $brandRed, $brandRed), linear-gradient(to bottom, $brandRed, $brandRed);
+  ~ span.ui-inputgroup-addon {
+    border-bottom-color: $brandRed;
+    i {
+      color: $brandRed;
+    }
+  }
+  ~ label {
+    color: $brandRed;
+  }
+}

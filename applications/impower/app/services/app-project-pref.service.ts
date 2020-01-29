@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { LocalAppState } from '../state/app.interfaces';
+import { filterArray } from '@val/common';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import { filterArray } from '@val/common';
-import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
 import { AppConfig } from '../app.config';
-import { AppStateService } from './app-state.service';
-import { AppLoggingService } from './app-logging.service';
+import { LocalAppState } from '../state/app.interfaces';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
+import { AppLoggingService } from './app-logging.service';
+import { AppStateService } from './app-state.service';
 
 @Injectable({
    providedIn: 'root'
@@ -49,6 +49,7 @@ export class AppProjectPrefService {
 
    public createPref(group: string, pref: string, value: string, type: string = 'STRING') {
       const currentProject = this.appStateService.currentProject$.getValue();
+      if (currentProject == null) return;
 
       const impProjectPref: ImpProjectPref = this.domainFactory.createProjectPref(currentProject, group, pref, type, value);
 

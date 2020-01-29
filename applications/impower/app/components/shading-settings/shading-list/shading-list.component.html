@@ -1,0 +1,25 @@
+<div class="button-container">
+  <p-splitButton label="Add" [model]="buttonOptions" icon="pi pi-plus" [disabled]="currentAnalysisLevel == null || currentAnalysisLevel.length === 0"></p-splitButton>
+</div>
+
+<p-accordion>
+  <p-accordionTab *ngFor="let def of shadingDefinitions" [selected]="def.isNew">
+    <p-header class="shader-header">
+      <span>
+        <span class="fa" [class.fa-eye]="def.visible" [class.fa-eye-slash]="!def.visible" (click)="toggle(def)"></span>
+        {{def.layerName}}
+      </span>
+      <span class="fa fa-trash-o" (click)="delete(def)"></span>
+    </p-header>
+    <ng-container [ngSwitch]="def.dataKey">
+      <val-selected-geo-shader *ngSwitchCase="shadingTypes.Selection" [definition]="def"
+                               (applyShader)="applyShader.emit($event)" (editShader)="editShader.emit($event)"></val-selected-geo-shader>
+      <val-owner-site-shader *ngSwitchCase="shadingTypes.OwnerSite" [definition]="def"
+                             (applyShader)="applyShader.emit($event)" (editShader)="editShader.emit($event)"></val-owner-site-shader>
+      <val-owner-trade-area-shader *ngSwitchCase="shadingTypes.OwnerTA" [definition]="def"
+                                   (applyShader)="applyShader.emit($event)" (editShader)="editShader.emit($event)"></val-owner-trade-area-shader>
+      <val-variable-shading *ngSwitchDefault [definition]="def" [audiences]="audiences"
+                            (applyShader)="applyShader.emit($event)" (editShader)="editShader.emit($event)"></val-variable-shading>
+    </ng-container>
+  </p-accordionTab>
+</p-accordion>

@@ -99,16 +99,27 @@ body {
     background-color: $lightGray04;
   }
 
+  .ui-dropdown {
+    .ui-dropdown-label {
+      &.ui-inputtext {
+        padding-left: 0.5em;
+      }
+    }
+  }
+
   .md-inputfield {
     > label {
       color: $midGray03;
+    }
+    > .ui-inputwrapper-filled ~ label.drop-down-label {
+      top: -1.25em;
     }
   }
 
   .ui-inputgroup {
     .md-inputfield {
       input:focus ~ label, input.ui-state-filled ~ label {
-        top: -1em;
+        top: -1.25em;
       }
       label {
         top: 1px;
@@ -530,6 +541,9 @@ body {
   }
 
   .ui-dialog {
+    .ui-icon {
+      background-image: none; // removes the esri-specific background image for icons
+    }
     .ui-dialog-titlebar {
       display: flex;
       align-items: center;

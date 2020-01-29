@@ -1,7 +1,7 @@
-import { ILoadScriptOptions } from 'esri-loader';
 import { InjectionToken } from '@angular/core';
 
-export interface EsriConfigOptions extends ILoadScriptOptions, Partial<__esri.config> {
+export interface EsriConfigOptions extends Partial<__esri.config> {
+  version: string;
 }
 
 export interface EsriAuthenticationParams {

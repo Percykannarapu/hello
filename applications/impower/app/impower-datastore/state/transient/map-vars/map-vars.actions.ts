@@ -1,5 +1,5 @@
-import { Action } from '@ngrx/store';
 import { Update } from '@ngrx/entity';
+import { Action } from '@ngrx/store';
 import { MapVar } from './map-vars.model';
 
 export enum MapVarActionTypes {
@@ -13,6 +13,9 @@ export enum MapVarActionTypes {
   DeleteMapVar                = '[MapVar] Delete MapVar',
   DeleteMapVars               = '[MapVar] Delete MapVars',
   ClearMapVars                = '[MapVar] Clear MapVars',
+
+  LoadMappedAudienceIds       = '[MapVar] Load Mapped Audience Ids',
+
   MapVarCacheGeos             = '[MapVar] Cache Geos',
   MapVarCacheGeofootprintGeos = '[MapVar] Cache Geofootprint Geos',
   MapVarCacheGeosComplete     = '[MapVar] Cache Geos Complete',
@@ -79,7 +82,7 @@ export class ClearMapVars implements Action {
 
 export class MapVarCacheGeos implements Action {
   readonly type = MapVarActionTypes.MapVarCacheGeos;
-  constructor(public payload: { geocodes: Set<string> }) {}
+  constructor(public payload: { geocodes: string[] }) {}
 }
 
 export class MapVarCacheGeofootprintGeos implements Action {
@@ -96,18 +99,25 @@ export class MapVarCacheGeosFailure implements Action {
   constructor(public payload: { err: any, correlationId: string }) {}
 }
 
+export class LoadMappedAudienceIds implements Action {
+  readonly type = MapVarActionTypes.LoadMappedAudienceIds;
+  constructor(public payload: { audienceIds: string[] }) {
+  }
+}
+
 export type MapVarActions =
-   LoadMapVars
- | AddMapVar
- | UpsertMapVar
- | AddMapVars
- | UpsertMapVars
- | UpdateMapVar
- | UpdateMapVars
- | DeleteMapVar
- | DeleteMapVars
- | ClearMapVars
- | MapVarCacheGeos
- | MapVarCacheGeofootprintGeos
- | MapVarCacheGeosComplete
- | MapVarCacheGeosFailure;
+  LoadMapVars
+  | AddMapVar
+  | UpsertMapVar
+  | AddMapVars
+  | UpsertMapVars
+  | UpdateMapVar
+  | UpdateMapVars
+  | DeleteMapVar
+  | DeleteMapVars
+  | ClearMapVars
+  | MapVarCacheGeos
+  | MapVarCacheGeofootprintGeos
+  | MapVarCacheGeosComplete
+  | MapVarCacheGeosFailure
+  | LoadMappedAudienceIds;

@@ -49,7 +49,6 @@ export class EsriShadingLayersService {
 
   private setupRendererUpdatesWatcher() : void {
     this.store$.select(shadingSelectors.layerDefsForUpdate).pipe(
-      map(defs => defs.filter(d => d.shadingType !== ConfigurationTypes.Simple && d.arcadeExpression != null)),
       withLatestFrom(this.store$.select(shadingSelectors.featuresCsv))
     ).subscribe(([defs, features]) => {
       defs.forEach(d => {
@@ -80,8 +79,11 @@ export class EsriShadingLayersService {
   private updateGeneralizedShadingLayer(config: ShadingDefinition, newFeatureCsv?: string) : void {
     const layer = this.layerService.getLayerByUniqueId(config.destinationLayerUniqueId);
     if (EsriUtils.layerIsFeature(layer)) {
-      const props = {
-        renderer: this.createGeneralizedRenderer(config)
+      const props: Partial<__esri.FeatureLayer> = {
+        renderer: this.createGeneralizedRenderer(config),
+        visible: config.visible,
+        opacity: config.opacity,
+        title: config.layerName
       };
       if (newFeatureCsv != null && config.filterByFeaturesOfInterest) {
         props['definitionExpression'] = `${config.filterField} IN (${newFeatureCsv})`;
@@ -120,15 +122,16 @@ export class EsriShadingLayersService {
 
   private createGeneralizedRenderer(config: ShadingDefinition) : __esri.Renderer {
     const defaultSymbol = this.createSymbolFromDefinition(config.defaultSymbolDefinition);
+    const defaultLabel = config.defaultSymbolDefinition ? config.defaultSymbolDefinition.legendName : '';
     switch (config.shadingType) {
       case ConfigurationTypes.Simple:
         const simpleResult = this.domainFactory.createSimpleRenderer(defaultSymbol);
-        simpleResult.label = config.defaultSymbolDefinition.legendName;
+        simpleResult.label = defaultLabel;
         return simpleResult;
       case ConfigurationTypes.Unique:
         const classBreaks: __esri.UniqueValueRendererUniqueValueInfos[] = config.breakDefinitions.map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
         const result = this.domainFactory.createUniqueValueRenderer(defaultSymbol, classBreaks);
-        result.defaultLabel = config.defaultSymbolDefinition.legendName;
+        result.defaultLabel = defaultLabel;
         result.valueExpression = config.arcadeExpression;
         return result;
       case ConfigurationTypes.Ramp:
@@ -145,8 +148,9 @@ export class EsriShadingLayersService {
   }
 
   private createSymbolFromDefinition(def: SymbolDefinition) : __esri.Symbol {
-    const outline = this.domainFactory.createSimpleLineSymbol(def.outlineColor || [0, 0, 0, 0]);
-    return this.domainFactory.createSimpleFillSymbol(def.fillColor, outline, def.fillType);
+    const currentDef = def || { fillColor: [0, 0, 0, 0], fillType: 'solid' };
+    const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0]);
+    return this.domainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
   }
 
   private deleteRenderingLayers(ids: string[]) {

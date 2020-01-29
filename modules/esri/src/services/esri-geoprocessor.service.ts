@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { EsriApi } from '../core/esri-api.service';
-import { EsriMapService } from './esri-map.service';
+import Geoprocessor from 'esri/tasks/Geoprocessor';
+import PrintTask from 'esri/tasks/PrintTask';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class EsriGeoprocessorService {
 
-  constructor(private esriMapService: EsriMapService) { }
+  constructor() { }
 
   public processJob<T>(serviceUrl: string, servicePayload: any, resultType: string = 'out_features') : Observable<{ value: T }> {
-    const processor = new EsriApi.Geoprocessor({ url: serviceUrl });
+    const processor = new Geoprocessor({ url: serviceUrl });
     return Observable.create(async observer => {
       try {
         const jobResult = await processor.submitJob(servicePayload);
@@ -27,10 +27,9 @@ export class EsriGeoprocessorService {
   }
 
   public processPrintJob<T>(printServiceUrl: string, servicePayload: __esri.PrintParameters) : Observable<T> {
-
-    const processor: any = new EsriApi.PrintTask({url: printServiceUrl});
+    const processor: any = new PrintTask({url: printServiceUrl});
     const proxy_getPrintDefinition = processor._getPrintDefinition;
-    
+
     processor._getPrintDefinition = function() {
        return proxy_getPrintDefinition.apply(processor, arguments).then((result) => {
          result.operationalLayers.forEach(l => {
@@ -47,11 +46,11 @@ export class EsriGeoprocessorService {
               l.layerDefinition.drawingInfo.labelingInfo[0].symbol.font.size = 7;
              }
            }
-            
+
          });
          return result;
        });
- 
+
     };
 
 
@@ -61,12 +60,12 @@ export class EsriGeoprocessorService {
         if (printResult != null && printResult.url != null) {
             observer.next(printResult.url);
             observer.complete();
-          } 
+          }
         } catch (err) {
           observer.error(err);
         }
     });
-    
+
   }
 
 }

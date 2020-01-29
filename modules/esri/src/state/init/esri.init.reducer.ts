@@ -1,30 +1,30 @@
 import { TokenResponse } from '../../core/esri-utils';
-import * as fromActions from './esri.auth.actions';
+import * as fromActions from './esri.init.actions';
 
-export interface EsriAuthState {
+export interface EsriInitState {
   isAuthenticated: boolean;
   isAuthenticating: boolean;
   tokenResponse: TokenResponse;
 }
 
-const initialState: EsriAuthState = {
+const initialState: EsriInitState = {
   isAuthenticated: false,
   isAuthenticating: false,
   tokenResponse: null
 };
 
-export function authReducer(state = initialState, action: fromActions.EsriAuthActions) : EsriAuthState {
+export function initReducer(state = initialState, action: fromActions.EsriInitActions) : EsriInitState {
   switch (action.type) {
-    case fromActions.EsriAuthActionTypes.Authenticate:
+    case fromActions.EsriInitActionTypes.Authenticate:
       return { ...state, isAuthenticating: true };
-    case fromActions.EsriAuthActionTypes.AuthenticateFailure:
+    case fromActions.EsriInitActionTypes.AuthenticateFailure:
       return {
         ...state,
         isAuthenticating: false,
         isAuthenticated: false,
         tokenResponse: null
       };
-    case fromActions.EsriAuthActionTypes.AuthenticateSuccess:
+    case fromActions.EsriInitActionTypes.AuthenticateSuccess:
       return {
         ...state,
         isAuthenticating: false,

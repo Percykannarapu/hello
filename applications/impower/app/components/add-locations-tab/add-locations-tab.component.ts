@@ -1,27 +1,27 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { AppLocationService } from '../../services/app-location.service';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { map, filter, take } from 'rxjs/operators';
-import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { AppGeocodingService } from '../../services/app-geocoding.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { siteListUpload } from './upload.rules';
-import { environment } from '../../../environments/environment';
-import { AppBusinessSearchService, BusinessSearchCategory, BusinessSearchRequest, BusinessSearchResponse } from '../../services/app-business-search.service';
-import { BusinessSearchComponent, SearchEventData } from './business-search/business-search.component';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { AppStateService } from '../../services/app-state.service';
-import { LocalAppState, FullAppState } from '../../state/app.interfaces';
-import { Store, select } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { ManualEntryComponent } from './manual-entry/manual-entry.component';
-import { AppEditSiteService } from '../../services/app-editsite.service';
-import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { filter, map, take } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
-import { Geocode, HomeGeocode } from '../../state/homeGeocode/homeGeo.actions';
-import { selectors } from '@val/esri';
+import { AppBusinessSearchService, BusinessSearchCategory, BusinessSearchRequest, BusinessSearchResponse } from '../../services/app-business-search.service';
+import { AppEditSiteService } from '../../services/app-editsite.service';
+import { AppGeocodingService } from '../../services/app-geocoding.service';
+import { AppLocationService } from '../../services/app-location.service';
+import { AppStateService } from '../../services/app-state.service';
+import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { FullAppState } from '../../state/app.interfaces';
+import { resetNamedForm } from '../../state/forms/forms.actions';
+import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
+import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { BusinessSearchComponent, SearchEventData } from './business-search/business-search.component';
+import { ManualEntryComponent } from './manual-entry/manual-entry.component';
+import { siteListUpload } from './upload.rules';
 
 @Component({
   selector: 'val-add-locations-tab',
@@ -100,7 +100,8 @@ export class AddLocationsTabComponent implements OnInit {
     });
   }
 
-  manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, isEdit?: boolean){
+  manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
+    this.store$.dispatch(resetNamedForm({ path: 'addLocation' }));
     //validate Manually added geocodes
     const locations = this.impGeofootprintLocationService.get();
     //const locations = this.appStateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations;

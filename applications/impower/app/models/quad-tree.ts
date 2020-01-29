@@ -1,6 +1,6 @@
 import { toUniversalCoordinates } from '@val/common';
-import { EsriApi, EsriUtils } from '@val/esri';
-
+import { EsriUtils } from '@val/esri';
+import { Extent, Multipoint, Point } from 'esri/geometry';
 
 type NonArray<T> = T extends (infer R)[] ? R : T;
 export class QuadTree<T extends NonArray<Parameters<typeof toUniversalCoordinates>[0]>> {
@@ -12,7 +12,7 @@ export class QuadTree<T extends NonArray<Parameters<typeof toUniversalCoordinate
   constructor(private locations: T[], private readonly extent?: __esri.Extent) {
     if (extent == null) {
       const locationPoints: number[][] = toUniversalCoordinates(locations).map(uc => [uc.x, uc.y]);
-      const multiPoint = new EsriApi.Multipoint({ points: locationPoints });
+      const multiPoint = new Multipoint({ points: locationPoints });
       this.extent = multiPoint.extent.clone();
     }
   }
@@ -46,17 +46,17 @@ export class QuadTree<T extends NonArray<Parameters<typeof toUniversalCoordinate
 
   private subdivide() : void {
     const center = this.extent.center;
-    const q0 = new EsriApi.Extent({ xmax: this.extent.xmax, xmin: center.x, ymax: this.extent.ymax, ymin: center.y });
-    const q1 = new EsriApi.Extent({ xmax: center.x, xmin: this.extent.xmin, ymax: center.y, ymin: this.extent.ymin });
-    const q2 = new EsriApi.Extent({ xmax: center.x, xmin: this.extent.xmin, ymax: this.extent.ymax, ymin: center.y });
-    const q3 = new EsriApi.Extent({ xmax: this.extent.xmax, xmin: center.x, ymax: center.y, ymin: this.extent.ymin });
+    const q0 = new Extent({ xmax: this.extent.xmax, xmin: center.x, ymax: this.extent.ymax, ymin: center.y });
+    const q1 = new Extent({ xmax: center.x, xmin: this.extent.xmin, ymax: center.y, ymin: this.extent.ymin });
+    const q2 = new Extent({ xmax: center.x, xmin: this.extent.xmin, ymax: this.extent.ymax, ymin: center.y });
+    const q3 = new Extent({ xmax: this.extent.xmax, xmin: center.x, ymax: center.y, ymin: this.extent.ymin });
     const l0 = [];
     const l1 = [];
     const l2 = [];
     const l3 = [];
     this.locations.forEach(loc => {
       const uc = toUniversalCoordinates(loc);
-      const pt = new EsriApi.Point({ x: uc.x, y: uc.y });
+      const pt = new Point({ x: uc.x, y: uc.y });
       if (q0.contains(pt)) {
         l0.push(loc);
       } else if (q1.contains(pt)) {

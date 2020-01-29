@@ -1,20 +1,20 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { filterArray } from '@val/common';
 import { combineLatest, Observable } from 'rxjs';
+import { filter, map, tap } from 'rxjs/operators';
 import { User } from '../../models/User';
+import { ValDiscoveryUIModel } from '../../models/val-discovery.model';
 import { AppDiscoveryService, ProjectTrackerUIModel, RadLookupUIModel } from '../../services/app-discovery.service';
 import { AppLoggingService } from '../../services/app-logging.service';
-import { UserService } from '../../services/user.service';
-import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { AppStateService } from '../../services/app-state.service';
-import { filter, map, tap } from 'rxjs/operators';
-import { ValDiscoveryUIModel } from '../../models/val-discovery.model';
-import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
+import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { Store } from '@ngrx/store';
-import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { filterArray } from '@val/common';
 import { CalculateMetrics } from '../../state/data-shim/data-shim.actions';
+import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
+import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { DiscoveryInputComponent } from './discovery-input/discovery-input.component';
 
 @Component({
@@ -46,7 +46,7 @@ export class CampaignDetailsComponent implements OnInit {
 
   ngOnInit() {
     this.currentDiscoveryData$ =
-      combineLatest(this.appStateService.applicationIsReady$, this.appStateService.currentProject$, this.appDiscoveryService.selectedRadLookup$, this.appDiscoveryService.selectedProjectTracker$)
+      combineLatest([this.appStateService.applicationIsReady$, this.appStateService.currentProject$, this.appDiscoveryService.selectedRadLookup$, this.appDiscoveryService.selectedProjectTracker$])
         .pipe(
           filter(([appIsReady]) => appIsReady),
           map(([, currentProject, selectedRad, selectedTracker]) => ValDiscoveryUIModel.createFromProject(currentProject, selectedRad, selectedTracker)),
@@ -55,13 +55,13 @@ export class CampaignDetailsComponent implements OnInit {
     this.currentRadSuggestions$ = this.appDiscoveryService.radSearchSuggestions$;
     this.currentProjectTrackerSuggestions$ = this.appDiscoveryService.trackerSearchSuggestions$;
 
-    this.onlineAudienceExists$ = this.targetAudienceService.audiences$.pipe(
+    this.onlineAudienceExists$ = this.targetAudienceService.allAudiencesBS$.pipe(
       filterArray(audience => audience.audienceSourceType === 'Online'),
       map(audiences => audiences.length > 0 )
     );
 
 
-    
+
     // this maps the form control names to the equivalent usage metric name
     // if there is no entry here, then it will not get logged on change
     this.usageTargetMap = {
@@ -101,7 +101,7 @@ export class CampaignDetailsComponent implements OnInit {
             this.previousForm.cpmAnne !== newValues.cpmAnne ||
             this.previousForm.cpmSolo !== newValues.cpmSolo ||
             this.previousForm.cpmValassis !== newValues.cpmValassis ||
-            this.previousForm.cpmBlended !== newValues.cpmBlended || 
+            this.previousForm.cpmBlended !== newValues.cpmBlended ||
             this.previousForm.selectedSeason !== newValues.selectedSeason ) {
           this.store$.dispatch(new CalculateMetrics());
         }
@@ -111,7 +111,7 @@ export class CampaignDetailsComponent implements OnInit {
     }
     this.previousForm = new ValDiscoveryUIModel({ ...newValues });
   }
- 
+
   onTrackerSearch(searchTerm: string) : void {
     this.appDiscoveryService.updateTrackerSuggestions(searchTerm);
   }

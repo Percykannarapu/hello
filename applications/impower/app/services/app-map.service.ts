@@ -1,18 +1,28 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, WatchResult } from '@val/esri';
+import { EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
+import Basemap from 'esri/Basemap';
+import { Point } from 'esri/geometry';
+import geometryEngine from 'esri/geometry/geometryEngine';
+import BasemapGallery from 'esri/widgets/BasemapGallery';
+import LocalBasemapsSource from 'esri/widgets/BasemapGallery/support/LocalBasemapsSource';
+import Home from 'esri/widgets/Home';
+import LayerList from 'esri/widgets/LayerList';
+import Legend from 'esri/widgets/Legend';
+import ScaleBar from 'esri/widgets/ScaleBar';
+import Search from 'esri/widgets/Search';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, filter } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../state/usage/targeting-usage.actions';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLayerService } from './app-layer.service';
 import { AppLoggingService } from './app-logging.service';
+import { AppProjectPrefService } from './app-project-pref.service';
 import { AppRendererService } from './app-renderer.service';
 import { AppStateService, Season } from './app-state.service';
-import { AppProjectPrefService } from './app-project-pref.service';
 
 export interface GeoClickEvent {
   geocode: string;
@@ -58,19 +68,19 @@ export class AppMapService {
           if (isBatchMapping) {
             // if we're batch mapping, we want no widgets on the UI except for a custom legend
             this.mapService.mapView.ui.remove('zoom');
-            this.mapService.createBasicWidget(EsriApi.widgets.Legend, {}, 'top-right');
+            this.mapService.createBasicWidget(Legend, {}, 'top-right');
             return;
           }
           // setup the map widgets
-          this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });
-          this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
-          this.mapService.createHiddenWidget(EsriApi.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
-          this.mapService.createHiddenWidget(EsriApi.widgets.Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend', group: 'left-column' });
-          const source = new EsriApi.widgets.LocalBasemapsSource({
-            basemaps: this.config.basemaps.map(b => EsriApi.BaseMap.fromId(b))
+          this.mapService.createBasicWidget(Home, { viewpoint: homeView });
+          this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
+          this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
+          this.mapService.createHiddenWidget(Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend', group: 'left-column' });
+          const source = new LocalBasemapsSource({
+            basemaps: this.config.basemaps.map(b => Basemap.fromId(b))
           });
-          this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' });
-          this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
+          this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' });
+          this.mapService.createBasicWidget(ScaleBar, { unit: 'dual' }, 'bottom-left');
 
           const popup: __esri.Popup = this.mapService.mapView.popup;
           popup.actionsMenuEnabled = false;
@@ -91,21 +101,17 @@ export class AppMapService {
             }
           });
 
-          EsriUtils.setupWatch(popup, 'visible').pipe(debounceTime(1000)).subscribe(result => {
-            this.logger.debug.log('Popup visible watch fired', result);
-            if (result.newValue === false) {
-              this.zone.run(() => this.componentGenerator.cleanUpGeoPopup());
-            }
-          });
+          EsriUtils.setupWatch(popup, 'visible').pipe(
+            filter(result => result.newValue === false),
+            debounceTime(1000)
+          ).subscribe(() => this.zone.run(() => this.componentGenerator.cleanUpGeoPopup()));
 
-          const currectBaseMap: __esri.Basemap = this.mapService.widgetMap.get('esri.widgets.BasemapGallery').get('activeBasemap');
-          this.appProjectPrefService.createPref('legend-settings', 'basemap', JSON.stringify(currectBaseMap.toJSON()), 'string');
-          EsriUtils.setupWatch(this.mapService.mapView.map, 'basemap').subscribe(val => {
-            this.appProjectPrefService.createPref('legend-settings', 'basemap',  JSON.stringify(val.newValue.toJSON()), 'string');
-          });
-          EsriUtils.setupWatch(this.mapService.mapView, 'extent').subscribe(extent => {
-            this.appProjectPrefService.createPref('map-extent', 'extent',  JSON.stringify(extent.newValue.toJSON()), 'string');
-          });
+          EsriUtils.setupWatch(this.mapService.mapView.map, 'basemap').subscribe(val => this.zone.run(() => {
+            this.appProjectPrefService.createPref('esri', 'basemap',  JSON.stringify(val.newValue.toJSON()), 'string');
+          }));
+          EsriUtils.setupWatch(this.mapService.mapView, 'extent').subscribe(extent => this.zone.run(() => {
+            this.appProjectPrefService.createPref('esri', 'extent',  JSON.stringify(extent.newValue.toJSON()), 'string');
+          }));
         });
       }
     });
@@ -152,7 +158,7 @@ export class AppMapService {
         const geocode =  graphic.attributes.geocode;
         const latitude = graphic.attributes.latitude;
         const longitude = graphic.attributes.longitude;
-        const point: __esri.Point = new EsriApi.Point({latitude: latitude, longitude: longitude});
+        const point: __esri.Point = new Point({latitude: latitude, longitude: longitude});
         if (button === 8) {
           this.collectSelectionUsage(graphic, 'multiUnSelectTool');
         } else {
@@ -176,10 +182,6 @@ export class AppMapService {
     });
     this.selectedButton = button;
     this.geoSelected.next(events);
-  }
-
-  watchMapViewProperty<T extends keyof __esri.MapView>(propertyName: T) : Observable<WatchResult<__esri.MapView, T>> {
-    return this.mapService.watchMapViewProperty(propertyName);
   }
 
   /**
@@ -237,9 +239,9 @@ export class AppMapService {
   }
 
   private measureThis() {
-    const geom: __esri.Geometry = this.mapService.mapView.popup.selectedFeature.geometry;
-    const distance: number = EsriApi.geometryEngine.geodesicLength(geom, 'miles');
-    const area: number = EsriApi.geometryEngine.geodesicArea(<any>geom, 'square-miles');
+    const geom: any = this.mapService.mapView.popup.selectedFeature.geometry;
+    const distance: number = geometryEngine.geodesicLength(geom, 'miles');
+    const area: number = geometryEngine.geodesicArea(geom, 'square-miles');
     const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
     const areaStr: string = String(parseFloat(Math.round((area * 100) / 100).toFixed(2)));
 

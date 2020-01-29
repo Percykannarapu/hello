@@ -1,10 +1,10 @@
-import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { EsriApi } from '../core/esri-api.service';
-import { TokenResponse } from '../core/esri-utils';
-import { EsriAuthenticationParams, EsriAuthenticationToken } from '../configuration';
+import { Inject, Injectable } from '@angular/core';
+import IdentityManager from 'esri/identity/IdentityManager';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { EsriAuthenticationParams, EsriAuthenticationToken } from '../configuration';
+import { TokenResponse } from '../core/esri-utils';
 
 @Injectable()
 export class EsriIdentityService {
@@ -27,7 +27,7 @@ export class EsriIdentityService {
   }
 
   registerToken(response: TokenResponse) : void {
-    EsriApi.IdentityManager.registerToken({
+    IdentityManager.registerToken({
       expires: response.expires,
       server: this.config.tokenServerUrl,
       ssl: response.ssl,

@@ -32,3 +32,7 @@ export type DeepOmit<T, U, V extends keyof U> = unknown extends T ? T : {
         ? ReadonlyArray<DeepOmit<R, U, V>>
         : DeepOmit<T[P], U, V>
 };
+
+export type FormConfig<T> = {
+  [P in keyof T]: any;
+};

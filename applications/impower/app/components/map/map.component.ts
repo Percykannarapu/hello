@@ -1,20 +1,21 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import {select, Store} from '@ngrx/store';
-import { EsriApi, selectors } from '@val/esri';
-import {ConfirmationService} from 'primeng/api';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { debounceTime, filter, take, takeUntil } from 'rxjs/operators';
-import {AppConfig} from '../../app.config';
-import {AppGeoService} from '../../services/app-geo.service';
-import {AppMapService} from '../../services/app-map.service';
-import {AppRendererService} from '../../services/app-renderer.service';
-import {AppStateService} from '../../services/app-state.service';
-import {AppTradeAreaService} from '../../services/app-trade-area.service';
-import {FullAppState} from '../../state/app.interfaces';
-import {CreateMapUsageMetric, CreateProjectUsageMetric} from '../../state/usage/targeting-usage.actions';
-import {ImpProject} from '../../val-modules/targeting/models/ImpProject';
-import {ImpGeofootprintGeoService} from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { getMapVars } from '../../impower-datastore/state/transient/map-vars/map-vars.selectors';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { select, Store } from '@ngrx/store';
+import { selectors } from '@val/esri';
+import Viewpoint from 'esri/Viewpoint';
+import { ConfirmationService } from 'primeng/api';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
+import { AppGeoService } from '../../services/app-geo.service';
+import { AppMapService } from '../../services/app-map.service';
+import { AppRendererService } from '../../services/app-renderer.service';
+import { AppStateService } from '../../services/app-state.service';
+import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { FullAppState } from '../../state/app.interfaces';
+import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
+import { layersAreReady } from '../../state/data-shim/data-shim.selectors';
+import { CreateMapUsageMetric, CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 const VIEWPOINT_KEY = 'IMPOWER-MAPVIEW-VIEWPOINT';
 const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
@@ -24,12 +25,10 @@ const HEIGHT_KEY = 'IMPOWER-MAP-HEIGHT';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit, OnDestroy {
+export class MapComponent implements OnInit {
   currentAnalysisLevel$: Observable<string>;
   mapHeight$: BehaviorSubject<number> = new BehaviorSubject<number>(400);
   selectedPanelButton: number;
-
-  private destroyed$ = new Subject<void>();
 
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,
@@ -40,6 +39,12 @@ export class MapComponent implements OnInit, OnDestroy {
               private confirmationService: ConfirmationService,
               private cd: ChangeDetectorRef,
               private store$: Store<FullAppState>) {}
+
+  private static saveMapViewData(mapView: __esri.MapView) {
+    const mapHeight = mapView.container.clientHeight > 50 ? mapView.container.clientHeight : 400;
+    localStorage.setItem(VIEWPOINT_KEY, JSON.stringify(mapView.viewpoint.toJSON()));
+    localStorage.setItem(HEIGHT_KEY, JSON.stringify(mapHeight + 10));
+  }
 
   ngOnInit() {
     console.log('Initializing Application Map Component');
@@ -53,16 +58,6 @@ export class MapComponent implements OnInit, OnDestroy {
       select(selectors.getEsriFeaturesSelected),
       filter(features => features != null && features.length > 0)
     ).subscribe(features => this.onPolysSelected(features));
-    this.store$.pipe(
-      select(getMapVars)
-    ).subscribe((mapVars) => {
-      console.log('In Map Component selector:::');
-      // this.rendererService.getMapVars(mapVars);
-    });
-  }
-
-  public ngOnDestroy() : void {
-    this.destroyed$.next();
   }
 
   fnSelectedButton(button) {
@@ -91,18 +86,19 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   onViewExtentChanged(view: __esri.MapView) : void {
-    this.saveMapViewData(view);
+    MapComponent.saveMapViewData(view);
   }
 
   private setupApplication() : void {
     this.appStateService.notifyMapReady();
-    this.appMapService.watchMapViewProperty('stationary').pipe(
-      filter(result => result.newValue),
-      debounceTime(500),
-      takeUntil(this.destroyed$)
-    ).subscribe(() => this.appStateService.refreshVisibleGeos());
     this.appMapService.setupMap();
-    this.setupMapFromStorage();
+    this.store$.select(layersAreReady).pipe(
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.setupMapFromStorage();
+      this.store$.dispatch(new CreateNewProject());
+    });
   }
 
   private checkFilters(features: __esri.Graphic[], currentProject: ImpProject) : any {
@@ -112,25 +108,23 @@ export class MapComponent implements OnInit, OnDestroy {
     const includePob = !currentProject.isExcludePob;
     let outerCheck: boolean = true;
     const filteredFeatures: __esri.Graphic[] = [];
-    features.forEach((feature, index) => {
+    features.forEach((feature) => {
       const currentAttribute = feature.attributes;
       if (currentAttribute != null) {
         let innerCheck: boolean = true;
         switch (currentAttribute['owner_group_primary']) {
           case 'VALASSIS':
-          innerCheck = includeValassis ? (innerCheck && true) : false;
+            innerCheck = includeValassis;
             break;
           case 'ANNE':
-          innerCheck = includeAnne ? (innerCheck && true) : false;
+            innerCheck = includeAnne;
             break;
-          default:
-          innerCheck = innerCheck;
         }
         if (currentAttribute['cov_frequency'] === 'Solo') {
-          innerCheck = includeSolo ? (innerCheck && true) : false;
+          innerCheck = includeSolo ? innerCheck : false;
         }
         if (currentAttribute['pob'] === 'B') {
-          innerCheck = includePob ? (innerCheck && true) : false;
+          innerCheck = includePob ? innerCheck : false;
         }
         if (innerCheck) {
           filteredFeatures.push(feature);
@@ -178,19 +172,13 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
-  private saveMapViewData(mapView: __esri.MapView) {
-    const mapHeight = mapView.container.clientHeight > 50 ? mapView.container.clientHeight : 400;
-    localStorage.setItem(VIEWPOINT_KEY, JSON.stringify(mapView.viewpoint.toJSON()));
-    localStorage.setItem(HEIGHT_KEY, JSON.stringify(mapHeight + 10));
-  }
-
   private setupMapFromStorage() : void {
     const vpString = localStorage.getItem(VIEWPOINT_KEY);
     const heightString = localStorage.getItem(HEIGHT_KEY);
     const heightNum = Number(heightString);
     if (vpString) {
       const vp = JSON.parse(vpString);
-      this.appMapService.setViewpoint(EsriApi.Viewpoint.fromJSON(vp));
+      this.appMapService.setViewpoint(Viewpoint.fromJSON(vp));
     }
     if (Number.isNaN(heightNum) || heightNum < 50) {
       this.mapHeight$.next(400);

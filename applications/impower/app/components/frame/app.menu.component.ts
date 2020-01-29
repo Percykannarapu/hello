@@ -123,7 +123,7 @@ export class AppMenuComponent implements OnInit {
 @Component({
     selector: '[app-submenu]',
     template: `
-      <ng-template ngFor let-child let-i="index" [ngForOf]="(root ? item : item.items)">
+      <ng-template ngFor let-child let-i="index" [ngForOf]="item">
         <li [ngClass]="{'active-menuitem': isActive(i)}" [class]="child.badgeStyleClass" *ngIf="child.visible !== false">
           <a [href]="child.url||'#'" (click)="itemClick($event,child,i)" (mouseenter)="onMouseEnter(i)"
              class="ripplelink" *ngIf="!child.routerLink"
@@ -146,7 +146,7 @@ export class AppMenuComponent implements OnInit {
             <div class="layout-menu-tooltip-arrow"></div>
             <div class="layout-menu-tooltip-text" [innerHTML]="child.label"></div>
           </div>
-          <ul app-submenu [item]="child" *ngIf="child.items" [visible]="isActive(i)" [reset]="reset"
+          <ul app-submenu [item]="child.items" *ngIf="child.items" [visible]="isActive(i)" [reset]="reset"
               [@children]="(app.isSlim()||app.isHorizontal())&&root ? isActive(i) ?
                     'visible' : 'hidden' : isActive(i) ? 'visibleAnimated' : 'hiddenAnimated'"></ul>
         </li>
@@ -173,7 +173,7 @@ export class AppMenuComponent implements OnInit {
 })
 export class AppSubMenuComponent {
 
-    @Input() item: MenuItem | MenuItem[];
+    @Input() item: MenuItem[];
     @Input() root: boolean;
     @Input() visible: boolean;
     _reset: boolean;

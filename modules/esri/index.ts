@@ -9,10 +9,8 @@ export * from './esri.module';
 
 export * from './src/core/esri.enums';
 export * from './src/core/esri.models';
-export * from './src/core/esri-api.service';
 export * from './src/core/esri-utils';
 export * from './src/core/esri-arcade.utils';
-export * from './src/core/esri-widgets';
 
 export * from './src/services/esri-domain-factory.service';
 export * from './src/services/esri-geoprocessor.service';
@@ -27,9 +25,9 @@ export * from './src/services/esri.service';
 export * from './src/state/esri.actions';
 export { EsriState, AppState, selectors, shadingSelectors } from './src/state/esri.selectors';
 export { ColorPalette, getColorPalette } from './src/models/color-palettes';
-export * from './src/state/api/esri.api.actions';
-export * from './src/state/auth/esri.auth.actions';
+export * from './src/state/init/esri.init.actions';
 export * from './src/state/map/esri.map.actions';
+export { EsriLabelLayerOptions } from './src/state/map/esri.map.reducer';
 export * from './src/state/shading/esri.shading.actions';
 export * from './src/models/shading-configuration';
 export * from './src/models/esri-types';

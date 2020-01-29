@@ -1,7 +1,11 @@
 import { Inject, Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { mapByExtended, mapToEntity, simpleFlatten } from '@val/common';
-import { EsriApi, EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriService, LayerDefinition, LayerGroupDefinition, selectors } from '@val/esri';
+import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriService, EsriUtils, LayerDefinition, LayerGroupDefinition, selectors } from '@val/esri';
+import Color from 'esri/Color';
+import FieldInfo from 'esri/popup/FieldInfo';
+import PopupTemplate from 'esri/PopupTemplate';
+import ActionButton from 'esri/support/actions/ActionButton';
 import { merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, finalize, map, pairwise, startWith, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
@@ -103,7 +107,7 @@ export class AppLayerService {
     layer.when(currentLayer => {
       if (!currentLayer.title.endsWith('Centroids')) {
         const revisedRenderer = (currentLayer.renderer as __esri.SimpleRenderer).clone();
-        revisedRenderer.symbol.color = new EsriApi.Color([ 128, 128, 128, 0.01 ]);
+        revisedRenderer.symbol.color = new Color([ 128, 128, 128, 0.01 ]);
         currentLayer.renderer = revisedRenderer;
       }
     });
@@ -131,7 +135,7 @@ export class AppLayerService {
   }
 
   private addVisibilityWatch(layer: __esri.Layer, startPaused: boolean = true) : void {
-    const currentWatch = EsriApi.watchUtils.pausable(layer, 'visible', () => this.collectLayerUsage(layer));
+    const currentWatch = EsriUtils.setupPausableWatch(layer, 'visible', () => this.collectLayerUsage(layer));
     if (startPaused) currentWatch.pause();
     this.pausableWatches.push(currentWatch);
   }
@@ -140,7 +144,6 @@ export class AppLayerService {
     const popupEnabled = (layerDef.useCustomPopUp === true) || (layerDef.popUpFields.length > 0);
     if (popupEnabled) {
       newLayer.when(() => {
-        // const localLayer = (e.layerView.layer as __esri.FeatureLayer);
         newLayer.popupTemplate = this.createPopupTemplate(newLayer, layerDef);
       });
     } else {
@@ -149,12 +152,7 @@ export class AppLayerService {
   }
 
   private createPopupTemplate(target: __esri.FeatureLayer, layerDef: LayerDefinition) : __esri.PopupTemplate {
-    const measureThisAction = new EsriApi.ActionButton({
-      title: 'Measure Length',
-      id: 'measure-this',
-      className: 'esri-icon-share'
-    });
-    const selectThisAction = new EsriApi.ActionButton({
+    const selectThisAction = new ActionButton({
       title: 'Add/Remove Geo',
       id: 'select-this',
       className: 'esri-icon-plus-circled'
@@ -164,7 +162,7 @@ export class AppLayerService {
       layerDef.popUpFields;
     const fieldsToUse = new Set<string>(definedFields);
     const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
-    const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new EsriApi.FieldInfo({ fieldName: f.name, label: f.alias }));
+    const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new FieldInfo({ fieldName: f.name, label: f.alias }));
     fieldInfos.sort(byDefinedFieldIndex);
     const result: __esri.PopupTemplateProperties = { title: layerDef.popupTitle, actions: [selectThisAction] };
     if (layerDef.useCustomPopUp === true) {
@@ -174,7 +172,7 @@ export class AppLayerService {
     }
     result.outFields = Array.from(fieldsToUse);
     result.overwriteActions = true;
-   return new EsriApi.PopupTemplate(result);
+   return new PopupTemplate(result);
   }
 
   public clearClientLayers() {

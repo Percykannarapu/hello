@@ -1,19 +1,18 @@
-import { Component, OnInit, ViewChild, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
+import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
+import { ConfirmationService, SelectItem } from 'primeng/api';
 import { FileUpload } from 'primeng/fileupload';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import * as xlsx from 'xlsx';
-import { AppGeoService } from '../../../services/app-geo.service';
 import { AppProjectPrefService } from '../../../services/app-project-pref.service';
 import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
-import { ConfirmationService, SelectItem } from 'primeng/api';
-import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
-import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
 
 interface CustomMCDefinition {
   Number: number;
@@ -26,7 +25,7 @@ interface CustomMCDefinition {
   styleUrls: ['./upload-must-cover.component.css']
 })
 export class UploadMustCoverComponent implements OnInit {
-   
+
    private readonly spinnerId = 'MUST_COVERS_UPLOAD';
    public isDisable: boolean = true;
    public tooltip;
@@ -35,15 +34,15 @@ export class UploadMustCoverComponent implements OnInit {
    private fileName: string;
    //public isMustCoverExists: boolean;
 
-   allAnalysisLevels: SelectItem[] = []; 
-   fileAnalysisLevels: SelectItem[] = []; 
+   allAnalysisLevels: SelectItem[] = [];
+   fileAnalysisLevels: SelectItem[] = [];
    fileAnalysisSelected: string;
    fileAnalysisLabel: string;
    @Output() isMustCoverExists = new EventEmitter<boolean>();
 
    @ViewChild('mustCoverUpload', { static: true }) private mustCoverUploadEl: FileUpload;
 
-   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService
+   constructor(public impGeofootprintGeoService: ImpGeofootprintGeoService
               , private appStateService: AppStateService
               , private appProjectPrefService: AppProjectPrefService
               , private confirmationService: ConfirmationService
@@ -54,7 +53,7 @@ export class UploadMustCoverComponent implements OnInit {
               }
 
    ngOnInit() {
-    
+
       this.allAnalysisLevels = [
          {label: 'ZIP', value: 'ZIP'},
          {label: 'ATZ', value: 'ATZ'},
@@ -66,7 +65,7 @@ export class UploadMustCoverComponent implements OnInit {
          {label: 'DMA', value: 'DMA'},
          {label: 'Infoscan', value: 'INFOSCAN_CODE'},
          {label: 'Scantrack', value: 'SCANTRACK_CODE'}
-       ];  
+       ];
 
     this.tooltip = 'Please select an Analysis Level before uploading a Must Cover file';
 
@@ -93,16 +92,16 @@ export class UploadMustCoverComponent implements OnInit {
         case 'ZIP' :
             this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'ATZ' && v.value !== 'PCR' && v.value !== 'Digital ATZ');
             break;
-        case 'ATZ' :  
-            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'Digital ATZ' && v.value !== 'PCR');  
+        case 'ATZ' :
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'Digital ATZ' && v.value !== 'PCR');
             break;
         case 'Digital ATZ':
             this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'PCR');
             break;
         default:
             this.fileAnalysisLevels = this.allAnalysisLevels;
-            break;    
-      }  
+            break;
+      }
     });
 
    }
@@ -137,7 +136,7 @@ export class UploadMustCoverComponent implements OnInit {
                 geo.isActive = true;
              }
        });
-      this.isMustCoverExists.emit(geos.length > 0); 
+      this.isMustCoverExists.emit(geos.length > 0);
       this.impGeofootprintGeoService.makeDirty();
    }
 
@@ -214,7 +213,7 @@ export class UploadMustCoverComponent implements OnInit {
             /*if (this.impGeofootprintGeoService.uploadFailures.length > 0)
                this.isMustCoverExists = true;*/
             this.fileAnalysisSelected = null;
-            this.isDisable = true;   
+            this.isDisable = true;
          },
          reject: () => {
             this.isMustCoverExists.emit(true);

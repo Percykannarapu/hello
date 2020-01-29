@@ -4,12 +4,12 @@ import { Store } from '@ngrx/store';
 import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended, isNumber, mapByExtended } from '@val/common';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
-import { ApplyAudiences, ClearAudiences, ClearAudienceStats, DeleteAudience, FetchMapVar, RehydrateAudiences, UpsertAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { ApplyAudiences, ClearAudiences, ClearAudienceStats, DeleteAudience, UpsertAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 import { EnvironmentData } from 'environments/environment';
-import { BehaviorSubject, combineLatest, concat, merge, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, concat, merge, Observable, Subscription } from 'rxjs';
 import { debounceTime, filter, map, mergeMap, pairwise, reduce, startWith, tap } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import { AppConfig } from '../app.config';
@@ -43,34 +43,21 @@ interface OnlineBulkDownloadDataResponse {
   providedIn: 'root'
 })
 export class TargetAudienceService implements OnDestroy {
-
-  // This field is being used to maintain the sort order for the audiences grid
-  // As each new audience is created it will get assigned the current value
-  // of this number and increment it, then when we save this value will be
-  // saved in the database and when we load we will know what order to populate the grid in
-  public static audienceSeq: number = 0;
-
   public readonly spinnerKey: string = 'TargetAudienceServiceKey';
 
   public newSelectedGeos$: Observable<string[]>;
-  public newVisibleGeos$: Observable<string[]>;
 
   private nationalSources = new Map<string, nationalSource>();
   private audienceSources = new Map<string, audienceSource>();
   public  audienceMap: Map<string, AudienceDataDefinition> = new Map<string, AudienceDataDefinition>();
   private audiences: BehaviorSubject<AudienceDataDefinition[]> = new BehaviorSubject<AudienceDataDefinition[]>([]);
   private deletedAudiences: BehaviorSubject<AudienceDataDefinition[]> = new BehaviorSubject<AudienceDataDefinition[]>([]);
-  private shadingData: BehaviorSubject<Map<string, ImpGeofootprintVar>> = new BehaviorSubject<Map<string, ImpGeofootprintVar>>(new Map<string, ImpGeofootprintVar>());
-  private shadingSub: Subscription;
   private selectedSub: Subscription;
 
-  public shadingData$: Observable<Map<string, ImpGeofootprintVar>> = this.shadingData.asObservable();
-  public audiences$: Observable<AudienceDataDefinition[]> = this.audiences.asObservable();
   public deletedAudiences$: Observable<AudienceDataDefinition[]> = this.deletedAudiences.asObservable();
 
   public  timingMap: Map<string, number> = new Map<string, number>();
   public  allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
-  private mapAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   private natExportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
 
   constructor(private appStateService: AppStateService,
@@ -81,10 +68,6 @@ export class TargetAudienceService implements OnDestroy {
               private domainFactory: ImpDomainFactoryService,
               private logger: LoggingService,
               private store$: Store<LocalAppState>) {
-    this.newVisibleGeos$ = this.appStateService.uniqueVisibleGeocodes$.pipe(
-      tap(() => this.clearShadingData()),   // and clear the data cache
-      map(geos => geos.filter(geo => !this.shadingData.getValue().has(geo))) // and return any that aren't in the cache
-    );
 
     this.newSelectedGeos$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
       map(geos => new Set(geos)),
@@ -96,36 +79,16 @@ export class TargetAudienceService implements OnDestroy {
     );
 
     // Subscribe to store selectors
-    this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
-    this.store$.select(fromAudienceSelectors.getAudiencesOnMap).subscribe(this.mapAudiencesBS$);
+    this.store$.select(fromAudienceSelectors.allAudiences).subscribe(this.allAudiencesBS$);
     this.store$.select(fromAudienceSelectors.getAudiencesNationalExtract).subscribe(this.natExportAudiencesBS$);
+  }
 
-    this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences);
-/*
-// TODO: This does work, but causes an error on reload
-    this.store$.select(fromAudienceSelectors.getAudiencesOnMap).subscribe(shadingAudience => {
-      console.log('### getAudiencesOnMap.sub - audience:', shadingAudience);
-      //const shadingAudience = audiences.filter(a => a.showOnMap);
-      // const selectedAudiences = audiences.filter(a => a.exportInGeoFootprint || a.showOnGrid);
-      // console.log('applyAudienceSelection fired - # Audiences:', audiences.length, ', selectedAudiences.length:', selectedAudiences.length, ', shadingAudience.length:', shadingAudience.length, ', audiences:', audiences);
-      this.unsubEverything();
-      this.clearShadingData();
-      this.clearVars();
-      if (shadingAudience.length > 1) {
-        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Selected Audience Error', message: 'Only 1 Audience can be selected to shade the map by.' }));
-      }
-      else if (shadingAudience.length === 1) {
-        console.log('### getAudiencesOnMap.sub - length === 1');
-        const visibleGeos$ = this.appStateService.uniqueVisibleGeocodes$;
-        this.shadingSub = combineLatest(this.appStateService.analysisLevel$, visibleGeos$)
-          .subscribe(([analysisLevel, visibleGeos]) => this.getShadingData(analysisLevel, visibleGeos, shadingAudience[0]));
-      }
-      else if (shadingAudience.length === 0) {
-        console.log('### getAudiencesOnMap.sub - length === 0');
-        if (this.shadingSub) this.shadingSub.unsubscribe();
-          this.store$.dispatch(new ClearShadingData());
-      }
-    });*/
+  private static matchProjectVar(projectVar: ImpProjectVar, audience: AudienceDataDefinition) : boolean {
+    const sourceType = projectVar.source.split('_')[0];
+    const sourceName = projectVar.source.split('_')[1];
+    const id = audience.audienceSourceType === 'Custom' ? projectVar.fieldname : projectVar.varPk;
+    const audienceIdentifier = audience.audienceSourceType === 'Custom' ? audience.audienceName : audience.audienceIdentifier;
+    return sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audienceIdentifier;
   }
 
   public createKey = (...values: string[]) => values.join('/');
@@ -142,19 +105,19 @@ export class TargetAudienceService implements OnDestroy {
     this.store$.dispatch( new ClearGeoVars());
     this.store$.dispatch( new ClearAudiences());
     this.store$.dispatch( new ClearAudienceStats());
-    this.shadingData.next(new Map<string, ImpGeofootprintVar>());
     this.audiences.next([]);
   }
 
-  public rehydrateAudiences() {
-    this.store$.dispatch(new RehydrateAudiences());
-  }
-
   public addAudience(audience: AudienceDataDefinition, nationalRefresh?: nationalSource, isReload: boolean = false) : void {
+    if (audience == null) {
+      this.logger.error.log('Attempt to add a null audience');
+      return;
+    }
+
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
 
-    this.logger.debug.log('addAudience - seq:', ((audience != null) ? audience.seq : ''), ', sourceId:', sourceId, ', audienceName:', ((audience != null) ? audience.audienceName : ''), ', audienceSourceName: ', ((audience != null) ? audience.audienceSourceName : ''));
+    this.logger.debug.log('addAudience - seq:', audience.seq, ', sourceId:', sourceId, ', audienceName:', audience.audienceName, ', audienceSourceName: ', audience.audienceSourceName);
 
     if (audience.audienceSourceName === 'Audience-TA')
       this.audienceMap.set(`/${sourceId}-${audience.secondaryId}`, audience);
@@ -198,8 +161,8 @@ export class TargetAudienceService implements OnDestroy {
 
   private createProjectVar(audience: AudienceDataDefinition) : ImpProjectVar {
     // Determine if we have a project var already
-    let existingPVar = null;
-    let varPk = null;
+    let existingPVar;
+    let varPk;
     // If passed a custom variable name as the identifier, look up the variable by fieldname, otherwise, by varPk
     if (Number.isNaN(Number(audience.audienceIdentifier)))
       existingPVar = this.projectVarService.get().filter(pv => pv.fieldname === audience.audienceIdentifier);
@@ -233,7 +196,6 @@ export class TargetAudienceService implements OnDestroy {
     }
     audience.audienceIdentifier = varPk.toString();
     const currentProject = this.appStateService.currentProject$.getValue();
-    //console.log("createProjectVar varPk: " + varPk + ", audienceIdentifier:" + audience.audienceIdentifier + ", audienceSourceName: " + audience.audienceSourceName + ", audienceSourceType: " + audience.audienceSourceType + ", audienceName: " + audience.audienceName);
 
     // This is misleading, createProjectVar will both create AND update a project var
     return this.domainFactory.createProjectVar(currentProject, varPk, audience);
@@ -246,46 +208,14 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   public updateProjectVars(audience: AudienceDataDefinition) {
-    //console.debug("updateProjectVars fired: audience.audienceIdentifier: " + audience.audienceIdentifier);
     const newProjectVar = this.createProjectVar(audience);
     this.store$.dispatch(new UpsertAudience({ audience: audience }));
     newProjectVar.baseStatus = DAOBaseStatus.UPDATE;
     for (const projectVar of this.projectVarService.get()) {
-      if (this.matchProjectVar(projectVar, audience)) {
-        //if (projectVar.pvId) newProjectVar.pvId = projectVar.pvId;
+      if (TargetAudienceService.matchProjectVar(projectVar, audience)) {
         this.projectVarService.update(projectVar, newProjectVar);
       }
     }
-    /*if (audience.showOnMap) {
-      const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
-      for (const pv of otherVars) {
-        const newPv = Object.assign(pv);
-        newPv.baseStatus = DAOBaseStatus.UPDATE;
-        newPv.isShadedOnMap = false; // gotta turn off all the others since we can only shade by one variable
-        this.projectVarService.update(pv, newPv);
-      }
-    }*/
-    //for US8712 when user saves the projects checkboxes also need to save DB to maintains state
-   /* if (audience.allowNationalExport) {
-      const otherVars = this.projectVarService.get().filter(pv => !this.matchProjectVar(pv, audience));
-      for (const pv of otherVars) {
-        const newPv = Object.assign(pv);
-        newPv.baseStatus = DAOBaseStatus.UPDATE;
-        //pv.isNationalExtract = false;
-        this.projectVarService.update(pv, newPv);
-      }
-    }*/
-  }
-
-  private matchProjectVar(projectVar: ImpProjectVar, audience: AudienceDataDefinition) : boolean {
-    const sourceType = projectVar.source.split('_')[0];
-    const sourceName = projectVar.source.split('_')[1];
-    const id = audience.audienceSourceType === 'Custom' ? projectVar.fieldname : projectVar.varPk;
-    const audienceIdentifier = audience.audienceSourceType === 'Custom' ? audience.audienceName : audience.audienceIdentifier;
-    if (sourceType === audience.audienceSourceType && sourceName === audience.audienceSourceName && id.toString() === audienceIdentifier) {
-      return true;
-    }
-    return false;
   }
 
   private removeProjectVar(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined', sourceName: string, audienceIdentifier: string) {
@@ -331,7 +261,6 @@ export class TargetAudienceService implements OnDestroy {
     const key = 'NATIONAL_EXTRACT';
     const reqInput = [];
     const audiences = this.natExportAudiencesBS$.value;
-//  const audiences = Array.from(this.audienceMap.values()).filter(a => a.exportNationally === true);
     if (audiences.length > 0 && analysisLevel != null && analysisLevel.length > 0 && projectId != null) {
       const convertedData: any[] = [];
       this.store$.dispatch(new StartBusyIndicator({ key, message: 'Downloading National Data' }));
@@ -354,28 +283,30 @@ export class TargetAudienceService implements OnDestroy {
             reqInput.push(inputData);
           }
         });
-        this.restService.post('v1/targeting/base/geoinfo/digitallookuppcr', reqInput). subscribe(res => {
-          const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-          const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.csv`.replace(/\//g, '_');
-          const downloadUrl = `${EnvironmentData.impowerBaseUrl}nationalextract/${res.payload}`;
-          originalFileName = res.payload;
-          const element = window.document.createElement('a');
-          document.body.appendChild(element);
-          element.href = downloadUrl;
+        this.restService.post('v1/targeting/base/geoinfo/digitallookuppcr', reqInput)
+          .subscribe({
+            next: res => {
+              const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
+              const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.csv`.replace(/\//g, '_');
+              const downloadUrl = `${EnvironmentData.impowerBaseUrl}nationalextract/${res.payload}`;
+              originalFileName = res.payload;
+              const element = window.document.createElement('a');
+              document.body.appendChild(element);
+              element.href = downloadUrl;
 
-          element['download'] = fileName;
-          element.target = '_blank';
+              element['download'] = fileName;
+              element.target = '_blank';
 
-          element.click();
-        }, null, () => {
-          //TODO: send a request to fuse to delete the file
-          this.store$.dispatch(new StopBusyIndicator({ key }));
-          console.log('file Name', originalFileName);
-          this.restService.get(`v1/targeting/base/geoinfo/deletefile/${originalFileName}`).subscribe(res => {
-            console.log(res.payload);
+              element.click();
+            },
+            complete: () => {
+              this.store$.dispatch(new StopBusyIndicator({ key }));
+              this.restService.get(`v1/targeting/base/geoinfo/deletefile/${originalFileName}`).subscribe(res => {
+                console.log(res.payload);
+              });
+            }
           });
-        });
-      }else{
+      } else {
         this.getNationalData(audiences, analysisLevel).subscribe(
           data => convertedData.push(...data),
           err => {
@@ -440,9 +371,9 @@ export class TargetAudienceService implements OnDestroy {
   public syncProjectVarOrder()
   {
     const project = this.appStateService.currentProject$.getValue();
-    this.allAudiencesBS$.value.forEach((audience, key) => {
+    this.allAudiencesBS$.value.forEach(audience => {
       const updatedPv = this.domainFactory.createProjectVar(this.appStateService.currentProject$.getValue(), Number(audience.audienceIdentifier), audience);
-      const hierPv = project.impProjectVars.find(pv => pv.varPk.toString() === audience.audienceIdentifier); // forEach(projectVar => projectVar.sortOrder = this.projectVarService.get().filter())
+      const hierPv = project.impProjectVars.find(pv => pv.varPk.toString() === audience.audienceIdentifier);
       hierPv.sortOrder = updatedPv.sortOrder;
     });
   }
@@ -451,68 +382,20 @@ export class TargetAudienceService implements OnDestroy {
   private setAudienceMapFromStore()
   {
     this.audienceMap.clear();
-    this.allAudiencesBS$.value.forEach((audience, key) => {
-   // this.logger.debug.log('### setAudienceMapFromStore - setting key:', key, ', audience:', audience.audienceIdentifier, ', source:', audience.audienceSourceType, ', sourceName:', audience.audienceSourceName, ', secondaryId:', audience.secondaryId);
+    this.allAudiencesBS$.value.forEach(audience => {
       const audKey = audience.audienceSourceType + '/' + audience.audienceSourceName + '/' + audience.audienceIdentifier;
       this.audienceMap.set(audKey, audience);
     });
-  }
-
-  public rehydrateShading() { // REVIEW
-    this.setAudienceMapFromStore();
-
-    const shadingAudience = Array.from(this.mapAudiencesBS$.value);
-    this.logger.info.log('rehydrateShading fired - shadingAudience.length:', shadingAudience.length, ', shadingAudience:', shadingAudience);
-    if (this.shadingSub) this.shadingSub.unsubscribe();
-    this.clearShadingData();
-
-    switch (shadingAudience.length) {
-      case 0:
-        if (this.shadingSub) this.shadingSub.unsubscribe();
-        // this.store$.dispatch(new ClearRenderingData());
-        break;
-
-      case 1:
-        const visibleGeos$ = this.appStateService.uniqueVisibleGeocodes$;
-        if (this.shadingSub) this.shadingSub.unsubscribe();
-        this.shadingSub = combineLatest([this.appStateService.analysisLevel$, visibleGeos$])
-          .subscribe(([analysisLevel, visibleGeos]) => this.getShadingData(analysisLevel, visibleGeos, shadingAudience[0]));
-        // console.log('### rehydrateShading visibleGeos:', visibleGeos$.getValue().length, visibleGeos$.getValue());
-        // if (visibleGeos$.getValue().length > 0)
-        //   this.store$.dispatch(new FetchMapVar({ analysisLevel: this.appStateService.analysisLevel$.getValue(), geos: visibleGeos$.getValue() }));
-        break;
-
-      default:
-        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Selected Audience Error', message: 'Only 1 Audience can be selected to shade the map by.' }));
-        break;
-    }
   }
 
   public applyAudienceSelection() : void {
     this.setAudienceMapFromStore();
 
     const audiences = Array.from(this.allAudiencesBS$.value);
-    const shadingAudience = Array.from(this.mapAudiencesBS$.value);
     const selectedAudiences = audiences.filter(a => a.exportInGeoFootprint || a.showOnGrid);
-    this.logger.info.log('applyAudienceSelection fired - # Audiences:', audiences.length, ', selectedAudiences.length:', selectedAudiences.length, ', shadingAudience.length:', shadingAudience.length, ', audiences:', audiences);
+    this.logger.info.log('applyAudienceSelection fired - # Audiences:', audiences.length, ', selectedAudiences.length:', selectedAudiences.length, ', audiences:', audiences);
     this.unsubEverything();
     this.clearVars();
-    this.clearShadingData();
-/*    if (shadingAudience.length > 1) {
-      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Selected Audience Error', message: 'Only 1 Audience can be selected to shade the map by.' }));
-    }
-    else
-      if (shadingAudience.length === 1) {
-        const visibleGeos$ = this.appStateService.uniqueVisibleGeocodes$;
-        this.shadingSub = combineLatest(this.appStateService.analysisLevel$, visibleGeos$)
-          .subscribe(([analysisLevel, visibleGeos]) => this.getShadingData(analysisLevel, visibleGeos, shadingAudience[0]));
-      }
-      else
-        if (shadingAudience.length === 0) {
-          if (this.shadingSub) this.shadingSub.unsubscribe();
-            this.store$.dispatch(new ClearShadingData());
-        }*/
-    this.rehydrateShading();
 
     if (audiences.length > 0) {
       this.store$.dispatch(new ApplyAudiences({analysisLevel: this.appStateService.analysisLevel$.getValue()}));
@@ -534,42 +417,7 @@ export class TargetAudienceService implements OnDestroy {
   }
 
   public unsubEverything() {
-    if (this.shadingSub) this.shadingSub.unsubscribe();
     if (this.selectedSub) this.selectedSub.unsubscribe();
-  }
-
-  public clearShadingData() : void {
-    this.logger.debug.log('clearing shading data cache');
-    const current = this.shadingData.getValue();
-    current.clear();
-  }
-
-  private getShadingData(analysisLevel: string, geos: string[], audience: AudienceDataDefinition) {
-    if (geos == null || geos.length === 0 || audience == null) {
-      return;
-    }
-    // this.logger.debug.log('### getShadingData - fired - lvl:', analysisLevel, ', audience:', audience, ', # geos:', geos.length);
-    this.setAudienceMapFromStore();
-
-    const key = 'SHADING_DATA';
-    this.logger.debug.log('get shading data called for audience:', audience);
-    const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
-    const source = this.audienceSources.get(sourceId);
-
-    // this.logger.debug.log('getShadingData - audienceSources:');
-    // this.audienceSources.forEach((value, sourceKey) => {
-    //   this.logger.debug.log('getShadingData - audienceSources - key:', sourceKey, ', value:', value);
-    // });
-    // this.logger.debug.log('getShadingData - audienceSources ', (this.audienceSources.has(sourceId) ? 'has' : 'does not have'), sourceId);
-    // this.logger.debug.log('getShadingData - sourceId:', sourceId, ', source:', source, ', audienceSources:', this.audienceSources);
-
-    if (this.mapAudiencesBS$.value.length > 0) {
-      const currentShadingData = this.shadingData.getValue();
-//REVIEW      this.store$.dispatch(new StartBusyIndicator({key, message: 'Retrieving shading data'}));
-  //      if (audience.requiresGeoPreCaching) {
-        //this.store$.dispatch(new MapVarCacheGeos({ geocodes: new Set(geos) }));
-          this.store$.dispatch(new FetchMapVar({ analysisLevel: analysisLevel, geos: geos }));
-    }
   }
 
   private getGeoData(analysisLevel: string, geos: string[], selectedAudiences: AudienceDataDefinition[]) {

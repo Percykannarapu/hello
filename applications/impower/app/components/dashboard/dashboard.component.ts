@@ -1,19 +1,14 @@
-import { ClearImpGeofootprintGeos } from './../../impower-datastore/state/persistent/geo/imp-geofootprint-geo.actions';
-import {Component, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
-import {Store, select} from '@ngrx/store';
-import {MenuItem} from 'primeng/api';
-import {Observable} from 'rxjs';
-import {RadService} from '../../services/rad.service';
-import {UserService} from '../../services/user.service';
-import {FullAppState} from '../../state/app.interfaces';
-import {CreateNewProject} from '../../state/data-shim/data-shim.actions';
-import {MetricOperations, MetricService} from '../../val-modules/common/services/metric.service';
-import {CampaignDetailsComponent} from '../campaign-details/campaign-details.component';
-import {ColorBoxComponent} from '../color-box/color-box.component';
-import {AppStateService} from 'app/services/app-state.service';
-import {AppLocationService} from 'app/services/app-location.service';
-import {take, filter} from 'rxjs/operators';
-import {selectors} from '@val/esri';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AppLocationService } from 'app/services/app-location.service';
+import { AppStateService } from 'app/services/app-state.service';
+import { MenuItem } from 'primeng/api';
+import { Observable } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
+import { RadService } from '../../services/rad.service';
+import { UserService } from '../../services/user.service';
+import { MetricOperations, MetricService } from '../../val-modules/common/services/metric.service';
+import { CampaignDetailsComponent } from '../campaign-details/campaign-details.component';
+import { ColorBoxComponent } from '../color-box/color-box.component';
 
 @Component({
   selector: 'val-dashboard',
@@ -64,12 +59,9 @@ export class DashboardComponent implements OnInit {
                 private radService: RadService,
                 private userService: UserService,
                 private appLocationService: AppLocationService,
-                private appStateService: AppStateService,
-                private store$: Store<FullAppState>) { }
+                private appStateService: AppStateService) { }
 
     ngOnInit() {
-        this.store$.dispatch(new CreateNewProject());
-
         // Load models
         this.metricMapGreen = new Map([
             ['# of Sites', '0'],

@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@angular/core';
 import { chunkArray, retryOnTimeout } from '@val/common';
+import { Multipoint, Point } from 'esri/geometry';
+import Query from 'esri/tasks/support/Query';
 import { EMPTY, merge, Observable, of } from 'rxjs';
 import { expand, filter, map, take } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
-import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
@@ -41,7 +42,7 @@ export class EsriQueryService {
   private static createQuery(returnGeometry: boolean, outFields: string[], data: __esri.PointProperties[], bufferInMiles: number) : __esri.Query;
   private static createQuery(returnGeometry: boolean, outFields: string[], data: string[] | number[], queryField: string) : __esri.Query;
   private static createQuery(returnGeometry: boolean, outFields: string[], data: string[] | number[] | __esri.PointProperties[], queryField: string | number) : __esri.Query {
-    const result = new EsriApi.Query({
+    const result = new Query({
       returnGeometry: returnGeometry,
       orderByFields: ['geocode']
     });
@@ -60,10 +61,10 @@ export class EsriQueryService {
     } else if (this.dataIsString(data)) {
       result.where = `${queryField} IN ('${data.join(`','`)}')`;
     } else if (data.length === 1) {
-      result.geometry = new EsriApi.Point(data[0]);
+      result.geometry = new Point(data[0]);
     } else {
       const multiPointData: number[][] = data.map(p => [Number(p.x), Number(p.y)]);
-      result.geometry = new EsriApi.Multipoint({
+      result.geometry = new Multipoint({
         points: multiPointData,
         spatialReference: { wkid: this.config.defaultSpatialRef }
       });
@@ -176,7 +177,7 @@ export class EsriQueryService {
   }
 
   public queryExtent(layerId: string, extent?: __esri.Extent) : Observable<__esri.Graphic[]> {
-    const query = new EsriApi.Query({
+    const query = new Query({
       geometry: extent == null ? this.mapService.mapView.extent : extent,
       returnGeometry: false,
       outFields: ['geocode', 'pob']
@@ -195,7 +196,7 @@ export class EsriQueryService {
     for (const currentLayer of layers) {
       const layerResult = new Observable<__esri.Graphic[]>(observer => {
         this.mapService.mapView.whenLayerView(currentLayer).then((layerView: __esri.FeatureLayerView) => {
-          const query = extent == null ? undefined : new EsriApi.Query({
+          const query = extent == null ? undefined : new Query({
             geometry: extent,
             returnGeometry: returnGeometry,
           });

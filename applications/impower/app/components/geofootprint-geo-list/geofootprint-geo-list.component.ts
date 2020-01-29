@@ -1,17 +1,17 @@
-import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { distinctArray, mapArray, resolveFieldData, roundTo } from '@val/common';
+import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import { GridGeoVar } from 'app/impower-datastore/state/transient/transient.reducer';
 import { SortMeta } from 'primeng/api';
 import { SelectItem } from 'primeng/components/common/selectitem';
+import { FilterUtils } from 'primeng/components/utils/filterutils';
 import { ObjectUtils } from 'primeng/components/utils/objectutils';
 import { MultiSelect } from 'primeng/multiselect';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { filter, map, publishReplay, refCount, tap } from 'rxjs/operators';
-import { isString } from 'util';
 import { FieldContentTypeCodes } from '../../impower-datastore/state/models/impower-model.enums';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { AppStateService } from '../../services/app-state.service';
@@ -281,7 +281,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 
       // Whenever the project changes, update the grid export file name
       this.project$.pipe(filter(p => p != null)).subscribe(project => {
-         this._geoGrid.exportFilename = 'geo-grid' + ((project != null && project.projectId != null) ? '-' + project.projectId.toString() : '') + '-export';
+         this._geoGrid.exportFilename = 'geo-grid' + ((project.projectId != null) ? '-' + project.projectId.toString() : '') + '-export';
 
          // In the event of a project load, clear the grid filters
          if (this.lastProjectId !== project.projectId) {
@@ -339,8 +339,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
 
       // Setup a custom filter for the grid
-      this._geoGrid.filterConstraints['numericFilter']  = (value, nFilter) : boolean => FilterData.numericFilter(value, nFilter);
-      this._geoGrid.filterConstraints['distanceFilter'] = (value, dFilter) : boolean => FilterData.numericFilter(value, dFilter, 2);
+      FilterUtils['numericFilter'] = (value, f) : boolean => FilterData.numericFilter(value, f);
+      FilterUtils['distanceFilter'] = (value, f) : boolean => FilterData.numericFilter(value, f, 2);
 
       this.gridValues$ = Observable.create(observer => observer.next(this._geoGrid._value));
 
@@ -545,7 +545,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       audiences.forEach(audience => {
         //console.log('### createComposite - aud:', audience);
         let colWidth: number = Math.min(200, Math.max(60, (audience.audienceName.length * 6) + 24));
-        const colStyleClass: string = (audience.fieldconte != FieldContentTypeCodes.Char) ? 'val-text-right' : '';
+        const colStyleClass: string = (audience.fieldconte !== FieldContentTypeCodes.Char) ? 'val-text-right' : '';
 
         // Let the fieldConte decide what the match operator will be on the numeric filter
         let matchOper: string;
@@ -622,7 +622,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             gridGeo['ownergroup'] = (currentAttribute['owner_group_primary'] == null) ? '' : currentAttribute['owner_group_primary'];
 
             const cityName = currentAttribute['city_name'];
-            if (cityName != null && isString(cityName)) {
+            if (cityName != null && typeof cityName === 'string') {
               gridGeo['city_name'] = cityName.substring(0, 1).toUpperCase() + cityName.substring(1, cityName.length - 3).toLowerCase() + ' ' + cityName.substring(cityName.length - 2);
             }
 
@@ -659,7 +659,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                const n = varPk.indexOf(':');
                const location = varPk.substr(0, n);
                const pk = varPk.substr(n + 1);
-               if (location == null || location == '' || gridGeo.geo.impGeofootprintLocation.locationNumber == location)
+               if (location == null || location === '' || gridGeo.geo.impGeofootprintLocation.locationNumber === location)
                   gridGeo[pk] = varValue;
 
                // Hack to prevent empty columns because geovars structure isn't getting cleared out on new project
@@ -701,32 +701,29 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Set Ranges
       try
       {
-         if (geoGridData != null)
-         {
-            min = geoGridData.reduce((currMin, p: FlatGeo) => p['geo.hhc'] < currMin ? (p['geo.hhc'] !== '' ? p['geo.hhc'] : 0) : currMin, (geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
-            max = geoGridData.reduce((currMax, p: FlatGeo) => p['geo.hhc'] > currMax ? (p['geo.hhc'] !== '' ? p['geo.hhc'] : 0) : currMax, (geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
-            this.hhcRanges = [min, max, min, max];
+          min = geoGridData.reduce((currMin, p: FlatGeo) => p['geo.hhc'] < currMin ? (p['geo.hhc'] !== '' ? p['geo.hhc'] : 0) : currMin, (geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
+          max = geoGridData.reduce((currMax, p: FlatGeo) => p['geo.hhc'] > currMax ? (p['geo.hhc'] !== '' ? p['geo.hhc'] : 0) : currMax, (geoGridData.length > 0) ? geoGridData[0]['geo.hhc'] : 0);
+          this.hhcRanges = [min, max, min, max];
 
-            min = geoGridData.reduce((currMin, p: FlatGeo) => p['allocHhc'] < currMin ? (p['allocHhc'] !== '' ? p['allocHhc'] : 0) : currMin, (geoGridData.length > 0) ? geoGridData[0]['allocHhc'] : 0);
-            max = geoGridData.reduce((currMax, p: FlatGeo) => p['allocHhc'] > currMax ? (p['allocHhc'] !== '' ? p['allocHhc'] : 0) : currMax, (geoGridData.length > 0) ? geoGridData[0]['allocHhc'] : 0);
-            this.allocHhcRanges = [min, max, min, max];
+          min = geoGridData.reduce((currMin, p: FlatGeo) => p['allocHhc'] < currMin ? (p['allocHhc'] !== '' ? p['allocHhc'] : 0) : currMin, (geoGridData.length > 0) ? geoGridData[0]['allocHhc'] : 0);
+          max = geoGridData.reduce((currMax, p: FlatGeo) => p['allocHhc'] > currMax ? (p['allocHhc'] !== '' ? p['allocHhc'] : 0) : currMax, (geoGridData.length > 0) ? geoGridData[0]['allocHhc'] : 0);
+          this.allocHhcRanges = [min, max, min, max];
 
-            min = geoGridData.reduce((currMin, p: FlatGeo) => p['investment'] < currMin ? p['investment'] : currMin, (geoGridData.length > 0) ? geoGridData[0]['investment'] : 0);
-            max = geoGridData.reduce((currMax, p: FlatGeo) => p['investment'] > currMax ? p['investment'] : currMax, (geoGridData.length > 0) ? geoGridData[0]['investment'] : 0);
-            this.investmentRanges = [min, max, min, max];
+          min = geoGridData.reduce((currMin, p: FlatGeo) => p['investment'] < currMin ? p['investment'] : currMin, (geoGridData.length > 0) ? geoGridData[0]['investment'] : 0);
+          max = geoGridData.reduce((currMax, p: FlatGeo) => p['investment'] > currMax ? p['investment'] : currMax, (geoGridData.length > 0) ? geoGridData[0]['investment'] : 0);
+          this.investmentRanges = [min, max, min, max];
 
-            max = geoGridData.reduce((currMax, p: FlatGeo) => p['allocInvestment'] > currMax ? p['allocInvestment'] : currMax, (geoGridData.length > 0) ? geoGridData[0]['allocInvestment'] : 0);
-            min = geoGridData.reduce((currMin, p: FlatGeo) => p['allocInvestment'] < currMin && p['allocInvestment'] != null ? p['allocInvestment'] : currMin, max);
-            this.allocInvestmentRanges = [min, max, min, max];
+          max = geoGridData.reduce((currMax, p: FlatGeo) => p['allocInvestment'] > currMax ? p['allocInvestment'] : currMax, (geoGridData.length > 0) ? geoGridData[0]['allocInvestment'] : 0);
+          min = geoGridData.reduce((currMin, p: FlatGeo) => p['allocInvestment'] < currMin && p['allocInvestment'] != null ? p['allocInvestment'] : currMin, max);
+          this.allocInvestmentRanges = [min, max, min, max];
 
-            min = geoGridData.reduce((currMin, p: FlatGeo) => roundTo(p['geo.distance'], 2) < currMin ? roundTo(p['geo.distance'], 2) : currMin, (geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0);
-            max = geoGridData.reduce((currMax, p: FlatGeo) => roundTo(p['geo.distance'], 2) > currMax ? roundTo(p['geo.distance'], 2) : currMax, (geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0);
-            this.distanceRanges = [min, max, min, max];
+          min = geoGridData.reduce((currMin, p: FlatGeo) => roundTo(p['geo.distance'], 2) < currMin ? roundTo(p['geo.distance'], 2) : currMin, (geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0);
+          max = geoGridData.reduce((currMax, p: FlatGeo) => roundTo(p['geo.distance'], 2) > currMax ? roundTo(p['geo.distance'], 2) : currMax, (geoGridData.length > 0) ? roundTo(geoGridData[0]['geo.distance'], 2) : 0);
+          this.distanceRanges = [min, max, min, max];
 
-            min = geoGridData.reduce((currMin, p: FlatGeo) => p['cpm'] < currMin ? p['cpm'] : currMin, (geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0);
-            max = geoGridData.reduce((currMax, p: FlatGeo) => p['cpm'] > currMax ? p['cpm'] : currMax, (geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0);
-            this.cpmRanges = [min, max, min, max];
-         }
+          min = geoGridData.reduce((currMin, p: FlatGeo) => p['cpm'] < currMin ? p['cpm'] : currMin, (geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0);
+          max = geoGridData.reduce((currMax, p: FlatGeo) => p['cpm'] > currMax ? p['cpm'] : currMax, (geoGridData.length > 0) ? geoGridData[0]['cpm'] : 0);
+          this.cpmRanges = [min, max, min, max];
       }
       catch (e)
       {
@@ -884,7 +881,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             if (geo.isActive === 1) {
                //console.log('setting unselected row to selected');
                const selectionIndex = this._geoGrid.findIndexInSelection(geo);
-               this._geoGrid._selection = this._geoGrid.selection.filter((val, i) => i != selectionIndex);
+               this._geoGrid._selection = this._geoGrid.selection.filter((val, i) => i !== selectionIndex);
                this._geoGrid.selectionChange.emit(this._geoGrid.selection);
          //    this._geoGrid.onRowUnselect.emit({ originalEvent: event.originalEvent, data: rowData, type: 'checkbox' });
                if (dataKeyValue) {
@@ -911,8 +908,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 //      if (diffCount > 0)
          this._geoGrid.tableService.onSelectionChange();
 
-         const newSelection = this._geoGrid.selection.map(x => Object.assign({}, x));
-         this._geoGrid._selection = newSelection;
+         this._geoGrid._selection = this._geoGrid.selection.map(x => Object.assign({}, x));
 
          this._geoGrid.value = this._geoGrid.value.map(x => Object.assign({}, x));
 // Works, but overkill         this.impGeofootprintGeoService.makeDirty();

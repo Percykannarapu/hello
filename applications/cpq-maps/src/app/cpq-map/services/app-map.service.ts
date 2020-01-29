@@ -1,10 +1,18 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { simpleFlatten } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriService, EsriUtils, LayerDefinition, selectors } from '@val/esri';
+import { EsriLabelLayerOptions, EsriLayerService, EsriMapService, EsriService, EsriUtils, LayerDefinition, selectors } from '@val/esri';
+import Basemap from 'esri/Basemap';
+import Color from 'esri/Color';
+import projection from 'esri/geometry/projection';
+import BasemapGallery from 'esri/widgets/BasemapGallery';
+import LocalBasemapsSource from 'esri/widgets/BasemapGallery/support/LocalBasemapsSource';
+import Home from 'esri/widgets/Home';
+import LayerList from 'esri/widgets/LayerList';
+import ScaleBar from 'esri/widgets/ScaleBar';
+import Search from 'esri/widgets/Search';
 import { merge, Observable } from 'rxjs';
 import { distinctUntilChanged, finalize, map, reduce, tap } from 'rxjs/operators';
-import { EsriLabelLayerOptions } from '../../../../../../modules/esri/src/state/map/esri.map.reducer';
 import { FullState } from '../state';
 import { ConfigService } from './config.service';
 
@@ -28,19 +36,19 @@ export class AppMapService {
       reduce(() => null, null), // reduce is just used here to "wait" until all the layers are done
       finalize(() => {
         // setup the map widgets
-        this.mapService.createBasicWidget(EsriApi.widgets.Home, { viewpoint: homeView });
-        this.mapService.createHiddenWidget(EsriApi.widgets.Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
-        this.mapService.createHiddenWidget(EsriApi.widgets.LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
-        const source = new EsriApi.widgets.LocalBasemapsSource({
-          basemaps: this.config.basemaps.map(b => EsriApi.BaseMap.fromId(b))
+        this.mapService.createBasicWidget(Home, { viewpoint: homeView });
+        this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
+        this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
+        const source = new LocalBasemapsSource({
+          basemaps: this.config.basemaps.map(b => Basemap.fromId(b))
         });
-        this.mapService.createHiddenWidget(EsriApi.widgets.BaseMapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
-        this.mapService.createBasicWidget(EsriApi.widgets.ScaleBar, { unit: 'dual' }, 'bottom-left');
+        this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
+        this.mapService.createBasicWidget(ScaleBar, { unit: 'dual' }, 'bottom-left');
 
         const popup: __esri.Popup = this.mapService.mapView.popup;
         popup.highlightEnabled = false;
         popup.actionsMenuEnabled = false;
-        EsriApi.projection.load();
+        projection.load();
         this.esri.setPopupVisibility(true);
       })
     );
@@ -83,7 +91,7 @@ export class AppMapService {
         tap(newLayer => {
           if (EsriUtils.rendererIsSimple(newLayer.renderer)) {
             const renderer: import ('esri/renderers/SimpleRenderer') = newLayer.renderer.clone();
-            renderer.symbol.color = new EsriApi.Color([128, 128, 128, 0.01]);
+            renderer.symbol.color = new Color([128, 128, 128, 0.01]);
             newLayer.renderer = renderer;
           }
           group.add(newLayer);

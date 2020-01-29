@@ -1,0 +1,26 @@
+<div class="shader-display">
+  <div *ngIf="!definition.isEditing && !definition.isNew">
+    <div class="shader-menu">
+      <a href="#" (click)="edit(definition)">edit</a>
+    </div>
+    <div>
+      <label>Layer Name:</label>
+      <strong>{{definition.layerName}}</strong>
+    </div>
+    <div *ngIf="definition.showLegendHeader">
+      <label>Legend Title:</label>
+      <strong>{{definition.legendHeader}}</strong><br>
+    </div>
+    <div>
+      <label>Opacity:</label>
+      <strong>{{definition.opacity}}</strong>
+    </div>
+  </div>
+  <div class="shader-form-container" *ngIf="definition.isNew || definition.isEditing">
+    <form novalidate autocomplete="off" valConnectForm="shadingSettings" [debounce]="0" [formGroup]="shaderForm" (submit)="apply()">
+      <validated-text-input [parentForm]="shaderForm" valueName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
+      <validated-text-input [parentForm]="shaderForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+      <button type="submit" pButton label="apply" class="ui-button-secondary"></button>
+    </form>
+  </div>
+</div>

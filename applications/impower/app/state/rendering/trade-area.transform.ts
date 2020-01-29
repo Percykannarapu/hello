@@ -1,5 +1,5 @@
 import { groupByExtended, toUniversalCoordinates } from '@val/common';
-import { EsriApi } from '@val/esri';
+import { Point } from 'esri/geometry';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
@@ -18,7 +18,7 @@ export class TradeAreaDrawDefinition {
 
 function toPoint(tradeArea: ImpGeofootprintTradeArea, wkid: number) : __esri.Point {
   const coordinates = toUniversalCoordinates(tradeArea.impGeofootprintLocation);
-  return new EsriApi.Point({ spatialReference: { wkid }, ...coordinates });
+  return new Point({ spatialReference: { wkid }, ...coordinates });
 }
 
 export function prepareRadiusTradeAreas(tradeAreas: ImpGeofootprintTradeArea[], currentProject: ImpProject, wkid: number) : TradeAreaDrawDefinition[] {

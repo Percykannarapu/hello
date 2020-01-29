@@ -1,4 +1,5 @@
 import { Statistics } from '@val/common';
+import { ColorPalette } from './color-palettes';
 import { FillPattern, RgbaTuple, RgbTuple } from './esri-types';
 
 export enum ConfigurationTypes {
@@ -36,7 +37,8 @@ export interface ContinuousDefinition {
 }
 
 interface ShadingDefinitionBase {
-  id: number;
+  id: string;
+  dataKey: string;
   sourcePortalId: string;
   sortOrder: number;
   destinationLayerUniqueId?: string;
@@ -45,6 +47,7 @@ interface ShadingDefinitionBase {
   showLegendHeader: boolean;
   minScale: number;
   opacity: number;
+  visible: boolean;
   defaultSymbolDefinition: SymbolDefinition;
   filterByFeaturesOfInterest: boolean;
   filterField: string;
@@ -56,23 +59,31 @@ export interface SimpleShadingDefinition extends ShadingDefinitionBase {
 
 export interface UniqueShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.Unique;
+  theme: ColorPalette;
   arcadeExpression?: string;
   breakDefinitions?: UniqueValueDefinition[];
 }
 
 export interface RampShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.Ramp;
+  theme: ColorPalette;
   arcadeExpression?: string;
   breakDefinitions?: ContinuousDefinition[];
 }
 
 export interface ClassBreakShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.ClassBreak;
+  theme: ColorPalette;
   arcadeExpression?: string;
   breakDefinitions?: ClassBreakDefinition[];
 }
 
-export type ShadingDefinition = SimpleShadingDefinition | UniqueShadingDefinition | RampShadingDefinition | ClassBreakShadingDefinition;
+export type ComplexShadingDefinition = UniqueShadingDefinition | RampShadingDefinition | ClassBreakShadingDefinition;
+export type ShadingDefinition = SimpleShadingDefinition | ComplexShadingDefinition;
+
+export function isNotSimpleShadingDefinition(s: ShadingDefinition) : s is ComplexShadingDefinition {
+  return s.shadingType === ConfigurationTypes.ClassBreak || s.shadingType === ConfigurationTypes.Ramp || s.shadingType === ConfigurationTypes.Unique;
+}
 
 export function generateUniqueValues(uniqueValues: string[], palette: RgbTuple[]) : UniqueValueDefinition[] {
   const values = [...uniqueValues];
@@ -94,7 +105,7 @@ export function generateContinuousValues(stats: Statistics, palette: RgbTuple[])
   const round = (n: number) => Math.round(n * 100) / 100;
   const mean = stats.mean;
   const std = stats.stdDeviation;
-  const themeCount = palette.length;
+  const themeCount = Math.min(palette.length, 8); // 8 is an esri API hard limit
   const stepSize = 2 / (themeCount - 1);
   const multipliers: number[] = new Array<number>(palette.length);
   multipliers[0] = -1;

@@ -1,8 +1,17 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { UniversalCoordinates } from '@val/common';
+import Color from 'esri/Color';
+import { Point } from 'esri/geometry';
+import Graphic from 'esri/Graphic';
+import FeatureLayer from 'esri/layers/FeatureLayer';
+import GraphicsLayer from 'esri/layers/GraphicsLayer';
+import GroupLayer from 'esri/layers/GroupLayer';
+import Layer from 'esri/layers/Layer';
+import LabelClass from 'esri/layers/support/LabelClass';
+import { Font, SimpleMarkerSymbol, TextSymbol } from 'esri/symbols';
+import FeatureSet from 'esri/tasks/support/FeatureSet';
 import { Observable } from 'rxjs';
-import { EsriApi } from '../core/esri-api.service';
 import { EsriUtils } from '../core/esri-utils';
 import { MapSymbols } from '../models/esri-types';
 import { AppState } from '../state/esri.selectors';
@@ -131,7 +140,7 @@ export class EsriLayerService {
 
   public createPortalGroup(groupName: string, isVisible: boolean) : __esri.GroupLayer {
     if (this.portalGroupExists(groupName)) return this.getPortalGroup(groupName);
-    const group = new EsriApi.GroupLayer({
+    const group = new GroupLayer({
       id: `portal-${groupName}`,
       title: groupName,
       listMode: 'show',
@@ -143,7 +152,7 @@ export class EsriLayerService {
 
   public createClientGroup(groupName: string, isVisible: boolean, bottom: boolean = false) : __esri.GroupLayer {
     if (this.groupExists(groupName)) return this.getGroup(groupName);
-    const group = new EsriApi.GroupLayer({
+    const group = new GroupLayer({
       title: groupName,
       listMode: 'show',
       visible: isVisible
@@ -158,7 +167,7 @@ export class EsriLayerService {
 
   public createPortalLayer(portalId: string, layerTitle: string, minScale: number, defaultVisibility: boolean, additionalLayerAttributes?: Partial<__esri.FeatureLayer>) : Observable<__esri.FeatureLayer> {
     const isUrlRequest = portalId.toLowerCase().startsWith('http');
-    const loader: any = isUrlRequest ? EsriApi.Layer.fromArcGISServerUrl : EsriApi.Layer.fromPortalItem;
+    const loader: any = isUrlRequest ? Layer.fromArcGISServerUrl : Layer.fromPortalItem;
     const itemLoadSpec = isUrlRequest ? { url: portalId } : { portalItem: {id: portalId } };
     return new Observable(subject => this.zone.runOutsideAngular(() => {
         loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
@@ -186,12 +195,12 @@ export class EsriLayerService {
   }
 
   public coordinateToGraphic(coordinate: UniversalCoordinates,  symbol?: MapSymbols) : __esri.Graphic {
-    const point: __esri.Point = new EsriApi.Point();
+    const point: __esri.Point = new Point();
     point.latitude = coordinate.y;
     point.longitude = coordinate.x;
-    const marker: __esri.SimpleMarkerSymbol = new EsriApi.SimpleMarkerSymbol({ color: [0, 0, 255] });
+    const marker: __esri.SimpleMarkerSymbol = new SimpleMarkerSymbol({ color: [0, 0, 255] });
     symbol != null ? marker.path = symbol : marker.path = MapSymbols.STAR;
-    const graphic: __esri.Graphic = new EsriApi.Graphic();
+    const graphic: __esri.Graphic = new Graphic();
     graphic.geometry = point;
     graphic.symbol = marker;
     return graphic;
@@ -199,7 +208,7 @@ export class EsriLayerService {
 
   public createGraphicsLayer(groupName: string, layerName: string, graphics: __esri.Graphic[], addToLegend: boolean = false, bottom: boolean = false) : __esri.GraphicsLayer {
     const group = this.createClientGroup(groupName, true, bottom);
-    const layer: __esri.GraphicsLayer = new EsriApi.GraphicsLayer({ graphics: graphics, title: layerName });
+    const layer: __esri.GraphicsLayer = new GraphicsLayer({ graphics: graphics, title: layerName });
     group.layers.unshift(layer);
     if (addToLegend) {
       layer.when(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: layerName })));
@@ -224,7 +233,7 @@ export class EsriLayerService {
         return { name: k, alias: k, type: k === oidFieldName ? 'oid' : 'string' };
       });
     }
-    const layer = new EsriApi.FeatureLayer({
+    const layer = new FeatureLayer({
       source: sourceGraphics,
       objectIdField: oidFieldName,
       fields: fields,
@@ -256,7 +265,7 @@ export class EsriLayerService {
       fields.push(...newFields);
     }
     fields.push({ name: objectIdFieldName, alias: 'OBJECTID', type: 'esriFieldTypeOID' });
-    return new EsriApi.FeatureSet({
+    return new FeatureSet({
       features: sourceGraphics,
       fields: fields
     });
@@ -327,21 +336,21 @@ export class EsriLayerService {
 
   private createLabelConfig(layer: __esri.FeatureLayer, fontSize: number, layerOptions: EsriLabelLayerOptions) : __esri.LabelClass[] {
     if (layerOptions == null) return null;
-    const textSymbol: __esri.TextSymbol = new EsriApi.TextSymbol();
+    const textSymbol: __esri.TextSymbol = new TextSymbol();
     const offset = layerOptions.fontSizeOffset || 0;
-    const font = new EsriApi.Font({ family: 'arial', size: (fontSize + offset), weight: 'bold' });
+    const font = new Font({ family: 'arial', size: (fontSize + offset), weight: 'bold' });
     if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol) && EsriUtils.symbolIsSimpleLine(layer.renderer.symbol.outline)) {
       textSymbol.color = layer.renderer.symbol.outline.color;
     } else {
-      textSymbol.color = new EsriApi.Color({a: 1, r: 255, g: 255, b: 255});
+      textSymbol.color = new Color({a: 1, r: 255, g: 255, b: 255});
     }
     if (layerOptions.colorOverride != null) {
-      textSymbol.color = new EsriApi.Color(layerOptions.colorOverride);
+      textSymbol.color = new Color(layerOptions.colorOverride);
     }
-    textSymbol.haloColor = new EsriApi.Color({ r: 255, g: 255, b: 255, a: 1 });
+    textSymbol.haloColor = new Color({ r: 255, g: 255, b: 255, a: 1 });
     textSymbol.haloSize = 1;
     textSymbol.font = font;
-    return [new EsriApi.LabelClass({
+    return [new LabelClass({
       labelPlacement: 'always-horizontal',
       labelExpressionInfo: {
         expression: layerOptions.expression

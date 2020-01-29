@@ -1,0 +1,9 @@
+<div class="ui-inputgroup component-root" [formGroup]="parentForm">
+  <span class="md-inputfield">
+    <input pInputText id="{{valueName}}input" class="ui-g-12" formControlName="{{valueName}}" autocomplete="off" />
+    <span class="ui-inputgroup-addon" *ngIf="hasErrors()">
+      <i class="ui-icon-error" title="{{validationMessage}}"></i>
+    </span>
+    <label class="validation-float-label" for="{{valueName}}input">{{labelText}}</label>
+  </span>
+</div>

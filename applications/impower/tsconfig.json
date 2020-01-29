@@ -1,19 +1,8 @@
 {
+  "extends": "./../../tsconfig",
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
-    "rootDir": "./",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "target": "es5",
-    "module": "es2015",
-    "lib": [
-      "es2017",
-      "dom"
-    ],
     "paths": {
       "@val/esri": ["../../modules/esri"],
       "@val/common": ["../../modules/common"],

@@ -1,16 +1,16 @@
-import { BehaviorSubject } from 'rxjs';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, ViewChildren, QueryList, ViewChild, ViewEncapsulation } from '@angular/core';
-import { AppLocationService } from 'app/services/app-location.service';
-import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { SelectItem } from 'primeng/components/common/selectitem';
-import { SortMeta, ConfirmationService } from 'primeng/api';
-import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';
-import { Table } from 'primeng/table';
-import { WarningNotification } from '@val/messaging';
-import { LocalAppState } from 'app/state/app.interfaces';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { WarningNotification } from '@val/messaging';
+import { AppLocationService } from 'app/services/app-location.service';
+import { LocalAppState } from 'app/state/app.interfaces';
 import { DAOBaseStatus } from 'app/val-modules/api/models/BaseModel';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ConfirmationService, SortMeta } from 'primeng/api';
+import { SelectItem } from 'primeng/components/common/selectitem';
+import { Table } from 'primeng/table';
+import { BehaviorSubject } from 'rxjs';
+import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';
 
 export interface GeocodeFailureGridField {
   seq: number;
@@ -65,8 +65,8 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   // Track unique values for text variables for filtering
   public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
-  private failedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
-  private selectedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
+  public failedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
+  public selectedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
   public  selectedLov = [{isActive: true}, {isActive: false}];
   public  hasSelectedSites: boolean = false;
   public  numSelectedSites: number = 0;
@@ -103,7 +103,7 @@ export class FailedGeocodeGridComponent implements OnInit {
   // Filter selected rows
   public  isSelectedFilterState: string = this.filterAllIcon;
   public  isSelectedToolTip: string = this.filterAllTip;
-  
+
   constructor(private appLocationService: AppLocationService,
               private confirmationService: ConfirmationService,
               private store$: Store<LocalAppState>,
@@ -190,7 +190,7 @@ export class FailedGeocodeGridComponent implements OnInit {
     if (locAttribs != null && !(/^\d{4}$/.test(locAttribs.attributeValue) || /^\d{3}$/.test(locAttribs.attributeValue))) {
       site.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue = '';
     }
-    
+
     // Set base status to trigger the creation of trade areas below it
     site.baseStatus = DAOBaseStatus.INSERT;
   }
@@ -208,7 +208,7 @@ export class FailedGeocodeGridComponent implements OnInit {
       this.prepSiteForAccept(site);
     });
     this.accept.emit(selectedSites);
-    
+
     if (inelligibleSites.length > 0) {
       let inelligibleSiteMsg = 'The following sites were not\n accepted due to missing\n coordinates:\n\n';
       inelligibleSites.forEach(site => inelligibleSiteMsg += site.locationNumber + ' - ' + site.origAddress1 + ' \n');
@@ -235,7 +235,7 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   onRemoveSelected() : void {
     const selectedSites = this.failedSitesBS$.getValue().filter(site => site.isActive);
-    if (selectedSites.length > 0) {    
+    if (selectedSites.length > 0) {
     this.confirmationService.confirm({
       message: 'Are you sure you wish to delete the ' + selectedSites.length + ' selected locations?',
       header: 'Delete All Selected Locations',
@@ -280,7 +280,7 @@ export class FailedGeocodeGridComponent implements OnInit {
     const hasFilters  = this.hasFilters();
     failedSites.forEach(site => {
       if (!hasFilters || this._failureGrid.filteredValue.includes(site))
-        site.isActive = value;        
+        site.isActive = value;
     });
     this.setHasSelectedSites();
   }

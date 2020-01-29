@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupByExtended, isNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriApi, EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
+import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { Point } from 'esri/geometry';
+import Graphic from 'esri/Graphic';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
 import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
@@ -22,7 +25,6 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ImpGeofootprintTradeAreaService } from './../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { AppGeocodingService } from './app-geocoding.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
@@ -115,7 +117,7 @@ export class AppLocationService {
     const allLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null)
     );
-    
+
     const allActiveLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null),
       filterArray(loc => loc.isActive)
@@ -235,7 +237,7 @@ export class AppLocationService {
    public setLocationsActive(sites: ImpGeofootprintLocation[], newIsActive: boolean) : void {
     //console.log('### setLocationsActive - Sites:', sites, ', newIsActive:', newIsActive);
     sites.forEach(site => {
-      //console.log('### setLocationsActive - sites#:', site.locationNumber, ', isActive:', site.isActive);      
+      //console.log('### setLocationsActive - sites#:', site.locationNumber, ', isActive:', site.isActive);
       if (site != null) {
         site.isActive = newIsActive;
         site.impGeofootprintTradeAreas.forEach(ta => ta.isActive = newIsActive);
@@ -866,8 +868,8 @@ export class AppLocationService {
           const partitionedJobData = partitionedLocations.map(partition => {
             return partition.map(loc => {
               const coordinates = toUniversalCoordinates(loc);
-              return new EsriApi.Graphic({
-                geometry: new EsriApi.Point(coordinates),
+              return new Graphic({
+                geometry: new Point(coordinates),
                 attributes: {
                   ...coordinates,
                   parentId: objId++,

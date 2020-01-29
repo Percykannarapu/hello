@@ -1,22 +1,22 @@
 import { Injectable } from '@angular/core';
 
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
-
-import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
+import { AppConfig } from '../../../app.config';
+import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
+import { UserService } from '../../../services/user.service';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
-import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
+import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { ImpProject } from '../models/ImpProject';
 import { ImpProjectPref } from '../models/ImpProjectPref';
 import { ImpProjectVar } from '../models/ImpProjectVar';
-import { AppConfig } from '../../../app.config';
-import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
-import { UserService } from '../../../services/user.service';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
+
+import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 
 function isNumber(value: any) : value is number {
   return value != null && value !== '' && !Number.isNaN(Number(value));
@@ -124,7 +124,7 @@ export class ImpDomainFactoryService {
       projectVar.sortOrder = audience.seq; // audience.audienceCounter;
       projectVar.customVarExprDisplay = source.toUpperCase() === 'COMBINED_TDA' ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
       projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' ?
-                                      (audience.combinedAudiences != null ? JSON.stringify(audience.combinedAudiences) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));    
+                                      (audience.combinedAudiences != null ? JSON.stringify(audience.combinedAudiences) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
        projectVar.impProject = parent;
       parent.impProjectVars.push(projectVar);
       return projectVar;
@@ -178,15 +178,15 @@ export class ImpDomainFactoryService {
     }
     else {
       if (overwriteDuplicate) {
-         existingPref.dirty = true,
+         existingPref.dirty = true;
          existingPref.baseStatus  = (existingPref.baseStatus === DAOBaseStatus.UNCHANGED) ? DAOBaseStatus.UPDATE : existingPref.baseStatus;
-         existingPref.projectId   = parent.projectId,
-         existingPref.prefGroup   = group,
-         existingPref.prefType    = type,
-         existingPref.pref        = pref,
-         existingPref.val         = (value.length <= 4000) ? value : null,
-         existingPref.largeVal    = (value.length > 4000) ? value : null,
-         existingPref.isActive    = isActive,
+         existingPref.projectId   = parent.projectId;
+         existingPref.prefGroup   = group;
+         existingPref.prefType    = type;
+         existingPref.pref        = pref;
+         existingPref.val         = (value.length <= 4000) ? value : null;
+         existingPref.largeVal    = (value.length > 4000) ? value : null;
+         existingPref.isActive    = isActive;
          existingPref.impProject  = parent; // Set transient property
          return existingPref;
       }
@@ -282,7 +282,7 @@ export class ImpDomainFactoryService {
     delete res['previousZip'];
     const uploadData = data.filter(val => val.number === res.Number);
     for (const [k, v] of Object.entries(res)) {
-      if (k == null || k.length === 0 || v == null || typeof v === 'function' || nonAttributeProps.has(k) || (k == 'Home DMA Name' 
+      if (k == null || k.length === 0 || v == null || typeof v === 'function' || nonAttributeProps.has(k) || (k == 'Home DMA Name'
           && uploadData[0]['Home DMA'] !== '' && uploadData[0]['Home DMA'] !== null && uploadData[0]['Home DMA'] !== undefined && !((/^\d{4}$/.test(uploadData[0]['Home DMA']) || /^\d{3}$/.test(uploadData[0]['Home DMA']))))) continue;
       this.createLocationAttribute(result, k, v);
     }

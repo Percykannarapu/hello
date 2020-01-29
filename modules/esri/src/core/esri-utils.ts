@@ -1,5 +1,8 @@
+import * as lang from 'esri/core/lang';
+import * as watchUtils from 'esri/core/watchUtils';
+import geometryEngine from 'esri/geometry/geometryEngine';
+import Polyline from 'esri/geometry/Polyline';
 import { Observable } from 'rxjs';
-import { EsriApi } from './esri-api.service';
 
 export interface TokenResponse {
   token: string;
@@ -119,12 +122,12 @@ export class EsriUtils {
       xB = param3;
       yB = param4;
     }
-    const line = new EsriApi.PolyLine({ paths: [[[xA, yA], [xB, yB]]] });
-    return EsriApi.geometryEngine.geodesicLength(line, 'miles');
+    const line = new Polyline({ paths: [[[xA, yA], [xB, yB]]] });
+    return geometryEngine.geodesicLength(line, 'miles');
   }
 
   public static clone<T>(original: T) : T {
-    return EsriApi.lang.clone(original);
+    return lang.clone(original);
   }
 
   public static setupWatch<T extends __esri.Accessor, K extends keyof T>(instance: T, prop: K) : Observable<WatchResult<T, K>> {
@@ -141,6 +144,10 @@ export class EsriUtils {
         if (handle) handle.remove();
       };
     });
+  }
+
+  public static setupPausableWatch<T extends __esri.Accessor, K extends keyof T>(obj: T, propertyName: K, callback?: __esri.WatchCallback) : __esri.PausableWatchHandle {
+    return watchUtils.pausable(obj, propertyName as string, callback);
   }
 
   public static handleEvent<T>(instance: __esri.Evented, event: string) : Observable<T> {

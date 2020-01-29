@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-import { EsriApi } from '../core/esri-api.service';
+import Color from 'esri/Color';
 import { RgbTuple } from './esri-types';
 
 // these are the only palettes used in the application for now
@@ -89,7 +89,7 @@ export enum AllColorPalettes {
 
 export function getColorPaletteAsEsriColor(palette: ColorPalette, alpha: number) : __esri.Color[] {
   const colorPalette = getColorPalette(palette);
-  return colorPalette.map(rgb => new EsriApi.Color([...rgb, alpha])) ;
+  return colorPalette.map(rgb => new Color([...rgb, alpha])) ;
 }
 
 export function getColorPalette(palette: ColorPalette) : RgbTuple[] {

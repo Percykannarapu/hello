@@ -1,27 +1,28 @@
-import { Component, OnInit, Input, Output } from '@angular/core';
-import { Subject, Observable } from 'rxjs';
-import { filter, map, take, tap, distinctUntilChanged } from 'rxjs/operators';
+import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
+import { FetchAudienceTradeArea } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { AppLoggingService } from 'app/services/app-logging.service';
+import { Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, take, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
+import { Audience } from '../../impower-datastore/state/transient/audience/audience.model';
+import { AudienceDataDefinition, AudienceTradeAreaConfig } from '../../models/audience-data.model';
+import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
+import { AppGeoService } from '../../services/app-geo.service';
 import { AppLocationService } from '../../services/app-location.service';
 import { AppProjectService } from '../../services/app-project.service';
 import { AppStateService } from '../../services/app-state.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
+import { TargetAudienceService } from '../../services/target-audience.service';
+import { LocalAppState } from '../../state/app.interfaces';
+import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area/distance-trade-area-ui.model';
-import { AudienceTradeAreaConfig, AudienceDataDefinition } from '../../models/audience-data.model';
-import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
-import { TargetAudienceService } from '../../services/target-audience.service';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from '../../state/app.interfaces';
-import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
-import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { AppGeoService } from './../../services/app-geo.service';
-import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
-import { AppLoggingService } from 'app/services/app-logging.service';
-import { FetchAudienceTradeArea } from 'app/impower-datastore/state/transient/audience/audience.actions';
 
 const tradeAreaExtract = (maxTas: number) => map<Map<number, ImpGeofootprintTradeArea[]>, ImpGeofootprintTradeArea[]>(taMap => {
   const result = [];
@@ -52,7 +53,7 @@ export class TradeAreaTabComponent implements OnInit {
   siteMergeType$: Observable<TradeAreaMergeTypeCodes>;
   competitorMergeType$: Observable<TradeAreaMergeTypeCodes>;
   audienceTAConfig$: Observable<AudienceTradeAreaConfig>;
-  currentAudiences$: Observable<AudienceDataDefinition[]>;
+  currentAudiences$: Observable<Audience[]>;
   currentLocationsCount$: Subject<number> = new Subject<number>();
   hasSiteProvidedTradeAreas$: Observable<boolean>;
   hasCompetitorProvidedTradeAreas$: Observable<boolean>;
@@ -63,7 +64,7 @@ export class TradeAreaTabComponent implements OnInit {
   private tradeAreaUiCache = new Map<SuccessfulLocationTypeCodes, TradeAreaModel[]>();
   mustCoverText: string;
   customTaText: string;
-  
+
 
   constructor(private stateService: AppStateService,
               private appProjectService: AppProjectService,
@@ -104,7 +105,7 @@ export class TradeAreaTabComponent implements OnInit {
     );
 
     this.audienceTAConfig$ = this.audienceTradeareaService.audienceTAConfig$.pipe(distinctUntilChanged());
-    this.currentAudiences$ = this.targetAudienceService.audiences$.pipe(
+    this.currentAudiences$ = this.targetAudienceService.allAudiencesBS$.pipe(
       map(audiences => audiences.filter(audience => audience.audienceSourceName !== 'Audience-TA'))
     );
     this.locationService.storeObservable.subscribe(l => {

@@ -1,7 +1,7 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { ImpowerDatastoreState } from './impower-datastore.interfaces';
 import * as fromRoot from '../../state/app.interfaces';
+import { ImpowerDatastoreState } from './impower-datastore.interfaces';
 
-const datastoreFeature = createFeatureSelector<fromRoot.LocalAppState, ImpowerDatastoreState>('datastore');
+const datastoreFeature = createFeatureSelector<fromRoot.FullAppState, ImpowerDatastoreState>('datastore');
 export const persistentSlice = createSelector(datastoreFeature, state => state.persistent);
 export const transientSlice = createSelector(datastoreFeature, state => state.transient);

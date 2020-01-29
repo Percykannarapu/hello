@@ -1,5 +1,7 @@
 import { groupByExtended } from '@val/common';
-import { EsriApi, MapSymbols } from '@val/esri';
+import { MapSymbols } from '@val/esri';
+import { Point } from 'esri/geometry';
+import Graphic from 'esri/Graphic';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
@@ -40,8 +42,8 @@ export const defaultLocationPopupFields = [
 ];
 
 function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) : __esri.Graphic {
-  const graphic = new EsriApi.Graphic({
-    geometry: new EsriApi.Point({
+  const graphic = new Graphic({
+    geometry: new Point({
       x: site.xcoord,
       y: site.ycoord
     }),

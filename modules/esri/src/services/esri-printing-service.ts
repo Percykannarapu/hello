@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
+import PrintParameters from 'esri/tasks/support/PrintParameters';
+import PrintTemplate from 'esri/tasks/support/PrintTemplate';
 import { EsriMapService } from './esri-map.service';
-import { EsriApi } from '../core/esri-api.service';
-
-
-
 
 @Injectable()
-
 export class EsriPrintingService {
+
   constructor(private esriMapService: EsriMapService){}
 
     public createPrintPayload(templateOptions: {title: string, author: string, customTextElements: any}) : __esri.PrintParameters {
@@ -20,18 +18,16 @@ export class EsriPrintingService {
           'projectID': templateOptions.customTextElements[1]
         }]
       } ;
-      const template = new EsriApi.PrintTemplate({
+      const template = new PrintTemplate({
           format: 'pdf',
           layout: 'imPower_Print_Layout',
           layoutOptions: currentLayout ,
          });
-      
-      const params =  new EsriApi.PrintParameters({
-        view: this.esriMapService.mapView,
-        template: template
+
+      return new PrintParameters({
+         view: this.esriMapService.mapView,
+         template: template
        });
-       return params;
-  
     }
 
 }

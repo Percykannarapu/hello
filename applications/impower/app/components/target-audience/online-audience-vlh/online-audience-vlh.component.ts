@@ -50,7 +50,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
 
     // this.appStateService.clearUI$.subscribe(() => this.clearSelectedFields());
 
-    this.parentAudienceService.audiences$.pipe(
+    this.parentAudienceService.allAudiencesBS$.pipe(
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === 'VLH'))
     ).subscribe(audiences => this.selectNodes(audiences, true));
 

@@ -5,7 +5,7 @@ import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map, startWith, switchMap, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, startWith, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ApplyAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
@@ -58,14 +58,15 @@ export class AppStateService {
   public activeClientLocations$: Observable<ImpGeofootprintLocation[]>;
   public allCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
   public activeCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
+  public clientLocationCount$: Observable<number>;
 
-  public uniqueVisibleGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueSelectedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueIdentifiedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public totalGeoCount$: Observable<number>;
 
   public siteTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
   public competitorTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
+  public tradeAreaCount$: Observable<number>;
 
   private clearUI: Subject<void> = new Subject<void>();
   public clearUI$: Observable<void> = this.clearUI.asObservable();
@@ -97,13 +98,13 @@ export class AppStateService {
               private config: AppConfig,
               private store$: Store<FullAppState>) {
     this.setupLocationObservables();
+    this.setupTradeAreaObservables();
     this.mapIsReady.pipe(
       take(1)
     ).subscribe(() => {
       this.setupApplicationReadyObservable();
       this.setupProjectObservables();
       this.setupGeocodeObservables();
-      this.setupTradeAreaObservables();
       this.setupProvidedTaObservables();
       this.setupProjectVarObservables();
     });
@@ -134,10 +135,6 @@ export class AppStateService {
 
   public refreshVisibleGeos() : void {
     this.getVisibleGeos$.next();
-  }
-
-  public clearVisibleGeos() : void {
-    (this.uniqueVisibleGeocodes$ as BehaviorSubject<string[]>).next([]);
   }
 
   public notifyMapReady() : void {
@@ -210,6 +207,7 @@ export class AppStateService {
     this.activeCompetitorLocations$ = this.allCompetitorLocations$.pipe(
       filterArray(l => l.isActive)
     );
+    this.clientLocationCount$ = this.activeClientLocations$.pipe(map(l => l.length));
   }
 
   private setupGeocodeObservables() : void {
@@ -225,9 +223,6 @@ export class AppStateService {
     ).subscribe(this.uniqueSelectedGeocodes$ as BehaviorSubject<string[]>);
 
     const uniqueGeos$ = this.geoService.storeObservable.pipe(
-      //withLatestFrom(this.applicationIsReady$),
-      //filter(([geos, isReady]) => isReady),
-      //map(([geos]) => geos),
       mapArray(geo => geo.geocode),
       map(geocodes => new Set(geocodes))
     );
@@ -257,16 +252,6 @@ export class AppStateService {
       this.store$.dispatch(new ClearGeoVars());
       this.store$.dispatch(new ApplyAudiences({analysisLevel: this.analysisLevel$.getValue()}));
     });
-
-    this.getVisibleGeos$.pipe(
-      withLatestFrom(this.analysisLevel$),
-      filter(([, analysisLevel]) => analysisLevel != null && analysisLevel.length > 0),
-      map(([, analysisLevel]) => this.config.getLayerIdForAnalysisLevel(analysisLevel)),
-      switchMap(layerId => this.esriQueryService.queryExtent(layerId).pipe(
-        map(graphics => graphics.filter(g => g.attributes.pob !== 'B').map(g => g.attributes.geocode))
-      )),
-      map(geos => Array.from(new Set(geos)))
-    ).subscribe(this.uniqueVisibleGeocodes$ as BehaviorSubject<string[]>);
   }
 
   private setupTradeAreaObservables() : void {
@@ -281,6 +266,10 @@ export class AppStateService {
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
       map(tas => groupBy(tas, 'taNumber'))
     ).subscribe(this.competitorTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
+    this.tradeAreaCount$ = this.tradeAreaService.storeObservable.pipe(
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site' && ta.isActive),
+      map(ta => ta.length)
+    );
   }
 
   private setupProvidedTaObservables() : void {

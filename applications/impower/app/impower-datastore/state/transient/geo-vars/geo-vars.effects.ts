@@ -1,21 +1,19 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
-import { of } from 'rxjs';
-import { catchError, map, switchMap, withLatestFrom, tap, take, filter } from 'rxjs/operators';
-import { FullAppState } from '../../../../state/app.interfaces';
-import { CacheGeosComplete, TransientActionTypes, CacheGeosFailure, CacheGeos } from './../transient.actions';
-import { GeoVarActions, GeoVarActionTypes, GeoVarCacheGeos, GeoVarCacheGeosComplete, GeoVarCacheGeosFailure, UpsertGeoVars, GeoVarCacheGeofootprintGeos, RemoveVar, DeleteGeoVars, RemoveVars } from './geo-vars.actions';
-import { LoggingService } from 'app/val-modules/common/services/logging.service';
-import { AppStateService } from 'app/services/app-state.service';
-import { AppConfig } from 'app/app.config';
-import { CacheGeofootprintGeos } from '../transient.actions';
 import { getUuid } from '@val/common';
+import { AppConfig } from 'app/app.config';
 import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
+import { AppStateService } from 'app/services/app-state.service';
+import { LoggingService } from 'app/val-modules/common/services/logging.service';
+import { of } from 'rxjs';
+import { catchError, filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { FullAppState } from '../../../../state/app.interfaces';
+import { CacheGeofootprintGeos } from '../transient.actions';
+import { CacheGeos, CacheGeosComplete, CacheGeosFailure, TransientActionTypes } from './../transient.actions';
+import { DeleteGeoVars, GeoVarActions, GeoVarActionTypes, GeoVarCacheGeofootprintGeos, GeoVarCacheGeos, GeoVarCacheGeosComplete, GeoVarCacheGeosFailure, RemoveVar, RemoveVars, UpsertGeoVars } from './geo-vars.actions';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class GeoVarsEffects {
 
   // Will cache geocodes from the payload to the server.

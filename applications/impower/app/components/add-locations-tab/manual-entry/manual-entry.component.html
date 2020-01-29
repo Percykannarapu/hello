@@ -1,4 +1,4 @@
-  <form novalidate  [formGroup]="manualEntryForm" (submit)="onSubmit(manualEntryForm.value)" autocomplete="off">
+  <form novalidate valConnectForm="addLocation"  [formGroup]="manualEntryForm" (submit)="onSubmit(manualEntryForm.value)" autocomplete="off">
       <div class="ui-g-6">
         <div class="ui-inputgroup">
           <span class="md-inputfield">
@@ -69,7 +69,7 @@
        </div>
       <div class="ui-g-12 ui-g-nopad">
          <div class="ui-g-4">
-            <button (click)="manualEntryForm.reset()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
+            <button (click)="clear()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
          </div>
          <div class="ui-g-4">
             <button type="submit" label="Submit" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="manualEntryForm.invalid"></button>

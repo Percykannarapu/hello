@@ -1,26 +1,33 @@
 import { routerReducer } from '@ngrx/router-store';
-import { Action, ActionReducer, ActionReducerMap, MetaReducer } from '@ngrx/store';
+import { Action, ActionReducer, ActionReducerMap, combineReducers, createFeatureSelector, MetaReducer } from '@ngrx/store';
 import { LogLevels } from '@val/common';
 import { environment } from '../../environments/environment';
-import { masterDataStoreReducer } from '../impower-datastore/state/impower-datastore.interfaces';
-import { LocalAppState } from './app.interfaces';
+import { ImpowerState, LocalAppState } from './app.interfaces';
 import { batchMapReducer } from './batch-map/batch-map.reducer';
 import { dataShimReducer } from './data-shim/data-shim.reducer';
+import { formsReducer } from './forms/forms.reducer';
 import { homeGeoReducer } from './homeGeocode/homeGeo.reducer';
 import { menuReducer } from './menu/menu.reducer';
 import { renderingReducer } from './rendering/rendering.reducer';
 
-export const appReducer: ActionReducerMap<LocalAppState> = {
-  router: routerReducer,
+const impowerReducer: ActionReducerMap<ImpowerState> = {
   dataShim: dataShimReducer,
   menu: menuReducer,
   homeGeo: homeGeoReducer,
-  datastore: masterDataStoreReducer,
   rendering: renderingReducer,
-  batchMap: batchMapReducer
+  batchMap: batchMapReducer,
+  forms: formsReducer
 };
 
-export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<LocalAppState> {
+export const impowerAppSlice = createFeatureSelector<ImpowerState>('impower');
+
+export const appReducer: ActionReducerMap<LocalAppState> = {
+  router: routerReducer,
+};
+
+const combinedImpowerReducer: ActionReducer<ImpowerState> = combineReducers(impowerReducer);
+
+function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<LocalAppState> {
   return function(state: LocalAppState, action: Action) : LocalAppState {
     console.groupCollapsed('%c' + action.type, 'color: #66666699');
     const nextState = reducer(state, action);
@@ -33,3 +40,7 @@ export function logger(reducer: ActionReducer<LocalAppState>) : ActionReducer<Lo
 }
 
 export const appMetaReducers: MetaReducer<LocalAppState>[] = environment.logLevel <= LogLevels.ALL ? [logger] : [];
+
+export function masterImpowerReducer(state: ImpowerState, action: Action) : ImpowerState {
+  return combinedImpowerReducer(state, action);
+}

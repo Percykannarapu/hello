@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Actions, Effect, ofType, act } from '@ngrx/effects';
+import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
@@ -7,12 +7,10 @@ import { RehydrateAfterLoad } from 'app/impower-datastore/state/transient/transi
 import { AppTradeAreaService } from 'app/services/app-trade-area.service';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { RehydrateAudiences } from '../../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttributeActionTypes, RehydrateAttributesComplete, RequestAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { FullAppState } from '../app.interfaces';
 import { getBatchMode } from '../batch-map/batch-map.selectors';
-import { getTypedBatchQueryParams } from '../shared/router.interfaces';
 import {
   CalculateMetrics,
   CreateNewProject,
@@ -20,6 +18,7 @@ import {
   DataShimActionTypes,
   FiltersChanged,
   IsProjectReload,
+  MustCoverRollDownGeos,
   ProjectLoad,
   ProjectLoadFailure,
   ProjectLoadFinish,
@@ -27,9 +26,8 @@ import {
   ProjectSaveAndLoad,
   ProjectSaveFailure,
   ProjectSaveSuccess,
-  TradeAreaRollDownGeos,
-  MustCoverRollDownGeos,
-  RollDownGeosComplete
+  RollDownGeosComplete,
+  TradeAreaRollDownGeos
 } from './data-shim.actions';
 
 @Injectable({ providedIn: 'root' })
@@ -73,9 +71,9 @@ export class DataShimEffects {
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
       withLatestFrom(this.appDataShimService.currentGeocodeSet$),
-      map(([, geocodes]) => action.payload.isBatchMode
-        ? new RehydrateAudiences({ ...action.payload, notifyLoadSuccess: true })
-        : new RehydrateAfterLoad({ ...action.payload, geocodes })),
+      map(([analysisLevel, geocodes]) => action.payload.isBatchMode
+        ? new ProjectLoadSuccess({ projectId: action.payload.projectId, isReload: action.payload.isReload })
+        : new RehydrateAfterLoad({ ...action.payload, geocodes, analysisLevel })),
       catchError(err => of(new ProjectLoadFailure({ err, isReload: false }))),
     )),
   );

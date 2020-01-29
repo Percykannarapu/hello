@@ -1,33 +1,33 @@
-import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { Injectable } from '@angular/core';
-import { FileService, Parser, ParseResponse, ParseRule } from '../val-modules/common/services/file.service';
-import { EMPTY, Observable, BehaviorSubject, merge } from 'rxjs';
-import { AppLoggingService } from './app-logging.service';
-import { TargetAudienceService } from './target-audience.service';
-import { distinctUntilChanged, filter, map, tap, withLatestFrom, switchMap, reduce, mergeMap } from 'rxjs/operators';
-import { AudienceDataDefinition } from '../models/audience-data.model';
-import { AppStateService } from './app-state.service';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { groupBy, filterArray, safe } from '@val/common';
-import { FieldContentTypeCodes, ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from '../state/app.interfaces';
-import { ErrorNotification, SuccessNotification, WarningNotification } from '@val/messaging';
-import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
-import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
-import { AppProjectPrefService } from './app-project-pref.service';
-import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { TradeAreaTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
 import { Update } from '@ngrx/entity';
+import { Store } from '@ngrx/store';
+import { filterArray, groupBy } from '@val/common';
+import { EsriQueryService } from '@val/esri';
+import { ErrorNotification, SuccessNotification, WarningNotification } from '@val/messaging';
+import { AppConfig } from 'app/app.config';
+import { AddAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { AddAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { BehaviorSubject, merge } from 'rxjs';
+import { distinctUntilChanged, filter, map, reduce, tap, withLatestFrom } from 'rxjs/operators';
+import { TradeAreaTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
+import { AudienceDataDefinition } from '../models/audience-data.model';
+import { LocalAppState } from '../state/app.interfaces';
+import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
+import { FileService, Parser, ParseResponse, ParseRule } from '../val-modules/common/services/file.service';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
+import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { FieldContentTypeCodes, ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
 import { UpdateAudiences } from './../impower-datastore/state/transient/audience/audience.actions';
-import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { AppConfig } from 'app/app.config';
-import { EsriQueryService } from '@val/esri';
+import { AppLoggingService } from './app-logging.service';
+import { AppProjectPrefService } from './app-project-pref.service';
+import { AppStateService } from './app-state.service';
+import { TargetAudienceService } from './target-audience.service';
 
 const audienceUpload: Parser<CustomAudienceData> = {
   columnParsers: [
@@ -35,7 +35,7 @@ const audienceUpload: Parser<CustomAudienceData> = {
   ],
   createNullParser: (header: string, isUnique?: boolean) : ParseRule => {
     return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data};
-  } 
+  }
 };
 
 interface CustomAudienceData {
@@ -184,10 +184,10 @@ export class TargetAudienceCustomService {
         }
         else {
           // No existing id, create one
-          varPk = this.varService.getNextStoreId();
+          varPk = this.projectVarService.getNextStoreId();
           const maxVarPk = Math.max.apply(Math, Array.from(this.varPkCache.values()));
           while (varPk <= maxVarPk) {
-            varPk = this.varService.getNextStoreId();
+            varPk = this.projectVarService.getNextStoreId();
           }
         }
       }
@@ -369,12 +369,12 @@ export class TargetAudienceCustomService {
           //   this.audienceService.addAudience(audienceDefinition/*, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos)*/);
           // });
           // console.log('### parseCustomVarData - adding audience - for project var - done');
-           
+
           if (!isReload){
-            const geos = data.parsedData.length == 1 ? 'Geo' : 'Geos'; 
+            const geos = data.parsedData.length == 1 ? 'Geo' : 'Geos';
             this.store$.dispatch(new SuccessNotification({ message: `Valid ${geos} have been uploaded successfully`, notificationTitle: 'Custom Audience Upload'}));
           }
-              
+
         }
       }
     } catch (e) {
@@ -468,7 +468,7 @@ export class TargetAudienceCustomService {
   private handleError(message: string) : void {
     this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
   }
-  
+
 
   private validateGeos(data: ParseResponse<CustomAudienceData>, fileNmae: string, header: string){
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.stateService.analysisLevel$.getValue());
@@ -508,7 +508,7 @@ export class TargetAudienceCustomService {
            let row = '';
           for (let i = 0; i <= fields.length - 1; i++ ){
             row = fields[i].toLocaleUpperCase() === 'GEOCODE' ? row + `${record.geocode},` : row + `${record[fields[i]]},`;
-          }            
+          }
           records.push(row.substring(0, row.length - 1) + '\n');
          }
        });
@@ -519,7 +519,7 @@ export class TargetAudienceCustomService {
           a.href = url;
           a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
           a.click();
-          const geos = records.length == 2 ? 'Geo' : 'Geos'; 
+          const geos = records.length == 2 ? 'Geo' : 'Geos';
           this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
        }
     });
@@ -538,7 +538,7 @@ export class TargetAudienceCustomService {
            let row = '';
           for (let i = 0; i <= fields.length - 1; i++ ){
             row = fields[i].toLocaleUpperCase() === 'GEOCODE' ? row + `${record.geocode},` : row + `${record[fields[i]]},`;
-          }            
+          }
           records.push(row.substring(0, row.length - 1) + '\n');
          }
        });
@@ -549,7 +549,7 @@ export class TargetAudienceCustomService {
           a.href = url;
           a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
           a.click();
-          const geos = records.length == 2 ? 'Geo' : 'Geos'; 
+          const geos = records.length == 2 ? 'Geo' : 'Geos';
           this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
        }
      });*/

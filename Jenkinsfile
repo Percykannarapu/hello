@@ -23,7 +23,7 @@
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
           echo 'install all the stuff'
-          sh "npm ci"
+          sh "npm ci --silent --progress=false"
         }
       }
     }

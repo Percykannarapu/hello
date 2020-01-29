@@ -2,6 +2,10 @@ import { Action, ActionReducer, ActionReducerMap, combineReducers } from '@ngrx/
 import * as fromPersistent from './persistent/persistent.reducer';
 import * as fromTransient from './transient/transient.reducer';
 
+export interface AppState {
+  datastore: ImpowerDatastoreState;
+}
+
 export interface ImpowerDatastoreState {
   persistent: fromPersistent.ImpowerPersistentState;
   transient:  fromTransient.ImpowerTransientState;

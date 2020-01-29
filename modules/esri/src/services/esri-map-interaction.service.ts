@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import geometryEngine from 'esri/geometry/geometryEngine';
+import Graphic from 'esri/Graphic';
 import { EMPTY, from, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriGraphicTypeCodes } from '../core/esri.enums';
-import { EsriApi } from '../core/esri-api.service';
 import { CreateCompleteEvent } from '../core/esri.models';
 import { EsriState } from '../state/esri.selectors';
-import { EsriMapService } from './esri-map.service';
-import { map } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
-import { EsriDomainFactoryService } from './esri-domain-factory.service';
-import { EsriQueryService } from './esri-query.service';
 import { StartSketchView } from '../state/map/esri.map-button.actions';
+import { EsriDomainFactoryService } from './esri-domain-factory.service';
+import { EsriMapService } from './esri-map.service';
+import { EsriQueryService } from './esri-query.service';
 
 @Injectable()
 export class EsriMapInteractionService {
@@ -28,7 +29,7 @@ export class EsriMapInteractionService {
 
   startSketchModel(graphicType: EsriGraphicTypeCodes) : Observable<__esri.Geometry> {
     const model = this.domainFactory.createSketchViewModel(this.mapService.mapView);
-    const result: Observable<__esri.Geometry> = Observable.create(observer => {
+    const result: Observable<__esri.Geometry> = new Observable(observer => {
       const drawingHandler = model.on('create', event => {
         if (event.state === 'complete') {
           this.stopSketchModel(model, event);
@@ -66,7 +67,7 @@ export class EsriMapInteractionService {
       default:
         throw new Error('Unknown SketchViewModel tool option selected.');
     }
-    const sketchGraphic = new EsriApi.Graphic({
+    const sketchGraphic = new Graphic({
       geometry: event.geometry,
       symbol: symbol
     });
@@ -77,7 +78,7 @@ export class EsriMapInteractionService {
     const graphicsList = [];
     const layers = this.mapService.mapView.map.allLayers.filter(l => EsriUtils.layerIsFeature(l) && l.visible).toArray() as __esri.FeatureLayer[];
     if (layers.length === 0) return EMPTY;
-    return Observable.create(observer => {
+    return new Observable(observer => {
       this.queryService.queryLayerView(layers, geometry.extent).subscribe(
         graphics => graphicsList.push(...graphics),
         err => observer.error(err),
@@ -91,7 +92,7 @@ export class EsriMapInteractionService {
 
   measurePolyLine(geometry: __esri.Geometry) : void {
     if (EsriUtils.geometryIsPolyline(geometry)) {
-      const length: number = EsriApi.geometryEngine.geodesicLength(geometry, 'miles');
+      const length: number = geometryEngine.geodesicLength(geometry, 'miles');
       const textSymbol = {
         type: 'text',
         color: 'black',
@@ -104,7 +105,7 @@ export class EsriMapInteractionService {
           family: 'sans-serif'
         }
       };
-      const textGraphic = new EsriApi.Graphic({
+      const textGraphic = new Graphic({
         geometry: geometry.getPoint(0, 0),
         symbol: textSymbol
       });

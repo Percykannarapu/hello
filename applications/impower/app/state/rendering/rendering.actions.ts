@@ -11,8 +11,6 @@ export enum RenderingActionTypes {
 
   RenderLocations = '[Rendering] Render Locations',
   ClearLocations = '[Rendering] Clear Locations',
-
-  PrepShadingDefinitions = '[Rendering] Prep Legacy Shading Definitions'
 }
 
 export class RenderTradeAreas implements Action {
@@ -42,10 +40,6 @@ export class RenderLocations implements Action {
 export class ClearLocations implements Action {
     readonly type = RenderingActionTypes.ClearLocations;
     constructor(public payload: { type: SuccessfulLocationTypeCodes }) {}
-}
-
-export class PrepShadingDefinitions implements Action {
-  readonly type = RenderingActionTypes.PrepShadingDefinitions;
 }
 
 export type RenderingActions =

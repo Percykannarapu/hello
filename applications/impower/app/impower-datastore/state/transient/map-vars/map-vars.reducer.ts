@@ -1,10 +1,10 @@
-import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
-import { MapVar } from './map-vars.model';
-import { MapVarActions, MapVarActionTypes } from './map-vars.actions';
+import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { groupBy } from '@val/common';
+import { MapVarActions, MapVarActionTypes } from './map-vars.actions';
+import { MapVar } from './map-vars.model';
 
 export interface State extends EntityState<MapVar> {
-  transactionId: number;
+  mappedAudienceIds: string[];
 }
 
 export const adapter: EntityAdapter<MapVar> = createEntityAdapter<MapVar>({
@@ -13,11 +13,13 @@ export const adapter: EntityAdapter<MapVar> = createEntityAdapter<MapVar>({
 });
 
 export const initialState: State = adapter.getInitialState({
-  transactionId: null
+  mappedAudienceIds: []
 });
 
 export function reducer(state = initialState, action: MapVarActions) : State {
   switch (action.type) {
+    case MapVarActionTypes.LoadMappedAudienceIds:
+      return { ...state, mappedAudienceIds: [...action.payload.audienceIds] };
     case MapVarActionTypes.AddMapVar: {
       return adapter.addOne(action.payload.mapVar, state);
     }

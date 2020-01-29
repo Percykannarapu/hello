@@ -1,0 +1,29 @@
+@import "valassis-variables";
+
+body {
+  val-shading-list {
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+    }
+    div.ui-accordion-header {
+      .shader-header {
+        display: inline-flex;
+        justify-content: space-between;
+        width: calc(100% - 1.5em);
+        line-height: 1.5em;
+        span.fa-eye-slash {
+          color: $valReversedDisabledColor;
+        }
+      }
+      &.ui-state-active {
+        .shader-header {
+          span.fa-eye-slash {
+            color: $valReversedDisabledColor;
+          }
+        }
+      }
+    }
+  }
+
+}

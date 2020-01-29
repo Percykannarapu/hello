@@ -82,7 +82,7 @@ export class BatchMapService {
     if (this.originalGeoState == null) {
       this.recordOriginalState(project);
     }
-    const locations = [ ...project.getImpGeofootprintLocations().filter(l => l.isActive)];
+    const locations = [ ...project.getImpGeofootprintLocations().filter(l => l.isActive) ];
     const result = { siteNum: siteNum, isLastSite: false };
     locations.sort((a, b) => a.locationNumber.localeCompare(b.locationNumber));
     for (let i = 0; i < locations.length; ++i) {
@@ -97,7 +97,7 @@ export class BatchMapService {
         });
         if (hideNeighborSites) {
           this.store$.dispatch(new RenderLocations({ locations: [currentSite] }));
-          this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas }));
+          this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         }
         this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));
       } else {

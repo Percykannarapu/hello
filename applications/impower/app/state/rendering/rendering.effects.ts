@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { groupByExtended } from '@val/common';
-import { clearShadingDefinitions, EsriAppSettings, EsriAppSettingsToken, loadShadingDefinitions, selectors } from '@val/esri';
+import { EsriAppSettings, EsriAppSettingsToken, selectors } from '@val/esri';
 import { concatMap, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AppRendererService } from '../../services/app-renderer.service';
 import { AppStateService } from '../../services/app-state.service';
@@ -79,17 +79,6 @@ export class RenderingEffects {
     withLatestFrom(this.appStateService.currentProject$),
     map(([action, currentProject]) => prepareAudienceTradeAreas(action.payload.tradeAreas, currentProject, this.esriSettings.defaultSpatialRef)),
     tap(definitions => this.renderingService.renderTradeAreas(definitions))
-  );
-
-  @Effect()
-  prepShadingDefinitions$ = this.actions$.pipe(
-    ofType(RenderingActionTypes.PrepShadingDefinitions),
-    withLatestFrom(this.appStateService.currentProject$),
-    map(([, project]) => this.appRenderingService.createShadingDefinitionsFromLegacy(project)),
-    concatMap(shadingDefinitions => ([
-      clearShadingDefinitions(),
-      loadShadingDefinitions({ shadingDefinitions })
-    ]))
   );
 
   constructor(private actions$: Actions,

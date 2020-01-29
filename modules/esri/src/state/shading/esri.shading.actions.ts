@@ -1,6 +1,5 @@
 import { Update } from '@ngrx/entity';
 import { createAction, props } from '@ngrx/store';
-import { ColorPalette } from '../../models/color-palettes';
 import { ShadingDefinition } from '../../models/shading-configuration';
 
 export const addLayerToLegend = createAction(
@@ -11,15 +10,6 @@ export const addLayerToLegend = createAction(
 export const setFeaturesOfInterest = createAction(
   '[Esri.Shading] Set Features of Interest',
   ({ features = [] }: { features: string[] }) => ({ features: features || [] })
-);
-
-export const setTheme = createAction(
-  '[Esri.Shading] Set Theme',
-  props<{ theme: ColorPalette }>()
-);
-
-export const resetTheme = createAction(
-  '[Esri.Shading] Reset Theme'
 );
 
 export const clearFeaturesOfInterest = createAction(
@@ -63,14 +53,18 @@ export const updateShadingDefinitions = createAction(
 
 export const deleteShadingDefinition = createAction(
   '[Esri.Shading] Delete ShadingDefinition',
-  props<{ id: number }>()
+  props<{ id: string }>()
 );
 
 export const deleteShadingDefinitions = createAction(
   '[Esri.Shading] Delete ShadingDefinitions',
-  props<{ ids: number[] }>()
+  props<{ ids: string[] }>()
 );
 
 export const clearShadingDefinitions = createAction(
   '[Esri.Shading] Clear ShadingDefinitions'
+);
+
+export const resetShading = createAction(
+  '[Esri.Shading] Reset Shading'
 );

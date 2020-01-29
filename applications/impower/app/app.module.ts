@@ -4,6 +4,10 @@ import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { EffectsModule } from '@ngrx/effects';
+import { RouterStateSerializer, StoreRouterConnectingModule } from '@ngrx/router-store';
+import { Action, StoreModule } from '@ngrx/store';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EsriModule } from '@val/esri';
 import { MessagingModule } from '@val/messaging';
 import { NgStringPipesModule } from 'angular-pipes';
@@ -63,7 +67,7 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeModule } from 'primeng/tree';
 import { TreeTableModule } from 'primeng/treetable';
-import { EnvironmentData } from '../environments/environment';
+import { environment, EnvironmentData } from '../environments/environment';
 import { AppComponent } from './app.component';
 import { AppConfig } from './app.config';
 import { AppRoutes } from './app.routes';
@@ -76,12 +80,16 @@ import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
 import { DiscoveryInputComponent } from './components/campaign-details/discovery-input/discovery-input.component';
 import { ColorBoxComponent } from './components/color-box/color-box.component';
+import { BooleanInputComponent } from './components/common/boolean-input/boolean-input.component';
 import { ConfirmationContainerComponent } from './components/common/confirmation-dialog/confirmation-container.component';
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
+import { ConnectFormDirective } from './components/common/connect-form.directive';
+import { DropdownInputComponent } from './components/common/dropdown-input/dropdown-input.component';
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
 import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
 import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
+import { ValidatedTextInputComponent } from './components/common/validated-text-input/validated-text-input.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { EditLocationsComponent } from './components/edit-locations/edit-locations.component';
 import { ExportCrossbowSitesComponent } from './components/export-crossbow-sites/export-crossbow-sites.component';
@@ -96,6 +104,11 @@ import { LoginComponent } from './components/login/login.component';
 import { MapComponent } from './components/map/map.component';
 import { PrintViewComponent } from './components/print-view/print-view.component';
 import { ProjectComponent } from './components/project-dashboard/project.component';
+import { OwnerSiteShaderComponent } from './components/shading-settings/shading-list/owner-site-shader/owner-site-shader.component';
+import { OwnerTradeAreaShaderComponent } from './components/shading-settings/shading-list/owner-trade-area-shader/owner-trade-area-shader.component';
+import { SelectedGeoShaderComponent } from './components/shading-settings/shading-list/selected-geo-shader/selected-geo-shader.component';
+import { ShadingListComponent } from './components/shading-settings/shading-list/shading-list.component';
+import { VariableShadingComponent } from './components/shading-settings/shading-list/variable-shading/variable-shading.component';
 import { ShadingSettingsComponent } from './components/shading-settings/shading-settings.component';
 import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
 import { SiteListComponent } from './components/site-list/site-list.component';
@@ -134,6 +147,8 @@ import { RadService } from './services/rad.service';
 import { TargetAudienceService } from './services/target-audience.service';
 import { UsageService } from './services/usage.service';
 import { UserService } from './services/user.service';
+import { appMetaReducers, appReducer } from './state/app.reducer';
+import { CustomSerializer } from './state/shared/router.serializer';
 import { StateModule } from './state/state.module';
 import { ImpClientLocationService } from './val-modules/client/services/ImpClientLocation.service';
 import { MessageComponent } from './val-modules/common/components/message.component';
@@ -154,159 +169,195 @@ import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjec
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 
+export function stateSanitizer() : any {
+  return {};
+}
+
+export function actionSanitizer(action: Action) : Action {
+  return { type: action.type };
+}
+
 @NgModule({
-    imports: [
-        StateModule.forRoot(),
-        BrowserModule,
-        FormsModule,
-        ReactiveFormsModule,
-        AppRoutes,
-        HttpClientModule,
-        BrowserAnimationsModule,
-        AccordionModule,
-        AutoCompleteModule,
-        ButtonModule,
-        CheckboxModule,
-        ConfirmDialogModule,
-        SharedModule,
-        ContextMenuModule,
-        DataGridModule,
-        DataListModule,
-        DataScrollerModule,
-        DialogModule,
-        DropdownModule,
-        FieldsetModule,
-        FileUploadModule,
-        InputMaskModule,
-        InputSwitchModule,
-        InputTextModule,
-        InputTextareaModule,
-        ListboxModule,
-        MegaMenuModule,
-        MenuModule,
-        MenubarModule,
-        MessagesModule,
-        MultiSelectModule,
-        OrderListModule,
-        OverlayPanelModule,
-        PaginatorModule,
-        PanelModule,
-        PanelMenuModule,
-        PasswordModule,
-        PickListModule,
-        ProgressBarModule,
-        ProgressSpinnerModule,
-        RadioButtonModule,
-        ScrollPanelModule,
-        SelectButtonModule,
-        SlideMenuModule,
-        SliderModule,
-        SpinnerModule,
-        SplitButtonModule,
-        StepsModule,
-        TableModule,
-        TabMenuModule,
-        TabViewModule,
-        TieredMenuModule,
-        ToastModule,
-        ToggleButtonModule,
-        ToolbarModule,
-        TooltipModule,
-        TreeModule,
-        TreeTableModule,
-        TargetingModule,
-        CommonModule,
-        NgStringPipesModule,
-        CardModule,
-        SidebarModule,
-        EsriModule.forRoot({
-          portalServerRootUrl: EnvironmentData.esri.portalServer,
-          auth: {
-            userName: EnvironmentData.esri.userName,
-            password: EnvironmentData.esri.password,
-            referer: window.location.origin
-          }, app: {
-            printServiceUrl: EnvironmentData.serviceUrls.valPrintService,
-          }
-        }),
-        MessagingModule.forRoot(AppMessagingService),
-        ImpowerDatastoreModule
-    ],
-    declarations: [
-        AppComponent,
-        AppMenuComponent,
-        AppSubMenuComponent,
-        AppHeaderComponent,
-        AppFooterComponent,
-        DashboardComponent,
-        PocComponent,
-        PocMapComponent,
-        GeofootprintGeoListComponent,
-        GeofootprintGeoPanelComponent,
-        MessageComponent,
-        BusinessSearchComponent,
-        ColorBoxComponent,
-        SiteListComponent,
-        DiscoveryInputComponent,
-        UploadLocationsComponent,
-        LoginComponent,
-        UploadTradeAreasComponent,
-        OfflineAudienceTdaComponent,
-        SelectedAudiencesComponent,
-        CustomAudienceComponent,
-        TargetAudienceComponent,
-        OnlineAudienceApioComponent,
-        AudienceTradeareaComponent,
-        ProjectComponent,
-        OnlineAudienceVlhComponent,
-        OnlineAudiencePixelComponent,
-        TradeAreaTabComponent,
-        DistanceTradeAreaComponent,
-        SiteTypeSelectorComponent,
-        AddLocationsTabComponent,
-        FailedGeocodeGridComponent,
-        ManualEntryComponent,
-        CampaignDetailsComponent,
-        MapComponent,
-        SampleComponent,
-        TableFilterNumericComponent,
-        TableFilterLovComponent,
-        SiteListContainerComponent,
-        ConfirmationContainerComponent,
-        ConfirmationDialogComponent,
-        UploadMustCoverComponent,
-        EditLocationsComponent,
-        PrintViewComponent,
-        BatchMapComponent,
-        ImpowerMainComponent,
-        ShadingSettingsComponent,
-        BatchMapDialogComponent,
-        CombinedAudienceComponent,
-        EditCombinedAudiencesComponent,
-        FailedLocationsTabComponent,
-        ExportCrossbowSitesComponent
-    ],
-    providers: [
-      {provide: LocationStrategy, useClass: HashLocationStrategy},
-      {provide: HTTP_INTERCEPTORS, useClass: RestDataInterceptor, multi: true},
-      // from val-modules
-      {provide: LoggingConfigurationToken, useClass: AppConfig},
-      ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
-      ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
-      ImpGeofootprintLocAttribService, AppDiscoveryService, ImpMetricNameService,
-      MetricService, RestDataService, TransactionManager,
-      // from primeng
-      MessageService, ConfirmationService,
-      // from ngx-cookie-service
-      CookieService,
-      // from main application
-      AppBusinessSearchService, AppConfig, AppProjectService, AppMessagingService, AppRendererService,
-      AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
-      AppLayerService, AppGeocodingService, AppTradeAreaService,
-      AppMapService, ValMetricsService, ValAudienceTradeareaService,
-      AppEditSiteService
-    ],
-    bootstrap: [AppComponent],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [
+    StoreModule.forRoot(appReducer, {
+      metaReducers: appMetaReducers,
+      runtimeChecks: {
+        strictStateImmutability: false,
+        strictActionImmutability: false,
+        strictStateSerializability: false,
+        strictActionSerializability: false
+      }
+    }),
+    EffectsModule.forRoot([]),
+    MessagingModule.forRoot(AppMessagingService),
+    EsriModule.forRoot({
+      portalServerRootUrl: EnvironmentData.esri.portalServer,
+      auth: {
+        userName: EnvironmentData.esri.userName,
+        password: EnvironmentData.esri.password,
+        referer: window.location.origin
+      }, app: {
+        printServiceUrl: EnvironmentData.serviceUrls.valPrintService,
+      }
+    }),
+    StateModule.forRoot(),
+    ImpowerDatastoreModule.forRoot(),
+    StoreRouterConnectingModule.forRoot(),
+    StoreDevtoolsModule.instrument({
+      name: 'imPower Application',
+      logOnly: environment.production,
+      actionsBlocklist: ['Usage', 'Map View Changed'],
+      stateSanitizer: environment.production ? stateSanitizer : undefined,
+      actionSanitizer: environment.production ? actionSanitizer : undefined,
+    }),
+    AppRoutes,
+    BrowserModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+    BrowserAnimationsModule,
+    AccordionModule,
+    AutoCompleteModule,
+    ButtonModule,
+    CheckboxModule,
+    ConfirmDialogModule,
+    SharedModule,
+    ContextMenuModule,
+    DataGridModule,
+    DataListModule,
+    DataScrollerModule,
+    DialogModule,
+    DropdownModule,
+    FieldsetModule,
+    FileUploadModule,
+    InputMaskModule,
+    InputSwitchModule,
+    InputTextModule,
+    InputTextareaModule,
+    ListboxModule,
+    MegaMenuModule,
+    MenuModule,
+    MenubarModule,
+    MessagesModule,
+    MultiSelectModule,
+    OrderListModule,
+    OverlayPanelModule,
+    PaginatorModule,
+    PanelModule,
+    PanelMenuModule,
+    PasswordModule,
+    PickListModule,
+    ProgressBarModule,
+    ProgressSpinnerModule,
+    RadioButtonModule,
+    ScrollPanelModule,
+    SelectButtonModule,
+    SlideMenuModule,
+    SliderModule,
+    SpinnerModule,
+    SplitButtonModule,
+    StepsModule,
+    TableModule,
+    TabMenuModule,
+    TabViewModule,
+    TieredMenuModule,
+    ToastModule,
+    ToggleButtonModule,
+    ToolbarModule,
+    TooltipModule,
+    TreeModule,
+    TreeTableModule,
+    TargetingModule,
+    CommonModule,
+    NgStringPipesModule,
+    CardModule,
+    SidebarModule
+  ],
+  declarations: [
+    AppComponent,
+    AppMenuComponent,
+    AppSubMenuComponent,
+    AppHeaderComponent,
+    AppFooterComponent,
+    DashboardComponent,
+    PocComponent,
+    PocMapComponent,
+    GeofootprintGeoListComponent,
+    GeofootprintGeoPanelComponent,
+    MessageComponent,
+    BusinessSearchComponent,
+    ColorBoxComponent,
+    SiteListComponent,
+    DiscoveryInputComponent,
+    UploadLocationsComponent,
+    LoginComponent,
+    UploadTradeAreasComponent,
+    OfflineAudienceTdaComponent,
+    SelectedAudiencesComponent,
+    CustomAudienceComponent,
+    TargetAudienceComponent,
+    OnlineAudienceApioComponent,
+    AudienceTradeareaComponent,
+    ProjectComponent,
+    OnlineAudienceVlhComponent,
+    OnlineAudiencePixelComponent,
+    TradeAreaTabComponent,
+    DistanceTradeAreaComponent,
+    SiteTypeSelectorComponent,
+    AddLocationsTabComponent,
+    FailedGeocodeGridComponent,
+    ManualEntryComponent,
+    CampaignDetailsComponent,
+    MapComponent,
+    SampleComponent,
+    TableFilterNumericComponent,
+    TableFilterLovComponent,
+    SiteListContainerComponent,
+    ConfirmationContainerComponent,
+    ConfirmationDialogComponent,
+    UploadMustCoverComponent,
+    EditLocationsComponent,
+    PrintViewComponent,
+    BatchMapComponent,
+    ImpowerMainComponent,
+    ShadingSettingsComponent,
+    BatchMapDialogComponent,
+    CombinedAudienceComponent,
+    EditCombinedAudiencesComponent,
+    FailedLocationsTabComponent,
+    ExportCrossbowSitesComponent,
+    ConnectFormDirective,
+    ShadingListComponent,
+    VariableShadingComponent,
+    ValidatedTextInputComponent,
+    BooleanInputComponent,
+    SelectedGeoShaderComponent,
+    OwnerSiteShaderComponent,
+    OwnerTradeAreaShaderComponent,
+    DropdownInputComponent
+  ],
+  providers: [
+    { provide: RouterStateSerializer, useClass: CustomSerializer },
+    { provide: LocationStrategy, useClass: HashLocationStrategy },
+    { provide: HTTP_INTERCEPTORS, useClass: RestDataInterceptor, multi: true },
+    // from val-modules
+    {provide: LoggingConfigurationToken, useClass: AppConfig},
+    ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
+    ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
+    ImpGeofootprintLocAttribService, AppDiscoveryService, ImpMetricNameService,
+    MetricService, RestDataService, TransactionManager,
+    // from primeng
+    MessageService, ConfirmationService,
+    // from ngx-cookie-service
+    CookieService,
+    // from main application
+    AppBusinessSearchService, AppConfig, AppProjectService, AppMessagingService, AppRendererService,
+    AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
+    AppLayerService, AppGeocodingService, AppTradeAreaService,
+    AppMapService, ValMetricsService, ValAudienceTradeareaService,
+    AppEditSiteService
+  ],
+  bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule { }

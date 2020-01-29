@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
+import { select, Store } from '@ngrx/store';
+import { of } from 'rxjs';
 import { catchError, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { FullAppState } from '../../../state/app.interfaces';
 import { ImpowerLoaderService } from '../../services/impower-loader.service';
-import { select, Store } from '@ngrx/store';
 import { persistentSlice } from '../impower-datastore.selectors';
-import { EntityLoadSuccessful, EntityLoadFailure, LoadEntitiesFromServer, PersistentActionTypes, EntitySaveFailure, EntitySaveSuccessful, EntityCreateSuccessful } from './persistent.actions';
-import { of } from 'rxjs';
+import { EntityCreateSuccessful, EntityLoadFailure, EntityLoadSuccessful, LoadEntitiesFromServer, PersistentActionTypes } from './persistent.actions';
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class PersistentEffects {
 
   @Effect()

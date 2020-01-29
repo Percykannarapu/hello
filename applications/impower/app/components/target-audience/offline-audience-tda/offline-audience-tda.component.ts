@@ -74,11 +74,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
       distinctUntilChanged()
     ).subscribe(term => this.filterNodes(term));
 
-    // this.stateService.clearUI$.subscribe(() => {
-    //   this.clearSelections();
-    // });
-
-    this.parentAudienceService.audiences$.pipe(
+    this.parentAudienceService.allAudiencesBS$.pipe(
     map(audiences => audiences.filter(a => a.audienceSourceType === 'Offline')),
     ).subscribe(audiences => this.syncAudiencesCheckData(audiences));
   }

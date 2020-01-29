@@ -1,13 +1,14 @@
-import { Action, ActionReducerMap, combineReducers, ActionReducer, createSelector } from '@ngrx/store';
 import { Dictionary } from '@ngrx/entity';
-import { transformEntity, groupEntityToArray } from '@val/common';
-import { GeoVar } from './geo-vars/geo-vars.model';
+import { Action, ActionReducer, ActionReducerMap, combineReducers, createSelector } from '@ngrx/store';
+import { groupEntityToArray, transformEntity } from '@val/common';
+import { shadingSelectors } from '@val/esri';
 import * as fromAudience from './audience/audience.reducer';
 import * as fromAudienceSel from './audience/audience.selectors';
+import * as fromGeoAttribute from './geo-attributes/geo-attributes.reducer';
+import { GeoVar } from './geo-vars/geo-vars.model';
 import * as fromGeoVars from './geo-vars/geo-vars.reducer';
 import * as fromGeoVarsSel from './geo-vars/geo-vars.selectors';
 import * as fromMapVars from './map-vars/map-vars.reducer';
-import * as fromGeoAttribute from './geo-attributes/geo-attributes.reducer';
 
 export interface ImpowerTransientState {
   audiences: fromAudience.State;
@@ -23,7 +24,7 @@ const transientReducers: ActionReducerMap<ImpowerTransientState> = {
   geoAttributes: fromGeoAttribute.reducer
 };
 
-const metaReducer: ActionReducer<ImpowerTransientState, Action> = combineReducers(transientReducers);
+const metaReducer: ActionReducer<ImpowerTransientState> = combineReducers(transientReducers);
 
 export function reducer(state: ImpowerTransientState, action: Action) : ImpowerTransientState {
   return metaReducer(state, action);
@@ -70,32 +71,32 @@ export const selectGridGeoVars = createSelector(
   (audiences, geoVars) => {
     const result: GridGeoVar = { geoVars: null, ranges: new Map<string, MinMax>(), lov: new Map<string, string[]>(), numVars: 0 };
     const transformedEntity = transformEntity(geoVars, (varName, val) => {
-      if ((audiences.hasOwnProperty(varName) && audiences[varName].showOnGrid))
-        result.numVars++;
+        if ((audiences.hasOwnProperty(varName) && audiences[varName].showOnGrid))
+          result.numVars++;
 
-      switch (audiences.hasOwnProperty(varName) ? audiences[varName].fieldconte : 'unknown') {
-        case 'COUNT':
-        case 'MEDIAN':
-        case 'INDEX':
-          return (val != null) ? Math.round(val as number) : null;
+        switch (audiences.hasOwnProperty(varName) ? audiences[varName].fieldconte : 'unknown') {
+          case 'COUNT':
+          case 'MEDIAN':
+          case 'INDEX':
+            return (val != null) ? Math.round(val as number) : null;
 
-        case 'PERCENT':
-        case 'RATIO':
-          return (val != null) ? Number(val).toFixed(2) : null;
+          case 'PERCENT':
+          case 'RATIO':
+            return (val != null) ? Number(val).toFixed(2) : null;
 
-        case 'CHAR':
-          return val as string;
+          case 'CHAR':
+            return val as string;
 
-        default:
-          return val;
-      }
-    },
-    (varName) => {
-      if ((audiences.hasOwnProperty(varName) && audiences[varName].showOnGrid === false))
-        return null;
-      else
-        return varName;
-    });
+          default:
+            return val;
+        }
+      },
+      (varName) => {
+        if ((audiences.hasOwnProperty(varName) && audiences[varName].showOnGrid === false))
+          return null;
+        else
+          return varName;
+      });
 
 
 
@@ -111,21 +112,25 @@ export const selectGridGeoVars = createSelector(
       });
 
     result.geoVars = transformedEntity as Dictionary<GeoVar>;
-    
-    for (const aud in audiences){
-      if (audiences[aud].isCombined && audiences[aud].showOnGrid){
-          for (const geovar in result.geoVars) {
-            if (geovar != null){
-            result.geoVars[geovar][audiences[aud].audienceIdentifier] = audiences[aud].combinedAudiences.reduce((p, c) => {
-              p += geoVars[geovar][c] as number;
-              return p;
-            }, 0);
 
+    for (const aud in audiences) {
+      if (audiences.hasOwnProperty(aud)) {
+        const currentAudience = audiences[aud];
+        if (currentAudience != null && currentAudience.isCombined && currentAudience.showOnGrid) {
+          for (const gv in result.geoVars) {
+            if (result.geoVars.hasOwnProperty(gv)) {
+              const currentGv = result.geoVars[gv];
+              if (currentGv != null) {
+                currentGv[currentAudience.audienceIdentifier] = currentAudience.combinedAudiences.reduce((total, varPk) => {
+                  total += geoVars[gv][varPk] as number;
+                  return total;
+                }, 0);
+              }
+            }
           }
         }
       }
-
-      }
+    }
 
 
     // Track the distinct list of values for CHAR and min/max for numerics
@@ -136,13 +141,22 @@ export const selectGridGeoVars = createSelector(
       if (fieldConte === 'CHAR')
         result.lov.set(key, Array.from(new Set(value as string)).sort());
       else {
-        const minVal = value.reduce((min: number, p: number) => p as number < min ? p : min, value[0]);
-        const maxVal = value.reduce((max: number, p: number) => p as number > max ? p : max, minVal);
+        const minVal = value.reduce((min: number, p: number) => p < min ? p : min, value[0]);
+        const maxVal = value.reduce((max: number, p: number) => p > max ? p : max, minVal);
         result.ranges.set(key, { min: minVal, max: maxVal, cnt: value.length });
       }
     });
     entityMap.clear();
 
     return result;
+  }
+);
+
+export const getAllMappedAudiences = createSelector(
+  fromAudienceSel.allAudiences,
+  shadingSelectors.layerDataKeys,
+  (allAudiences, mappedIds) => {
+    const idSet = new Set(mappedIds);
+    return allAudiences.filter(a => idSet.has(a.audienceIdentifier));
   }
 );

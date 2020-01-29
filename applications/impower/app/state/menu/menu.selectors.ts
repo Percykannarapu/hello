@@ -1,7 +1,7 @@
-import {createSelector} from '@ngrx/store';
-import {LocalAppState} from '../app.interfaces';
+import { createSelector } from '@ngrx/store';
+import { impowerAppSlice } from '../app.reducer';
 
-const getMenuSlice = (state: LocalAppState) => state.menu;
+const getMenuSlice = createSelector(impowerAppSlice, state => state.menu);
 
 export const openExistingDialogFlag = createSelector(getMenuSlice, state => state.displayOpenExistingDialog);
 export const printViewDialogFlag = createSelector(getMenuSlice, state => state.displayPrintViewDialog);

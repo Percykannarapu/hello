@@ -1,4 +1,5 @@
 import { Action } from '@ngrx/store';
+import { getUuid } from '@val/common';
 
 export enum TransientActionTypes {
   CacheGeos             = '[Transient] Cache Geos',
@@ -6,8 +7,9 @@ export enum TransientActionTypes {
   CacheGeosComplete     = '[Transient] Cache Geos Complete',
   CacheGeosFailure      = '[Transient] Cache Geos Failed',
   RemoveGeoCache        = '[Transient] Remove Geo Cache',
-  ClearAudiencesAndVars = '[Transient] Clear Audiences, Geo and Map Vars',
-  RehydrateAfterLoad    = '[Transient] Rehydrate after a load'
+
+  RehydrateAfterLoad    = '[Transient] Rehydrate after a load',
+  GetAllMappedVariables = '[Transient] Retrieve all available map vars'
 }
 
 export class CacheGeos implements Action {
@@ -35,13 +37,16 @@ export class RemoveGeoCache implements Action {
   constructor(public payload: { transactionId: number }) {}
 }
 
-export class ClearAudiencesAndVars implements Action {
-  readonly type = TransientActionTypes.ClearAudiencesAndVars;
-}
-
 export class RehydrateAfterLoad implements Action {
   readonly type = TransientActionTypes.RehydrateAfterLoad;
-  constructor(public payload: { projectId: number, isReload: boolean, geocodes: Set<string> }) {}
+  constructor(public payload: { projectId: number, isReload: boolean, geocodes: Set<string>, analysisLevel: string }) {}
+}
+
+export class GetAllMappedVariables {
+  readonly type = TransientActionTypes.GetAllMappedVariables;
+  constructor(public payload: { analysisLevel: string, correlationId?: string }) {
+    if (payload != null && payload.correlationId == null) payload.correlationId = getUuid();
+  }
 }
 
 export type TransientActions =
@@ -50,5 +55,5 @@ export type TransientActions =
   | CacheGeosComplete
   | CacheGeosFailure
   | RemoveGeoCache
-  | ClearAudiencesAndVars
-  | RehydrateAfterLoad;
+  | RehydrateAfterLoad
+  | GetAllMappedVariables;
