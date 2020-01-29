@@ -1,8 +1,7 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { selectors } from '@val/esri';
-import { filter } from 'rxjs/internal/operators/filter';
-import { take } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
 import { FullState } from './cpq-map/state';
 import { ApplicationStartup } from './cpq-map/state/init/init.actions';
 
