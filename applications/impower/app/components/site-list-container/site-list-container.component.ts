@@ -193,7 +193,9 @@ export class SiteListContainerComponent implements OnInit {
         editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];
       });
       if (analysisLevel != null) {
-          editedLocation[0].homeGeocode = editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()])[0].attributeValue;
+         //  const attrValue = editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()])[0].attributeValue;
+         const attr = editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()]);
+          editedLocation[0].homeGeocode = attr.length > 0 ? attr[0].attributeValue : '';
       }
       this.impGeofootprintLocationService.update(oldData, editedLocation[0]);
       this.appLocationService.processHomeGeoAttributes(attributeList, this.impGeofootprintLocationService.get().filter(l => l.locationNumber === oldData.locationNumber));
