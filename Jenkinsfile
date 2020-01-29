@@ -40,7 +40,7 @@
             }
           }
         }
-        stage('build cpq-maps development') {
+        /* stage('build cpq-maps development') {
           when { branch 'dev' }
           steps {
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
@@ -50,7 +50,7 @@
                 '''
             }
           }
-        }
+        } */
       }
     }
     stage('Deploy dev apps') {
@@ -67,12 +67,12 @@
               '''
           }
         }
-        stage('Deploy CPQ Maps dev') {
+        /* stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
             sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20194!oyHOMG8OYGxM9Lk0j6k6gvIkM -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
           }
-        }
+        } */
       }
     }
     stage('build for QA') {
