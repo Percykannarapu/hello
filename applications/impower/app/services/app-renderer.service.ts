@@ -125,7 +125,7 @@ export class AppRendererService {
               }
               switch (shadingLayer.shadingType) {
                 case ConfigurationTypes.Unique:
-                  const uniqueValues = Array.from(new Set(currentMapVars.map(v => v[varPk].toString())));
+                  const uniqueValues = Array.from(new Set(currentMapVars.map(v => v[varPk] == null ? '' : `${v[varPk]}`)));
                   shadingDefinition.changes = {
                     arcadeExpression,
                     breakDefinitions: generateUniqueValues(uniqueValues, palette)
