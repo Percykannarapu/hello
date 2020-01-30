@@ -66,7 +66,7 @@ export class ShadingSettingsComponent implements OnInit {
   }
 
   applyDefinition(definition: UIShadingDefinition) : void {
-    const geos = this.impGeoDatastore.get().filter(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive && g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive && g.isActive);
+    const geos = this.impGeoDatastore.get().filter(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive && g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive && g.isActive && g.isDeduped === 1);
     let analysisLevel = definition.usableAnalysisLevel;
     if (analysisLevel == null) {
       analysisLevel = this.appStateService.analysisLevel$.getValue();
