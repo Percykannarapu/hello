@@ -259,7 +259,7 @@ export class AppRendererService {
       this.ownerSiteWatcher = null;
     }
     this.ownerSiteWatcher = this.impGeoService.storeObservable.pipe(
-      filterArray(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive && g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive && g.isActive),
+      filterArray(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive && g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive && g.isActive && g.isDeduped === 1),
       withLatestFrom(this.appStateService.currentProject$)
     ).subscribe(([geos, project]) => {
       const definition = this.getShadingDefinitions(project).filter(sd => sd.dataKey === GfpShaderKeys.OwnerSite)[0];
