@@ -3,7 +3,7 @@ import * as FormsActions from './forms.actions';
 import { FormsState } from './forms.interfaces';
 
 export const initialState: FormsState = {
-  addLocation: { number: '' },
+  addLocation: null,
   shadingSettings: null
 };
 
@@ -12,5 +12,5 @@ export const formsReducer = createReducer(
 
   on(FormsActions.loadForms, state => state),
   on(FormsActions.updateNamedForm, (state, { path, formData }) => ({ ...state, [path]: { ...state[path], ...formData } })),
-  on(FormsActions.resetNamedForm, (state, { path }) => ({ ...state, [path]: { ...initialState[path] }}))
+  on(FormsActions.resetNamedForm, (state, { path }) => ({ ...state, [path]: initialState[path] }))
 );

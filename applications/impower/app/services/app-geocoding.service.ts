@@ -1,18 +1,19 @@
 import { Injectable } from '@angular/core';
-import { merge, Observable, of } from 'rxjs';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
-import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
-import { map, tap } from 'rxjs/operators';
-import { chunkArray } from '@val/common';
-import { AppConfig } from '../app.config';
-import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
-import { AppStateService } from './app-state.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { Store } from '@ngrx/store';
-import { LocalAppState } from '../state/app.interfaces';
-import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
+import { chunkArray } from '@val/common';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
+import { merge, Observable, of } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
+import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
+import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
+import { LocalAppState } from '../state/app.interfaces';
+import { resetNamedForm } from '../state/forms/forms.actions';
+import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
+import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { AppStateService } from './app-state.service';
 
 @Injectable()
 export class AppGeocodingService {
@@ -36,7 +37,7 @@ export class AppGeocodingService {
         if (data.duplicateHeaders.length > 0)
             this.store$.dispatch(new ErrorNotification({ message: 'The upload file contains duplicate headers, please fix the file and upload again.', notificationTitle: 'Duplicate Headers' }));
         if (data.invalidColLengthHeaders.length > 0)
-            this.store$.dispatch(new ErrorNotification({ message: 'Column headers must be 30 characters or less, please fix the file and upload again.', notificationTitle: 'Invalid Headers' }));    
+            this.store$.dispatch(new ErrorNotification({ message: 'Column headers must be 30 characters or less, please fix the file and upload again.', notificationTitle: 'Invalid Headers' }));
         //throw new Error();
         data.parsedData = [];
       }
@@ -111,6 +112,9 @@ export class AppGeocodingService {
           if (allLocations.length > 1) {
             const metricText = `success=${goodCount}~error=${failCount}`;
             this.store$.dispatch(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-data-file`, 'upload', metricText, allLocations.length));
+          }
+          if (allLocations.length === 1) {
+            this.store$.dispatch(resetNamedForm({ path: 'addLocation' }));
           }
           if (failCount > 0) {
             this.store$.dispatch(new ErrorNotification({ message: 'Geocoding Error' }));

@@ -27,6 +27,6 @@ export interface VariableSelectionForm extends GfpForm {
 }
 
 export interface FormsState {
-  addLocation: AddLocationForm;
-  shadingSettings: GfpForm;
+  addLocation: Partial<AddLocationForm>;
+  shadingSettings: Partial<GfpForm>;
 }
