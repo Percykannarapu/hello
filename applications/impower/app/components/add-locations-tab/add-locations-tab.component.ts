@@ -13,7 +13,6 @@ import { AppLocationService } from '../../services/app-location.service';
 import { AppStateService } from '../../services/app-state.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { FullAppState } from '../../state/app.interfaces';
-import { resetNamedForm } from '../../state/forms/forms.actions';
 import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -101,7 +100,6 @@ export class AddLocationsTabComponent implements OnInit {
   }
 
   manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
-    this.store$.dispatch(resetNamedForm({ path: 'addLocation' }));
     //validate Manually added geocodes
     const locations = this.impGeofootprintLocationService.get();
     //const locations = this.appStateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations;
