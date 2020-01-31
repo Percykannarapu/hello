@@ -31,15 +31,26 @@ export interface ImpowerState {
   forms: FormsState;
 }
 
+
+
 export interface BatchMapPayload {
-  email: string;
-  title: string;
-  subTitle: string;
-  subSubTitle: string;
-  projectId: number;
-  size: string;
-  layout: string;
-  siteIds: Array<string>;
+  calls: [{
+    service: string
+    function: string
+    args: {
+      'printJobConfiguration': {
+        email: string;
+        title: string;
+        subTitle: string;
+        subSubTitle: string;
+        projectId: number;
+        size: string;
+        layout: string;
+        siteIds: Array<string>;
+      }
+    }
+  }]
+
 }
 
 export interface CrossBowSitesPayload {

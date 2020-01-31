@@ -23,6 +23,9 @@ export class EnvironmentData {
   // this *MUST* be set to false for all environments other than local
   public static authenticated = false;
 
+  // print service URL
+  public static printServiceUrl = 'https://impowerpdf.prod.valassisdigital.net/api/service';
+
   public static fuseBaseUrl = 'https://services.valassis.com/services/';
   public static impowerBaseUrl = 'https://impower.val.vlss.local/';
 

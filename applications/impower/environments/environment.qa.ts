@@ -27,6 +27,9 @@ export class EnvironmentData {
   public static fuseBaseUrl = 'https://services.valassislab.com/services/';
   public static impowerBaseUrl = 'https://impowerqa.val.vlss.local/';
 
+  // print service URL
+  public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
+
   public static esri = {
     portalServer:  'https://vallomimpor1vm.val.vlss.local/',
     userName: 'impower5',

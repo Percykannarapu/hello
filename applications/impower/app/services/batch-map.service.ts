@@ -19,6 +19,7 @@ import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/Imp
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { AppMapService } from './app-map.service';
 import { AppStateService } from './app-state.service';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -36,7 +37,8 @@ export class BatchMapService {
               private appStateService: AppStateService,
               private appMapService: AppMapService,
               private restService: RestDataService,
-              private store$: Store<LocalAppState>) { }
+              private store$: Store<LocalAppState>,
+              private http: HttpClient) { }
 
   initBatchMapping(projectId: number) : void {
     this.appStateService.notifyMapReady();
@@ -59,7 +61,7 @@ export class BatchMapService {
   }
 
   requestBatchMap(payload: BatchMapPayload) : Observable<any> {
-    return this.restService.post(this.printUrl, payload);
+    return this.http.put(this.config.printServiceUrl, payload);
   }
 
   validateProjectReadiness(project: ImpProject) : boolean {

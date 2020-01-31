@@ -23,6 +23,7 @@ export class AppConfig implements LoggingConfiguration {
   public valServiceBase = `${EnvironmentData.fuseBaseUrl}`;
   public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
   public serviceUrls = EnvironmentData.serviceUrls;
+  public printServiceUrl = EnvironmentData.printServiceUrl;
 
   // Magic numbers
   public maxBufferRadius = 50;

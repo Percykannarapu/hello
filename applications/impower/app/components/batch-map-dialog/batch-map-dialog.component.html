@@ -1,33 +1,43 @@
-<p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()" [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '400px'}" [maximizable]="false">
+<p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
+  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '400px'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main">
-          <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are reflected on map </span></p>
-            <p>Site # will be included in the header, in addition to the Title and Sub-Title specified below</p>
-          <div class="dialog-body">
-            <form novalidate  [formGroup]="batchMapForm" autocomplete="off">
-              <div class="ui-g-12" >
-                <span class="md-inputfield">
-                    <input id="fileName" type="text" formControlName="title" pInputText class="val-full-width">
-                    <span class="ui-inputgroup-addon" *ngIf="!hasErrors('title')">&nbsp;</span>
-                    <label for="fileName">Title (required)</label>
-                </span>
-              </div>
-           <div>&nbsp;</div>
-              <div class="ui-g-12">
-                <span class="md-inputfield">
-                  <input id ="subTitle" type="text" formControlName="subTitle" pInputText class="val-full-width">
-                  <label for="subTitle"> Sub Title </label>
-                </span>
-              </div>
-              <div class="ui-g-12">
-                <p>A link will be emailed to you when your maps are ready</p>
-              </div>                
-            </form>
+      <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are
+          reflected on map </span></p>
+      <p>Site # will be included in the header, in addition to the Title and Sub-Title specified below</p>
+      <div class="dialog-body">
+        <form novalidate [formGroup]="batchMapForm" autocomplete="off">
+          <div class="ui-g-12">
+            <span class="md-inputfield">
+              <input id="fileName" type="text" formControlName="title" pInputText class="val-full-width">
+              <span class="ui-inputgroup-addon" *ngIf="!hasErrors('title')">&nbsp;</span>
+              <label for="fileName">Title (required)</label>
+            </span>
           </div>
+          <div>&nbsp;</div>
+          <div class="ui-g-12">
+            <span class="md-inputfield">
+              <input id="subTitle" type="text" formControlName="subTitle" pInputText class="val-full-width">
+              <label for="subTitle"> Sub Title </label>
+            </span>
+          </div>
+          <div>&nbsp;</div>
+          <div class="ui-g-12">
+            <span class="md-inputfield">
+              <input id="subSubTitle" type="text" formControlName="subSubTitle" pInputText class="val-full-width">
+              <label for="subSubTitle"> Sub-Sub Title </label>
+            </span>
+          </div>
+          <div class="ui-g-12">
+            <p>A link will be emailed to you when your maps are ready</p>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-<p-footer>
-    <button id="createBtn" type="submit" pButton label="Create" (click)="onSubmit(batchMapForm.value)" [disabled]="batchMapForm.invalid"></button>
-</p-footer>
+  <p-footer>
+    <button id="createBtn" type="submit" pButton label="Create" (click)="onSubmit(batchMapForm.value)"
+      [disabled]="batchMapForm.invalid"></button>
+  </p-footer>
 
 </p-dialog>

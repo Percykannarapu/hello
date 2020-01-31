@@ -32,6 +32,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.batchMapForm = this.fb.group({
       title: ['', Validators.required],
       subTitle: '',
+      subSubTitle: ''
     });
     this.showBatchMapDialog$ = this.store$.select(getBatchMapDialog);
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
@@ -42,14 +43,24 @@ export class BatchMapDialogComponent implements OnInit {
 
   onSubmit(dialogFields: any) {
     const formData: BatchMapPayload = {
-      email: `${this.userService.getUser().username}@valassis.com`,
-      title: dialogFields.title,
-      subTitle: dialogFields.subTitle,
-      subSubTitle: dialogFields.subSubTitle,
-      projectId: this.currentProjectId,
-      size: 'letter',
-      layout: 'landscape',
-      siteIds: this.getSiteIds()
+      calls: [
+        {
+          service: 'ImpowerPdf',
+          function: 'printMaps',
+          args: {
+            printJobConfiguration: {
+              email: `${this.userService.getUser().username}@valassis.com`,
+              title: dialogFields.title,
+              subTitle: dialogFields.subTitle,
+              subSubTitle: dialogFields.subSubTitle,
+              projectId: this.currentProjectId,
+              size: 'letter',
+              layout: 'landscape',
+              siteIds: this.getSiteIds()
+            }
+          }
+        }
+      ]
     };
 
     this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
