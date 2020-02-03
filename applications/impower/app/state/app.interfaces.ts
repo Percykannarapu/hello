@@ -45,6 +45,8 @@ export interface BatchMapPayload {
         subSubTitle: string;
         projectId: number;
         size: string;
+        includeNeighboringSites: boolean;
+        pageSettings: string;
         layout: string;
         siteIds: Array<string>;
       }

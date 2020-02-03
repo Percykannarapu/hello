@@ -1,3 +1,25 @@
 #createBtn {
   margin-right: 25px;
 }
+
+.customPadding{
+  padding-left: 2rem !important;
+}
+
+.pageSettings .pageSettingsPadding{
+  @extend .customPadding;
+  padding-top: 0rem;
+}
+
+:host{
+  .settings{
+    height: 103px;
+  }
+  .labelTitle{
+    font-size: 1.3em;
+  }
+}
+
+#p-dialog div body .ui-dialog-content .ui-widget-content .ui-dialog-resizable{
+  overflow: hidden;
+}

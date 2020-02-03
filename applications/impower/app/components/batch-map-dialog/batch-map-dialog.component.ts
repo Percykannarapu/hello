@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnChanges } from '@angular/core';
 import { Store, select } from '@ngrx/store';
 import { LocalAppState, BatchMapPayload } from 'app/state/app.interfaces';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -9,6 +9,7 @@ import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
 import { CreateBatchMap, CloseBatchMapDialog } from 'app/state/batch-map/batch-map.actions';
 import { UserService } from 'app/services/user.service';
 import { filter } from 'rxjs/operators';
+import { SelectItem } from 'primeng/api';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -21,19 +22,33 @@ export class BatchMapDialogComponent implements OnInit {
   batchMapForm: FormGroup;
   currentProjectId: number;
   numSites: number = 0;
+  pageSettings: SelectItem[];
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
     private stateService: AppStateService,
     private userService: UserService) {
+      this.pageSettings = [
+        {label: '8.5 x 11', value: 'regular'}, 
+        {label: '11 x 17', value: 'irregular'},
+        {label: '24 x 36 (Arch-D)', value: 'jumbo'},
+        {label: '36 x 48 (Arch-E)', value: 'huge'}
+      ];
     }
 
-  ngOnInit() {
+  initForm() {
     this.batchMapForm = this.fb.group({
       title: ['', Validators.required],
       subTitle: '',
-      subSubTitle: ''
+      subSubTitle: '',
+      neighboringSites: 'true',
+      pageSettingsControl: 'regular',
+      layout: 'landscape',
     });
+  }
+
+  ngOnInit() {
+    this.initForm();
     this.showBatchMapDialog$ = this.store$.select(getBatchMapDialog);
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
       this.currentProjectId = p.projectId;
@@ -55,7 +70,9 @@ export class BatchMapDialogComponent implements OnInit {
               subSubTitle: dialogFields.subSubTitle,
               projectId: this.currentProjectId,
               size: 'letter',
-              layout: 'landscape',
+              includeNeighboringSites: (dialogFields.neighboringSites == true),
+              pageSettings: dialogFields.pageSettingsControl,
+              layout: dialogFields.layout,
               siteIds: this.getSiteIds()
             }
           }
@@ -81,6 +98,7 @@ export class BatchMapDialogComponent implements OnInit {
   closeDialog(){
       this.batchMapForm.reset();
       this.store$.dispatch(new CloseBatchMapDialog());
+      this.initForm();
   }
 
 }

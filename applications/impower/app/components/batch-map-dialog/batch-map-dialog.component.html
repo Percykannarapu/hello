@@ -1,7 +1,7 @@
 <p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '400px'}" [maximizable]="false">
+  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '700px'}" [maximizable]="false">
   <div class="dialog-form">
-    <div class="dialog-main">
+    <div class="dialog-main" id="p-dialog">
       <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are
           reflected on map </span></p>
       <p>Site # will be included in the header, in addition to the Title and Sub-Title specified below</p>
@@ -14,23 +14,57 @@
               <label for="fileName">Title (required)</label>
             </span>
           </div>
-          <div>&nbsp;</div>
+          <!-- <div>&nbsp;</div> -->
           <div class="ui-g-12">
             <span class="md-inputfield">
               <input id="subTitle" type="text" formControlName="subTitle" pInputText class="val-full-width">
               <label for="subTitle"> Sub Title </label>
             </span>
           </div>
-          <div>&nbsp;</div>
+          <!-- <div>&nbsp;</div> -->
           <div class="ui-g-12">
             <span class="md-inputfield">
               <input id="subSubTitle" type="text" formControlName="subSubTitle" pInputText class="val-full-width">
               <label for="subSubTitle"> Sub-Sub Title </label>
             </span>
           </div>
-          <div class="ui-g-12">
-            <p>A link will be emailed to you when your maps are ready</p>
+          <div class="neighboringSites">
+            <div class="ui-g-12 labelTitle">
+              <label><b> Neighboring Sites </b></label>
+            </div>
+            <div class="ui-g-12 customPadding">
+              <p-radioButton name="neighbouringSitesGroup" labelStyleClass="labelCustom" value="true"
+                label="Include Symbols, Labels & Trade Area Boundaries" formControlName="neighboringSites">
+              </p-radioButton>
+            </div>
+            <div class="ui-g-12 customPadding">
+              <p-radioButton name="neighbouringSitesGroup" value="false" label="Exclude"
+                formControlName="neighboringSites"></p-radioButton>
+            </div>
           </div>
+          <div class="pageSettings">
+            <div class="ui-g-12 labelTitle">
+              <label><b> Page Settings </b></label>
+            </div>
+            <div class="ui-g-12 pageSettingsPadding">
+              <div class="ui-g-4">
+                <p-dropdown id="pageSettings" formControlName="pageSettingsControl" [options]="pageSettings"
+                  [autoWidth]="false" [style]="{ width:'100%' }" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down">
+                </p-dropdown>
+              </div>
+              <div class="ui-g-3">
+                <p-radioButton name="layoutGroup" label="Landscape" value="landscape" formControlName="layout">
+                </p-radioButton>
+              </div>
+              <div class="ui-g-4">
+                <p-radioButton name="layoutGroup" label="Portrait" value="portrait" formControlName="layout">
+                </p-radioButton>
+              </div>
+              <div class="ui-g-1"></div>
+            </div>
+          </div>
+          <div class="ui-g-12"></div>
+          <div class="ui-g-12"></div>
         </form>
       </div>
     </div>
@@ -38,6 +72,6 @@
   <p-footer>
     <button id="createBtn" type="submit" pButton label="Create" (click)="onSubmit(batchMapForm.value)"
       [disabled]="batchMapForm.invalid"></button>
+    <p>A link will be emailed to you when your maps are ready</p>
   </p-footer>
-
 </p-dialog>
