@@ -127,23 +127,41 @@
       </div>
 
       <div class="ui-g-12" style="padding: 0">
-        <div class="ui-g-4">
-          <span class="md-inputfield">
-            <input pInputText id="tradeArea1Input" class="ui-g-12" formControlName="radius1" autocomplete="off" (change)="formEdited()"/>
-            <label for="tradeArea1Input">TradeArea1</label>
-          </span>
+        <div class="ui-g-4 p-t-15">
+          <div class="ui-inputgroup">
+            <span class="md-inputfield">
+              <input pInputText id="tradeArea1Input" class="ui-g-12" formControlName="radius1" autocomplete="off" (change)="formEdited()"/>
+              <span class="ui-inputgroup-addon" *ngIf="!hasErrors('radius1')">&nbsp;</span>
+              <span class="ui-inputgroup-addon" *ngIf="hasErrors('radius1')">
+                <i class="ui-icon-error error-icon" title="Not a valid radius1 value"></i>
+              </span>
+              <label for="tradeArea1Input">TradeArea1</label>
+            </span>
+          </div>
         </div>
-        <div class="ui-g-4">
-          <span class="md-inputfield">
-            <input pInputText id="tradeArea2Input" class="ui-g-12" formControlName="radius2" autocomplete="off" (change)="formEdited()"/>
+        <div class="ui-g-4 p-t-15">
+          <div class="ui-inputgroup">
+            <span class="md-inputfield">
+              <input pInputText id="tradeArea2Input" class="ui-g-12" formControlName="radius2" autocomplete="off" (change)="formEdited()"/>
+              <span class="ui-inputgroup-addon" *ngIf="!hasErrors('radius2')">&nbsp;</span>
+              <span class="ui-inputgroup-addon" *ngIf="hasErrors('radius2')">
+                <i class="ui-icon-error error-icon" title="Not a valid radius2 value"></i>
+              </span>
             <label for="tradeArea2Input">TradeArea2</label>
-          </span>
+            </span>
+          </div>
         </div>
-        <div class="ui-g-4">
-          <span class="md-inputfield">
-            <input pInputText id="tradeArea3Input" class="ui-g-12" formControlName="radius3" autocomplete="off" (change)="formEdited()"/>
+        <div class="ui-g-4 p-t-15">
+          <div class="ui-inputgroup">
+            <span class="md-inputfield">
+              <input pInputText id="tradeArea3Input" class="ui-g-12" formControlName="radius3" autocomplete="off" (change)="formEdited()"/>
+              <span class="ui-inputgroup-addon" *ngIf="!hasErrors('radius3')">&nbsp;</span>
+              <span class="ui-inputgroup-addon" *ngIf="hasErrors('radius3')">
+                <i class="ui-icon-error error-icon" title="Not a valid radius3 value"></i>
+              </span>
             <label for="tradeArea3Input">TradeArea3</label>
-          </span>
+            </span>
+          </div>
         </div>
       </div>
       

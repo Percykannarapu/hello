@@ -51,6 +51,8 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       [1, 2, 3].forEach(val => {
         if (this.displayData[`radius${val}`] === undefined || this.displayData[`radius${val}`] === ''){
           this.editLocationsForm.get(`radius${val}`).disable();
+        } else {
+          this.editLocationsForm.get(`radius${val}`).enable();
         }
       });    
     }
@@ -119,6 +121,12 @@ export class EditLocationsComponent implements OnInit, OnChanges {
           rangeValid: `You must enter a numeric value > ${minValue} and <= ${maxValue} for trade areas you want to apply.`
         };
       }
+      return null;
+    };
+  }
+
+  public dummy() : ValidatorFn {
+    return function(control: AbstractControl) {
       return null;
     };
   }
