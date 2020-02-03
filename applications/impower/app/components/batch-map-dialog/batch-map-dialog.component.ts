@@ -29,10 +29,10 @@ export class BatchMapDialogComponent implements OnInit {
     private stateService: AppStateService,
     private userService: UserService) {
       this.pageSettings = [
-        {label: '8.5 x 11', value: 'regular'}, 
-        {label: '11 x 17', value: 'irregular'},
-        {label: '24 x 36 (Arch-D)', value: 'jumbo'},
-        {label: '36 x 48 (Arch-E)', value: 'huge'}
+        {label: '8.5 x 11', value: 'Letter'}, 
+        {label: '11 x 17', value: 'Ledger'},
+        {label: '24 x 36 (Arch-D)', value: 'Arch-D'},
+        {label: '36 x 48 (Arch-E)', value: 'Arch-E'}
       ];
     }
 
