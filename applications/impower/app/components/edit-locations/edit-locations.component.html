@@ -133,7 +133,7 @@
               <input pInputText id="tradeArea1Input" class="ui-g-12" formControlName="radius1" autocomplete="off" (change)="formEdited()"/>
               <span class="ui-inputgroup-addon" *ngIf="!hasErrors('radius1')">&nbsp;</span>
               <span class="ui-inputgroup-addon" *ngIf="hasErrors('radius1')">
-                <i class="ui-icon-error error-icon" title="Not a valid radius1 value"></i>
+                <i class="ui-icon-error error-icon" [title]="radius1.errors['errorMsg']"></i>
               </span>
               <label for="tradeArea1Input">TradeArea1</label>
             </span>
@@ -145,7 +145,7 @@
               <input pInputText id="tradeArea2Input" class="ui-g-12" formControlName="radius2" autocomplete="off" (change)="formEdited()"/>
               <span class="ui-inputgroup-addon" *ngIf="!hasErrors('radius2')">&nbsp;</span>
               <span class="ui-inputgroup-addon" *ngIf="hasErrors('radius2')">
-                <i class="ui-icon-error error-icon" title="Not a valid radius2 value"></i>
+                <i class="ui-icon-error error-icon" [title]="radius2.errors['errorMsg']"></i>
               </span>
             <label for="tradeArea2Input">TradeArea2</label>
             </span>
@@ -157,7 +157,7 @@
               <input pInputText id="tradeArea3Input" class="ui-g-12" formControlName="radius3" autocomplete="off" (change)="formEdited()"/>
               <span class="ui-inputgroup-addon" *ngIf="!hasErrors('radius3')">&nbsp;</span>
               <span class="ui-inputgroup-addon" *ngIf="hasErrors('radius3')">
-                <i class="ui-icon-error error-icon" title="Not a valid radius3 value"></i>
+                <i class="ui-icon-error error-icon" [title]="radius3.errors['errorMsg']"></i>
               </span>
             <label for="tradeArea3Input">TradeArea3</label>
             </span>

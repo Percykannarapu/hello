@@ -36,6 +36,12 @@ export class EditLocationsComponent implements OnInit, OnChanges {
   
   get coord() { return this.editLocationsForm.get('coord'); }
 
+  get radius1() { return this.editLocationsForm.get('radius1'); }
+
+  get radius2() { return this.editLocationsForm.get('radius2'); }
+
+  get radius3() { return this.editLocationsForm.get('radius3'); }
+
   constructor(private fb: FormBuilder,
               private appStateService: AppStateService,
               private appEditSiteService: AppEditSiteService,
@@ -72,10 +78,10 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       homeAtz: new FormControl('',  {  asyncValidators: this.validateGeo('CL_ATZTAB14', 'geocode,ZIP', 'Not a valid Home ATZ')}),
       homeDigitalAtz: new FormControl('',  {  asyncValidators: this.validateGeo('VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ', 'Not a valid Home DTZ')}),
       homePcr: new FormControl('',  {  asyncValidators: this.validateGeo('CL_PCRTAB14', 'geocode,ZIP, ZIP_ATZ, DMA, DMA_Name, COUNTY', 'Not a valid Home PCR')}),
-      radius1: [null, [this.isInRange(0, 50)]],
-      radius2: [null, [this.isInRange(0, 50)]],
-      radius3: [null, [this.isInRange(0, 50)]],
-    });
+      radius1: [null, this.isInRange(0, 50)],
+      radius2: [null, this.isInRange(0, 50)],
+      radius3: [null, this.isInRange(0, 50)],
+    }, {validators: this.isValidRadius});
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
   }
 
@@ -114,21 +120,33 @@ export class EditLocationsComponent implements OnInit, OnChanges {
 
   private isInRange(minValue: number, maxValue: number) : ValidatorFn {
     return function(control: AbstractControl) {
-      console.log('values::::', control);
       const currentRadius = numberOrNull(control.value);
       if (control.value != null && control.value !== '' && (currentRadius <= minValue || currentRadius > maxValue || Number.isNaN(Number(control.value)))) {
         return  {
-          rangeValid: `You must enter a numeric value > ${minValue} and <= ${maxValue} for trade areas you want to apply.`
+          errorMsg: `You must enter a numeric value > ${minValue} and <= ${maxValue} for trade areas you want to apply.`
         };
       }
       return null;
     };
   }
 
-  public dummy() : ValidatorFn {
-    return function(control: AbstractControl) {
-      return null;
-    };
+  private isValidRadius(group: FormGroup) {
+    const radius1 = group.controls[`radius1`];
+    const radius2 = group.controls[`radius2`];
+    const radius3 = group.controls[`radius3`];
+
+    if (radius2.dirty && radius1.value > radius2.value ){
+      group.controls[`radius2`].setErrors({
+        errorMsg : `Value must be greater than Trade Area 1`
+      });
+    }
+
+    if (radius3.dirty && radius2.value > radius3.value) {
+      group.controls[`radius3`].setErrors({
+        errorMsg: `Value must be greater than Trade Area 2`
+      });
+    }
+    return group;
   }
 
   onSubmit(data: any) {
