@@ -1,0 +1,23 @@
+<div class="component-root" [formGroup]="parentForm">
+  <span class="md-inputfield">
+    <p-dropdown [options]="fillTypes" [style]="{'width':'100%'}" id="{{valueName}}input"
+                [(ngModel)]="selectedFillType" [ngModelOptions]="{standalone: true}">
+      <ng-template let-selected pTemplate="selectedItem">
+        <div class="item-container">
+          <span [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
+          <span class="item-label">{{selected.label}}</span>
+        </div>
+      </ng-template>
+      <ng-template let-item pTemplate="item">
+        <div class="item-container">
+          <span [ngClass]="item.icon"></span>
+          <span class="item-label">{{item.label}}</span>
+        </div>
+      </ng-template>
+    </p-dropdown>
+    <label class="drop-down-label" for="{{valueName}}input">{{labelText}}</label>
+  </span>
+  <span class="color-chip">
+    <p-colorPicker [(ngModel)]="selectedColor" format="rgb" [ngModelOptions]="{standalone: true}"></p-colorPicker>
+  </span>
+</div>

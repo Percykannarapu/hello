@@ -17,6 +17,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
+import { ColorPickerModule } from 'primeng/colorpicker';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -85,6 +86,7 @@ import { ConfirmationContainerComponent } from './components/common/confirmation
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ConnectFormDirective } from './components/common/connect-form.directive';
 import { DropdownInputComponent } from './components/common/dropdown-input/dropdown-input.component';
+import { EsriSymbolInputComponent } from './components/common/esri-symbol-input/esri-symbol-input.component';
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
 import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
@@ -271,7 +273,8 @@ export function actionSanitizer(action: Action) : Action {
     CommonModule,
     NgStringPipesModule,
     CardModule,
-    SidebarModule
+    SidebarModule,
+    ColorPickerModule
   ],
   declarations: [
     AppComponent,
@@ -334,7 +337,8 @@ export function actionSanitizer(action: Action) : Action {
     SelectedGeoShaderComponent,
     OwnerSiteShaderComponent,
     OwnerTradeAreaShaderComponent,
-    DropdownInputComponent
+    DropdownInputComponent,
+    EsriSymbolInputComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

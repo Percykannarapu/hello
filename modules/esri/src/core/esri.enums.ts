@@ -37,3 +37,13 @@ export const buttonToCursorMap = {
   [SelectedButtonTypeCodes.MeasureDistance] : 'crosshair',
   [SelectedButtonTypeCodes.XY] : 'default',
 };
+
+export const fillTypeFriendlyNames = {
+  ['backward-diagonal'] : 'Backward Diagonal',
+  ['cross'] : 'Cross',
+  ['diagonal-cross'] : 'Diagonal Cross',
+  ['forward-diagonal'] : 'Forward Diagonal',
+  ['horizontal'] : 'Horizontal',
+  ['solid'] : 'Color Fill',
+  ['vertical'] : 'Vertical',
+};

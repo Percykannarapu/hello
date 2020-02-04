@@ -422,3 +422,11 @@ export function strToBool(value: string) : boolean {
   const lcValue = value.toLowerCase();
   return /^true$|^t$|^yes$|^y$|^1$/.test(lcValue);
 }
+
+export function rgbToHex(color: number[]) {
+  const red = pad(Number(color[0]).toString(16), 2);
+  const green = pad(Number(color[1]).toString(16), 2);
+  const blue = pad(Number(color[2]).toString(16), 2);
+  //const alpha = color.length > 3 ? pad(Number(color[3]).toString(16), 2) : 'FF';
+  return `#${red}${green}${blue}FF`;
+}

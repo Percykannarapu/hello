@@ -1,4 +1,4 @@
-import { ColorPalette } from '@val/esri';
+import { ColorPalette, SymbolDefinition } from '@val/esri';
 
 export interface AddLocationForm {
   number: string;
@@ -17,7 +17,7 @@ export interface GfpForm {
 }
 
 export interface GfpSelectionForm extends GfpForm {
-  shadingType?: string;
+  defaultSymbolDefinition: SymbolDefinition;
 }
 
 export interface VariableSelectionForm extends GfpForm {

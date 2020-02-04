@@ -1,7 +1,9 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { FormConfig } from '@val/common';
-import { SelectItem } from 'primeng/api';
+import { FormConfig, rgbToHex } from '@val/common';
+import { fillTypeFriendlyNames } from '@val/esri';
+import { Subject } from 'rxjs';
+import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 import { GfpSelectionForm } from '../../../../state/forms/forms.interfaces';
 import { UIShadingDefinition } from '../../shading-ui-helpers';
 
@@ -10,7 +12,7 @@ import { UIShadingDefinition } from '../../shading-ui-helpers';
   templateUrl: './selected-geo-shader.component.html',
   styleUrls: ['./selected-geo-shader.component.scss']
 })
-export class SelectedGeoShaderComponent implements OnInit {
+export class SelectedGeoShaderComponent implements OnInit, OnDestroy {
 
   @Input() definition: UIShadingDefinition;
 
@@ -18,26 +20,35 @@ export class SelectedGeoShaderComponent implements OnInit {
   @Output() editShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
   shaderForm: FormGroup;
 
-  shadingTypes: SelectItem[] = [];
+  get currentFillColorInHex() : string {
+    return rgbToHex(this.definition.defaultSymbolDefinition.fillColor);
+  }
+  get currentFriendlyFillType() : string {
+    return fillTypeFriendlyNames[this.definition.defaultSymbolDefinition.fillType];
+  }
+
+  private destroyed$ = new Subject<void>();
 
   constructor(private fb: FormBuilder) {
-    this.shadingTypes.push({label: 'Green Highlight', value: 'Green Highlight'});
-    this.shadingTypes.push({label: 'Cross Hatching', value: 'Cross Hatching'});
+  }
+
+  public ngOnDestroy() : void {
+    this.destroyed$.next();
   }
 
   ngOnInit() {
-    const isHighlight = this.definition.defaultSymbolDefinition == null || this.definition.defaultSymbolDefinition.fillType === 'solid';
     const formSetup: FormConfig<GfpSelectionForm> = {
       layerName: [this.definition.layerName, Validators.required],
       opacity: new FormControl(this.definition.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
-      shadingType: isHighlight ? 'Green Highlight' : 'Cross Hatching'
+      defaultSymbolDefinition: this.definition.defaultSymbolDefinition
     };
     this.shaderForm = this.fb.group(formSetup, { updateOn: 'blur' });
-  }
 
-  hasErrors(controlKey: string) : boolean {
-    const control = this.shaderForm.get(controlKey);
-    return (control.dirty || control.touched) && (control.errors != null);
+    this.shaderForm.get('defaultSymbolDefinition').valueChanges.pipe(
+      takeUntil(this.destroyed$),
+      map(value => value.fillType),
+      distinctUntilChanged()
+    ).subscribe(value => this.styleChanged(value));
   }
 
   edit(def: UIShadingDefinition) : void {
@@ -47,28 +58,18 @@ export class SelectedGeoShaderComponent implements OnInit {
 
   apply() : void {
     this.shaderForm.updateValueAndValidity();
-    if (this.shaderForm.errors == null) {
+    if (this.shaderForm.status === 'VALID') {
       const values: GfpSelectionForm = this.shaderForm.value;
-      const isCrossHatched = values.shadingType === 'Cross Hatching';
-      this.definition.defaultSymbolDefinition = {
-        fillColor: isCrossHatched ? [0, 0, 0, 1] : [0, 255, 0, 1],
-        fillType: isCrossHatched ? 'backward-diagonal' : 'solid',
-      };
-      delete values.shadingType;
       Object.assign(this.definition, values);
       this.applyShader.emit(this.definition);
     }
   }
 
   styleChanged(newValue: string) : void {
-    switch (newValue) {
-      case 'Green Highlight':
-        this.shaderForm.get('opacity').setValue(0.25);
-        break;
-      case 'Cross Hatching':
-        this.shaderForm.get('opacity').setValue(1);
-        break;
+    if (newValue === 'solid') {
+      this.shaderForm.get('opacity').setValue(0.25);
+    } else {
+      this.shaderForm.get('opacity').setValue(0.75);
     }
-    this.shaderForm.get('shadingType').setValue(newValue);
   }
 }
