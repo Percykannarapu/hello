@@ -31,7 +31,13 @@ export interface ImpowerState {
   forms: FormsState;
 }
 
-
+export enum BatchMapSizes {
+  letter = 'letter',
+  legal = 'legal',
+  tabloid = 'tabloid',
+  large = 'large',
+  jumbo = 'jumbo'
+}
 
 export interface BatchMapPayload {
   calls: [{
@@ -44,7 +50,7 @@ export interface BatchMapPayload {
         subTitle: string;
         subSubTitle: string;
         projectId: number;
-        size: string;
+        size: BatchMapSizes;
         includeNeighboringSites: boolean;
         pageSettings: string;
         layout: string;

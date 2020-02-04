@@ -1,6 +1,6 @@
 import { Component, OnInit, OnChanges } from '@angular/core';
 import { Store, select } from '@ngrx/store';
-import { LocalAppState, BatchMapPayload } from 'app/state/app.interfaces';
+import { LocalAppState, BatchMapPayload, BatchMapSizes } from 'app/state/app.interfaces';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AppConfig } from 'app/app.config';
 import { AppStateService } from 'app/services/app-state.service';
@@ -29,10 +29,11 @@ export class BatchMapDialogComponent implements OnInit {
     private stateService: AppStateService,
     private userService: UserService) {
       this.pageSettings = [
-        {label: '8.5 x 11', value: 'Letter'}, 
-        {label: '11 x 17', value: 'Ledger'},
-        {label: '24 x 36 (Arch-D)', value: 'Arch-D'},
-        {label: '36 x 48 (Arch-E)', value: 'Arch-E'}
+        {label: '8.5 x 11 (Letter)', value: BatchMapSizes.letter},
+        {label: '8.5 x 14 (Legal)', value: BatchMapSizes.legal},
+        {label: '11 x 17 (Tabloid)', value: BatchMapSizes.tabloid},
+        {label: '24 x 36 (Arch-D)', value: BatchMapSizes.large},
+        {label: '36 x 48 (Arch-E)', value: BatchMapSizes.jumbo}
       ];
     }
 
@@ -57,6 +58,7 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   onSubmit(dialogFields: any) {
+    const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
     const formData: BatchMapPayload = {
       calls: [
         {
@@ -69,7 +71,7 @@ export class BatchMapDialogComponent implements OnInit {
               subTitle: dialogFields.subTitle,
               subSubTitle: dialogFields.subSubTitle,
               projectId: this.currentProjectId,
-              size: 'letter',
+              size: size,
               includeNeighboringSites: (dialogFields.neighboringSites == true),
               pageSettings: dialogFields.pageSettingsControl,
               layout: dialogFields.layout,
