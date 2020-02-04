@@ -6,7 +6,7 @@ import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { Observable, race, timer } from 'rxjs';
-import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, delay, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { BatchMapPayload, LocalAppState } from '../state/app.interfaces';
@@ -58,7 +58,7 @@ export class BatchMapService {
     this.store$.select(getBatchMapReady).pipe(
       filter(ready => ready),
       take(1),
-      //delay(15000)
+      delay(15000)
     ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isReload: false, isBatchMode: true })));
   }
 
