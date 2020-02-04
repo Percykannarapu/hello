@@ -22,7 +22,7 @@
           </div>
         </div>
         <div class="ui-g-5 ui-g-nopad grid-caption-center-group">
-          {{failedSites.length}} of {{totalCount}} failed
+          {{failedSites.length}} of {{totalCount+failedSites.length}} failed
         </div>
         <div class="ui-g-4 ui-g-nopad grid-caption-right-group" align="right">
           <p-multiSelect defaultLabel="Columns" selectedItemsLabel="Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" class="val-column-picker-light"></p-multiSelect>
