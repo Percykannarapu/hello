@@ -47,7 +47,7 @@ export class RenderingEffects {
     ofType<RenderLocations>(RenderingActionTypes.RenderLocations),
     withLatestFrom(this.store$.pipe(select(selectors.getMapReady))),
     filter(([action, mapReady]) => mapReady && action.payload.locations.length > 0),
-    map(([action]) => prepareLocations(action.payload.locations)),
+    map(([action]) => prepareLocations(action.payload.locations, action.payload.impProjectPrefs)),
     tap(definitions => this.renderingService.renderLocations(definitions))
   );
 

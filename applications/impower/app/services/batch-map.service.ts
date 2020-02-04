@@ -20,6 +20,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMapService } from './app-map.service';
 import { AppStateService } from './app-state.service';
 import { HttpClient } from '@angular/common/http';
+import { AppProjectPrefService } from './app-project-pref.service';
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +39,7 @@ export class BatchMapService {
               private appMapService: AppMapService,
               private restService: RestDataService,
               private store$: Store<LocalAppState>,
+              private appProjectPrefService: AppProjectPrefService,
               private http: HttpClient) { }
 
   initBatchMapping(projectId: number) : void {
@@ -98,7 +100,8 @@ export class BatchMapService {
           g.isActive = this.originalGeoState[g.ggId];
         });
         if (hideNeighborSites) {
-          this.store$.dispatch(new RenderLocations({ locations: [currentSite] }));
+          
+          this.store$.dispatch(new RenderLocations({ locations: [currentSite], impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         }
         this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));

@@ -193,6 +193,7 @@ export class FailedGeocodeGridComponent implements OnInit {
 
     // Set base status to trigger the creation of trade areas below it
     site.baseStatus = DAOBaseStatus.INSERT;
+    site.impGeofootprintLocAttribs.forEach(attr => attr.baseStatus = DAOBaseStatus.INSERT);
   }
 
   onAccept(site: ImpGeofootprintLocation) : void {
