@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { groupByExtended } from '@val/common';
@@ -5,7 +6,7 @@ import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { Observable, race, timer } from 'rxjs';
-import { debounceTime, delay, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { BatchMapPayload, LocalAppState } from '../state/app.interfaces';
@@ -18,9 +19,8 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { AppMapService } from './app-map.service';
-import { AppStateService } from './app-state.service';
-import { HttpClient } from '@angular/common/http';
 import { AppProjectPrefService } from './app-project-pref.service';
+import { AppStateService } from './app-state.service';
 
 @Injectable({
   providedIn: 'root'
@@ -46,7 +46,7 @@ export class BatchMapService {
     this.appStateService.notifyMapReady();
 
     this.esriMapService.watchMapViewProperty('updating').pipe(
-      debounceTime(1000),
+      debounceTime(500),
       withLatestFrom(this.store$.select(getMapAudienceIsFetching)),
       map(([result, isFetching]) => !isFetching && !result.newValue)
     ).subscribe(ready => this.store$.dispatch(new SetMapReady({ mapReady: ready })));
@@ -58,7 +58,7 @@ export class BatchMapService {
     this.store$.select(getBatchMapReady).pipe(
       filter(ready => ready),
       take(1),
-      delay(15000)
+      //delay(15000)
     ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isReload: false, isBatchMode: true })));
   }
 
@@ -100,7 +100,7 @@ export class BatchMapService {
           g.isActive = this.originalGeoState[g.ggId];
         });
         if (hideNeighborSites) {
-          
+
           this.store$.dispatch(new RenderLocations({ locations: [currentSite], impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         }

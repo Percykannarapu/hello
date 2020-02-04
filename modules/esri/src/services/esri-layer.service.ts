@@ -306,7 +306,7 @@ export class EsriLayerService {
     const layer = this.getLayerByUniqueId(layerUniqueId);
 
     if (legendRef != null) {
-      if (this.legendShimmed == false) {
+      if (this.legendShimmed === false) {
         legendRef['legacyRender'] = legendRef.scheduleRender;
         legendRef.scheduleRender = (...args) => {
           legendRef.activeLayerInfos.forEach(ali => {
@@ -367,5 +367,14 @@ export class EsriLayerService {
     latLong.select();
     document.execCommand('copy');
     document.body.removeChild(latLong);
+  }
+
+  layerIsVisibleOnMap(layerId: string) : boolean {
+    const layer = this.getPortalLayerById(layerId);
+    if (layer == null) {
+      return false;
+    } else {
+      return layer.visible && (this.mapService.mapView.scale <= layer.minScale);
+    }
   }
 }

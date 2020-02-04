@@ -86,7 +86,11 @@ export class EsriShadingLayersService {
         title: config.layerName
       };
       if (newFeatureCsv != null && config.filterByFeaturesOfInterest) {
-        props['definitionExpression'] = `${config.filterField} IN (${newFeatureCsv})`;
+        if (newFeatureCsv.length > 0) {
+          props['definitionExpression'] = `${config.filterField} IN (${newFeatureCsv})`;
+        } else {
+          props['definitionExpression'] = `1 = 0`;
+        }
       }
       layer.set(props);
     }

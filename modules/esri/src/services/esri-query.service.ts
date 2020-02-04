@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@angular/core';
 import { chunkArray, retryOnTimeout } from '@val/common';
 import { Multipoint, Point } from 'esri/geometry';
 import Query from 'esri/tasks/support/Query';
-import { EMPTY, merge, Observable, of } from 'rxjs';
-import { expand, filter, map, take } from 'rxjs/operators';
+import { EMPTY, from, merge, Observable, of } from 'rxjs';
+import { expand, filter, map, switchMap, take } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
@@ -87,7 +87,7 @@ export class EsriQueryService {
   }
 
   private static transformFeatureSet<T>(featureSet: __esri.FeatureSet, transform: txCallback<T>) : T[] {
-    if (featureSet == null || featureSet.features == null || featureSet.features.length == 0) return [];
+    if (featureSet == null || featureSet.features == null || featureSet.features.length === 0) return [];
     return featureSet.features.map(f => transform(f));
   }
 
@@ -98,33 +98,19 @@ export class EsriQueryService {
   }
 
   public executeObjectIdQuery(layerId: string, query: __esri.Query) : Observable<number[]> {
-    return Observable.create(async observer => {
-      try {
-        await this.mapService.mapView.when();
-        const layer = this.layerService.getPortalLayerById(layerId);
-        await layer.when();
-        const objectIds = await layer.queryObjectIds(query);
-        observer.next(objectIds);
-        observer.complete();
-      } catch (err) {
-        observer.error(err);
-      }
-    });
+    return from(EsriUtils.esriPromiseToEs6(this.mapService.mapView.when())).pipe(
+      map(() => this.layerService.getPortalLayerById(layerId)),
+      switchMap(layer => layer == null ? EMPTY : EsriUtils.esriPromiseToEs6<__esri.FeatureLayer>(layer.when())),
+      switchMap(layer => EsriUtils.esriPromiseToEs6(layer.queryObjectIds(query)))
+    );
   }
 
   private executeFeatureQuery(layerId: string, query: __esri.Query) : Observable<__esri.FeatureSet> {
-    return Observable.create(async observer => {
-      try {
-        await this.mapService.mapView.when();
-        const layer = this.layerService.getPortalLayerById(layerId);
-        await layer.when();
-        const featureSet = await layer.queryFeatures(query);
-        observer.next(featureSet);
-        observer.complete();
-      } catch (err) {
-        observer.error(err);
-      }
-    });
+    return from(EsriUtils.esriPromiseToEs6(this.mapService.mapView.when())).pipe(
+      map(() => this.layerService.getPortalLayerById(layerId)),
+      switchMap(layer => layer == null ? EMPTY : EsriUtils.esriPromiseToEs6<__esri.FeatureLayer>(layer.when())),
+      switchMap(layer => EsriUtils.esriPromiseToEs6(layer.queryFeatures(query)))
+    );
   }
 
   private paginateEsriQuery(layerId: string, query: __esri.Query) : Observable<__esri.FeatureSet> {

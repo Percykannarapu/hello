@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import Basemap from 'esri/Basemap';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { debounceTime, filter, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { ShadingDefinition } from '../models/shading-configuration';
 import { InitialEsriState, loadInitialState } from '../state/esri.actions';
@@ -9,6 +9,7 @@ import { AppState, selectors } from '../state/esri.selectors';
 import { ResetMapState, SetLayerLabelExpressions, SetPopupVisibility, SetSelectedLayer } from '../state/map/esri.map.actions';
 import { EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
 import { loadShadingDefinitions } from '../state/shading/esri.shading.actions';
+import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 import { EsriQueryService } from './esri-query.service';
 
@@ -19,6 +20,7 @@ export class EsriService {
 
   constructor(private store$: Store<AppState>,
               private mapService: EsriMapService,
+              private layerService: EsriLayerService,
               private queryService: EsriQueryService) {
     this.initializeService();
   }
@@ -33,7 +35,7 @@ export class EsriService {
         debounceTime(500),
         withLatestFrom(this.store$.select(selectors.getEsriSelectedLayer)),
         filter(([, layerId]) => layerId != null),
-        switchMap(([, layerId]) => this.queryService.queryExtent(layerId))
+        switchMap(([, layerId]) => this.layerService.layerIsVisibleOnMap(layerId) ? this.queryService.queryExtent(layerId) : of([]))
       ).subscribe(g => this.visibleFeatures$.next(g), e => this.visibleFeatures$.error(e));
     });
   }

@@ -273,7 +273,7 @@ export class AudiencesEffects {
           // Convert response into an array of GeoVars
           const gv = { geocode: responseRow.geocode };
           const score = (responseRow.dmaScore != null) ? responseRow.dmaScore : responseRow.nationalScore;
-          gv[responseRow.digCategoryId] = isNaN(score as any) ? score : Number(score);
+          gv[responseRow.digCategoryId] = score == null || isNaN(score as any) ? score : Number(score);
           return gv;
         });
       applyStop = performance.now();
@@ -295,7 +295,7 @@ export class AudiencesEffects {
           // Convert response into an array of MapVars
           const mv = { geocode: responseRow.geocode };
           const score = (responseRow.dmaScore != null) ? responseRow.dmaScore : responseRow.nationalScore;
-          mv[responseRow.digCategoryId] = isNaN(score as any) ? score : Number(score);
+          mv[responseRow.digCategoryId] = score == null || isNaN(score as any) ? score : Number(score);
           return mv;
         });
       stats.totalMapVars += mapVars.length;
@@ -375,7 +375,7 @@ export class AudiencesEffects {
         .map(responseRow => {
           // Convert response into an array of GeoVars
           const gv = { geocode: responseRow.geocode };
-          gv[responseRow.id] = isNaN(responseRow.score as any) ? responseRow.score : Number(responseRow.score);
+          gv[responseRow.id] = responseRow.score == null || isNaN(responseRow.score as any) ? responseRow.score : Number(responseRow.score);
           return gv;
         });
       applyStop = performance.now();
@@ -395,7 +395,7 @@ export class AudiencesEffects {
         .map(responseRow => {
           // Convert response into an array of MapVars
           const gv = { geocode: responseRow.geocode };
-          gv[responseRow.id] = isNaN(responseRow.score as any) ? responseRow.score : Number(responseRow.score);
+          gv[responseRow.id] = responseRow.score == null || isNaN(responseRow.score as any) ? responseRow.score : Number(responseRow.score);
           return gv;
         });
       stats.totalMapVars += mapVars.length;
