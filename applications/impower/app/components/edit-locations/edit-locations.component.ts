@@ -81,7 +81,8 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       radius1: [null, this.isInRange(0, 50)],
       radius2: [null, this.isInRange(0, 50)],
       radius3: [null, this.isInRange(0, 50)],
-    }, {validators: this.isValidRadius});
+    // }, {validators: this.isValidRadius});
+    });
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
   }
 
