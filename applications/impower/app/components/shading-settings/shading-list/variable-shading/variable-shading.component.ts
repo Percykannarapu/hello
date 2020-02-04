@@ -79,7 +79,7 @@ export class VariableShadingComponent implements OnInit {
 
   apply() : void {
     this.shaderForm.updateValueAndValidity();
-    if (this.shaderForm.errors == null) {
+    if (this.shaderForm.status === 'VALID') {
       const values: VariableSelectionForm = this.shaderForm.value;
       this.definition.filterByFeaturesOfInterest = values.extent === 'Selected Geos only';
       this.definition.dataKey = values.audienceId;

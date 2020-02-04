@@ -27,11 +27,6 @@ export class OwnerSiteShaderComponent implements OnInit {
     this.shaderForm = this.fb.group(formSetup, { updateOn: 'blur' });
   }
 
-  hasErrors(controlKey: string) : boolean {
-    const control = this.shaderForm.get(controlKey);
-    return (control.dirty || control.touched) && (control.errors != null);
-  }
-
   edit(def: UIShadingDefinition) : void {
     this.definition = { ...def, isEditing: true };
     this.editShader.emit(this.shaderForm.value);
@@ -39,7 +34,7 @@ export class OwnerSiteShaderComponent implements OnInit {
 
   apply() : void {
     this.shaderForm.updateValueAndValidity();
-    if (this.shaderForm.errors == null) {
+    if (this.shaderForm.status === 'VALID') {
       const values: GfpForm = this.shaderForm.value;
       Object.assign(this.definition, values);
       this.applyShader.emit(this.definition);
