@@ -4,6 +4,7 @@ import { Point } from 'esri/geometry';
 import Graphic from 'esri/Graphic';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { ImpProjectPref } from 'app/val-modules/targeting/models/ImpProjectPref';
 
 export class LocationDrawDefinition {
   groupName: string;
@@ -41,7 +42,7 @@ export const defaultLocationPopupFields = [
   { fieldName: 'labelName', label: 'labelName', visible: false  }
 ];
 
-function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) : __esri.Graphic {
+function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number, labelVal?: string) : __esri.Graphic {
   const graphic = new Graphic({
     geometry: new Point({
       x: site.xcoord,
@@ -52,14 +53,9 @@ function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) : __esri
   });
 
   let label = null;
-  site.impGeofootprintLocAttribs.forEach(attr => {
-    if (attr != null && attr.attributeCode.toString() === 'label'){
-        label = attr.attributeValue.toString();
-    }
-          
-  });
-  const attribute = site.impGeofootprintLocAttribs.filter(attr => attr != null && attr.attributeCode === label);
-  label = site[label] != null ? site[label].toString() : attribute != null && attribute.length > 0 ? attribute[0].attributeValue.toString() : site['locationNumber'];
+  
+  const attribute = site.impGeofootprintLocAttribs.filter(attr => attr != null && attr.attributeCode === labelVal);
+  label = site[labelVal] != null ? site[labelVal].toString() : attribute != null && attribute.length > 0 ? attribute[0].attributeValue.toString() : site['locationNumber'];
 
   for (const field of defaultLocationPopupFields) {
     const fieldValue = site[field.fieldName];
@@ -70,13 +66,14 @@ function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) : __esri
   return graphic;
 }
 
-export function prepareLocations(sites: ImpGeofootprintLocation[]) : LocationDrawDefinition[] {
+export function prepareLocations(sites: ImpGeofootprintLocation[], prefs?: ImpProjectPref[]) : LocationDrawDefinition[] {
   const sitesByType = groupByExtended(sites, l => ImpClientLocationTypeCodes.parseAsSuccessful(l.clientLocationTypeCode));
   const result: LocationDrawDefinition[] = [];
   sitesByType.forEach((currentSites, siteType) => {
+    const label = prefs.length > 0 ? prefs.filter(pref => pref.pref === siteType)[0].val : 'Number';
     const color: [number, number, number, number] = siteType === ImpClientLocationTypeCodes.Site ? [0, 0, 255, 1] : [255, 0, 0, 1];
     const currentResult = new LocationDrawDefinition(siteType, color, MapSymbols.STAR, '$feature.labelName', '{clientLocationTypeCode}: {labelName}');
-    currentResult.sites = currentSites.map(l => createSiteGraphic(l));
+    currentResult.sites = currentSites.map(l => createSiteGraphic(l, null, label));
     result.push(currentResult);
   });
   return result;
