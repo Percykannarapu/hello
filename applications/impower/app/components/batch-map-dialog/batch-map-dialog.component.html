@@ -14,14 +14,14 @@
               <label for="fileName">Title (required)</label>
             </span>
           </div>
-          <!-- <div>&nbsp;</div> -->
+          <div>&nbsp;</div>
           <div class="ui-g-12">
             <span class="md-inputfield">
               <input id="subTitle" type="text" formControlName="subTitle" pInputText class="val-full-width">
               <label for="subTitle"> Sub Title </label>
             </span>
           </div>
-          <!-- <div>&nbsp;</div> -->
+          <div>&nbsp;</div>
           <div class="ui-g-12">
             <span class="md-inputfield">
               <input id="subSubTitle" type="text" formControlName="subSubTitle" pInputText class="val-full-width">
@@ -46,11 +46,14 @@
             <div class="ui-g-12 labelTitle">
               <label><b> Page Settings </b></label>
             </div>
+            <div class="ui-g-12"></div>
             <div class="ui-g-12 pageSettingsPadding">
-              <div class="ui-g-4">
+              <div class="ui-g-4 md-inputfield">
                 <p-dropdown id="pageSettings" formControlName="pageSettingsControl" [options]="pageSettings"
-                  [autoWidth]="false" [style]="{ width:'100%' }" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down">
+                  styleClass="val-full-width" [autoWidth]="false" placeholder="&nbsp;"
+                  dropdownIcon="fa fa-caret-down">
                 </p-dropdown>
+                <label for="pageSettings">Page Size</label>
               </div>
               <div class="ui-g-3">
                 <p-radioButton name="layoutGroup" label="Landscape" value="landscape" formControlName="layout">
@@ -60,9 +63,10 @@
                 <p-radioButton name="layoutGroup" label="Portrait" value="portrait" formControlName="layout">
                 </p-radioButton>
               </div>
-              <div class="ui-g-1"></div>
+              <div class="ui-g-1"></div>    
             </div>
           </div>
+          <div class="ui-g-12"></div>
           <div class="ui-g-12"></div>
           <div class="ui-g-12"></div>
         </form>

@@ -43,7 +43,7 @@ export class BatchMapDialogComponent implements OnInit {
       subTitle: '',
       subSubTitle: '',
       neighboringSites: 'true',
-      pageSettingsControl: 'regular',
+      pageSettingsControl: BatchMapSizes.letter,
       layout: 'landscape',
     });
   }
