@@ -2,6 +2,7 @@ import { Action } from '@ngrx/store';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { ImpProjectPref } from 'app/val-modules/targeting/models/ImpProjectPref';
 
 export enum RenderingActionTypes {
   RenderTradeAreas = '[Rendering] Render All Trade Areas',
@@ -34,7 +35,7 @@ export class RenderRadiusTradeAreas implements Action {
 
 export class RenderLocations implements Action {
     readonly type = RenderingActionTypes.RenderLocations;
-    constructor(public payload: { locations: ImpGeofootprintLocation[] }) {}
+    constructor(public payload: { locations: ImpGeofootprintLocation[], impProjectPrefs?: ImpProjectPref[] }) {}
 }
 
 export class ClearLocations implements Action {

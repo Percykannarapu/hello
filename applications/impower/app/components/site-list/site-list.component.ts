@@ -20,6 +20,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../v
 import { TableFilterLovComponent } from '../common/table-filter-lov/table-filter-lov.component';
 import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintLocAttribService } from 'app/val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 
 export class FlatSite {
   fgId: number;
@@ -205,6 +206,7 @@ export class SiteListComponent implements OnInit {
               private impLocationService: ImpGeofootprintLocationService,
               private domainFactory: ImpDomainFactoryService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
+              private appProjectPrefService: AppProjectPrefService,
               private store$: Store<FullAppState>) {}
 
   ngOnInit() {
@@ -625,14 +627,14 @@ export class SiteListComponent implements OnInit {
   createLabelAttr(labelValue: any){
     let isUpdate: boolean = false;
     this.currentAllSitesBS$.getValue().forEach(loc => {
-      const existingLabel = loc.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'label');
-      if (existingLabel.length == 0){
-        this.domainFactory.createLocationAttribute(loc, 'label', labelValue);
+      const existingLabel = this.appProjectPrefService.getPref(this.selectedListType);
+      if (existingLabel == null){
+        this.appProjectPrefService.createPref('label', this.selectedListType, labelValue, 'string');
         isUpdate = true;
         
       }
-      else if (existingLabel[0].attributeValue !== labelValue){
-         existingLabel[0].attributeValue = labelValue;
+      else if (existingLabel.val !== labelValue){
+        this.appProjectPrefService.createPref('label', this.selectedListType,  labelValue, 'string');
          isUpdate = true;
      }
     });
@@ -645,7 +647,6 @@ export class SiteListComponent implements OnInit {
     if (locations.length > 0) {
       const sitesbyType = locations.filter(loc => loc.clientLocationTypeCode === this.selectedListType);
       const labelOptionsSet = new Set<string>();
-      //mapBy(sitesbyType[0].impGeofootprintLocAttribs, 'attributeCode');
       for (const column of this.flatSiteGridColumns) {
         if (!labelOptionsSet.has(column.header.toString()) && column.header.toString() !== 'label'){
           labelOptionsSet.add(column.header);
@@ -654,15 +655,16 @@ export class SiteListComponent implements OnInit {
       }
       
       sitesbyType[0].impGeofootprintLocAttribs.forEach(attr => {
-        if (attr != null && attr.attributeCode === 'label')
-            label = attr.attributeValue;
-        else if ( attr != null && !labelOptionsSet.has(attr.attributeCode.toString()) && !attr.attributeCode.includes('Home')){
+        if ( attr != null && !labelOptionsSet.has(attr.attributeCode.toString()) && !attr.attributeCode.includes('Home')){
           labelOptionsSet.add(attr.attributeCode);
           this.labelOptions.push({label: attr.attributeCode, value: attr.attributeCode});
         }
-           
       });
-      this.selectedLabel = label === null ? this.labelOptions.filter(lbl => lbl.label === 'Number')[0].value : this.labelOptions.filter(lbl => lbl.value === label)[0].value;
+      const projectPref = this.appProjectPrefService.getPref(this.selectedListType);
+      label = projectPref != null ? projectPref.val : 'Number';
+
+      this.selectedLabel = label ;
+      //=== null ? this.labelOptions.filter(lbl => lbl.label === 'Number')[0].value : this.labelOptions.filter(lbl => lbl.value === label)[0].value;
       this.createLabelAttr(this.selectedLabel);
     }
 

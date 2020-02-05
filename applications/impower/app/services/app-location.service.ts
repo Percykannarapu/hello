@@ -29,6 +29,7 @@ import { AppGeocodingService } from './app-geocoding.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
+import { AppProjectPrefService } from './app-project-pref.service';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -83,6 +84,7 @@ export class AppLocationService {
               private domainFactory: ImpDomainFactoryService,
               private confirmationService: ConfirmationService,
               private restService: RestDataService,
+              private appProjectPrefService: AppProjectPrefService,
               private store$: Store<FullAppState>) {
 
     this.allClientLocations$ = this.appStateService.allClientLocations$;
@@ -157,7 +159,7 @@ export class AppLocationService {
       map(locs => locs.length)
     );
 
-    successfulLocations$.subscribe(locations => this.store$.dispatch(new RenderLocations({ locations })));
+    successfulLocations$.subscribe(locations => this.store$.dispatch(new RenderLocations({ locations, impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') })));
     siteCount$.pipe(
       pairwise(),
       filter(([prev, curr]) => prev > 0 && curr === 0)
