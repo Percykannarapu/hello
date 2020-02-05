@@ -21,7 +21,6 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
-import { AppProjectPrefService } from './app-project-pref.service';
 
 @Injectable({
   providedIn: 'root'
