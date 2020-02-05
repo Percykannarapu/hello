@@ -1,4 +1,5 @@
-  <form novalidate valConnectForm="addLocation"  [formGroup]="manualEntryForm" (submit)="onSubmit(manualEntryForm.value)" autocomplete="off">
+  <form novalidate autocomplete="off" valConnectForm="addLocation" [debounce]="0"
+        [formGroup]="manualEntryForm" (submit)="onSubmit(manualEntryForm.value)">
       <div class="ui-g-6">
         <div class="ui-inputgroup">
           <span class="md-inputfield">
