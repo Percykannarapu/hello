@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { FetchAudienceTradeArea } from 'app/impower-datastore/state/transient/audience/audience.actions';
@@ -23,6 +23,7 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area/distance-trade-area-ui.model';
+import { DistanceTradeAreaComponent } from './distance-trade-area/distance-trade-area.component';
 
 const tradeAreaExtract = (maxTas: number) => map<Map<number, ImpGeofootprintTradeArea[]>, ImpGeofootprintTradeArea[]>(taMap => {
   const result = [];
@@ -44,6 +45,8 @@ const numberOrNull = (value: any) => value == null || value === '' || Number.isN
 export class TradeAreaTabComponent implements OnInit {
 
   private readonly defaultTradeArea: TradeAreaModel = { radius: null, isShowing: false, isApplied: false };
+
+  @ViewChild('distanceTradeArea', { static: true }) private distanceTradeArea: DistanceTradeAreaComponent;
 
   maxTradeAreaCount: number = this.config.maxRadiusTradeAreas;
   maxRadius: number = this.config.maxBufferRadius;
@@ -129,6 +132,7 @@ export class TradeAreaTabComponent implements OnInit {
     if (!this.siteCounts.has(siteType) || this.siteCounts.get(siteType) < 1) {
       notification = new ErrorNotification({ notificationTitle: 'Trade Area Error', message: `You must add at least 1 ${siteType} before applying a trade area to ${siteType}s` });
       isValid = false;
+      this.distanceTradeArea.resetTradeareaControls();
     }
     if (isValid && (currentAnalysisLevel == null || currentAnalysisLevel === '') && siteType === ImpClientLocationTypeCodes.Site) {
       notification = new ErrorNotification({ notificationTitle: 'Trade Area Error', message: `You must select an Analysis Level before applying a trade area to Sites` });

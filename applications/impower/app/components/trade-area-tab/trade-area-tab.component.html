@@ -8,7 +8,8 @@
                                  [numTradeAreas]="maxTradeAreaCount"
                                  [hasProvidedTradeAreas]="(hasSiteProvidedTradeAreas$ | async)"
                                  (tradeAreaApply)="onDistanceTradeAreasChanged($event, siteTypes.Site)"
-                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Site)">
+                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Site)"
+                                 #distanceTradeArea>
           Loading Site Trade Areas...
         </val-distance-trade-area>
       </site-content>

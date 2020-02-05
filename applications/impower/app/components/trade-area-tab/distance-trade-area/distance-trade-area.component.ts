@@ -130,4 +130,8 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
       return null;
     };
   }
+
+  public resetTradeareaControls() : void {
+    this.radiusForm.get('tradeAreas').reset();
+  }
 }
