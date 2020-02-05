@@ -4,15 +4,16 @@ import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { FullAppState } from '../../state/app.interfaces';
-import { updateNamedForm } from '../../state/forms/forms.actions';
+import { updateNamedForm, updateNestedForm } from '../../state/forms/forms.actions';
 import { FormsState } from '../../state/forms/forms.interfaces';
-import { getNamedForm } from '../../state/forms/forms.selectors';
+import { FormSelectorProps, getNamedForm } from '../../state/forms/forms.selectors';
 
 @Directive({
   selector: '[valConnectForm]'
 })
 export class ConnectFormDirective implements OnInit, OnDestroy {
   @Input('valConnectForm') path: keyof FormsState;
+  @Input() nestedIdentifier: string;
   @Input() debounce: number = 300;
 
   private destroyed$ = new Subject<void>();
@@ -27,20 +28,30 @@ export class ConnectFormDirective implements OnInit, OnDestroy {
 
   ngOnInit() {
     // Update the form value based on the state
-    this.store$.select(getNamedForm, { path: this.path }).pipe(
+    const props: FormSelectorProps =  { path: this.path };
+    if (this.nestedIdentifier != null) {
+      props.nestedIdentifier = this.nestedIdentifier;
+    }
+    this.store$.select(getNamedForm, props).pipe(
       takeUntil(this.destroyed$)
     ).subscribe(formValue => {
       if (formValue != null) {
         this.formGroupDirective.form.patchValue(formValue, { emitEvent: false });
+        this.formGroupDirective.form.markAsPristine();
       } else {
         this.formGroupDirective.form.reset(undefined, { emitEvent: false });
       }
-      this.formGroupDirective.form.markAsPristine();
     });
 
     this.formGroupDirective.form.valueChanges.pipe(
       takeUntil(this.destroyed$),
       debounceTime(this.debounce)
-    ).subscribe(formData => this.store$.dispatch(updateNamedForm({ path: this.path, formData })));
+    ).subscribe(formData => {
+      if (this.nestedIdentifier == null) {
+        this.store$.dispatch(updateNamedForm({ path: this.path, formData }));
+      } else {
+        this.store$.dispatch(updateNestedForm({ root: this.path, identifier: this.nestedIdentifier, formData }));
+      }
+    });
   }
 }

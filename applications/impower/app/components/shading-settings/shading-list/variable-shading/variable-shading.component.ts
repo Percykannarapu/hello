@@ -28,6 +28,7 @@ export class VariableShadingComponent implements OnInit {
   @Input() definition: UIShadingDefinition;
   @Output() applyShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
   @Output() editShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
+  @Output() removeShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
 
   public get currentAudience() : Audience {
     return this._audiences.filter(a => a.audienceIdentifier === this.definition.dataKey)[0];
@@ -42,8 +43,8 @@ export class VariableShadingComponent implements OnInit {
       label: ColorPalette[key],
       value: ColorPalette[key]
     }));
-    this.allExtents.push({label: 'Whole Map', value: 'Whole Map'});
-    this.allExtents.push({label: 'Selected Geos only', value: 'Selected Geos only'});
+    this.allExtents.push({label: 'Whole Map', value: false });
+    this.allExtents.push({label: 'Selected Geos only', value: true });
   }
 
   ngOnInit() {
@@ -52,8 +53,8 @@ export class VariableShadingComponent implements OnInit {
     const formSetup: FormConfig<VariableSelectionForm> = {
       layerName: [this.definition.layerName, Validators.required],
       opacity: new FormControl(this.definition.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
-      audienceId: [this.definition.dataKey, Validators.required],
-      extent: isWholeMap ? 'Whole Map' : 'Selected Geos only',
+      dataKey: [this.definition.dataKey, Validators.required],
+      filterByFeaturesOfInterest: this.definition.filterByFeaturesOfInterest,
       theme: extendedDefinition.theme || ColorPalette.EsriPurple,
     };
     this.shaderForm = this.fb.group(formSetup, { updateOn: 'blur' });
@@ -66,7 +67,7 @@ export class VariableShadingComponent implements OnInit {
       this.definition.layerName = newVar.audienceName;
       this.shaderForm.get('layerName').setValue(newVar.audienceName);
       this.definition.shadingType = isNumeric ? ConfigurationTypes.Ramp : ConfigurationTypes.Unique;
-      this.shaderForm.get('audienceId').setValue(newVar.audienceIdentifier);
+      this.shaderForm.get('dataKey').setValue(newVar.audienceIdentifier);
       this.definition.legendHeader = newVar.audienceName;
       this.definition.showLegendHeader = !isNumeric;
     }
@@ -74,19 +75,24 @@ export class VariableShadingComponent implements OnInit {
 
   edit(def: UIShadingDefinition) : void {
     this.definition = { ...def, isEditing: true };
-    this.editShader.emit(this.shaderForm.value);
+    this.editShader.emit({ ...this.shaderForm.value, id: this.definition.id });
   }
 
   apply() : void {
     this.shaderForm.updateValueAndValidity();
     if (this.shaderForm.status === 'VALID') {
       const values: VariableSelectionForm = this.shaderForm.value;
-      this.definition.filterByFeaturesOfInterest = values.extent === 'Selected Geos only';
-      this.definition.dataKey = values.audienceId;
-      delete values.extent;
-      delete values.audienceId;
       Object.assign(this.definition, values);
       this.applyShader.emit(this.definition);
+    }
+  }
+
+  cancel() : void {
+    if (this.definition.isNew) {
+      this.removeShader.emit(this.definition);
+    } else {
+      this.definition = { ...this.definition, isEditing: false };
+      this.shaderForm.reset(this.definition);
     }
   }
 }

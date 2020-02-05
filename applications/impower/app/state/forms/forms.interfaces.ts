@@ -21,12 +21,14 @@ export interface GfpSelectionForm extends GfpForm {
 }
 
 export interface VariableSelectionForm extends GfpForm {
-  audienceId: string;
-  extent: string;
+  dataKey: string;
+  filterByFeaturesOfInterest: boolean;
   theme: ColorPalette;
 }
 
 export interface FormsState {
   addLocation: Partial<AddLocationForm>;
-  shadingSettings: Partial<GfpForm>;
+  shadingSettings: {
+    [id: string] : Partial<GfpForm>
+  };
 }

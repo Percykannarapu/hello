@@ -14,3 +14,18 @@ export const resetNamedForm = createAction(
   '[Forms] Reset Named Form',
   props<{ path: keyof FormsState }>()
 );
+
+export const updateNestedForm = createAction(
+  '[Forms] Update Nested Form',
+  props<{ root: keyof FormsState, identifier: string, formData: any }>()
+);
+
+export const resetNestedForm = createAction(
+  '[Forms] Reset Nested Form',
+  props<{ root: keyof FormsState, identifier: string }>()
+);
+
+export const removeNestedForm = createAction(
+  '[Forms] Remove Nested Form',
+  props<{ root: keyof FormsState, identifier: string }>()
+);

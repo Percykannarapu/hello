@@ -24,6 +24,9 @@ export class EsriSymbolInputComponent {
   @Input() valueName: string;
   @Input() labelText: string;
 
+  @Input() defaultSolidColor: [number, number, number] = [0, 255, 0];
+  @Input() defaultCrossHatchColor: [number, number, number] = [0, 0, 0];
+
   fillTypes: SelectItem[];
 
   get selectedColor() : Rgb {
@@ -39,9 +42,9 @@ export class EsriSymbolInputComponent {
 
   set selectedFillType(value: FillPattern) {
     if (value === 'solid') {
-      this.currentControl.setValue({ ...this.currentSymbol, fillType: value });
+      this.currentControl.setValue({ ...this.currentSymbol, fillType: value, fillColor: [...this.defaultSolidColor, 1] });
     } else {
-      this.currentControl.setValue({ ...this.currentSymbol, fillType: value, fillColor: [0, 0, 0, 1] });
+      this.currentControl.setValue({ ...this.currentSymbol, fillType: value, fillColor: [...this.defaultCrossHatchColor, 1] });
     }
   }
 

@@ -15,6 +15,7 @@ export class OwnerTradeAreaShaderComponent implements OnInit {
 
   @Output() applyShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
   @Output() editShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
+  @Output() removeShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
   shaderForm: FormGroup;
 
   constructor(private fb: FormBuilder) { }
@@ -29,7 +30,7 @@ export class OwnerTradeAreaShaderComponent implements OnInit {
 
   edit(def: UIShadingDefinition) : void {
     this.definition = { ...def, isEditing: true };
-    this.editShader.emit(this.shaderForm.value);
+    this.editShader.emit({ ...this.shaderForm.value, id: this.definition.id });
   }
 
   apply() : void {
@@ -38,6 +39,15 @@ export class OwnerTradeAreaShaderComponent implements OnInit {
       const values: GfpForm = this.shaderForm.value;
       Object.assign(this.definition, values);
       this.applyShader.emit(this.definition);
+    }
+  }
+
+  cancel() : void {
+    if (this.definition.isNew) {
+      this.removeShader.emit(this.definition);
+    } else {
+      this.definition = { ...this.definition, isEditing: false };
+      this.shaderForm.reset(this.definition);
     }
   }
 }

@@ -87,10 +87,12 @@ export class EsriShadingLayersService {
       };
       if (newFeatureCsv != null && config.filterByFeaturesOfInterest) {
         if (newFeatureCsv.length > 0) {
-          props['definitionExpression'] = `${config.filterField} IN (${newFeatureCsv})`;
+          props.definitionExpression = `${config.filterField} IN (${newFeatureCsv})`;
         } else {
-          props['definitionExpression'] = `1 = 0`;
+          props.definitionExpression = `1 = 0`;
         }
+      } else {
+        props.definitionExpression = null;
       }
       layer.set(props);
     }

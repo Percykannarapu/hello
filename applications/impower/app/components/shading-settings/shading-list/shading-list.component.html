@@ -5,21 +5,30 @@
 <p-accordion>
   <p-accordionTab *ngFor="let def of shadingDefinitions" [selected]="def.isNew">
     <p-header class="shader-header">
-      <span>
+      <span *ngIf="!def.isNew">
         <span class="fa" [class.fa-eye]="def.visible" [class.fa-eye-slash]="!def.visible" (click)="toggle(def)"></span>
         {{def.layerName}}
       </span>
-      <span class="fa fa-trash-o" (click)="delete(def)"></span>
+      <span class="fa fa-trash-o" (click)="deleteShader.emit(def.id)" *ngIf="!def.isNew"></span>
+      <span *ngIf="def.isNew">New {{def.layerName == null ? 'Variable' : def.layerName}}</span>
     </p-header>
     <ng-container [ngSwitch]="def.dataKey">
       <val-selected-geo-shader *ngSwitchCase="shadingTypes.Selection" [definition]="def"
-                               (applyShader)="applyShader.emit($event)" (editShader)="editShader.emit($event)"></val-selected-geo-shader>
+                               (applyShader)="applyShader.emit($event)"
+                               (removeShader)="deleteShader.emit($event.id)"
+                               (editShader)="editShader.emit($event)"></val-selected-geo-shader>
       <val-owner-site-shader *ngSwitchCase="shadingTypes.OwnerSite" [definition]="def"
-                             (applyShader)="applyShader.emit($event)" (editShader)="editShader.emit($event)"></val-owner-site-shader>
+                             (applyShader)="applyShader.emit($event)"
+                             (removeShader)="deleteShader.emit($event.id)"
+                             (editShader)="editShader.emit($event)"></val-owner-site-shader>
       <val-owner-trade-area-shader *ngSwitchCase="shadingTypes.OwnerTA" [definition]="def"
-                                   (applyShader)="applyShader.emit($event)" (editShader)="editShader.emit($event)"></val-owner-trade-area-shader>
+                                   (applyShader)="applyShader.emit($event)"
+                                   (removeShader)="deleteShader.emit($event.id)"
+                                   (editShader)="editShader.emit($event)"></val-owner-trade-area-shader>
       <val-variable-shading *ngSwitchDefault [definition]="def" [audiences]="audiences"
-                            (applyShader)="applyShader.emit($event)" (editShader)="editShader.emit($event)"></val-variable-shading>
+                            (applyShader)="applyShader.emit($event)"
+                            (removeShader)="deleteShader.emit($event.id)"
+                            (editShader)="editShader.emit($event)"></val-variable-shading>
     </ng-container>
   </p-accordionTab>
 </p-accordion>

@@ -119,12 +119,8 @@ export class ShadingListComponent implements OnInit {
     this.addShader.emit(newForm);
   }
 
-  delete(definition: UIShadingDefinition) : void {
-    this.deleteShader.emit(definition.id);
-  }
-
   toggle(definition: UIShadingDefinition) : void {
-    if (!definition.isNew) {
+    if (!definition.isNew && !definition.isEditing) {
       const newDef = { ...definition, usableAnalysisLevel: this.currentAnalysisLevel };
       newDef.visible = !definition.visible;
       this.applyShader.emit(newDef);

@@ -4,6 +4,8 @@
 // The list of which env maps to which file can be found in `angular.json`
 // in the projects->esri-angular-first-look->architect->build->configurations section.
 
+import { LogLevels } from '@val/common';
+import { AllLayerIds } from '@val/esri';
 /*
  * In development mode, to ignore zone related error stack frames such as
  * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
@@ -11,8 +13,6 @@
  * because it will have performance impact when throw error
  */
 import 'zone.js/dist/zone-error'; // Included with Angular CLI.
-import { LogLevels } from '@val/common';
-import { AllLayerIds } from '@val/esri';
 
 export const environment = {
   production: false,

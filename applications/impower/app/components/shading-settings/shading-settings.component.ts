@@ -10,7 +10,7 @@ import { GetAllMappedVariables } from '../../impower-datastore/state/transient/t
 import { GfpShaderKeys } from '../../models/ui-enums';
 import { AppRendererService } from '../../services/app-renderer.service';
 import { FullAppState } from '../../state/app.interfaces';
-import { resetNamedForm, updateNamedForm } from '../../state/forms/forms.actions';
+import { removeNestedForm, resetNestedForm, updateNestedForm } from '../../state/forms/forms.actions';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { UIShadingDefinition } from './shading-ui-helpers';
 
@@ -59,10 +59,12 @@ export class ShadingSettingsComponent implements OnInit {
   deleteDefinition(id: string) : void {
     if (id == null) return;
     if (this.currentNewShader != null && id === this.currentNewShader.id) {
-      this.addNewDefinition(null);
+      this.currentNewShader = null;
+      this.trigger$.next(null);
     } else {
       this.store$.dispatch(deleteShadingDefinition({ id }));
     }
+    this.store$.dispatch(removeNestedForm({ root: 'shadingSettings', identifier: id }));
   }
 
   applyDefinition(definition: UIShadingDefinition) : void {
@@ -72,6 +74,8 @@ export class ShadingSettingsComponent implements OnInit {
       analysisLevel = this.appStateService.analysisLevel$.getValue();
     }
     this.currentNewShader = null;
+    this.trigger$.next(null);
+    this.store$.dispatch(removeNestedForm({ root: 'shadingSettings', identifier: definition.id }));
     this.appRenderService.updateForAnalysisLevel(definition, analysisLevel);
     switch (definition.dataKey) {
       case GfpShaderKeys.OwnerSite:
@@ -98,9 +102,7 @@ export class ShadingSettingsComponent implements OnInit {
   }
 
   editShader(formData: Partial<UIShadingDefinition>) : void {
-    this.store$.dispatch(resetNamedForm({ path: 'shadingSettings' }));
-    if (formData != null) {
-      this.store$.dispatch(updateNamedForm({ path: 'shadingSettings', formData }));
-    }
+    this.store$.dispatch(resetNestedForm({ root: 'shadingSettings', identifier: formData.id }));
+    this.store$.dispatch(updateNestedForm({ root: 'shadingSettings', identifier: formData.id, formData }));
   }
 }
