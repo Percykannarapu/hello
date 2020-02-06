@@ -264,8 +264,9 @@ export class AppRendererService {
     ).subscribe(([geos, project]) => {
       const definition = this.getShadingDefinitions(project).filter(sd => sd.dataKey === GfpShaderKeys.OwnerSite)[0];
       if (definition != null) {
-        this.updateForOwnerSite({ ...definition }, geos);
-        this.store$.dispatch(upsertShadingDefinition({ shadingDefinition: definition }));
+        const newDef = { ...definition };
+        this.updateForOwnerSite(newDef, geos);
+        this.store$.dispatch(upsertShadingDefinition({ shadingDefinition: newDef }));
       }
     });
   }
@@ -276,13 +277,15 @@ export class AppRendererService {
       this.ownerTAWatcher = null;
     }
     this.ownerTAWatcher = this.impGeoService.storeObservable.pipe(
+      debounceTime(500),
       filterArray(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive && g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive && g.isActive && g.isDeduped === 1),
       withLatestFrom(this.appStateService.currentProject$)
     ).subscribe(([geos, project]) => {
       const definition = this.getShadingDefinitions(project).filter(sd => sd.dataKey === GfpShaderKeys.OwnerTA)[0];
-      if (definition != null) {
-        this.updateForOwnerTA(definition, geos);
-        this.store$.dispatch(upsertShadingDefinition({ shadingDefinition: definition }));
+      if (definition != null && isNotSimpleShadingDefinition(definition)) {
+        const newDef = { ...definition };
+        this.updateForOwnerTA(newDef, geos);
+        this.store$.dispatch(upsertShadingDefinition({ shadingDefinition: newDef }));
       }
     });
   }
@@ -303,26 +306,29 @@ export class AppRendererService {
   }
 
   updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
-    console.log('Updating for Trade Area', geos);
     if (definition != null && isNotSimpleShadingDefinition(definition)) {
       definition.theme = ColorPalette.Cpqmaps;
       const data: Record<string, string> = geos.reduce((result, geo) => {
-        switch (geo.impGeofootprintTradeArea.taType.toUpperCase()) {
-          case TradeAreaTypeCodes.Radius.toUpperCase():
-            result[geo.geocode] = `${geo.impGeofootprintTradeArea.taNumber}`;
-            break;
-          case TradeAreaTypeCodes.HomeGeo.toUpperCase():
-            result[geo.geocode] = '1';
-            break;
-          case TradeAreaTypeCodes.Custom.toUpperCase():
-            result[geo.geocode] = 'Custom';
-            break;
-          case TradeAreaTypeCodes.Manual.toUpperCase():
-            result[geo.geocode] = 'Manual';
-            break;
-          case TradeAreaTypeCodes.MustCover.toUpperCase():
-            result[geo.geocode] = 'Must Cover';
-            break;
+        if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+          result[geo.geocode] = 'Trade Area 1';
+        } else {
+          switch (geo.impGeofootprintTradeArea.taType.toUpperCase()) {
+            case TradeAreaTypeCodes.Radius.toUpperCase():
+              result[geo.geocode] = `Trade Area ${geo.impGeofootprintTradeArea.taNumber}`;
+              break;
+            case TradeAreaTypeCodes.HomeGeo.toUpperCase():
+              result[geo.geocode] = 'Trade Area 1';
+              break;
+            case TradeAreaTypeCodes.Custom.toUpperCase():
+              result[geo.geocode] = 'Custom';
+              break;
+            case TradeAreaTypeCodes.Manual.toUpperCase():
+              result[geo.geocode] = 'Manual';
+              break;
+            case TradeAreaTypeCodes.MustCover.toUpperCase():
+              result[geo.geocode] = 'Must Cover';
+              break;
+          }
         }
         return result;
       }, {});

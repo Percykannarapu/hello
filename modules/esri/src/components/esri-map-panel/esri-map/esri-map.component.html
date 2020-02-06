@@ -1,6 +1,6 @@
-<div class="esriMapContainer" [style.height]="height+'px'" [ngClass]="{ resizable: manuallyResizable }">
-  <div class="panel-container" [ngClass]="{ resizable: manuallyResizable }">
+<div class="esriMapContainer" [style.height]="height+'px'" [ngClass]="{ 'batch-mode': batchMode }">
+  <div class="panel-container">
     <div #mapViewNode [ngStyle]="{ 'cursor': cursor }"> </div>
   </div>
-  <i class="fa fa-arrows-v" *ngIf="manuallyResizable"></i>
+  <i class="fa fa-arrows-v" *ngIf="!batchMode"></i>
 </div>

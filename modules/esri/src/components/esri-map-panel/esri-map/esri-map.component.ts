@@ -17,7 +17,7 @@ export class EsriMapComponent implements OnInit {
   @Input() height: number;
   @Input() cursor: string;
   @Input() baseMap: string;
-  @Input() manuallyResizable: boolean = true;
+  @Input() batchMode: boolean = false;
 
   @Output() mapClicked = new EventEmitter<__esri.MapViewImmediateClickEvent>();
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
