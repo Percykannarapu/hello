@@ -51,10 +51,10 @@ export interface BatchMapPayload {
         subSubTitle: string;
         projectId: number;
         size: BatchMapSizes;
-        includeNeighboringSites: boolean;
         pageSettings: string;
         layout: string;
         siteIds: Array<string>;
+        hideNeighboringSites: boolean;
       }
     }
   }]

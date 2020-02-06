@@ -72,10 +72,10 @@ export class BatchMapDialogComponent implements OnInit {
               subSubTitle: dialogFields.subSubTitle,
               projectId: this.currentProjectId,
               size: size,
-              includeNeighboringSites: (dialogFields.neighboringSites == true),
               pageSettings: dialogFields.pageSettingsControl,
               layout: dialogFields.layout,
-              siteIds: this.getSiteIds()
+              siteIds: this.getSiteIds(),
+              hideNeighboringSites: !(dialogFields.neighboringSites == 'true')
             }
           }
         }
