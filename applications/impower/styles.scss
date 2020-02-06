@@ -241,6 +241,10 @@ body {
         > .esri-legend__layer {
           > .esri-legend__layer-table {
             margin-bottom: 0;
+            > .esri-legend__layer-caption {
+              margin-left: -7px;
+              font-weight: 600;
+            }
           }
         }
       }
