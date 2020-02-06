@@ -1,16 +1,16 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnInit, Output, ViewChild } from '@angular/core';
+import { select, Store } from '@ngrx/store';
+import { combineLatest } from 'rxjs';
 import { filter, map, startWith, take } from 'rxjs/operators';
+import { EsriUtils } from '../../../core/esri-utils';
 import { EsriMapService } from '../../../services/esri-map.service';
 import { AppState, selectors } from '../../../state/esri.selectors';
-import { select, Store } from '@ngrx/store';
 import { InitializeMap } from '../../../state/map/esri.map.actions';
-import { EsriUtils } from '../../../core/esri-utils';
-import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'val-esri-map',
   templateUrl: './esri-map.component.html',
-  styleUrls: ['./esri-map.component.css'],
+  styleUrls: ['./esri-map.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EsriMapComponent implements OnInit {

@@ -48,7 +48,6 @@ export class VariableShadingComponent implements OnInit {
   }
 
   ngOnInit() {
-    const isWholeMap = !this.definition.filterByFeaturesOfInterest;
     const extendedDefinition = this.definition as ComplexShadingDefinition;
     const formSetup: FormConfig<VariableSelectionForm> = {
       layerName: [this.definition.layerName, Validators.required],

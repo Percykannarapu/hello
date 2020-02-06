@@ -1,0 +1,24 @@
+@import "esri-variables";
+
+.esriMapContainer {
+  overflow: auto;
+  background-color: $esriPanelBackgroundColor;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  &.resizable {
+    resize: vertical;
+  }
+  .panel-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    &.resizable {
+      height: calc(100% - 15px);
+    }
+    .esri-view {
+      height: 100%;
+    }
+  }
+}
