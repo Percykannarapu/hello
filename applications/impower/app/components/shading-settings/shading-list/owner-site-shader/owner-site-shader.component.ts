@@ -1,7 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormConfig } from '@val/common';
-import { GfpForm } from '../../../../state/forms/forms.interfaces';
+import { UniqueShadingDefinition } from '@val/esri';
+import { SelectItem } from 'primeng/api';
+import { GfpSiteOwnerForm } from '../../../../state/forms/forms.interfaces';
 import { UIShadingDefinition } from '../../shading-ui-helpers';
 
 @Component({
@@ -12,17 +14,26 @@ import { UIShadingDefinition } from '../../shading-ui-helpers';
 export class OwnerSiteShaderComponent implements OnInit {
 
   @Input() definition: UIShadingDefinition;
+  @Input() labelChoices: SelectItem[];
 
   @Output() applyShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
   @Output() editShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
   @Output() removeShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
   shaderForm: FormGroup;
 
+  get currentLegendIdentifier() : string {
+    const extendedDefinition = this.definition as UniqueShadingDefinition;
+    const foundItem = (this.labelChoices || []).filter(l => l.value === extendedDefinition.secondaryDataKey)[0];
+    return foundItem == null ? '' : foundItem.label;
+  }
+
   constructor(private fb: FormBuilder) { }
 
   ngOnInit() {
-    const formSetup: FormConfig<GfpForm> = {
+    const extendedDefinition = this.definition as UniqueShadingDefinition;
+    const formSetup: FormConfig<GfpSiteOwnerForm> = {
       layerName: [this.definition.layerName, Validators.required],
+      secondaryDataKey: extendedDefinition.secondaryDataKey,
       opacity: new FormControl(this.definition.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
     };
     this.shaderForm = this.fb.group(formSetup, { updateOn: 'blur' });
@@ -36,7 +47,7 @@ export class OwnerSiteShaderComponent implements OnInit {
   apply() : void {
     this.shaderForm.updateValueAndValidity();
     if (this.shaderForm.status === 'VALID') {
-      const values: GfpForm = this.shaderForm.value;
+      const values: GfpSiteOwnerForm = this.shaderForm.value;
       Object.assign(this.definition, values);
       this.applyShader.emit(this.definition);
     }

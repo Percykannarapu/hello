@@ -209,7 +209,7 @@ export class AppRendererService {
 
   private createVariableShadingDefinition(projectVar: ImpProjectVar, analysisLevel: string, isFiltered: boolean, index: number, theme: ColorPalette) : ShadingDefinition {
     const isNumeric = projectVar.fieldconte !== 'CHAR';
-    const result: ShadingDefinition = {
+    const result: Partial<ShadingDefinition> = {
       id: getUuid(),
       dataKey: projectVar.varPk.toString(),
       sortOrder: index,
@@ -229,8 +229,11 @@ export class AppRendererService {
       shadingType: isNumeric ? ConfigurationTypes.Ramp : ConfigurationTypes.Unique,
       theme
     };
-    this.updateForAnalysisLevel(result, analysisLevel);
-    return result;
+    if (result.shadingType === ConfigurationTypes.Unique) {
+      result.secondaryDataKey = null;
+    }
+    this.updateForAnalysisLevel(result as ShadingDefinition, analysisLevel);
+    return result as ShadingDefinition;
   }
 
   updateForAnalysisLevel(definition: ShadingDefinition, newAnalysisLevel: string) : void {
@@ -291,11 +294,17 @@ export class AppRendererService {
   }
 
   updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
-    if (definition != null && isNotSimpleShadingDefinition(definition)) {
+    if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
       definition.theme = ColorPalette.Cpqmaps;
       const data: Record<string, string> = geos.reduce((result, geo) => {
         if (geo.isDeduped === 1) {
-          result[geo.geocode] = geo.impGeofootprintLocation.locationNumber;
+          const secondaryKey = definition.secondaryDataKey || 'locationNumber';
+          if (geo.impGeofootprintLocation.hasOwnProperty(secondaryKey)) {
+            result[geo.geocode] = geo.impGeofootprintLocation[secondaryKey];
+          } else {
+            const matchingAttribute = geo.impGeofootprintLocation.impGeofootprintLocAttribs.filter(a => a.attributeCode === secondaryKey)[0];
+            result[geo.geocode] = matchingAttribute == null ? null : matchingAttribute.attributeValue;
+          }
         }
         return result;
       }, {});

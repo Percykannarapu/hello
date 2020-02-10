@@ -25,7 +25,8 @@
         [currentAnalysisLevel]="analysisLevel$ | async"
         (addShader)="addNewDefinition($event)"
         (deleteShader)="deleteDefinition($event)"
-        (applyShader)="applyDefinition($event)"
+        (applyShader)="applyDefinition($event, true)"
+        (touchShader)="applyDefinition($event, false)"
         (editShader)="editShader($event)"
       ></val-shading-list>
     </p-card>

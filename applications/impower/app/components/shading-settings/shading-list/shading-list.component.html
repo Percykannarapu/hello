@@ -3,13 +3,13 @@
 </div>
 
 <p-accordion>
-  <p-accordionTab *ngFor="let def of shadingDefinitions" [selected]="def.isNew">
+  <p-accordionTab *ngFor="let def of shadingDefinitions" [(selected)]="def.isOpenInUI">
     <p-header class="shader-header">
       <span *ngIf="!def.isNew">
-        <span class="fa" [class.fa-eye]="def.visible" [class.fa-eye-slash]="!def.visible" (click)="toggle(def)"></span>
+        <span class="fa" [class.fa-eye]="def.visible" [class.fa-eye-slash]="!def.visible" (click)="toggleVisibility($event, def)"></span>
         {{def.layerName}}
       </span>
-      <span class="fa fa-trash-o" (click)="deleteShader.emit(def.id)" *ngIf="!def.isNew"></span>
+      <span class="fa fa-trash-o" (click)="delete($event, def)" *ngIf="!def.isNew"></span>
       <span *ngIf="def.isNew">New {{def.layerName == null ? 'Variable' : def.layerName}}</span>
     </p-header>
     <ng-container [ngSwitch]="def.dataKey">
@@ -20,7 +20,8 @@
       <val-owner-site-shader *ngSwitchCase="shadingTypes.OwnerSite" [definition]="def"
                              (applyShader)="applyShader.emit($event)"
                              (removeShader)="deleteShader.emit($event.id)"
-                             (editShader)="editShader.emit($event)"></val-owner-site-shader>
+                             (editShader)="editShader.emit($event)"
+                             [labelChoices]="siteLabels$ | async"></val-owner-site-shader>
       <val-owner-trade-area-shader *ngSwitchCase="shadingTypes.OwnerTA" [definition]="def"
                                    (applyShader)="applyShader.emit($event)"
                                    (removeShader)="deleteShader.emit($event.id)"

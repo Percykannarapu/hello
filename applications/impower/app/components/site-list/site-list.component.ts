@@ -1,13 +1,15 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, resolveFieldData, mapBy, groupByExtended } from '@val/common';
+import { filterArray, resolveFieldData } from '@val/common';
+import { AppProjectPrefService } from 'app/services/app-project-pref.service';
+import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintLocAttribService } from 'app/val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { filter, map, startWith, take } from 'rxjs/operators';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppLocationService } from '../../services/app-location.service';
-import { AppProjectService } from '../../services/app-project.service';
 import { AppStateService } from '../../services/app-state.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
@@ -18,9 +20,6 @@ import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/Imp
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { TableFilterLovComponent } from '../common/table-filter-lov/table-filter-lov.component';
-import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
-import { ImpGeofootprintLocAttribService } from 'app/val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 
 export class FlatSite {
   fgId: number;
@@ -224,8 +223,8 @@ export class SiteListComponent implements OnInit {
       );
       this.hasFailures$ = this.appLocationService.hasFailures$;
       this.totalCount$ = this.appLocationService.totalCount$;
-      
-     
+
+
     });
 
     for (const column of this.flatSiteGridColumns) {
@@ -238,7 +237,7 @@ export class SiteListComponent implements OnInit {
     });
 
     this.initializeGridState();
-    
+
   }
 
   private initializeGridState() {
@@ -460,7 +459,7 @@ export class SiteListComponent implements OnInit {
           gridSite[attribute.attributeCode] = attribute.attributeValue;
 
           const column = {'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
-  
+
           // If the column isn't already in the list, add it
           if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode))
           {
@@ -469,7 +468,7 @@ export class SiteListComponent implements OnInit {
             this.selectedColumns.push(column);
           }
         }
-        
+
       });
 
       gridSite['totalHHC'] = hhcMap.get(gridSite.loc.locationNumber);
@@ -520,14 +519,14 @@ export class SiteListComponent implements OnInit {
 
   onSelectSites(newIsActive: boolean) : void {
     const hasFilters = this.hasFilters();
-    const filteredSites: ImpGeofootprintLocation[] = this.currentAllSitesBS$.getValue().filter(site => !hasFilters 
+    const filteredSites: ImpGeofootprintLocation[] = this.currentAllSitesBS$.getValue().filter(site => !hasFilters
       || (this._locGrid.filteredValue.filter(flatSite => flatSite.loc.locationNumber === site.locationNumber)).length > 0);
-                                                                                        
+
     filteredSites.forEach(site => site.isActive = newIsActive);
     this.onToggleLocations.emit({sites: filteredSites, isActive: newIsActive});
     this.setHasSelectedSites();
   }
-  
+
   /**
    * Performs a three way toggle that filters the grid by selection (isActive)
    * 1) Show selected and deselected,  2) Selected only,  3) Deselected only
@@ -598,7 +597,7 @@ export class SiteListComponent implements OnInit {
       this.tableWrapIcon = 'ui-icon-wrap-text';
     }
   }
-  
+
   onFilter(event: any)
   {
     if (event != null) {
@@ -608,7 +607,7 @@ export class SiteListComponent implements OnInit {
 
   /**
    * Returns the appropriate tooltip for activating / deactivating a site or competitor
-   * 
+   *
    * @param loc The location whose isActive flag is being toggled
    */
   getSelectionTooltip(loc: ImpGeofootprintLocation) : string {
@@ -631,7 +630,7 @@ export class SiteListComponent implements OnInit {
       if (existingLabel == null){
         this.appProjectPrefService.createPref('label', this.selectedListType, labelValue, 'string');
         isUpdate = true;
-        
+
       }
       else if (existingLabel.val !== labelValue){
         this.appProjectPrefService.createPref('label', this.selectedListType,  labelValue, 'string');
@@ -643,26 +642,35 @@ export class SiteListComponent implements OnInit {
 
   createLabelDropdown(locations: ImpGeofootprintLocation[]){
     let label = null;
-    this.labelOptions = [];
+    const localOptions = [];
     if (locations.length > 0) {
       const sitesbyType = locations.filter(loc => loc.clientLocationTypeCode === this.selectedListType);
       const labelOptionsSet = new Set<string>();
       for (const column of this.flatSiteGridColumns) {
         if (!labelOptionsSet.has(column.header.toString()) && column.header.toString() !== 'label'){
           labelOptionsSet.add(column.header);
-          this.labelOptions.push({ label: column.header, value: column.field });
+          localOptions.push({ label: column.header, value: column.field });
         }
       }
-      
+
       sitesbyType[0].impGeofootprintLocAttribs.forEach(attr => {
         if ( attr != null && !labelOptionsSet.has(attr.attributeCode.toString()) && !attr.attributeCode.includes('Home')){
           labelOptionsSet.add(attr.attributeCode);
-          this.labelOptions.push({label: attr.attributeCode, value: attr.attributeCode});
+          localOptions.push({label: attr.attributeCode, value: attr.attributeCode});
         }
       });
       const projectPref = this.appProjectPrefService.getPref(this.selectedListType);
       label = projectPref != null ? projectPref.val : 'Number';
 
+      switch (this.selectedListType) {
+        case 'Site':
+          this.appLocationService.siteLabelOptions$.next(localOptions);
+          break;
+        case 'Competitor':
+          this.appLocationService.competitorLabelOptions$.next(localOptions);
+          break;
+      }
+      this.labelOptions = localOptions;
       this.selectedLabel = label ;
       //=== null ? this.labelOptions.filter(lbl => lbl.label === 'Number')[0].value : this.labelOptions.filter(lbl => lbl.value === label)[0].value;
       this.createLabelAttr(this.selectedLabel);

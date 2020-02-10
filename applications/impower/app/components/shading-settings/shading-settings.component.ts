@@ -1,10 +1,10 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { deleteShadingDefinition, shadingSelectors, upsertShadingDefinition } from '@val/esri';
+import { deleteShadingDefinition, shadingSelectors, updateShadingDefinitions, upsertShadingDefinition } from '@val/esri';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppStateService } from 'app/services/app-state.service';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 import { Audience } from '../../impower-datastore/state/transient/audience/audience.model';
 import { GetAllMappedVariables } from '../../impower-datastore/state/transient/transient.actions';
 import { GfpShaderKeys } from '../../models/ui-enums';
@@ -31,6 +31,7 @@ export class ShadingSettingsComponent implements OnInit {
   tradeAreaCount$: Observable<number>;
 
   private trigger$ = new BehaviorSubject(null);
+  private currentDefinitions$: BehaviorSubject<UIShadingDefinition[]> = new BehaviorSubject<UIShadingDefinition[]>([]);
 
   constructor(private appStateService: AppStateService,
               private appRenderService: AppRendererService,
@@ -47,10 +48,11 @@ export class ShadingSettingsComponent implements OnInit {
       filter(([defs]) => defs != null),
       map(([defs]) => {
         if (this.currentNewShader != null) {
-          return [ ...defs, this.currentNewShader as any];
+          return [ ...defs.map(d => ({ ...d, isOpenInUI: false })), this.currentNewShader as any];
         }
         return defs;
-      })
+      }),
+      tap(defs => this.currentDefinitions$.next(defs))
     );
     this.locationCount$ = this.appStateService.clientLocationCount$;
     this.tradeAreaCount$ = this.appStateService.tradeAreaCount$;
@@ -67,31 +69,37 @@ export class ShadingSettingsComponent implements OnInit {
     this.store$.dispatch(removeNestedForm({ root: 'shadingSettings', identifier: id }));
   }
 
-  applyDefinition(definition: UIShadingDefinition) : void {
+  applyDefinition(definition: UIShadingDefinition, resetUiVisibilityFlags: boolean) : void {
     const geos = this.impGeoDatastore.get().filter(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive && g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive && g.isActive && g.isDeduped === 1);
     let analysisLevel = definition.usableAnalysisLevel;
     if (analysisLevel == null) {
       analysisLevel = this.appStateService.analysisLevel$.getValue();
     }
+    const trimmedDef = { ...definition };
     this.currentNewShader = null;
     this.trigger$.next(null);
-    this.store$.dispatch(removeNestedForm({ root: 'shadingSettings', identifier: definition.id }));
-    this.appRenderService.updateForAnalysisLevel(definition, analysisLevel);
-    switch (definition.dataKey) {
+    this.store$.dispatch(removeNestedForm({ root: 'shadingSettings', identifier: trimmedDef.id }));
+    this.appRenderService.updateForAnalysisLevel(trimmedDef, analysisLevel);
+    switch (trimmedDef.dataKey) {
       case GfpShaderKeys.OwnerSite:
-        this.appRenderService.updateForOwnerSite(definition, geos);
+        this.appRenderService.updateForOwnerSite(trimmedDef, geos);
         this.appRenderService.registerOwnerSiteWatcher();
         break;
       case GfpShaderKeys.OwnerTA:
-        this.appRenderService.updateForOwnerTA(definition, geos);
+        this.appRenderService.updateForOwnerTA(trimmedDef, geos);
         this.appRenderService.registerOwnerTAWatcher();
         break;
     }
-    const trimmedDef = { ...definition };
     delete trimmedDef.isNew;
     delete trimmedDef.isEditing;
     delete trimmedDef.usableAnalysisLevel;
+    // we purposefully keep the isOpenInUI flag to persist the accordion state
     this.store$.dispatch(upsertShadingDefinition({ shadingDefinition: trimmedDef }));
+    if (resetUiVisibilityFlags) {
+      const otherDefs = this.currentDefinitions$.value.filter(d => d.id !== trimmedDef.id);
+      const updates: any = otherDefs.map(d => ({ id: d.id, changes: { isOpenInUI: false }}));
+      this.store$.dispatch(updateShadingDefinitions({ shadingDefinitions: updates }));
+    }
     setTimeout(() => this.store$.dispatch(new GetAllMappedVariables({ analysisLevel })), 1000);
   }
 

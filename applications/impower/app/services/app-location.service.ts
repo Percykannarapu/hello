@@ -6,8 +6,9 @@ import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { Point } from 'esri/geometry';
 import Graphic from 'esri/Graphic';
+import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
-import { combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
+import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
 import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { QuadTree } from '../models/quad-tree';
@@ -23,13 +24,13 @@ import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeo
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { ImpGeofootprintTradeAreaService } from './../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { AppGeocodingService } from './app-geocoding.service';
 import { AppLoggingService } from './app-logging.service';
+import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
-import { AppProjectPrefService } from './app-project-pref.service';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -66,6 +67,9 @@ export class AppLocationService {
   public totalCount$: Observable<number>;
   public hasFailures$: Observable<boolean>;
   public cachedTradeAreas: ImpGeofootprintTradeArea[];
+
+  public siteLabelOptions$ = new BehaviorSubject<SelectItem[]>([]);
+  public competitorLabelOptions$ = new BehaviorSubject<SelectItem[]>([]);
 
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impTradeAreaService: ImpGeofootprintTradeAreaService,

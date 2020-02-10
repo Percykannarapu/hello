@@ -1,9 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { getUuid } from '@val/common';
 import { ConfigurationTypes } from '@val/esri';
-import { MenuItem } from 'primeng/api';
+import { MenuItem, SelectItem } from 'primeng/api';
+import { Observable } from 'rxjs';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { GfpShaderKeys } from '../../../models/ui-enums';
+import { AppLocationService } from '../../../services/app-location.service';
 import { UIShadingDefinition } from '../shading-ui-helpers';
 
 @Component({
@@ -20,14 +22,21 @@ export class ShadingListComponent implements OnInit {
 
   @Input() currentAnalysisLevel: string;
   @Input() shadingDefinitions: UIShadingDefinition[];
+  @Output() addShader: EventEmitter<Partial<UIShadingDefinition>> = new EventEmitter<Partial<UIShadingDefinition>>();
+  @Output() editShader: EventEmitter<Partial<UIShadingDefinition>> = new EventEmitter<Partial<UIShadingDefinition>>();
+  @Output() deleteShader: EventEmitter<string> = new EventEmitter<string>();
+  @Output() applyShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
+  @Output() touchShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
 
+  buttonOptions: MenuItem[];
   shadingTypes = GfpShaderKeys;
+  siteLabels$: Observable<SelectItem[]>;
 
-  public get audiences() : Audience[] {
+  get audiences() : Audience[] {
     return this._audiences;
   }
   @Input()
-  public set audiences(value: Audience[]) {
+  set audiences(value: Audience[]) {
     this._audiences = value;
     this.setupButtonMenu();
   }
@@ -35,7 +44,6 @@ export class ShadingListComponent implements OnInit {
   get tradeAreaCount() : number {
     return this._tradeAreaCount;
   }
-
   @Input()
   set tradeAreaCount(value: number) {
     this._tradeAreaCount = value;
@@ -45,21 +53,18 @@ export class ShadingListComponent implements OnInit {
   get locationCount() : number {
     return this._locationCount;
   }
-
   @Input()
   set locationCount(value: number) {
     this._locationCount = value;
     this.setupButtonMenu();
   }
 
-  @Output() addShader: EventEmitter<Partial<UIShadingDefinition>> = new EventEmitter<Partial<UIShadingDefinition>>();
-  @Output() editShader: EventEmitter<Partial<UIShadingDefinition>> = new EventEmitter<Partial<UIShadingDefinition>>();
-  @Output() deleteShader: EventEmitter<string> = new EventEmitter<string>();
-  @Output() applyShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
+  constructor(private locationService: AppLocationService) { }
 
-  buttonOptions: MenuItem[];
-
-  constructor() { }
+  ngOnInit() : void {
+    this.setupButtonMenu();
+    this.siteLabels$ = this.locationService.siteLabelOptions$;
+  }
 
   private setupButtonMenu() : void {
     const options = [
@@ -75,10 +80,6 @@ export class ShadingListComponent implements OnInit {
       options.push({ label: 'Add Variable Shading', command: () => this.add('') });
     }
     this.buttonOptions = options;
-  }
-
-  ngOnInit() : void {
-    this.setupButtonMenu();
   }
 
   private getSelectionLayerName() : string {
@@ -98,7 +99,8 @@ export class ShadingListComponent implements OnInit {
       opacity: 0.5,
       filterField: 'geocode',
       usableAnalysisLevel: this.currentAnalysisLevel,
-      showLegendHeader: false
+      showLegendHeader: false,
+      isOpenInUI: true
     };
     switch (dataKey) {
       case GfpShaderKeys.Selection:
@@ -107,6 +109,8 @@ export class ShadingListComponent implements OnInit {
         newForm.filterByFeaturesOfInterest = true;
         break;
       case GfpShaderKeys.OwnerSite:
+        (newForm as any).secondaryDataKey = 'locationNumber';
+      // tslint:disable-next-line:no-switch-case-fall-through
       case GfpShaderKeys.OwnerTA:
         newForm.shadingType = ConfigurationTypes.Unique;
         newForm.legendHeader = layerName;
@@ -119,11 +123,19 @@ export class ShadingListComponent implements OnInit {
     this.addShader.emit(newForm);
   }
 
-  toggle(definition: UIShadingDefinition) : void {
-    if (!definition.isNew && !definition.isEditing) {
+  delete(event: MouseEvent, definition: UIShadingDefinition) : void {
+    if (!definition.isEditing) {
+      this.deleteShader.emit(definition.id);
+    }
+    event.stopPropagation();
+  }
+
+  toggleVisibility(event: MouseEvent, definition: UIShadingDefinition) : void {
+    if (!definition.isEditing) {
       const newDef = { ...definition, usableAnalysisLevel: this.currentAnalysisLevel };
       newDef.visible = !definition.visible;
-      this.applyShader.emit(newDef);
+      this.touchShader.emit(newDef);
     }
+    event.stopPropagation();
   }
 }

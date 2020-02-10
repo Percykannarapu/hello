@@ -20,6 +20,10 @@ export interface GfpSelectionForm extends GfpForm {
   defaultSymbolDefinition: SymbolDefinition;
 }
 
+export interface GfpSiteOwnerForm extends GfpForm {
+  secondaryDataKey: string;
+}
+
 export interface VariableSelectionForm extends GfpForm {
   dataKey: string;
   filterByFeaturesOfInterest: boolean;

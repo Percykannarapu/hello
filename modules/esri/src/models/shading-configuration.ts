@@ -59,6 +59,7 @@ export interface SimpleShadingDefinition extends ShadingDefinitionBase {
 
 export interface UniqueShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.Unique;
+  secondaryDataKey: string;
   theme: ColorPalette;
   arcadeExpression?: string;
   breakDefinitions?: UniqueValueDefinition[];
