@@ -135,19 +135,19 @@ export class EditLocationsComponent implements OnInit, OnChanges {
     const radius2 = group.controls[`radius2`];
     const radius3 = group.controls[`radius3`];
 
-    if (radius2.dirty && radius1.value > radius2.value ){
+    if (radius2.dirty && radius1.value >= radius2.value ){
       group.controls[`radius2`].setErrors({
         errorMsg : `Value must be greater than Trade Area 1`
       });
     }
 
-    if (radius3.dirty && radius2.value > radius3.value) {
+    if (radius3.dirty && radius2.value >= radius3.value) {
       group.controls[`radius3`].setErrors({
         errorMsg: `Value must be greater than Trade Area 2`
       });
     }
 
-    if (radius3.dirty && radius2.dirty && radius1.value > radius3.value ) {
+    if (radius3.dirty && radius2.dirty && radius1.value >= radius3.value ) {
       group.controls[`radius3`].setErrors({
         errorMsg: `Value must be greater than Trade Area 1 & Trade Area 2`
       });
