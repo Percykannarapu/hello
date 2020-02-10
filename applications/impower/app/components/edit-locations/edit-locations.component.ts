@@ -81,8 +81,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       radius1: [null, this.isInRange(0, 50)],
       radius2: [null, this.isInRange(0, 50)],
       radius3: [null, this.isInRange(0, 50)],
-    // }, {validators: this.isValidRadius});
-    });
+    }, {validators: this.isValidRadius});
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
   }
 
@@ -147,7 +146,13 @@ export class EditLocationsComponent implements OnInit, OnChanges {
         errorMsg: `Value must be greater than Trade Area 2`
       });
     }
-    return group;
+
+    if (radius3.dirty && radius2.dirty && radius1.value > radius3.value ) {
+      group.controls[`radius3`].setErrors({
+        errorMsg: `Value must be greater than Trade Area 1 & Trade Area 2`
+      });
+    }
+    return null;
   }
 
   onSubmit(data: any) {
