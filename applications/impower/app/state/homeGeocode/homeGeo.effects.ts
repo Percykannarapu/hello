@@ -57,12 +57,19 @@ export class HomeGeoEffects {
       ofType<HomeGeocode>(HomeGeoActionTypes.HomeGeocode),
       map(action => this.appHomeGeocodingService.validateLocations(action.payload)),
       switchMap(locMap => this.appHomeGeocodingService.queryHomeGeocode(locMap).pipe(
-        map(attributes => new DetermineDTZHomeGeos({attributes,
-                locationsMap: locMap.LocMap,
+        /*map(attributes => new DetermineDTZHomeGeos({attributes,
+                locationsMap: locMap.LocMap, 
                 isLocationEdit: locMap.isLocationEdit,
                 reCalculateHomeGeos: locMap.reCalculateHomeGeos,
-                totalLocs: locMap.totalLocs})),
-        catchError(err => of(
+                totalLocs: locMap.totalLocs})),*/
+         //map(attributes => new ProcessHomeGeoAttributes({attributes, totalLocs: locMap.totalLocs,isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos})),      
+         concatMap(attributes => [
+            new ProcessHomeGeoAttributes({attributes, totalLocs: locMap.totalLocs, isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos}),
+            new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
+            new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
+            new ApplyTradeAreaOnEdit({ isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos})
+          ]),
+         catchError(err => of(
           new ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo'}),
           new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
         ))
