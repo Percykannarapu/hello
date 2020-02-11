@@ -997,15 +997,16 @@ export class AppLocationService {
   queryRemainingAttr(attrList: Map<string, any>, impGeofootprintLocations: ImpGeofootprintLocation[], isFuseLocations: boolean){
     const homePcrList = Array.from(attrList.keys()); 
     //console.log('homePcrList====>', homePcrList);
-    const attributesList: any[] = [];
-    const locationsGroupBy = groupByExtended(impGeofootprintLocations, loc => !isFuseLocations ?  loc.locZip.substr(0, 5) : loc.locZip.substr(0, 5) + loc.carrierRoute);
-    const pipAgianLocations: ImpGeofootprintLocation[] = [];
+    
     return  this.determineHomeGeos(homePcrList, 'IMP_GEO_HIERARCHY_MV', 'PCR, ZIP, ATZ, DTZ, COUNTY, DMA', 'PCR').pipe(
       map(response => {
         return  response.payload;
       }),
       reduce((acc, result) => [...acc, ...result], []),
       map(result => {
+          const attributesList: any[] = [];
+          const locationsGroupBy = groupByExtended(impGeofootprintLocations, loc => !isFuseLocations ?  loc.locZip.substr(0, 5) : loc.locZip.substr(0, 5) + loc.carrierRoute);
+          const pipAgianLocations: ImpGeofootprintLocation[] = [];
           const responseMap: Map<string, any[]> = groupByExtended(result, row => !isFuseLocations ? row['PCR'].substr(0, 5) : row['PCR']); 
           locationsGroupBy.forEach( (value: ImpGeofootprintLocation[], key: string) => {
               //console.log('key===>', key, 'value===>', value);
@@ -1017,7 +1018,7 @@ export class AppLocationService {
                 }
                 else
                   pipAgianLocations.push(value[0]);
-              }else if (value.length > 1){
+              }else if (value.length > 1 && !isFuseLocations){
                  value.forEach(loc => {
                     attrList.forEach((geometry: any, pcr: string) => {
                       const insideGeometry = {x: loc.xcoord, y: loc.ycoord} as Geometry;
@@ -1028,6 +1029,17 @@ export class AppLocationService {
                       }
                     });
                  });
+              }
+              else if (value.length > 1 && isFuseLocations){
+                value.forEach(loc => {
+                  const row = responseMap.get(key);
+                  if (row != null && row.length > 0){
+                    attributesList.push(this.createArreibut(row[0], value[0]));
+                    attrList.delete(row[0] ['PCR']);
+                  }
+                  else
+                    pipAgianLocations.push(value[0]);
+                });
               }
           });
           //console.log('attributesList return ===>', attributesList);
