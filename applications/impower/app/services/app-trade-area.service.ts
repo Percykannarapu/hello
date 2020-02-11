@@ -226,8 +226,9 @@ export class AppTradeAreaService {
 
   public zoomToTradeArea() {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
+    const geoCount = this.stateService.uniqueIdentifiedGeocodes$.getValue().length;
 
-    if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0) {
+    if (currentAnalysisLevel != null && currentAnalysisLevel.length > 0 && geoCount <= this.appConfig.maxGeosForPrecisionZoom) {
       // analysisLevel exists - zoom to Trade Area
       const layerId = this.appConfig.getLayerIdForAnalysisLevel(currentAnalysisLevel);
       if (layerId == null) return;

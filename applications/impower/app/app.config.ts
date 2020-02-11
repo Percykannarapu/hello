@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { LogLevels } from '@val/common';
+import { AllLayers, EsriConfigOptions, EsriLoaderToken, LayerGroupDefinition } from '@val/esri';
 import { environment, EnvironmentData } from '../environments/environment';
-import { AllLayers, EsriLoaderToken, EsriConfigOptions, LayerGroupDefinition } from '@val/esri';
 import { LoggingConfiguration } from './val-modules/common/services/logging.service';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class AppConfig implements LoggingConfiguration {
   public maxValGeocodingReqSize = 50;
   public maxRadiusTradeAreas = 3;
   public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
-
+  public maxGeosForPrecisionZoom = 100;
   public isBatchMode = false;
 
   // Not used anymore
