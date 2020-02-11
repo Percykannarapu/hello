@@ -996,7 +996,7 @@ export class AppLocationService {
    */
   queryRemainingAttr(attrList: Map<string, any>, impGeofootprintLocations: ImpGeofootprintLocation[], isFuseLocations: boolean){
     const homePcrList = Array.from(attrList.keys()); 
-    console.log('homePcrList====>', homePcrList);
+    //console.log('homePcrList====>', homePcrList);
     const attributesList: any[] = [];
     const locationsGroupBy = groupByExtended(impGeofootprintLocations, loc => !isFuseLocations ?  loc.locZip.substr(0, 5) : loc.locZip.substr(0, 5) + loc.carrierRoute);
     const pipAgianLocations: ImpGeofootprintLocation[] = [];
@@ -1030,7 +1030,7 @@ export class AppLocationService {
                  });
               }
           });
-          console.log('attributesList return ===>', attributesList);
+          //console.log('attributesList return ===>', attributesList);
           const t = {'attributes': attributesList, 'rePipLocations': pipAgianLocations};
           return t;
       })
