@@ -75,7 +75,7 @@ export class ShadingSettingsComponent implements OnInit {
     if (analysisLevel == null) {
       analysisLevel = this.appStateService.analysisLevel$.getValue();
     }
-    const trimmedDef = { ...definition };
+    const trimmedDef: UIShadingDefinition = { ...definition };
     this.currentNewShader = null;
     this.trigger$.next(null);
     this.store$.dispatch(removeNestedForm({ root: 'shadingSettings', identifier: trimmedDef.id }));
@@ -83,11 +83,11 @@ export class ShadingSettingsComponent implements OnInit {
     switch (trimmedDef.dataKey) {
       case GfpShaderKeys.OwnerSite:
         this.appRenderService.updateForOwnerSite(trimmedDef, geos);
-        this.appRenderService.registerOwnerSiteWatcher();
+        this.appRenderService.registerGeoOwnerWatcher();
         break;
       case GfpShaderKeys.OwnerTA:
         this.appRenderService.updateForOwnerTA(trimmedDef, geos);
-        this.appRenderService.registerOwnerTAWatcher();
+        this.appRenderService.registerGeoOwnerWatcher();
         break;
     }
     delete trimmedDef.isNew;

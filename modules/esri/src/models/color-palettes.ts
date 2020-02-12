@@ -1,5 +1,4 @@
 /* tslint:disable:max-line-length */
-import Color from 'esri/Color';
 import { RgbTuple } from './esri-types';
 
 // these are the only palettes used in the application for now
@@ -87,13 +86,12 @@ export enum AllColorPalettes {
   EsriPurple = 'Gradient - Purple',
 }
 
-export function getColorPaletteAsEsriColor(palette: ColorPalette, alpha: number) : __esri.Color[] {
-  const colorPalette = getColorPalette(palette);
-  return colorPalette.map(rgb => new Color([...rgb, alpha])) ;
-}
-
-export function getColorPalette(palette: ColorPalette) : RgbTuple[] {
-  return getAllColorPalettes(palette);
+export function getColorPalette(palette: ColorPalette, reverse: boolean) : RgbTuple[] {
+  const result = [ ...getAllColorPalettes(palette) ];
+  if (reverse) {
+    result.reverse();
+  }
+  return result;
 }
 
 export function getAllColorPalettes(palette: string) : RgbTuple[] {

@@ -11,7 +11,7 @@ import {
   generateContinuousValues,
   generateUniqueValues,
   getColorPalette,
-  isNotSimpleShadingDefinition,
+  isComplexShadingDefinition,
   loadShadingDefinitions,
   resetShading,
   RgbTuple,
@@ -19,7 +19,7 @@ import {
   ShadingDefinition,
   shadingSelectors,
   updateShadingDefinition,
-  upsertShadingDefinition
+  upsertShadingDefinitions
 } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -29,6 +29,7 @@ import { MapVar } from '../impower-datastore/state/transient/map-vars/map-vars.m
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GfpShaderKeys } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
+import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
@@ -40,8 +41,7 @@ import { TargetAudienceService } from './target-audience.service';
 @Injectable()
 export class AppRendererService {
   private selectedWatcher: Subscription;
-  private ownerSiteWatcher: Subscription;
-  private ownerTAWatcher: Subscription;
+  private ownerWatcher: Subscription;
 
   constructor(private appStateService: AppStateService,
               private appPrefService: AppProjectPrefService,
@@ -50,6 +50,7 @@ export class AppRendererService {
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
               private config: AppConfig,
+              private logger: LoggingService,
               private store$: Store<FullAppState>) {
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
@@ -62,6 +63,18 @@ export class AppRendererService {
       this.setupGeoWatchers(this.impGeoService.storeObservable);
       this.setupMapVarWatcher(this.impGeoService.storeObservable);
     });
+  }
+
+  private static getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay: Set<TradeAreaTypeCodes>) : string {
+    if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.Radius)) {
+      return 'Trade Area 1';
+    } else if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.Custom)) {
+      return 'Custom';
+    } else if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.Manual)) {
+      return 'Manual';
+    } else if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.MustCover)) {
+      return 'Must Cover';
+    }
   }
 
   private setupProjectPrefsWatcher() : void {
@@ -106,7 +119,7 @@ export class AppRendererService {
   private setupMapVarWatcher(geoDataStore: Observable<ImpGeofootprintGeo[]>) {
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), geoDataStore),
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), geoDataStore)
     ).subscribe(([mapVars, layerDefs, geos]) => {
       const varPks = Object.keys(mapVars[0]).filter(key => key !== 'geocode').map(key => Number(key));
       if (varPks != null) {
@@ -120,8 +133,8 @@ export class AppRendererService {
               const shadingDefinition: Update<ShadingDefinition> = { id: shadingLayer.id, changes: {} };
               const arcadeExpression = this.convertMapVarsToArcade(currentMapVars, varPk);
               let palette: RgbTuple[] = [];
-              if (isNotSimpleShadingDefinition(shadingLayer)) {
-                palette = getColorPalette(shadingLayer.theme);
+              if (isComplexShadingDefinition(shadingLayer)) {
+                palette = getColorPalette(shadingLayer.theme, shadingLayer.reverseTheme);
               }
               switch (shadingLayer.shadingType) {
                 case ConfigurationTypes.Unique:
@@ -136,6 +149,11 @@ export class AppRendererService {
                   shadingDefinition.changes = {
                     arcadeExpression,
                     breakDefinitions: generateContinuousValues(stats, palette)
+                  };
+                  break;
+                case ConfigurationTypes.DotDensity:
+                  shadingDefinition.changes = {
+                    arcadeExpression
                   };
                   break;
               }
@@ -191,7 +209,6 @@ export class AppRendererService {
       sortOrder: 1,
       sourcePortalId: null,
       layerName: null,
-      showLegendHeader: false,
       opacity: isAlsoShaded ? 1 : 0.25,
       visible: true,
       minScale: null,
@@ -215,8 +232,6 @@ export class AppRendererService {
       sortOrder: index,
       sourcePortalId: null,
       layerName: projectVar.fieldname,
-      legendHeader: projectVar.fieldname,
-      showLegendHeader: !isNumeric,
       opacity: 0.5,
       visible: true,
       minScale: null,
@@ -256,39 +271,32 @@ export class AppRendererService {
     return createDataArcade(obj);
   }
 
-  registerOwnerSiteWatcher() : void {
-    if (this.ownerSiteWatcher) {
-      this.ownerSiteWatcher.unsubscribe();
-      this.ownerSiteWatcher = null;
-    }
-    this.ownerSiteWatcher = this.impGeoService.storeObservable.pipe(
-      filterArray(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive && g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive && g.isActive && g.isDeduped === 1),
-      withLatestFrom(this.appStateService.currentProject$)
-    ).subscribe(([geos, project]) => {
-      const definition = this.getShadingDefinitions(project).filter(sd => sd.dataKey === GfpShaderKeys.OwnerSite)[0];
-      if (definition != null) {
-        const newDef = { ...definition };
-        this.updateForOwnerSite(newDef, geos);
-        this.store$.dispatch(upsertShadingDefinition({ shadingDefinition: newDef }));
-      }
-    });
-  }
+  registerGeoOwnerWatcher() : void {
+    if (this.ownerWatcher) return;
 
-  registerOwnerTAWatcher() : void {
-    if (this.ownerTAWatcher) {
-      this.ownerTAWatcher.unsubscribe();
-      this.ownerTAWatcher = null;
-    }
-    this.ownerTAWatcher = this.impGeoService.storeObservable.pipe(
-      debounceTime(500),
+    this.ownerWatcher = this.impGeoService.storeObservable.pipe(
       filterArray(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive && g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive && g.isActive && g.isDeduped === 1),
       withLatestFrom(this.appStateService.currentProject$)
     ).subscribe(([geos, project]) => {
-      const definition = this.getShadingDefinitions(project).filter(sd => sd.dataKey === GfpShaderKeys.OwnerTA)[0];
-      if (definition != null && isNotSimpleShadingDefinition(definition)) {
-        const newDef = { ...definition };
-        this.updateForOwnerTA(newDef, geos);
-        this.store$.dispatch(upsertShadingDefinition({ shadingDefinition: newDef }));
+      const ownerKeys = new Set<string>([GfpShaderKeys.OwnerSite, GfpShaderKeys.OwnerTA]);
+      const definitions = this.getShadingDefinitions(project).filter(sd => ownerKeys.has(sd.dataKey));
+      const newDefs = definitions.reduce((updates, definition) => {
+        if (definition != null && isComplexShadingDefinition(definition)) {
+          const newDef = { ...definition };
+          switch (newDef.dataKey) {
+            case GfpShaderKeys.OwnerSite:
+              this.updateForOwnerSite(newDef, geos);
+              break;
+            case GfpShaderKeys.OwnerTA:
+              this.updateForOwnerTA(newDef, geos);
+          }
+          this.updateForOwnerSite(newDef, geos);
+          updates.push(newDef);
+        }
+        return updates;
+      }, []);
+      if (newDefs.length > 0) {
+        this.store$.dispatch(upsertShadingDefinitions({ shadingDefinitions: newDefs }));
       }
     });
   }
@@ -310,40 +318,58 @@ export class AppRendererService {
       }, {});
       definition.arcadeExpression = createDataArcade(data);
       const legendEntries = new Set(Object.values(data));
-      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme));
+      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme));
     }
   }
 
   updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
-    if (definition != null && isNotSimpleShadingDefinition(definition)) {
+    if (definition != null && isComplexShadingDefinition(definition)) {
       definition.theme = ColorPalette.Cpqmaps;
+      const deferredHomeGeos: ImpGeofootprintGeo[] = [];
+      const tradeAreaTypesInPlay = new Set<TradeAreaTypeCodes>();
       const data: Record<string, string> = geos.reduce((result, geo) => {
-        if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
-          result[geo.geocode] = 'Trade Area 1';
-        } else {
-          switch (geo.impGeofootprintTradeArea.taType.toUpperCase()) {
-            case TradeAreaTypeCodes.Radius.toUpperCase():
-              result[geo.geocode] = `Trade Area ${geo.impGeofootprintTradeArea.taNumber}`;
-              break;
-            case TradeAreaTypeCodes.HomeGeo.toUpperCase():
-              result[geo.geocode] = 'Trade Area 1';
-              break;
-            case TradeAreaTypeCodes.Custom.toUpperCase():
+        switch (geo.impGeofootprintTradeArea.taType.toUpperCase()) {
+          case TradeAreaTypeCodes.Radius.toUpperCase():
+            const taNumber = geo.geocode === geo.impGeofootprintLocation.homeGeocode ? 1 : geo.impGeofootprintTradeArea.taNumber;
+            result[geo.geocode] = `Trade Area ${taNumber}`;
+            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Radius);
+            break;
+          case TradeAreaTypeCodes.HomeGeo.toUpperCase():
+            deferredHomeGeos.push(geo);
+            break;
+          case TradeAreaTypeCodes.Custom.toUpperCase():
+            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+              deferredHomeGeos.push(geo);
+            } else {
               result[geo.geocode] = 'Custom';
-              break;
-            case TradeAreaTypeCodes.Manual.toUpperCase():
+            }
+            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Custom);
+            break;
+          case TradeAreaTypeCodes.Manual.toUpperCase():
+            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+              deferredHomeGeos.push(geo);
+            } else {
               result[geo.geocode] = 'Manual';
-              break;
-            case TradeAreaTypeCodes.MustCover.toUpperCase():
+            }
+            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Manual);
+            break;
+          case TradeAreaTypeCodes.MustCover.toUpperCase():
+            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+              deferredHomeGeos.push(geo);
+            } else {
               result[geo.geocode] = 'Must Cover';
-              break;
-          }
+            }
+            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.MustCover);
+            break;
         }
         return result;
       }, {});
+      deferredHomeGeos.forEach(hg => {
+        data[hg.geocode] = AppRendererService.getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay);
+      });
       definition.arcadeExpression = createDataArcade(data);
       const legendEntries = new Set(Object.values(data));
-      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme));
+      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme));
     }
   }
 }

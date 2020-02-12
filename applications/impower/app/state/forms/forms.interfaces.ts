@@ -1,4 +1,4 @@
-import { ColorPalette, SymbolDefinition } from '@val/esri';
+import { ColorPalette, ConfigurationTypes, RgbaTuple, SymbolDefinition } from '@val/esri';
 
 export interface AddLocationForm {
   number: string;
@@ -26,8 +26,13 @@ export interface GfpSiteOwnerForm extends GfpForm {
 
 export interface VariableSelectionForm extends GfpForm {
   dataKey: string;
+  shadingType: ConfigurationTypes;
   filterByFeaturesOfInterest: boolean;
-  theme: ColorPalette;
+  theme?: ColorPalette;
+  reverseTheme?: boolean;
+  dotValue?: number;
+  dotColor?: RgbaTuple;
+  legendUnits?: string;
 }
 
 export interface FormsState {

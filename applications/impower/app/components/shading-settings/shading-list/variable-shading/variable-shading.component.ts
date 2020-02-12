@@ -1,12 +1,22 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormConfig } from '@val/common';
-import { ColorPalette, ComplexShadingDefinition, ConfigurationTypes } from '@val/esri';
+import { ColorPalette, ComplexShadingDefinition, ConfigurationTypes, DotDensityShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Audience } from '../../../../impower-datastore/state/transient/audience/audience.model';
 import { VariableSelectionForm } from '../../../../state/forms/forms.interfaces';
 import { FieldContentTypeCodes } from '../../../../val-modules/targeting/targeting.enums';
 import { UIShadingDefinition } from '../../shading-ui-helpers';
+
+interface Rgb { r: number; g: number; b: number; }
+
+function esriToRgb(esriColor: [number, number, number, number]) : Rgb {
+  return { r: esriColor[0], g: esriColor[1], b: esriColor[2] };
+}
+
+function rgbToEsri(rgbColor: Rgb) : [number, number, number, number] {
+  return [ rgbColor.r, rgbColor.g, rgbColor.b, 1.0 ];
+}
 
 @Component({
   selector: 'val-variable-shading',
@@ -25,6 +35,13 @@ export class VariableShadingComponent implements OnInit {
       .map(aud => ({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud.audienceIdentifier}));
   }
 
+  get selectedDotColor() : Rgb {
+    return esriToRgb(this.shaderForm.get('dotColor').value || [0, 0, 0, 1]);
+  }
+  set selectedDotColor(value: Rgb) {
+    this.shaderForm.get('dotColor').setValue(rgbToEsri(value));
+  }
+
   @Input() definition: UIShadingDefinition;
   @Output() applyShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
   @Output() editShader: EventEmitter<UIShadingDefinition> = new EventEmitter<UIShadingDefinition>();
@@ -34,41 +51,67 @@ export class VariableShadingComponent implements OnInit {
     return this._audiences.filter(a => a.audienceIdentifier === this.definition.dataKey)[0];
   }
   allAudiences: SelectItem[];
+  numericThemes: SelectItem[] = [];
   allThemes: SelectItem[] = [];
+  allShaders: SelectItem[] = [];
   allExtents: SelectItem[] = [];
   shaderForm: FormGroup;
 
+  ConfigurationTypes = ConfigurationTypes;
+
   constructor(private fb: FormBuilder) {
-    this.allThemes = Object.keys(ColorPalette).map(key => ({
-      label: ColorPalette[key],
-      value: ColorPalette[key]
-    }));
+    this.allThemes = Object.keys(ColorPalette)
+      .map(key => ({
+        label: ColorPalette[key],
+        value: ColorPalette[key]
+      }));
+    this.numericThemes = this.allThemes.filter(k => k.value !== ColorPalette.Cpqmaps);
+
+    this.filterShaderTypes(ConfigurationTypes.Simple);
     this.allExtents.push({label: 'Whole Map', value: false });
     this.allExtents.push({label: 'Selected Geos only', value: true });
   }
 
   ngOnInit() {
     const extendedDefinition = this.definition as ComplexShadingDefinition;
+    const dotDefinition = this.definition as DotDensityShadingDefinition;
     const formSetup: FormConfig<VariableSelectionForm> = {
-      layerName: [this.definition.layerName, Validators.required],
-      opacity: new FormControl(this.definition.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
       dataKey: [this.definition.dataKey, Validators.required],
+      layerName: new FormControl(this.definition.layerName, { updateOn: 'blur', validators: [Validators.required] }),
       filterByFeaturesOfInterest: this.definition.filterByFeaturesOfInterest,
+      shadingType: [this.definition.shadingType, Validators.required],
       theme: extendedDefinition.theme || ColorPalette.EsriPurple,
+      reverseTheme: extendedDefinition.reverseTheme,
+      opacity: new FormControl(this.definition.opacity, { updateOn: 'blur', validators: [Validators.required, Validators.min(0), Validators.max(1)] }),
+      legendUnits: new FormControl(dotDefinition.legendUnits, { updateOn: 'blur' }),
+      dotValue: new FormControl(dotDefinition.dotValue, { updateOn: 'blur' }),
+      dotColor: new FormControl(dotDefinition.dotColor, { updateOn: 'blur' })
     };
-    this.shaderForm = this.fb.group(formSetup, { updateOn: 'blur' });
+    this.shaderForm = this.fb.group(formSetup);
   }
 
   variableSelectionChanged(newKey: string) : void {
     const newVar = this.audiences.filter(a => a.audienceIdentifier === newKey)[0];
     if (newVar != null) {
-      const isNumeric = newVar.fieldconte !== FieldContentTypeCodes.Char;
+      switch (newVar.fieldconte) {
+        case FieldContentTypeCodes.Char:
+          this.filterShaderTypes(ConfigurationTypes.Simple, ConfigurationTypes.ClassBreak, ConfigurationTypes.Ramp, ConfigurationTypes.DotDensity);
+          break;
+        case FieldContentTypeCodes.Count:
+          this.filterShaderTypes(ConfigurationTypes.Simple, ConfigurationTypes.ClassBreak, ConfigurationTypes.Unique);
+          break;
+        case FieldContentTypeCodes.Dist:
+        case FieldContentTypeCodes.Distance:
+        case FieldContentTypeCodes.Index:
+        case FieldContentTypeCodes.Median:
+        case FieldContentTypeCodes.Percent:
+        case FieldContentTypeCodes.Ratio:
+          this.filterShaderTypes(ConfigurationTypes.Simple, ConfigurationTypes.ClassBreak, ConfigurationTypes.DotDensity, ConfigurationTypes.Unique);
+          break;
+      }
       this.definition.layerName = newVar.audienceName;
       this.shaderForm.get('layerName').setValue(newVar.audienceName);
-      this.definition.shadingType = isNumeric ? ConfigurationTypes.Ramp : ConfigurationTypes.Unique;
       this.shaderForm.get('dataKey').setValue(newVar.audienceIdentifier);
-      this.definition.legendHeader = newVar.audienceName;
-      this.definition.showLegendHeader = !isNumeric;
     }
   }
 
@@ -81,8 +124,33 @@ export class VariableShadingComponent implements OnInit {
     this.shaderForm.updateValueAndValidity();
     if (this.shaderForm.status === 'VALID') {
       const values: VariableSelectionForm = this.shaderForm.value;
-      Object.assign(this.definition, values);
-      this.applyShader.emit(this.definition);
+      const newDef: UIShadingDefinition & VariableSelectionForm = { ...this.definition };
+      Object.assign(newDef, values);
+      switch (newDef.shadingType) {
+        case ConfigurationTypes.Ramp:
+          delete newDef.dotColor;
+          delete newDef.dotValue;
+          delete newDef.legendUnits;
+          break;
+        case ConfigurationTypes.Unique:
+          newDef.theme = ColorPalette.Cpqmaps;
+          delete newDef.dotColor;
+          delete newDef.dotValue;
+          delete newDef.legendUnits;
+          break;
+        case ConfigurationTypes.ClassBreak:
+          newDef.reverseTheme = false;
+          delete newDef.dotColor;
+          delete newDef.dotValue;
+          delete newDef.legendUnits;
+          break;
+        case ConfigurationTypes.DotDensity:
+          newDef.arcadeExpression = null;
+          delete newDef.theme;
+          delete newDef.reverseTheme;
+          break;
+      }
+      this.applyShader.emit(newDef);
     }
   }
 
@@ -93,5 +161,15 @@ export class VariableShadingComponent implements OnInit {
       this.definition = { ...this.definition, isEditing: false };
       this.shaderForm.reset(this.definition);
     }
+  }
+
+  private filterShaderTypes(...typesToRemove: ConfigurationTypes[]) : void  {
+    const removals = new Set(typesToRemove);
+    this.allShaders = Object.keys(ConfigurationTypes)
+      .filter(k => !removals.has(ConfigurationTypes[k]))
+      .map(key => ({
+        label: ConfigurationTypes[key],
+        value: ConfigurationTypes[key]
+      }));
   }
 }

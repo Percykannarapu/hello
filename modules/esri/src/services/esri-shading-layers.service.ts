@@ -31,8 +31,12 @@ export class EsriShadingLayersService {
         this.createGeneralizedShadingLayer(d, features).pipe(
           take(1)
         ).subscribe(id => {
+          const hideLegendHeader =
+            d.shadingType === ConfigurationTypes.Ramp ||
+            d.shadingType === ConfigurationTypes.Simple ||
+            d.shadingType === ConfigurationTypes.DotDensity;
           this.store$.dispatch(updateShadingDefinition({ shadingDefinition: { id: d.id, changes: { destinationLayerUniqueId: id }}}));
-          this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: d.showLegendHeader ? d.legendHeader : null }));
+          this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: hideLegendHeader ? null : d.layerName }));
         });
       });
     });
@@ -130,6 +134,19 @@ export class EsriShadingLayersService {
     const defaultSymbol = this.createSymbolFromDefinition(config.defaultSymbolDefinition);
     const defaultLabel = config.defaultSymbolDefinition ? config.defaultSymbolDefinition.legendName : '';
     switch (config.shadingType) {
+      case ConfigurationTypes.ClassBreak:
+        break;
+      case ConfigurationTypes.DotDensity:
+        const dotAttributes: __esri.AttributeColorInfoProperties[] = [{
+          valueExpression: config.arcadeExpression || '',
+          color: config.dotColor,
+          label: config.layerName
+        }];
+        const dotDensityRenderer = this.domainFactory.createDotDensityRenderer(defaultSymbol.outline, config.dotValue, dotAttributes);
+        dotDensityRenderer.legendOptions = {
+          unit: config.legendUnits
+        };
+        return dotDensityRenderer;
       case ConfigurationTypes.Simple:
         const simpleResult = this.domainFactory.createSimpleRenderer(defaultSymbol);
         simpleResult.label = defaultLabel;
@@ -144,7 +161,7 @@ export class EsriShadingLayersService {
         const visVar: RampProperties = {
           type: 'color',
           valueExpression: config.arcadeExpression,
-          legendOptions: { title: config.layerName },
+          // legendOptions: { title: config.layerName },
           stops: config.breakDefinitions.map(c => ({ color: c.stopColor, label: c.stopName, value: c.stopValue }))
         };
         return this.domainFactory.createSimpleRenderer(defaultSymbol, visVar);
@@ -153,7 +170,7 @@ export class EsriShadingLayersService {
     }
   }
 
-  private createSymbolFromDefinition(def: SymbolDefinition) : __esri.Symbol {
+  private createSymbolFromDefinition(def: SymbolDefinition) : __esri.SimpleFillSymbol {
     const currentDef = def || { fillColor: [0, 0, 0, 0], fillType: 'solid' };
     const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0]);
     return this.domainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
@@ -162,7 +179,6 @@ export class EsriShadingLayersService {
   private deleteRenderingLayers(ids: string[]) {
     ids.forEach(id => {
       const layer = this.layerService.getLayerByUniqueId(id);
-      console.log('Removing Layer', layer);
       if (layer != null) this.layerService.removeLayer(layer);
     });
   }

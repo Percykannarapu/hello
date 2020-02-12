@@ -15,9 +15,9 @@
       <label>Extent:</label>
       <strong>{{definition.filterByFeaturesOfInterest ? 'Selected Geos only' : 'Whole Map'}}</strong>
     </div>
-    <div>
+    <div *ngIf="definition.shadingType !== ConfigurationTypes.DotDensity">
       <label>Theme:</label>
-      <strong>{{definition.theme}}</strong>
+      <strong>{{definition.theme}}</strong>&nbsp;<span *ngIf="definition.reverseTheme">(reversed)</span>
     </div>
     <div>
       <label>Opacity:</label>
@@ -29,12 +29,33 @@
           [debounce]="0" [nestedIdentifier]="definition.id">
       <dropdown-input [parentForm]="shaderForm" valueName="dataKey" labelText="Audience" [options]="allAudiences"
                       (selectionChanged)="variableSelectionChanged($event)" [includeUnselected]="true"></dropdown-input>
-      <div *ngIf="shaderForm.get('dataKey').value != null && shaderForm.get('dataKey').value !== ''">
+
+      <dropdown-input [parentForm]="shaderForm" valueName="shadingType" labelText="Shading Style" [options]="allShaders" [includeUnselected]="true"
+                      *ngIf="shaderForm.get('dataKey').value != null && shaderForm.get('dataKey').value !== ''"></dropdown-input>
+
+      <div *ngIf="shaderForm.get('dataKey').value != null && shaderForm.get('dataKey').value !== '' && shaderForm.get('shadingType').value != null && shaderForm.get('shadingType').value !== ''">
         <validated-text-input [parentForm]="shaderForm" valueName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
         <dropdown-input [parentForm]="shaderForm" valueName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
-        <dropdown-input [parentForm]="shaderForm" valueName="theme" labelText="Theme" [options]="allThemes"></dropdown-input>
+        <ng-container [ngSwitch]="shaderForm.get('shadingType').value">
+          <div *ngSwitchCase="ConfigurationTypes.Ramp">
+            <dropdown-input [parentForm]="shaderForm" valueName="theme" labelText="Theme" [options]="numericThemes"></dropdown-input>
+            <boolean-input [parentForm]="shaderForm" valueName="reverseTheme" labelText="Reverse Theme?"></boolean-input>
+          </div>
+          <div *ngSwitchCase="ConfigurationTypes.Unique">
+            <boolean-input [parentForm]="shaderForm" valueName="reverseTheme" labelText="Reverse Theme?"></boolean-input>
+          </div>
+          <div *ngSwitchCase="ConfigurationTypes.DotDensity">
+            <p-colorPicker [(ngModel)]="selectedDotColor" format="rgb" [ngModelOptions]="{standalone: true}"></p-colorPicker>
+            <validated-text-input [parentForm]="shaderForm" valueName="dotValue" labelText="Value of one Dot" validationMessage="Dot value must be greater than 1"></validated-text-input>
+            <validated-text-input [parentForm]="shaderForm" valueName="legendUnits" labelText="Units per dot"></validated-text-input>
+          </div>
+          <div *ngSwitchCase="ConfigurationTypes.ClassBreak">
+
+          </div>
+        </ng-container>
         <validated-text-input [parentForm]="shaderForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-        <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="shaderForm.status === 'INVALID'"></button>
+        <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="shaderForm.status === 'INVALID'"
+                *ngIf="shaderForm.get('shadingType').value != null && shaderForm.get('shadingType').value !== ''"></button>
         <button pButton label="cancel" class="ui-button-secondary" (click)="cancel()"></button>
       </div>
     </form>

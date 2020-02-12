@@ -48,6 +48,8 @@ function shadingDefinitionIsReady(def: ShadingDefinition) : boolean {
     case ConfigurationTypes.Ramp:
     case ConfigurationTypes.ClassBreak:
       return def.destinationLayerUniqueId == null && (def.breakDefinitions || []).length > 0;
+    case ConfigurationTypes.DotDensity:
+      return def.destinationLayerUniqueId == null && (def.arcadeExpression || '').length > 0;
   }
 }
 

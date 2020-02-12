@@ -117,11 +117,10 @@ export class EsriDomainFactoryService {
     });
   }
 
-  createDotDensityRenderer(outline: __esri.symbols.SimpleLineSymbol, referenceDotValue: number, referenceScale: number, attributes: __esri.AttributeColorInfo[]) : __esri.DotDensityRenderer {
+  createDotDensityRenderer(outline: __esri.symbols.SimpleLineSymbol, referenceDotValue: number, attributes: __esri.AttributeColorInfoProperties[]) : __esri.DotDensityRenderer {
     return new DotDensityRenderer({
       outline,
       referenceDotValue,
-      referenceScale,
       attributes
     });
   }

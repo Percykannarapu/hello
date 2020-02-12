@@ -99,8 +99,7 @@ export class ShadingListComponent implements OnInit {
       opacity: 0.5,
       filterField: 'geocode',
       usableAnalysisLevel: this.currentAnalysisLevel,
-      showLegendHeader: false,
-      isOpenInUI: true
+      isOpenInUI: true,
     };
     switch (dataKey) {
       case GfpShaderKeys.Selection:
@@ -113,12 +112,12 @@ export class ShadingListComponent implements OnInit {
       // tslint:disable-next-line:no-switch-case-fall-through
       case GfpShaderKeys.OwnerTA:
         newForm.shadingType = ConfigurationTypes.Unique;
-        newForm.legendHeader = layerName;
-        newForm.showLegendHeader = true;
         newForm.filterByFeaturesOfInterest = true;
         break;
       default:
         newForm.filterByFeaturesOfInterest = false;
+        (newForm as any).dotValue = 100;
+        (newForm as any).dotColor = [0, 0, 0, 1];
     }
     this.addShader.emit(newForm);
   }

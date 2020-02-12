@@ -43,8 +43,6 @@ interface ShadingDefinitionBase {
   sortOrder: number;
   destinationLayerUniqueId?: string;
   layerName: string;
-  legendHeader?: string;
-  showLegendHeader: boolean;
   minScale: number;
   opacity: number;
   visible: boolean;
@@ -61,6 +59,7 @@ export interface UniqueShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.Unique;
   secondaryDataKey: string;
   theme: ColorPalette;
+  reverseTheme: boolean;
   arcadeExpression?: string;
   breakDefinitions?: UniqueValueDefinition[];
 }
@@ -68,6 +67,7 @@ export interface UniqueShadingDefinition extends ShadingDefinitionBase {
 export interface RampShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.Ramp;
   theme: ColorPalette;
+  reverseTheme: boolean;
   arcadeExpression?: string;
   breakDefinitions?: ContinuousDefinition[];
 }
@@ -75,15 +75,26 @@ export interface RampShadingDefinition extends ShadingDefinitionBase {
 export interface ClassBreakShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.ClassBreak;
   theme: ColorPalette;
+  reverseTheme: boolean;
   arcadeExpression?: string;
   breakDefinitions?: ClassBreakDefinition[];
 }
 
-export type ComplexShadingDefinition = UniqueShadingDefinition | RampShadingDefinition | ClassBreakShadingDefinition;
-export type ShadingDefinition = SimpleShadingDefinition | ComplexShadingDefinition;
+export interface DotDensityShadingDefinition extends ShadingDefinitionBase {
+  shadingType: ConfigurationTypes.DotDensity;
+  dotValue: number;
+  legendUnits: string;
+  dotColor: RgbaTuple;
+  arcadeExpression?: string;
+}
 
-export function isNotSimpleShadingDefinition(s: ShadingDefinition) : s is ComplexShadingDefinition {
-  return s.shadingType === ConfigurationTypes.ClassBreak || s.shadingType === ConfigurationTypes.Ramp || s.shadingType === ConfigurationTypes.Unique;
+export type ComplexShadingDefinition = UniqueShadingDefinition | RampShadingDefinition | ClassBreakShadingDefinition;
+export type ShadingDefinition = SimpleShadingDefinition | ComplexShadingDefinition | DotDensityShadingDefinition;
+
+export function isComplexShadingDefinition(s: ShadingDefinition) : s is ComplexShadingDefinition {
+  return s.shadingType === ConfigurationTypes.Unique ||
+         s.shadingType === ConfigurationTypes.Ramp ||
+         s.shadingType === ConfigurationTypes.ClassBreak;
 }
 
 export function generateUniqueValues(uniqueValues: string[], palette: RgbTuple[]) : UniqueValueDefinition[] {
