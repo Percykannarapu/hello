@@ -303,8 +303,8 @@ export class AppGeoService {
       this.flagLocationsWithInvalidHomeGeos(invalidLocations);
       this.store$.dispatch(new ErrorNotification({notificationTitle: 'Home Geocode Error', message: `There were ${invalidLocations.length} location(s) that have an empty Home Geocode`, additionalErrorInfo: locations}));
       // have to turn off the spinner if the above query isn't being performed
-      if (validLocations.length === 0) this.store$.dispatch(new StopBusyIndicator({key}));
     }
+    if (validLocations.length === 0) this.store$.dispatch(new StopBusyIndicator({key}));
   }
 
   public clearAllGeos(keepRadiusGeos: boolean, keepAudienceGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
