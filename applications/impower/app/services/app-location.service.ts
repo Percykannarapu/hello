@@ -1052,16 +1052,13 @@ export class AppLocationService {
   pipLocations(locations: ImpGeofootprintLocation[]){
     const queries: Observable<any>[] = [];
     const layerId = this.config.getLayerIdForAnalysisLevel('pcr', true);
-    /*const chunkArrays = this.partitionLocations(locations);
+    const chunkArrays = this.partitionLocations(locations);
           for (const locArry of chunkArrays){
             if (locArry.length > 0){
               const points = toUniversalCoordinates(locArry);
               queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode'] ));
             }
-           
-          }*/
-          const points = toUniversalCoordinates(locations);
-          queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode'] ));
+          }
         const responseMapby: Map<string, any> = new Map<string, any>();
          return merge(...queries, 4).pipe(
             reduce((acc, result) => [...acc, ...result], []),
