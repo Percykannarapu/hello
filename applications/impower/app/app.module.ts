@@ -171,12 +171,20 @@ import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjec
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 
-export function stateSanitizer() : any {
-  return {};
+export function stateSanitizer(state: any) : any {
+  if (environment.production) {
+    return {};
+  } else {
+    return state;
+  }
 }
 
 export function actionSanitizer(action: Action) : Action {
-  return { type: action.type };
+  if (environment.production && EnvironmentData.environmentName !== 'QA') {
+    return { type: action.type };
+  } else {
+    return action;
+  }
 }
 
 @NgModule({
@@ -209,8 +217,8 @@ export function actionSanitizer(action: Action) : Action {
       name: 'imPower Application',
       logOnly: environment.production,
       actionsBlocklist: ['Usage', 'Map View Changed'],
-      stateSanitizer: environment.production ? stateSanitizer : undefined,
-      actionSanitizer: environment.production ? actionSanitizer : undefined,
+      stateSanitizer: stateSanitizer,
+      actionSanitizer: actionSanitizer,
     }),
     AppRoutes,
     BrowserModule,

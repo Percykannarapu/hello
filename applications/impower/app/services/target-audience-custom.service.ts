@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { filterArray, groupBy } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, SuccessNotification, WarningNotification } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
@@ -11,19 +10,17 @@ import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/au
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
 import { BehaviorSubject, merge } from 'rxjs';
-import { distinctUntilChanged, filter, map, reduce, tap, withLatestFrom } from 'rxjs/operators';
-import { TradeAreaTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
+import { map, reduce } from 'rxjs/operators';
+import { UpdateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
 import { FileService, Parser, ParseResponse, ParseRule } from '../val-modules/common/services/file.service';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { FieldContentTypeCodes, ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
-import { UpdateAudiences } from './../impower-datastore/state/transient/audience/audience.actions';
 import { AppLoggingService } from './app-logging.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
@@ -33,7 +30,7 @@ const audienceUpload: Parser<CustomAudienceData> = {
   columnParsers: [
     { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
   ],
-  createNullParser: (header: string, isUnique?: boolean) : ParseRule => {
+  createNullParser: (header: string) : ParseRule => {
     return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data};
   }
 };
@@ -64,51 +61,11 @@ export class TargetAudienceCustomService {
               private store$: Store<LocalAppState>) {
 
     this.stateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
-
-    // Watch for trade area radius changes, but ignore changes to no trade areas
-    this.tradeAreaService.storeObservable
-      .pipe(withLatestFrom(this.stateService.applicationIsReady$),
-            filter(([, isReady]) => isReady),
-            map(([tas]) => tas),
-            filter(tas => tas != null && tas.length > 0),   // Don't do anything if there aren't any trade areas
-            tap(tas => this.logger.debug.log('TAs changed, checking if we care: ', tas)),
-            filterArray(ta => ta.impGeofootprintGeos != null && ta.impGeofootprintGeos.length > 0),
-            map(tas => tas.map(ta => {
-              switch (ta.taType.toUpperCase()) {
-                case TradeAreaTypeCodes.Radius.toUpperCase():
-                  this.logger.debug.log('taType: ', ta.taType, ', radius: ', ta.taRadius);
-                    return ta.taRadius;
-
-                default:
-                  this.logger.debug.log('taType: ', ta.taType, ', taNumber: ', ta.taNumber, ', num Geos: ', ta.impGeofootprintGeos.length);
-                  return ta.taNumber + '-' + ta.gtaId + '-' + ta.impGeofootprintGeos.length;
-                }}).join(',')),  // Map to just a delimited list of radiuses
-//          tap(tas => this.logger.debug.log("ta string: " + tas)),
-            distinctUntilChanged((x, y) => {
-              this.logger.debug.log('x: ', x, ((x === y) ? '===' : '!==') + ' y: ', y, ', x.length: ', x.length, ', y.length: ', y.length, (y.length === 0 || x === y ? ' DID NOT FIND CHANGE' : ' FOUND CHANGE'));
-              if (!(y.length === 0 || x === y))
-                this.varService.clearAll();
-              return y.length === 0 || x === y;
-            }))
-      .subscribe(tas => {
-/*        this.varService.get().forEach(pv => console.debug("BEFORE: projectVar: ", pv));
-        this.varService.remove(this.varService.get().filter(pv => pv.varSource === "Online_Audience-TA" || pv.isCustom));
-        console.debug("projectVars after remove: " + this.varService.get().length);
-        this.varService.get().forEach(pv => console.debug("AFTER: projectVar: ", pv));
-        console.debug("Current project, project vars before: ");
-        this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.debug("project project var: ", pv));
-        this.stateService.currentProject$.getValue().impProjectVars = this.stateService.currentProject$.getValue().impProjectVars.filter(pv => pv.source !== "Online_Audience-TA" && !pv.isCustom)
-        console.debug("Current project, project vars after remove: ");
-        this.stateService.currentProject$.getValue().impProjectVars.forEach(pv => console.debug("project project var: ", pv));*/
-//        this.reloadCustomVars();
-        //this.targetAudienceService.applyAudienceSelection();
-      });
-
     this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
   }
 
   private static createDataDefinition(name: string, source: string, id: string) : AudienceDataDefinition {
-    const audience: AudienceDataDefinition = {
+    return {
       audienceName: name,
       audienceIdentifier: id,
       audienceSourceType: 'Custom',
@@ -122,7 +79,6 @@ export class TargetAudienceCustomService {
       requiresGeoPreCaching: false,
       seq: null
     };
-    return audience;
   }
 
   public rehydrateAudience() {
@@ -164,7 +120,7 @@ export class TargetAudienceCustomService {
   }
 
   private varPkForColumn(column: string) : string {
-    let varPk = null;
+    let varPk;
     const audiences: Audience[] = this.allAudiencesBS$.value;
 
     if (this.varPkCache.has(column)) {
@@ -196,53 +152,6 @@ export class TargetAudienceCustomService {
     return varPk;
   }
 
-  public parseFileData(dataBuffer: string, fileName: string, isReload: boolean = false) {
-    const rows: string[] = dataBuffer.split(/\r\n|\n/);
-    const header: string = rows.shift();
-    try {
-      const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, audienceUpload);
-      const failCount = data.failedRows.length;
-      const successCount = data.parsedData.length;
-
-      if (failCount > 0) {
-        console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-        this.handleError(`There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
-      }
-      if (successCount > 0) {
-        const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
-        if (uniqueGeos.size !== data.parsedData.length) {
-          this.handleError('The file should contain unique geocodes. Please remove duplicates and resubmit the file.');
-        } else {
-          this.currentFileName = fileName;
-          this.dataCache = {};
-          data.parsedData.forEach(d => this.dataCache[d.geocode] = d);
-          if (!isReload) {
-            const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
-            const columnNames = Object.keys(data.parsedData[0]).filter(k => k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
-            for (const column of columnNames) {
-              // Get existing varPk
-              const projectVars = this.projectVarService.get().filter(pv => pv.fieldname === column);
-              const varPk = (projectVars != null && projectVars.length > 0) ? projectVars[0].varPk.toString() : column;
-              const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName, varPk);
-              if (projectVars != null && projectVars.length > 0)
-              {
-                audDataDefinition.showOnGrid = projectVars[0].isIncludedInGeoGrid;
-                audDataDefinition.showOnMap  = projectVars[0].isShadedOnMap;
-                audDataDefinition.exportInGeoFootprint = projectVars[0].isIncludedInGeofootprint;
-              }
-              this.audienceService.addAudience(audDataDefinition);
-              const metricText = 'CUSTOM' + '~' + audDataDefinition.audienceName + '~' + audDataDefinition.audienceSourceName + '~' + currentAnalysisLevel;
-              this.store$.dispatch(new CreateAudienceUsageMetric('custom', 'upload', metricText, successCount));
-            }
-          }
-          this.store$.dispatch(new SuccessNotification({ message: 'Upload Complete', notificationTitle: 'Custom Audience Upload'}));
-        }
-      }
-    } catch (e) {
-      this.handleError(`${e}`);
-    }
-  }
-
   public parseCustomVarData(dataBuffer: string, fileName: string, justColumn?: string, isReload: boolean = false) : GeoVar[] {
     // console.log('### parseCustomVarData - fired - dataBuffer size:', dataBuffer.length, 'filename:', fileName, 'justColumn:', justColumn);
     let results: GeoVar[] = [];
@@ -259,7 +168,7 @@ export class TargetAudienceCustomService {
       }
       if (successCount > 0) {
         if (!isReload)
-            this.validateGeos(data, fileName, header);
+            this.validateGeos(data, header);
         const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
         if (uniqueGeos.size !== data.parsedData.length)
           this.handleError('The file should contain unique geocodes. Please remove duplicates and resubmit the file.');
@@ -330,7 +239,7 @@ export class TargetAudienceCustomService {
                 else
                   geoVar[audience.audienceIdentifier/*this.varPkCache.get(field).toString()*/] = Number(fieldValue);
 
-                if (audience.fieldconte != fieldConteMap.get(field))
+                if (audience.fieldconte !== fieldConteMap.get(field))
                   correctAudience.add(field);
                }
             }
@@ -371,7 +280,7 @@ export class TargetAudienceCustomService {
           // console.log('### parseCustomVarData - adding audience - for project var - done');
 
           if (!isReload){
-            const geos = data.parsedData.length == 1 ? 'Geo' : 'Geos';
+            const geos = data.parsedData.length === 1 ? 'Geo' : 'Geos';
             this.store$.dispatch(new SuccessNotification({ message: `Valid ${geos} have been uploaded successfully`, notificationTitle: 'Custom Audience Upload'}));
           }
 
@@ -389,7 +298,6 @@ export class TargetAudienceCustomService {
     let results: GeoVar[] = [];
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
-    const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     try {
       const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, audienceUpload);
       const failCount = data.failedRows.length;
@@ -402,11 +310,7 @@ export class TargetAudienceCustomService {
           this.currentFileName = fileName;
           this.dataCache = {};
 
-          // For every column, create an audience
-          const columnNames = Object.keys(data.parsedData[0]).filter(k => (varName == null || k === varName) && k !== 'geocode' && typeof data.parsedData[0][k] !== 'function');
-
           // Convert column names to audience ids
-          const correctAudience: string[] = [];
           data.parsedData.forEach(d => {
             const mapVar = { geocode: d.geocode };
             if (Object.keys(d).includes(varName)) {
@@ -460,23 +364,16 @@ export class TargetAudienceCustomService {
     return result;
   }
 
-  private buildGeoCache() : Map<string, ImpGeofootprintGeo[]> {
-    const currentProject = this.stateService.currentProject$.getValue();
-    return groupBy(currentProject.getImpGeofootprintGeos(), 'geocode');
-  }
-
   private handleError(message: string) : void {
     this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
   }
 
 
-  private validateGeos(data: ParseResponse<CustomAudienceData>, fileNmae: string, header: string){
+  private validateGeos(data: ParseResponse<CustomAudienceData>, header: string){
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.stateService.analysisLevel$.getValue());
     const outfields = ['geocode', 'latitude', 'longitude'];
     const queryResult = new Set<string>();
     const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
-    const errorGeo: CustomAudienceData[] = [];
-    const successGeo = [];
     const chunked_arr = [];
     let index = 0;
     while (index < Array.from(uniqueGeos).length) {
@@ -515,43 +412,12 @@ export class TargetAudienceCustomService {
        if (records.length > 1){
           const a = document.createElement('a');
           const blob = new Blob(records, { type: 'text/csv' });
-          const url = window.URL.createObjectURL(blob);
-          a.href = url;
+          a.href = window.URL.createObjectURL(blob);
           a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
           a.click();
-          const geos = records.length == 2 ? 'Geo' : 'Geos';
+          const geos = records.length === 2 ? 'Geo' : 'Geos';
           this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
        }
     });
-   /* this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
-      map(graphics => graphics.map(g => g.attributes)),
-      map(attrs => {
-        attrs.forEach(r => queryResult.add(r.geocode));
-        return queryResult;
-      })
-     ).subscribe(qResult => {
-      const fields = header.split(',');
-      const records: string[] = [];
-      records.push(header + '\n');
-       data.parsedData.forEach(record => {
-         if (!qResult.has(record.geocode)){
-           let row = '';
-          for (let i = 0; i <= fields.length - 1; i++ ){
-            row = fields[i].toLocaleUpperCase() === 'GEOCODE' ? row + `${record.geocode},` : row + `${record[fields[i]]},`;
-          }
-          records.push(row.substring(0, row.length - 1) + '\n');
-         }
-       });
-       if (records.length > 1){
-          const a = document.createElement('a');
-          const blob = new Blob(records, { type: 'text/csv' });
-          const url = window.URL.createObjectURL(blob);
-          a.href = url;
-          a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
-          a.click();
-          const geos = records.length == 2 ? 'Geo' : 'Geos';
-          this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
-       }
-     });*/
   }
 }

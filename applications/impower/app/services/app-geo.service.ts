@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriQueryService, EsriUtils, selectors, EsriLayerService } from '@val/esri';
+import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { merge, Observable } from 'rxjs';
+import { ConfirmationService } from 'primeng/api';
+import { EMPTY, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
@@ -12,6 +13,7 @@ import { QuadTree } from '../models/quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
+import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -28,10 +30,8 @@ import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
-import { projectIsReady } from '../state/data-shim/data-shim.selectors';
-import { ConfirmationService } from 'primeng/api';
 
-const centroidAttributes = ['geocode', 'latitude', 'longitude'];
+const featureAttributes = ['geocode', 'latitude', 'longitude', 'cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
 interface AttributeDistance {
   attribute: any;
@@ -144,7 +144,7 @@ export class AppGeoService {
     features.forEach(feature => {
       if (feature.layer === layer) {
         const geoFound = this.impGeoService.get().filter(geo => geo.geocode === feature.attributes.geocode);
-        singleSelectFlag = (geoFound.length === 0) ? false : (geoFound[0].isActive ? true : false);
+        singleSelectFlag = (geoFound.length === 0) ? false : geoFound[0].isActive;
       }
     });
     return singleSelectFlag;
@@ -195,8 +195,8 @@ export class AppGeoService {
     const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
     this.impGeoService.storeObservable.pipe(
       withLatestFrom(this.appStateService.applicationIsReady$, this.appStateService.allClientLocations$),
-      filter(([geo, isReady, locs]) => isReady && locs.length > 0),
-      map(([geo, isReady, locs]) => locs),
+      filter(([, isReady, locs]) => isReady && locs.length > 0),
+      map(([, , locs]) => locs),
       filterArray(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
         (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
         loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
@@ -227,21 +227,22 @@ export class AppGeoService {
   }
 
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
-    const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
-    this.logger.debug.log('Select and Persist Radius Geos', tradeAreas);
     const key = 'selectAndPersistRadiusGeos';
+    this.store$.dispatch(new StartBusyIndicator({key, message: 'Calculating Radius Trade Areas...'}));
+
+    const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), true);
+    this.logger.debug.log('Select and Persist Radius Geos', tradeAreas.length);
     const allLocations = new Set(tradeAreas.map(ta => ta.impGeofootprintLocation));
     const locationChunks = this.partitionLocations(Array.from(allLocations));
     const queries: Observable<Map<ImpGeofootprintLocation, AttributeDistance[]>>[] = [];
     const tradeAreaSet = new Set(tradeAreas);
     const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
-    this.store$.dispatch(new StartBusyIndicator({key, message: 'Calculating Trade Areas...'}));
     this.logger.debug.log('Total number of location slices to process', locationChunks.length);
     for (const currentChunk of locationChunks) {
       const currentTas = simpleFlatten(currentChunk.map(l => l.impGeofootprintTradeAreas)).filter(ta => tradeAreaSet.has(ta));
       const maxRadius = Math.max(...currentTas.map(ta => ta.taRadius));
       queries.push(
-        this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(currentChunk), maxRadius, false, centroidAttributes)
+        this.queryService.queryPointWithBuffer(layerId, toUniversalCoordinates(currentChunk), maxRadius, false, featureAttributes)
           .pipe(map(selections => this.calculateDistances(currentChunk, tradeAreaSet, selections)))
       );
     }
@@ -249,7 +250,7 @@ export class AppGeoService {
       .subscribe(
         currentMap => mergeArrayMaps(currentMap, locationDistanceMap),
         err => {
-          console.error(err);
+          this.logger.error.log(err);
           this.store$.dispatch(new StopBusyIndicator({key}));
         },
         () => {
@@ -259,12 +260,12 @@ export class AppGeoService {
           // Add the must covers to geosToPersist
           this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), geosToPersist).subscribe(results => {
               results.forEach(result => {
-                console.log('Added ', results.length, ' must cover geos');
+                this.logger.debug.log('Added ', results.length, ' must cover geos');
                 geosToPersist.push(result);
               });
             }
             , err => {
-              console.log('ERROR occurred ensuring must covers: ', err);
+              this.logger.error.log('ERROR occurred ensuring must covers: ', err);
             }
             , () => {
               this.impGeoService.add(geosToPersist);
@@ -274,19 +275,20 @@ export class AppGeoService {
   }
 
   private selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[]) : void {
-    console.log('Firing home geo selection', locations);
-    const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), false);
-    const allSelectedData: __esri.Graphic[] = [];
     const key = 'selectAndPersistHomeGeos';
+    this.store$.dispatch(new StartBusyIndicator({key, message: 'Processing Home Geos...'}));
+
+    this.logger.debug.log('Firing home geo selection', locations.length);
+    const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), true);
+    const allSelectedData: __esri.Graphic[] = [];
     const validLocations = locations.filter(l => l.homeGeocode != null && l.homeGeocode.length > 0);
     const invalidLocations = locations.filter(l => l.homeGeocode == null || l.homeGeocode.length === 0);
     if (validLocations.length > 0) {
-      this.store$.dispatch(new StartBusyIndicator({key, message: 'Calculating Trade Areas...'}));
-      this.queryService.queryAttributeIn(layerId, 'geocode', validLocations.map(l => l.homeGeocode), false, centroidAttributes)
+      this.queryService.queryAttributeIn(layerId, 'geocode', validLocations.map(l => l.homeGeocode), false, featureAttributes)
         .subscribe(
           selections => allSelectedData.push(...selections),
           err => {
-            console.error(err);
+            this.logger.error.log(err);
             this.store$.dispatch(new StopBusyIndicator({key}));
           },
           () => {
@@ -300,6 +302,8 @@ export class AppGeoService {
     if (invalidLocations.length > 0) {
       this.flagLocationsWithInvalidHomeGeos(invalidLocations);
       this.store$.dispatch(new ErrorNotification({notificationTitle: 'Home Geocode Error', message: `There were ${invalidLocations.length} location(s) that have an empty Home Geocode`, additionalErrorInfo: locations}));
+      // have to turn off the spinner if the above query isn't being performed
+      if (validLocations.length === 0) this.store$.dispatch(new StopBusyIndicator({key}));
     }
   }
 
@@ -477,7 +481,7 @@ export class AppGeoService {
    */
   public ensureMustCoversObs(locations: ImpGeofootprintLocation[], geos: ImpGeofootprintGeo[]) : Observable<ImpGeofootprintGeo[]> {
     if (this.processingMustCovers)
-      return Observable.create(async observer => observer.complete());
+      return EMPTY;
 
     // Remove existing must cover trade areas
     const tradeAreasToDelete = this.tradeAreaService.get().filter(ta => ta.taType === 'MUSTCOVER');
@@ -492,11 +496,11 @@ export class AppGeoService {
     // Check all geos if none are provided
     if (geos == null || geos.length === 0) {
       geos = this.impGeoService.get();
-      console.log('Checking all ' + geos.length + ' geos for must covers');
+      this.logger.debug.log('Checking all ' + geos.length + ' geos for must covers');
     } else
-      console.log('Checking ' + geos.length + ' geos for must cover');
+      this.logger.debug.log('Checking ' + geos.length + ' geos for must cover');
 
-    //console.debug("### ensureMustCoversObs removed ", tradeAreasToDelete.length, " trade areas");
+    //this.logger.debug.log("### ensureMustCoversObs removed ", tradeAreasToDelete.length, " trade areas");
 
     // If no locations provided, pull them all
     if (locations == null || locations.length === 0)
@@ -517,17 +521,17 @@ export class AppGeoService {
     let numNewGeos: number = 0;
     let newGeoList: string = '';
 
-    return Observable.create(async observer => {
+    return new Observable<ImpGeofootprintGeo[]>(observer => {
       try {
         if (this.impGeoService.mustCovers == null || this.impGeoService.mustCovers.length === 0 || diff == null || diff.length === 0 || locations == null || locations.length === 0) {
-          console.log('ensureMustCoversObs - Must cover criteria not met, ending observable');
-          // console.log("### this.impGeoService.mustCovers: " + ((this.impGeoService.mustCovers != null) ? this.impGeoService.mustCovers.length : null));
-          // console.log("### diff: " + ((diff != null) ? diff.length : null));
-          // console.log("### locations: " + ((locations != null) ? locations.length : null));
+          this.logger.debug.log('ensureMustCoversObs - Must cover criteria not met, ending observable');
+          // this.logger.debug.log("### this.impGeoService.mustCovers: " + ((this.impGeoService.mustCovers != null) ? this.impGeoService.mustCovers.length : null));
+          // this.logger.debug.log("### diff: " + ((diff != null) ? diff.length : null));
+          // this.logger.debug.log("### locations: " + ((locations != null) ? locations.length : null));
           observer.complete();
           this.processingMustCovers = false;
         } else {
-          console.log('ensureMustCoverObs - ' + diff.length + ' geos not covered.');
+          this.logger.debug.log('ensureMustCoverObs - ' + diff.length + ' geos not covered.');
           this.processingMustCovers = true;
           this.getGeoAttributesObs(diff).subscribe(
             results => {
@@ -535,10 +539,10 @@ export class AppGeoService {
               const newTradeAreas: ImpGeofootprintTradeArea[] = [];
 
               results.forEach(geoAttrib => {
-                //console.debug("### ensureMustCoversObs creating ImpGeo for " + geoAttrib.geocode + ", x: ", geoAttrib["longitude"], ", y: ", geoAttrib["latitude"]);
+                //this.logger.debug.log("### ensureMustCoversObs creating ImpGeo for " + geoAttrib.geocode + ", x: ", geoAttrib["longitude"], ", y: ", geoAttrib["latitude"]);
 
                 // Assign to the nearest location
-                let closestLocation: ImpGeofootprintLocation;
+                let closestLocation: ImpGeofootprintLocation = locations[0];
                 let minDistance: number = Number.MAX_VALUE;
                 locations.forEach(loc => {
                   const distanceToSite = EsriUtils.getDistance(geoAttrib['longitude'], geoAttrib['latitude'], loc.xcoord, loc.ycoord);
@@ -546,9 +550,9 @@ export class AppGeoService {
                     minDistance = distanceToSite;
                     closestLocation = loc;
                   }
-                  // console.debug("### location: ", loc.locationName + ", loc x: ", loc.xcoord, ", loc y: ", loc.ycoord, ", geo x: ", result.xcoord, ", geo y: ", result.ycoord, ", distance: ", distanceToSite);
+                  // this.logger.debug.log("### location: ", loc.locationName + ", loc x: ", loc.xcoord, ", loc y: ", loc.ycoord, ", geo x: ", result.xcoord, ", geo y: ", result.ycoord, ", distance: ", distanceToSite);
                 });
-                //console.debug("### ensureMustCoversObs - closest location to ", geoAttrib.geocode, " is ", closestLocation.locationName, " at ", minDistance);
+                //this.logger.debug.log("### ensureMustCoversObs - closest location to ", geoAttrib.geocode, " is ", closestLocation.locationName, " at ", minDistance);
 
                 // Assign to a new or existing MUSTCOVER trade area
                 const mustCoverTA: ImpGeofootprintTradeArea[] = closestLocation.impGeofootprintTradeAreas.filter(ta => ta.taType.toUpperCase() === TradeAreaTypeCodes.MustCover.toUpperCase());
@@ -589,14 +593,14 @@ export class AppGeoService {
               observer.next(impGeofootprintGeos);
             }
             , err => {
-              console.log('There was an error querying the ArcGIS layer for must covers', err);
+              this.logger.error.log('There was an error querying the ArcGIS layer for must covers', err);
               observer.error(err);
               this.processingMustCovers = false;
             }
             , () => {
-              // queryResult.forEach(geoAttrib => console.log ("### geoAttrib: ", geoAttrib));
-              console.log('New must cover geos(' + numNewGeos + '): ');
-              if (numNewGeos > 0) console.log('   ', newGeoList);
+              // queryResult.forEach(geoAttrib => this.logger.debug.log ("### geoAttrib: ", geoAttrib));
+              this.logger.debug.log('New must cover geos(' + numNewGeos + '): ');
+              if (numNewGeos > 0) this.logger.debug.log('   ', newGeoList);
               observer.complete();
               this.processingMustCovers = false;
             }
@@ -611,29 +615,29 @@ export class AppGeoService {
 
   public ensureMustCovers() {
     if (this.processingMustCovers) {
-      // console.debug("### mustCovers are already processing");
+      // this.logger.debug.log("### mustCovers are already processing");
       return;
     }
-    console.log('ensureMustCovers fired');
+    this.logger.debug.log('ensureMustCovers fired');
     const geosToPersist: Array<ImpGeofootprintGeo> = [];
     const key = 'ensureMustCovers';
     this.store$.dispatch(new StartBusyIndicator({key: key, message: 'Applying Must Cover'}));
     // Add the must covers to geosToPersist
     this.ensureMustCoversObs(null, null).subscribe(results => {
-        //console.debug("### ensureMustCovers is pushing " + ((results != null) ? results.length : 0) + " geos");
+        //this.logger.debug.log("### ensureMustCovers is pushing " + ((results != null) ? results.length : 0) + " geos");
         results.forEach(result => geosToPersist.push(result));
       }
       , err => {
-        console.error('Error in ensureMustCovers(): ', err);
+        this.logger.error.log('Error in ensureMustCovers(): ', err);
         this.store$.dispatch(new ErrorNotification({message: 'There was an error creating must covers'}));
         this.store$.dispatch(new StopBusyIndicator({key: key}));
       }
       , () => {
         if (geosToPersist.length > 0) {
-          console.log('Adding', geosToPersist.length, 'must cover geographies to the data store');
+          this.logger.debug.log('Adding', geosToPersist.length, 'must cover geographies to the data store');
           this.impGeoService.add(geosToPersist);
         } else
-          console.log('No new must cover geographies');
+          this.logger.debug.log('No new must cover geographies');
 
         this.store$.dispatch(new StopBusyIndicator({key: key}));
       });
@@ -644,23 +648,23 @@ export class AppGeoService {
    * by getting and parsing the MUSTCOVER project prefs
    */
   public reloadMustCovers() {
-    //console.debug("### reloadMustCovers fired");
+    //this.logger.debug.log("### reloadMustCovers fired");
     let newMustCovers: string[] = [];
     try {
       const prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup('MUSTCOVER');
-      //console.debug("### prefs.Count = " + ((prefs != null) ? prefs.length : null));
+      //this.logger.debug.log("### prefs.Count = " + ((prefs != null) ? prefs.length : null));
       if (prefs != null) {
-        //prefs.forEach(pref => console.debug("### MUSTCOVER pref: " + pref.pref + " = " + pref.val));
+        //prefs.forEach(pref => this.logger.debug.log("### MUSTCOVER pref: " + pref.pref + " = " + pref.val));
         prefs.forEach(mustCoverPref => {
           const prefsVal = mustCoverPref.val == null ? mustCoverPref.largeVal : mustCoverPref.val;
           newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(prefsVal)];
         });
         this.impGeoService.setMustCovers(newMustCovers);
       }
-      //console.log("### newMustCovers.count = " + newMustCovers.length);
-      //this.impGeoService.mustCovers.forEach(mc => console.log("### MC: " + mc));
+      //this.logger.debug.log("### newMustCovers.count = " + newMustCovers.length);
+      //this.impGeoService.mustCovers.forEach(mc => this.logger.debug.log("### MC: " + mc));
     } catch (e) {
-      console.error('Error loading must covers: ' + e);
+      this.logger.error.log('Error loading must covers: ' + e);
     }
   }
 
@@ -669,23 +673,23 @@ export class AppGeoService {
    * @param geocodes Array of geocodes to retrieve attributes for
    * @param attributesNames Array of attributes to retrieve, if not specified, a default set will be returned
    */
-  public getGeoAttributesObs(geocodes: string[], attributesNames: string[] = centroidAttributes) : Observable<Map<string, { geocode: string, attributes: Map<string, any> }>> {
+  public getGeoAttributesObs(geocodes: string[], attributesNames: string[] = featureAttributes) : Observable<Map<string, { geocode: string, attributes: Map<string, any> }>> {
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     const portalLayerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel);
     const queryResult = new Map<string, { latitude: number, longitude: number }>();
 
-    return Observable.create(async observer => {
+    return new Observable<Map<string, {geocode: string, attributes: Map<string, any>}>>(observer => {
       try {
         this.queryService.queryAttributeIn(portalLayerId, 'geocode', geocodes, false, attributesNames).pipe(
           map(graphics => graphics.map(g => g.attributes)),
         ).subscribe(results => {
             results.forEach(r => queryResult.set(r.geocode, r));
-            // console.log("### getGeoAttributesObs.queryAttributeIn found " + results.length + " geo attributes");
-            // results.forEach(r => console.log("### getGeoAttributesObs.queryAttributeIn - ", r));
-            observer.next(results);
+            // this.logger.debug.log("### getGeoAttributesObs.queryAttributeIn found " + results.length + " geo attributes");
+            // results.forEach(r => this.logger.debug.log("### getGeoAttributesObs.queryAttributeIn - ", r));
+            observer.next(results as any); // HACK for now
           }
           , err => {
-            console.log('There was an error querying the ArcGIS layer for geo attributes', err);
+            this.logger.error.log('There was an error querying the ArcGIS layer for geo attributes', err);
           }
           , () => {
             observer.complete();

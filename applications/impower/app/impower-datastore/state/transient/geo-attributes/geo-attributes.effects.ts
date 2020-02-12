@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { selectors } from '@val/esri';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { of } from 'rxjs';
-import { catchError, concatMap, switchMap, withLatestFrom } from 'rxjs/operators';
+import { catchError, concatMap, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { FullAppState } from '../../../../state/app.interfaces';
 import { FeatureLoaderService } from '../../../services/feature-loader.service';
 import {
@@ -45,6 +46,23 @@ export class GeoAttributesEffects {
       catchError(err => of(new RehydrateAttributesFailure({ err })))
     ))
   );
+
+  @Effect()
+  excessiveAttributeBusy$ = this.actions$.pipe(
+    ofType<RequestAttributes | RehydrateAttributes>(GeoAttributeActionTypes.RequestAttributes, GeoAttributeActionTypes.RehydrateAttributes),
+    map(action => action.payload.geocodes.size),
+    filter(size => size > 2000),
+    map(size => new StartBusyIndicator({ key: this.busyKey, message: `Retrieving Household Counts for ${size} geos`}))
+  );
+
+  @Effect()
+  excessiveAttributeStop$ = this.actions$.pipe(
+    ofType(GeoAttributeActionTypes.RequestAttributesComplete, GeoAttributeActionTypes.RequestAttributesFailure,
+           GeoAttributeActionTypes.RehydrateAttributesComplete, GeoAttributeActionTypes.RehydrateAttributesFailure),
+    map(() => new StopBusyIndicator({ key: this.busyKey }))
+  );
+
+  private busyKey = 'GeoAttributesBusyIndicator';
 
   constructor(private actions$: Actions<GeoAttributeActions>,
               private store$: Store<FullAppState>,
