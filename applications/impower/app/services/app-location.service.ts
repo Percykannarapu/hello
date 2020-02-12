@@ -833,8 +833,6 @@ export class AppLocationService {
         if (homeGeoColumnsSet.has(attr.attributeCode)){
           attrMap[attr.attributeCode] = attr.attributeValue;
         }
-        //
-
       });
 
       if (loc['homeGeoFound'] == null &&
@@ -895,14 +893,15 @@ export class AppLocationService {
                         attributesList.push(... result.attributes);
                 return attributesList;
              })
-           )));
+           ))
+           );
         }
         if (locationsHomeGeoFuse.length > 0){
           const attrList: Map<string, any> = new Map<string, any>();
           const attributesList: any[] = [];
           const rePipLocations: ImpGeofootprintLocation[] = [];
           locationsHomeGeoFuse.forEach(loc => attrList.set(loc.locZip.substr(0, 5) + loc.carrierRoute, null));
-          fuseObservble = this.queryRemainingAttr(attrList, locationsHomeGeoFuse, true).pipe(
+          fuseObservble = this.queryRemainingAttrFuse(attrList, locationsHomeGeoFuse, true).pipe(
             map(result => {
               if (result.attributes.length > 0)
                    attributesList.push(... result.attributes);
@@ -988,6 +987,22 @@ export class AppLocationService {
         })
     );
   }
+  
+  queryRemainingAttrFuse(attrList: Map<string, any>, impGeofootprintLocations: ImpGeofootprintLocation[], isFuseLocations: boolean){
+    const homePcrList = Array.from(attrList.keys()); 
+    return  this.determineHomeGeos(homePcrList, 'IMP_GEO_HIERARCHY_MV', 'PCR, ZIP, ATZ, DTZ, COUNTY, DMA', 'PCR').pipe(
+      map(response => {
+        return  response.payload;
+      }),
+      reduce((acc, result) => [...acc, ...result], []),
+      map(result => {
+        const locationsGroupBy = groupByExtended(impGeofootprintLocations, loc => !isFuseLocations ?  loc.locZip.substr(0, 5) : loc.locZip.substr(0, 5) + loc.carrierRoute);
+        const responseMap: Map<string, any[]> = groupByExtended(result, row => !isFuseLocations ? row['PCR'].substr(0, 5) : row['PCR']); 
+          return this.getAttributesforLayers(locationsGroupBy, 'PCR', result, responseMap, attrList, isFuseLocations);
+      })
+    );
+  }
+  
   /**
    * 
    * @param attrList 
@@ -997,6 +1012,8 @@ export class AppLocationService {
   queryRemainingAttr(attrList: Map<string, any>, impGeofootprintLocations: ImpGeofootprintLocation[], isFuseLocations: boolean){
     const homePcrList = Array.from(attrList.keys()); 
     //console.log('homePcrList====>', homePcrList);
+    const attributesList: any[] = [];
+    let rePipLocations: ImpGeofootprintLocation[] = [];
     
     return  this.determineHomeGeos(homePcrList, 'IMP_GEO_HIERARCHY_MV', 'PCR, ZIP, ATZ, DTZ, COUNTY, DMA', 'PCR').pipe(
       map(response => {
@@ -1004,54 +1021,152 @@ export class AppLocationService {
       }),
       reduce((acc, result) => [...acc, ...result], []),
       map(result => {
-          const attributesList: any[] = [];
-          const locationsGroupBy = groupByExtended(impGeofootprintLocations, loc => !isFuseLocations ?  loc.locZip.substr(0, 5) : loc.locZip.substr(0, 5) + loc.carrierRoute);
-          const pipAgianLocations: ImpGeofootprintLocation[] = [];
-          const responseMap: Map<string, any[]> = groupByExtended(result, row => !isFuseLocations ? row['PCR'].substr(0, 5) : row['PCR']); 
-          locationsGroupBy.forEach( (value: ImpGeofootprintLocation[], key: string) => {
-              //console.log('key===>', key, 'value===>', value);
-              if (value.length == 1){
-                const row = responseMap.get(key);
-                if (row != null && row.length > 0){
-                  attributesList.push(this.createArreibut(row[0], value[0]));
-                  attrList.delete(row[0] ['PCR']);
-                }
-                else
-                  pipAgianLocations.push(value[0]);
-              }else if (value.length > 1 && !isFuseLocations){
-                 value.forEach(loc => {
-                    attrList.forEach((geometry: any, pcr: string) => {
-                      const insideGeometry = {x: loc.xcoord, y: loc.ycoord} as Geometry;
-                      const bool = geometryEngine.contains(geometry, insideGeometry);
-                      if  (bool){
-                          const row = result.filter(record => record['PCR'] === pcr);
-                          attributesList.push(this.createArreibut(row[0], loc));
-                      }
-                    });
-                 });
-              }
-              else if (value.length > 1 && isFuseLocations){
-                value.forEach(loc => {
-                  const row = responseMap.get(key);
-                  if (row != null && row.length > 0){
-                    attributesList.push(this.createArreibut(row[0], value[0]));
-                    attrList.delete(row[0] ['PCR']);
-                  }
-                  else
-                    pipAgianLocations.push(value[0]);
-                });
-              }
-          });
-          //console.log('attributesList return ===>', attributesList);
-          const t = {'attributes': attributesList, 'rePipLocations': pipAgianLocations};
+        const locationsGroupBy = groupByExtended(impGeofootprintLocations, loc => !isFuseLocations ?  loc.locZip.substr(0, 5) : loc.locZip.substr(0, 5) + loc.carrierRoute);
+        const responseMap: Map<string, any[]> = groupByExtended(result, row => !isFuseLocations ? row['PCR'].substr(0, 5) : row['PCR']); 
+          const t =  this.getAttributesforLayers(locationsGroupBy, 'PCR', result, responseMap, attrList, isFuseLocations);
+          if (t.attributes.length > 0) attributesList.push(...t.attributes);
+          if (t.rePipLocations.length > 0) rePipLocations.push(...t.rePipLocations);    
           return t;
+      }),
+      mergeMap(t => {
+          console.log('attribute List ATZ====>', t);
+        if (t.rePipLocations.length > 0){
+          return this.pipLocations(t.rePipLocations, 'atz').pipe(
+            switchMap(atzGeos => {
+              const homeAtzGeos = Array.from(atzGeos.keys());
+              return this.determineHomeGeos(homeAtzGeos, 'IMP_GEO_HIERARCHY_MV', 'ZIP, ATZ, DTZ, COUNTY, DMA ', 'ATZ').pipe(
+                map(response => {
+                  return  response.payload;
+                }),
+                reduce((acc, result) => [...acc, ...result], []),
+                map(result => {
+                  const atzSet = new Set();
+                  const atzResultMap = [];
+                  result.forEach(record => {
+                    if (!atzSet.has(record['ATZ'])){
+                          atzSet.add(record['ATZ']);
+                          const DTZ = record['DTZ'] === record['ATZ'] ? record['ATZ'] : null ;
+                          atzResultMap.push({'ATZ': record['ATZ'], 'DTZ' : DTZ, 'ZIP': record['ZIP'], 'homeDma': record['homeDma'], 'homeCounty': record['homeCounty']});
+                    }
+                  });
+                  const locationsGroupBy = groupByExtended(rePipLocations, loc =>   loc.locZip.substr(0, 5) );
+                  const responseMap: Map<string, any[]> = groupByExtended(Array.from(atzResultMap), row =>  row['ATZ'].substr(0, 5)); 
+                  return this.getAttributesforLayers(locationsGroupBy, 'ATZ', atzResultMap, responseMap, attrList, isFuseLocations);
+                })
+              );
+            })
+          );
+        }
+        else{
+          //const result = {'attributes': attributesList, 'rePipLocations': rePipLocations};
+         return of(t)  ;
+        } 
+
+           
+      }),
+      map(response => {
+        console.log('attribute List  ZIP', response);
+        if (response.attributes.length > 0) attributesList.push(...response.attributes);
+        //response.rePipLocations.push(...rePipLocations);
+        if (response.attributes.length > 0){
+              const responseAttributesBySiteNumber = mapBy(response.attributes, 'siteNumber');
+              const temploc = rePipLocations.filter(loc => responseAttributesBySiteNumber.get(loc.locationNumber) != null );
+              rePipLocations = temploc;
+              response.rePipLocations = temploc;
+        }
+        return response;
+      }),
+      mergeMap(t => {
+        console.log('attribute List ZIP====>', t);
+        if (t.rePipLocations.length > 0){
+          return this.pipLocations(t.rePipLocations, 'zip').pipe(
+            switchMap(zipGeos => {
+              const homeZipGeos = Array.from(zipGeos.keys());
+              return this.determineHomeGeos(homeZipGeos, 'IMP_GEO_HIERARCHY_MV', 'ZIP, ATZ, DTZ, DMA, COUNTY', 'ZIP').pipe(
+                map(response => {
+                  return  response.payload;
+                }),
+                reduce((acc, result) => [...acc, ...result], []),
+                map(result => {
+                  const zipSet = new Set();
+                  const zipResultMap = [];
+                  result.forEach(record => {
+                    if (!zipSet.has(record['ZIP'])){
+                          zipSet.add(record['ZIP']);
+                          const DTZ = record['DTZ'] === record['ZIP'] ? record['DTZ'] : null ;
+                          zipResultMap.push({'ATZ': record['ATZ'], 'DTZ' : DTZ, 'ZIP': record['ZIP'], 'DMA': record['homeDma'], 'COUNTY': record['homeCounty']});
+                    }
+                  });
+                  const locationsGroupBy = groupByExtended(impGeofootprintLocations, loc =>   loc.locZip.substr(0, 5) );
+                  const responseMap: Map<string, any[]> = groupByExtended(Array.from(zipResultMap), row =>  row['ZIP'].substr(0, 5)); 
+                  return this.getAttributesforLayers(locationsGroupBy, 'ZIP', zipResultMap, responseMap, attrList, isFuseLocations);
+                })
+              );
+            })
+          );
+        }
+        else return of(t);
+      }),
+      map(response => {
+        if (response.attributes.length > 0){
+          attributesList.push(...response.attributes);
+          const responseAttributesBySiteNumber = mapBy(response.attributes, 'siteNumber');
+          const temploc = rePipLocations.filter(loc => responseAttributesBySiteNumber.get(loc.locationNumber) != null );
+          rePipLocations = temploc;
+        }
+          const t = {'attributes': attributesList, 'rePipLocations': rePipLocations};
+        return t;
       })
      );
   }
 
-  pipLocations(locations: ImpGeofootprintLocation[]){
+  getAttributesforLayers(locationsGroupBy: Map<string, ImpGeofootprintLocation[]>, analysisLevel: string, result: any[], 
+                            responseMap: Map<string, any[]>, attrList: Map<string, any>, isFuseLocations: boolean){
+    const attributesList: any[] = [];
+    const pipAgianLocations: ImpGeofootprintLocation[] = [];
+    locationsGroupBy.forEach((value: ImpGeofootprintLocation[], key: string) => {
+        //console.log('key===>', key, 'value===>', value);
+        if (value.length == 1){
+          const row = responseMap.get(key);
+          if (row != null && row.length > 0){
+            attributesList.push(this.createArreibut(row[0], value[0]));
+            attrList.delete(row[0] [analysisLevel]);
+          }
+          else
+            pipAgianLocations.push(value[0]);
+        }
+        else if (value.length > 1 && !isFuseLocations){
+          value.forEach(loc => {
+             attrList.forEach((geometry: any, pcr: string) => {
+               const insideGeometry = {x: loc.xcoord, y: loc.ycoord} as Geometry;
+               const bool = geometryEngine.contains(geometry, insideGeometry);
+               if  (bool){
+                   const row = result.filter(record => record[analysisLevel] === pcr);
+                   attributesList.push(this.createArreibut(row[0], loc));
+               }
+             });
+          });
+        }
+        else if (value.length > 1 && isFuseLocations){
+          value.forEach(loc => {
+            const row = responseMap.get(key);
+            if (row != null && row.length > 0){
+              attributesList.push(this.createArreibut(row[0], value[0]));
+              attrList.delete(row[0] [analysisLevel]);
+            }
+            else
+              pipAgianLocations.push(value[0]);
+          });
+        }
+    });
+     //console.log('attributesList return ===>', attributesList);
+     const t = {'attributes': attributesList, 'rePipLocations': pipAgianLocations};
+     return t;
+  }
+
+  pipLocations(locations: ImpGeofootprintLocation[], analysisLevel: string = 'pcr'){
     const queries: Observable<any>[] = [];
-    const layerId = this.config.getLayerIdForAnalysisLevel('pcr', true);
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
     const chunkArrays = this.partitionLocations(locations);
           for (const locArry of chunkArrays){
             if (locArry.length > 0){
