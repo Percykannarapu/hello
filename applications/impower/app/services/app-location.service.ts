@@ -1065,12 +1065,12 @@ export class AppLocationService {
            
       }),
       map(response => {
-        console.log('attribute List  ZIP', response);
+        //console.log('attribute List  ZIP', response);
         if (response.attributes.length > 0) attributesList.push(...response.attributes);
         //response.rePipLocations.push(...rePipLocations);
         if (response.attributes.length > 0){
               const responseAttributesBySiteNumber = mapBy(response.attributes, 'siteNumber');
-              const temploc = rePipLocations.filter(loc => responseAttributesBySiteNumber.get(loc.locationNumber) != null );
+              const temploc = rePipLocations.filter(loc => responseAttributesBySiteNumber.get(loc.locationNumber) == null );
               rePipLocations = temploc;
               response.rePipLocations = temploc;
         }
@@ -1111,7 +1111,7 @@ export class AppLocationService {
         if (response.attributes.length > 0){
           attributesList.push(...response.attributes);
           const responseAttributesBySiteNumber = mapBy(response.attributes, 'siteNumber');
-          const temploc = rePipLocations.filter(loc => responseAttributesBySiteNumber.get(loc.locationNumber) != null );
+          const temploc = rePipLocations.filter(loc => responseAttributesBySiteNumber.get(loc.locationNumber) == null );
           rePipLocations = temploc;
         }
           const t = {'attributes': attributesList, 'rePipLocations': rePipLocations};
@@ -1125,7 +1125,7 @@ export class AppLocationService {
     const attributesList: any[] = [];
     const pipAgianLocations: ImpGeofootprintLocation[] = [];
     locationsGroupBy.forEach((value: ImpGeofootprintLocation[], key: string) => {
-        //console.log('key===>', key, 'value===>', value);
+        console.log('key===>', key, 'value===>', value);
         if (value.length == 1){
           const row = responseMap.get(key);
           if (row != null && row.length > 0){
@@ -1136,6 +1136,7 @@ export class AppLocationService {
             pipAgianLocations.push(value[0]);
         }
         else if (value.length > 1 && !isFuseLocations){
+          console.log('Test====>', value, 'isfuse===>', isFuseLocations);
           value.forEach(loc => {
              attrList.forEach((geometry: any, pcr: string) => {
                const insideGeometry = {x: loc.xcoord, y: loc.ycoord} as Geometry;
@@ -1148,6 +1149,7 @@ export class AppLocationService {
           });
         }
         else if (value.length > 1 && isFuseLocations){
+          console.log('Test====>', value, 'isfuse===>', isFuseLocations);
           value.forEach(loc => {
             const row = responseMap.get(key);
             if (row != null && row.length > 0){
