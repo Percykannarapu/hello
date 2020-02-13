@@ -1,7 +1,15 @@
+@import "valassis-variables";
+
 .shader-display {
   label {
     display: inline;
     padding-right: 1em;
+  }
+  .color-chip {
+    display: inline-block;
+    width: 20px;
+    height: 15px;
+    margin-left: 0.5em;
   }
 }
 
@@ -14,4 +22,8 @@
     }
   }
   padding: 0.5em;
+  label.shader-control-label {
+    color: $primaryColor;
+    padding-left: 5px;
+  }
 }

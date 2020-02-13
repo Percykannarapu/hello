@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { FormConfig } from '@val/common';
+import { FormConfig, rgbToHex } from '@val/common';
 import { ColorPalette, ComplexShadingDefinition, ConfigurationTypes, DotDensityShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Audience } from '../../../../impower-datastore/state/transient/audience/audience.model';
@@ -40,6 +40,10 @@ export class VariableShadingComponent implements OnInit {
   }
   set selectedDotColor(value: Rgb) {
     this.shaderForm.get('dotColor').setValue(rgbToEsri(value));
+  }
+  get currentDotColorInHex() : string {
+    const dotDefinition = this.definition as DotDensityShadingDefinition;
+    return rgbToHex(dotDefinition.dotColor);
   }
 
   @Input() definition: UIShadingDefinition;

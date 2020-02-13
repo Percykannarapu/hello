@@ -19,6 +19,20 @@
       <label>Theme:</label>
       <strong>{{definition.theme}}</strong>&nbsp;<span *ngIf="definition.reverseTheme">(reversed)</span>
     </div>
+    <div *ngIf="definition.shadingType === ConfigurationTypes.DotDensity">
+      <div>
+        <label>Dot Color:</label>
+        <span class="color-chip" [ngStyle]="{ 'background-color': currentDotColorInHex }"></span>
+      </div>
+      <div>
+        <label>Dot Value:</label>
+        <strong>{{definition.dotValue}}</strong>
+      </div>
+      <div>
+        <label>Legend Units:</label>
+        <strong>{{definition.legendUnits}}</strong>
+      </div>
+    </div>
     <div>
       <label>Opacity:</label>
       <strong>{{definition.opacity}}</strong>
@@ -45,9 +59,10 @@
             <boolean-input [parentForm]="shaderForm" valueName="reverseTheme" labelText="Reverse Theme?"></boolean-input>
           </div>
           <div *ngSwitchCase="ConfigurationTypes.DotDensity">
+            <label class="shader-control-label">Dot Color</label>
             <p-colorPicker [(ngModel)]="selectedDotColor" format="rgb" [ngModelOptions]="{standalone: true}"></p-colorPicker>
             <validated-text-input [parentForm]="shaderForm" valueName="dotValue" labelText="Value of one Dot" validationMessage="Dot value must be greater than 1"></validated-text-input>
-            <validated-text-input [parentForm]="shaderForm" valueName="legendUnits" labelText="Units per dot"></validated-text-input>
+            <validated-text-input [parentForm]="shaderForm" valueName="legendUnits" labelText="Legend Units (i.e. Households)"></validated-text-input>
           </div>
           <div *ngSwitchCase="ConfigurationTypes.ClassBreak">
 
