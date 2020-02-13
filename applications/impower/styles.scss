@@ -258,6 +258,11 @@ body {
       .esri-attribution {
         background-color: rgba(255, 255, 255, 0.9);
       }
+      .esri-legend {
+        width: auto;
+        margin-top: -15px;
+        margin-right: -15px;
+      }
     }
   }
   .esriMapContainer:not(.batch-mode) {
