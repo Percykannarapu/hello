@@ -1125,7 +1125,7 @@ export class AppLocationService {
     const attributesList: any[] = [];
     const pipAgianLocations: ImpGeofootprintLocation[] = [];
     locationsGroupBy.forEach((value: ImpGeofootprintLocation[], key: string) => {
-        console.log('key===>', key, 'value===>', value);
+        //console.log('key===>', key, 'value===>', value);
         if (value.length == 1){
           const row = responseMap.get(key);
           if (row != null && row.length > 0){
@@ -1136,7 +1136,7 @@ export class AppLocationService {
             pipAgianLocations.push(value[0]);
         }
         else if (value.length > 1 && !isFuseLocations){
-          console.log('Test====>', value, 'isfuse===>', isFuseLocations);
+          //console.log('Test====>', value, 'isfuse===>', isFuseLocations);
           value.forEach(loc => {
              attrList.forEach((geometry: any, pcr: string) => {
                const insideGeometry = {x: loc.xcoord, y: loc.ycoord} as Geometry;
@@ -1149,7 +1149,7 @@ export class AppLocationService {
           });
         }
         else if (value.length > 1 && isFuseLocations){
-          console.log('Test====>', value, 'isfuse===>', isFuseLocations);
+          //console.log('Test====>', value, 'isfuse===>', isFuseLocations);
           value.forEach(loc => {
             const row = responseMap.get(key);
             if (row != null && row.length > 0){
