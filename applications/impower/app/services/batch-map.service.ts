@@ -55,6 +55,12 @@ export class BatchMapService {
       filter(result => result.newValue),
     ).subscribe(() => this.appStateService.refreshVisibleGeos());
     this.appMapService.setupMap(true);
+    this.esriMapService.mapView.padding = {
+      right: 300,
+      bottom: 0,
+      left: 0,
+      top: 0
+    };
     this.store$.select(getBatchMapReady).pipe(
       filter(ready => ready),
       take(1),

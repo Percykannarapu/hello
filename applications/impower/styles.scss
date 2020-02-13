@@ -255,6 +255,7 @@ body {
   }
   .esriMapContainer.batch-mode {
     .esri-ui {
+      right: 0 !important;
       .esri-attribution {
         background-color: rgba(255, 255, 255, 0.9);
       }
