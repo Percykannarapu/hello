@@ -891,6 +891,12 @@ export class AppLocationService {
              map(result => {
                       if (result.attributes.length > 0)
                         attributesList.push(... result.attributes);
+                      if (result.rePipLocations.length > 0){
+                          const row = {'ATZ': null, 'DTZ' : null, 'ZIP': null, 'DMA': null, 'COUNTY': null};
+                          result.rePipLocations.forEach(loc => {
+                            attributesList.push(this.createArreibut(row, loc));
+                        });
+                      }  
                 return attributesList;
              })
            ))
@@ -914,6 +920,13 @@ export class AppLocationService {
                   map(res1 => {
                     if (res1.attributes.length > 0)
                          attributesList.push(... res1.attributes);
+                    if (res1.rePipLocations.length > 0){
+                      const row = {'ATZ': null, 'DTZ' : null, 'ZIP': null, 'DMA': null, 'COUNTY': null};
+                      res1.rePipLocations.forEach(loc => {
+                          attributesList.push(this.createArreibut(row, loc));
+                      });
+                      //attributesList.push(res1.rePipLocations.forEach(loc => this.createArreibut(row, loc)));
+                    }     
                     return attributesList;     
                     })
                 );
