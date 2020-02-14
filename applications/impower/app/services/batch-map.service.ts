@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { groupByExtended } from '@val/common';
+import { groupByExtended, UniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
@@ -88,6 +88,17 @@ export class BatchMapService {
     return result;
   }
 
+  showAllSites(project: ImpProject) : Observable<{ siteNum: string, isLastSite: boolean }> {
+    const result = { siteNum: project.getImpGeofootprintLocations()[project.getImpGeofootprintLocations().length - 1].locationNumber, isLastSite: true };
+    const points: Array<UniversalCoordinates> = [];
+    project.getImpGeofootprintLocations().forEach(l => {
+      points.push({ x: l.xcoord, y: l.ycoord });
+    });
+    return this.esriMapService.zoomToPoints(points).pipe(
+      map(() => result)
+    );
+  }
+
   moveToSite(project: ImpProject, siteNum: string, hideNeighborSites: boolean) : Observable<{ siteNum: string, isLastSite: boolean }> {
     if (this.originalGeoState == null) {
       this.recordOriginalState(project);
@@ -164,7 +175,9 @@ export class BatchMapService {
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
       reduce((a, c) => [...a, ...c], []),
-      switchMap((polys) => this.esriMapService.zoomToPolys(polys))
+      switchMap((polys) => {
+        return this.esriMapService.zoomToPolys(polys);
+      })
     );
   }
 }

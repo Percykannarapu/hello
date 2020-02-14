@@ -13,12 +13,14 @@ export interface BatchMapQueryParams {
   height: number;
   hideNeighboringSites: boolean;
   startingSite: string;
+  singlePage: boolean;
 }
 
 const defaultBatchQueryParams: BatchMapQueryParams = {
   height: 850,
   hideNeighboringSites: false,
-  startingSite: null
+  startingSite: null,
+  singlePage: false
 };
 
 const getRouterSlice = (state: LocalAppState) => state.router;
