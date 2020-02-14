@@ -41,12 +41,7 @@ export class BatchMapEffects {
     ofType(BatchMapActionTypes.MoveToSite),
     withLatestFrom(this.appStateService.currentProject$, this.store$.select(getTypedBatchQueryParams)),
     filter(([, project]) => project != null && project.projectId != null),
-    switchMap(([action, project, query]) => {
-      if (!query.singlePage)
-        return this.batchMapService.moveToSite(project, action.payload.siteNum, query.hideNeighboringSites);
-      else
-        return this.batchMapService.showAllSites(project);
-    }),
+    switchMap(([action, project, query]) => this.batchMapService.startBatchMaps(project, action.payload.siteNum, query)),
     switchMap((payload) => this.store$.select(getBatchMapReady).pipe(
       debounceTime(250),
       filter(ready => ready),

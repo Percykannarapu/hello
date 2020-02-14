@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { groupByExtended, UniversalCoordinates } from '@val/common';
+import { groupByExtended, UniversalCoordinates, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
@@ -21,6 +21,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { BatchMapQueryParams } from 'app/state/shared/router.interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -88,13 +89,16 @@ export class BatchMapService {
     return result;
   }
 
+  startBatchMaps(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
+    if (!params.singlePage)
+        return this.moveToSite(project, siteNum, params.hideNeighboringSites);
+      else
+        return this.showAllSites(project);
+  }
+
   showAllSites(project: ImpProject) : Observable<{ siteNum: string, isLastSite: boolean }> {
     const result = { siteNum: project.getImpGeofootprintLocations()[project.getImpGeofootprintLocations().length - 1].locationNumber, isLastSite: true };
-    const points: Array<UniversalCoordinates> = [];
-    project.getImpGeofootprintLocations().forEach(l => {
-      points.push({ x: l.xcoord, y: l.ycoord });
-    });
-    return this.esriMapService.zoomToPoints(points).pipe(
+    return this.esriMapService.zoomToPoints(toUniversalCoordinates(project.getImpGeofootprintLocations().concat())).pipe(
       map(() => result)
     );
   }
