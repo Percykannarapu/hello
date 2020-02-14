@@ -91,9 +91,9 @@ export class BatchMapService {
 
   startBatchMaps(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
     if (!params.singlePage)
-        return this.moveToSite(project, siteNum, params.hideNeighboringSites);
-      else
-        return this.showAllSites(project);
+      return this.moveToSite(project, siteNum, params.hideNeighboringSites);
+    else
+      return this.showAllSites(project);
   }
 
   showAllSites(project: ImpProject) : Observable<{ siteNum: string, isLastSite: boolean }> {
