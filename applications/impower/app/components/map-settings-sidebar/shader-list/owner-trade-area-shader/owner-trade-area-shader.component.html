@@ -1,7 +1,7 @@
 <div class="shader-display">
-  <div *ngIf="!definition.isEditing && !definition.isNew">
+  <div *ngIf="!isEditing">
     <div class="shader-menu">
-      <a href="#" (click)="edit(definition)">edit</a>
+      <a href="#" (click)="edit()">edit</a>
     </div>
     <div>
       <label>Layer Name:</label>
@@ -12,12 +12,11 @@
       <strong>{{definition.opacity}}</strong>
     </div>
   </div>
-  <div class="shader-form-container" *ngIf="definition.isNew || definition.isEditing">
-    <form novalidate autocomplete="off" [formGroup]="shaderForm" (submit)="apply()" valConnectForm="shadingSettings"
-          [debounce]="0" [nestedIdentifier]="definition.id">
+  <div class="shader-form-container" *ngIf="isEditing">
+    <form novalidate autocomplete="off" [formGroup]="shaderForm" (ngSubmit)="apply(shaderForm)">
       <validated-text-input [parentForm]="shaderForm" valueName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
       <validated-text-input [parentForm]="shaderForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-      <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="shaderForm.status === 'INVALID'"></button>
+      <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="!shaderForm.valid"></button>
       <button pButton label="cancel" class="ui-button-secondary" (click)="cancel()"></button>
     </form>
   </div>

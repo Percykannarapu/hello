@@ -33,6 +33,7 @@ export interface VariableSelectionForm extends GfpForm {
   dotValue?: number;
   dotColor?: RgbaTuple;
   legendUnits?: string;
+  breakDefinitions?: any[];
 }
 
 export interface FormsState {

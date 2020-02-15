@@ -1,11 +1,7 @@
 @import "valassis-variables";
 
 body {
-  val-shading-list {
-    .button-container {
-      display: flex;
-      justify-content: space-between;
-    }
+  val-shader-list {
     div.ui-accordion-header {
       .shader-header {
         display: inline-flex;

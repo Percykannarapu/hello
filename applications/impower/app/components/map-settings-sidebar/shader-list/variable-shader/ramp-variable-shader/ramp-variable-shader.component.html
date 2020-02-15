@@ -1,0 +1,32 @@
+<ng-container *ngIf="!isEditing">
+  <div>
+    <label>Audience:</label>
+    <strong>{{currentAudience.audienceSourceName}}: {{currentAudience.audienceName}}</strong>
+  </div>
+  <div>
+    <label>Layer Name:</label>
+    <strong>{{definition.layerName}}</strong>
+  </div>
+  <div>
+    <label>Extent:</label>
+    <strong>{{definition.filterByFeaturesOfInterest ? 'Selected Geos only' : 'Whole Map'}}</strong>
+  </div>
+  <div>
+    <label>Theme:</label>
+    <strong>{{definition.theme}}</strong>&nbsp;<span *ngIf="definition.reverseTheme">(reversed)</span>
+  </div>
+  <div>
+    <label>Opacity:</label>
+    <strong>{{definition.opacity}}</strong>
+  </div>
+</ng-container>
+
+<div *ngIf="isEditing" [formGroup]="parentForm">
+  <validated-text-input [parentForm]="parentForm" valueName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
+  <dropdown-input [parentForm]="parentForm" valueName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+  <dropdown-input [parentForm]="parentForm" valueName="theme" labelText="Theme" [options]="numericThemes"></dropdown-input>
+  <boolean-input [parentForm]="parentForm" valueName="reverseTheme" labelText="Reverse Theme?"></boolean-input>
+  <validated-text-input [parentForm]="parentForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+  <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
+  <button pButton label="cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
+</div>

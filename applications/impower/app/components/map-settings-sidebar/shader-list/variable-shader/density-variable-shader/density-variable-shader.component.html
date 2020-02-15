@@ -1,0 +1,42 @@
+<ng-container *ngIf="!isEditing">
+  <div>
+    <label>Audience:</label>
+    <strong>{{currentAudience.audienceSourceName}}: {{currentAudience.audienceName}}</strong>
+  </div>
+  <div>
+    <label>Layer Name:</label>
+    <strong>{{definition.layerName}}</strong>
+  </div>
+  <div>
+    <label>Extent:</label>
+    <strong>{{definition.filterByFeaturesOfInterest ? 'Selected Geos only' : 'Whole Map'}}</strong>
+  </div>
+  <div>
+    <label>Dot Color:</label>
+    <span class="color-chip" [ngStyle]="{ 'background-color': currentDotColorInHex }"></span>
+  </div>
+  <div>
+    <label>Dot Value:</label>
+    <strong>{{definition.dotValue}}</strong>
+  </div>
+  <div>
+    <label>Legend Units:</label>
+    <strong>{{definition.legendUnits}}</strong>
+  </div>
+  <div>
+    <label>Opacity:</label>
+    <strong>{{definition.opacity}}</strong>
+  </div>
+</ng-container>
+
+<div *ngIf="isEditing" [formGroup]="parentForm">
+  <validated-text-input [parentForm]="parentForm" valueName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
+  <dropdown-input [parentForm]="parentForm" valueName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+  <label class="shader-control-label">Dot Color</label>
+  <p-colorPicker [(ngModel)]="selectedDotColor" format="rgb" [ngModelOptions]="{standalone: true}"></p-colorPicker>
+  <validated-text-input [parentForm]="parentForm" valueName="dotValue" labelText="Value of one Dot" validationMessage="Dot value must be greater than 1"></validated-text-input>
+  <validated-text-input [parentForm]="parentForm" valueName="legendUnits" labelText="Legend Units (i.e. Households)" validationMessage="Required"></validated-text-input>
+  <validated-text-input [parentForm]="parentForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+  <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
+  <button pButton label="cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
+</div>

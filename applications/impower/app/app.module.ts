@@ -103,15 +103,19 @@ import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list
 import { GeofootprintGeoPanelComponent } from './components/geofootprint-geo-panel/geofootprint-geo-panel.component';
 import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
 import { LoginComponent } from './components/login/login.component';
+import { MapSettingsSidebarComponent } from './components/map-settings-sidebar/map-settings-sidebar.component';
+import { AddShaderButtonComponent } from './components/map-settings-sidebar/shader-list/add-shader-button/add-shader-button.component';
+import { OwnerSiteShaderComponent } from './components/map-settings-sidebar/shader-list/owner-site-shader/owner-site-shader.component';
+import { OwnerTradeAreaShaderComponent } from './components/map-settings-sidebar/shader-list/owner-trade-area-shader/owner-trade-area-shader.component';
+import { SelectedGeoShaderComponent } from './components/map-settings-sidebar/shader-list/selected-geo-shader/selected-geo-shader.component';
+import { ShaderListComponent } from './components/map-settings-sidebar/shader-list/shader-list.component';
+import { DensityVariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/density-variable-shader/density-variable-shader.component';
+import { RampVariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/ramp-variable-shader/ramp-variable-shader.component';
+import { UniqueVariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/unique-variable-shader/unique-variable-shader.component';
+import { VariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/variable-shader.component';
 import { MapComponent } from './components/map/map.component';
 import { PrintViewComponent } from './components/print-view/print-view.component';
 import { ProjectComponent } from './components/project-dashboard/project.component';
-import { OwnerSiteShaderComponent } from './components/shading-settings/shading-list/owner-site-shader/owner-site-shader.component';
-import { OwnerTradeAreaShaderComponent } from './components/shading-settings/shading-list/owner-trade-area-shader/owner-trade-area-shader.component';
-import { SelectedGeoShaderComponent } from './components/shading-settings/shading-list/selected-geo-shader/selected-geo-shader.component';
-import { ShadingListComponent } from './components/shading-settings/shading-list/shading-list.component';
-import { VariableShadingComponent } from './components/shading-settings/shading-list/variable-shading/variable-shading.component';
-import { ShadingSettingsComponent } from './components/shading-settings/shading-settings.component';
 import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
 import { SiteListComponent } from './components/site-list/site-list.component';
 import { CombinedAudienceComponent } from './components/target-audience/combined-audience/combined-audience.component';
@@ -331,22 +335,26 @@ export function actionSanitizer(action: Action) : Action {
     PrintViewComponent,
     BatchMapComponent,
     ImpowerMainComponent,
-    ShadingSettingsComponent,
+    MapSettingsSidebarComponent,
     BatchMapDialogComponent,
     CombinedAudienceComponent,
     EditCombinedAudiencesComponent,
     FailedLocationsTabComponent,
     ExportCrossbowSitesComponent,
     ConnectFormDirective,
-    ShadingListComponent,
-    VariableShadingComponent,
+    ShaderListComponent,
+    VariableShaderComponent,
     ValidatedTextInputComponent,
     BooleanInputComponent,
     SelectedGeoShaderComponent,
     OwnerSiteShaderComponent,
     OwnerTradeAreaShaderComponent,
     DropdownInputComponent,
-    EsriSymbolInputComponent
+    EsriSymbolInputComponent,
+    AddShaderButtonComponent,
+    RampVariableShaderComponent,
+    UniqueVariableShaderComponent,
+    DensityVariableShaderComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

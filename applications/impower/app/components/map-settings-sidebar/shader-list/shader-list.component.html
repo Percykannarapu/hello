@@ -1,0 +1,33 @@
+<add-shader-button [currentAnalysisLevel]="currentAnalysisLevel"
+                   [tradeAreaCount]="tradeAreaCount"
+                   [locationCount]="locationCount"
+                   [audienceCount]="(audiences || []).length"
+                   (addShader)="addNewShader($event)"></add-shader-button>
+
+<p-accordion>
+  <p-accordionTab *ngFor="let def of shadingDefinitions" [selected]="currentOpenId === def.id" (selectedChange)="openDefinition(def)">
+    <p-header class="shader-header">
+      <span *ngIf="def.sourcePortalId != null">
+        <span class="fa" [class.fa-eye]="def.visible" [class.fa-eye-slash]="!def.visible" (click)="toggleVisibility($event, def)"></span>
+        {{def.layerName}}
+      </span>
+      <span class="fa fa-trash-o" (click)="deleteDefinition($event, def)" *ngIf="def.sourcePortalId != null"></span>
+      <span *ngIf="def.sourcePortalId == null">New {{def.layerName == null ? 'Variable' : def.layerName}}</span>
+    </p-header>
+    <ng-container [ngSwitch]="def.dataKey">
+      <val-selected-geo-shader *ngSwitchCase="shadingTypes.Selection" [definition]="def"
+                               (applyShader)="applyDefinition($event)"
+                               (deleteShader)="deleteDefinition(null, $event)"></val-selected-geo-shader>
+      <val-owner-site-shader *ngSwitchCase="shadingTypes.OwnerSite" [definition]="def"
+                             [labelChoices]="siteLabels$ | async"
+                             (applyShader)="applyDefinition($event)"
+                             (deleteShader)="deleteDefinition(null, $event)"></val-owner-site-shader>
+      <val-owner-trade-area-shader *ngSwitchCase="shadingTypes.OwnerTA" [definition]="def"
+                                   (applyShader)="applyDefinition($event)"
+                                   (deleteShader)="deleteDefinition(null, $event)"></val-owner-trade-area-shader>
+      <val-variable-shader *ngSwitchDefault [definition]="def" [audiences]="audiences"
+                           (applyShader)="applyDefinition($event)"
+                           (deleteShader)="deleteDefinition(null, $event)"></val-variable-shader>
+    </ng-container>
+  </p-accordionTab>
+</p-accordion>

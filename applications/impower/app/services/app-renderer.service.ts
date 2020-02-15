@@ -290,7 +290,6 @@ export class AppRendererService {
             case GfpShaderKeys.OwnerTA:
               this.updateForOwnerTA(newDef, geos);
           }
-          this.updateForOwnerSite(newDef, geos);
           updates.push(newDef);
         }
         return updates;

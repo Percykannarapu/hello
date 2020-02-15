@@ -43,13 +43,15 @@ const getEsriShadingDataKeys = createSelector(getEsriShadingDefs, layers => laye
 function shadingDefinitionIsReady(def: ShadingDefinition) : boolean {
   switch (def.shadingType) {
     case ConfigurationTypes.Simple:
-      return def.destinationLayerUniqueId == null;
+      return def.sourcePortalId != null && def.destinationLayerUniqueId == null;
     case ConfigurationTypes.Unique:
     case ConfigurationTypes.Ramp:
     case ConfigurationTypes.ClassBreak:
-      return def.destinationLayerUniqueId == null && (def.breakDefinitions || []).length > 0;
+      return def.sourcePortalId != null && def.destinationLayerUniqueId == null && (def.breakDefinitions || []).length > 0;
     case ConfigurationTypes.DotDensity:
-      return def.destinationLayerUniqueId == null && (def.arcadeExpression || '').length > 0;
+      return def.sourcePortalId != null && def.destinationLayerUniqueId == null && (def.arcadeExpression || '').length > 0;
+    default:
+      return false;
   }
 }
 

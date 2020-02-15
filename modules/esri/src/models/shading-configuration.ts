@@ -22,8 +22,8 @@ export interface SymbolDefinition {
 }
 
 export interface ClassBreakDefinition extends SymbolDefinition {
-  minValue: number;
-  maxValue: number;
+  minValue?: number;
+  maxValue?: number;
 }
 
 export interface UniqueValueDefinition extends SymbolDefinition {
@@ -36,7 +36,7 @@ export interface ContinuousDefinition {
   stopName: string;
 }
 
-interface ShadingDefinitionBase {
+export interface ShadingDefinitionBase {
   id: string;
   dataKey: string;
   sourcePortalId: string;

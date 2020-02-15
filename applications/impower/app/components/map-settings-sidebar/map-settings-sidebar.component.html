@@ -17,18 +17,13 @@
       </div>
     </div>
     <p-card>
-      <val-shading-list
+      <val-shader-list
         [shadingDefinitions]="shadingDefinitions$ | async"
         [audiences]="audiences$ | async"
+        [geos]="geos$ | async"
         [locationCount]="locationCount$ | async"
         [tradeAreaCount]="tradeAreaCount$ | async"
-        [currentAnalysisLevel]="analysisLevel$ | async"
-        (addShader)="addNewDefinition($event)"
-        (deleteShader)="deleteDefinition($event)"
-        (applyShader)="applyDefinition($event, true)"
-        (touchShader)="applyDefinition($event, false)"
-        (editShader)="editShader($event)"
-      ></val-shading-list>
+        [currentAnalysisLevel]="analysisLevel$ | async"></val-shader-list>
     </p-card>
   </div>
 </p-sidebar>
