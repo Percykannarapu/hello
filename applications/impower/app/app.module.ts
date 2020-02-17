@@ -109,6 +109,7 @@ import { OwnerSiteShaderComponent } from './components/map-settings-sidebar/shad
 import { OwnerTradeAreaShaderComponent } from './components/map-settings-sidebar/shader-list/owner-trade-area-shader/owner-trade-area-shader.component';
 import { SelectedGeoShaderComponent } from './components/map-settings-sidebar/shader-list/selected-geo-shader/selected-geo-shader.component';
 import { ShaderListComponent } from './components/map-settings-sidebar/shader-list/shader-list.component';
+import { BreaksVariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/breaks-variable-shader/breaks-variable-shader.component';
 import { DensityVariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/density-variable-shader/density-variable-shader.component';
 import { RampVariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/ramp-variable-shader/ramp-variable-shader.component';
 import { UniqueVariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/unique-variable-shader/unique-variable-shader.component';
@@ -354,7 +355,8 @@ export function actionSanitizer(action: Action) : Action {
     AddShaderButtonComponent,
     RampVariableShaderComponent,
     UniqueVariableShaderComponent,
-    DensityVariableShaderComponent
+    DensityVariableShaderComponent,
+    BreaksVariableShaderComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

@@ -1,0 +1,54 @@
+<ng-container *ngIf="!isEditing">
+  <div>
+    <label>Audience:</label>
+    <strong>{{currentAudience.audienceSourceName}}: {{currentAudience.audienceName}}</strong>
+  </div>
+  <div>
+    <label>Layer Name:</label>
+    <strong>{{definition.layerName}}</strong>
+  </div>
+  <div>
+    <label>Extent:</label>
+    <strong>{{definition.filterByFeaturesOfInterest ? 'Selected Geos only' : 'Whole Map'}}</strong>
+  </div>
+  <div>
+    <label>Theme:</label>
+    <strong>{{definition.theme}}</strong>&nbsp;<span *ngIf="definition.reverseTheme">(reversed)</span>
+  </div>
+  <div>
+    <label>Break Type:</label>
+    <strong>{{selectedBreakType}}</strong>
+  </div>
+  <div *ngIf="definition.dynamicallyAllocate">
+    <label>Number of Breaks:</label>
+    <strong>{{definition.dynamicAllocationSlots}}</strong>
+  </div>
+  <div>
+    <label>Opacity:</label>
+    <strong>{{definition.opacity}}</strong>
+  </div>
+</ng-container>
+
+<div *ngIf="isEditing" [formGroup]="parentForm">
+  <validated-text-input [parentForm]="parentForm" valueName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
+  <dropdown-input [parentForm]="parentForm" valueName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+  <dropdown-input [parentForm]="parentForm" valueName="theme" labelText="Theme" [options]="allThemes"></dropdown-input>
+  <div class="drop-down-root">
+    <span class="md-inputfield">
+      <p-dropdown id="breakTypeInput" [options]="breakTypes" [(ngModel)]="selectedBreakType" [ngModelOptions]="{standalone: true}"
+                  [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down" [autoDisplayFirst]="false"
+                  (onChange)="breakTypeChanged($event)"></p-dropdown>
+      <label class="drop-down-label" for="breakTypeInput">Break Type</label>
+    </span>
+  </div>
+  <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === true">
+    <boolean-input [parentForm]="parentForm" valueName="reverseTheme" labelText="Reverse Theme?"></boolean-input>
+    <validated-text-input [parentForm]="parentForm" valueName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be greater than 2"></validated-text-input>
+  </ng-container>
+  <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === false">
+
+  </ng-container>
+  <validated-text-input [parentForm]="parentForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+  <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
+  <button pButton label="cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
+</div>

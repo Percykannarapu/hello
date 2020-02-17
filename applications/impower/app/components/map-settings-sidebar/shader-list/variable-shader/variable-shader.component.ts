@@ -33,28 +33,12 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
 
   constructor(private fb: FormBuilder) {
     super();
-    this.setShaderTypes(ConfigurationTypes.Simple);
   }
 
   variableSelectionChanged(newKey: string) : void {
     const newVar = this.audiences.filter(a => a.audienceIdentifier === newKey)[0];
     if (newVar != null) {
-      switch (newVar.fieldconte) {
-        case FieldContentTypeCodes.Char:
-          this.setShaderTypes(ConfigurationTypes.Unique);
-          break;
-        case FieldContentTypeCodes.Count:
-          this.setShaderTypes(ConfigurationTypes.Ramp, ConfigurationTypes.DotDensity);
-          break;
-        case FieldContentTypeCodes.Dist:
-        case FieldContentTypeCodes.Distance:
-        case FieldContentTypeCodes.Index:
-        case FieldContentTypeCodes.Median:
-        case FieldContentTypeCodes.Percent:
-        case FieldContentTypeCodes.Ratio:
-          this.setShaderTypes(ConfigurationTypes.Ramp);
-          break;
-      }
+      this.limitShaderTypesByVar(newVar.fieldconte);
       this.shaderForm.get('layerName').setValue(newVar.audienceName);
     }
   }
@@ -75,5 +59,29 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
       opacity: new FormControl(this.definition.opacity, { updateOn: 'blur', validators: [Validators.required, Validators.min(0), Validators.max(1)] }),
     };
     this.shaderForm = this.fb.group(formSetup);
+    if (this.currentAudience != null) {
+      this.limitShaderTypesByVar(this.currentAudience.fieldconte);
+    }
+  }
+
+  private limitShaderTypesByVar(varType: FieldContentTypeCodes) : void {
+    switch (varType) {
+      case FieldContentTypeCodes.Char:
+        this.setShaderTypes(ConfigurationTypes.Unique);
+        break;
+      case FieldContentTypeCodes.Count:
+        this.setShaderTypes(ConfigurationTypes.Ramp, ConfigurationTypes.ClassBreak, ConfigurationTypes.DotDensity);
+        break;
+      case FieldContentTypeCodes.Dist:
+      case FieldContentTypeCodes.Distance:
+      case FieldContentTypeCodes.Index:
+      case FieldContentTypeCodes.Median:
+      case FieldContentTypeCodes.Percent:
+      case FieldContentTypeCodes.Ratio:
+        this.setShaderTypes(ConfigurationTypes.Ramp, ConfigurationTypes.ClassBreak);
+        break;
+      default:
+        this.setShaderTypes(ConfigurationTypes.Simple);
+    }
   }
 }

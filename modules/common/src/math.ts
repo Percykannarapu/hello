@@ -6,10 +6,14 @@ export interface Statistics {
   variance: number;
   stdDeviation: number;
   distance: number;
+  meanIntervals: number[];
+  quantiles: number[];
 }
 
-export function calculateStatistics(data: number[]) : Statistics {
+export function calculateStatistics(data: number[], intervalCount: number = 0) : Statistics {
   if (data == null || data.length === 0) return null;
+  const sortedData = Array.from(data);
+  sortedData.sort((a, b) => a - b);
   const result: Statistics = {
     mean: 0,
     sum: 0,
@@ -17,23 +21,36 @@ export function calculateStatistics(data: number[]) : Statistics {
     max: Number.NEGATIVE_INFINITY,
     variance: 0,
     stdDeviation: 0,
-    distance: 0
+    distance: 0,
+    meanIntervals: [],
+    quantiles: []
   };
-  const dataLength = data.length;
+  const dataLength = sortedData.length;
+  const lastIndex = dataLength - 1;
   let sumOfSquares = 0;
   for (let i = 0; i < dataLength; ++i) {
-    result.sum += data[i];
-    sumOfSquares += (data[i] * data[i]);
-    if (data[i] < result.min) result.min = data[i];
-    if (data[i] > result.max) result.max = data[i];
+    result.sum += sortedData[i];
+    sumOfSquares += (sortedData[i] * sortedData[i]);
   }
+  result.min = sortedData[0];
+  result.max = sortedData[lastIndex];
   result.mean = result.sum / dataLength;
   if (dataLength > 1) {
     const squareOfSum = result.sum * result.sum;
     const averageOfSquare = squareOfSum / dataLength;
     const deviation = sumOfSquares - averageOfSquare;
-    result.variance = deviation / (dataLength - 1);
+    result.variance = deviation / lastIndex;
     result.stdDeviation = Math.sqrt(result.variance);
+    if (intervalCount > 0) {
+      const interval = (result.max - result.min) / intervalCount;
+      for (let i = 0; i < intervalCount - 1; ++i) {
+        const currentBreak = (interval * (i + 1)) + result.min;
+        const pos = lastIndex * ((i + 1) * (1 / intervalCount));
+        const base = Math.floor(pos);
+        result.meanIntervals.push(currentBreak);
+        result.quantiles.push(sortedData[base]);
+      }
+    }
   }
   result.distance = Math.abs(result.max - result.min);
   return result;

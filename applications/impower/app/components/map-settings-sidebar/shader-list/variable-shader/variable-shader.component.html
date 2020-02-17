@@ -10,6 +10,8 @@
                                   [isEditing]="false" [currentAudience]="currentAudience"></val-unique-variable-shader>
       <val-density-variable-shader *ngSwitchCase="ConfigurationTypes.DotDensity" [definition]="definition"
                                    [isEditing]="false" [currentAudience]="currentAudience"></val-density-variable-shader>
+      <val-breaks-variable-shader *ngSwitchCase="ConfigurationTypes.ClassBreak" [definition]="definition"
+                                  [isEditing]="false" [currentAudience]="currentAudience"></val-breaks-variable-shader>
     </ng-container>
   </div>
   <div class="shader-form-container" *ngIf="isEditing">
@@ -28,6 +30,8 @@
                                       [parentForm]="shaderForm" [isEditing]="true" (cancelForm)="cancel()"></val-unique-variable-shader>
           <val-density-variable-shader *ngSwitchCase="ConfigurationTypes.DotDensity" [definition]="definition" [currentAudience]="currentAudience"
                                        [parentForm]="shaderForm" [isEditing]="true" (cancelForm)="cancel()"></val-density-variable-shader>
+          <val-breaks-variable-shader *ngSwitchCase="ConfigurationTypes.ClassBreak" [definition]="definition" [currentAudience]="currentAudience"
+                                      [parentForm]="shaderForm" [isEditing]="true" (cancelForm)="cancel()"></val-breaks-variable-shader>
         </ng-container>
       </div>
     </form>

@@ -9,6 +9,7 @@ import {
   EsriLayerService,
   EsriMapService,
   generateContinuousValues,
+  generateDynamicClassBreaks,
   generateUniqueValues,
   getColorPalette,
   isComplexShadingDefinition,
@@ -25,7 +26,6 @@ import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
-import { MapVar } from '../impower-datastore/state/transient/map-vars/map-vars.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GfpShaderKeys } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
@@ -61,7 +61,7 @@ export class AppRendererService {
         this.setupProjectPrefsWatcher();
       }
       this.setupGeoWatchers(this.impGeoService.storeObservable);
-      this.setupMapVarWatcher(this.impGeoService.storeObservable);
+      this.setupMapVarWatcher();
     });
   }
 
@@ -116,39 +116,53 @@ export class AppRendererService {
     ).subscribe(features => this.store$.dispatch(setFeaturesOfInterest({ features })));
   }
 
-  private setupMapVarWatcher(geoDataStore: Observable<ImpGeofootprintGeo[]>) {
+  private setupMapVarWatcher() {
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), geoDataStore)
-    ).subscribe(([mapVars, layerDefs, geos]) => {
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodes$)
+    ).subscribe(([mapVars, layerDefs, geocodes]) => {
       const varPks = Object.keys(mapVars[0]).filter(key => key !== 'geocode').map(key => Number(key));
       if (varPks != null) {
-        const currentGfpGeos = new Set(geos.filter(g => g.isActive).map(g => g.geocode));
+        const currentGfpGeos = new Set(geocodes);
         const filteredMapVars = mapVars.filter(mv => currentGfpGeos.has(mv.geocode));
         varPks.forEach(varPk => {
           const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
           if (shadingLayers != null) {
             shadingLayers.forEach(shadingLayer => {
               const currentMapVars = shadingLayer.filterByFeaturesOfInterest ? filteredMapVars : mapVars;
-              const shadingDefinition: Update<ShadingDefinition> = { id: shadingLayer.id, changes: {} };
-              const arcadeExpression = this.convertMapVarsToArcade(currentMapVars, varPk);
+              const shadingDefinition: Update<ShadingDefinition> = { id: shadingLayer.id, changes: null };
+              const uniqueStrings = new Set<string>();
+              const valuesForStats: number[] = [];
+              const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
+                result[mapVar.geocode] = mapVar[varPk];
+                switch (shadingLayer.shadingType) {
+                  case ConfigurationTypes.Unique:
+                    uniqueStrings.add(mapVar[varPk] == null ? '' : `${mapVar[varPk]}`);
+                    break;
+                  case ConfigurationTypes.Ramp:
+                  case ConfigurationTypes.ClassBreak:
+                    valuesForStats.push(Number(mapVar[varPk]));
+                    break;
+                }
+                return result;
+              }, {});
+              const arcadeExpression = createDataArcade(mapVarDictionary);
               let palette: RgbTuple[] = [];
               if (isComplexShadingDefinition(shadingLayer)) {
                 palette = getColorPalette(shadingLayer.theme, shadingLayer.reverseTheme);
               }
               switch (shadingLayer.shadingType) {
                 case ConfigurationTypes.Unique:
-                  const uniqueValues = Array.from(new Set(currentMapVars.map(v => v[varPk] == null ? '' : `${v[varPk]}`)));
+                  const uniqueValues = Array.from(uniqueStrings);
                   shadingDefinition.changes = {
                     arcadeExpression,
                     breakDefinitions: generateUniqueValues(uniqueValues, palette)
                   };
                   break;
                 case ConfigurationTypes.Ramp:
-                  const stats = calculateStatistics(currentMapVars.map(mv => Number(mv[varPk])));
                   shadingDefinition.changes = {
                     arcadeExpression,
-                    breakDefinitions: generateContinuousValues(stats, palette)
+                    breakDefinitions: generateContinuousValues(calculateStatistics(valuesForStats), palette)
                   };
                   break;
                 case ConfigurationTypes.DotDensity:
@@ -156,8 +170,19 @@ export class AppRendererService {
                     arcadeExpression
                   };
                   break;
+                case ConfigurationTypes.ClassBreak:
+                  if (shadingLayer.dynamicallyAllocate) {
+                    const stats = calculateStatistics(valuesForStats, shadingLayer.dynamicAllocationSlots || 4);
+                    shadingDefinition.changes = {
+                      arcadeExpression,
+                      breakDefinitions: generateDynamicClassBreaks(stats, palette, shadingLayer.dynamicAllocationType)
+                    };
+                  }
+                  break;
               }
-              this.store$.dispatch(updateShadingDefinition({ shadingDefinition }));
+              if (shadingDefinition.changes != null) {
+                this.store$.dispatch(updateShadingDefinition({ shadingDefinition }));
+              }
             });
           }
         });
@@ -263,14 +288,6 @@ export class AppRendererService {
     }
   }
 
-  private convertMapVarsToArcade(mapVars: MapVar[], varPk: number) : string {
-    const obj: Record<string, string | number> = mapVars.reduce((result, mapVar) => {
-      result[mapVar.geocode] = mapVar[varPk];
-      return result;
-    }, {});
-    return createDataArcade(obj);
-  }
-
   registerGeoOwnerWatcher() : void {
     if (this.ownerWatcher) return;
 
@@ -322,6 +339,7 @@ export class AppRendererService {
   }
 
   updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
+
     if (definition != null && isComplexShadingDefinition(definition)) {
       definition.theme = ColorPalette.Cpqmaps;
       const deferredHomeGeos: ImpGeofootprintGeo[] = [];

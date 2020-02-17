@@ -135,7 +135,16 @@ export class EsriShadingLayersService {
     const defaultLabel = config.defaultSymbolDefinition ? config.defaultSymbolDefinition.legendName : '';
     switch (config.shadingType) {
       case ConfigurationTypes.ClassBreak:
-        break;
+        const classBreaks: __esri.ClassBreaksRendererClassBreakInfos[] = config.breakDefinitions.map(d => ({
+          minValue: d.minValue || Number.MIN_VALUE,
+          maxValue: d.maxValue || Number.MAX_VALUE,
+          label: d.legendName,
+          symbol: this.createSymbolFromDefinition(d)
+        }));
+        classBreaks.reverse();
+        const breaksRenderer = this.domainFactory.createClassBreakRenderer(defaultSymbol, classBreaks);
+        breaksRenderer.valueExpression = config.arcadeExpression;
+        return breaksRenderer;
       case ConfigurationTypes.DotDensity:
         const dotAttributes: __esri.AttributeColorInfoProperties[] = [{
           valueExpression: config.arcadeExpression || '',
@@ -152,8 +161,8 @@ export class EsriShadingLayersService {
         simpleResult.label = defaultLabel;
         return simpleResult;
       case ConfigurationTypes.Unique:
-        const classBreaks: __esri.UniqueValueRendererUniqueValueInfos[] = config.breakDefinitions.map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
-        const result = this.domainFactory.createUniqueValueRenderer(defaultSymbol, classBreaks);
+        const uniqueValues: __esri.UniqueValueRendererUniqueValueInfos[] = config.breakDefinitions.map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
+        const result = this.domainFactory.createUniqueValueRenderer(defaultSymbol, uniqueValues);
         result.defaultLabel = defaultLabel;
         result.valueExpression = config.arcadeExpression;
         return result;

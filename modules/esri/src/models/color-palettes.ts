@@ -5,7 +5,7 @@ import { RgbTuple } from './esri-types';
 export enum ColorPalette {
   Brightcolors = '6 Bright Colors',
   SixDarkColors = '6 Dark Colors',
-  Cpqmaps = '20 Colors (text vars only)',
+  Cpqmaps = '20 Colors',
   Bivariateredblue3 = '6 Bivariate Red-Blue',
   Blue = 'Gradient - Blue',
   Red = 'Gradient - Red',
@@ -15,7 +15,7 @@ export enum ColorPalette {
 
 export enum AllColorPalettes {
   Random = 'Random',
-  Cpqmaps = '20 Colors (text vars only)',
+  Cpqmaps = '20 Colors',
   Lightyellow = '1 Light yellow',
   Lightblue = '1 Light blue',
   Lightgreen = '1 Light green',

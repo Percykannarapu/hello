@@ -10,6 +10,11 @@ export enum ConfigurationTypes {
   DotDensity = 'DotDensity'
 }
 
+export enum DynamicAllocationTypes {
+  Interval = 'interval',
+  ClassCount = 'class-count'
+}
+
 export interface RampProperties extends __esri.ColorVariableProperties {
   type: 'color';
 }
@@ -76,6 +81,9 @@ export interface ClassBreakShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.ClassBreak;
   theme: ColorPalette;
   reverseTheme: boolean;
+  dynamicallyAllocate?: boolean;
+  dynamicAllocationType?: DynamicAllocationTypes;
+  dynamicAllocationSlots?: number;
   arcadeExpression?: string;
   breakDefinitions?: ClassBreakDefinition[];
 }
@@ -97,9 +105,13 @@ export function isComplexShadingDefinition(s: ShadingDefinition) : s is ComplexS
          s.shadingType === ConfigurationTypes.ClassBreak;
 }
 
-export function generateUniqueValues(uniqueValues: string[], palette: RgbTuple[]) : UniqueValueDefinition[] {
+export function generateUniqueValues(uniqueValues: string[], palette: RgbTuple[], customSorter?: (a, b) => number) : UniqueValueDefinition[] {
   const values = [...uniqueValues];
-  values.sort();
+  if (customSorter != null) {
+    values.sort(customSorter);
+  } else {
+    values.sort();
+  }
   let i = 0;
   return values.map((uv) => {
     return {
@@ -134,5 +146,38 @@ export function generateContinuousValues(stats: Statistics, palette: RgbTuple[])
     }
     result.push({ stopColor: palette[n], stopValue: currentValue, stopName: currentLabel });
   }
+  return result;
+}
+
+export function generateDynamicClassBreaks(stats: Statistics, palette: RgbTuple[], breakTypes: DynamicAllocationTypes) : ClassBreakDefinition[] {
+  const result: ClassBreakDefinition[] = [];
+  const breakValues = breakTypes === DynamicAllocationTypes.Interval ? stats.meanIntervals : stats.quantiles;
+  breakValues.forEach((bv, i) => {
+    const b: ClassBreakDefinition = {
+      maxValue: bv,
+      fillColor: RgbTuple.withAlpha(palette[i % palette.length], 1),
+      fillType: 'solid',
+      outlineColor: [0, 0, 0, 0]
+    };
+    if (i === 0) {
+      // first break
+      b.minValue = null;
+      b.legendName = `< ${b.maxValue.toFixed(0)}`;
+    } else {
+      // intermediate breaks
+      b.minValue = breakValues[i - 1] + Number.EPSILON;
+      b.legendName = `${b.minValue.toFixed(0)} - ${b.maxValue.toFixed(0)}`;
+    }
+    result.push(b);
+  });
+  const lastBreak: ClassBreakDefinition = {
+    minValue: breakValues[breakValues.length - 1] + Number.EPSILON,
+    maxValue: null,
+    fillColor: RgbTuple.withAlpha(palette[breakValues.length % palette.length], 1),
+    fillType: 'solid',
+    outlineColor: [0, 0, 0, 0],
+    legendName: `> ${breakValues[breakValues.length - 1].toFixed(0)}`
+  };
+  result.push(lastBreak);
   return result;
 }
