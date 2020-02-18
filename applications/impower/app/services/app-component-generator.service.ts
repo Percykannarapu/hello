@@ -106,8 +106,8 @@ export class AppComponentGeneratorService {
     const impProjectVars: ImpProjectVar[] = this.appStateService.currentProject$.getValue().impProjectVars.filter(impVar => impVar.isShadedOnMap);
     const mapAudiences = this.audiences.filter(aud => aud.showOnMap);
 
-    if (this.cachedGeoPopup != null && this.cachedGeoPopup.size > 0 && mapVars.length > 0)
-       this.cachedGeoPopup.get(geocode).instance.mapVar = convertToNodeVariable(mapVars[0], mapAudiences[0], impProjectVars[0]);
+   /* if (this.cachedGeoPopup != null && this.cachedGeoPopup.size > 0 && mapVars.length > 0)
+       this.cachedGeoPopup.get(geocode).instance.mapVar = convertToNodeVariable(mapVars[0], mapAudiences[0], impProjectVars[0]);*/
     const geoVars: GeoVar[] = this.geoVars.filter(geoVar => geoVar.geocode === geocode);
     const nodeVariables: NodeVariable[] = [];
     if (this.cachedGeoPopup != null && this.cachedGeoPopup.size > 0 && this.cachedGeoPopup.has(geocode) && geoVars.length > 0){
