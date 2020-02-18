@@ -103,11 +103,11 @@ export class AppMapService {
 
           EsriUtils.setupWatch(popup, 'visible').pipe(
             filter(result => {
-              if (result.newValue === false && result.oldValue != null){
+              if (result.newValue === false ){
                   return true;
               }
-            }),
-            debounceTime(1000)
+            })
+            //debounceTime(1)
           ).subscribe(() => this.zone.run(() => this.componentGenerator.cleanUpGeoPopup()));
 
           EsriUtils.setupWatch(this.mapService.mapView.map, 'basemap').subscribe(val => this.zone.run(() => {
