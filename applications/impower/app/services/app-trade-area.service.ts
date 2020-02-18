@@ -340,13 +340,13 @@ export class AppTradeAreaService {
           }),
           err => console.log('There was an error querying the ArcGIS layer', err),
           () => {
-            if (currentAnalysisLevel !== fileAnalysisLevel){
+           // if (currentAnalysisLevel !== fileAnalysisLevel){
               this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geos),
                                                               queryResult: queryResult,
                                                               fileAnalysisLevel: fileAnalysisLevel,
                                                               matchedTradeAreas: Array.from(matchedTradeAreas), isResubmit: isResubmit}));
-            }
-            else{
+           // }
+           /* else{
               const geosToAdd: ImpGeofootprintGeo[] = [];
               const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
               matchedTradeAreas.forEach(ta => {
@@ -381,7 +381,7 @@ export class AppTradeAreaService {
               this.store$.dispatch(new StopBusyIndicator({ 'key': 'CUSTOM_TRADEAREA'}));
               this.store$.dispatch(new RollDownGeosComplete({failedGeos: this.uploadFailures.map(row => row.geocode), isResubmit: isResubmit, rollDownType: 'TRADEAREA'}));
 
-            }
+            }*/
           });
         }else {
         console.log('file analysis level', fileAnalysisLevel);

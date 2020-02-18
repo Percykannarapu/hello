@@ -664,14 +664,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                     queryResult.add(r.geocode);
                  });
                  
-                  if (analysisLevel !== fileAnalysisLevel){
+                //  if (analysisLevel !== fileAnalysisLevel){
                      this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(queryResult), queryResult: queryResultMap, 
                                                                      fileAnalysisLevel: fileAnalysisLevel, fileName: fileName, 
                                                                      uploadedGeos: data.parsedData, isResubmit: isResubmit}));
-                  }
-                  else{
+                 // }
+                  /*else{
                      this.validateMustCoverGeos(Array.from(uniqueGeos), queryResult, fileName, isResubmit);
-                  }
+                  }*/
                })
             );
          }
