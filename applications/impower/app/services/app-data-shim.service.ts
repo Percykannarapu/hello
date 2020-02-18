@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
-import { clearFeaturesOfInterest, clearShadingDefinitions, EsriService, InitialEsriState } from '@val/esri';
+import { clearFeaturesOfInterest, clearShadingDefinitions, EsriService, InitialEsriState, EsriMapService } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
@@ -59,6 +59,7 @@ export class AppDataShimService {
               private esriService: EsriService,
               private appConfig: AppConfig,
               private store$: Store<FullAppState>,
+              private mapService: EsriMapService,
               private impProjVarService: ImpProjectVarService) {
     this.currentProject$ = this.appProjectService.currentProject$;
     this.currentGeos$ = this.appGeoService.currentGeos$;
@@ -139,9 +140,9 @@ export class AppDataShimService {
     }
     else{
       // for Defect : IMPWR-14583
-      //const baseMap = Basemap.fromId('streets-vector');
-      const baseMapStr = JSON.stringify(Basemap.fromId('streets-vector'));
-      this.esriService.setBasemap(JSON.parse(baseMapStr));
+     /* const baseMap = Basemap.fromId('streets-vector').toJSON();
+      this.esriService.setBasemap(baseMap);*/
+      this.mapService.mapView.map.basemap = Basemap.fromId('streets-vector');
     }
   }
 
