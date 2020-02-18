@@ -43,7 +43,7 @@
   </div>
   <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === true">
     <boolean-input [parentForm]="parentForm" valueName="reverseTheme" labelText="Reverse Theme?"></boolean-input>
-    <validated-text-input [parentForm]="parentForm" valueName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be greater than 2"></validated-text-input>
+    <validated-text-input [parentForm]="parentForm" valueName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be between 2 and 20"></validated-text-input>
   </ng-container>
   <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === false">
 

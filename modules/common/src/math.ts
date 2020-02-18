@@ -43,12 +43,12 @@ export function calculateStatistics(data: number[], intervalCount: number = 0) :
     result.stdDeviation = Math.sqrt(result.variance);
     if (intervalCount > 0) {
       const interval = (result.max - result.min) / intervalCount;
+      const quantileInterval = dataLength * (1 / intervalCount);
       for (let i = 0; i < intervalCount - 1; ++i) {
         const currentBreak = (interval * (i + 1)) + result.min;
-        const pos = lastIndex * ((i + 1) * (1 / intervalCount));
-        const base = Math.floor(pos);
+        const quantileIndex = Math.floor(quantileInterval * (i + 1));
         result.meanIntervals.push(currentBreak);
-        result.quantiles.push(sortedData[base]);
+        result.quantiles.push(sortedData[quantileIndex - 1]);
       }
     }
   }

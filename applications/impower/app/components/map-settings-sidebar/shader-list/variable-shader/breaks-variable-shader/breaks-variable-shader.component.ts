@@ -17,7 +17,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
   constructor() {
     super();
     this.breakTypes = [
-      { label: 'Set Value Ranges', value: 'Set Value Ranges', disabled: true },
+      { label: 'Set Value Ranges', value: 'Set Value Ranges' },
       { label: 'Equal Interval Ranges', value: 'Equal Interval Ranges' },
       { label: 'Equal Class Counts', value: 'Equal Class Counts' }
     ];
@@ -59,12 +59,12 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
       case this.breakTypes[1].value:
         this.parentForm.get('dynamicallyAllocate').setValue(true);
         this.parentForm.get('dynamicAllocationType').setValue(DynamicAllocationTypes.Interval);
-        this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2)]);
+        this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2), Validators.max(20)]);
         break;
       case this.breakTypes[2].value:
         this.parentForm.get('dynamicallyAllocate').setValue(true);
         this.parentForm.get('dynamicAllocationType').setValue(DynamicAllocationTypes.ClassCount);
-        this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2)]);
+        this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2), Validators.max(20)]);
         break;
     }
   }
