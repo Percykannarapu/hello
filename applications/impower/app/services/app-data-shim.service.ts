@@ -25,6 +25,7 @@ import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
+import Basemap from 'esri/Basemap';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -135,6 +136,12 @@ export class AppDataShimService {
     if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null) && !this.appConfig.isBatchMode) {
       const parsedJson = JSON.parse(savedBasemap.largeVal || savedBasemap.val);
       this.esriService.setBasemap(parsedJson);
+    }
+    else{
+      // for Defect : IMPWR-14583
+      //const baseMap = Basemap.fromId('streets-vector');
+      const baseMapStr = JSON.stringify(Basemap.fromId('streets-vector'));
+      this.esriService.setBasemap(JSON.parse(baseMapStr));
     }
   }
 
