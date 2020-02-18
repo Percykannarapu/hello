@@ -91,7 +91,7 @@ export class BatchMapService {
 
   startBatchMaps(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
     if (!params.singlePage)
-      return this.moveToSite(project, siteNum, params.hideNeighboringSites);
+      return this.moveToSite(project, siteNum, params);
     else
       return this.showAllSites(project);
   }
@@ -103,7 +103,7 @@ export class BatchMapService {
     );
   }
 
-  moveToSite(project: ImpProject, siteNum: string, hideNeighborSites: boolean) : Observable<{ siteNum: string, isLastSite: boolean }> {
+  moveToSite(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
     if (this.originalGeoState == null) {
       this.recordOriginalState(project);
     }
@@ -120,13 +120,18 @@ export class BatchMapService {
         currentGeos.forEach(g => {
           g.isActive = this.originalGeoState[g.ggId];
         });
-        if (hideNeighborSites) {
-
+        if (params.hideNeighboringSites) {
           this.store$.dispatch(new RenderLocations({ locations: [currentSite], impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
+        } else if (params.shadeNeighboringSites) {
+          this.geoService.update(null, null);
+          this.forceMapUpdate();
+          return this.setMapLocation(project.methAnalysis, currentSite.getImpGeofootprintGeos()).pipe(
+            map(() => result)
+          );
         }
         this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));
-      } else {
+      } else if(!params.shadeNeighboringSites) {
         currentGeos.forEach(g => g.isActive = false);
       }
     }
