@@ -86,8 +86,15 @@
     <ng-template pTemplate="body" let-site>
       <tr [pSelectableRow]="site">
         <td style="width: 30px; padding-left: 0.4em">
-          <p-checkbox [(ngModel)]="site['isActive']" binary="true" (click)="setHasSelectedSites()" pTooltip="Deactivate site" tooltipPosition="right"></p-checkbox>
+          <div *ngIf="!site['isActive']">
+            <p-checkbox [(ngModel)]="site['isActive']" binary="true" (click)="setHasSelectedSites()" pTooltip="Activate site" tooltipPosition="right"></p-checkbox>
+          </div> 
+          <div *ngIf="site['isActive']">
+            <p-checkbox [(ngModel)]="site['isActive']" binary="true" (click)="setHasSelectedSites()" pTooltip="Deactivate site" tooltipPosition="right"></p-checkbox>
+          </div>
+       
         </td>
+        
         <td class="button-column">
           <div>
             <button (click)="openGoogleMap(site)" icon="fa fa-map-marker" pButton></button>
