@@ -119,18 +119,16 @@ export class AppRendererService {
   private setupMapVarWatcher() {
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodes$)
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$)
     ).subscribe(([mapVars, layerDefs, geocodes]) => {
       const varPks = Object.keys(mapVars[0]).filter(key => key !== 'geocode').map(key => Number(key));
       if (varPks != null) {
-        const currentGfpGeos = new Set(geocodes);
-        const filteredMapVars = mapVars.filter(mv => currentGfpGeos.has(mv.geocode));
+        const filteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
         varPks.forEach(varPk => {
           const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
           if (shadingLayers != null) {
             shadingLayers.forEach(shadingLayer => {
               const currentMapVars = shadingLayer.filterByFeaturesOfInterest ? filteredMapVars : mapVars;
-              const shadingDefinition: Update<ShadingDefinition> = { id: shadingLayer.id, changes: null };
               const uniqueStrings = new Set<string>();
               const valuesForStats: number[] = [];
               const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
@@ -141,12 +139,15 @@ export class AppRendererService {
                     break;
                   case ConfigurationTypes.Ramp:
                   case ConfigurationTypes.ClassBreak:
-                    valuesForStats.push(Number(mapVar[varPk]));
+                    if (mapVar[varPk] != null) {
+                      valuesForStats.push(Number(mapVar[varPk]));
+                    }
                     break;
                 }
                 return result;
               }, {});
               const arcadeExpression = createDataArcade(mapVarDictionary);
+              const shadingDefinition: Update<ShadingDefinition> = { id: shadingLayer.id, changes: { arcadeExpression } };
               let palette: RgbTuple[] = [];
               if (isComplexShadingDefinition(shadingLayer)) {
                 palette = getColorPalette(shadingLayer.theme, shadingLayer.reverseTheme);
@@ -154,35 +155,19 @@ export class AppRendererService {
               switch (shadingLayer.shadingType) {
                 case ConfigurationTypes.Unique:
                   const uniqueValues = Array.from(uniqueStrings);
-                  shadingDefinition.changes = {
-                    arcadeExpression,
-                    breakDefinitions: generateUniqueValues(uniqueValues, palette)
-                  };
+                  shadingDefinition.changes['breakDefinitions'] = generateUniqueValues(uniqueValues, palette);
                   break;
                 case ConfigurationTypes.Ramp:
-                  shadingDefinition.changes = {
-                    arcadeExpression,
-                    breakDefinitions: generateContinuousValues(calculateStatistics(valuesForStats), palette)
-                  };
-                  break;
-                case ConfigurationTypes.DotDensity:
-                  shadingDefinition.changes = {
-                    arcadeExpression
-                  };
+                  shadingDefinition.changes['breakDefinitions'] = generateContinuousValues(calculateStatistics(valuesForStats), palette);
                   break;
                 case ConfigurationTypes.ClassBreak:
                   if (shadingLayer.dynamicallyAllocate) {
                     const stats = calculateStatistics(valuesForStats, shadingLayer.dynamicAllocationSlots || 4);
-                    shadingDefinition.changes = {
-                      arcadeExpression,
-                      breakDefinitions: generateDynamicClassBreaks(stats, palette, shadingLayer.dynamicAllocationType)
-                    };
+                    shadingDefinition.changes['breakDefinitions'] = generateDynamicClassBreaks(stats, palette, shadingLayer.dynamicAllocationType);
                   }
                   break;
               }
-              if (shadingDefinition.changes != null) {
-                this.store$.dispatch(updateShadingDefinition({ shadingDefinition }));
-              }
+              this.store$.dispatch(updateShadingDefinition({ shadingDefinition }));
             });
           }
         });

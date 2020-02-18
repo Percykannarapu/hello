@@ -5,7 +5,7 @@ import { ShadingDefinition, shadingSelectors } from '@val/esri';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppStateService } from 'app/services/app-state.service';
 import { Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { Audience } from '../../impower-datastore/state/transient/audience/audience.model';
 import { FullAppState } from '../../state/app.interfaces';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -35,7 +35,7 @@ export class MapSettingsSidebarComponent implements OnInit {
     this.analysisLevel$ = this.appStateService.analysisLevel$;
     this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       filter(audiences => audiences != null),
-      map(activeAudiences => activeAudiences.filter(aud => aud.audienceSourceType !== 'Combined'))
+      filterArray(aud => aud.audienceSourceType !== 'Combined' && aud.audienceSourceType !== 'Custom')
     );
     this.shadingDefinitions$ = this.store$.select(shadingSelectors.allLayerDefs).pipe(
        filter((defs) => defs != null),

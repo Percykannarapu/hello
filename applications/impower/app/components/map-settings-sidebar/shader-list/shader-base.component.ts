@@ -1,13 +1,12 @@
-/* tslint:disable:component-selector */
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ShadingDefinitionBase } from '@val/esri';
 import { Subject } from 'rxjs';
 
-@Component({
-  selector: 'shader-base',
-  template: ''
-})
+// @Component({
+//   selector: 'shader-base',
+//   template: ''
+// })
 export abstract class ShaderBaseComponent<T extends ShadingDefinitionBase> implements OnInit, OnDestroy {
 
   @Input() definition: T;

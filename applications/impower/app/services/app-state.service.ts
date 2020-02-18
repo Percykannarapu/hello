@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { dedupeSimpleSet, distinctArray, filterArray, groupBy, isNumber, mapArray, mapArrayToEntity } from '@val/common';
+import { dedupeSimpleSet, filterArray, groupBy, isNumber, mapArray, mapArrayToEntity } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
@@ -60,6 +60,8 @@ export class AppStateService {
   public activeCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
   public clientLocationCount$: Observable<number>;
 
+  public uniqueSelectedGeocodeSet$: Observable<Set<string>>;
+  public uniqueIdentifiedGeocodeSet$: Observable<Set<string>>;
   public uniqueSelectedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public uniqueIdentifiedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public totalGeoCount$: Observable<number>;
@@ -216,19 +218,27 @@ export class AppStateService {
       map(geos => geos.length),
       startWith(0)
     );
-    this.geoService.storeObservable.pipe(
-      filterArray(geo => geo.isActive),
-      mapArray(geo => geo.geocode),
-      distinctArray()
-    ).subscribe(this.uniqueSelectedGeocodes$ as BehaviorSubject<string[]>);
-
-    const uniqueGeos$ = this.geoService.storeObservable.pipe(
+    const validGeos$ = this.geoService.storeObservable.pipe(
+      filter(geos => geos != null)
+    );
+    this.uniqueSelectedGeocodeSet$ = validGeos$.pipe(
+      map(geos => geos.reduce((a, c) => {
+        if (c.isActive) a.push(c.geocode);
+        return a;
+      }, [])),
+      map(geocodes => new Set(geocodes))
+    );
+    this.uniqueIdentifiedGeocodeSet$ = validGeos$.pipe(
       mapArray(geo => geo.geocode),
       map(geocodes => new Set(geocodes))
     );
 
-    uniqueGeos$.pipe(
-      map(set => Array.from(set))
+    this.uniqueSelectedGeocodeSet$.pipe(
+      map(geoSet => Array.from(geoSet))
+    ).subscribe(this.uniqueSelectedGeocodes$ as BehaviorSubject<string[]>);
+
+    this.uniqueIdentifiedGeocodeSet$.pipe(
+      map(geoSet => Array.from(geoSet))
     ).subscribe(this.uniqueIdentifiedGeocodes$ as BehaviorSubject<string[]>);
 
     const completeAttributes$ = this.store$.pipe(
@@ -237,7 +247,7 @@ export class AppStateService {
       mapArray(e => e.geocode)
     );
 
-    uniqueGeos$.pipe(
+    this.uniqueIdentifiedGeocodeSet$.pipe(
       filter(geoSet => geoSet.size > 0),
       withLatestFrom(completeAttributes$),
       map(([requestedGeos, currentGeos]) => dedupeSimpleSet(requestedGeos, new Set(currentGeos))),

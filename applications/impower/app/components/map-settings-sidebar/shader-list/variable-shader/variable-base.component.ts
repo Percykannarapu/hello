@@ -1,15 +1,14 @@
-/* tslint:disable:component-selector */
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ColorPalette, ShadingDefinitionBase } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { Audience } from '../../../../impower-datastore/state/transient/audience/audience.model';
 
-@Component({
-  selector: 'variable-base',
-  template: ''
-})
+// @Component({
+//   selector: 'variable-base',
+//   template: ''
+// })
 export abstract class VariableBaseComponent<T extends ShadingDefinitionBase> implements OnInit, OnDestroy {
 
   @Input() definition: T;
