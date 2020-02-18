@@ -103,7 +103,7 @@ export class AppMapService {
 
           EsriUtils.setupWatch(popup, 'visible').pipe(
             filter(result => {
-              if (result.newValue === false ){
+              if (result.newValue === false && result.oldValue != null){
                   return true;
               }
             })
