@@ -131,7 +131,7 @@ export class BatchMapService {
           );
         }
         this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));
-      } else if(!params.shadeNeighboringSites) {
+      } else if (!params.shadeNeighboringSites) {
         currentGeos.forEach(g => g.isActive = false);
       }
     }
