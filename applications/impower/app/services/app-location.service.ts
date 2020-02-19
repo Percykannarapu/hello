@@ -1064,7 +1064,7 @@ export class AppLocationService {
                   });
                   const locationsGroupBy = groupByExtended(rePipLocations, loc =>   loc.locZip.substr(0, 5) );
                   const responseMap: Map<string, any[]> = groupByExtended(Array.from(atzResultMap), row =>  row['ATZ'].substr(0, 5)); 
-                  return this.getAttributesforLayers(locationsGroupBy, 'ATZ', atzResultMap, responseMap, attrList, isFuseLocations);
+                  return this.getAttributesforLayers(locationsGroupBy, 'ATZ', atzResultMap, responseMap, atzGeos, isFuseLocations);
                 })
               );
             })
@@ -1110,9 +1110,9 @@ export class AppLocationService {
                           zipResultMap.push({'ATZ': record['ATZ'], 'DTZ' : DTZ, 'ZIP': record['ZIP'], 'DMA': record['homeDma'], 'COUNTY': record['homeCounty']});
                     }
                   });
-                  const locationsGroupBy = groupByExtended(impGeofootprintLocations, loc =>   loc.locZip.substr(0, 5) );
+                  const locationsGroupBy = groupByExtended(t.rePipLocations, loc =>   loc.locZip.substr(0, 5) );
                   const responseMap: Map<string, any[]> = groupByExtended(Array.from(zipResultMap), row =>  row['ZIP'].substr(0, 5)); 
-                  return this.getAttributesforLayers(locationsGroupBy, 'ZIP', zipResultMap, responseMap, attrList, isFuseLocations);
+                  return this.getAttributesforLayers(locationsGroupBy, 'ZIP', zipResultMap, responseMap, zipGeos, isFuseLocations);
                 })
               );
             })
@@ -1149,7 +1149,7 @@ export class AppLocationService {
             pipAgianLocations.push(value[0]);
         }
         else if (value.length > 1 && !isFuseLocations){
-          //console.log('Test====>', value, 'isfuse===>', isFuseLocations);
+          console.log('Test====>', value, 'isfuse===>', isFuseLocations);
           value.forEach(loc => {
              attrList.forEach((geometry: any, pcr: string) => {
                const insideGeometry = {x: loc.xcoord, y: loc.ycoord} as Geometry;
@@ -1162,7 +1162,7 @@ export class AppLocationService {
           });
         }
         else if (value.length > 1 && isFuseLocations){
-          //console.log('Test====>', value, 'isfuse===>', isFuseLocations);
+          console.log('Test1====>', value, 'isfuse===>', isFuseLocations);
           value.forEach(loc => {
             const row = responseMap.get(key);
             if (row != null && row.length > 0){
