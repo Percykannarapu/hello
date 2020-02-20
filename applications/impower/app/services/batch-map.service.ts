@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { groupByExtended, UniversalCoordinates, toUniversalCoordinates } from '@val/common';
+import { groupByExtended, UniversalCoordinates, toUniversalCoordinates, groupBy } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
@@ -22,6 +22,7 @@ import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { BatchMapQueryParams } from 'app/state/shared/router.interfaces';
+import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Injectable({
   providedIn: 'root'
@@ -84,10 +85,64 @@ export class BatchMapService {
   }
 
   startBatchMaps(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    if (!params.singlePage)
+    if (params.groupByAttribute != null)
+      return this.mapByAttribute(project, siteNum, params);
+    else if (!params.singlePage)
       return this.moveToSite(project, siteNum, params);
     else
       return this.showAllSites(project);
+  }
+
+  mapByAttribute(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
+    let groupedSites: Map<string, Array<ImpGeofootprintLocation>>;
+    if (project.getImpGeofootprintLocations()[0].hasOwnProperty(params.groupByAttribute)) {
+      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => item[params.groupByAttribute]);
+    } else {
+      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => {
+        let key: string = null;
+        item.impGeofootprintLocAttribs.forEach(a => {
+          if (a.attributeCode === params.groupByAttribute) {
+            key = a.attributeValue;
+          }
+        });
+        return key;
+      });
+    }
+    const attrArray = Array.from(groupedSites.keys());
+    const sitesToMap = groupedSites.get(attrArray[siteNum]);
+    const last: boolean = Number(siteNum) === attrArray.length - 1 ? true : false;
+    const nextSite = last === true ? siteNum : Number(siteNum) + 1;
+    const result = { siteNum: nextSite.toString(), isLastSite: last };
+    const activeSiteIds: Set<string> = new Set<string>();
+    sitesToMap.forEach(s => activeSiteIds.add(s.locationNumber));
+    if (params.hideNeighboringSites) {
+      project.getImpGeofootprintLocations().forEach(l => {
+        if (!activeSiteIds.has(l.locationNumber)) {
+          l.isActive = false;
+          l.impGeofootprintTradeAreas.forEach(t => t.isActive = false);
+        } else {
+          l.isActive = true;
+          l.impGeofootprintTradeAreas.forEach(t => t.isActive = true);
+        }
+      });
+      this.store$.dispatch(new RenderLocations({ locations: sitesToMap, impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
+      this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
+    }
+    if (!params.shadeNeighboringSites) {
+      project.getImpGeofootprintLocations().forEach(l => {
+        if (!activeSiteIds.has(l.locationNumber)) {
+          l.getImpGeofootprintGeos().forEach(g => g.isActive = false);
+        } else {
+          l.getImpGeofootprintGeos().forEach(g => g.isActive = true);
+        }
+      });
+      this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
+    }
+    this.geoService.update(null, null);
+    this.forceMapUpdate();
+    return this.esriMapService.zoomToPoints(toUniversalCoordinates(sitesToMap), .5).pipe(
+      map(() => result)
+    );
   }
 
   showAllSites(project: ImpProject) : Observable<{ siteNum: string, isLastSite: boolean }> {
