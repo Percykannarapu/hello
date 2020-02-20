@@ -1025,7 +1025,7 @@ export class AppLocationService {
           return t;
       }),
       mergeMap(t => {
-          console.log('attribute List ATZ====>', t);
+        this.logger.debug.log(`remaining locations for ATZ: ${t.rePipLocations.length} `);
         if (t.rePipLocations.length > 0){
           return this.pipLocations(t.rePipLocations, 'atz').pipe(
             switchMap(atzGeos => {
@@ -1041,7 +1041,7 @@ export class AppLocationService {
                   result.forEach(record => {
                     if (!atzSet.has(record['ATZ'])){
                           atzSet.add(record['ATZ']);
-                          const DTZ = record['DTZ'] === record['ATZ'] ? record['ATZ'] : null ;
+                          const DTZ = record['DTZ'] === record['ATZ'] ? record['ATZ'] : record['DTZ'] === record['ATZ'].substr(0, 5) ? record['DTZ'] : null ;
                           atzResultMap.push({'ATZ': record['ATZ'], 'DTZ' : DTZ, 'ZIP': record['ZIP'], 'homeDma': record['homeDma'], 'homeCounty': record['homeCounty']});
                     }
                   });
@@ -1059,7 +1059,7 @@ export class AppLocationService {
         } 
       }),
       mergeMap(t => {
-        console.log('attribute List ZIP====>', t);
+        this.logger.debug.log(`remaining locations for Zip: ${t.rePipLocations.length} `);
         if (t.rePipLocations.length > 0){
           return this.pipLocations(t.rePipLocations, 'zip').pipe(
             switchMap(zipGeos => {
@@ -1076,7 +1076,7 @@ export class AppLocationService {
                     if (!zipSet.has(record['ZIP'])){
                           zipSet.add(record['ZIP']);
                           const DTZ = record['DTZ'] === record['ZIP'] ? record['DTZ'] : null ;
-                          zipResultMap.push({'ATZ': record['ATZ'], 'DTZ' : DTZ, 'ZIP': record['ZIP'], 'DMA': record['homeDma'], 'COUNTY': record['homeCounty']});
+                          zipResultMap.push({'ATZ': record['ATZ'], 'DTZ' : DTZ, 'ZIP': record['ZIP'], 'homeDma': record['homeDma'], 'homeCounty': record['homeCounty']});
                     }
                   });
                   const locMapBySiteNumber: Map<string, ImpGeofootprintLocation> = mapBy(t.rePipLocations, 'locationNumber');
@@ -1138,7 +1138,7 @@ export class AppLocationService {
                       }
                   }
                 });
-                console.log('pip response=======>', resultMapbyLocation);
+                this.logger.debug.log(`pip Response for ${analysisLevel} : ${Array.from(resultMapbyLocation.values()).length} - total locations-${locations.length}`);
                 //result.forEach(res => responseMapby.set(res.attributes['geocode'], res.geometry));
                 return resultMapbyLocation;
             })
