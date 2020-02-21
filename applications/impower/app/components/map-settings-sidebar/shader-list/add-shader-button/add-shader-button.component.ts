@@ -58,6 +58,12 @@ export class AddShaderButtonComponent {
     if (dataKey === GfpShaderKeys.OwnerSite && newForm.shadingType === ConfigurationTypes.Unique) {
       newForm.secondaryDataKey = 'locationNumber';
     }
+    if (dataKey === GfpShaderKeys.Selection) {
+      newForm.defaultSymbolDefinition = {
+        fillType: 'solid',
+        fillColor: [0, 255, 0, 1]
+      };
+    }
     this.addShader.emit(newForm as any);
   }
 }
