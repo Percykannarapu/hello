@@ -1,7 +1,6 @@
-<div class="component-root" [formGroup]="parentForm">
+<div class="component-root" [formGroup]="currentRoot">
   <span class="md-inputfield">
-    <p-dropdown [options]="fillTypes" [style]="{'width':'100%'}" id="{{valueName}}input"
-                [(ngModel)]="selectedFillType" [ngModelOptions]="{standalone: true}">
+    <p-dropdown [options]="fillTypes" [style]="{'width':'100%'}" id="{{controlId}}input" formControlName="fillType">
       <ng-template let-selected pTemplate="selectedItem">
         <div class="item-container">
           <span [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
@@ -15,9 +14,11 @@
         </div>
       </ng-template>
     </p-dropdown>
-    <label class="drop-down-label" for="{{valueName}}input">{{labelText}}</label>
+    <label class="drop-down-label" for="{{controlId}}input">{{labelText}}</label>
   </span>
   <span class="color-chip">
-    <p-colorPicker [(ngModel)]="selectedColor" format="rgb" [ngModelOptions]="{standalone: true}"></p-colorPicker>
+    <palette-color-picker *ngIf="currentPalette != null" [parentForm]="currentRoot" valueName="fillColor"
+                          [currentPalette]="currentPalette"></palette-color-picker>
+    <p-colorPicker [(ngModel)]="selectedColor" format="rgb" [ngModelOptions]="{standalone: true}" *ngIf="currentPalette == null"></p-colorPicker>
   </span>
 </div>

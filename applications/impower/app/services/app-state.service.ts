@@ -221,24 +221,38 @@ export class AppStateService {
     const validGeos$ = this.geoService.storeObservable.pipe(
       filter(geos => geos != null)
     );
-    this.uniqueSelectedGeocodeSet$ = validGeos$.pipe(
-      map(geos => geos.reduce((a, c) => {
-        if (c.isActive) a.push(c.geocode);
-        return a;
-      }, [])),
-      map(geocodes => new Set(geocodes))
+    const geoSplit$ = validGeos$.pipe(
+      map(geos => {
+        const allGeocodeSet = new Set<string>();
+        const activeGeocodeSet = new Set<string>();
+        const allGeocodeArray = [];
+        const activeGeocodeArray = [];
+        geos.forEach(geo => {
+          if (!allGeocodeSet.has(geo.geocode)) {
+            allGeocodeSet.add(geo.geocode);
+            allGeocodeArray.push(geo.geocode);
+          }
+          if (geo.isActive && !activeGeocodeSet.has(geo.geocode)) {
+            activeGeocodeSet.add(geo.geocode);
+            activeGeocodeArray.push(geo.geocode);
+          }
+        });
+        return [allGeocodeSet, allGeocodeArray, activeGeocodeSet, activeGeocodeArray] as [Set<string>, string[], Set<string>, string[]];
+      })
     );
-    this.uniqueIdentifiedGeocodeSet$ = validGeos$.pipe(
-      mapArray(geo => geo.geocode),
-      map(geocodes => new Set(geocodes))
+    this.uniqueSelectedGeocodeSet$ = geoSplit$.pipe(
+      map(([, , activeGeocodeSet]) => activeGeocodeSet)
+    );
+    this.uniqueIdentifiedGeocodeSet$ = geoSplit$.pipe(
+      map(([allGeocodeSet]) => allGeocodeSet)
     );
 
-    this.uniqueSelectedGeocodeSet$.pipe(
-      map(geoSet => Array.from(geoSet))
+    geoSplit$.pipe(
+      map(([, , , activeGeocodes]) => activeGeocodes)
     ).subscribe(this.uniqueSelectedGeocodes$ as BehaviorSubject<string[]>);
 
-    this.uniqueIdentifiedGeocodeSet$.pipe(
-      map(geoSet => Array.from(geoSet))
+    geoSplit$.pipe(
+      map(([, allGeocodes]) => allGeocodes)
     ).subscribe(this.uniqueIdentifiedGeocodes$ as BehaviorSubject<string[]>);
 
     const completeAttributes$ = this.store$.pipe(

@@ -12,7 +12,7 @@ export class UniqueVariableShaderComponent extends VariableBaseComponent<UniqueS
   constructor() { super(); }
 
   protected setupForm() : void {
-    this.parentForm.addControl('theme', new FormControl(this.definition.theme || ColorPalette.Cpqmaps));
+    this.parentForm.addControl('theme', new FormControl(this.definition.theme || ColorPalette.CpqMaps));
     this.parentForm.addControl('reverseTheme', new FormControl(this.definition.reverseTheme || false));
   }
 

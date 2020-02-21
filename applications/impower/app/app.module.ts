@@ -86,8 +86,10 @@ import { ConfirmationContainerComponent } from './components/common/confirmation
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ConnectFormDirective } from './components/common/connect-form.directive';
 import { DropdownInputComponent } from './components/common/dropdown-input/dropdown-input.component';
+import { EsriClassBreakInputComponent } from './components/common/esri-class-break-input/esri-class-break-input.component';
 import { EsriSymbolInputComponent } from './components/common/esri-symbol-input/esri-symbol-input.component';
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
+import { PaletteColorPickerComponent } from './components/common/palette-color-picker/palette-color-picker.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
 import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
 import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
@@ -356,7 +358,9 @@ export function actionSanitizer(action: Action) : Action {
     RampVariableShaderComponent,
     UniqueVariableShaderComponent,
     DensityVariableShaderComponent,
-    BreaksVariableShaderComponent
+    BreaksVariableShaderComponent,
+    PaletteColorPickerComponent,
+    EsriClassBreakInputComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

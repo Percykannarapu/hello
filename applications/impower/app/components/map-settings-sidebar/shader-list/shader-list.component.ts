@@ -1,8 +1,8 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { addShadingDefinition, deleteShadingDefinition, ShadingDefinition, updateShadingDefinition, upsertShadingDefinition } from '@val/esri';
+import { EsriShadingLayersService, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { GetAllMappedVariables } from '../../../impower-datastore/state/transient/transient.actions';
 import { GfpShaderKeys } from '../../../models/ui-enums';
@@ -17,7 +17,7 @@ import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeo
   styleUrls: ['./shader-list.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class ShaderListComponent implements OnInit {
+export class ShaderListComponent implements OnInit, OnDestroy {
 
   @Input() currentAnalysisLevel: string;
   @Input() tradeAreaCount: number;
@@ -32,29 +32,38 @@ export class ShaderListComponent implements OnInit {
   shadingTypes = GfpShaderKeys;
   siteLabels$: Observable<SelectItem[]>;
 
+  private destroyed$ = new Subject<void>();
+
   constructor(private locationService: AppLocationService,
               private appRenderService: AppRendererService,
+              private esriShaderService: EsriShadingLayersService,
               private store$: Store<FullAppState>) { }
 
   ngOnInit() : void {
     this.siteLabels$ = this.locationService.siteLabelOptions$;
   }
 
+  ngOnDestroy() : void {
+    this.destroyed$.next();
+  }
+
   deleteDefinition(event: MouseEvent, definition: ShadingDefinition) : void {
     if (definition.id == null) return;
-    this.store$.dispatch(deleteShadingDefinition({ id: definition.id }));
+    this.esriShaderService.deleteShader(definition);
     if (event != null) event.stopPropagation();
   }
 
   toggleVisibility(event: MouseEvent, definition: ShadingDefinition) : void {
     if (definition.id == null) return;
-    this.store$.dispatch(updateShadingDefinition({ shadingDefinition: { id: definition.id, changes: { visible: !definition.visible }}}));
+    const copy = { ...definition, visible: !definition.visible };
+    this.esriShaderService.updateShader(copy);
     if (event != null) event.stopPropagation();
   }
 
-  addNewShader(newShader: ShadingDefinition) {
+  addNewShader({ dataKey, layerName }: { dataKey: string, layerName?: string }) {
+    const newShader = this.appRenderService.createNewShader(dataKey, layerName) as ShadingDefinition;
     newShader.sortOrder = Math.max(...this.shadingDefinitions.map(s => s.sortOrder), this.shadingDefinitions.length) + 1;
-    this.store$.dispatch(addShadingDefinition({ shadingDefinition: newShader }));
+    this.esriShaderService.addShader(newShader);
     this.currentOpenId = newShader.id;
   }
 
@@ -75,7 +84,7 @@ export class ShaderListComponent implements OnInit {
         this.appRenderService.registerGeoOwnerWatcher();
         break;
     }
-    this.store$.dispatch(upsertShadingDefinition({ shadingDefinition: newDef }));
+    this.esriShaderService.updateShader(newDef);
     setTimeout(() => this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: this.currentAnalysisLevel })), 1000);
   }
 }

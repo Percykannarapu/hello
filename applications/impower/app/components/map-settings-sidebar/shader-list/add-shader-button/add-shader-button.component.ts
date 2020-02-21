@@ -1,7 +1,5 @@
 /* tslint:disable:component-selector */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { getUuid } from '@val/common';
-import { ConfigurationTypes, ShadingDefinition } from '@val/esri';
 import { MenuItem } from 'primeng/api';
 import { GfpShaderKeys } from '../../../../models/ui-enums';
 
@@ -21,7 +19,7 @@ export class AddShaderButtonComponent {
     return this.buttonMenu();
   }
 
-  @Output() addShader = new EventEmitter<ShadingDefinition>();
+  @Output() addShader = new EventEmitter<{ dataKey: string, layerName?: string }>();
 
   constructor() { }
 
@@ -40,30 +38,6 @@ export class AddShaderButtonComponent {
   }
 
   private add(dataKey: string, layerName?: string) : void {
-    const shadingTypeMap = {
-      [GfpShaderKeys.Selection]: ConfigurationTypes.Simple,
-      [GfpShaderKeys.OwnerSite]: ConfigurationTypes.Unique,
-      [GfpShaderKeys.OwnerTA]: ConfigurationTypes.Unique,
-    };
-    const newForm: Partial<ShadingDefinition> = {
-      id: getUuid(),
-      dataKey,
-      visible: true,
-      layerName,
-      opacity: dataKey === GfpShaderKeys.Selection ? 0.25 : 0.5,
-      filterField: 'geocode',
-      filterByFeaturesOfInterest: dataKey !== '',
-      shadingType: shadingTypeMap[dataKey]
-    };
-    if (dataKey === GfpShaderKeys.OwnerSite && newForm.shadingType === ConfigurationTypes.Unique) {
-      newForm.secondaryDataKey = 'locationNumber';
-    }
-    if (dataKey === GfpShaderKeys.Selection) {
-      newForm.defaultSymbolDefinition = {
-        fillType: 'solid',
-        fillColor: [0, 255, 0, 1]
-      };
-    }
-    this.addShader.emit(newForm as any);
+    this.addShader.emit({ dataKey, layerName });
   }
 }

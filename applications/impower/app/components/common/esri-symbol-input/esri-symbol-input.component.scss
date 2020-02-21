@@ -3,7 +3,7 @@
   padding-bottom: 0.5em;
   display: flex;
   > span {
-    flex: 8;
+    flex: 6;
     .item-container {
       display: flex;
       align-items: center;
@@ -37,6 +37,6 @@
   }
   > span.color-chip {
     padding-left: 1em;
-    flex: 2;
+    flex: 4;
   }
 }

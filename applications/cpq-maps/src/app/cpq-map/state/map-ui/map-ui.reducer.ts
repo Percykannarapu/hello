@@ -1,8 +1,8 @@
+import { mapBy } from '@val/common';
 import { ColorPalette, FillPattern } from '@val/esri';
 import { GridSize, NumericVariableShadingMethod, ShadingType, VarDefinition, VariableRanges } from '../app.interfaces';
 import { SetMapPreferences, SharedActionTypes } from '../shared/shared.actions';
-import { ShadingActions, MapUIActionTypes } from './map-ui.actions';
-import { mapBy } from '@val/common';
+import { MapUIActionTypes, ShadingActions } from './map-ui.actions';
 
 export interface MapUIState {
   isDistrQtyEnabled: boolean;
@@ -33,7 +33,7 @@ export const initialState: MapUIState = {
   selectedClassBreaks: 4,
   selectedVar: null,
   selectedNumericMethod: NumericVariableShadingMethod.StandardIndex,
-  selectedPalette: ColorPalette.Cpqmaps,
+  selectedPalette: ColorPalette.CpqMaps,
   shadeAnne: false,
   annePattern: 'diagonal-cross',
   shadeSolo: false,

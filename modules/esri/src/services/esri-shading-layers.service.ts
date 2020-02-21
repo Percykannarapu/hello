@@ -5,7 +5,17 @@ import { map, pairwise, startWith, take, tap, withLatestFrom } from 'rxjs/operat
 import { EsriUtils } from '../core/esri-utils';
 import { ConfigurationTypes, RampProperties, ShadingDefinition, SymbolDefinition } from '../models/shading-configuration';
 import { AppState, shadingSelectors } from '../state/esri.selectors';
-import { addLayerToLegend, updateShadingDefinition } from '../state/shading/esri.shading.actions';
+import {
+  addLayerToLegend,
+  addShadingDefinition,
+  addShadingDefinitions,
+  deleteShadingDefinition,
+  deleteShadingDefinitions,
+  loadShadingDefinitions,
+  updateShadingDefinition,
+  upsertShadingDefinition,
+  upsertShadingDefinitions
+} from '../state/shading/esri.shading.actions';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 
@@ -21,6 +31,34 @@ export class EsriShadingLayersService {
     this.setupFeaturesOfInterestWatcher();
     this.setupRendererUpdatesWatcher();
     this.setupLayerRemovalWatcher();
+  }
+
+  loadShaders(shadingDefinitions: ShadingDefinition[]) : void {
+    this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
+  }
+
+  addShader(shadingDefinition: ShadingDefinition | ShadingDefinition[]) : void {
+    if (Array.isArray(shadingDefinition)) {
+      this.store$.dispatch(addShadingDefinitions({ shadingDefinitions: shadingDefinition }));
+    } else {
+      this.store$.dispatch(addShadingDefinition({ shadingDefinition }));
+    }
+  }
+
+  updateShader(shadingDefinition: ShadingDefinition | ShadingDefinition[]) : void {
+    if (Array.isArray(shadingDefinition)) {
+      this.store$.dispatch(upsertShadingDefinitions({ shadingDefinitions: shadingDefinition }));
+    } else {
+      this.store$.dispatch(upsertShadingDefinition({ shadingDefinition }));
+    }
+  }
+
+  deleteShader(shadingDefinition: ShadingDefinition | ShadingDefinition[]) : void {
+    if (Array.isArray(shadingDefinition)) {
+      this.store$.dispatch(deleteShadingDefinitions({ ids: shadingDefinition.map(s => s.id) }));
+    } else {
+      this.store$.dispatch(deleteShadingDefinition({ id: shadingDefinition.id }));
+    }
   }
 
   private setupLayerCreationWatcher() : void {

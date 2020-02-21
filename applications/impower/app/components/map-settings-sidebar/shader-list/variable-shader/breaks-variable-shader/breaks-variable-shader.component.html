@@ -27,6 +27,29 @@
     <label>Opacity:</label>
     <strong>{{definition.opacity}}</strong>
   </div>
+  <div *ngIf="(!definition.dynamicallyAllocate) && definition.breakDefinitions">
+    <label>Breaks:</label>
+    <div class="class-break-table">
+      <table>
+        <thead>
+          <tr>
+            <th [ngStyle]="{ 'width': '10%' }">Min</th>
+            <th [ngStyle]="{ 'width': '10%' }">Max</th>
+            <th [ngStyle]="{ 'width': '50%' }">Legend</th>
+            <th [ngStyle]="{ 'width': '30%' }">Overlay</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let defBreak of definition.breakDefinitions; first as isFirst; last as isLast">
+            <td><ng-container *ngIf="!isFirst">{{defBreak.minValue}}</ng-container></td>
+            <td><ng-container *ngIf="!isLast">{{defBreak.maxValue}}</ng-container></td>
+            <td>{{defBreak.legendName}}</td>
+            <td>{{getFillName(defBreak.fillType)}}<span class="color-chip" [ngStyle]="{ 'background-color': getHexColor(defBreak.fillColor) }"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </ng-container>
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
@@ -46,7 +69,20 @@
     <validated-text-input [parentForm]="parentForm" valueName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be between 2 and 20"></validated-text-input>
   </ng-container>
   <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === false">
-
+    <div class="shader-menu">
+      <a href="#" (click)="addBreak()">add Class Break</a>
+    </div>
+    <div class="class-break-list" formArrayName="breakDefinitions">
+      <div *ngFor="let classBreak of breakDefinitions; first as isFirst; last as isLast; index as i">
+        <div class="break-container">
+          <esri-class-break-input [parentForm]="classBreak" [currentPalette]="currentTheme"
+                                  [showMinValue]="!isFirst" [showMaxValue]="!isLast"></esri-class-break-input>
+        </div>
+        <div class="delete-container">
+          <span class="fa fa-trash-o val-clickable" (click)="deleteBreak(i)" *ngIf="!(isLast || isFirst)"></span>
+        </div>
+      </div>
+    </div>
   </ng-container>
   <validated-text-input [parentForm]="parentForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
   <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>

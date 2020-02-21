@@ -3,10 +3,10 @@ import { RgbTuple } from './esri-types';
 
 // these are the only palettes used in the application for now
 export enum ColorPalette {
-  Brightcolors = '6 Bright Colors',
+  BrightColors = '6 Bright Colors',
   SixDarkColors = '6 Dark Colors',
-  Cpqmaps = '20 Colors',
-  Bivariateredblue3 = '6 Bivariate Red-Blue',
+  CpqMaps = '20 Colors',
+  BiVariateRedBlue3 = '6 Bivariate Red-Blue',
   Blue = 'Gradient - Blue',
   Red = 'Gradient - Red',
   Orange = 'Gradient - Orange',
@@ -15,7 +15,7 @@ export enum ColorPalette {
 
 export enum AllColorPalettes {
   Random = 'Random',
-  Cpqmaps = '20 Colors',
+  CpqMaps = '20 Colors',
   Lightyellow = '1 Light yellow',
   Lightblue = '1 Light blue',
   Lightgreen = '1 Light green',
@@ -63,7 +63,7 @@ export enum AllColorPalettes {
   Advantagelighter3 = '6 Advantage-Lighter',
   Advantagedarker3 = '6 Advantage-Darker',
   Bivariatebluered3 = '6 Bivariate Blue-Red',
-  Bivariateredblue3 = '6 Bivariate Red-Blue',
+  BiVariateRedBlue3 = '6 Bivariate Red-Blue',
   Bivariategreenyellow3 = '6 Bivariate Green-Yellow',
   Bivariateyellowgreen3 = '6 Bivariate Yellow-Green',
   Green = '6 Green',
@@ -71,7 +71,7 @@ export enum AllColorPalettes {
   Orange = 'Gradient - Orange',
   Red = 'Gradient - Red',
   Pastelshades3 = '6 Pastel Shades',
-  Brightcolors = '6 Bright Colors',
+  BrightColors = '6 Bright Colors',
   SixDarkColors = '6 Dark Colors',
   Valassisrange3color = 'Valassis Range - 3 color',
   Valassisrange4color = 'Valassis Range - 4 color',
@@ -98,7 +98,7 @@ export function getAllColorPalettes(palette: string) : RgbTuple[] {
   switch (palette) {
     case AllColorPalettes.Random:
       return null; // Special case
-    case AllColorPalettes.Cpqmaps:
+    case AllColorPalettes.CpqMaps:
       return cpqmaps;
     case AllColorPalettes.Lightyellow:
       return LightYellow;
@@ -194,7 +194,7 @@ export function getAllColorPalettes(palette: string) : RgbTuple[] {
       return AdvantageDarker3;
     case AllColorPalettes.Bivariatebluered3:
       return BivariateBlueRed3;
-    case AllColorPalettes.Bivariateredblue3:
+    case AllColorPalettes.BiVariateRedBlue3:
       return BivariateRedBlue3;
     case AllColorPalettes.Bivariategreenyellow3:
       return BivariateGreenYellow3;
@@ -210,7 +210,7 @@ export function getAllColorPalettes(palette: string) : RgbTuple[] {
       return Red;
     case AllColorPalettes.Pastelshades3:
       return PastelShades3;
-    case AllColorPalettes.Brightcolors:
+    case AllColorPalettes.BrightColors:
       return BrightColors;
     case AllColorPalettes.SixDarkColors:
       return SixDarkColors;

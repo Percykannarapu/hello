@@ -30,7 +30,7 @@ export abstract class VariableBaseComponent<T extends ShadingDefinitionBase> imp
         label: ColorPalette[key],
         value: ColorPalette[key]
       }));
-    this.numericThemes = this.allThemes.filter(k => k.value !== ColorPalette.Cpqmaps);
+    this.numericThemes = this.allThemes.filter(k => k.value !== ColorPalette.CpqMaps);
     this.allExtents = [
       {label: 'Whole Map', value: false },
       {label: 'Selected Geos only', value: true }

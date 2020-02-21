@@ -1,4 +1,5 @@
 @import "valassis-variables";
+@import "sass/mixins";
 
 body {
   val-shader-list {
@@ -17,6 +18,19 @@ body {
           span.fa-eye-slash {
             color: $valReversedDisabledColor;
           }
+        }
+      }
+    }
+    div.shader-menu {
+      > a {
+        @include transition(background-color .3s);
+        @include transition(color .3s);
+        @include border-radius(3px);
+
+        padding: 0 0.5em;
+        &:hover {
+          color: #000;
+          background-color: $primaryLightColor;
         }
       }
     }

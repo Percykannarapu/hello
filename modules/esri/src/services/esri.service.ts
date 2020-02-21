@@ -8,7 +8,7 @@ import { InitialEsriState, loadInitialState } from '../state/esri.actions';
 import { AppState, selectors } from '../state/esri.selectors';
 import { ResetMapState, SetLayerLabelExpressions, SetPopupVisibility, SetSelectedLayer } from '../state/map/esri.map.actions';
 import { EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
-import { loadShadingDefinitions } from '../state/shading/esri.shading.actions';
+import { loadShadingDefinitions, setFeaturesOfInterest } from '../state/shading/esri.shading.actions';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 import { EsriQueryService } from './esri-query.service';
@@ -63,5 +63,9 @@ export class EsriService {
 
   setBasemap(parsedJsonBasemap: any) : void {
     this.mapService.setBasemap(Basemap.fromJSON(parsedJsonBasemap));
+  }
+
+  setFeaturesOfInterest(features: string[]) : void {
+    this.store$.dispatch(setFeaturesOfInterest({ features }));
   }
 }

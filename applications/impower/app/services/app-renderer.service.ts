@@ -1,25 +1,20 @@
 import { Injectable } from '@angular/core';
-import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { calculateStatistics, filterArray, getUuid } from '@val/common';
 import {
   ColorPalette,
   ConfigurationTypes,
   createDataArcade,
-  EsriLayerService,
-  EsriMapService,
+  EsriService,
+  EsriShadingLayersService,
   generateContinuousValues,
   generateDynamicClassBreaks,
   generateUniqueValues,
   getColorPalette,
   isComplexShadingDefinition,
-  loadShadingDefinitions,
-  resetShading,
   RgbTuple,
-  setFeaturesOfInterest,
   ShadingDefinition,
   shadingSelectors,
-  updateShadingDefinition,
   upsertShadingDefinitions
 } from '@val/esri';
 import { AppConfig } from 'app/app.config';
@@ -36,7 +31,6 @@ import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
-import { TargetAudienceService } from './target-audience.service';
 
 @Injectable()
 export class AppRendererService {
@@ -46,9 +40,8 @@ export class AppRendererService {
   constructor(private appStateService: AppStateService,
               private appPrefService: AppProjectPrefService,
               private impGeoService: ImpGeofootprintGeoService,
-              private dataService: TargetAudienceService,
-              private esriMapService: EsriMapService,
-              private esriLayerService: EsriLayerService,
+              private esriService: EsriService,
+              private esriShaderService: EsriShadingLayersService,
               private config: AppConfig,
               private logger: LoggingService,
               private store$: Store<FullAppState>) {
@@ -91,7 +84,7 @@ export class AppRendererService {
       distinctUntilChanged(),
       withLatestFrom(this.appStateService.currentProject$)
     ).subscribe(([al, project]) => {
-      this.store$.dispatch(resetShading());
+      // this.store$.dispatch(resetShading());
       const shadingDefinitions = this.getShadingDefinitions(project);
       shadingDefinitions.forEach(sd => {
         this.updateForAnalysisLevel(sd, al);
@@ -99,7 +92,7 @@ export class AppRendererService {
       if (shadingDefinitions.length === 0) {
         shadingDefinitions.push(this.createSelectionShadingDefinition(al, false));
       }
-      this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
+      this.esriShaderService.loadShaders(shadingDefinitions);
     });
   }
 
@@ -108,12 +101,18 @@ export class AppRendererService {
     this.selectedWatcher = geoDataStore.pipe(
       filter(geos => geos != null),
       debounceTime(500),
-      map(geos => Array.from(new Set(geos.reduce((a, c) => {
-        if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive) a.push(c.geocode);
-        return a;
-      }, [])))),
+      map(geos => {
+        const deduper = new Set<string>();
+        return geos.reduce((a, c) => {
+          if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive && !deduper.has(c.geocode)) {
+            deduper.add(c.geocode);
+            a.push(c.geocode);
+          }
+          return a;
+        }, []);
+      }),
       tap(geocodes => geocodes.sort())
-    ).subscribe(features => this.store$.dispatch(setFeaturesOfInterest({ features })));
+    ).subscribe(features => this.esriService.setFeaturesOfInterest(features));
   }
 
   private setupMapVarWatcher() {
@@ -128,12 +127,13 @@ export class AppRendererService {
           const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
           if (shadingLayers != null) {
             shadingLayers.forEach(shadingLayer => {
-              const currentMapVars = shadingLayer.filterByFeaturesOfInterest ? filteredMapVars : mapVars;
+              const shaderCopy: ShadingDefinition = { ...shadingLayer };
+              const currentMapVars = shaderCopy.filterByFeaturesOfInterest ? filteredMapVars : mapVars;
               const uniqueStrings = new Set<string>();
               const valuesForStats: number[] = [];
               const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
                 result[mapVar.geocode] = mapVar[varPk];
-                switch (shadingLayer.shadingType) {
+                switch (shaderCopy.shadingType) {
                   case ConfigurationTypes.Unique:
                     uniqueStrings.add(mapVar[varPk] == null ? '' : `${mapVar[varPk]}`);
                     break;
@@ -147,32 +147,60 @@ export class AppRendererService {
                 return result;
               }, {});
               const arcadeExpression = createDataArcade(mapVarDictionary);
-              const shadingDefinition: Update<ShadingDefinition> = { id: shadingLayer.id, changes: { arcadeExpression } };
               let palette: RgbTuple[] = [];
-              if (isComplexShadingDefinition(shadingLayer)) {
-                palette = getColorPalette(shadingLayer.theme, shadingLayer.reverseTheme);
+              if (isComplexShadingDefinition(shaderCopy)) {
+                shaderCopy.arcadeExpression = arcadeExpression;
+                palette = getColorPalette(shaderCopy.theme, shaderCopy.reverseTheme);
               }
-              switch (shadingLayer.shadingType) {
+              switch (shaderCopy.shadingType) {
                 case ConfigurationTypes.Unique:
                   const uniqueValues = Array.from(uniqueStrings);
-                  shadingDefinition.changes['breakDefinitions'] = generateUniqueValues(uniqueValues, palette);
+                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, palette);
                   break;
                 case ConfigurationTypes.Ramp:
-                  shadingDefinition.changes['breakDefinitions'] = generateContinuousValues(calculateStatistics(valuesForStats), palette);
+                  shaderCopy.breakDefinitions = generateContinuousValues(calculateStatistics(valuesForStats), palette);
                   break;
                 case ConfigurationTypes.ClassBreak:
-                  if (shadingLayer.dynamicallyAllocate) {
-                    const stats = calculateStatistics(valuesForStats, shadingLayer.dynamicAllocationSlots || 4);
-                    shadingDefinition.changes['breakDefinitions'] = generateDynamicClassBreaks(stats, palette, shadingLayer.dynamicAllocationType);
+                  if (shaderCopy.dynamicallyAllocate) {
+                    const stats = calculateStatistics(valuesForStats, shaderCopy.dynamicAllocationSlots || 4);
+                    shaderCopy.breakDefinitions = generateDynamicClassBreaks(stats, palette, shaderCopy.dynamicAllocationType);
                   }
                   break;
               }
-              this.store$.dispatch(updateShadingDefinition({ shadingDefinition }));
+              this.esriShaderService.updateShader(shaderCopy);
             });
           }
         });
       }
     });
+  }
+
+  createNewShader(dataKey: string, layerName?: string) : Partial<ShadingDefinition> {
+    const shadingTypeMap = {
+      [GfpShaderKeys.Selection]: ConfigurationTypes.Simple,
+      [GfpShaderKeys.OwnerSite]: ConfigurationTypes.Unique,
+      [GfpShaderKeys.OwnerTA]: ConfigurationTypes.Unique,
+    };
+    const newForm: Partial<ShadingDefinition> = {
+      id: getUuid(),
+      dataKey,
+      visible: true,
+      layerName,
+      opacity: dataKey === GfpShaderKeys.Selection ? 0.25 : 0.5,
+      filterField: 'geocode',
+      filterByFeaturesOfInterest: dataKey !== '',
+      shadingType: shadingTypeMap[dataKey]
+    };
+    if (dataKey === GfpShaderKeys.OwnerSite && newForm.shadingType === ConfigurationTypes.Unique) {
+      newForm.secondaryDataKey = 'locationNumber';
+    }
+    if (dataKey === GfpShaderKeys.Selection) {
+      newForm.defaultSymbolDefinition = {
+        fillType: 'solid',
+        fillColor: [0, 255, 0, 1]
+      };
+    }
+    return newForm;
   }
 
   getShadingDefinitions(project: ImpProject) : ShadingDefinition[] {
@@ -304,7 +332,7 @@ export class AppRendererService {
 
   updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
     if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
-      definition.theme = ColorPalette.Cpqmaps;
+      definition.theme = ColorPalette.CpqMaps;
       const data: Record<string, string> = geos.reduce((result, geo) => {
         if (geo.isDeduped === 1) {
           const secondaryKey = definition.secondaryDataKey || 'locationNumber';
@@ -326,7 +354,7 @@ export class AppRendererService {
   updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
 
     if (definition != null && isComplexShadingDefinition(definition)) {
-      definition.theme = ColorPalette.Cpqmaps;
+      definition.theme = ColorPalette.CpqMaps;
       const deferredHomeGeos: ImpGeofootprintGeo[] = [];
       const tradeAreaTypesInPlay = new Set<TradeAreaTypeCodes>();
       const data: Record<string, string> = geos.reduce((result, geo) => {

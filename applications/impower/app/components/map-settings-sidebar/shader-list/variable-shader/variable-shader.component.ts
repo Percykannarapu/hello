@@ -24,7 +24,8 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
   }
 
   public get currentAudience() : Audience {
-    return this._audiences.filter(a => a.audienceIdentifier === this.definition.dataKey)[0];
+    const currentAudienceId = this.definition.dataKey || this.shaderForm.get('dataKey').value;
+    return this._audiences.filter(a => a.audienceIdentifier === currentAudienceId)[0];
   }
   allAudiences: SelectItem[];
   allShaders: SelectItem[] = [];

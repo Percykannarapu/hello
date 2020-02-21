@@ -162,11 +162,11 @@ export function generateDynamicClassBreaks(stats: Statistics, palette: RgbTuple[
     if (i === 0) {
       // first break
       b.minValue = null;
-      b.legendName = `< ${b.maxValue.toFixed(0)}`;
+      b.legendName = `Below ${b.maxValue.toFixed(0)}`;
     } else {
       // intermediate breaks
       b.minValue = breakValues[i - 1] + Number.EPSILON;
-      b.legendName = `${b.minValue.toFixed(0)} - ${b.maxValue.toFixed(0)}`;
+      b.legendName = `${b.minValue.toFixed(0)} to ${b.maxValue.toFixed(0)}`;
     }
     result.push(b);
   });
@@ -176,7 +176,7 @@ export function generateDynamicClassBreaks(stats: Statistics, palette: RgbTuple[
     fillColor: RgbTuple.withAlpha(palette[breakValues.length % palette.length], 1),
     fillType: 'solid',
     outlineColor: [0, 0, 0, 0],
-    legendName: `> ${breakValues[breakValues.length - 1].toFixed(0)}`
+    legendName: `${breakValues[breakValues.length - 1].toFixed(0)} and above`
   };
   result.push(lastBreak);
   return result;

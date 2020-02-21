@@ -24,6 +24,10 @@ body {
     }
   }
 
+  .ui-inputtext:disabled {
+    margin-top: -1px;
+  }
+
   .ui-button,
   .ui-datepicker-buttonpane > button {
     background-color: #00000000;

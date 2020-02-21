@@ -1,0 +1,19 @@
+@import "valassis-variables";
+
+.component-root {
+  display: flex;
+  align-items: flex-end;
+  .min-values, .max-values {
+    flex: 1
+  }
+  .min-values {
+    padding-bottom: 0.5em;
+  }
+  .legend-values {
+    padding: 0 0.5em;
+    flex: 3
+  }
+  .symbol-values {
+    flex: 4
+  }
+}

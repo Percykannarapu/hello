@@ -8,6 +8,11 @@ export namespace RgbTuple {
   export function withAlpha(rgb: RgbTuple, alpha: number) : RgbaTuple {
     return [rgb[0], rgb[1], rgb[2], alpha];
   }
+  export function matches(rgba: RgbaTuple, other: RgbaTuple | RgbTuple) : boolean {
+    const coreMatch = other[0] === rgba[0] && other[1] === rgba[1] && other[2] === rgba[2];
+    if (other.length === 3) return coreMatch;
+    return coreMatch && other[3] === rgba[3];
+  }
 }
 
 export type AutoCastColor = __esri.Color | RgbTuple | RgbaTuple | string;

@@ -1,0 +1,16 @@
+<div class="component-root" [formGroup]="parentForm">
+  <span class="md-inputfield">
+    <p-dropdown [style]="{'width':'100%'}" id="{{controlId}}input" [formControlName]="valueName" [options]="options" (onChange)="updateValue($event.value)">
+      <ng-template let-selected pTemplate="selectedItem">
+        <div class="item-container">
+          <span class="selected-color-chip" [ngStyle]="{ 'background-color': selected.label }"></span>
+        </div>
+      </ng-template>
+      <ng-template let-item pTemplate="item">
+        <div class="item-container">
+          <span class="color-chip" [ngStyle]="{ 'background-color': item.label }"></span>
+        </div>
+      </ng-template>
+    </p-dropdown>
+  </span>
+</div>

@@ -22,7 +22,7 @@
   <div class="shader-form-container" *ngIf="isEditing">
     <form novalidate autocomplete="off" [formGroup]="shaderForm" (ngSubmit)="apply(shaderForm)">
       <validated-text-input [parentForm]="shaderForm" valueName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
-      <esri-symbol-input [parentForm]="shaderForm" valueName="defaultSymbolDefinition" labelText="Overlay Type"></esri-symbol-input>
+      <esri-symbol-input [parentForm]="shaderForm.get('defaultSymbolDefinition')" labelText="Overlay Type"></esri-symbol-input>
       <validated-text-input [parentForm]="shaderForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
       <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="!shaderForm.valid"></button>
       <button pButton label="cancel" class="ui-button-secondary" (click)="cancel()"></button>

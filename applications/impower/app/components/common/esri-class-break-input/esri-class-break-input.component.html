@@ -1,0 +1,22 @@
+<div class="component-root" [formGroup]="parentForm">
+  <div *ngIf="!showMinValue" class="min-values">&nbsp;</div>
+  <div *ngIf="showMinValue" class="min-values">
+    <div class="ui-inputgroup">
+      <span class="md-inputfield">
+        <input pInputText id="{{minControlId}}input" class="ui-g-12" autocomplete="off"
+               [ngModel]="parentForm.get('minValue').value" [ngModelOptions]="{standalone: true}" [disabled]="true" />
+        <label class="validation-float-label" for="{{minControlId}}input">min</label>
+      </span>
+    </div>
+  </div>
+  <div *ngIf="!showMaxValue" class="max-values">&nbsp;</div>
+  <div *ngIf="showMaxValue" class="max-values">
+    <validated-text-input [parentForm]="parentForm" valueName="maxValue" labelText="max"></validated-text-input>
+  </div>
+  <div class="legend-values">
+    <validated-text-input [parentForm]="parentForm" valueName="legendName" labelText="Legend"></validated-text-input>
+  </div>
+  <div class="symbol-values">
+    <esri-symbol-input [parentForm]="parentForm" labelText="Overlay Type" [currentPalette]="currentPalette"></esri-symbol-input>
+  </div>
+</div>
