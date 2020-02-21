@@ -87,10 +87,10 @@
       <tr [pSelectableRow]="site">
         <td style="width: 30px; padding-left: 0.4em">
           <div *ngIf="!site['isActive']">
-            <p-checkbox [(ngModel)]="site['isActive']" binary="true" (click)="setHasSelectedSites()" pTooltip="Activate site" tooltipPosition="right"></p-checkbox>
+            <p-checkbox [(ngModel)]="site['isActive']" binary="true" (click)="setHasSelectedSites()" pTooltip="Select site" tooltipPosition="right"></p-checkbox>
           </div> 
           <div *ngIf="site['isActive']">
-            <p-checkbox [(ngModel)]="site['isActive']" binary="true" (click)="setHasSelectedSites()" pTooltip="Deactivate site" tooltipPosition="right"></p-checkbox>
+            <p-checkbox [(ngModel)]="site['isActive']" binary="true" (click)="setHasSelectedSites()" pTooltip="UnSelect site" tooltipPosition="right"></p-checkbox>
           </div>
        
         </td>
