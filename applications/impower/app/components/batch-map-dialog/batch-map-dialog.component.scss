@@ -25,10 +25,17 @@
   .ui-g-4.md-inputfield {
     padding-top: 0px !important;
   }
+  .ui-g-8.md-inputfield {
+    padding-top: 0px !important;
+  }
   .ui-g-4.md-inputfield.dropdown-padding {
     padding-top: 10px !important;
   }
   .p-2.ui-g-4.md-inputfield {
+    padding-top: 0px;
+    padding-bottom: 2px;
+  }
+  .p-2.ui-g-8.md-inputfield {
     padding-top: 0px;
     padding-bottom: 2px;
   }
@@ -40,11 +47,6 @@
   .labelTitle{
     font-size: 1.3em;
   }
-
-  // .h3 {
-  //   margin-top: 0px;
-  //   margin-bottom: 0px;
-  // }
 }
 
 #p-dialog div body .ui-dialog-content .ui-widget-content .ui-dialog-resizable{
