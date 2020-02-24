@@ -53,10 +53,10 @@ export interface BatchMapPayload {
         layout: string;
         siteIds: Array<string>;
         hideNeighboringSites: boolean;
+        shadeNeighboringSites: boolean;
       }
     }
-  }]
-
+  }];
 }
 
 export interface CrossBowSitesPayload {
