@@ -47,3 +47,11 @@ export const fillTypeFriendlyNames = {
   ['solid'] : 'Color Fill',
   ['vertical'] : 'Vertical',
 };
+
+export const shaderConfigTypeFriendlyNames = {
+  ['Simple'] : 'Simple',
+  ['Unique'] : 'Unique',
+  ['ClassBreak'] : 'Class Break',
+  ['Ramp'] : 'Ramp',
+  ['DotDensity'] : 'Dot Density'
+};

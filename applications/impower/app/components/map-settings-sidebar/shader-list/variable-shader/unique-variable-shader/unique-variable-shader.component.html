@@ -26,6 +26,6 @@
   <dropdown-input [parentForm]="parentForm" valueName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
   <boolean-input [parentForm]="parentForm" valueName="reverseTheme" labelText="Reverse Theme?"></boolean-input>
   <validated-text-input [parentForm]="parentForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-  <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
-  <button pButton label="cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
+  <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
+  <button pButton label="Cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
 </div>

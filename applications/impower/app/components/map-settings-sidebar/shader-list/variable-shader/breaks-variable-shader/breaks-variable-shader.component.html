@@ -44,7 +44,10 @@
             <td><ng-container *ngIf="!isFirst">{{defBreak.minValue}}</ng-container></td>
             <td><ng-container *ngIf="!isLast">{{defBreak.maxValue}}</ng-container></td>
             <td>{{defBreak.legendName}}</td>
-            <td>{{getFillName(defBreak.fillType)}}<span class="color-chip" [ngStyle]="{ 'background-color': getHexColor(defBreak.fillColor) }"></span></td>
+            <td>
+              {{getFillName(defBreak.fillType)}}
+              <span class="color-chip" [ngStyle]="{ 'background-color': getHexColor(defBreak.fillColor) }" *ngIf="defBreak.fillType === 'solid'"></span>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -85,6 +88,6 @@
     </div>
   </ng-container>
   <validated-text-input [parentForm]="parentForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-  <button type="submit" pButton label="apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
-  <button pButton label="cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
+  <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
+  <button pButton label="Cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
 </div>
