@@ -1,6 +1,6 @@
 import { Component, OnInit, OnChanges } from '@angular/core';
 import { Store, select } from '@ngrx/store';
-import { LocalAppState, BatchMapPayload, BatchMapSizes, TitlePayload } from 'app/state/app.interfaces';
+import { LocalAppState, BatchMapPayload, BatchMapSizes, TitlePayload, SinglePageBatchMapPayload } from 'app/state/app.interfaces';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AppConfig } from 'app/app.config';
 import { AppStateService } from 'app/services/app-state.service';
@@ -88,29 +88,33 @@ export class BatchMapDialogComponent implements OnInit {
     const siteIds: string[] = this.getSiteIds();
     const titles: Array<TitlePayload> = this.getTitles(siteIds);
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
-    const formData: BatchMapPayload = {
-      calls: [
-        {
-          service: 'ImpowerPdf',
-          function: 'printMaps',
-          args: {
-            printJobConfiguration: {
-              email: `${this.userService.getUser().username}@valassis.com`,
-              titles: titles,
-              projectId: this.currentProjectId,
-              size: size,
-              pageSettings: dialogFields.pageSettingsControl,
-              layout: dialogFields.layout,
-              siteIds: siteIds,
-              hideNeighboringSites: !(dialogFields.neighboringSites == 'true'),
-              shadeNeighboringSites: false
+    if (!dialogFields['neighbouringSites']) {
+      const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0]);
+      this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+    } else {
+      const formData: BatchMapPayload = {
+        calls: [
+          {
+            service: 'ImpowerPdf',
+            function: 'printMaps',
+            args: {
+              printJobConfiguration: {
+                email: `${this.userService.getUser().username}@valassis.com`,
+                titles: titles,
+                projectId: this.currentProjectId,
+                size: size,
+                pageSettings: dialogFields.pageSettingsControl,
+                layout: dialogFields.layout,
+                siteIds: siteIds,
+                hideNeighboringSites: !(dialogFields.neighboringSites == 'true'),
+                shadeNeighboringSites: false
+              }
             }
           }
-        }
-      ]
-    };
-
-    this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+        ]
+      };
+      this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+    }
     this.closeDialog();
   }
 
@@ -129,6 +133,32 @@ export class BatchMapDialogComponent implements OnInit {
       this.batchMapForm.reset();
       this.store$.dispatch(new CloseBatchMapDialog());
       this.initForm();
+  }
+
+  getSinglePageMapPayload(size: BatchMapSizes, layout: string, siteId: string) : SinglePageBatchMapPayload{
+    const location = this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(loc => loc.locationNumber === siteId);
+    const title = this.batchMapForm.get('title').value;
+    const subTitle = this.batchMapForm.get('subTitle').value;
+    const subSubTitle = this.batchMapForm.get('subSubTitle').value;
+    const formData: SinglePageBatchMapPayload = {
+      calls: [
+        {
+          service: 'ImpowerPdf',
+          function: 'printSinglePage',
+          args: {
+            singlePageConfiguration: {
+              email: `${this.userService.getUser().username}@valassis.com`,
+              projectId: this.currentProjectId,
+              size: size,
+              layout: layout,
+              title: this.getAttrValueByCode(location[0], title, 'title'),
+              subTitle: this.getAttrValueByCode(location[0], subTitle, 'subTitle'),
+              subSubTitle: this.getAttrValueByCode(location[0], subSubTitle, 'subSubTitle')
+            }
+          }
+        }]
+    };
+    return formData;
   }
 
   getAttrValueByCode(location: ImpGeofootprintLocation, title: string, inputField: string){

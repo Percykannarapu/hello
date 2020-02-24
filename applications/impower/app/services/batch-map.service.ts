@@ -9,7 +9,7 @@ import { Observable, race, timer } from 'rxjs';
 import { debounceTime, delay, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
-import { BatchMapPayload, LocalAppState } from '../state/app.interfaces';
+import { BatchMapPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
 import { getBatchMapReady } from '../state/batch-map/batch-map.selectors';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
@@ -64,7 +64,7 @@ export class BatchMapService {
     ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isReload: false, isBatchMode: true })));
   }
 
-  requestBatchMap(payload: BatchMapPayload) : Observable<any> {
+  requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload) : Observable<any> {
     return this.http.put(this.config.printServiceUrl, payload);
   }
 
