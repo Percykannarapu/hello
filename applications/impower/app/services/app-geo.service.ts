@@ -254,7 +254,7 @@ export class AppGeoService {
           this.store$.dispatch(new StopBusyIndicator({key}));
         },
         () => {
-          const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
+          const { geos: geosToPersist, attributes: attributesToPersist } = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
           this.finalizeTradeAreas(tradeAreas);
 
           // Add the must covers to geosToPersist
@@ -269,6 +269,7 @@ export class AppGeoService {
             }
             , () => {
               this.impGeoService.add(geosToPersist);
+              if (attributesToPersist.length > 0) this.store$.dispatch(new UpsertGeoAttributes({ geoAttributes: attributesToPersist, isRawLayerData: true }));
               this.store$.dispatch(new StopBusyIndicator({key}));
             });
         });
@@ -372,7 +373,7 @@ export class AppGeoService {
     return locationToCentroidMap;
   }
 
-  private createGeosToPersist(locationMap: Map<ImpGeofootprintLocation, AttributeDistance[]>, tradeAreaSet: Set<ImpGeofootprintTradeArea>) : ImpGeofootprintGeo[] {
+  private createGeosToPersist(locationMap: Map<ImpGeofootprintLocation, AttributeDistance[]>, tradeAreaSet: Set<ImpGeofootprintTradeArea>) : { geos: ImpGeofootprintGeo[], attributes: GeoAttribute[] } {
     const geosToSave: ImpGeofootprintGeo[] = [];
     const allAttributes: GeoAttribute[] = [];
     locationMap.forEach((attributes, location) => {
@@ -394,8 +395,10 @@ export class AppGeoService {
       }
     });
     this.logger.debug.log('Total geo count:', geosToSave.length);
-    if (allAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({geoAttributes: allAttributes}));
-    return geosToSave;
+    return {
+      geos: geosToSave,
+      attributes: allAttributes
+    };
   }
 
   private finalizeTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {

@@ -1,5 +1,5 @@
-import { Action } from '@ngrx/store';
 import { Update } from '@ngrx/entity';
+import { Action } from '@ngrx/store';
 import { GeoAttribute } from './geo-attributes.model';
 
 export enum GeoAttributeActionTypes {
@@ -80,7 +80,7 @@ export class AddGeoAttributes implements Action {
 export class UpsertGeoAttributes implements Action {
   readonly type = GeoAttributeActionTypes.UpsertGeoAttributes;
 
-  constructor(public payload: { geoAttributes: GeoAttribute[] }) {}
+  constructor(public payload: { geoAttributes: GeoAttribute[], isRawLayerData?: boolean }) {}
 }
 
 export class UpdateGeoAttribute implements Action {

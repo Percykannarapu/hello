@@ -374,7 +374,11 @@ export function formatMilli(a, k?, sub?, s?, m?, h?, e?){
 }
 
 export function dedupeSimpleSet<T>(newValues: Set<T>, previousValues: Set<T>) : Set<T> {
-  return new Set(Array.from(newValues).filter(v => !previousValues.has(v)));
+  const result = new Set<T>();
+  newValues.forEach(nv => {
+    if (!previousValues.has(nv)) result.add(nv);
+  });
+  return result;
 }
 
 export function setsAreEqual<T>(current: Set<T>, previous: Set<T>) : boolean {
