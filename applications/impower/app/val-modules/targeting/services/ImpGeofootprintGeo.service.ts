@@ -461,8 +461,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
 
       // If the header contained an audienceSource name in parens, pull out the actual audienceName to match on
-      let audienceName = header;
-      let audienceSourceName = null;
+      let audienceName = matches.length > 0 ? matches[1].trim() : header;
+      let audienceSourceName = matches.length > 0 ? matches[2].trim() : null;
       let audience = null;
       const exportAudiences = state.exportAudiencesBS$.getValue();
  //   if (audienceSourceName != null){
