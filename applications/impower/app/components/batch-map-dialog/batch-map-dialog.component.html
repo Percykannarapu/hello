@@ -17,7 +17,7 @@
               </div>
               &nbsp;
               <div class="p-2 ui-g-4 md-inputfield">
-                <input type="text" pInputText formControlName="titleInput" [placeholder]="currentProjectName"
+                <input type="text" pInputText formControlName="titleInput" [placeholder]="currentProjectName" styleClass="val-full-width"
                   [disabled]="!(batchMapForm.get('title').value === 'user-defined')" />
               </div>
             </div>
@@ -33,7 +33,7 @@
               </div>
               <span>&nbsp;</span>
               <div class="ui-g-4 md-inputfield">
-                <input type="text" pInputText formControlName="subTitleInput"
+                <input type="text" pInputText formControlName="subTitleInput" styleClass="val-full-width"
                   [disabled]="!(batchMapForm.get('subTitle').value === 'user-defined')" />
               </div>
             </div>
@@ -48,7 +48,7 @@
               </div>
               &nbsp;
               <div class="p-2 ui-g-4 md-inputfield">
-                <input type="text" pInputText formControlName="subSubTitleInput"
+                <input type="text" pInputText formControlName="subSubTitleInput" styleClass="val-full-width"
                   [disabled]="!(batchMapForm.get('subSubTitle').value === 'user-defined')" />
               </div>
             </div>
@@ -73,7 +73,7 @@
             </div>
             <div class="ui-g-12"></div>
             <div class="ui-g-12 pageSettingsPadding">
-              <div class="ui-g-4 md-inputfield">
+              <div class="ui-g-4 md-inputfield dropdown-padding">
                 <p-dropdown id="pageSettings" formControlName="pageSettingsControl" [options]="pageSettings"
                   styleClass="val-full-width" [autoWidth]="false" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down">
                 </p-dropdown>
