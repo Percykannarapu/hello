@@ -59,6 +59,24 @@ export interface BatchMapPayload {
   }];
 }
 
+export interface SinglePageBatchMapPayload {
+  calls: [{
+    service: string,
+    function: string,
+    args: {
+      'singlePageConfiguration': {
+        email: string;
+        projectId: number;
+        size: BatchMapSizes;
+        layout: string;
+        title: string;
+        subTitle: string;
+        subSubTitle: string
+      }
+    }
+  }];
+}
+
 export interface CrossBowSitesPayload {
   email: string;
   id: number;
