@@ -61,7 +61,7 @@ export class AppProjectPrefService {
       }
 
       // Add the new pref to the ImpProjectPref data store
-      if (this.impProjectPrefService.get().filter(p => p.prefGroup === group || p.pref === pref).length === 0)
+      if (this.impProjectPrefService.get().filter(p => p.prefGroup === group && p.pref === pref).length === 0)
       {
          //console.debug("### Added pref: ", impProjectPref);
          this.impProjectPrefService.add([impProjectPref]);
