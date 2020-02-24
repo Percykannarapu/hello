@@ -88,10 +88,10 @@ export class BatchMapDialogComponent implements OnInit {
     const siteIds: string[] = this.getSiteIds();
     const titles: Array<TitlePayload> = this.getTitles(siteIds);
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
-    if (!dialogFields['neighbouringSites']) {
-      const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0]);
-      this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
-    } else {
+    // if (!dialogFields['neighbouringSites']) {
+    //   const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0]);
+    //   this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+    // } else {
       const formData: BatchMapPayload = {
         calls: [
           {
@@ -114,7 +114,7 @@ export class BatchMapDialogComponent implements OnInit {
         ]
       };
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
-    }
+    // }
     this.closeDialog();
   }
 
