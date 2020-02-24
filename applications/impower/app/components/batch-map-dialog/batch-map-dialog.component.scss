@@ -15,11 +15,36 @@
   .settings{
     height: 103px;
   }
+  .p-0.ui-g-12 {
+    padding: 0 1rem !important;
+  }
+  .group1 {
+    @extend .group;
+    margin-bottom: 0px;
+  }
+  .ui-g-4.md-inputfield {
+    padding-top: 0px !important;
+  }
+  .p-2.ui-g-4.md-inputfield {
+    padding-top: 0px;
+    padding-bottom: 2px;
+  }
+  .group{
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 0.5rem;
+  }
   .labelTitle{
     font-size: 1.3em;
   }
+
+  // .h3 {
+  //   margin-top: 0px;
+  //   margin-bottom: 0px;
+  // }
 }
 
 #p-dialog div body .ui-dialog-content .ui-widget-content .ui-dialog-resizable{
   overflow: hidden;
 }
+

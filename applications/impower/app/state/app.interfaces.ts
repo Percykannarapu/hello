@@ -46,9 +46,7 @@ export interface BatchMapPayload {
     args: {
       'printJobConfiguration': {
         email: string;
-        title: string;
-        subTitle: string;
-        subSubTitle: string;
+        titles: Array<TitlePayload>;
         projectId: number;
         size: BatchMapSizes;
         pageSettings: string;
@@ -66,4 +64,11 @@ export interface CrossBowSitesPayload {
   id: number;
   profileId?: number;
   groupId?: number;
+}
+
+export interface TitlePayload {
+  siteId: string;
+  title: string;
+  subTitle: string;
+  subSubTitle: string;
 }

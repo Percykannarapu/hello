@@ -72,6 +72,9 @@ export class AppLocationService {
   public siteLabelOptions$ = new BehaviorSubject<SelectItem[]>([]);
   public competitorLabelOptions$ = new BehaviorSubject<SelectItem[]>([]);
 
+  public siteTypeBS$ = new BehaviorSubject<'Site' | 'Competitor'>('Site');
+  public listTypeBS$ = new BehaviorSubject<SelectItem[]>([]);
+
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private impGeoService: ImpGeofootprintGeoService,
