@@ -1,6 +1,6 @@
 import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
-import { ConfigurationTypes, ShadingDefinition } from '@val/esri';
+import { ConfigurationTypes, shaderConfigTypeFriendlyNames, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Audience } from '../../../../impower-datastore/state/transient/audience/audience.model';
 import { FieldContentTypeCodes } from '../../../../val-modules/targeting/targeting.enums';
@@ -46,7 +46,7 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
 
   private setShaderTypes(...typesToShow: ConfigurationTypes[]) : void  {
     this.allShaders = typesToShow.map(key => ({
-        label: ConfigurationTypes[key],
+        label: shaderConfigTypeFriendlyNames[ConfigurationTypes[key]],
         value: ConfigurationTypes[key]
       }));
   }

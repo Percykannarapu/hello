@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormConfig, rgbToHex } from '@val/common';
 import { fillTypeFriendlyNames, SimpleShadingDefinition, SymbolDefinition } from '@val/esri';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
@@ -18,6 +18,9 @@ export class SelectedGeoShaderComponent extends ShaderBaseComponent<SimpleShadin
   }
   get currentFriendlyFillType() : string {
     return fillTypeFriendlyNames[this.definition.defaultSymbolDefinition.fillType];
+  }
+  get defaultSymbolGroup() : FormGroup {
+    return this.shaderForm.get('defaultSymbolDefinition') as FormGroup;
   }
 
   constructor(private fb: FormBuilder) {

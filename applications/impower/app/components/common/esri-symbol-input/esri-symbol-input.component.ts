@@ -28,11 +28,12 @@ export class EsriSymbolInputComponent implements OnInit, OnDestroy {
   @Input() labelText: string;
 
   @Input() defaultCrossHatchColor: RgbaTuple = [0, 0, 0, 1];
+  @Input() defaultSolidColor: RgbaTuple;
   @Input() currentPalette: ColorPalette;
 
   controlId = getUuid();
   fillTypes: SelectItem[];
-  defaultSolidColor: RgbaTuple;
+  showPicker: boolean;
 
   get selectedColor() : Rgb {
     return esriToRgb(this.fillColorControl.value || [0, 0, 0, 1]);
@@ -60,15 +61,18 @@ export class EsriSymbolInputComponent implements OnInit, OnDestroy {
   ngOnInit() : void {
     const root = this.valueName == null ? this.parentForm : this.parentForm.get(this.valueName);
     if (!(root instanceof FormGroup)) throw new Error('EsriSymbolInput ValueName property must refer to a FormGroup instance on the parentForm');
-    this.defaultSolidColor = [ ...this.fillColorControl.value] as RgbaTuple;
+    this.showPicker = this.currentRoot.get('fillType').value === 'solid';
+    const defaultSolidColor = this.defaultSolidColor || [ ...this.fillColorControl.value] as RgbaTuple;
     this.currentRoot.get('fillType').valueChanges.pipe(
       takeUntil(this.destroyed$),
       distinctUntilChanged()
     ).subscribe(newFillType => {
       if (newFillType === 'solid') {
-        this.fillColorControl.setValue(Array.from(this.defaultSolidColor));
+        this.fillColorControl.setValue(Array.from(defaultSolidColor));
+        this.showPicker = true;
       } else {
         this.fillColorControl.setValue(Array.from(this.defaultCrossHatchColor));
+        this.showPicker = false;
       }
     });
   }

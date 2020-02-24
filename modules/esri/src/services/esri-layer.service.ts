@@ -310,7 +310,7 @@ export class EsriLayerService {
         legendRef['legacyRender'] = legendRef.scheduleRender;
         legendRef.scheduleRender = (...args) => {
           legendRef.activeLayerInfos.forEach(ali => {
-            ali.legendElements.forEach(le => le.infos = le.infos.filter((si: any) => si.label != null && si.label !== '' && si.label != 'others'));
+            ali.legendElements.forEach(le => le.infos = le.infos.filter((si: any) => si.label != null && si.label !== '' && si.label !== 'others'));
             ali.legendElements = ali.legendElements.filter(le => le.infos.length > 0);
           });
           return legendRef['legacyRender'](...args);

@@ -15,6 +15,35 @@
   .settings{
     height: 103px;
   }
+  .p-0.ui-g-12 {
+    padding: 0 1rem !important;
+  }
+  .group1 {
+    @extend .group;
+    margin-bottom: 0px;
+  }
+  .ui-g-4.md-inputfield {
+    padding-top: 0px !important;
+  }
+  .ui-g-8.md-inputfield {
+    padding-top: 0px !important;
+  }
+  .ui-g-4.md-inputfield.dropdown-padding {
+    padding-top: 10px !important;
+  }
+  .p-2.ui-g-4.md-inputfield {
+    padding-top: 0px;
+    padding-bottom: 2px;
+  }
+  .p-2.ui-g-8.md-inputfield {
+    padding-top: 0px;
+    padding-bottom: 2px;
+  }
+  .group{
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 0.5rem;
+  }
   .labelTitle{
     font-size: 1.3em;
   }
@@ -23,3 +52,4 @@
 #p-dialog div body .ui-dialog-content .ui-widget-content .ui-dialog-resizable{
   overflow: hidden;
 }
+

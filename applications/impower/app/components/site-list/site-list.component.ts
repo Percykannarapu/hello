@@ -271,6 +271,7 @@ export class SiteListComponent implements OnInit {
     }, 0);
 
     this.selectedListType = data;
+    this.appLocationService.siteTypeBS$.next(data);
 
     // Choose to set current observables to sites or competitors
     if (this.selectedListType === 'Site') {
@@ -671,6 +672,7 @@ export class SiteListComponent implements OnInit {
           break;
       }
       this.labelOptions = localOptions;
+      this.appLocationService.listTypeBS$.next(localOptions);
       this.selectedLabel = label ;
       //=== null ? this.labelOptions.filter(lbl => lbl.label === 'Number')[0].value : this.labelOptions.filter(lbl => lbl.value === label)[0].value;
       this.createLabelAttr(this.selectedLabel);

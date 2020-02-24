@@ -46,19 +46,35 @@ export interface BatchMapPayload {
     args: {
       'printJobConfiguration': {
         email: string;
-        title: string;
-        subTitle: string;
-        subSubTitle: string;
+        titles: Array<TitlePayload>;
         projectId: number;
         size: BatchMapSizes;
         pageSettings: string;
         layout: string;
         siteIds: Array<string>;
         hideNeighboringSites: boolean;
+        shadeNeighboringSites: boolean;
       }
     }
-  }]
+  }];
+}
 
+export interface SinglePageBatchMapPayload {
+  calls: [{
+    service: string,
+    function: string,
+    args: {
+      'singlePageConfiguration': {
+        email: string;
+        projectId: number;
+        size: BatchMapSizes;
+        layout: string;
+        title: string;
+        subTitle: string;
+        subSubTitle: string
+      }
+    }
+  }];
 }
 
 export interface CrossBowSitesPayload {
@@ -66,4 +82,11 @@ export interface CrossBowSitesPayload {
   id: number;
   profileId?: number;
   groupId?: number;
+}
+
+export interface TitlePayload {
+  siteId: string;
+  title: string;
+  subTitle: string;
+  subSubTitle: string;
 }

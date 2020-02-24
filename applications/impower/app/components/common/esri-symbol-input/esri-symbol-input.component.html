@@ -16,7 +16,7 @@
     </p-dropdown>
     <label class="drop-down-label" for="{{controlId}}input">{{labelText}}</label>
   </span>
-  <span class="color-chip">
+  <span class="color-chip" *ngIf="showPicker">
     <palette-color-picker *ngIf="currentPalette != null" [parentForm]="currentRoot" valueName="fillColor"
                           [currentPalette]="currentPalette"></palette-color-picker>
     <p-colorPicker [(ngModel)]="selectedColor" format="rgb" [ngModelOptions]="{standalone: true}" *ngIf="currentPalette == null"></p-colorPicker>

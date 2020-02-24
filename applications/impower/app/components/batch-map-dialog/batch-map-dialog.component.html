@@ -1,5 +1,5 @@
 <p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '700px'}" [maximizable]="false">
+  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '820px'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main" id="p-dialog">
       <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are
@@ -7,26 +7,51 @@
       <p>Site # will be included in the header, in addition to the Title and Sub-Title specified below</p>
       <div class="dialog-body">
         <form novalidate [formGroup]="batchMapForm" autocomplete="off">
-          <div class="ui-g-12">
-            <span class="md-inputfield">
-              <input id="fileName" type="text" formControlName="title" pInputText class="val-full-width">
-              <span class="ui-inputgroup-addon" *ngIf="!hasErrors('title')">&nbsp;</span>
-              <label for="fileName">Title (required)</label>
-            </span>
+          <div class="p-0 ui-g-12">
+            <h3> Title </h3>
+            <div class="group1">
+              <div class="p-2 ui-g-4 md-inputfield">
+                <p-dropdown id="siteLabels" formControlName="title" [options]="siteLabels" styleClass="val-full-width"
+                  [autoWidth]="false" dropdownIcon="fa fa-caret-down">
+                </p-dropdown>
+              </div>
+              &nbsp;
+              <div class="p-2 ui-g-8 md-inputfield">
+                <input type="text" pInputText size="49" formControlName="titleInput" [placeholder]="currentProjectName" styleClass="val-full-width"
+                  [disabled]="!(batchMapForm.get('title').value === 'user-defined')" />
+              </div>
+            </div>
           </div>
-          <div>&nbsp;</div>
-          <div class="ui-g-12">
-            <span class="md-inputfield">
-              <input id="subTitle" type="text" formControlName="subTitle" pInputText class="val-full-width">
-              <label for="subTitle"> Sub Title </label>
-            </span>
+          <!-- <div>&nbsp;</div> -->
+          <div class="p-0 ui-g-12">
+            <h3> Subtitle 1 </h3>
+            <div class="p-2 group1">
+              <div class="ui-g-4 md-inputfield">
+                <p-dropdown id="siteLabels" formControlName="subTitle" [options]="siteLabels"
+                  styleClass="val-full-width" [autoWidth]="false" dropdownIcon="fa fa-caret-down">
+                </p-dropdown>
+              </div>
+              <span>&nbsp;</span>
+              <div class="ui-g-8 md-inputfield">
+                <input type="text" pInputText size="49" formControlName="subTitleInput" styleClass="val-full-width"
+                  [disabled]="!(batchMapForm.get('subTitle').value === 'user-defined')" />
+              </div>
+            </div>
           </div>
-          <div>&nbsp;</div>
-          <div class="ui-g-12">
-            <span class="md-inputfield">
-              <input id="subSubTitle" type="text" formControlName="subSubTitle" pInputText class="val-full-width">
-              <label for="subSubTitle"> Sub-Sub Title </label>
-            </span>
+          <div class="p-0 ui-g-12">
+            <h3> Subtitle 2 </h3>
+            <div class="group1">
+              <div class="p-2 ui-g-4 md-inputfield">
+                <p-dropdown id="siteLabels" formControlName="subSubTitle" [options]="siteLabels"
+                  styleClass="val-full-width" [autoWidth]="false" dropdownIcon="fa fa-caret-down">
+                </p-dropdown>
+              </div>
+              &nbsp;
+              <div class="p-2 ui-g-8 md-inputfield">
+                <input type="text" pInputText size="49" formControlName="subSubTitleInput" styleClass="val-full-width"
+                  [disabled]="!(batchMapForm.get('subSubTitle').value === 'user-defined')" />
+              </div>
+            </div>
           </div>
           <div class="neighboringSites">
             <div class="ui-g-12 labelTitle">
@@ -48,10 +73,9 @@
             </div>
             <div class="ui-g-12"></div>
             <div class="ui-g-12 pageSettingsPadding">
-              <div class="ui-g-4 md-inputfield">
+              <div class="ui-g-4 md-inputfield dropdown-padding">
                 <p-dropdown id="pageSettings" formControlName="pageSettingsControl" [options]="pageSettings"
-                  styleClass="val-full-width" [autoWidth]="false" placeholder="&nbsp;"
-                  dropdownIcon="fa fa-caret-down">
+                  styleClass="val-full-width" [autoWidth]="false" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down">
                 </p-dropdown>
                 <label for="pageSettings">Page Size</label>
               </div>
@@ -63,7 +87,7 @@
                 <p-radioButton name="layoutGroup" label="Portrait" value="portrait" formControlName="layout">
                 </p-radioButton>
               </div>
-              <div class="ui-g-1"></div>    
+              <div class="ui-g-1"></div>
             </div>
           </div>
           <div class="ui-g-12"></div>
