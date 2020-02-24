@@ -102,7 +102,8 @@ export class BatchMapDialogComponent implements OnInit {
               pageSettings: dialogFields.pageSettingsControl,
               layout: dialogFields.layout,
               siteIds: siteIds,
-              hideNeighboringSites: !(dialogFields.neighboringSites == 'true')
+              hideNeighboringSites: !(dialogFields.neighboringSites == 'true'),
+              shadeNeighboringSites: false
             }
           }
         }
