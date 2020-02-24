@@ -1,5 +1,5 @@
 <p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '700px', overflow: 'scroll'}"
+  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '820px'}"
   [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main" id="p-dialog">
@@ -9,7 +9,9 @@
       <div class="dialog-body">
         <form novalidate [formGroup]="batchMapForm" autocomplete="off">
           <div class="p-0 ui-g-12">
-            <h3>Title</h3>
+            <div class="ui-g-12 labelTitle">
+              <label><b> Title </b></label>
+            </div>
             <div class="group1">
               <div class="p-2 ui-g-4 md-inputfield">
                 <p-dropdown id="siteLabels" 
@@ -22,13 +24,15 @@
               </div>
               &nbsp;
               <div class="p-2 ui-g-4 md-inputfield">
-                <input type="text" pInputText formControlName="titleInput" placeholder="currrentProjectName" [disabled]= "!(batchMapForm.get('title').value === 'user-defined')"/>
+                <input type="text" pInputText formControlName="titleInput" [placeholder]="currentProjectName" [disabled]= "!(batchMapForm.get('title').value === 'user-defined')"/>
               </div>
             </div>
           </div>
           <!-- <div>&nbsp;</div> -->
           <div class="p-0 ui-g-12">
-            <h3>Subtitle</h3>
+            <div class="ui-g-12 labelTitle">
+              <label><b> Subtitle 1 </b></label>
+            </div>
             <div class="p-2 group1">
               <div class="ui-g-4 md-inputfield">
                 <p-dropdown id="siteLabels" 
@@ -46,7 +50,9 @@
             </div>
           </div>
           <div class="p-0 ui-g-12">
-            <h3>Sub-Subtitle</h3>
+            <div class="ui-g-12 labelTitle">
+              <label><b> Subtitle 2 </b></label>
+            </div>
             <div class="group1">
               <div class="p-2 ui-g-4 md-inputfield">
                 <p-dropdown id="siteLabels"
