@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { dedupeSimpleSet, filterArray, groupBy, isNumber, mapArray, mapArrayToEntity } from '@val/common';
+import { dedupeSimpleSet, filterArray, groupBy, isNumber, mapArrayToEntity } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
@@ -257,20 +257,25 @@ export class AppStateService {
 
     const completeAttributes$ = this.store$.pipe(
       select(selectGeoAttributes),
-      filterArray(e => e.hasOwnProperty('hhld_s') || e.hasOwnProperty('hhld_w')),
-      mapArray(e => e.geocode)
+      map(attrs => {
+        const result = new Set<string>();
+        attrs.forEach(e => {
+          if (e.hasOwnProperty('hhld_s') || e.hasOwnProperty('hhld_w')) result.add(e.geocode);
+        });
+        return result;
+      })
     );
 
     this.uniqueIdentifiedGeocodeSet$.pipe(
       filter(geoSet => geoSet.size > 0),
       withLatestFrom(completeAttributes$),
-      map(([requestedGeos, currentGeos]) => dedupeSimpleSet(requestedGeos, new Set(currentGeos))),
+      map(([requestedGeos, currentGeos]) => dedupeSimpleSet(requestedGeos, currentGeos)),
       withLatestFrom(this.applicationIsReady$, this.filterFlag$),
       filter(([newGeos, isReady]) => newGeos.size > 0 && isReady),
     ).subscribe(([geoSet, , filterFlag]) => {
       if (filterFlag !== null && filterFlag !== undefined) {
         this.store$.dispatch(new RequestAttributes({ geocodes: geoSet, flag: filterFlag }));
-      }else {
+      } else {
         this.store$.dispatch(new RequestAttributes({ geocodes: geoSet}));
       }
       this.store$.dispatch(new ClearGeoVars());

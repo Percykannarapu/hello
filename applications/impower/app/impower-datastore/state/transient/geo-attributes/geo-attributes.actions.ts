@@ -80,7 +80,7 @@ export class AddGeoAttributes implements Action {
 export class UpsertGeoAttributes implements Action {
   readonly type = GeoAttributeActionTypes.UpsertGeoAttributes;
 
-  constructor(public payload: { geoAttributes: GeoAttribute[], isRawLayerData?: boolean }) {}
+  constructor(public payload: { geoAttributes: GeoAttribute[] }) {}
 }
 
 export class UpdateGeoAttribute implements Action {

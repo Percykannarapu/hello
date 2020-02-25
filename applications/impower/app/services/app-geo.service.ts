@@ -29,7 +29,7 @@ import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
-import { AppStateService } from './app-state.service';
+import { AppStateService, Season } from './app-state.service';
 
 const featureAttributes = ['geocode', 'latitude', 'longitude', 'cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -180,7 +180,8 @@ export class AppGeoService {
     root$.pipe(
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'),
       filter(tradeAreas => tradeAreas.length > 0),
-    ).subscribe(tradeAreas => this.selectAndPersistRadiusGeos(tradeAreas));
+      withLatestFrom(this.appStateService.season$)
+    ).subscribe(([tradeAreas, season]) => this.selectAndPersistRadiusGeos(tradeAreas, season));
 
     root$.pipe(
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
@@ -226,7 +227,7 @@ export class AppGeoService {
     return result.filter(chunk => chunk && chunk.length > 0);
   }
 
-  private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[]) : void {
+  private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[], season: Season) : void {
     const key = 'selectAndPersistRadiusGeos';
     this.store$.dispatch(new StartBusyIndicator({key, message: 'Calculating Radius Trade Areas...'}));
 
@@ -254,7 +255,8 @@ export class AppGeoService {
           this.store$.dispatch(new StopBusyIndicator({key}));
         },
         () => {
-          const { geos: geosToPersist, attributes: attributesToPersist } = this.createGeosToPersist(locationDistanceMap, tradeAreaSet);
+
+          const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet, season);
           this.finalizeTradeAreas(tradeAreas);
 
           // Add the must covers to geosToPersist
@@ -269,7 +271,6 @@ export class AppGeoService {
             }
             , () => {
               this.impGeoService.add(geosToPersist);
-              if (attributesToPersist.length > 0) this.store$.dispatch(new UpsertGeoAttributes({ geoAttributes: attributesToPersist, isRawLayerData: true }));
               this.store$.dispatch(new StopBusyIndicator({key}));
             });
         });
@@ -373,7 +374,8 @@ export class AppGeoService {
     return locationToCentroidMap;
   }
 
-  private createGeosToPersist(locationMap: Map<ImpGeofootprintLocation, AttributeDistance[]>, tradeAreaSet: Set<ImpGeofootprintTradeArea>) : { geos: ImpGeofootprintGeo[], attributes: GeoAttribute[] } {
+  private createGeosToPersist(locationMap: Map<ImpGeofootprintLocation, AttributeDistance[]>, tradeAreaSet: Set<ImpGeofootprintTradeArea>, season: Season) : ImpGeofootprintGeo[] {
+    const hhcField = season === Season.Summer ? 'hhld_s' : 'hhld_w';
     const geosToSave: ImpGeofootprintGeo[] = [];
     const allAttributes: GeoAttribute[] = [];
     locationMap.forEach((attributes, location) => {
@@ -382,23 +384,23 @@ export class AppGeoService {
         const geoSet = new Set<string>();
         for (const currentPoint of attributes) {
           const currentAttribute = currentPoint.attribute;
+          const currentHHC = Number(currentAttribute == null ? null : currentAttribute[hhcField]);
           allAttributes.push(currentAttribute);
           const min = i === 0 ? -1 : currentTas[i - 1].taRadius;
           if (currentPoint.distance <= currentTas[i].taRadius && currentPoint.distance > min) {
             if (!geoSet.has(currentAttribute.geocode)) {
               const newGeo = this.domainFactory.createGeo(currentTas[i], currentAttribute.geocode, currentAttribute.longitude, currentAttribute.latitude, currentPoint.distance);
               geoSet.add(currentAttribute.geocode);
+              newGeo.hhc = currentHHC;
               geosToSave.push(newGeo);
             }
           }
         }
       }
     });
+    if (allAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({ geoAttributes: allAttributes }));
     this.logger.debug.log('Total geo count:', geosToSave.length);
-    return {
-      geos: geosToSave,
-      attributes: allAttributes
-    };
+    return geosToSave;
   }
 
   private finalizeTradeAreas(tradeAreas: ImpGeofootprintTradeArea[]) : void {

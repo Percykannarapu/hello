@@ -35,6 +35,7 @@ export class BatchMapDialogComponent implements OnInit {
     'subSubTitle': ''
   };
   enableTradeAreaShading: boolean;
+  disableTradeArea: boolean = false;
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
@@ -135,6 +136,10 @@ export class BatchMapDialogComponent implements OnInit {
       this.batchMapForm.reset();
       this.store$.dispatch(new CloseBatchMapDialog());
       this.initForm();
+  }
+
+  onNeighboringSitesChange() {  
+    this.disableTradeArea = !this.disableTradeArea;
   }
 
   getSinglePageMapPayload(size: BatchMapSizes, layout: string, siteId: string) : SinglePageBatchMapPayload{
