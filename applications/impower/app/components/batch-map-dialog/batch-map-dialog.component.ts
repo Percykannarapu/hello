@@ -55,38 +55,44 @@ export class BatchMapDialogComponent implements OnInit {
       title: ['user-defined', Validators.required],
       subTitle: 'user-defined',
       subSubTitle: 'user-defined',
-      neighboringSites: 'true',
+      neighboringSites: 'include',
       pageSettingsControl: BatchMapSizes.letter,
       layout: 'landscape',
-      titleInput: this.currentProjectName,
+      titleInput: '',
       subTitleInput: '',
       subSubTitleInput: '',
       enableTradeAreaShading: false,
-    });
+    });   
   }
 
   ngOnInit() {
     this.initForm();
-    
+
     this.batchMapForm.get('title').valueChanges.subscribe(value => {
-      if (value === 'user-defined') {
-        this.batchMapForm.get('titleInput').enable();
-      } else {
-        this.batchMapForm.get('titleInput').disable();
+      if (value !== null) {
+        if (value === 'user-defined') {
+          this.batchMapForm.get('titleInput').enable();
+        } else {
+          this.batchMapForm.get('titleInput').disable();
+        }
       }
     });
     this.batchMapForm.get('subTitle').valueChanges.subscribe(value => {
-      if (value === 'user-defined') {
-        this.batchMapForm.get('subTitleInput').enable();
-      } else {
-        this.batchMapForm.get('subTitleInput').disable();
+      if (value !== null) {
+        if (value === 'user-defined') {
+          this.batchMapForm.get('subTitleInput').enable();
+        } else {
+          this.batchMapForm.get('subTitleInput').disable();
+        }
       }
     });
     this.batchMapForm.get('subSubTitle').valueChanges.subscribe(val => {
-      if (val === 'user-defined') {
-        this.batchMapForm.get('subSubTitleInput').enable();
-      } else {
-        this.batchMapForm.get('subSubTitleInput').disable();
+      if (val !== null) {
+        if (val === 'user-defined') {
+          this.batchMapForm.get('subSubTitleInput').enable();
+        } else {
+          this.batchMapForm.get('subSubTitleInput').disable();
+        }
       }
     });
 
@@ -94,6 +100,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
       this.currentProjectId = p.projectId;
       this.currentProjectName = p.projectName;
+      this.batchMapForm.patchValue({titleInput: this.currentProjectName});
       this.numSites = p.getImpGeofootprintLocations().length;
     });
     this.appLocationService.listTypeBS$.subscribe( (list: SelectItem[]) => {
@@ -107,6 +114,7 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   onSubmit(dialogFields: any) {
+    console.log('dialogFields:::', dialogFields);
     this.input['title'] = (dialogFields['titleInput'] === null) ? this.currentProjectName : dialogFields['titleInput'];
     this.input['subTitle'] = dialogFields['subTitleInput'];
     this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
@@ -131,7 +139,7 @@ export class BatchMapDialogComponent implements OnInit {
                 pageSettings: dialogFields.pageSettingsControl,
                 layout: dialogFields.layout,
                 siteIds: siteIds,
-                hideNeighboringSites: !(dialogFields.neighboringSites == 'true'),
+                hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
                 shadeNeighboringSites: dialogFields.enableTradeAreaShading
               }
             }

@@ -19,7 +19,7 @@
               </div>
               &nbsp;
               <div class="p-2 ui-g-8 md-inputfield">
-                <input type="text" pInputText size="49" formControlName="titleInput" [placeholder]="currentProjectName" styleClass="val-full-width"/>
+                <input type="text" pInputText size="49" formControlName="titleInput" styleClass="val-full-width"/>
               </div>
             </div>
           </div>
@@ -61,16 +61,16 @@
               <label><b> Neighboring Sites </b></label>
             </div>
             <div class="ui-g-12 customPadding">
-              <p-radioButton name="neighbouringSitesGroup" value="false" label="Exclude"
+              <p-radioButton name="neighbouringSitesGroup" value="exclude" label="Exclude"
                 formControlName="neighboringSites" (onClick)="onNeighboringSitesChange()"></p-radioButton>
             </div>
             <div class="ui-g-12 customPadding">
-              <p-radioButton name="neighbouringSitesGroup" labelStyleClass="labelCustom" value="true"
+              <p-radioButton name="neighbouringSitesGroup" labelStyleClass="labelCustom" value="include"
                 label="Include Symbols, Labels & Trade Area Boundaries" formControlName="neighboringSites" (onClick)="onNeighboringSitesChange()">
               </p-radioButton>
             </div>
             <div class="ui-g-12 checkboxPadding">
-              <p-checkbox label="With Trade Area Shading" formControlName="enableTradeAreaShading" [(ngModel)]="enableTradeAreaShading" binary="true" [disabled]="disableTradeArea"></p-checkbox>
+              <p-checkbox label="With Trade Area Shading" value="false" formControlName="enableTradeAreaShading" binary="true" ></p-checkbox>
             </div>
           </div>
           <div class="pageSettings">
