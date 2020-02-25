@@ -11,14 +11,15 @@
             <h3> Title </h3>
             <div class="group1">
               <div class="p-2 ui-g-4 md-inputfield">
-                <p-dropdown formControlName="title" [options]="siteLabels" styleClass="val-full-width"
-                  dropdownIcon="fa fa-caret-down">
+                <p-dropdown formControlName="title"
+                            [options]="siteLabels"
+                            styleClass="val-full-width"
+                            dropdownIcon="fa fa-caret-down">
                 </p-dropdown>
               </div>
               &nbsp;
               <div class="p-2 ui-g-8 md-inputfield">
-                <input type="text" pInputText size="49" formControlName="titleInput" [placeholder]="currentProjectName" styleClass="val-full-width"
-                   />
+                <input type="text" pInputText size="49" formControlName="titleInput" [placeholder]="currentProjectName" styleClass="val-full-width"/>
               </div>
             </div>
           </div>
@@ -27,14 +28,15 @@
             <h3> Subtitle 1 </h3>
             <div class="p-2 group1">
               <div class="ui-g-4 md-inputfield">
-                <p-dropdown id="siteLabels" formControlName="subTitle" [options]="siteLabels"
-                  styleClass="val-full-width" [autoWidth]="false" dropdownIcon="fa fa-caret-down">
+                <p-dropdown formControlName="subTitle" 
+                            [options]="siteLabels"
+                            styleClass="val-full-width"
+                            dropdownIcon="fa fa-caret-down">
                 </p-dropdown>
               </div>
               <span>&nbsp;</span>
               <div class="ui-g-8 md-inputfield">
-                <input type="text" pInputText size="49" formControlName="subTitleInput" styleClass="val-full-width"
-                  [disabled]="!(batchMapForm.get('subTitle').value === 'user-defined')" />
+                <input type="text" pInputText size="49" formControlName="subTitleInput" styleClass="val-full-width"/>
               </div>
             </div>
           </div>
@@ -42,14 +44,15 @@
             <h3> Subtitle 2 </h3>
             <div class="group1">
               <div class="p-2 ui-g-4 md-inputfield">
-                <p-dropdown id="siteLabels" formControlName="subSubTitle" [options]="siteLabels"
-                  styleClass="val-full-width" [autoWidth]="false" dropdownIcon="fa fa-caret-down">
+                <p-dropdown formControlName="subSubTitle" 
+                            [options]="siteLabels"
+                            styleClass="val-full-width"
+                            dropdownIcon="fa fa-caret-down">
                 </p-dropdown>
               </div>
               &nbsp;
               <div class="p-2 ui-g-8 md-inputfield">
-                <input type="text" pInputText size="49" formControlName="subSubTitleInput" styleClass="val-full-width"
-                  [disabled]="!(batchMapForm.get('subSubTitle').value === 'user-defined')" />
+                <input type="text" pInputText size="49" formControlName="subSubTitleInput" styleClass="val-full-width"/>
               </div>
             </div>
           </div>

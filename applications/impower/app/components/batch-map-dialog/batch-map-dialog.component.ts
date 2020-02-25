@@ -67,12 +67,26 @@ export class BatchMapDialogComponent implements OnInit {
 
   ngOnInit() {
     this.initForm();
-
+    
     this.batchMapForm.get('title').valueChanges.subscribe(value => {
       if (value === 'user-defined') {
         this.batchMapForm.get('titleInput').enable();
       } else {
         this.batchMapForm.get('titleInput').disable();
+      }
+    });
+    this.batchMapForm.get('subTitle').valueChanges.subscribe(value => {
+      if (value === 'user-defined') {
+        this.batchMapForm.get('subTitleInput').enable();
+      } else {
+        this.batchMapForm.get('subTitleInput').disable();
+      }
+    });
+    this.batchMapForm.get('subSubTitle').valueChanges.subscribe(val => {
+      if (val === 'user-defined') {
+        this.batchMapForm.get('subSubTitleInput').enable();
+      } else {
+        this.batchMapForm.get('subSubTitleInput').disable();
       }
     });
 
