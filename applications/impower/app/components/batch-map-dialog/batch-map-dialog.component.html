@@ -1,5 +1,5 @@
 <p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '820px'}" [maximizable]="false">
+  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '820px', overflow:'scroll'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main" id="p-dialog">
       <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are
@@ -59,15 +59,15 @@
             </div>
             <div class="ui-g-12 customPadding">
               <p-radioButton name="neighbouringSitesGroup" value="false" label="Exclude"
-                formControlName="neighboringSites"></p-radioButton>
+                formControlName="neighboringSites" (onClick)="onNeighboringSitesChange()"></p-radioButton>
             </div>
             <div class="ui-g-12 customPadding">
               <p-radioButton name="neighbouringSitesGroup" labelStyleClass="labelCustom" value="true"
-                label="Include Symbols, Labels & Trade Area Boundaries" formControlName="neighboringSites">
+                label="Include Symbols, Labels & Trade Area Boundaries" formControlName="neighboringSites" (onClick)="onNeighboringSitesChange()">
               </p-radioButton>
             </div>
             <div class="ui-g-12 checkboxPadding">
-              <p-checkbox label="With Trade Area Shading" formControlName="enableTradeAreaShading" [(ngModel)]="enableTradeAreaShading" binary="true" ></p-checkbox>
+              <p-checkbox label="With Trade Area Shading" formControlName="enableTradeAreaShading" [(ngModel)]="enableTradeAreaShading" binary="true" [disabled]="disableTradeArea"></p-checkbox>
             </div>
           </div>
           <div class="pageSettings">
