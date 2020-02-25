@@ -11,14 +11,14 @@
             <h3> Title </h3>
             <div class="group1">
               <div class="p-2 ui-g-4 md-inputfield">
-                <p-dropdown id="siteLabels" formControlName="title" [options]="siteLabels" styleClass="val-full-width"
-                  [autoWidth]="false" dropdownIcon="fa fa-caret-down">
+                <p-dropdown formControlName="title" [options]="siteLabels" styleClass="val-full-width"
+                  dropdownIcon="fa fa-caret-down">
                 </p-dropdown>
               </div>
               &nbsp;
               <div class="p-2 ui-g-8 md-inputfield">
                 <input type="text" pInputText size="49" formControlName="titleInput" [placeholder]="currentProjectName" styleClass="val-full-width"
-                  [disabled]="!(batchMapForm.get('title').value === 'user-defined')" />
+                   />
               </div>
             </div>
           </div>

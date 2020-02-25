@@ -1,17 +1,16 @@
-import { Component, OnInit, OnChanges } from '@angular/core';
-import { Store, select } from '@ngrx/store';
-import { LocalAppState, BatchMapPayload, BatchMapSizes, TitlePayload, SinglePageBatchMapPayload } from 'app/state/app.interfaces';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AppConfig } from 'app/app.config';
-import { AppStateService } from 'app/services/app-state.service';
-import { Observable } from 'rxjs';
-import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
-import { CreateBatchMap, CloseBatchMapDialog } from 'app/state/batch-map/batch-map.actions';
-import { UserService } from 'app/services/user.service';
-import { filter } from 'rxjs/operators';
-import { SelectItem } from 'primeng/api';
-import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { Store } from '@ngrx/store';
 import { AppLocationService } from 'app/services/app-location.service';
+import { AppStateService } from 'app/services/app-state.service';
+import { UserService } from 'app/services/user.service';
+import { BatchMapPayload, BatchMapSizes, LocalAppState, SinglePageBatchMapPayload, TitlePayload } from 'app/state/app.interfaces';
+import { CloseBatchMapDialog, CreateBatchMap } from 'app/state/batch-map/batch-map.actions';
+import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
+import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { SelectItem } from 'primeng/api';
+import { Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -68,6 +67,15 @@ export class BatchMapDialogComponent implements OnInit {
 
   ngOnInit() {
     this.initForm();
+
+    this.batchMapForm.get('title').valueChanges.subscribe(value => {
+      if (value === 'user-defined') {
+        this.batchMapForm.get('titleInput').enable();
+      } else {
+        this.batchMapForm.get('titleInput').disable();
+      }
+    });
+
     this.showBatchMapDialog$ = this.store$.select(getBatchMapDialog);
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
       this.currentProjectId = p.projectId;
@@ -138,7 +146,7 @@ export class BatchMapDialogComponent implements OnInit {
       this.initForm();
   }
 
-  onNeighboringSitesChange() {  
+  onNeighboringSitesChange() {
     this.disableTradeArea = !this.disableTradeArea;
   }
 
