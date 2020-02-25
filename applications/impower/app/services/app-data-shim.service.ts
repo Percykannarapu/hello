@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
-import { clearFeaturesOfInterest, clearShadingDefinitions, EsriService, InitialEsriState, EsriMapService } from '@val/esri';
+import { clearFeaturesOfInterest, clearShadingDefinitions, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
+import Basemap from 'esri/Basemap';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
@@ -25,7 +26,6 @@ import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
-import Basemap from 'esri/Basemap';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -192,15 +192,12 @@ export class AppDataShimService {
     this.metricService.onMetricsChanged(result);
   }
 
-  prepGeoFields(geos: ImpGeofootprintGeo[], attributes: { [geocode: string] : GeoAttribute }, project: ImpProject) : Set<string> {
-    const geocodes = new Set<string>();
+  prepGeoFields(geos: ImpGeofootprintGeo[], attributes: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {
     const hhcField = project.impGeofootprintMasters[0].methSeason === 'S' ? 'hhld_s' : 'hhld_w';
     geos.forEach(geo => {
       const currentAttr = attributes[geo.geocode];
       if (currentAttr != null) geo.hhc = Number(currentAttr[hhcField]);
-      if (geo.isActive) geocodes.add(geo.geocode);
     });
-    return geocodes;
   }
 
   filterGeos(geos: ImpGeofootprintGeo[], geoAttributes: { [geocode: string] : GeoAttribute }, currentProject: ImpProject, filterType?: ProjectFilterChanged) : void {
