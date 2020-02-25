@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, EventEmitter, Output } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { EsriQueryService } from '@val/esri';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { FileUpload } from 'primeng/fileupload';
@@ -196,14 +196,14 @@ export class UploadTradeAreasComponent implements OnInit {
           uniqueRows.push(rows[i]);
         } else {
           duplicateRows.push(rows[i]);
-          if (duplicateRows.length > 0) {
-            break;
-          }
+         
         }
       }
       try {
-        if (!(duplicateRows.length > 0)) {
-          const data: ParseResponse<TradeAreaDefinition> = FileService.parseDelimitedData(header, rows, tradeAreaUpload);
+        if (duplicateRows.length > 0) {
+          this.store$.dispatch(new WarningNotification({ message: 'The upload file contains duplicate rows. Processing will continue, though you may want to re-evaluate the upload file.', notificationTitle: 'Custom TA Upload' }));
+        }
+          const data: ParseResponse<TradeAreaDefinition> = FileService.parseDelimitedData(header, uniqueRows, tradeAreaUpload);
           if (data != null) {
             const failedCount = data.failedRows ? data.failedRows.length : 0;
             const successCount = data.parsedData ? data.parsedData.length : 0;
@@ -221,10 +221,10 @@ export class UploadTradeAreasComponent implements OnInit {
             this.store$.dispatch(new StopBusyIndicator({ key}));
             this.messageService.add({summary: 'Upload Error', detail: `The file must contain two columns: Site Number and Geocode.` });
           }
-        } else {
+         /*else {
           this.store$.dispatch(new StopBusyIndicator({ key}));
-          this.store$.dispatch(new ErrorNotification({ message: 'Upload file contains duplicate Site/Geo combinations. Please fix the file and upload again.', notificationTitle: 'Custom TA Upload' }));
-        }
+          this.store$.dispatch(new WarningNotification({ message: 'The upload file contains duplicate rows. Processing will continue, though you may want to re-evaluate the upload file.', notificationTitle: 'Custom TA Upload' }));
+        }*/
       } catch (e) {
           console.log('There was an error parsing the uploaded data', e);
           this.store$.dispatch(new StopBusyIndicator({ key}));
