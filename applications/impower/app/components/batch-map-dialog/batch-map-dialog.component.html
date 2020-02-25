@@ -1,5 +1,5 @@
 <p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '820px', overflow:'scroll'}" [maximizable]="false">
+  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '800px'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main" id="p-dialog">
       <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are
@@ -8,7 +8,7 @@
       <div class="dialog-body">
         <form novalidate [formGroup]="batchMapForm" autocomplete="off">
           <div class="p-0 ui-g-12">
-            <h3> Title </h3>
+            <h3 class="titlePadding"> Title </h3>
             <div class="group1">
               <div class="p-2 ui-g-4 md-inputfield">
                 <p-dropdown formControlName="title"
@@ -25,7 +25,7 @@
           </div>
           <!-- <div>&nbsp;</div> -->
           <div class="p-0 ui-g-12">
-            <h3> Subtitle 1 </h3>
+            <h3 class="titlePadding"> Subtitle 1 </h3>
             <div class="p-2 group1">
               <div class="ui-g-4 md-inputfield">
                 <p-dropdown formControlName="subTitle" 
@@ -41,7 +41,7 @@
             </div>
           </div>
           <div class="p-0 ui-g-12">
-            <h3> Subtitle 2 </h3>
+            <h3 class="titlePadding"> Subtitle 2 </h3>
             <div class="group1">
               <div class="p-2 ui-g-4 md-inputfield">
                 <p-dropdown formControlName="subSubTitle" 

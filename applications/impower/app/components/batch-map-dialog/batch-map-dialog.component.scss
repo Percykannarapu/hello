@@ -4,10 +4,19 @@
 
 .customPadding{
   padding-left: 2rem !important;
+  padding-top: 7px !important;
 }
 
 .checkboxPadding {
   padding-left: 4rem !important;
+  padding-top: 7px !important
+}
+
+.titlePadding {
+  font-size: 1em;
+  color: #5b659b !important;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
 .pageSettings .pageSettingsPadding{
@@ -21,6 +30,7 @@
   }
   .p-0.ui-g-12 {
     padding: 0 1rem !important;
+    padding-left: 9px !important;
   }
   .group1 {
     @extend .group;
@@ -50,6 +60,7 @@
   }
   .labelTitle{
     font-size: 1.3em;
+    padding-top: 9px;
   }
 }
 
