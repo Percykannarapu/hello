@@ -58,13 +58,16 @@
               <label><b> Neighboring Sites </b></label>
             </div>
             <div class="ui-g-12 customPadding">
+              <p-radioButton name="neighbouringSitesGroup" value="false" label="Exclude"
+                formControlName="neighboringSites"></p-radioButton>
+            </div>
+            <div class="ui-g-12 customPadding">
               <p-radioButton name="neighbouringSitesGroup" labelStyleClass="labelCustom" value="true"
                 label="Include Symbols, Labels & Trade Area Boundaries" formControlName="neighboringSites">
               </p-radioButton>
             </div>
-            <div class="ui-g-12 customPadding">
-              <p-radioButton name="neighbouringSitesGroup" value="false" label="Exclude"
-                formControlName="neighboringSites"></p-radioButton>
+            <div class="ui-g-12 checkboxPadding">
+              <p-checkbox label="With Trade Area Shading" formControlName="enableTradeAreaShading" [(ngModel)]="enableTradeAreaShading" binary="true" ></p-checkbox>
             </div>
           </div>
           <div class="pageSettings">

@@ -34,6 +34,7 @@ export class BatchMapDialogComponent implements OnInit {
     'subTitle': '',
     'subSubTitle': ''
   };
+  enableTradeAreaShading: boolean;
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
@@ -60,6 +61,7 @@ export class BatchMapDialogComponent implements OnInit {
       titleInput: this.currentProjectName,
       subTitleInput: '',
       subSubTitleInput: '',
+      enableTradeAreaShading: false,
     });
   }
 
@@ -107,7 +109,7 @@ export class BatchMapDialogComponent implements OnInit {
                 layout: dialogFields.layout,
                 siteIds: siteIds,
                 hideNeighboringSites: !(dialogFields.neighboringSites == 'true'),
-                shadeNeighboringSites: false
+                shadeNeighboringSites: dialogFields.enableTradeAreaShading
               }
             }
           }
