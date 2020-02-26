@@ -187,12 +187,12 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
       suffix = '%';
     }
     if (minValue == null) {
-      return `Below ${(maxValue).toFixed(0)}${suffix}`;
+      return `Below ${maxValue}${suffix}`;
     }
     if (maxValue == null) {
-      return `${(minValue).toFixed(0)}${suffix} and above`;
+      return `${minValue}${suffix} and above`;
     }
-    return `${(minValue).toFixed(0)}${suffix} to ${(maxValue).toFixed(0)}${suffix}`;
+    return `${minValue}${suffix} to ${maxValue}${suffix}`;
   }
 
   deleteBreak(index: number) {
