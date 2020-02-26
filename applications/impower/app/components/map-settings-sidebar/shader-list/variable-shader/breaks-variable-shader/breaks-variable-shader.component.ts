@@ -90,26 +90,30 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
         this.parentForm.get('dynamicallyAllocate').setValue(false);
         this.parentForm.get('dynamicAllocationType').setValue(null);
         this.parentForm.get('dynamicAllocationSlots').clearValidators();
-        const currentTheme = this.parentForm.get('theme').value;
-        const newBreakDefinitions: ClassBreakDefinition[] = getDefaultClassBreaks(this.currentAudience.fieldconte, currentTheme);
+        this.parentForm.get('theme').setValue(ColorPalette.SixDarkColors);
+        const newBreakDefinitions: ClassBreakDefinition[] = getDefaultClassBreaks(this.currentAudience.fieldconte, ColorPalette.SixDarkColors);
         this.setupBreakControls(newBreakDefinitions);
         break;
       case this.breakTypes[1].value:
         this.parentForm.get('dynamicallyAllocate').setValue(true);
         this.parentForm.get('dynamicAllocationType').setValue(DynamicAllocationTypes.Interval);
         this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2), Validators.max(20)]);
+        this.parentForm.get('theme').setValue(ColorPalette.CpqMaps);
         if (this.parentForm.get('breakDefinitions') != null) {
           this.classBreakCleanup$.next();
           this.parentForm.removeControl('breakDefinitions');
+          this.classBreakCount = 0;
         }
         break;
       case this.breakTypes[2].value:
         this.parentForm.get('dynamicallyAllocate').setValue(true);
         this.parentForm.get('dynamicAllocationType').setValue(DynamicAllocationTypes.ClassCount);
         this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2), Validators.max(20)]);
+        this.parentForm.get('theme').setValue(ColorPalette.CpqMaps);
         if (this.parentForm.get('breakDefinitions') != null) {
           this.classBreakCleanup$.next();
           this.parentForm.removeControl('breakDefinitions');
+          this.classBreakCount = 0;
         }
         break;
     }
