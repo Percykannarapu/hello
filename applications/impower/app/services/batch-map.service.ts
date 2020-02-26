@@ -152,12 +152,14 @@ export class BatchMapService {
 
   showAllSites(project: ImpProject) : Observable<{ siteNum: string, isLastSite: boolean }> {
     const result = { siteNum: project.getImpGeofootprintLocations()[project.getImpGeofootprintLocations().length - 1].locationNumber, isLastSite: true };
-    /*return this.esriMapService.zoomToPoints(toUniversalCoordinates(project.getImpGeofootprintLocations().concat())).pipe(
-      map(() => result)
-    );*/
-    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos()).pipe(
-      map(() => result)
-    );
+    if (project.getImpGeofootprintLocations().length > 10)
+      return this.esriMapService.zoomToPoints(toUniversalCoordinates(project.getImpGeofootprintLocations().concat())).pipe(
+        map(() => result)
+      );
+    else
+      return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos()).pipe(
+        map(() => result)
+      );
   }
 
   moveToSite(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
