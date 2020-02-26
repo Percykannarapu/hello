@@ -104,6 +104,9 @@ export class BatchMapDialogComponent implements OnInit {
     });
 
     this.showBatchMapDialog$ = this.store$.select(getBatchMapDialog);
+    this.showBatchMapDialog$.subscribe(() => {
+      this.batchMapForm.patchValue({titleInput: this.currentProjectName});
+    });
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
       this.currentProjectId = p.projectId;
       this.currentProjectName = p.projectName;
@@ -121,7 +124,6 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   onSubmit(dialogFields: any) {
-    console.log('dialogFields:::', dialogFields);
     this.input['title'] = (dialogFields['titleInput'] === null) ? this.currentProjectName : dialogFields['titleInput'];
     this.input['subTitle'] = dialogFields['subTitleInput'];
     this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
@@ -147,7 +149,7 @@ export class BatchMapDialogComponent implements OnInit {
                 layout: dialogFields.layout,
                 siteIds: siteIds,
                 hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
-                shadeNeighboringSites: dialogFields.enableTradeAreaShading
+                shadeNeighboringSites: (dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false
               }
             }
           }
@@ -170,9 +172,17 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   closeDialog(){
-      this.batchMapForm.reset();
-      this.store$.dispatch(new CloseBatchMapDialog());
-      this.initForm();
+    this.batchMapForm.controls['title'].reset('user-defined');
+    this.batchMapForm.controls['subTitle'].reset('user-defined');
+    this.batchMapForm.controls['subSubTitle'].reset('user-defined');
+    this.batchMapForm.controls['neighboringSites'].reset('include');
+    this.batchMapForm.controls['pageSettingsControl'].reset(BatchMapSizes.letter);
+    this.batchMapForm.controls['layout'].reset('landscape');
+    this.batchMapForm.controls['titleInput'].reset('');
+    this.batchMapForm.controls['subTitleInput'].reset('');
+    this.batchMapForm.controls['subSubTitleInput'].reset('');
+    this.batchMapForm.controls['enableTradeAreaShading'].reset(false);
+    this.store$.dispatch(new CloseBatchMapDialog());
   }
 
   getSinglePageMapPayload(size: BatchMapSizes, layout: string, siteId: string) : SinglePageBatchMapPayload{
