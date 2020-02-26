@@ -143,7 +143,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     ).subscribe(newTheme => {
       const palette = getColorPalette(newTheme, false);
       for (let i = 0; i < this.classBreakCount; ++i) {
-        this.parentForm.get(`breakDefinitions.${i}.fillColor`).setValue(RgbTuple.withAlpha(palette[i], 1));
+        this.parentForm.get(`breakDefinitions.${i}.fillColor`).setValue(RgbTuple.withAlpha(palette[i % palette.length], 1));
       }
     });
     for (let i = 0; i < this.classBreakCount; ++i) {
