@@ -152,7 +152,7 @@ export class BatchMapService {
 
   showAllSites(project: ImpProject) : Observable<{ siteNum: string, isLastSite: boolean }> {
     const result = { siteNum: project.getImpGeofootprintLocations()[project.getImpGeofootprintLocations().length - 1].locationNumber, isLastSite: true };
-    if (project.getImpGeofootprintLocations().length > 10)
+    if (project.getImpGeofootprintGeos().length > 100)
       return this.esriMapService.zoomToPoints(toUniversalCoordinates(project.getImpGeofootprintLocations().concat())).pipe(
         map(() => result)
       );
