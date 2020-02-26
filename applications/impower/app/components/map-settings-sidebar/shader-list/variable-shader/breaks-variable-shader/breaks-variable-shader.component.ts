@@ -30,7 +30,11 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
   }
 
   get currentTheme() : ColorPalette {
-    return this.definition.theme || this.parentForm.get('theme').value;
+    if (this.isEditing) {
+      return this.parentForm.get('theme').value;
+    } else {
+      return this.definition.theme;
+    }
   }
 
   private classBreakCleanup$ = new Subject<void>();
@@ -174,17 +178,17 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
   }
 
   private generateNewLegend(minValue?: number, maxValue?: number) : string {
-    let multiplier = 1;
+    let suffix = '';
     if (this.currentAudience.fieldconte === FieldContentTypeCodes.Percent) {
-      multiplier = 100;
+      suffix = '%';
     }
     if (minValue == null) {
-      return `Below ${(maxValue * multiplier).toFixed(0)}`;
+      return `Below ${(maxValue).toFixed(0)}${suffix}`;
     }
     if (maxValue == null) {
-      return `${(minValue * multiplier).toFixed(0)} and above`;
+      return `${(minValue).toFixed(0)}${suffix} and above`;
     }
-    return `${(minValue * multiplier).toFixed(0)} to ${(maxValue * multiplier).toFixed(0)}`;
+    return `${(minValue).toFixed(0)}${suffix} to ${(maxValue).toFixed(0)}${suffix}`;
   }
 
   deleteBreak(index: number) {
@@ -207,7 +211,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
       fillType: 'solid',
       minValue: null, maxValue: null,
       legendName: 'New Break',
-      fillColor: RgbTuple.withAlpha(palette[this.classBreakCount], 1)
+      fillColor: RgbTuple.withAlpha(palette[this.classBreakCount % palette.length], 1)
     };
     const newControl = this.createClassBreakControl(newDefinition);
     this.breakArray.insert(index + 1, newControl);

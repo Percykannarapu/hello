@@ -73,7 +73,8 @@
   </ng-container>
   <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === false">
     <div class="shader-menu">
-      <a href="#" (click)="addBreak()">add Class Break</a>
+      <a href="#" (click)="addBreak()" *ngIf="classBreakCount < 10">add Class Break</a>
+      <span *ngIf="classBreakCount >= 10">&nbsp;</span>
     </div>
     <div class="class-break-list" formArrayName="breakDefinitions">
       <div *ngFor="let classBreak of breakDefinitions; first as isFirst; last as isLast; index as i">

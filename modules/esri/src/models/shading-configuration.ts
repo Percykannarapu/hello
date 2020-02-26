@@ -112,16 +112,13 @@ export function generateUniqueValues(uniqueValues: string[], palette: RgbTuple[]
   } else {
     values.sort();
   }
-  let i = 0;
-  return values.map((uv) => {
-    return {
-      fillColor: RgbTuple.withAlpha(palette[i++ % palette.length], 1),
-      fillType: 'solid',
-      legendName: uv,
-      outlineColor: [0, 0, 0, 0],
-      value: uv
-    };
-  });
+  return values.map((uv, i) => ({
+    fillColor: RgbTuple.withAlpha(palette[i % palette.length], 1),
+    fillType: 'solid',
+    legendName: uv,
+    outlineColor: [0, 0, 0, 0],
+    value: uv
+  }));
 }
 
 export function generateContinuousValues(stats: Statistics, palette: RgbTuple[]) : ContinuousDefinition[] {
