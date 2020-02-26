@@ -95,6 +95,13 @@ export class BatchMapDialogComponent implements OnInit {
         }
       }
     });
+    this.batchMapForm.get('neighboringSites').valueChanges.subscribe(val => {
+      if (val === 'include') {
+        this.batchMapForm.get('enableTradeAreaShading').enable();
+      } else if (val === 'exclude') {
+        this.batchMapForm.get('enableTradeAreaShading').disable();
+      }
+    });
 
     this.showBatchMapDialog$ = this.store$.select(getBatchMapDialog);
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
@@ -166,10 +173,6 @@ export class BatchMapDialogComponent implements OnInit {
       this.batchMapForm.reset();
       this.store$.dispatch(new CloseBatchMapDialog());
       this.initForm();
-  }
-
-  onNeighboringSitesChange() {
-    this.disableTradeArea = !this.disableTradeArea;
   }
 
   getSinglePageMapPayload(size: BatchMapSizes, layout: string, siteId: string) : SinglePageBatchMapPayload{
