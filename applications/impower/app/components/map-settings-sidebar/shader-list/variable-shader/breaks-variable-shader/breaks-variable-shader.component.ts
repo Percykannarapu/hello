@@ -75,7 +75,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
   }
 
   protected setupForm() : void {
-    const currentTheme = this.definition.theme || ColorPalette.CpqMaps;
+    const currentTheme = this.definition.theme || ColorPalette.SixDarkColors;
     this.parentForm.addControl('theme', new FormControl(currentTheme));
     this.parentForm.addControl('reverseTheme', new FormControl(this.definition.reverseTheme || false));
     this.parentForm.addControl('dynamicallyAllocate', new FormControl(this.definition.dynamicallyAllocate, [Validators.required]));
@@ -90,15 +90,14 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
         this.parentForm.get('dynamicallyAllocate').setValue(false);
         this.parentForm.get('dynamicAllocationType').setValue(null);
         this.parentForm.get('dynamicAllocationSlots').clearValidators();
-        this.parentForm.get('theme').setValue(ColorPalette.SixDarkColors);
-        const newBreakDefinitions: ClassBreakDefinition[] = getDefaultClassBreaks(this.currentAudience.fieldconte, ColorPalette.SixDarkColors);
+        const currentTheme = this.parentForm.get('theme').value;
+        const newBreakDefinitions: ClassBreakDefinition[] = getDefaultClassBreaks(this.currentAudience.fieldconte, currentTheme);
         this.setupBreakControls(newBreakDefinitions);
         break;
       case this.breakTypes[1].value:
         this.parentForm.get('dynamicallyAllocate').setValue(true);
         this.parentForm.get('dynamicAllocationType').setValue(DynamicAllocationTypes.Interval);
         this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2), Validators.max(20)]);
-        this.parentForm.get('theme').setValue(ColorPalette.CpqMaps);
         if (this.parentForm.get('breakDefinitions') != null) {
           this.classBreakCleanup$.next();
           this.parentForm.removeControl('breakDefinitions');
@@ -109,7 +108,6 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
         this.parentForm.get('dynamicallyAllocate').setValue(true);
         this.parentForm.get('dynamicAllocationType').setValue(DynamicAllocationTypes.ClassCount);
         this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2), Validators.max(20)]);
-        this.parentForm.get('theme').setValue(ColorPalette.CpqMaps);
         if (this.parentForm.get('breakDefinitions') != null) {
           this.classBreakCleanup$.next();
           this.parentForm.removeControl('breakDefinitions');
@@ -156,28 +154,38 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
       if (i < this.classBreakCount - 1) {
         maxControl.setValidators([Validators.required, Validators.min(minControl.value)]);
       }
-      minControl.valueChanges.pipe(
-        takeUntil(this.destroyed$),
-        takeUntil(this.classBreakCleanup$)
-      ).subscribe(newMinValue => {
-        const localMax = this.parentForm.get(`breakDefinitions.${i}.maxValue`).value;
-        this.parentForm.get(`breakDefinitions.${i}.legendName`).setValue(this.generateNewLegend(newMinValue, localMax));
-      });
       maxControl.valueChanges.pipe(
         takeUntil(this.destroyed$),
         takeUntil(this.classBreakCleanup$),
       ).subscribe(newMaxValue => {
-        const localMin = this.parentForm.get(`breakDefinitions.${i}.minValue`).value;
-        this.parentForm.get(`breakDefinitions.${i}.legendName`).setValue(this.generateNewLegend(localMin, newMaxValue));
-        const nextClassBreak = this.parentForm.get(`breakDefinitions.${i + 1}`);
-        if (nextClassBreak != null) {
-          nextClassBreak.get('minValue').setValue(newMaxValue);
-          if (i !== this.classBreakCount - 2) {
-            nextClassBreak.get('maxValue').setValidators([Validators.required, Validators.min(newMaxValue)]);
-            nextClassBreak.get('maxValue').updateValueAndValidity();
-          }
-        }
+        this.setControlValues(i, newMaxValue);
       });
+    }
+  }
+
+  private setControlValues(currentIndex: number, newMinValue: number) : void {
+    const nextIndex = currentIndex + 1;
+    const currentBreak = this.breakDefinitions[currentIndex];
+    const nextBreak = this.breakDefinitions[nextIndex];
+    const nextIsLastBreak = nextIndex === this.classBreakCount - 1;
+    if (currentBreak != null) {
+      const currentMin = currentBreak.get('minValue');
+      const currentMax = currentBreak.get('maxValue');
+      const currentLegend = currentBreak.get('legendName');
+      currentLegend.setValue(this.generateNewLegend(currentMin.value, currentMax.value));
+    }
+    if (nextBreak != null) {
+      const minControl = nextBreak.get('minValue');
+      const maxControl = nextBreak.get('maxValue');
+      const legendControl = nextBreak.get('legendName');
+      minControl.setValue(newMinValue);
+      legendControl.setValue(this.generateNewLegend(minControl.value, maxControl.value));
+      if (!nextIsLastBreak) {
+        maxControl.setValidators([Validators.required, Validators.min(newMinValue)]);
+        maxControl.updateValueAndValidity();
+        // for the css to work on a control that the user is not currently editing, we have mark it as touched
+        if (maxControl.invalid) maxControl.markAsTouched();
+      }
     }
   }
 
