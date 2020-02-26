@@ -26,6 +26,7 @@ export class BatchMapDialogComponent implements OnInit {
   numSites: number = 0;
   pageSettings: SelectItem[];
   siteLabels: SelectItem[];
+  siteByGroupList: SelectItem[];
   variableOptions: SelectItem[];
   selectedVariable: string;
   input = {
@@ -55,6 +56,8 @@ export class BatchMapDialogComponent implements OnInit {
       title: ['user-defined', Validators.required],
       subTitle: 'user-defined',
       subSubTitle: 'user-defined',
+      sitesPerPage: 'oneSitePerPage',
+      sitesByGroup: '',
       neighboringSites: 'include',
       pageSettingsControl: BatchMapSizes.letter,
       layout: 'landscape',
@@ -119,21 +122,23 @@ export class BatchMapDialogComponent implements OnInit {
       list.forEach((listEntry) => {
         customList.push(listEntry);
       });
+      this.siteByGroupList = list;
       this.siteLabels = customList;
     });
   }
 
   onSubmit(dialogFields: any) {
+    console.log('dialogFields:::', dialogFields);
     this.input['title'] = (dialogFields['titleInput'] === null) ? this.currentProjectName : dialogFields['titleInput'];
     this.input['subTitle'] = dialogFields['subTitleInput'];
     this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
     const siteIds: string[] = this.getSiteIds();
     const titles: Array<TitlePayload> = this.getTitles(siteIds);
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
-    // if (!dialogFields['neighbouringSites']) {
-    //   const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0]);
-    //   this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
-    // } else {
+    if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
+      const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0]);
+      this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+    } else if (dialogFields.sitesPerPage === 'oneSitePerPage') {
       const formData: BatchMapPayload = {
         calls: [
           {
@@ -156,7 +161,9 @@ export class BatchMapDialogComponent implements OnInit {
         ]
       };
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
-    // }
+    } else if (dialogFields.sitesPerPage === 'sitesGroupedBy') {
+      //print maps by site Attributes
+    }
     this.closeDialog();
   }
 
@@ -175,6 +182,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.batchMapForm.controls['title'].reset('user-defined');
     this.batchMapForm.controls['subTitle'].reset('user-defined');
     this.batchMapForm.controls['subSubTitle'].reset('user-defined');
+    this.batchMapForm.controls['sitesPerPage'].reset('oneSitePerPage');
     this.batchMapForm.controls['neighboringSites'].reset('include');
     this.batchMapForm.controls['pageSettingsControl'].reset(BatchMapSizes.letter);
     this.batchMapForm.controls['layout'].reset('landscape');

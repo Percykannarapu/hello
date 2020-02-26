@@ -19,15 +19,15 @@
               </div>
               &nbsp;
               <div class="p-2 ui-g-8 md-inputfield">
-                <input type="text" pInputText size="49" formControlName="titleInput" styleClass="val-full-width"/>
+                <input type="text" pInputText size="49" formControlName="titleInput" style="padding-bottom: 0px;"/>
               </div>
             </div>
           </div>
           <!-- <div>&nbsp;</div> -->
           <div class="p-0 ui-g-12">
             <h3 class="titlePadding"> Subtitle 1 </h3>
-            <div class="p-2 group1">
-              <div class="ui-g-4 md-inputfield">
+            <div class="group1">
+              <div class="p-2 ui-g-4 md-inputfield">
                 <p-dropdown formControlName="subTitle" 
                             [options]="siteLabels"
                             styleClass="val-full-width"
@@ -35,8 +35,8 @@
                 </p-dropdown>
               </div>
               <span>&nbsp;</span>
-              <div class="ui-g-8 md-inputfield">
-                <input type="text" pInputText size="49" formControlName="subTitleInput" styleClass="val-full-width"/>
+              <div class="p-2 ui-g-8 md-inputfield">
+                <input type="text" pInputText size="49" formControlName="subTitleInput" style="padding-bottom: 0px;"/>
               </div>
             </div>
           </div>
@@ -52,7 +52,33 @@
               </div>
               &nbsp;
               <div class="p-2 ui-g-8 md-inputfield">
-                <input type="text" pInputText size="49" formControlName="subSubTitleInput" styleClass="val-full-width"/>
+                <input type="text" pInputText size="49" formControlName="subSubTitleInput" style="padding-bottom: 0px;"/>
+              </div>
+            </div>
+          </div>
+          <div class="sitesPerPage">
+            <div class="ui-g-12 labelTitle">
+              <label><b> Sites Per Page </b></label>
+            </div>
+            <div class="ui-g-12 customPadding">
+              <p-radioButton name="sitesPerPageGroup" value="oneSitePerPage" label="One site per page"
+                formControlName="sitesPerPage"></p-radioButton>
+            </div>
+            <div class="ui-g-12 customPadding">
+              <p-radioButton name="sitesPerPageGroup" value="allSitesOnOnePage" label="All sites on one page"
+                formControlName="sitesPerPage"></p-radioButton>
+            </div>
+            <div class="ui-g-12 customPadding">
+              <div class="ui-g-4 groupByPadding">
+                <p-radioButton name="sitesPerPageGroup" value="sitesGroupedBy" label="Sites grouped by:"
+                formControlName="sitesPerPage"></p-radioButton>
+              </div>
+              <div class="ui-g-6 groupByPadding">
+                <p-dropdown formControlName="sitesByGroup"
+                            [options]="siteByGroupList"
+                            styleClass="val-full-width"
+                            dropdownIcon="fa fa-caret-down">
+                </p-dropdown>
               </div>
             </div>
           </div>
@@ -77,7 +103,7 @@
             <div class="ui-g-12 labelTitle">
               <label><b> Page Settings </b></label>
             </div>
-            <div class="ui-g-12"></div>
+            <div class="ui-g-12" style="padding-top: 14px; padding-bottom: 0px;"></div>
             <div class="ui-g-12 pageSettingsPadding">
               <div class="ui-g-4 md-inputfield dropdown-padding">
                 <p-dropdown id="pageSettings" formControlName="pageSettingsControl" [options]="pageSettings"
