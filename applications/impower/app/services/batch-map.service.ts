@@ -23,6 +23,7 @@ import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { BatchMapQueryParams } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
 
 @Injectable({
   providedIn: 'root'
@@ -94,6 +95,9 @@ export class BatchMapService {
   }
 
   mapByAttribute(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
+    if (this.originalGeoState == null) {
+      this.recordOriginalState(project);
+    }
     let groupedSites: Map<string, Array<ImpGeofootprintLocation>>;
     if (project.getImpGeofootprintLocations()[0].hasOwnProperty(params.groupByAttribute)) {
       groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => item[params.groupByAttribute]);
@@ -123,6 +127,7 @@ export class BatchMapService {
         } else {
           l.isActive = true;
           l.impGeofootprintTradeAreas.forEach(t => t.isActive = true);
+          l.getImpGeofootprintGeos().forEach(g => g.isActive = this.originalGeoState[g.ggId]);
         }
       });
       this.store$.dispatch(new RenderLocations({ locations: sitesToMap, impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
@@ -133,7 +138,7 @@ export class BatchMapService {
         if (!activeSiteIds.has(l.locationNumber)) {
           l.getImpGeofootprintGeos().forEach(g => g.isActive = false);
         } else {
-          l.getImpGeofootprintGeos().forEach(g => g.isActive = true);
+          l.getImpGeofootprintGeos().forEach(g => g.isActive = this.originalGeoState[g.ggId]);
         }
       });
       this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
