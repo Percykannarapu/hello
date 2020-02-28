@@ -107,6 +107,10 @@ export class EsriMapService {
     });
   }
 
+  public zoomOut(){
+    this.mapView.zoom =  this.mapView.zoom - 2 ;
+  }
+
   clearGraphics() : void {
     this.mapView.graphics.removeAll();
   }

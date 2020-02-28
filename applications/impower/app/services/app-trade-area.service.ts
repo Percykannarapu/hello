@@ -244,7 +244,8 @@ export class AppTradeAreaService {
         map(data => data.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)),
         map(locations => toUniversalCoordinates(locations)),
         take(1),
-        switchMap(coords => this.esriMapService.zoomToPoints(coords))
+        switchMap(coords => this.esriMapService.zoomToPoints(coords)),
+        map(() => this.esriMapService.zoomOut()),
       ).subscribe();
     }
   }
