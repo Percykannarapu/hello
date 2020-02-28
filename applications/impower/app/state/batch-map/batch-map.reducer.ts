@@ -48,7 +48,6 @@ export function batchMapReducer(state = initialState, action: BatchMapActions) :
       case BatchMapActionTypes.OpenBatchMapDialog:
         return {
           ...state,
-          batchMode: true,
           displayBatchMapDialog: true
         };
       case BatchMapActionTypes.CloseBatchMapDialog:

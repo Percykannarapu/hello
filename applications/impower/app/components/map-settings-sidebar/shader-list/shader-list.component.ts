@@ -77,11 +77,9 @@ export class ShaderListComponent implements OnInit, OnDestroy {
     switch (newDef.dataKey) {
       case GfpShaderKeys.OwnerSite:
         this.appRenderService.updateForOwnerSite(newDef, this.geos);
-        this.appRenderService.registerGeoOwnerWatcher();
         break;
       case GfpShaderKeys.OwnerTA:
         this.appRenderService.updateForOwnerTA(newDef, this.geos);
-        this.appRenderService.registerGeoOwnerWatcher();
         break;
     }
     this.esriShaderService.updateShader(newDef);
