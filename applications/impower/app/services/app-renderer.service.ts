@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, filterArray, getUuid } from '@val/common';
+import { calculateStatistics, getUuid } from '@val/common';
 import {
   ColorPalette,
   ConfigurationTypes,
@@ -14,16 +14,18 @@ import {
   isComplexShadingDefinition,
   RgbTuple,
   ShadingDefinition,
-  shadingSelectors,
-  upsertShadingDefinitions
+  shadingSelectors
 } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { Observable, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
+import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
+import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { GfpShaderKeys } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
+import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -35,7 +37,6 @@ import { AppStateService } from './app-state.service';
 @Injectable()
 export class AppRendererService {
   private selectedWatcher: Subscription;
-  private ownerWatcher: Subscription;
 
   constructor(private appStateService: AppStateService,
               private appPrefService: AppProjectPrefService,
@@ -71,7 +72,10 @@ export class AppRendererService {
   }
 
   private setupProjectPrefsWatcher() : void {
-    this.store$.select(shadingSelectors.allLayerDefs).subscribe(sd => {
+    this.store$.select(shadingSelectors.allLayerDefs).pipe(
+      withLatestFrom(this.store$.select(projectIsReady)),
+      filter(([, ready]) => ready)
+    ).subscribe(([sd]) => {
       this.appPrefService.createPref('esri', 'map-shading-defs', JSON.stringify(sd));
     });
   }
@@ -84,35 +88,60 @@ export class AppRendererService {
       distinctUntilChanged(),
       withLatestFrom(this.appStateService.currentProject$)
     ).subscribe(([al, project]) => {
-      // this.store$.dispatch(resetShading());
       const shadingDefinitions = this.getShadingDefinitions(project);
       shadingDefinitions.forEach(sd => {
-        this.updateForAnalysisLevel(sd, al);
+        this.updateForAnalysisLevel(sd, al, true);
       });
       if (shadingDefinitions.length === 0) {
         shadingDefinitions.push(this.createSelectionShadingDefinition(al, false));
       }
+      this.store$.dispatch(new ClearMapVars());
       this.esriShaderService.loadShaders(shadingDefinitions);
+      setTimeout(() => this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: al })), 1000);
     });
   }
 
   private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>) : void {
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
     this.selectedWatcher = geoDataStore.pipe(
+      withLatestFrom(this.store$.select(projectIsReady)),
+      filter(([, ready]) => ready),
+      map(([geos]) => geos as ImpGeofootprintGeo[]),
       filter(geos => geos != null),
       debounceTime(500),
-      map(geos => {
-        const deduper = new Set<string>();
-        return geos.reduce((a, c) => {
-          if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive && !deduper.has(c.geocode)) {
-            deduper.add(c.geocode);
-            a.push(c.geocode);
+      withLatestFrom(this.appStateService.currentProject$)
+    ).subscribe(([geos, project]) => {
+      const ownerKeys = new Set<string>([GfpShaderKeys.OwnerSite, GfpShaderKeys.OwnerTA]);
+      const definitions = this.getShadingDefinitions(project).filter(sd => ownerKeys.has(sd.dataKey));
+      const newDefs = definitions.reduce((updates, definition) => {
+        if (definition != null && isComplexShadingDefinition(definition)) {
+          const newDef = { ...definition };
+          switch (newDef.dataKey) {
+            case GfpShaderKeys.OwnerSite:
+              this.updateForOwnerSite(newDef, geos);
+              break;
+            case GfpShaderKeys.OwnerTA:
+              this.updateForOwnerTA(newDef, geos);
           }
-          return a;
-        }, []);
-      }),
-      tap(geocodes => geocodes.sort())
-    ).subscribe(features => this.esriService.setFeaturesOfInterest(features));
+          updates.push(newDef);
+        }
+        return updates;
+      }, []);
+      const deDuper = new Set<string>();
+      const features = geos.reduce((a, c) => {
+        if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive && !deDuper.has(c.geocode)) {
+          deDuper.add(c.geocode);
+          a.push(c.geocode);
+        }
+        return a;
+      }, []);
+      features.sort();
+      this.esriService.setFeaturesOfInterest(features);
+
+      if (newDefs.length > 0) {
+        this.esriShaderService.updateShader(newDefs);
+      }
+    });
   }
 
   private setupMapVarWatcher() {
@@ -135,7 +164,7 @@ export class AppRendererService {
                 result[mapVar.geocode] = mapVar[varPk];
                 switch (shaderCopy.shadingType) {
                   case ConfigurationTypes.Unique:
-                    uniqueStrings.add(mapVar[varPk] == null ? '' : `${mapVar[varPk]}`);
+                    if (mapVar[varPk] != null) uniqueStrings.add(`${mapVar[varPk]}`);
                     break;
                   case ConfigurationTypes.Ramp:
                   case ConfigurationTypes.ClassBreak:
@@ -289,52 +318,40 @@ export class AppRendererService {
     return result as ShadingDefinition;
   }
 
-  updateForAnalysisLevel(definition: ShadingDefinition, newAnalysisLevel: string) : void {
+  updateForAnalysisLevel(definition: ShadingDefinition, newAnalysisLevel: string, isNewAnalysisLevel: boolean = false) : void {
     const layerConfig = this.config.getLayerConfigForAnalysisLevel(newAnalysisLevel);
-    if (definition.sourcePortalId == null) {
-      definition.sourcePortalId = this.config.getLayerIdForAnalysisLevel(newAnalysisLevel, true);
+    const newPortalId = this.config.getLayerIdForAnalysisLevel(newAnalysisLevel, true);
+    const newSelectedLayerName = `Selected ${newAnalysisLevel}s`;
+    if (definition.sourcePortalId == null || isNewAnalysisLevel) {
+      definition.sourcePortalId = newPortalId;
       definition.minScale = layerConfig.boundaries.minScale;
     }
-    if (definition.dataKey === 'selection-shading' && definition.layerName == null) {
-      definition.layerName = `Selected ${newAnalysisLevel}s`;
-      definition.defaultSymbolDefinition.legendName = `Selected ${newAnalysisLevel}s`;
+    if (definition.dataKey === 'selection-shading' && (definition.layerName == null || isNewAnalysisLevel)) {
+      definition.layerName = newSelectedLayerName;
+      definition.defaultSymbolDefinition.legendName = newSelectedLayerName;
     }
-  }
-
-  registerGeoOwnerWatcher() : void {
-    if (this.ownerWatcher) return;
-
-    this.ownerWatcher = this.impGeoService.storeObservable.pipe(
-      filterArray(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive && g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive && g.isActive && g.isDeduped === 1),
-      withLatestFrom(this.appStateService.currentProject$)
-    ).subscribe(([geos, project]) => {
-      const ownerKeys = new Set<string>([GfpShaderKeys.OwnerSite, GfpShaderKeys.OwnerTA]);
-      const definitions = this.getShadingDefinitions(project).filter(sd => ownerKeys.has(sd.dataKey));
-      const newDefs = definitions.reduce((updates, definition) => {
-        if (definition != null && isComplexShadingDefinition(definition)) {
-          const newDef = { ...definition };
-          switch (newDef.dataKey) {
-            case GfpShaderKeys.OwnerSite:
-              this.updateForOwnerSite(newDef, geos);
-              break;
-            case GfpShaderKeys.OwnerTA:
-              this.updateForOwnerTA(newDef, geos);
-          }
-          updates.push(newDef);
+    if (isNewAnalysisLevel) {
+      delete definition.destinationLayerUniqueId;
+      if (isComplexShadingDefinition(definition)) {
+        delete definition.arcadeExpression;
+        switch (definition.shadingType) {
+          case ConfigurationTypes.Unique:
+          case ConfigurationTypes.Ramp:
+            delete definition.breakDefinitions;
+            break;
+          case ConfigurationTypes.ClassBreak:
+            if (definition.dynamicallyAllocate) delete definition.breakDefinitions;
+            break;
         }
-        return updates;
-      }, []);
-      if (newDefs.length > 0) {
-        this.store$.dispatch(upsertShadingDefinitions({ shadingDefinitions: newDefs }));
       }
-    });
+    }
   }
 
   updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
     if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
       definition.theme = ColorPalette.CpqMaps;
       const data: Record<string, string> = geos.reduce((result, geo) => {
-        if (geo.isDeduped === 1) {
+        if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && geo.isDeduped === 1) {
           const secondaryKey = definition.secondaryDataKey || 'locationNumber';
           if (geo.impGeofootprintLocation.hasOwnProperty(secondaryKey)) {
             result[geo.geocode] = geo.impGeofootprintLocation[secondaryKey];
@@ -352,45 +369,46 @@ export class AppRendererService {
   }
 
   updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
-
     if (definition != null && isComplexShadingDefinition(definition)) {
       definition.theme = ColorPalette.CpqMaps;
       const deferredHomeGeos: ImpGeofootprintGeo[] = [];
       const tradeAreaTypesInPlay = new Set<TradeAreaTypeCodes>();
       const data: Record<string, string> = geos.reduce((result, geo) => {
-        switch (geo.impGeofootprintTradeArea.taType.toUpperCase()) {
-          case TradeAreaTypeCodes.Radius.toUpperCase():
-            const taNumber = geo.geocode === geo.impGeofootprintLocation.homeGeocode ? 1 : geo.impGeofootprintTradeArea.taNumber;
-            result[geo.geocode] = `Trade Area ${taNumber}`;
-            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Radius);
-            break;
-          case TradeAreaTypeCodes.HomeGeo.toUpperCase():
-            deferredHomeGeos.push(geo);
-            break;
-          case TradeAreaTypeCodes.Custom.toUpperCase():
-            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+        if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && geo.isDeduped === 1) {
+          switch (geo.impGeofootprintTradeArea.taType.toUpperCase()) {
+            case TradeAreaTypeCodes.Radius.toUpperCase():
+              const taNumber = geo.geocode === geo.impGeofootprintLocation.homeGeocode ? 1 : geo.impGeofootprintTradeArea.taNumber;
+              result[geo.geocode] = `Trade Area ${taNumber}`;
+              tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Radius);
+              break;
+            case TradeAreaTypeCodes.HomeGeo.toUpperCase():
               deferredHomeGeos.push(geo);
-            } else {
-              result[geo.geocode] = 'Custom';
-            }
-            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Custom);
-            break;
-          case TradeAreaTypeCodes.Manual.toUpperCase():
-            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
-              deferredHomeGeos.push(geo);
-            } else {
-              result[geo.geocode] = 'Manual';
-            }
-            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Manual);
-            break;
-          case TradeAreaTypeCodes.MustCover.toUpperCase():
-            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
-              deferredHomeGeos.push(geo);
-            } else {
-              result[geo.geocode] = 'Must Cover';
-            }
-            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.MustCover);
-            break;
+              break;
+            case TradeAreaTypeCodes.Custom.toUpperCase():
+              if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+                deferredHomeGeos.push(geo);
+              } else {
+                result[geo.geocode] = 'Custom';
+              }
+              tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Custom);
+              break;
+            case TradeAreaTypeCodes.Manual.toUpperCase():
+              if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+                deferredHomeGeos.push(geo);
+              } else {
+                result[geo.geocode] = 'Manual';
+              }
+              tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Manual);
+              break;
+            case TradeAreaTypeCodes.MustCover.toUpperCase():
+              if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+                deferredHomeGeos.push(geo);
+              } else {
+                result[geo.geocode] = 'Must Cover';
+              }
+              tradeAreaTypesInPlay.add(TradeAreaTypeCodes.MustCover);
+              break;
+          }
         }
         return result;
       }, {});
