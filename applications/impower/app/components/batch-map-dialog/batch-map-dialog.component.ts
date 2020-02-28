@@ -57,7 +57,7 @@ export class BatchMapDialogComponent implements OnInit {
       subTitle: 'user-defined',
       subSubTitle: 'user-defined',
       sitesPerPage: 'oneSitePerPage',
-      sitesByGroup: '',
+      // sitesByGroup: '',
       neighboringSites: 'include',
       pageSettingsControl: BatchMapSizes.letter,
       layout: 'landscape',
@@ -128,7 +128,6 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   onSubmit(dialogFields: any) {
-    console.log('dialogFields:::', dialogFields);
     this.input['title'] = (dialogFields['titleInput'] === null) ? this.currentProjectName : dialogFields['titleInput'];
     this.input['subTitle'] = dialogFields['subTitleInput'];
     this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
