@@ -1,17 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, getUuid, groupBy, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, groupBy, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
-import { StopBusyIndicator } from '@val/messaging';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
-import { RollDownGeosComplete, TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
+import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { FullAppState } from '../state/app.interfaces';
 import { RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -272,7 +270,6 @@ export class AppTradeAreaService {
     this.appGeoService.clearAll();
     this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
     this.impTradeAreaService.stopTx();
-    this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: newAnalysisLevel, correlationId: getUuid() }));
   }
 
   public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {

@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import Basemap from 'esri/Basemap';
-import { BehaviorSubject, of } from 'rxjs';
-import { debounceTime, filter, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, switchMap, take } from 'rxjs/operators';
 import { ShadingDefinition } from '../models/shading-configuration';
 import { InitialEsriState, loadInitialState } from '../state/esri.actions';
 import { AppState, selectors } from '../state/esri.selectors';
-import { ResetMapState, SetLayerLabelExpressions, SetPopupVisibility, SetSelectedLayer } from '../state/map/esri.map.actions';
+import { SetLayerLabelExpressions, SetPopupVisibility, SetSelectedLayer } from '../state/map/esri.map.actions';
 import { EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
 import { loadShadingDefinitions, setFeaturesOfInterest } from '../state/shading/esri.shading.actions';
 import { EsriLayerService } from './esri-layer.service';
@@ -30,18 +30,16 @@ export class EsriService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.mapService.watchMapViewProperty('stationary').pipe(
+      const mapIsStationary$ = this.mapService.watchMapViewProperty('stationary').pipe(
         filter(result => result.newValue),
-        debounceTime(500),
-        withLatestFrom(this.store$.select(selectors.getEsriSelectedLayer)),
+        debounceTime(500)
+      );
+      const selectedLayerIsReady$ = this.store$.select(selectors.getEsriSelectedLayer).pipe(distinctUntilChanged());
+      combineLatest([mapIsStationary$, selectedLayerIsReady$]).pipe(
         filter(([, layerId]) => layerId != null),
         switchMap(([, layerId]) => this.layerService.layerIsVisibleOnMap(layerId) ? this.queryService.queryExtent(layerId) : of([]))
       ).subscribe(g => this.visibleFeatures$.next(g), e => this.visibleFeatures$.error(e));
     });
-  }
-
-  resetMapState() : void {
-    this.store$.dispatch(new ResetMapState());
   }
 
   setPopupVisibility(isVisible: boolean) : void {
