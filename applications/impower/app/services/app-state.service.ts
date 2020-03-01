@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { select, Store } from '@ngrx/store';
-import { dedupeSimpleSet, filterArray, groupBy, isNumber, mapArrayToEntity } from '@val/common';
+import { Store } from '@ngrx/store';
+import { filterArray, groupBy, isNumber, mapArrayToEntity } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
@@ -255,24 +255,20 @@ export class AppStateService {
       map(([, allGeocodes]) => allGeocodes)
     ).subscribe(this.uniqueIdentifiedGeocodes$ as BehaviorSubject<string[]>);
 
-    const completeAttributes$ = this.store$.pipe(
-      select(selectGeoAttributes),
-      map(attrs => {
-        const result = new Set<string>();
-        attrs.forEach(e => {
-          if (e.hasOwnProperty('hhld_s') || e.hasOwnProperty('hhld_w')) result.add(e.geocode);
-        });
-        return result;
-      })
-    );
-
     this.uniqueIdentifiedGeocodeSet$.pipe(
       filter(geoSet => geoSet.size > 0),
-      withLatestFrom(completeAttributes$),
-      map(([requestedGeos, currentGeos]) => dedupeSimpleSet(requestedGeos, currentGeos)),
-      withLatestFrom(this.applicationIsReady$, this.filterFlag$),
-      filter(([newGeos, isReady]) => newGeos.size > 0 && isReady),
-    ).subscribe(([geoSet, , filterFlag]) => {
+      withLatestFrom(this.store$.select(selectGeoAttributes), this.applicationIsReady$),
+      filter(([, , ready]) => ready),
+      map(([requestedGeos, attrs]) => {
+        const result = new Set<string>();
+        attrs.forEach(e => {
+          if ((e.hasOwnProperty('hhld_s') || e.hasOwnProperty('hhld_w')) && !requestedGeos.has(e.geocode)) result.add(e.geocode);
+        });
+        return result;
+      }),
+      withLatestFrom(this.filterFlag$),
+      filter(([newGeos]) => newGeos.size > 0),
+    ).subscribe(([geoSet, filterFlag]) => {
       if (filterFlag !== null && filterFlag !== undefined) {
         this.store$.dispatch(new RequestAttributes({ geocodes: geoSet, flag: filterFlag }));
       } else {

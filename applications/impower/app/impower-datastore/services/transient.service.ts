@@ -14,7 +14,7 @@ export class TransientService {
   constructor(private targetAudienceService: TargetAudienceService,
               private store$: Store<FullAppState>) { }
 
-  dispatchMappedAudienceRequests(audiences: Audience[], transactionId: number, analysisLevel: string) : number {
+  dispatchMappedAudienceRequests(audiences: Audience[], transactionId: number, analysisLevel: string, geocodes: Set<string>) : number {
     console.log('Inside Audience Request Dispatch', audiences);
     const actionsToDispatch = [];
     const audiencesBySource = groupByExtended(audiences, a => this.targetAudienceService.createKey(a.audienceSourceType, a.audienceSourceName));
@@ -59,7 +59,7 @@ export class TransientService {
 
         default:
           if (source.startsWith('Custom/'))
-            actionsToDispatch.push(new FetchCustomFromPrefsMap());
+            actionsToDispatch.push(new FetchCustomFromPrefsMap({ geocodes }));
           break;
       }
     });

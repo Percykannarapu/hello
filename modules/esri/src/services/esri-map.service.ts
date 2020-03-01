@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils, WatchResult } from '../core/esri-utils';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
+import { LoggingService } from './logging.service';
 
 function calculateExpandedStats(xData: number[], yData: number[], expansionAmount: number) : [Statistics, Statistics] {
   let xStats = calculateStatistics(xData);
@@ -26,6 +27,7 @@ export class EsriMapService {
   public measureWidget: any = null;
 
   constructor(private domainService: EsriDomainFactoryService,
+              private logger: LoggingService,
               private zone: NgZone,
               @Inject(EsriAppSettingsToken) private config: EsriAppSettings) {}
 
@@ -45,7 +47,7 @@ export class EsriMapService {
           sub.complete();
         }, err => sub.error(err));
       } catch (e) {
-        console.error('Map Initialization encountered an error', e);
+        this.logger.error.log('Map Initialization encountered an error', e);
         sub.error(e);
       }
     });

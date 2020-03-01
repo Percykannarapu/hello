@@ -1,8 +1,9 @@
-<div class="component-root" [formGroup]="parentForm">
+<div class="component-root">
   <span class="md-inputfield">
-    <p-dropdown id="{{valueName}}input" [formControlName]="valueName" [options]="options"
+    <p-dropdown id="dropdown-input-{{controlId}}" [(ngModel)]="value" [options]="options"
                 [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"
-                (onChange)="handleChange($event)" [autoDisplayFirst]="!includeUnselected"></p-dropdown>
-    <label class="drop-down-label" for="{{valueName}}input">{{labelText}}</label>
+                (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
+                [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass"></p-dropdown>
+    <label class="drop-down-label" for="dropdown-input-{{controlId}}">{{labelText}}</label>
   </span>
 </div>

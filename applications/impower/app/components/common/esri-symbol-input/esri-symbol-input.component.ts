@@ -1,6 +1,6 @@
 /* tslint:disable:component-selector */
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, ControlContainer, FormGroup } from '@angular/forms';
 import { getUuid } from '@val/common';
 import { ColorPalette, FillPattern, fillTypeFriendlyNames, RgbaTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
@@ -23,8 +23,6 @@ function rgbToEsri(rgbColor: Rgb) : [number, number, number, number] {
   styleUrls: ['./esri-symbol-input.component.scss']
 })
 export class EsriSymbolInputComponent implements OnInit, OnDestroy {
-  @Input() parentForm: FormGroup;
-  @Input() valueName: string;
   @Input() labelText: string;
 
   @Input() defaultCrossHatchColor: RgbaTuple = [0, 0, 0, 1];
@@ -34,6 +32,7 @@ export class EsriSymbolInputComponent implements OnInit, OnDestroy {
   controlId = getUuid();
   fillTypes: SelectItem[];
   showPicker: boolean;
+  currentRoot: FormGroup;
 
   get selectedColor() : Rgb {
     return esriToRgb(this.fillColorControl.value || [0, 0, 0, 1]);
@@ -42,25 +41,19 @@ export class EsriSymbolInputComponent implements OnInit, OnDestroy {
     this.fillColorControl.setValue(rgbToEsri(value));
   }
 
-  get currentRoot() : FormGroup {
-    const root = this.valueName == null ? this.parentForm : this.parentForm.get(this.valueName);
-    return root as FormGroup;
-  }
-
   private get fillColorControl() : AbstractControl {
-    return this.currentRoot.get('fillColor');
+    return this.controlContainer.control.get('fillColor');
   }
 
   private destroyed$ = new Subject<void>();
 
-  constructor() {
+  constructor(private controlContainer: ControlContainer) {
     const fillTypeOrdered: FillPattern[] = ['solid', 'backward-diagonal', 'forward-diagonal', 'diagonal-cross', 'cross', 'horizontal', 'vertical'];
     this.fillTypes = fillTypeOrdered.map(ft => ({ label: fillTypeFriendlyNames[ft], value: ft, icon: ft === 'solid' ? null : ft }));
   }
 
   ngOnInit() : void {
-    const root = this.valueName == null ? this.parentForm : this.parentForm.get(this.valueName);
-    if (!(root instanceof FormGroup)) throw new Error('EsriSymbolInput ValueName property must refer to a FormGroup instance on the parentForm');
+    this.currentRoot = this.controlContainer.control as FormGroup;
     this.showPicker = this.currentRoot.get('fillType').value === 'solid';
     const defaultSolidColor = this.defaultSolidColor || [ ...this.fillColorControl.value] as RgbaTuple;
     this.currentRoot.get('fillType').valueChanges.pipe(

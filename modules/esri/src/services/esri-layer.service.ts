@@ -19,6 +19,7 @@ import { CopyCoordinatesToClipboard } from '../state/map/esri.map.actions';
 import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
 import { addLayerToLegend } from '../state/shading/esri.shading.actions';
 import { EsriMapService } from './esri-map.service';
+import { LoggingService } from './logging.service';
 
 const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data === 'string'  ? 'string' : 'double';
 
@@ -31,14 +32,15 @@ export class EsriLayerService {
 
   constructor(private mapService: EsriMapService,
               private store$: Store<AppState>,
+              private logger: LoggingService,
               private zone: NgZone) {}
 
   public clearClientLayers(groupName: string) : void {
     if (this.mapService.mapView == null || this.mapService.mapView.map == null || this.mapService.mapView.map.layers == null) return;
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
-    console.log('Clearing', groupName, 'layer');
+    this.logger.debug.log('Clearing', groupName, 'layer');
     if (EsriUtils.layerIsGroup(group)) {
-      console.log('Group found, removing layers');
+      this.logger.info.log('Group found, removing layers');
       group.layers.removeAll();
       this.mapService.mapView.map.layers.remove(group);
     }
@@ -109,7 +111,7 @@ export class EsriLayerService {
       return !(EsriUtils.layerIsGroup(parent) && parent.title.toLowerCase().includes('shading'));
     });
     if (result.length > 1) {
-      console.warn('Expecting a single layer in getPortalLayerById, got multiple. Returning first instance only');
+      this.logger.warn.log('Expecting a single layer in getPortalLayerById, got multiple. Returning first instance only');
     }
     return result[0];
   }
@@ -130,7 +132,7 @@ export class EsriLayerService {
       const parent = (layer as any).parent;
       this.removeLayerFromLegend(layer.id);
       if (EsriUtils.layerIsGroup(parent)) {
-        console.log(`Removing layer "${layer.title}" from group "${parent.title}"`);
+        this.logger.debug.log(`Removing layer "${layer.title}" from group "${parent.title}"`);
         parent.layers.remove(layer);
       } else {
         this.mapService.mapView.map.layers.remove(layer);

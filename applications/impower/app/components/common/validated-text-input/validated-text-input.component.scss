@@ -1,4 +1,38 @@
+@import "valassis-variables";
+
+:host(.ng-touched.ng-invalid) {
+  .ui-inputgroup {
+    .md-inputfield {
+      input {
+        background-image: linear-gradient(to bottom, $inputInvalidBorderColor, $inputInvalidBorderColor),
+        linear-gradient(to bottom, $inputInvalidBorderColor, $inputInvalidBorderColor);
+
+        &:focus ~ label,
+        ~ label {
+          color: $inputErrorTextColor;
+        }
+
+        ~ span.ui-inputgroup-addon {
+          border-bottom-color: $inputInvalidBorderColor;
+          i {
+            color: $inputErrorTextColor;
+          }
+        }
+      }
+    }
+  }
+}
+
 .component-root {
   margin-top: 1em;
   padding-bottom: 0.5em;
+  > span {
+    &.md-inputfield {
+      > input {
+        box-sizing: border-box;
+        float: left;
+        width: 100%;
+      }
+    }
+  }
 }

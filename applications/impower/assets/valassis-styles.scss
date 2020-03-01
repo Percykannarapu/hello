@@ -122,6 +122,22 @@ body {
 
   .ui-inputgroup {
     .md-inputfield {
+      input.no-touch-validation.ng-invalid,
+      input.ng-touched.ng-invalid {
+        background-image: linear-gradient(to bottom, $brandRed, $brandRed), linear-gradient(to bottom, $brandRed, $brandRed);
+
+        &:focus ~ label,
+        ~ label {
+          color: $brandRed;
+        }
+
+        ~ span.ui-inputgroup-addon {
+          border-bottom-color: $brandRed;
+          i {
+            color: $brandRed;
+          }
+        }
+      }
       input:focus ~ label, input.ui-state-filled ~ label {
         top: -1.25em;
       }

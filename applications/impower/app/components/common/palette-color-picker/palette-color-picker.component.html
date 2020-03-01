@@ -1,6 +1,9 @@
-<div class="component-root" [formGroup]="parentForm">
+<div class="component-root">
   <span class="md-inputfield">
-    <p-dropdown [style]="{'width':'100%'}" id="{{controlId}}input" [formControlName]="valueName" [options]="options" (onChange)="updateValue($event.value)">
+    <p-dropdown id="palette-input-{{controlId}}" [(ngModel)]="value" [options]="options"
+                [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"
+                (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
+                [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass">
       <ng-template let-selected pTemplate="selectedItem">
         <div class="item-container">
           <span class="selected-color-chip" [ngStyle]="{ 'background-color': selected.label }"></span>
@@ -12,5 +15,6 @@
         </div>
       </ng-template>
     </p-dropdown>
+    <label class="drop-down-label" for="palette-input-{{controlId}}">{{labelText}}</label>
   </span>
 </div>

@@ -22,6 +22,7 @@ import { GeoVar } from '../geo-vars/geo-vars.model';
 import { UpsertMapVars } from '../map-vars/map-vars.actions';
 import { MapVar } from '../map-vars/map-vars.model';
 import { RemoveGeoCache } from '../transient.actions';
+import { getAllMappedAudiences } from '../transient.reducer';
 import {
   AddAudience,
   ApplyAudiences,
@@ -533,13 +534,13 @@ export class AudiencesEffects {
   @Effect()
   fetchCustomFromPrefsMap$ = this.actions$.pipe(
     ofType<FetchCustomFromPrefsMap>(AudienceActionTypes.FetchCustomFromPrefsMap),
-    withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesOnMap))),
-    map(([, selectedAudiences]) => {
+    withLatestFrom(this.store$.select(getAllMappedAudiences)),
+    map(([action, selectedAudiences]) => {
       this.store$.dispatch(new FetchCountIncrement());
       const refreshStart = performance.now();
-      const mapVars = this.targetAudienceCustomService.reloadMapVarFromPrefs(selectedAudiences[0].audienceName, selectedAudiences[0].audienceIdentifier);
+      const mapVars = this.targetAudienceCustomService.reloadMapVarFromPrefs(selectedAudiences, action.payload.geocodes);
       //console.log('### fetchCustomFromPrefsMap - fired - mapVars:', mapVars, 'audiences:', selectedAudiences);
-      if (mapVars != null)
+      if (mapVars.length > 0)
         return new FetchCustomCompletedMap({ source: 'custom', startTime: refreshStart, response: mapVars, transactionId: -1 });
       else
         return new FetchCustomFailedMap({ err: 'No custom map vars were created from project prefs', transactionId: -1 });

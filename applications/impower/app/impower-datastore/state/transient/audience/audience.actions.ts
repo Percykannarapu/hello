@@ -282,6 +282,7 @@ export class FetchCustomMap implements Action {
 
 export class FetchCustomFromPrefsMap implements Action {
   readonly type = AudienceActionTypes.FetchCustomFromPrefsMap;
+  constructor(public payload: {geocodes: Set<string>}) {}
 }
 
 export class FetchAudienceTradeAreaCompletedMap implements Action {

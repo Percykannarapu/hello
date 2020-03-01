@@ -1,25 +1,17 @@
 /* tslint:disable:no-console */
-import { Inject, Injectable, InjectionToken } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Logger, LogLevels } from '@val/common';
+import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 
-export interface LoggingConfiguration {
-  logLevel: LogLevels;
-}
-
-export const LoggingConfigurationToken = new InjectionToken<LoggingConfiguration>('logging-config-options');
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class LoggingService {
-
   debug: Logger;
   info: Logger;
   warn: Logger;
   error: Logger;
   fatal: Logger;
 
-  constructor(@Inject(LoggingConfigurationToken) protected cfg: LoggingConfiguration) {
+  constructor(@Inject(EsriAppSettingsToken) protected cfg: EsriAppSettings) {
     this.debug = new Logger('#03A9F4', 'DEBUG', LogLevels.DEBUG, cfg.logLevel, console.log);
     this.info = new Logger('#4CAF50', 'INFO', LogLevels.INFO, cfg.logLevel, console.info);
     this.warn = new Logger('#a0895b', 'WARN', LogLevels.WARN, cfg.logLevel, console.warn);

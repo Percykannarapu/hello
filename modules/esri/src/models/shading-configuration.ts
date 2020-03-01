@@ -149,6 +149,8 @@ export function generateContinuousValues(stats: Statistics, palette: RgbTuple[])
 export function generateDynamicClassBreaks(stats: Statistics, palette: RgbTuple[], breakTypes: DynamicAllocationTypes) : ClassBreakDefinition[] {
   const result: ClassBreakDefinition[] = [];
   const breakValues = breakTypes === DynamicAllocationTypes.Interval ? stats.meanIntervals : stats.quantiles;
+  const fixedPositions = stats.max > 10 ? 0 :
+                         stats.max > 5  ? 1 : 2;
   breakValues.forEach((bv, i) => {
     const b: ClassBreakDefinition = {
       maxValue: bv,
@@ -159,11 +161,11 @@ export function generateDynamicClassBreaks(stats: Statistics, palette: RgbTuple[
     if (i === 0) {
       // first break
       b.minValue = null;
-      b.legendName = `Below ${b.maxValue.toFixed(0)}`;
+      b.legendName = `Below ${b.maxValue.toFixed(fixedPositions)}`;
     } else {
       // intermediate breaks
       b.minValue = breakValues[i - 1] + Number.EPSILON;
-      b.legendName = `${b.minValue.toFixed(0)} to ${b.maxValue.toFixed(0)}`;
+      b.legendName = `${b.minValue.toFixed(fixedPositions)} to ${b.maxValue.toFixed(fixedPositions)}`;
     }
     result.push(b);
   });
@@ -173,7 +175,7 @@ export function generateDynamicClassBreaks(stats: Statistics, palette: RgbTuple[
     fillColor: RgbTuple.withAlpha(palette[breakValues.length % palette.length], 1),
     fillType: 'solid',
     outlineColor: [0, 0, 0, 0],
-    legendName: `${breakValues[breakValues.length - 1].toFixed(0)} and above`
+    legendName: `${breakValues[breakValues.length - 1].toFixed(fixedPositions)} and above`
   };
   result.push(lastBreak);
   return result;

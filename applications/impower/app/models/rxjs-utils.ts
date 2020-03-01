@@ -1,16 +1,13 @@
-import { mapArray } from '@val/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 export const mapFeaturesToGeocode = (excludePOBs: boolean) => (source$: Observable<__esri.Graphic[]>) : Observable<string[]> => {
   return source$.pipe(
-    map(items => {
-      if (excludePOBs) {
-        return items.filter(f => f.attributes.pob !== 'B');
-      } else {
-        return items;
+    map(items => items.reduce((acc, curr) => {
+      if (!(excludePOBs && curr.attributes.pob === 'B')) {
+        acc.push(curr.attributes.geocode);
       }
-    }),
-    mapArray(f => f.attributes.geocode)
+      return acc;
+    }, [] as string[])),
   );
 };

@@ -1,6 +1,6 @@
 /* tslint:disable:component-selector */
-import { Component, Input, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { getUuid, rgbToHex } from '@val/common';
 import { ColorPalette, getColorPalette, RgbaTuple, RgbTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
@@ -8,53 +8,77 @@ import { SelectItem } from 'primeng/api';
 @Component({
   selector: 'palette-color-picker',
   templateUrl: './palette-color-picker.component.html',
-  styleUrls: ['./palette-color-picker.component.scss']
+  styleUrls: ['./palette-color-picker.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => PaletteColorPickerComponent),
+      multi: true
+    }
+  ]
 })
-export class PaletteColorPickerComponent implements OnInit {
-  private _currentPalette: ColorPalette;
+export class PaletteColorPickerComponent implements ControlValueAccessor {
 
-  public get currentPalette() : ColorPalette {
-    return this._currentPalette;
+  public get palette() : ColorPalette {
+    return this._palette;
   }
   @Input()
-  public set currentPalette(value: ColorPalette) {
-    this._currentPalette = value;
+  public set palette(value: ColorPalette) {
+    this._palette = value;
     this.updatePaletteOptions();
   }
 
-  @Input() parentForm: FormGroup;
-  @Input() valueName: string;
+  @Input() labelText: string;
+  @Input() includeUnselected: boolean;
+  @Input() tabIndex: number;
+  @Input() readOnly: boolean = false;
+  @Input() inputClass: string;
+
+  @Output() selectionChanged: EventEmitter<RgbaTuple> = new EventEmitter<RgbaTuple>();
+
   controlId = getUuid();
-
   options: SelectItem[];
+  isDisabled: boolean;
 
-  constructor() { }
-
-  ngOnInit() {
-    this.updatePaletteOptions();
-    this.updateListWithCurrentColor();
+  get value() : RgbaTuple {
+    return this._value;
   }
+
+  set value(value: RgbaTuple) {
+    this._value = value;
+    this.propagateTouch(this._value);
+    this.propagateChange(this._value);
+  }
+
+  private _palette: ColorPalette;
+  private _value: RgbaTuple;
+
+  propagateChange = (_: any) => {};
+  propagateTouch = (_: any) => {};
+
+  constructor() {}
 
   private updatePaletteOptions() {
-    const colors = getColorPalette(this._currentPalette, false);
+    const colors = getColorPalette(this._palette, false);
     this.options = colors.map(tuple => ({
       value: RgbTuple.withAlpha(tuple, 1),
       label: rgbToHex(tuple)
     }));
   }
 
-  private updateListWithCurrentColor() {
-    const currentColor = this.parentForm.get(this.valueName).value as RgbaTuple;
-    const matches = this.options.some(opt => RgbTuple.matches(currentColor, opt.value));
-    if (!matches) {
-      this.options.push({
-        value: currentColor,
-        label: rgbToHex(currentColor)
-      });
-    }
+  registerOnChange(fn: any) : void {
+    this.propagateChange = fn;
   }
 
-  public updateValue(value: RgbaTuple) {
-    this.parentForm.get(this.valueName).setValue(value);
+  registerOnTouched(fn: any) : void {
+    this.propagateTouch = fn;
+  }
+
+  setDisabledState(isDisabled: boolean) : void {
+    this.isDisabled = isDisabled;
+  }
+
+  writeValue(obj: any) : void {
+    this.value = obj;
   }
 }

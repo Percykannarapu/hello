@@ -215,6 +215,7 @@ export function actionSanitizer(action: Action) : Action {
         referer: window.location.origin
       }, app: {
         printServiceUrl: EnvironmentData.serviceUrls.valPrintService,
+        logLevel: environment.logLevel
       }
     }),
     StateModule.forRoot(),
@@ -347,7 +348,6 @@ export function actionSanitizer(action: Action) : Action {
     ConnectFormDirective,
     ShaderListComponent,
     VariableShaderComponent,
-    ValidatedTextInputComponent,
     BooleanInputComponent,
     SelectedGeoShaderComponent,
     OwnerSiteShaderComponent,
@@ -360,7 +360,8 @@ export function actionSanitizer(action: Action) : Action {
     DensityVariableShaderComponent,
     BreaksVariableShaderComponent,
     PaletteColorPickerComponent,
-    EsriClassBreakInputComponent
+    EsriClassBreakInputComponent,
+    ValidatedTextInputComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

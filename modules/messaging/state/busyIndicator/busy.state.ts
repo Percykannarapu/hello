@@ -38,7 +38,7 @@ export type BusyActions = StartBusyIndicator | StopBusyIndicator | CrashStopBusy
 export function busyReducer(state = initialState, action: BusyActions) : BusyState {
   switch (action.type) {
     case BusyStateActionTypes.CrashStopBusyIndicator:
-      return initialState;
+      return { ...initialState };
     case BusyStateActionTypes.StartBusyIndicator:
       return {
         keys: [ ...state.keys, action.payload.key ],
