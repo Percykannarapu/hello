@@ -1,6 +1,7 @@
-import { DataStore } from '../../common/services/datastore.service';
-import { RestDataService } from '../../common/services/restdata.service';
 import { Injectable } from '@angular/core';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
 import { ImpRadLookup } from '../models/ImpRadLookup';
 
 const radDataUrl = 'v1/targeting/base/impradlookup/search?q=impRadLookup';
@@ -8,7 +9,7 @@ const radDataUrl = 'v1/targeting/base/impradlookup/search?q=impRadLookup';
 @Injectable()
 export class ImpRadLookupService extends DataStore<ImpRadLookup>
 {
-   constructor(restDataService: RestDataService) {super(restDataService, radDataUrl); }
+   constructor(restDataService: RestDataService, logger: LoggingService) {super(restDataService, radDataUrl, logger); }
 
 }
 

@@ -9,18 +9,19 @@
  ** ImpMetricHistogram.service.ts generated from VAL_ENTITY_GEN - v2.01
  **/
 
-import { ImpMetricHistogram } from '../models/ImpMetricHistogram';
-import { RestDataService } from './../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { ImpMetricHistogram } from '../models/ImpMetricHistogram';
 
 const dataUrl = 'v1/metrics/base/impmetrichistogram/search?q=impMetricHistogram';
 
 @Injectable()
 export class ImpMetricHistogramService extends DataStore<ImpMetricHistogram>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {

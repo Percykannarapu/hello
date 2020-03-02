@@ -8,21 +8,21 @@
  **
  ** ImpGeofootprintMaster.service.ts generated from VAL_BASE_GEN - v1.04
  **/
-import { TransactionManager } from '../../common/services/TransactionManager.service';
-import { AppConfig } from '../../../app.config';
-import { ImpProject } from '../models/ImpProject';
-import { RestDataService } from '../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
-import { UserService } from '../../../services/user.service';
-import { Observable, EMPTY } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
-import { TradeAreaMergeTypeCodes } from '../targeting.enums';
-import { ImpProjectPrefService } from './ImpProjectPref.service';
-import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
-import { ImpProjectVarService } from './ImpProjectVar.service';
 import { simpleFlatten } from '@val/common';
+import { EMPTY, Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { AppConfig } from '../../../app.config';
+import { UserService } from '../../../services/user.service';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
+import { ImpProject } from '../models/ImpProject';
+import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
+import { ImpProjectPrefService } from './ImpProjectPref.service';
+import { ImpProjectVarService } from './ImpProjectVar.service';
 
 const restUrl = 'v1/targeting/base/impproject/';
 const dataUrl = restUrl + 'load';
@@ -36,9 +36,10 @@ export class ImpProjectService extends DataStore<ImpProject>
                private userService: UserService,
                private impProjectPrefService: ImpProjectPrefService,
                private impProjectVarService: ImpProjectVarService,
-               private impGeofootprintMasterService: ImpGeofootprintMasterService)
+               private impGeofootprintMasterService: ImpGeofootprintMasterService,
+               logger: LoggingService)
    {
-      super(restDataService, dataUrl, transactionManager, 'ImpProject');
+      super(restDataService, dataUrl, logger, transactionManager, 'ImpProject');
    }
 
    load(items: ImpProject[]) : void {

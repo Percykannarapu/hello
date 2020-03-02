@@ -9,13 +9,14 @@
  ** ImpProjectPref.service.ts generated from VAL_BASE_GEN - v1.04
  **/
 
-import { ImpProjectPref } from '../models/ImpProjectPref';
-import { RestDataService } from '../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
-import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
+import { ImpProjectPref } from '../models/ImpProjectPref';
 
 const dataUrl = 'v1/imptargeting/base/impprojectpref/load';
 
@@ -23,9 +24,10 @@ const dataUrl = 'v1/imptargeting/base/impprojectpref/load';
 export class ImpProjectPrefService extends DataStore<ImpProjectPref>
 {
    constructor(transactionManager: TransactionManager,
-               restDataService: RestDataService)
+               restDataService: RestDataService,
+               logger: LoggingService)
    {
-      super(restDataService, dataUrl, transactionManager, 'ImpProjectPref');
+      super(restDataService, dataUrl, logger, transactionManager, 'ImpProjectPref');
    }
 
    // Get a count of DB removes from children of these parents
@@ -40,7 +42,7 @@ export class ImpProjectPrefService extends DataStore<ImpProjectPref>
    // After DB removes have be executed, complete them by removing them from the data stores delete list
    public completeDBRemoves(completes: ImpProjectPref[]) {
       this.clearDBRemoves(completes);
-   }  
+   }
 
    // Return a tree of source nodes where they and their children are in the UNCHANGED or DELETE status
    public prune(source: ImpProjectPref[], filterOp: (impProject: ImpProjectPref) => boolean) : ImpProjectPref[]

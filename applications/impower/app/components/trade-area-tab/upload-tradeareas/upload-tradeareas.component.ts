@@ -1,6 +1,5 @@
-import { Component, OnInit, ViewChild, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { MessageService } from 'primeng/components/common/messageservice';
@@ -8,17 +7,14 @@ import { FileUpload } from 'primeng/fileupload';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
-import { AppConfig } from '../../../app.config';
 import { AppEditSiteService } from '../../../services/app-editsite.service';
 import { AppGeoService } from '../../../services/app-geo.service';
 import { AppStateService } from '../../../services/app-state.service';
 import { AppTradeAreaService } from '../../../services/app-trade-area.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modules/common/services/file.service';
+import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpDomainFactoryService } from '../../../val-modules/targeting/services/imp-domain-factory.service';
-import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintLocationService } from '../../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 interface TradeAreaDefinition {
@@ -33,7 +29,7 @@ const tradeAreaUpload: Parser<TradeAreaDefinition> = {
     { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true},
   ],
   headerValidator: (found: ParseRule[]) => found.length === 2,
-  
+
   createNullParser: (header: string, isUnique?: boolean) : ParseRule => {
     return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data};
   }
@@ -55,8 +51,8 @@ export class UploadTradeAreasComponent implements OnInit {
   public deleteFlag: boolean = false;
   public tooltip;
 
-  allAnalysisLevels: SelectItem[] = []; 
-  fileAnalysisLevels: SelectItem[] = []; 
+  allAnalysisLevels: SelectItem[] = [];
+  fileAnalysisLevels: SelectItem[] = [];
   fileAnalysisSelected: string;
   fileAnalysisLabel: string;
 
@@ -67,13 +63,14 @@ export class UploadTradeAreasComponent implements OnInit {
   @ViewChild('tradeAreaUpload', { static: true }) private fileUploadEl: FileUpload;
 
   constructor(private messageService: MessageService,
-    private appGeoService: AppGeoService,
-    private stateService: AppStateService,
-    private tradeAreaService: AppTradeAreaService,
-    private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
-    private confirmationService: ConfirmationService,
-    private appEditSiteService: AppEditSiteService,
-    private store$: Store<LocalAppState>) {
+              private appGeoService: AppGeoService,
+              private stateService: AppStateService,
+              private tradeAreaService: AppTradeAreaService,
+              private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+              private confirmationService: ConfirmationService,
+              private appEditSiteService: AppEditSiteService,
+              private logger: LoggingService,
+              private store$: Store<LocalAppState>) {
     this.currentAnalysisLevel$ = this.stateService.analysisLevel$;
 
   }
@@ -94,7 +91,7 @@ export class UploadTradeAreasComponent implements OnInit {
     ];
 
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
-      console.log('currentProject is customTA', project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0)));
+      this.logger.debug.log('currentProject is customTA', project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0)));
       this.isCustomTAExists.emit(project.impGeofootprintMasters[0].impGeofootprintLocations.some(loc => loc.impGeofootprintTradeAreas.some(ta => ta.taType === 'CUSTOM' && ta.impGeofootprintGeos.length > 0)))  ;
     });
 
@@ -115,16 +112,16 @@ export class UploadTradeAreasComponent implements OnInit {
         case 'ZIP' :
             this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'ATZ' && v.value !== 'PCR' && v.value !== 'Digital ATZ');
             break;
-        case 'ATZ' :  
-            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'Digital ATZ' && v.value !== 'PCR');  
+        case 'ATZ' :
+            this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'Digital ATZ' && v.value !== 'PCR');
             break;
         case 'Digital ATZ':
             this.fileAnalysisLevels = this.allAnalysisLevels.filter(v =>  v.value !== 'PCR');
             break;
         default:
             this.fileAnalysisLevels = this.allAnalysisLevels;
-            break;    
-      }  
+            break;
+      }
     });
     this.tooltip = 'Please select an Analysis Level before uploading a Custom TA file';
   }
@@ -144,7 +141,7 @@ export class UploadTradeAreasComponent implements OnInit {
   public onUploadClick(event: any) : void {
     const reader = new FileReader();
     const name: String = event.files[0].name;
-    console.log('file Name:::', name);
+    this.logger.debug.log('file Name:::', name);
     if (name.includes('.xlsx') || name.includes('.xls')) {
       reader.readAsBinaryString(event.files[0]);
       reader.onload = () => {
@@ -171,7 +168,7 @@ export class UploadTradeAreasComponent implements OnInit {
 
   // to process excel upload data
   private parseExcelFile(bstr: string | ArrayBuffer) : void {
-    console.log('process excel data::');
+    this.logger.debug.log('process excel data::');
     try {
       const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
       const worksheetName: string = wb.SheetNames[0];
@@ -179,7 +176,7 @@ export class UploadTradeAreasComponent implements OnInit {
       const csvData = XLSX.utils.sheet_to_csv(ws);
       this.parseCsvFile(csvData);
     } catch (e) {
-      console.error('Error converting Excel sheet to CSV', e);
+      this.logger.error.log('Error converting Excel sheet to CSV', e);
     }
   }
 
@@ -196,7 +193,7 @@ export class UploadTradeAreasComponent implements OnInit {
           uniqueRows.push(rows[i]);
         } else {
           duplicateRows.push(rows[i]);
-         
+
         }
       }
       try {
@@ -210,7 +207,7 @@ export class UploadTradeAreasComponent implements OnInit {
             this.totalUploadedRowCount = failedCount;
             if (failedCount > 0) {
               this.messageService.add({summary: 'Upload Error', detail: `There were ${failedCount} rows that could not be parsed. See the F12 console for more details.`});
-              console.error('Failed Trade Area Upload Rows:', data.failedRows);
+              this.logger.error.log('Failed Trade Area Upload Rows:', data.failedRows);
             }
             if (successCount > 0) {
               //this.isCustomTAExists.emit(true);
@@ -226,10 +223,10 @@ export class UploadTradeAreasComponent implements OnInit {
           this.store$.dispatch(new WarningNotification({ message: 'The upload file contains duplicate rows. Processing will continue, though you may want to re-evaluate the upload file.', notificationTitle: 'Custom TA Upload' }));
         }*/
       } catch (e) {
-          console.log('There was an error parsing the uploaded data', e);
+          this.logger.debug.log('There was an error parsing the uploaded data', e);
           this.store$.dispatch(new StopBusyIndicator({ key}));
           this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
-      } 
+      }
     } else {
       this.store$.dispatch(new StopBusyIndicator({ key}));
       this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));

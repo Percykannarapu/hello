@@ -9,34 +9,35 @@
 import { Injectable } from '@angular/core';
 
 import { select, Store } from '@ngrx/store';
-
-import { ErrorNotification, WarningNotification, SuccessNotification } from '@val/messaging';
-import { roundTo, mapBy } from '@val/common';
+import { roundTo } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 
-import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-
-import { EMPTY, Observable, BehaviorSubject } from 'rxjs';
-
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
-import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
+import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
 
+import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+
+import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
+import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
+import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
+import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
+
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+
 import { map } from 'rxjs/operators';
+import { FieldContentTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
+import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { LocalAppState } from '../../../state/app.interfaces';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
+import { FileService, Parser, ParseResponse, ParseRule } from '../../common/services/file.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
-import { LocalAppState } from '../../../state/app.interfaces';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
-import { TransactionManager } from '../../common/services/TransactionManager.service';
-import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
-import { RestDataService } from '../../common/services/restdata.service';
-import { FieldContentTypeCodes } from './../../../impower-datastore/state/models/impower-model.enums';
-import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modules/common/services/file.service';
-import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
 
 interface CustomMCDefinition {
   Number: number;
@@ -89,9 +90,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                private appConfig: AppConfig,
                private esriQueryService: EsriQueryService,
               // private appProjectPrefService: AppProjectPrefService,
-               private store$: Store<LocalAppState>)
+               private store$: Store<LocalAppState>, logger: LoggingService)
    {
-      super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintGeo');
+      super(restDataService, dataUrl, logger, projectTransactionManager, 'ImpGeofootprintGeo');
       this.store$.pipe(select(selectGeoAttributeEntities)).subscribe(attributes => this.attributeCache = attributes);
       this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
       this.store$.select(fromAudienceSelectors.getAudiencesInFootprint).subscribe(this.exportAudiencesBS$);
@@ -476,8 +477,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       else{
          if (audienceSourceName == null)
                audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName);
-         else    
-               audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName && audienceSourceName.includes(aud.audienceSourceName));  
+         else
+               audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName && audienceSourceName.includes(aud.audienceSourceName));
       }
       if (audience != null) {
         const geoVar = state.geoVarsBS$.value.find(gv => gv.geocode === geo.geocode);
@@ -624,8 +625,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
     const errorTitle: string = 'Must Cover Geographies Upload';
-    
-    
+
+
     //const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
     try {
@@ -648,7 +649,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
 
           if (uniqueGeos.size !== data.parsedData.length) {
-             this.store$.dispatch(new WarningNotification({message: 'The upload file contains duplicate geocodes. Processing will continue, though you may want to re-evaluate the upload file.', 
+             this.store$.dispatch(new WarningNotification({message: 'The upload file contains duplicate geocodes. Processing will continue, though you may want to re-evaluate the upload file.',
                                                            notificationTitle: 'Must Cover Upload'}));
              //this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
           }
@@ -666,10 +667,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
                     queryResultMap.set(r.geocode, { latitude: r.latitude, longitude: r.longitude });
                     queryResult.add(r.geocode);
                  });
-                 
+
                 //  if (analysisLevel !== fileAnalysisLevel){
-                     this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(queryResult), queryResult: queryResultMap, 
-                                                                     fileAnalysisLevel: fileAnalysisLevel, fileName: fileName, 
+                     this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(queryResult), queryResult: queryResultMap,
+                                                                     fileAnalysisLevel: fileAnalysisLevel, fileName: fileName,
                                                                      uploadedGeos: data.parsedData, isResubmit: isResubmit}));
                  // }
                   /*else{
@@ -679,8 +680,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             );
          }
          else {
-            this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(uniqueGeos), 
-                                                            queryResult: queryResultMap, fileAnalysisLevel: fileAnalysisLevel, 
+            this.store$.dispatch(new MustCoverRollDownGeos({geos: Array.from(uniqueGeos),
+                                                            queryResult: queryResultMap, fileAnalysisLevel: fileAnalysisLevel,
                                                             fileName: fileName, uploadedGeos: data.parsedData, isResubmit: isResubmit}));
          }
        }
@@ -744,7 +745,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       uniqueGeos.forEach(geo => {
       const customMc: CustomMCDefinition = { Number: i++, geocode: geo };
       queryResult.has(geo) ? successGeo.push(geo) : errorGeo.push(customMc);        });
-   
+
       this.uploadFailuresSub.next(errorGeo);
                   // Keep track of the current must cover upload filename
       this.currentMustCoverFileName = fileName;

@@ -9,18 +9,19 @@
  ** ImpMetricMeter.service.ts generated from VAL_ENTITY_GEN - v2.01
  **/
 
-import { ImpMetricMeter } from '../models/ImpMetricMeter';
-import { RestDataService } from './../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { ImpMetricMeter } from '../models/ImpMetricMeter';
 
 const dataUrl = 'v1/metrics/base/impmetricmeter/search?q=impMetricMeter';
 
 @Injectable()
 export class ImpMetricMeterService extends DataStore<ImpMetricMeter>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {

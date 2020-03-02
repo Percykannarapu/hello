@@ -9,13 +9,14 @@
  ** ImpGeofootprintVar.service.ts generated from VAL_BASE_GEN - v1.04
  **/
 
-import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
-import { RestDataService } from '../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
-import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { Injectable } from '@angular/core';
-import { Observable, EMPTY } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
+import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintvar/load';
 
@@ -23,9 +24,10 @@ const dataUrl = 'v1/targeting/base/impgeofootprintvar/load';
 export class ImpGeofootprintVarService extends DataStore<ImpGeofootprintVar>
 {
    constructor(transactionManager: TransactionManager,
-               restDataService: RestDataService)
+               restDataService: RestDataService,
+               logger: LoggingService)
    {
-      super(restDataService, dataUrl, transactionManager, 'ImpGeofootprintVar');
+      super(restDataService, dataUrl, logger, transactionManager, 'ImpGeofootprintVar');
    }
 
    // After DB removes have be executed, complete them by removing them from the data stores delete list

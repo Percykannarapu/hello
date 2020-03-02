@@ -9,18 +9,19 @@
  ** ImpProduct.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 
-import { ImpProduct } from '../models/ImpProduct';
-import { RestDataService } from './../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { ImpProduct } from '../models/ImpProduct';
 
 const dataUrl = 'v1/mediaplanning/base/impproduct/search?q=impProduct';
 
 @Injectable()
 export class ImpProductService extends DataStore<ImpProduct>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {

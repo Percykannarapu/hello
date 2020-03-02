@@ -14,6 +14,7 @@ import { FullAppState } from '../../state/app.interfaces';
 import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
 import { layersAreReady } from '../../state/data-shim/data-shim.selectors';
 import { CreateMapUsageMetric, CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 
@@ -37,6 +38,7 @@ export class MapComponent implements OnInit {
               private impGeoService: ImpGeofootprintGeoService,
               private rendererService: AppRendererService,
               private confirmationService: ConfirmationService,
+              private logger: LoggingService,
               private cd: ChangeDetectorRef,
               private store$: Store<FullAppState>) {}
 
@@ -47,7 +49,6 @@ export class MapComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log('Initializing Application Map Component');
     this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
     this.store$.pipe(
       select(selectors.getMapReady),
@@ -65,7 +66,7 @@ export class MapComponent implements OnInit {
   }
 
   onClearSelections() : void {
-    console.log(' fired Clear selections:::');
+    this.logger.debug.log(' fired Clear selections:::');
     this.appGeoService.clearAllGeos(true, true, true, true);
     this.impGeoService.get().forEach(geo => geo.isActive = false);
     this.impGeoService.makeDirty();
@@ -73,7 +74,7 @@ export class MapComponent implements OnInit {
   }
 
   onRevert() : void {
-    console.log(' fired onRevertToTradeArea:::');
+    this.logger.debug.log(' fired onRevertToTradeArea:::');
     this.appGeoService.clearAllGeos(true, true, true, true);
     this.impGeoService.get().forEach(geo => geo.isActive = true);
     this.impGeoService.makeDirty();

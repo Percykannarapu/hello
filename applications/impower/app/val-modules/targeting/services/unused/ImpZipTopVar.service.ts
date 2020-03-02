@@ -9,18 +9,19 @@
  ** ImpZipTopVar.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 
-import { ImpZipTopVar } from '../../models/ImpZipTopVar';
-import { RestDataService } from '../../../common/services/restdata.service';
-import { DataStore } from '../../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../../common/services/datastore.service';
+import { LoggingService } from '../../../common/services/logging.service';
+import { RestDataService } from '../../../common/services/restdata.service';
+import { ImpZipTopVar } from '../../models/ImpZipTopVar';
 
 const dataUrl = 'v1/targeting/base/impziptopvar/search?q=impZipTopVar';
 
 @Injectable()
 export class ImpZipTopVarService extends DataStore<ImpZipTopVar>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {

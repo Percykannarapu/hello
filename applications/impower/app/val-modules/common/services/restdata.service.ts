@@ -1,8 +1,9 @@
-import { RestResponse } from '../../../models/RestResponse';
-import { AppConfig } from '../../../app.config';
-import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject, concat } from 'rxjs';
+import { concat, Observable, Subject } from 'rxjs';
+import { AppConfig } from '../../../app.config';
+import { RestResponse } from '../../../models/RestResponse';
+import { LoggingService } from './logging.service';
 
 /**
  * Data store configuration, holds the oauth token for communicating with Fuse
@@ -20,10 +21,12 @@ export class RestDataService
 
   public baseUrl: string;
 
-   constructor(private http: HttpClient, private appConfig: AppConfig) {
+   constructor(private http: HttpClient,
+               private appConfig: AppConfig,
+               private logger: LoggingService) {
       // Assign the base url from configuration
       this.baseUrl = appConfig.valServiceBase;
-      console.log('RestDataService - baseUrl: ' + this.baseUrl);
+      this.logger.debug.log('RestDataService - baseUrl: ' + this.baseUrl);
    }
 
   /**
@@ -42,7 +45,7 @@ export class RestDataService
    // -----------------------------------------------------------------------------------
    public get(url: string) : Observable<RestResponse>
    {
-      console.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
+      this.logger.debug.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
       //const headers = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
       return this.http.get<RestResponse>(this.baseUrl + url);
    }
@@ -82,7 +85,7 @@ export class RestDataService
 @Injectable()
 export class RestDataInterceptor implements HttpInterceptor
 {
-   constructor(private appConfig: AppConfig) {}
+   constructor(private appConfig: AppConfig, private logger: LoggingService) {}
 
    /**
     * Intercept all HTTP calls being made from the imPower application, if the request is going
@@ -138,7 +141,7 @@ export class RestDataInterceptor implements HttpInterceptor
             refreshTokenSubject.next(false);
           }
         }, err => {
-          console.error('Error refreshing oauth token in http interceptor: ', err);
+          this.logger.error.log('Error refreshing oauth token in http interceptor: ', err);
           refreshTokenSubject.next(false);
         });
         return refreshTokenSubject;
