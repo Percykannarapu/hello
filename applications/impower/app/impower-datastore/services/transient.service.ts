@@ -3,6 +3,7 @@ import { Store } from '@ngrx/store';
 import { groupByExtended } from '@val/common';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { FullAppState } from '../../state/app.interfaces';
+import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { FetchAudienceTradeAreaMap, FetchCustomFromPrefsMap, FetchOfflineTDAMap, FetchOnlineInMarketMap, FetchOnlineInterestMap, FetchOnlinePixelMap, FetchOnlineVLHMap } from '../state/transient/audience/audience.actions';
 import { Audience } from '../state/transient/audience/audience.model';
 
@@ -12,10 +13,11 @@ import { Audience } from '../state/transient/audience/audience.model';
 export class TransientService {
 
   constructor(private targetAudienceService: TargetAudienceService,
+              private logger: LoggingService,
               private store$: Store<FullAppState>) { }
 
   dispatchMappedAudienceRequests(audiences: Audience[], transactionId: number, analysisLevel: string, geocodes: Set<string>) : number {
-    console.log('Inside Audience Request Dispatch', audiences);
+    this.logger.debug.log('Inside Audience Request Dispatch', audiences);
     const actionsToDispatch = [];
     const audiencesBySource = groupByExtended(audiences, a => this.targetAudienceService.createKey(a.audienceSourceType, a.audienceSourceName));
 

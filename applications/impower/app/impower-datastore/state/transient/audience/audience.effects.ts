@@ -534,7 +534,8 @@ export class AudiencesEffects {
   @Effect()
   fetchCustomFromPrefsMap$ = this.actions$.pipe(
     ofType<FetchCustomFromPrefsMap>(AudienceActionTypes.FetchCustomFromPrefsMap),
-    withLatestFrom(this.store$.select(getAllMappedAudiences)),
+    withLatestFrom(this.store$.select(getAllMappedAudiences), this.appStateService.applicationIsReady$),
+    filter(([, , isReady]) => isReady),
     map(([action, selectedAudiences]) => {
       this.store$.dispatch(new FetchCountIncrement());
       const refreshStart = performance.now();
