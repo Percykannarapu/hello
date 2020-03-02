@@ -134,15 +134,11 @@ export class AppDataShimService {
     shadingDefinitions.forEach(sd => delete sd.destinationLayerUniqueId);
     this.esriService.loadInitialState(state, shadingDefinitions);
     const savedBasemap = (project.impProjectPrefs || []).filter(pref => pref.pref === 'basemap')[0];
-    if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null) && !this.appConfig.isBatchMode) {
+    if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null)) {
       const parsedJson = JSON.parse(savedBasemap.largeVal || savedBasemap.val);
       this.esriService.setBasemap(parsedJson);
-    }
-    else{
-      // for Defect : IMPWR-14583
-     /* const baseMap = Basemap.fromId('streets-vector').toJSON();
-      this.esriService.setBasemap(baseMap);*/
-      this.mapService.mapView.map.basemap = Basemap.fromId('streets-vector');
+    } else {
+      this.esriService.setBasemap(Basemap.fromId('streets-vector'));
     }
   }
 

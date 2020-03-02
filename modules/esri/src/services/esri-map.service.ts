@@ -79,7 +79,7 @@ export class EsriMapService {
   }
 
   setBasemap(basemap: Basemap) : void {
-    this.widgetMap.get('esri.widgets.BasemapGallery').set('activeBasemap',  basemap);
+    this.mapView.map.basemap = basemap;
   }
 
   private zoomOnMap(xStats: { min: number, max: number }, yStats: { min: number, max: number }, pointCount: number) : Observable<void> {
