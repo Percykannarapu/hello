@@ -25,7 +25,6 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
 
   set value(value: string) {
     this._value = value;
-    this.propagateTouch(this._value);
     this.propagateChange(this._value);
   }
 
