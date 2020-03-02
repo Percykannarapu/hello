@@ -99,6 +99,10 @@ export interface DotDensityShadingDefinition extends ShadingDefinitionBase {
 export type ComplexShadingDefinition = UniqueShadingDefinition | RampShadingDefinition | ClassBreakShadingDefinition;
 export type ShadingDefinition = SimpleShadingDefinition | ComplexShadingDefinition | DotDensityShadingDefinition;
 
+export function isArcadeCapableShadingDefinition(s: ShadingDefinition) : s is ComplexShadingDefinition | DotDensityShadingDefinition {
+  return isComplexShadingDefinition(s) || s.shadingType === ConfigurationTypes.DotDensity;
+}
+
 export function isComplexShadingDefinition(s: ShadingDefinition) : s is ComplexShadingDefinition {
   return s.shadingType === ConfigurationTypes.Unique ||
          s.shadingType === ConfigurationTypes.Ramp ||

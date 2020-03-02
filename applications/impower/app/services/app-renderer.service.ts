@@ -11,6 +11,7 @@ import {
   generateDynamicClassBreaks,
   generateUniqueValues,
   getColorPalette,
+  isArcadeCapableShadingDefinition,
   isComplexShadingDefinition,
   RgbTuple,
   ShadingDefinition,
@@ -161,13 +162,15 @@ export class AppRendererService {
               const uniqueStrings = new Set<string>();
               const valuesForStats: number[] = [];
               const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
-                result[mapVar.geocode] = mapVar[varPk];
                 switch (shaderCopy.shadingType) {
                   case ConfigurationTypes.Unique:
+                    result[mapVar.geocode] = mapVar[varPk];
                     if (mapVar[varPk] != null) uniqueStrings.add(`${mapVar[varPk]}`);
                     break;
                   case ConfigurationTypes.Ramp:
                   case ConfigurationTypes.ClassBreak:
+                  case ConfigurationTypes.DotDensity:
+                    result[mapVar.geocode] = Number(mapVar[varPk]);
                     if (mapVar[varPk] != null) {
                       valuesForStats.push(Number(mapVar[varPk]));
                     }
@@ -177,9 +180,11 @@ export class AppRendererService {
               }, {});
               const arcadeExpression = createDataArcade(mapVarDictionary);
               let palette: RgbTuple[] = [];
-              if (isComplexShadingDefinition(shaderCopy)) {
+              if (isArcadeCapableShadingDefinition(shaderCopy)) {
                 shaderCopy.arcadeExpression = arcadeExpression;
-                palette = getColorPalette(shaderCopy.theme, shaderCopy.reverseTheme);
+                if (isComplexShadingDefinition(shaderCopy)) {
+                  palette = getColorPalette(shaderCopy.theme, shaderCopy.reverseTheme);
+                }
               }
               switch (shaderCopy.shadingType) {
                 case ConfigurationTypes.Unique:

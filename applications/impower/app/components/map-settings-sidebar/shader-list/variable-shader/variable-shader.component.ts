@@ -39,7 +39,12 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
   variableSelectionChanged(newKey: string) : void {
     const newVar = this.audiences.filter(a => a.audienceIdentifier === newKey)[0];
     if (newVar != null) {
-      this.limitShaderTypesByVar(newVar.fieldconte);
+      console.log('Current selected Audience', newVar);
+      if (newVar.audienceSourceType !== 'Custom') {
+        this.limitShaderTypesByVar(newVar.fieldconte);
+      } else {
+        this.setShaderTypes(ConfigurationTypes.Ramp, ConfigurationTypes.ClassBreak, ConfigurationTypes.DotDensity, ConfigurationTypes.Unique);
+      }
       this.shaderForm.get('layerName').setValue(newVar.audienceName);
     }
   }
@@ -61,7 +66,12 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
     };
     this.shaderForm = this.fb.group(formSetup);
     if (this.currentAudience != null) {
-      this.limitShaderTypesByVar(this.currentAudience.fieldconte);
+      console.log('Current selected Audience', this.currentAudience);
+      if (this.currentAudience.audienceSourceType !== 'Custom') {
+        this.limitShaderTypesByVar(this.currentAudience.fieldconte);
+      } else {
+        this.setShaderTypes(ConfigurationTypes.Ramp, ConfigurationTypes.ClassBreak, ConfigurationTypes.DotDensity, ConfigurationTypes.Unique);
+      }
     }
   }
 
