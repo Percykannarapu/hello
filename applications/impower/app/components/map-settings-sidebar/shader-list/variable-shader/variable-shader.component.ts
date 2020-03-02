@@ -39,7 +39,6 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
   variableSelectionChanged(newKey: string) : void {
     const newVar = this.audiences.filter(a => a.audienceIdentifier === newKey)[0];
     if (newVar != null) {
-      console.log('Current selected Audience', newVar);
       if (newVar.audienceSourceType !== 'Custom') {
         this.limitShaderTypesByVar(newVar.fieldconte);
       } else {

@@ -77,13 +77,13 @@ export class TransientEffects {
   @Effect()
   getServerBasedMappedAudiences$ = this.actions$.pipe(
     ofType<GetAllMappedVariables>(TransientActionTypes.GetAllMappedVariables),
-    tap(() => this.logger.debug.log('Getting server-based audience data...')),
     switchMap(action => this.esriService.visibleFeatures$.pipe(
       mapFeaturesToGeocode(true),
       withLatestFrom(this.store$.select(getAllMappedAudiences)),
       map(([geocodes, audiences]) => ([action, audiences, geocodes] as const))
     )),
     filter(([, audiences]) => audiences.filter(a => a.audienceSourceType !== 'Custom').length > 0),
+    tap(() => this.logger.debug.log('Getting server-based audience data...')),
     map(([action, audiences, geocodes]) => ([action, audiences, arrayToSet(geocodes)] as const)),
     tap(([action, , geocodes]) => this.store$.dispatch(new CacheGeos({ geocodes, correlationId: action.payload.correlationId }))),
     switchMap(([primaryAction, audiences, geocodes]) => this.actions$.pipe(
@@ -106,13 +106,13 @@ export class TransientEffects {
   @Effect({ dispatch: false })
   getLocalMappedAudiences$ = this.actions$.pipe(
     ofType<GetAllMappedVariables>(TransientActionTypes.GetAllMappedVariables),
-    tap(() => this.logger.debug.log('Getting pref-based audience data...')),
     switchMap(action => this.esriService.visibleFeatures$.pipe(
       mapFeaturesToGeocode(true),
       withLatestFrom(this.store$.select(getAllMappedAudiences)),
       map(([geocodes, audiences]) => ([action, audiences, geocodes] as const))
     )),
     filter(([, audiences]) => audiences.filter(a => a.audienceSourceType === 'Custom').length > 0),
+    tap(() => this.logger.debug.log('Getting pref-based audience data...')),
     map(([action, audiences, geocodes]) => ([action, audiences, arrayToSet(geocodes)] as const)),
     tap(([action, audiences, geocodes]) => this.transientService.dispatchMappedAudienceRequests(audiences, -1, action.payload.analysisLevel, geocodes)),
   );
