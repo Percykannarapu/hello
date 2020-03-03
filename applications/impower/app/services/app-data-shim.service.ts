@@ -6,7 +6,7 @@ import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotif
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { RehydrateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -130,7 +130,19 @@ export class AppDataShimService {
     };
     const shadingDefinitions = this.appRendererService.getShadingDefinitions(project);
     // just in case stuff was saved with a destination id
-    shadingDefinitions.forEach(sd => delete sd.destinationLayerUniqueId);
+    shadingDefinitions.forEach(sd => {
+      delete sd.destinationLayerUniqueId;
+      if (this.appConfig.isBatchMode) {
+        if (sd.sourcePortalId === this.appConfig.layers.atz.boundaries.id)
+          sd.sourcePortalId = this.appConfig.layers.atz.boundaries.simplifiedId;
+        if (sd.sourcePortalId === this.appConfig.layers.zip.boundaries.id)
+          sd.sourcePortalId = this.appConfig.layers.zip.boundaries.simplifiedId;
+        if (sd.sourcePortalId === this.appConfig.layers.pcr.boundaries.id)
+          sd.sourcePortalId = this.appConfig.layers.pcr.boundaries.simplifiedId;
+        if (sd.sourcePortalId === this.appConfig.layers.wrap.boundaries.id)
+          sd.sourcePortalId = this.appConfig.layers.wrap.boundaries.simplifiedId;
+      }
+    });
     this.esriService.loadInitialState(state, shadingDefinitions);
     const savedBasemap = (project.impProjectPrefs || []).filter(pref => pref.pref === 'basemap')[0];
     if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null)) {
