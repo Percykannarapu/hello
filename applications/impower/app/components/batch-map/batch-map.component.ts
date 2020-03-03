@@ -64,7 +64,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     ).subscribe(([, params]) => this.batchMapService.initBatchMapping(params.id));
 
     combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving), this.store$.select(getMapAudienceIsFetching), this.store$.select(getTypedBatchQueryParams)]).pipe(
-      tap(([, , , params]) => params.height > 2000 ? this.debounceTime = 10000 : 5000),
+      tap(([, , , params]) => params.height > 2000 ? this.debounceTime = 20000 : 5000),
       map(([ready, moving, fetching]) => ready && !moving && !fetching),
       debounceTime(this.debounceTime),
       takeUntil(this.destroyed$)
