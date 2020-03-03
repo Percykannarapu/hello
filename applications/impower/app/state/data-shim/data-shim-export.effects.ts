@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { AppDataShimService } from '../../services/app-data-shim.service';
 import { AppExportService } from '../../services/app-export.service';
-import { DataShimActionTypes, ExportApioNationalData, ExportGeofootprint, ExportHGCIssuesLog, ExportLocations } from './data-shim.actions';
-import { catchError, filter, switchMap, withLatestFrom } from 'rxjs/operators';
+import { DataShimActionTypes, ExportApioNationalData, ExportGeofootprint, ExportHGCIssuesLog, ExportLocations, ExportCustomTAIssuesLog } from './data-shim.actions';
+import { catchError, filter, switchMap, withLatestFrom, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ErrorNotification, MessagingActionTypes } from '@val/messaging';
 import { toPayload } from '@val/common';
@@ -59,6 +59,13 @@ export class DataShimExportEffects {
     switchMap(([, project]) => this.appExportService.exportNationalExtract(project).pipe(
       catchError(err => of(this.processError(err))),
     )),
+  );
+
+  @Effect({ dispatch: false })
+  exportCustomTAIssuesLog$ = this.actions$.pipe(
+    ofType<ExportCustomTAIssuesLog>(DataShimActionTypes.ExportCustomTAIssuesLog),
+    toPayload(),
+    map(p => this.appExportService.exportCustomTAIssuesLog(p.uploadFailures))
   );
 
   constructor(private actions$: Actions,

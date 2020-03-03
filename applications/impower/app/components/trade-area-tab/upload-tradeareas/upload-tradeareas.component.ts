@@ -16,6 +16,8 @@ import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modu
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ExportCustomTAIssuesLog } from 'app/state/data-shim/data-shim.actions';
+
 
 interface TradeAreaDefinition {
   store: string;
@@ -274,5 +276,11 @@ export class UploadTradeAreasComponent implements OnInit {
 
   disableDeleteBtn(){
     return this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0;
+ }
+
+ rollDownIssuesLog(){
+
+  this.store$.dispatch(new ExportCustomTAIssuesLog({uploadFailures: this.uploadFailures}));
+
  }
 }

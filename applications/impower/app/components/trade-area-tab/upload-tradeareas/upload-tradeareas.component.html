@@ -52,7 +52,9 @@
       <p-table [value]="uploadFailures" [paginator]="true" [rows]="5" width="80%">
         <ng-template pTemplate="caption">
           <div>
-            Detected {{(uploadFailures.length) || 0}} {{fileAnalysisLabel}} upload failures out of {{totalUploadedRowCount}} rows
+            {{(uploadFailures.length) || 0}} {{fileAnalysisLabel}} failures out of {{totalUploadedRowCount}} rows
+            &nbsp;&nbsp;
+            <button pButton type="button" label="Export Log" (click)="rollDownIssuesLog()" ></button>
           </div>
         </ng-template>
         <ng-template pTemplate="header" width="80%">

@@ -16,6 +16,7 @@ import { LocalAppState, CrossBowSitesPayload } from '../state/app.interfaces';
 import { ErrorNotification } from '@val/messaging';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { RestResponse } from 'app/models/RestResponse';
+import { TradeAreaDefinition } from './app-trade-area.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for exporting data
@@ -74,7 +75,7 @@ export class AppExportService {
     return Observable.create((observer: Subject<CreateUsageMetric>) => {
       try {
         const pluralType = `${siteType}s`;
-        const filename = 'Home Geo Issues Log.csv'
+        const filename = 'Home Geo Issues Log.csv';
         const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues, filename, currentProject[0], true);
         observer.next(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, metricValue));
         observer.complete();
@@ -155,6 +156,25 @@ export class AppExportService {
     if (currentProject.projectId == null || currentProject.projectTrackerId == null) {
       throw message;
     }
+  }
+
+  public exportCustomTAIssuesLog(uploadFailures: TradeAreaDefinition[]){
+    //console.log('uploadFailures ====>', uploadFailures);
+    const header = 'SiteNo, Geocode';
+    const records: string[] = [];
+    records.push(header +  '\n');
+    uploadFailures.forEach(record => {
+        records.push(`${record.store}, ${record.geocode}` + '\n');
+    });
+    this.downloadCSV(records, 'Custom TA Issues Log.csv');
+  }
+
+  private downloadCSV(records: string[], fileName: string){
+    const a = document.createElement('a');
+    const blob = new Blob(records, { type: 'text/csv' });
+    a.href = window.URL.createObjectURL(blob);
+    a['download'] = fileName; 
+    a.click();
   }
 
   public downloadPDF(result: string){
