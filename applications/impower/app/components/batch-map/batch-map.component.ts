@@ -3,7 +3,7 @@ import { Store } from '@ngrx/store';
 import { isError } from '@val/common';
 import { EsriShadingLayersService, selectors as esriSelectors } from '@val/esri';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { debounceTime, filter, map, take, takeUntil, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, filter, map, take, takeUntil, withLatestFrom, tap } from 'rxjs/operators';
 import * as StackTrace from 'stacktrace-js';
 import { AppConfig } from '../../app.config';
 import { getMapAudienceIsFetching } from '../../impower-datastore/state/transient/audience/audience.selectors';
@@ -26,6 +26,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   height$: Observable<number>;
   currentSiteNumber: string;
   lastError: string = null;
+  debounceTime = 5000;
   @ViewChild('gotoSpecificSiteInput', {static: false}) specificSiteRef: ElementRef;
 
   private typedParams$: Observable<BatchMapQueryParams>;
@@ -62,9 +63,10 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       filter(([, params]) => params.id != null)
     ).subscribe(([, params]) => this.batchMapService.initBatchMapping(params.id));
 
-    combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving), this.store$.select(getMapAudienceIsFetching)]).pipe(
+    combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving), this.store$.select(getMapAudienceIsFetching), this.store$.select(getTypedBatchQueryParams)]).pipe(
+      tap(([, , , params]) => params.height > 2000 ? this.debounceTime = 10000 : 5000),
       map(([ready, moving, fetching]) => ready && !moving && !fetching),
-      debounceTime(5000),
+      debounceTime(this.debounceTime),
       takeUntil(this.destroyed$)
     ).subscribe(ready => this.zone.run(() => this.mapViewIsReady = ready));
     this.store$.select(getNextSiteNumber).pipe(
