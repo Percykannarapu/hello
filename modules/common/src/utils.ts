@@ -1,5 +1,7 @@
 // tslint:disable:no-bitwise
 
+import { isFunction } from './type-checks';
+
 /**
  * Splits an array into chunks of a maximum size
  * @param {T[] | U[]} arr: The original array to split
@@ -325,14 +327,6 @@ export function resolveFieldData(data: any, field: Function | string) : any {
 export function roundTo(value: number, precision: number) : number {
    const pow: number = Math.pow(10, precision);
    return parseFloat(String(Math.round((value * pow)) / pow));
-}
-
-export function isFunction (obj: any) : obj is Function {
-  return (obj && obj.constructor && obj.call && obj.apply);
-}
-
-export function isNumber(value: any) : value is number {
-  return value != null && value !== '' && !Number.isNaN(Number(value));
 }
 
 /**

@@ -5,3 +5,4 @@ export * from './src/utils';
 export * from './src/coordinates';
 export * from './src/logger';
 export * from './src/errorUtils';
+export * from './src/type-checks';

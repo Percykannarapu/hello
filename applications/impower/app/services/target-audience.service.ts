@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 import { Injectable, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended, isNumber, mapByExtended } from '@val/common';
+import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended, isConvertibleToNumber, mapByExtended } from '@val/common';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { ApplyAudiences, ClearAudiences, ClearAudienceStats, DeleteAudience, UpsertAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
@@ -527,11 +527,11 @@ export class TargetAudienceService implements OnDestroy {
           if (dmaAudiences.has(key.toLowerCase())) {
             const audience = dmaAudiences.get(key.toLowerCase());
             const newKey = `${audience.audienceName} (${sourceNameGen(audience)} - DMA)`;
-            result[newKey] = isNumber(d.attrs[key]) ? Math.round(Number(d.attrs[key])) : d.attrs[key];
+            result[newKey] = isConvertibleToNumber(d.attrs[key]) ? Math.round(Number(d.attrs[key])) : d.attrs[key];
           } else if (natAudiences.has(key.toLowerCase())) {
             const audience = natAudiences.get(key.toLowerCase());
             const newKey = `${audience.audienceName} (${sourceNameGen(audience)} - National)`;
-            result[newKey] = isNumber(d.attrs[key]) ? Math.round(Number(d.attrs[key])) : d.attrs[key];
+            result[newKey] = isConvertibleToNumber(d.attrs[key]) ? Math.round(Number(d.attrs[key])) : d.attrs[key];
           } else {
             result[key] = Math.round(Number(d.attrs[key]));
           }

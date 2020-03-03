@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, groupBy, isNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
@@ -113,7 +113,7 @@ export class AppTradeAreaService {
     const newSites = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Site');
     const newCompetitors = currentLocations.filter(loc => loc.clientLocationTypeCode === 'Competitor');
     if (newSites.length > 0) {
-      const siteRadiusFlag: boolean = newSites.filter(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)).length > 0;
+      const siteRadiusFlag: boolean = newSites.filter(loc => isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3)).length > 0;
       if (siteRadiusFlag) {
         this.applyRadiusTradeAreaOnAnalysisChange(newSites);
       } else {
@@ -121,7 +121,7 @@ export class AppTradeAreaService {
       }
     }
     if (newCompetitors.length > 0) {
-      const competitorRadiusFlag: boolean = newCompetitors.filter(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)).length > 0;
+      const competitorRadiusFlag: boolean = newCompetitors.filter(loc => isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3)).length > 0;
       if (competitorRadiusFlag) {
         this.applyRadiusTradeAreaOnAnalysisChange(newCompetitors);
       } else {

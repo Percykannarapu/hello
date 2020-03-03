@@ -5,7 +5,6 @@ import { clearFeaturesOfInterest, clearShadingDefinitions, EsriMapService, EsriS
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
-import Basemap from 'esri/Basemap';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
@@ -138,7 +137,7 @@ export class AppDataShimService {
       const parsedJson = JSON.parse(savedBasemap.largeVal || savedBasemap.val);
       this.esriService.setBasemap(parsedJson);
     } else {
-      this.esriService.setBasemap(Basemap.fromId('streets-vector'));
+      this.esriService.setBasemap('streets-vector');
     }
   }
 

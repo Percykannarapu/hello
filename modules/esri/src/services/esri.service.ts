@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { isString } from '@val/common';
 import Basemap from 'esri/Basemap';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap, take } from 'rxjs/operators';
@@ -59,8 +60,12 @@ export class EsriService {
     this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
   }
 
-  setBasemap(parsedJsonBasemap: any) : void {
-    this.mapService.setBasemap(Basemap.fromJSON(parsedJsonBasemap));
+  setBasemap(basemap: string | {}) : void {
+    if (isString(basemap)) {
+      this.mapService.setBasemap(Basemap.fromId(basemap));
+    } else {
+      this.mapService.setBasemap(Basemap.fromJSON(basemap));
+    }
   }
 
   setFeaturesOfInterest(features: string[]) : void {

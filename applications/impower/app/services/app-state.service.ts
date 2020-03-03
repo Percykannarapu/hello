@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, groupBy, isNumber, mapArrayToEntity } from '@val/common';
+import { filterArray, groupBy, isConvertibleToNumber, mapArrayToEntity } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
@@ -299,11 +299,11 @@ export class AppStateService {
 
   private setupProvidedTaObservables() : void {
     this.activeClientLocations$.pipe( distinctUntilChanged() &&
-      filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)),
+      filterArray(loc => isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3)),
       map(locs => locs.length > 0 )
     ).subscribe(flag => this.hasSiteProvidedTradeAreas.next(flag));
     this.activeCompetitorLocations$.pipe(distinctUntilChanged() &&
-      filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)),
+      filterArray(loc => isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3)),
       map(locs => locs.length > 0)
     ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));
   }

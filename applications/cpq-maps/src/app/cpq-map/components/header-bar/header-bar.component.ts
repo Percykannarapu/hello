@@ -1,12 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { isNumber } from '@val/common';
+import { isConvertibleToNumber } from '@val/common';
+import { Observable, Subject } from 'rxjs';
 import { filter, map, takeUntil } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../../val-modules/mediaexpress/models/RfpUiEditDetail';
-import { localSelectors } from '../../state/app.selectors';
 import { FullState } from '../../state';
-import { Observable, Subject } from 'rxjs';
-import { NavigateToReviewPage, SaveMediaPlan, GeneratePdf } from '../../state/shared/shared.actions';
+import { localSelectors } from '../../state/app.selectors';
+import { GeneratePdf, NavigateToReviewPage, SaveMediaPlan } from '../../state/shared/shared.actions';
 
 @Component({
   selector: 'cpq-header-bar',
@@ -84,7 +84,7 @@ export class HeaderBarComponent implements OnInit, OnDestroy {
     this.totalInvestment = 0;
     this.totalDistribution = 0;
     for (const entity of entities) {
-      if (entity.isSelected && isNumber(entity.distribution) && isNumber(entity.investment)) {
+      if (entity.isSelected && isConvertibleToNumber(entity.distribution) && isConvertibleToNumber(entity.investment)) {
         this.totalDistribution += entity.distribution;
         this.totalInvestment += entity.investment;
       }
