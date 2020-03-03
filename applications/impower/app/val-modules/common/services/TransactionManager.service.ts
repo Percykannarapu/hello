@@ -1,4 +1,6 @@
+import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { LoggingService } from './logging.service';
 
 /**
  * TransactionItems are the combination of data needed to
@@ -24,12 +26,13 @@ class TransactionItem<T>
  * the transaction is stopped.  Transactions are useful when you wish to notify
  * the application of a group of dataStore activities.
  */
+@Injectable()
 export class TransactionManager
 {
    private _inTransaction: boolean = false; // Simple flag to track if we are in a transaction or not
    private notifyQueue: Array<any> = [];    // A queue of pending notifications that need to go out after the transaction
 
-   constructor() {}
+   constructor(private logger: LoggingService) {}
 
    // ---------------------------------------------
    // Public transaction methods
@@ -55,7 +58,7 @@ export class TransactionManager
     */
    public startTransaction()
    {
-      console.log('TransactionManager.service.startTransaction fired');
+      this.logger.debug.log('TransactionManager.service.startTransaction fired');
       this._inTransaction = true;
    }
 
@@ -67,16 +70,16 @@ export class TransactionManager
     */
    public stopTransaction()
    {
-//    console.log('TransactionManager.service.stopTransaction fired - notifyQueue size: ', (this.notifyQueue != null) ? this.notifyQueue.length : null);
+//    this.logger.debug.log('TransactionManager.service.stopTransaction fired - notifyQueue size: ', (this.notifyQueue != null) ? this.notifyQueue.length : null);
       this.notifyQueue.forEach(transactionItem => {
-//       console.log('TransactionManager.service typeof transactionItem: ', typeof transactionItem);
+//       this.logger.debug.log('TransactionManager.service typeof transactionItem: ', typeof transactionItem);
          if ((transactionItem instanceof TransactionItem))
          {
-//          console.log('TransactionManager.service.stopTransaction - notifying subject:', transactionItem);
+//          this.logger.debug.log('TransactionManager.service.stopTransaction - notifying subject:', transactionItem);
             transactionItem.subject.next(transactionItem.data);
          }
          else
-            console.log('TransactionManager.service.stopTransaction - cant notify a type of: ', typeof transactionItem);
+            this.logger.debug.log('TransactionManager.service.stopTransaction - cant notify a type of: ', typeof transactionItem);
       });
       this.notifyQueue = [];
       this._inTransaction = false;
@@ -91,7 +94,7 @@ export class TransactionManager
    public push(subject: any, subjectData: any)
    {
       this.notifyQueue.push(new TransactionItem(subject, subjectData));
-//    console.log ('TransactionManager.service.push - pushed subject: ', subject, ', data: ', subjectData);
+//    this.logger.debug.log ('TransactionManager.service.push - pushed subject: ', subject, ', data: ', subjectData);
    }
 
    /**

@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { formatMilli, getUuid } from '@val/common';
+import { arrayToSet, formatMilli, getUuid } from '@val/common';
 import { EsriService } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { AppStateService } from 'app/services/app-state.service';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { EMPTY, of } from 'rxjs';
+import { of } from 'rxjs';
 import { catchError, concatMap, filter, map, reduce, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { mapFeaturesToGeocode } from '../../../models/rxjs-utils';
 import { FullAppState } from '../../../state/app.interfaces';
@@ -56,19 +56,12 @@ export class TransientEffects {
   @Effect({ dispatch: false })
   removeGeoCache$ = this.actions$.pipe(
     ofType<RemoveGeoCache>(TransientActionTypes.RemoveGeoCache),
-    map(action => action.payload.transactionId),
-    switchMap(transactionId => {
-      if (transactionId == null)
-        return EMPTY;
-      else {
-        this.logger.info.log('Removing cached geos for transactionId:', transactionId);
-        const deleteStartTime = performance.now();
-        return this.restService.delete('v1/targeting/base/chunkedgeos/deleteChunks/', transactionId).pipe(
-          tap(response => this.logger.info.log('deleteChunks took', formatMilli(performance.now() - deleteStartTime), ', Response:', response)),
-          map(() => null) // just to make sure it doesn't try to stuff this into the varService
-        );
-      }
-    })
+    filter(action => action.payload.transactionId != null),
+    tap(action => this.logger.info.log('Removing cached geos for transactionId:', action.payload.transactionId)),
+    map(action => [action.payload.transactionId, performance.now()] as const),
+    switchMap(([transactionId, deleteStartTime]) => this.restService.delete('v1/targeting/base/chunkedgeos/deleteChunks/', transactionId).pipe(
+        tap(response => this.logger.info.log('deleteChunks took', formatMilli(performance.now() - deleteStartTime), ', Response:', response)),
+    ))
   );
 
   @Effect()
@@ -82,20 +75,23 @@ export class TransientEffects {
   );
 
   @Effect()
-  getAllMappedAudiences$ = this.actions$.pipe(
+  getServerBasedMappedAudiences$ = this.actions$.pipe(
     ofType<GetAllMappedVariables>(TransientActionTypes.GetAllMappedVariables),
     switchMap(action => this.esriService.visibleFeatures$.pipe(
       mapFeaturesToGeocode(true),
       withLatestFrom(this.store$.select(getAllMappedAudiences)),
       map(([geocodes, audiences]) => ([action, audiences, geocodes] as const))
     )),
-    tap(([action, , geocodes]) => this.store$.dispatch(new CacheGeos({ geocodes: new Set(geocodes), correlationId: action.payload.correlationId }))),
-    switchMap(([primaryAction, audiences]) => this.actions$.pipe(
+    filter(([, audiences]) => audiences.filter(a => a.audienceSourceType !== 'Custom').length > 0),
+    tap(() => this.logger.debug.log('Getting server-based audience data...')),
+    map(([action, audiences, geocodes]) => ([action, audiences, arrayToSet(geocodes)] as const)),
+    tap(([action, , geocodes]) => this.store$.dispatch(new CacheGeos({ geocodes, correlationId: action.payload.correlationId }))),
+    switchMap(([primaryAction, audiences, geocodes]) => this.actions$.pipe(
       ofType<CacheGeosComplete | CacheGeosFailure>(TransientActionTypes.CacheGeosComplete, TransientActionTypes.CacheGeosFailure),
       filter(cacheAction => cacheAction.payload.correlationId === primaryAction.payload.correlationId),
       take(1),
       filter(cacheAction => cacheAction.type === TransientActionTypes.CacheGeosComplete),
-      map((cacheAction: CacheGeosComplete) => [cacheAction, this.transientService.dispatchMappedAudienceRequests(audiences, cacheAction.payload.transactionId, primaryAction.payload.analysisLevel)] as const),
+      map((cacheAction: CacheGeosComplete) => [cacheAction, this.transientService.dispatchMappedAudienceRequests(audiences, cacheAction.payload.transactionId, primaryAction.payload.analysisLevel, geocodes)] as const),
       filter(([, dispatchCount]) => dispatchCount > 0),
       switchMap(([cacheAction, dispatchCount]) => this.actions$.pipe(
         ofType<FetchMapVarCompleted>(AudienceActionTypes.FetchMapVarCompleted),
@@ -107,7 +103,19 @@ export class TransientEffects {
     )),
   );
 
-  // this has to be a factory method instead of a direct observable since the visibleFeatures observable isn't initialized until after app start
+  @Effect({ dispatch: false })
+  getLocalMappedAudiences$ = this.actions$.pipe(
+    ofType<GetAllMappedVariables>(TransientActionTypes.GetAllMappedVariables),
+    switchMap(action => this.esriService.visibleFeatures$.pipe(
+      mapFeaturesToGeocode(true),
+      withLatestFrom(this.store$.select(getAllMappedAudiences)),
+      map(([geocodes, audiences]) => ([action, audiences, geocodes] as const))
+    )),
+    filter(([, audiences]) => audiences.filter(a => a.audienceSourceType === 'Custom').length > 0),
+    tap(() => this.logger.debug.log('Getting pref-based audience data...')),
+    map(([action, audiences, geocodes]) => ([action, audiences, arrayToSet(geocodes)] as const)),
+    tap(([action, audiences, geocodes]) => this.transientService.dispatchMappedAudienceRequests(audiences, -1, action.payload.analysisLevel, geocodes)),
+  );
 
   constructor(private actions$: Actions<TransientActions>,
               private store$: Store<FullAppState>,

@@ -26,7 +26,7 @@ import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
 
-const audienceUpload: Parser<CustomAudienceData> = {
+const customAudienceDataParser: Parser<CustomAudienceData> = {
   columnParsers: [
     { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
   ],
@@ -44,7 +44,10 @@ interface CustomAudienceData {
   providedIn: 'root'
 })
 export class TargetAudienceCustomService {
-  private dataCache: { [key: string] : CustomAudienceData };
+
+  private dataCache: { [fileName: string] : { [geocode: string] : CustomAudienceData } } = {};
+  private filesCached = new Set<string>();
+
   private currentFileName: string;
   private varPkCache: Map<string, number> = new Map<string, number>();
   private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
@@ -86,7 +89,7 @@ export class TargetAudienceCustomService {
       const project = this.stateService.currentProject$.getValue();
       if (project == null) return;
       const customProjectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'custom');
-      //console.log('### target-audience-custom - onLoadProject found ' + customProjectVars.length + ' custom project vars');
+      //this.logger.debug.log('### target-audience-custom - onLoadProject found ' + customProjectVars.length + ' custom project vars');
 
       if (customProjectVars != null && customProjectVars.length > 0) {
         for (const projectVar of customProjectVars) {
@@ -110,12 +113,14 @@ export class TargetAudienceCustomService {
       }
     }
     catch (error) {
-      console.error(error);
+      this.logger.error.log(error);
     }
   }
 
   private onLoadProject(ready: boolean) {
     if (!ready) return;
+    this.dataCache = {};
+    this.filesCached.clear();
     this.rehydrateAudience();
   }
 
@@ -153,17 +158,17 @@ export class TargetAudienceCustomService {
   }
 
   public parseCustomVarData(dataBuffer: string, fileName: string, justColumn?: string, isReload: boolean = false) : GeoVar[] {
-    // console.log('### parseCustomVarData - fired - dataBuffer size:', dataBuffer.length, 'filename:', fileName, 'justColumn:', justColumn);
+    // this.logger.debug.log('### parseCustomVarData - fired - dataBuffer size:', dataBuffer.length, 'filename:', fileName, 'justColumn:', justColumn);
     let results: GeoVar[] = [];
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     try {
-      const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, audienceUpload);
+      const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, customAudienceDataParser);
       const failCount = data.failedRows.length;
       const successCount = data.parsedData.length;
       if (failCount > 0) {
-        console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
+        this.logger.error.log('There were errors parsing the following rows in the CSV: ', data.failedRows);
         this.handleError(`There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
       }
       if (successCount > 0) {
@@ -174,7 +179,6 @@ export class TargetAudienceCustomService {
           this.handleError('The file should contain unique geocodes. Please remove duplicates and resubmit the file.');
         else {
           this.currentFileName = fileName;
-          this.dataCache = {};
 
           // Audience Map for creating project vars with updated fieldconte
           const audienceMap: Map<string, AudienceDataDefinition> = new Map();
@@ -215,7 +219,7 @@ export class TargetAudienceCustomService {
                 this.store$.dispatch(new CreateAudienceUsageMetric('custom', 'upload', metricText, successCount));
               }
               else {
-                // console.log('### parseCustomVarData - found existing audience -', columnAudience.seq, '-', columnAudience.audienceName, ', fieldconte:', columnAudience.fieldconte);
+                // this.logger.debug.log('### parseCustomVarData - found existing audience -', columnAudience.seq, '-', columnAudience.audienceName, ', fieldconte:', columnAudience.fieldconte);
                 if (!audienceMap.has(columnAudience.audienceName))
                   audienceMap.set(columnAudience.audienceName, columnAudience);
                 fieldConteMap.set(column, FieldContentTypeCodes.Index);
@@ -244,8 +248,8 @@ export class TargetAudienceCustomService {
                }
             }
 
-//fieldConteMap.forEach((value, key) => console.log('### parseCustomVarData - fieldConteMap after - key:', key, ', value:', value));
-//correctAudience.forEach(key => console.log('### parseCustomVarData - correctAudience:', key));
+//fieldConteMap.forEach((value, key) => this.logger.debug.log('### parseCustomVarData - fieldConteMap after - key:', key, ', value:', value));
+//correctAudience.forEach(key => this.logger.debug.log('### parseCustomVarData - correctAudience:', key));
 
             // Push the massaged geoVar onto the results list
             results.push(geoVar);
@@ -273,11 +277,11 @@ export class TargetAudienceCustomService {
             this.store$.dispatch(new UpdateAudiences( { audiences: updates }));
 
           // TODO: The below is necessary to create the project var, should look into using project vars just for persistance
-          // console.log('### parseCustomVarData - adding audience - for project var');
+          // this.logger.debug.log('### parseCustomVarData - adding audience - for project var');
           // audienceMap.forEach((audienceDefinition, audienceName) => {
           //   this.audienceService.addAudience(audienceDefinition/*, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos)*/);
           // });
-          // console.log('### parseCustomVarData - adding audience - for project var - done');
+          // this.logger.debug.log('### parseCustomVarData - adding audience - for project var - done');
 
           if (!isReload){
             const geos = data.parsedData.length === 1 ? 'Geo' : 'Geos';
@@ -288,40 +292,38 @@ export class TargetAudienceCustomService {
       }
     } catch (e) {
       this.handleError(`${e}`);
-      console.error(e);
+      this.logger.error.log(e);
       results = null;
     }
     return results;
   }
 
-  public parseCustomMapVar(dataBuffer: string, fileName: string, varName: string, varPk: string) : GeoVar[] {
-    let results: GeoVar[] = [];
-    const rows: string[] = dataBuffer.split(/\r\n|\n/);
-    const header: string = rows.shift();
+  public parseCustomMapVar(dataPref: ImpProjectPref, audiences: Audience[], geocodes: Set<string>) : MapVar[] {
+    let results: MapVar[] = [];
+    const currentAudiences = audiences.filter(a => a.audienceSourceName === dataPref.pref);
+    if (currentAudiences.length === 0) return results;
     try {
-      const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, audienceUpload);
-      const failCount = data.failedRows.length;
-      const successCount = data.parsedData.length;
-      if (failCount > 0) {
-        console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-        this.handleError(`There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
+      if (!this.filesCached.has(dataPref.pref)) {
+        const dataBuffer = dataPref.largeVal != null ? dataPref.largeVal : dataPref.val;
+        this.cacheFileData(dataBuffer, dataPref.pref);
       }
-      if (successCount > 0) {
-          this.currentFileName = fileName;
-          this.dataCache = {};
-
-          // Convert column names to audience ids
-          data.parsedData.forEach(d => {
-            const mapVar = { geocode: d.geocode };
-            if (Object.keys(d).includes(varName)) {
-              mapVar[varPk] = d[varName];
-              results.push(mapVar);
-            }
+      const currentCache: { [geo: string] : CustomAudienceData } = this.dataCache[dataPref.pref];
+      geocodes.forEach(geo => {
+        const currentDataRow = currentCache[geo];
+        if (currentDataRow != null) {
+          const currentResult: Partial<MapVar> = {};
+          currentAudiences.forEach(aud => {
+            currentResult[aud.audienceIdentifier] = currentDataRow[aud.audienceName];
           });
-      }
+          if (Object.keys(currentResult).length > 0) {
+            currentResult.geocode = geo;
+            results.push(currentResult as MapVar);
+          }
+        }
+      });
     } catch (e) {
-      this.handleError(`${e}`);
-      results = null;
+      results = [];
+      this.logger.error.log('There was an error parsing custom data for map shading.', e);
     }
     return results;
   }
@@ -341,25 +343,30 @@ export class TargetAudienceCustomService {
       }
     }
     catch (e) {
-       console.error('Error loading custom vars:' + e);
+       this.logger.error.log('Error loading custom vars:' + e);
     }
 
     return result;
   }
 
-  public reloadMapVarFromPrefs(varName: string, varPk: string) : MapVar[] {
-    const result: GeoVar[] = [];
+  public reloadMapVarFromPrefs(audiences: Audience[], geocodes: Set<string>) : MapVar[] {
+    let result: MapVar[] = [];
     try {
       // Retrieve all of the custom vars from project prefs
       const prefs: ImpProjectPref[] = this.appProjectPrefService.getPrefsByGroup(ProjectPrefGroupCodes.CustomVar);
       this.logger.info.log('reloadMapVarFromPrefs - custom var prefs.Count = ' + ((prefs != null) ? prefs.length : null));
 
       if (prefs != null && prefs.length > 0) {
-        prefs.forEach(customVarPref => result.push(...this.parseCustomMapVar(this.appProjectPrefService.getPrefVal(customVarPref.pref, true), customVarPref.pref, varName, varPk)));
+        prefs.forEach(customVarPref => {
+          if (customVarPref != null) {
+            const currentResults = this.parseCustomMapVar(customVarPref, audiences, geocodes);
+            result = result.concat(currentResults);
+          }
+        });
       }
     }
     catch (e) {
-       console.error('Error loading custom map var:' + e);
+       this.logger.error.log('Error loading custom map var:' + e);
     }
     return result;
   }
@@ -367,7 +374,6 @@ export class TargetAudienceCustomService {
   private handleError(message: string) : void {
     this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
   }
-
 
   private validateGeos(data: ParseResponse<CustomAudienceData>, header: string){
     const portalLayerId = this.appConfig.getLayerIdForAnalysisLevel(this.stateService.analysisLevel$.getValue());
@@ -415,9 +421,27 @@ export class TargetAudienceCustomService {
           a.href = window.URL.createObjectURL(blob);
           a['download'] = `Custom Data ${this.stateService.analysisLevel$.getValue()} Issues Log.csv`;
           a.click();
-          const geos = records.length === 2 ? 'Geo' : 'Geos';
-          this.store$.dispatch(new WarningNotification({ message: `Invalid ${geos} exist in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
+          const geoMessage = records.length === 2 ? 'An Invalid Geo exists' : 'Invalid Geos exist';
+          this.store$.dispatch(new WarningNotification({ message: `${geoMessage} in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
        }
     });
+  }
+
+  private cacheFileData(dataBuffer: string, fileName: string) : void {
+    const rows: string[] = dataBuffer.split(/\r\n|\n/);
+    const header: string = rows.shift();
+    const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, customAudienceDataParser);
+    const failCount = data.failedRows.length;
+    const successCount = data.parsedData.length;
+    if (failCount > 0) {
+      this.logger.error.log('There were errors parsing the following rows in the Custom Data: ', data.failedRows);
+    }
+    if (successCount > 0) {
+      this.dataCache[fileName] = {};
+      data.parsedData.forEach(row => {
+        this.dataCache[fileName][row.geocode] = { ...row };
+      });
+      this.filesCached.add(fileName);
+    }
   }
 }

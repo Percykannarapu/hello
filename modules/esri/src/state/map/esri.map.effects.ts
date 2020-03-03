@@ -65,7 +65,7 @@ export class EsriMapEffects {
   handlePrintMap$ = this.actions$.pipe(
     ofType<PrintMap>(EsriMapActionTypes.PrintMap),
     map((action) => ({ printParams: this.printingService.createPrintPayload(action.payload.templateOptions), serviceUrl: action.payload.serviceUrl})),
-    switchMap((params) => this.geoprocessorService.processPrintJob<__esri.PrintResponse>(params.serviceUrl, params.printParams).pipe(
+    switchMap((params) => this.geoprocessorService.processPrintJob(params.serviceUrl, params.printParams).pipe(
       concatMap(response => [
         new PrintJobComplete({result: response})
       ]),

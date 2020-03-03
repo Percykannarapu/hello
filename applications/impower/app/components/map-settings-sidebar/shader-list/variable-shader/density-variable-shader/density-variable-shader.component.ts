@@ -16,7 +16,8 @@ function rgbToEsri(rgbColor: Rgb) : [number, number, number, number] {
 
 @Component({
   selector: 'val-density-variable-shader',
-  templateUrl: './density-variable-shader.component.html'
+  templateUrl: './density-variable-shader.component.html',
+  styleUrls: ['./density-variable-shader.component.scss']
 })
 export class DensityVariableShaderComponent extends VariableBaseComponent<DotDensityShadingDefinition> {
 
@@ -35,7 +36,7 @@ export class DensityVariableShaderComponent extends VariableBaseComponent<DotDen
 
   protected setupForm() : void {
     this.parentForm.addControl('arcadeExpression', new FormControl(this.definition.arcadeExpression));
-    this.parentForm.addControl('dotColor', new FormControl(this.definition.dotColor));
+    this.parentForm.addControl('dotColor', new FormControl(this.definition.dotColor || [0, 0, 64, 1]));
     this.parentForm.addControl('dotValue', new FormControl(this.definition.dotValue || 100, { updateOn: 'blur', validators: [Validators.required, Validators.min(1)] }));
     this.parentForm.addControl('legendUnits', new FormControl(this.definition.legendUnits, { updateOn: 'blur', validators: [Validators.required] }));
   }

@@ -1,19 +1,19 @@
 import { Injectable } from '@angular/core';
-import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import { LocalAppState } from '../state/app.interfaces';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from '../state/app.interfaces';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 
 @Injectable()
 export class AppProjectService {
@@ -50,7 +50,7 @@ export class AppProjectService {
     const localProject = project == null ? this.impProjectService.get()[0] : project;
     const saveUrl = 'v1/targeting/base/impproject/deleteSave';
     localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
-    console.log('before cleanup::', JSON.stringify(localProject));
+    this.logger.info.log('before cleanup::', JSON.stringify(localProject));
     this.cleanupProject(localProject);
     this.logger.info.log('Project being saved', JSON.stringify(localProject));
     return this.restService.post(saveUrl, localProject).pipe(

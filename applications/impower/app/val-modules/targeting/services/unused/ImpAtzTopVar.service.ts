@@ -9,18 +9,19 @@
  ** ImpAtzTopVar.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 
-import { ImpAtzTopVar } from '../../models/ImpAtzTopVar';
-import { RestDataService } from '../../../common/services/restdata.service';
-import { DataStore } from '../../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../../common/services/datastore.service';
+import { LoggingService } from '../../../common/services/logging.service';
+import { RestDataService } from '../../../common/services/restdata.service';
+import { ImpAtzTopVar } from '../../models/ImpAtzTopVar';
 
 const dataUrl = 'v1/targeting/base/impatztopvar/search?q=impAtzTopVar';
 
 @Injectable()
 export class ImpAtzTopVarService extends DataStore<ImpAtzTopVar>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {

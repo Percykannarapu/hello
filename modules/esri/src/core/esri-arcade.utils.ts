@@ -9,10 +9,7 @@ export function createGeoArcade(geocodes: Record<string, boolean>, selectedResul
 
 export function createDataArcade(data: Record<string, number | string>, nullResult: string = null, featureName: string = 'geocode') : string {
   const nullEncoded = nullResult == null ? 'null' : `'${nullResult}'`;
-  const arcade = `var data = ${JSON.stringify(data)};
-                  if(hasKey(data, $feature.${featureName})) {
-                      return data[$feature.${featureName}];
-                  }
-                  return ${nullEncoded};`;
+  const stringifiedData = JSON.stringify(data);
+  const arcade = `var data = ${stringifiedData}; if(hasKey(data, $feature.${featureName})) { return data[$feature.${featureName}]; } return ${nullEncoded};`;
   return arcade;
 }

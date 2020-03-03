@@ -84,7 +84,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     this.setupBreakControls(this.definition.breakDefinitions);
   }
 
-  public breakTypeChanged({ value }) {
+  public breakTypeChanged(value: any) {
     switch (value) {
       case this.breakTypes[0].value:
         this.parentForm.get('dynamicallyAllocate').setValue(false);
@@ -231,5 +231,6 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     this.setupClassBreakValidations();
     newControl.get('minValue').setValue(previousMax);
     newControl.get('maxValue').setValue(previousMax);
+    newControl.get('maxValue').setValidators([Validators.required, Validators.min(previousMax)]);
   }
 }

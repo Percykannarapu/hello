@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
-import { User } from '../models/User';
-import { AppConfig } from '../app.config';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { RestResponse } from '../models/RestResponse';
+import { Injectable } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { AppConfig } from '../app.config';
+import { RestResponse } from '../models/RestResponse';
+import { User } from '../models/User';
+import { LoggingService } from '../val-modules/common/services/logging.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 
 @Injectable()
@@ -19,15 +20,16 @@ export class UserService {
   public userObservable: Observable<User> = this._userSubject.asObservable();
 
   constructor(private config: AppConfig,
-    private httpClient: HttpClient,
-    private cookieService: CookieService) { }
+              private httpClient: HttpClient,
+              private cookieService: CookieService,
+              private logger: LoggingService) { }
 
   /**
    * Store the user obect for use in the application
    * @param user The User object that will be used for storing user information
    */
   public setUser(user: User) {
-    console.log('fired setUser() in UserService');
+    this.logger.debug.log('fired setUser() in UserService');
     this._user = user;
     this._userSubject.next(this._user);
   }
@@ -75,7 +77,7 @@ export class UserService {
       }
       this.userFetch.next(user);
     }, err => {
-      console.error('Error loading user information', err);
+      this.logger.error.log('Error loading user information', err);
       this.userFetch.next(null);
     });
     return this.userFetch;

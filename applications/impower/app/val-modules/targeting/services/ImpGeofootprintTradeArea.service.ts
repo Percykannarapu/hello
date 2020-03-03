@@ -9,16 +9,17 @@
  ** ImpGeofootprintTradeArea.service.ts generated from VAL_BASE_GEN - v1.04
  **/
 
-import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
-import { RestDataService } from '../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
-import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { Injectable } from '@angular/core';
+import { simpleFlatten } from '@val/common';
+import { EMPTY, Observable } from 'rxjs';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
+import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintGeoService } from './ImpGeofootprintGeo.service';
 import { ImpGeofootprintVarService } from './ImpGeofootprintVar.service';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
-import { EMPTY, Observable } from 'rxjs';
-import { simpleFlatten } from '@val/common';
 
 const dataUrl = 'v1/targeting/base/impgeofootprinttradearea/load';
 
@@ -28,9 +29,10 @@ export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTr
    constructor(transactionManager: TransactionManager,
                restDataService: RestDataService,
                public impGeofootprintGeoService: ImpGeofootprintGeoService,
-               public impGeofootprintVarService: ImpGeofootprintVarService)
+               public impGeofootprintVarService: ImpGeofootprintVarService,
+               logger: LoggingService)
    {
-      super(restDataService, dataUrl, transactionManager, 'ImpGeofootprintTradeArea');
+      super(restDataService, dataUrl, logger, transactionManager, 'ImpGeofootprintTradeArea');
    }
 
     load(items: ImpGeofootprintTradeArea[]) : void {

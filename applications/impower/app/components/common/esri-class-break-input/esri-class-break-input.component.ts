@@ -1,7 +1,6 @@
 /* tslint:disable:component-selector */
-import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import { getUuid } from '@val/common';
+import { Component, Input, OnInit } from '@angular/core';
+import { ControlContainer, FormGroup } from '@angular/forms';
 import { ColorPalette } from '@val/esri';
 
 @Component({
@@ -9,15 +8,18 @@ import { ColorPalette } from '@val/esri';
   templateUrl: './esri-class-break-input.component.html',
   styleUrls: ['./esri-class-break-input.component.scss']
 })
-export class EsriClassBreakInputComponent {
+export class EsriClassBreakInputComponent implements OnInit {
 
-  @Input() parentForm: FormGroup;
+  @Input() formGroupName: string;
   @Input() currentPalette: ColorPalette;
   @Input() showMinValue: boolean = true;
   @Input() showMaxValue: boolean = true;
 
-  minControlId = getUuid();
+  currentRoot: FormGroup;
 
-  constructor() { }
+  constructor(private controlContainer: ControlContainer) { }
 
+  ngOnInit() : void {
+    this.currentRoot = this.controlContainer.control as FormGroup;
+  }
 }

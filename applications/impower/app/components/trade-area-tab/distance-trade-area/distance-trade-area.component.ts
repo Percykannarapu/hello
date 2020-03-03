@@ -3,6 +3,7 @@ import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidatorFn } from 
 import { SelectItem } from 'primeng/api';
 import { distinctUntilChanged, pairwise, startWith } from 'rxjs/operators';
 import { AppTradeAreaService } from '../../../services/app-trade-area.service';
+import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
 
@@ -35,7 +36,9 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
     { value: TradeAreaMergeTypeCodes.MergeAll, label: TradeAreaMergeTypeCodes.MergeAll }
   ];
 
-  constructor(private fb: FormBuilder, private tradeareaService: AppTradeAreaService) {}
+  constructor(private fb: FormBuilder,
+              private tradeAreaService: AppTradeAreaService,
+              private logger: LoggingService) {}
 
   private static processRadiusChanges(previousRadius: any, newRadius: any, tradeAreaControl: AbstractControl) : void {
     if (previousRadius === newRadius) return;
@@ -86,14 +89,14 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) : void {
     // this method gets triggered whenever any of the @Input values get changed from outside
-    console.log('On Change called', changes);
+    this.logger.debug.log('On Change called', changes);
     if (this.radiusForm == null) return;
     if (changes['currentTradeAreas'] != null && JSON.stringify(changes['currentTradeAreas'].currentValue) !== JSON.stringify(this.radiusForm.get('tradeAreas').value)) {
       this.radiusForm.patchValue({
         tradeAreas: this.currentTradeAreas
       }, { emitEvent: false });
     }
-    if (changes['currentMergeType'] != null && changes['currentMergeType'] != this.radiusForm.get('mergeType').value) {
+    if (changes['currentMergeType'] != null && changes['currentMergeType'] !== this.radiusForm.get('mergeType').value) {
       this.radiusForm.patchValue({
         mergeType: this.currentMergeType
       }, { emitEvent: false });
@@ -102,7 +105,7 @@ export class DistanceTradeAreaComponent implements OnInit, OnChanges {
 
   public distanceSubmitApply(formvalues) {
     this.tradeAreaApply.emit(formvalues);
-    this.tradeareaService.tradeareaType = 'distance';
+    this.tradeAreaService.tradeareaType = 'distance';
   }
 
   private isInRange(minValue: number, maxValue: number) : ValidatorFn {

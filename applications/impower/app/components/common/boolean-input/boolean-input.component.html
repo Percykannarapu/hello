@@ -1,4 +1,5 @@
-<div class="component-root" [formGroup]="parentForm">
-  <p-inputSwitch inputId="{{valueName}}input" [formControlName]="valueName"></p-inputSwitch>
-  <label class="switch-label" for="{{valueName}}input">{{labelText}}</label>
+<div class="component-root">
+  <p-inputSwitch inputId="boolean-input-{{controlId}}" [disabled]="isDisabled"
+                 [(ngModel)]="value" [readonly]="readOnly" [tabindex]="tabIndex"></p-inputSwitch>
+  <label class="switch-label" for="boolean-input-{{controlId}}">{{labelText}}</label>
 </div>

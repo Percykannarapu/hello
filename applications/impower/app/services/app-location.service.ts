@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, groupByExtended, isNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates, chunkArray, groupBy } from '@val/common';
-import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, EsriAppSettingsToken } from '@val/esri';
+import { filterArray, groupByExtended, isConvertibleToNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { Point, Geometry } from 'esri/geometry';
-import Graphic from 'esri/Graphic';
+import { Geometry } from 'esri/geometry';
+import geometryEngine from 'esri/geometry/geometryEngine';
 import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
-import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom, tap, concatMap } from 'rxjs/operators';
+import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { QuadTree } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -31,7 +31,6 @@ import { AppLoggingService } from './app-logging.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
-import geometryEngine from 'esri/geometry/geometryEngine';
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -143,12 +142,12 @@ export class AppLocationService {
 
     const locationsWithHomeGeos$ = activeLocationsWithType$.pipe(
       filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue.length > 0)),
-      filterArray(loc => isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3) )
+      filterArray(loc => isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3) )
     );
 
     const locationsWithoutRadius$ = activeLocationsWithType$.pipe(
       filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue.length > 0)),
-      filterArray(loc => !(isNumber(loc.radius1) || isNumber(loc.radius2) || isNumber(loc.radius3)) )
+      filterArray(loc => !(isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3)) )
     );
 
     this.totalCount$ = allActiveLocations$.pipe(
@@ -874,7 +873,7 @@ export class AppLocationService {
       let initialAttributesObs: Observable<any> = EMPTY;
       let fuseObservble: Observable<any> = EMPTY;
       const layerId = this.config.getLayerIdForAnalysisLevel('pcr', true);
-      
+
       if (locationsMap.get('needtoPipLocations').length > 0){
         const locationsHomeGeoFuse: ImpGeofootprintLocation[] = [];
         const locationsForPIP: ImpGeofootprintLocation[] = [];
@@ -899,7 +898,7 @@ export class AppLocationService {
                           result.rePipLocations.forEach(loc => {
                             attributesList.push(this.createArreibut(row, loc));
                         });
-                      }  
+                      }
                 return attributesList;
              })
            ))
@@ -913,7 +912,7 @@ export class AppLocationService {
             map(result => {
               if (result.attributes.length > 0)
                    attributesList.push(... result.attributes);
-              return result;    
+              return result;
             }),
             mergeMap(result => {
               if ( result.rePipLocations.length > 0){
@@ -928,8 +927,8 @@ export class AppLocationService {
                           attributesList.push(this.createArreibut(row, loc));
                       });
                       //attributesList.push(res1.rePipLocations.forEach(loc => this.createArreibut(row, loc)));
-                    }     
-                    return attributesList;     
+                    }
+                    return attributesList;
                     })
                 );
               }
@@ -1002,18 +1001,18 @@ export class AppLocationService {
         })
     );
   }
-  
+
   /**
-   * 
-   * @param attrList 
-   * @param impGeofootprintLocation 
+   *
+   * @param attrList
+   * @param impGeofootprintLocation
    * query IMP_GEO_HIERARCHY_MV for remaining arrtibutes
    */
   queryRemainingAttr(attrList: Map<any, any>, impGeofootprintLocations: ImpGeofootprintLocation[], isFuseLocations: boolean){
-    const homePcrList = Array.from(attrList.values()); 
+    const homePcrList = Array.from(attrList.values());
     const attributesList: any[] = [];
     const rePipLocations: ImpGeofootprintLocation[] = [];
-    
+
     return  this.determineHomeGeos(homePcrList, 'IMP_GEO_HIERARCHY_MV', 'PCR, ZIP, ATZ, DTZ, COUNTY, DMA', 'PCR').pipe(
       map(response => {
         return  response.payload;
@@ -1021,10 +1020,10 @@ export class AppLocationService {
       reduce((acc, result) => [...acc, ...result], []),
       map(result => {
         const locMapBySiteNumber = mapBy(impGeofootprintLocations, 'locationNumber');
-        const responseMap: Map<string, any[]> = groupByExtended(result, row => row['PCR']); 
+        const responseMap: Map<string, any[]> = groupByExtended(result, row => row['PCR']);
           const t =  this.getAttributesforLayers(locMapBySiteNumber, responseMap, attrList, isFuseLocations);
           if (t.attributes.length > 0) attributesList.push(...t.attributes);
-          if (t.rePipLocations.length > 0) rePipLocations.push(...t.rePipLocations);    
+          if (t.rePipLocations.length > 0) rePipLocations.push(...t.rePipLocations);
           return t;
       }),
       mergeMap(t => {
@@ -1049,17 +1048,17 @@ export class AppLocationService {
                     }
                   });
                   const locMapBySiteNumber = mapBy(t.rePipLocations, 'locationNumber');
-                  const responseMap: Map<string, any[]> = groupByExtended(Array.from(atzResultMap), row =>  row['ATZ']); 
+                  const responseMap: Map<string, any[]> = groupByExtended(Array.from(atzResultMap), row =>  row['ATZ']);
                   const atzResponse = this.getAttributesforLayers(locMapBySiteNumber, responseMap, atzGeos, isFuseLocations);
                     if (atzResponse.attributes.length > 0) attributesList.push(...atzResponse.attributes);
-                    return {'attributes': attributesList, 'rePipLocations': atzResponse.rePipLocations}; 
+                    return {'attributes': attributesList, 'rePipLocations': atzResponse.rePipLocations};
                 }));
             })
           );
         }
         else{
          return of({'attributes': attributesList, 'rePipLocations': t.rePipLocations})  ;
-        } 
+        }
       }),
       mergeMap(t => {
         this.logger.debug.log(`remaining locations for Zip: ${t.rePipLocations.length} `);
@@ -1083,7 +1082,7 @@ export class AppLocationService {
                     }
                   });
                   const locMapBySiteNumber: Map<string, ImpGeofootprintLocation> = mapBy(t.rePipLocations, 'locationNumber');
-                  const responseMap: Map<string, any[]> = groupByExtended(Array.from(zipResultMap), row =>  row['ZIP']); 
+                  const responseMap: Map<string, any[]> = groupByExtended(Array.from(zipResultMap), row =>  row['ZIP']);
                   const zipResponse = this.getAttributesforLayers(locMapBySiteNumber, responseMap, zipGeos, isFuseLocations);
                   if (zipResponse.attributes.length > 0) attributesList.push(...zipResponse.attributes);
                   return {'attributes': attributesList, 'rePipLocations': zipResponse.rePipLocations};
@@ -1096,7 +1095,7 @@ export class AppLocationService {
      );
   }
 
-  getAttributesforLayers(locMapBySiteNumber: Map<string, ImpGeofootprintLocation>,  
+  getAttributesforLayers(locMapBySiteNumber: Map<string, ImpGeofootprintLocation>,
                             responseMap: Map<string, any[]>, pipResponse: Map<ImpGeofootprintLocation, any>, isFuseLocations: boolean){
     const attributesList: any[] = [];
     const pipAgianLocations: ImpGeofootprintLocation[] = [];
@@ -1149,7 +1148,7 @@ export class AppLocationService {
 
   }
 
-  
+
 
   createArreibut(row: {}, loc: ImpGeofootprintLocation){
     return {
@@ -1159,7 +1158,7 @@ export class AppLocationService {
       'homeCounty'    :  row ['homeCounty'],
       'homeDma'       :  row ['homeDma'],
       'homeDigitalAtz':  row ['DTZ'],
-      'homeDmaName'   :  null, 
+      'homeDmaName'   :  null,
       'siteNumber'    :  loc.locationNumber,
       'abZip'         :  loc.locZip.substring(0, 5)
     };

@@ -9,18 +9,19 @@
  ** ImpIface03ZipLevelCount.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 
-import { ImpIface03ZipLevelCount } from '../../models/ImpIface03ZipLevelCount';
-import { RestDataService } from '../../../common/services/restdata.service';
-import { DataStore } from '../../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../../common/services/datastore.service';
+import { LoggingService } from '../../../common/services/logging.service';
+import { RestDataService } from '../../../common/services/restdata.service';
+import { ImpIface03ZipLevelCount } from '../../models/ImpIface03ZipLevelCount';
 
 const dataUrl = 'v1/targeting/base/impiface03ziplevelcount/search?q=impIface03ZipLevelCount';
 
 @Injectable()
 export class ImpIface03ZipLevelCountService extends DataStore<ImpIface03ZipLevelCount>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {

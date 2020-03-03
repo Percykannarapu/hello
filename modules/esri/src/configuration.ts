@@ -1,4 +1,5 @@
 import { InjectionToken } from '@angular/core';
+import { LogLevels } from '@val/common';
 
 export interface EsriConfigOptions extends Partial<__esri.config> {
   version: string;
@@ -20,6 +21,7 @@ export interface EsriAppSettings {
   printServiceUrl: string;
   defaultMapParams: __esri.MapProperties;
   defaultViewParams: __esri.MapViewProperties;
+  logLevel: LogLevels;
 }
 
 export const EsriLoaderToken = new InjectionToken<EsriConfigOptions>('esri-config-options');

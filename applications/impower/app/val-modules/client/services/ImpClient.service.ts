@@ -9,18 +9,19 @@
  ** ImpClient.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 
-import { ImpClient } from '../models/ImpClient';
-import { RestDataService } from './../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { ImpClient } from '../models/ImpClient';
 
 const dataUrl = 'v1/client/base/impclient/search?q=impClient';
 
 @Injectable()
 export class ImpClientService extends DataStore<ImpClient>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {

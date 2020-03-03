@@ -1,27 +1,64 @@
 /* tslint:disable:component-selector */
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { getUuid } from '@val/common';
 import { SelectItem } from 'primeng/api';
 
 @Component({
   selector: 'dropdown-input',
   templateUrl: './dropdown-input.component.html',
-  styleUrls: ['./dropdown-input.component.scss']
+  styleUrls: ['./dropdown-input.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DropdownInputComponent),
+      multi: true
+    }
+  ]
 })
-export class DropdownInputComponent {
+export class DropdownInputComponent implements ControlValueAccessor {
+  @Output() selectionChanged: EventEmitter<any> = new EventEmitter<any>();
 
-  @Input() parentForm: FormGroup;
-  @Input() valueName: string;
   @Input() labelText: string;
   @Input() options: SelectItem[];
   @Input() includeUnselected: boolean;
+  @Input() tabIndex: number;
+  @Input() readOnly: boolean = false;
+  @Input() inputClass: string;
 
-  @Output() selectionChanged: EventEmitter<any> = new EventEmitter<any>();
+  controlId = getUuid();
+  isDisabled: boolean;
 
-  constructor() { }
+  get value() : any {
+    return this._value;
+  }
 
-  handleChange(evt: any) : any {
-    this.selectionChanged.emit(evt.value);
-    return evt;
+  set value(value: any) {
+    this._value = value;
+    this.propagateTouch(this._value);
+    this.propagateChange(this._value);
+  }
+
+  private _value: any;
+
+  propagateChange = (_: any) => {};
+  propagateTouch = (_: any) => {};
+
+  constructor() {}
+
+  registerOnChange(fn: any) : void {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched(fn: any) : void {
+    this.propagateTouch = fn;
+  }
+
+  setDisabledState(isDisabled: boolean) : void {
+    this.isDisabled = isDisabled;
+  }
+
+  writeValue(obj: any) : void {
+    this.value = obj;
   }
 }

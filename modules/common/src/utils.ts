@@ -1,5 +1,7 @@
 // tslint:disable:no-bitwise
 
+import { isFunction } from './type-checks';
+
 /**
  * Splits an array into chunks of a maximum size
  * @param {T[] | U[]} arr: The original array to split
@@ -327,14 +329,6 @@ export function roundTo(value: number, precision: number) : number {
    return parseFloat(String(Math.round((value * pow)) / pow));
 }
 
-export function isFunction (obj: any) : obj is Function {
-  return (obj && obj.constructor && obj.call && obj.apply);
-}
-
-export function isNumber(value: any) : value is number {
-  return value != null && value !== '' && !Number.isNaN(Number(value));
-}
-
 /**
  *  Formats millisecond input into h:m:s.nnn
  *
@@ -381,17 +375,6 @@ export function dedupeSimpleSet<T>(newValues: Set<T>, previousValues: Set<T>) : 
   return result;
 }
 
-export function setsAreEqual<T>(current: Set<T>, previous: Set<T>) : boolean {
-  if ((previous == null && current != null) || (current == null && previous != null)) return false;
-  if (current == null && previous == null) return true;
-  if (current.size !== previous.size) return false;
-  const currentItems = Array.from(current);
-  for (const item of currentItems) {
-    if (!previous.has(item)) return false;
-  }
-  return true;
-}
-
 export const safe: any = { fieldname: ''};
 
 // Produce a unique UUID, good for use as correlation IDs in NgRx actions/effects
@@ -427,10 +410,29 @@ export function strToBool(value: string) : boolean {
   return /^true$|^t$|^yes$|^y$|^1$/.test(lcValue);
 }
 
-export function rgbToHex(color: number[]) {
+export function rgbToHex(color: number[]) : string {
   const red = pad(Number(color[0]).toString(16), 2);
   const green = pad(Number(color[1]).toString(16), 2);
   const blue = pad(Number(color[2]).toString(16), 2);
   //const alpha = color.length > 3 ? pad(Number(color[3]).toString(16), 2) : 'FF';
   return `#${red}${green}${blue}FF`;
+}
+
+/**
+ * Converts and array of T into a Set<T> in the most performant way possible.
+ * Optional parameters allow you to filter the items or map them to another type <R>
+ * @param items
+ */
+export function arrayToSet<T>(items: T[] | ReadonlyArray<T>) : Set<T>;
+export function arrayToSet<T>(items: T[] | ReadonlyArray<T>, filter?: (item: T) => boolean) : Set<T>;
+export function arrayToSet<T, R>(items: T[] | ReadonlyArray<T>, filter?: (item: T) => boolean, valueSelector?: (item: T) => R) : Set<T | R> {
+  const result = new Set<T | R>();
+  const len = items.length;
+  const effectiveFilter = filter || (() => true);
+  const effectiveSelector = valueSelector || ((i) => i);
+  for (let i = 0; i < len; ++i) {
+    const currentItem = items[i];
+    if (effectiveFilter(currentItem)) result.add(effectiveSelector(currentItem));
+  }
+  return result;
 }

@@ -9,18 +9,19 @@
  ** ImpMetricName.service.ts generated from VAL_ENTITY_GEN - v2.01
  **/
 
-import { ImpMetricName } from '../models/ImpMetricName';
-import { RestDataService } from './../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { ImpMetricName } from '../models/ImpMetricName';
 
 const dataUrl = 'v1/metrics/base/impmetricname/search?q=impMetricName';
 
 @Injectable()
 export class ImpMetricNameService extends DataStore<ImpMetricName>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {

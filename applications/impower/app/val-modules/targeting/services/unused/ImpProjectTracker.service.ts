@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { DataStore } from '../../../common/services/datastore.service';
+import { LoggingService } from '../../../common/services/logging.service';
 import { RestDataService } from '../../../common/services/restdata.service';
 
 const projectTrakerUrl = 'v1/targeting/base/impimsprojectsview/search?q=impImsProjectsView';
@@ -8,7 +9,7 @@ const projectTrakerUrl = 'v1/targeting/base/impimsprojectsview/search?q=impImsPr
 @Injectable()
 export class ImpProjectTrackerService extends DataStore<any>{
 
-    constructor(private restDataService: RestDataService) {super(restDataService, projectTrakerUrl); }
+    constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, projectTrakerUrl, logger); }
 
     private handleError(error: Response)
    {
@@ -16,5 +17,5 @@ export class ImpProjectTrackerService extends DataStore<any>{
       console.error(errorMsg);
       return Observable.throw(errorMsg);
    }
-    
+
 }

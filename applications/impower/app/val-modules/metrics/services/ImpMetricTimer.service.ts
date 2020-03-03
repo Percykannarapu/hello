@@ -9,18 +9,19 @@
  ** ImpMetricTimer.service.ts generated from VAL_ENTITY_GEN - v2.01
  **/
 
-import { ImpMetricTimer } from '../models/ImpMetricTimer';
-import { RestDataService } from './../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { ImpMetricTimer } from '../models/ImpMetricTimer';
 
 const dataUrl = 'v1/metrics/base/impmetrictimer/search?q=impMetricTimer';
 
 @Injectable()
 export class ImpMetricTimerService extends DataStore<ImpMetricTimer>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {

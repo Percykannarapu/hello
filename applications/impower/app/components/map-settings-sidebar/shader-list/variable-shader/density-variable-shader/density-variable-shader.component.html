@@ -30,13 +30,13 @@
 </ng-container>
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
-  <validated-text-input [parentForm]="parentForm" valueName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
-  <dropdown-input [parentForm]="parentForm" valueName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+  <validated-text-input formControlName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
+  <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
   <label class="shader-control-label">Dot Color</label>
   <p-colorPicker [(ngModel)]="selectedDotColor" format="rgb" [ngModelOptions]="{standalone: true}"></p-colorPicker>
-  <validated-text-input [parentForm]="parentForm" valueName="dotValue" labelText="Value of one Dot" validationMessage="Dot value must be greater than 1"></validated-text-input>
-  <validated-text-input [parentForm]="parentForm" valueName="legendUnits" labelText="Legend Units (i.e. Households)" validationMessage="Required"></validated-text-input>
-  <validated-text-input [parentForm]="parentForm" valueName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+  <validated-text-input formControlName="dotValue" labelText="Value of one Dot" validationMessage="Dot value must be greater than 1"></validated-text-input>
+  <validated-text-input formControlName="legendUnits" labelText="Legend Units (i.e. Households)" validationMessage="Required"></validated-text-input>
+  <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
   <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
   <button pButton label="Cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
 </div>

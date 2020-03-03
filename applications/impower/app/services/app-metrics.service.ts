@@ -1,16 +1,16 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { select, Store } from '@ngrx/store';
+import { isConvertibleToNumber } from '@val/common';
+import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { FullAppState } from '../state/app.interfaces';
-import { combineLatest, Observable, Subscription } from 'rxjs';
 import { CalculateMetrics } from '../state/data-shim/data-shim.actions';
 import { MetricService } from '../val-modules/common/services/metric.service';
-import { filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { AppStateService, Season } from './app-state.service';
-import { isNumber } from '@val/common';
+import { AppStateService } from './app-state.service';
 
 export interface MetricDefinition<T> {
   metricValue: T;
@@ -298,12 +298,12 @@ export class ValMetricsService implements OnDestroy {
     const validProject$ = this.stateService.currentProject$.pipe(filter(p => p != null));
     return combineLatest(geoOwnerTypes$, validProject$).pipe(
       map(([attributes, project]) => {
-        if (isNumber(project.estimatedBlendedCpm)) {
+        if (isConvertibleToNumber(project.estimatedBlendedCpm)) {
           return false;
         } else {
-          return (!isNumber(project.smAnneCpm) && attributes.anneExists) ||
-                 (!isNumber(project.smValassisCpm) && attributes.valExists) ||
-                 (!isNumber(project.smSoloCpm) && attributes.soloExists);
+          return (!isConvertibleToNumber(project.smAnneCpm) && attributes.anneExists) ||
+                 (!isConvertibleToNumber(project.smValassisCpm) && attributes.valExists) ||
+                 (!isConvertibleToNumber(project.smSoloCpm) && attributes.soloExists);
         }
       })
     );
@@ -330,14 +330,14 @@ export class ValMetricsService implements OnDestroy {
   }
 
   public getCpmForGeo(ownerGroupPrimary: string, coverageFrequency: string) : number {
-    if (isNumber(this.currentProject.estimatedBlendedCpm)) {
+    if (isConvertibleToNumber(this.currentProject.estimatedBlendedCpm)) {
       return this.currentProject.estimatedBlendedCpm;
     } else {
-      if (ownerGroupPrimary != null && ownerGroupPrimary.toUpperCase() === 'VALASSIS' && this.currentProject.isIncludeValassis && isNumber(this.currentProject.smValassisCpm)) {
+      if (ownerGroupPrimary != null && ownerGroupPrimary.toUpperCase() === 'VALASSIS' && this.currentProject.isIncludeValassis && isConvertibleToNumber(this.currentProject.smValassisCpm)) {
         return this.currentProject.smValassisCpm;
-      } else if (ownerGroupPrimary != null && ownerGroupPrimary.toUpperCase() === 'ANNE' && this.currentProject.isIncludeAnne && isNumber(this.currentProject.smAnneCpm)) {
+      } else if (ownerGroupPrimary != null && ownerGroupPrimary.toUpperCase() === 'ANNE' && this.currentProject.isIncludeAnne && isConvertibleToNumber(this.currentProject.smAnneCpm)) {
         return this.currentProject.smAnneCpm;
-      } else if (coverageFrequency != null && coverageFrequency.toUpperCase() === 'SOLO' && this.currentProject.isIncludeSolo && isNumber(this.currentProject.smSoloCpm)) {
+      } else if (coverageFrequency != null && coverageFrequency.toUpperCase() === 'SOLO' && this.currentProject.isIncludeSolo && isConvertibleToNumber(this.currentProject.smSoloCpm)) {
         return this.currentProject.smSoloCpm;
       } else {
         return 0;

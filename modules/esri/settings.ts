@@ -1,3 +1,4 @@
+import { LogLevels } from '@val/common';
 import { EsriAppSettings, EsriAuthenticationParams, EsriConfigOptions } from './src/configuration';
 
 export const SelectedShadingLayerPrefix = 'Selected';
@@ -25,6 +26,7 @@ export const defaultEsriAuthParams: EsriAuthenticationParams = {
 };
 
 export const defaultEsriAppSettings: EsriAppSettings = {
+  logLevel: LogLevels.WARN,
   defaultSpatialRef: 4326,
   maxPointsPerBufferQuery: 250,
   maxPointsPerAttributeQuery: 50,

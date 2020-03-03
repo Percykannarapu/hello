@@ -28,6 +28,7 @@ import { EsriPrintingService } from './src/services/esri-printing-service';
 import { EsriQueryService } from './src/services/esri-query.service';
 import { EsriShadingLayersService } from './src/services/esri-shading-layers.service';
 import { EsriService } from './src/services/esri.service';
+import { LoggingService } from './src/services/logging.service';
 import { allEffects } from './src/state/esri.effects';
 import { masterEsriReducer } from './src/state/esri.reducers';
 import { AppState, selectors } from './src/state/esri.selectors';
@@ -92,6 +93,7 @@ export class EsriModule {
         EsriQueryService,
         EsriPrintingService,
         EsriShadingLayersService,
+        LoggingService,
         { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] }
       ]
     };

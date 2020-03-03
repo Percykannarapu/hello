@@ -9,20 +9,20 @@
  ** ImpGeofootprintLocation.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 import { Injectable } from '@angular/core';
-import { Observable, EMPTY } from 'rxjs';
-import { TransactionManager } from '../../common/services/TransactionManager.service';
+import { Action, Store } from '@ngrx/store';
+import { simpleFlatten } from '@val/common';
+import { ErrorNotification, SuccessNotification } from '@val/messaging';
+import { EMPTY, Observable } from 'rxjs';
+import { LocalAppState } from '../../../state/app.interfaces';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpProject } from '../models/ImpProject';
-import { RestDataService } from '../../common/services/restdata.service';
 import { ImpGeofootprintLocAttribService } from './ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from './ImpGeofootprintTradeArea.service';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
-import { Action, Store } from '@ngrx/store';
-import { LocalAppState } from '../../../state/app.interfaces';
-import { ErrorNotification, SuccessNotification } from '@val/messaging';
-import { simpleFlatten } from '@val/common';
-import { state } from '@angular/animations';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintlocation/search?q=impGeofootprintLocation';
 
@@ -43,9 +43,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
                projectTransactionManager: TransactionManager,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
                private impGeoFootprintLocAttribService: ImpGeofootprintLocAttribService,
-               private store$: Store<LocalAppState>)
+               private store$: Store<LocalAppState>,
+               logger: LoggingService)
     {
-      super(restDataService, dataUrl, projectTransactionManager, 'ImpGeofootprintLocation');
+      super(restDataService, dataUrl, logger, projectTransactionManager, 'ImpGeofootprintLocation');
     }
 
     load(items: ImpGeofootprintLocation[]) : void {
@@ -272,28 +273,28 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       return this.exportAttribute(loc, `Home ${homeGeoType}`);
    }
 
-   public exportAttribute(loc: ImpGeofootprintLocation, attributeCode: string) : string { 
-    const attributes = this.impGeoFootprintLocAttribService.get().filter(att => att.impGeofootprintLocation === loc && att.attributeCode === attributeCode); 
-    
-    if (attributes.length > 0) return attributes[0].attributeValue; 
-    return ''; 
+   public exportAttribute(loc: ImpGeofootprintLocation, attributeCode: string) : string {
+    const attributes = this.impGeoFootprintLocAttribService.get().filter(att => att.impGeofootprintLocation === loc && att.attributeCode === attributeCode);
+
+    if (attributes.length > 0) return attributes[0].attributeValue;
+    return '';
     }
 
-    public exportHomeGeoissueAtz(loc: ImpGeofootprintLocation) : string { 
+    public exportHomeGeoissueAtz(loc: ImpGeofootprintLocation) : string {
 
       const homeZipVal = this.exportHomeGeoAttribute(loc, 'Zip Code');
       const homeAtzVal = this.exportHomeGeoAttribute(loc, 'ATZ');
-      
+
       if(homeZipVal != null && homeZipVal.length > 0){
       if(homeAtzVal == null || homeAtzVal.length == 0 || (homeAtzVal.substr(0,5) !== homeZipVal.substr(0,5))){
-      
+
       return 'Y';
-      } 
+      }
       else return 'N' ;
         }else return 'Y' ;
         }
 
-    public exportHomeGeoissueDigAtz(loc: ImpGeofootprintLocation) : string { 
+    public exportHomeGeoissueDigAtz(loc: ImpGeofootprintLocation) : string {
 
       const homeZipVal = this.exportHomeGeoAttribute(loc, 'Zip Code');
       const homeDigATZVal = this.exportHomeGeoAttribute(loc, 'Digital ATZ');
@@ -301,31 +302,31 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       if(homeZipVal != null && homeZipVal.length > 0){
           if(homeDigATZVal == null || homeDigATZVal.length == 0 || (homeDigATZVal.substr(0,5) !== homeZipVal.substr(0,5))){
             return 'Y';
-          } 
+          }
           else return 'N' ;
             }else return 'Y' ;
             }
 
-    public exportHomeGeoissuePcr(loc: ImpGeofootprintLocation) : string { 
+    public exportHomeGeoissuePcr(loc: ImpGeofootprintLocation) : string {
 
        const homeZipVal = this.exportHomeGeoAttribute(loc, 'Zip Code');
        const homePcrVal = this.exportHomeGeoAttribute(loc, 'Carrier Route');
- 
+
        if(homeZipVal != null && homeZipVal.length > 0){
           if(homePcrVal == null || homePcrVal.length == 0 || (homePcrVal.substr(0,5) !== homeZipVal.substr(0,5))){
               return 'Y';
-              } 
+              }
               else return 'N' ;
                 }else return 'Y' ;
                 }
 
-     public exportHomeGeoissuePcrZip(loc: ImpGeofootprintLocation) : string { 
+     public exportHomeGeoissuePcrZip(loc: ImpGeofootprintLocation) : string {
 
         const homePcrVal = this.exportHomeGeoAttribute(loc, 'Carrier Route');
-     
+
           if(homePcrVal == null || homePcrVal.length == 0 || (homePcrVal.length != null && homePcrVal.length != 5)){
             return 'N';
-                  } 
+                  }
                   else return 'Y' ;
                     }
 
@@ -336,7 +337,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
-     
+
       if (filter == null) {
         this.downloadExport(filename, this.prepareCSV(exportColumns));
       } else {
@@ -454,8 +455,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Home DMA',           row: (state, data) => state.exportHomeGeoAttribute(data, 'DMA')});
             exportColumns.push({ header: 'Home County',        row: (state, data) => state.exportHomeGeoAttribute(data, 'County')});
             break;
-   
-   
+
+
           //   ****DO NOT CHANGE THE HEADERS AS VALASSIS DIGITAL DEPENDS ON THESE NAMES****
          case EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital:
            console.log ('setExportFormat - digital');
@@ -472,7 +473,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
            exportColumns.push({ header: 'Market',             row: (state, data) => data.marketName});
            exportColumns.push({ header: 'Market Code',        row: (state, data) => data.marketCode});
            break;
-           
+
            case EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues:
            console.log ('setExportFormat - HGCIssuesLog');
            exportColumns.push({ header: 'Number',             row: (state, data) => data.locationNumber});
@@ -498,7 +499,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
            exportColumns.push({ header: 'Null Home DTZ or not in Home ZIP',  row: (state, data) => (state.exportHomeGeoissueDigAtz(data))});
            exportColumns.push({ header: 'Null Home PCR or not in Home ZIP',  row: (state, data) => (state.exportHomeGeoissuePcr(data))});
            exportColumns.push({ header: 'PCR is entire ZIP',                 row: (state, data) => (state.exportHomeGeoissuePcrZip(data))});
-          
+
            break;
 
          // No format specified, derive from the object  TODO: IMPLEMENT

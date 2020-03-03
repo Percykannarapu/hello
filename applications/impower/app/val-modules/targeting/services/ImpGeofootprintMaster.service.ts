@@ -8,15 +8,16 @@
  **
  ** ImpGeofootprintMaster.service.ts generated from VAL_BASE_GEN - v1.04
  **/
-import { RestDataService } from '../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
-import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { Injectable } from '@angular/core';
-import { Observable, EMPTY } from 'rxjs';
+import { simpleFlatten } from '@val/common';
+import { EMPTY, Observable } from 'rxjs';
+import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
 import { ImpGeofootprintLocationService } from './ImpGeofootprintLocation.service';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
-import { simpleFlatten } from '@val/common';
 
 const dataUrl = 'v1/targeting/base/impgeofootprintmaster/load';
 
@@ -25,9 +26,10 @@ export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaste
 {
    constructor(transactionManager: TransactionManager,
                restDataService: RestDataService,
-               private impGeofootprintLocationService: ImpGeofootprintLocationService)
+               private impGeofootprintLocationService: ImpGeofootprintLocationService,
+               logger: LoggingService)
    {
-      super(restDataService, dataUrl, transactionManager, 'ImpGeofootprintMaster');
+      super(restDataService, dataUrl, logger, transactionManager, 'ImpGeofootprintMaster');
    }
 
     load(items: ImpGeofootprintMaster[]) : void {
@@ -61,7 +63,7 @@ export class ImpGeofootprintMasterService extends DataStore<ImpGeofootprintMaste
          return source;
 
       const result: ImpGeofootprintMaster[] = source.filter(filterOp).filter(tree => this.getTreeRemoveCount([tree]) > 0);
-      
+
       // TODO: Pretty sure I can use the filterOp below
       result.forEach (master => {
          master.impGeofootprintLocations = this.impGeofootprintLocationService.prune(master.impGeofootprintLocations, loc => loc.cgmId === master.cgmId && (loc.baseStatus === DAOBaseStatus.UNCHANGED || loc.baseStatus === DAOBaseStatus.DELETE));

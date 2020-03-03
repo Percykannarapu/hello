@@ -10,11 +10,3 @@
 span.ui-inputgroup-addon {
   border-style: none;
 }
-
-.ui-inputtext.ng-touched.ng-invalid {
-  background-image: linear-gradient(to bottom, $brandRed, $brandRed), linear-gradient(to bottom, $brandRed, $brandRed);
-}
-
-.md-inputfield input.ng-touched.ng-invalid ~ label {
-  color: $brandRed;
-}

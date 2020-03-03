@@ -1,18 +1,61 @@
 /* tslint:disable:component-selector */
-import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { Component, forwardRef, Input } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { getUuid } from '@val/common';
 
 @Component({
   selector: 'boolean-input',
   templateUrl: './boolean-input.component.html',
-  styleUrls: ['./boolean-input.component.scss']
+  styleUrls: ['./boolean-input.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => BooleanInputComponent),
+      multi: true
+    }
+  ]
 })
-export class BooleanInputComponent {
+export class BooleanInputComponent implements ControlValueAccessor {
+  private _value: boolean;
 
-  @Input() parentForm: FormGroup;
-  @Input() valueName: string;
   @Input() labelText: string;
+  @Input() tabIndex: number;
+  @Input() readOnly: boolean = false;
+
+  public get value() : boolean {
+    return this._value;
+  }
+
+  public set value(value: boolean) {
+    this._value = value;
+    this.propagateChange(value);
+    this.propagateTouch(value);
+  }
+
+  controlId = getUuid();
+  isDisabled: boolean;
+
+  propagateChange = (_: any) => {};
+  propagateTouch = (_: any) => {};
 
   constructor() { }
+
+  public registerOnChange(fn: any) : void {
+    this.propagateChange = fn;
+  }
+
+  public registerOnTouched(fn: any) : void {
+    this.propagateTouch = fn;
+  }
+
+  public setDisabledState(isDisabled: boolean) : void {
+    this.isDisabled = isDisabled;
+  }
+
+  public writeValue(obj: any) : void {
+    if (obj != null) {
+      this._value = obj;
+    }
+  }
 
 }

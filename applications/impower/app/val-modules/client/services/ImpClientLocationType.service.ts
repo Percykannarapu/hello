@@ -9,18 +9,19 @@
  ** ImpClientLocationType.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 
-import { ImpClientLocationType } from '../models/ImpClientLocationType';
-import { RestDataService } from './../../common/services/restdata.service';
-import { DataStore } from '../../common/services/datastore.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataStore } from '../../common/services/datastore.service';
+import { LoggingService } from '../../common/services/logging.service';
+import { RestDataService } from '../../common/services/restdata.service';
+import { ImpClientLocationType } from '../models/ImpClientLocationType';
 
 const dataUrl = 'v1/client/base/impclientlocationtype/search?q=impClientLocationType';
 
 @Injectable()
 export class ImpClientLocationTypeService extends DataStore<ImpClientLocationType>
 {
-   constructor(private restDataService: RestDataService) {super(restDataService, dataUrl); }
+   constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 
    private handleError(error: Response)
    {
