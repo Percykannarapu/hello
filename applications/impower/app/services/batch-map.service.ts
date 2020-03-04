@@ -65,7 +65,13 @@ export class BatchMapService {
     ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isReload: false, isBatchMode: true })));
   }
 
-  requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload) : Observable<any> {
+  requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload, project: ImpProject) : Observable<any> {
+    const requestedSiteIds = new Set(payload.calls[0].args['printJobConfiguration'].siteIds);
+    project.getImpGeofootprintLocations().forEach( l => {
+      if (l.clientLocationTypeCode === 'Failed Site' && requestedSiteIds.has(l.locationNumber))
+        requestedSiteIds.delete(l.locationNumber); //we don't want to print failed sites
+    });
+    payload.calls[0].args['printJobConfiguration'].siteIds = Array.from(requestedSiteIds);
     return this.http.put(this.config.printServiceUrl, payload);
   }
 
