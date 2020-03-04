@@ -41,7 +41,9 @@
         <p-table [value]="impGeofootprintGeoService.uploadFailures" [paginator]="true" [rows]="5">
             <ng-template pTemplate="caption">
                 <div>
-                  Detected {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{fileAnalysisLabel}} upload failures out of {{totalUploadedRowCount}} rows
+                  {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{fileAnalysisLabel}} failures out of {{totalUploadedRowCount}} rows
+                  &nbsp;&nbsp;
+                  <button pButton type="button" label="Export Log" (click)="rollDownIssuesLog()" ></button>
                 </div>
             </ng-template>
             <ng-template pTemplate="header">

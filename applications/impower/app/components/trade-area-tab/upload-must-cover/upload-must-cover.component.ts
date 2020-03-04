@@ -13,6 +13,7 @@ import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
+import { ExportMCIssuesLog } from 'app/state/data-shim/data-shim.actions';
 
 interface CustomMCDefinition {
   Number: number;
@@ -224,4 +225,13 @@ export class UploadMustCoverComponent implements OnInit {
    disableDeleteBtn(){
       return this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0 ;
    }
+
+   rollDownIssuesLog(){
+      const records: string[] = [];
+      records.push('Geocode' + '\n'); 
+      this.impGeofootprintGeoService.uploadFailures.forEach(record => {
+            records.push(`${record.geocode}` + '\n');
+      });
+      this.store$.dispatch(new ExportMCIssuesLog({uploadFailures: records}));
+    }
 }

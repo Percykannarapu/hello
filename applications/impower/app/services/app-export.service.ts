@@ -169,6 +169,10 @@ export class AppExportService {
     this.downloadCSV(records, 'Custom TA Issues Log.csv');
   }
 
+  public exportMCIssuesLog(records: string[]){
+    this.downloadCSV(records, 'MustCover Issues Log.csv');
+  }
+
   private downloadCSV(records: string[], fileName: string){
     const a = document.createElement('a');
     const blob = new Blob(records, { type: 'text/csv' });

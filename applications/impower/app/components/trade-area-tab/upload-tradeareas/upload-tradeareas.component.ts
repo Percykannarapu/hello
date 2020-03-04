@@ -278,9 +278,7 @@ export class UploadTradeAreasComponent implements OnInit {
     return this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0;
  }
 
- rollDownIssuesLog(){
-
-  this.store$.dispatch(new ExportCustomTAIssuesLog({uploadFailures: this.uploadFailures}));
-
- }
+  rollDownIssuesLog(){
+    this.store$.dispatch(new ExportCustomTAIssuesLog({uploadFailures: this.uploadFailures}));
+  }
 }

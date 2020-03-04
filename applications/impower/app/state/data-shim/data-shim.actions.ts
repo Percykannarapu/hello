@@ -37,6 +37,7 @@ export enum DataShimActionTypes {
   RollDownGeosComplete = '[Application Data Shim] RollDown Geos Complete',
 
   ExportCustomTAIssuesLog = '[Application Data Shim] TA RollDown IssuesLog',
+  ExportMCIssuesLog = '[Application Data Shim] MC RollDown IssuesLog'
 }
 
 export class ProjectSaveAndNew implements Action {
@@ -152,6 +153,12 @@ export class ExportCustomTAIssuesLog implements Action{
   constructor(public payload: {uploadFailures: TradeAreaDefinition[]}){}
 }
 
+export class ExportMCIssuesLog implements Action{
+  readonly type = DataShimActionTypes.ExportMCIssuesLog;
+  constructor(public payload: {uploadFailures: string[]}){}
+
+}
+
 export type DataShimActions =
   ProjectSaveAndNew |
   ProjectSaveAndLoad |
@@ -175,4 +182,5 @@ export type DataShimActions =
   TradeAreaRollDownGeos|
   MustCoverRollDownGeos|
   RollDownGeosComplete|
-  ExportCustomTAIssuesLog;
+  ExportCustomTAIssuesLog| 
+  ExportMCIssuesLog;
