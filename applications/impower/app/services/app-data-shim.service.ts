@@ -25,6 +25,7 @@ import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
+import { Extent } from 'esri/geometry';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -155,12 +156,16 @@ export class AppDataShimService {
 
   onLoadSuccess(isBatch: boolean) : void {
     this.appTradeAreaService.setCurrentDefaults();
-    if (!isBatch) {
-      this.appTradeAreaService.zoomToTradeArea();
-    }
-    /**recalculating mustcovers disabled for DE2271 */
     this.appGeoService.reloadMustCovers();
     this.appLayerService.updateLabelExpressions(false, isBatch);
+    const project: ImpProject = this.appStateService.currentProject$.getValue();
+    const extent = (project.impProjectPrefs || []).filter(pref => pref.pref === 'extent')[0];
+    if (extent != null && !isBatch){
+      const parsedJson = JSON.parse(extent.largeVal || extent.val);
+      this.mapService.mapView.extent =    Extent.fromJSON(parsedJson);
+    }
+    else if (!isBatch)
+          this.appTradeAreaService.zoomToTradeArea();
   }
 
   onLoadFinished() : void {
