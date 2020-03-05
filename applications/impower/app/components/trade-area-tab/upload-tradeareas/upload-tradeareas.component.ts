@@ -30,7 +30,7 @@ const tradeAreaUpload: Parser<TradeAreaDefinition> = {
     { headerIdentifier: ['STORE', 'SITE', 'LOC', 'Site #', 'NUMBER'], outputFieldName: 'store', required: true},
     { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true},
   ],
-  headerValidator: (found: ParseRule[]) => found.length === 2,
+  //headerValidator: (found: ParseRule[]) => found.length === 2,
 
   createNullParser: (header: string, isUnique?: boolean) : ParseRule => {
     return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data};
@@ -187,7 +187,7 @@ export class UploadTradeAreasComponent implements OnInit {
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Applying Custom Trade Area'}));
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
     const header: string = rows.shift();
-    if (header.split(/,/).length == 2) {
+    if (header.split(/,/).length >= 2) {
       const uniqueRows: string[] = [];
       const duplicateRows: string[] = [];
       for (let i = 0; i < rows.length; i++) {
