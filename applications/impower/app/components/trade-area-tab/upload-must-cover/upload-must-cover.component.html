@@ -40,11 +40,14 @@
          </div>
         <p-table [value]="impGeofootprintGeoService.uploadFailures" [paginator]="true" [rows]="5">
             <ng-template pTemplate="caption">
-                <div>
+              <div class="ui-g"> 
+                  <div  class="ui-g-9 ui-g-nopad grid-caption-center-group" align="center">
                   {{(impGeofootprintGeoService.uploadFailures.length) || 0}} {{fileAnalysisLabel}} failures out of {{totalUploadedRowCount}} rows
-                  &nbsp;&nbsp;
-                  <button pButton type="button" label="Export Log" (click)="rollDownIssuesLog()" ></button>
                 </div>
+                <div class="ui-g-3 ui-g-nopad grid-caption-right-group" align="right">
+                  <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="Export" pTooltip="Must Cover Issues Log" class="val-icon-button" (click)="rollDownIssuesLog()" style="margin-left: 0.65em;white-space: nowrap"></button>
+                </div>
+              </div>  
             </ng-template>
             <ng-template pTemplate="header">
                 <tr>

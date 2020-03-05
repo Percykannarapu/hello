@@ -51,10 +51,13 @@
       </div>
       <p-table [value]="uploadFailures" [paginator]="true" [rows]="5" width="80%">
         <ng-template pTemplate="caption">
-          <div>
-            {{(uploadFailures.length) || 0}} {{fileAnalysisLabel}} failures out of {{totalUploadedRowCount}} rows
-            &nbsp;&nbsp;
-            <button pButton type="button" label="Export Log" (click)="rollDownIssuesLog()" ></button>
+          <div class="ui-g"> 
+            <div  class="ui-g-9 ui-g-nopad grid-caption-center-group">  
+              {{(uploadFailures.length) || 0}} {{fileAnalysisLabel}} failures out of {{totalUploadedRowCount}} rows
+            </div>
+            <div class="ui-g-3 ui-g-nopad grid-caption-right-group" align="right">
+                <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="Export" pTooltip="Custom TA Issues Log" class="val-icon-button" (click)="rollDownIssuesLog()" style="margin-left: 0.65em;white-space: nowrap"></button>
+            </div>
           </div>
         </ng-template>
         <ng-template pTemplate="header" width="80%">

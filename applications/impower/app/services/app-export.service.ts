@@ -170,7 +170,7 @@ export class AppExportService {
   }
 
   public exportMCIssuesLog(records: string[]){
-    this.downloadCSV(records, 'MustCover Issues Log.csv');
+    this.downloadCSV(records, 'Must Cover Issues Log.csv');
   }
 
   private downloadCSV(records: string[], fileName: string){
