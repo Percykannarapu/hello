@@ -26,6 +26,7 @@ import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-va
 import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { GfpShaderKeys } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
+import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -51,10 +52,8 @@ export class AppRendererService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      if (!this.config.isBatchMode) {
-        this.setupAnalysisLevelWatcher();
-        this.setupProjectPrefsWatcher();
-      }
+      this.setupAnalysisLevelWatcher();
+      this.setupProjectPrefsWatcher();
       this.setupGeoWatchers(this.impGeoService.storeObservable);
       this.setupMapVarWatcher();
     });
@@ -74,8 +73,8 @@ export class AppRendererService {
 
   private setupProjectPrefsWatcher() : void {
     this.store$.select(shadingSelectors.allLayerDefs).pipe(
-      withLatestFrom(this.store$.select(projectIsReady)),
-      filter(([, ready]) => ready)
+      withLatestFrom(this.store$.select(projectIsReady), this.store$.select(getBatchMode)),
+      filter(([, ready, isBatchMode]) => ready && !isBatchMode)
     ).subscribe(([sd]) => {
       this.appPrefService.createPref('esri', 'map-shading-defs', JSON.stringify(sd));
     });
@@ -83,8 +82,8 @@ export class AppRendererService {
 
   private setupAnalysisLevelWatcher() : void {
     this.appStateService.analysisLevel$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([al, ready]) => al != null && ready),
+      withLatestFrom(this.appStateService.applicationIsReady$, this.store$.select(getBatchMode)),
+      filter(([al, ready, isBatchMode]) => al != null && ready && !isBatchMode),
       map(([al]) => al),
       distinctUntilChanged(),
       withLatestFrom(this.appStateService.currentProject$)
@@ -110,19 +109,19 @@ export class AppRendererService {
       map(([geos]) => geos as ImpGeofootprintGeo[]),
       filter(geos => geos != null),
       debounceTime(500),
-      withLatestFrom(this.appStateService.currentProject$)
-    ).subscribe(([geos, project]) => {
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(getBatchMode))
+    ).subscribe(([geos, currentLayerDefs, isBatchMode]) => {
       const ownerKeys = new Set<string>([GfpShaderKeys.OwnerSite, GfpShaderKeys.OwnerTA]);
-      const definitions = this.getShadingDefinitions(project).filter(sd => ownerKeys.has(sd.dataKey));
+      const definitions = currentLayerDefs.filter(sd => ownerKeys.has(sd.dataKey));
       const newDefs = definitions.reduce((updates, definition) => {
         if (definition != null && isComplexShadingDefinition(definition)) {
           const newDef = { ...definition };
           switch (newDef.dataKey) {
             case GfpShaderKeys.OwnerSite:
-              this.updateForOwnerSite(newDef, geos);
+              this.updateForOwnerSite(newDef, geos, isBatchMode);
               break;
             case GfpShaderKeys.OwnerTA:
-              this.updateForOwnerTA(newDef, geos);
+              this.updateForOwnerTA(newDef, geos, isBatchMode);
           }
           updates.push(newDef);
         }
@@ -352,11 +351,12 @@ export class AppRendererService {
     }
   }
 
-  updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
+  updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], isBatchMode: boolean = false) : void {
     if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
       definition.theme = ColorPalette.CpqMaps;
       const data: Record<string, string> = geos.reduce((result, geo) => {
-        if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && geo.isDeduped === 1) {
+        const isDeduped = isBatchMode || (geo.isDeduped === 1);
+        if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && isDeduped) {
           const secondaryKey = definition.secondaryDataKey || 'locationNumber';
           if (geo.impGeofootprintLocation.hasOwnProperty(secondaryKey)) {
             result[geo.geocode] = geo.impGeofootprintLocation[secondaryKey];
@@ -373,13 +373,14 @@ export class AppRendererService {
     }
   }
 
-  updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[]) : void {
+  updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], isBatchMode: boolean = false) : void {
     if (definition != null && isComplexShadingDefinition(definition)) {
       definition.theme = ColorPalette.CpqMaps;
       const deferredHomeGeos: ImpGeofootprintGeo[] = [];
       const tradeAreaTypesInPlay = new Set<TradeAreaTypeCodes>();
       const data: Record<string, string> = geos.reduce((result, geo) => {
-        if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && geo.isDeduped === 1) {
+        const isDeduped = isBatchMode || (geo.isDeduped === 1);
+        if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && isDeduped) {
           switch (geo.impGeofootprintTradeArea.taType.toUpperCase()) {
             case TradeAreaTypeCodes.Radius.toUpperCase():
               const taNumber = geo.geocode === geo.impGeofootprintLocation.homeGeocode ? 1 : geo.impGeofootprintTradeArea.taNumber;
