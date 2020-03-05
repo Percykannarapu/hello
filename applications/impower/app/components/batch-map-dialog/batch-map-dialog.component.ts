@@ -58,6 +58,7 @@ export class BatchMapDialogComponent implements OnInit {
       title: ['user-defined', Validators.required],
       subTitle: 'user-defined',
       subSubTitle: 'user-defined',
+      deduplicated: true,
       sitesPerPage: 'oneSitePerPage',
       // sitesByGroup: '',
       neighboringSites: 'include',
@@ -167,7 +168,8 @@ export class BatchMapDialogComponent implements OnInit {
                 siteIds: siteIds,
                 hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
                 shadeNeighboringSites: ((dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false),
-                fitTo: fitTo
+                fitTo: fitTo,
+                duplicated: !(dialogFields.deduplicated)
               }
             }
           }

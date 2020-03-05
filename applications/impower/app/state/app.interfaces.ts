@@ -60,6 +60,7 @@ export interface BatchMapPayload {
         hideNeighboringSites: boolean;
         shadeNeighboringSites: boolean;
         fitTo: FitToPageOptions;
+        duplicated: boolean;
       }
     }
   }];
