@@ -36,7 +36,7 @@ export class BatchMapDialogComponent implements OnInit {
     'subSubTitle': ''
   };
   enableTradeAreaShading: boolean;
-  disableTradeArea: boolean = false;
+  disableTradeArea: boolean;
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
@@ -131,8 +131,10 @@ export class BatchMapDialogComponent implements OnInit {
     this.tradeAreaService.storeObservable.subscribe((tas) => {
       if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
         this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
+        this.disableTradeArea = false;
       } else {
         this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos});
+        this.disableTradeArea = true;
       }
     });
   }
