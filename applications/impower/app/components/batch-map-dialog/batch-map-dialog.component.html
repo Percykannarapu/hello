@@ -99,6 +99,19 @@
               <p-checkbox label="With Trade Area Shading" value="false" formControlName="enableTradeAreaShading" binary="true" ></p-checkbox>
             </div>
           </div>
+          <div class="fitToPage">
+            <div class="ui-g-12 labelTitle">
+              <label><b> Fit to Page </b></label>
+            </div>
+            <div class="ui-g-12 customPadding">
+              <p-radioButton name="fitToPageGroup" value="geos" label="Selected Geos"
+                formControlName="fitTo"></p-radioButton>
+            </div>
+            <div class="ui-g-12 customPadding">
+              <p-radioButton name="fitToPageGroup" value="ta" label="Trade Area"
+                formControlName="fitTo"></p-radioButton>
+            </div>
+          </div>
           <div class="pageSettings">
             <div class="ui-g-12 labelTitle">
               <label><b> Page Settings </b></label>

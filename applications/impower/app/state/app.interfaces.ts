@@ -39,6 +39,11 @@ export enum BatchMapSizes {
   jumbo = 'jumbo'
 }
 
+export enum FitToPageOptions {
+  geos = 'geos',
+  ta = 'ta'
+}
+
 export interface BatchMapPayload {
   calls: [{
     service: string
@@ -54,6 +59,7 @@ export interface BatchMapPayload {
         siteIds: Array<string>;
         hideNeighboringSites: boolean;
         shadeNeighboringSites: boolean;
+        fitTo: FitToPageOptions;
       }
     }
   }];
@@ -71,7 +77,8 @@ export interface SinglePageBatchMapPayload {
         layout: string;
         title: string;
         subTitle: string;
-        subSubTitle: string
+        subSubTitle: string;
+        fitTo: FitToPageOptions;
       }
     }
   }];

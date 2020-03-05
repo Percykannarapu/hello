@@ -4,13 +4,14 @@ import { Store } from '@ngrx/store';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { UserService } from 'app/services/user.service';
-import { BatchMapPayload, BatchMapSizes, LocalAppState, SinglePageBatchMapPayload, TitlePayload } from 'app/state/app.interfaces';
+import { BatchMapPayload, BatchMapSizes, LocalAppState, SinglePageBatchMapPayload, TitlePayload, FitToPageOptions } from 'app/state/app.interfaces';
 import { CloseBatchMapDialog, CreateBatchMap } from 'app/state/batch-map/batch-map.actions';
 import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -41,6 +42,7 @@ export class BatchMapDialogComponent implements OnInit {
     private fb: FormBuilder,
     private appLocationService: AppLocationService,
     private stateService: AppStateService,
+    private tradeAreaService: ImpGeofootprintTradeAreaService,
     private userService: UserService) {
       this.pageSettings = [
         {label: '8.5 x 11 (Letter)', value: BatchMapSizes.letter},
@@ -59,6 +61,7 @@ export class BatchMapDialogComponent implements OnInit {
       sitesPerPage: 'oneSitePerPage',
       // sitesByGroup: '',
       neighboringSites: 'include',
+      fitTo: '',
       pageSettingsControl: BatchMapSizes.letter,
       layout: 'landscape',
       titleInput: '',
@@ -125,6 +128,13 @@ export class BatchMapDialogComponent implements OnInit {
       this.siteByGroupList = list;
       this.siteLabels = customList;
     });
+    this.tradeAreaService.storeObservable.subscribe((tas) => {
+      if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
+        this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
+      } else {
+        this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos});
+      }
+    });
   }
 
   onSubmit(dialogFields: any) {
@@ -134,8 +144,9 @@ export class BatchMapDialogComponent implements OnInit {
     const siteIds: string[] = this.getSiteIds();
     const titles: Array<TitlePayload> = this.getTitles(siteIds);
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
+    const fitTo: FitToPageOptions = <FitToPageOptions> dialogFields.fitTo;
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
-      const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0]);
+      const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo);
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     } else if (dialogFields.sitesPerPage === 'oneSitePerPage') {
       const formData: BatchMapPayload = {
@@ -153,7 +164,8 @@ export class BatchMapDialogComponent implements OnInit {
                 layout: dialogFields.layout,
                 siteIds: siteIds,
                 hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
-                shadeNeighboringSites: (dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false
+                shadeNeighboringSites: ((dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false),
+                fitTo: fitTo
               }
             }
           }
@@ -192,7 +204,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.store$.dispatch(new CloseBatchMapDialog());
   }
 
-  getSinglePageMapPayload(size: BatchMapSizes, layout: string, siteId: string) : SinglePageBatchMapPayload{
+  getSinglePageMapPayload(size: BatchMapSizes, layout: string, siteId: string, fitTo: FitToPageOptions) : SinglePageBatchMapPayload{
     const location = this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(loc => loc.locationNumber === siteId);
     const title = this.batchMapForm.get('title').value;
     const subTitle = this.batchMapForm.get('subTitle').value;
@@ -210,7 +222,8 @@ export class BatchMapDialogComponent implements OnInit {
               layout: layout,
               title: this.getAttrValueByCode(location[0], title, 'title'),
               subTitle: this.getAttrValueByCode(location[0], subTitle, 'subTitle'),
-              subSubTitle: this.getAttrValueByCode(location[0], subSubTitle, 'subSubTitle')
+              subSubTitle: this.getAttrValueByCode(location[0], subSubTitle, 'subSubTitle'),
+              fitTo: fitTo
             }
           }
         }]
