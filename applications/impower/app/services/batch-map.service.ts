@@ -21,7 +21,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
-import { BatchMapQueryParams } from 'app/state/shared/router.interfaces';
+import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
 
@@ -97,7 +97,7 @@ export class BatchMapService {
     else if (!params.singlePage)
       return this.moveToSite(project, siteNum, params);
     else
-      return this.showAllSites(project);
+      return this.showAllSites(project, params);
   }
 
   mapByAttribute(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
@@ -156,14 +156,14 @@ export class BatchMapService {
     );
   }
 
-  showAllSites(project: ImpProject) : Observable<{ siteNum: string, isLastSite: boolean }> {
+  showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
     const result = { siteNum: project.getImpGeofootprintLocations()[project.getImpGeofootprintLocations().length - 1].locationNumber, isLastSite: true };
     if (project.getImpGeofootprintGeos().length > 100)
       return this.esriMapService.zoomToPoints(toUniversalCoordinates(project.getImpGeofootprintLocations().concat())).pipe(
         map(() => result)
       );
     else
-      return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos()).pipe(
+      return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, project.getImpGeofootprintLocations().map(l => l.locationNumber), project).pipe(
         map(() => result)
       );
   }
@@ -191,7 +191,7 @@ export class BatchMapService {
         } else if (params.shadeNeighboringSites) {
           this.geoService.update(null, null);
           this.forceMapUpdate();
-          return this.setMapLocation(project.methAnalysis, currentSite.getImpGeofootprintGeos()).pipe(
+          return this.setMapLocation(project.methAnalysis, currentSite.getImpGeofootprintGeos(), params, [siteNum], project).pipe(
             map(() => result)
           );
         }
@@ -202,7 +202,7 @@ export class BatchMapService {
     }
     this.geoService.update(null, null);
     this.forceMapUpdate();
-    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos()).pipe(
+    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, [siteNum], project).pipe(
       map(() => result)
     );
   }
@@ -243,15 +243,33 @@ export class BatchMapService {
     });
   }
 
-  private setMapLocation(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>) : Observable<void> {
-    const activeGeos = geos.filter(g => g.isActive);
-    const geocodes = activeGeos.map(g => g.geocode);
-    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
-      reduce((a, c) => [...a, ...c], []),
-      switchMap((polys) => {
-        return this.esriMapService.zoomToPolys(polys);
-      })
-    );
+  private setMapLocation(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>, params: BatchMapQueryParams, siteNums: Array<string>, project: ImpProject) : Observable<void> {
+    if (params.fitTo === FitTo.GEOS) {
+      const activeGeos = geos.filter(g => g.isActive);
+      const geocodes = activeGeos.map(g => g.geocode);
+      const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
+      return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
+        reduce((a, c) => [...a, ...c], []),
+        switchMap((polys) => {
+          return this.esriMapService.zoomToPolys(polys);
+        })
+      );
+    } else if (params.fitTo === FitTo.TA) {
+      const siteNumsSet: Set<string> = new Set(siteNums);
+      const circles = [];
+      project.getImpGeofootprintLocations().forEach(l => {
+        let largestRadius = 0;
+        if (siteNumsSet.has(l.locationNumber)) {
+          l.impGeofootprintTradeAreas.forEach(ta => {
+            if (ta.taRadius > largestRadius)
+              largestRadius = ta.taRadius;
+          });
+          const circle = this.esriMapService.createCircleGraphic(l.xcoord, l.ycoord, largestRadius);
+          circles.push(circle);
+        }
+      });
+      return this.esriMapService.zoomToPolys(circles);
+    }
+
   }
 }

@@ -9,6 +9,11 @@ export interface RouterStateUrl {
   queryParams: Params;
 }
 
+export enum FitTo {
+  GEOS = 'geos',
+  TA = 'ta'
+}
+
 export interface BatchMapQueryParams {
   height: number;
   hideNeighboringSites: boolean;
@@ -16,6 +21,7 @@ export interface BatchMapQueryParams {
   singlePage: boolean;
   shadeNeighboringSites: boolean;
   groupByAttribute: string;
+  fitTo: FitTo;
 }
 
 const defaultBatchQueryParams: BatchMapQueryParams = {
@@ -24,7 +30,8 @@ const defaultBatchQueryParams: BatchMapQueryParams = {
   startingSite: null,
   singlePage: false,
   shadeNeighboringSites: false,
-  groupByAttribute: null
+  groupByAttribute: null,
+  fitTo: FitTo.GEOS
 };
 
 const getRouterSlice = (state: LocalAppState) => state.router;

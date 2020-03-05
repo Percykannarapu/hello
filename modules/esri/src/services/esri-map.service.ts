@@ -4,6 +4,8 @@ import Basemap from 'esri/Basemap';
 import { Point, Polygon } from 'esri/geometry';
 import EsriMap from 'esri/Map';
 import MapView from 'esri/views/MapView';
+import Circle from 'esri/geometry/Circle';
+import Graphic from 'esri/Graphic';
 import DistanceMeasurement2D from 'esri/widgets/DistanceMeasurement2D';
 import Expand from 'esri/widgets/Expand';
 import { Observable } from 'rxjs';
@@ -200,5 +202,20 @@ export class EsriMapService {
     } else {
       this.mapView.ui.add(item, position);
     }
+  }
+
+  public createCircleGraphic(x: number, y: number, radius: number) : Graphic {
+    const point: Point = new Point();
+    point.x = x;
+    point.y = y;
+    const circle: Circle = new Circle({
+      center: point,
+      geodesic: true,
+      radius: radius,
+      radiusUnit: 'miles'
+    });
+    const graphic: Graphic = new Graphic();
+    graphic.geometry = circle;
+    return graphic;
   }
 }
