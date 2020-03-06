@@ -26,7 +26,7 @@ export class AppConfig implements LoggingConfiguration {
   public printServiceUrl = EnvironmentData.printServiceUrl;
 
   // Magic numbers
-  public maxBufferRadius = 50;
+  public maxBufferRadius = 100;
   public maxValGeocodingReqSize = 50;
   public maxRadiusTradeAreas = 3;
   public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading

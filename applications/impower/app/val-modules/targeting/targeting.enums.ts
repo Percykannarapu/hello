@@ -92,24 +92,24 @@ export enum FieldContentTypeCodes {
 
 export namespace FieldContentTypeCodes {
   export function parse(parseCode: string) : FieldContentTypeCodes {
-    let lastKey:string ="";
-    let code: string = (parseCode != null) ? parseCode.match("\\w*")[0] : null;  // Strip out any non-word characters
-    if (code == null || code === "") return null;
+    let lastKey: string = '';
+    const code: string = (parseCode != null) ? parseCode.match('\\w*')[0] : null;  // Strip out any non-word characters
+    if (code == null || code === '') return null;
     for (const key of Object.keys(FieldContentTypeCodes)) {
       lastKey = key;
       try{
-        if (code.toUpperCase() === FieldContentTypeCodes[key]||("" as any).toUpperCase())
+        if (code.toUpperCase() === FieldContentTypeCodes[key] || ('' as any).toUpperCase())
           return FieldContentTypeCodes[key];
       }
-      catch(e)
+      catch (e)
       {
-        console.error("Error in FieldContentTypeCodes.parse\n", e);
-        console.error("code", code);
-        console.error("key", key);
+        console.error('Error in FieldContentTypeCodes.parse\n', e);
+        console.error('code', code);
+        console.error('key', key);
         throw new Error('Invalid Field Content Type Code');
       }
     }
-    console.error("FieldContentTypeCode parse error.  code: ["+code+"] key: ["+lastKey+"]");
+    console.error('FieldContentTypeCode parse error.  code: [' + code + '] key: [' + lastKey + ']');
     throw new Error('Invalid Field Content Type Code');
   }
 }

@@ -10,6 +10,7 @@ import { RestDataService } from 'app/val-modules/common/services/restdata.servic
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { ValSort } from '../models/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
 import { RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -43,7 +44,7 @@ const UsTableMap = {
 @Injectable()
 export class AppTradeAreaService {
 
-  public currentDefaults = new Map<(SuccessfulLocationTypeCodes), { radius: number, selected: boolean }[]>();
+  public currentDefaults = new Map<(SuccessfulLocationTypeCodes), { radius: number, selected: boolean, taNumber: number }[]>();
   private validAnalysisLevel$: Observable<string>;
 
   public tradeareaType: string = '';
@@ -92,7 +93,7 @@ export class AppTradeAreaService {
       filter(([, , isReady]) => isReady),
       // halt the sequence if there are no geos
       filter(([, geos]) => geos != null && geos.length > 0),
-    ).subscribe(([al]) => this.clearGeos(al));
+    ).subscribe(() => this.clearGeos());
   }
 
   public onLocationsWithoutRadius(locations: ImpGeofootprintLocation[]) : void{
@@ -189,38 +190,79 @@ export class AppTradeAreaService {
     this.impTradeAreaService.add(tradeAreas);
   }
 
-  public applyRadiusTradeArea(tradeAreas: { radius: number, selected: boolean }[], siteType: SuccessfulLocationTypeCodes) : void {
+  public applyRadiusTradeArea(tradeAreas: { radius: number, selected: boolean, taNumber: number }[], siteType: SuccessfulLocationTypeCodes) : void {
     if (tradeAreas == null || tradeAreas.length === 0) {
-      console.error('Invalid Trade Area request', { tradeAreas, siteType });
+      this.logger.error.log('Invalid Trade Area request', { tradeAreas, siteType });
       throw new Error('Invalid Trade Area request');
     }
     const currentLocations = this.getLocations(siteType);
-    const currentTradeAreas = this.getAllTradeAreas(siteType).filter(ta => ta.taType === 'RADIUS' || ta.taType === 'HOMEGEO');
+    const tradeAreaFilter = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radius, TradeAreaTypeCodes.HomeGeo]);
+    const currentTradeAreas = this.impTradeAreaService.get()
+      .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
+                    tradeAreaFilter.has(TradeAreaTypeCodes.parse(ta.taType)));
     this.deleteTradeAreas(currentTradeAreas);
     this.currentDefaults.set(siteType, tradeAreas); // reset the defaults that get applied to new locations
     this.applyRadiusTradeAreasToLocations(tradeAreas, currentLocations);
   }
 
-  // public updateTradeAreaSelection(tradeAreas: { taNumber: number, isSelected: boolean }[], siteType: SuccessfulLocationTypeCodes) {
-  //   const taNumbers = new Set(tradeAreas.map(ta => ta.taNumber));
-  //   const currentTradeAreas = this.getAllTradeAreas(siteType).filter(ta => ta.taType === 'RADIUS' && taNumbers.has(ta.taNumber));
-  //   const selectedMap = groupBy(tradeAreas, 'taNumber');
-  //   if (currentTradeAreas.length > 0) {
-  //     let geoStateChanged = false;
-  //     currentTradeAreas.forEach(ta => {
-  //       ta.isActive = selectedMap.get(ta.taNumber)[0].isSelected;
-  //       if (ta.impGeofootprintGeos != null && ta.impGeofootprintGeos.length > 0) {
-  //         geoStateChanged = true;
-  //         ta.impGeofootprintGeos
-  //           .filter(geo => geo.geocode !== ta.impGeofootprintLocation.homeGeocode)
-  //           .forEach(geo => geo.isActive = selectedMap.get(ta.taNumber)[0].isSelected);
-  //       }
-  //     }); // currentTradeAreas for each
-  //     // notify subscribers when state has changed
-  //     if (geoStateChanged) this.impGeoService.update(null, null);
-  //     this.impTradeAreaService.update(null, null);
-  //   }
-  // }
+  public reOrderGeosInTradeAreas(tradeAreas: { radius: number, selected: boolean, taNumber: number }[], siteType: SuccessfulLocationTypeCodes) : void {
+    if (tradeAreas == null || tradeAreas.length === 0) {
+      this.logger.error.log('Invalid Trade Area request', { tradeAreas, siteType });
+      throw new Error('Invalid Trade Area request');
+    }
+    this.currentDefaults.set(siteType, tradeAreas);
+
+    const currentTradeAreas = this.impTradeAreaService.get()
+      .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
+                    TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius);
+    currentTradeAreas.forEach(current => {
+      const newTA = tradeAreas.filter(ta => ta.taNumber === current.taNumber)[0];
+      current.isActive = newTA != null ? newTA.selected : false;
+    });
+    if (siteType === ImpClientLocationTypeCodes.Site) {
+      const locations = this.impLocationService.get()
+        .filter(loc => ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site);
+      const geosToRemove = [];
+      locations.forEach(currentLocation => {
+        let geosToProcess = currentLocation.getImpGeofootprintGeos(TradeAreaTypeCodes.Radius);
+        const radiusTradeAreas = currentLocation.impGeofootprintTradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius);
+        radiusTradeAreas.sort(ValSort.TradeAreaByRadius);
+        const upperBound = Math.max(...radiusTradeAreas.filter(ta => ta.isActive).map(ta => ta.taRadius));
+        let lowerBound = 0;
+        let nextGeos = [];
+        radiusTradeAreas.forEach(ta => {
+          ta.impGeofootprintGeos = [];
+          if (ta.isActive) {
+            ta.impGeofootprintGeos = geosToProcess.reduce((geos, geo) => {
+              if (geo.distance <= ta.taRadius && geo.distance > lowerBound) {
+                geo.impGeofootprintTradeArea = ta;
+                geos.push(geo);
+              } else if (geo.distance > upperBound) {
+                geosToRemove.push(geo);
+              } else {
+                nextGeos.push(geo);
+              }
+              return geos;
+            }, []);
+            if (ta.impGeofootprintGeos.length === 0) {
+              // we need to have the geos re-pulled from the layer
+              delete ta['isComplete'];
+            }
+            lowerBound = ta.taRadius;
+            geosToProcess = Array.from(nextGeos);
+            nextGeos = [];
+          }
+        });
+      });
+      if (geosToRemove.length > 0) {
+        this.impGeoService.remove(geosToRemove);
+      } else {
+        this.impGeoService.makeDirty();
+      }
+      this.appGeoService.ensureMustCovers();
+    }
+    this.impTradeAreaService.makeDirty();
+  }
 
   public zoomToTradeArea() {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
@@ -248,7 +290,7 @@ export class AppTradeAreaService {
     }
   }
 
-  private clearGeos(newAnalysisLevel: string) : void {
+  private clearGeos() : void {
     const allTradeAreas = this.impTradeAreaService.get();
     allTradeAreas.forEach(ta => {
       ta.impGeofootprintGeos = [];
@@ -261,7 +303,7 @@ export class AppTradeAreaService {
     });
     const attrs = this.impLocAttrService.get().filter(a => a.attributeCode === 'Invalid Home Geo');
     const tradeAreasToRemove = new Set([TradeAreaTypeCodes.HomeGeo, TradeAreaTypeCodes.Manual, TradeAreaTypeCodes.MustCover]);
-    this.logger.debug.log('Clearing all Geos');
+    this.logger.info.log('Clearing all Geos');
     this.impTradeAreaService.startTx();
     this.impLocAttrService.remove(attrs);
     this.store$.dispatch( new ClearMapVars());
@@ -273,30 +315,23 @@ export class AppTradeAreaService {
     this.impTradeAreaService.stopTx();
   }
 
-  public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {
-    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-    locations.forEach(location => {
-      if (tradeAreas != null && tradeAreas.length > 0)
-        for (let i = 0; i < tradeAreas.length; ++i) {
-          if (tradeAreas[i].radius != null && tradeAreas[i].selected != null) {
-            newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, tradeAreas[i].selected, i, tradeAreas[i].radius, attachToHierarchy));
-          }
-        }
-    });
+  public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean, taNumber: number }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {
+    let newTradeAreas: ImpGeofootprintTradeArea[] = [];
+    if (tradeAreas != null && tradeAreas.length > 0) {
+      locations.forEach(location => {
+        const newDomain = tradeAreas.map(ta => this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, ta.selected, ta.taNumber, ta.radius, attachToHierarchy));
+        newTradeAreas = newTradeAreas.concat(newDomain);
+      });
+    }
 
     return newTradeAreas;
   }
 
-  public applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean }[], locations: ImpGeofootprintLocation[]) : void {
+  public applyRadiusTradeAreasToLocations(tradeAreas: { radius: number, selected: boolean, taNumber: number }[], locations: ImpGeofootprintLocation[]) : void {
     const newTradeAreas: ImpGeofootprintTradeArea[] = this.createRadiusTradeAreasForLocations(tradeAreas, locations);
     if (newTradeAreas.length > 0) {
       this.impTradeAreaService.add(newTradeAreas);
     }
-  }
-
-  private getAllTradeAreas(siteType: SuccessfulLocationTypeCodes) : ImpGeofootprintTradeArea[] {
-    const currentLocations = this.getLocations(siteType);
-    return simpleFlatten(currentLocations.map(loc => loc.impGeofootprintTradeAreas));
   }
 
   private getLocations(siteType: SuccessfulLocationTypeCodes) : ImpGeofootprintLocation[] {
@@ -336,53 +371,15 @@ export class AppTradeAreaService {
             queryResult.set(r.geocode, { latitude: r.latitude, longitude: r.longitude });
             geos.add(r.geocode);
           }),
-          err => console.log('There was an error querying the ArcGIS layer', err),
+          err => this.logger.debug.log('There was an error querying the ArcGIS layer', err),
           () => {
-           // if (currentAnalysisLevel !== fileAnalysisLevel){
               this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geos),
                                                               queryResult: queryResult,
                                                               fileAnalysisLevel: fileAnalysisLevel,
                                                               matchedTradeAreas: Array.from(matchedTradeAreas), isResubmit: isResubmit}));
-           // }
-           /* else{
-              const geosToAdd: ImpGeofootprintGeo[] = [];
-              const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
-              matchedTradeAreas.forEach(ta => {
-                // make sure the query returned a geocode+lat+lon for each of the uploaded data rows
-                if (!queryResult.has(ta.geocode)) {
-                  ta.message = 'Geocode not found';
-                  this.uploadFailures = [...this.uploadFailures, ta];
-                } else {
-                  const loc = locationsByNumber.get(ta.store);
-                  const layerData = queryResult.get(ta.geocode);
-                  // make sure the lat/lon data from the layer is valid
-                  if (Number.isNaN(layerData.latitude) || Number.isNaN(layerData.longitude)) {
-                    console.error(`Invalid Layer Data found for geocode ${ta.geocode}`, layerData);
-                  } else {
-                    // finally build the tradeArea (if necessary) and geo
-                    const distance = EsriUtils.getDistance(layerData.longitude, layerData.latitude, loc.xcoord, loc.ycoord);
-                    let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
-                    if (currentTradeArea == null) {
-                      currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
-                      tradeAreasToAdd.push(currentTradeArea);
-                    }
-                    const newGeo = this.domainFactory.createGeo(currentTradeArea, ta.geocode, layerData.longitude, layerData.latitude, distance);
-                    geosToAdd.push(newGeo);
-                  }
-                }
-              });
-              // stuff all the results into appropriate data stores
-              this.impGeoService.add(geosToAdd);
-              this.impTradeAreaService.add(tradeAreasToAdd);
-              this.appGeoService.ensureMustCovers();
-              this.uploadFailuresSub.next(this.uploadFailures);
-              this.store$.dispatch(new StopBusyIndicator({ 'key': 'CUSTOM_TRADEAREA'}));
-              this.store$.dispatch(new RollDownGeosComplete({failedGeos: this.uploadFailures.map(row => row.geocode), isResubmit: isResubmit, rollDownType: 'TRADEAREA'}));
-
-            }*/
           });
         }else {
-        console.log('file analysis level', fileAnalysisLevel);
+        this.logger.debug.log('file analysis level', fileAnalysisLevel);
         this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geosToQuery),
                                                         queryResult: queryResult,
                                                         fileAnalysisLevel: fileAnalysisLevel,
@@ -454,7 +451,7 @@ export class AppTradeAreaService {
       if (dupTradeAreas.length > 1){
         let i = 0;
         dupTradeAreas.forEach(rec => {
-            if (i == 0)
+            if (i === 0)
                 record.locNumber = rec.store;
             else
                 payload.push({'geocode': record.geocode, 'x': record.x,
@@ -502,19 +499,20 @@ export class AppTradeAreaService {
     const loc = this.impLocationService.get();
     const tradeAreas = this.impTradeAreaService.get();
 
-    const tas: { radius: number, selected: boolean }[] = [];
+    const tas: { radius: number, selected: boolean, taNumber: number }[] = [];
     if (loc != null &&  loc.length > 0 && loc[0].radius1 == null && loc[0].radius2 == null && loc[0].radius3 == null){
       const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(loc[0].clientLocationTypeCode));
       const radiusSet = new Set<Number>();
-       tradeAreas.forEach(ta => {
-         if (ta.taType.toUpperCase() === TradeAreaTypeCodes.Radius.toUpperCase()){
-           radiusSet.add(ta.taRadius);
-         }
-       });
-      const radiusArray = Array.from(radiusSet).sort((a, b) => Number(a) - Number(b));
+      tradeAreas.forEach(ta => {
+        if (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && isConvertibleToNumber(ta.taRadius)){
+          radiusSet.add(Number(ta.taRadius));
+        }
+      });
+      const radiusArray = Array.from(radiusSet);
+      radiusArray.sort(ValSort.GenericNumber);
       if (radiusSet.size > 0){
-        radiusArray.forEach(radius => {
-          tas.push({radius: Number(radius), selected: true});
+        radiusArray.forEach((radius, i) => {
+          tas.push({ radius: Number(radius), selected: true, taNumber: i + 1 });
         });
         this.currentDefaults.set(siteType, tas);
       }

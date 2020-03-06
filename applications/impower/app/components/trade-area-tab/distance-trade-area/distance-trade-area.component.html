@@ -1,42 +1,27 @@
-<form novalidate [formGroup]="radiusForm" (submit)="distanceSubmitApply(radiusForm.value)" autocomplete="off">
-    <div class="ui-g-12" formArrayName="tradeAreas">
-      <div class="ui-g-12 ui-g-nopad" *ngFor="let tradeAreaControl of tradeAreaControls; let i = index">
-        <div class="ui-g-12 ui-g-nopad trade-area-container" [formGroupName]="i">
-          <div class="ui-g-5 trade-area">
-            <div class="ui-inputgroup">
-              <p-toggleButton onLabel="Show" offLabel="Hide" formControlName="isShowing" styleClass="trade-area-toggle"></p-toggleButton>
-              <span class="md-inputfield ui-inputgroup">
-                <input pInputText id="tradeArea{{i + 1}}" name="TradeArea{{i + 1}}" formControlName="radius" autocomplete="off" />
-                <span *ngIf="tradeAreaControl.get('isApplied').value" class="ui-inputgroup-addon">
-                  <i class="fa fa-check"></i>
-                </span>
-                <label for="tradeArea{{i + 1}}">Trade Area {{i + 1}} (in miles)</label>
-              </span>
-            </div>
-          </div>
-
-          <div class="ui-g-7 validation-messages">
-            &nbsp;
-            <span *ngIf="tradeAreaControl.hasError('rangeValid', ['radius'])">
-              {{tradeAreaControl.get('radius').errors['rangeValid']}}
-            </span>
-            <span *ngIf="tradeAreaControl.hasError('duplicateTradeArea', ['radius'])">
-              {{tradeAreaControl.get('radius').errors['duplicateTradeArea']}}
-            </span>
-            <span *ngIf="hasProvidedTradeAreas">
-              Provided in Upload
-            </span>
-          </div>
-        </div>
+<div class="component-root">
+  <form novalidate autocomplete="off" [formGroup]="radiusForm" (submit)="formSubmitted.emit(radiusForm.value)">
+    <ul class="distance-validation">
+      <li *ngIf="radiusForm.hasError('required', 'analysisLevel')">
+        You must select an Analysis Level before applying a trade area to Sites
+      </li>
+      <li *ngIf="radiusForm.hasError('required', 'hasLocations')">
+        You must add at least 1 {{locationType}} before applying a trade area.
+      </li>
+    </ul>
+    <div formArrayName="tradeAreas">
+      <div *ngFor="let t of tradeAreaControls; index as i; last as isLast; first as isFirst">
+        <val-radius-entry [formGroupName]="i.toString()" [tabIndex]="i" [readonly]="radiusForm.get('isReadOnly').value"
+                          [showAddNew]="isLast && (i < maxTradeAreas - 1)" [showDelete]="isLast && !isFirst"
+                          (addNewClicked)="addNewRadius()" (deleteClicked)="deleteRadius(i)"></val-radius-entry>
       </div>
     </div>
-
-    <div class="ui-g-12">
-      <div class="ui-g-6">
-        <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" formControlName="mergeType"></p-selectButton>
+    <div class="distance-buttons">
+      <div>
+        <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" formControlName="mergeType" [tabindex]="maxTradeAreas"></p-selectButton>
       </div>
-      <div class="ui-g-6">
-        <button pButton label="Apply" name = "submitDistanceTa" type="submit" [disabled]="radiusForm.invalid || hasProvidedTradeAreas"></button>
+      <div>
+        <button pButton label="Apply" type="submit" [disabled]="radiusForm.invalid" [tabIndex]="maxTradeAreas + 1"></button>
       </div>
     </div>
   </form>
+</div>

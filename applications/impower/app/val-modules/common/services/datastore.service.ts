@@ -559,6 +559,8 @@ export class DataStore<T>
 
       if (Array.isArray(data))
       {
+         if (data.length === 0) return;
+
          // Add database removal
          this.addDbRemove(data);
 

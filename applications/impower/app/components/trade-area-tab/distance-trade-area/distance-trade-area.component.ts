@@ -1,140 +1,179 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidatorFn } from '@angular/forms';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormConfig, isConvertibleToNumber, isFunction } from '@val/common';
 import { SelectItem } from 'primeng/api';
-import { distinctUntilChanged, pairwise, startWith } from 'rxjs/operators';
-import { AppTradeAreaService } from '../../../services/app-trade-area.service';
-import { LoggingService } from '../../../val-modules/common/services/logging.service';
-import { TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
+import { Subject } from 'rxjs';
+import { distinctUntilChanged, filter, takeUntil } from 'rxjs/operators';
+import { ValassisValidators } from '../../../models/valassis-validators';
+import { ImpGeofootprintTradeArea } from '../../../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
-
-const numberOrNull = (value: any) => value == null || value === '' || Number.isNaN(Number(value)) ? null : Number(value);
 
 @Component({
   selector: 'val-distance-trade-area',
   templateUrl: './distance-trade-area.component.html',
-  styleUrls: ['./distance-trade-area.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./distance-trade-area.component.scss']
 })
-export class DistanceTradeAreaComponent implements OnInit, OnChanges {
-  @Input() currentTradeAreas: TradeAreaModel[];
-  @Input() currentMergeType: TradeAreaMergeTypeCodes;
-  @Input() maxRadius: number;
-  @Input() numTradeAreas: number;
-  @Input() hasProvidedTradeAreas: boolean;
+export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
+  @Input()
+  public set hasLocations(value: boolean) {
+    this._hasLocations = value;
+    this.setFormValue('hasLocations', this._hasLocations);
+  }
+  @Input()
+  public set analysisLevel(value: string) {
+    this._analysisLevel = value;
+    this.setFormValue('analysisLevel', this._analysisLevel);
+  }
+  @Input()
+  public set hasProvidedTradeAreas(value: boolean) {
+    this._hasProvidedTradeAreas = value;
+    this.setFormValue('isReadOnly', this._hasProvidedTradeAreas);
+  }
+  @Input()
+  public set currentMergeType(value: TradeAreaMergeTypeCodes) {
+    this._currentMergeType = value;
+    this.setFormValue('mergeType', this._currentMergeType);
+  }
+  @Input()
+  public set currentTradeAreas(value: ImpGeofootprintTradeArea[]) {
+    if (!(value.length === 0 && this._currentTradeAreas.length === 0)) {
+      this._currentTradeAreas = value;
+      this.currentTradeAreaCount = this._currentTradeAreas.length;
+      this.setupForm();
+    }
+  }
 
-  @Output() mergeTypeChange = new EventEmitter<TradeAreaMergeTypeCodes>();
-  @Output() tradeAreaApply = new EventEmitter<DistanceTradeAreaUiModel>();
+  @Input() maxRadius: number;
+  @Input() maxTradeAreas: number;
+  @Input() locationType: SuccessfulLocationTypeCodes;
+
+  @Output() formSubmitted = new EventEmitter<DistanceTradeAreaUiModel>();
 
   radiusForm: FormGroup;
-  get tradeAreaControls() { return (this.radiusForm.get('tradeAreas') as FormArray).controls; }
-  get mergeType() { return this.radiusForm.get('mergeType'); }
+  tradeAreaMergeTypes: SelectItem[];
 
-  tradeAreaMergeTypes: SelectItem[] = [
-    { value: TradeAreaMergeTypeCodes.NoMerge, label: TradeAreaMergeTypeCodes.NoMerge },
-    { value: TradeAreaMergeTypeCodes.MergeEach, label: TradeAreaMergeTypeCodes.MergeEach },
-    { value: TradeAreaMergeTypeCodes.MergeAll, label: TradeAreaMergeTypeCodes.MergeAll }
-  ];
+  private _analysisLevel: string;
+  private _hasLocations: boolean;
+  private _currentTradeAreas: ImpGeofootprintTradeArea[] = [];
+  private _currentMergeType: TradeAreaMergeTypeCodes;
+  private _hasProvidedTradeAreas: boolean;
+  private currentTradeAreaCount: number;
 
-  constructor(private fb: FormBuilder,
-              private tradeAreaService: AppTradeAreaService,
-              private logger: LoggingService) {}
-
-  private static processRadiusChanges(previousRadius: any, newRadius: any, tradeAreaControl: AbstractControl) : void {
-    if (previousRadius === newRadius) return;
-    const isShowingControl = tradeAreaControl.get('isShowing');
-    if (newRadius == null || newRadius === '' || tradeAreaControl.get('radius').errors != null) {
-      isShowingControl.setValue(false);
-      isShowingControl.disable();
-    } else {
-      isShowingControl.setValue(true);
-      isShowingControl.enable();
+  get tradeAreaControls() : FormGroup[] {
+    if (this.radiusForm != null && this.radiusForm.get('tradeAreas') != null && (this.radiusForm.get('tradeAreas') as FormArray).controls != null) {
+      return (this.radiusForm.get('tradeAreas') as FormArray).controls as FormGroup[];
     }
-    tradeAreaControl.get('isApplied').setValue(false);
+    return [];
+  }
+
+  private destroyed$ = new Subject<void>();
+  private cleanup$ = new Subject<void>();
+
+  constructor(private fb: FormBuilder) {
+    this.tradeAreaMergeTypes = Object.keys(TradeAreaMergeTypeCodes)
+      .filter(k => !isFunction(TradeAreaMergeTypeCodes[k]))
+      .map(k => ({
+        value: TradeAreaMergeTypeCodes[k],
+        label: TradeAreaMergeTypeCodes[k]
+      }));
   }
 
   ngOnInit() {
-    this.radiusForm = this.fb.group({
-      tradeAreas: this.fb.array([]),
-      mergeType: this.currentMergeType
-    });
-    const arrayRef = this.radiusForm.controls.tradeAreas as FormArray;
-    for (let i = 0; i < this.numTradeAreas; ++i) {
-      let taControl: FormGroup;
-      if (this.currentTradeAreas != null && this.currentTradeAreas[i] != null) {
-        taControl = this.fb.group({
-          radius: [this.currentTradeAreas[i].radius, [this.isInRange(0, this.maxRadius), this.noDupes(this)]],
-          isShowing: { value: this.currentTradeAreas[i].isShowing, disabled: this.currentTradeAreas[i].radius == null },
-          isApplied: this.currentTradeAreas[i].isApplied
-        });
-      } else {
-        taControl = this.fb.group({
-          radius: [null, [this.isInRange(0, this.maxRadius)]],
-          isShowing: { value: false, disabled: true },
-          isApplied: false
-        });
-      }
-      // this sets up the radius controls so that when you change the value, we change visibility
-      taControl.get('radius').valueChanges.pipe(
-        startWith(null),
-        pairwise()
-      ).subscribe(([previous, current]) => DistanceTradeAreaComponent.processRadiusChanges(previous, current, taControl));
-      arrayRef.push(taControl);
-    }
-    // emit an event when the merge type changes
-    this.radiusForm.get('mergeType').valueChanges.pipe(
-      distinctUntilChanged()
-    ).subscribe(newMergeType => this.mergeTypeChange.emit(newMergeType));
+    this.currentTradeAreaCount = this._currentTradeAreas == null || this._currentTradeAreas.length === 0 ? 1 : this._currentTradeAreas.length;
+    this.setupForm();
   }
 
-  ngOnChanges(changes: SimpleChanges) : void {
-    // this method gets triggered whenever any of the @Input values get changed from outside
-    this.logger.debug.log('On Change called', changes);
-    if (this.radiusForm == null) return;
-    if (changes['currentTradeAreas'] != null && JSON.stringify(changes['currentTradeAreas'].currentValue) !== JSON.stringify(this.radiusForm.get('tradeAreas').value)) {
-      this.radiusForm.patchValue({
-        tradeAreas: this.currentTradeAreas
-      }, { emitEvent: false });
-    }
-    if (changes['currentMergeType'] != null && changes['currentMergeType'] !== this.radiusForm.get('mergeType').value) {
-      this.radiusForm.patchValue({
-        mergeType: this.currentMergeType
-      }, { emitEvent: false });
-    }
+  ngOnDestroy() : void {
+    this.destroyed$.next();
   }
 
-  public distanceSubmitApply(formvalues) {
-    this.tradeAreaApply.emit(formvalues);
-    this.tradeAreaService.tradeareaType = 'distance';
-  }
-
-  private isInRange(minValue: number, maxValue: number) : ValidatorFn {
-    return function(control: AbstractControl) {
-      const currentRadius = numberOrNull(control.value);
-      if (control.value != null && control.value !== '' && (currentRadius <= minValue || currentRadius > maxValue || Number.isNaN(Number(control.value)))) {
-        return  {
-          rangeValid: `You must enter a numeric value > ${minValue} and <= ${maxValue} for trade areas you want to apply.`
-        };
-      }
-      return null;
+  addNewRadius() {
+    const formArray = this.radiusForm.get('tradeAreas') as FormArray;
+    const newControlValues: FormConfig<TradeAreaModel> = {
+      tradeAreaNumber: this.currentTradeAreaCount + 1,
+      isActive: false,
+      radius: null
     };
+    formArray.insert(this.currentTradeAreaCount, this.fb.group(newControlValues));
+    this.currentTradeAreaCount += 1;
+    this.cleanup$.next();
+    this.setupRadiusValidations();
   }
 
-  private noDupes(thisRef: DistanceTradeAreaComponent) : ValidatorFn {
-    return function(control: AbstractControl) {
-      const radiusControls = thisRef.tradeAreaControls.map(tac => tac.get('radius')).filter(rc => rc !== control);
-      const otherRadii = radiusControls.map(rc => numberOrNull(rc.value)).filter(r => r != null);
-      const currentRadius = numberOrNull(control.value);
-      if (currentRadius != null && otherRadii.includes(currentRadius)) {
-        return {
-          duplicateTradeArea: 'You must enter a unique value for each trade area you want to apply.'
-        };
-      }
-      return null;
+  deleteRadius(index: number) {
+    const formArray = this.radiusForm.get('tradeAreas') as FormArray;
+    this.cleanup$.next();
+    formArray.removeAt(index);
+    this.currentTradeAreaCount -= 1;
+    this.setupRadiusValidations();
+  }
+
+  private setFormValue<T extends DistanceTradeAreaUiModel, K extends keyof T>(field: K, value: T[K]) : void {
+    if (this.radiusForm != null && this.radiusForm.get(field as string) != null) {
+      this.radiusForm.get(field as string).setValue(value);
+    }
+  }
+
+  private setupForm() : void {
+    const tradeAreaSetups = [];
+    for (let i = 0; i < this.currentTradeAreaCount; ++i) {
+      const currentTA: Partial<ImpGeofootprintTradeArea> = this._currentTradeAreas[i] || {};
+      const currentTradeAreaSetup: FormConfig<TradeAreaModel> = {
+        tradeAreaNumber: i + 1,
+        isActive: currentTA.isActive || false,
+        radius: currentTA.taRadius || null
+      };
+      tradeAreaSetups.push(this.fb.group(currentTradeAreaSetup));
+    }
+    const analysisLevelValidator = this.locationType === ImpClientLocationTypeCodes.Site ? [Validators.required] : undefined;
+    const formSetup: FormConfig<DistanceTradeAreaUiModel> = {
+      mergeType: this._currentMergeType || TradeAreaMergeTypeCodes.MergeEach,
+      isReadOnly: this._hasProvidedTradeAreas || false,
+      tradeAreas: new FormArray(tradeAreaSetups),
+      hasLocations: new FormControl(this._hasLocations, [Validators.requiredTrue]),
+      analysisLevel: new FormControl(this._analysisLevel, analysisLevelValidator)
     };
+    this.radiusForm = this.fb.group(formSetup);
+    this.setupRadiusValidations();
   }
 
-  public resetTradeareaControls() : void {
-    this.radiusForm.get('tradeAreas').reset();
+  private setupRadiusValidations() : void {
+    const mergeAllOption = this.tradeAreaMergeTypes.filter(s => s.value === TradeAreaMergeTypeCodes.MergeAll)[0];
+    mergeAllOption.disabled = this.currentTradeAreaCount < 2;
+    if (this.currentTradeAreaCount === 1 && this.radiusForm.get('mergeType').value === TradeAreaMergeTypeCodes.MergeAll) {
+      this.setFormValue('mergeType', TradeAreaMergeTypeCodes.MergeEach);
+    }
+    for (let i = 0; i < this.currentTradeAreaCount; ++i) {
+      const prevRadius = this.radiusForm.get(`tradeAreas.${i - 1}.radius`);
+      const currentRadius = this.radiusForm.get(`tradeAreas.${i}.radius`);
+      const nextRadius = this.radiusForm.get(`tradeAreas.${i + 1}.radius`);
+      const minValue = prevRadius == null ? 0 : Number(prevRadius.value);
+      const maxValue = nextRadius == null || !isConvertibleToNumber(nextRadius.value) ? this.maxRadius : Number(nextRadius.value);
+      currentRadius.setValidators([Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(minValue), Validators.max(maxValue)]);
+      currentRadius.valueChanges.pipe(
+        takeUntil(this.destroyed$),
+        takeUntil(this.cleanup$),
+        filter(() => currentRadius.valid),
+        distinctUntilChanged()
+      ).subscribe(newRadius => {
+        const localPrev = this.radiusForm.get(`tradeAreas.${i - 1}.radius`);
+        const localIsActive = this.radiusForm.get(`tradeAreas.${i}.isActive`);
+        const localNext = this.radiusForm.get(`tradeAreas.${i + 1}.radius`);
+        localIsActive.setValue(true);
+        if (localNext != null) {
+          const afterNext = this.radiusForm.get(`tradeAreas.${i + 2}.radius`);
+          const localMax = afterNext == null ? this.maxRadius : Number(afterNext.value);
+          localNext.setValidators([Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(Number(newRadius)), Validators.max(localMax)]);
+          localNext.updateValueAndValidity();
+        }
+        if (localPrev != null) {
+          const beforePrev = this.radiusForm.get(`tradeAreas.${i - 2}.radius`);
+          const localMin = beforePrev == null ? 0 : Number(beforePrev.value);
+          localPrev.setValidators([Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(localMin), Validators.max(Number(newRadius))]);
+          localPrev.updateValueAndValidity();
+        }
+      });
+    }
   }
 }

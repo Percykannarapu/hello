@@ -1,7 +1,7 @@
-import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ProjectCpmTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../services/app-discovery.service';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
+import { ProjectCpmTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 export class ValDiscoveryUIModel {
   projectId: number;
@@ -92,7 +92,6 @@ export class ValDiscoveryUIModel {
       projectToUpdate.impProjectPrefs.push(cpmTypeAttribute);
     }
     cpmTypeAttribute.val = (this.cpmType != null) ? this.cpmType : 'UNKNOWN';
-    console.log('Discovery Form changed, new Project values:', projectToUpdate);
   }
 
   private toNumber(value: string) : number | null {

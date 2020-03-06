@@ -10,6 +10,7 @@ import { getUuid } from '@val/common';
 })
 export class ValidatedTextInputComponent implements ControlValueAccessor {
 
+
   @Input() validationMessage: string;
   @Input() labelText: string;
   @Input() tabIndex: number;
@@ -26,6 +27,11 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
   set value(value: string) {
     this._value = value;
     this.propagateChange(this._value);
+    if (this.touchOnChange) this.propagateTouch(this._value);
+  }
+
+  get touchOnChange() : boolean {
+    return this.controlContainer != null && this.controlContainer.control != null && this.controlContainer.control.updateOn === 'change';
   }
 
   private _value: string;

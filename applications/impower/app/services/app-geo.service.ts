@@ -257,20 +257,20 @@ export class AppGeoService {
         () => {
 
           const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet, season);
+          this.impGeoService.add(geosToPersist);
           this.finalizeTradeAreas(tradeAreas);
 
           // Add the must covers to geosToPersist
-          this.ensureMustCoversObs(Array.from(locationDistanceMap.keys()), geosToPersist).subscribe(results => {
-              results.forEach(result => {
-                this.logger.debug.log('Added ', results.length, ' must cover geos');
-                geosToPersist.push(result);
-              });
+          let mustCovers = [];
+          this.ensureMustCoversObs(null, null).subscribe(results => {
+              this.logger.debug.log('Adding ', results.length, ' must cover geos');
+              mustCovers = mustCovers.concat(results);
             }
             , err => {
               this.logger.error.log('ERROR occurred ensuring must covers: ', err);
             }
             , () => {
-              this.impGeoService.add(geosToPersist);
+              this.impGeoService.add(mustCovers);
               this.store$.dispatch(new StopBusyIndicator({key}));
             });
         });

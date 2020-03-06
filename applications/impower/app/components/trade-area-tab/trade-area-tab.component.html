@@ -5,23 +5,24 @@
         <val-distance-trade-area [currentTradeAreas]="(siteTradeAreas$ | async)"
                                  [currentMergeType]="(siteMergeType$ | async)"
                                  [maxRadius]="maxRadius"
-                                 [numTradeAreas]="maxTradeAreaCount"
+                                 [maxTradeAreas]="maxTradeAreaCount"
                                  [hasProvidedTradeAreas]="(hasSiteProvidedTradeAreas$ | async)"
-                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, siteTypes.Site)"
-                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Site)"
-                                 #distanceTradeArea>
-          Loading Site Trade Areas...
+                                 [hasLocations]="hasSites$ | async"
+                                 (formSubmitted)="onTradeAreasChanged($event, siteTypes.Site)"
+                                 [locationType]="siteTypes.Site"
+                                 [analysisLevel]="analysisLevel$ | async">
         </val-distance-trade-area>
       </site-content>
       <competitor-content>
         <val-distance-trade-area [currentTradeAreas]="(competitorTradeAreas$ | async)"
                                  [currentMergeType]="(competitorMergeType$ | async)"
                                  [maxRadius]="maxRadius"
-                                 [numTradeAreas]="maxTradeAreaCount"
+                                 [maxTradeAreas]="maxTradeAreaCount"
                                  [hasProvidedTradeAreas]="(hasCompetitorProvidedTradeAreas$ | async)"
-                                 (tradeAreaApply)="onDistanceTradeAreasChanged($event, siteTypes.Competitor)"
-                                 (mergeTypeChange)="onDistanceMergeTypeChanged($event, siteTypes.Competitor)">
-          Loading Competitor Trade Areas...
+                                 [hasLocations]="hasCompetitors$ | async"
+                                 (formSubmitted)="onTradeAreasChanged($event, siteTypes.Competitor)"
+                                 [locationType]="siteTypes.Competitor"
+                                 [analysisLevel]="analysisLevel$ | async">
         </val-distance-trade-area>
       </competitor-content>
     </val-site-type-selector>
@@ -35,7 +36,7 @@
         Loading Audience Trade Areas...</val-audience-tradearea>
     </p-accordionTab> -->
   <p-accordionTab header="{{customTaText}}" [transitionOptions]="'0ms'">
-    <val-upload-tradeareas 
+    <val-upload-tradeareas
        (isCustomTAExists) = isCustomTa($event)>Loading...</val-upload-tradeareas>
   </p-accordionTab>
   <p-accordionTab  header="{{mustCoverText}}" [transitionOptions]="'0ms'">

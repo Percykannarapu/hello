@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, groupBy, isConvertibleToNumber, mapArrayToEntity } from '@val/common';
+import { filterArray, isConvertibleToNumber, mapArrayToEntity } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
-import { selectGeoAttributes } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
+import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, startWith, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
@@ -10,6 +10,7 @@ import { AppConfig } from '../app.config';
 import { ApplyAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { ClearGeoVars } from '../impower-datastore/state/transient/geo-vars/geo-vars.actions';
+import { ValSort } from '../models/valassis-sorters';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
 import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -21,7 +22,7 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppProjectService } from './app-project.service';
 
@@ -66,8 +67,8 @@ export class AppStateService {
   public uniqueIdentifiedGeocodes$: CachedObservable<string[]> = new BehaviorSubject<string[]>([]);
   public totalGeoCount$: Observable<number>;
 
-  public siteTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
-  public competitorTradeAreas$: CachedObservable<Map<number, ImpGeofootprintTradeArea[]>> = new BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>(new Map<number, ImpGeofootprintTradeArea[]>());
+  public siteTradeAreas$: Observable<ImpGeofootprintTradeArea[]>;
+  public competitorTradeAreas$: Observable<ImpGeofootprintTradeArea[]>;
   public tradeAreaCount$: Observable<number>;
 
   private clearUI: Subject<void> = new Subject<void>();
@@ -257,12 +258,12 @@ export class AppStateService {
 
     this.uniqueIdentifiedGeocodeSet$.pipe(
       filter(geoSet => geoSet.size > 0),
-      withLatestFrom(this.store$.select(selectGeoAttributes), this.applicationIsReady$),
+      withLatestFrom(this.store$.select(selectGeoAttributeEntities), this.applicationIsReady$),
       filter(([, , ready]) => ready),
       map(([requestedGeos, attrs]) => {
         const result = new Set<string>();
-        attrs.forEach(e => {
-          if ((e.hasOwnProperty('hhld_s') || e.hasOwnProperty('hhld_w')) && !requestedGeos.has(e.geocode)) result.add(e.geocode);
+        requestedGeos.forEach(geocode => {
+          if (attrs[geocode] == null || !attrs[geocode].hasOwnProperty('hhld_s')) result.add(geocode)
         });
         return result;
       }),
@@ -280,20 +281,26 @@ export class AppStateService {
   }
 
   private setupTradeAreaObservables() : void {
-    const radialTradeAreas$ = this.tradeAreaService.storeObservable.pipe(
-      map(tas => tas.filter(ta => ta.taType.toUpperCase() === 'RADIUS'))
+    this.siteTradeAreas$ = this.activeClientLocations$.pipe(
+      filter(sites => sites != null && sites.length > 0),
+      map(sites => sites[0]),
+      filter(firstSite => firstSite != null && firstSite.impGeofootprintTradeAreas != null && firstSite.impGeofootprintTradeAreas.length > 0),
+      map(firstSite => firstSite.impGeofootprintTradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius)),
+      map(tradeAreas => tradeAreas.sort(ValSort.TradeAreaByTaNumber))
     );
-    radialTradeAreas$.pipe(
-      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'),
-      map(tas => groupBy(tas, 'taNumber')),
-    ).subscribe(this.siteTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
-    radialTradeAreas$.pipe(
-      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
-      map(tas => groupBy(tas, 'taNumber'))
-    ).subscribe(this.competitorTradeAreas$ as BehaviorSubject<Map<number, ImpGeofootprintTradeArea[]>>);
+    this.competitorTradeAreas$ = this.activeCompetitorLocations$.pipe(
+      filter(sites => sites != null && sites.length > 0),
+      map(sites => sites[0]),
+      filter(firstSite => firstSite != null && firstSite.impGeofootprintTradeAreas != null && firstSite.impGeofootprintTradeAreas.length > 0),
+      map(firstSite => firstSite.impGeofootprintTradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius)),
+      map(tradeAreas => tradeAreas.sort(ValSort.TradeAreaByTaNumber)),
+    );
     this.tradeAreaCount$ = this.tradeAreaService.storeObservable.pipe(
-      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site' && ta.isActive),
-      map(ta => ta.length)
+      filter(ta => ta != null),
+      map(tradeAreas => tradeAreas.reduce((p, ta) => {
+        if (ta.impGeofootprintLocation.clientLocationTypeCode === 'Site' && ta.isActive) p++;
+        return p;
+      }, 0))
     );
   }
 

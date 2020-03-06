@@ -132,6 +132,7 @@ import { SelectedAudiencesComponent } from './components/target-audience/selecte
 import { TargetAudienceComponent } from './components/target-audience/target-audience.component';
 import { AudienceTradeareaComponent } from './components/trade-area-tab/audience-tradearea/audience-tradearea.component';
 import { DistanceTradeAreaComponent } from './components/trade-area-tab/distance-trade-area/distance-trade-area.component';
+import { RadiusEntryComponent } from './components/trade-area-tab/distance-trade-area/radius-entry/radius-entry.component';
 import { TradeAreaTabComponent } from './components/trade-area-tab/trade-area-tab.component';
 import { UploadMustCoverComponent } from './components/trade-area-tab/upload-must-cover/upload-must-cover.component';
 import { UploadTradeAreasComponent } from './components/trade-area-tab/upload-tradeareas/upload-tradeareas.component';
@@ -361,7 +362,8 @@ export function actionSanitizer(action: Action) : Action {
     BreaksVariableShaderComponent,
     PaletteColorPickerComponent,
     EsriClassBreakInputComponent,
-    ValidatedTextInputComponent
+    ValidatedTextInputComponent,
+    RadiusEntryComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

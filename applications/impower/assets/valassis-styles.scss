@@ -33,15 +33,18 @@ body {
     background-color: #00000000;
     border: 1px solid $brandBlue;
     box-shadow: none;
+
     &:enabled:not(:focus):hover,
     &:enabled:focus {
       color: $lightGray04;
     }
+
     &.ui-button-icon-only:enabled:not(:focus):hover {
       > span {
         color: $lightGray04;
       }
     }
+
     &.ui-autocomplete-dropdown,
     &.ui-spinner-button {
       border: none;
@@ -53,7 +56,9 @@ body {
         background-color: $hoverBgColor;
       }
     }
+
     &.ui-togglebutton {
+      border-radius: 3px;
       span {
         color: $brandBlue;
       }
@@ -74,6 +79,10 @@ body {
           color: $darkGray03;
         }
       }
+    }
+
+    &.val-squared-button {
+      border-radius: 3px;
     }
   }
 

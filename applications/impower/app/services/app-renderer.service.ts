@@ -25,6 +25,7 @@ import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { GfpShaderKeys } from '../models/ui-enums';
+import { ValSort } from '../models/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -353,11 +354,13 @@ export class AppRendererService {
 
   updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], isBatchMode: boolean = false) : void {
     if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
+      let useCustomSorter = false;
       definition.theme = ColorPalette.CpqMaps;
       const data: Record<string, string> = geos.reduce((result, geo) => {
         const isDeduped = isBatchMode || (geo.isDeduped === 1);
         if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && isDeduped) {
           const secondaryKey = definition.secondaryDataKey || 'locationNumber';
+          useCustomSorter = (secondaryKey === 'locationNumber');
           if (geo.impGeofootprintLocation.hasOwnProperty(secondaryKey)) {
             result[geo.geocode] = geo.impGeofootprintLocation[secondaryKey];
           } else {
@@ -369,7 +372,8 @@ export class AppRendererService {
       }, {});
       definition.arcadeExpression = createDataArcade(data);
       const legendEntries = new Set(Object.values(data));
-      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme));
+      const sorter = useCustomSorter ? ValSort.LocationBySiteNum : null;
+      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme), sorter);
     }
   }
 
@@ -423,7 +427,7 @@ export class AppRendererService {
       });
       definition.arcadeExpression = createDataArcade(data);
       const legendEntries = new Set(Object.values(data));
-      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme));
+      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme), ValSort.TradeAreaStrings);
     }
   }
 }

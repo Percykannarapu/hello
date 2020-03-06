@@ -2,16 +2,17 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
-import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
+import { BaseModel, transient } from '../../api/models/BaseModel';
 import { ImpClientLocation } from '../../client/models/ImpClientLocation';
 import { ImpClientLocationType } from '../../client/models/ImpClientLocationType';
-import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
-import { ImpProject } from './ImpProject';
+import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
+import { TradeAreaTypeCodes } from '../targeting.enums';
 import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
 import { ImpGeofootprintLocAttrib } from './ImpGeofootprintLocAttrib';
+import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
 import { ImpGeofootprintVar } from './ImpGeofootprintVar';
+import { ImpProject } from './ImpProject';
 
 export class ImpGeofootprintLocation extends BaseModel
 {
@@ -32,7 +33,7 @@ export class ImpGeofootprintLocation extends BaseModel
    public homeGeoName:               string;         /// Name of the home geography
    public geoProfileId:              number;         /// Identifies the geography profile
    public geoProfileTypeAbbr:        string;         /// Type of geo profile
-   public origAddress1:              string;         /// Original Street Name provided for geocoding 
+   public origAddress1:              string;         /// Original Street Name provided for geocoding
    public origCity:                  string;         /// Original City provided for geocoding
    public origState:                 string;         /// Original State provided for geocoding
    public origPostalCode:            string;         /// Original ZIP provided for geocoding
@@ -42,9 +43,9 @@ export class ImpGeofootprintLocation extends BaseModel
    public locState:                  string;         /// Store state
    public locZip:                    string;         /// Store zip code
    public locSortOrder:              number;         /// Locations sort order
-   public geocoderMatchCode:         string;         /// Match Code returned by the geocoder	
+   public geocoderMatchCode:         string;         /// Match Code returned by the geocoder
    public geocoderLocationCode:      string;         /// Location Quality Code returned by the Address Broker geocoding software eg: AS0, It is the most common code
-   public recordStatusCode:          string;         /// Status Code: PROVIDED/SUCCESS/ERROR 
+   public recordStatusCode:          string;         /// Status Code: PROVIDED/SUCCESS/ERROR
    public isActive:                  boolean;        /// Is Active
    public locationNumber:            string;         /// Location Number
    public marketCode:                string;         /// Stores market code value eg: 534 for Atlanta
@@ -57,8 +58,8 @@ export class ImpGeofootprintLocation extends BaseModel
    public radius2:                   number;         /// Radius2 for Site
    public radius3:                   number;         /// Radius3 for Site
    public homeCountyFip:             string;         /// 5 digit FIPS County code e.g. 26163 for WAYNE county in Michigan
-   public homeDmaCode:               string;         /// 5 digit Designated Metropolitan Area e.g. 0505 for Detroit MI 
-   public carrierRoute:              string;     
+   public homeDmaCode:               string;         /// 5 digit Designated Metropolitan Area e.g. 0505 for Detroit MI
+   public carrierRoute:              string;
 
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
@@ -90,10 +91,14 @@ export class ImpGeofootprintLocation extends BaseModel
    // TRANSITORY ONE TO MANY RELATIONSHIP GETTERS
    // -------------------------------------------
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   getImpGeofootprintGeos(): ReadonlyArray<ImpGeofootprintGeo> {
-      let _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
-      (this.impGeofootprintTradeAreas||[]).forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintGeos||[])));
-      return _result;
+   getImpGeofootprintGeos(tradeAreaFilter?: TradeAreaTypeCodes) : ReadonlyArray<ImpGeofootprintGeo> {
+      const result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
+      (this.impGeofootprintTradeAreas || []).forEach(impGeofootprintTradeArea => {
+        if (tradeAreaFilter == null || TradeAreaTypeCodes.parse(impGeofootprintTradeArea.taType) === tradeAreaFilter) {
+          result.push(...impGeofootprintTradeArea.impGeofootprintGeos || []);
+        }
+      });
+      return result;
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */

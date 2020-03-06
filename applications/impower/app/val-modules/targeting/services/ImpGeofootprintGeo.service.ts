@@ -176,7 +176,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          return Observable.create(observer => {
             this.postDBRemoves('Targeting', 'ImpGeofootprintGeo', 'v1', removesPayload)
                 .subscribe(postResultCode => {
-                     console.log('post completed, calling completeDBRemoves');
+                     this.logger.debug.log('post completed, calling completeDBRemoves');
                      this.completeDBRemoves(removes);
                      observer.next(postResultCode);
                      observer.complete();
@@ -211,7 +211,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          case 'DIGITAL ATZ': varValue = 'VALDIG'; break;
       }
       if (varValue == null)
-         console.error ('Couldn\'t set varValue for analysisLevel: ' + analysisLevel);
+         this.logger.error.log ('Couldn\'t set varValue for analysisLevel: ' + analysisLevel);
 
       return varValue;
    }
@@ -227,7 +227,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
       {
-         console.warn('sort criteria is null - a:', a, ', b: ', b);
+         this.logger.warn.log('sort criteria is null - a:', a, ', b: ', b);
          return 0;
       }
 
@@ -272,7 +272,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
       {
-         console.warn('sort criteria is null - a:', a, ', b: ', b);
+         this.logger.warn.log('sort criteria is null - a:', a, ', b: ', b);
          return 0;
       }
 
@@ -344,7 +344,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    }
 
    public pl(msg) {
-      console.log(msg);
+      this.logger.debug.log(msg);
       return msg;
    }
 
@@ -360,9 +360,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       const geos = this.get();
 
-      console.log('Calculating geo ranks for ', (geos != null) ? geos.length : 0, ' rows');
+      this.logger.debug.log('Calculating geo ranks for ', (geos != null) ? geos.length : 0, ' rows');
       this.denseRank(geos,  this.sortGeos, this.partitionGeos);
-      console.log('Ranked ', (geos != null) ? geos.length : 0, ' geos');
+      this.logger.debug.log('Ranked ', (geos != null) ? geos.length : 0, ' geos');
 
       for (const geo of geos) {
          if (geo.rank === 0)
@@ -544,7 +544,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, analysisLevel: string, filter?: (geo: ImpGeofootprintGeo) => boolean)
    {
       this.analysisLevelForExport = analysisLevel;
-      console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
+      this.logger.debug.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
       let geos: ImpGeofootprintGeo[] = this.get();
       if (filter != null) geos = geos.filter(filter);
 
@@ -578,7 +578,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       switch (exportFormat)
       {
          case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx:
-            console.log ('setExportFormat - alteryx');
+            this.logger.debug.log ('setExportFormat - alteryx');
             exportColumns.push({ header: this.exportVarGeoHeader(this),  row: (state, data) => data.geocode});
             exportColumns.push({ header: 'Site Name',                    row: (state, data) => data.impGeofootprintLocation.locationName});
             exportColumns.push({ header: 'Site Description',             row: (state, data) => data.impGeofootprintLocation.description});
@@ -605,7 +605,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
          // No format specified, derive from the object - IMPLEMENT (Will eventually have an export from NgRx)
          default:
-            console.log ('setExportFormat - default');
+            this.logger.debug.log ('setExportFormat - default');
             exportColumns.push({ header: this.exportVarGeoHeader(this),  row: (state, data) => data.geocode});
             exportColumns.push({ header: 'Site Name',                    row: (state, data) => data.impGeofootprintLocation.locationName});
             exportColumns.push({ header: 'Site Description',             row: (state, data) => data.impGeofootprintLocation.description});
@@ -642,7 +642,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
        // If there was a problem in the upload file, notify the user
        if (failCount > 0) {
-          console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
+          this.logger.error.log('There were errors parsing the following rows in the CSV: ', data.failedRows);
           this.reportError(errorTitle, `There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`);
        }
 
@@ -710,8 +710,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          }
       }
       catch (e) {
-         console.error('ERROR Parsing must cover string: ' + mustCoverCsv);
-         console.error(e);
+         this.logger.error.log('ERROR Parsing must cover string: ' + mustCoverCsv);
+         this.logger.error.log(e);
          return [];
       }
    }
@@ -726,7 +726,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    public setMustCovers(newMustCovers: string[], append: boolean = false)
    {
-      console.log('setMustCovers Fired - ' + (newMustCovers != null ? newMustCovers.length : null) + ' new must covers');
+      this.logger.debug.log('setMustCovers Fired - ' + (newMustCovers != null ? newMustCovers.length : null) + ' new must covers');
       if (newMustCovers != null && newMustCovers.length != 0)
       {
          // Reduce the list of geographies down to the distinct list
@@ -769,7 +769,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.uploadFailuresSub.next(errorGeo);
       this.currentMustCoverFileName = fileName;
       this.setMustCovers(successGeo, true);
-      console.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
+      this.logger.debug.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
       return errorGeo.map(geo => geo.geocode);
    }
 

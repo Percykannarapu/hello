@@ -3,10 +3,13 @@ import { TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targetin
 export interface DistanceTradeAreaUiModel {
   tradeAreas: TradeAreaModel[];
   mergeType: TradeAreaMergeTypeCodes;
+  isReadOnly: boolean;
+  analysisLevel: string;
+  hasLocations: boolean;
 }
 
 export interface TradeAreaModel {
   radius: number | null;
-  isShowing: boolean;
-  isApplied: boolean;
+  isActive: boolean;
+  tradeAreaNumber: number;
 }

@@ -1,0 +1,21 @@
+@import "valassis-variables";
+
+.component-root {
+  padding-left: 1em;
+  display: flex;
+  > .radius-control {
+    flex: 1;
+    padding-left: 1em;
+  }
+  > .radius-validation {
+    flex: 3;
+    color: $inputErrorTextColor;
+    display: flex;
+    align-items: flex-end;
+    padding-left: 1em;
+    padding-bottom: 0.33em;
+  }
+  > .button-control {
+    padding-left: 1em;
+  }
+}

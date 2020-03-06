@@ -1,5 +1,9 @@
 export function isConvertibleToNumber(value: any) : value is number {
-  return value != null && value !== '' && !Number.isNaN(Number(value));
+  return value != null && value !== '' && isValidNumber(Number(value));
+}
+
+export function isConvertibleToInteger(value: any) : boolean {
+  return isConvertibleToNumber(value) && isInteger(Number(value));
 }
 
 export function isFiniteNumber(value: any) : boolean {
@@ -29,6 +33,10 @@ export function isNil(value: any) : value is (null | undefined) {
 
 export function isNumber(value: any) : value is number {
   return typeof value === 'number';
+}
+
+export function isValidNumber(value: any) : value is number {
+  return isNumber(value) && !isNaN(value);
 }
 
 export function isString(value: any) : value is string {
