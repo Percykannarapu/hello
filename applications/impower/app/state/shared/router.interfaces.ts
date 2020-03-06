@@ -48,6 +48,7 @@ export const getTypedBatchQueryParams = createSelector(getRouteQueryParams, stat
   if (state != null) {
     if (state.height != null && !Number.isNaN(Number(state.height))) result.height = Number(state.height);
     if (state.hideNeighboringSites != null) result.hideNeighboringSites = strToBool(state.hideNeighboringSites);
+    if (state.duplicated != null) result.duplicated = strToBool(state.duplicated);
   }
   return result;
 });
