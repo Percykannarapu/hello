@@ -119,7 +119,7 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
   }
 
   public onClick(profileId: number) {
-    console.log('profileId:::', profileId);
+
   }
 
   public onExport(profileId: number) : void {

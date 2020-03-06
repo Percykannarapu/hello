@@ -11,6 +11,7 @@ import { LocalAppState } from '../state/app.interfaces';
 import { resetNamedForm } from '../state/forms/forms.actions';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
+import { LoggingService } from '../val-modules/common/services/logging.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
@@ -23,7 +24,8 @@ export class AppGeocodingService {
   constructor(private restService: RestDataService,
               private config: AppConfig,
               private appStateService: AppStateService,
-              private store$: Store<LocalAppState>) {
+              private store$: Store<LocalAppState>,
+              private logger: LoggingService) {
     this.clearDuplicates();
     this.appStateService.clearUI$.subscribe(() => this.clearDuplicates());
   }
@@ -44,7 +46,7 @@ export class AppGeocodingService {
       if (data != null && Object.keys(data.invalidRowHeaders).length > 0){
 
         Object.keys(data.invalidRowHeaders).map((headerCol) => {
-          //console.log('index values====>', record[headerCol], headerCol);
+          //this.logger.info.log('index values====>', record[headerCol], headerCol);
           this.store$.dispatch(new ErrorNotification({message: `The ${headerCol} column cannot exceed ${data.invalidRowHeaders[headerCol]} characters per site`, notificationTitle: 'Invalid Upload Data'}));
         });
         data.parsedData = [];
@@ -54,9 +56,9 @@ export class AppGeocodingService {
         this.store$.dispatch(new ErrorNotification({ message: `Please define radii values >0 and <= 50 for all ${siteType}s.`, notificationTitle: 'Location Upload Error' }));
       } else {
         if (data.failedRows.length > 0) {
-          console.error('There were errors parsing the following rows in the CSV: ', data.failedRows);
-          const failedString = "\n \u0007 " + data.failedRows.join("\n\n\u0007 ");
-          this.store$.dispatch(new ErrorNotification({ message: `There were ${data.failedRows.length} rows in the uploaded file that could not be read. \n`+`${failedString }`, notificationTitle: 'Location Upload Error' }));
+          this.logger.error.log('There were errors parsing the following rows in the CSV: ', data.failedRows);
+          const failedString = '\n \u0007 ' + data.failedRows.join('\n\n\u0007 ');
+          this.store$.dispatch(new ErrorNotification({ message: `There were ${data.failedRows.length} rows in the uploaded file that could not be read. \n ${failedString}`, notificationTitle: 'Location Upload Error' }));
         } else {
           const siteNumbers = [];
           data.parsedData.forEach(siteReq => siteNumbers.push(siteReq.number));
@@ -101,10 +103,9 @@ export class AppGeocodingService {
       });
     }
     return merge(...observables, 4).pipe(
-      tap(
-        locations => allLocations.push(...locations),
-        null,
-        () => {
+      tap({
+        next: locations => allLocations.push(...locations),
+        complete: () => {
           const successCount = allLocations.filter(loc => loc['Geocode Status'] === 'SUCCESS').length;
           const providedCount = allLocations.filter(loc => loc['Geocode Status'] === 'PROVIDED').length;
           const goodCount = successCount + providedCount;
@@ -114,14 +115,15 @@ export class AppGeocodingService {
             this.store$.dispatch(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-data-file`, 'upload', metricText, allLocations.length));
           }
           if (allLocations.length === 1) {
-            this.store$.dispatch(resetNamedForm({ path: 'addLocation' }));
+            this.store$.dispatch(resetNamedForm({path: 'addLocation'}));
           }
           if (failCount > 0) {
-            this.store$.dispatch(new ErrorNotification({ message: 'Geocoding Error' }));
+            this.store$.dispatch(new ErrorNotification({message: 'Geocoding Error'}));
           } else if (successCount > 0) {
-            this.store$.dispatch(new SuccessNotification({ message: 'Geocoding Success' }));
+            this.store$.dispatch(new SuccessNotification({message: 'Geocoding Success'}));
           }
-        }),
+        }
+      }),
     );
   }
 

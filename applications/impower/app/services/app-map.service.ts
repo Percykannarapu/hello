@@ -13,7 +13,7 @@ import Legend from 'esri/widgets/Legend';
 import ScaleBar from 'esri/widgets/ScaleBar';
 import Search from 'esri/widgets/Search';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { debounceTime, filter } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../state/usage/targeting-usage.actions';
@@ -142,7 +142,7 @@ export class AppMapService {
             eventData.push(event);
           }
         },
-        err => console.error('There was an error querying for a geocode', err),
+        err => this.logger.error.log('There was an error querying for a geocode', err),
         () => {
           this.geoSelected.next(eventData);
         });

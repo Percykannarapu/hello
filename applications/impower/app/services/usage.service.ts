@@ -1,19 +1,17 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { FullAppState } from '../state/app.interfaces';
-import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
-import { ImpMetricCounter } from '../val-modules/metrics/models/ImpMetricCounter';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { ImpMetricNameService } from '../val-modules/metrics/services/ImpMetricName.service';
-import { RestResponse } from '../models/RestResponse';
-import { UserService } from './user.service';
 import { EMPTY, Observable } from 'rxjs';
-import { HttpHeaders } from '@angular/common/http';
 import { map, mergeMap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { RestResponse } from '../models/RestResponse';
+import { LoggingService } from '../val-modules/common/services/logging.service';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ImpMetricCounter } from '../val-modules/metrics/models/ImpMetricCounter';
 import { ImpMetricGauge } from '../val-modules/metrics/models/ImpMetricGauge';
-import { HttpClient } from '@angular/common/http';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { ImpMetricNameService } from '../val-modules/metrics/services/ImpMetricName.service';
 import { AppStateService } from './app-state.service';
+import { UserService } from './user.service';
 
 export class Metrics{
   constructor(
@@ -32,7 +30,8 @@ export class UsageService {
               private impMetricNameService: ImpMetricNameService,
               private appConfig: AppConfig,
               private http: HttpClient,
-              private stateService: AppStateService) {}
+              private stateService: AppStateService,
+              private logger: LoggingService) {}
 
 
     public createCounterMetrics(counterMetrics: Metrics[]) {
@@ -63,7 +62,7 @@ export class UsageService {
       return;
     }
     if (metricName.namespace == null || metricName.section == null || metricName.target == null || metricName.action == null) {
-      console.warn('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
+      this.logger.warn.log('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
       return;
     }
 
@@ -73,7 +72,7 @@ export class UsageService {
         this.fetchRetries++;
         this.createCounterMetric(metricName, metricText, metricValue);
       }, err => {
-        console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+        this.logger.warn.log('Error saving usage metric: ', metricName, metricText, metricValue);
       });
       return;
     }
@@ -91,14 +90,14 @@ export class UsageService {
       ).subscribe(res => {
           // do nothing with the response for now
         }, err => {
-          console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+          this.logger.warn.log('Error saving usage metric: ', metricName, metricText, metricValue);
         });
     } else {
       this._createCounterMetric(impMetricName[0].metricId, metricText, metricValue)
         .subscribe(res => {
           // do nothing with the response for now
         }, err => {
-          console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+          this.logger.warn.log('Error saving usage metric: ', metricName, metricText, metricValue);
         });
     }
   }
@@ -115,7 +114,7 @@ export class UsageService {
       return;
     }
     if (metricName.namespace == null || metricName.section == null || metricName.target == null || metricName.action == null) {
-      console.warn('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
+      this.logger.warn.log('not enough information provided to create a usage metric: ', metricName, metricText, metricValue);
       return;
     }
 
@@ -125,7 +124,7 @@ export class UsageService {
         this.fetchRetries++;
         this.createCounterMetric(metricName, metricText, metricValue);
       }, err => {
-        console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+        this.logger.warn.log('Error saving usage metric: ', metricName, metricText, metricValue);
       });
       return;
     }
@@ -143,14 +142,14 @@ export class UsageService {
       ).subscribe(res => {
           // do nothing with the response for now
         }, err => {
-          console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+          this.logger.warn.log('Error saving usage metric: ', metricName, metricText, metricValue);
         });
     } else {
       this._createGaugeMetric(impMetricName[0].metricId, metricText, metricValue)
         .subscribe(res => {
           // do nothing with the response for now
         }, err => {
-          console.warn('Error saving usage metric: ', metricName, metricText, metricValue);
+          this.logger.warn.log('Error saving usage metric: ', metricName, metricText, metricValue);
         });
     }
   }
@@ -243,7 +242,7 @@ export class UsageService {
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + RestDataService.getConfig().oauthToken);
 
     // Send the counter data to Fuse for persistence
-    //console.log('metric request:::', JSON.stringify(impMetricGauge));
+    //this.logger.debug.log('metric request:::', JSON.stringify(impMetricGauge));
     return this.restClient.post('v1/metrics/base/impmetricgauge/save', JSON.stringify(impMetricGauge));
   }
 

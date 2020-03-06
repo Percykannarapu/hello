@@ -151,7 +151,7 @@ export class TargetAudienceService implements OnDestroy {
 
       // protect against adding dupes to the data store
       if ( projectVar && (this.projectVarService.get().filter(pv => pv.source === projectVar.source && pv.fieldname === projectVar.fieldname).length > 0))
-        console.warn('refusing to add duplicate project var: ', projectVar, this.projectVarService.get());
+        this.logger.warn.log('refusing to add duplicate project var: ', projectVar, this.projectVarService.get());
       else {
         if (projectVar) this.projectVarService.add([projectVar]);
       }
@@ -302,7 +302,7 @@ export class TargetAudienceService implements OnDestroy {
             complete: () => {
               this.store$.dispatch(new StopBusyIndicator({ key }));
               this.restService.get(`v1/targeting/base/geoinfo/deletefile/${originalFileName}`).subscribe(res => {
-                console.log(res.payload);
+                this.logger.debug.log(res.payload);
               });
             }
           });
@@ -310,7 +310,7 @@ export class TargetAudienceService implements OnDestroy {
         this.getNationalData(audiences, analysisLevel).subscribe(
           data => convertedData.push(...data),
           err => {
-            console.error('There was an error processing the National Extract', err);
+            this.logger.error.log('There was an error processing the National Extract', err);
             this.store$.dispatch(new StopBusyIndicator({ key }));
           },
           () => {
@@ -450,7 +450,7 @@ export class TargetAudienceService implements OnDestroy {
         this.varService.add(vars);
       }
     }, err => {
-      console.error('There was an error retrieving data from the server. Additional info:', err);
+      this.logger.error.log('There was an error retrieving data from the server. Additional info:', err);
       this.store$.dispatch(new StopBusyIndicator({ key }));
       this.store$.dispatch(new ErrorNotification({ notificationTitle, message: errorMessage }));
     }, () => {

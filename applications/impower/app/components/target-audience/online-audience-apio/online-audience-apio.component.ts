@@ -5,6 +5,7 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
+import { LoggingService } from '../../../val-modules/common/services/logging.service';
 
 interface ApioTreeNode extends TreeNode {
   originalChildren?: ApioTreeNode[];
@@ -39,7 +40,8 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   constructor(private audienceService: TargetAudienceOnlineService,
               private parentAudienceService: TargetAudienceService,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private logger: LoggingService) {
     this.selectedNodeMapInMarket.set(OnlineSourceTypes.InMarket, []);
     this.selectedNodeMapInterest.set(OnlineSourceTypes.Interest, []);
     this.currentSelectedNodesInterest = this.selectedNodeMapInterest.get(this.selectedSource);
@@ -83,7 +85,7 @@ export class OnlineAudienceApioComponent implements OnInit {
     for (const audience of audiences) {
       const node = this.filterSingleNode(this.allNodes, audience.audienceName);
       if (node == null) {
-        console.warn('Unable to check audience after loading', audience);
+        this.logger.warn.log('Unable to check audience after loading', audience);
         return;
       }
       if (audience.audienceSourceName == 'Interest') {
@@ -132,7 +134,7 @@ export class OnlineAudienceApioComponent implements OnInit {
       folders => folders.forEach(f => {
         this.allNodes.push(OnlineAudienceApioComponent.asTreeNode(f));
       }),
-      err => console.error('There was an error during retrieval of the Apio Audience descriptions', err),
+      err => this.logger.error.log('There was an error during retrieval of the Apio Audience descriptions', err),
       () => {
         this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
         this.currentNodes = Array.from(this.allNodes);

@@ -60,8 +60,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
           this.allNodes.push(OfflineAudienceTdaComponent.asFolder(folder));
       },
       (err) => {
-        console.error(err);
-        this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'TDA Connection Error' }));
+        this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'TDA Connection Error', additionalErrorInfo: err }));
       },
       () => {
         this.allNodes.sort((a, b) => a.data.sortOrder - b.data.sortOrder);

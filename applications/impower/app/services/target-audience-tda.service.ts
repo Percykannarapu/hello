@@ -1,21 +1,18 @@
 import { Injectable } from '@angular/core';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { catchError, map, mergeMap, tap, filter } from 'rxjs/operators';
-import { merge, Observable, throwError, EMPTY } from 'rxjs';
-import { AudienceDataDefinition } from '../models/audience-data.model';
-import { TargetAudienceService } from './target-audience.service';
-import { AppConfig } from '../app.config';
-import { AppStateService } from './app-state.service';
-import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { AppLoggingService } from './app-logging.service';
-import { RestResponse } from '../models/RestResponse';
-import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
+import { EMPTY, merge, Observable, throwError } from 'rxjs';
+import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
+import { AudienceDataDefinition } from '../models/audience-data.model';
+import { RestResponse } from '../models/RestResponse';
+import { LocalAppState } from '../state/app.interfaces';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
-import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
-import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
-import { AppProjectPrefService } from './app-project-pref.service';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { AppLoggingService } from './app-logging.service';
+import { AppStateService } from './app-state.service';
+import { TargetAudienceService } from './target-audience.service';
 
 interface TdaCategoryResponse {
   '@ref': number;
@@ -179,7 +176,7 @@ export class TargetAudienceTdaService {
 
     }
     catch (error) {
-      console.error(error);
+      this.logger.error.log(error);
     }
   }
 
@@ -256,9 +253,9 @@ export class TargetAudienceTdaService {
           map(response => this.validateFuseResponse(response, inputData.categoryIds.map(id => id.toString()), isForShading)),
           tap(response => (response)),
           catchError( () => {
-            console.error('Error posting to', serviceURL, 'with payload:');
-            console.error('payload:', inputData);
-            console.error('payload:\n{\n' +
+            this.logger.error.log('Error posting to', serviceURL, 'with payload:');
+            this.logger.error.log('payload:', inputData);
+            this.logger.error.log('payload:\n{\n' +
                           '   geoType: ', inputData.geoType, '\n',
                           '   source:  ', inputData.source, '\n',
                           '   geocodes: ', geocodes.toString(), '\n',
@@ -267,7 +264,7 @@ export class TargetAudienceTdaService {
             return throwError('No data was returned for the selected audiences'); })
           );
     }
-    console.warn('offlineVarRefresh had no ids to process.');
+    this.logger.warn.log('offlineVarRefresh had no ids to process.');
     return EMPTY;
   }
 
@@ -275,7 +272,7 @@ export class TargetAudienceTdaService {
     const validatedResponse: OfflineBulkDataResponse[] = [];
     const responseArray: OfflineFuseResponse[] = response.payload.rows;
     const emptyAudiences: string[] = [];
-    //console.log('### tda validateFuseResponse - response.length:', responseArray.length);
+    //this.logger.debug.log('### tda validateFuseResponse - response.length:', responseArray.length);
 
     // Validate and transform the response
     for (let r = 0; r < responseArray.length; r++)

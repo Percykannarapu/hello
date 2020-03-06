@@ -1,34 +1,35 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { safe, simpleFlatten } from '@val/common';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
+import { Observable, Subject } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
 import { UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { Observable, Subject } from 'rxjs';
-import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { AppRendererService } from './app-renderer.service';
-import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { AppMapService } from './app-map.service';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { AppConfig } from '../app.config';
-import { RestResponse } from '../models/RestResponse';
-import { TargetAudienceService } from './target-audience.service';
-import { AppStateService } from './app-state.service';
-import { TargetAudienceAudienceTA } from './target-audience-audienceta';
 import { AudienceTradeAreaConfig, AudienceTradeareaLocation } from '../models/audience-data.model';
-import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { simpleFlatten, mapArrayToEntity, safe } from '@val/common';
-import { AppTradeAreaService } from './app-trade-area.service';
-import { filter } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
+import { RestResponse } from '../models/RestResponse';
 import { FullAppState } from '../state/app.interfaces';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
+import { LoggingService } from '../val-modules/common/services/logging.service';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
+import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppGeoService } from './app-geo.service';
+import { AppMapService } from './app-map.service';
+import { AppRendererService } from './app-renderer.service';
+import { AppStateService } from './app-state.service';
+import { AppTradeAreaService } from './app-trade-area.service';
+import { TargetAudienceAudienceTA } from './target-audience-audienceta';
+import { TargetAudienceService } from './target-audience.service';
 
 export enum SmartTile {
   EXTREMELY_HIGH = 'Extremely High',
@@ -239,7 +240,7 @@ export class ValAudienceTradeareaService {
         for (const message of validate) {
           growlMessage.push(message);
         }
- //      console.log('growlMessage::::', growlMessage);
+ //      this.logger.debug.log('growlMessage::::', growlMessage);
         for (let i = 0; i < growlMessage.length; i++) {
           this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Trade Area Error', message: growlMessage[i] }));
         }
@@ -278,7 +279,7 @@ export class ValAudienceTradeareaService {
         try {
           this.parseResponse(response, audienceTAConfig.audienceName);
           if (this.taResponses.size < 1) {
-            console.warn('No data found when running audience trade area:', this.audienceTAConfig);
+            this.logger.warn.log('No data found when running audience trade area:', this.audienceTAConfig);
             this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: 'No data was found for your input parameters' }));
             this.store$.dispatch(new StopBusyIndicator({ key }));
             this.audienceTaSubject.next(true);
@@ -317,19 +318,19 @@ export class ValAudienceTradeareaService {
           this.geoService.add(this.geoCache);
           this.appTradeAreaService.zoomToTradeArea();
           this.targetAudienceTAService.addAudiences(this.taResponses, audienceTAConfig.digCategoryId, this.audienceTAConfig);
-          //console.log('Geos before finalizing Audience TA', this.geoCache.map(g => ({ geocode: g.geocode, isActive: g.isActive })));
+          //this.logger.debug.log('Geos before finalizing Audience TA', this.geoCache.map(g => ({ geocode: g.geocode, isActive: g.isActive })));
           this.geoCache = new Array<ImpGeofootprintGeo>();
           this.audienceTaSubject.next(true);
           this.store$.dispatch(new StopBusyIndicator({ key }));
         }
         catch (error) {
-          console.error(error);
+          this.logger.error.log(error);
           this.audienceTaSubject.next(false);
           this.store$.dispatch(new StopBusyIndicator({ key }));
         }
       },
       err => {
-        console.error(err);
+        this.logger.error.log(err);
         this.audienceTaSubject.next(false);
         this.fetchData = true;
         this.store$.dispatch(new StopBusyIndicator({ key }));
@@ -346,7 +347,7 @@ export class ValAudienceTradeareaService {
         }
       },
       err => {
-        console.error(err);
+        this.logger.error.log(err);
         this.audienceTaSubject.next(false);
         this.fetchData = true;
         this.store$.dispatch(new StopBusyIndicator({ key }));
@@ -526,7 +527,7 @@ export class ValAudienceTradeareaService {
    */
   private createTradeArea(geos: ImpGeofootprintGeo[], location: ImpGeofootprintLocation) : ImpGeofootprintTradeArea {
     if (!geos || geos.length < 1 || !location) {
-      console.warn('No geos found when attempting to create AudienceTA');
+      this.logger.warn.log('No geos found when attempting to create AudienceTA');
       return null;
     }
     const tradeArea = this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Audience);
@@ -553,7 +554,7 @@ export class ValAudienceTradeareaService {
       const newGeo: ImpGeofootprintGeo = new ImpGeofootprintGeo();
       const taResponse = taResponseMap.get(i);
       if (!taResponse || !taResponse.geocode) {
-        console.warn('Unable to find valid audience TA response for location: ', location);
+        this.logger.warn.log('Unable to find valid audience TA response for location: ', location);
         continue;
       }
       newGeo.geocode = taResponse.geocode;
@@ -582,9 +583,9 @@ export class ValAudienceTradeareaService {
 
     if (newAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({ geoAttributes: newAttributes }));
 
-    console.log('locationsWithNoScores:::', this.locationsWithNoScores);
+    this.logger.info.log('locationsWithNoScores:::', this.locationsWithNoScores);
     if (this.locationsWithNoScores.size > 0 && this.locationsWithNoScores.get(location) === false){
-      console.warn('Unable to find response for location: ', location);
+      this.logger.warn.log('Unable to find response for location: ', location);
       this.failedLocations.push(location);
     }
     this.geoCache.push(...newGeos);
@@ -628,7 +629,8 @@ export class ValAudienceTradeareaService {
               private targetAudienceTAService: TargetAudienceAudienceTA,
               private domainFactory: ImpDomainFactoryService,
               private appGeoService: AppGeoService,
-              private store$: Store<FullAppState>) {
+              private store$: Store<FullAppState>,
+              private logger: LoggingService) {
       this.audienceTAConfig = {
         analysisLevel: null,
         digCategoryId: null,

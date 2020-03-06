@@ -9,6 +9,7 @@ import { ConfirmationService, SortMeta } from 'primeng/api';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { Table } from 'primeng/table';
 import { BehaviorSubject } from 'rxjs';
+import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';
 
@@ -107,7 +108,8 @@ export class FailedGeocodeGridComponent implements OnInit {
   constructor(private appLocationService: AppLocationService,
               private confirmationService: ConfirmationService,
               private store$: Store<LocalAppState>,
-              private impGeofootprintLocationService: ImpGeofootprintLocationService) {}
+              private impGeofootprintLocationService: ImpGeofootprintLocationService,
+              private logger: LoggingService) {}
 
   ngOnInit() {
     // Column Picker Model
@@ -346,15 +348,15 @@ export class FailedGeocodeGridComponent implements OnInit {
 
   // Table-Filter-LOV events
   onFilterRemoved(field: string) {
-    //console.log('### onFilterRemoved - removed filter for field:', field);
+    //this.logger.debug.log('### onFilterRemoved - removed filter for field:', field);
   }
 
   onFilterShow(field: string) {
-    //console.log('### onFilterShow - field', field);
+    //this.logger.debug.log('### onFilterShow - field', field);
   }
 
   onFilterHide(field: string) {
-    //console.log('### onFilterHide - field', field);
+    //this.logger.debug.log('### onFilterHide - field', field);
   }
 
   // Returns true if the grid has a filter applied

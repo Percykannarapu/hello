@@ -14,6 +14,7 @@ import { AppStateService } from '../../services/app-state.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { ExportHGCIssuesLog } from '../../state/data-shim/data-shim.actions';
 import { ReCalcHomeGeos } from '../../state/homeGeocode/homeGeo.actions';
+import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
@@ -206,7 +207,8 @@ export class SiteListComponent implements OnInit {
               private domainFactory: ImpDomainFactoryService,
               private impLocAttributeService: ImpGeofootprintLocAttribService,
               private appProjectPrefService: AppProjectPrefService,
-              private store$: Store<FullAppState>) {}
+              private store$: Store<FullAppState>,
+              private logger: LoggingService) {}
 
   ngOnInit() {
     // Observe the behavior subjects on the input parameters
@@ -344,10 +346,10 @@ export class SiteListComponent implements OnInit {
         icon: 'ui-icon-trash',
         accept: () => {
           this.onDeleteLocations.emit({locations: [row], metricText: metricText, selectedListType: this.selectedListType});
-          console.log('remove successful');
+          this.logger.debug.log('remove successful');
         },
         reject: () => {
-          console.log('cancelled remove');
+          this.logger.debug.log('cancelled remove');
         }
     });
   }
@@ -401,9 +403,9 @@ export class SiteListComponent implements OnInit {
   }
 
   public setLocationHierarchyActiveFlag(location: FlatSite, isActive: boolean) {
-    console.log('setLocationHierarchyActiveFlag - location:', location, ', isActive: ', isActive);
+    this.logger.debug.log('setLocationHierarchyActiveFlag - location:', location, ', isActive: ', isActive);
     if (location == null) {
-      console.log('setLocationHierarchyActive flag called with null location');
+      this.logger.debug.log('setLocationHierarchyActive flag called with null location');
       return;
     }
 

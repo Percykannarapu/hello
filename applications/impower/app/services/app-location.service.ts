@@ -15,6 +15,7 @@ import { QuadTree } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { FullAppState } from '../state/app.interfaces';
 import { ClearLocations, RenderLocations } from '../state/rendering/rendering.actions';
+import { LoggingService } from '../val-modules/common/services/logging.service';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -27,7 +28,6 @@ import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/servic
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppGeocodingService } from './app-geocoding.service';
-import { AppLoggingService } from './app-logging.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
@@ -87,7 +87,7 @@ export class AppLocationService {
               private esriLayerService: EsriLayerService,
               private queryService: EsriQueryService,
               private esriGeoprocessingService: EsriGeoprocessorService,
-              private logger: AppLoggingService,
+              private logger: LoggingService,
               private domainFactory: ImpDomainFactoryService,
               private confirmationService: ConfirmationService,
               private restService: RestDataService,
@@ -211,7 +211,7 @@ export class AppLocationService {
   }
 
    public deleteLocations(sites: ImpGeofootprintLocation[]) : void {
-      console.log('Deleting Sites');
+      this.logger.debug.log('Deleting Sites');
       if (sites == null || sites.length === 0) return;
       const nonNullSites = sites.filter(l => l != null);
       if (nonNullSites.length === 0) return;
@@ -239,14 +239,14 @@ export class AppLocationService {
       }
       catch (error)
       {
-         console.log('deleteLocations - EXCEPTION', error);
+         this.logger.debug.log('deleteLocations - EXCEPTION', error);
       }
    }
 
    public setLocationsActive(sites: ImpGeofootprintLocation[], newIsActive: boolean) : void {
-    //console.log('### setLocationsActive - Sites:', sites, ', newIsActive:', newIsActive);
+    //this.logger.debug.log('### setLocationsActive - Sites:', sites, ', newIsActive:', newIsActive);
     sites.forEach(site => {
-      //console.log('### setLocationsActive - sites#:', site.locationNumber, ', isActive:', site.isActive);
+      //this.logger.debug.log('### setLocationsActive - sites#:', site.locationNumber, ', isActive:', site.isActive);
       if (site != null) {
         site.isActive = newIsActive;
         site.impGeofootprintTradeAreas.forEach(ta => ta.isActive = newIsActive);
@@ -370,7 +370,7 @@ export class AppLocationService {
   }
   public determineDtzHomegeos(attributes: any[], locations: ImpGeofootprintLocation[]) : Observable<any>{
     const attributesByHomeZip: Map<any, any> = mapBy(attributes, 'homeZip');
-    console.log('attributesByHomeZip:::', attributesByHomeZip);
+    this.logger.debug.log('attributesByHomeZip:::', attributesByHomeZip);
     let remainingAttributes = [];
     const zipGeocodeList = Array.from(attributesByHomeZip.keys());
     const locTempDict: Map<any, any> = mapByExtended(locations.filter(loc => loc.impGeofootprintLocAttribs.length > 0 && loc.impGeofootprintLocAttribs.filter
@@ -479,7 +479,7 @@ export class AppLocationService {
       };
       editedTags.forEach((tag) => {
           call = this.queryService.queryAttributeIn(tagToEnvironmentData[tag], 'geocode', [attributes[0][tagToFieldName[tag]]], false, ['geocode']);
-          console.log('call:::::', call);
+          this.logger.debug.log('call:::::', call);
           requestToCall.push(call);
       });
       return forkJoin(requestToCall);
@@ -722,7 +722,7 @@ export class AppLocationService {
             dmaLookup[g.attributes.dma_code] = g.attributes.dma_name;
           });
         },
-        err => console.error('There was an error querying the layer', err),
+        err => this.logger.error.log('There was an error querying the layer', err),
         () => {
           const dmaAttrsToAdd = [];
           locations.forEach(l => {
@@ -866,7 +866,7 @@ export class AppLocationService {
   }
 
   public queryAllHomeGeos(locationsMap: Map<string, ImpGeofootprintLocation[]>) : Observable<any> {
-      console.log(locationsMap);
+      this.logger.debug.log(locationsMap);
       let pipObservble: Observable<any> = EMPTY;
       let combinedObservble: Observable<any> = EMPTY;
       let dmaAndCountyObservble: Observable<any> = EMPTY;

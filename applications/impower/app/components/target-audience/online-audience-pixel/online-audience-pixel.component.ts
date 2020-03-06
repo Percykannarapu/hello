@@ -3,9 +3,9 @@ import { TreeNode } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
-import { AppStateService } from '../../../services/app-state.service';
 import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
+import { LoggingService } from '../../../val-modules/common/services/logging.service';
 
 const UnSelectableLimit = 1000;
 
@@ -29,7 +29,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
   constructor(private audienceService: TargetAudienceOnlineService,
               private parentAudienceService: TargetAudienceService,
               private cd: ChangeDetectorRef,
-              private appStateService: AppStateService) {
+              private logger: LoggingService) {
     this.currentSelectedNodes = this.allNodes;
 
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
@@ -63,7 +63,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
   ngOnInit() {
     this.audienceService.getAudienceDescriptions([OnlineSourceTypes.Pixel]).subscribe(
       folders => folders.forEach(f => this.allNodes.push(OnlineAudiencePixelComponent.asTreeNode(f))),
-      err => console.error('There was an error during retrieval of the Pixel descriptions', err),
+      err => this.logger.error.log('There was an error during retrieval of the Pixel descriptions', err),
       () => {
         this.allNodes.sort((a, b) => a.data.categoryName.localeCompare(b.data.categoryName));
         this.currentNodes = Array.from(this.allNodes);
@@ -79,7 +79,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
 
     // this.parentAudienceService.audiences$.pipe(
     //   map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === OnlineSourceTypes.Pixel))
-    // ).subscribe(audiences => console.log('### pixel audiences:', audiences));
+    // ).subscribe(audiences => this.logger.debug.log('### pixel audiences:', audiences));
 
     this.parentAudienceService.allAudiencesBS$.pipe(
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === OnlineSourceTypes.Pixel))

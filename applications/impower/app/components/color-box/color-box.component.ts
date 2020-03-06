@@ -3,6 +3,7 @@ import { OverlayPanel } from 'primeng/overlaypanel';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
+import { LoggingService } from '../../val-modules/common/services/logging.service';
 
 @Component({
   selector: 'val-color-box',
@@ -29,7 +30,8 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
 
    private overlaySub: Subscription;
 
-   constructor(private appStateService: AppStateService) {
+   constructor(private appStateService: AppStateService,
+               private logger: LoggingService) {
      this.flags = new Map<string, boolean>();
     }
 
@@ -85,7 +87,7 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
 
    onClick(direction: string){
       if (this.model == null) {
-         console.log('model is null');
+         this.logger.info.log('model is null');
       }
       if (direction === 'Up'){
          if (this.model != null){

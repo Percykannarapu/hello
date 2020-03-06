@@ -1,7 +1,8 @@
-import {Injectable} from '@angular/core';
-import { Observable, Subject } from 'rxjs';    // See: https://github.com/ReactiveX/rxjs
-import { ImpMetricName } from '../../metrics/models/ImpMetricName';
+import { Injectable } from '@angular/core';
+import { Observable, Subject } from 'rxjs'; // See: https://github.com/ReactiveX/rxjs
 import { AppStateService } from '../../../services/app-state.service';
+import { ImpMetricName } from '../../metrics/models/ImpMetricName';
+import { LoggingService } from './logging.service';
 
 export enum MetricOperations {
    ADD,
@@ -31,7 +32,8 @@ export class MetricService
 
    private subject: Subject<MetricMessage> = new Subject<MetricMessage>();
 
-   constructor(private appStateService: AppStateService) {
+   constructor(private appStateService: AppStateService,
+               private logger: LoggingService) {
      this.metrics = new Map<string, Map<string, string>> ();
      this.appStateService.clearUI$.subscribe(() => this.reset());
    }
@@ -45,28 +47,28 @@ export class MetricService
    // ----------------------------------------------------------------
    public add(groupName: string, key: string, value: string, flag: boolean = false)
    {
-      // console.log('Add fired: groupName: ' + groupName + ', key: ' + key + ', value: ' + value);
+      // this.logger.debug.log('Add fired: groupName: ' + groupName + ', key: ' + key + ', value: ' + value);
 
       // Add the site to the selected sites array
       let group: Map<string, string> = this.metrics.get(groupName);
 
-      // console.log ('group: ' + group);
+      // this.logger.debug.log ('group: ' + group);
 
       // If the group didn't exist, create it
       if (group == null)
       {
-         // console.log('group was null');
+         // this.logger.debug.log('group was null');
          group = new Map<string, string>();
          this.metrics.set(groupName, group);
       }
       // else
-      //   console.log ('group: ' + groupName + ' found');
+      //   this.logger.debug.log ('group: ' + groupName + ' found');
 
-      // console.log('about to set key: ' + key);
+      // this.logger.debug.log('about to set key: ' + key);
       group.set(key, value);
 
       // Notifiy Observers
-      // console.log('Alerting observers');
+      // this.logger.debug.log('Alerting observers');
       this.subject.next(new MetricMessage(MetricOperations.ADD, groupName, key, value, flag));
    }
 
@@ -118,8 +120,8 @@ export class MetricService
 
         //CAMPAIGN
         const counterMetrics = [];
-        const campaignMap: Map<string, string> = this.metrics.get('CAMPAIGN'); 
-        //console.log('CAMPAIGN map ::::', campaignMap);
+        const campaignMap: Map<string, string> = this.metrics.get('CAMPAIGN');
+        //this.logger.debug.log('CAMPAIGN map ::::', campaignMap);
        let  usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'household-count', action: actionName });
 
         if (campaignMap.has('Household Count'))
@@ -130,18 +132,18 @@ export class MetricService
         }
         if (campaignMap.has('Est. Total Investment')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'total-investment', action: actionName });
-            counterMetrics.push(new CounterMetrics(usageMetricName, null, Number(campaignMap.get('Est. Total Investment').replace(/[^\w.\s]/g, ''))));  
+            counterMetrics.push(new CounterMetrics(usageMetricName, null, Number(campaignMap.get('Est. Total Investment').replace(/[^\w.\s]/g, ''))));
         }
         if (campaignMap.has('Progress to Budget')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'campaign-colorbox', target: 'progress-to-budget', action: actionName });
-            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(campaignMap.get('Progress to Budget').replace(/[^\w.\s]/g, ''))));  
+            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(campaignMap.get('Progress to Budget').replace(/[^\w.\s]/g, ''))));
         }
-  
+
         //AUDIENCE
-        const audienceMap:  Map<string, string> = this.metrics.get('AUDIENCE'); 
+        const audienceMap:  Map<string, string> = this.metrics.get('AUDIENCE');
         if (audienceMap.has('Median Household Income')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'CL2I00', action: actionName });
-            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('Median Household Income').replace(/[^\w.\s]/g, ''))));   
+            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('Median Household Income').replace(/[^\w.\s]/g, ''))));
         }
         if (audienceMap.has('% \'17 HHs Families with Related Children < 18 Yrs')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'CL0C00', action: actionName });
@@ -150,27 +152,27 @@ export class MetricService
         if (audienceMap.has('% \'17 Pop Hispanic or Latino')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'CL2PRH', action: actionName });
             counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('% \'17 Pop Hispanic or Latino').replace(/[^\w.\s]/g, ''))));
-        }          
+        }
         if (audienceMap.has('Casual Dining: 10+ Times Past 30 Days')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'TAP049', action: actionName });
-            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('Casual Dining: 10+ Times Past 30 Days').replace(/[^\w.\s]/g, ''))));  
+            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('Casual Dining: 10+ Times Past 30 Days').replace(/[^\w.\s]/g, ''))));
         }
-        
-        //console.log('AUDIENCE map ::::', audienceMap);  
-  
+
+        //this.logger.debug.log('AUDIENCE map ::::', audienceMap);
+
         //PERFORMANCE
-        const performanceMap:  Map<string, string> = this.metrics.get('PERFORMANCE'); 
-        //console.log('PERFORMANCE map ::::', performanceMap);  
+        const performanceMap:  Map<string, string> = this.metrics.get('PERFORMANCE');
+        //this.logger.debug.log('PERFORMANCE map ::::', performanceMap);
         if (performanceMap.has('Predicted Response')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'performance-colorbox', target: 'predicted-response', action: actionName });
             counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(performanceMap.get('Predicted Response').replace(/[^\w.\s]/g, ''))));
         }
         if (performanceMap.has('Predicted Topline Sales Generated')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'performance-colorbox', target: 'predicted-sales', action: actionName });
-            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(performanceMap.get('Predicted Topline Sales Generated').replace(/[^\w.\s]/g, ''))));  
+            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(performanceMap.get('Predicted Topline Sales Generated').replace(/[^\w.\s]/g, ''))));
         }
-  
-        
+
+
 
         //TODO: need to check issue on this metric
         usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'performance-colorbox', target: 'cost-per-response', action: actionName });

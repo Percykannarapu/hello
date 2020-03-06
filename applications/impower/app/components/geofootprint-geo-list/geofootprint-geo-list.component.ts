@@ -727,7 +727,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
       catch (e)
       {
-         console.error('Error setting range: ', e);
+         this.logger.error.log('Error setting range: ', e);
       }
       // this.logger.debug.log("distanceRanges: ", this.distanceRanges);
 
@@ -1137,8 +1137,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
       catch (e)
       {
-         console.error('EXCEPTION: ', e);
-         console.error('this._geoGrid', this._geoGrid);
+         this.logger.error.log('EXCEPTION: ', e);
+         this.logger.error.log('this._geoGrid', this._geoGrid);
          this.debugLogGridTotals();
       }
    }

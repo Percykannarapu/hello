@@ -65,7 +65,6 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
     };
     this.shaderForm = this.fb.group(formSetup);
     if (this.currentAudience != null) {
-      console.log('Current selected Audience', this.currentAudience);
       if (this.currentAudience.audienceSourceType !== 'Custom') {
         this.limitShaderTypesByVar(this.currentAudience.fieldconte);
       } else {

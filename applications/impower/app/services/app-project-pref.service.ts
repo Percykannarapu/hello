@@ -56,29 +56,29 @@ export class AppProjectPrefService {
       // Add the new pref to the project
       if (currentProject.impProjectPrefs.filter(p => p.prefGroup === group || p.pref === pref).length === 0)
       {
-         //console.debug("### Added pref: ", impProjectPref);
+         //this.logger.debug.log("### Added pref: ", impProjectPref);
          currentProject.impProjectPrefs.push(impProjectPref);
       }
 
       // Add the new pref to the ImpProjectPref data store
       if (this.impProjectPrefService.get().filter(p => p.prefGroup === group && p.pref === pref).length === 0)
       {
-         //console.debug("### Added pref: ", impProjectPref);
+         //this.logger.debug.log("### Added pref: ", impProjectPref);
          this.impProjectPrefService.add([impProjectPref]);
       }
    }
 
    private debugTestPrefs() {
-      console.log('### getPref: Must Cover Upload = ' + this.getPref('Must Cover Upload'));
-      console.log('### getPref: CPM_TYPE          = ' + this.getPref('CPM_TYPE'));
-      console.log('### getPref: FAKE              = ' + this.getPref('fake'));
+      this.logger.debug.log('### getPref: Must Cover Upload = ' + this.getPref('Must Cover Upload'));
+      this.logger.debug.log('### getPref: CPM_TYPE          = ' + this.getPref('CPM_TYPE'));
+      this.logger.debug.log('### getPref: FAKE              = ' + this.getPref('fake'));
 
-      console.log('### getPrefVal: Must Cover Upload ', this.getPrefVal('Must Cover Upload', true));
-      console.log('### getPrefVal: CPM_TYPE          ', this.getPrefVal('CPM_TYPE', true));
-      console.log('### getPrefVal: FAKE              ', this.getPrefVal('FAKE', true));
+      this.logger.debug.log('### getPrefVal: Must Cover Upload ', this.getPrefVal('Must Cover Upload', true));
+      this.logger.debug.log('### getPrefVal: CPM_TYPE          ', this.getPrefVal('CPM_TYPE', true));
+      this.logger.debug.log('### getPrefVal: FAKE              ', this.getPrefVal('FAKE', true));
 
-      console.log('### getPref:    Test Project JSON ', this.getPref('Test Project JSON'));
-      console.log('### getPrefVal: Test Project JSON ', this.getPrefVal('Test Project JSON', false));
+      this.logger.debug.log('### getPref:    Test Project JSON ', this.getPref('Test Project JSON'));
+      this.logger.debug.log('### getPrefVal: Test Project JSON ', this.getPrefVal('Test Project JSON', false));
    }
 
    public getAllPrefs(mustBeActive: boolean = true) : ImpProjectPref[] {
@@ -112,7 +112,7 @@ export class AppProjectPrefService {
                                                            && (mustBeActive === false || (mustBeActive && p.isActive)));
          if (prefs === undefined)
             prefs = null;
-         // this.impProjectPrefService.get().forEach(pref => console.debug("### prefservice: " + pref));
+         // this.impProjectPrefService.get().forEach(pref => this.logger.debug.log("### prefservice: " + pref));
       }
       catch (e)
       {

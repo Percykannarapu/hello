@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { catchError, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { FullAppState } from '../../../state/app.interfaces';
 import { ImpowerLoaderService } from '../../services/impower-loader.service';
 import { persistentSlice } from '../impower-datastore.selectors';
@@ -33,7 +33,6 @@ export class PersistentEffects {
     ofType(PersistentActionTypes.SaveEntitiesToServer),
     withLatestFrom(this.store$.pipe(select(persistentSlice))),
     map(([action, datastore]) => this.impowerLoader.denormalizeProject(datastore)),
-    tap(project => console.log('De-normalized Project Entity', project)),
     // switchMap(project => this.impowerLoader.saveFullProject(project).pipe(
     //   map(projectId => new EntitySaveSuccessful({ projectId })),
     //   catchError(err => of(new EntitySaveFailure({ err })))

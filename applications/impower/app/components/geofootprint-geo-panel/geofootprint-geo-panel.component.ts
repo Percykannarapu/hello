@@ -16,6 +16,7 @@ import { AppGeoService } from '../../services/app-geo.service';
 import { AppStateService } from '../../services/app-state.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
@@ -77,7 +78,8 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                private esriMapService: EsriMapService,
                private confirmationService: ConfirmationService,
                private appGeoService: AppGeoService,
-               private store$: Store<FullAppState>
+               private store$: Store<FullAppState>,
+               private logger: LoggingService
                ) { }
 
    ngOnInit() {
@@ -85,13 +87,13 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       this.nonNullProject$ = this.appStateService.currentProject$
                                  .pipe(filter(project => project != null),
                                        map(project => Object.create(project))
-                                      //,tap(data => { console.log("OBSERVABLE FIRED: appStateService"); })
+                                      //,tap(data => { this.logger.debug.log("OBSERVABLE FIRED: appStateService"); })
                                       );
 
       this.allProjectVars$ = this.impProjectVarService.storeObservable
                                  .pipe(map(pvars => Array.from(pvars)),
                                        tap(pvars => {
-                                      // console.log("OBSERVABLE FIRED: allProjectVars");
+                                      // this.logger.debug.log("OBSERVABLE FIRED: allProjectVars");
                                          // PB COL_ORDER this.setVariableOrderFromProjectVars(pvars);
                                       }));
 
@@ -99,7 +101,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                                 .pipe(map(locs => Array.from(locs)),
                                       tap(locs => {
                                         if (locs != null && locs.length > 0) {
-                                       // console.log("OBSERVABLE FIRED: impGeofootprintLocationService - Locs:", locs);
+                                       // this.logger.debug.log("OBSERVABLE FIRED: impGeofootprintLocationService - Locs:", locs);
                                           this.rankGeographies();
                                         }
                                       }));
@@ -108,7 +110,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                           .pipe(map(geos => Array.from(geos.filter(geo => geo.impGeofootprintTradeArea.isActive && geo.impGeofootprintLocation.isActive))),
                                 tap(geos => {
                                   if (geos != null && geos.length > 0) {
-                                  // console.log("OBSERVABLE FIRED: impGeofootprintGeoService - " + geos.length + " Geos: ", geos);
+                                  // this.logger.debug.log("OBSERVABLE FIRED: impGeofootprintGeoService - " + geos.length + " Geos: ", geos);
                                   // PB COL_ORDER this.setVariableOrder();
                                      this.rankGeographies();
                                      // TODO: When geos are in redux, trigger this when geo creation is complete
@@ -136,7 +138,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       this.impGeofootprintGeoService.sort(this.impGeofootprintGeoService.defaultSort);
 
       // DEBUG: See that ranking is working
-      //console.log("Rank > 0 Geos:"); this.impGeofootprintGeoService.get().filter(geo => geo.rank > 0).forEach(geo => console.log("geo: ", geo));
+      //this.logger.debug.log("Rank > 0 Geos:"); this.impGeofootprintGeoService.get().filter(geo => geo.rank > 0).forEach(geo => this.logger.debug.log("geo: ", geo));
    }
 
    // -----------------------------------------------------------
@@ -160,10 +162,10 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                //                                         target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });
                // this.usageService.createCounterMetric(usageMetricName, metricText, 1);
                this.appGeoService.deleteGeos([geo]);
-               console.log('remove successful');
+               this.logger.debug.log('remove successful');
             },
             reject: () => {
-               console.log('cancelled remove');
+               this.logger.debug.log('cancelled remove');
             }
           });
       }
@@ -249,7 +251,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       if (event != null)
       {
          const eventGeos: ImpGeofootprintGeo[] = event.geos;
-         this.impGeofootprintGeoService.get().filter(geo => eventGeos.includes(geo)).forEach(geo => { geo.isActive = event.value; console.log('set geo: ' + geo.geocode + ' isActive = ' + geo.isActive); });
+         this.impGeofootprintGeoService.get().filter(geo => eventGeos.includes(geo)).forEach(geo => { geo.isActive = event.value; this.logger.debug.log('set geo: ' + geo.geocode + ' isActive = ' + geo.isActive); });
          this.impGeofootprintGeoService.makeDirty();
       }
    }

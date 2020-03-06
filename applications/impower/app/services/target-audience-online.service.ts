@@ -1,26 +1,25 @@
 /* tslint:disable:max-line-length */
-import { BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { AppConfig } from '../app.config';
-import { TargetAudienceService } from './target-audience.service';
-import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
-import { AudienceDataDefinition } from '../models/audience-data.model';
-import { catchError, filter, map, shareReplay, tap } from 'rxjs/operators';
-import { EMPTY, forkJoin, merge, Observable, throwError } from 'rxjs';
-import { AppStateService } from './app-state.service';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { AppLoggingService } from './app-logging.service';
-import { RestResponse } from '../models/RestResponse';
-import { LocalAppState } from '../state/app.interfaces';
 import { Store } from '@ngrx/store';
+import { mapBy, simpleFlatten } from '@val/common';
 import { WarningNotification } from '@val/messaging';
-import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
-import { simpleFlatten, mapBy } from '@val/common';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { BehaviorSubject, EMPTY, forkJoin, merge, Observable, throwError } from 'rxjs';
+import { catchError, map, shareReplay, tap } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
+import { AudienceDataDefinition } from '../models/audience-data.model';
+import { RestResponse } from '../models/RestResponse';
+import { LocalAppState } from '../state/app.interfaces';
+import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintVar } from '../val-modules/targeting/models/ImpGeofootprintVar';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { AppLoggingService } from './app-logging.service';
+import { AppStateService } from './app-state.service';
+import { TargetAudienceService } from './target-audience.service';
 
 interface OnlineCategoryResponse {
   categoryId: string;
@@ -118,12 +117,12 @@ export class TargetAudienceOnlineService {
   private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
 
   constructor(private config: AppConfig,
-    private restService: RestDataService,
-    private audienceService: TargetAudienceService,
-    private domainFactory: ImpDomainFactoryService,
-    private appStateService: AppStateService,
-    private store$: Store<LocalAppState>,
-    private logger: AppLoggingService) {
+              private restService: RestDataService,
+              private audienceService: TargetAudienceService,
+              private domainFactory: ImpDomainFactoryService,
+              private appStateService: AppStateService,
+              private store$: Store<LocalAppState>,
+              private logger: AppLoggingService) {
     this.fuseSourceMapping = new Map<OnlineSourceTypes, string>([
       [OnlineSourceTypes.Interest, 'interest'],
       [OnlineSourceTypes.InMarket, 'in_market'],
@@ -184,7 +183,7 @@ export class TargetAudienceOnlineService {
             seq: projectVar.sortOrder
           };
 
-          // console.log('### target-audience-online - onLoadProject - adding audience:', audience);
+          // this.logger.debug.log('### target-audience-online - onLoadProject - adding audience:', audience);
           if (projectVar.source.toLowerCase().match('interest')) {
             this.audienceService.addAudience(audience, (al, pk) => this.nationalRefreshCallback(OnlineSourceTypes.Interest, al, pk, -1), true);
           } else if (projectVar.source.toLowerCase().match('in-market')) {
@@ -198,7 +197,7 @@ export class TargetAudienceOnlineService {
       }
     }
     catch (error) {
-      console.error(error);
+      this.logger.error.log(error);
     }
   }
 
@@ -335,9 +334,9 @@ export class TargetAudienceOnlineService {
               tap(response => this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now() - this.audienceService.timingMap.get('(' + inputData.source.toLowerCase() + ')'))),
               map(response => this.validateFuseResponseOld(inputData, response, isForShading)),
               catchError( () => {
-                console.error('Error posting to v1/targeting/base/geoinfo/digitallookup with payload:');
-                console.error('payload:', inputData);
-                console.error('payload:\n{\n' +
+                this.logger.error.log('Error posting to v1/targeting/base/geoinfo/digitallookup with payload:');
+                this.logger.error.log('payload:', inputData);
+                this.logger.error.log('payload:\n{\n' +
                               '   geoType: ', inputData.geoType, '\n',
                               '   source:  ', inputData.source, '\n',
                               '   geocodes: ', geocodes.toString(), '\n',
@@ -346,7 +345,7 @@ export class TargetAudienceOnlineService {
                 return throwError('No Data was returned for the selected audiences'); })
           ));
         }
-    // console.debug("### apioDataRefresh pushing ", observables.length, "observables for ", geocodes.length, "geocodes in ", chunks.length, "chunks, ids:", identifiers);
+    // this.logger.debug.log("### apioDataRefresh pushing ", observables.length, "observables for ", geocodes.length, "geocodes in ", chunks.length, "chunks, ids:", identifiers);
     return observables;
   }
 
@@ -385,19 +384,19 @@ export class TargetAudienceOnlineService {
           map(response => this.validateFuseResponse(inputData, response, isForShading)),
           tap(response => (response)),
           catchError( (err) => {
-            console.error('Error posting to v1/targeting/base/geoinfo/digitallookup');
-            console.error('payload:', inputData);
-            console.error('payload:\n{\n' +
+            this.logger.error.log('Error posting to v1/targeting/base/geoinfo/digitallookup');
+            this.logger.error.log('payload:', inputData);
+            this.logger.error.log('payload:\n{\n' +
                           '   geoType: ', inputData.geoType, '\n',
                           '   source:  ', inputData.source, '\n',
                           '   geocodes: ', geocodes.toString(), '\n',
                           '   digCategoryIds:', inputData.digCategoryIds.toString(), '\n}'
                           );
-            console.error(err);
+            this.logger.error.log(err);
             return throwError('No Data was returned for the selected audiences'); })
           );
     }
-    console.warn('onlineVarRefresh had no ids to process.');
+    this.logger.warn.log('onlineVarRefresh had no ids to process.');
     return EMPTY;
   }
 
@@ -480,7 +479,7 @@ export class TargetAudienceOnlineService {
          this.store$.dispatch(new WarningNotification({ message: 'No data was returned within your geofootprint for the following selected online audiences: \n' + audience.join(' , \n'), notificationTitle: 'Selected Audience Warning'}));
       }
     }
-    //console.debug('Online Audience Response:::', chunk, "/", maxChunks, 'Chunks', responseArray.length, "rows"); // , responseArray); // See response
+    //this.logger.debug.log('Online Audience Response:::', chunk, "/", maxChunks, 'Chunks', responseArray.length, "rows"); // , responseArray); // See response
     return responseArray;
   }
 

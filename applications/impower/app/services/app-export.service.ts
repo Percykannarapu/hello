@@ -1,22 +1,23 @@
 import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
-import { Observable, Subject } from 'rxjs';
-import { EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { AppConfig } from '../app.config';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
-import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actions';
-import { TargetAudienceService } from './target-audience.service';
-import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
-import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
-import { LocalAppState, CrossBowSitesPayload } from '../state/app.interfaces';
 import { ErrorNotification } from '@val/messaging';
-import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { RestResponse } from 'app/models/RestResponse';
+import { RestDataService } from 'app/val-modules/common/services/restdata.service';
+import { Observable } from 'rxjs';
+import { AppConfig } from '../app.config';
+import { CrossBowSitesPayload, LocalAppState } from '../state/app.interfaces';
+import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
+import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actions';
+import { LoggingService } from '../val-modules/common/services/logging.service';
+import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { TradeAreaDefinition } from './app-trade-area.service';
+import { TargetAudienceService } from './target-audience.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for exporting data
@@ -36,10 +37,11 @@ export class AppExportService {
               private impProjectService: ImpProjectService,
               private restService: RestDataService,
               private store$: Store<LocalAppState>,
-              private config: AppConfig) { }
+              private config: AppConfig,
+              private logger: LoggingService) { }
 
   exportGeofootprint(selectedOnly: boolean, currentProject: ImpProject) : Observable<Action> {
-    return Observable.create((observer: Subject<Action>) => {
+    return new Observable(observer => {
       try {
         this.validateProjectForExport(currentProject, 'exporting a Geofootprint');
         const storeFilter: (geo: ImpGeofootprintGeo) => boolean = selectedOnly ? (geo => geo.isActive === true) : null;
@@ -54,10 +56,10 @@ export class AppExportService {
         observer.error(err);
       }
     });
-  } 
+  }
 
   exportLocations(siteType: SuccessfulLocationTypeCodes, currentProject: ImpProject) : Observable<CreateUsageMetric> {
-    return Observable.create((observer: Subject<CreateUsageMetric>) => {
+    return new Observable(observer => {
       try {
         const pluralType = `${siteType}s`;
         const filename = this.impGeofootprintLocationService.getFileName(currentProject.projectId, pluralType);
@@ -72,9 +74,8 @@ export class AppExportService {
 
   exportHomeGeoReport(siteType: SuccessfulLocationTypeCodes) : Observable<CreateUsageMetric> {
     const currentProject = this.impProjectService.get();
-    return Observable.create((observer: Subject<CreateUsageMetric>) => {
+    return new Observable(observer => {
       try {
-        const pluralType = `${siteType}s`;
         const filename = 'Home Geo Issues Log.csv';
         const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues, filename, currentProject[0], true);
         observer.next(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, metricValue));
@@ -86,7 +87,7 @@ export class AppExportService {
   }
 
   exportValassisDigital(currentProject: ImpProject) : Observable<CreateUsageMetric> {
-    return Observable.create((observer: Subject<CreateUsageMetric>) => {
+    return new Observable(observer => {
       try {
         this.validateProjectForExport(currentProject, 'sending the custom site list to Valassis Digital');
         const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
@@ -103,7 +104,7 @@ export class AppExportService {
   }
 
   exportNationalExtract(currentProject: ImpProject) : Observable<void> {
-    return Observable.create((observer: Subject<void>) => {
+    return new Observable(observer => {
       try {
         this.targetAudienceService.exportNationalExtract(currentProject.methAnalysis, currentProject.projectId);
         observer.complete();
@@ -137,20 +138,20 @@ export class AppExportService {
   }
 
   private locationExportImpl(siteType: SuccessfulLocationTypeCodes, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filename: string, currentProject: ImpProject, homeGeoIssueOnly: boolean = false) : number {
-    const storeFilter: (loc: ImpGeofootprintLocation) => boolean = 
+    const storeFilter: (loc: ImpGeofootprintLocation) => boolean =
             loc => loc.clientLocationTypeCode === siteType && (!homeGeoIssueOnly || loc.impGeofootprintLocAttribs.some(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y'));
             const pluralType = `${siteType}s`;
     const isDigital = exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital;
     const metricCount =  this.impGeofootprintLocationService.get().filter(storeFilter).length;
    if (metricCount === 0 && exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues ){
-    this.store$.dispatch(new ErrorNotification({ message: 'There are no home geocoding issues to report.', notificationTitle: 'Home Geocode Issues Log' }));    
+    this.store$.dispatch(new ErrorNotification({ message: 'There are no home geocoding issues to report.', notificationTitle: 'Home Geocode Issues Log' }));
     } else {
     this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, isDigital, storeFilter, pluralType.toUpperCase());
     }
     return metricCount;
   }
 
-    
+
   private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
     const message = `The project must be saved with a valid Project Tracker ID before ${exportDescription}`;
     if (currentProject.projectId == null || currentProject.projectTrackerId == null) {
@@ -159,7 +160,7 @@ export class AppExportService {
   }
 
   public exportCustomTAIssuesLog(uploadFailures: TradeAreaDefinition[]){
-    //console.log('uploadFailures ====>', uploadFailures);
+    //this.logger.info.log('uploadFailures ====>', uploadFailures);
     const header = 'SiteNo, Geocode';
     const records: string[] = [];
     records.push(header +  '\n');
@@ -177,18 +178,18 @@ export class AppExportService {
     const a = document.createElement('a');
     const blob = new Blob(records, { type: 'text/csv' });
     a.href = window.URL.createObjectURL(blob);
-    a['download'] = fileName; 
+    a['download'] = fileName;
     a.click();
   }
 
   public downloadPDF(result: string){
-    console.log('Opening PDF from', result);
+    this.logger.info.log('Opening PDF from', result);
     const url = result;
     const fileName = url.split(/[\s/]+/);
     const link = document.createElement('a');
     link.target = '_blank';
     link.href = url;
-    link.download = fileName[fileName.length - 1]; 
+    link.download = fileName[fileName.length - 1];
     link.dispatchEvent(new MouseEvent('click'));
   }
 

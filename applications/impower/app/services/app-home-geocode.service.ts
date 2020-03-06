@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import { reduce } from 'rxjs/operators';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { LocalAppState } from '../state/app.interfaces';
+import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -20,7 +21,6 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-
 import { ValAudienceTradeareaService } from './app-audience-tradearea.service';
 import { AppEditSiteService } from './app-editsite.service';
 import { AppLocationService } from './app-location.service';
-import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 
 interface TradeAreaDefinition {
@@ -33,9 +33,10 @@ interface TradeAreaDefinition {
    providedIn: 'root'
  })
  export class AppHomeGeocodingService {
-   private spinnerKey = 'ADD_LOCATION_TAB_SPINNER';
-   private homeGeokey = 'HomeGeoCalcKey';
+
+  private spinnerKey = 'ADD_LOCATION_TAB_SPINNER';
    private customTradeAreaBuffer: string;
+
    constructor(private store$: Store<LocalAppState>,
                private appLocationService: AppLocationService,
                private impLocationService: ImpGeofootprintLocationService,
@@ -47,7 +48,7 @@ interface TradeAreaDefinition {
                private impGeoService: ImpGeofootprintGeoService,
                private impProjectService: ImpProjectService,
                private confirmationService: ConfirmationService,
-               private stateService: AppStateService ){
+               private logger: LoggingService ){
 
                 this.appEditSiteService.customData$.subscribe(message => {
                   if (message != null && message['data'] != null) {
@@ -67,7 +68,7 @@ interface TradeAreaDefinition {
    }
 
    reCalcHomeGeos(payload: {locations: ImpGeofootprintLocation[], siteType: SuccessfulLocationTypeCodes, reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
-     console.log('=======recalculate HomeGeos============');
+     this.logger.debug.log('=======recalculate HomeGeos============');
      this.confirmationService.confirm({
       message: `Are you sure you want to calculate home geocodes for all your sites?<br>All customization will be lost and trade areas will be reapplied`,
       header: 'Calc Home Geocodes',
@@ -101,7 +102,7 @@ interface TradeAreaDefinition {
        this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
       },
       reject: () => {
-       console.log('calcHomeGeocode aborted');
+       this.logger.debug.log('calcHomeGeocode aborted');
       }
     });
 
@@ -109,7 +110,7 @@ interface TradeAreaDefinition {
    }
 
    validateLocations(payload: {locations: ImpGeofootprintLocation[], isLocationEdit: boolean, reCalculateHomeGeos: boolean}){
-      console.log('validateLocations:::');
+      this.logger.debug.log('validateLocations:::');
       //this.store$.dispatch(new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'}));
       this.store$.dispatch(new StartBusyIndicator({ key: 'HomeGeoCalcKey', message: 'Calculating Home Geos'}));
       const mapLoc = this.appLocationService.validateLocactionsforpip(payload.locations);
@@ -120,17 +121,17 @@ interface TradeAreaDefinition {
    }
 
    queryHomeGeocode(payload: { LocMap: Map<string, ImpGeofootprintLocation[]>, isLocationEdit: boolean}){
-     console.log('queryHomeGeocode for PIP');
+     this.logger.debug.log('queryHomeGeocode for PIP');
     return this.appLocationService.queryAllHomeGeos(payload.LocMap);
    }
 
    determineHomeDTZ(payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>, totalLocs: ImpGeofootprintLocation[]}){
-     console.log('determineHomeDTZ:::');
+     this.logger.debug.log('determineHomeDTZ:::');
      return this.appLocationService.determineDtzHomegeos(payload.attributes, payload.totalLocs);
    }
 
    processHomeGeoAttributes(payload: {attributes: any[], totalLocs: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
-    console.log('process geo attributes:::');
+    this.logger.debug.log('process geo attributes:::');
     const attributesBySiteNumber: Map<any, any> = mapBy(payload.attributes, 'siteNumber');
     const locs = payload.totalLocs.filter(loc => attributesBySiteNumber.has(loc.locationNumber));
 
@@ -162,7 +163,7 @@ interface TradeAreaDefinition {
 
         const tradeAreas = this.appTradeAreaService.currentDefaults.get(ImpClientLocationTypeCodes.Site);
         const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
-        console.log('current defaults:::', tradeAreas, siteType);
+        this.logger.debug.log('current defaults:::', tradeAreas, siteType);
         if (tas != null){
           this.appTradeAreaService.deleteTradeAreas(tas);
           this.appTradeAreaService.clearAll();
@@ -198,7 +199,7 @@ interface TradeAreaDefinition {
    }
 
    zoomToLocations(payload: {locations: ImpGeofootprintLocation[]}){
-      console.log('===zoomToLocations===');
+      this.logger.debug.log('===zoomToLocations===');
       const successfulLocations = payload.locations.filter(loc => !loc.clientLocationTypeCode.startsWith('Failed'));
       if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
    }
@@ -212,7 +213,7 @@ interface TradeAreaDefinition {
       this.audienceTradeAreaService.createAudienceTradearea(this.audienceTradeAreaService.getAudienceTAConfig())
       .subscribe(null,
       error => {
-        console.error('Error while creating audience tradearea', error);
+        this.logger.error.log('Error while creating audience tradearea', error);
         this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
         this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
       });
@@ -222,6 +223,6 @@ interface TradeAreaDefinition {
    public handleError(errorHeader: string, errorMessage: string, errorObject: any) {
       this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
       this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
-      console.error(errorMessage, errorObject);
+      this.logger.error.log(errorMessage, errorObject);
     }
  }

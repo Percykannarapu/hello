@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { Store } from '@ngrx/store';
 import { EsriMapService } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
+import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 import { ConfirmationService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -15,6 +16,7 @@ import { AppStateService } from '../../services/app-state.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
+import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../../val-modules/targeting/models/ImpGeofootprintLocAttrib';
@@ -23,7 +25,6 @@ import { ImpGeofootprintLocationService } from '../../val-modules/targeting/serv
 import { ImpGeofootprintLocAttribService } from '../../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 
 @Component({
   selector: 'val-site-list-container',
@@ -59,7 +60,8 @@ export class SiteListContainerComponent implements OnInit {
       private store$: Store<LocalAppState>,
       private appEditSiteService: AppEditSiteService,
       private domainFactory: ImpDomainFactoryService,
-      private cd: ChangeDetectorRef) {}
+      private cd: ChangeDetectorRef,
+      private logger: LoggingService) {}
 
    ngOnInit() {
       // Subscribe to the data stores
@@ -67,18 +69,18 @@ export class SiteListContainerComponent implements OnInit {
                                 .pipe(map(locs => Array.from(locs))
                                  //  ,tap(locs => {
                                  //     if (locs != null && locs.length > 0) {
-                                 //       console.log("CONTAINER OBSERVABLE FIRED: locationService - Locs:", locs);
+                                 //       this.logger.info.log("CONTAINER OBSERVABLE FIRED: locationService - Locs:", locs);
                                  //     }})
                                      );
 
       this.allAttributes$ = this.impGeofootprintLocAttribService.storeObservable
                                 .pipe(map(attribs => Array.from(attribs))
-//                                   ,tap(data => console.debug("CONTAINER OBSERVABLE FIRED: impGeofootprintGeoAttribService", data))
+//                                   ,tap(data => this.logger.debug.log("CONTAINER OBSERVABLE FIRED: impGeofootprintGeoAttribService", data))
                                      );
 
       this.allGeos$ = this.impGeofootprintGeoService.storeObservable
                           .pipe(map(geos => Array.from(geos))
-//                             ,tap(geos => console.debug("SITE-LIST-CONTAINER - allGeos$ fired", geos))
+//                             ,tap(geos => this.logger.debug.log("SITE-LIST-CONTAINER - allGeos$ fired", geos))
                                );
 
    }
@@ -112,13 +114,13 @@ export class SiteListContainerComponent implements OnInit {
     const attrbs: ImpGeofootprintLocAttrib[] = oldData.impGeofootprintLocAttribs;
     const ifAddressChanged: boolean = (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street']);
     const ifLatLongChanged: boolean = newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude'];
-    const homeZipFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Zip Code').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue != siteOrSites['Home Zip Code']) : 
+    const homeZipFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Zip Code').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue != siteOrSites['Home Zip Code']) :
     ((siteOrSites['Home Zip Code'] === '' || siteOrSites['Home Zip Code'] === null) ? false : true));
-    const homeAtzFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home ATZ').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue != siteOrSites['Home ATZ']) : 
+    const homeAtzFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home ATZ').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue != siteOrSites['Home ATZ']) :
     ((siteOrSites['Home ATZ'] === '' || siteOrSites['Home ATZ'] === null) ? false : true));
-    const homeDigitalAtzFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue != siteOrSites['Home Digital ATZ']) : 
+    const homeDigitalAtzFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue != siteOrSites['Home Digital ATZ']) :
     ((siteOrSites['Home Digital ATZ'] === '' || siteOrSites['Home Digital ATZ'] === null) ? false : true));
-    const homeCarrierRouteFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']) : 
+    const homeCarrierRouteFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']) :
     ((siteOrSites['Home Carrier Route'] === '' || siteOrSites['Home Carrier Route'] === null) ? false : true));
     const anyChangeinHomeGeoFields: boolean = homeZipFlag || homeAtzFlag || homeDigitalAtzFlag || homeCarrierRouteFlag;
     if ((ifAddressChanged || ifLatLongChanged) && anyChangeinHomeGeoFields) {
@@ -238,7 +240,7 @@ export class SiteListContainerComponent implements OnInit {
     if ( customTradeAreaCheck != undefined && customTradeAreaCheck != null && customTradeAreaCheck > 0) {
          const customTradeAreaGeos = (matchingLocation[0].impGeofootprintTradeAreas[0].impGeofootprintGeos);
          const locationNumber = matchingLocation[0].locationNumber;
-         console.log(customTradeAreaGeos);
+         this.logger.info.log(customTradeAreaGeos);
          databuffer = 'Store,Geo';
          for (let i = 0; i < customTradeAreaGeos.length; i++) {
            databuffer = databuffer + '\n' + locationNumber + ',' + customTradeAreaGeos[i].geocode;
@@ -251,28 +253,28 @@ export class SiteListContainerComponent implements OnInit {
   private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
     this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
     this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
-    console.error(errorMessage, errorObject);
+    this.logger.error.log(errorMessage, errorObject);
   }
 
   public onToggleLocations(event: any) {
-     //console.log('### site-list-container.onToggleLocations - event:', event);
+     //this.logger.info.log('### site-list-container.onToggleLocations - event:', event);
      this.siteListService.setLocationsActive(event.sites, event.isActive);
   }
 
    public onDeleteLocations(event: any) {
-      // console.debug("-".padEnd(80, "-"));
-      // console.debug("SITE LIST CONTAINER - onDeleteAllLocations fired - location: ", event.locations);
-      // console.debug("event:", event);
-      // console.debug("-".padEnd(80, "-"));
+      // this.logger.debug.log("-".padEnd(80, "-"));
+      // this.logger.debug.log("SITE LIST CONTAINER - onDeleteAllLocations fired - location: ", event.locations);
+      // this.logger.debug.log("event:", event);
+      // this.logger.debug.log("-".padEnd(80, "-"));
       this.siteListService.deleteLocations(event.locations);
       const target = 'single-' + event.selectedListType.toLowerCase();
       this.store$.dispatch(new CreateLocationUsageMetric(target, 'delete', event.metricText));
    }
 
    public onDeleteAllLocations(selectedListType: string) {
-      // console.debug("-".padEnd(80, "-"));
-      // console.debug("SITE LIST CONTAINER - onDeleteAllLocations fired - selectedListType: ", selectedListType);
-      // console.debug("-".padEnd(80, "-"));
+      // this.logger.debug.log("-".padEnd(80, "-"));
+      // this.logger.debug.log("SITE LIST CONTAINER - onDeleteAllLocations fired - selectedListType: ", selectedListType);
+      // this.logger.debug.log("-".padEnd(80, "-"));
       const allLocations = this.impGeofootprintLocationService.get().filter(a => a.clientLocationTypeCode === selectedListType || a.clientLocationTypeCode === `Failed ${selectedListType}`);
       this.siteListService.deleteLocations(allLocations);
       const target = selectedListType.toLowerCase() + '-list';
@@ -283,9 +285,9 @@ export class SiteListContainerComponent implements OnInit {
    }
 
    public onMakeDirty() {
-      // console.debug("-".padEnd(80, "-"));
-      // console.debug("SITE LIST CONTAINER - onMakeDirty");
-      // console.debug("-".padEnd(80, "-"));
+      // this.logger.debug.log("-".padEnd(80, "-"));
+      // this.logger.debug.log("SITE LIST CONTAINER - onMakeDirty");
+      // this.logger.debug.log("-".padEnd(80, "-"));
       this.impGeofootprintGeoService.makeDirty();
       this.tradeAreaService.makeDirty();
       this.impGeofootprintLocAttribService.makeDirty();

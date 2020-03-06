@@ -1,17 +1,18 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RadData } from '../models/RadData';
+import { Injectable } from '@angular/core';
+import { map, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { MetricService, MetricMessage } from '../val-modules/common/services/metric.service';
+import { RadData } from '../models/RadData';
 import { RestResponse } from '../models/RestResponse';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { LoggingService } from '../val-modules/common/services/logging.service';
+import { MetricMessage, MetricService } from '../val-modules/common/services/metric.service';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { AppDiscoveryService } from './app-discovery.service';
+import { AppStateService } from './app-state.service';
 import { AuthService } from './auth.service';
 import { UserService } from './user.service';
-import { take, withLatestFrom, tap, map } from 'rxjs/operators';
-import { AppStateService } from './app-state.service';
-import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { AppDiscoveryService } from './app-discovery.service';
 
 @Injectable()
 export class RadService {
@@ -29,7 +30,8 @@ export class RadService {
               private locationService: ImpGeofootprintLocationService,
               private geoService: ImpGeofootprintGeoService,
               private authService: AuthService,
-              private userService: UserService) {
+              private userService: UserService,
+              private logger: LoggingService) {
 
     //Subscribe to the impDiscoveryService
     // this.appStateService.currentProject$.subscribe(project => this.filterRad(project), error => this.handleError(error));
@@ -124,7 +126,6 @@ export class RadService {
          const campaignMap =  this.metricService.metrics.get('CAMPAIGN');
          const totalInvestment = Number(campaignMap.get('Est. Total Investment').replace(/[^\w.\s]/g, ''));
          if (!Number.isNaN(totalInvestment) && totalInvestment !== 0 && this.predictedResp !== 0){
-            console.log('total investment:::', totalInvestment);
             if (this.predictedResp !== 0 && totalInvestment !== 0 && !Number.isNaN(this.predictedResp) && !Number.isNaN(totalInvestment)){
                // cpr = this.predictedResp / totalInvestment;
                cpr =  totalInvestment / this.predictedResp;
@@ -166,7 +167,7 @@ export class RadService {
   }
 
   private handleError(error: Error) {
-    console.error(error);
+    this.logger.error.log(error);
   }
 
 }

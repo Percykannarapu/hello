@@ -1,15 +1,16 @@
+import { HttpClient, HttpHeaders, HttpParameterCodec, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams, HttpParameterCodec } from '@angular/common/http';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
-import { User } from '../models/User';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { CookieService } from 'ngx-cookie-service';
 import { Observable, Subject } from 'rxjs';
 import { AppConfig } from '../app.config';
-import { CookieService } from 'ngx-cookie-service';
-import { OauthConfiguration, RestDataService } from '../val-modules/common/services/restdata.service';
-import { UserService } from './user.service';
-import { Store } from '@ngrx/store';
+import { User } from '../models/User';
 import { LocalAppState } from '../state/app.interfaces';
 import { CreateApplicationUsageMetric } from '../state/usage/targeting-usage.actions';
+import { LoggingService } from '../val-modules/common/services/logging.service';
+import { OauthConfiguration, RestDataService } from '../val-modules/common/services/restdata.service';
+import { UserService } from './user.service';
 
 interface RegistrationResponse {
   clientId: string;
@@ -80,11 +81,12 @@ export class AuthService implements CanActivate {
   private refreshSubject: Subject<boolean> = new Subject<boolean>();
 
   constructor(private router: Router,
-    private httpClient: HttpClient,
-    private config: AppConfig,
-    private cookieService: CookieService,
-    private userService: UserService,
-    private store$: Store<LocalAppState>) {
+              private httpClient: HttpClient,
+              private config: AppConfig,
+              private cookieService: CookieService,
+              private userService: UserService,
+              private store$: Store<LocalAppState>,
+              private logger: LoggingService) {
       this.clientId = this.config.clientId;
       this.clientSecret = this.config.clientSecret;
      }
@@ -121,7 +123,7 @@ export class AuthService implements CanActivate {
    */
   private collectLoginEvent() {
     if (this.userService.getUser() == null) {
-      console.warn('unable to retrieve user information');
+      this.logger.warn.log('unable to retrieve user information');
       return;
     }
     const user: User = this.userService.getUser();
@@ -161,7 +163,7 @@ export class AuthService implements CanActivate {
         this.authSubject.next(false);
       }
     }, error => {
-      console.error(error);
+      this.logger.error.log(error);
       this.authSubject.next(false);
     });
     return this.authSubject;
@@ -312,7 +314,7 @@ export class AuthService implements CanActivate {
         this.refreshSubject.next(false);
       }
     }, error => {
-      console.error(error);
+      this.logger.error.log(error);
       if (forceLoginOnFailure) {
         this.router.navigate(['/login']);
       }
