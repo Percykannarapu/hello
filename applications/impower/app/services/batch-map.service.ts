@@ -182,9 +182,14 @@ export class BatchMapService {
       if (currentSite.locationNumber === siteNum || (siteNum == null && i === 0)) {
         result.siteNum = nextSiteNum || '';
         result.isLastSite = nextSiteNum == null;
-        currentGeos.forEach(g => {
-          g.isActive = this.originalGeoState[g.ggId];
-        });
+        if (!params.duplicated) { //deduped map
+          currentGeos.forEach(g => {
+            g.isActive = this.originalGeoState[g.ggId];
+          });
+        } else { //duplicated map
+          currentGeos.forEach(g => g.isActive = true);
+        }
+
         if (params.hideNeighboringSites) {
           this.store$.dispatch(new RenderLocations({ locations: [currentSite], impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));

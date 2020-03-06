@@ -22,6 +22,7 @@ export interface BatchMapQueryParams {
   shadeNeighboringSites: boolean;
   groupByAttribute: string;
   fitTo: FitTo;
+  duplicated: boolean;
 }
 
 const defaultBatchQueryParams: BatchMapQueryParams = {
@@ -31,7 +32,8 @@ const defaultBatchQueryParams: BatchMapQueryParams = {
   singlePage: false,
   shadeNeighboringSites: false,
   groupByAttribute: null,
-  fitTo: FitTo.GEOS
+  fitTo: FitTo.GEOS,
+  duplicated: false
 };
 
 const getRouterSlice = (state: LocalAppState) => state.router;
