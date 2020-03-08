@@ -6,6 +6,7 @@ import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { LoggingService } from '../../common/services/logging.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
@@ -18,18 +19,16 @@ import { ImpProjectVar } from '../models/ImpProjectVar';
 
 import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 
-function isNumber(value: any) : value is number {
-  return value != null && value !== '' && !Number.isNaN(Number(value));
-}
-
 @Injectable({
   providedIn: 'root'
 })
 export class ImpDomainFactoryService {
 
-  constructor(private config: AppConfig, private userService: UserService) {}
+  constructor(private config: AppConfig,
+              private userService: UserService,
+              private logger: LoggingService) {}
 
-  private static createTradeAreaName(locationTypeCode: string, tradeAreaType: TradeAreaTypeCodes, index: number) : string {
+  private static createTradeAreaName(locationTypeCode: string, tradeAreaType: TradeAreaTypeCodes, taNumber: number) : string {
     switch (tradeAreaType) {
       case TradeAreaTypeCodes.Audience:
       case TradeAreaTypeCodes.Custom:
@@ -39,7 +38,7 @@ export class ImpDomainFactoryService {
       case TradeAreaTypeCodes.HomeGeo:
         return `${locationTypeCode} ${tradeAreaType}`;
       case TradeAreaTypeCodes.Radius:
-        return `${locationTypeCode} ${tradeAreaType} ${index + 1}`;
+        return `${locationTypeCode} ${tradeAreaType} ${taNumber}`;
     }
   }
 
@@ -219,12 +218,12 @@ export class ImpDomainFactoryService {
       origAddress1: (res['Original Address'] != null || isLocationEdit) ? ((!res['previousAddress1']) ? res['Original Address'].trim() : res['previousAddress1'].trim()) : '' ,
       origCity: (res['Original City'] != null || isLocationEdit) ? ((!res['previousCity']) ? res['Original City'].trim() : res['previousCity'].trim()) : '' ,
       origState: (res['Original State'] != null || isLocationEdit) ? ((!res['previousState']) ? res['Original State'].trim() : res['previousState'].trim()) : '' ,
-      origPostalCode: (res['Original ZIP'] != null || isLocationEdit) 
-                        ?  ((!res['previousZip']) 
-                                ? (res['Original ZIP'] != null) 
-                                        ? res['Original ZIP'].trim() 
+      origPostalCode: (res['Original ZIP'] != null || isLocationEdit)
+                        ?  ((!res['previousZip'])
+                                ? (res['Original ZIP'] != null)
+                                        ? res['Original ZIP'].trim()
                                         : ''
-                                : res['previousZip'].trim()) 
+                                : res['previousZip'].trim())
                         : '' ,
       recordStatusCode: res['Geocode Status'],
       geocoderMatchCode: res['Match Code'],
@@ -330,7 +329,7 @@ export class ImpDomainFactoryService {
     }
   }
 
-  createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, index: number = null, radius: number = 0, attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea {
+  createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, num: number = null, radius: number = 0, attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea {
     if (parent == null) throw new Error('Trade Area factory requires a valid ImpGeofootprintLocation instance');
     // All trade areas in the project
     const allTradeAreas = new Set(parent.impProject.getImpGeofootprintTradeAreas().map(ta => ta.taNumber));
@@ -340,10 +339,9 @@ export class ImpDomainFactoryService {
 
     // Determine the ta number to use
     let taNumber: number = 4;
-    if (tradeAreaType === TradeAreaTypeCodes.Radius)
-       taNumber = index + 1;
-    else
-    {
+    if (tradeAreaType === TradeAreaTypeCodes.Radius) {
+      taNumber = num;
+    } else {
        // Retrieve the TA Number from a trade area of the same type if it exists
        const existingTradeAreasOfType = parent.impProject.getImpGeofootprintTradeAreas().filter(ta => ta.taType === tradeAreaType.toUpperCase()).map(ta => ta.taNumber);
        if (existingTradeAreasOfType != null && existingTradeAreasOfType.length > 0)
@@ -352,12 +350,12 @@ export class ImpDomainFactoryService {
           // Calculate the next contiguous number to use
           while (taNumber <= 3 || (allTradeAreas != null && allTradeAreas.size > 0 && allTradeAreas.has(taNumber))) taNumber++;
     }
-    //console.debug("### createTradeArea.taNumber = ", taNumber, ", taType: ", tradeAreaType, ", radius: ", radius);
+    //this.logger.debug.log("### createTradeArea.taNumber = ", taNumber, ", taType: ", tradeAreaType, ", radius: ", radius);
     const result = new ImpGeofootprintTradeArea({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       taNumber: taNumber,
-      taName: ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, index),
+      taName: ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, num),
       taRadius: radius,
       taType: tradeAreaType.toUpperCase(),
       impProject: parent.impProject,
@@ -367,7 +365,7 @@ export class ImpDomainFactoryService {
       gtaId: null
     });
     if (existingTradeAreas.has(taNumber)) {
-      console.error('A duplicate trade area number addition was attempted: ', { newTradeArea: result });
+      this.logger.error.log('A duplicate trade area number addition was attempted: ', { newTradeArea: result });
       throw new Error('A duplicate trade area number addition was attempted');
     }
     if (attachToHierarchy) parent.impGeofootprintTradeAreas.push(result);
@@ -398,7 +396,7 @@ export class ImpDomainFactoryService {
           existingVar.value = value;
           return existingVar;
         } else {
-          console.error('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
+          this.logger.error.log('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
           throw new Error('A duplicate GeoVar addition was attempted');
         }
       }
@@ -424,7 +422,7 @@ export class ImpDomainFactoryService {
       ggId: null
     });
     if (existingGeocodes.has(geocode)) {
-      console.error('A duplicate geocode addition was attempted: ', { newGeo: result });
+      this.logger.error.log('A duplicate geocode addition was attempted: ', { newGeo: result });
       throw new Error('A duplicate geocode addition was attempted');
     }
     parent.impGeofootprintGeos.push(result);
