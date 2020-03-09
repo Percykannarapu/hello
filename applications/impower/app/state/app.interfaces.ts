@@ -61,6 +61,7 @@ export interface BatchMapPayload {
         shadeNeighboringSites: boolean;
         fitTo: FitToPageOptions;
         duplicated: boolean;
+        buffer: number;
       }
     }
   }];
@@ -80,6 +81,7 @@ export interface SinglePageBatchMapPayload {
         subTitle: string;
         subSubTitle: string;
         fitTo: FitToPageOptions;
+        buffer: number;
       }
     }
   }];

@@ -28,7 +28,7 @@ export class BatchMapDialogComponent implements OnInit {
   pageSettings: SelectItem[];
   siteLabels: SelectItem[];
   siteByGroupList: SelectItem[];
-  variableOptions: SelectItem[];
+  mapBufferOptions: SelectItem[];
   selectedVariable: string;
   input = {
     'title': this.currentProjectName,
@@ -51,6 +51,17 @@ export class BatchMapDialogComponent implements OnInit {
         {label: '24 x 36 (Arch-D)', value: BatchMapSizes.large},
         {label: '36 x 48 (Arch-E)', value: BatchMapSizes.jumbo}
       ];
+      this.mapBufferOptions = [
+        {label: '10%', value: 10},
+        {label: '15%', value: 15},
+        {label: '20%', value: 20},
+        {label: '25%', value: 25},
+        {label: '30%', value: 30},
+        {label: '35%', value: 35},
+        {label: '40%', value: 40},
+        {label: '45%', value: 45},
+        {label: '50%', value: 50}
+      ];
     }
 
   initForm() {
@@ -63,6 +74,7 @@ export class BatchMapDialogComponent implements OnInit {
       // sitesByGroup: '',
       neighboringSites: 'include',
       fitTo: '',
+      buffer: 10,
       pageSettingsControl: BatchMapSizes.letter,
       layout: 'landscape',
       titleInput: '',
@@ -149,7 +161,7 @@ export class BatchMapDialogComponent implements OnInit {
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
     const fitTo: FitToPageOptions = <FitToPageOptions> dialogFields.fitTo;
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
-      const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo);
+      const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     } else if (dialogFields.sitesPerPage === 'oneSitePerPage') {
       const formData: BatchMapPayload = {
@@ -169,7 +181,8 @@ export class BatchMapDialogComponent implements OnInit {
                 hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
                 shadeNeighboringSites: ((dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false),
                 fitTo: fitTo,
-                duplicated: !(dialogFields.deduplicated)
+                duplicated: !(dialogFields.deduplicated),
+                buffer: dialogFields.buffer
               }
             }
           }
@@ -208,7 +221,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.store$.dispatch(new CloseBatchMapDialog());
   }
 
-  getSinglePageMapPayload(size: BatchMapSizes, layout: string, siteId: string, fitTo: FitToPageOptions) : SinglePageBatchMapPayload{
+  getSinglePageMapPayload(size: BatchMapSizes, layout: string, siteId: string, fitTo: FitToPageOptions, buffer: number) : SinglePageBatchMapPayload{
     const location = this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(loc => loc.locationNumber === siteId);
     const title = this.batchMapForm.get('title').value;
     const subTitle = this.batchMapForm.get('subTitle').value;
@@ -227,7 +240,8 @@ export class BatchMapDialogComponent implements OnInit {
               title: this.getAttrValueByCode(location[0], title, 'title'),
               subTitle: this.getAttrValueByCode(location[0], subTitle, 'subTitle'),
               subSubTitle: this.getAttrValueByCode(location[0], subSubTitle, 'subSubTitle'),
-              fitTo: fitTo
+              fitTo: fitTo,
+              buffer: buffer
             }
           }
         }]

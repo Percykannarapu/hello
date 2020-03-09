@@ -107,12 +107,26 @@
               <label><b> Fit to Page </b></label>
             </div>
             <div class="ui-g-12 customPadding">
-              <p-radioButton name="fitToPageGroup" value="geos" label="Selected Geos"
+              <div class="ui-g-4 fitTo">
+                <p-radioButton name="fitToPageGroup" value="geos" label="Selected Geos"
                 formControlName="fitTo"></p-radioButton>
+              </div>
+              <div class="ui-g-4 mapBufferDropdown">
+                <span class="md-inputfield">
+                  <p-dropdown formControlName="buffer" 
+                            id="mapBuffer"
+                            [options]="mapBufferOptions"
+                            styleClass="val-full-width"
+                            [autoDisplayFirst] = "false"
+                            dropdownIcon="fa fa-caret-down">
+                  </p-dropdown>
+                  <label for="mapBuffer">Additional Buffer</label>
+                </span>
+              </div>  
             </div>
             <div class="ui-g-12 customPadding">
               <p-radioButton name="fitToPageGroup" value="ta" label="Trade Area"
-                formControlName="fitTo" [disabled]="disableTradeArea"></p-radioButton>
+              formControlName="fitTo" [disabled]="disableTradeArea"></p-radioButton>
             </div>
           </div>
           <div class="pageSettings">
@@ -131,11 +145,11 @@
                 <p-radioButton name="layoutGroup" label="Landscape" value="landscape" formControlName="layout">
                 </p-radioButton>
               </div>
-              <div class="ui-g-4">
+              <div class="ui-g-3">
                 <p-radioButton name="layoutGroup" label="Portrait" value="portrait" formControlName="layout">
                 </p-radioButton>
               </div>
-              <div class="ui-g-1"></div>
+              <div class="ui-g-2"></div>
             </div>
           </div>
           <div class="ui-g-12"></div>
