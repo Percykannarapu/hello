@@ -28,7 +28,7 @@ export function prepareRadiusTradeAreas(tradeAreas: ImpGeofootprintTradeArea[], 
     [ImpClientLocationTypeCodes.Competitor, TradeAreaMergeTypeCodes.parse(currentProject.taCompetitorMergeType)]
   ]);
   const usableTradeAreas = tradeAreas.filter(ta => ta.impGeofootprintLocation != null); // This filter is already applied to the observable that starts this process,
-                                                                                                  // but the re-homegeocode process is breaking it somehow
+                                                                                        // but the re-homegeocode process is breaking it somehow
   const siteGroups = groupByExtended(usableTradeAreas, ta => ImpClientLocationTypeCodes.parseAsSuccessful(ta.impGeofootprintLocation.clientLocationTypeCode));
   siteGroups.forEach((tas, siteType) => {
     const mergeType = siteMergeMap.get(siteType);

@@ -66,7 +66,7 @@ export class RenderingEffects {
   @Effect({ dispatch: false })
   renderRadii$ = this.actions$.pipe(
     ofType<RenderRadiusTradeAreas>(RenderingActionTypes.RenderRadiusTradeAreas),
-    filter(action => action.payload.tradeAreas != null &&  action.payload.tradeAreas.length > 0),
+    filter(action => action.payload.tradeAreas != null && action.payload.tradeAreas.length > 0),
     withLatestFrom(this.appStateService.currentProject$),
     map(([action, currentProject]) => prepareRadiusTradeAreas(action.payload.tradeAreas, currentProject, this.esriSettings.defaultSpatialRef)),
     tap(definitions => this.renderingService.renderTradeAreas(definitions))

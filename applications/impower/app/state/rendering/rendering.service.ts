@@ -74,7 +74,7 @@ export class RenderingService {
   }
 
   private createNewSiteLayer(definition: LocationDrawDefinition) {
-    const legendName = definition.siteType == ImpClientLocationTypeCodes.Site ? 'Client Locations' : 'Competitor Locations';
+    const legendName = definition.siteType === ImpClientLocationTypeCodes.Site ? 'Client Locations' : 'Competitor Locations';
     const siteRenderer =  new SimpleRenderer({
       label: legendName,
       symbol: new SimpleMarkerSymbol({

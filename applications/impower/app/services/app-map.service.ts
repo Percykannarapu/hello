@@ -65,21 +65,22 @@ export class AppMapService {
         if (mapViewSetupComplete) return;
         mapViewSetupComplete = true;
         this.zone.runOutsideAngular(() => {
+          this.mapService.createBasicWidget(Legend, {}, 'top-right');
+
           if (isBatchMapping) {
             // if we're batch mapping, we want no widgets on the UI except for a custom legend
             this.mapService.mapView.ui.remove('zoom');
-            this.mapService.createBasicWidget(Legend, {}, 'top-right');
             return;
           }
           // setup the map widgets
           this.mapService.createBasicWidget(Home, { viewpoint: homeView });
           this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
           this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
-          this.mapService.createHiddenWidget(Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend', group: 'left-column' });
+          // this.mapService.createHiddenWidget(Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend', group: 'left-column' });
           const source = new LocalBasemapsSource({
             basemaps: this.config.basemaps.map(b => Basemap.fromId(b))
           });
-          this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' });
+          this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' }, 'bottom-left');
           this.mapService.createBasicWidget(ScaleBar, { unit: 'dual' }, 'bottom-left');
 
           const popup: __esri.Popup = this.mapService.mapView.popup;

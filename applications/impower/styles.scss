@@ -271,6 +271,14 @@ body {
   }
   .esriMapContainer:not(.batch-mode) {
     .esri-ui {
+      .esri-legend {
+        width: auto;
+        margin-top: -8px;
+        margin-right: -8px;
+        .esri-legend__layer-cell--info {
+          white-space: nowrap;
+        }
+      }
       .esri-attribution {
         @include transition(background-color .3s);
 
