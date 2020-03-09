@@ -14,16 +14,16 @@ export class ValSort {
   public static TradeAreaByRadius = (a: { taRadius: number }, b: { taRadius: number }) => Number(a.taRadius) - Number(b.taRadius);
   public static TradeAreaByType(a: { taNumber: number, taType: TradeAreaTypeCodes }, b: { taNumber: number, taType: TradeAreaTypeCodes }) {
     if (a.taType === b.taType) {
-      return this.TradeAreaByTaNumber(a, b);
+      return ValSort.TradeAreaByTaNumber(a, b);
     } else {
-      return this.getTradeAreaTypeNumericSort(TradeAreaTypeCodes.parse(a.taType)) -
-             this.getTradeAreaTypeNumericSort(TradeAreaTypeCodes.parse(b.taType));
+      return ValSort.getTradeAreaTypeNumericSort(TradeAreaTypeCodes.parse(a.taType)) -
+             ValSort.getTradeAreaTypeNumericSort(TradeAreaTypeCodes.parse(b.taType));
     }
   };
   public static TradeAreaByTypeString(a: string, b: string) {
-    const aType = this.getTradeAreaTypesFromString(a);
-    const bType = this.getTradeAreaTypesFromString(b);
-    return this.TradeAreaByType(aType, bType);
+    const aType = ValSort.getTradeAreaTypesFromString(a);
+    const bType = ValSort.getTradeAreaTypesFromString(b);
+    return ValSort.TradeAreaByType(aType, bType);
   };
 
   // Location Sorters

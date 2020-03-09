@@ -1,6 +1,6 @@
 <div class="component-root" [formGroup]="currentRoot">
   <div class="active-flag">
-    <p-toggleButton onIcon="fa fa-eye fa-2" offIcon="fa fa-eye-slash fa-2" onLabel="" offLabel="" formControlName="isActive" [tabindex]="tabIndex + 99"></p-toggleButton>
+    <p-checkbox [readonly]="readonly" [tabindex]="tabIndex + 99" formControlName="isActive" label="" binary="true"></p-checkbox>
   </div>
   <div *ngIf="!readonly" class="radius-control">
     <validated-text-input formControlName="radius" labelText="Trade Area {{radiusIdentifier}} (in miles)" [tabIndex]="tabIndex"></validated-text-input>
