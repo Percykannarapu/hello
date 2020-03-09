@@ -427,7 +427,7 @@ export class AppRendererService {
       });
       definition.arcadeExpression = createDataArcade(data);
       const legendEntries = new Set(Object.values(data));
-      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme), ValSort.TradeAreaStrings);
+      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme), ValSort.TradeAreaByTypeString);
     }
   }
 }
