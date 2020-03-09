@@ -60,9 +60,9 @@ export class AppRendererService {
     });
   }
 
-  private static getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay: Set<TradeAreaTypeCodes>) : string {
+  private static getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay: Set<TradeAreaTypeCodes>, radius: number) : string {
     if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.Radius)) {
-      return 'Trade Area 1';
+      return `${radius} Mile Radius`;
     } else if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.Custom)) {
       return 'Custom';
     } else if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.Manual)) {
@@ -382,19 +382,26 @@ export class AppRendererService {
       definition.theme = ColorPalette.CpqMaps;
       const deferredHomeGeos: ImpGeofootprintGeo[] = [];
       const tradeAreaTypesInPlay = new Set<TradeAreaTypeCodes>();
+      let radiusForFirstTa: number;
       const data: Record<string, string> = geos.reduce((result, geo) => {
         const isDeduped = isBatchMode || (geo.isDeduped === 1);
         if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && isDeduped) {
-          switch (geo.impGeofootprintTradeArea.taType.toUpperCase()) {
-            case TradeAreaTypeCodes.Radius.toUpperCase():
-              const taNumber = geo.geocode === geo.impGeofootprintLocation.homeGeocode ? 1 : geo.impGeofootprintTradeArea.taNumber;
-              result[geo.geocode] = `Trade Area ${taNumber}`;
-              tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Radius);
+          switch (TradeAreaTypeCodes.parse(geo.impGeofootprintTradeArea.taType)) {
+            case TradeAreaTypeCodes.Radius:
+              if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+                deferredHomeGeos.push(geo);
+              } else {
+                result[geo.geocode] = `${geo.impGeofootprintTradeArea.taRadius} Mile Radius`;
+                tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Radius);
+                if (geo.impGeofootprintTradeArea.taNumber === 1) {
+                  radiusForFirstTa = geo.impGeofootprintTradeArea.taRadius;
+                }
+              }
               break;
-            case TradeAreaTypeCodes.HomeGeo.toUpperCase():
+            case TradeAreaTypeCodes.HomeGeo:
               deferredHomeGeos.push(geo);
               break;
-            case TradeAreaTypeCodes.Custom.toUpperCase():
+            case TradeAreaTypeCodes.Custom:
               if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
                 deferredHomeGeos.push(geo);
               } else {
@@ -402,7 +409,7 @@ export class AppRendererService {
               }
               tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Custom);
               break;
-            case TradeAreaTypeCodes.Manual.toUpperCase():
+            case TradeAreaTypeCodes.Manual:
               if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
                 deferredHomeGeos.push(geo);
               } else {
@@ -410,7 +417,7 @@ export class AppRendererService {
               }
               tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Manual);
               break;
-            case TradeAreaTypeCodes.MustCover.toUpperCase():
+            case TradeAreaTypeCodes.MustCover:
               if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
                 deferredHomeGeos.push(geo);
               } else {
@@ -423,7 +430,7 @@ export class AppRendererService {
         return result;
       }, {});
       deferredHomeGeos.forEach(hg => {
-        data[hg.geocode] = AppRendererService.getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay);
+        data[hg.geocode] = AppRendererService.getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay, radiusForFirstTa);
       });
       definition.arcadeExpression = createDataArcade(data);
       const legendEntries = new Set(Object.values(data));
