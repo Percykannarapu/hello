@@ -23,6 +23,7 @@ export interface BatchMapQueryParams {
   groupByAttribute: string;
   fitTo: FitTo;
   duplicated: boolean;
+  buffer: number;
 }
 
 const defaultBatchQueryParams: BatchMapQueryParams = {
@@ -33,7 +34,8 @@ const defaultBatchQueryParams: BatchMapQueryParams = {
   shadeNeighboringSites: false,
   groupByAttribute: null,
   fitTo: FitTo.GEOS,
-  duplicated: false
+  duplicated: false,
+  buffer: 0
 };
 
 const getRouterSlice = (state: LocalAppState) => state.router;
@@ -49,6 +51,7 @@ export const getTypedBatchQueryParams = createSelector(getRouteQueryParams, stat
     if (state.height != null && !Number.isNaN(Number(state.height))) result.height = Number(state.height);
     if (state.hideNeighboringSites != null) result.hideNeighboringSites = strToBool(state.hideNeighboringSites);
     if (state.duplicated != null) result.duplicated = strToBool(state.duplicated);
+    if (state.buffer != null && !Number.isNaN(Number(state.buffer))) result.buffer = Number(state.buffer);
   }
   return result;
 });

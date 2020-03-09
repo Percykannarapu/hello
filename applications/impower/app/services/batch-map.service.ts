@@ -151,7 +151,7 @@ export class BatchMapService {
     }
     this.geoService.update(null, null);
     this.forceMapUpdate();
-    return this.esriMapService.zoomToPoints(toUniversalCoordinates(sitesToMap), .5).pipe(
+    return this.esriMapService.zoomToPoints(toUniversalCoordinates(sitesToMap), params.buffer / 100).pipe(
       map(() => result)
     );
   }
@@ -159,7 +159,7 @@ export class BatchMapService {
   showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
     const result = { siteNum: project.getImpGeofootprintLocations()[project.getImpGeofootprintLocations().length - 1].locationNumber, isLastSite: true };
     if (project.getImpGeofootprintGeos().length > 100)
-      return this.esriMapService.zoomToPoints(toUniversalCoordinates(project.getImpGeofootprintLocations().concat())).pipe(
+      return this.esriMapService.zoomToPoints(toUniversalCoordinates(project.getImpGeofootprintLocations().concat()), params.buffer / 100).pipe(
         map(() => result)
       );
     else
@@ -256,7 +256,7 @@ export class BatchMapService {
       return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
         reduce((a, c) => [...a, ...c], []),
         switchMap((polys) => {
-          return this.esriMapService.zoomToPolys(polys);
+          return this.esriMapService.zoomToPolys(polys, params.buffer / 100);
         })
       );
     } else if (params.fitTo === FitTo.TA) {
@@ -273,7 +273,7 @@ export class BatchMapService {
           circles.push(circle);
         }
       });
-      return this.esriMapService.zoomToPolys(circles);
+      return this.esriMapService.zoomToPolys(circles, params.buffer / 100);
     }
 
   }
