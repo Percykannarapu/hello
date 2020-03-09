@@ -104,21 +104,8 @@ export class BatchMapService {
     if (this.originalGeoState == null) {
       this.recordOriginalState(project);
     }
-    let groupedSites: Map<string, Array<ImpGeofootprintLocation>>;
-    if (project.getImpGeofootprintLocations()[0].hasOwnProperty(params.groupByAttribute)) {
-      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => item[params.groupByAttribute]);
-    } else {
-      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => {
-        let key: string = null;
-        item.impGeofootprintLocAttribs.forEach(a => {
-          if (a.attributeCode === params.groupByAttribute) {
-            key = a.attributeValue;
-          }
-        });
-        return key;
-      });
-    }
-    const attrArray = Array.from(groupedSites.keys());
+    const groupedSites: Map<string, Array<ImpGeofootprintLocation>> = this.groupLocationsByAttribute(project, params);
+    const attrArray: Array<string> = Array.from(groupedSites.keys()).sort();
     const sitesToMap = groupedSites.get(attrArray[siteNum]);
     const last: boolean = Number(siteNum) === attrArray.length - 1 ? true : false;
     const nextSite = last === true ? siteNum : Number(siteNum) + 1;
@@ -151,9 +138,30 @@ export class BatchMapService {
     }
     this.geoService.update(null, null);
     this.forceMapUpdate();
-    return this.esriMapService.zoomToPoints(toUniversalCoordinates(sitesToMap), params.buffer / 100).pipe(
+    //return this.esriMapService.zoomToPoints(toUniversalCoordinates(sitesToMap), params.buffer / 100).pipe(
+    //  map(() => result)
+    //);
+    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, sitesToMap.map(s => s.locationNumber), project).pipe(
       map(() => result)
     );
+  }
+
+  private groupLocationsByAttribute(project: ImpProject, params: BatchMapQueryParams) : Map<string, Array<ImpGeofootprintLocation>>{
+    let groupedSites: Map<string, Array<ImpGeofootprintLocation>>;
+    if (project.getImpGeofootprintLocations()[0].hasOwnProperty(params.groupByAttribute)) {
+      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => item[params.groupByAttribute]);
+    } else {
+      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => {
+        let key: string = null;
+        item.impGeofootprintLocAttribs.forEach(a => {
+          if (a.attributeCode === params.groupByAttribute) {
+            key = a.attributeValue;
+          }
+        });
+        return key;
+      });
+    }
+    return groupedSites;
   }
 
   showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
