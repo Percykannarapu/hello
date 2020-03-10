@@ -170,13 +170,10 @@ export class BatchMapService {
   showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
     const result = { siteNum: project.getImpGeofootprintLocations()[project.getImpGeofootprintLocations().length - 1].locationNumber, isLastSite: true };
     if (project.getImpGeofootprintGeos().length > 100)
-      return this.esriMapService.zoomToPoints(toUniversalCoordinates(project.getImpGeofootprintLocations().concat()), params.buffer / 100).pipe(
-        map(() => result)
-      );
-    else
-      return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, project.getImpGeofootprintLocations().map(l => l.locationNumber), project).pipe(
-        map(() => result)
-      );
+      params.fitTo = FitTo.TA; //if we have too many geos we need to fit the map to the TA rings
+    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, project.getImpGeofootprintLocations().map(l => l.locationNumber), project).pipe(
+      map(() => result)
+    );
   }
 
   moveToSite(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
