@@ -75,9 +75,16 @@ import {
   MoveAudienceUp,
   RehydrateAudiences,
   SequenceChanged,
-  UpsertAudiences
+  UpsertAudiences,
+  FetchUnifiedCompleted,
+  FetchUnified,
+  FetchUnifiedMap,
+  FetchUnifiedFailedMap,
+  FetchUnifiedFailed,
+  FetchUnifiedCompletedMap
 } from './audience.actions';
 import { initialStatState, Stats } from './audience.reducer';
+import { TargetAudienceUnifiedService } from 'app/services/target-audience-unified.service';
 
 const audienceTaKey: string = 'AUDIENCE_TA_VARS';
 const shadingKey: string = 'SHADING_DATA';
@@ -144,6 +151,14 @@ export class AudiencesEffects {
               case 'Offline/TDA':
                 this.store$.dispatch(new FetchOfflineTDA({ fuseSource: 'tda', al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
+
+              case 'Combine/TDA' || 'Combined/TDA':
+                this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                break;
+              
+              // case 'Convert/TDA':
+              //    this.store$.dispatch(new FetchUnified({ fuseSource: 'convert', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+              //    break;
 
               default:
                 if (source.startsWith('Custom/'))
@@ -598,6 +613,104 @@ export class AudiencesEffects {
     }),
     map(() => new FetchCountDecrement())
   );
+  
+  @Effect()
+  fetchUnifiedVariables$ = this.actions$.pipe(
+    ofType<FetchUnified | FetchUnifiedMap>(AudienceActionTypes.FetchUnified, AudienceActionTypes.FetchUnifiedMap),
+    map(action => ({
+      actionType: action.type,
+      geoType: action.payload.al,
+      fuseSource: action.payload.fuseSource,
+      source: (action.payload.fuseSource === 'combine_tda' || action.payload.fuseSource === 'convert_tda') ? OfflineSourceTypes.TDA : null,
+      audienceList: action.payload.audienceList,
+      al: action.payload.al,
+      geocodes: action.payload.geos,
+      ids: action.payload.ids.map(id => id.toString()),
+      transactionId: action.payload.transactionId,
+      isForShading: action.payload.showOnMap,
+      chunks: this.config.geoInfoQueryChunks
+    })),
+   
+    // mergeMap to watch for completes on all active fetches
+    mergeMap((params) => {
+      this.store$.dispatch(new FetchCountIncrement()); // Count all out going fetches to know when all have completed
+      const refreshStart = performance.now();
+      return this.unifiedService.getAllVars(params.source, params.audienceList, params.al, params.ids, params.geocodes, params.isForShading, params.transactionId)
+        .pipe(
+          //tap(response => console.log('### TDA service responded with:', response, 'params.source:', params.source, 'params:', params)),
+          map((unifiedResponse) => {
+            switch (params.source) {
+              case OfflineSourceTypes.TDA:
+                return params.actionType === AudienceActionTypes.FetchUnifiedMap
+                       ? new FetchUnifiedCompletedMap({ source: params.source, startTime: refreshStart, response: unifiedResponse, transactionId: params.transactionId })
+                       : new FetchUnifiedCompleted({ source: params.source, startTime: refreshStart, response: unifiedResponse });
+
+              default:
+                console.warn('Audience Variable had an invalid source:', params.source);
+                return EMPTY;
+            }
+          }),
+          catchError(err => of(params.actionType === AudienceActionTypes.FetchOfflineTDAMap
+                               ? new FetchUnifiedFailedMap({ err, transactionId: params.transactionId })
+                               : new FetchUnifiedFailed({ err })))
+        );
+    }),
+  );
+  
+  @Effect()
+  fetchUnifiedCompleted$ = this.actions$.pipe(
+    ofType<FetchUnifiedCompleted> (AudienceActionTypes.FetchUnifiedCompleted),
+   tap(action => this.logger.info.log(`Retrieved`, action.payload.response.length, `map vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime))),
+    map(bulkResponse => {
+      const mapVars: MapVar[] = bulkResponse.payload.response.filter(data => data != null)
+        .map(responseRow => {
+          // Convert response into an array of MapVars
+          const gv = { geocode: responseRow.geocode };
+          gv[responseRow.id] = responseRow.score == null || isNaN(responseRow.score as any) ? responseRow.score : Number(responseRow.score);
+          return gv;
+        });
+      stats.totalMapVars += mapVars.length;
+      this.store$.dispatch(new FetchCountDecrement());
+      this.store$.dispatch(new StopBusyIndicator({key: shadingKey}));
+      return new UpsertMapVars({ mapVars: mapVars});
+    })
+  );
+  
+  @Effect()
+  fetchUnifiedCompletedMap$ = this.actions$.pipe(
+    ofType<FetchUnifiedCompletedMap> (AudienceActionTypes.FetchUnifiedCompletedMap),
+    // tap(action => this.logger.info.log(`Retrieved`, action.payload.response.length, `map vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime))),
+    map(bulkResponse => {
+      const mapVars: MapVar[] = bulkResponse.payload.response.filter(data => data != null)
+        .map(responseRow => {
+          // Convert response into an array of MapVars
+          const gv = { geocode: responseRow.geocode };
+          gv[responseRow.id] = responseRow.score == null || isNaN(responseRow.score as any) ? responseRow.score : Number(responseRow.score);
+          return gv;
+        });
+      stats.totalMapVars += mapVars.length;
+      this.store$.dispatch(new FetchCountDecrement());
+      this.store$.dispatch(new StopBusyIndicator({key: shadingKey}));
+      return new UpsertMapVars({ mapVars: mapVars});
+    })
+  );
+
+  @Effect()
+  fetchUnifiedFailed$ = this.actions$.pipe(
+    ofType(AudienceActionTypes.FetchUnifiedFailed),
+    tap(err => console.error('Error loading audience variables from unified service:', err)),
+    map(() => new FetchCountDecrement())
+  );
+
+  @Effect()
+  fetchUnifiedFailedMap$ = this.actions$.pipe(
+    ofType(AudienceActionTypes.FetchUnifiedFailedMap),
+    tap(err => {
+      console.error('Error loading map vars from unified:', err);
+      this.store$.dispatch(new StopBusyIndicator({key: shadingKey}));
+    }),
+    map(() => new FetchCountDecrement())
+  );
 
   @Effect({dispatch: false})
   moveAudienceUp$ = this.actions$.pipe(
@@ -658,6 +771,7 @@ export class AudiencesEffects {
       this.targetAudienceTdaService.rehydrateAudience();
       this.targetAudienceCustomService.rehydrateAudience();
       this.targetAudienceAudienceTA.rehydrateAudience();
+      this.unifiedService.rehydrateAudience();
     }),
     // withLatestFrom(this.appStateService.analysisLevel$),
     // map(([, analysisLevel]) => new ApplyAudiences({ analysisLevel: analysisLevel }))
@@ -669,7 +783,7 @@ export class AudiencesEffects {
       AudienceActionTypes.FetchCustomCompletedMap, AudienceActionTypes.FetchCustomFailedMap,
       AudienceActionTypes.FetchOfflineFailedMap, AudienceActionTypes.FetchOfflineTDACompletedMap,
       AudienceActionTypes.FetchOnlineFailedMap, AudienceActionTypes.FetchOnlineInMarketCompletedMap, AudienceActionTypes.FetchOnlineInterestCompletedMap,
-      AudienceActionTypes.FetchOnlinePixelCompletedMap, AudienceActionTypes.FetchOnlineVLHCompletedMap),
+      AudienceActionTypes.FetchOnlinePixelCompletedMap, AudienceActionTypes.FetchOnlineVLHCompletedMap, AudienceActionTypes.FetchUnifiedCompletedMap),
     map(action => new FetchMapVarCompleted({ transactionId: action.payload.transactionId }))
   );
 
@@ -682,5 +796,7 @@ export class AudiencesEffects {
               private targetAudienceOnlineService: TargetAudienceOnlineService,
               private targetAudienceTdaService: TargetAudienceTdaService,
               private targetAudienceCustomService: TargetAudienceCustomService,
-              private targetAudienceAudienceTA: TargetAudienceAudienceTA) {}
+              private targetAudienceAudienceTA: TargetAudienceAudienceTA,
+              private unifiedService: TargetAudienceUnifiedService,
+              ) {}
 }

@@ -6,6 +6,7 @@ import { GeoVar } from '../geo-vars/geo-vars.model';
 import { MapVar } from '../map-vars/map-vars.model';
 import { Audience } from './audience.model';
 import { Stats } from './audience.reducer';
+import { UnifiedResponse, UnifiedBulkResponse } from 'app/services/target-audience-unified.service';
 
 export enum AudienceActionTypes {
   LoadAudiences                      = '[Audience] Load Audiences',
@@ -41,6 +42,7 @@ export enum AudienceActionTypes {
   FetchOfflineTDA                    = '[Audience] Fetch Offline Audience: TDA',
   FetchCustom                        = '[Audience] Fetch Custom Audience',
   FetchCustomFromPrefs               = '[Audience] Fetch Custom Audience From Project Prefs',
+  FetchUnified                       = '[Audience] Fetch Audience : Unified',
 
   FetchAudienceTradeAreaCompleted    = '[Audience] Fetch Audience: Trade Area Completed',
   FetchOnlineInterestCompleted       = '[Audience] Fetch Online Audience: Interest Completed',
@@ -49,6 +51,7 @@ export enum AudienceActionTypes {
   FetchOnlinePixelCompleted          = '[Audience] Fetch Online Audience: Pixel Completed',
   FetchOfflineTDACompleted           = '[Audience] Fetch Offline Audience: TDA Completed',
   FetchCustomCompleted               = '[Audience] Fetch Custom Audience: Completed',
+  FetchUnifiedCompleted              = '[Audience] Fetch Audience : Unified Completed',
 
   FetchAudienceTradeAreaMap          = '[Audience] Fetch For Map Audience: Trade Area',
   FetchOnlineInterestMap             = '[Audience] Fetch For Map Online Audience: Interest',
@@ -58,6 +61,7 @@ export enum AudienceActionTypes {
   FetchOfflineTDAMap                 = '[Audience] Fetch For Map Offline Audience: TDA',
   FetchCustomMap                     = '[Audience] Fetch For Map Custom Audience',
   FetchCustomFromPrefsMap            = '[Audience] Fetch For Map Custom Audience From Project Prefs',
+  FetchUnifiedMap                    = '[Audience] Fetch For Map Audience : Unified',
 
   FetchAudienceTradeAreaCompletedMap = '[Audience] Fetch For Map Audience: Trade Area Completed',
   FetchOnlineInterestCompletedMap    = '[Audience] Fetch For Map Online Audience: Interest Completed',
@@ -66,6 +70,7 @@ export enum AudienceActionTypes {
   FetchOnlinePixelCompletedMap       = '[Audience] Fetch For Map Online Audience: Pixel Completed',
   FetchOfflineTDACompletedMap        = '[Audience] Fetch For Map Offline Audience: TDA Completed',
   FetchCustomCompletedMap            = '[Audience] Fetch For Map Custom Audience: Completed',
+  FetchUnifiedCompletedMap           = '[Audience] Fetch For Map Audience : Unified Completed',
 
   FetchAudienceTradeAreaFailed       = '[Audience] Fetch Audience: Trade Area Failed',
   FetchOnlineFailed                  = '[Audience] Fetch Online Audience Failed',
@@ -75,6 +80,8 @@ export enum AudienceActionTypes {
   FetchOnlineFailedMap               = '[Audience] Fetch For Map Online Audience Failed',
   FetchOfflineFailedMap              = '[Audience] Fetch For Map Offline Audience Failed',
   FetchCustomFailedMap               = '[Audience] Fetch For Map Custom Audience Failed',
+  FetchUnifiedFailedMap              = '[Audience] Fetch For Map Audience : Unified Failed',
+  FetchUnifiedFailed                 = '[Audience] Fetch Audience : Unified Failed',
 
   MoveAudienceUp                     = '[Audience] Move audience sequence up',
   MoveAudienceDn                     = '[Audience] Move audience sequence down',
@@ -211,6 +218,11 @@ export class FetchCustomFromPrefs implements Action {
   readonly type = AudienceActionTypes.FetchCustomFromPrefs;
 }
 
+export class FetchUnified implements Action {
+  readonly type = AudienceActionTypes.FetchUnified;
+  constructor(public payload: {fuseSource: string, audienceList: Audience[], al: string, showOnMap: boolean[], ids: string[], geos: string[], transactionId?: number}) {}
+}
+
 export class FetchAudienceTradeAreaCompleted implements Action {
   readonly type = AudienceActionTypes.FetchAudienceTradeAreaCompleted;
   constructor(public payload: {source: string, startTime: number, response: GeoVar[]}) {}
@@ -244,6 +256,11 @@ export class FetchOfflineTDACompleted implements Action {
 export class FetchCustomCompleted implements Action {
   readonly type = AudienceActionTypes.FetchCustomCompleted;
   constructor(public payload: {source: string, startTime: number, response: GeoVar[]}) {}
+}
+
+export class FetchUnifiedCompleted implements Action {
+  readonly type = AudienceActionTypes.FetchUnifiedCompleted;
+  constructor(public payload: {source: string, startTime: number, response: UnifiedBulkResponse[]}) {}
 }
 
 export class FetchAudienceTradeAreaMap implements Action {
@@ -285,6 +302,11 @@ export class FetchCustomFromPrefsMap implements Action {
   constructor(public payload: {geocodes: Set<string>}) {}
 }
 
+export class FetchUnifiedMap implements Action {
+  readonly type = AudienceActionTypes.FetchUnifiedMap;
+  constructor(public payload: {fuseSource: string, audienceList: Audience[], al: string, showOnMap: boolean[], ids: string[], geos: string[], transactionId?: number}) {}
+}
+
 export class FetchAudienceTradeAreaCompletedMap implements Action {
   readonly type = AudienceActionTypes.FetchAudienceTradeAreaCompletedMap;
   constructor(public payload: {source: string, startTime: number, response: MapVar[], transactionId: number }) {}
@@ -320,6 +342,11 @@ export class FetchCustomCompletedMap implements Action {
   constructor(public payload: {source: string, startTime: number, response: GeoVar[], transactionId: number }) {}
 }
 
+export class FetchUnifiedCompletedMap implements Action {
+  readonly type = AudienceActionTypes.FetchUnifiedCompletedMap;
+  constructor(public payload: {source: string, startTime: number, response: UnifiedBulkResponse[], transactionId: number }) {}
+}
+
 export class FetchAudienceTradeAreaFailed implements Action {
   readonly type = AudienceActionTypes.FetchAudienceTradeAreaFailed;
   constructor(public payload: { err: any }) {}
@@ -340,6 +367,12 @@ export class FetchCustomFailed implements Action {
   constructor(public payload: { err: any }) {}
 }
 
+export class FetchUnifiedFailed implements Action {
+  readonly type = AudienceActionTypes.FetchUnifiedFailed;
+  constructor(public payload: { err: any }) {}
+}
+
+
 export class FetchAudienceTradeAreaFailedMap implements Action {
   readonly type = AudienceActionTypes.FetchAudienceTradeAreaFailedMap;
   constructor(public payload: { err: any, transactionId: number  }) {}
@@ -357,6 +390,11 @@ export class FetchOfflineFailedMap implements Action {
 
 export class FetchCustomFailedMap implements Action {
   readonly type = AudienceActionTypes.FetchCustomFailedMap;
+  constructor(public payload: { err: any, transactionId: number  }) {}
+}
+
+export class FetchUnifiedFailedMap implements Action {
+  readonly type = AudienceActionTypes.FetchUnifiedFailedMap;
   constructor(public payload: { err: any, transactionId: number  }) {}
 }
 
@@ -428,6 +466,7 @@ export type AudienceActions =
   | FetchOfflineTDA
   | FetchCustom
   | FetchCustomFromPrefs
+  | FetchUnified
   | FetchAudienceTradeAreaCompleted
   | FetchOnlineInterestCompleted
   | FetchOnlineInMarketCompleted
@@ -435,6 +474,7 @@ export type AudienceActions =
   | FetchOnlinePixelCompleted
   | FetchOfflineTDACompleted
   | FetchCustomCompleted
+  | FetchUnifiedCompleted
   | FetchAudienceTradeAreaMap
   | FetchOnlineInterestMap
   | FetchOnlineInMarketMap
@@ -443,6 +483,7 @@ export type AudienceActions =
   | FetchOfflineTDAMap
   | FetchCustomMap
   | FetchCustomFromPrefsMap
+  | FetchUnifiedMap
   | FetchAudienceTradeAreaCompletedMap
   | FetchOnlineInterestCompletedMap
   | FetchOnlineInMarketCompletedMap
@@ -450,14 +491,17 @@ export type AudienceActions =
   | FetchOnlinePixelCompletedMap
   | FetchOfflineTDACompletedMap
   | FetchCustomCompletedMap
+  | FetchUnifiedCompletedMap
   | FetchAudienceTradeAreaFailed
   | FetchOnlineFailed
   | FetchOfflineFailed
   | FetchCustomFailed
+  | FetchUnifiedFailed
   | FetchAudienceTradeAreaFailedMap
   | FetchOnlineFailedMap
   | FetchOfflineFailedMap
   | FetchCustomFailedMap
+  | FetchUnifiedFailedMap
   | FetchAudiencesCompleted
   | GetDataFromCache
   | GetDataFromGeos
@@ -474,7 +518,9 @@ export type MapFetchCompleteActions =
   | FetchOnlinePixelCompletedMap
   | FetchOfflineTDACompletedMap
   | FetchCustomCompletedMap
+  | FetchUnifiedCompletedMap
   | FetchAudienceTradeAreaFailedMap
   | FetchOnlineFailedMap
   | FetchOfflineFailedMap
-  | FetchCustomFailedMap;
+  | FetchCustomFailedMap
+  | FetchUnifiedFailedMap;

@@ -15,23 +15,36 @@
 </div>
 <div class="ui-g-12" >
     <span class="md-inputfield">
-      <input id="combinedAudName" type="text" formControlName="combinedAudName" pInputText size="40">
-      <span class="ui-inputgroup-addon" *ngIf="!hasErrors('combinedAudName')">&nbsp;</span>
-     <label for="combinedAudName">Combined Audience Name (required)</label>
+      <input id="audienceName" type="text" formControlName="audienceName" pInputText size="40">
+      <span class="ui-inputgroup-addon" *ngIf="!hasErrors('audienceName')">&nbsp;</span>
+     <label for="audienceName">Combine/Convert Audience Name (required)</label>
     </span>
 </div>
+
 <div class="ui-g-12"> 
 <p-listbox [options]="groupedAudiences$ | async" [(ngModel)]="selectedColumns" formControlName="audienceList" [listStyle]="{'max-height':'250px'}" [style]="{width:'40em'}" multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
-
 </div>
-
-<div *ngIf="hasCombinedAudiences" class="ui-g-4">
-    <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
-
+&nbsp;
+<div class="ui-g-12">
+    <span class="md-inputfield">
+      <p-dropdown [options]="allIndexValues" optionLabel="label" formControlName="selectedIndex" styleClass="val-min-width" [(ngModel)]="selectedOperation"  placeholder="&nbsp;" dropdownIcon="fa fa-caret-down" ></p-dropdown>
+      <label for="selectedIndex">Convert To</label>
+    </span>
   </div>
-  <div *ngIf="hasCombinedAudiences && !hasErrors('combinedAudName')" class="ui-g-8">
-      <button type="submit" pButton label="Combine Audience Variables" [disabled]="audienceForm.invalid" (click)="combineAudiences(audienceForm.value)" ></button>
+<br>
+<div class="ui-g-12 validation-messages">
+    <span *ngIf="showError">
+        <p>You cannot add combine/convert sources</p>
+        </span>
 
 </div>
+
+<div class="ui-g-4" >
+      <button type="submit" pButton label="Create Variable" [disabled]= "isDisabled()" (click)="submitAudiences(audienceForm.value)" ></button>
+</div>
+<div *ngIf="hasAudienceSelections" class="ui-g-8">
+    <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
+    
+</div> 
 </div>
 </form>

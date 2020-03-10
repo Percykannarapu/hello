@@ -147,32 +147,33 @@ export class TargetAudienceTdaService {
           }
         }
       }
-      if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
-        for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
-          const groupedAudiences = JSON.parse(projectVar.customVarExprQuery);
-          const audience: AudienceDataDefinition = {
-            audienceName: projectVar.fieldname,
-            audienceIdentifier: projectVar.varPk.toString(),
-            audienceSourceType: 'Combined',
-            audienceSourceName: 'TDA',
-            exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
-            showOnGrid: projectVar.isIncludedInGeoGrid,
-            showOnMap: projectVar.isShadedOnMap,
-            exportNationally: false,
-            allowNationalExport: false,
-            fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
-            requiresGeoPreCaching: false,
-            seq: projectVar.sortOrder,
-            isCombined: true,
-            combinedAudiences: groupedAudiences,
-            combinedVariableNames: projectVar.customVarExprDisplay
-          };
+      // if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
+      //   for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
+      //     const groupedAudiences = JSON.parse(projectVar.customVarExprQuery);
+      //     const audience: AudienceDataDefinition = {
+      //       audienceName: projectVar.fieldname,
+      //       audienceIdentifier: projectVar.varPk.toString(),
+      //       audienceSourceType: 'Combined',
+      //       audienceSourceName: 'TDA',
+      //       exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
+      //       showOnGrid: projectVar.isIncludedInGeoGrid,
+      //       showOnMap: projectVar.isShadedOnMap,
+      //       exportNationally: false,
+      //       allowNationalExport: false,
+      //       fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
+      //       requiresGeoPreCaching: false,
+      //       seq: projectVar.sortOrder,
+      //       isCombined: true,
+      //       combinedAudiences: groupedAudiences,
+      //       combinedVariableNames: projectVar.customVarExprDisplay
+      //     };
 
-          if (projectVar.source.toLowerCase().match('combined')) {
-            this.audienceService.addAudience(audience, null, true);
-          }
-        }
-      }
+      //     if (projectVar.source.toLowerCase().match('combined')) {
+      //       this.audienceService.addAudience(audience, null, true);
+      //     }
+      //   }
+        
+      // }
 
     }
     catch (error) {
@@ -244,7 +245,6 @@ export class TargetAudienceTdaService {
     // Simulate error
     // if (inputData.source === 'tda')
     //   return throwError('No Data was returned for the selected audiences');
-
     if (inputData.categoryIds.length > 0) {
       this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now());
       return this.restService.post(serviceURL, [inputData])
@@ -267,6 +267,8 @@ export class TargetAudienceTdaService {
     this.logger.warn.log('offlineVarRefresh had no ids to process.');
     return EMPTY;
   }
+
+  
 
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
     const validatedResponse: OfflineBulkDataResponse[] = [];

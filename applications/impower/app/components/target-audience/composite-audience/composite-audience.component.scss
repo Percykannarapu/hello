@@ -1,0 +1,33 @@
+.ui-table.ui-table-custom .ui-table-caption.ui-widget-header {
+  border: 0 none;
+  padding: 12px;
+  text-align: left;
+  font-size: 20px;
+}
+
+
+.ui-table.ui-table-custom .ui-table-thead > tr > th {
+  border: 0 none;
+  text-align: left;
+}
+
+.ui-table.ui-table-custom .ui-table-tbody > tr > td {
+  border: 0 none;
+}
+
+.ui-table.ui-table-custom .ui-table-tbody .ui-column-title {
+  font-size: 16px;
+}
+
+.ui-table.ui-table-custom .ui-paginator {
+  border: 0 none;
+  padding: 1em;
+}
+
+.ui-column-filter {
+  margin-top: 1em;
+}
+
+.ui-column-filter .ui-multiselect-label {
+  font-weight: 500;
+}
