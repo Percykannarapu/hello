@@ -9,6 +9,14 @@ export class ValSort {
     return a - b;
   }
 
+  public static StringsAsNumbers(a: string, b: string) {
+    if (isConvertibleToNumber(a) && isConvertibleToNumber(b)) {
+      return Number(a) - Number(b);
+    } else {
+      return a.localeCompare(b);
+    }
+  }
+
   // Trade Area Sorters
   public static TradeAreaByTaNumber = (a: { taNumber: number }, b: { taNumber: number }) => Number(a.taNumber) - Number(b.taNumber);
   public static TradeAreaByRadius = (a: { taRadius: number }, b: { taRadius: number }) => Number(a.taRadius) - Number(b.taRadius);
@@ -28,11 +36,7 @@ export class ValSort {
 
   // Location Sorters
   public static LocationBySiteNum(a: { locationNumber: string }, b: { locationNumber: string }) {
-    if (isConvertibleToNumber(a.locationNumber) && isConvertibleToNumber(b.locationNumber)) {
-      return Number(a.locationNumber) - Number(b.locationNumber);
-    } else {
-      return a.locationNumber.localeCompare(b.locationNumber);
-    }
+    return this.StringsAsNumbers(a.locationNumber, b.locationNumber)
   };
 
   //---------------------------------

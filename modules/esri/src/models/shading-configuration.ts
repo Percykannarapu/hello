@@ -109,32 +109,28 @@ export function isComplexShadingDefinition(s: ShadingDefinition) : s is ComplexS
          s.shadingType === ConfigurationTypes.ClassBreak;
 }
 
-export function generateUniqueValues(uniqueValues: string[], palette: RgbTuple[], customSorter?: (a, b) => number) : UniqueValueDefinition[] {
+export function generateUniqueValues(uniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], customSorter?: (a, b) => number) : UniqueValueDefinition[] {
   const values = [...uniqueValues];
-  if (customSorter != null) {
-    values.sort(customSorter);
-  } else {
-    values.sort();
-  }
+  values.sort(customSorter);
   return values.map((uv, i) => ({
-    fillColor: RgbTuple.withAlpha(palette[i % palette.length], 1),
-    fillType: 'solid',
+    fillColor: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
+    fillType: fillPalette[i % fillPalette.length],
     legendName: uv,
     outlineColor: [0, 0, 0, 0],
     value: uv
   }));
 }
 
-export function generateContinuousValues(stats: Statistics, palette: RgbTuple[]) : ContinuousDefinition[] {
+export function generateContinuousValues(stats: Statistics, colorPalette: RgbTuple[]) : ContinuousDefinition[] {
   const result: ContinuousDefinition[] = [];
   const round = (n: number) => Math.round(n * 100) / 100;
   const mean = stats.mean;
   const std = stats.stdDeviation;
-  const themeCount = Math.min(palette.length, 8); // 8 is an esri API hard limit
+  const themeCount = Math.min(colorPalette.length, 8); // 8 is an esri API hard limit
   const stepSize = 2 / (themeCount - 1);
-  const multipliers: number[] = new Array<number>(palette.length);
+  const multipliers: number[] = new Array<number>(colorPalette.length);
   multipliers[0] = -1;
-  result.push({ stopColor: palette[0], stopValue: mean - std, stopName: `< ${round(mean - std)}` });
+  result.push({ stopColor: colorPalette[0], stopValue: mean - std, stopName: `< ${round(mean - std)}` });
   for (let n = 1; n < themeCount; ++n) {
     multipliers[n] = multipliers[n - 1] + stepSize;
     const currentValue = mean + (std * multipliers[n]);
@@ -145,21 +141,23 @@ export function generateContinuousValues(stats: Statistics, palette: RgbTuple[])
     if (n === themeCount - 1) {
       currentLabel = `> ${round(currentValue)}`;
     }
-    result.push({ stopColor: palette[n], stopValue: currentValue, stopName: currentLabel });
+    result.push({ stopColor: colorPalette[n], stopValue: currentValue, stopName: currentLabel });
   }
   return result;
 }
 
-export function generateDynamicClassBreaks(stats: Statistics, palette: RgbTuple[], breakTypes: DynamicAllocationTypes) : ClassBreakDefinition[] {
+export function generateDynamicClassBreaks(stats: Statistics, colorPalette: RgbTuple[], fillPalette: FillPattern[], breakTypes: DynamicAllocationTypes) : ClassBreakDefinition[] {
   const result: ClassBreakDefinition[] = [];
   const breakValues = breakTypes === DynamicAllocationTypes.Interval ? stats.meanIntervals : stats.quantiles;
+  const cm = colorPalette.length;
+  const lm = fillPalette.length;
   const fixedPositions = stats.max > 10 ? 0 :
                          stats.max > 5  ? 1 : 2;
   breakValues.forEach((bv, i) => {
     const b: ClassBreakDefinition = {
       maxValue: bv,
-      fillColor: RgbTuple.withAlpha(palette[i % palette.length], 1),
-      fillType: 'solid',
+      fillColor: RgbTuple.withAlpha(colorPalette[i % cm], 1),
+      fillType: fillPalette[i % lm],
       outlineColor: [0, 0, 0, 0]
     };
     if (i === 0) {
@@ -176,8 +174,8 @@ export function generateDynamicClassBreaks(stats: Statistics, palette: RgbTuple[
   const lastBreak: ClassBreakDefinition = {
     minValue: breakValues[breakValues.length - 1] + Number.EPSILON,
     maxValue: null,
-    fillColor: RgbTuple.withAlpha(palette[breakValues.length % palette.length], 1),
-    fillType: 'solid',
+    fillColor: RgbTuple.withAlpha(colorPalette[breakValues.length % cm], 1),
+    fillType: fillPalette[breakValues.length % lm],
     outlineColor: [0, 0, 0, 0],
     legendName: `${breakValues[breakValues.length - 1].toFixed(fixedPositions)} and above`
   };

@@ -12,8 +12,8 @@ export class RampVariableShaderComponent extends VariableBaseComponent<RampShadi
   constructor() { super(); }
 
   protected setupForm() : void {
-    this.parentForm.addControl('theme', new FormControl(this.definition.theme || ColorPalette.EsriPurple));
-    this.parentForm.addControl('reverseTheme', new FormControl(this.definition.reverseTheme || false));
+    this.parentForm.addControl('theme', new FormControl(this.definition.theme || ColorPalette.EsriPurple, { updateOn: 'change' }));
+    this.parentForm.addControl('reverseTheme', new FormControl(this.definition.reverseTheme || false, { updateOn: 'change' }));
   }
 
 }

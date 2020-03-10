@@ -5,6 +5,7 @@ import { ClassBreakDefinition, ClassBreakShadingDefinition, ColorPalette, Dynami
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { getFillPalette } from '../../../../../../../../modules/esri/src/models/color-palettes';
 import { getDefaultClassBreaks } from '../../../../../models/class-break-defaults.model';
 import { FieldContentTypeCodes } from '../../../../../val-modules/targeting/targeting.enums';
 import { VariableBaseComponent } from '../variable-base.component';
@@ -76,8 +77,8 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
 
   protected setupForm() : void {
     const currentTheme = this.definition.theme || ColorPalette.SixDarkColors;
-    this.parentForm.addControl('theme', new FormControl(currentTheme));
-    this.parentForm.addControl('reverseTheme', new FormControl(this.definition.reverseTheme || false));
+    this.parentForm.addControl('theme', new FormControl(currentTheme, { updateOn: 'change' }));
+    this.parentForm.addControl('reverseTheme', new FormControl(this.definition.reverseTheme || false, { updateOn: 'change' }));
     this.parentForm.addControl('dynamicallyAllocate', new FormControl(this.definition.dynamicallyAllocate, [Validators.required]));
     this.parentForm.addControl('dynamicAllocationType', new FormControl(this.definition.dynamicAllocationType));
     this.parentForm.addControl('dynamicAllocationSlots', new FormControl(this.definition.dynamicAllocationSlots));
@@ -143,9 +144,13 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
       takeUntil(this.destroyed$),
       takeUntil(this.classBreakCleanup$),
     ).subscribe(newTheme => {
-      const palette = getColorPalette(newTheme, false);
+      const colorPalette = getColorPalette(newTheme, false);
+      const fillPalette = getFillPalette(newTheme, false);
+      const cm = colorPalette.length;
+      const lm = fillPalette.length;
       for (let i = 0; i < this.classBreakCount; ++i) {
-        this.parentForm.get(`breakDefinitions.${i}.fillColor`).setValue(RgbTuple.withAlpha(palette[i % palette.length], 1));
+        this.parentForm.get(`breakDefinitions.${i}.fillColor`).setValue(RgbTuple.withAlpha(colorPalette[i % cm], 1));
+        this.parentForm.get(`breakDefinitions.${i}.fillType`).setValue(fillPalette[i % lm]);
       }
     });
     for (let i = 0; i < this.classBreakCount; ++i) {
@@ -215,15 +220,18 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
 
   addBreak() {
     const theme = this.parentForm.get('theme').value;
-    const palette = getColorPalette(theme, false);
+    const colorPalette = getColorPalette(theme, false);
+    const fillPalette = getFillPalette(theme, false);
+    const cm = colorPalette.length;
+    const lm = fillPalette.length;
     this.classBreakCleanup$.next();
     const index = this.classBreakCount - 2;
     const previousMax = this.breakDefinitions[index].get('maxValue').value;
     const newDefinition: ClassBreakDefinition = {
-      fillType: 'solid',
+      fillType: fillPalette[this.classBreakCount % lm],
       minValue: null, maxValue: null,
       legendName: 'New Break',
-      fillColor: RgbTuple.withAlpha(palette[this.classBreakCount % palette.length], 1)
+      fillColor: RgbTuple.withAlpha(colorPalette[this.classBreakCount % cm], 1)
     };
     const newControl = this.createClassBreakControl(newDefinition);
     this.breakArray.insert(index + 1, newControl);

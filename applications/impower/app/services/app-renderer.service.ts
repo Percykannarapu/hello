@@ -7,6 +7,7 @@ import {
   createDataArcade,
   EsriService,
   EsriShadingLayersService,
+  FillPattern,
   generateContinuousValues,
   generateDynamicClassBreaks,
   generateUniqueValues,
@@ -21,6 +22,7 @@ import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
+import { getFillPalette } from '../../../../modules/esri/src/models/color-palettes';
 import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
@@ -179,25 +181,27 @@ export class AppRendererService {
                 return result;
               }, {});
               const arcadeExpression = createDataArcade(mapVarDictionary);
-              let palette: RgbTuple[] = [];
+              let colorPalette: RgbTuple[] = [];
+              let fillPalette: FillPattern[] = [];
               if (isArcadeCapableShadingDefinition(shaderCopy)) {
                 shaderCopy.arcadeExpression = arcadeExpression;
                 if (isComplexShadingDefinition(shaderCopy)) {
-                  palette = getColorPalette(shaderCopy.theme, shaderCopy.reverseTheme);
+                  colorPalette = getColorPalette(shaderCopy.theme, shaderCopy.reverseTheme);
+                  fillPalette = getFillPalette(shaderCopy.theme, shaderCopy.reverseTheme);
                 }
               }
               switch (shaderCopy.shadingType) {
                 case ConfigurationTypes.Unique:
                   const uniqueValues = Array.from(uniqueStrings);
-                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, palette);
+                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette);
                   break;
                 case ConfigurationTypes.Ramp:
-                  shaderCopy.breakDefinitions = generateContinuousValues(calculateStatistics(valuesForStats), palette);
+                  shaderCopy.breakDefinitions = generateContinuousValues(calculateStatistics(valuesForStats), colorPalette);
                   break;
                 case ConfigurationTypes.ClassBreak:
                   if (shaderCopy.dynamicallyAllocate) {
                     const stats = calculateStatistics(valuesForStats, shaderCopy.dynamicAllocationSlots || 4);
-                    shaderCopy.breakDefinitions = generateDynamicClassBreaks(stats, palette, shaderCopy.dynamicAllocationType);
+                    shaderCopy.breakDefinitions = generateDynamicClassBreaks(stats, colorPalette, fillPalette, shaderCopy.dynamicAllocationType);
                   }
                   break;
               }
@@ -355,7 +359,7 @@ export class AppRendererService {
   updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], isBatchMode: boolean = false) : void {
     if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
       let useCustomSorter = false;
-      definition.theme = ColorPalette.CpqMaps;
+      if (definition.theme == null) definition.theme = ColorPalette.CpqMaps;
       const data: Record<string, string> = geos.reduce((result, geo) => {
         const isDeduped = isBatchMode || (geo.isDeduped === 1);
         if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && isDeduped) {
@@ -372,14 +376,16 @@ export class AppRendererService {
       }, {});
       definition.arcadeExpression = createDataArcade(data);
       const legendEntries = new Set(Object.values(data));
-      const sorter = useCustomSorter ? ValSort.LocationBySiteNum : null;
-      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme), sorter);
+      const sorter = useCustomSorter ? ValSort.StringsAsNumbers : null;
+      const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
+      const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
+      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), colorPalette, fillPalette, sorter);
     }
   }
 
   updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], isBatchMode: boolean = false) : void {
     if (definition != null && isComplexShadingDefinition(definition)) {
-      definition.theme = ColorPalette.CpqMaps;
+      if (definition.theme == null) definition.theme = ColorPalette.CpqMaps;
       const deferredHomeGeos: ImpGeofootprintGeo[] = [];
       const tradeAreaTypesInPlay = new Set<TradeAreaTypeCodes>();
       let radiusForFirstTa: number;
@@ -434,7 +440,9 @@ export class AppRendererService {
       });
       definition.arcadeExpression = createDataArcade(data);
       const legendEntries = new Set(Object.values(data));
-      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), getColorPalette(definition.theme, definition.reverseTheme), ValSort.TradeAreaByTypeString);
+      const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
+      const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
+      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), colorPalette, fillPalette, ValSort.TradeAreaByTypeString);
     }
   }
 }

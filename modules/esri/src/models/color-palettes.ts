@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-import { RgbTuple } from './esri-types';
+import { FillPattern, RgbTuple } from './esri-types';
 
 // these are the only palettes used in the application for now
 export enum ColorPalette {
@@ -11,10 +11,12 @@ export enum ColorPalette {
   Red = 'Gradient - Red',
   Orange = 'Gradient - Orange',
   EsriPurple = 'Gradient - Purple',
+  CrossHatching = '6 Cross Hatching'
 }
 
-export enum AllColorPalettes {
+enum AllColorPalettes {
   Random = 'Random',
+  CrossHatching = '6 Cross Hatching',
   CpqMaps = '20 Colors',
   Lightyellow = '1 Light yellow',
   Lightblue = '1 Light blue',
@@ -87,17 +89,31 @@ export enum AllColorPalettes {
 }
 
 export function getColorPalette(palette: ColorPalette, reverse: boolean) : RgbTuple[] {
-  const result = [ ...getAllColorPalettes(palette) ];
+  const currentPalette = getAllColorPalettes(palette);
+  const result = currentPalette == null ? null : [ ...currentPalette ];
+  if (reverse && result != null) {
+    result.reverse();
+  }
+  return result;
+}
+
+export function getFillPalette(palette: ColorPalette, reverse: boolean) : FillPattern[] {
+  let result: FillPattern[] = [ ...solidOnlyPalette ];
+  if (palette === ColorPalette.CrossHatching) {
+    result = [ ...crossHatchPalette ];
+  }
   if (reverse) {
     result.reverse();
   }
   return result;
 }
 
-export function getAllColorPalettes(palette: string) : RgbTuple[] {
+function getAllColorPalettes(palette: string) : RgbTuple[] {
   switch (palette) {
     case AllColorPalettes.Random:
       return null; // Special case
+    case AllColorPalettes.CrossHatching:
+      return onlyBlack;
     case AllColorPalettes.CpqMaps:
       return cpqmaps;
     case AllColorPalettes.Lightyellow:
@@ -237,10 +253,14 @@ export function getAllColorPalettes(palette: string) : RgbTuple[] {
     case AllColorPalettes.EsriPurple:
       return esriPurple;
     default:
-      return esriPurple;
+      return null;
   }
 }
 
+const crossHatchPalette: FillPattern[] = ['backward-diagonal', 'forward-diagonal', 'vertical', 'horizontal', 'diagonal-cross', 'cross'];
+const solidOnlyPalette: FillPattern[] = ['solid'];
+
+const onlyBlack: RgbTuple[] = [[0, 0, 0]];
 const LightYellow: RgbTuple[] = [[255, 255, 150]];
 const LightBlue: RgbTuple[] = [[100, 255, 255]];
 const LightGreen: RgbTuple[] = [[150, 255, 150]];

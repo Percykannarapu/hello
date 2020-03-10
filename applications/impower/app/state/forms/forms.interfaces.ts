@@ -20,18 +20,20 @@ export interface GfpSelectionForm extends GfpForm {
   defaultSymbolDefinition: SymbolDefinition;
 }
 
-export interface GfpSiteOwnerForm extends GfpForm {
-  secondaryDataKey: string;
+export interface GfpOwnerForm extends GfpForm {
+  secondaryDataKey?: string;
+  theme: ColorPalette;
+  reverseTheme: boolean;
 }
 
 export interface VariableSelectionForm extends GfpForm {
   dataKey: string;
   shadingType: ConfigurationTypes;
   filterByFeaturesOfInterest: boolean;
-  theme?: ColorPalette;
-  reverseTheme?: boolean;
   dotValue?: number;
   dotColor?: RgbaTuple;
+  theme?: ColorPalette;
+  reverseTheme?: boolean;
   legendUnits?: string;
   breakDefinitions?: any[];
 }

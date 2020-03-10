@@ -24,6 +24,7 @@
 <div *ngIf="isEditing" [formGroup]="parentForm">
   <validated-text-input formControlName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
   <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+  <dropdown-input formControlName="theme" labelText="Theme" [options]="textThemes"></dropdown-input>
   <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
   <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
   <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>

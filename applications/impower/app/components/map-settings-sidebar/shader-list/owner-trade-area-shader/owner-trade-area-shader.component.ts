@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { FormConfig } from '@val/common';
-import { UniqueShadingDefinition } from '@val/esri';
-import { GfpForm } from '../../../../state/forms/forms.interfaces';
+import { ColorPalette, UniqueShadingDefinition } from '@val/esri';
+import { GfpOwnerForm } from '../../../../state/forms/forms.interfaces';
 import { ShaderBaseComponent } from '../shader-base.component';
 
 @Component({
@@ -15,9 +15,11 @@ export class OwnerTradeAreaShaderComponent extends ShaderBaseComponent<UniqueSha
   constructor(private fb: FormBuilder) { super(); }
 
   protected setupForm() : void {
-    const formSetup: FormConfig<GfpForm> = {
+    const formSetup: FormConfig<GfpOwnerForm> = {
       layerName: [this.definition.layerName, Validators.required],
       opacity: new FormControl(this.definition.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
+      theme: new FormControl(this.definition.theme || ColorPalette.CpqMaps, { updateOn: 'change' }),
+      reverseTheme: new FormControl(this.definition.reverseTheme || false, { updateOn: 'change' })
     };
     this.shaderForm = this.fb.group(formSetup, { updateOn: 'blur' });
   }

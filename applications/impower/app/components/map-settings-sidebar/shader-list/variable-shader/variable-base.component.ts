@@ -19,6 +19,7 @@ export abstract class VariableBaseComponent<T extends ShadingDefinitionBase> imp
   @Output() cancelForm: EventEmitter<void> = new EventEmitter<void>();
 
   numericThemes: SelectItem[] = [];
+  textThemes: SelectItem[] = [];
   allThemes: SelectItem[] = [];
   allExtents: SelectItem[] = [];
 
@@ -30,7 +31,9 @@ export abstract class VariableBaseComponent<T extends ShadingDefinitionBase> imp
         label: ColorPalette[key],
         value: ColorPalette[key]
       }));
+    const gradientThemes = new Set([ ColorPalette.Blue, ColorPalette.Orange, ColorPalette.Red, ColorPalette.EsriPurple ]);
     this.numericThemes = this.allThemes.filter(k => k.value !== ColorPalette.CpqMaps);
+    this.textThemes = this.allThemes.filter(k => !gradientThemes.has(k.value));
     this.allExtents = [
       {label: 'Whole Map', value: false },
       {label: 'Selected Geos only', value: true }

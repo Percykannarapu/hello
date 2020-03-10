@@ -60,10 +60,17 @@ export class PaletteColorPickerComponent implements ControlValueAccessor {
 
   private updatePaletteOptions() {
     const colors = getColorPalette(this._palette, false);
-    this.options = colors.map(tuple => ({
-      value: RgbTuple.withAlpha(tuple, 1),
-      label: rgbToHex(tuple)
-    }));
+    if (colors == null) {
+      this.options = [{
+        value: RgbTuple.withAlpha([0, 0, 0], 1),
+        label: rgbToHex([0, 0, 0])
+      }];
+    } else {
+      this.options = colors.map(tuple => ({
+        value: RgbTuple.withAlpha(tuple, 1),
+        label: rgbToHex(tuple)
+      }));
+    }
   }
 
   registerOnChange(fn: any) : void {

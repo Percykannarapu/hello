@@ -1,6 +1,7 @@
 import { EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ShadingDefinitionBase } from '@val/esri';
+import { ColorPalette, ShadingDefinitionBase } from '@val/esri';
+import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 
 // @Component({
@@ -15,10 +16,22 @@ export abstract class ShaderBaseComponent<T extends ShadingDefinitionBase> imple
 
   shaderForm: FormGroup;
   isEditing: boolean = false;
+  numericThemes: SelectItem[] = [];
+  textThemes: SelectItem[] = [];
+  allThemes: SelectItem[] = [];
 
   protected destroyed$ = new Subject<void>();
 
-  protected constructor() { }
+  protected constructor() {
+    this.allThemes = Object.keys(ColorPalette)
+      .map(key => ({
+        label: ColorPalette[key],
+        value: ColorPalette[key]
+      }));
+    const gradientThemes = new Set([ ColorPalette.Blue, ColorPalette.Orange, ColorPalette.Red, ColorPalette.EsriPurple ]);
+    this.numericThemes = this.allThemes.filter(k => k.value !== ColorPalette.CpqMaps);
+    this.textThemes = this.allThemes.filter(k => !gradientThemes.has(k.value));
+  }
 
   ngOnInit() {
     if (this.definition.sourcePortalId == null) {

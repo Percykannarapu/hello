@@ -9,6 +9,7 @@ import { GfpShaderKeys } from '../../../models/ui-enums';
 import { AppLocationService } from '../../../services/app-location.service';
 import { AppRendererService } from '../../../services/app-renderer.service';
 import { FullAppState } from '../../../state/app.interfaces';
+import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeofootprintGeo';
 
 @Component({
@@ -37,7 +38,8 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   constructor(private locationService: AppLocationService,
               private appRenderService: AppRendererService,
               private esriShaderService: EsriShadingLayersService,
-              private store$: Store<FullAppState>) { }
+              private store$: Store<FullAppState>,
+              private logger: LoggingService) { }
 
   ngOnInit() : void {
     this.siteLabels$ = this.locationService.siteLabelOptions$;
@@ -73,6 +75,7 @@ export class ShaderListComponent implements OnInit, OnDestroy {
 
   applyDefinition(definition: ShadingDefinition) : void {
     const newDef: ShadingDefinition = { ...definition };
+    this.logger.debug.log('Applying Definition changes. New values:', { ...newDef });
     this.appRenderService.updateForAnalysisLevel(newDef, this.currentAnalysisLevel);
     switch (newDef.dataKey) {
       case GfpShaderKeys.OwnerSite:

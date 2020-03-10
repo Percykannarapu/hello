@@ -16,6 +16,7 @@ export namespace RgbTuple {
 }
 
 export type AutoCastColor = __esri.Color | RgbTuple | RgbaTuple | string;
-export type FillPattern = 'backward-diagonal' | 'cross' | 'diagonal-cross' | 'forward-diagonal' | 'horizontal' | 'none' | 'solid' | 'vertical';
+export type CrossHatchFillPattern = 'backward-diagonal' | 'cross' | 'diagonal-cross' | 'forward-diagonal' | 'horizontal' | 'vertical';
+export type FillPattern = CrossHatchFillPattern | 'none' | 'solid';
 export type LineStyle = 'dash' | 'dash-dot' | 'dot' | 'long-dash' | 'long-dash-dot' | 'long-dash-dot-dot' | 'none' | 'short-dash' | 'short-dash-dot' | 'short-dash-dot-dot' | 'short-dot' | 'solid';
 
