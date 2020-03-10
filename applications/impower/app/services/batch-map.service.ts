@@ -24,6 +24,7 @@ import { AppStateService } from './app-state.service';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -68,7 +69,7 @@ export class BatchMapService {
   requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload, project: ImpProject) : Observable<any> {
     const requestedSiteIds = new Set(payload.calls[0].args['printJobConfiguration'].siteIds);
     project.getImpGeofootprintLocations().forEach( l => {
-      if (l.clientLocationTypeCode === 'Failed Site' && requestedSiteIds.has(l.locationNumber))
+      if ((l.clientLocationTypeCode === 'Failed Site' || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor) && requestedSiteIds.has(l.locationNumber))
         requestedSiteIds.delete(l.locationNumber); //we don't want to print failed sites
     });
     payload.calls[0].args['printJobConfiguration'].siteIds = Array.from(requestedSiteIds);
@@ -84,7 +85,7 @@ export class BatchMapService {
       this.store$.dispatch(new ErrorNotification({ message: projectNotSaved, notificationTitle }));
       result = false;
     }
-    if (project.getImpGeofootprintLocations().filter(l => l.isActive).length > 200) {
+    if (project.getImpGeofootprintLocations().filter(l => l.isActive && l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site).length > 200) {
       this.store$.dispatch(new ErrorNotification({ message: tooManySites, notificationTitle }));
       result = false;
     }

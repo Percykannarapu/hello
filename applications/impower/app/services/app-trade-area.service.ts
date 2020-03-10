@@ -311,7 +311,8 @@ export class AppTradeAreaService {
     this.store$.dispatch( new ClearAudienceStats());
     this.impVarService.clearAll();
     this.appGeoService.clearAll();
-    this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
+    this.deleteTradeAreas(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
+    //this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
     this.impTradeAreaService.stopTx();
   }
 

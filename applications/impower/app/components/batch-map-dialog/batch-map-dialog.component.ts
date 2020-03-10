@@ -12,6 +12,7 @@ import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -197,7 +198,11 @@ export class BatchMapDialogComponent implements OnInit {
 
   private getSiteIds() : Array<string> {
     const siteIds: Array<string> = [];
-    this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.forEach(s => siteIds.push(s.locationNumber));
+    this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.forEach(s => {
+      if (s.clientLocationTypeCode === ImpClientLocationTypeCodes.Site){
+        siteIds.push(s.locationNumber);
+      }
+    });
     return siteIds;
   }
 
