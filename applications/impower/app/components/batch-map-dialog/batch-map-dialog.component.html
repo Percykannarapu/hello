@@ -152,9 +152,19 @@
               <div class="ui-g-2"></div>
             </div>
           </div>
-          <div class="ui-g-12"></div>
-          <div class="ui-g-12"></div>
-          <div class="ui-g-12"></div>
+          <div class="pdfOutput">
+            <div class="ui-g-12 labelTitle">
+              <label><b> PDF Output </b></label>
+            </div>
+            <div class="ui-g-12 customPadding">
+              <p-radioButton name="pdfOutputGroup" value="oneSitePerPdf" label="Leave as separate files"
+                formControlName="pdfOutput"></p-radioButton>
+            </div>
+            <div class="ui-g-12 customPadding">
+              <p-radioButton name="pdfOutputGroup" value="allSitesOnOnePdf" label="Stitch into one file"
+                formControlName="pdfOutput"></p-radioButton>
+            </div>
+          </div>
         </form>
       </div>
     </div>
