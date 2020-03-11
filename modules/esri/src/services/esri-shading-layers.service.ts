@@ -182,10 +182,12 @@ export class EsriShadingLayersService {
         classBreaks.reverse();
         const breaksRenderer = this.domainFactory.createClassBreakRenderer(defaultSymbol, classBreaks);
         breaksRenderer.valueExpression = config.arcadeExpression;
+        breaksRenderer.valueExpressionTitle = 'Custom';
         return breaksRenderer;
       case ConfigurationTypes.DotDensity:
         const dotAttributes: __esri.AttributeColorInfoProperties[] = [{
           valueExpression: config.arcadeExpression || '',
+          valueExpressionTitle: 'Custom',
           color: config.dotColor,
           label: config.layerName
         }];
@@ -203,11 +205,13 @@ export class EsriShadingLayersService {
         const result = this.domainFactory.createUniqueValueRenderer(defaultSymbol, uniqueValues);
         result.defaultLabel = defaultLabel;
         result.valueExpression = config.arcadeExpression;
+        result.valueExpressionTitle = 'Custom';
         return result;
       case ConfigurationTypes.Ramp:
         const visVar: RampProperties = {
           type: 'color',
           valueExpression: config.arcadeExpression,
+          valueExpressionTitle: 'Custom',
           // legendOptions: { title: config.layerName },
           stops: config.breakDefinitions.map(c => ({ color: c.stopColor, label: c.stopName, value: c.stopValue }))
         };

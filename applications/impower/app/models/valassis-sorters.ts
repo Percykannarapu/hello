@@ -38,6 +38,12 @@ export class ValSort {
   public static LocationBySiteNum(a: { locationNumber: string }, b: { locationNumber: string }) {
     return this.StringsAsNumbers(a.locationNumber, b.locationNumber)
   };
+  
+  // Proxy Sorters
+
+  public static classBreakByMaxValue(a: {classMaxValue: number}, b: {classMaxValue: number}){
+    return ValSort.GenericNumber(a.classMaxValue, b.classMaxValue);
+  }
 
   //---------------------------------
   // Internal help functions

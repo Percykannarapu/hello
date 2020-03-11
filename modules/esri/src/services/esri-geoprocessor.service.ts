@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { ObservableGeoprocessor, ObservablePrintTask } from '../models/observable-processors';
+import { ValSort } from 'app/models/valassis-sorters';
 
 @Injectable()
 export class EsriGeoprocessorService {
@@ -25,13 +26,21 @@ export class EsriGeoprocessorService {
         }
         if (l.showLabels){
           l.layerDefinition.drawingInfo.labelingInfo[0].removeDuplicates = 'none';
+          
           if (l.title === 'ZIP Boundaries'){
             l.layerDefinition.drawingInfo.labelingInfo[0].symbol.font.size = 9;
           }
           if (l.title === 'ATZ Boundaries' || l.title === 'Digital ATZ Boundaries' || l.title === 'PCR Boundaries'){
             l.layerDefinition.drawingInfo.labelingInfo[0].symbol.font.size = 7;
           }
+          
         }
+        if (l.layerDefinition != null && l.layerDefinition.drawingInfo != null && l.layerDefinition.drawingInfo.renderer != null &&
+            l.layerDefinition.drawingInfo.renderer.type === 'classBreaks' && l.layerDefinition.drawingInfo.renderer.classBreakInfos != null){
+          
+            l.layerDefinition.drawingInfo.renderer.classBreakInfos.sort(ValSort.classBreakByMaxValue);
+            l.layerDefinition.drawingInfo.renderer.minValue = 0;
+       }
       });
       return result;
     };
