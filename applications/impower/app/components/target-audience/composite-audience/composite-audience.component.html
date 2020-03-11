@@ -22,7 +22,7 @@
     <tr>
       <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngSwitch]="col.field">
         {{col.header}}
-        <p-dropdown *ngSwitchCase="'audienceName'" [options]="brands" styleClass="ui-column-filter" [showClear]="true" [style]="{'width':'100%'}">
+        <p-dropdown *ngSwitchCase="'compositeAudienceName'" [options]="brands" styleClass="ui-column-filter" [showClear]="true" [style]="{'width':'100%'}">
 
          
       </p-dropdown>

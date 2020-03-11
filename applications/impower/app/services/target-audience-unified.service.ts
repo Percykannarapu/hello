@@ -104,7 +104,7 @@ export class TargetAudienceUnifiedService {
 
     }
     catch (error) {
-      console.error(error);
+      this.logger.error.log(error);
     }
   }
 
@@ -113,25 +113,28 @@ export class TargetAudienceUnifiedService {
   }
 
   public getAllVars(source: string, audienceList: Audience[], analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number) : Observable<UnifiedBulkResponse[]> {
-    console.log('selected audiences', audienceList);
-
-    const combinedVars: Audience[] = [];
-    let requestVars: Array<VarList> = [];
-
+    // const combinedVars: Audience[] = [];
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
-    const numericIds = identifiers.map(i => Number(i));
+    let requestVars: Array<VarList> = [];
+    const sourceIDs: Map<string, number[]> = new Map<string, number[]>();
+
     const serviceURL = 'v1/targeting/base/geoinfo/varlookup';
-    const varIDs = audienceList[0].combinedAudiences.map(a => Number(a));
-
-    audienceList[0].combinedAudiences.forEach(id => {
-      if (this.selectedAudiences$ != null)
-        combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === id));
+    audienceList.map(audience => {
+      // combinedVars.push(audience);
+      if (audience.combinedAudiences.length > 0){
+        sourceIDs.set(audience.audienceIdentifier, audience.combinedAudiences.map(a => Number(a)));
+      //   audience.combinedAudiences.forEach(id => {
+      //   if (this.selectedAudiences$ != null)
+      //     combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === id));
+      //   });
+      }
     });
+    this.logger.debug.log('selected audiences:::', this.selectedAudiences$.getValue());
 
-    combinedVars.push(audienceList[0]);
-    requestVars = combinedVars.map(aud => ({
-      id: Number(aud.audienceIdentifier), desc: aud.audienceName, source: aud.audienceSourceType.toLocaleLowerCase(),
-      base: aud.selectedDataSet != null ? aud.selectedDataSet : '', combineSource: identifiers[0] === aud.audienceIdentifier ? varIDs : []
+    // const uniqueAudList =  Array.from(new Set(combinedVars));
+    requestVars = this.selectedAudiences$.getValue().map(aud => ({
+      id: Number(aud.audienceIdentifier), desc: aud.audienceName, source: aud.audienceSourceType === 'Combine/Convert' ? 'combine' : aud.audienceSourceType,
+      base: aud.selectedDataSet != null ? aud.selectedDataSet : '', combineSource: sourceIDs.has(aud.audienceIdentifier) ? sourceIDs.get(aud.audienceIdentifier) : []
     }));
 
     requestVars.forEach(v => {
@@ -149,18 +152,18 @@ export class TargetAudienceUnifiedService {
       chunks: this.config.geoInfoQueryChunks,
       vars: requestVars
     };
-    console.log('unified payload::', inputData);
+    this.logger.info.log('unified request payload::', inputData);
 
     if (identifiers.length > 0) {
       return this.restService.post(serviceURL, [inputData])
         .pipe(
-          tap(response => console.log('response payload::', response)),
+          tap(response => this.logger.info.log('unified response payload::', response)),
           map(response => this.validateFuseResponse(response, identifiers.map(id => id.toString()), isForShading)),
           tap(response => (response)),
           catchError(() => {
-            console.error('Error posting to', serviceURL, 'with payload:');
-            console.error('payload:', inputData);
-            console.error('payload:\n{\n' +
+            this.logger.error.log('Error posting to', serviceURL, 'with payload:');
+            this.logger.error.log('payload:', inputData);
+            this.logger.error.log('payload:\n{\n' +
               '   geoType: ', inputData.geoType, '\n',
               '   geocodes: ', geocodes.toString(), '\n',
             );
@@ -168,15 +171,14 @@ export class TargetAudienceUnifiedService {
           })
         );
     }
-    console.warn('getAllVars had no ids to process.');
+
+    this.logger.warn.log('getAllVars had no ids to process.');
     return EMPTY;
   }
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
-    console.log('response from unified:::', response);
     const validatedResponse: UnifiedBulkResponse[] = [];
     const responseArray: UnifiedFuseResponse[] = response.payload.rows;
     const emptyAudiences: string[] = [];
-    //console.log('### tda validateFuseResponse - response.length:', responseArray.length);
 
     // Validate and transform the response
     for (let r = 0; r < responseArray.length; r++)

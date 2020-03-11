@@ -42,7 +42,7 @@ export class CompositeAudienceComponent implements OnInit {
 
 
     this.selectedAudiences = [
-      { field: 'audienceName', header: 'Audience Name' },
+      { field: 'compositeAudienceName', header: 'Audience Name' },
       { field: 'percent', header: 'Percent' },
       { field: 'index', header: 'Index' },
   ];

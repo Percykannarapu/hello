@@ -152,7 +152,7 @@ export class AudiencesEffects {
                 this.store$.dispatch(new FetchOfflineTDA({ fuseSource: 'tda', al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
-              case 'Combine/TDA' || 'Combined/TDA':
+              case 'Combine/Convert/TDA' || 'Combined/TDA':
                 this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
               
