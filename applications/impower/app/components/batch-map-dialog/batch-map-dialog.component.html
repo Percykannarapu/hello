@@ -1,5 +1,5 @@
 <p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '800px'}" [maximizable]="false">
+  [modal]="true" [style]="{width: '650px', minWidth: '200px', height: '800px', overflow:'scroll'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main" id="p-dialog">
       <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are
@@ -71,7 +71,7 @@
               <p-radioButton name="sitesPerPageGroup" value="allSitesOnOnePage" label="All sites on one page"
                 formControlName="sitesPerPage"></p-radioButton>
             </div>
-            <!-- <div class="ui-g-12 customPadding">
+            <div class="ui-g-12 customPadding">
               <div class="ui-g-4 groupByPadding">
                 <p-radioButton name="sitesPerPageGroup" value="sitesGroupedBy" label="Sites grouped by:"
                 formControlName="sitesPerPage"></p-radioButton>
@@ -83,7 +83,7 @@
                             dropdownIcon="fa fa-caret-down">
                 </p-dropdown>
               </div>
-            </div> -->
+            </div>
           </div>
           <div class="neighboringSites">
             <div class="ui-g-12 labelTitle">
