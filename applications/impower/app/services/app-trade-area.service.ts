@@ -311,7 +311,8 @@ export class AppTradeAreaService {
     this.store$.dispatch( new ClearAudienceStats());
     this.impVarService.clearAll();
     this.appGeoService.clearAll();
-    this.deleteTradeAreas(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
+    const removeTradeAreas = allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType)));
+    removeTradeAreas.length > 0 ? this.deleteTradeAreas(removeTradeAreas) : this.impTradeAreaService.makeDirty();
     //this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
     this.impTradeAreaService.stopTx();
   }

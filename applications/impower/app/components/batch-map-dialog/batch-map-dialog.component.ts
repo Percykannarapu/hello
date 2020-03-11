@@ -72,7 +72,7 @@ export class BatchMapDialogComponent implements OnInit {
       subSubTitle: 'user-defined',
       deduplicated: true,
       sitesPerPage: 'oneSitePerPage',
-      // sitesByGroup: '',
+      sitesByGroup: '',
       neighboringSites: 'include',
       fitTo: '',
       buffer: 10,
@@ -82,6 +82,7 @@ export class BatchMapDialogComponent implements OnInit {
       subTitleInput: '',
       subSubTitleInput: '',
       enableTradeAreaShading: false,
+      pdfOutput: 'allSitesOnOnePdf',
     });   
   }
 
@@ -158,7 +159,10 @@ export class BatchMapDialogComponent implements OnInit {
     this.input['subTitle'] = dialogFields['subTitleInput'];
     this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
     const siteIds: string[] = this.getSiteIds();
-    const titles: Array<TitlePayload> = this.getTitles(siteIds);
+    const titles: Array<TitlePayload> = this.getTitles(siteIds); 
+    const result = this.getTitlesByGroup(siteIds);
+    const siteIdsByGroup: string[] = result[0];
+    const titlesByGroup: Array<TitlePayload> = result[1];
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
     const fitTo: FitToPageOptions = <FitToPageOptions> dialogFields.fitTo;
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
@@ -192,6 +196,32 @@ export class BatchMapDialogComponent implements OnInit {
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     } else if (dialogFields.sitesPerPage === 'sitesGroupedBy') {
       //print maps by site Attributes
+      const formData: BatchMapPayload = {
+        calls: [
+          {
+            service: 'ImpowerPdf',
+            function: 'printMaps',
+            args: {
+              printJobConfiguration: {
+                email: `${this.userService.getUser().username}@valassis.com`,
+                titles: titlesByGroup,
+                projectId: this.currentProjectId,
+                size: size,
+                pageSettings: dialogFields.pageSettingsControl,
+                layout: dialogFields.layout,
+                siteIds: siteIdsByGroup,
+                hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
+                shadeNeighboringSites: (dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false,
+                fitTo: fitTo,
+                duplicated: !(dialogFields.deduplicated),
+                buffer: dialogFields.buffer,
+                groupByAttribute: dialogFields.sitesByGroup
+              }
+            }
+          }
+        ]
+      };
+      this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     }
     this.closeDialog();
   }
@@ -254,6 +284,17 @@ export class BatchMapDialogComponent implements OnInit {
     return formData;
   }
 
+  getTheSiteAttributeValue(siteAttribute: string, location: ImpGeofootprintLocation) {
+    if (location[siteAttribute] === undefined) {
+      const tempLoc = location.impGeofootprintLocAttribs;
+      const filtered = tempLoc.filter(loc => loc.attributeCode === siteAttribute);
+      if (filtered.length > 0){
+        return (filtered[0].attributeValue === null ? '' : filtered[0].attributeValue);
+      }
+    }
+    return location[siteAttribute];
+  }
+
   getAttrValueByCode(location: ImpGeofootprintLocation, title: string, inputField: string){
     if (title === 'user-defined') {
      return (this.input[inputField] === null ? '' : this.input[inputField]);
@@ -293,5 +334,40 @@ export class BatchMapDialogComponent implements OnInit {
       }
     });
     return titlePayload;
+  }
+
+  getTitlesByGroup(siteIds: string[]) : any {
+    const locations = this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations;
+    const siteAttribute = this.batchMapForm.get('sitesByGroup').value;
+    const locationArray = [];
+    const divisionArr = [];
+    const titlePayload: Array<TitlePayload> = [];
+    const title = this.batchMapForm.get('title').value;
+    const subTitle = this.batchMapForm.get('subTitle').value;
+    const subSubTitle = this.batchMapForm.get('subSubTitle').value;
+    const bufferArray: Map<string, ImpGeofootprintLocation> = new Map<string, ImpGeofootprintLocation>();
+
+    siteIds.forEach((siteId) => {
+      const filteredLocations = locations.filter(loc => loc.locationNumber === siteId);
+      const divisionVal: string = this.getTheSiteAttributeValue(siteAttribute, filteredLocations[0]);
+      if (!divisionArr.includes(divisionVal)){
+        divisionArr.push(divisionVal);
+        bufferArray.set(divisionVal, filteredLocations[0]);
+      }
+    });
+    divisionArr.sort();
+    // sorting
+    divisionArr.forEach(divisonVal => locationArray.push(bufferArray.get(divisonVal)));
+    locationArray.forEach((location, index) => {
+      const payload: TitlePayload = {
+        siteId: index.toString(),
+        title: this.getAttrValueByCode(location, title, 'title'),
+        subTitle: this.getAttrValueByCode(location, subTitle, 'subTitle'),
+        subSubTitle: this.getAttrValueByCode(location, subSubTitle, 'subSubTitle')
+      };
+      titlePayload.push(payload);
+    });
+    const Ids = Array.from(Array(divisionArr.length).keys());
+    return [Ids, titlePayload];
   }
 }
