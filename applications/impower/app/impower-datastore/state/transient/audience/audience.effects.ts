@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { formatMilli, groupByExtended } from '@val/common';
+import { EsriShadingLayersService, shadingSelectors } from '@val/esri';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -30,6 +31,8 @@ import {
   ApplyAudiencesRecordStats,
   AudienceActions,
   AudienceActionTypes,
+  DeleteAudience,
+  DeleteAudiences,
   FetchAudienceTradeArea,
   FetchAudienceTradeAreaCompleted,
   FetchAudienceTradeAreaCompletedMap,
@@ -673,6 +676,16 @@ export class AudiencesEffects {
     map(action => new FetchMapVarCompleted({ transactionId: action.payload.transactionId }))
   );
 
+  @Effect({ dispatch: false })
+  cleanUpShaders$ = this.actions$.pipe(
+    ofType<DeleteAudience | DeleteAudiences>(AudienceActionTypes.DeleteAudience, AudienceActionTypes.DeleteAudiences),
+    map(action => action.type === AudienceActionTypes.DeleteAudience ? [ action.payload.id ] : action.payload.ids),
+    map(ids => new Set(ids)),
+    withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs)),
+    map(([ids, shaders]) => shaders.filter(s => ids.has(s.dataKey))),
+    tap(shaders => this.esriShadingService.deleteShader(shaders))
+  );
+
   constructor(private actions$: Actions<AudienceActions>,
               private store$: Store<FullAppState>,
               private config: AppConfig,
@@ -682,5 +695,6 @@ export class AudiencesEffects {
               private targetAudienceOnlineService: TargetAudienceOnlineService,
               private targetAudienceTdaService: TargetAudienceTdaService,
               private targetAudienceCustomService: TargetAudienceCustomService,
-              private targetAudienceAudienceTA: TargetAudienceAudienceTA) {}
+              private targetAudienceAudienceTA: TargetAudienceAudienceTA,
+              private esriShadingService: EsriShadingLayersService) {}
 }
