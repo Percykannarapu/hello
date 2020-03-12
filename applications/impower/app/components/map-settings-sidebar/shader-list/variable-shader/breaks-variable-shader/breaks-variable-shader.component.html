@@ -53,17 +53,51 @@
       </table>
     </div>
   </div>
+  <div *ngIf="definition.dynamicallyAllocate && !definition.dynamicLegend && definition.userBreakDefaults">
+    <label>Breaks:</label>
+    <div class="class-break-table">
+      <table>
+        <thead>
+        <tr>
+          <th [ngStyle]="{ 'width': '30%' }">&nbsp;</th>
+          <th [ngStyle]="{ 'width': '40%' }">Legend</th>
+          <th [ngStyle]="{ 'width': '30%' }">Overlay</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let defBreak of definition.userBreakDefaults; index as i">
+          <td>{{getAllocationName(i)}}</td>
+          <td>{{defBreak.legendName}}</td>
+          <td>
+            {{getFillName(defBreak.fillType)}}
+            <span class="color-chip" [ngStyle]="{ 'background-color': getHexColor(defBreak.fillColor) }" *ngIf="defBreak.fillType === 'solid'"></span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </ng-container>
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
   <validated-text-input formControlName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
   <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
   <dropdown-input labelText="Theme" formControlName="theme" [options]="allThemes"></dropdown-input>
+  <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
   <dropdown-input labelText="Break Type" [options]="breakTypes" [(ngModel)]="selectedBreakType" [ngModelOptions]="{standalone: true}"
                   [includeUnselected]="true" (selectionChanged)="breakTypeChanged($event)"></dropdown-input>
   <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === true">
-    <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
     <validated-text-input formControlName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be between 2 and 20"></validated-text-input>
+    <boolean-input labelText="Dynamic Legend" formControlName="dynamicLegend"></boolean-input>
+    <div class="class-break-list" formArrayName="userBreakDefaults" *ngIf="!parentForm.get('dynamicLegend').value">
+      <div *ngFor="let x of userBreakDefaults; index as i">
+        <div class="break-container">
+          <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme"
+                                  [reversePalette]="reverseTheme" [usesCalculatedValues]="true"
+                                  [calculatedValueMessage]="getAllocationName(i)"></esri-class-break-input>
+        </div>
+      </div>
+    </div>
   </ng-container>
   <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === false">
     <div class="shader-menu">
@@ -73,7 +107,7 @@
     <div class="class-break-list" formArrayName="breakDefinitions">
       <div *ngFor="let x of breakDefinitions; first as isFirst; last as isLast; index as i">
         <div class="break-container">
-          <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme"
+          <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme" [reversePalette]="reverseTheme"
                                   [showMinValue]="!isFirst" [showMaxValue]="!isLast"></esri-class-break-input>
         </div>
         <div class="delete-container">
@@ -83,6 +117,6 @@
     </div>
   </ng-container>
   <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-  <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
+  <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!parentForm.valid" (click)="formSubmit()"></button>
   <button pButton label="Cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
 </div>

@@ -1,18 +1,25 @@
 <div class="component-root">
   <ng-container [formGroup]="currentRoot">
-    <div *ngIf="!showMinValue" class="min-values">&nbsp;</div>
-    <div *ngIf="showMinValue" class="min-values">
-      <validated-text-input formControlName="minValue" labelText="min" [readOnly]="true"></validated-text-input>
-    </div>
-    <div *ngIf="!showMaxValue" class="max-values">&nbsp;</div>
-    <div *ngIf="showMaxValue" class="max-values">
-      <validated-text-input formControlName="maxValue" labelText="max"></validated-text-input>
-    </div>
+    <ng-container *ngIf="usesCalculatedValues">
+      <div class="calculated-value-message">
+        {{calculatedValueMessage}}
+      </div>
+    </ng-container>
+    <ng-container *ngIf="!usesCalculatedValues">
+      <div *ngIf="!showMinValue" class="min-values">&nbsp;</div>
+      <div *ngIf="showMinValue" class="min-values">
+        <validated-text-input formControlName="minValue" labelText="min" [readOnly]="true"></validated-text-input>
+      </div>
+      <div *ngIf="!showMaxValue" class="max-values">&nbsp;</div>
+      <div *ngIf="showMaxValue" class="max-values">
+        <validated-text-input formControlName="maxValue" labelText="max"></validated-text-input>
+      </div>
+    </ng-container>
     <div class="legend-values">
       <validated-text-input formControlName="legendName" labelText="Legend"></validated-text-input>
     </div>
   </ng-container>
   <div class="symbol-values" [formGroup]="currentRoot.parent">
-    <esri-symbol-input labelText="Overlay Type" [currentPalette]="currentPalette" [formGroupName]="formGroupName"></esri-symbol-input>
+    <esri-symbol-input labelText="Overlay Type" [currentPalette]="currentPalette" [formGroupName]="formGroupName" [reversePalette]="reversePalette"></esri-symbol-input>
   </div>
 </div>

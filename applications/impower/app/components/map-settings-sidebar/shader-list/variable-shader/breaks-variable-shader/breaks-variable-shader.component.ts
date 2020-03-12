@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { rgbToHex } from '@val/common';
-import { ClassBreakDefinition, ClassBreakShadingDefinition, ColorPalette, DynamicAllocationTypes, FillPattern, fillTypeFriendlyNames, getColorPalette, RgbaTuple, RgbTuple } from '@val/esri';
+import { ClassBreakDefinition, ClassBreakShadingDefinition, ColorPalette, DynamicAllocationTypes, FillPattern, fillTypeFriendlyNames, getColorPalette, RgbaTuple, RgbTuple, SymbolDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { filter, takeUntil } from 'rxjs/operators';
 import { getFillPalette } from '../../../../../../../../modules/esri/src/models/color-palettes';
-import { getDefaultClassBreaks } from '../../../../../models/class-break-defaults.model';
+import { getDefaultClassBreaks, getDefaultUserBreaks } from '../../../../../models/class-break-defaults.model';
 import { FieldContentTypeCodes } from '../../../../../val-modules/targeting/targeting.enums';
 import { VariableBaseComponent } from '../variable-base.component';
 
@@ -30,6 +30,16 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     return [];
   }
 
+  get userBreakArray() : FormArray {
+    return this.parentForm.get('userBreakDefaults') as FormArray;
+  }
+
+  get userBreakDefaults() : FormGroup[] {
+    const breaks = this.userBreakArray;
+    if (breaks != null) return breaks.controls as FormGroup[];
+    return [];
+  }
+
   get currentTheme() : ColorPalette {
     if (this.isEditing) {
       return this.parentForm.get('theme').value;
@@ -38,7 +48,16 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     }
   }
 
+  get reverseTheme() : boolean {
+    if (this.isEditing) {
+      return this.parentForm.get('reverseTheme').value;
+    } else {
+      return this.definition.reverseTheme;
+    }
+  }
+
   private classBreakCleanup$ = new Subject<void>();
+  private userBreakCleanup$ = new Subject<void>();
   private classBreakCount = 0;
 
   constructor(private fb: FormBuilder) {
@@ -50,6 +69,11 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     ];
   }
 
+  public getAllocationName(index: number) : string {
+    const prefix = this.getAllocationPrefix();
+    return `${prefix} ${index + 1}`;
+  }
+
   public getHexColor(esriColor: RgbaTuple) : string {
     return rgbToHex(esriColor);
   }
@@ -59,7 +83,6 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
   }
 
   public ngOnInit() {
-    super.ngOnInit();
     if (this.definition.dynamicallyAllocate === true) {
       if (this.definition.dynamicAllocationType === DynamicAllocationTypes.Interval) {
         this.selectedBreakType = this.breakTypes[1].value;
@@ -73,6 +96,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
         this.selectedBreakType = null;
       }
     }
+    super.ngOnInit();
   }
 
   protected setupForm() : void {
@@ -80,25 +104,38 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     this.parentForm.addControl('theme', new FormControl(currentTheme, { updateOn: 'change' }));
     this.parentForm.addControl('reverseTheme', new FormControl(this.definition.reverseTheme || false, { updateOn: 'change' }));
     this.parentForm.addControl('dynamicallyAllocate', new FormControl(this.definition.dynamicallyAllocate, [Validators.required]));
-    this.parentForm.addControl('dynamicAllocationType', new FormControl(this.definition.dynamicAllocationType));
-    this.parentForm.addControl('dynamicAllocationSlots', new FormControl(this.definition.dynamicAllocationSlots));
+    this.parentForm.addControl('dynamicAllocationType', new FormControl(this.definition.dynamicAllocationType || DynamicAllocationTypes.Interval));
+    this.parentForm.addControl('dynamicAllocationSlots', new FormControl(this.definition.dynamicAllocationSlots || 3));
+    const dynamicLegendValue = this.definition.dynamicLegend == null ? true : this.definition.dynamicLegend;
+    this.parentForm.addControl('dynamicLegend', new FormControl(dynamicLegendValue));
     this.setupBreakControls(this.definition.breakDefinitions);
+    this.setupUserBreakControls(this.definition.userBreakDefaults);
   }
 
   public breakTypeChanged(value: any) {
+    const currentTheme = this.parentForm.get('theme').value;
+    const currentReverse = this.parentForm.get('reverseTheme').value;
     switch (value) {
       case this.breakTypes[0].value:
         this.parentForm.get('dynamicallyAllocate').setValue(false);
         this.parentForm.get('dynamicAllocationType').setValue(null);
         this.parentForm.get('dynamicAllocationSlots').clearValidators();
-        const currentTheme = this.parentForm.get('theme').value;
-        const newBreakDefinitions: ClassBreakDefinition[] = getDefaultClassBreaks(this.currentAudience.fieldconte, currentTheme);
+        this.classBreakCleanup$.next();
+        const newBreakDefinitions: ClassBreakDefinition[] = getDefaultClassBreaks(this.currentAudience.fieldconte, currentTheme, currentReverse);
         this.setupBreakControls(newBreakDefinitions);
+        if (this.parentForm.get('userBreakDefaults') != null) {
+          this.userBreakCleanup$.next();
+          this.parentForm.removeControl('userBreakDefaults');
+        }
         break;
       case this.breakTypes[1].value:
         this.parentForm.get('dynamicallyAllocate').setValue(true);
         this.parentForm.get('dynamicAllocationType').setValue(DynamicAllocationTypes.Interval);
+        this.parentForm.get('dynamicAllocationSlots').setValue(3);
         this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2), Validators.max(20)]);
+        this.parentForm.get('dynamicLegend').setValue(true);
+        this.userBreakCleanup$.next();
+        this.setupUserBreakValidations();
         if (this.parentForm.get('breakDefinitions') != null) {
           this.classBreakCleanup$.next();
           this.parentForm.removeControl('breakDefinitions');
@@ -108,7 +145,11 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
       case this.breakTypes[2].value:
         this.parentForm.get('dynamicallyAllocate').setValue(true);
         this.parentForm.get('dynamicAllocationType').setValue(DynamicAllocationTypes.ClassCount);
+        this.parentForm.get('dynamicAllocationSlots').setValue(3);
         this.parentForm.get('dynamicAllocationSlots').setValidators([Validators.required, Validators.min(2), Validators.max(20)]);
+        this.parentForm.get('dynamicLegend').setValue(true);
+        this.userBreakCleanup$.next();
+        this.setupUserBreakValidations();
         if (this.parentForm.get('breakDefinitions') != null) {
           this.classBreakCleanup$.next();
           this.parentForm.removeControl('breakDefinitions');
@@ -127,14 +168,87 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     }
   }
 
+  private setupUserBreakControls(definitions: SymbolDefinition[]) : void {
+    if (definitions != null && definitions.length > 0) {
+      const breakControls = definitions.map(def => this.createUserBreakControl(def));
+      if (this.parentForm.contains('userBreakDefaults')) this.parentForm.removeControl('userBreakDefaults');
+      this.parentForm.addControl('userBreakDefaults', new FormArray(breakControls));
+      this.setupUserBreakValidations();
+    }
+  }
+
   private createClassBreakControl(newBreakDefinition: ClassBreakDefinition) : FormGroup {
     return this.fb.group({
       fillColor: new FormControl(newBreakDefinition.fillColor, { updateOn: 'change' }),
       fillType: new FormControl(newBreakDefinition.fillType, { updateOn: 'change' }),
       outlineColor: new FormControl(newBreakDefinition.outlineColor, { updateOn: 'change' }),
-      legendName: newBreakDefinition.legendName,
+      legendName: new FormControl(newBreakDefinition.legendName, [Validators.required]),
       minValue: new FormControl(newBreakDefinition.minValue),
       maxValue: newBreakDefinition.maxValue
+    });
+  }
+
+  private createUserBreakControl(newBreakDefinition: SymbolDefinition) : FormGroup {
+    return this.fb.group({
+      fillColor: new FormControl(newBreakDefinition.fillColor, { updateOn: 'change' }),
+      fillType: new FormControl(newBreakDefinition.fillType, { updateOn: 'change' }),
+      outlineColor: new FormControl(newBreakDefinition.outlineColor, { updateOn: 'change' }),
+      legendName: new FormControl(newBreakDefinition.legendName)
+    });
+  }
+
+  private setupUserBreakValidations() : void {
+    const themeControl = this.parentForm.get('theme');
+    const breakControl = this.parentForm.get('dynamicAllocationSlots');
+    const dynamicLegendControl = this.parentForm.get('dynamicLegend');
+
+    themeControl.valueChanges.pipe(
+      takeUntil(this.destroyed$),
+      takeUntil(this.userBreakCleanup$),
+      filter(() => !this.parentForm.get('dynamicLegend').value)
+    ).subscribe(newTheme => {
+      const reverseValue = this.parentForm.get('reverseTheme').value;
+      const colorPalette = getColorPalette(newTheme, reverseValue);
+      const fillPalette = getFillPalette(newTheme, reverseValue);
+      const cm = colorPalette.length;
+      const lm = fillPalette.length;
+      const currentBreakControl = this.parentForm.get('dynamicAllocationSlots');
+      if (currentBreakControl.valid) {
+        for (let i = 0; i < currentBreakControl.value; ++i) {
+          this.parentForm.get(`userBreakDefaults.${i}.fillColor`).setValue(RgbTuple.withAlpha(colorPalette[i % cm], 1));
+          this.parentForm.get(`userBreakDefaults.${i}.fillType`).setValue(fillPalette[i % lm]);
+        }
+      }
+    });
+
+    breakControl.valueChanges.pipe(
+      takeUntil(this.destroyed$),
+      takeUntil(this.userBreakCleanup$),
+      filter(() => !this.parentForm.get('dynamicLegend').value && this.parentForm.get('dynamicAllocationSlots').valid)
+    ).subscribe(newBreakCount => {
+      const currentThemeValue = this.parentForm.get('theme').value;
+      const reverseValue = this.parentForm.get('reverseTheme').value;
+      this.userBreakCleanup$.next();
+      const newDefinitions = getDefaultUserBreaks(newBreakCount, this.getAllocationPrefix(), currentThemeValue, reverseValue);
+      this.setupUserBreakControls(newDefinitions);
+    });
+
+    dynamicLegendControl.valueChanges.pipe(
+      takeUntil(this.destroyed$),
+      takeUntil(this.userBreakCleanup$),
+    ).subscribe(newValue => {
+      if (!newValue) {
+        const currentThemeValue = this.parentForm.get('theme').value;
+        const reverseValue = this.parentForm.get('reverseTheme').value;
+        const currentBreakControl = this.parentForm.get('dynamicAllocationSlots');
+        if (currentBreakControl.valid) {
+          this.userBreakCleanup$.next();
+          const newDefinitions = getDefaultUserBreaks(currentBreakControl.value, this.getAllocationPrefix(), currentThemeValue, reverseValue);
+          this.setupUserBreakControls(newDefinitions);
+        }
+      } else {
+        this.parentForm.removeControl('userBreakDefaults');
+      }
     });
   }
 
@@ -144,8 +258,9 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
       takeUntil(this.destroyed$),
       takeUntil(this.classBreakCleanup$),
     ).subscribe(newTheme => {
-      const colorPalette = getColorPalette(newTheme, false);
-      const fillPalette = getFillPalette(newTheme, false);
+      const reverseValue = this.parentForm.get('reverseTheme').value;
+      const colorPalette = getColorPalette(newTheme, reverseValue);
+      const fillPalette = getFillPalette(newTheme, reverseValue);
       const cm = colorPalette.length;
       const lm = fillPalette.length;
       for (let i = 0; i < this.classBreakCount; ++i) {
@@ -208,6 +323,16 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     return `${minValue}${suffix} to ${maxValue}${suffix}`;
   }
 
+  private getAllocationPrefix() : string {
+    const allocationType: DynamicAllocationTypes = this.isEditing ? this.parentForm.get('dynamicAllocationType').value : this.definition.dynamicAllocationType;
+    switch (allocationType) {
+      case DynamicAllocationTypes.Interval:
+        return `Interval`;
+      case DynamicAllocationTypes.ClassCount:
+        return `Class`;
+    }
+  }
+
   deleteBreak(index: number) {
     this.classBreakCleanup$.next();
     const previousMax = this.breakDefinitions[index - 1].get('maxValue').value;
@@ -240,5 +365,14 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     newControl.get('minValue').setValue(previousMax);
     newControl.get('maxValue').setValue(previousMax);
     newControl.get('maxValue').setValidators([Validators.required, Validators.min(previousMax)]);
+  }
+
+  formSubmit() {
+    const dynamicLegendControl = this.parentForm.get('dynamicLegend');
+    if (!dynamicLegendControl.value) {
+      this.userBreakDefaults.forEach(c => {
+        if (c.get('legendName') && (c.get('legendName').value == null || c.get('legendName').value === '')) c.removeControl('legendName');
+      });
+    }
   }
 }

@@ -10,6 +10,7 @@ import {
   FillPattern,
   generateContinuousValues,
   generateDynamicClassBreaks,
+  generateDynamicSymbology,
   generateUniqueValues,
   getColorPalette,
   isArcadeCapableShadingDefinition,
@@ -201,7 +202,11 @@ export class AppRendererService {
                 case ConfigurationTypes.ClassBreak:
                   if (shaderCopy.dynamicallyAllocate) {
                     const stats = calculateStatistics(valuesForStats, shaderCopy.dynamicAllocationSlots || 4);
-                    shaderCopy.breakDefinitions = generateDynamicClassBreaks(stats, colorPalette, fillPalette, shaderCopy.dynamicAllocationType);
+                    let symbology = [ ...(shaderCopy.userBreakDefaults || []) ];
+                    if (shaderCopy.dynamicLegend) {
+                      symbology = generateDynamicSymbology(stats, colorPalette, fillPalette);
+                    }
+                    shaderCopy.breakDefinitions = generateDynamicClassBreaks(stats, shaderCopy.dynamicAllocationType, symbology);
                   }
                   break;
               }
