@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
@@ -510,7 +510,7 @@ export class AppTradeAreaService {
           radiusSet.add(Number(ta.taRadius));
         });
         const radiusArray = Array.from(radiusSet);
-        radiusArray.sort(ValSort.GenericNumber);
+        radiusArray.sort(CommonSort.GenericNumber);
         if (radiusSet.size > 0){
           radiusArray.forEach((radius, i) => {
             tas.push({ radius: Number(radius), selected: true, taNumber: i + 1 });

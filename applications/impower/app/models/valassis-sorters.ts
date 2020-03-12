@@ -1,22 +1,12 @@
 /* tslint:disable:semicolon */
-import { isConvertibleToNumber, toNullOrNumber } from '@val/common';
+import { CommonSort, isConvertibleToNumber, toNullOrNumber } from '@val/common';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 export class ValSort {
 
-  // Generic sorters
-  public static GenericNumber = (a: number, b: number) => a - b;
-  public static StringsAsNumbers(a: string, b: string) {
-    if (isConvertibleToNumber(a) && isConvertibleToNumber(b)) {
-      return Number(a) - Number(b);
-    } else {
-      return ValSort.NullableSortWrapper(a, b, (x, y) => x.localeCompare(y));
-    }
-  }
-
   // Location Sorters
   public static LocationBySiteNum(a: { locationNumber: string }, b: { locationNumber: string }) {
-    return this.StringsAsNumbers(a.locationNumber, b.locationNumber)
+    return CommonSort.StringsAsNumbers(a.locationNumber, b.locationNumber)
   };
 
   // Trade Area Sorters
@@ -38,21 +28,11 @@ export class ValSort {
 
   // Geo Sorters
   public static GeoByDistance(a: { distance: number }, b: { distance: number }) {
-    return ValSort.NullableSortWrapper(toNullOrNumber(a.distance), toNullOrNumber(b.distance), ValSort.GenericNumber);
-  }
-
-  // Print Task Proxy Sorters
-  public static classBreakByMaxValue(a: {classMaxValue: number}, b: {classMaxValue: number}){
-    return ValSort.GenericNumber(a.classMaxValue, b.classMaxValue);
+    return CommonSort.NullableSortWrapper(toNullOrNumber(a.distance), toNullOrNumber(b.distance), CommonSort.GenericNumber);
   }
 
   //---------------------------------
   // Internal help functions
-
-  private static NullableSortWrapper<T>(a: T, b: T, nonNullSorter: (x: T, y: T) => number, nullSortsLast: boolean = true) {
-    const factor = nullSortsLast ? 1 : -1;
-    return (a == null ? (b == null ? 0 : 1 * factor) : (b == null ? 1 * factor : nonNullSorter(a, b)));
-  }
 
   private static getTradeAreaTypeNumericSort(t: TradeAreaTypeCodes) : number {
     switch (t) {

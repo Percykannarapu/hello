@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, getUuid } from '@val/common';
+import { calculateStatistics, CommonSort, getUuid } from '@val/common';
 import {
   ColorPalette,
   ConfigurationTypes,
@@ -381,7 +381,7 @@ export class AppRendererService {
       }, {});
       definition.arcadeExpression = createDataArcade(data);
       const legendEntries = new Set(Object.values(data));
-      const sorter = useCustomSorter ? ValSort.StringsAsNumbers : null;
+      const sorter = useCustomSorter ? CommonSort.StringsAsNumbers : null;
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
       definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), colorPalette, fillPalette, sorter);
