@@ -499,26 +499,25 @@ export class AppTradeAreaService {
 
   public setCurrentDefaults(){
     const loc = this.impLocationService.get();
-    const tradeAreas = this.impTradeAreaService.get();
-
-    const tas: { radius: number, selected: boolean, taNumber: number }[] = [];
-    if (loc != null &&  loc.length > 0 && loc[0].radius1 == null && loc[0].radius2 == null && loc[0].radius3 == null){
-      const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(loc[0].clientLocationTypeCode));
-      const radiusSet = new Set<Number>();
-      tradeAreas.forEach(ta => {
-        if (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && isConvertibleToNumber(ta.taRadius)){
+    //const tradeAreas = this.impTradeAreaService.get();
+    const locsMapSiteBy = mapBy(loc, 'clientLocationTypeCode');
+    locsMapSiteBy.forEach((value, key) => {
+      if (value != null && value.radius1 == null && value.radius2 == null && value.radius3 == null){
+        const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(value.clientLocationTypeCode));
+        const tas: { radius: number, selected: boolean, taNumber: number }[] = [];
+        const radiusSet = new Set<Number>();
+        value.impGeofootprintTradeAreas.forEach(ta => {
           radiusSet.add(Number(ta.taRadius));
-        }
-      });
-      const radiusArray = Array.from(radiusSet);
-      radiusArray.sort(ValSort.GenericNumber);
-      if (radiusSet.size > 0){
-        radiusArray.forEach((radius, i) => {
-          tas.push({ radius: Number(radius), selected: true, taNumber: i + 1 });
         });
-        this.currentDefaults.set(siteType, tas);
+        const radiusArray = Array.from(radiusSet);
+        radiusArray.sort(ValSort.GenericNumber);
+        if (radiusSet.size > 0){
+          radiusArray.forEach((radius, i) => {
+            tas.push({ radius: Number(radius), selected: true, taNumber: i + 1 });
+          });
+          this.currentDefaults.set(siteType, tas);
+        }
       }
-    }
-
+    });
   }
 }
