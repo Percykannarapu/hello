@@ -32,6 +32,7 @@ import { ValSort } from '../models/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { getTypedBatchQueryParams } from '../state/shared/router.interfaces';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -63,9 +64,9 @@ export class AppRendererService {
     });
   }
 
-  private static getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay: Set<TradeAreaTypeCodes>, radius: number) : string {
+  private static getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay: Set<TradeAreaTypeCodes>, radiusDescriptor: string) : string {
     if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.Radius)) {
-      return `${radius} Mile Radius`;
+      return radiusDescriptor;
     } else if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.Custom)) {
       return 'Custom';
     } else if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.Manual)) {
@@ -107,14 +108,16 @@ export class AppRendererService {
 
   private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>) : void {
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
+
     this.selectedWatcher = geoDataStore.pipe(
       withLatestFrom(this.store$.select(projectIsReady)),
       filter(([, ready]) => ready),
       map(([geos]) => geos as ImpGeofootprintGeo[]),
       filter(geos => geos != null),
       debounceTime(500),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(getBatchMode))
-    ).subscribe(([geos, currentLayerDefs, isBatchMode]) => {
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(getBatchMode), this.store$.select(getTypedBatchQueryParams)),
+      map(([geos, layerDefs, batchMode, queryParams]) => ([ geos, layerDefs, batchMode && queryParams.duplicated ] as const))
+    ).subscribe(([geos, currentLayerDefs, shouldDedupe]) => {
       const ownerKeys = new Set<string>([GfpShaderKeys.OwnerSite, GfpShaderKeys.OwnerTA]);
       const definitions = currentLayerDefs.filter(sd => ownerKeys.has(sd.dataKey));
       const newDefs = definitions.reduce((updates, definition) => {
@@ -122,10 +125,10 @@ export class AppRendererService {
           const newDef = { ...definition };
           switch (newDef.dataKey) {
             case GfpShaderKeys.OwnerSite:
-              this.updateForOwnerSite(newDef, geos, isBatchMode);
+              this.updateForOwnerSite(newDef, geos, shouldDedupe);
               break;
             case GfpShaderKeys.OwnerTA:
-              this.updateForOwnerTA(newDef, geos, isBatchMode);
+              this.updateForOwnerTA(newDef, geos, shouldDedupe);
           }
           updates.push(newDef);
         }
@@ -361,93 +364,121 @@ export class AppRendererService {
     }
   }
 
-  updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], isBatchMode: boolean = false) : void {
+  updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], showDuplicates: boolean = false) : void {
     if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
-      let useCustomSorter = false;
       if (definition.theme == null) definition.theme = ColorPalette.CpqMaps;
+      const secondaryKey = definition.secondaryDataKey || 'locationNumber';
+      const useCustomSorter = (secondaryKey === 'locationNumber');
+      const allSiteEntries = new Set<string>();
+      const activeSiteEntries = new Set<string>();
       const data: Record<string, string> = geos.reduce((result, geo) => {
-        const isDeduped = isBatchMode || (geo.isDeduped === 1);
-        if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && isDeduped) {
-          const secondaryKey = definition.secondaryDataKey || 'locationNumber';
-          useCustomSorter = (secondaryKey === 'locationNumber');
-          if (geo.impGeofootprintLocation.hasOwnProperty(secondaryKey)) {
-            result[geo.geocode] = geo.impGeofootprintLocation[secondaryKey];
-          } else {
-            const matchingAttribute = geo.impGeofootprintLocation.impGeofootprintLocAttribs.filter(a => a.attributeCode === secondaryKey)[0];
-            result[geo.geocode] = matchingAttribute == null ? null : matchingAttribute.attributeValue;
-          }
+        let siteEntry;
+        if (geo.impGeofootprintLocation.hasOwnProperty(secondaryKey)) {
+          siteEntry = geo.impGeofootprintLocation[secondaryKey];
+        } else {
+          const matchingAttribute = geo.impGeofootprintLocation.impGeofootprintLocAttribs.filter(a => a.attributeCode === secondaryKey)[0];
+          siteEntry = matchingAttribute == null ? null : matchingAttribute.attributeValue;
         }
+        const isDeduped = showDuplicates ? true : geo.isDeduped === 1;
+        if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive &&
+          geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive &&
+          geo.isActive && isDeduped) {
+          result[geo.geocode] = siteEntry;
+          activeSiteEntries.add(siteEntry);
+        }
+        allSiteEntries.add(siteEntry);
         return result;
       }, {});
       definition.arcadeExpression = createDataArcade(data);
-      const legendEntries = new Set(Object.values(data));
       const sorter = useCustomSorter ? CommonSort.StringsAsNumbers : null;
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
-      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), colorPalette, fillPalette, sorter);
+      definition.breakDefinitions = generateUniqueValues(Array.from(allSiteEntries), colorPalette, fillPalette, sorter);
+      definition.breakDefinitions = definition.breakDefinitions.filter(b => activeSiteEntries.has(b.value));
     }
   }
 
-  updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], isBatchMode: boolean = false) : void {
-    if (definition != null && isComplexShadingDefinition(definition)) {
+  updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], showDuplicates: boolean = true) : void {
+    if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
       if (definition.theme == null) definition.theme = ColorPalette.CpqMaps;
       const deferredHomeGeos: ImpGeofootprintGeo[] = [];
       const tradeAreaTypesInPlay = new Set<TradeAreaTypeCodes>();
-      let radiusForFirstTa: number;
+      let radiusForFirstTa: string;
+      const allTAEntries = new Set<string>();
+      const activeTAEntries = new Set<string>();
       const data: Record<string, string> = geos.reduce((result, geo) => {
-        const isDeduped = isBatchMode || (geo.isDeduped === 1);
-        if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive && geo.isActive && isDeduped) {
-          switch (TradeAreaTypeCodes.parse(geo.impGeofootprintTradeArea.taType)) {
-            case TradeAreaTypeCodes.Radius:
-              if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
-                deferredHomeGeos.push(geo);
-              } else {
-                result[geo.geocode] = `${geo.impGeofootprintTradeArea.taRadius} Mile Radius`;
-                tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Radius);
-                if (geo.impGeofootprintTradeArea.taNumber === 1) {
-                  radiusForFirstTa = geo.impGeofootprintTradeArea.taRadius;
-                }
-              }
-              break;
-            case TradeAreaTypeCodes.HomeGeo:
+        let currentEntry = null;
+        switch (TradeAreaTypeCodes.parse(geo.impGeofootprintTradeArea.taType)) {
+          case TradeAreaTypeCodes.Radius:
+            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
               deferredHomeGeos.push(geo);
-              break;
-            case TradeAreaTypeCodes.Custom:
-              if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
-                deferredHomeGeos.push(geo);
-              } else {
-                result[geo.geocode] = 'Custom';
+            } else {
+              currentEntry = `${geo.impGeofootprintTradeArea.taRadius} Mile Radius`;
+              tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Radius);
+              if (geo.impGeofootprintTradeArea.taNumber === 1) {
+                radiusForFirstTa = currentEntry;
               }
-              tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Custom);
-              break;
-            case TradeAreaTypeCodes.Manual:
-              if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
-                deferredHomeGeos.push(geo);
-              } else {
-                result[geo.geocode] = 'Manual';
-              }
-              tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Manual);
-              break;
-            case TradeAreaTypeCodes.MustCover:
-              if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
-                deferredHomeGeos.push(geo);
-              } else {
-                result[geo.geocode] = 'Must Cover';
-              }
-              tradeAreaTypesInPlay.add(TradeAreaTypeCodes.MustCover);
-              break;
-          }
+            }
+            break;
+          case TradeAreaTypeCodes.HomeGeo:
+            deferredHomeGeos.push(geo);
+            break;
+          case TradeAreaTypeCodes.Custom:
+            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+              deferredHomeGeos.push(geo);
+            } else {
+              currentEntry = 'Custom';
+            }
+            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Custom);
+            break;
+          case TradeAreaTypeCodes.Manual:
+            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+              deferredHomeGeos.push(geo);
+            } else {
+              currentEntry = 'Manual';
+            }
+            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Manual);
+            break;
+          case TradeAreaTypeCodes.MustCover:
+            if (geo.geocode === geo.impGeofootprintLocation.homeGeocode) {
+              deferredHomeGeos.push(geo);
+            } else {
+              currentEntry = 'Must Cover';
+            }
+            tradeAreaTypesInPlay.add(TradeAreaTypeCodes.MustCover);
+            break;
         }
+        if (currentEntry != null) {
+          const isDeduped = showDuplicates ? true : geo.isDeduped === 1;
+          if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive &&
+            geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive &&
+            geo.isActive && isDeduped) {
+            result[geo.geocode] = currentEntry;
+            activeTAEntries.add(currentEntry);
+          }
+          allTAEntries.add(currentEntry);
+        }
+
         return result;
       }, {});
+
       deferredHomeGeos.forEach(hg => {
+        const isDeduped = showDuplicates ? true : hg.isDeduped === 1;
+        const hgEntry = AppRendererService.getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay, radiusForFirstTa);
+        if (hg.impGeofootprintLocation && hg.impGeofootprintLocation.isActive &&
+          hg.impGeofootprintTradeArea && hg.impGeofootprintTradeArea.isActive &&
+          hg.isActive && isDeduped) {
+          data[hg.geocode] = hgEntry;
+          activeTAEntries.add(hgEntry);
+        }
+        allTAEntries.add(hgEntry);
         data[hg.geocode] = AppRendererService.getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay, radiusForFirstTa);
       });
       definition.arcadeExpression = createDataArcade(data);
-      const legendEntries = new Set(Object.values(data));
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
-      definition.breakDefinitions = generateUniqueValues(Array.from(legendEntries), colorPalette, fillPalette, ValSort.TradeAreaByTypeString);
+      definition.breakDefinitions = generateUniqueValues(Array.from(allTAEntries), colorPalette, fillPalette, ValSort.TradeAreaByTypeString);
+      definition.breakDefinitions = definition.breakDefinitions.filter(b => activeTAEntries.has(b.value));
     }
   }
 }

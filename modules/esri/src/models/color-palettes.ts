@@ -90,7 +90,7 @@ enum AllColorPalettes {
 
 export function getColorPalette(palette: ColorPalette, reverse: boolean) : RgbTuple[] {
   const currentPalette = getAllColorPalettes(palette);
-  const result = currentPalette == null ? null : [ ...currentPalette ];
+  const result = currentPalette == null ? [ ...onlyBlack ] : [ ...currentPalette ];
   if (reverse && result != null) {
     result.reverse();
   }

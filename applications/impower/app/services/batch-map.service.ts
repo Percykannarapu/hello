@@ -1,14 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { groupByExtended, UniversalCoordinates, toUniversalCoordinates, groupBy } from '@val/common';
+import { groupByExtended } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
+import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
+import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { Observable, race, timer } from 'rxjs';
 import { debounceTime, delay, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
+import { ValSort } from '../models/valassis-sorters';
 import { BatchMapPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
 import { getBatchMapReady } from '../state/batch-map/batch-map.selectors';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
@@ -21,10 +25,6 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
-import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
-import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +32,6 @@ import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.
 export class BatchMapService {
 
   private originalGeoState: Record<number, boolean> = null;
-  readonly printUrl: string = 'v1/impower/business/print';
 
   constructor(private geoService: ImpGeofootprintGeoService,
               private locationService: ImpGeofootprintLocationService,
@@ -95,6 +94,10 @@ export class BatchMapService {
   }
 
   startBatchMaps(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
+    if (this.originalGeoState == null) {
+      this.geoService.calculateGeoRanks();
+      this.recordOriginalState(project);
+    }
     if (params.groupByAttribute != null)
       return this.mapByAttribute(project, siteNum, params);
     else if (!params.singlePage)
@@ -104,13 +107,10 @@ export class BatchMapService {
   }
 
   mapByAttribute(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    if (this.originalGeoState == null) {
-      this.recordOriginalState(project);
-    }
     const groupedSites: Map<string, Array<ImpGeofootprintLocation>> = this.groupLocationsByAttribute(project, params);
     const attrArray: Array<string> = Array.from(groupedSites.keys()).sort();
     const sitesToMap = groupedSites.get(attrArray[siteNum]);
-    const last: boolean = Number(siteNum) === attrArray.length - 1 ? true : false;
+    const last: boolean = Number(siteNum) === attrArray.length - 1;
     const nextSite = last === true ? siteNum : Number(siteNum) + 1;
     const result = { siteNum: nextSite.toString(), isLastSite: last };
     const activeSiteIds: Set<string> = new Set<string>();
@@ -141,9 +141,6 @@ export class BatchMapService {
     }
     this.geoService.update(null, null);
     this.forceMapUpdate();
-    //return this.esriMapService.zoomToPoints(toUniversalCoordinates(sitesToMap), params.buffer / 100).pipe(
-    //  map(() => result)
-    //);
     return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, sitesToMap.map(s => s.locationNumber), project).pipe(
       map(() => result)
     );
@@ -177,12 +174,9 @@ export class BatchMapService {
   }
 
   moveToSite(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    if (this.originalGeoState == null) {
-      this.recordOriginalState(project);
-    }
     const locations = [ ...project.getImpGeofootprintLocations().filter(l => l.isActive) ];
     const result = { siteNum: siteNum, isLastSite: false };
-    locations.sort((a, b) => a.locationNumber.localeCompare(b.locationNumber));
+    locations.sort(ValSort.LocationBySiteNum);
     for (let i = 0; i < locations.length; ++i) {
       const currentSite = locations[i];
       const currentGeos = currentSite.getImpGeofootprintGeos();
@@ -190,11 +184,13 @@ export class BatchMapService {
       if (currentSite.locationNumber === siteNum || (siteNum == null && i === 0)) {
         result.siteNum = nextSiteNum || '';
         result.isLastSite = nextSiteNum == null;
-        if (!params.duplicated) { //deduped map
+        if (!params.duplicated) { // deduped map
           currentGeos.forEach(g => {
-            g.isActive = this.originalGeoState[g.ggId];
+            if (g.isDeduped === 1) {
+              g.isActive = this.originalGeoState[g.ggId];
+            }
           });
-        } else { //duplicated map
+        } else { // duplicated map
           currentGeos.forEach(g => g.isActive = true);
         }
 
@@ -239,17 +235,6 @@ export class BatchMapService {
 
   private recordOriginalState(project: ImpProject) : void {
     const currentGeos = project.getImpGeofootprintGeos();
-    const geosByGeocode = groupByExtended(currentGeos, g => g.geocode);
-    // this is a hack to "dedupe" geos that are assigned to multiple sites
-    geosByGeocode.forEach(commonGeos => {
-      if (commonGeos.length > 1) {
-        commonGeos.sort((a, b) => a.distance - b.distance);
-        const originalState = commonGeos[0].isActive;
-        commonGeos.forEach(g => g.isActive = false);
-        commonGeos[0].isActive = originalState;
-      }
-    });
-    // end hack
     this.originalGeoState = {};
     currentGeos.forEach(geo => {
       this.originalGeoState[geo.ggId] = geo.isActive;
