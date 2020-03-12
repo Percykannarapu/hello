@@ -81,8 +81,7 @@ export class BatchMapDialogComponent implements OnInit {
       titleInput: '',
       subTitleInput: '',
       subSubTitleInput: '',
-      enableTradeAreaShading: false,
-      pdfOutput: 'allSitesOnOnePdf',
+      enableTradeAreaShading: false
     });   
   }
 
