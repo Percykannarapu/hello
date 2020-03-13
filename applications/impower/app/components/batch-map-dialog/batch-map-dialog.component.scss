@@ -82,8 +82,13 @@
   display: flex;
 }
 
-.titleFlex {
+.titleFlex1 {
   flex: 1;
+  margin: 0 0.5rem;
+}
+
+.titleFlex2 {
+  flex: 2;
   margin: 0 0.5rem;
 }
 
@@ -98,5 +103,12 @@
 
 #p-dialog div body .ui-dialog-content .ui-widget-content .ui-dialog-resizable{
   overflow: hidden;
+}
+
+.text-right{
+  text-align: right;
+  width: 400px;
+  float: right;
+  padding: 0 1rem;
 }
 

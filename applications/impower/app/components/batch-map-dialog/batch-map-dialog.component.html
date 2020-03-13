@@ -1,5 +1,5 @@
 <p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '1000px', minWidth: '200px', height: '800px'}" [maximizable]="false">
+  [modal]="true" [style]="{width: '1000px', minWidth: '200px', height: '650px'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main" id="p-dialog">
       <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are
@@ -7,37 +7,37 @@
       <div class="dialog-body">
         <form novalidate [formGroup]="batchMapForm" autocomplete="off">
           <div class="flexTitle">
-            <div class="titleFlex">
+            <div class="titleFlex1">
               <dropdown-input formControlName="title" labelText="Title" [options]="siteLabels"
-                          [includeUnselected]="true"></dropdown-input>
+                [includeUnselected]="true"></dropdown-input>
             </div>
-            <div class="titleFlex">
+            <div class="titleFlex2">
               <validated-text-input formControlName="titleInput"></validated-text-input>
             </div>
           </div>
-          
+
           <div class="flexTitle">
-            <div class="titleFlex">
+            <div class="titleFlex1">
               <dropdown-input formControlName="subTitle" labelText="Subtitle 1" [options]="siteLabels"
-                          [includeUnselected]="true"></dropdown-input>
+                [includeUnselected]="true"></dropdown-input>
             </div>
-            <div class="titleFlex">
+            <div class="titleFlex2">
               <validated-text-input formControlName="subTitleInput"></validated-text-input>
             </div>
           </div>
-          
+
           <div class="flexTitle">
-            <div class="titleFlex">
+            <div class="titleFlex1">
               <dropdown-input formControlName="subSubTitle" labelText="Subtitle 2" [options]="siteLabels"
-                          [includeUnselected]="true"></dropdown-input>
+                [includeUnselected]="true"></dropdown-input>
             </div>
-            <div class="titleFlex">
+            <div class="titleFlex2">
               <validated-text-input formControlName="subSubTitleInput"></validated-text-input>
             </div>
           </div>
-          
+
           <div class="ui-g-12">
-            <p-checkbox label="De-duplicated shading" formControlName="deduplicated" binary="true" ></p-checkbox>
+            <p-checkbox label="De-duplicated shading" formControlName="deduplicated" binary="true"></p-checkbox>
           </div>
           <div class="ui-g-12 p-grid">
             <div class="p-col-6">
@@ -56,13 +56,11 @@
                 <div class="ui-g-12 customPadding">
                   <div class="ui-g-4 groupByPadding">
                     <p-radioButton name="sitesPerPageGroup" value="sitesGroupedBy" label="Sites grouped by:"
-                    formControlName="sitesPerPage"></p-radioButton>
+                      formControlName="sitesPerPage"></p-radioButton>
                   </div>
                   <div class="ui-g-6 groupByPadding">
-                    <p-dropdown formControlName="sitesByGroup"
-                                [options]="siteByGroupList"
-                                styleClass="val-full-width"
-                                dropdownIcon="fa fa-caret-down">
+                    <p-dropdown formControlName="sitesByGroup" [options]="siteByGroupList" styleClass="val-full-width"
+                      dropdownIcon="fa fa-caret-down">
                     </p-dropdown>
                   </div>
                 </div>
@@ -81,12 +79,10 @@
                   </p-radioButton>
                 </div>
                 <div class="ui-g-12 checkboxPadding">
-                  <p-checkbox label="With Trade Area Shading" value="false" formControlName="enableTradeAreaShading" binary="true" ></p-checkbox>
+                  <p-checkbox label="With Trade Area Shading" value="false" formControlName="enableTradeAreaShading"
+                    binary="true"></p-checkbox>
                 </div>
               </div>
-              <div class="ui-g-12"></div>
-              <div class="ui-g-12"></div>
-              <div class="ui-g-12"></div>
             </div>
             <div class="p-col-6">
               <div class="fitToPage">
@@ -95,25 +91,21 @@
                 </div>
                 <div class="ui-g-12 customPadding">
                   <div class="ui-g-4 fitTo">
-                    <p-radioButton name="fitToPageGroup" value="geos" label="Selected Geos"
-                    formControlName="fitTo"></p-radioButton>
+                    <p-radioButton name="fitToPageGroup" value="geos" label="Selected Geos" formControlName="fitTo">
+                    </p-radioButton>
                   </div>
                   <div class="ui-g-4 mapBufferDropdown">
                     <span class="md-inputfield">
-                      <p-dropdown formControlName="buffer" 
-                                id="mapBuffer"
-                                [options]="mapBufferOptions"
-                                styleClass="val-full-width"
-                                [autoDisplayFirst] = "false"
-                                dropdownIcon="fa fa-caret-down">
+                      <p-dropdown formControlName="buffer" id="mapBuffer" [options]="mapBufferOptions"
+                        styleClass="val-full-width" [autoDisplayFirst]="false" dropdownIcon="fa fa-caret-down">
                       </p-dropdown>
                       <label for="mapBuffer">Additional Buffer</label>
                     </span>
-                  </div>  
+                  </div>
                 </div>
                 <div class="ui-g-12 customPadding">
-                  <p-radioButton name="fitToPageGroup" value="ta" label="Trade Area"
-                  formControlName="fitTo" [disabled]="disableTradeArea"></p-radioButton>
+                  <p-radioButton name="fitToPageGroup" value="ta" label="Trade Area" formControlName="fitTo"
+                    [disabled]="disableTradeArea"></p-radioButton>
                 </div>
               </div>
               <div class="pageSettings">
@@ -122,9 +114,10 @@
                 </div>
                 <div class="ui-g-12" style="padding-top: 14px; padding-bottom: 0px;"></div>
                 <div class="ui-g-12 pageSettingsPadding">
-                  <div class="ui-g-4 md-inputfield dropdown-padding">
+                  <div class="ui-g-6 md-inputfield dropdown-padding">
                     <p-dropdown id="pageSettings" formControlName="pageSettingsControl" [options]="pageSettings"
-                      styleClass="val-full-width" [autoWidth]="false" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down">
+                      styleClass="val-full-width" [autoWidth]="false" placeholder="&nbsp;"
+                      dropdownIcon="fa fa-caret-down">
                     </p-dropdown>
                     <label for="pageSettings">Page Size</label>
                   </div>
@@ -136,7 +129,6 @@
                     <p-radioButton name="layoutGroup" label="Portrait" value="portrait" formControlName="layout">
                     </p-radioButton>
                   </div>
-                  <div class="ui-g-2"></div>
                 </div>
               </div>
             </div>
@@ -145,9 +137,10 @@
       </div>
     </div>
   </div>
-  <p-footer>
+  <div class="text-right">
     <button id="createBtn" type="submit" pButton label="Create" (click)="onSubmit(batchMapForm.value)"
       [disabled]="batchMapForm.invalid"></button>
-    <p>A link containing both individual and stitched PDF files will be emailed to you for download when your maps are ready</p>
-  </p-footer>
+    <p>A link containing both individual and stitched PDF files will be emailed to you for download when your maps are
+      ready</p>
+  </div>
 </p-dialog>
