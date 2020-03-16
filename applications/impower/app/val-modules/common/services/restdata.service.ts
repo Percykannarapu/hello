@@ -1,6 +1,8 @@
 import { HttpClient, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { formatMilli } from '@val/common';
 import { concat, Observable, Subject } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { AppConfig } from '../../../app.config';
 import { RestResponse } from '../../../models/RestResponse';
 import { LoggingService } from './logging.service';
@@ -40,7 +42,7 @@ export class RestDataService
     return this.configuration;
   }
 
-  // -----------------------------------------------------------------------------------
+   // -----------------------------------------------------------------------------------
    // HTTP METHODS
    // -----------------------------------------------------------------------------------
    public get(url: string) : Observable<RestResponse>
@@ -48,6 +50,16 @@ export class RestDataService
       this.logger.debug.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
       //const headers = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
       return this.http.get<RestResponse>(this.baseUrl + url);
+   }
+
+   public getMessagePack(url: string) : Observable<RestResponse>
+   {
+      return this.http.get(this.baseUrl + url, { responseType: 'arraybuffer' }).pipe(
+        map(response => [response, performance.now()] as const),
+        map(([response, startTime]) => [msgpack.deserialize(response), startTime] as const),
+        tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
+        map(([response]) => response)
+      );
    }
 
    public patch(url: string, payload: any) : Observable<RestResponse>
@@ -64,6 +76,16 @@ export class RestDataService
    {
       const csvHeaders = new HttpHeaders({'Content-Type': 'text/csv' });
       return this.http.post<RestResponse>(this.baseUrl + url, payload, {headers: csvHeaders});
+   }
+   public postMessagePack(url: string, payload: ArrayBuffer) : Observable<RestResponse>
+   {
+      const headers = new HttpHeaders().set('Content-Type', 'application/json');
+      return this.http.post(this.baseUrl + url, payload, { responseType: 'arraybuffer', headers }).pipe(
+        map(response => [response, performance.now()] as const),
+        map(([response, startTime]) => [msgpack.deserialize(response), startTime] as const),
+        tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
+        map(([response]) => response)
+      );
    }
 
    public put(url: string, id: number, itemToUpdate: any) : Observable<RestResponse>
@@ -98,14 +120,16 @@ export class RestDataInterceptor implements HttpInterceptor
       let internalRequest: HttpRequest<any> = req.clone();
       let refresh: any;
       if (req.url.includes(this.appConfig.valServiceBase)) {
-        // if there is already a Content-Type header we don't want to override it
-        if (req.headers.get('Content-Type') || req.headers.get('content-type')) {
-          internalRequest = req.clone({ headers: req.headers.set('Accept', 'application/json') });
-        } else {
-          internalRequest = req.clone({
-            headers: req.headers.set('Accept', 'application/json')
-                                .set('Content-Type', 'application/json')
-          });
+        if (req.responseType === 'json') {
+          // if there is already a Content-Type header we don't want to override it
+          if (req.headers.get('Content-Type') || req.headers.get('content-type')) {
+            internalRequest = req.clone({ headers: req.headers.set('Accept', 'application/json') });
+          } else {
+            internalRequest = req.clone({
+              headers: req.headers.set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+            });
+          }
         }
 
         const tokenConfig = RestDataService.getConfig();

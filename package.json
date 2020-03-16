@@ -28,6 +28,7 @@
     "@ngrx/router-store": "^8.4.0",
     "@ngrx/store": "^8.4.0",
     "@ngrx/store-devtools": "^8.4.0",
+    "@ygoe/msgpack": "^1.0.2",
     "angular-pipes": "^9.1.0",
     "core-js": "^3.3.3",
     "font-awesome": "^4.7.0",

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
@@ -27,7 +28,8 @@ export class AppProjectService {
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
               private restService: RestDataService,
-              private impLocationService: ImpGeofootprintLocationService) {
+              private impLocationService: ImpGeofootprintLocationService,
+              private config: AppConfig) {
     this.currentNullableProject$ = this.impProjectService.storeObservable.pipe(
       map(projects => projects == null || projects.length === 0 ? null : projects[0])
     );
@@ -44,10 +46,13 @@ export class AppProjectService {
 
   save(project?: ImpProject) : Observable<number> {
     const localProject = project == null ? this.impProjectService.get()[0] : project;
-    const saveUrl = 'v1/targeting/base/impproject/deleteSave';
+    const saveUrl = 'v1/targeting/base/impprojectmsgpack/deleteSave';
     localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
     this.cleanupProject(localProject);
-    return this.restService.post(saveUrl, localProject).pipe(
+
+    const payload = msgpack.serialize(localProject).buffer;
+
+    return this.restService.postMessagePack(saveUrl, payload).pipe(
       map(response => Number(response.payload))
     );
   }
