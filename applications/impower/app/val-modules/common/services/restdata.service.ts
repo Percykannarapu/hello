@@ -79,8 +79,7 @@ export class RestDataService
    }
    public postMessagePack(url: string, payload: ArrayBuffer) : Observable<RestResponse>
    {
-      const headers = new HttpHeaders().set('Content-Type', 'application/json');
-      return this.http.post(this.baseUrl + url, payload, { responseType: 'arraybuffer', headers }).pipe(
+      return this.http.post(this.baseUrl + url, payload, { responseType: 'arraybuffer' }).pipe(
         map(response => [response, performance.now()] as const),
         map(([response, startTime]) => [msgpack.deserialize(response), startTime] as const),
         tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
