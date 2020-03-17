@@ -48,7 +48,6 @@ export class RestDataService
    public get(url: string) : Observable<RestResponse>
    {
       this.logger.debug.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
-      //const headers = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
       return this.http.get<RestResponse>(this.baseUrl + url);
    }
 
@@ -69,17 +68,19 @@ export class RestDataService
 
    public post(url: string, payload: any) : Observable<RestResponse>
    {
-      //const headers = new HttpHeaders().set('Content-Type', 'application/json').set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
       return this.http.post<RestResponse>(this.baseUrl + url, payload);
    }
+
    public postCSV(url: string, payload: any) : Observable<RestResponse>
    {
       const csvHeaders = new HttpHeaders({'Content-Type': 'text/csv' });
       return this.http.post<RestResponse>(this.baseUrl + url, payload, {headers: csvHeaders});
    }
-   public postMessagePack(url: string, payload: ArrayBuffer) : Observable<RestResponse>
+
+   public postMessagePack(url: string, payload: any) : Observable<RestResponse>
    {
-      return this.http.post(this.baseUrl + url, payload, { responseType: 'arraybuffer' }).pipe(
+      const packed = msgpack.serialize(payload).buffer;
+      return this.http.post(this.baseUrl + url, packed, { responseType: 'arraybuffer' }).pipe(
         map(response => [response, performance.now()] as const),
         map(([response, startTime]) => [msgpack.deserialize(response), startTime] as const),
         tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),

@@ -50,9 +50,7 @@ export class AppProjectService {
     localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
     this.cleanupProject(localProject);
 
-    const payload = msgpack.serialize(localProject).buffer;
-
-    return this.restService.postMessagePack(saveUrl, payload).pipe(
+    return this.restService.postMessagePack(saveUrl, localProject).pipe(
       map(response => Number(response.payload))
     );
   }
