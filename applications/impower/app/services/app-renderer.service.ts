@@ -27,6 +27,7 @@ import { getFillPalette } from '../../../../modules/esri/src/models/color-palett
 import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
+import { getAllMappedAudiences } from '../impower-datastore/state/transient/transient.reducer';
 import { GfpShaderKeys } from '../models/ui-enums';
 import { ValSort } from '../models/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
@@ -154,9 +155,9 @@ export class AppRendererService {
   private setupMapVarWatcher() {
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$)
-    ).subscribe(([mapVars, layerDefs, geocodes]) => {
-      const varPks = Object.keys(mapVars[0]).filter(key => key !== 'geocode').map(key => Number(key));
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences))
+    ).subscribe(([mapVars, layerDefs, geocodes, audiences]) => {
+      const varPks = audiences.map(audience => Number(audience.audienceIdentifier));
       if (varPks != null) {
         const filteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
         varPks.forEach(varPk => {
