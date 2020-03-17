@@ -263,7 +263,7 @@ export class AppStateService {
       map(([requestedGeos, attrs]) => {
         const result = new Set<string>();
         requestedGeos.forEach(geocode => {
-          if (attrs[geocode] == null || !attrs[geocode].hasOwnProperty('hhld_s')) result.add(geocode)
+          if (attrs[geocode] == null || !attrs[geocode].hasOwnProperty('hhld_s')) result.add(geocode);
         });
         return result;
       }),
@@ -281,16 +281,16 @@ export class AppStateService {
   }
 
   private setupTradeAreaObservables() : void {
-    this.siteTradeAreas$ = this.activeClientLocations$.pipe(
-      filter(sites => sites != null && sites.length > 0),
-      map(sites => sites[0]),
+    this.siteTradeAreas$ = combineLatest([this.activeClientLocations$, this.tradeAreaService.storeObservable]).pipe(
+      filter(([sites]) => sites != null && sites.length > 0),
+      map(([sites]) => sites[0]),
       filter(firstSite => firstSite != null && firstSite.impGeofootprintTradeAreas != null && firstSite.impGeofootprintTradeAreas.length > 0),
       map(firstSite => firstSite.impGeofootprintTradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius)),
       map(tradeAreas => tradeAreas.sort(ValSort.TradeAreaByTaNumber))
     );
-    this.competitorTradeAreas$ = this.activeCompetitorLocations$.pipe(
-      filter(sites => sites != null && sites.length > 0),
-      map(sites => sites[0]),
+    this.competitorTradeAreas$ = combineLatest([this.activeCompetitorLocations$, this.tradeAreaService.storeObservable]).pipe(
+      filter(([sites]) => sites != null && sites.length > 0),
+      map(([sites]) => sites[0]),
       filter(firstSite => firstSite != null && firstSite.impGeofootprintTradeAreas != null && firstSite.impGeofootprintTradeAreas.length > 0),
       map(firstSite => firstSite.impGeofootprintTradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius)),
       map(tradeAreas => tradeAreas.sort(ValSort.TradeAreaByTaNumber)),
