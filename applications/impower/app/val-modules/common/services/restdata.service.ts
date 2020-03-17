@@ -1,8 +1,9 @@
 import { HttpClient, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { decode, encode, ExtensionCodec } from '@msgpack/msgpack';
 import { formatMilli } from '@val/common';
-import { concat, Observable, Subject } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { concat, Observable, Subject, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { AppConfig } from '../../../app.config';
 import { RestResponse } from '../../../models/RestResponse';
 import { LoggingService } from './logging.service';
@@ -54,10 +55,15 @@ export class RestDataService
    public getMessagePack(url: string) : Observable<RestResponse>
    {
       return this.http.get(this.baseUrl + url, { responseType: 'arraybuffer' }).pipe(
-        map(response => [response, performance.now()] as const),
-        map(([response, startTime]) => [msgpack.deserialize(response), startTime] as const),
-        tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
-        map(([response]) => response)
+        map(response => [performance.now(), decode(response) as RestResponse] as const),
+        tap(([startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
+        map(([, response]) => response),
+        catchError((err) => {
+          if (err != null && err.error != null && ArrayBuffer.isView(err.error)) {
+            err.error = decode(err.error);
+          }
+          return throwError(err);
+        })
       );
    }
 
@@ -79,13 +85,20 @@ export class RestDataService
 
    public postMessagePack(url: string, payload: any) : Observable<RestResponse>
    {
-      const packed = msgpack.serialize(payload).buffer;
-      return this.http.post(this.baseUrl + url, packed, { responseType: 'arraybuffer' }).pipe(
-        map(response => [response, performance.now()] as const),
-        map(([response, startTime]) => [msgpack.deserialize(response), startTime] as const),
-        tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
-        map(([response]) => response)
-      );
+     const extensionCodec = this.getExtensionCodec();
+     const packed = encode(payload, { extensionCodec }).buffer;
+     return this.http.post(this.baseUrl + url, packed, { responseType: 'arraybuffer' }).pipe(
+       map(response => [response, performance.now()] as const),
+       map(([response, startTime]) => [decode(response) as RestResponse, startTime] as const),
+       tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
+       map(([response]) => response),
+       catchError((err) => {
+         if (err != null && err.error != null && ArrayBuffer.isView(err.error)) {
+           err.error = decode(err.error);
+         }
+         return throwError(err);
+       })
+     );
    }
 
    public put(url: string, id: number, itemToUpdate: any) : Observable<RestResponse>
@@ -102,6 +115,28 @@ export class RestDataService
    {
       return this.http.jsonp(url, callbackParam);
    }
+
+  private getExtensionCodec() : ExtensionCodec {
+    const FUNCTION_EXT_TYPE = 0; // Any in 0-127
+    const extensionCodec: ExtensionCodec = new ExtensionCodec();
+    extensionCodec.register({
+      type: FUNCTION_EXT_TYPE,
+      encode: (input: any) => {
+        if (typeof input === 'function') {
+          return encode(null);
+        } else if (input instanceof Date) {
+          return encode(input.valueOf());
+        } else {
+          //return encode(input);
+          return null;
+        }
+      },
+      decode: (data, extType, context) => {
+        return decode(data);
+      },
+    });
+    return extensionCodec;
+  }
 }
 
 @Injectable()

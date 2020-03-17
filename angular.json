@@ -39,8 +39,7 @@
             "scripts": [
               "node_modules/jquery/dist/jquery.js",
               "node_modules/nanoscroller/bin/javascripts/jquery.nanoscroller.js",
-              "node_modules/moment/min/moment.min.js",
-              "node_modules/@ygoe/msgpack/msgpack.min.js"
+              "node_modules/moment/min/moment.min.js"
             ]
           },
           "configurations": {
