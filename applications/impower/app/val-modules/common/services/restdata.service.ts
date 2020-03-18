@@ -1,4 +1,4 @@
-import { HttpClient, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { decode, encode, ExtensionCodec } from '@msgpack/msgpack';
 import { formatMilli } from '@val/common';
@@ -58,9 +58,9 @@ export class RestDataService
         map(response => [performance.now(), decode(response) as RestResponse] as const),
         tap(([startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
         map(([, response]) => response),
-        catchError((err) => {
-          if (err != null && err.error != null && ArrayBuffer.isView(err.error)) {
-            err.error = decode(err.error);
+        catchError((err: HttpErrorResponse) => {
+          if (err != null && err.error != null && err.error instanceof ArrayBuffer) {
+            return throwError(new HttpErrorResponse({ ...err, error: decode(err.error) }));
           }
           return throwError(err);
         })
@@ -92,9 +92,9 @@ export class RestDataService
        map(([response, startTime]) => [decode(response) as RestResponse, startTime] as const),
        tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
        map(([response]) => response),
-       catchError((err) => {
-         if (err != null && err.error != null && ArrayBuffer.isView(err.error)) {
-           err.error = decode(err.error);
+       catchError((err: HttpErrorResponse) => {
+         if (err != null && err.error != null && err.error instanceof ArrayBuffer) {
+           return throwError(new HttpErrorResponse({ ...err, error: decode(err.error) }));
          }
          return throwError(err);
        })
