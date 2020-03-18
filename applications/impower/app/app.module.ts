@@ -180,7 +180,7 @@ import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLook
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 
 export function stateSanitizer(state: any) : any {
-  if (environment.production) {
+  if (environment.sanitizeState) {
     return {};
   } else {
     return state;
@@ -188,7 +188,7 @@ export function stateSanitizer(state: any) : any {
 }
 
 export function actionSanitizer(action: Action) : Action {
-  if (environment.production && EnvironmentData.environmentName !== 'QA') {
+  if (environment.sanitizeActions) {
     return { type: action.type };
   } else {
     return action;

@@ -17,7 +17,9 @@ import 'zone.js/dist/zone-error'; // Included with Angular CLI.
 export const environment = {
   production: false,
   serverBuild: false,
-  logLevel: LogLevels.DEBUG
+  logLevel: LogLevels.DEBUG,
+  sanitizeActions: false,
+  sanitizeState: false,
 };
 
 export class EnvironmentData {

@@ -4,7 +4,9 @@ import { AllLayerIds } from '@val/esri';
 export const environment = {
   production: true,
   serverBuild: true,
-  logLevel: LogLevels.WARN
+  logLevel: LogLevels.WARN,
+  sanitizeActions: false,
+  sanitizeState: true,
 };
 
 export class EnvironmentData {
