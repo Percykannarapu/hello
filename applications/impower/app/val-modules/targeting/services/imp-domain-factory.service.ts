@@ -46,9 +46,9 @@ export class ImpDomainFactoryService {
     const result = new ImpProject({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
-      createDate: new Date(Date.now()),
+      createDate: Date.now(),
       createUser: this.userService.getUser().userId,
-      modifyDate: new Date(Date.now()),
+      modifyDate: Date.now(),
       modifyUser: this.userService.getUser().userId,
       isActive: true,
       isIncludeAnne: true,
@@ -302,9 +302,9 @@ export class ImpDomainFactoryService {
       const result = new ImpGeofootprintLocAttrib({
         dirty: true,
         baseStatus: DAOBaseStatus.INSERT,
-        createDate: new Date(Date.now()),
+        createDate: Date.now(),
         createUser: this.userService.getUser().userId,
-        modifyDate: new Date(Date.now()),
+        modifyDate: Date.now(),
         modifyUser: this.userService.getUser().userId,
         attributeCode: code,
         attributeValue: value,
@@ -319,7 +319,7 @@ export class ImpDomainFactoryService {
         existingAttribute.dirty = true;
         existingAttribute.attributeValue = value;
         existingAttribute.isActive = isActive;
-        existingAttribute.modifyDate = new Date(Date.now());
+        existingAttribute.modifyDate = Date.now();
         existingAttribute.modifyUser = this.userService.getUser().userId;
         if (existingAttribute.baseStatus === DAOBaseStatus.UNCHANGED) existingAttribute.baseStatus = DAOBaseStatus.UPDATE;
         return null;

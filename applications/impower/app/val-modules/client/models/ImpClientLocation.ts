@@ -1,19 +1,19 @@
+import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 import { BaseModel } from './../../api/models/BaseModel';
+import { ImpClientLocationType } from './ImpClientLocationType';
+
 /** A CLIENT domain class representing the table: IMPOWER.IMP_CLIENT_LOCATIONS
  **
  ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
-import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
-import { ImpClientLocationType } from './ImpClientLocationType';
-
 export class ImpClientLocation extends BaseModel
 {
    public clientLocationId:             number;                       /// Primary Key
    public createUser:                   number;
-   public createDate:                   Date;
+   public createDate:                   number;
    public modifyUser:                   number;
-   public modifyDate:                   Date;
+   public modifyDate:                   number;
    public clientIdentifierId:           number;
    public locationNumber:               number;
    public locationName:                 string;
@@ -80,9 +80,9 @@ export class ImpClientLocation extends BaseModel
       return new Map([
          ['clientLocationId',              'number'],
          ['createUser',                    'number'],
-         ['createDate',                    'Date'],
+         ['createDate',                    'number'],
          ['modifyUser',                    'number'],
-         ['modifyDate',                    'Date'],
+         ['modifyDate',                    'number'],
          ['clientIdentifierId',            'number'],
          ['locationNumber',                'number'],
          ['locationName',                  'string'],

@@ -91,9 +91,9 @@ export class CampaignDetailsComponent implements OnInit {
       if (currentProject.createUser == null)
         currentProject.createUser = (currentUser.userId) ? (currentUser.userId) : -1;
       if (currentProject.createDate == null)
-        currentProject.createDate = new Date(Date.now());
+        currentProject.createDate = Date.now();
       currentProject.modifyUser = (currentUser.userId) ? (currentUser.userId) : -1;
-      currentProject.modifyDate = new Date(Date.now());
+      currentProject.modifyDate = Date.now();
 
       if (this.previousForm != null) {
         if (this.previousForm.circulationBudget !== newValues.circulationBudget ||

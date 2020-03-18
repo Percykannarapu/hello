@@ -7,9 +7,9 @@ export class ImpClientLocationType
 {
    public clientLocationTypeCode:    string;                       /// Primary Key
    public createUser:                number;                       /// User to create the row
-   public createDate:                Date;
+   public createDate:                number;
    public modifyUser:                number;
-   public modifyDate:                Date;
+   public modifyDate:                number;
    public clientLocationType:        string;                       /// ex. CLIENT or COMPETITOR
    public sortOrder:                 number;
    public isDefault:                 number;
@@ -31,9 +31,9 @@ export class ImpClientLocationType
       return new Map([
          ['clientLocationTypeCode',     'string'],
          ['createUser',                 'number'],
-         ['createDate',                 'Date'],
+         ['createDate',                 'number'],
          ['modifyUser',                 'number'],
-         ['modifyDate',                 'Date'],
+         ['modifyDate',                 'number'],
          ['clientLocationType',         'string'],
          ['sortOrder',                  'number'],
          ['isDefault',                  'number'],

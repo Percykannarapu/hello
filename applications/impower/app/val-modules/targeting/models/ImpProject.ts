@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, transient } from '../../api/models/BaseModel';
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 import { ConsumerPurchasingFreq } from '../../mediaexpress/models/ConsumerPurchasingFreq';
 import { Goal } from '../../mediaexpress/models/Goal';
@@ -12,17 +12,22 @@ import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from './ImpGeofootprintLocAttrib';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
-import { ImpGeofootprintVar } from './ImpGeofootprintVar';
 import { ImpProjectPref } from './ImpProjectPref';
 import { ImpProjectVar } from './ImpProjectVar';
 
 export class ImpProject extends BaseModel
 {
+
+   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
+   constructor(data?: Partial<ImpProject>) {
+      super();
+      Object.assign(this, data);
+   }
    public projectId:                 number;         /// Primary Key
    public createUser:                number;         /// User to create the row
-   public createDate:                Date;           /// Date/Time row was created
+   public createDate:                number;           /// Date/Time row was created
    public modifyUser:                number;         /// User to modify the row
-   public modifyDate:                Date;           /// Date/Time row was modified
+   public modifyDate:                number;           /// Date/Time row was modified
    public clientIdentifierTypeCode:  string;         /// The client identifier type (OPPORTUNITY_ID, CAR_LIST, CLIENT_ID, ect.)
    public consumerPurchFreqCode:     string;         /// Consumer purchasing frequency (CPG, Ritual, Reminder, Research)
    public goalCode:                  string;         /// Campaign goal. An input for optimization
@@ -96,107 +101,6 @@ export class ImpProject extends BaseModel
    /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
    @transient public objective:                   Objective;                       /// Cbx Objectives
 
-
-   // -------------------------------------------
-   // TRANSITORY ONE TO MANY RELATIONSHIP GETTERS
-   // -------------------------------------------
-   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   getImpGeofootprintGeos(): ReadonlyArray<ImpGeofootprintGeo> {
-      let _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
-      (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations||[])
-                                       .forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas||[])
-                                       .forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintGeos||[])))));
-      return _result;
-   }
-
-   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   getImpGeofootprintLocations(): ReadonlyArray<ImpGeofootprintLocation> {
-      let _result: Array<ImpGeofootprintLocation> = new Array<ImpGeofootprintLocation>();
-      (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (_result.push(...impGeofootprintMaster.impGeofootprintLocations||[])));
-      return _result;
-   }
-
-   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   getImpGeofootprintLocAttribs(): ReadonlyArray<ImpGeofootprintLocAttrib> {
-      let _result: Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
-      (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations||[])
-                                       .forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintLocAttribs||[]))));
-      return _result;
-   }
-
-   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   getImpGeofootprintTradeAreas(): ReadonlyArray<ImpGeofootprintTradeArea> {
-      let _result: Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
-      (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations||[])
-                                       .forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintTradeAreas||[]))));
-      return _result;
-   }
-
-   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   getImpGeofootprintVars(): ReadonlyArray<ImpGeofootprintVar> {
-      let _result: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
-      (this.impGeofootprintMasters||[]).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations||[])
-                                       .forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas||[])
-                                       .forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintVars||[])))));
-      return _result;
-   }
-
-
-   // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data?: Partial<ImpProject>) {
-      super();
-      Object.assign(this, data);
-   }
-
-   // Set tree property and push it down the hierarchy
-   public setTreeProperty(propName: string, propValue: any)
-   {
-      if (!this.hasOwnProperty(propName)) {
-         Object.defineProperty(this, propName, {
-            enumerable: false,
-            configurable: true,
-            writable: true
-         });
-      }
-      this[propName] = propValue;
-      // Ask the children to set the tree property
-      this.impGeofootprintMasters.forEach(fe => fe.setTreeProperty(propName, propValue));
-      this.impProjectPrefs.forEach(fe => fe.setTreeProperty(propName, propValue));
-      this.impProjectVars.forEach(fe => fe.setTreeProperty(propName, propValue));
-   }
-
-   // Removes a tree property from this level down
-   public removeTreeProperty(propName: string)
-   {
-      delete this[propName];
-      // Ask the children to remove the tree property
-      this.impGeofootprintMasters.forEach(fe => fe.removeTreeProperty(propName   ));
-      this.impProjectPrefs.forEach(fe => fe.removeTreeProperty(propName   ));
-      this.impProjectVars.forEach(fe => fe.removeTreeProperty(propName   ));
-   }
-
-   // Convert JSON objects into Models
-   public convertToModel()
-   {
-      // Convert JSON objects into models
-      this.impGeofootprintMasters = (this.impGeofootprintMasters||[]).map(ma => new ImpGeofootprintMaster(ma));
-      this.impProjectPrefs = (this.impProjectPrefs||[]).map(ma => new ImpProjectPref(ma));
-      this.impProjectVars = (this.impProjectVars||[]).map(ma => new ImpProjectVar(ma));
-
-      // Push this as transient parent to children
-      this.impGeofootprintMasters.forEach(fe => fe.impProject = this);
-      this.impProjectPrefs.forEach(fe => fe.impProject = this);
-      this.impProjectVars.forEach(fe => fe.impProject = this);
-
-      // Ask the children to convert into models
-      this.impGeofootprintMasters.forEach(fe => fe.convertToModel());
-      this.impProjectPrefs.forEach(fe => fe.convertToModel());
-      this.impProjectVars.forEach(fe => fe.convertToModel());
-
-      // Set the isComplete flag indicating the load is complete
-      this.setTreeProperty('isComplete', true);
-   }
-
    /**
     * Produces a map of this classes fields and data types.
     * Used instead of reflection, which has limitations.
@@ -208,9 +112,9 @@ export class ImpProject extends BaseModel
       return new Map([
          ['projectId',                    'number'],
          ['createUser',                   'number'],
-         ['createDate',                   'Date'],
+         ['createDate',                   'number'],
          ['modifyUser',                   'number'],
-         ['modifyDate',                   'Date'],
+         ['modifyDate',                   'number'],
          ['industryCategoryCode',         'string'],
          ['projectName',                  'string'],
          ['description',                  'string'],
@@ -287,6 +191,91 @@ export class ImpProject extends BaseModel
          ['impGeofootprintTradeArea',     'Array<ImpGeofootprintTradeArea>'],
          ['impGeofootprintVar',           'Array<ImpGeofootprintVar>'],
       ]);
+   }
+
+
+   // -------------------------------------------
+   // TRANSITORY ONE TO MANY RELATIONSHIP GETTERS
+   // -------------------------------------------
+   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
+   public getImpGeofootprintGeos() : ReadonlyArray<ImpGeofootprintGeo> {
+      const _result: Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
+      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations || [])
+                                       .forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas || [])
+                                       .forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintGeos || [])))));
+      return _result;
+   }
+
+   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
+   public getImpGeofootprintLocations() : ReadonlyArray<ImpGeofootprintLocation> {
+      const _result: Array<ImpGeofootprintLocation> = new Array<ImpGeofootprintLocation>();
+      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => (_result.push(...impGeofootprintMaster.impGeofootprintLocations || [])));
+      return _result;
+   }
+
+   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
+   public getImpGeofootprintLocAttribs() : ReadonlyArray<ImpGeofootprintLocAttrib> {
+      const _result: Array<ImpGeofootprintLocAttrib> = new Array<ImpGeofootprintLocAttrib>();
+      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations || [])
+                                       .forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintLocAttribs || []))));
+      return _result;
+   }
+
+   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
+   public getImpGeofootprintTradeAreas() : ReadonlyArray<ImpGeofootprintTradeArea> {
+      const _result: Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
+      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => (impGeofootprintMaster.impGeofootprintLocations || [])
+                                       .forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintTradeAreas || []))));
+      return _result;
+   }
+
+   // Set tree property and push it down the hierarchy
+   public setTreeProperty(propName: string, propValue: any)
+   {
+      if (!this.hasOwnProperty(propName)) {
+         Object.defineProperty(this, propName, {
+            enumerable: false,
+            configurable: true,
+            writable: true
+         });
+      }
+      this[propName] = propValue;
+      // Ask the children to set the tree property
+      this.impGeofootprintMasters.forEach(fe => fe.setTreeProperty(propName, propValue));
+      this.impProjectPrefs.forEach(fe => fe.setTreeProperty(propName, propValue));
+      this.impProjectVars.forEach(fe => fe.setTreeProperty(propName, propValue));
+   }
+
+   // Removes a tree property from this level down
+   public removeTreeProperty(propName: string)
+   {
+      delete this[propName];
+      // Ask the children to remove the tree property
+      this.impGeofootprintMasters.forEach(fe => fe.removeTreeProperty(propName   ));
+      this.impProjectPrefs.forEach(fe => fe.removeTreeProperty(propName   ));
+      this.impProjectVars.forEach(fe => fe.removeTreeProperty(propName   ));
+   }
+
+   // Convert JSON objects into Models
+   public convertToModel()
+   {
+      // Convert JSON objects into models
+      this.impGeofootprintMasters = (this.impGeofootprintMasters || []).map(ma => new ImpGeofootprintMaster(ma));
+      this.impProjectPrefs = (this.impProjectPrefs || []).map(ma => new ImpProjectPref(ma));
+      this.impProjectVars = (this.impProjectVars || []).map(ma => new ImpProjectVar(ma));
+
+      // Push this as transient parent to children
+      this.impGeofootprintMasters.forEach(fe => fe.impProject = this);
+      this.impProjectPrefs.forEach(fe => fe.impProject = this);
+      this.impProjectVars.forEach(fe => fe.impProject = this);
+
+      // Ask the children to convert into models
+      this.impGeofootprintMasters.forEach(fe => fe.convertToModel());
+      this.impProjectPrefs.forEach(fe => fe.convertToModel());
+      this.impProjectVars.forEach(fe => fe.convertToModel());
+
+      // Set the isComplete flag indicating the load is complete
+      this.setTreeProperty('isComplete', true);
    }
 
    /**

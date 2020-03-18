@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, transient } from './../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
@@ -11,9 +11,9 @@ export class ImpGeofootprintLocAttrib extends BaseModel
 {
    public locAttributeId:  number;         /// Primary Key
    public createUser:      number;
-   public createDate:      Date;
+   public createDate:      number;
    public modifyUser:      number;
-   public modifyDate:      Date;
+   public modifyDate:      number;
    public cgmId:           number;         /// Foreign key to imp_geofootprint_master.cgm_id
    public glId:            number;         /// Foreign key to imp_geofootprint_locations.gl_id
    public projectId:       number;         /// Foreign key to imp_projects.project_id
@@ -79,9 +79,9 @@ export class ImpGeofootprintLocAttrib extends BaseModel
       return new Map([
          ['locAttributeId',               'number'],
          ['createUser',                   'number'],
-         ['createDate',                   'Date'],
+         ['createDate',                   'number'],
          ['modifyUser',                   'number'],
-         ['modifyDate',                   'Date'],
+         ['modifyDate',                   'number'],
          ['attributeCode',                'string'],
          ['attributeType',                'string'],
          ['attributeValue',               'string'],

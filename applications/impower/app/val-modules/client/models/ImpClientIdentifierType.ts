@@ -7,9 +7,9 @@ export class ImpClientIdentifierType
 {
    public clientIdentifierTypeCode: string;     /// Client Identifier Type Cd
    public createUser:               number;     /// Fk Create User
-   public createDate:               Date;       /// Create Date
+   public createDate:               number;       /// Create Date
    public modifyUser:               number;     /// Fk Modify User
-   public modifyDate:               Date;       /// Modify Date
+   public modifyDate:               number;       /// Modify Date
    public clientIdentifierType:     string;     /// Client Identifier Type
    public description:              string;     /// Description
    public sortOrder:                number;     /// Sort Order
@@ -31,9 +31,9 @@ export class ImpClientIdentifierType
       return new Map([
          ['clientIdentifierTypeCode',  'string'],
          ['createUser',                'number'],
-         ['createDate',                'Date'],
+         ['createDate',                'number'],
          ['modifyUser',                'number'],
-         ['modifyDate',                'Date'],
+         ['modifyDate',                'number'],
          ['clientIdentifierType',      'string'],
          ['description',               'string'],
          ['sortOrder',                 'number'],
