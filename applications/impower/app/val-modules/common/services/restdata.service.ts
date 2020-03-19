@@ -139,7 +139,7 @@ export class RestDataService
             loggerInstance.log('Event Fired in XHR', ev);
             if (this.readyState === XMLHttpRequest.DONE) {
               const status = this.status;
-              if (status === 0 || (200 >= status && status < 400)) {
+              if (200 >= status && status < 400) {
                 loggerInstance.log('Status Done and OK - firing observable with result');
                 observer.next(this.response);
                 observer.complete();
