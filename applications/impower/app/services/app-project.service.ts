@@ -44,16 +44,47 @@ export class AppProjectService {
     return this.impProjectService.loadFromServer(id);
   }
 
-  save(project?: ImpProject) : Observable<number> {
+  packProject(project?: ImpProject) : ArrayBuffer {
     const localProject = project == null ? this.impProjectService.get()[0] : project;
-    const saveUrl = 'v1/targeting/base/impprojectmsgpack/deleteSave';
     localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
     this.cleanupProject(localProject);
+    return this.restService.packPayload(localProject);
+  }
 
-    return this.restService.postMessagePack(saveUrl, localProject).pipe(
+  stringifyProject(project?: ImpProject) : string {
+    const localProject = project == null ? this.impProjectService.get()[0] : project;
+    localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
+    this.cleanupProject(localProject);
+    return JSON.stringify(localProject);
+  }
+
+  unpackProject(packedProject: ArrayBuffer) : ImpProject {
+    return this.restService.unpackPayload(packedProject);
+  }
+
+  savePacked(packedProject: ArrayBuffer) : Observable<number> {
+    const saveUrl = 'v1/targeting/base/impprojectmsgpack/deleteSave';
+    return this.restService.postMessagePack(saveUrl, packedProject).pipe(
       map(response => Number(response.payload))
     );
   }
+
+  saveStringified(stringifiedProject: string) : Observable<number> {
+    const saveUrl = 'v1/targeting/base/impproject/deleteSave';
+    return this.restService.post(saveUrl, stringifiedProject).pipe(
+      map(response => Number(response.payload))
+    );
+  }
+
+  // save(project?: ImpProject) : Observable<number> {
+  //   const localProject = project == null ? this.impProjectService.get()[0] : project;
+  //   localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
+  //   this.cleanupProject(localProject);
+  //
+  //   return this.restService.postMessagePack(saveUrl, localProject).pipe(
+  //     map(response => Number(response.payload))
+  //   );
+  // }
 
   createNew() : number {
     const newProject = this.domainFactory.createProject();

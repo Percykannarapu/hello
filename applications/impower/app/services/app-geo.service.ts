@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
+import { defaultEsriAppSettings, EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { EMPTY, merge, Observable } from 'rxjs';
@@ -180,8 +180,8 @@ export class AppGeoService {
     root$.pipe(
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'),
       filter(tradeAreas => tradeAreas.length > 0),
-      withLatestFrom(this.appStateService.season$)
-    ).subscribe(([tradeAreas, season]) => this.selectAndPersistRadiusGeos(tradeAreas, season));
+      withLatestFrom(this.appStateService.season$, this.validAnalysisLevel$)
+    ).subscribe(([tradeAreas, season, al]) => this.selectAndPersistRadiusGeos(tradeAreas, season, al));
 
     root$.pipe(
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
@@ -220,21 +220,37 @@ export class AppGeoService {
     });
   }
 
-  private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
+  private partitionLocations(locations: ImpGeofootprintLocation[], analysisLevel: string) : ImpGeofootprintLocation[][] {
     const quadTree = new QuadTree(locations);
-    const result = quadTree.partition(250, 500);
+    let maxDimension = 500;
+    let chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery;
+    switch ((analysisLevel || '').toLowerCase()) {
+      case 'atz':
+        maxDimension = 250;
+        chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 2;
+        break;
+      case 'digital atz':
+        maxDimension = 200;
+        chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 5;
+        break;
+      case 'pcr':
+        maxDimension = 100;
+        chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 10;
+        break;
+    }
+    const result = quadTree.partition(chunkSize, maxDimension);
     this.logger.debug.log('QuadTree partitions', quadTree);
     return result.filter(chunk => chunk && chunk.length > 0);
   }
 
-  private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[], season: Season) : void {
+  private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[], season: Season, analysisLevel: string) : void {
     const key = 'selectAndPersistRadiusGeos';
     this.store$.dispatch(new StartBusyIndicator({key, message: 'Calculating Radius Trade Areas...'}));
 
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), true);
     this.logger.debug.log('Select and Persist Radius Geos', tradeAreas.length);
     const allLocations = new Set(tradeAreas.map(ta => ta.impGeofootprintLocation));
-    const locationChunks = this.partitionLocations(Array.from(allLocations));
+    const locationChunks = this.partitionLocations(Array.from(allLocations), analysisLevel);
     const queries: Observable<Map<ImpGeofootprintLocation, AttributeDistance[]>>[] = [];
     const tradeAreaSet = new Set(tradeAreas);
     const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();

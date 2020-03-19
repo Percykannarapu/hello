@@ -32,3 +32,4 @@ export * from './src/state/shading/esri.shading.actions';
 export * from './src/models/shading-configuration';
 export * from './src/models/esri-types';
 export * from './src/models/esri-sort';
+export { defaultEsriAppSettings } from './settings';

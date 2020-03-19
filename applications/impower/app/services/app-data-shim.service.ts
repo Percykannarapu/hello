@@ -5,8 +5,9 @@ import { clearFeaturesOfInterest, clearShadingDefinitions, EsriMapService, EsriS
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
-import { Observable } from 'rxjs';
-import { map, tap, withLatestFrom } from 'rxjs/operators';
+import { Extent } from 'esri/geometry';
+import { Observable, throwError, timer } from 'rxjs';
+import { catchError, map, switchMap, take, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { RehydrateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -25,7 +26,6 @@ import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
-import { Extent } from 'esri/geometry';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -80,7 +80,23 @@ export class AppDataShimService {
   }
 
   save() : Observable<number> {
-    return this.appProjectService.save();
+    const payload = this.appProjectService.packProject();
+
+    this.clearAll();
+    this.targetAudienceService.clearAll();
+    this.appLayerService.clearClientLayers();
+    this.appStateService.clearUserInterface();
+    this.store$.dispatch(clearFeaturesOfInterest());
+    this.store$.dispatch(clearShadingDefinitions());
+
+    return timer(500).pipe(
+      take(1),
+      switchMap(() => this.appProjectService.savePacked(payload)),
+      catchError(err => {
+        this.onLoad(this.appProjectService.unpackProject(payload));
+        return throwError(err);
+      })
+    );
   }
 
   load(id: number) : Observable<string> {

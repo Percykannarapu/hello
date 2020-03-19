@@ -56,7 +56,7 @@ export class RestDataService
    {
       return this.http.get(this.baseUrl + url, { responseType: 'arraybuffer' }).pipe(
         map(response => [performance.now(), decode(response) as RestResponse] as const),
-        tap(([startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
+        tap(([startTime]) => this.logger.info.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
         map(([, response]) => response),
         catchError((err: HttpErrorResponse) => {
           if (err != null && err.error != null && err.error instanceof ArrayBuffer) {
@@ -83,14 +83,26 @@ export class RestDataService
       return this.http.post<RestResponse>(this.baseUrl + url, payload, {headers: csvHeaders});
    }
 
-   public postMessagePack(url: string, payload: any) : Observable<RestResponse>
-   {
+   public packPayload(payload: any) : ArrayBuffer {
      const extensionCodec = this.getExtensionCodec();
-     const packed = encode(payload, { extensionCodec }).buffer;
-     return this.http.post(this.baseUrl + url, packed, { responseType: 'arraybuffer' }).pipe(
+     const preEncodeStart = performance.now();
+     const packed = encode(payload, { extensionCodec, ignoreUndefined: true }).buffer;
+     this.logger.info.log('Payload encode took ', formatMilli(performance.now() - preEncodeStart));
+     this.logger.info.log('Payload size (in bytes)', packed.byteLength);
+     return packed;
+   }
+
+   public unpackPayload(packedPayload: ArrayBuffer) : any {
+     return decode(packedPayload);
+   }
+
+   public postMessagePack(url: string, payload: ArrayBuffer) : Observable<RestResponse>
+   {
+     this.logger.info.log('Preparing to POST data...');
+     return this.rawPostArrayBuffer(this.baseUrl + url, payload).pipe(
        map(response => [response, performance.now()] as const),
        map(([response, startTime]) => [decode(response) as RestResponse, startTime] as const),
-       tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
+       tap(([, startTime]) => this.logger.info.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
        map(([response]) => response),
        catchError((err: HttpErrorResponse) => {
          if (err != null && err.error != null && err.error instanceof ArrayBuffer) {
@@ -99,6 +111,62 @@ export class RestDataService
          return throwError(err);
        })
      );
+   }
+
+   private rawPostArrayBuffer(url: string, body: ArrayBuffer) : Observable<ArrayBuffer> {
+     const config = RestDataService.configuration;
+     const loggerInstance = this.logger.info;
+     let token = null;
+     if (config != null && config.oauthToken != null) {
+       token = config.oauthToken;
+     }
+     return new Observable<any>(observer => {
+        try {
+          this.logger.info.log('Creating XHR');
+          const req = new XMLHttpRequest();
+          this.logger.info.log('Opening URL', url);
+          req.open('POST', url);
+          this.logger.info.log('Setting response type');
+          req.responseType = 'arraybuffer';
+          this.logger.info.log('Setting Accept header');
+          req.setRequestHeader('Accept', '*/*');
+          if (token != null) {
+            this.logger.info.log('Setting Auth header');
+            req.setRequestHeader('Authorization', 'Bearer ' + token);
+          }
+          this.logger.info.log('Setting callback');
+          req.onreadystatechange = function (this: XMLHttpRequest, ev: Event) {
+            loggerInstance.log('Event Fired in XHR', ev);
+            if (this.readyState === XMLHttpRequest.DONE) {
+              const status = this.status;
+              if (status === 0 || (200 >= status && status < 400)) {
+                loggerInstance.log('Status Done and OK - firing observable with result');
+                observer.next(this.response);
+                observer.complete();
+              } else {
+                const error = decode(this.response);
+                loggerInstance.log('Status Done and Not OK - firing observable with error', this, error);
+                observer.error(new HttpErrorResponse({
+                  // The error in this case is the response body (error from the server).
+                  error,
+                  headers: new HttpHeaders(this.getAllResponseHeaders()),
+                  status,
+                  statusText: this.statusText,
+                  url: url || undefined,
+                }));
+              }
+            }
+          };
+          this.logger.info.log('Sending Data (size in bytes)', body.byteLength.toLocaleString());
+          req.send(new Blob([body]));
+        } catch (ex) {
+          this.logger.error.log('Error Caught during creation of XHR', ex);
+          observer.error(new HttpErrorResponse({
+            error: ex,
+            url: url || undefined,
+          }));
+        }
+      });
    }
 
    public put(url: string, id: number, itemToUpdate: any) : Observable<RestResponse>
