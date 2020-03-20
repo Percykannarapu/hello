@@ -83,7 +83,7 @@ export class RestDataService
       return this.http.post<RestResponse>(this.baseUrl + url, payload, {headers: csvHeaders});
    }
 
-   public packPayload(payload: any) : ArrayBuffer {
+   private packPayload(payload: any) : ArrayBuffer {
      const extensionCodec = this.getExtensionCodec();
      const preEncodeStart = performance.now();
      const packed = encode(payload, { extensionCodec, ignoreUndefined: true }).buffer;
@@ -92,14 +92,11 @@ export class RestDataService
      return packed;
    }
 
-   public unpackPayload(packedPayload: ArrayBuffer) : any {
-     return decode(packedPayload);
-   }
-
-   public postMessagePack(url: string, payload: ArrayBuffer) : Observable<RestResponse>
+   public postMessagePack(url: string, payload: any) : Observable<RestResponse>
    {
      this.logger.info.log('Preparing to POST data...');
-     return this.rawPostArrayBuffer(this.baseUrl + url, payload).pipe(
+     const pack = this.packPayload(payload);
+     return this.rawPostArrayBuffer(this.baseUrl + url, pack).pipe(
        map(response => [response, performance.now()] as const),
        map(([response, startTime]) => [decode(response) as RestResponse, startTime] as const),
        tap(([, startTime]) => this.logger.info.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
@@ -140,7 +137,7 @@ export class RestDataService
             if (this.readyState === XMLHttpRequest.DONE) {
               const status = this.status;
               if (200 >= status && status < 400) {
-                loggerInstance.log('Status Done and OK - firing observable with result');
+                loggerInstance.log('Status Done and OK - firing observable with result', this);
                 observer.next(this.response);
                 observer.complete();
               } else {

@@ -9,6 +9,7 @@ export type SuccessfulLocationTypeCodes = ImpClientLocationTypeCodes.Site | ImpC
 
 export namespace ImpClientLocationTypeCodes {
   export function parse(code: string) : ImpClientLocationTypeCodes {
+    if (code == null) return null;
     const strippedCode = code.replace(' ', ''); // remove first instance of space
     const result = ImpClientLocationTypeCodes[strippedCode];
     if (result == null) throw new Error('Invalid Client Location Type Code');
@@ -45,6 +46,7 @@ export enum ProjectPrefGroupCodes {
 
 export namespace TradeAreaTypeCodes {
   export function parse(code: string) : TradeAreaTypeCodes {
+    if (code == null) return null;
     for (const key of Object.keys(TradeAreaTypeCodes)) {
       if (code.toUpperCase() === TradeAreaTypeCodes[key].toUpperCase()) return TradeAreaTypeCodes[key];
     }
@@ -75,6 +77,7 @@ export enum ProjectCpmTypeCodes {
 
 export namespace ProjectCpmTypeCodes {
   export function parse(code: string) : ProjectCpmTypeCodes {
+    if (code == null) return null;
     return ProjectCpmTypeCodes[code];
   }
 }

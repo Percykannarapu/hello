@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import { AppConfig } from '../app.config';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
@@ -27,9 +25,7 @@ export class AppProjectService {
               private impMasterService: ImpGeofootprintMasterService,
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
-              private restService: RestDataService,
-              private impLocationService: ImpGeofootprintLocationService,
-              private config: AppConfig) {
+              private restService: RestDataService) {
     this.currentNullableProject$ = this.impProjectService.storeObservable.pipe(
       map(projects => projects == null || projects.length === 0 ? null : projects[0])
     );
@@ -44,47 +40,25 @@ export class AppProjectService {
     return this.impProjectService.loadFromServer(id);
   }
 
-  packProject(project?: ImpProject) : ArrayBuffer {
-    const localProject = project == null ? this.impProjectService.get()[0] : project;
-    localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
-    this.cleanupProject(localProject);
-    return this.restService.packPayload(localProject);
-  }
-
-  stringifyProject(project?: ImpProject) : string {
-    const localProject = project == null ? this.impProjectService.get()[0] : project;
-    localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
-    this.cleanupProject(localProject);
-    return JSON.stringify(localProject);
-  }
-
-  unpackProject(packedProject: ArrayBuffer) : ImpProject {
-    return this.restService.unpackPayload(packedProject);
-  }
-
-  savePacked(packedProject: ArrayBuffer) : Observable<number> {
+  savePacked(project?: ImpProject) : Observable<number> {
     const saveUrl = 'v1/targeting/base/impprojectmsgpack/deleteSave';
-    return this.restService.postMessagePack(saveUrl, packedProject).pipe(
+    const projectToSave = project == null ? this.impProjectService.get()[0] : project;
+    if (projectToSave == null) return of(null as number);
+    this.cleanupProject(projectToSave);
+    return this.restService.postMessagePack(saveUrl, projectToSave).pipe(
       map(response => Number(response.payload))
     );
   }
 
-  saveStringified(stringifiedProject: string) : Observable<number> {
+  saveStringified(project?: ImpProject) : Observable<number> {
     const saveUrl = 'v1/targeting/base/impproject/deleteSave';
-    return this.restService.post(saveUrl, stringifiedProject).pipe(
+    const projectToSave = project == null ? this.impProjectService.get()[0] : project;
+    if (projectToSave == null) return of(null as number);
+    this.cleanupProject(projectToSave);
+    return this.restService.post(saveUrl, projectToSave).pipe(
       map(response => Number(response.payload))
     );
   }
-
-  // save(project?: ImpProject) : Observable<number> {
-  //   const localProject = project == null ? this.impProjectService.get()[0] : project;
-  //   localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
-  //   this.cleanupProject(localProject);
-  //
-  //   return this.restService.postMessagePack(saveUrl, localProject).pipe(
-  //     map(response => Number(response.payload))
-  //   );
-  // }
 
   createNew() : number {
     const newProject = this.domainFactory.createProject();
@@ -114,15 +88,47 @@ export class AppProjectService {
   }
 
   private cleanupProject(localProject: ImpProject) {
-    // filter out empty location attributes
+    // remove all Ids except the root Project Id
+    localProject.impGeofootprintMasters.forEach(m => {
+      m.cgmId = undefined;
+      m.projectId = undefined;
+    });
+    localProject.impProjectPrefs.forEach(pref => {
+      pref.projectPrefId = undefined;
+      pref.projectId = undefined;
+    });
+    localProject.impProjectVars.forEach(pv => {
+      pv.pvId = undefined;
+      pv.projectId = undefined;
+    });
     localProject.getImpGeofootprintLocations().forEach(loc => {
+      loc.glId = undefined;
+      loc.cgmId = undefined;
+      loc.projectId = undefined;
+      loc.impGeofootprintLocAttribs.forEach(atr => {
+        atr.locAttributeId = undefined;
+        atr.glId = undefined;
+        atr.cgmId = undefined;
+        atr.projectId = undefined;
+      });
+      // filter out empty location attributes
       loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue !== '');
     });
-    // remove geovars
     localProject.getImpGeofootprintTradeAreas().forEach(ta => {
+      ta.gtaId = undefined;
+      ta.glId = undefined;
+      ta.cgmId = undefined;
+      ta.projectId = undefined;
+      // remove geovars
       ta.impGeofootprintVars = [];
     });
     localProject.getImpGeofootprintGeos().forEach(geo => {
+      geo.ggId = undefined;
+      geo.gtaId = undefined;
+      geo.glId = undefined;
+      geo.cgmId = undefined;
+      geo.projectId = undefined;
+      // clear out filter reasons
       geo['filterReasons'] = undefined;
     });
   }

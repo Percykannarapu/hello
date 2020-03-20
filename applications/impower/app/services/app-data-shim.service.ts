@@ -6,8 +6,8 @@ import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotif
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Extent } from 'esri/geometry';
-import { Observable, throwError, timer } from 'rxjs';
-import { catchError, map, switchMap, take, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { RehydrateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -80,32 +80,11 @@ export class AppDataShimService {
   }
 
   save() : Observable<number> {
-    const payload = this.appProjectService.packProject();
-
-    this.clearAll();
-    this.targetAudienceService.clearAll();
-    this.appLayerService.clearClientLayers();
-    this.appStateService.clearUserInterface();
-    this.store$.dispatch(clearFeaturesOfInterest());
-    this.store$.dispatch(clearShadingDefinitions());
-
-    return timer(500).pipe(
-      take(1),
-      switchMap(() => this.appProjectService.savePacked(payload)),
-      catchError(err => {
-        this.onLoad(this.appProjectService.unpackProject(payload));
-        return throwError(err);
-      })
-    );
+    return this.appProjectService.savePacked();
   }
 
   load(id: number) : Observable<string> {
     this.clearAll();
-    this.targetAudienceService.clearAll();
-    this.appLayerService.clearClientLayers();
-    this.appStateService.clearUserInterface();
-    this.store$.dispatch(clearFeaturesOfInterest());
-    this.store$.dispatch(clearShadingDefinitions());
     return this.appProjectService.load(id).pipe(
       tap(project => this.onLoad(project)),
       map(project => project.methAnalysis)
@@ -190,9 +169,6 @@ export class AppDataShimService {
 
   createNew() : number {
     this.clearAll();
-    this.targetAudienceService.clearAll();
-    this.appLayerService.clearClientLayers();
-    this.appStateService.clearUserInterface();
     const projectId = this.appProjectService.createNew();
     this.esriService.loadInitialState({}, []);
     return projectId;
@@ -213,6 +189,11 @@ export class AppDataShimService {
     this.appTradeAreaService.clearAll();
     this.appGeoService.clearAll();
     this.appProjectService.finalizeClear();
+    this.targetAudienceService.clearAll();
+    this.appLayerService.clearClientLayers();
+    this.appStateService.clearUserInterface();
+    this.store$.dispatch(clearFeaturesOfInterest());
+    this.store$.dispatch(clearShadingDefinitions());
   }
 
   calcMetrics(geocodes: string[], attribute: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {
