@@ -115,6 +115,8 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
       this.tradeAreaService.applyRadiusTradeArea(transformedAreas, siteType);
     } else if (reshuffleOnly) {
       this.tradeAreaService.reOrderGeosInTradeAreas(transformedAreas, siteType);
+    } else {
+      this.tradeAreaService.makeDirty();
     }
 
     this.stateService.uniqueIdentifiedGeocodes$.pipe(

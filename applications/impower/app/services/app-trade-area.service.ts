@@ -520,4 +520,8 @@ export class AppTradeAreaService {
       }
     });
   }
+
+  public makeDirty() : void {
+    this.impTradeAreaService.makeDirty();
+  }
 }
