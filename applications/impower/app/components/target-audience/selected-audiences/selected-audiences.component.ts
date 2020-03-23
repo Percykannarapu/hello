@@ -31,10 +31,12 @@ export class SelectedAudiencesComponent implements OnInit {
   public showDialog: boolean = false;
   public audienceUnselect: Audience;
   public dialogboxWarningmsg: string = '';
+  public dialogboxHeader: string = '';
 
   private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   public audienceCount: number = 0;
 
+  private combineAudiences: Audience[] = [];
   constructor(private varService: TargetAudienceService,
               private appStateService: AppStateService,
               private confirmationService: ConfirmationService,
@@ -65,13 +67,20 @@ export class SelectedAudiencesComponent implements OnInit {
       this.onLoadProject();
     });
 
-    this.appStateService.analysisLevel$.subscribe(analysisLevel => {
-      this.nationalAudiencesBS$.value.forEach(aud => {
-        aud.exportNationally = false;
+    this.appStateService.analysisLevel$.subscribe(analysisLevel => {
+      this.nationalAudiencesBS$.value.forEach(aud => {
+        aud.exportNationally = false;
         this.varService.updateProjectVars(aud);
       });
     });
 
+    this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
+      filter(allAudiences => allAudiences != null ),
+      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined')),
+    ).subscribe(audiences => {
+      this.combineAudiences = [];
+      this.combineAudiences.push(...audiences);
+    });
   }
 
   private onLoadProject() {
@@ -154,12 +163,14 @@ export class SelectedAudiencesComponent implements OnInit {
 
     if (this.appStateService.analysisLevel$.getValue() === 'PCR' && this.nationalAudiencesBS$.value.length > 1){
       this.audienceUnselect = audience;
+      this.dialogboxHeader = 'Selected Audiences Error';
       this.dialogboxWarningmsg = 'Only 1 variable can be selected at one time for PCR level National exports.';
       this.showDialog = true;
     }
 
     if (this.nationalAudiencesBS$.value.length > 5) {
       this.audienceUnselect = audience;
+ 	  this.dialogboxHeader = 'Selected Audiences Error';
       this.dialogboxWarningmsg = 'Only 5 variables can be selected at one time for the National export.';
       this.showDialog = true;
     }
@@ -170,6 +181,13 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onRemove(audience) {
+	const deleteAudience = this.combineAudiences.filter(combineAud => audience.audienceSourceType !== 'Combined' && combineAud.combinedAudiences.includes(audience.audienceIdentifier));
+    if (deleteAudience.length > 0){
+      this.dialogboxHeader = 'Invalid Delete!';
+      this.dialogboxWarningmsg = 'Audiences used to create a Combined Audience can not be deleted.';
+      this.showDialog = true;
+    }
+    else{
    const message = 'Do you want to delete the following audience from your project? <br/> <br/>' +
                     `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
    this.confirmationService.confirm({
@@ -208,7 +226,8 @@ export class SelectedAudiencesComponent implements OnInit {
     reject: () => {}
    });
   }
-
+  }
+  
   private clearSelectedFields(){
     this.varService.getAudiences().forEach(audience => {
       this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
