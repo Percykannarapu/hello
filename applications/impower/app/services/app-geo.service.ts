@@ -4,7 +4,7 @@ import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordin
 import { defaultEsriAppSettings, EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
-import { EMPTY, merge, Observable } from 'rxjs';
+import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
@@ -25,7 +25,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
@@ -168,23 +168,23 @@ export class AppGeoService {
    * Sets up an observable sequence that fires when a new, empty Radius trade area appears in the data store.
    */
   private setupRadiusSelectionObservable() : void {
-    const root$ = this.tradeAreaService.storeObservable.pipe(
+    const root$ = combineLatest([this.tradeAreaService.storeObservable, this.locationService.storeObservable]).pipe(
       withLatestFrom(this.appStateService.applicationIsReady$),
       // halt the sequence if the project is still loading
       filter(([, isReady]) => isReady),
       // flatten the data to a 1-dimension array
-      map(([tradeAreas]) => tradeAreas),
+      map(([[tradeAreas]]) => tradeAreas),
       filterArray(ta => ta.isActive && ta.impGeofootprintGeos.length === 0 && ta['isComplete'] !== true)
     );
 
     root$.pipe(
-      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Site'),
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === ImpClientLocationTypeCodes.Site),
       filter(tradeAreas => tradeAreas.length > 0),
       withLatestFrom(this.appStateService.season$, this.validAnalysisLevel$)
     ).subscribe(([tradeAreas, season, al]) => this.selectAndPersistRadiusGeos(tradeAreas, season, al));
 
     root$.pipe(
-      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === 'Competitor'),
+      filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor),
       filter(tradeAreas => tradeAreas.length > 0)
     ).subscribe(tradeAreas => this.finalizeTradeAreas(tradeAreas));
   }

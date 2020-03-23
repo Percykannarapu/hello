@@ -83,8 +83,9 @@ export class FailedLocationsTabComponent implements OnInit {
     if (toHomeGeocode.length > 0)
       this.store$.dispatch(new HomeGeocode({locations: toHomeGeocode, isLocationEdit, reCalculateHomeGeos}));
 
-    if (notifySiteChanges)
+    if (notifySiteChanges) {
       this.appLocationService.notifySiteChanges();
+    }
   }
 
   resubmit(sites: ImpGeofootprintLocation[]) {
