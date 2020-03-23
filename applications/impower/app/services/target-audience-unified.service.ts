@@ -37,19 +37,18 @@ export interface VarList {
   compositeSource?: Array<VarSpecs>;
 }
 
-export interface UnifiedResponse {
-  id: string;
-  score: string;
-}
-
 export interface UnifiedFuseResponse {
   geocode: string;
-  dmaScore: string;
-  nationalScore: string;
-  digCategoryId: string;
-  attrs: Map<string, string>;
+  // dmaScore: string;
+  // nationalScore: string;
+  // digCategoryId: string;
+  variables: Map<string, string>;
 }
 
+export enum OtherSourceTypes {
+  COMBINE = 'combine',
+  COMPOSITE = 'composite'
+}
 @Injectable({
   providedIn: 'root'
 })
@@ -58,6 +57,8 @@ export class TargetAudienceUnifiedService {
 
   public selectedAudiences$ = new BehaviorSubject<Audience[]>([]);
   // private rawAudienceData: Map<string, TdaVariableResponse> = new Map<string, TdaVariableResponse>();
+  private audienceSourceTypes = ['combined', 'converted', 'combined/converted'] ;
+
 
   constructor(private config: AppConfig,
     private restService: RestDataService,
@@ -73,14 +74,14 @@ export class TargetAudienceUnifiedService {
   public rehydrateAudience() {
     try {
       const project = this.stateService.currentProject$.getValue();
-
-      if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
-        for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
+      if (project && project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.split('_')[0].toLowerCase()))) {
+        for (const projectVar of project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.split('_')[0].toLowerCase()))) {
           const groupedAudiences = JSON.parse(projectVar.customVarExprQuery);
           const audience: AudienceDataDefinition = {
             audienceName: projectVar.fieldname,
             audienceIdentifier: projectVar.varPk.toString(),
-            audienceSourceType: 'Combined',
+            audienceSourceType: projectVar.source.split('_')[0].toLowerCase() === 'combined' ? 'Combined' :
+                                projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? 'Combined/Converted' : 'Converted',
             audienceSourceName: 'TDA',
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
             showOnGrid: projectVar.isIncludedInGeoGrid,
@@ -88,14 +89,20 @@ export class TargetAudienceUnifiedService {
             exportNationally: false,
             allowNationalExport: false,
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
-            requiresGeoPreCaching: false,
+            requiresGeoPreCaching: true,
             seq: projectVar.sortOrder,
-            isCombined: true,
+            isCombined: projectVar.indexBase != null ? false : true,
             combinedAudiences: groupedAudiences,
             combinedVariableNames: projectVar.customVarExprDisplay
           };
 
           if (projectVar.source.toLowerCase().match('combined')) {
+            this.audienceService.addAudience(audience, null, true);
+          }
+          if (projectVar.source.toLowerCase().match('converted')) {
+            this.audienceService.addAudience(audience, null, true);
+          }
+          if (projectVar.source.toLowerCase().match('combined/converted')) {
             this.audienceService.addAudience(audience, null, true);
           }
         }
@@ -113,33 +120,34 @@ export class TargetAudienceUnifiedService {
   }
 
   public getAllVars(source: string, audienceList: Audience[], analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number) : Observable<UnifiedBulkResponse[]> {
-    // const combinedVars: Audience[] = [];
+    const combinedVars: Audience[] = [];
+    const sourceTypes = ['Combined', 'Converted', 'Combined/Converted'] ;
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     let requestVars: Array<VarList> = [];
     const sourceIDs: Map<string, number[]> = new Map<string, number[]>();
-
     const serviceURL = 'v1/targeting/base/geoinfo/varlookup';
     audienceList.map(audience => {
-      // combinedVars.push(audience);
+      combinedVars.push(audience);
       if (audience.combinedAudiences.length > 0){
         sourceIDs.set(audience.audienceIdentifier, audience.combinedAudiences.map(a => Number(a)));
-      //   audience.combinedAudiences.forEach(id => {
-      //   if (this.selectedAudiences$ != null)
-      //     combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === id));
-      //   });
+        audience.combinedAudiences.forEach(id => {
+        if (this.selectedAudiences$ != null && this.selectedAudiences$.getValue().length > 0)
+          combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === id));
+        });
       }
     });
-    this.logger.debug.log('selected audiences:::', this.selectedAudiences$.getValue());
 
-    // const uniqueAudList =  Array.from(new Set(combinedVars));
-    requestVars = this.selectedAudiences$.getValue().map(aud => ({
-      id: Number(aud.audienceIdentifier), desc: aud.audienceName, source: aud.audienceSourceType === 'Combine/Convert' ? 'combine' : aud.audienceSourceType,
+    const uniqueAudList =  Array.from(new Set(combinedVars));
+
+    requestVars = uniqueAudList.map(aud => ({
+      id: Number(aud.audienceIdentifier), desc: aud.audienceName, source: sourceTypes.includes(aud.audienceSourceType)  ? 'combine' : aud.audienceSourceType,
       base: aud.selectedDataSet != null ? aud.selectedDataSet : '', combineSource: sourceIDs.has(aud.audienceIdentifier) ? sourceIDs.get(aud.audienceIdentifier) : []
     }));
 
+    // this.logger.info.log('requestVars:::', requestVars);
     requestVars.forEach(v => {
       if (v.source !== 'combine') {
-        // v.base = 'SOURCE';
+        v.base = 'SRC';
         delete v.combineSource;
       }
     });
@@ -152,13 +160,13 @@ export class TargetAudienceUnifiedService {
       chunks: this.config.geoInfoQueryChunks,
       vars: requestVars
     };
-    this.logger.info.log('unified request payload::', inputData);
+    // this.logger.info.log('unified request payload::', inputData);
 
-    if (identifiers.length > 0) {
+    if (sourceIDs.size > 0) {
       return this.restService.post(serviceURL, [inputData])
         .pipe(
           tap(response => this.logger.info.log('unified response payload::', response)),
-          map(response => this.validateFuseResponse(response, identifiers.map(id => id.toString()), isForShading)),
+          map(response => this.validateFuseResponse(response,  identifiers.map(id => id.toString()), isForShading)),
           tap(response => (response)),
           catchError(() => {
             this.logger.error.log('Error posting to', serviceURL, 'with payload:');
@@ -178,24 +186,17 @@ export class TargetAudienceUnifiedService {
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
     const validatedResponse: UnifiedBulkResponse[] = [];
     const responseArray: UnifiedFuseResponse[] = response.payload.rows;
+
     const emptyAudiences: string[] = [];
+    for (let r = 0; r < responseArray.length; r++){
+      const responseVars = Object.keys(responseArray[r].variables);
+      for (let i = 0; i < identifiers.length; i++){
+        if (responseVars[i] != null && identifiers.includes(responseVars[i].substring(0, 1)))
+          validatedResponse.push ({ geocode: responseArray[r].geocode, id: identifiers[i], 
+                              score: responseArray[r].variables[responseVars[i]] });
+      }
+    }
+  return validatedResponse;
 
-    // Validate and transform the response
-    for (let r = 0; r < responseArray.length; r++)
-      for (let i = 0; i < identifiers.length; i++)
-        if (responseArray[r].attrs.hasOwnProperty(identifiers[i]))
-          validatedResponse.push ({ geocode: responseArray[r].geocode, id: identifiers[i], score: responseArray[r].attrs[identifiers[i]] });
-
-          // Look for variables that did not have data
-          for (let i = 0; i < identifiers.length; i++)
-          if (isForShading[i] === false && response.payload.counts.hasOwnProperty(identifiers[i]) && response.payload.counts[identifiers[i]] === 0)
-          // emptyAudiences.push((this.rawAudienceData.has(identifiers[i]) ? this.rawAudienceData.get(identifiers[i]).fielddescr : identifiers[i]));
-
-          if (emptyAudiences.length > 0)
-            this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
-
-    return validatedResponse;
   }
-
-
 }

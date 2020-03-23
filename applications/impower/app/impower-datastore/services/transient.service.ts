@@ -4,7 +4,7 @@ import { groupByExtended } from '@val/common';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
-import { FetchAudienceTradeAreaMap, FetchCustomFromPrefsMap, FetchOfflineTDAMap, FetchOnlineInMarketMap, FetchOnlineInterestMap, FetchOnlinePixelMap, FetchOnlineVLHMap } from '../state/transient/audience/audience.actions';
+import { FetchAudienceTradeAreaMap, FetchCustomFromPrefsMap, FetchOfflineTDAMap, FetchOnlineInMarketMap, FetchOnlineInterestMap, FetchOnlinePixelMap, FetchOnlineVLHMap, FetchUnifiedMap } from '../state/transient/audience/audience.actions';
 import { Audience } from '../state/transient/audience/audience.model';
 
 @Injectable({
@@ -58,7 +58,19 @@ export class TransientService {
         case 'Online/Audience-TA':
           actionsToDispatch.push(new FetchAudienceTradeAreaMap());
           break;
+        
+        case 'Combined/Converted/TDA':
+          actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'combine', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+          break;
 
+        case 'Combined/TDA':
+          actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'combine', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+          break;
+ 
+        case 'Converted/TDA':
+          actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'combine', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+          break;
+ 
         default:
           if (source.startsWith('Custom/'))
             actionsToDispatch.push(new FetchCustomFromPrefsMap({ geocodes }));

@@ -6,9 +6,7 @@
     </val-edit-combined-audiences>
 
 </div>
-&nbsp;
 <form novalidate  [formGroup]="audienceForm" autocomplete="off">
-
 <div class="ui-g">
 <div class="ui-g-12" >
     <input type="hidden" formControlName="audienceId">  
@@ -17,28 +15,24 @@
     <span class="md-inputfield">
       <input id="audienceName" type="text" formControlName="audienceName" pInputText size="40">
       <span class="ui-inputgroup-addon" *ngIf="!hasErrors('audienceName')">&nbsp;</span>
-     <label for="audienceName">Combine/Convert Audience Name (required)</label>
+     <label for="audienceName">New Audience Name (required)</label>
     </span>
 </div>
 
 <div class="ui-g-12"> 
 <p-listbox [options]="groupedAudiences$ | async" [(ngModel)]="selectedColumns" formControlName="audienceList" [listStyle]="{'max-height':'250px'}" [style]="{width:'40em'}" multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
 </div>
-&nbsp;
+<div class="ui-g-12 validation-messages">
+    <span *ngIf="showError">
+        <p>Only percent variables can be combined, please fix your selection</p>
+        </span>
+</div>
 <div class="ui-g-12">
     <span class="md-inputfield">
       <p-dropdown [options]="allIndexValues" optionLabel="label" formControlName="selectedIndex" styleClass="val-min-width" [(ngModel)]="selectedOperation"  placeholder="&nbsp;" dropdownIcon="fa fa-caret-down" ></p-dropdown>
-      <label for="selectedIndex">Convert To</label>
+      <label for="selectedIndex">Select Index Base</label>
     </span>
   </div>
-<br>
-<div class="ui-g-12 validation-messages">
-    <span *ngIf="showError">
-        <p>You cannot add combine/convert sources</p>
-        </span>
-
-</div>
-
 <div class="ui-g-4" >
       <button type="submit" pButton label="Create Variable" [disabled]= "isDisabled()" (click)="submitAudiences(audienceForm.value)" ></button>
 </div>

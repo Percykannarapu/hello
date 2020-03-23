@@ -274,6 +274,8 @@ export class TargetAudienceTdaService {
     const validatedResponse: OfflineBulkDataResponse[] = [];
     const responseArray: OfflineFuseResponse[] = response.payload.rows;
     const emptyAudiences: string[] = [];
+    console.log('tda response::', response);
+
     //this.logger.debug.log('### tda validateFuseResponse - response.length:', responseArray.length);
 
     // Validate and transform the response

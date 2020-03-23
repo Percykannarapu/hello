@@ -6,7 +6,7 @@ import { GeoVar } from '../geo-vars/geo-vars.model';
 import { MapVar } from '../map-vars/map-vars.model';
 import { Audience } from './audience.model';
 import { Stats } from './audience.reducer';
-import { UnifiedResponse, UnifiedBulkResponse } from 'app/services/target-audience-unified.service';
+import { UnifiedBulkResponse } from 'app/services/target-audience-unified.service';
 
 export enum AudienceActionTypes {
   LoadAudiences                      = '[Audience] Load Audiences',

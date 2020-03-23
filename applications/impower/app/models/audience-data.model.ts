@@ -13,7 +13,7 @@ export interface AudienceDataDefinition {
   selectedDataSet?: string;
   dataSetOptions?: { label: string, value: string }[];
   audienceSourceName: string;
-  audienceSourceType: 'Online' | 'Offline' | 'Custom' | 'Combined' | 'Combine/Convert' | 'Composite';
+  audienceSourceType: 'Online' | 'Offline' | 'Custom' | 'Combined' | 'Converted' | 'Combined/Converted' | 'Composite';
   secondaryId?: string;
   audienceTAConfig?: AudienceTradeAreaConfig;
   fieldconte: FieldContentTypeCodes;

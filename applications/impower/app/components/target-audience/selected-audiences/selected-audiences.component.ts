@@ -192,10 +192,16 @@ export class SelectedAudiencesComponent implements OnInit {
         case 'Online':
           metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
           break;
-        case 'Combine/Convert' || 'Combined':
+        case 'Combined/Converted':
            metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
            break;
-      }
+        case 'Combined':
+            metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
+            break;
+        case 'Converted':
+             metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
+             break;     
+    }
       this.store$.dispatch(new CreateAudienceUsageMetric('audience', 'delete', metricText));
       this.varService.applyAudienceSelection();
     },

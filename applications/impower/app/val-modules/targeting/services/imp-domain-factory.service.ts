@@ -121,11 +121,13 @@ export class ImpDomainFactoryService {
       projectVar.isActive = true;
       projectVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       projectVar.sortOrder = audience.seq; // audience.audienceCounter;
-      projectVar.customVarExprDisplay = source.toUpperCase() === 'COMBINED_TDA' ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
-      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' ?
+      projectVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA') 
+                                         ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
+      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : ((source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA') ?
                                       (audience.combinedAudiences != null ? JSON.stringify(audience.combinedAudiences) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
        projectVar.impProject = parent;
       parent.impProjectVars.push(projectVar);
+      console.log('inside project var ::', projectVar);
       return projectVar;
     } else {
       existingVar.dirty = true;

@@ -57,13 +57,14 @@ export class CombinedAudienceComponent implements OnInit {
     });
     this.allIndexValues = [
       { label: 'DMA', value: 'DMA' },
-      { label: 'National', value: 'National' },
+      { label: 'National', value: 'NAT' },
     ];
     this.groupedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(audiences => audiences != null),
       map(aud => {
         this.allAudiences = aud;
-        return aud.filter(a => a.audienceSourceType !== 'Custom' && a.fieldconte !== 'CHAR' && a.fieldconte !== 'RATIO');
+        console.log('test:::', aud);
+        return aud.filter(a => a.audienceSourceType !== 'Custom' && a.fieldconte !== 'CHAR' && a.fieldconte !== 'RATIO' && (a.fieldconte !== 'INDEX' && a.audienceSourceName === 'TDA'));
       }),
       tap(audiences => this.hasAudienceSelections = audiences.length > 0),
       map(audList => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
@@ -72,11 +73,12 @@ export class CombinedAudienceComponent implements OnInit {
 
     this.combinedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null),
-      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combine/Convert')),
+      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted')),
     );
   }
   submitAudiences(audienceFields: any) {
-    const isCombined = (audienceFields.audienceList.length > 1) && audienceFields.selectedIndex == null;
+    const isCombined = (audienceFields.audienceList.length > 1 && audienceFields.selectedIndex == null);
+    const isCombineConverted = audienceFields.audienceList.length > 1 && audienceFields.selectedIndex != null ;
     const combinedAudIds: string[] = [];
     const combinedVariableNames: string[] = [];
     if (audienceFields.audienceList.length > 0) {
@@ -98,9 +100,9 @@ export class CombinedAudienceComponent implements OnInit {
         allowNationalExport: false,
         selectedDataSet: audienceFields.selectedIndex != null ? audienceFields.selectedIndex.value : '',
         audienceSourceName: audienceFields.audienceList[0].audienceSourceName,
-        audienceSourceType: 'Combine/Convert',
-        fieldconte: audienceFields.audienceList[0].fieldconte,
-        requiresGeoPreCaching: false,
+        audienceSourceType: isCombined ? 'Combined' : (isCombineConverted ? 'Combined/Converted' : 'Converted'),
+        fieldconte: audienceFields.selectedIndex != null ? 'INDEX' : audienceFields.audienceList[0].fieldconte, 
+        requiresGeoPreCaching: true,
         seq: fkId,
         isCombined: isCombined,
         combinedAudiences: combinedAudIds,
@@ -160,7 +162,7 @@ export class CombinedAudienceComponent implements OnInit {
       audienceName: selectedAudience.audienceName,
       audienceList: currentSelections,
       audienceId: selectedAudience.audienceIdentifier,
-      selectedIndex: selectedAudience.selectedDataSet
+      selectedIndex: this.allIndexValues.find(a => a.label === selectedAudience.selectedDataSet) 
     });
     this.selectedColumns = currentSelections;
   }
@@ -180,6 +182,7 @@ export class CombinedAudienceComponent implements OnInit {
         let metricText = null;
         metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
         this.store$.dispatch(new CreateAudienceUsageMetric('combined audience', 'delete', metricText));
+        this.audienceForm.reset();
       },
       reject: () => { }
     });

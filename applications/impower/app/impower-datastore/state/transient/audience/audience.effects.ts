@@ -84,7 +84,7 @@ import {
   FetchUnifiedCompletedMap
 } from './audience.actions';
 import { initialStatState, Stats } from './audience.reducer';
-import { TargetAudienceUnifiedService } from 'app/services/target-audience-unified.service';
+import { TargetAudienceUnifiedService, OtherSourceTypes } from 'app/services/target-audience-unified.service';
 
 const audienceTaKey: string = 'AUDIENCE_TA_VARS';
 const shadingKey: string = 'SHADING_DATA';
@@ -152,13 +152,17 @@ export class AudiencesEffects {
                 this.store$.dispatch(new FetchOfflineTDA({ fuseSource: 'tda', al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
-              case 'Combine/Convert/TDA' || 'Combined/TDA':
+              case 'Converted/TDA':
                 this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
               
-              // case 'Convert/TDA':
-              //    this.store$.dispatch(new FetchUnified({ fuseSource: 'convert', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
-              //    break;
+              case 'Combined/TDA':
+                 this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                 break;
+              
+              case 'Combined/Converted/TDA':
+                this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                break;
 
               default:
                 if (source.startsWith('Custom/'))
@@ -621,7 +625,7 @@ export class AudiencesEffects {
       actionType: action.type,
       geoType: action.payload.al,
       fuseSource: action.payload.fuseSource,
-      source: (action.payload.fuseSource === 'combine_tda' || action.payload.fuseSource === 'convert_tda') ? OfflineSourceTypes.TDA : null,
+      source: (action.payload.fuseSource === 'combine') ? OfflineSourceTypes.TDA : null,
       audienceList: action.payload.audienceList,
       al: action.payload.al,
       geocodes: action.payload.geos,
@@ -650,7 +654,7 @@ export class AudiencesEffects {
                 return EMPTY;
             }
           }),
-          catchError(err => of(params.actionType === AudienceActionTypes.FetchOfflineTDAMap
+          catchError(err => of(params.actionType === AudienceActionTypes.FetchUnifiedMap
                                ? new FetchUnifiedFailedMap({ err, transactionId: params.transactionId })
                                : new FetchUnifiedFailed({ err })))
         );
@@ -662,18 +666,19 @@ export class AudiencesEffects {
     ofType<FetchUnifiedCompleted> (AudienceActionTypes.FetchUnifiedCompleted),
    tap(action => this.logger.info.log(`Retrieved`, action.payload.response.length, `map vars for "${action.payload.source}" in`, formatMilli(performance.now() - action.payload.startTime))),
     map(bulkResponse => {
-      const mapVars: MapVar[] = bulkResponse.payload.response.filter(data => data != null)
-        .map(responseRow => {
-          // Convert response into an array of MapVars
-          const gv = { geocode: responseRow.geocode };
-          gv[responseRow.id] = responseRow.score == null || isNaN(responseRow.score as any) ? responseRow.score : Number(responseRow.score);
-          return gv;
-        });
-      stats.totalMapVars += mapVars.length;
-      this.store$.dispatch(new FetchCountDecrement());
-      this.store$.dispatch(new StopBusyIndicator({key: shadingKey}));
-      return new UpsertMapVars({ mapVars: mapVars});
-    })
+    const geoVars: GeoVar[] = bulkResponse.payload.response.filter(data => data != null)
+    .map(responseRow => {
+      // Convert response into an array of GeoVars
+      const gv = { geocode: responseRow.geocode };
+      gv[responseRow.id] = responseRow.score == null || isNaN(responseRow.score as any) ? responseRow.score : Number(responseRow.score);
+      return gv;
+    });
+  applyStop = performance.now();
+  stats.counts[bulkResponse.payload.source] = geoVars.length;
+  this.store$.dispatch(new FetchCountDecrement());
+
+  return new UpsertGeoVars({ geoVars: geoVars});
+})
   );
   
   @Effect()
