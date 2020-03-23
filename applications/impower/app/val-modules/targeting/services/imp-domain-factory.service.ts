@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
 import { AppConfig } from '../../../app.config';
+import { ImpClientLocationTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
@@ -350,11 +351,12 @@ export class ImpDomainFactoryService {
           while (taNumber <= 3 || (allTradeAreas != null && allTradeAreas.size > 0 && allTradeAreas.has(taNumber))) taNumber++;
     }
     //this.logger.debug.log("### createTradeArea.taNumber = ", taNumber, ", taType: ", tradeAreaType, ", radius: ", radius);
+    const parentTypeCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(parent.clientLocationTypeCode));
     const result = new ImpGeofootprintTradeArea({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       taNumber: taNumber,
-      taName: ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, num),
+      taName: ImpDomainFactoryService.createTradeAreaName(parentTypeCode, tradeAreaType, num),
       taRadius: radius,
       taType: tradeAreaType.toUpperCase(),
       impProject: parent.impProject,

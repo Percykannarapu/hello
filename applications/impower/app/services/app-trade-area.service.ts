@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { CommonSort, filterArray, groupBy, isConvertibleToNumber, isNil, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
@@ -142,21 +142,15 @@ export class AppTradeAreaService {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
 
     data.forEach(l => {
-      const tradeAreas: any[] = [];
-      if (l.locationNumber == null || l.locationNumber.length === 0 ){
-        l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
+      const tradeAreas: { radius: number, selected: boolean, taNumber: number }[] = [];
+      if (isConvertibleToNumber(l.radius1) && !isNil(l.radius1) && Number(l.radius1) > 0) {
+        tradeAreas.push({ radius: Number(l.radius1), selected: true, taNumber: 1 });
       }
-      if (l.radius1 != null && Number(l.radius1) !== 0) {
-        const tradeArea1 = {radius: Number(l.radius1), selected: true };
-        tradeAreas.push(tradeArea1);
+      if (isConvertibleToNumber(l.radius2) && !isNil(l.radius2) && Number(l.radius2) > 0) {
+        tradeAreas.push({ radius: Number(l.radius2), selected: true, taNumber: 2 });
       }
-      if (l.radius2 != null && Number(l.radius2) !== 0) {
-        const tradeArea2 = {radius: Number(l.radius2), selected: true };
-        tradeAreas.push(tradeArea2);
-      }
-      if (l.radius3 != null && Number(l.radius3) !== 0) {
-        const tradeArea3 = {radius: Number(l.radius3), selected: true };
-        tradeAreas.push(tradeArea3);
+      if (isConvertibleToNumber(l.radius3) && !isNil(l.radius2) && Number(l.radius3) > 0) {
+        tradeAreas.push({ radius: Number(l.radius3), selected: true, taNumber: 3 });
       }
       newTradeAreas.push(...this.createRadiusTradeAreasForLocations(tradeAreas, [l], false));
     });
