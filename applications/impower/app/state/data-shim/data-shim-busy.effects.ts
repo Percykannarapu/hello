@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { Actions, Effect, ofType } from '@ngrx/effects';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { map } from 'rxjs/operators';
 import { DataShimActionTypes, ProjectLoad } from './data-shim.actions';
-import { filter, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -11,14 +11,13 @@ export class DataShimBusyEffects {
 
   @Effect()
   projectSaving$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectSaveAndNew, DataShimActionTypes.ProjectSaveAndLoad, DataShimActionTypes.ProjectSaveAndReload),
+    ofType(DataShimActionTypes.ProjectSaveAndNew, DataShimActionTypes.ProjectSaveAndLoad, DataShimActionTypes.ProjectSave),
     map(() => new StartBusyIndicator({ key: this.busyKey, message: 'Saving Project' }))
   );
 
   @Effect()
   projectLoading$ = this.actions$.pipe(
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
-    filter(action => !action.payload.isReload),
     map(action => new StartBusyIndicator({ key: this.busyKey, message: `Loading Project ${action.payload.projectId}`}))
   );
 

@@ -62,7 +62,7 @@ export class BatchMapService {
       filter(ready => ready),
       take(1),
       delay(15000)
-    ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isReload: false, isBatchMode: true })));
+    ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isBatchMode: true })));
   }
 
   requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload, project: ImpProject) : Observable<any> {

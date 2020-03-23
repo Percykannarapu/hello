@@ -91,6 +91,10 @@ export class AppDataShimService {
     );
   }
 
+  updateProjectWithId(id: number) : void {
+    this.appProjectService.updateProjectId(id);
+  }
+
   private onLoad(project: ImpProject) : void {
     this.processCustomVarPks(project);
     this.setupEsriInitialState(project);
@@ -150,17 +154,20 @@ export class AppDataShimService {
   }
 
   onLoadSuccess(isBatch: boolean) : void {
+    this.impGeofootprintGeoService.uploadFailures = [];
     this.appTradeAreaService.setCurrentDefaults();
     this.appGeoService.reloadMustCovers();
     this.appLayerService.updateLabelExpressions(false, isBatch);
     const project: ImpProject = this.appStateService.currentProject$.getValue();
     const extent = (project.impProjectPrefs || []).filter(pref => pref.pref === 'extent')[0];
-    if (extent != null && !isBatch){
-      const parsedJson = JSON.parse(extent.largeVal || extent.val);
-      this.mapService.mapView.extent =    Extent.fromJSON(parsedJson);
+    if (!isBatch) {
+      if (extent != null) {
+        const parsedJson = JSON.parse(extent.largeVal || extent.val);
+        this.mapService.mapView.extent = Extent.fromJSON(parsedJson);
+      } else {
+        this.appTradeAreaService.zoomToTradeArea();
+      }
     }
-    else if (!isBatch)
-          this.appTradeAreaService.zoomToTradeArea();
   }
 
   onLoadFinished() : void {
@@ -258,11 +265,6 @@ export class AppDataShimService {
     });
 
     this.appGeoService.notify();
-  }
-
-  isProjectReload(isReload: boolean){
-    if (!isReload)
-        this.impGeofootprintGeoService.uploadFailures = [];
   }
 
   persistMustCoverRollDownGeos(payLoad: any[], fileName: string, failedGeos: any[]){

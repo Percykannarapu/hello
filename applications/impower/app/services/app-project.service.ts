@@ -145,4 +145,11 @@ export class AppProjectService {
     }
     this.impProjectService.makeDirty();
   }
+
+  public updateProjectId(id: number) {
+    if (this.currentProjectRef != null && this.currentProjectRef.projectId !== id) {
+      this.currentProjectRef.projectId = id;
+      this.impProjectService.makeDirty();
+    }
+  }
 }

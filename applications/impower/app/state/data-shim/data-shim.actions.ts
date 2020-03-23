@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
+import { TradeAreaDefinition } from 'app/services/app-trade-area.service';
 import { ProjectFilterChanged } from '../../models/ui-enums';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { TradeAreaDefinition } from 'app/services/app-trade-area.service';
 
 export enum DataShimActionTypes {
   ProjectSaveSuccess = '[Application Data Shim] Project Saved Successfully',
@@ -16,7 +16,7 @@ export enum DataShimActionTypes {
 
   ProjectSaveAndNew = '[Application Data Shim] Project Save and New',
   ProjectSaveAndLoad = '[Application Data Shim] Project Save and Load',
-  ProjectSaveAndReload = '[Application Data Shim] Project Save and Reload',
+  ProjectSave = '[Application Data Shim] Project Save',
 
   ExportGeofootprint = '[Application Data Shim] Export Geofootprint',
   ExportHGCIssuesLog = '[Application Data Shim] Export ExportHGCIssuesLog',
@@ -28,7 +28,6 @@ export enum DataShimActionTypes {
   CalculateMetrics = '[Application Data Shim] Calculate Color box metrics',
 
   ProjectLoadFinish = '[Application Data Shim] Project Load Finish',
-  IsProjectReload = '[Application Data Shim] Project Reload',
 
   LayerSetupComplete = '[Application Data Shim] Layer Setup Complete',
 
@@ -44,13 +43,8 @@ export class ProjectSaveAndNew implements Action {
   readonly type = DataShimActionTypes.ProjectSaveAndNew;
 }
 
-export class ProjectSaveAndReload implements Action {
-  readonly type = DataShimActionTypes.ProjectSaveAndReload;
-}
-
-export class IsProjectReload implements Action {
-  readonly type = DataShimActionTypes.IsProjectReload;
-  constructor(public payload: { isReload: boolean }) {}
+export class ProjectSave implements Action {
+  readonly type = DataShimActionTypes.ProjectSave;
 }
 
 export class ProjectSaveAndLoad implements Action {
@@ -65,24 +59,24 @@ export class ProjectSaveSuccess implements Action {
 
 export class ProjectSaveFailure implements Action {
   readonly type = DataShimActionTypes.ProjectSaveFailure;
-  constructor(public payload: { err: any, isReload: boolean }) {}
+  constructor(public payload: { err: any }) {}
 }
 
 export class ProjectLoad implements Action {
   readonly type = DataShimActionTypes.ProjectLoad;
-  constructor(public payload: { projectId: number, isReload: boolean, isBatchMode?: boolean }) {
+  constructor(public payload: { projectId: number, isBatchMode?: boolean }) {
     payload.isBatchMode = payload.isBatchMode || false;
   }
 }
 
 export class ProjectLoadSuccess implements Action {
   readonly type = DataShimActionTypes.ProjectLoadSuccess;
-  constructor(public payload: { projectId: number, isReload: boolean }) {}
+  constructor(public payload: { projectId: number }) {}
 }
 
 export class ProjectLoadFailure implements Action {
   readonly type = DataShimActionTypes.ProjectLoadFailure;
-  constructor(public payload: { err: any, isReload: boolean }) {}
+  constructor(public payload: { err: any }) {}
 }
 
 export class CreateNewProject implements Action {
@@ -139,7 +133,7 @@ export class TradeAreaRollDownGeos implements Action {
 
 export class MustCoverRollDownGeos implements Action {
   readonly type = DataShimActionTypes.MustCoverRollDownGeos;
-  constructor(public payload: { geos: string[], queryResult:  Map<string, {latitude: number, longitude: number}>, 
+  constructor(public payload: { geos: string[], queryResult:  Map<string, {latitude: number, longitude: number}>,
               fileAnalysisLevel: string, fileName: string, uploadedGeos: any[], isResubmit: boolean}) {}
 }
 
@@ -162,7 +156,7 @@ export class ExportMCIssuesLog implements Action{
 export type DataShimActions =
   ProjectSaveAndNew |
   ProjectSaveAndLoad |
-  ProjectSaveAndReload |
+  ProjectSave |
   ProjectSaveSuccess |
   ProjectSaveFailure |
   ProjectLoad |
@@ -176,11 +170,10 @@ export type DataShimActions =
   ExportHGCIssuesLog |
   FiltersChanged |
   CalculateMetrics|
-  IsProjectReload|
   ProjectLoadFinish |
   LayerSetupComplete |
   TradeAreaRollDownGeos|
   MustCoverRollDownGeos|
   RollDownGeosComplete|
-  ExportCustomTAIssuesLog| 
+  ExportCustomTAIssuesLog|
   ExportMCIssuesLog;

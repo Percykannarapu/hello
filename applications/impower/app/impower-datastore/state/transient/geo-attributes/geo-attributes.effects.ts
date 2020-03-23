@@ -27,11 +27,10 @@ export class GeoAttributesEffects {
   @Effect()
   requestAttributes$ = this.actions$.pipe(
     ofType<RequestAttributes>(GeoAttributeActionTypes.RequestAttributes),
-    // map(action => action.payload.geocodes),
     withLatestFrom(this.store$.pipe(select(selectors.getEsriSelectedLayer))),
     switchMap(([action, layerId]) => this.featureLoaderService.loadAttributesFromFeatures(layerId, action.payload.geocodes, boundaryAttributes).pipe(
       concatMap(results => [new UpsertGeoAttributes({ geoAttributes: results }),
-                                   new RequestAttributesComplete({ flag: action.payload.flag })]),
+                                   new RequestAttributesComplete()]),
       catchError(err => of(new RequestAttributeFailure({ err })))
     ))
   );
@@ -42,7 +41,7 @@ export class GeoAttributesEffects {
     withLatestFrom(this.store$.pipe(select(selectors.getEsriSelectedLayer))),
     switchMap(([action, layerId]) => this.featureLoaderService.loadAttributesFromFeatures(layerId, action.payload.geocodes, boundaryAttributes).pipe(
       concatMap(results => [new UpsertGeoAttributes({ geoAttributes: results }),
-                                   new RehydrateAttributesComplete({ projectId: action.payload.projectId, isReload: action.payload.isReload })]),
+                                   new RehydrateAttributesComplete({ projectId: action.payload.projectId })]),
       catchError(err => of(new RehydrateAttributesFailure({ err })))
     ))
   );

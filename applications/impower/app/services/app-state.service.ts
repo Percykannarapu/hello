@@ -87,7 +87,6 @@ export class AppStateService {
   private isCollapsed = new BehaviorSubject<boolean>(false);
 
   public filterFlag: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  public filterFlag$: Observable<boolean> = this.filterFlag.asObservable();
 
   constructor(private projectService: AppProjectService,
               private locationService: ImpGeofootprintLocationService,
@@ -267,14 +266,9 @@ export class AppStateService {
         });
         return result;
       }),
-      withLatestFrom(this.filterFlag$),
-      filter(([newGeos]) => newGeos.size > 0),
-    ).subscribe(([geoSet, filterFlag]) => {
-      if (filterFlag !== null && filterFlag !== undefined) {
-        this.store$.dispatch(new RequestAttributes({ geocodes: geoSet, flag: filterFlag }));
-      } else {
-        this.store$.dispatch(new RequestAttributes({ geocodes: geoSet}));
-      }
+      filter(newGeos => newGeos.size > 0),
+    ).subscribe(geoSet => {
+      this.store$.dispatch(new RequestAttributes({ geocodes: geoSet }));
       this.store$.dispatch(new ClearGeoVars());
       this.store$.dispatch(new ApplyAudiences({analysisLevel: this.analysisLevel$.getValue()}));
     });
