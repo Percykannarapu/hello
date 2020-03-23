@@ -7,6 +7,7 @@ body {
       .shader-header {
         display: inline-flex;
         justify-content: space-between;
+        align-items: center;
         width: calc(100% - 1.5em);
         line-height: 1.5em;
         span.fa-eye-slash {

@@ -15,6 +15,7 @@ export interface EsriAuthenticationParams {
 
 export interface EsriAppSettings {
   defaultSpatialRef: number;
+  maxPointsPerQuery: number;
   maxPointsPerBufferQuery: number;
   maxPointsPerAttributeQuery: number;
   maxPointsPerServiceQuery: number;

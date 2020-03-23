@@ -28,6 +28,7 @@ export const defaultEsriAuthParams: EsriAuthenticationParams = {
 export const defaultEsriAppSettings: EsriAppSettings = {
   logLevel: LogLevels.WARN,
   defaultSpatialRef: 4326,
+  maxPointsPerQuery: 3000,
   maxPointsPerBufferQuery: 250,
   maxPointsPerAttributeQuery: 50,
   maxPointsPerServiceQuery: 5000,

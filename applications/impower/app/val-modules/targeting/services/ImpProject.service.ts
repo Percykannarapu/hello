@@ -24,8 +24,9 @@ import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
 import { ImpProjectPrefService } from './ImpProjectPref.service';
 import { ImpProjectVarService } from './ImpProjectVar.service';
 
-const restUrl = 'v1/targeting/base/impproject/';
-const dataUrl = restUrl + 'load';
+const restUrl = 'v1/targeting/base/';
+const dataUrl = restUrl + 'impproject/load';
+const packUrl = restUrl + 'impprojectmsgpack/load';
 
 @Injectable()
 export class ImpProjectService extends DataStore<ImpProject>
@@ -56,8 +57,10 @@ export class ImpProjectService extends DataStore<ImpProject>
      if (id == null) return EMPTY;
      return new Observable<ImpProject>(observer => {
        const loadCache: ImpProject[] = [];
-       this.rest.get(`${dataUrl}/${id}`).subscribe(
-         response => loadCache.push(new ImpProject(response.payload)),
+       this.rest.getMessagePack(`${packUrl}/${id}`).pipe(
+         map(response => response.payload),
+       ).subscribe(
+         payload => loadCache.push(new ImpProject(payload)),
          err => observer.error(err),
          () => {
            loadCache.forEach(p => {

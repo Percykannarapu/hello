@@ -1,6 +1,6 @@
 // tslint:disable:no-bitwise
 
-import { isFunction } from './type-checks';
+import { isConvertibleToNumber, isFunction, isNil } from './type-checks';
 
 /**
  * Splits an array into chunks of a maximum size
@@ -435,4 +435,13 @@ export function arrayToSet<T, R>(items: T[] | ReadonlyArray<T>, filter?: (item: 
     if (effectiveFilter(currentItem)) result.add(effectiveSelector(currentItem));
   }
   return result;
+}
+
+/**
+ * Converts a value to a number if it is parsable as a number, otherwise returns null
+ * @param value - the value to convert
+ */
+export function toNullOrNumber(value: any) : number | null {
+  if (!isNil(value) && isConvertibleToNumber(value)) return Number(value);
+  return null;
 }

@@ -19,13 +19,15 @@ import { SelectItem } from 'primeng/api';
 })
 export class PaletteColorPickerComponent implements ControlValueAccessor {
 
-  public get palette() : ColorPalette {
-    return this._palette;
-  }
   @Input()
   public set palette(value: ColorPalette) {
     this._palette = value;
-    this.updatePaletteOptions();
+    this.updatePaletteOptions(this._palette, this._reversePalette);
+  }
+  @Input()
+  public set reversePalette(value: boolean) {
+    this._reversePalette = value;
+    this.updatePaletteOptions(this._palette, this._reversePalette);
   }
 
   @Input() labelText: string;
@@ -51,6 +53,7 @@ export class PaletteColorPickerComponent implements ControlValueAccessor {
   }
 
   private _palette: ColorPalette;
+  private _reversePalette: boolean;
   private _value: RgbaTuple;
 
   propagateChange = (_: any) => {};
@@ -58,8 +61,8 @@ export class PaletteColorPickerComponent implements ControlValueAccessor {
 
   constructor() {}
 
-  private updatePaletteOptions() {
-    const colors = getColorPalette(this._palette, false);
+  private updatePaletteOptions(palette: ColorPalette, reversed: boolean) {
+    const colors = getColorPalette(palette, reversed);
     if (colors == null) {
       this.options = [{
         value: RgbTuple.withAlpha([0, 0, 0], 1),

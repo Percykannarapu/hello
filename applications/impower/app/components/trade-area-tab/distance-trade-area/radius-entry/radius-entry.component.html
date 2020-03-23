@@ -5,7 +5,7 @@
   <div *ngIf="!readonly" class="radius-control">
     <validated-text-input formControlName="radius" labelText="Trade Area {{radiusIdentifier}} (in miles)" [tabIndex]="tabIndex"></validated-text-input>
   </div>
-  <div *ngIf="readonly" class="radius-control">
+  <div *ngIf="readonly" class="radius-control-static">
     Provided in Upload
   </div>
   <div *ngIf="showAddNew" class="button-control">

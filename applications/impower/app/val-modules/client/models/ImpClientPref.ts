@@ -9,9 +9,9 @@ export class ImpClientPref
 {
    public clientPrefId:                number;                    /// Primary Key
    public createUser:                  number;
-   public createDate:                  Date;
+   public createDate:                  number;
    public modifyUser:                  number;
-   public modifyDate:                  Date;
+   public modifyDate:                  number;
    public clientIdentifierId:          number;
    public attributeCode:               string;
    public attributeType:               string;
@@ -38,9 +38,9 @@ export class ImpClientPref
       return new Map([
          ['clientPrefId',                 'number'],
          ['createUser',                   'number'],
-         ['createDate',                   'Date'],
+         ['createDate',                   'number'],
          ['modifyUser',                   'number'],
-         ['modifyDate',                   'Date'],
+         ['modifyDate',                   'number'],
          ['clientIdentifierId',           'number'],
          ['attributeCode',                'string'],
          ['attributeType',                'string'],

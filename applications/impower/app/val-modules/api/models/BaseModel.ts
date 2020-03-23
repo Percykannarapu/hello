@@ -1,9 +1,9 @@
 export enum DAOBaseStatus
 {
-   UNCHANGED = "UNCHANGED"
-  ,UPDATE = "UPDATE"
-  ,INSERT = "INSERT"
-  ,DELETE = "DELETE"
+  UNCHANGED = 'UNCHANGED',
+  UPDATE = 'UPDATE',
+  INSERT = 'INSERT',
+  DELETE = 'DELETE',
 }
 
 /**

@@ -34,7 +34,7 @@ export class EsriQueryService {
   }
 
   private static calculateChunkSize(dataLength: number, returnGeometry: boolean, bufferInMiles: number = 0) : number {
-    if (!returnGeometry) return dataLength;
+    if (!returnGeometry) return Math.min(dataLength, this.config.maxPointsPerQuery);
     if (bufferInMiles === 0) return this.config.maxPointsPerAttributeQuery;
     return this.config.maxPointsPerBufferQuery;
   }

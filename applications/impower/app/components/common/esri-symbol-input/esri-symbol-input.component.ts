@@ -28,6 +28,7 @@ export class EsriSymbolInputComponent implements OnInit, OnDestroy {
   @Input() defaultCrossHatchColor: RgbaTuple = [0, 0, 0, 1];
   @Input() defaultSolidColor: RgbaTuple;
   @Input() currentPalette: ColorPalette;
+  @Input() reversePalette: boolean = false;
 
   controlId = getUuid();
   fillTypes: SelectItem[];

@@ -1,4 +1,4 @@
-import { ClassBreakDefinition, ColorPalette, getColorPalette, RgbTuple } from '@val/esri';
+import { ClassBreakDefinition, ColorPalette, getColorPalette, RgbTuple, SymbolDefinition } from '@val/esri';
 import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { getFillPalette } from '../../../../modules/esri/src/models/color-palettes';
 
@@ -16,9 +16,9 @@ const percentDefaults: Partial<ClassBreakDefinition>[] = [
   { minValue: 75, maxValue: null, legendName: '75% and above' }
 ];
 
-export function getDefaultClassBreaks(fieldConte: FieldContentTypeCodes, theme: ColorPalette) : ClassBreakDefinition[] {
-  const colorPalette = getColorPalette(theme, false);
-  const fillPalette = getFillPalette(theme, false);
+export function getDefaultClassBreaks(fieldConte: FieldContentTypeCodes, theme: ColorPalette, reversePalette: boolean) : ClassBreakDefinition[] {
+  const colorPalette = getColorPalette(theme, reversePalette);
+  const fillPalette = getFillPalette(theme, reversePalette);
   const cm = colorPalette.length;
   const lm = fillPalette.length;
   if (fieldConte === FieldContentTypeCodes.Percent) {
@@ -26,4 +26,20 @@ export function getDefaultClassBreaks(fieldConte: FieldContentTypeCodes, theme: 
   } else {
     return indexDefaults.map((p, i) => ({ ...p, fillType: fillPalette[i % lm], fillColor: RgbTuple.withAlpha(colorPalette[i % cm], 1) } as ClassBreakDefinition));
   }
+}
+
+export function getDefaultUserBreaks(count: number, breakPrefix: string, theme: ColorPalette, reversePalette: boolean) : SymbolDefinition[] {
+  const colorPalette = getColorPalette(theme, reversePalette);
+  const fillPalette = getFillPalette(theme, reversePalette);
+  const cm = colorPalette.length;
+  const lm = fillPalette.length;
+  const result: SymbolDefinition[] = [];
+  for (let i = 0; i < count; ++i) {
+    result.push({
+      fillColor: RgbTuple.withAlpha(colorPalette[i % cm], 1),
+      fillType: fillPalette[i % lm],
+      legendName: `${breakPrefix} ${i + 1}`
+    });
+  }
+  return result;
 }

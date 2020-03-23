@@ -9,9 +9,9 @@ export class ImpClientLocAttribute
 {
    public clientLocAttributeId:   number;                     /// Primary Key
    public createUser:             number;
-   public createDate:             Date;
+   public createDate:             number;
    public modifyUser:             number;
-   public modifyDate:             Date;
+   public modifyDate:             number;
    public attributeCode:          string;
    public attributeType:          string;
    public attributeValue:         string;
@@ -38,9 +38,9 @@ export class ImpClientLocAttribute
       return new Map([
          ['clientLocAttributeId',    'number'],
          ['createUser',              'number'],
-         ['createDate',              'Date'],
+         ['createDate',              'number'],
          ['modifyUser',              'number'],
-         ['modifyDate',              'Date'],
+         ['modifyDate',              'number'],
          ['attributeCode',           'string'],
          ['attributeType',           'string'],
          ['attributeValue',          'string'],

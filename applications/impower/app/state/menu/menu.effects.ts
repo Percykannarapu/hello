@@ -1,18 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { CloseExistingProjectDialog, DiscardThenLoadProject, ExportGeofootprint, ExportLocations, MenuActionTypes, SaveThenLoadProject, PrintActionTypes, PrintMapSuccess, ClosePrintViewDialog} from './menu.actions';
-import { concatMap, filter, map, withLatestFrom, tap, switchMap, catchError } from 'rxjs/operators';
-import * as fromDataShims from '../data-shim/data-shim.actions';
-import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { CreateProjectUsageMetric } from '../usage/targeting-usage.actions';
-import { ClearAllNotifications, AppState, ErrorNotification, SuccessNotification, StopBusyIndicator, StartBusyIndicator } from '@val/messaging';
-import { AppDataShimService } from '../../services/app-data-shim.service';
-import { PrintMap, EsriMapActionTypes, PrintJobComplete, PrintMapFailure } from '@val/esri';
-import { AppStateService } from 'app/services/app-state.service';
-import { AppConfig } from 'app/app.config';
 import { Store } from '@ngrx/store';
+import { EsriMapActionTypes, PrintJobComplete, PrintMap, PrintMapFailure } from '@val/esri';
+import { AppState, ClearAllNotifications, ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
+import { AppConfig } from 'app/app.config';
 import { AppExportService } from 'app/services/app-export.service';
-import { of } from 'rxjs';
+import { AppStateService } from 'app/services/app-state.service';
+import { concatMap, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { AppDataShimService } from '../../services/app-data-shim.service';
+import { ImpClientLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import * as fromDataShims from '../data-shim/data-shim.actions';
+import { CreateProjectUsageMetric } from '../usage/targeting-usage.actions';
+import { CloseExistingProjectDialog, ClosePrintViewDialog, DiscardThenLoadProject, ExportGeofootprint, ExportLocations, MenuActionTypes, PrintActionTypes, PrintMapSuccess, SaveThenLoadProject } from './menu.actions';
 
 
 @Injectable({
@@ -29,7 +28,6 @@ export class MenuEffects {
       new ClearAllNotifications(),
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=Yes'),
       new fromDataShims.ProjectSaveAndNew(),
-      new fromDataShims.IsProjectReload({isReload: false})
     ]),
   );
 
@@ -40,7 +38,6 @@ export class MenuEffects {
       new ClearAllNotifications(),
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=No'),
       new fromDataShims.CreateNewProject(),
-      new fromDataShims.IsProjectReload({isReload: false})
     ])
   );
 
@@ -51,8 +48,7 @@ export class MenuEffects {
     filter(([action, project]) => this.dataShimService.validateProject(project)),
     concatMap(() => [
       new ClearAllNotifications(),
-      new fromDataShims.ProjectSaveAndReload(),
-      new fromDataShims.IsProjectReload({isReload: true})
+      new fromDataShims.ProjectSave(),
     ])
   );
 
@@ -65,7 +61,6 @@ export class MenuEffects {
       new ClearAllNotifications(),
       new fromDataShims.ProjectSaveAndLoad({ projectId: action.payload.projectToLoad }),
       new CloseExistingProjectDialog(),
-      new fromDataShims.IsProjectReload({isReload: false})
     ]),
 );
 
@@ -74,9 +69,8 @@ export class MenuEffects {
     ofType<DiscardThenLoadProject>(MenuActionTypes.DiscardThenLoadProject),
     concatMap(action => [
       new ClearAllNotifications(),
-      new fromDataShims.ProjectLoad({ projectId: action.payload.projectToLoad, isReload: false }),
+      new fromDataShims.ProjectLoad({ projectId: action.payload.projectToLoad }),
       new CloseExistingProjectDialog(),
-      new fromDataShims.IsProjectReload({isReload: false})
     ])
   );
 
@@ -104,7 +98,7 @@ export class MenuEffects {
     map(() => new fromDataShims.ExportApioNationalData())
   );
 
-  
+
   @Effect({dispatch: false})
   showBusySpinner$ = this.actions$.pipe(
     ofType<PrintMap>(EsriMapActionTypes.PrintMap),

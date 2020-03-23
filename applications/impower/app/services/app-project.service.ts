@@ -1,13 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import { LocalAppState } from '../state/app.interfaces';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
@@ -29,9 +25,7 @@ export class AppProjectService {
               private impMasterService: ImpGeofootprintMasterService,
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
-              private restService: RestDataService,
-              private impLocationService: ImpGeofootprintLocationService,
-              private store$: Store<LocalAppState>) {
+              private restService: RestDataService) {
     this.currentNullableProject$ = this.impProjectService.storeObservable.pipe(
       map(projects => projects == null || projects.length === 0 ? null : projects[0])
     );
@@ -46,14 +40,22 @@ export class AppProjectService {
     return this.impProjectService.loadFromServer(id);
   }
 
-  save(project?: ImpProject) : Observable<number> {
-    const localProject = project == null ? this.impProjectService.get()[0] : project;
+  savePacked(project?: ImpProject) : Observable<number> {
+    const saveUrl = 'v1/targeting/base/impprojectmsgpack/deleteSave';
+    const projectToSave = project == null ? this.impProjectService.get()[0] : project;
+    if (projectToSave == null) return of(null as number);
+    this.cleanupProject(projectToSave);
+    return this.restService.postMessagePack(saveUrl, projectToSave).pipe(
+      map(response => Number(response.payload))
+    );
+  }
+
+  saveStringified(project?: ImpProject) : Observable<number> {
     const saveUrl = 'v1/targeting/base/impproject/deleteSave';
-    localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
-    this.logger.info.log('before cleanup::', JSON.stringify(localProject));
-    this.cleanupProject(localProject);
-    this.logger.info.log('Project being saved', JSON.stringify(localProject));
-    return this.restService.post(saveUrl, localProject).pipe(
+    const projectToSave = project == null ? this.impProjectService.get()[0] : project;
+    if (projectToSave == null) return of(null as number);
+    this.cleanupProject(projectToSave);
+    return this.restService.post(saveUrl, projectToSave).pipe(
       map(response => Number(response.payload))
     );
   }
@@ -86,16 +88,48 @@ export class AppProjectService {
   }
 
   private cleanupProject(localProject: ImpProject) {
-    // filter out empty location attributes
+    // remove all Ids except the root Project Id
+    localProject.impGeofootprintMasters.forEach(m => {
+      m.cgmId = undefined;
+      m.projectId = undefined;
+    });
+    localProject.impProjectPrefs.forEach(pref => {
+      pref.projectPrefId = undefined;
+      pref.projectId = undefined;
+    });
+    localProject.impProjectVars.forEach(pv => {
+      pv.pvId = undefined;
+      pv.projectId = undefined;
+    });
     localProject.getImpGeofootprintLocations().forEach(loc => {
+      loc.glId = undefined;
+      loc.cgmId = undefined;
+      loc.projectId = undefined;
+      loc.impGeofootprintLocAttribs.forEach(atr => {
+        atr.locAttributeId = undefined;
+        atr.glId = undefined;
+        atr.cgmId = undefined;
+        atr.projectId = undefined;
+      });
+      // filter out empty location attributes
       loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue !== '');
     });
-    // remove geovars
     localProject.getImpGeofootprintTradeAreas().forEach(ta => {
+      ta.gtaId = undefined;
+      ta.glId = undefined;
+      ta.cgmId = undefined;
+      ta.projectId = undefined;
+      // remove geovars
       ta.impGeofootprintVars = [];
     });
     localProject.getImpGeofootprintGeos().forEach(geo => {
-      delete geo['filterReasons'];
+      geo.ggId = undefined;
+      geo.gtaId = undefined;
+      geo.glId = undefined;
+      geo.cgmId = undefined;
+      geo.projectId = undefined;
+      // clear out filter reasons
+      geo['filterReasons'] = undefined;
     });
   }
 
@@ -112,8 +146,10 @@ export class AppProjectService {
     this.impProjectService.makeDirty();
   }
 
-  public deleteProjectVars(varsToDelete: ImpProjectVar[]) : void {
-    this.currentProjectRef.impProjectVars = this.currentProjectRef.impProjectVars.filter(v => !varsToDelete.includes(v));
-    this.impProjectVarService.remove(varsToDelete);
+  public updateProjectId(id: number) {
+    if (this.currentProjectRef != null && this.currentProjectRef.projectId !== id) {
+      this.currentProjectRef.projectId = id;
+      this.impProjectService.makeDirty();
+    }
   }
 }

@@ -3,8 +3,14 @@
 .component-root {
   display: flex;
   align-items: flex-end;
-  .min-values, .max-values {
+
+  .min-values, .max-values, .calculated-value-message {
     flex: 1
+  }
+  .calculated-value-message {
+    padding-bottom: 0.5em;
+    font-size: 12px;
+    white-space: nowrap;
   }
   .legend-values {
     padding: 0 0.5em;

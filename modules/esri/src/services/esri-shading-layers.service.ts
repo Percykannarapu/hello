@@ -208,7 +208,6 @@ export class EsriShadingLayersService {
         const visVar: RampProperties = {
           type: 'color',
           valueExpression: config.arcadeExpression,
-          // legendOptions: { title: config.layerName },
           stops: config.breakDefinitions.map(c => ({ color: c.stopColor, label: c.stopName, value: c.stopValue }))
         };
         return this.domainFactory.createSimpleRenderer(defaultSymbol, visVar);

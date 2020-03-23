@@ -31,6 +31,8 @@ export class AppConfig implements LoggingConfiguration {
   public maxRadiusTradeAreas = 3;
   public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
   public maxGeosForPrecisionZoom = 100;
+
+  // runtime flags
   public isBatchMode = false;
 
   // Not used anymore

@@ -289,21 +289,18 @@ export class AppLocationService {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
 
     data.forEach(l => {
-      const tradeAreas: any[] = [];
+      const tradeAreas: { radius: number, selected: boolean, taNumber: number }[] = [];
       if (l.locationNumber == null || l.locationNumber.length === 0 ){
         l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
       }
-      if (l.radius1 != null && Number(l.radius1) !== 0) {
-        const tradeArea1 = {radius: Number(l.radius1), selected: true };
-        tradeAreas.push(tradeArea1);
+      if (isConvertibleToNumber(l.radius1) && Number(l.radius1) > 0) {
+        tradeAreas.push({ radius: Number(l.radius1), selected: true, taNumber: 1 });
       }
-      if (l.radius2 != null && Number(l.radius2) !== 0) {
-        const tradeArea2 = {radius: Number(l.radius2), selected: true };
-        tradeAreas.push(tradeArea2);
+      if (isConvertibleToNumber(l.radius2) && Number(l.radius2) > 0) {
+        tradeAreas.push({ radius: Number(l.radius2), selected: true, taNumber: 2 });
       }
-      if (l.radius3 != null && Number(l.radius3) !== 0) {
-        const tradeArea3 = {radius: Number(l.radius3), selected: true };
-        tradeAreas.push(tradeArea3);
+      if (isConvertibleToNumber(l.radius3) && Number(l.radius3) > 0) {
+        tradeAreas.push({ radius: Number(l.radius3), selected: true, taNumber: 3 });
       }
       newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, [l], false));
     });

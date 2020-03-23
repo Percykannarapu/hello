@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { safe, simpleFlatten } from '@val/common';
+import { safe, simpleFlatten, toNullOrNumber } from '@val/common';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 import { Observable, Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -121,8 +121,8 @@ export class ValAudienceTradeareaService {
     this.audienceTAConfig = { ...this.audienceTAConfig, ...config };
     project.audTaIndexBase = this.audienceTAConfig.scoreType;
     project.audTaIsMustCover = this.audienceTAConfig.includeMustCover ? 1 : 0;
-    project.audTaMaxRadiu = Number(this.audienceTAConfig.maxRadius);
-    project.audTaMinRadiu = Number(this.audienceTAConfig.minRadius);
+    project.audTaMaxRadiu = toNullOrNumber(this.audienceTAConfig.maxRadius);
+    project.audTaMinRadiu = toNullOrNumber(this.audienceTAConfig.minRadius);
     project.audTaVarPk = this.audienceTAConfig.digCategoryId;
     project.audTaVarWeight = this.audienceTAConfig.weight;
     project.audTaVarSource = this.audienceTAConfig.audienceName;

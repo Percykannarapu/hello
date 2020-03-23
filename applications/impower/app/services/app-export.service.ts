@@ -161,7 +161,7 @@ export class AppExportService {
 
   public exportCustomTAIssuesLog(uploadFailures: TradeAreaDefinition[]){
     //this.logger.info.log('uploadFailures ====>', uploadFailures);
-    const header = 'SiteNo, Geocode';
+    const header = 'Site #, Geocode';
     const records: string[] = [];
     records.push(header +  '\n');
     uploadFailures.forEach(record => {

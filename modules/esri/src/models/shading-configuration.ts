@@ -84,7 +84,9 @@ export interface ClassBreakShadingDefinition extends ShadingDefinitionBase {
   dynamicallyAllocate?: boolean;
   dynamicAllocationType?: DynamicAllocationTypes;
   dynamicAllocationSlots?: number;
+  dynamicLegend?: boolean;
   arcadeExpression?: string;
+  userBreakDefaults?: SymbolDefinition[];
   breakDefinitions?: ClassBreakDefinition[];
 }
 
@@ -146,39 +148,50 @@ export function generateContinuousValues(stats: Statistics, colorPalette: RgbTup
   return result;
 }
 
-export function generateDynamicClassBreaks(stats: Statistics, colorPalette: RgbTuple[], fillPalette: FillPattern[], breakTypes: DynamicAllocationTypes) : ClassBreakDefinition[] {
-  const result: ClassBreakDefinition[] = [];
-  const breakValues = breakTypes === DynamicAllocationTypes.Interval ? stats.meanIntervals : stats.quantiles;
+export function generateDynamicSymbology(stats: Statistics, colorPalette: RgbTuple[], fillPalette: FillPattern[]) : SymbolDefinition[] {
+  const result: SymbolDefinition[] = [];
+  const len = stats.meanIntervals.length;
   const cm = colorPalette.length;
   const lm = fillPalette.length;
-  const fixedPositions = stats.max > 10 ? 0 :
-                         stats.max > 5  ? 1 : 2;
-  breakValues.forEach((bv, i) => {
-    const b: ClassBreakDefinition = {
-      maxValue: bv,
+  for (let i = 0; i < stats.meanIntervals.length; ++i) {
+    result.push({
       fillColor: RgbTuple.withAlpha(colorPalette[i % cm], 1),
       fillType: fillPalette[i % lm],
       outlineColor: [0, 0, 0, 0]
-    };
-    if (i === 0) {
-      // first break
-      b.minValue = null;
-      b.legendName = `Below ${b.maxValue.toFixed(fixedPositions)}`;
-    } else {
-      // intermediate breaks
-      b.minValue = breakValues[i - 1] + Number.EPSILON;
-      b.legendName = `${b.minValue.toFixed(fixedPositions)} to ${b.maxValue.toFixed(fixedPositions)}`;
-    }
-    result.push(b);
-  });
-  const lastBreak: ClassBreakDefinition = {
-    minValue: breakValues[breakValues.length - 1] + Number.EPSILON,
-    maxValue: null,
-    fillColor: RgbTuple.withAlpha(colorPalette[breakValues.length % cm], 1),
-    fillType: fillPalette[breakValues.length % lm],
-    outlineColor: [0, 0, 0, 0],
-    legendName: `${breakValues[breakValues.length - 1].toFixed(fixedPositions)} and above`
+    });
+  }
+  const lastBreak: SymbolDefinition = {
+    fillColor: RgbTuple.withAlpha(colorPalette[len % cm], 1),
+    fillType: fillPalette[len % lm],
+    outlineColor: [0, 0, 0, 0]
   };
   result.push(lastBreak);
+  return result;
+}
+
+export function generateDynamicClassBreaks(stats: Statistics, breakTypes: DynamicAllocationTypes, symbology: SymbolDefinition[]) : ClassBreakDefinition[] {
+  const result: ClassBreakDefinition[] = [];
+  const breakValues = breakTypes === DynamicAllocationTypes.Interval ? stats.meanIntervals : stats.quantiles;
+  if (symbology.length !== (breakValues.length + 1)) {
+    console.error('There was a mismatch between the statistics breaks and the symbology breaks', stats, symbology);
+    return [];
+  }
+  const fixedPositions = stats.max > 10 ? 0 :
+                         stats.max > 5  ? 1 : 2;
+  breakValues.forEach((bv, i) => {
+    const currentMin = i === 0 ? null : breakValues[i - 1] + Number.EPSILON;
+    result.push({
+      legendName: i === 0 ? `Below ${bv.toFixed(fixedPositions)}` : `${currentMin.toFixed(fixedPositions)} to ${bv.toFixed(fixedPositions)}`,
+      minValue: currentMin,
+      maxValue: bv,
+      ...symbology[i]
+    });
+  });
+  result.push({
+    minValue: breakValues[breakValues.length - 1] + Number.EPSILON,
+    maxValue: null,
+    legendName: `${breakValues[breakValues.length - 1].toFixed(fixedPositions)} and above`,
+    ...symbology[breakValues.length]
+  });
   return result;
 }

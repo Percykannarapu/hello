@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { combineLatest, Observable } from 'rxjs';
-import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { Store, select } from '@ngrx/store';
-import { FullAppState } from 'app/state/app.interfaces';
-import { map, filter, take } from 'rxjs/operators';
+import { select, Store } from '@ngrx/store';
 import { selectors } from '@val/esri';
-import { AppLocationService } from 'app/services/app-location.service';
-import { CreateLocationUsageMetric } from 'app/state/usage/targeting-usage.actions';
-import { HomeGeocode, Geocode } from 'app/state/homeGeocode/homeGeo.actions';
-import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
+import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
+import { AppLocationService } from 'app/services/app-location.service';
+import { FullAppState } from 'app/state/app.interfaces';
+import { Geocode, HomeGeocode } from 'app/state/homeGeocode/homeGeo.actions';
+import { CreateLocationUsageMetric } from 'app/state/usage/targeting-usage.actions';
+import { combineLatest, Observable } from 'rxjs';
+import { filter, map, take } from 'rxjs/operators';
+import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({
   selector: 'val-failed-locations-tab',
@@ -60,7 +60,7 @@ export class FailedLocationsTabComponent implements OnInit {
     let notifySiteChanges: boolean = false;
 
     sites.forEach(site => {
-      site.clientLocationTypeCode = site.clientLocationTypeCode.replace('Failed ', '');
+      site.clientLocationTypeCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(site.clientLocationTypeCode));
       if (site.recordStatusCode === 'PROVIDED'){
         const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
         site.impGeofootprintLocAttribs.forEach(attr => {
@@ -83,8 +83,9 @@ export class FailedLocationsTabComponent implements OnInit {
     if (toHomeGeocode.length > 0)
       this.store$.dispatch(new HomeGeocode({locations: toHomeGeocode, isLocationEdit, reCalculateHomeGeos}));
 
-    if (notifySiteChanges)
+    if (notifySiteChanges) {
       this.appLocationService.notifySiteChanges();
+    }
   }
 
   resubmit(sites: ImpGeofootprintLocation[]) {

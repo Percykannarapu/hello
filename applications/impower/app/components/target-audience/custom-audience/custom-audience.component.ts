@@ -4,7 +4,6 @@ import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/m
 import { DeleteAudiences, FetchCustom } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
 import { ConfirmationService } from 'primeng/api';
@@ -94,33 +93,14 @@ export class CustomAudienceComponent implements OnInit {
       icon: 'ui-icon-delete',
       accept: () => {
         const ids: string[] = [];
-        let audience: Audience = null;
-        this.audiences.forEach(aud => {
-          if (aud.showOnMap === true){
-            aud.showOnMap = false;
-            audience = aud;
-          }
-          ids.push(aud.audienceIdentifier);
-        });
-        if (audience != null){
-          this.store$.dispatch(new ClearMapVars());
-          // this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier, isActive: audience.showOnMap }));
-          //this.appProjectPrefService.createPref('map-settings', 'audience', `${audience.audienceSourceName}: ${audience.audienceName}`, 'string');
-          const oldPref  = this.appProjectPrefService.getPref('audience');
-          //const newPref  = this.appProjectPrefService.getPref('audience');
-
-          if (oldPref != null ){
-            //newPref.isActive = false;
-            this.impProjectPrefService.update(oldPref, null);
-          }
-        }
         this.audiences.forEach(aud => {
           this.varService.addDeletedAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
           this.varService.removeAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
+          ids.push(aud.audienceIdentifier);
         });
         this.varService.syncProjectVars();
-        this.store$.dispatch(new DeleteAudiences({ids: ids}));
-
+        this.store$.dispatch(new DeleteAudiences({ ids }));
+        // need to clean up the map vars at some point, too
       },
       reject: () => {}
     });

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
 import { AppConfig } from '../../../app.config';
+import { ImpClientLocationTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
@@ -46,9 +47,9 @@ export class ImpDomainFactoryService {
     const result = new ImpProject({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
-      createDate: new Date(Date.now()),
+      createDate: Date.now(),
       createUser: this.userService.getUser().userId,
-      modifyDate: new Date(Date.now()),
+      modifyDate: Date.now(),
       modifyUser: this.userService.getUser().userId,
       isActive: true,
       isIncludeAnne: true,
@@ -73,7 +74,7 @@ export class ImpDomainFactoryService {
     const master = new ImpGeofootprintMaster({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
-      createdDate: new Date(Date.now()),
+      createdDate: Date.now(),
       methSeason: null,
       status: 'SUCCESS',
       summaryInd: 0,
@@ -89,7 +90,6 @@ export class ImpDomainFactoryService {
     if (parent == null) throw new Error('Project Var factory requires a valid Project instance');
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
     const isCustom = audience.audienceSourceType === 'Custom';
-    const isCombined = audience.isCombined;
     const source = audience.audienceSourceType + '_' + audience.audienceSourceName;
 
     let existingVar;
@@ -304,9 +304,9 @@ export class ImpDomainFactoryService {
       const result = new ImpGeofootprintLocAttrib({
         dirty: true,
         baseStatus: DAOBaseStatus.INSERT,
-        createDate: new Date(Date.now()),
+        createDate: Date.now(),
         createUser: this.userService.getUser().userId,
-        modifyDate: new Date(Date.now()),
+        modifyDate: Date.now(),
         modifyUser: this.userService.getUser().userId,
         attributeCode: code,
         attributeValue: value,
@@ -321,7 +321,7 @@ export class ImpDomainFactoryService {
         existingAttribute.dirty = true;
         existingAttribute.attributeValue = value;
         existingAttribute.isActive = isActive;
-        existingAttribute.modifyDate = new Date(Date.now());
+        existingAttribute.modifyDate = Date.now();
         existingAttribute.modifyUser = this.userService.getUser().userId;
         if (existingAttribute.baseStatus === DAOBaseStatus.UNCHANGED) existingAttribute.baseStatus = DAOBaseStatus.UPDATE;
         return null;
@@ -353,11 +353,12 @@ export class ImpDomainFactoryService {
           while (taNumber <= 3 || (allTradeAreas != null && allTradeAreas.size > 0 && allTradeAreas.has(taNumber))) taNumber++;
     }
     //this.logger.debug.log("### createTradeArea.taNumber = ", taNumber, ", taType: ", tradeAreaType, ", radius: ", radius);
+    const parentTypeCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(parent.clientLocationTypeCode));
     const result = new ImpGeofootprintTradeArea({
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       taNumber: taNumber,
-      taName: ImpDomainFactoryService.createTradeAreaName(parent.clientLocationTypeCode, tradeAreaType, num),
+      taName: ImpDomainFactoryService.createTradeAreaName(parentTypeCode, tradeAreaType, num),
       taRadius: radius,
       taType: tradeAreaType.toUpperCase(),
       impProject: parent.impProject,

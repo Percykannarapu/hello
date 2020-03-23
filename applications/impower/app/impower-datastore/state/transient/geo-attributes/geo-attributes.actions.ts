@@ -20,17 +20,18 @@ export enum GeoAttributeActionTypes {
   UpdateGeoAttributes = '[GeoAttribute] Update GeoAttributes',
   DeleteGeoAttribute = '[GeoAttribute] Delete GeoAttribute',
   DeleteGeoAttributes = '[GeoAttribute] Delete GeoAttributes',
-  ClearGeoAttributes = '[GeoAttribute] Clear GeoAttributes'
+  ClearGeoAttributes = '[GeoAttribute] Clear GeoAttributes',
+
+  ProcessGeoAttributes = '[GeoAttribute] Process Geo Attributes'
 }
 
 export class RequestAttributes implements Action {
   readonly type = GeoAttributeActionTypes.RequestAttributes;
-  constructor(public payload: { geocodes: Set<string>, flag?: boolean }) {}
+  constructor(public payload: { geocodes: Set<string> }) {}
 }
 
 export class RequestAttributesComplete implements Action {
     readonly type = GeoAttributeActionTypes.RequestAttributesComplete;
-    constructor(public payload: { flag: boolean }) {}
 }
 
 export class RequestAttributeFailure implements Action {
@@ -40,12 +41,12 @@ export class RequestAttributeFailure implements Action {
 
 export class RehydrateAttributes implements Action {
   readonly type = GeoAttributeActionTypes.RehydrateAttributes;
-  constructor(public payload: { projectId: number, isReload: boolean, geocodes: Set<string> }) {}
+  constructor(public payload: { projectId: number, geocodes: Set<string> }) {}
 }
 
 export class RehydrateAttributesComplete implements Action {
   readonly type = GeoAttributeActionTypes.RehydrateAttributesComplete;
-  constructor(public payload: { projectId: number, isReload: boolean }) {}
+  constructor(public payload: { projectId: number }) {}
 }
 
 export class RehydrateAttributesFailure implements Action {
@@ -111,6 +112,11 @@ export class ClearGeoAttributes implements Action {
   readonly type = GeoAttributeActionTypes.ClearGeoAttributes;
 }
 
+export class ProcessGeoAttributes implements Action {
+  readonly type = GeoAttributeActionTypes.ProcessGeoAttributes;
+  constructor(public payload: { prepGeos?: boolean, applyFilters?: boolean }) {}
+}
+
 export type GeoAttributeActions =
  LoadGeoAttributes
   | AddGeoAttribute
@@ -127,4 +133,5 @@ export type GeoAttributeActions =
   | RequestAttributeFailure
   | RehydrateAttributes
   | RehydrateAttributesFailure
-  | RehydrateAttributesComplete;
+  | RehydrateAttributesComplete
+  | ProcessGeoAttributes;

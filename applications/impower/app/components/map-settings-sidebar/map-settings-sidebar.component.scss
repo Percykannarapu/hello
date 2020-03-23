@@ -25,6 +25,7 @@ body .ui-sidebar.transparent-back {
     .ui-card.ui-widget-content {
       height: 100%;
       padding: 0 1em 1em;
+      overflow-x: auto;
     }
   }
 }

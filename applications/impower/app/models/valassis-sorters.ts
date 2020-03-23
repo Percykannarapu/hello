@@ -1,21 +1,13 @@
 /* tslint:disable:semicolon */
-import { isConvertibleToNumber } from '@val/common';
+import { CommonSort, isConvertibleToNumber, toNullOrNumber } from '@val/common';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 export class ValSort {
 
-  // Generic sorters
-  public static GenericNumber(a: number, b: number) {
-    return a - b;
-  }
-
-  public static StringsAsNumbers(a: string, b: string) {
-    if (isConvertibleToNumber(a) && isConvertibleToNumber(b)) {
-      return Number(a) - Number(b);
-    } else {
-      return a.localeCompare(b);
-    }
-  }
+  // Location Sorters
+  public static LocationBySiteNum(a: { locationNumber: string }, b: { locationNumber: string }) {
+    return CommonSort.StringsAsNumbers(a.locationNumber, b.locationNumber)
+  };
 
   // Trade Area Sorters
   public static TradeAreaByTaNumber = (a: { taNumber: number }, b: { taNumber: number }) => Number(a.taNumber) - Number(b.taNumber);
@@ -34,10 +26,10 @@ export class ValSort {
     return ValSort.TradeAreaByType(aType, bType);
   };
 
-  // Location Sorters
-  public static LocationBySiteNum(a: { locationNumber: string }, b: { locationNumber: string }) {
-    return this.StringsAsNumbers(a.locationNumber, b.locationNumber)
-  };
+  // Geo Sorters
+  public static GeoByDistance(a: { distance: number }, b: { distance: number }) {
+    return CommonSort.NullableSortWrapper(toNullOrNumber(a.distance), toNullOrNumber(b.distance), CommonSort.GenericNumber);
+  }
 
   //---------------------------------
   // Internal help functions

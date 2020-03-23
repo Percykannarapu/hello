@@ -12,8 +12,11 @@ export class EsriClassBreakInputComponent implements OnInit {
 
   @Input() formGroupName: string;
   @Input() currentPalette: ColorPalette;
+  @Input() reversePalette: boolean = false;
   @Input() showMinValue: boolean = true;
   @Input() showMaxValue: boolean = true;
+  @Input() usesCalculatedValues: boolean = false;
+  @Input() calculatedValueMessage: string = 'Calculated values';
 
   currentRoot: FormGroup;
 

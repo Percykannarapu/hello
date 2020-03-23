@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, transient } from './../../api/models/BaseModel';
+import { BaseModel, transient } from '../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
@@ -29,8 +29,6 @@ export class ImpGeofootprintGeo extends BaseModel
    public isDeduped:     number;         /// 1 = deduped, 0 = not deduped
    public rank:          number;         /// Rank used to calculate dupes
 
-   //@transient public impGeofootprintGeoAttribs: Array<ImpGeofootprintGeoAttrib> = new Array<ImpGeofootprintGeoAttrib>();
-
    // -------------------------------------------
    // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
    // -------------------------------------------
@@ -49,35 +47,8 @@ export class ImpGeofootprintGeo extends BaseModel
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<ImpGeofootprintGeo>) {
-      super();
-      Object.assign(this, data);
-   }
-
-   // Set tree property and push it down the hierarchy
-   public setTreeProperty(propName: string, propValue: any)
-   {
-      if (!this.hasOwnProperty(propName)) {
-         Object.defineProperty(this, propName, {
-            enumerable: false,
-            configurable: true,
-            writable: true
-         });
-      }
-      this[propName] = propValue;
-   }
-
-   // Removes a tree property from this level down
-   public removeTreeProperty(propName: string)
-   {
-      delete this[propName];
-   }
-
-   // Convert JSON objects into Models
-   public convertToModel()
-   {
-
-      // Set the isComplete flag indicating the load is complete
-      this.setTreeProperty('isComplete', true);
+     super();
+     Object.assign(this, data);
    }
 
    /**
@@ -130,4 +101,30 @@ export class ImpGeofootprintGeo extends BaseModel
     */
    public toString = () => JSON.stringify(this, null, '   ');
 
+  // Set tree property and push it down the hierarchy
+  public setTreeProperty(propName: string, propValue: any)
+  {
+    if (!this.hasOwnProperty(propName)) {
+      Object.defineProperty(this, propName, {
+        enumerable: false,
+        configurable: true,
+        writable: true
+      });
+    }
+    this[propName] = propValue;
+  }
+
+  // Removes a tree property from this level down
+  public removeTreeProperty(propName: string)
+  {
+    delete this[propName];
+  }
+
+  // Convert JSON objects into Models
+  public convertToModel()
+  {
+
+    // Set the isComplete flag indicating the load is complete
+    this.setTreeProperty('isComplete', true);
+  }
 }

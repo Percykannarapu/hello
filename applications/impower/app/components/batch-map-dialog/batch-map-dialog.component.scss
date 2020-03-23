@@ -4,8 +4,8 @@
 
 .customPadding{
   padding-left: 2rem !important;
-  padding-top: 7px !important;
-  padding-bottom: 0px !important;
+  padding-top: 3.5px !important;
+  padding-bottom: 3.5px !important;
 }
 
 .checkboxPadding {
@@ -60,8 +60,8 @@
   }
   .labelTitle{
     font-size: 1.2em;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-top: 7px;
+    padding-bottom: 7px;
   }
 }
 
@@ -78,7 +78,37 @@
   width: 164px;
 }
 
+.flexTitle {
+  display: flex;
+}
+
+.titleFlex1 {
+  flex: 1;
+  margin: 0 0.5rem;
+}
+
+.titleFlex2 {
+  flex: 2;
+  margin: 0 0.5rem;
+}
+
+.p-grid {
+  display: flex;
+  flex-wrap: wrap;
+  .p-col-6 {
+    width: 50%;
+    flex: 0 0 auto;
+  }
+}
+
 #p-dialog div body .ui-dialog-content .ui-widget-content .ui-dialog-resizable{
   overflow: hidden;
+}
+
+.text-right{
+  text-align: right;
+  width: 400px;
+  float: right;
+  padding: 0 1rem;
 }
 
