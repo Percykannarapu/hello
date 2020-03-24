@@ -1142,13 +1142,20 @@ export class AppLocationService {
 
 
   createArreibut(row: {}, loc: ImpGeofootprintLocation){
+   const locHomeArributes: Map<string, string>  = new Map<string, string>();
+   loc.impGeofootprintLocAttribs.forEach(attr => {
+      if (homeGeoColumnsSet.has(attr.attributeCode)){
+        locHomeArributes.set(attr.attributeCode, attr.attributeValue);
+      }
+   });
+
     return {
-      'homeZip'       :  row ['ZIP'],
-      'homePcr'       :  row ['PCR'],
-      'homeAtz'       :  row ['ATZ'],
-      'homeCounty'    :  row ['homeCounty'],
-      'homeDma'       :  row ['homeDma'],
-      'homeDigitalAtz':  row ['DTZ'],
+      'homeZip'       :  locHomeArributes.has('Home Zip Code')      ?  locHomeArributes.get('Home Zip Code')       :   row ['ZIP'],
+      'homePcr'       :  locHomeArributes.has('Home Carrier Route') ?  locHomeArributes.get('Home Carrier Route')  :   row ['PCR'],
+      'homeAtz'       :  locHomeArributes.has('Home ATZ')           ?  locHomeArributes.get('Home ATZ')            :   row ['ATZ'],
+      'homeCounty'    :  locHomeArributes.has('Home County')        ?  locHomeArributes.get('Home County')         :   row ['homeCounty'],
+      'homeDma'       :  locHomeArributes.has('Home DMA')           ?  locHomeArributes.get('Home DMA')            :   row ['homeDma'],
+      'homeDigitalAtz':  locHomeArributes.has('Home Digital ATZ')   ?  locHomeArributes.get('Home Digital ATZ')    :   row ['DTZ'],
       'homeDmaName'   :  null,
       'siteNumber'    :  loc.locationNumber,
       'abZip'         :  loc.locZip.substring(0, 5)
