@@ -1,12 +1,14 @@
 import { Inject, Injectable } from '@angular/core';
 import { mapArrayToEntity } from '@val/common';
-import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService } from '@val/esri';
+import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriUtils } from '@val/esri';
 import Color from 'esri/Color';
-import geometryEngine from 'esri/geometry/geometryEngine';
+import geometryEngineAsync from 'esri/geometry/geometryEngineAsync';
 import Graphic from 'esri/Graphic';
 import PopupTemplate from 'esri/PopupTemplate';
 import { SimpleRenderer } from 'esri/renderers';
 import { SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol } from 'esri/symbols';
+import { from, merge, Observable } from 'rxjs';
+import { map, reduce } from 'rxjs/operators';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { defaultLocationPopupFields, LocationDrawDefinition } from './location.transform';
@@ -37,8 +39,9 @@ export class RenderingService {
     this.esriLayerService.clearClientLayers(`${type}s`);
   }
 
-  renderTradeAreas(defs: TradeAreaDrawDefinition[]) : void {
+  renderTradeAreas(defs: TradeAreaDrawDefinition[]) : Observable<__esri.GraphicsLayer[]> {
     this.logger.debug.log('definitions for trade areas', defs);
+    const result: Observable<__esri.GraphicsLayer>[] = [];
     defs.forEach(d => {
       const symbol = new SimpleFillSymbol({
         style: 'solid',
@@ -49,16 +52,16 @@ export class RenderingService {
           width: 2
         }
       });
-      const geoBuffer = geometryEngine.geodesicBuffer(d.centers, d.buffer, 'miles', d.merge);
-      const geometry = Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer];
-      const graphics = geometry.map(g => {
-        return new Graphic({
-          geometry: g,
-          symbol: symbol
-        });
-      });
-      this.esriLayerService.createGraphicsLayer(d.groupName, d.layerName, graphics);
+      result.push(from(EsriUtils.esriPromiseToEs6(geometryEngineAsync.geodesicBuffer(d.centers, d.buffer, 'miles', d.merge))).pipe(
+        map(geoBuffer => Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer]),
+        map(geometry => geometry.map(g => new Graphic({ geometry: g, symbol: symbol }))),
+        map(graphics => this.esriLayerService.createGraphicsLayer(d.groupName, d.layerName, graphics))
+      ));
     });
+
+    return merge(...result).pipe(
+      reduce((acc, curr) => [...acc, curr], [])
+    );
   }
 
   renderLocations(defs: LocationDrawDefinition[]) : void {

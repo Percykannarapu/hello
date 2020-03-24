@@ -69,8 +69,10 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     ];
   }
 
-  public getAllocationName(index: number) : string {
+  public getAllocationName(index: number, isFirst: boolean, isLast: boolean) : string {
     const prefix = this.getAllocationPrefix();
+    if (isFirst) return `Lowest`;
+    if (isLast) return `Highest`;
     return `${prefix} ${index + 1}`;
   }
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
-import { defaultEsriAppSettings, EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
@@ -9,7 +9,7 @@ import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/op
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { QuadTree } from '../models/quad-tree';
+import { quadPartitionLocations } from '../models/quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
@@ -220,29 +220,6 @@ export class AppGeoService {
     });
   }
 
-  private partitionLocations(locations: ImpGeofootprintLocation[], analysisLevel: string) : ImpGeofootprintLocation[][] {
-    const quadTree = new QuadTree(locations);
-    let maxDimension = 500;
-    let chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery;
-    switch ((analysisLevel || '').toLowerCase()) {
-      case 'atz':
-        maxDimension = 250;
-        chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 2;
-        break;
-      case 'digital atz':
-        maxDimension = 200;
-        chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 5;
-        break;
-      case 'pcr':
-        maxDimension = 100;
-        chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 10;
-        break;
-    }
-    const result = quadTree.partition(chunkSize, maxDimension);
-    this.logger.debug.log('QuadTree partitions', quadTree);
-    return result.filter(chunk => chunk && chunk.length > 0);
-  }
-
   private selectAndPersistRadiusGeos(tradeAreas: ImpGeofootprintTradeArea[], season: Season, analysisLevel: string) : void {
     const key = 'selectAndPersistRadiusGeos';
     this.store$.dispatch(new StartBusyIndicator({key, message: 'Calculating Radius Trade Areas...'}));
@@ -250,7 +227,7 @@ export class AppGeoService {
     const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), true);
     this.logger.debug.log('Select and Persist Radius Geos', tradeAreas.length);
     const allLocations = new Set(tradeAreas.map(ta => ta.impGeofootprintLocation));
-    const locationChunks = this.partitionLocations(Array.from(allLocations), analysisLevel);
+    const locationChunks = quadPartitionLocations(Array.from(allLocations), analysisLevel);
     const queries: Observable<Map<ImpGeofootprintLocation, AttributeDistance[]>>[] = [];
     const tradeAreaSet = new Set(tradeAreas);
     const locationDistanceMap = new Map<ImpGeofootprintLocation, AttributeDistance[]>();
@@ -294,10 +271,11 @@ export class AppGeoService {
 
   private selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[]) : void {
     const key = 'selectAndPersistHomeGeos';
-    this.store$.dispatch(new StartBusyIndicator({key, message: 'Processing Home Geos...'}));
+    const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
+    this.store$.dispatch(new StartBusyIndicator({key, message: `Selecting Home ${currentAnalysisLevel}s...`}));
 
     this.logger.debug.log('Firing home geo selection', locations.length);
-    const layerId = this.config.getLayerIdForAnalysisLevel(this.appStateService.analysisLevel$.getValue(), true);
+    const layerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
     const allSelectedData: __esri.Graphic[] = [];
     const validLocations = locations.filter(l => l.homeGeocode != null && l.homeGeocode.length > 0);
     const invalidLocations = locations.filter(l => l.homeGeocode == null || l.homeGeocode.length === 0);
@@ -431,6 +409,7 @@ export class AppGeoService {
       }
       ta['isComplete'] = true;
     });
+    this.tradeAreaService.makeDirty();
   }
 
   private createHomeGeos(homeCentroids: __esri.Graphic[], locations: ImpGeofootprintLocation[]) : ImpGeofootprintGeo[] {

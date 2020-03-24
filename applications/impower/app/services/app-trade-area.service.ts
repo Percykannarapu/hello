@@ -76,8 +76,8 @@ export class AppTradeAreaService {
       take(1)
     ).subscribe(() => {
       this.impTradeAreaService.storeObservable.pipe(
-        filter(ta => ta != null),
-        filterArray(ta => ta.impGeofootprintLocation != null && ta.isActive),
+        filter(ta => ta != null && ta.length > 0),
+        filterArray(ta => ta.impGeofootprintLocation != null && ta.impGeofootprintLocation.isActive && ta.isActive && ta['isComplete'] === true),
       ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
 
       this.setupAnalysisLevelGeoClearObservable();
@@ -495,7 +495,7 @@ export class AppTradeAreaService {
     const loc = this.impLocationService.get();
     //const tradeAreas = this.impTradeAreaService.get();
     const locsMapSiteBy = mapBy(loc, 'clientLocationTypeCode');
-    locsMapSiteBy.forEach((value, key) => {
+    locsMapSiteBy.forEach((value) => {
       if (value != null && value.radius1 == null && value.radius2 == null && value.radius3 == null){
         const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(value.clientLocationTypeCode));
         const tas: { radius: number, selected: boolean, taNumber: number }[] = [];

@@ -1,4 +1,4 @@
-import { groupByExtended, toUniversalCoordinates } from '@val/common';
+import { groupByExtended, isConvertibleToNumber, toUniversalCoordinates } from '@val/common';
 import { Point } from 'esri/geometry';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
@@ -9,6 +9,13 @@ export class TradeAreaDrawDefinition {
   layerName: string;
   buffer: number[] = [];
   centers: __esri.Point[] = [];
+
+  bufferedPoints: {
+    buffer: number;
+    xcoord: number;
+    ycoord: number;
+    point: __esri.Point;
+  }[] = [];
 
   constructor(siteType: SuccessfulLocationTypeCodes, layerSuffix: string, public color: [number, number, number, number], public merge: boolean) {
     this.groupName = `${siteType}s`;
@@ -38,9 +45,16 @@ export function prepareRadiusTradeAreas(tradeAreas: ImpGeofootprintTradeArea[], 
     layerGroups.forEach((layerTradeAreas, layerName) => {
       const currentResult = new TradeAreaDrawDefinition(siteType, layerName, siteType === 'Site' ? [0, 0, 255, 1] : [255, 0, 0, 1], mergeType !== TradeAreaMergeTypeCodes.NoMerge);
       layerTradeAreas.forEach(ta => {
-        if (ta.taRadius != null) {
-          currentResult.buffer.push(ta.taRadius);
-          currentResult.centers.push(toPoint(ta, wkid));
+        if (isConvertibleToNumber(ta.taRadius)) {
+          const currentPoint = toPoint(ta, wkid);
+          currentResult.buffer.push(Number(ta.taRadius));
+          currentResult.centers.push(currentPoint);
+          currentResult.bufferedPoints.push({
+            buffer: Number(ta.taRadius),
+            xcoord: ta.impGeofootprintLocation.xcoord,
+            ycoord: ta.impGeofootprintLocation.ycoord,
+            point: currentPoint
+          });
         }
       });
       result.push(currentResult);

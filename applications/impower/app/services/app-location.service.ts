@@ -11,7 +11,7 @@ import { ConfirmationService } from 'primeng/components/common/confirmationservi
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
 import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { QuadTree } from '../models/quad-tree';
+import { quadPartitionLocations } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { FullAppState } from '../state/app.interfaces';
 import { ClearLocations, RenderLocations } from '../state/rendering/rendering.actions';
@@ -331,13 +331,6 @@ export class AppLocationService {
     this.esriMapService.zoomToPoints(toUniversalCoordinates(locations)).subscribe();
   }
 
-  private partitionLocations(locations: ImpGeofootprintLocation[]) : ImpGeofootprintLocation[][] {
-    const quadTree = new QuadTree(locations);
-    const result = quadTree.partition(1000);
-    this.logger.debug.log('QuadTree partitions', quadTree);
-    return result.filter(chunk => chunk && chunk.length > 0);
-  }
-
   private confirmationBox() : void {
     if (this.cachedTradeAreas != null && this.cachedTradeAreas.length !== 0){
       this.confirmationService.confirm({
@@ -365,6 +358,7 @@ export class AppLocationService {
       });
     }
   }
+
   public determineDtzHomegeos(attributes: any[], locations: ImpGeofootprintLocation[]) : Observable<any>{
     const attributesByHomeZip: Map<any, any> = mapBy(attributes, 'homeZip');
     this.logger.debug.log('attributesByHomeZip:::', attributesByHomeZip);
@@ -1115,7 +1109,7 @@ export class AppLocationService {
   pipLocations(locations: ImpGeofootprintLocation[], analysisLevel: string = 'pcr'){
     const queries: Observable<any>[] = [];
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
-    const chunkArrays = this.partitionLocations(locations);
+    const chunkArrays = quadPartitionLocations(locations, analysisLevel);
           for (const locArry of chunkArrays){
             if (locArry.length > 0){
               const points = toUniversalCoordinates(locArry);

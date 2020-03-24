@@ -1,6 +1,29 @@
 import { toUniversalCoordinates } from '@val/common';
-import { EsriUtils } from '@val/esri';
+import { defaultEsriAppSettings, EsriUtils } from '@val/esri';
 import { Extent, Multipoint, Point } from 'esri/geometry';
+import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+
+export function quadPartitionLocations(locations: ImpGeofootprintLocation[], analysisLevel: string) : ImpGeofootprintLocation[][] {
+  const quadTree = new QuadTree(locations);
+  let maxDimension = 500;
+  let chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery;
+  switch ((analysisLevel || '').toLowerCase()) {
+    case 'atz':
+      maxDimension = 250;
+      chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 2;
+      break;
+    case 'digital atz':
+      maxDimension = 200;
+      chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 5;
+      break;
+    case 'pcr':
+      maxDimension = 100;
+      chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 10;
+      break;
+  }
+  const result = quadTree.partition(chunkSize, maxDimension);
+  return result.filter(chunk => chunk && chunk.length > 0);
+}
 
 type NonArray<T> = T extends (infer R)[] ? R : T;
 export class QuadTree<T extends NonArray<Parameters<typeof toUniversalCoordinates>[0]>> {
