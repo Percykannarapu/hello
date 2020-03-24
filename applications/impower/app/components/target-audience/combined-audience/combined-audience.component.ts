@@ -63,7 +63,6 @@ export class CombinedAudienceComponent implements OnInit {
       filter(audiences => audiences != null),
       map(aud => {
         this.allAudiences = aud;
-        console.log('test:::', aud);
         return aud.filter(a => a.audienceSourceType !== 'Custom' && a.fieldconte !== 'CHAR' && a.fieldconte !== 'RATIO' && (a.fieldconte !== 'INDEX' && a.audienceSourceName === 'TDA'));
       }),
       tap(audiences => this.hasAudienceSelections = audiences.length > 0),
