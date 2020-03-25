@@ -37,10 +37,9 @@ export class RenderingEffects {
 
   @Effect()
   tradeAreaRender$ = this.tradeAreaSplit$.pipe(
-    filter(typeMap => typeMap.size > 0),
+    filter(typeMap => typeMap.size > 0 && ((typeMap.get(TradeAreaTypeCodes.Radius) || []).length > 0 || (typeMap.get(TradeAreaTypeCodes.Audience) || []).length > 0)),
     concatMap(typeMap => [
       new StartBusyIndicator({ key: this.renderingKey, message: 'Rendering Trade Area Rings...' }),
-      new ClearTradeAreas(),
       new RenderRadiusTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Radius) }),
       new RenderAudienceTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Audience) })
     ])
@@ -73,7 +72,7 @@ export class RenderingEffects {
     filter(action => action.payload.tradeAreas != null && action.payload.tradeAreas.length > 0),
     withLatestFrom(this.appStateService.currentProject$),
     map(([action, currentProject]) => prepareRadiusTradeAreas(action.payload.tradeAreas, currentProject, this.esriSettings.defaultSpatialRef)),
-    switchMap(definitions => this.renderingService.renderTradeAreas(definitions)),
+    concatMap(definitions => this.renderingService.renderTradeAreas(definitions)),
     map(() => new StopBusyIndicator({ key: this.renderingKey }))
   );
 

@@ -77,7 +77,7 @@ export class AppTradeAreaService {
     ).subscribe(() => {
       this.impTradeAreaService.storeObservable.pipe(
         filter(ta => ta != null && ta.length > 0),
-        filterArray(ta => ta.impGeofootprintLocation != null && ta.impGeofootprintLocation.isActive && ta.isActive && ta['isComplete'] === true),
+        filterArray(ta => ta.impGeofootprintLocation != null && ta.impGeofootprintLocation.isActive && ta.isActive),
       ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
 
       this.setupAnalysisLevelGeoClearObservable();

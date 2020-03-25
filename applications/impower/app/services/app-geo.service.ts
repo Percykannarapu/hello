@@ -409,7 +409,6 @@ export class AppGeoService {
       }
       ta['isComplete'] = true;
     });
-    this.tradeAreaService.makeDirty();
   }
 
   private createHomeGeos(homeCentroids: __esri.Graphic[], locations: ImpGeofootprintLocation[]) : ImpGeofootprintGeo[] {

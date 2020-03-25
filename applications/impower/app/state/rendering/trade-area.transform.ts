@@ -44,20 +44,23 @@ export function prepareRadiusTradeAreas(tradeAreas: ImpGeofootprintTradeArea[], 
     const layerGroups = groupByExtended(usableTas, ta => ta.taName);
     layerGroups.forEach((layerTradeAreas, layerName) => {
       const currentResult = new TradeAreaDrawDefinition(siteType, layerName, siteType === 'Site' ? [0, 0, 255, 1] : [255, 0, 0, 1], mergeType !== TradeAreaMergeTypeCodes.NoMerge);
-      layerTradeAreas.forEach(ta => {
-        if (isConvertibleToNumber(ta.taRadius)) {
-          const currentPoint = toPoint(ta, wkid);
-          currentResult.buffer.push(Number(ta.taRadius));
-          currentResult.centers.push(currentPoint);
-          currentResult.bufferedPoints.push({
-            buffer: Number(ta.taRadius),
-            xcoord: ta.impGeofootprintLocation.xcoord,
-            ycoord: ta.impGeofootprintLocation.ycoord,
-            point: currentPoint
-          });
-        }
-      });
-      result.push(currentResult);
+      if (layerTradeAreas.length < 5000) {
+        if (layerTradeAreas.length > 1000) currentResult.merge = false;
+        layerTradeAreas.forEach(ta => {
+          if (isConvertibleToNumber(ta.taRadius)) {
+            const currentPoint = toPoint(ta, wkid);
+            currentResult.buffer.push(Number(ta.taRadius));
+            currentResult.centers.push(currentPoint);
+            currentResult.bufferedPoints.push({
+              buffer: Number(ta.taRadius),
+              xcoord: ta.impGeofootprintLocation.xcoord,
+              ycoord: ta.impGeofootprintLocation.ycoord,
+              point: currentPoint
+            });
+          }
+        });
+        result.push(currentResult);
+      }
     });
   });
   return result;
