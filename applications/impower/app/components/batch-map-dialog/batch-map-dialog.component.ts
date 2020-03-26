@@ -13,6 +13,7 @@ import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
+import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -164,6 +165,12 @@ export class BatchMapDialogComponent implements OnInit {
     const titlesByGroup: Array<TitlePayload> = result[1];
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
     const fitTo: FitToPageOptions = <FitToPageOptions> dialogFields.fitTo;
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'deduped-shading' , dialogFields.deduplicated, dialogFields.deduplicated ? 1 : 0));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighbor-exclude' , dialogFields.neighboringSites, dialogFields.neighboringSites !== 'include' ? 0  : 1));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'fitTo' , fitTo, null));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'buffer' , null, dialogFields.buffer));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'page-size' , dialogFields.pageSettingsControl, null));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'page-orientation' , dialogFields.layout, null));
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
       const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
