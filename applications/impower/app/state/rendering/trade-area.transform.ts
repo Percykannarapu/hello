@@ -44,8 +44,15 @@ export function prepareRadiusTradeAreas(tradeAreas: ImpGeofootprintTradeArea[], 
     const layerGroups = groupByExtended(usableTas, ta => ta.taName);
     layerGroups.forEach((layerTradeAreas, layerName) => {
       const currentResult = new TradeAreaDrawDefinition(siteType, layerName, siteType === 'Site' ? [0, 0, 255, 1] : [255, 0, 0, 1], mergeType !== TradeAreaMergeTypeCodes.NoMerge);
-      if (layerTradeAreas.length < 5000) {
-        if (layerTradeAreas.length > 1000) currentResult.merge = false;
+      if (layerTradeAreas.length < 10000) {
+        if (layerTradeAreas.length > 7000) {
+          currentResult.merge = false;
+          if (siteType === 'Site') {
+            currentProject.taSiteMergeType = TradeAreaMergeTypeCodes.NoMerge;
+          } else {
+            currentProject.taCompetitorMergeType = TradeAreaMergeTypeCodes.NoMerge;
+          }
+        }
         layerTradeAreas.forEach(ta => {
           if (isConvertibleToNumber(ta.taRadius)) {
             const currentPoint = toPoint(ta, wkid);
