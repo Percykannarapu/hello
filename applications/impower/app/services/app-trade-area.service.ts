@@ -7,7 +7,7 @@ import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { BehaviorSubject, merge, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ValSort } from '../models/valassis-sorters';
@@ -75,7 +75,8 @@ export class AppTradeAreaService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.impTradeAreaService.storeObservable.pipe(
+      combineLatest([this.impTradeAreaService.storeObservable, this.impLocationService.storeObservable]).pipe(
+        map(([ta]) => ta),
         filter(ta => ta != null && ta.length > 0),
         filterArray(ta => ta.impGeofootprintLocation != null && ta.impGeofootprintLocation.isActive && ta.isActive),
       ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));

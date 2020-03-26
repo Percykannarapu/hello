@@ -87,19 +87,18 @@ export class RestDataService
      const extensionCodec = this.getExtensionCodec();
      const preEncodeStart = performance.now();
      const packed = encode(payload, { extensionCodec, ignoreUndefined: true }).buffer;
-     this.logger.info.log('Payload encode took ', formatMilli(performance.now() - preEncodeStart));
-     this.logger.info.log('Payload size (in bytes)', packed.byteLength);
+     this.logger.debug.log('Payload encode took ', formatMilli(performance.now() - preEncodeStart));
      return packed;
    }
 
    public postMessagePack(url: string, payload: any) : Observable<RestResponse>
    {
-     this.logger.info.log('Preparing to POST data...');
+     this.logger.debug.log('Preparing to POST data...');
      const pack = this.packPayload(payload);
      return this.rawPostArrayBuffer(this.baseUrl + url, pack).pipe(
        map(response => [response, performance.now()] as const),
        map(([response, startTime]) => [decode(response) as RestResponse, startTime] as const),
-       tap(([, startTime]) => this.logger.info.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
+       tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
        map(([response]) => response),
        catchError((err: HttpErrorResponse) => {
          if (err != null && err.error != null && err.error instanceof ArrayBuffer) {
@@ -112,26 +111,21 @@ export class RestDataService
 
    private rawPostArrayBuffer(url: string, body: ArrayBuffer) : Observable<ArrayBuffer> {
      const config = RestDataService.configuration;
-     const loggerInstance = this.logger.info;
+     const loggerInstance = this.logger.debug;
      let token = null;
      if (config != null && config.oauthToken != null) {
        token = config.oauthToken;
      }
      return new Observable<any>(observer => {
         try {
-          this.logger.info.log('Creating XHR');
+          this.logger.debug.log('Creating XHR');
           const req = new XMLHttpRequest();
-          this.logger.info.log('Opening URL', url);
           req.open('POST', url);
-          this.logger.info.log('Setting response type');
           req.responseType = 'arraybuffer';
-          this.logger.info.log('Setting Accept header');
           req.setRequestHeader('Accept', '*/*');
           if (token != null) {
-            this.logger.info.log('Setting Auth header');
             req.setRequestHeader('Authorization', 'Bearer ' + token);
           }
-          this.logger.info.log('Setting callback');
           req.onreadystatechange = function (this: XMLHttpRequest, ev: Event) {
             loggerInstance.log('Event Fired in XHR', ev);
             if (this.readyState === XMLHttpRequest.DONE) {

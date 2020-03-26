@@ -11,8 +11,9 @@
 import { Injectable } from '@angular/core';
 import { simpleFlatten } from '@val/common';
 import { EMPTY, Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, reduce, tap } from 'rxjs/operators';
 import { AppConfig } from '../../../app.config';
+import { RestResponse } from '../../../models/RestResponse';
 import { UserService } from '../../../services/user.service';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { DataStore } from '../../common/services/datastore.service';
@@ -55,25 +56,28 @@ export class ImpProjectService extends DataStore<ImpProject>
 
    loadFromServer(id: number) : Observable<ImpProject> {
      if (id == null) return EMPTY;
-     return new Observable<ImpProject>(observer => {
-       const loadCache: ImpProject[] = [];
-       this.rest.getMessagePack(`${packUrl}/${id}`).pipe(
-         map(response => response.payload),
-       ).subscribe(
-         payload => loadCache.push(new ImpProject(payload)),
-         err => observer.error(err),
-         () => {
-           loadCache.forEach(p => {
-             p.convertToModel();
-             // as long as we're deleting everything prior to a save, everything has to be
-             // tagged as 'UPDATE' (for existing entities) or 'INSERT' (for new entities)
-             p.setTreeProperty('baseStatus', DAOBaseStatus.UPDATE);
-           });
-           this.load(loadCache);
-           observer.next(loadCache[0]);
-           observer.complete();
+     return this.loadPackedFromServer(id).pipe(
+       map(response => new ImpProject(response.payload)),
+       reduce((acc, curr) => [...acc, curr], [] as ImpProject[]),
+       tap(payload => {
+         payload.forEach(p => {
+           p.convertToModel();
+           // as long as we're deleting everything prior to a save, everything has to be
+           // tagged as 'UPDATE' (for existing entities) or 'INSERT' (for new entities)
+           p.setTreeProperty('baseStatus', DAOBaseStatus.UPDATE);
          });
-     });
+         this.load(payload);
+       }),
+       map(payload => payload[0])
+     );
+   }
+
+   private loadPackedFromServer(id: number) : Observable<RestResponse> {
+     return this.rest.getMessagePack(`${packUrl}/${id}`);
+   }
+
+   private loadStringifiedFromServer(id: number) : Observable<RestResponse> {
+     return this.rest.get(`${dataUrl}/${id}`);
    }
 
    // Get a count of DB removes from children of these parents
