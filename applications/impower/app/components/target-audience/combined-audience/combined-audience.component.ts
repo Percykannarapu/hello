@@ -37,7 +37,6 @@ export class CombinedAudienceComponent implements OnInit {
               private appProjectPrefService: AppProjectPrefService,
               private confirmationService: ConfirmationService,
               private appStateService: AppStateService,
-              private cd: ChangeDetectorRef,
               private impVarService: ImpProjectVarService
               ) {
 
@@ -46,7 +45,7 @@ export class CombinedAudienceComponent implements OnInit {
   ngOnInit() {
     this.audienceForm = this.fb.group({
       combinedAudName: ['', Validators.required],
-      audienceList: ['', Validators.required],
+      audienceList: '',
       audienceId: '',
     });
     this.groupedAudiences$ = this.store$.select(getAllAudiences).pipe(
