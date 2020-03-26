@@ -25,13 +25,12 @@
 
 </div>
 
-<div *ngIf="hasCombinedAudiences" class="ui-g-4">
-    <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
+<div class="ui-g-4">
+    <button type="button" (click)="resetForm()" pButton icon="ui-icon-send"  [disabled]="(selectedColumns == null || selectedColumns.length === 0)" label="Clear Selections"></button>
+</div>
 
-  </div>
-  <div *ngIf="hasCombinedAudiences && !hasErrors('combinedAudName')" class="ui-g-8">
-      <button type="submit" pButton label="Combine Audience Variables" [disabled]="audienceForm.invalid" (click)="combineAudiences(audienceForm.value)" ></button>
-
+<div class="ui-g-8">
+    <button type="submit" pButton label="Combine Audience Variables" [disabled]="audienceForm.invalid || !(selectedColumns != null && selectedColumns.length > 1)" (click)="combineAudiences(audienceForm.value)" ></button>
 </div>
 </div>
 </form>

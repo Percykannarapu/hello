@@ -28,7 +28,6 @@ export class CombinedAudienceComponent implements OnInit {
   combinedAudiences$: Observable<Audience[]>;
   selectedColumns: Audience[];
   audienceForm: FormGroup;
-  hasCombinedAudiences: boolean = false;
   allAudiences: Audience[];
   currentAudience: any;
 
@@ -56,7 +55,6 @@ export class CombinedAudienceComponent implements OnInit {
         this.allAudiences = aud;
         return aud.filter(a => a.audienceSourceType === 'Offline' && a.fieldconte === 'PERCENT');
       }),
-      tap(audiences => this.hasCombinedAudiences = audiences.length > 0),
       map(audList =>  audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
       mapArray(audience => ({label: audience.audienceName, value: audience})),
       );
