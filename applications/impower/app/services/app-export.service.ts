@@ -93,8 +93,9 @@ export class AppExportService {
         const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
         const filename = 'visit_locations_' + currentProject.projectId + '_' + this.config.environmentName + '_' + fmtDate + '.csv';
         const metricValue = this.locationExportImpl(ImpClientLocationTypeCodes.Site, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, filename, currentProject);
-        const clientIdentifierName = currentProject.clientIdentifierName != null ? currentProject.clientIdentifierName.trim() : null;
-        const metricText = 'clientName=' + clientIdentifierName + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;
+        const metricText = 'clientName=' + currentProject.clientIdentifierName.trim() + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;
+        /*const clientIdentifierName = currentProject.clientIdentifierName != null ? currentProject.clientIdentifierName.trim() : null;
+        const metricText = 'clientName=' + clientIdentifierName + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;*/
         observer.next(new CreateLocationUsageMetric('vlh-site-list', 'send', metricText, metricValue));
         observer.complete();
       } catch (err) {
@@ -154,8 +155,8 @@ export class AppExportService {
 
 
   private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
-    const message = `The project must be saved before ${exportDescription}`;
-    if (currentProject.projectId == null) {
+    const message = `The project must be saved with a valid Project Tracker ID before ${exportDescription}`;
+    if (currentProject.projectId == null || currentProject.projectTrackerId == null) {
       throw message;
     }
   }

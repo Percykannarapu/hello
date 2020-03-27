@@ -367,9 +367,9 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
               let notification: Action;
               const site = locations.length > 1 ? 'sites' : 'site';
               if (res.returnCode === 200) {
-                notification = new SuccessNotification({ notificationTitle, message: `Sent ${locations.length} ${site} to Valassis Digital successfully for Project ID: ${project.projectId}`});
+                notification = new SuccessNotification({ notificationTitle, message: `Sent ${locations.length} ${site} to Valassis Digital successfully for ${project.clientIdentifierName.trim()}`});
               } else {
-                notification = new ErrorNotification({ notificationTitle, message: `Error sending ${locations.length} ${site} to Valassis Digital for ${project.projectId}`});
+                notification = new ErrorNotification({ notificationTitle, message: `Error sending ${locations.length} ${site} to Valassis Digital for ${project.clientIdentifierName.trim()}`});
               }
               this.store$.dispatch(notification);
             });
