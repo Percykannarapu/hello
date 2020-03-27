@@ -1,8 +1,10 @@
 <div class="ui-g-12">
+  <div *ngIf="isLoading">Uploading file...</div>
+  <div *ngIf="!isLoading">&nbsp;</div>
   <p-fileUpload #fileUpload mode="basic" class="file-upload-align"
                 name="data[]" accept=".csv,.xlsx,.xls" [chooseLabel]="label"
                 pTooltip="CSV or Excel format required" [customUpload]="true"
-                (uploadHandler)="uploadFile($event)" [auto]="true">
+                (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isLoading">
   </p-fileUpload>
 </div>
 <div class="ui-g-12">

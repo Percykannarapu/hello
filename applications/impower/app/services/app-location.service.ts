@@ -4,7 +4,6 @@ import { filterArray, groupByExtended, isConvertibleToNumber, mapBy, mapByExtend
 import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { Geometry } from 'esri/geometry';
 import geometryEngine from 'esri/geometry/geometryEngine';
 import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
@@ -31,6 +30,7 @@ import { AppGeocodingService } from './app-geocoding.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
+import Graphic = __esri.Graphic;
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -1106,37 +1106,38 @@ export class AppLocationService {
      return t;
   }
 
-  pipLocations(locations: ImpGeofootprintLocation[], analysisLevel: string = 'pcr'){
-    const queries: Observable<any>[] = [];
-    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
-    const chunkArrays = quadPartitionLocations(locations, analysisLevel);
-          for (const locArry of chunkArrays){
-            if (locArry.length > 0){
-              const points = toUniversalCoordinates(locArry);
-              queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode'] ));
-            }
-          }
-        const responseMapby: Map<string, any> = new Map<string, any>();
-        const resultMapbyLocation: Map<ImpGeofootprintLocation, any> = new Map<any, any>();
-         return merge(...queries, 4).pipe(
-            reduce((acc, result) => [...acc, ...result], []),
-            map(result => {
-                locations.forEach(loc => {
-                  const insideGeometry = {x: loc.xcoord, y: loc.ycoord} as Geometry;
-                  let i: number = 0;
-                  for (i; i < result.length ; i++){
-                      if (geometryEngine.contains(result[i].geometry, insideGeometry)){
-                        resultMapbyLocation.set(loc, result[i].attributes['geocode']);
-                        break;
-                      }
-                  }
-                });
-                this.logger.debug.log(`pip Response for ${analysisLevel} : ${Array.from(resultMapbyLocation.values()).length} - total locations-${locations.length}`);
-                //result.forEach(res => responseMapby.set(res.attributes['geocode'], res.geometry));
-                return resultMapbyLocation;
-            })
-          );
-
+  pipLocations(locations: ImpGeofootprintLocation[], analysisLevel: string = 'pcr') {
+    const queries: Observable<[ImpGeofootprintLocation, string][]>[] = [];
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
+    const chunks = quadPartitionLocations(locations, analysisLevel);
+    chunks.forEach(chunk => {
+      if (chunk.length > 0) {
+        const points = toUniversalCoordinates(chunk);
+        queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode']).pipe(
+          reduce((acc, result) => [...acc, ...result], [] as Graphic[]),
+          map(graphics => {
+            const result: [ImpGeofootprintLocation, string][] = [];
+            chunk.forEach(loc => {
+              for (const graphic of graphics) {
+                if (geometryEngine.contains(graphic.geometry, toUniversalCoordinates(loc) as __esri.Point)){
+                  result.push([loc, graphic.attributes['geocode']]);
+                  break;
+                }
+              }
+            });
+            return result;
+          })
+        ));
+      }
+    });
+    return merge(...queries, 4).pipe(
+      reduce((acc, result) => [...acc, ...result], []),
+      map(result => {
+        const resultMapByLocation: Map<ImpGeofootprintLocation, string> = new Map(result);
+        this.logger.debug.log(`pip Response for ${analysisLevel} : ${Array.from(resultMapByLocation.values()).length} - total locations-${locations.length}`);
+        return resultMapByLocation;
+      })
+    );
   }
 
 

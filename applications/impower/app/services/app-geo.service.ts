@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { filterArray, groupBy, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { groupByExtended } from '../../../../modules/common/src/utils';
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -36,6 +37,12 @@ const featureAttributes = ['geocode', 'latitude', 'longitude', 'cl2i00', 'cl0c00
 interface AttributeDistance {
   attribute: any;
   distance: number;
+}
+
+interface HomeGeoProcessingResult {
+  newGeos: ImpGeofootprintGeo[];
+  newTradeAreas: ImpGeofootprintTradeArea[];
+  invalidLocations: ImpGeofootprintLocation[];
 }
 
 @Injectable({
@@ -202,10 +209,11 @@ export class AppGeoService {
         (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
         loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
         loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
-        loc.clientLocationTypeCode === 'Site')
-    ).subscribe(locations => {
+        loc.clientLocationTypeCode === 'Site'),
+      withLatestFrom(this.validAnalysisLevel$),
+    ).subscribe(([locations, analysisLevel]) => {
       setTimeout(() => {
-        this.selectAndPersistHomeGeos(locations);
+        this.selectAndPersistHomeGeos(locations, analysisLevel);
       }, 0);
     });
   }
@@ -269,38 +277,63 @@ export class AppGeoService {
         });
   }
 
-  private selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[]) : void {
+  private selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string) : void {
     const key = 'selectAndPersistHomeGeos';
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     this.store$.dispatch(new StartBusyIndicator({key, message: `Selecting Home ${currentAnalysisLevel}s...`}));
 
     this.logger.debug.log('Firing home geo selection', locations.length);
     const layerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
-    const allSelectedData: __esri.Graphic[] = [];
-    const validLocations = locations.filter(l => l.homeGeocode != null && l.homeGeocode.length > 0);
-    const invalidLocations = locations.filter(l => l.homeGeocode == null || l.homeGeocode.length === 0);
-    if (validLocations.length > 0) {
-      this.queryService.queryAttributeIn(layerId, 'geocode', validLocations.map(l => l.homeGeocode), false, featureAttributes)
-        .subscribe(
-          selections => allSelectedData.push(...selections),
-          err => {
-            this.logger.error.log(err);
-            this.store$.dispatch(new StopBusyIndicator({key}));
-          },
-          () => {
-            const homeGeocodes = this.createHomeGeos(allSelectedData, locations);
-            if (homeGeocodes.length > 0) {
-              this.impGeoService.add(homeGeocodes);
-            }
-            this.store$.dispatch(new StopBusyIndicator({key}));
-          });
+    const locationsWithHomeGeo: ImpGeofootprintLocation[] = [];
+    const locationsMissingHomeGeo: ImpGeofootprintLocation[] = [];
+    locations.forEach(loc => {
+      if (loc.homeGeocode == null || loc.homeGeocode.length === 0) {
+        locationsMissingHomeGeo.push(loc);
+      } else {
+        locationsWithHomeGeo.push(loc);
+      }
+    });
+    if (locationsWithHomeGeo.length > 0) {
+      const locationChunks = quadPartitionLocations(Array.from(locationsWithHomeGeo), analysisLevel);
+      const queries: Observable<HomeGeoProcessingResult>[] = [];
+      locationChunks.forEach(chunk => {
+        const currentQuery = this.queryService.queryAttributeIn(layerId, 'geocode', chunk.map(l => l.homeGeocode), false, featureAttributes).pipe(
+          reduce((acc, result) => [...acc, ...result], [] as __esri.Graphic[]),
+          map(graphics => this.createHomeGeos(graphics, chunk))
+        );
+        queries.push(currentQuery);
+      });
+      merge(...queries).pipe(
+        reduce((acc, current) => ({
+            newGeos: [...acc.newGeos, ...current.newGeos],
+            newTradeAreas: [...acc.newTradeAreas, ...current.newTradeAreas],
+            invalidLocations: [...acc.invalidLocations, ...current.invalidLocations]
+          }), { newGeos: [], newTradeAreas: [], invalidLocations: [] } as HomeGeoProcessingResult)
+      ).subscribe(result => {
+        if (result.newGeos.length > 0) {
+          this.impGeoService.add(result.newGeos);
+        }
+        if (result.newTradeAreas.length > 0) {
+          this.tradeAreaService.add(result.newTradeAreas);
+        }
+        if (result.invalidLocations.length > 0) {
+          this.flagLocationsWithInvalidHomeGeos(result.invalidLocations);
+          const message = result.invalidLocations.length > 1
+            ? `There are ${result.invalidLocations.length} locations that have invalid Home Geocodes`
+            : `There is ${result.invalidLocations.length} location that has an invalid Home Geocode`;
+          this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: result.invalidLocations }));
+        }
+        this.store$.dispatch(new StopBusyIndicator({key}));
+      });
     }
-    if (invalidLocations.length > 0) {
-      this.flagLocationsWithInvalidHomeGeos(invalidLocations);
-      this.store$.dispatch(new ErrorNotification({notificationTitle: 'Home Geocode Error', message: `There were ${invalidLocations.length} location(s) that have an empty Home Geocode`, additionalErrorInfo: locations}));
-      // have to turn off the spinner if the above query isn't being performed
+    if (locationsMissingHomeGeo.length > 0) {
+      this.flagLocationsWithInvalidHomeGeos(locationsMissingHomeGeo);
+      const message = locationsMissingHomeGeo.length > 1
+        ? `There are ${locationsMissingHomeGeo.length} locations that have missing Home Geocodes`
+        : `There is ${locationsMissingHomeGeo.length} location that has a missing Home Geocode`;
+      this.store$.dispatch(new ErrorNotification({notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: locationsMissingHomeGeo}));
     }
-    if (validLocations.length === 0) this.store$.dispatch(new StopBusyIndicator({key}));
+    if (locationsWithHomeGeo.length === 0) this.store$.dispatch(new StopBusyIndicator({key}));
   }
 
   public clearAllGeos(keepRadiusGeos: boolean, keepAudienceGeos: boolean, keepCustomGeos: boolean, keepForcedHomeGeos: boolean) {
@@ -411,47 +444,46 @@ export class AppGeoService {
     });
   }
 
-  private createHomeGeos(homeCentroids: __esri.Graphic[], locations: ImpGeofootprintLocation[]) : ImpGeofootprintGeo[] {
-    const homeGeosToAdd: ImpGeofootprintGeo[] = [];
-    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+  private createHomeGeos(homeFeatures: __esri.Graphic[], locations: ImpGeofootprintLocation[]) : HomeGeoProcessingResult {
+    const result: HomeGeoProcessingResult = {
+      newGeos: [],
+      newTradeAreas: [],
+      invalidLocations: []
+    };
     const newGeoAttributes: GeoAttribute[] = [];
-    const homeGeoMap: Map<string, ImpGeofootprintLocation[]> = groupBy(locations, 'homeGeocode');
-    if (homeCentroids.length > 0) {
-      homeCentroids.forEach(centroid => {
-        if (homeGeoMap.has(centroid.attributes.geocode)) {
-          const currentLocations = homeGeoMap.get(centroid.attributes.geocode);
-          currentLocations.forEach(loc => {
-            if (loc.getImpGeofootprintGeos().filter(geo => geo.geocode === centroid.attributes.geocode).length === 0) {
-              const geocodeDistance: number = EsriUtils.getDistance(centroid.attributes.longitude, centroid.attributes.latitude, loc.xcoord, loc.ycoord);
-              const homeGeoTA: ImpGeofootprintTradeArea[] = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO');
-              if (homeGeoTA.length === 0) {
-                const newTA = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo);
-                homeGeoTA.push(newTA);
-                newTradeAreas.push(newTA);
-              }
-              const newGeo = new ImpGeofootprintGeo({
-                xcoord: centroid.attributes.longitude,
-                ycoord: centroid.attributes.latitude,
-                geocode: centroid.attributes.geocode,
-                distance: geocodeDistance,
-                impGeofootprintLocation: homeGeoTA[0].impGeofootprintLocation,
-                impGeofootprintTradeArea: homeGeoTA[0],
-                isActive: homeGeoTA[0].isActive
-              });
-              homeGeoTA[0].impGeofootprintGeos.push(newGeo);
-              homeGeosToAdd.push(newGeo);
-              newGeoAttributes.push(centroid.attributes);
-            }
-          });
+    const homeFeatureMap = groupByExtended(homeFeatures, f => f.attributes['geocode']);
+    if (homeFeatureMap.size === 0) {
+      result.invalidLocations = locations;
+    } else {
+      locations.forEach(loc => {
+        const currentFeature = (homeFeatureMap.get(loc.homeGeocode) || [])[0];
+        if (currentFeature == null) {
+          result.invalidLocations.push(loc);
+        } else {
+          if (loc.getImpGeofootprintGeos().some(geo => geo.geocode === currentFeature.attributes['geocode'])) {
+            const geocodeDistance: number = EsriUtils.getDistance(currentFeature.attributes['longitude'], currentFeature.attributes['latitude'], loc.xcoord, loc.ycoord);
+            const existingTA = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO')[0];
+            const homeGeoTA = existingTA == null ? this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo) : existingTA;
+            if (existingTA == null) result.newTradeAreas.push(homeGeoTA);
+
+            const newGeo = new ImpGeofootprintGeo({
+              xcoord: currentFeature.attributes['longitude'],
+              ycoord: currentFeature.attributes['latitude'],
+              geocode: currentFeature.attributes['geocode'],
+              distance: geocodeDistance,
+              impGeofootprintLocation: homeGeoTA.impGeofootprintLocation,
+              impGeofootprintTradeArea: homeGeoTA,
+              isActive: homeGeoTA.isActive
+            });
+            homeGeoTA.impGeofootprintGeos.push(newGeo);
+            result.newGeos.push(newGeo);
+            newGeoAttributes.push(currentFeature.attributes);
+          }
         }
       });
-    } else {
-      this.flagLocationsWithInvalidHomeGeos(locations);
-      this.store$.dispatch(new ErrorNotification({notificationTitle: 'Home Geocode Error', message: `There were ${locations.length} location(s) that have invalid Home Geocodes`, additionalErrorInfo: locations}));
     }
-    if (newTradeAreas.length > 0) this.tradeAreaService.add(newTradeAreas);
     if (newGeoAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({geoAttributes: newGeoAttributes}));
-    return homeGeosToAdd;
+    return result;
   }
 
   private flagLocationsWithInvalidHomeGeos(locations: ImpGeofootprintLocation[]) : void {
