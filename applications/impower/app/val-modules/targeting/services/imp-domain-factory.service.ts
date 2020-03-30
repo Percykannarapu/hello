@@ -153,7 +153,7 @@ export class ImpDomainFactoryService {
     }
   }
 
-   createProjectPref(parent: ImpProject, group: string, pref: string, type: string, value: string, isActive: boolean = true, overwriteDuplicate: boolean = true) : ImpProjectPref {
+   createProjectPref(parent: ImpProject, group: string, pref: string, type: string, value: string, forceLOB: boolean = false, isActive: boolean = true, overwriteDuplicate: boolean = true) : ImpProjectPref {
       if (parent == null) throw new Error('Project Pref factory requires a valid Project instance');
       if (pref == null) throw new Error('Project Preferences cannot have a null pref (Key)');
 
@@ -167,8 +167,8 @@ export class ImpDomainFactoryService {
             prefGroup:     group,
             prefType:      type,
             pref:          pref,
-            val:           (value.length <= 4000) ? value : null,
-            largeVal:      (value.length > 4000) ? value : null,
+            val:           (value.length <= 4000 && !forceLOB) ? value : null,
+            largeVal:      (value.length > 4000 || forceLOB) ? value : null,
             isActive:      isActive,
             impProject:    parent // Set transient property
       });
@@ -183,8 +183,8 @@ export class ImpDomainFactoryService {
          existingPref.prefGroup   = group;
          existingPref.prefType    = type;
          existingPref.pref        = pref;
-         existingPref.val         = (value.length <= 4000) ? value : null;
-         existingPref.largeVal    = (value.length > 4000) ? value : null;
+         existingPref.val         = (value.length <= 4000 && !forceLOB) ? value : null;
+         existingPref.largeVal    = (value.length > 4000 || forceLOB) ? value : null;
          existingPref.isActive    = isActive;
          existingPref.impProject  = parent; // Set transient property
          return existingPref;
@@ -331,8 +331,6 @@ export class ImpDomainFactoryService {
 
   createTradeArea(parent: ImpGeofootprintLocation, tradeAreaType: TradeAreaTypeCodes, isActive: boolean = true, num: number = null, radius: number = 0, attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea {
     if (parent == null) throw new Error('Trade Area factory requires a valid ImpGeofootprintLocation instance');
-    // All trade areas in the project
-    const allTradeAreas = new Set(parent.impProject.getImpGeofootprintTradeAreas().map(ta => ta.taNumber));
 
     // All trade areas in the location
     const existingTradeAreas = new Set(parent.impGeofootprintTradeAreas.map(ta => ta.taNumber));
@@ -346,9 +344,12 @@ export class ImpDomainFactoryService {
        const existingTradeAreasOfType = parent.impProject.getImpGeofootprintTradeAreas().filter(ta => ta.taType === tradeAreaType.toUpperCase()).map(ta => ta.taNumber);
        if (existingTradeAreasOfType != null && existingTradeAreasOfType.length > 0)
           taNumber = existingTradeAreasOfType[0];
-       else
-          // Calculate the next contiguous number to use
-          while (taNumber <= 3 || (allTradeAreas != null && allTradeAreas.size > 0 && allTradeAreas.has(taNumber))) taNumber++;
+       else {
+         // All trade areas in the project
+         const allTradeAreas = new Set(parent.impProject.getImpGeofootprintTradeAreas().map(ta => ta.taNumber));
+         // Calculate the next contiguous number to use
+         while (taNumber <= 3 || (allTradeAreas != null && allTradeAreas.size > 0 && allTradeAreas.has(taNumber))) taNumber++;
+       }
     }
     //this.logger.debug.log("### createTradeArea.taNumber = ", taNumber, ", taType: ", tradeAreaType, ", radius: ", radius);
     const parentTypeCode = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(parent.clientLocationTypeCode));

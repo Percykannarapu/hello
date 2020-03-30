@@ -313,14 +313,14 @@ export class AppTradeAreaService {
   }
 
   public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean, taNumber: number }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {
-    let newTradeAreas: ImpGeofootprintTradeArea[] = [];
+    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     if (tradeAreas != null && tradeAreas.length > 0) {
       locations.forEach(location => {
-        const newDomain = tradeAreas.map(ta => this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, ta.selected, ta.taNumber, ta.radius, attachToHierarchy));
-        newTradeAreas = newTradeAreas.concat(newDomain);
+        tradeAreas.forEach(ta => {
+          newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, ta.selected, ta.taNumber, ta.radius, attachToHierarchy));
+        });
       });
     }
-
     return newTradeAreas;
   }
 
