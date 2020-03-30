@@ -63,9 +63,8 @@ export class CombinedAudienceComponent implements OnInit {
       filter(audiences => audiences != null),
       map(aud => {
         this.allAudiences = aud;
-        return aud.filter(a => a.audienceSourceType !== 'Custom' && 
-                              (a.audienceSourceType !== 'Online' && a.fieldconte !== 'CHAR' && a.fieldconte !== 'RATIO' && a.fieldconte !== 'INDEX') &&
-                              a.audienceSourceType !== 'Converted');
+        return aud.filter(a => (a.audienceSourceType === 'Offline' || a.audienceSourceType === 'Combined' || a.audienceSourceType === 'Combined/Converted') &&
+                               (a.fieldconte === 'PERCENT' || a.fieldconte === 'INDEX' || a.fieldconte === 'MEDIAN' || a.fieldconte === 'COUNT'));
       }),
       tap(audiences => this.hasAudienceSelections = audiences.length > 0),
       map(audList => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
@@ -208,7 +207,7 @@ export class CombinedAudienceComponent implements OnInit {
           result = true;
         }
 
-        if (audienceTypes.size > 1) {
+        if (audienceTypes.size > 1 || (audienceTypes.size === 1 && !audienceTypes.has('PERCENT'))) {
           this.selectedOperation = null;
           this.showError = true;
           result = true;

@@ -127,7 +127,6 @@ export class ImpDomainFactoryService {
                                       (audience.combinedAudiences != null ? JSON.stringify(audience.combinedAudiences) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
        projectVar.impProject = parent;
       parent.impProjectVars.push(projectVar);
-      console.log('inside project var ::', projectVar);
       return projectVar;
     } else {
       existingVar.dirty = true;
