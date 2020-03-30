@@ -63,7 +63,9 @@ export class CombinedAudienceComponent implements OnInit {
       filter(audiences => audiences != null),
       map(aud => {
         this.allAudiences = aud;
-        return aud.filter(a => a.audienceSourceType !== 'Custom' && a.fieldconte !== 'CHAR' && a.fieldconte !== 'RATIO' && (a.fieldconte !== 'INDEX' && a.audienceSourceName === 'TDA'));
+        return aud.filter(a => a.audienceSourceType !== 'Custom' && 
+                              (a.audienceSourceType !== 'Online' && a.fieldconte !== 'CHAR' && a.fieldconte !== 'RATIO' && a.fieldconte !== 'INDEX') &&
+                              a.audienceSourceType !== 'Converted');
       }),
       tap(audiences => this.hasAudienceSelections = audiences.length > 0),
       map(audList => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
@@ -100,7 +102,7 @@ export class CombinedAudienceComponent implements OnInit {
         selectedDataSet: audienceFields.selectedIndex != null ? audienceFields.selectedIndex.value : '',
         audienceSourceName: audienceFields.audienceList[0].audienceSourceName,
         audienceSourceType: isCombined ? 'Combined' : (isCombineConverted ? 'Combined/Converted' : 'Converted'),
-        fieldconte: audienceFields.selectedIndex != null ? 'INDEX' : audienceFields.audienceList[0].fieldconte, 
+        fieldconte: audienceFields.audienceList[0].fieldconte, 
         requiresGeoPreCaching: true,
         seq: fkId,
         isCombined: isCombined,
