@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { filterArray, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, groupByExtended, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
-import { groupByExtended } from '../../../../modules/common/src/utils';
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';

@@ -82,7 +82,14 @@ export class AppRendererService {
       withLatestFrom(this.store$.select(projectIsReady), this.store$.select(getBatchMode)),
       filter(([, ready, isBatchMode]) => ready && !isBatchMode)
     ).subscribe(([sd]) => {
-      this.appPrefService.createPref('esri', 'map-shading-defs', JSON.stringify(sd));
+      const newDefs: ShadingDefinition[] = JSON.parse(JSON.stringify(sd));
+      newDefs.forEach(s => {
+        s.destinationLayerUniqueId = undefined;
+        if (isComplexShadingDefinition(s)) {
+          s.arcadeExpression = undefined;
+        }
+      });
+      this.appPrefService.createPref('esri', 'map-shading-defs', JSON.stringify(newDefs), 'STRING', true);
     });
   }
 

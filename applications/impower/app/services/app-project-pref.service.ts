@@ -47,11 +47,11 @@ export class AppProjectPrefService {
       // );
    }
 
-   public createPref(group: string, pref: string, value: string, type: string = 'STRING') {
+   public createPref(group: string, pref: string, value: string, type: string = 'STRING', forceLOB: boolean = false) {
       const currentProject = this.appStateService.currentProject$.getValue();
       if (currentProject == null) return;
 
-      const impProjectPref: ImpProjectPref = this.domainFactory.createProjectPref(currentProject, group, pref, type, value);
+      const impProjectPref: ImpProjectPref = this.domainFactory.createProjectPref(currentProject, group, pref, type, value, forceLOB);
 
       // Add the new pref to the project
       if (currentProject.impProjectPrefs.filter(p => p.prefGroup === group || p.pref === pref).length === 0)
