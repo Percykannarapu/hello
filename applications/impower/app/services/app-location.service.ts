@@ -9,7 +9,7 @@ import geometryEngine from 'esri/geometry/geometryEngine';
 import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
-import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom, min } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -289,18 +289,26 @@ export class AppLocationService {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
 
     data.forEach(l => {
+      let radius2 = 0;
+      let radius1 = 0;
+      let radius3 = 0;
       const tradeAreas: { radius: number, selected: boolean, taNumber: number }[] = [];
       if (l.locationNumber == null || l.locationNumber.length === 0 ){
         l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
       }
       if (isConvertibleToNumber(l.radius1) && Number(l.radius1) > 0) {
-        tradeAreas.push({ radius: Number(l.radius1), selected: true, taNumber: 1 });
-      }
-      if (isConvertibleToNumber(l.radius2) && Number(l.radius2) > 0) {
-        tradeAreas.push({ radius: Number(l.radius2), selected: true, taNumber: 2 });
+         radius2 = l.radius2 == null ? Infinity : l.radius2 ;
+         radius3 = l.radius3 == null ? Infinity : l.radius3 ;
+         radius1 = Math.min(l.radius1, radius2, radius3);
+         tradeAreas.push({ radius: radius1, selected: true, taNumber: 1 });
       }
       if (isConvertibleToNumber(l.radius3) && Number(l.radius3) > 0) {
-        tradeAreas.push({ radius: Number(l.radius3), selected: true, taNumber: 3 });
+         radius3 = Math.max(l.radius1, l.radius2, l.radius3);
+         tradeAreas.push({ radius: radius3, selected: true, taNumber: 3 });
+      }
+      if (isConvertibleToNumber(l.radius2) && Number(l.radius2) > 0) {
+         radius2 = l.radius3 == null ? Math.max(l.radius1, l.radius2) : [l.radius1, l.radius2, l.radius3].filter(rad => rad != radius1 && rad != radius3)[0];
+         tradeAreas.push({ radius: Number(radius2), selected: true, taNumber: 2 });
       }
       newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, [l], false));
     });
