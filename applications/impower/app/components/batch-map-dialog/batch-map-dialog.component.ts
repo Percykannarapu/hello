@@ -172,11 +172,8 @@ export class BatchMapDialogComponent implements OnInit {
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'page-size' , dialogFields.pageSettingsControl, null));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'page-orientation' , dialogFields.layout, null));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighboring-sites-shading' , dialogFields.enableTradeAreaShading, dialogFields.enableTradeAreaShading ? 1 : 0));
-    if (dialogFields.sitesPerPage === 'sitesGroupedBy')
-         this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'sites-per-page' , `${dialogFields.sitesPerPage}=${dialogFields.sitesByGroup}`, null));
-    else
-        this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'sites-per-page' , dialogFields.sitesPerPage, null));
-    //dialogFields.sitesPerPage === 'sitesGroupedBy' ? 1 : null
+    const sitesPerPage = dialogFields.sitesPerPage === 'sitesGroupedBy' ? `${dialogFields.sitesPerPage}=${dialogFields.sitesByGroup}` : dialogFields.sitesPerPage;
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'sites-per-page' , sitesPerPage, null));
 
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
       const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
