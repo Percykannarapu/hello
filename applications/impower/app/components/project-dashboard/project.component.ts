@@ -213,8 +213,8 @@ export class ProjectComponent implements OnInit, OnDestroy {
         end.setFullYear(start.getFullYear() - 1);
       // tslint:disable-next-line:no-switch-case-fall-through
       case 'currentYear':
-        start.setMonth(1, 1);
-        end.setMonth(12, 31);
+        start.setMonth(0, 1);
+        end.setMonth(11, 31);
         break;
     }
     // expand the date ranges by 1 day on each side since Fuse queries based on < and >
