@@ -23,4 +23,5 @@ export interface Audience {
   isCombined?: boolean;
   combinedAudiences?: Array<string>;
   combinedVariableNames?: string;
+  compositeSource?: Array<string>;
 }

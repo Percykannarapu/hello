@@ -22,6 +22,7 @@ export interface AudienceDataDefinition {
   isCombined?: boolean;
   combinedAudiences?: Array<string>;
   combinedVariableNames?: string;
+  compositeSource?: Array<string>;
 }
 
 export interface AudienceTradeAreaConfig {

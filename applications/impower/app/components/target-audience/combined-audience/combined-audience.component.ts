@@ -105,8 +105,9 @@ export class CombinedAudienceComponent implements OnInit {
         requiresGeoPreCaching: true,
         seq: fkId,
         isCombined: isCombined,
-        combinedAudiences: combinedAudIds,
-        combinedVariableNames: combinedVariableNames.join('~'),
+        combinedAudiences: audienceFields.audienceList[0].fieldconte === 'PERCENT' && (isCombineConverted || isCombined)  ? combinedAudIds : [],
+        combinedVariableNames: (isCombined || isCombineConverted) ? combinedVariableNames.join('~') : '',
+        compositeSource: !(isCombined || isCombineConverted) ? combinedAudIds : [],
       };
       this.varService.addAudience(newAudience);
       this.store$.dispatch(new SuccessNotification({ message: 'The following audience was created successfully: \n' + newAudience.audienceName, notificationTitle: 'Combine/Convert Audience' }));
@@ -128,8 +129,9 @@ export class CombinedAudienceComponent implements OnInit {
         requiresGeoPreCaching: this.currentAudience[0].requiresGeoPreCaching,
         seq: this.currentAudience[0].seq,
         isCombined: this.currentAudience[0].isCombined,
-        combinedAudiences: combinedAudIds,
-        combinedVariableNames: combinedVariableNames.join('~'),
+        combinedAudiences: this.currentAudience[0].fieldconte === 'PERCENT' ? combinedAudIds : [],
+        combinedVariableNames: this.currentAudience[0].isCombined ? combinedVariableNames.join('~') : '',
+        compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null ? combinedAudIds : [],
       };
       this.store$.dispatch(new UpsertAudience({ audience: editedAudience }));
       this.store$.dispatch(new SuccessNotification({ message: 'The following audience was updated successfully: \n' + editedAudience.audienceName, notificationTitle: 'Combine Audience' }));

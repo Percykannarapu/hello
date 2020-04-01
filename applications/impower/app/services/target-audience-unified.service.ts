@@ -92,8 +92,9 @@ export class TargetAudienceUnifiedService {
             requiresGeoPreCaching: true,
             seq: projectVar.sortOrder,
             isCombined: projectVar.indexBase != null ? false : true,
-            combinedAudiences: groupedAudiences,
-            combinedVariableNames: projectVar.customVarExprDisplay
+            combinedAudiences: projectVar.indexBase == null ? groupedAudiences : [] ,
+            combinedVariableNames: projectVar.customVarExprDisplay,
+            compositeSource: projectVar.indexBase != null ? groupedAudiences : [] 
           };
 
           if (projectVar.source.toLowerCase().match('combined')) {
@@ -124,13 +125,20 @@ export class TargetAudienceUnifiedService {
     const sourceTypes = ['Combined', 'Converted', 'Combined/Converted'] ;
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     let requestVars: Array<VarList> = [];
-    const sourceIDs: Map<string, number[]> = new Map<string, number[]>();
+    const sourceIDs: Map<number, number[]> = new Map<number, number[]>();
     const serviceURL = 'v1/targeting/base/geoinfo/varlookup';
     audienceList.map(audience => {
       combinedVars.push(audience);
       if (audience.combinedAudiences.length > 0){
-        sourceIDs.set(audience.audienceIdentifier, audience.combinedAudiences.map(a => Number(a)));
+        sourceIDs.set(Number(audience.audienceIdentifier), audience.combinedAudiences.map(a => Number(a)));
         audience.combinedAudiences.forEach(id => {
+        if (this.selectedAudiences$ != null && this.selectedAudiences$.getValue().length > 0)
+          combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === id));
+        });
+      }
+      if (audience.compositeSource.length > 0){
+        sourceIDs.set(Number(audience.audienceIdentifier), audience.compositeSource.map(a => Number(a)));
+        audience.compositeSource.forEach(id => {
         if (this.selectedAudiences$ != null && this.selectedAudiences$.getValue().length > 0)
           combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === id));
         });
@@ -138,17 +146,29 @@ export class TargetAudienceUnifiedService {
     });
 
     const uniqueAudList =  Array.from(new Set(combinedVars));
+    requestVars = uniqueAudList.map(aud => {
+       return ({
+      id: Number(aud.audienceIdentifier),
+      desc: aud.audienceName, 
+      source: sourceTypes.includes(aud.audienceSourceType) &&  aud.compositeSource.length === 0  ? 'combine' :  
+              aud.compositeSource != null && aud.compositeSource.length > 0 ? 'composite' : aud.audienceSourceType,
+      base: aud.selectedDataSet != null ? aud.selectedDataSet : '', 
+      combineSource: sourceIDs.has(Number(aud.audienceIdentifier)) ? sourceIDs.get(Number(aud.audienceIdentifier)) : [],
+      compositeSource : aud.selectedDataSet != null && sourceIDs.has(Number(aud.audienceIdentifier)) ?
+                               [{id: Number(sourceIDs.get(Number(aud.audienceIdentifier))), pct: 100.0}] : []
+    });
+  });
 
-    requestVars = uniqueAudList.map(aud => ({
-      id: Number(aud.audienceIdentifier), desc: aud.audienceName, source: sourceTypes.includes(aud.audienceSourceType)  ? 'combine' : aud.audienceSourceType,
-      base: aud.selectedDataSet != null ? aud.selectedDataSet : '', combineSource: sourceIDs.has(aud.audienceIdentifier) ? sourceIDs.get(aud.audienceIdentifier) : []
-    }));
-
-    // this.logger.info.log('requestVars:::', requestVars);
     requestVars.forEach(v => {
-      if (v.source !== 'combine') {
+      if (v.source !== 'combine' && v.source !== 'composite') {
         v.base = 'SRC';
         delete v.combineSource;
+      }
+      if (v.source !== 'combine' && v.base !== 'SRC')
+       delete v.combineSource;
+
+      if (v.base == null || v.base === 'SRC' || v.source === 'combine'){
+        delete v.compositeSource;
       }
     });
 
@@ -160,7 +180,7 @@ export class TargetAudienceUnifiedService {
       chunks: this.config.geoInfoQueryChunks,
       vars: requestVars
     };
-    // this.logger.info.log('unified request payload::', inputData);
+    this.logger.info.log('unified request payload::', inputData);
 
     if (sourceIDs.size > 0) {
       return this.restService.post(serviceURL, [inputData])
