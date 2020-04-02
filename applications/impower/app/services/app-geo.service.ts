@@ -459,7 +459,7 @@ export class AppGeoService {
         if (currentFeature == null) {
           result.invalidLocations.push(loc);
         } else {
-          if (loc.getImpGeofootprintGeos().some(geo => geo.geocode === currentFeature.attributes['geocode'])) {
+          if (!loc.getImpGeofootprintGeos().some(geo => geo.geocode === currentFeature.attributes['geocode'])) {
             const geocodeDistance: number = EsriUtils.getDistance(currentFeature.attributes['longitude'], currentFeature.attributes['latitude'], loc.xcoord, loc.ycoord);
             const existingTA = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO')[0];
             const homeGeoTA = existingTA == null ? this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo) : existingTA;
