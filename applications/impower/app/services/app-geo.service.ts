@@ -209,10 +209,10 @@ export class AppGeoService {
         loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
         loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
         loc.clientLocationTypeCode === 'Site'),
-      withLatestFrom(this.validAnalysisLevel$),
-    ).subscribe(([locations, analysisLevel]) => {
+      withLatestFrom(this.appStateService.season$, this.validAnalysisLevel$),
+    ).subscribe(([locations, season, analysisLevel]) => {
       setTimeout(() => {
-        this.selectAndPersistHomeGeos(locations, analysisLevel);
+        this.selectAndPersistHomeGeos(locations, analysisLevel, season);
       }, 0);
     });
   }
@@ -276,7 +276,7 @@ export class AppGeoService {
         });
   }
 
-  private selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string) : void {
+  private selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string, season: Season) : void {
     const key = 'selectAndPersistHomeGeos';
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     this.store$.dispatch(new StartBusyIndicator({key, message: `Selecting Home ${currentAnalysisLevel}s...`}));
@@ -298,7 +298,7 @@ export class AppGeoService {
       locationChunks.forEach(chunk => {
         const currentQuery = this.queryService.queryAttributeIn(layerId, 'geocode', chunk.map(l => l.homeGeocode), false, featureAttributes).pipe(
           reduce((acc, result) => [...acc, ...result], [] as __esri.Graphic[]),
-          map(graphics => this.createHomeGeos(graphics, chunk))
+          map(graphics => this.createHomeGeos(graphics, chunk, season))
         );
         queries.push(currentQuery);
       });
@@ -443,13 +443,14 @@ export class AppGeoService {
     });
   }
 
-  private createHomeGeos(homeFeatures: __esri.Graphic[], locations: ImpGeofootprintLocation[]) : HomeGeoProcessingResult {
+  private createHomeGeos(homeFeatures: __esri.Graphic[], locations: ImpGeofootprintLocation[], season: Season) : HomeGeoProcessingResult {
     const result: HomeGeoProcessingResult = {
       newGeos: [],
       newTradeAreas: [],
       invalidLocations: []
     };
     const newGeoAttributes: GeoAttribute[] = [];
+    const hhcAttribute = season === Season.Summer ? 'hhld_s' : 'hhld_w';
     const homeFeatureMap = groupByExtended(homeFeatures, f => f.attributes['geocode']);
     if (homeFeatureMap.size === 0) {
       result.invalidLocations = locations;
@@ -469,6 +470,7 @@ export class AppGeoService {
               xcoord: currentFeature.attributes['longitude'],
               ycoord: currentFeature.attributes['latitude'],
               geocode: currentFeature.attributes['geocode'],
+              hhc: currentFeature.attributes[hhcAttribute],
               distance: geocodeDistance,
               impGeofootprintLocation: homeGeoTA.impGeofootprintLocation,
               impGeofootprintTradeArea: homeGeoTA,
