@@ -4,6 +4,7 @@ import { filter, map } from 'rxjs/operators';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
@@ -23,6 +24,7 @@ export class AppProjectService {
               private impProjectPrefService: ImpProjectPrefService,
               private impProjectVarService: ImpProjectVarService,
               private impMasterService: ImpGeofootprintMasterService,
+              private impLocationService: ImpGeofootprintLocationService,
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
               private restService: RestDataService) {
@@ -88,6 +90,8 @@ export class AppProjectService {
   }
 
   private cleanupProject(localProject: ImpProject) {
+    // this line of code is dumb, but necessary
+    localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
     // remove all Ids except the root Project Id
     localProject.impGeofootprintMasters.forEach(m => {
       m.cgmId = undefined;
