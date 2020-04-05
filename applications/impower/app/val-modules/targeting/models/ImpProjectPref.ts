@@ -33,13 +33,12 @@ export class ImpProjectPref extends BaseModel
    }
 
    public setVal(value: string) : void {
-     this.largeVal = value;
-     // if (value.length <= 4000) {
+     // if (value != null && value.length <= 4000) {
      //   this.val = value;
      //   this.largeVal = null;
      // } else {
-     //   this.val = null;
-     //   this.largeVal = value;
+       this.val = null;
+       this.largeVal = value;
      // }
    }
 
