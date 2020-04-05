@@ -2,12 +2,12 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, transient } from '../../api/models/BaseModel';
 import { ImpProject } from './ImpProject';
 
 export class ImpProjectPref extends BaseModel
 {
-   public projectPrefId:  number;         /// Primary Key 
+   public projectPrefId:  number;         /// Primary Key
    public projectId:      number;         /// Foreign Key to IMP_PROJECTS
    public prefGroup:      string;         /// Identifier to load preferences as a group
    public prefType:       string;         /// The type of the preference, such as STRING, NUMBER
@@ -26,6 +26,21 @@ export class ImpProjectPref extends BaseModel
    constructor(data?: Partial<ImpProjectPref>) {
       super();
       Object.assign(this, data);
+   }
+
+   public getVal() : string {
+     return this.val == null ? this.largeVal : this.val;
+   }
+
+   public setVal(value: string) : void {
+     this.largeVal = value;
+     // if (value.length <= 4000) {
+     //   this.val = value;
+     //   this.largeVal = null;
+     // } else {
+     //   this.val = null;
+     //   this.largeVal = value;
+     // }
    }
 
    // Set tree property and push it down the hierarchy
@@ -50,7 +65,10 @@ export class ImpProjectPref extends BaseModel
    // Convert JSON objects into Models
    public convertToModel()
    {
-
+      if (this.val != null) {
+        this.largeVal = this.val;
+        this.val = null;
+      }
       // Set the isComplete flag indicating the load is complete
       this.setTreeProperty('isComplete', true);
    }

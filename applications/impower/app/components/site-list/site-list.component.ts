@@ -635,7 +635,7 @@ export class SiteListComponent implements OnInit {
         isUpdate = true;
 
       }
-      else if (existingLabel.val !== labelValue){
+      else if (existingLabel.getVal() !== labelValue){
         this.appProjectPrefService.createPref('label', this.selectedListType,  labelValue, 'string');
          isUpdate = true;
      }
@@ -663,7 +663,7 @@ export class SiteListComponent implements OnInit {
         }
       });
       const projectPref = this.appProjectPrefService.getPref(this.selectedListType);
-      label = projectPref != null ? projectPref.val : 'Number';
+      label = projectPref != null ? projectPref.getVal() : 'Number';
 
       switch (this.selectedListType) {
         case 'Site':

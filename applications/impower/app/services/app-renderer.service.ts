@@ -37,6 +37,7 @@ import { getTypedBatchQueryParams } from '../state/shared/router.interfaces';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './app-project-pref.service';
@@ -278,10 +279,10 @@ export class AppRendererService {
     if (project.methAnalysis == null || project.methAnalysis.length === 0) return result;
 
     const shadingData: ImpProjectVar[] = project.impProjectVars.filter(p => p.isShadedOnMap);
-    const legacyPrefs = (project.impProjectPrefs || []).filter(p => p.prefGroup === 'map-settings');
-    const isFiltered = legacyPrefs.filter(p => p.pref === 'Thematic-Extent' && p.val === 'Selected Geos only').length > 0;
+    const legacyPrefs: ImpProjectPref[] = (project.impProjectPrefs || []).filter(p => p.prefGroup === 'map-settings');
+    const isFiltered = legacyPrefs.filter(p => p.pref === 'Thematic-Extent' && p.getVal() === 'Selected Geos only').length > 0;
     const paletteKey = legacyPrefs.filter(p => p.pref === 'Theme')[0];
-    const legacyTheme = paletteKey != null ? ColorPalette[paletteKey.val] : ColorPalette.EsriPurple;
+    const legacyTheme = paletteKey != null ? ColorPalette[paletteKey.getVal()] : ColorPalette.EsriPurple;
     const selectionDefinition = this.createSelectionShadingDefinition(project.methAnalysis, shadingData.length > 0);
     let indexOffset = 1;
     if (shadingData.length === 0 || !isFiltered) {

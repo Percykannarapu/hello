@@ -153,11 +153,11 @@ export class ImpDomainFactoryService {
     }
   }
 
-   createProjectPref(parent: ImpProject, group: string, pref: string, type: string, value: string, forceLOB: boolean = false, isActive: boolean = true, overwriteDuplicate: boolean = true) : ImpProjectPref {
+   createProjectPref(parent: ImpProject, group: string, pref: string, type: string, value: string, forceLOB: boolean = true, isActive: boolean = true, overwriteDuplicate: boolean = true) : ImpProjectPref {
       if (parent == null) throw new Error('Project Pref factory requires a valid Project instance');
       if (pref == null) throw new Error('Project Preferences cannot have a null pref (Key)');
 
-      const existingPref = parent.impProjectPrefs.find(impPref => impPref.prefGroup === group && impPref.pref === pref && impPref.val === impPref.val);
+      const existingPref = parent.impProjectPrefs.find(impPref => impPref.prefGroup === group && impPref.pref === pref);
       if (existingPref == null) {
          const result = new ImpProjectPref({
             dirty:         true,
