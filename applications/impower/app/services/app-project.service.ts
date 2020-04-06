@@ -116,7 +116,7 @@ export class AppProjectService {
         atr.projectId = undefined;
       });
       // filter out empty location attributes
-      loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue !== '');
+      loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue !== '' && atr.attributeValue != null);
     });
     localProject.getImpGeofootprintTradeAreas().forEach(ta => {
       ta.gtaId = undefined;

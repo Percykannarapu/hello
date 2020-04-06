@@ -47,7 +47,7 @@ export class AppProjectPrefService {
       // );
    }
 
-   public createPref(group: string, pref: string, value: string, type: string = 'STRING', forceLOB: boolean = false) {
+   public createPref(group: string, pref: string, value: string, type: string = 'STRING', forceLOB: boolean = true) {
       const currentProject = this.appStateService.currentProject$.getValue();
       if (currentProject == null) return;
 

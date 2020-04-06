@@ -62,8 +62,7 @@ interface TradeAreaDefinition {
       const pluralize = payload.sites.length > 1 ? 's' : '';
       this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: `Geocoding ${payload.sites.length} ${payload.siteType}${pluralize}` }));
       return this.appLocationService.geocode(payload.sites, payload.siteType, payload.isLocationEdit).pipe(
-        //reduce((accumlatorLocs, locations) => { accumlatorLocs.push(...locations); return accumlatorLocs}, [] )
-        reduce((accumlatorLocs , locations) => [...accumlatorLocs, ...locations], [])
+        reduce((acc , locations) => [...acc, ...locations], [] as ImpGeofootprintLocation[])
       );
    }
 
@@ -125,10 +124,10 @@ interface TradeAreaDefinition {
     return this.appLocationService.queryAllHomeGeos(payload.LocMap);
    }
 
-   determineHomeDTZ(payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>, totalLocs: ImpGeofootprintLocation[]}){
-     this.logger.debug.log('determineHomeDTZ:::');
-     return this.appLocationService.determineDtzHomegeos(payload.attributes, payload.totalLocs);
-   }
+   // determineHomeDTZ(payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>, totalLocs: ImpGeofootprintLocation[]}){
+   //   this.logger.debug.log('determineHomeDTZ:::');
+   //   return this.appLocationService.determineDtzHomegeos(payload.attributes, payload.totalLocs);
+   // }
 
    processHomeGeoAttributes(payload: {attributes: any[], totalLocs: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
     this.logger.debug.log('process geo attributes:::');
