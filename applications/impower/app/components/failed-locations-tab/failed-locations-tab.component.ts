@@ -70,6 +70,7 @@ export class FailedLocationsTabComponent implements OnInit {
         });
         site.impGeofootprintTradeAreas = [];
         site['homeGeoFound'] = null;
+        site.carrierRoute = null;
         site.isActive = true;
         toHomeGeocode.push(site);
       }
