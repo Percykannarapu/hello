@@ -1,0 +1,65 @@
+import { Component, OnInit } from '@angular/core';
+import { Store, select } from '@ngrx/store';
+import { LocalAppState } from '../../state/app.interfaces';
+import { openSendToValassisDigitalFlag } from 'app/state/menu/menu.selectors';
+import { tap } from 'rxjs/operators';
+import { CloseclientNmaeForValassisDigitalDialog, ExportToValassisDigital } from 'app/state/menu/menu.actions';
+import { AppStateService } from 'app/services/app-state.service';
+import { ImpProject } from 'app/val-modules/targeting/models/ImpProject';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'val-send-sites-digital',
+  templateUrl: './send-sites-digital.component.html',
+  styleUrls: ['./send-sites-digital.component.scss']
+})
+export class SendSitesDigitalComponent implements OnInit {
+
+   showDialog: boolean = false;
+   digitalForm: FormGroup;
+
+  constructor(private store$: Store<LocalAppState>,
+              private stateService: AppStateService,
+              private fb: FormBuilder) { }
+
+  ngOnInit() {
+
+    this.digitalForm = this.fb.group({
+      clientName: ['', Validators.required],
+    });
+
+    this.store$.select(openSendToValassisDigitalFlag).subscribe((flag) => {
+        if (flag)
+            this.openDialog(flag);
+        else
+            this.showDialog = flag;    
+    }); 
+  }
+
+
+  private openDialog(flag: boolean){
+    const impProject: ImpProject  = this.stateService.currentProject$.getValue();
+    if (impProject.clientIdentifierName != null && impProject.clientIdentifierName !== '')
+        this.store$.dispatch(new ExportToValassisDigital());
+    else   
+        this.showDialog = flag;
+  }
+
+  hasErrors(controlKey: string) : boolean {
+    const control = this.digitalForm.get(controlKey);
+    return (control.dirty || control.untouched || control.value == null) && (control.errors != null);
+  }
+
+  send(form: any){
+    this.stateService.currentProject$.getValue().clientIdentifierName = form.clientName;
+    this.store$.dispatch(new ExportToValassisDigital);
+    this.store$.dispatch(new CloseclientNmaeForValassisDigitalDialog);
+    this.digitalForm.reset();
+  }
+
+  closeDialog(event: any){
+    this.digitalForm.reset();
+    this.store$.dispatch(new CloseclientNmaeForValassisDigitalDialog);
+  }
+
+}

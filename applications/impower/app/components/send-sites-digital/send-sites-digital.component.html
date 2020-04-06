@@ -1,0 +1,20 @@
+<p-dialog header="Send Sites to Valassis Digital" [(visible)]="showDialog" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true" (visibleChange)="closeDialog($event)" 
+[style]="{ width: '500px' }">
+
+  <br>
+  <div class="dialog-main">
+      <div class="dialog-body">
+          <form novalidate  [formGroup]="digitalForm" autocomplete="off">
+              <span class="md-inputfield">
+                  <input id="clientName" type="text" formControlName="clientName" pInputText size="30">
+                  <span class="ui-inputgroup-addon" *ngIf="!hasErrors('clientName')">&nbsp;</span>
+                  <label for="clientName">Enter Client Name</label>
+              </span>
+          </form>  
+      </div>
+  </div>
+  <p-footer>  
+      <button pButton type="button" (click)="send(digitalForm.value)" label="Send" [disabled]="digitalForm.invalid"></button>
+  </p-footer> 
+
+</p-dialog>
