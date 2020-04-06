@@ -1,8 +1,7 @@
 import { Action } from '@ngrx/store';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-
+import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 
 export enum HomeGeoActionTypes {
@@ -11,10 +10,10 @@ export enum HomeGeoActionTypes {
    PersistLocations = '[Application Geocode] Persist Geos to Datastore',
    ApplyTradeAreaOnEdit = '[Application Geocode] Apply TradeArea after Edit',
    ZoomtoLocations = '[Application Geocode] Zoom to Locations',
-   DetermineDTZHomeGeos = '[Application Geocode] Determine Digital ATZ',
+//   DetermineDTZHomeGeos = '[Application Geocode] Determine Digital ATZ',
    ProcessHomeGeoAttributes = '[Application Geocode] Flag Homegeo Attributes',
    ReCalcHomeGeos = '[Application Geocode] Re Calculate Homegeos',
-   UpdateLocations = '[Application Geocode] Update existing Locations', 
+   UpdateLocations = '[Application Geocode] Update existing Locations',
    ValidateEditedHomeGeoAttributes = '[Application Geocode] Validate Edited HomeGeo Attributes',
    SaveOnValidationSuccess = '[Aplication Geocode] Save On Validation Success'
 }
@@ -39,7 +38,7 @@ export class ReCalcHomeGeos implements Action {
   readonly type = HomeGeoActionTypes.ReCalcHomeGeos;
   constructor(public payload: {locations: ImpGeofootprintLocation[],
                                siteType: SuccessfulLocationTypeCodes,
-                               reCalculateHomeGeos: boolean, 
+                               reCalculateHomeGeos: boolean,
                                isLocationEdit: boolean} ){}
 }
 
@@ -53,14 +52,14 @@ export class ZoomtoLocations implements Action {
    constructor(public payload: {locations: ImpGeofootprintLocation[]}){}
 }
 
-export class DetermineDTZHomeGeos implements Action{
-   readonly type = HomeGeoActionTypes.DetermineDTZHomeGeos;
-   constructor(public payload: {attributes: any , 
-                                locationsMap: Map<string, ImpGeofootprintLocation[]>, 
-                                isLocationEdit: boolean, 
-                                reCalculateHomeGeos: boolean,
-                                totalLocs: ImpGeofootprintLocation[]}){}
-}
+// export class DetermineDTZHomeGeos implements Action{
+//    readonly type = HomeGeoActionTypes.DetermineDTZHomeGeos;
+//    constructor(public payload: {attributes: any ,
+//                                 locationsMap: Map<string, ImpGeofootprintLocation[]>,
+//                                 isLocationEdit: boolean,
+//                                 reCalculateHomeGeos: boolean,
+//                                 totalLocs: ImpGeofootprintLocation[]}){}
+// }
 
 export class ProcessHomeGeoAttributes implements Action{
   readonly type = HomeGeoActionTypes.ProcessHomeGeoAttributes;
@@ -82,11 +81,11 @@ export class SaveOnValidationSuccess implements Action {
    constructor(public payload: {oldData: any, editedTags: string[], attributeList: any}){}
 }
 
-export type HomeGeoActions = Geocode | 
-                             HomeGeocode | 
+export type HomeGeoActions = Geocode |
+                             HomeGeocode |
                              PersistLocations |
                              ApplyTradeAreaOnEdit |
-                             DetermineDTZHomeGeos |
+                            // DetermineDTZHomeGeos |
                              ProcessHomeGeoAttributes|
                              UpdateLocations |
                              ReCalcHomeGeos |

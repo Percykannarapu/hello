@@ -5,19 +5,7 @@ import { AppLocationService } from 'app/services/app-location.service';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
-import {
-  ApplyTradeAreaOnEdit,
-  DetermineDTZHomeGeos,
-  Geocode,
-  HomeGeoActionTypes,
-  HomeGeocode,
-  PersistLocations,
-  ProcessHomeGeoAttributes,
-  ReCalcHomeGeos,
-  SaveOnValidationSuccess,
-  ValidateEditedHomeGeoAttributes,
-  ZoomtoLocations
-} from './homeGeo.actions';
+import { ApplyTradeAreaOnEdit, Geocode, HomeGeoActionTypes, HomeGeocode, PersistLocations, ProcessHomeGeoAttributes, ReCalcHomeGeos, SaveOnValidationSuccess, ValidateEditedHomeGeoAttributes, ZoomtoLocations } from './homeGeo.actions';
 
 
 @Injectable({ providedIn: 'root' })
@@ -57,12 +45,6 @@ export class HomeGeoEffects {
       ofType<HomeGeocode>(HomeGeoActionTypes.HomeGeocode),
       map(action => this.appHomeGeocodingService.validateLocations(action.payload)),
       switchMap(locMap => this.appHomeGeocodingService.queryHomeGeocode(locMap).pipe(
-        /*map(attributes => new DetermineDTZHomeGeos({attributes,
-                locationsMap: locMap.LocMap, 
-                isLocationEdit: locMap.isLocationEdit,
-                reCalculateHomeGeos: locMap.reCalculateHomeGeos,
-                totalLocs: locMap.totalLocs})),*/
-         //map(attributes => new ProcessHomeGeoAttributes({attributes, totalLocs: locMap.totalLocs,isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos})),      
          concatMap(attributes => [
             new ProcessHomeGeoAttributes({attributes, totalLocs: locMap.totalLocs, isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos}),
             new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
@@ -76,19 +58,19 @@ export class HomeGeoEffects {
       ))
    );
 
-   @Effect()
-   determineDTZHomeGeos$ = this.actions$.pipe(
-      ofType<DetermineDTZHomeGeos>(HomeGeoActionTypes.DetermineDTZHomeGeos),
-      switchMap(action => this.appHomeGeocodingService.determineHomeDTZ(action.payload).pipe(
-        concatMap(attributes => [
-          new ProcessHomeGeoAttributes({attributes, totalLocs: action.payload.totalLocs,
-                                        isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
-          new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
-          new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
-          new ApplyTradeAreaOnEdit({ isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos})
-        ])
-      ))
-   );
+   // @Effect()
+   // determineDTZHomeGeos$ = this.actions$.pipe(
+   //    ofType<DetermineDTZHomeGeos>(HomeGeoActionTypes.DetermineDTZHomeGeos),
+   //    switchMap(action => this.appHomeGeocodingService.determineHomeDTZ(action.payload).pipe(
+   //      concatMap(attributes => [
+   //        new ProcessHomeGeoAttributes({attributes, totalLocs: action.payload.totalLocs,
+   //                                      isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
+   //        new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
+   //        new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
+   //        new ApplyTradeAreaOnEdit({ isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos})
+   //      ])
+   //    ))
+   // );
 
    @Effect({dispatch: false})
    processHomeGeoAttributes$ = this.actions$.pipe(

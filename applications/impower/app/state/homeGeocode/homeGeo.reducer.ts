@@ -1,7 +1,6 @@
 import { HomeGeoActions, HomeGeoActionTypes } from './homeGeo.actions';
 
 
-
 export interface HomeGeoState {
    geocode: boolean;
    homeGeocode: boolean;
@@ -29,23 +28,21 @@ export function homeGeoReducer(state = initialState, action: HomeGeoActions) : H
             ...state,
             geocode: false,
             homeGeocode: true,
-            persistGeos: false, 
-         };   
+            persistGeos: false,
+         };
        case HomeGeoActionTypes.PersistLocations:
          return{
             ...state,
             geocode: false,
             homeGeocode: false,
-            persistGeos: true, 
+            persistGeos: true,
          };
        case HomeGeoActionTypes.ZoomtoLocations:
          return state;
-       case HomeGeoActionTypes.DetermineDTZHomeGeos:
-         return state;  
        case HomeGeoActionTypes.ProcessHomeGeoAttributes:
          return state;
        case HomeGeoActionTypes.UpdateLocations:
-         return state;   
+         return state;
        case HomeGeoActionTypes.ApplyTradeAreaOnEdit:
          return state;
        case HomeGeoActionTypes.ValidateEditedHomeGeoAttributes:
@@ -53,6 +50,6 @@ export function homeGeoReducer(state = initialState, action: HomeGeoActions) : H
        case HomeGeoActionTypes.SaveOnValidationSuccess:
          return state;
        default:
-         return state;   
+         return state;
     }
  }

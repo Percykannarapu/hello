@@ -120,22 +120,7 @@ export class AddLocationsTabComponent implements OnInit {
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
     const reCalculateHomeGeos = false;
     const isLocationEdit: boolean =  (isEdit !== null && isEdit !== undefined) ? isEdit : false;
-    //this.store$.dispatch(new StartBusyIndicatorx({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
     this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
-    /*const locationCache: ImpGeofootprintLocation[] = [];
-    this.appLocationService.geocode(sites, siteType).subscribe(
-      locations => locationCache.push(...locations),
-      err => this.handleError('Geocoding Error', 'There was an error geocoding the provided sites', err),
-      () => {
-        const successfulLocations = locationCache.filter(loc => !loc.clientLocationTypeCode.startsWith('Failed'));
-        this.appLocationService.persistLocationsAndAttributes(locationCache);
-        if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
-        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-        if (isEdit == true) {
-          this.tradeAreaApplyOnEdit();
-        }
-      }
-    );*/
   }
 
   onAddBusiness(event: { siteType: string; businesses: BusinessSearchResponse[] }) {
