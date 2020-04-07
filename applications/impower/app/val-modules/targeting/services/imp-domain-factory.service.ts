@@ -124,7 +124,7 @@ export class ImpDomainFactoryService {
       projectVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA') 
                                          ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
       projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : ((source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA') ?
-                                      (audience.combinedAudiences != null ? JSON.stringify(audience.combinedAudiences) : audience.compositeSource != null ? JSON.stringify(audience.compositeSource) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
+                                      (audience.combinedAudiences.length > 0 ? JSON.stringify(audience.combinedAudiences) : audience.compositeSource.length > 0 ? JSON.stringify(audience.compositeSource) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
        projectVar.impProject = parent;
       parent.impProjectVars.push(projectVar);
       return projectVar;
@@ -147,7 +147,7 @@ export class ImpDomainFactoryService {
       existingVar.sortOrder = audience.seq; // audience.audienceCounter;
       existingVar.customVarExprDisplay = source.toUpperCase() === 'COMBINED_TDA' ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
       existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA') ?
-                                        (audience.combinedAudiences != null ? JSON.stringify(audience.combinedAudiences) :  audience.compositeSource != null ? JSON.stringify(audience.compositeSource) : '' ) : 'Online' + `/${audience.audienceSourceName}/${varPk}`);
+                                        (audience.combinedAudiences.length > 0 ? JSON.stringify(audience.combinedAudiences) :  audience.compositeSource.length > 0 ? JSON.stringify(audience.compositeSource) : '' ) : 'Online' + `/${audience.audienceSourceName}/${varPk}`);
       existingVar.impProject = parent;
       if (existingVar.baseStatus === DAOBaseStatus.UNCHANGED) existingVar.baseStatus = DAOBaseStatus.UPDATE;
       return existingVar;

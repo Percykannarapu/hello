@@ -36,6 +36,7 @@ export class CombinedAudienceComponent implements OnInit {
   allAudiences: Audience[];
   currentAudience: any;
   showError: boolean;
+  displayError: boolean;
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
@@ -154,12 +155,23 @@ export class CombinedAudienceComponent implements OnInit {
 
   onEdit(selectedAudience: Audience) {
     const currentSelections: Audience[] = [];
-    selectedAudience.combinedAudiences.forEach(previous => {
-      this.allAudiences.forEach(current => {
-        if (current != null && current.audienceIdentifier === previous)
-          currentSelections.push(current);
+    if (selectedAudience.combinedAudiences.length > 0){
+      selectedAudience.combinedAudiences.forEach(previous => {
+        this.allAudiences.forEach(current => {
+          if (current != null && current.audienceIdentifier === previous)
+            currentSelections.push(current);
+        });
       });
-    });
+    }
+    if (selectedAudience.compositeSource.length > 0){
+      selectedAudience.compositeSource.forEach(previous => {
+        this.allAudiences.forEach(current => {
+          if (current != null && current.audienceIdentifier === previous)
+            currentSelections.push(current);
+        });
+      });
+    }
+   
     this.audienceForm = this.fb.group({
       audienceName: selectedAudience.audienceName,
       audienceList: currentSelections,
@@ -194,6 +206,12 @@ export class CombinedAudienceComponent implements OnInit {
     let result = false;
     this.showError = false;
     const audienceTypes: Set<string> = new Set<string>();
+    const varNames: Set<string> = new Set<string>();
+      this.combinedAudiences$.subscribe(a => {
+        a.forEach(aud => {
+          varNames.add(aud.audienceName);
+      });
+      });
 
     if (this.selectedColumns != null && this.selectedColumns.length > 0) {
       result = (this.selectedColumns.length === 1 && this.selectedColumns[0].fieldconte === 'PERCENT' && this.selectedOperation == null);
@@ -203,7 +221,6 @@ export class CombinedAudienceComponent implements OnInit {
       }
       if (this.selectedColumns.length > 1) {
         this.selectedColumns.forEach(variable => audienceTypes.add(variable.fieldconte));
-
         if (audienceTypes.size === 1 && (audienceTypes.has('INDEX'))) {
           this.selectedOperation = null;
           result = true;
@@ -217,7 +234,10 @@ export class CombinedAudienceComponent implements OnInit {
 
       }
     }
-    return (result || this.hasErrors('audienceName') || this.selectedColumns == null);
+    this.audienceForm.get('audienceName').valueChanges.subscribe(v => {
+    this.displayError =  ( v != null) && (v.errors != null || varNames.has(v));  
+    });
+    return (result || this.displayError || this.selectedColumns == null || this.selectedColumns.length === 0);
 
   }
 }
