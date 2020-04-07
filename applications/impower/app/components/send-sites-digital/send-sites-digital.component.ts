@@ -7,6 +7,7 @@ import { CloseclientNmaeForValassisDigitalDialog, ExportToValassisDigital } from
 import { AppStateService } from 'app/services/app-state.service';
 import { ImpProject } from 'app/val-modules/targeting/models/ImpProject';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { ErrorNotification } from '@val/messaging';
 
 @Component({
   selector: 'val-send-sites-digital',
@@ -39,7 +40,11 @@ export class SendSitesDigitalComponent implements OnInit {
 
   private openDialog(flag: boolean){
     const impProject: ImpProject  = this.stateService.currentProject$.getValue();
-    if (impProject.clientIdentifierName != null && impProject.clientIdentifierName !== '')
+    if (impProject.projectId == null){
+      const notificationTitle = 'Export Error';
+        this.store$.dispatch(new ErrorNotification({notificationTitle, message: 'The project must be saved before sending the custom site list to Valassis Digital'}));
+    }
+    else if (impProject.clientIdentifierName != null && impProject.clientIdentifierName !== '')
         this.store$.dispatch(new ExportToValassisDigital());
     else   
         this.showDialog = flag;

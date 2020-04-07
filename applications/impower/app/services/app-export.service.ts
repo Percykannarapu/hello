@@ -89,7 +89,7 @@ export class AppExportService {
   exportValassisDigital(currentProject: ImpProject) : Observable<CreateUsageMetric> {
     return new Observable(observer => {
       try {
-        this.validateValDigitalProjectForExport(currentProject, 'sending the custom site list to Valassis Digital');
+        //this.validateValDigitalProjectForExport(currentProject, 'sending site list to Valassis Digital');
         const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
         const filename = 'visit_locations_' + currentProject.projectId + '_' + this.config.environmentName + '_' + fmtDate + '.csv';
         const metricValue = this.locationExportImpl(ImpClientLocationTypeCodes.Site, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, filename, currentProject);
@@ -154,12 +154,12 @@ export class AppExportService {
   }
 
 
-  private validateValDigitalProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
-    const message = `The project must be saved before ${exportDescription}`;
+  /*private validateValDigitalProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
+    const message = `Please save your project before ${exportDescription}`;
     if (currentProject.projectId == null) {
       throw message;
     }
-  }
+  }*/
 
   private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
      const message = `The project must be saved with a valid Project Tracker ID before ${exportDescription}`;
@@ -170,11 +170,11 @@ export class AppExportService {
 
   public exportCustomTAIssuesLog(uploadFailures: TradeAreaDefinition[]){
     //this.logger.info.log('uploadFailures ====>', uploadFailures);
-    const header = 'Site #, Geocode';
+    const header = 'Site #, Geocode, Reason';
     const records: string[] = [];
     records.push(header +  '\n');
     uploadFailures.forEach(record => {
-        records.push(`${record.store}, ${record.geocode}` + '\n');
+        records.push(`${record.store}, ${record.geocode}, ${record.message}` + '\n');
     });
     this.downloadCSV(records, 'Custom TA Issues Log.csv');
   }

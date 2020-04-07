@@ -348,7 +348,7 @@ export class AppTradeAreaService {
       if (locationsByNumber.has(taDef.store)){
         matchedTradeAreas.add(taDef);
       } else {
-        taDef.message = 'Site number not found';
+        taDef.message = 'Invalid Site #';
         this.uploadFailures = [...this.uploadFailures, taDef];
       }
     });
@@ -424,11 +424,12 @@ export class AppTradeAreaService {
     if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
       matchedTradeAreas.forEach(ta => {
         if (!queryResult.has(ta.geocode)) {
-            ta.message = 'Geocode not found';
+            ta.message = 'Invalid/unreachable Geo';
             failedGeos = [...failedGeos, ta];
         }
         else if ( !payloadByGeocode.has(ta.geocode)){
-            ta.message = 'Rolldown Geocode not found';
+            ta.message = 'Invalid/unreachable Geo';
+            //'Rolldown Geocode not found';
             failedGeos = [...failedGeos, ta];
         }
       });
@@ -437,7 +438,8 @@ export class AppTradeAreaService {
       const analysisLevel = fileAnalysisLevel === 'WRAP_MKT_ID' ? 'Wrap Zone' : fileAnalysisLevel === 'INFOSCAN_CODE' ? 'Infoscan' : fileAnalysisLevel;
       matchedTradeAreas.forEach(ta => {
          if ( !payloadByGeocode.has(ta.geocode)){
-            ta.message = `Rolldown ${analysisLevel} not found`;
+            ta.message = 'Invalid/unreachable Geo';
+            //`Rolldown ${analysisLevel} not found`;
             failedGeos = [...failedGeos, ta];
         }
       });
