@@ -80,7 +80,7 @@ export class AppDataShimService {
   }
 
   save() : Observable<number> {
-    return this.appProjectService.savePacked();
+    return this.appProjectService.save();
   }
 
   load(id: number) : Observable<string> {

@@ -15,7 +15,7 @@ import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { EMPTY, Observable } from 'rxjs';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
-import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
+import { callbackElementType, callbackSuccessType, ColumnDefinition, DataStore, InTransaction } from '../../common/services/datastore.service';
 import { LoggingService } from '../../common/services/logging.service';
 import { RestDataService } from '../../common/services/restdata.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
@@ -59,6 +59,11 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       this.impGeofootprintTradeAreaService.load(simpleFlatten(items.map(l => l.impGeofootprintTradeAreas)));
       super.load(items);
     }
+
+  public add(dataArray: ImpGeofootprintLocation[] | ReadonlyArray<ImpGeofootprintLocation>, preOperation?: callbackElementType<ImpGeofootprintLocation>, postOperation?: callbackSuccessType<ImpGeofootprintLocation>, inTransaction: InTransaction = InTransaction.true) {
+     this.logger.debug.log('Adding data to location datastore', dataArray.length);
+    super.add(dataArray, preOperation, postOperation, inTransaction);
+  }
 
    // -----------------------------------------------------------
    // UTILITY METHODS

@@ -8,7 +8,7 @@ import geometryEngine from 'esri/geometry/geometryEngine';
 import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
-import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -163,7 +163,8 @@ export class AppLocationService {
     );
     const competitorCount$ = successfulLocations$.pipe(
       filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor),
-      map(locs => locs.length)
+      map(locs => locs.length),
+      tap(len => this.logger.debug.log('Competitor count in datastore:', len))
     );
 
     successfulLocations$.subscribe(locations => this.store$.dispatch(new RenderLocations({ locations, impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') })));
@@ -287,7 +288,6 @@ export class AppLocationService {
 
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[], isEdit?: boolean, isResubmit?: boolean, oldData?: ImpGeofootprintLocation) : void {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-
     data.forEach(l => {
       let radius2 = 0;
       let radius1 = 0;
@@ -609,49 +609,47 @@ export class AppLocationService {
   }
 
   public queryAllHomeGeos(locationsMap: Map<string, ImpGeofootprintLocation[]>) : Observable<any> {
+      this.logger.debug.log('Location data store prior to home geo query', this.impLocationService.get().length);
       this.logger.debug.log('Querying all Home Geocodes for', locationsMap);
-      let pipObservble: Observable<any> = EMPTY;
-      let combinedObservble: Observable<any> = EMPTY;
-      let dmaAndCountyObservble: Observable<any> = EMPTY;
+      let pipObservable: Observable<any> = EMPTY;
+      let combinedObservable: Observable<any> = EMPTY;
+      let dmaAndCountyObservable: Observable<any> = EMPTY;
       let initialAttributesObs: Observable<any> = EMPTY;
-      let fuseObservble: Observable<any> = EMPTY;
-      const layerId = this.config.getLayerIdForAnalysisLevel('pcr', true);
+      let fuseObservable: Observable<any> = EMPTY;
 
       if (locationsMap.get('needtoPipLocations').length > 0){
         const locationsHomeGeoFuse: ImpGeofootprintLocation[] = [];
         const locationsForPIP: ImpGeofootprintLocation[] = [];
-        const queries: Observable<any>[] = [];
         locationsMap.get('needtoPipLocations').forEach(loc => {
-              if (loc.carrierRoute != null && loc.carrierRoute !== ''){
-                loc.homePcr = loc.locZip.substr(0, 5) + loc.carrierRoute;
-                locationsHomeGeoFuse.push(loc);
-              }else{
-                locationsForPIP.push(loc);
-              }
+          if (loc.carrierRoute != null && loc.carrierRoute !== ''){
+            loc.homePcr = loc.locZip.substr(0, 5) + loc.carrierRoute;
+            locationsHomeGeoFuse.push(loc);
+          }else{
+            locationsForPIP.push(loc);
+          }
         });
         if (locationsForPIP.length > 0){
-            const attributesList: any[] = [];
-          // const testObs = this.pipLocations(locationsForPIP);
-           pipObservble = this.pipLocations(locationsForPIP).pipe(switchMap(res => this.queryRemainingAttr(res, locationsForPIP, false).pipe(
+           pipObservable = this.pipLocations(locationsForPIP).pipe(
+             switchMap(res => this.queryRemainingAttr(res, locationsForPIP, false)),
              map(result => {
-                      if (result.attributes.length > 0)
-                          attributesList.push(... result.attributes);
-                      if (result.rePipLocations.length > 0){
-                          const row = {'ATZ': null, 'DTZ' : null, 'ZIP': null, 'DMA': null, 'COUNTY': null};
-                          result.rePipLocations.forEach(loc => {
-                            attributesList.push(this.createArreibut(row, loc));
-                        });
-                      }
+               const attributesList: any[] = [];
+                if (result.attributes.length > 0)
+                    attributesList.push(... result.attributes);
+                if (result.rePipLocations.length > 0){
+                    const row = {'ATZ': null, 'DTZ' : null, 'ZIP': null, 'DMA': null, 'COUNTY': null};
+                    result.rePipLocations.forEach(loc => {
+                      attributesList.push(this.createArreibut(row, loc));
+                  });
+                }
                 return attributesList;
              })
-           ))
            );
         }
         if (locationsHomeGeoFuse.length > 0){
           const attrList: Map<ImpGeofootprintLocation, string> = new Map<ImpGeofootprintLocation, string>();
           const attributesList: any[] = [];
           locationsHomeGeoFuse.forEach(loc => attrList.set(loc, loc.locZip.substr(0, 5) + loc.carrierRoute));
-          fuseObservble = this.queryRemainingAttr(attrList, locationsHomeGeoFuse, true).pipe(
+          fuseObservable = this.queryRemainingAttr(attrList, locationsHomeGeoFuse, true).pipe(
             map(result => {
               if (result.attributes.length > 0)
                    attributesList.push(... result.attributes);
@@ -681,19 +679,19 @@ export class AppLocationService {
             })
           );
         }
-        combinedObservble = merge(fuseObservble, pipObservble);
+        combinedObservable = merge(fuseObservable, pipObservable);
       }
       if (locationsMap.get('initialAttributeList').length > 0){
         initialAttributesObs = of(locationsMap.get('initialAttributeList'));
       }
       if (locationsMap.get('dmaAndCountyLoc').length > 0){
-       dmaAndCountyObservble = this.getDmaAndCounty(locationsMap.get('dmaAndCountyLoc')).pipe(
+       dmaAndCountyObservable = this.getDmaAndCounty(locationsMap.get('dmaAndCountyLoc')).pipe(
          switchMap(res => {
           return res;
          })
        );
       }
-      return merge(dmaAndCountyObservble, combinedObservble, initialAttributesObs).pipe(
+      return merge(dmaAndCountyObservable, combinedObservable, initialAttributesObs).pipe(
         filter(value => value != null),
         reduce((acc, value) => [...acc, ...value], [])
       );
@@ -745,12 +743,7 @@ export class AppLocationService {
     );
   }
 
-  /**
-   *
-   * @param attrList
-   * @param impGeofootprintLocation
-   * query IMP_GEO_HIERARCHY_MV for remaining arrtibutes
-   */
+
   queryRemainingAttr(attrList: Map<any, any>, impGeofootprintLocations: ImpGeofootprintLocation[], isFuseLocations: boolean){
     const homePcrList = Array.from(attrList.values());
     const attributesList: any[] = [];
@@ -764,10 +757,10 @@ export class AppLocationService {
       map(result => {
         const locMapBySiteNumber = mapBy(impGeofootprintLocations, 'locationNumber');
         const responseMap: Map<string, any[]> = groupByExtended(result, row => row['PCR']);
-          const t =  this.getAttributesforLayers(locMapBySiteNumber, responseMap, attrList, isFuseLocations);
-          if (t.attributes.length > 0) attributesList.push(...t.attributes);
-          if (t.rePipLocations.length > 0) rePipLocations.push(...t.rePipLocations);
-          return t;
+        const t = this.getAttributesforLayers(locMapBySiteNumber, responseMap, attrList, isFuseLocations);
+        if (t.attributes.length > 0) attributesList.push(...t.attributes);
+        if (t.rePipLocations.length > 0) rePipLocations.push(...t.rePipLocations);
+        return t;
       }),
       mergeMap(t => {
         this.logger.debug.log(`remaining locations for ATZ: ${t.rePipLocations.length} `);

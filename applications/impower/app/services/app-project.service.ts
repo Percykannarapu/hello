@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import { RestResponse } from '../models/RestResponse';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
@@ -42,24 +43,23 @@ export class AppProjectService {
     return this.impProjectService.loadFromServer(id);
   }
 
-  savePacked(project?: ImpProject) : Observable<number> {
-    const saveUrl = 'v1/targeting/base/impprojectmsgpack/deleteSave';
+  save(project?: ImpProject) : Observable<number> {
     const projectToSave = project == null ? this.impProjectService.get()[0] : project;
     if (projectToSave == null) return of(null as number);
     this.cleanupProject(projectToSave);
-    return this.restService.postMessagePack(saveUrl, projectToSave).pipe(
+    return this.saveImpl(projectToSave).pipe(
       map(response => Number(response.payload))
     );
   }
 
-  saveStringified(project?: ImpProject) : Observable<number> {
-    const saveUrl = 'v1/targeting/base/impproject/deleteSave';
-    const projectToSave = project == null ? this.impProjectService.get()[0] : project;
-    if (projectToSave == null) return of(null as number);
-    this.cleanupProject(projectToSave);
-    return this.restService.post(saveUrl, projectToSave).pipe(
-      map(response => Number(response.payload))
-    );
+  private saveImpl(project: ImpProject, useMsgPack: boolean = true) : Observable<RestResponse> {
+    const endpoint = useMsgPack ? 'impprojectmsgpack' : 'impproject';
+    const saveUrl = `v1/targeting/base/${endpoint}/deleteSave`;
+    if (useMsgPack) {
+      return this.restService.postMessagePack(saveUrl, project);
+    } else {
+      return this.restService.post(saveUrl, project);
+    }
   }
 
   createNew() : number {
@@ -91,7 +91,7 @@ export class AppProjectService {
 
   private cleanupProject(localProject: ImpProject) {
     // this line of code is dumb, but necessary
-    localProject.impGeofootprintMasters[0].impGeofootprintLocations = this.impLocationService.get();
+    localProject.impGeofootprintMasters[0].impGeofootprintLocations = [ ...this.impLocationService.get()];
     // remove all Ids except the root Project Id
     localProject.impGeofootprintMasters.forEach(m => {
       m.cgmId = undefined;

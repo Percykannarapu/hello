@@ -13,7 +13,6 @@ export class HomeGeoEffects {
    @Effect()
    geocoding$ = this.actions$.pipe(
       ofType<Geocode>(HomeGeoActionTypes.Geocode),
-    //switchMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
       mergeMap(action => this.appHomeGeocodingService.geocode(action.payload).pipe(
         concatMap(locations => [
            new ZoomtoLocations({locations}),
@@ -57,20 +56,6 @@ export class HomeGeoEffects {
         ))
       ))
    );
-
-   // @Effect()
-   // determineDTZHomeGeos$ = this.actions$.pipe(
-   //    ofType<DetermineDTZHomeGeos>(HomeGeoActionTypes.DetermineDTZHomeGeos),
-   //    switchMap(action => this.appHomeGeocodingService.determineHomeDTZ(action.payload).pipe(
-   //      concatMap(attributes => [
-   //        new ProcessHomeGeoAttributes({attributes, totalLocs: action.payload.totalLocs,
-   //                                      isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
-   //        new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
-   //        new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
-   //        new ApplyTradeAreaOnEdit({ isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos})
-   //      ])
-   //    ))
-   // );
 
    @Effect({dispatch: false})
    processHomeGeoAttributes$ = this.actions$.pipe(
