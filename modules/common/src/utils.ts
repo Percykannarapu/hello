@@ -33,11 +33,24 @@ export function groupBy<T extends { [key: string] : any }, K extends keyof T, R>
  * Groups an array by the result of a keySelector function
  * @param {T[]} items: The array to group
  * @param {function} keySelector: A callback function that is used to generate the keys for the dictionary
- * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
  * @returns {Map<K, (T | R)[]>}
  */
 export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K) : Map<K, T[]>;
+/**
+ * Groups an array by the result of a keySelector function
+ * @param {T[]} items: The array to group
+ * @param {function} keySelector: A callback function that is used to generate the keys for the dictionary
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ * @returns {Map<K, (T | R)[]>}
+ */
 export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector: (item: T) => R) : Map<K, R[]>;
+/**
+ * Groups an array by the result of a keySelector function
+ * @param {T[]} items: The array to group
+ * @param {function} keySelector: A callback function that is used to generate the keys for the dictionary
+ * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
+ * @returns {Map<K, (T | R)[]>}
+ */
 export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector?: (item: T) => R) : Map<K, (T | R)[]> {
   const result = new Map<K, (T | R)[]>();
   if (items == null || items.length === 0) return result;
