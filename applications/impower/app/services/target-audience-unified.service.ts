@@ -86,13 +86,14 @@ export class TargetAudienceUnifiedService {
             showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
             allowNationalExport: false,
+            selectedDataSet: projectVar.indexBase,
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
             requiresGeoPreCaching: true,
             seq: projectVar.sortOrder,
             isCombined: projectVar.indexBase != null ? false : true,
-            combinedAudiences: groupedAudiences,
+            combinedAudiences: projectVar.source.split('_')[0].toLowerCase() === 'combined' || projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? groupedAudiences : [],
             combinedVariableNames: projectVar.customVarExprDisplay,
-            compositeSource: projectVar.indexBase != null ? groupedAudiences : [] 
+            compositeSource: projectVar.source.split('_')[0].toLowerCase() === 'converted' ? groupedAudiences : [] 
           };
 
           if (projectVar.source.toLowerCase().match('combined')) {
@@ -149,7 +150,6 @@ export class TargetAudienceUnifiedService {
         });
       }
     });
-
     const uniqueAudList =  Array.from(new Set(combinedVars));
     requestVars = uniqueAudList.map(aud => {
        return ({
