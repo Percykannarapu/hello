@@ -113,6 +113,8 @@ export class AudiencesEffects {
     tap(([, audiences]) => {
       if (audiences.length > 0)
         this.store$.dispatch(new GeoVarCacheGeofootprintGeos());
+      else
+        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
     }),
     switchMap(([action, selectedAudiences]) => this.actions$.pipe(
         ofType<GeoVarCacheGeosComplete | GeoVarCacheGeosFailure>(GeoVarActionTypes.GeoVarCacheGeosComplete, GeoVarActionTypes.GeoVarCacheGeosFailure),
