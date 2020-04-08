@@ -65,8 +65,9 @@
         </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let defBreak of definition.userBreakDefaults; index as i">
-          <td>{{getAllocationName(i)}}</td>
+        <tr *ngFor="let defBreak of definition.userBreakDefaults; first as isFirst; last as isLast; index as i">
+          <td *ngIf="isFirst || isLast">{{getAllocationName(i, isFirst, isLast)}}</td>
+          <td *ngIf="!(isFirst || isLast)">&nbsp;</td>
           <td>{{defBreak.legendName}}</td>
           <td>
             {{getFillName(defBreak.fillType)}}
@@ -90,11 +91,12 @@
     <validated-text-input formControlName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be between 2 and 20"></validated-text-input>
     <boolean-input labelText="Dynamic Legend" formControlName="dynamicLegend"></boolean-input>
     <div class="class-break-list" formArrayName="userBreakDefaults" *ngIf="!parentForm.get('dynamicLegend').value">
-      <div *ngFor="let x of userBreakDefaults; index as i">
+      <div *ngFor="let x of userBreakDefaults; first as isFirst; last as isLast; index as i">
         <div class="break-container">
           <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme"
                                   [reversePalette]="reverseTheme" [usesCalculatedValues]="true"
-                                  [calculatedValueMessage]="getAllocationName(i)"></esri-class-break-input>
+                                  [calculatedValueMessage]="getAllocationName(i, isFirst, isLast)"
+                                  [showCalculatedValue]="isFirst || isLast"></esri-class-break-input>
         </div>
       </div>
     </div>

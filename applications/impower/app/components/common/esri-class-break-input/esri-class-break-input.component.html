@@ -1,8 +1,11 @@
 <div class="component-root">
   <ng-container [formGroup]="currentRoot">
     <ng-container *ngIf="usesCalculatedValues">
-      <div class="calculated-value-message">
+      <div class="calculated-value-message" *ngIf="showCalculatedValue">
         {{calculatedValueMessage}}
+      </div>
+      <div class="calculated-value-message" *ngIf="!showCalculatedValue">
+        &nbsp;
       </div>
     </ng-container>
     <ng-container *ngIf="!usesCalculatedValues">

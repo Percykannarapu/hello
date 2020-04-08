@@ -25,7 +25,7 @@ export class OwnerSiteShaderComponent extends ShaderBaseComponent<UniqueShadingD
   protected setupForm() : void {
     const formSetup: FormConfig<GfpOwnerForm> = {
       layerName: [this.definition.layerName, Validators.required],
-      secondaryDataKey: this.definition.secondaryDataKey,
+      secondaryDataKey: new FormControl(this.definition.secondaryDataKey, { updateOn: 'change' }),
       opacity: new FormControl(this.definition.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
       theme: new FormControl(this.definition.theme || ColorPalette.CpqMaps, { updateOn: 'change' }),
       reverseTheme: new FormControl(this.definition.reverseTheme || false, { updateOn: 'change' })

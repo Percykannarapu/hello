@@ -1,10 +1,8 @@
 <div class="ui-g">
-    <val-edit-combined-audiences [editAudiences]="combinedAudiences$ | async"
+    <val-edit-combined-audiences [editAudiences]="combinedAudiences$ | async" 
                                  (onEdit)="onEdit($event)"
-                                 (onDelete)= "onDelete($event)" >
-
+                                 (onDelete)="onDelete($event)">
     </val-edit-combined-audiences>
-
 </div>
 <form novalidate  [formGroup]="audienceForm" autocomplete="off">
 <div class="ui-g">

@@ -15,6 +15,7 @@ export class EsriClassBreakInputComponent implements OnInit {
   @Input() reversePalette: boolean = false;
   @Input() showMinValue: boolean = true;
   @Input() showMaxValue: boolean = true;
+  @Input() showCalculatedValue: boolean = true;
   @Input() usesCalculatedValues: boolean = false;
   @Input() calculatedValueMessage: string = 'Calculated values';
 

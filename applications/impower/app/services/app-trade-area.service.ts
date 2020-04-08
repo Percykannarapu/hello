@@ -7,7 +7,7 @@ import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { BehaviorSubject, merge, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ValSort } from '../models/valassis-sorters';
@@ -75,9 +75,10 @@ export class AppTradeAreaService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      this.impTradeAreaService.storeObservable.pipe(
-        filter(ta => ta != null),
-        filterArray(ta => ta.impGeofootprintLocation != null && ta.isActive),
+      combineLatest([this.impTradeAreaService.storeObservable, this.impLocationService.storeObservable]).pipe(
+        map(([ta]) => ta),
+        filter(ta => ta != null && ta.length > 0),
+        filterArray(ta => ta.impGeofootprintLocation != null && ta.impGeofootprintLocation.isActive && ta.isActive),
       ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
 
       this.setupAnalysisLevelGeoClearObservable();
@@ -495,7 +496,7 @@ export class AppTradeAreaService {
     const loc = this.impLocationService.get();
     //const tradeAreas = this.impTradeAreaService.get();
     const locsMapSiteBy = mapBy(loc, 'clientLocationTypeCode');
-    locsMapSiteBy.forEach((value, key) => {
+    locsMapSiteBy.forEach((value) => {
       if (value != null && value.radius1 == null && value.radius2 == null && value.radius3 == null){
         const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(value.clientLocationTypeCode));
         const tas: { radius: number, selected: boolean, taNumber: number }[] = [];

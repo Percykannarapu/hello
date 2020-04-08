@@ -112,7 +112,7 @@ interface TradeAreaDefinition {
    validateLocations(payload: {locations: ImpGeofootprintLocation[], isLocationEdit: boolean, reCalculateHomeGeos: boolean}){
       this.logger.debug.log('validateLocations:::');
       //this.store$.dispatch(new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'}));
-      this.store$.dispatch(new StartBusyIndicator({ key: 'HomeGeoCalcKey', message: 'Calculating Home Geos'}));
+      this.store$.dispatch(new StartBusyIndicator({ key: 'HomeGeoCalcKey', message: 'Identifying All Home Geos'}));
       const mapLoc = this.appLocationService.validateLocactionsforpip(payload.locations);
       return { LocMap: mapLoc,
                isLocationEdit: payload.isLocationEdit,

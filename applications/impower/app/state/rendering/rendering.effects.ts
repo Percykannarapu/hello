@@ -3,7 +3,8 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { groupByExtended } from '@val/common';
 import { EsriAppSettings, EsriAppSettingsToken, selectors } from '@val/esri';
-import { concatMap, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AppRendererService } from '../../services/app-renderer.service';
 import { AppStateService } from '../../services/app-state.service';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
@@ -15,6 +16,8 @@ import { prepareAudienceTradeAreas, prepareRadiusTradeAreas } from './trade-area
 
 @Injectable()
 export class RenderingEffects {
+
+  renderingKey = 'TRADE_AREA_RENDERING';
 
   tradeAreaSplit$ = this.actions$.pipe(
     ofType<RenderTradeAreas>(RenderingActionTypes.RenderTradeAreas),
@@ -34,9 +37,9 @@ export class RenderingEffects {
 
   @Effect()
   tradeAreaRender$ = this.tradeAreaSplit$.pipe(
-    filter(typeMap => typeMap.size > 0),
+    filter(typeMap => typeMap.size > 0 && ((typeMap.get(TradeAreaTypeCodes.Radius) || []).length > 0 || (typeMap.get(TradeAreaTypeCodes.Audience) || []).length > 0)),
     concatMap(typeMap => [
-      new ClearTradeAreas(),
+      new StartBusyIndicator({ key: this.renderingKey, message: 'Rendering Trade Area Rings...' }),
       new RenderRadiusTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Radius) }),
       new RenderAudienceTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Audience) })
     ])
@@ -63,22 +66,24 @@ export class RenderingEffects {
     tap(action => this.renderingService.clearLocations(action.payload.type))
   );
 
-  @Effect({ dispatch: false })
+  @Effect()
   renderRadii$ = this.actions$.pipe(
     ofType<RenderRadiusTradeAreas>(RenderingActionTypes.RenderRadiusTradeAreas),
     filter(action => action.payload.tradeAreas != null && action.payload.tradeAreas.length > 0),
     withLatestFrom(this.appStateService.currentProject$),
     map(([action, currentProject]) => prepareRadiusTradeAreas(action.payload.tradeAreas, currentProject, this.esriSettings.defaultSpatialRef)),
-    tap(definitions => this.renderingService.renderTradeAreas(definitions))
+    concatMap(definitions => this.renderingService.renderTradeAreas(definitions)),
+    map(() => new StopBusyIndicator({ key: this.renderingKey }))
   );
 
-  @Effect({ dispatch: false })
+  @Effect()
   renderAudience$ = this.actions$.pipe(
     ofType<RenderAudienceTradeAreas>(RenderingActionTypes.RenderAudienceTradeAreas),
     filter(action => action.payload.tradeAreas != null &&  action.payload.tradeAreas.length > 0),
     withLatestFrom(this.appStateService.currentProject$),
     map(([action, currentProject]) => prepareAudienceTradeAreas(action.payload.tradeAreas, currentProject, this.esriSettings.defaultSpatialRef)),
-    tap(definitions => this.renderingService.renderTradeAreas(definitions))
+    switchMap(definitions => this.renderingService.renderTradeAreas(definitions)),
+    map(() => new StopBusyIndicator({ key: this.renderingKey }))
   );
 
   constructor(private actions$: Actions,

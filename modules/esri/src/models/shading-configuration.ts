@@ -180,18 +180,34 @@ export function generateDynamicClassBreaks(stats: Statistics, breakTypes: Dynami
                          stats.max > 5  ? 1 : 2;
   breakValues.forEach((bv, i) => {
     const currentMin = i === 0 ? null : breakValues[i - 1] + Number.EPSILON;
+    const legendDescription = getLegendDescription(currentMin, bv, fixedPositions);
+    const userLegendIsEmpty = symbology[i].legendName == null || symbology[i].legendName.trim().length == 0;
     result.push({
-      legendName: i === 0 ? `Below ${bv.toFixed(fixedPositions)}` : `${currentMin.toFixed(fixedPositions)} to ${bv.toFixed(fixedPositions)}`,
       minValue: currentMin,
       maxValue: bv,
-      ...symbology[i]
+      ...symbology[i],
+      legendName: userLegendIsEmpty ? legendDescription : `${symbology[i].legendName.trim()} (${legendDescription})`
     });
   });
+  const finalMin = breakValues[breakValues.length - 1] + Number.EPSILON;
+  const finalDescription = getLegendDescription(finalMin, null, fixedPositions);
+  const finalLegendIsEmpty = symbology[symbology.length - 1].legendName == null || symbology[symbology.length - 1].legendName.trim().length == 0;
   result.push({
     minValue: breakValues[breakValues.length - 1] + Number.EPSILON,
     maxValue: null,
-    legendName: `${breakValues[breakValues.length - 1].toFixed(fixedPositions)} and above`,
-    ...symbology[breakValues.length]
+    ...symbology[breakValues.length],
+    legendName: finalLegendIsEmpty ? finalDescription : `${symbology[symbology.length - 1].legendName.trim()} (${finalDescription})`
   });
   return result;
+}
+
+function getLegendDescription(min: number, max: number, fixedPositions: number) : string {
+  if (min == null && max == null) return 'other';
+  if (min == null) {
+    return `Below ${max.toFixed(fixedPositions)}`;
+  }
+  if (max == null) {
+    return `${min.toFixed(fixedPositions)} and above`;
+  }
+  return `${min.toFixed(fixedPositions)} to ${max.toFixed(fixedPositions)}`;
 }

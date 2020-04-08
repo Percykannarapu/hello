@@ -391,7 +391,7 @@ export class AppRendererService {
         return result;
       }, {});
       definition.arcadeExpression = createDataArcade(data);
-      const sorter = useCustomSorter ? CommonSort.StringsAsNumbers : null;
+      const sorter = useCustomSorter ? CommonSort.StringsAsNumbers : undefined;
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
       definition.breakDefinitions = generateUniqueValues(Array.from(allSiteEntries), colorPalette, fillPalette, sorter);
