@@ -378,7 +378,9 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
               } else {
                 notification = new ErrorNotification({ notificationTitle, message: `Error sending ${locations.length} ${site} to Valassis Digital for ${project.clientIdentifierName.trim()}`});
               }
-              this.store$.dispatch(notification);
+              setTimeout(() => {
+               this.store$.dispatch(notification);
+              }, 500);
             });
           }
         } else {

@@ -43,12 +43,18 @@ export class SendSitesDigitalComponent implements OnInit {
     if (impProject.projectId == null){
       const notificationTitle = 'Export Error';
         this.store$.dispatch(new ErrorNotification({notificationTitle, message: 'The project must be saved before sending the custom site list to Valassis Digital'}));
-        this.closeDialog();
     }
-    else if (impProject.clientIdentifierName != null && impProject.clientIdentifierName !== '')
-        this.store$.dispatch(new ExportToValassisDigital());
-    else   
-        this.showDialog = flag;
+    else if (impProject.clientIdentifierName != null){
+      this.store$.dispatch(new ExportToValassisDigital());
+      this.closeDialog();
+    }
+        
+    else 
+    {
+      this.showDialog = flag;
+      //this.closeDialog();
+    }  
+        
   }
 
   hasErrors(controlKey: string) : boolean {
@@ -59,8 +65,8 @@ export class SendSitesDigitalComponent implements OnInit {
   send(form: any){
     this.stateService.currentProject$.getValue().clientIdentifierName = form.clientName;
     this.store$.dispatch(new ExportToValassisDigital);
-    this.store$.dispatch(new CloseclientNmaeForValassisDigitalDialog);
     this.digitalForm.reset();
+    this.store$.dispatch(new CloseclientNmaeForValassisDigitalDialog);
   }
 
   closeDialog(event?: any){
