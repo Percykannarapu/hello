@@ -8,7 +8,7 @@
  **
  ** ImpGeofootprintLocation.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-import { Injectable } from '@angular/core';
+import { Injectable, ApplicationRef, NgZone } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
 import { simpleFlatten } from '@val/common';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
@@ -378,9 +378,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
               } else {
                 notification = new ErrorNotification({ notificationTitle, message: `Error sending ${locations.length} ${site} to Valassis Digital for ${project.clientIdentifierName.trim()}`});
               }
-              setTimeout(() => {
-               this.store$.dispatch(notification);
-              }, 0);
+              this.store$.dispatch(notification);
             });
           }
         } else {

@@ -22,7 +22,7 @@ declare var jQuery: any;
 @Component({
   templateUrl: './impower-main.component.html',
   styleUrls: ['./impower-main.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  //changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
 
