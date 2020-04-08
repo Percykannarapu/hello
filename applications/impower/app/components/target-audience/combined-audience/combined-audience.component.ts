@@ -1,14 +1,11 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { mapArray } from '@val/common';
 import { SuccessNotification } from '@val/messaging';
-import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
-import { UpsertAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { getAllAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
-import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { LocalAppState } from 'app/state/app.interfaces';
@@ -41,7 +38,6 @@ export class CombinedAudienceComponent implements OnInit {
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
     private varService: TargetAudienceService,
-    private appProjectPrefService: AppProjectPrefService,
     private confirmationService: ConfirmationService,
     private appStateService: AppStateService,
     private impVarService: ImpProjectVarService
@@ -134,7 +130,7 @@ export class CombinedAudienceComponent implements OnInit {
         combinedVariableNames: this.currentAudience[0].isCombined ? combinedVariableNames.join('~') : '',
         compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null ? combinedAudIds : [],
       };
-      this.store$.dispatch(new UpsertAudience({ audience: editedAudience }));
+      this.varService.updateProjectVars(editedAudience);
       this.store$.dispatch(new SuccessNotification({ message: 'The following audience was updated successfully: \n' + editedAudience.audienceName, notificationTitle: 'Combine Audience' }));
 
     }
