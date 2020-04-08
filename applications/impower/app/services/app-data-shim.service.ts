@@ -107,7 +107,8 @@ export class AppDataShimService {
   private processCustomVarPks(project: ImpProject) : void {
     const maxVarPk = (project.impProjectVars || []).reduce((result, projectVar) => {
       const sourceParts = projectVar.source.split('_');
-      if (sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'custom')) {
+      if (sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'converted' || 
+                                     sourceParts[0].toLowerCase() === 'combined/converted' || sourceParts[0].toLowerCase() === 'custom')) {
         return Math.max(projectVar.varPk, result);
       } else {
         return result;
