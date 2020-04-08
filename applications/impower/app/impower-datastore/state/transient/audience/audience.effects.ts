@@ -679,10 +679,10 @@ export class AudiencesEffects {
 
   @Effect()
   finalizeGeoFetch$ = this.actions$.pipe(
-    ofType(AudienceActionTypes.FetchOfflineFailed, AudienceActionTypes.FetchOnlineFailed,
+    ofType(AudienceActionTypes.FetchOfflineFailed, AudienceActionTypes.FetchOnlineFailed, AudienceActionTypes.FetchCustomFailed,
       AudienceActionTypes.FetchOfflineTDACompleted, AudienceActionTypes.FetchOnlineInMarketCompleted,
       AudienceActionTypes.FetchOnlineInterestCompleted, AudienceActionTypes.FetchOnlinePixelCompleted,
-      AudienceActionTypes.FetchOnlineVLHCompleted),
+      AudienceActionTypes.FetchOnlineVLHCompleted, AudienceActionTypes.FetchCustomCompleted),
     map(() => new StopBusyIndicator({ key: this.spinnerKey }))
   );
 
