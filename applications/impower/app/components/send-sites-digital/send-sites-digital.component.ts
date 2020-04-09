@@ -8,6 +8,7 @@ import { AppStateService } from 'app/services/app-state.service';
 import { ImpProject } from 'app/val-modules/targeting/models/ImpProject';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ErrorNotification } from '@val/messaging';
+import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 
 @Component({
   selector: 'val-send-sites-digital',
@@ -27,6 +28,11 @@ export class SendSitesDigitalComponent implements OnInit {
 
     this.digitalForm = this.fb.group({
       clientName: ['', Validators.required],
+    });
+
+    this.store$.select(projectIsReady).subscribe((flag) => {
+      if (flag)
+          this.digitalForm.reset();
     });
 
     this.store$.select(openSendToValassisDigitalFlag).subscribe((flag) => {
