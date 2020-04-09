@@ -39,7 +39,7 @@
                   node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
                   '''*/
                 sh '''
-                  npm run build
+                  npm run build-dev
                 '''
               }
             }
