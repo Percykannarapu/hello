@@ -32,11 +32,13 @@
         stage('build impower development') {
           when { branch 'dev' }
           steps {
-            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-              echo 'build for development'
-              sh '''
-                node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
-                '''
+            withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESR_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
+              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                echo 'build for development'
+                sh '''
+                  node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
+                  '''
+              }
             }
           }
         }

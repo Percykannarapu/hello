@@ -1,5 +1,6 @@
 import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
+import { esri } from './esri-secrets';
 
 export const environment = {
   production: false,
@@ -32,9 +33,9 @@ export class EnvironmentData {
   public static impowerBaseUrl = 'https://impower.val.vlss.local/';
 
   public static esri = {
-    portalServer:  'https://valvcsimpor1vm.val.vlss.local/',
-    userName: 'quickmaps',
-    password: 'quickmaps123'
+    portalServer:  esri.portalServer,
+    userName: esri.userName,
+    password: esri.password
   };
 
   public static oAuth = {
