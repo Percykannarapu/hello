@@ -114,10 +114,8 @@ export class CombinedAudienceComponent implements OnInit {
           combinedAudiences: combinedAudIds,
           combinedVariableNames: combinedVariableNames.join('~')
         };
-
-        this.store$.dispatch(new UpsertAudience({ audience:  editedAudience}));
+        this.varService.updateProjectVars(editedAudience);
         this.store$.dispatch(new SuccessNotification({ message: 'The following audience was updated successfully: \n' + editedAudience.audienceName, notificationTitle: 'Combine Audience' }));
-
       }
       this.currentAudience = '';
       this.audienceForm.reset();
