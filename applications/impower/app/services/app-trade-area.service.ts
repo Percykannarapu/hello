@@ -350,7 +350,6 @@ export class AppTradeAreaService {
       } else {
         taDef.message = 'Invalid Site #';
         this.uploadFailures = [...this.uploadFailures, taDef];
-        matchedTradeAreas.add(taDef);
       }
     });
 
