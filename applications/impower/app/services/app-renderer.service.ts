@@ -21,7 +21,7 @@ import {
 } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { Observable, Subscription } from 'rxjs';
+import { combineLatest, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { getFillPalette } from '../../../../modules/esri/src/models/color-palettes';
 import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.actions';
@@ -118,11 +118,9 @@ export class AppRendererService {
   private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>) : void {
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
 
-    this.selectedWatcher = geoDataStore.pipe(
-      withLatestFrom(this.store$.select(projectIsReady)),
-      filter(([, ready]) => ready),
+    this.selectedWatcher = combineLatest([geoDataStore, this.store$.select(projectIsReady)]).pipe(
+      filter(([geos, ready]) => ready && geos != null),
       map(([geos]) => geos as ImpGeofootprintGeo[]),
-      filter(geos => geos != null),
       debounceTime(500),
       withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(getBatchMode), this.store$.select(getTypedBatchQueryParams)),
       map(([geos, layerDefs, batchMode, queryParams]) => ([ geos, layerDefs, batchMode && queryParams.duplicated ] as const))
