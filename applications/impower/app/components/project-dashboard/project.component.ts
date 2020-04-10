@@ -49,11 +49,11 @@ export class ProjectComponent implements OnInit, OnDestroy {
 
   private hasExistingData: boolean = false;
   private triggerDataRefresh$ = new Subject<void>();
-  private triggerDataFilter$ = new BehaviorSubject<FilterType>('myProject');
   private destroyed$ = new Subject<void>();
 
   private _showDialog: boolean = false;
 
+  public triggerDataFilter$ = new BehaviorSubject<FilterType>('myProject');
   public timeSpans: SelectItem[];
   public selectedTimeSpan: TimeSpanType;
 
