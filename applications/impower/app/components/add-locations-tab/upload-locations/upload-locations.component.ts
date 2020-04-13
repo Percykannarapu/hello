@@ -1,19 +1,18 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FileUpload } from 'primeng/fileupload';
 import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'val-upload-locations',
   templateUrl: './upload-locations.component.html',
-  styleUrls: ['./upload-locations.component.scss']
+  styleUrls: ['./upload-locations.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UploadLocationsComponent {
 
   @Input() label: string = '';
   @Output() upload = new EventEmitter<string[]>();
   @ViewChild('fileUpload', { static: true }) private fileUploadElement: FileUpload;
-
-  isLoading: boolean = false;
 
   private static excelToCsv(encodedString: string | ArrayBuffer) : string {
     const wb: XLSX.WorkBook = XLSX.read(encodedString, { type: 'binary' });
@@ -23,8 +22,6 @@ export class UploadLocationsComponent {
   }
 
   public uploadFile(event: any) : void {
-    this.isLoading = true;
-
     const reader = new FileReader();
     const lineBreakRegEx = /\r\n|\n/;
     const name: String = event.files[0].name;
@@ -34,14 +31,12 @@ export class UploadLocationsComponent {
         const csvBlob = UploadLocationsComponent.excelToCsv(reader.result);
         const rows = csvBlob.split(lineBreakRegEx);
         this.upload.emit(rows);
-        this.isLoading = false;
       };
     } else {
       reader.readAsText(event.files[0]);
       reader.onload = () => {
         const rows = (reader.result as string).split(lineBreakRegEx);
         this.upload.emit(rows);
-        this.isLoading = false;
       };
     }
 

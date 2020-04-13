@@ -1,18 +1,22 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { ColorPalette } from '@val/esri';
 import { WarningNotification } from '@val/messaging';
-import { MoveAudienceDn, MoveAudienceUp } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import { MoveAudienceDn, MoveAudienceUp, SelectMappingAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { AppLoggingService } from 'app/services/app-logging.service';
+import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, map, take } from 'rxjs/operators';
+import { filter, map, take, tap } from 'rxjs/operators';
+import { AppRendererService } from '../../../services/app-renderer.service';
 import { AppStateService } from '../../../services/app-state.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { CreateAudienceUsageMetric } from '../../../state/usage/targeting-usage.actions';
+import { CreateAudienceUsageMetric, CreateMapUsageMetric } from '../../../state/usage/targeting-usage.actions';
+import { CreateGaugeMetric } from '../../../state/usage/usage.actions';
 
 @Component({
   selector: 'val-selected-audiences',
@@ -22,6 +26,7 @@ import { CreateAudienceUsageMetric } from '../../../state/usage/targeting-usage.
 })
 export class SelectedAudiencesComponent implements OnInit {
   audiences$: Observable<Audience[]>;
+  showRenderControls: boolean = false;
   hasAudiences: boolean = false;
   public showDialog: boolean = false;
   public audienceUnselect: Audience;
@@ -49,13 +54,22 @@ export class SelectedAudiencesComponent implements OnInit {
       filter(a => a.length > 0),
     ).subscribe(a => this.audienceCount = a.length);
 
-    this.audiences$.subscribe(audiences => {
-      this.hasAudiences = audiences.length > 0;
+    this.audiences$.pipe(
+        filter(audiences => audiences.length > 0),
+        take(1)
+    ).subscribe(audiences => {
+      this.hasAudiences = true;
     });
 
-    this.appStateService.analysisLevel$.subscribe(() => {
-      this.nationalAudiencesBS$.value.forEach(aud => {
-        aud.exportNationally = false;
+    this.appStateService.applicationIsReady$.pipe(
+      filter(ready => ready)
+    ).subscribe(() => {
+      this.onLoadProject();
+    });
+
+    this.appStateService.analysisLevel$.subscribe(analysisLevel => {
+      this.nationalAudiencesBS$.value.forEach(aud => {
+        aud.exportNationally = false;
         this.varService.updateProjectVars(aud);
       });
     });
@@ -69,12 +83,38 @@ export class SelectedAudiencesComponent implements OnInit {
     });
   }
 
+  private onLoadProject() {
+    let showRender = false;
+    this.varService.getAudiences().forEach(audience => {
+      if (audience.showOnMap) {
+        showRender = true;
+      }
+    });
+    this.showRenderControls = showRender;
+  }
+
   public onApplyClicked() {
+    const audiences = this.varService.getAudiences();
+    const mappedAudience = audiences.find(a => a.showOnMap === true);
+    this.logger.debug.log('mappedAudience:::', mappedAudience);
+    // if (mappedAudience != null) {
+    //   const analysisLevel = this.appStateService.analysisLevel$.getValue();
+    //   const variableId = mappedAudience.audienceName == null ? 'custom' : mappedAudience.audienceIdentifier;
+    //   let metricText = null;
+    //   if (mappedAudience.audienceSourceType === 'Custom') {
+    //     metricText = 'CUSTOM' + '~' + mappedAudience.audienceName + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
+    //   } else {
+    //      metricText = variableId + '~' + mappedAudience.audienceName.replace('~', ':') + '~' + mappedAudience.audienceSourceName + '~' + analysisLevel + '~' + 'Theme=' + this.currentTheme;
+    //      metricText = metricText + (mappedAudience.allowNationalExport ? `~IndexBase=${mappedAudience.selectedDataSet}` : '');
+    //   }
+    //   this.store$.dispatch(new CreateMapUsageMetric('thematic-shading', 'activated', metricText));
+    //   this.store$.dispatch(new CreateGaugeMetric({ gaugeAction: 'map-thematic-shading-activated'}));
+    // }
     if (this.appStateService.analysisLevel$.getValue() == null || this.appStateService.analysisLevel$.getValue().length === 0) {
       this.store$.dispatch(new WarningNotification({ message: 'You must select an Analysis Level in order to apply the selected audience variable(s)', notificationTitle: 'Apply Selected Audience' }));
-    } else {
-      this.varService.applyAudienceSelection();
+      return;
     }
+    this.varService.applyAudienceSelection();
   }
 
   public closeDialog(){
@@ -88,6 +128,18 @@ export class SelectedAudiencesComponent implements OnInit {
 
     this.showDialog = false;
   }
+
+  // onMapSelected(audience: Audience) : void {
+  //   this.store$.dispatch(new SelectMappingAudience({ audienceIdentifier: audience.audienceIdentifier, isActive: audience.showOnMap }));
+  //   // Sync all project vars with audiences because multiple audiences are modified with SelectMappingAudience
+  //   this.varService.syncProjectVars();
+  //   this.showRenderControls = audience.showOnMap;
+  //   //this.varService.updateProjectVars(audience, false);
+  //   // this.audiences$.pipe(
+  //   //   map(all => all.filter(a => a.audienceIdentifier !== audience.audienceIdentifier)),
+  //   //   take(1),
+  //   // ).subscribe(unMapped => unMapped.forEach(a => a.showOnMap = false)); // with take(1), this subscription will immediately close
+  // }
 
   onShowGridSelected(audience: Audience) : void {
     this.varService.updateProjectVars(audience);
@@ -175,7 +227,14 @@ export class SelectedAudiencesComponent implements OnInit {
    });
   }
   }
-   
+  
+  private clearSelectedFields(){
+    this.varService.getAudiences().forEach(audience => {
+      this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+      this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+    });
+    this.varService.applyAudienceSelection();
+  }
 
   public onMoveUp(audience: Audience) {
     this.store$.dispatch(new MoveAudienceUp({ audienceIdentifier: audience.audienceIdentifier }));

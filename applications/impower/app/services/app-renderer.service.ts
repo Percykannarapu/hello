@@ -21,7 +21,7 @@ import {
 } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { combineLatest, Observable, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import { getFillPalette } from '../../../../modules/esri/src/models/color-palettes';
 import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.actions';
@@ -37,7 +37,6 @@ import { getTypedBatchQueryParams } from '../state/shared/router.interfaces';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './app-project-pref.service';
@@ -83,14 +82,7 @@ export class AppRendererService {
       withLatestFrom(this.store$.select(projectIsReady), this.store$.select(getBatchMode)),
       filter(([, ready, isBatchMode]) => ready && !isBatchMode)
     ).subscribe(([sd]) => {
-      const newDefs: ShadingDefinition[] = JSON.parse(JSON.stringify(sd));
-      newDefs.forEach(s => {
-        s.destinationLayerUniqueId = undefined;
-        if (isComplexShadingDefinition(s)) {
-          s.arcadeExpression = undefined;
-        }
-      });
-      this.appPrefService.createPref('esri', 'map-shading-defs', JSON.stringify(newDefs), 'STRING', true);
+      this.appPrefService.createPref('esri', 'map-shading-defs', JSON.stringify(sd));
     });
   }
 
@@ -118,9 +110,11 @@ export class AppRendererService {
   private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>) : void {
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
 
-    this.selectedWatcher = combineLatest([geoDataStore, this.store$.select(projectIsReady)]).pipe(
-      filter(([geos, ready]) => ready && geos != null),
+    this.selectedWatcher = geoDataStore.pipe(
+      withLatestFrom(this.store$.select(projectIsReady)),
+      filter(([, ready]) => ready),
       map(([geos]) => geos as ImpGeofootprintGeo[]),
+      filter(geos => geos != null),
       debounceTime(500),
       withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(getBatchMode), this.store$.select(getTypedBatchQueryParams)),
       map(([geos, layerDefs, batchMode, queryParams]) => ([ geos, layerDefs, batchMode && queryParams.duplicated ] as const))
@@ -277,10 +271,10 @@ export class AppRendererService {
     if (project.methAnalysis == null || project.methAnalysis.length === 0) return result;
 
     const shadingData: ImpProjectVar[] = project.impProjectVars.filter(p => p.isShadedOnMap);
-    const legacyPrefs: ImpProjectPref[] = (project.impProjectPrefs || []).filter(p => p.prefGroup === 'map-settings');
-    const isFiltered = legacyPrefs.filter(p => p.pref === 'Thematic-Extent' && p.getVal() === 'Selected Geos only').length > 0;
+    const legacyPrefs = (project.impProjectPrefs || []).filter(p => p.prefGroup === 'map-settings');
+    const isFiltered = legacyPrefs.filter(p => p.pref === 'Thematic-Extent' && p.val === 'Selected Geos only').length > 0;
     const paletteKey = legacyPrefs.filter(p => p.pref === 'Theme')[0];
-    const legacyTheme = paletteKey != null ? ColorPalette[paletteKey.getVal()] : ColorPalette.EsriPurple;
+    const legacyTheme = paletteKey != null ? ColorPalette[paletteKey.val] : ColorPalette.EsriPurple;
     const selectionDefinition = this.createSelectionShadingDefinition(project.methAnalysis, shadingData.length > 0);
     let indexOffset = 1;
     if (shadingData.length === 0 || !isFiltered) {

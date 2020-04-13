@@ -166,15 +166,11 @@ export class BatchMapDialogComponent implements OnInit {
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
     const fitTo: FitToPageOptions = <FitToPageOptions> dialogFields.fitTo;
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'deduped-shading' , dialogFields.deduplicated, dialogFields.deduplicated ? 1 : 0));
-    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighbor-sites' , dialogFields.neighboringSites, null));
-    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'fit-to' , fitTo, null));
-    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'buffer' , 'percent', dialogFields.buffer));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighbor-exclude' , dialogFields.neighboringSites, dialogFields.neighboringSites !== 'include' ? 0  : 1));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'fitTo' , fitTo, null));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'buffer' , null, dialogFields.buffer));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'page-size' , dialogFields.pageSettingsControl, null));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'page-orientation' , dialogFields.layout, null));
-    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighboring-sites-shading' , dialogFields.enableTradeAreaShading, dialogFields.enableTradeAreaShading ? 1 : 0));
-    const sitesPerPage = dialogFields.sitesPerPage === 'sitesGroupedBy' ? `${dialogFields.sitesPerPage}=${dialogFields.sitesByGroup}` : dialogFields.sitesPerPage;
-    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'sites-per-page' , sitesPerPage, null));
-
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
       const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));

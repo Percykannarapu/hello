@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates, mapByExtended } from '@val/common';
+import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
@@ -313,14 +313,14 @@ export class AppTradeAreaService {
   }
 
   public createRadiusTradeAreasForLocations(tradeAreas: { radius: number, selected: boolean, taNumber: number }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = true) : ImpGeofootprintTradeArea[] {
-    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+    let newTradeAreas: ImpGeofootprintTradeArea[] = [];
     if (tradeAreas != null && tradeAreas.length > 0) {
       locations.forEach(location => {
-        tradeAreas.forEach(ta => {
-          newTradeAreas.push(this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, ta.selected, ta.taNumber, ta.radius, attachToHierarchy));
-        });
+        const newDomain = tradeAreas.map(ta => this.domainFactory.createTradeArea(location, TradeAreaTypeCodes.Radius, ta.selected, ta.taNumber, ta.radius, attachToHierarchy));
+        newTradeAreas = newTradeAreas.concat(newDomain);
       });
     }
+
     return newTradeAreas;
   }
 
@@ -340,8 +340,7 @@ export class AppTradeAreaService {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
-    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations.filter(loc => loc.clientLocationTypeCode === 'Site'), 'locationNumber');
-    //mapBy(allLocations, 'locationNumber');
+    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
     const matchedTradeAreas = new Set<TradeAreaDefinition>();
 
     // make sure we can find an associated location for each uploaded data row
@@ -349,9 +348,8 @@ export class AppTradeAreaService {
       if (locationsByNumber.has(taDef.store)){
         matchedTradeAreas.add(taDef);
       } else {
-        taDef.message = 'Invalid Site #';
+        taDef.message = 'Site number not found';
         this.uploadFailures = [...this.uploadFailures, taDef];
-        matchedTradeAreas.add(taDef);
       }
     });
 
@@ -421,19 +419,16 @@ export class AppTradeAreaService {
 
   public validateRolldownGeos(payload: any[], queryResult: Map<string, {latitude: number, longitude: number}>,  matchedTradeAreas: any[], fileAnalysisLevel: string) {
     let failedGeos: any[] = [];
-    const uploadFailuresMapBy = mapBy(this.uploadFailures, 'geocode');
     const payloadByGeocode = mapBy(payload, 'orgGeo');
     const matchedTradeAreaByGeocode = groupBy(Array.from(matchedTradeAreas), 'geocode');
     if (fileAnalysisLevel === 'ZIP' || fileAnalysisLevel === 'ATZ' || fileAnalysisLevel === 'PCR' || fileAnalysisLevel === 'Digital ATZ'){
       matchedTradeAreas.forEach(ta => {
         if (!queryResult.has(ta.geocode)) {
-            ta.message = uploadFailuresMapBy.has(ta.geocode) ? 'Invalid Site # and invalid/unreachable Geo' : 'Invalid/unreachable Geo';
+            ta.message = 'Geocode not found';
             failedGeos = [...failedGeos, ta];
         }
         else if ( !payloadByGeocode.has(ta.geocode)){
-            //ta.message = 'Invalid/unreachable Geo';
-            //'Rolldown Geocode not found';
-            ta.message = uploadFailuresMapBy.has(ta.geocode) ? 'Invalid Site # and invalid/unreachable Geo' : 'Invalid/unreachable Geo';
+            ta.message = 'Rolldown Geocode not found';
             failedGeos = [...failedGeos, ta];
         }
       });
@@ -442,9 +437,7 @@ export class AppTradeAreaService {
       const analysisLevel = fileAnalysisLevel === 'WRAP_MKT_ID' ? 'Wrap Zone' : fileAnalysisLevel === 'INFOSCAN_CODE' ? 'Infoscan' : fileAnalysisLevel;
       matchedTradeAreas.forEach(ta => {
          if ( !payloadByGeocode.has(ta.geocode)){
-            //ta.message = 'Invalid/unreachable Geo';
-            //`Rolldown ${analysisLevel} not found`;
-            ta.message = uploadFailuresMapBy.has(ta.geocode) ? 'Invalid Site # and invalid/unreachable Geo' : 'Invalid/unreachable Geo';
+            ta.message = `Rolldown ${analysisLevel} not found`;
             failedGeos = [...failedGeos, ta];
         }
       });
@@ -469,12 +462,6 @@ export class AppTradeAreaService {
       }
     });
 
-    //this.uploadFailures = [];
-    failedGeos.forEach(ta => {
-       this.uploadFailures = this.uploadFailures.filter(failedTa => failedTa.geocode !== ta.geocode && failedTa.message !== ta.message);
-    });
-    
-
     return { failedGeos, payload };
   }
 
@@ -485,17 +472,15 @@ export class AppTradeAreaService {
     const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
     payload.forEach(record => {
       const loc = locationsByNumber.get(record.locNumber);
-      if (loc != null){
-        const layerData = {x: record.x, y: record.y};
-        const distance = EsriUtils.getDistance(layerData.x, layerData.y, loc.xcoord, loc.ycoord);
-        let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
-          if (currentTradeArea == null) {
-            currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
-            tradeAreasToAdd.push(currentTradeArea);
-          }
-        const newGeo = this.domainFactory.createGeo(currentTradeArea, record.geocode, layerData.x, layerData.y, distance);
-        geosToAdd.push(newGeo);
-      }
+      const layerData = {x: record.x, y: record.y};
+      const distance = EsriUtils.getDistance(layerData.x, layerData.y, loc.xcoord, loc.ycoord);
+      let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
+        if (currentTradeArea == null) {
+          currentTradeArea = this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.Custom);
+          tradeAreasToAdd.push(currentTradeArea);
+        }
+      const newGeo = this.domainFactory.createGeo(currentTradeArea, record.geocode, layerData.x, layerData.y, distance);
+      geosToAdd.push(newGeo);
     });
     this.uploadFailures = this.uploadFailures.concat(failedGeos);
     // stuff all the results into appropriate data stores

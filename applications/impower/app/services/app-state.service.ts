@@ -59,7 +59,6 @@ export class AppStateService {
   public activeClientLocations$: Observable<ImpGeofootprintLocation[]>;
   public allCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
   public activeCompetitorLocations$: Observable<ImpGeofootprintLocation[]>;
-  public allLocationCount$: Observable<number>;
   public clientLocationCount$: Observable<number>;
 
   public uniqueSelectedGeocodeSet$: Observable<Set<string>>;
@@ -210,7 +209,6 @@ export class AppStateService {
     this.activeCompetitorLocations$ = this.allCompetitorLocations$.pipe(
       filterArray(l => l.isActive)
     );
-    this.allLocationCount$ = this.allLocations$.pipe(map(l => l.length));
     this.clientLocationCount$ = this.activeClientLocations$.pipe(map(l => l.length));
   }
 

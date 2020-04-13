@@ -4,11 +4,12 @@ import { filterArray, groupByExtended, isConvertibleToNumber, mapBy, mapByExtend
 import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { Geometry } from 'esri/geometry';
 import geometryEngine from 'esri/geometry/geometryEngine';
 import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
-import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -30,7 +31,6 @@ import { AppGeocodingService } from './app-geocoding.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
-import Graphic = __esri.Graphic;
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -163,8 +163,7 @@ export class AppLocationService {
     );
     const competitorCount$ = successfulLocations$.pipe(
       filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor),
-      map(locs => locs.length),
-      tap(len => this.logger.debug.log('Competitor count in datastore:', len))
+      map(locs => locs.length)
     );
 
     successfulLocations$.subscribe(locations => this.store$.dispatch(new RenderLocations({ locations, impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') })));
@@ -282,33 +281,26 @@ export class AppLocationService {
     const currentProject = this.appStateService.currentProject$.getValue();
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     return this.geocodingService.getGeocodingResponse(data, siteType).pipe(
-      map(responses => responses.map(r => this.domainFactory.createLocation(currentProject, r, siteType, isLocationEdit, currentAnalysisLevel, data))),
+      map(responses => responses.map(r => this.domainFactory.createLocation(currentProject, r, siteType, isLocationEdit, currentAnalysisLevel, data)))
     );
   }
 
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[], isEdit?: boolean, isResubmit?: boolean, oldData?: ImpGeofootprintLocation) : void {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+
     data.forEach(l => {
-      let radius2 = 0;
-      let radius1 = 0;
-      let radius3 = 0;
       const tradeAreas: { radius: number, selected: boolean, taNumber: number }[] = [];
       if (l.locationNumber == null || l.locationNumber.length === 0 ){
         l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
       }
       if (isConvertibleToNumber(l.radius1) && Number(l.radius1) > 0) {
-         radius2 = l.radius2 == null ? Infinity : l.radius2 ;
-         radius3 = l.radius3 == null ? Infinity : l.radius3 ;
-         radius1 = Math.min(l.radius1, radius2, radius3);
-         tradeAreas.push({ radius: radius1, selected: true, taNumber: 1 });
-      }
-      if (isConvertibleToNumber(l.radius3) && Number(l.radius3) > 0) {
-         radius3 = Math.max(l.radius1, l.radius2, l.radius3);
-         tradeAreas.push({ radius: radius3, selected: true, taNumber: 3 });
+        tradeAreas.push({ radius: Number(l.radius1), selected: true, taNumber: 1 });
       }
       if (isConvertibleToNumber(l.radius2) && Number(l.radius2) > 0) {
-         radius2 = l.radius3 == null ? Math.max(l.radius1, l.radius2) : [l.radius1, l.radius2, l.radius3].filter(rad => rad != radius1 && rad != radius3)[0];
-         tradeAreas.push({ radius: Number(radius2), selected: true, taNumber: 2 });
+        tradeAreas.push({ radius: Number(l.radius2), selected: true, taNumber: 2 });
+      }
+      if (isConvertibleToNumber(l.radius3) && Number(l.radius3) > 0) {
+        tradeAreas.push({ radius: Number(l.radius3), selected: true, taNumber: 3 });
       }
       newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, [l], false));
     });
@@ -367,6 +359,105 @@ export class AppLocationService {
     }
   }
 
+  public determineDtzHomegeos(attributes: any[], locations: ImpGeofootprintLocation[]) : Observable<any>{
+    const attributesByHomeZip: Map<any, any> = mapBy(attributes, 'homeZip');
+    this.logger.debug.log('attributesByHomeZip:::', attributesByHomeZip);
+    let remainingAttributes = [];
+    const zipGeocodeList = Array.from(attributesByHomeZip.keys());
+    const locTempDict: Map<any, any> = mapByExtended(locations.filter(loc => loc.impGeofootprintLocAttribs.length > 0 && loc.impGeofootprintLocAttribs.filter
+      (attr => attr.attributeCode === 'Home Digital ATZ' && attr.attributeValue !== '')), item => item.locationNumber);
+    return this.determineHomeGeos(zipGeocodeList, 'VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ').pipe(
+      map(response => {
+        return  response.payload;
+      }),
+      reduce((acc, result) => [...acc, ...result], []),
+      map(zipResponse => {
+        const zipResponseDict = [];
+        if (zipResponse.length > 0){
+          zipResponse.forEach(row => {
+            zipResponseDict[row['geocode']] = row;
+          });
+        }
+        attributes.forEach(attribute => {
+          const homeDtz = locTempDict.get(attribute['siteNumber']) != null ? locTempDict.get(attribute['siteNumber']).impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home Digital ATZ')[0] : null;
+          if (locTempDict.get(attribute['siteNumber']) != null && homeDtz && homeDtz.attributeValue !== ''){
+            attribute['homeDigitalAtz'] = homeDtz && homeDtz.attributeValue !== '' ? homeDtz.attributeValue : '';
+          }
+          else if (attribute['homeZip'] in zipResponseDict){
+            const attr = zipResponseDict[attribute['homeZip']];
+            attribute['homeDigitalAtz'] = attr['geocode'];
+          }
+          else {
+            attribute['homeDigitalAtz'] = '';
+            remainingAttributes.push(attribute);
+          }
+        });
+        return remainingAttributes;
+      }),
+      mergeMap(remainingAttr => {
+        if (remainingAttr.length > 0){
+          const attributesByHomeAtz: Map<any, any> = mapBy(remainingAttr, 'homeAtz');
+          const atzGeocodeList = Array.from(attributesByHomeAtz.keys());
+          return this.determineHomeGeos(atzGeocodeList, 'VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ, DMA_Name').pipe(
+            map(response => {
+              return  response.payload;
+            }),
+            reduce((acc, result) => [...acc, ...result], []),
+          );
+        } else{
+          return of(null);
+        }
+      }),
+      map(atzResponse => {
+        const atzResponseDict = [];
+        remainingAttributes = [];
+        if (atzResponse != null && atzResponse.length > 0){
+          atzResponse.forEach(row => {
+            atzResponseDict[row['geocode']] = row;
+          });
+        }
+        attributes.forEach(attribute => {
+          if (attribute['homeAtz'] in atzResponseDict || attribute['homeDigitalAtz'] !== ''){
+            attribute['homeDigitalAtz'] = attribute['homeDigitalAtz'] !== '' ? attribute['homeDigitalAtz'] : atzResponseDict[attribute['homeAtz']]['geocode'];
+          }
+          else {
+            attribute['homeDigitalAtz'] = '';
+            remainingAttributes.push(attribute);
+          }
+        });
+        return remainingAttributes;
+      }),
+      mergeMap(remainingAttr => {
+        if (remainingAttr.length > 0){
+          const attributesByHomePcr: Map<any, any> = mapBy(remainingAttr, 'homePcr');
+          const pcrGeocodeList = Array.from(attributesByHomePcr.keys());
+          return this.determineHomeGeos(pcrGeocodeList, 'VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ').pipe(
+            map(response => {
+              return  response.payload;
+            }),
+            reduce((acc, result) => [...acc, ...result], []),
+          );
+        } else{
+          return of(null);
+        }
+      }),
+      map(pcrResponse => {
+        const pctResponseDict = [];
+        if (pcrResponse != null && pcrResponse.length > 0){
+          pcrResponse.forEach(row => {
+            pctResponseDict[row['geocode']] = row;
+          });
+        }
+        attributes.forEach(attribute => {
+          if (attribute['homePcr'] in pctResponseDict){
+            attribute['homeDigitalAtz'] = attribute['homeDigitalAtz'] !== '' ? attribute['homeDigitalAtz'] : pctResponseDict[attribute['homePcr']]['geocode'];
+          }
+        });
+        return attributes;
+      })
+    );
+  }
+
   public validateHomeGeoAttributesOnEdit(attributes: any[], editedTags ?: any[]) : Observable<any> {
     if (editedTags.length > 0){
       const requestToCall: Array<Observable<any>> = [];
@@ -400,6 +491,163 @@ export class AppLocationService {
     this.impLocationService.update(oldData, editedLocation);
     const location = this.impLocationService.get().filter(l => l.locationNumber === oldData.locationNumber);
     this.processHomeGeoAttributes(attributeList, location);
+  }
+
+  private validateHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : Observable<any>{
+    let geocodeList = [];
+    const locDicttemp = {};
+    locations.forEach(loc => {
+      locDicttemp[loc.locationNumber] = loc;
+    });
+    attributes.forEach(attr => {
+        if (attr['homePcr'] != null && attr['homePcr'] !== '' && attr['homePcr'].split(',').length > 1){
+          attr['homePcr'].split(',').forEach(pcr => geocodeList.push(pcr));
+        }
+        else{
+          geocodeList.push(attr['homePcr']);
+        }
+    });
+    return this.determineHomeGeos(geocodeList, 'CL_PCRTAB14', 'geocode,ZIP , ZIP_ATZ, DMA, DMA_Name, COUNTY').pipe(
+      map(response => {
+        return  response.payload;
+      }),
+      reduce((acc, result) => [...acc, ...result], []),
+      map(response => {
+        const pcrTab14ResponseDict = {};
+        if (response.length > 0){
+          response.forEach(row => {
+            pcrTab14ResponseDict[row['geocode']] = row;
+          });
+        }
+        attributes.forEach(attribute => {
+          if (attribute['homePcr'] in pcrTab14ResponseDict){
+            const attr = pcrTab14ResponseDict[attribute['homePcr']];
+            let homePcr = null;
+            if (locDicttemp[attribute['siteNumber']] != null && locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.length > 0){
+              homePcr = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home Carrier Route')[0];
+            }
+            attribute['homePcr'] = homePcr && homePcr.attributeValue !== '' ? homePcr.attributeValue : attr['geocode'];
+          }
+          else if (attribute['homePcr'] != null && attribute['homePcr'] !== '' && attribute['homePcr'].split(',').length > 1 && attribute['homePcr'].includes(attribute['geocoderZip'])){
+            attribute['homePcr'].split(',').forEach(pcr => {
+              if (pcr in pcrTab14ResponseDict && attribute['homePcr'].includes(attribute['geocoderZip']) && pcr.substring(0, 5) === attribute['geocoderZip']){
+                const attr = pcrTab14ResponseDict[pcr];
+                let homePcr = null;
+                if (locDicttemp[attribute['siteNumber']] != null && locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.length > 0){
+                  homePcr = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home Carrier Route')[0];
+                }
+                attribute['homePcr'] = homePcr && homePcr.attributeValue !== '' ? homePcr.attributeValue : attr['geocode'];
+              }
+            });
+          }
+        });
+        return attributes;
+      }),
+      mergeMap(() => {
+        geocodeList = [];
+        attributes.forEach(attr => {
+          if (attr['homeZip'] != null && attr['homeZip'] !== '' && attr['homeZip'].split(',').length > 1){
+            attr['homeZip'].split(',').forEach(zip => geocodeList.push(zip));
+          }
+          else{
+            geocodeList.push(attr['homeZip']);
+          }
+        });
+        return this.determineHomeGeos(geocodeList, 'CL_ZIPTAB14', 'geocode, ZIP, DMA, DMA_Name, COUNTY').pipe(
+          map(response => {
+            return  response.payload;
+          }),
+          reduce((acc, result) => [...acc, ...result], []),
+        );
+      }),
+      map(zipResponse => {
+        const zipTab14ResponseDict = {};
+        if (zipResponse.length > 0){
+          zipResponse.forEach(row => {
+            zipTab14ResponseDict[row['geocode']] = row;
+          });
+        }
+        attributes.forEach(attribute => {
+          let homeZip = null;
+          let homeDma = null;
+          let homeCounty = null;
+          if (attribute['homeZip'] in zipTab14ResponseDict ) {
+            const attr = zipTab14ResponseDict[attribute['homeZip']];
+            if (locDicttemp[attribute['siteNumber']] != null){
+              homeZip = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home Zip Code')[0];
+              homeDma = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home DMA')[0];
+              homeCounty = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home County')[0];
+            }
+
+            attribute['homeZip'] = homeZip && homeZip.attributeValue !== '' ? homeZip.attributeValue : attr['ZIP'];
+            attribute['homeDma'] = homeDma && homeDma.attributeValue !== '' ? homeDma.attributeValue : attr['homeDma'];
+            attribute['homeCounty'] = homeCounty && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : attr['homeCounty'];
+            attribute['homeDmaName'] = attr['DMA_Name'];
+
+          }
+          else if (attribute['homeZip'] != null && attribute['homeZip'] !== '' &&  attribute['homeZip'].split(',').length > 1
+                  && attribute['homeZip'].includes(attribute['geocoderZip']) && attribute['geocoderZip'] in zipTab14ResponseDict){
+              const attr = zipTab14ResponseDict[attribute['geocoderZip']];
+              if (locDicttemp[attribute['siteNumber']] != null){
+                homeZip = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home Zip Code')[0];
+                homeDma = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home DMA')[0];
+                homeCounty = locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home County')[0];
+              }
+
+              attribute['homeZip'] = homeZip && homeZip.attributeValue !== '' ? homeZip.attributeValue : attr['ZIP'];
+              attribute['homeDma'] = homeDma && homeDma.attributeValue !== '' ? homeDma.attributeValue : attr['homeDma'];
+              attribute['homeCounty'] = homeCounty && homeCounty.attributeValue !== '' ? homeCounty.attributeValue : attr['homeCounty'];
+              attribute['homeDmaName'] = attr['DMA_Name'];
+          }
+
+        });
+        return attributes;
+      }),
+      mergeMap(() => {
+        geocodeList = [];
+        attributes.forEach(attr => {
+          if (attr['homeAtz'] != null && attr['homeAtz'] !== '' && attr['homeAtz'].split(',').length > 1){
+            attr['homeAtz'].split(',').forEach(atz => geocodeList.push(atz));
+          }else{
+            geocodeList.push(attr['homeAtz']);
+          }
+        });
+        return this.determineHomeGeos(geocodeList, 'CL_ATZTAB14', 'geocode,ZIP').pipe(
+          map(response => {
+            return  response.payload;
+          }),
+          reduce((acc, result) => [...acc, ...result], []),
+        );
+      }),
+      map(atzResponse => {
+        const atzTab14ResponseDict = {};
+        if (atzResponse.length > 0){
+            atzResponse.forEach(row => {
+              atzTab14ResponseDict[row['geocode']] = row;
+          });
+        }
+        attributes.forEach(attribute => {
+          if (attribute['homeAtz'] in atzTab14ResponseDict ){
+            const attr = atzTab14ResponseDict[attribute['homeAtz']];
+            const homeAtz = locDicttemp[attribute['siteNumber']] != null ? locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home ATZ')[0] : null;
+            attribute['homeAtz'] = homeAtz && homeAtz.attributeValue !== '' ? homeAtz.attributeValue : attr['geocode'];
+          }
+          else if (attribute['homeAtz'] != null && attribute['homeAtz'] !== '' &&  attribute['homeAtz'].split(',').length > 1 && attribute['homeAtz'].includes(attribute['geocoderZip'])){
+            attribute['homeAtz'].split(',').forEach(atz => {
+              if (atz in atzTab14ResponseDict && attribute['homeAtz'].includes(attribute['geocoderZip']) && atz.substring(0, 5) === attribute['geocoderZip']){
+                const attr = atzTab14ResponseDict[atz];
+                const homeAtz = locDicttemp[attribute['siteNumber']] != null ? locDicttemp[attribute['siteNumber']].impGeofootprintLocAttribs.filter(attri => attri.attributeCode === 'Home ATZ')[0] : null;
+                attribute['homeAtz'] = homeAtz && homeAtz.attributeValue !== '' ? homeAtz.attributeValue : attr['geocode'];
+              }
+            });
+          }
+         /* else {
+            attribute['homeAtz'] = '';
+          }*/
+        });
+        return attributes;
+      })
+    );
   }
 
   public processHomeGeoAttributes(attributes: any[], locations: ImpGeofootprintLocation[]) : void {
@@ -609,47 +857,49 @@ export class AppLocationService {
   }
 
   public queryAllHomeGeos(locationsMap: Map<string, ImpGeofootprintLocation[]>) : Observable<any> {
-      this.logger.debug.log('Location data store prior to home geo query', this.impLocationService.get().length);
-      this.logger.debug.log('Querying all Home Geocodes for', locationsMap);
-      let pipObservable: Observable<any> = EMPTY;
-      let combinedObservable: Observable<any> = EMPTY;
-      let dmaAndCountyObservable: Observable<any> = EMPTY;
+      this.logger.debug.log(locationsMap);
+      let pipObservble: Observable<any> = EMPTY;
+      let combinedObservble: Observable<any> = EMPTY;
+      let dmaAndCountyObservble: Observable<any> = EMPTY;
       let initialAttributesObs: Observable<any> = EMPTY;
-      let fuseObservable: Observable<any> = EMPTY;
+      let fuseObservble: Observable<any> = EMPTY;
+      const layerId = this.config.getLayerIdForAnalysisLevel('pcr', true);
 
       if (locationsMap.get('needtoPipLocations').length > 0){
         const locationsHomeGeoFuse: ImpGeofootprintLocation[] = [];
         const locationsForPIP: ImpGeofootprintLocation[] = [];
+        const queries: Observable<any>[] = [];
         locationsMap.get('needtoPipLocations').forEach(loc => {
-          if (loc.carrierRoute != null && loc.carrierRoute !== ''){
-            loc.homePcr = loc.locZip.substr(0, 5) + loc.carrierRoute;
-            locationsHomeGeoFuse.push(loc);
-          }else{
-            locationsForPIP.push(loc);
-          }
+              if (loc.carrierRoute != null && loc.carrierRoute !== ''){
+                loc.homePcr = loc.locZip.substr(0, 5) + loc.carrierRoute;
+                locationsHomeGeoFuse.push(loc);
+              }else{
+                locationsForPIP.push(loc);
+              }
         });
         if (locationsForPIP.length > 0){
-           pipObservable = this.pipLocations(locationsForPIP).pipe(
-             switchMap(res => this.queryRemainingAttr(res, locationsForPIP, false)),
+            const attributesList: any[] = [];
+          // const testObs = this.pipLocations(locationsForPIP);
+           pipObservble = this.pipLocations(locationsForPIP).pipe(switchMap(res => this.queryRemainingAttr(res, locationsForPIP, false).pipe(
              map(result => {
-               const attributesList: any[] = [];
-                if (result.attributes.length > 0)
-                    attributesList.push(... result.attributes);
-                if (result.rePipLocations.length > 0){
-                    const row = {'ATZ': null, 'DTZ' : null, 'ZIP': null, 'DMA': null, 'COUNTY': null};
-                    result.rePipLocations.forEach(loc => {
-                      attributesList.push(this.createArreibut(row, loc));
-                  });
-                }
+                      if (result.attributes.length > 0)
+                          attributesList.push(... result.attributes);
+                      if (result.rePipLocations.length > 0){
+                          const row = {'ATZ': null, 'DTZ' : null, 'ZIP': null, 'DMA': null, 'COUNTY': null};
+                          result.rePipLocations.forEach(loc => {
+                            attributesList.push(this.createArreibut(row, loc));
+                        });
+                      }
                 return attributesList;
              })
+           ))
            );
         }
         if (locationsHomeGeoFuse.length > 0){
           const attrList: Map<ImpGeofootprintLocation, string> = new Map<ImpGeofootprintLocation, string>();
           const attributesList: any[] = [];
           locationsHomeGeoFuse.forEach(loc => attrList.set(loc, loc.locZip.substr(0, 5) + loc.carrierRoute));
-          fuseObservable = this.queryRemainingAttr(attrList, locationsHomeGeoFuse, true).pipe(
+          fuseObservble = this.queryRemainingAttr(attrList, locationsHomeGeoFuse, true).pipe(
             map(result => {
               if (result.attributes.length > 0)
                    attributesList.push(... result.attributes);
@@ -679,19 +929,19 @@ export class AppLocationService {
             })
           );
         }
-        combinedObservable = merge(fuseObservable, pipObservable);
+        combinedObservble = merge(fuseObservble, pipObservble);
       }
       if (locationsMap.get('initialAttributeList').length > 0){
         initialAttributesObs = of(locationsMap.get('initialAttributeList'));
       }
       if (locationsMap.get('dmaAndCountyLoc').length > 0){
-       dmaAndCountyObservable = this.getDmaAndCounty(locationsMap.get('dmaAndCountyLoc')).pipe(
+       dmaAndCountyObservble = this.getDmaAndCounty(locationsMap.get('dmaAndCountyLoc')).pipe(
          switchMap(res => {
           return res;
          })
        );
       }
-      return merge(dmaAndCountyObservable, combinedObservable, initialAttributesObs).pipe(
+      return merge(dmaAndCountyObservble, combinedObservble, initialAttributesObs).pipe(
         filter(value => value != null),
         reduce((acc, value) => [...acc, ...value], [])
       );
@@ -743,7 +993,12 @@ export class AppLocationService {
     );
   }
 
-
+  /**
+   *
+   * @param attrList
+   * @param impGeofootprintLocation
+   * query IMP_GEO_HIERARCHY_MV for remaining arrtibutes
+   */
   queryRemainingAttr(attrList: Map<any, any>, impGeofootprintLocations: ImpGeofootprintLocation[], isFuseLocations: boolean){
     const homePcrList = Array.from(attrList.values());
     const attributesList: any[] = [];
@@ -757,10 +1012,10 @@ export class AppLocationService {
       map(result => {
         const locMapBySiteNumber = mapBy(impGeofootprintLocations, 'locationNumber');
         const responseMap: Map<string, any[]> = groupByExtended(result, row => row['PCR']);
-        const t = this.getAttributesforLayers(locMapBySiteNumber, responseMap, attrList, isFuseLocations);
-        if (t.attributes.length > 0) attributesList.push(...t.attributes);
-        if (t.rePipLocations.length > 0) rePipLocations.push(...t.rePipLocations);
-        return t;
+          const t =  this.getAttributesforLayers(locMapBySiteNumber, responseMap, attrList, isFuseLocations);
+          if (t.attributes.length > 0) attributesList.push(...t.attributes);
+          if (t.rePipLocations.length > 0) rePipLocations.push(...t.rePipLocations);
+          return t;
       }),
       mergeMap(t => {
         this.logger.debug.log(`remaining locations for ATZ: ${t.rePipLocations.length} `);
@@ -847,43 +1102,41 @@ export class AppLocationService {
     if (Array.from(locMapBySiteNumber.keys()).length > 0){
           pipAgianLocations.push(...Array.from(locMapBySiteNumber.values()));
     }
-    const t = {'attributes': attributesList, 'rePipLocations': pipAgianLocations};
-    this.logger.debug.log('Attribute Hydration Complete', t);
-    return t;
+     const t = {'attributes': attributesList, 'rePipLocations': pipAgianLocations};
+     return t;
   }
 
-  pipLocations(locations: ImpGeofootprintLocation[], analysisLevel: string = 'pcr') {
-    const queries: Observable<[ImpGeofootprintLocation, string][]>[] = [];
-    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    const chunks = quadPartitionLocations(locations, analysisLevel);
-    chunks.forEach(chunk => {
-      if (chunk.length > 0) {
-        const points = toUniversalCoordinates(chunk);
-        queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode']).pipe(
-          reduce((acc, result) => [...acc, ...result], [] as Graphic[]),
-          map(graphics => {
-            const result: [ImpGeofootprintLocation, string][] = [];
-            chunk.forEach(loc => {
-              for (const graphic of graphics) {
-                if (geometryEngine.contains(graphic.geometry, toUniversalCoordinates(loc) as __esri.Point)){
-                  result.push([loc, graphic.attributes['geocode']]);
-                  break;
-                }
-              }
-            });
-            return result;
-          })
-        ));
-      }
-    });
-    return merge(...queries, 4).pipe(
-      reduce((acc, result) => [...acc, ...result], []),
-      map(result => {
-        const resultMapByLocation: Map<ImpGeofootprintLocation, string> = new Map(result);
-        this.logger.debug.log(`pip Response for ${analysisLevel} : ${Array.from(resultMapByLocation.values()).length} - total locations-${locations.length}`);
-        return resultMapByLocation;
-      })
-    );
+  pipLocations(locations: ImpGeofootprintLocation[], analysisLevel: string = 'pcr'){
+    const queries: Observable<any>[] = [];
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
+    const chunkArrays = quadPartitionLocations(locations, analysisLevel);
+          for (const locArry of chunkArrays){
+            if (locArry.length > 0){
+              const points = toUniversalCoordinates(locArry);
+              queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode'] ));
+            }
+          }
+        const responseMapby: Map<string, any> = new Map<string, any>();
+        const resultMapbyLocation: Map<ImpGeofootprintLocation, any> = new Map<any, any>();
+         return merge(...queries, 4).pipe(
+            reduce((acc, result) => [...acc, ...result], []),
+            map(result => {
+                locations.forEach(loc => {
+                  const insideGeometry = {x: loc.xcoord, y: loc.ycoord} as Geometry;
+                  let i: number = 0;
+                  for (i; i < result.length ; i++){
+                      if (geometryEngine.contains(result[i].geometry, insideGeometry)){
+                        resultMapbyLocation.set(loc, result[i].attributes['geocode']);
+                        break;
+                      }
+                  }
+                });
+                this.logger.debug.log(`pip Response for ${analysisLevel} : ${Array.from(resultMapbyLocation.values()).length} - total locations-${locations.length}`);
+                //result.forEach(res => responseMapby.set(res.attributes['geocode'], res.geometry));
+                return resultMapbyLocation;
+            })
+          );
+
   }
 
 
@@ -891,7 +1144,7 @@ export class AppLocationService {
   createArreibut(row: {}, loc: ImpGeofootprintLocation){
    const locHomeArributes: Map<string, string>  = new Map<string, string>();
    loc.impGeofootprintLocAttribs.forEach(attr => {
-      if (homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue !== ''){
+      if (homeGeoColumnsSet.has(attr.attributeCode)){
         locHomeArributes.set(attr.attributeCode, attr.attributeValue);
       }
    });

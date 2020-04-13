@@ -1,19 +1,16 @@
 <div class="ui-g">
     <div class="ui-g-12">
       <div class="ui-g-12">
-        <div class="ui-g-1">
+        <div class="ui-g-3">
           <label>Define for:</label>
         </div>
-        <div class="ui-g-1">
+        <div class="ui-g-3">
           <p-radioButton name="uploadListType1" value="Site" label="Sites" [(ngModel)]="listType1"></p-radioButton>
         </div>
-        <div class="ui-g-2">
+        <div class="ui-g-3">
           <p-radioButton name="uploadListType1" value="Competitor" label="Competitors" [(ngModel)]="listType1"></p-radioButton>
         </div>
       </div>
-      <div  *ngIf="!(currentAnalysisLevel$ | async)" class="valassis-brand-label">  
-          • You must select an Analysis Level, within the Discovery tab, before uploading a custom trade area file
-       </div>
       <br>
       &nbsp;
       <div class="ui-g-12">
@@ -65,9 +62,8 @@
         </ng-template>
         <ng-template pTemplate="header" width="80%">
           <tr>
-            <th width="10%">Geocode</th>
-            <th width="10%">Number</th>
-            <th width="30%">Reason</th>
+            <th width="25%">Geocode</th>
+            <th width="25%">Number</th>
            
             <th width="15%">Resubmit</th>
             <th width="15%">Remove</th>
@@ -75,7 +71,7 @@
         </ng-template>
         <ng-template pTemplate="body" let-rowData width="80%">
           <tr>
-            <td pEditableColumn width="10%"> 
+            <td pEditableColumn width="25%"> 
                   <p-cellEditor>
                       <ng-template pTemplate="input">
                         <input pInputText type="text" [(ngModel)]="rowData.geocode">
@@ -85,7 +81,7 @@
                       </ng-template>
                     </p-cellEditor>
             </td>
-            <td pEditableColumn width="10%">
+            <td pEditableColumn width="25%">
                     <p-cellEditor>
                         <ng-template pTemplate="input">
                           <input pInputText type="text" [(ngModel)]="rowData.store">
@@ -94,16 +90,6 @@
                           {{rowData.store}}
                         </ng-template>
                       </p-cellEditor>
-            </td>
-            <td pEditableColumn width="30%">
-                <p-cellEditor>
-                    <ng-template pTemplate="input">
-                      <input pInputText type="text" [(ngModel)]="rowData.message">
-                    </ng-template>
-                    <ng-template pTemplate="output">
-                      {{rowData.message}}
-                    </ng-template>
-                  </p-cellEditor>
             </td>
             
             <td width="15%">

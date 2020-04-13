@@ -9,7 +9,6 @@ import { SimpleRenderer } from 'esri/renderers';
 import { SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol } from 'esri/symbols';
 import { from, merge, Observable, of } from 'rxjs';
 import { map, reduce, switchMap, tap } from 'rxjs/operators';
-import { AppConfig } from '../../app.config';
 import { QuadTree } from '../../models/quad-tree';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
@@ -31,7 +30,6 @@ export class RenderingService {
               private esriMapService: EsriMapService,
               private esriFactory: EsriDomainFactoryService,
               private logger: LoggingService,
-              private config: AppConfig,
               @Inject(EsriAppSettingsToken) private esriAppSettings: EsriAppSettings) { }
 
   private static createValueMap(values: number[]) : ValueMap {
@@ -103,7 +101,7 @@ export class RenderingService {
         }
       });
       const currentValueMap = RenderingService.createValueMap(d.bufferedPoints.map(b => b.buffer));
-      if (this.definitionNeedsRendered(currentValueMap, d.layerName) || this.config.isBatchMode) {
+      if (this.definitionNeedsRendered(currentValueMap, d.layerName)) {
         const pointTree = new QuadTree(d.bufferedPoints);
         const chunks = pointTree.partition(100);
         this.logger.info.log(`Generating radius graphics for ${chunks.length} chunks`);

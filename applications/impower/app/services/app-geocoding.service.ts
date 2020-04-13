@@ -103,7 +103,6 @@ export class AppGeocodingService {
       });
     }
     return merge(...observables, 4).pipe(
-      tap(locs => this.logger.debug.log('Geocoding response count', locs.length)),
       tap({
         next: locations => allLocations.push(...locations),
         complete: () => {

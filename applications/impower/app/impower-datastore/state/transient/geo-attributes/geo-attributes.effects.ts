@@ -51,7 +51,7 @@ export class GeoAttributesEffects {
     ofType<RequestAttributes | RehydrateAttributes>(GeoAttributeActionTypes.RequestAttributes, GeoAttributeActionTypes.RehydrateAttributes),
     map(action => action.payload.geocodes.size),
     filter(size => size > 2000),
-    map(size => new StartBusyIndicator({ key: this.busyKey, message: `Retrieving HH Counts for ${size.toLocaleString()} geos`}))
+    map(size => new StartBusyIndicator({ key: this.busyKey, message: `Retrieving Household Counts for ${size} geos`}))
   );
 
   @Effect()

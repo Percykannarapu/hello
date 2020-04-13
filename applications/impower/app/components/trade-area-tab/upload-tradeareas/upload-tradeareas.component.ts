@@ -17,7 +17,6 @@ import { LoggingService } from '../../../val-modules/common/services/logging.ser
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ExportCustomTAIssuesLog } from 'app/state/data-shim/data-shim.actions';
-import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 
 
 interface TradeAreaDefinition {
@@ -127,11 +126,6 @@ export class UploadTradeAreasComponent implements OnInit {
       }
     });
     this.tooltip = 'Please select an Analysis Level before uploading a Custom TA file';
-
-    this.store$.select(projectIsReady).subscribe((flag) => {
-      if (flag)
-      this.uploadFailures = [];
-    });
   }
 
   public onResubmit(data: TradeAreaDefinition) {

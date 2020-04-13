@@ -10,7 +10,6 @@ import { AppBusinessSearchService, BusinessSearchCategory, BusinessSearchRequest
 import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
 import { AppLocationService } from '../../services/app-location.service';
-import { AppLoggingService } from '../../services/app-logging.service';
 import { AppStateService } from '../../services/app-state.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { FullAppState } from '../../state/app.interfaces';
@@ -53,7 +52,6 @@ export class AddLocationsTabComponent implements OnInit {
               private appTradeAreaService: AppTradeAreaService,
               private audienceTradeAreaService: ValAudienceTradeareaService,
               private appStateService: AppStateService,
-              private logger: AppLoggingService,
               private store$: Store<FullAppState>,
               private appEditSiteService: AppEditSiteService) {}
 
@@ -89,7 +87,6 @@ export class AddLocationsTabComponent implements OnInit {
       this.geocoderService.duplicateKeyMap.get(siteType).add(site.locationNumber);
     });
     const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListUpload);
-    this.logger.debug.log('File Upload valid count', requests.length);
     if (requests.length > 0){
       this.validateHomeDmaIfExists(requests);
       this.processSiteRequests(requests, siteType);
@@ -98,8 +95,7 @@ export class AddLocationsTabComponent implements OnInit {
 
   validateHomeDmaIfExists(requests: ValGeocodingRequest[]) {
     requests.forEach(req => {
-      if (req['Home DMA'] != null && req['Home DMA'] != undefined && req['Home DMA'].length != 0 && !Number.isNaN(parseInt(req['Home DMA'], 10)) && req['Home DMA'].length === 3)
-        req['Home DMA'] = '0' + req['Home DMA'];
+      if (req['Home DMA'] != null && req['Home DMA'] != undefined && req['Home DMA'].length != 0 && !Number.isNaN(parseInt(req['Home DMA'], 10)) && req['Home DMA'].length === 3) req['Home DMA'] = '0' + req['Home DMA'];
     });
   }
 
@@ -124,7 +120,22 @@ export class AddLocationsTabComponent implements OnInit {
     const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
     const reCalculateHomeGeos = false;
     const isLocationEdit: boolean =  (isEdit !== null && isEdit !== undefined) ? isEdit : false;
+    //this.store$.dispatch(new StartBusyIndicatorx({ key: this.spinnerKey, message: `Geocoding ${sites.length} ${siteType}${pluralize}` }));
     this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
+    /*const locationCache: ImpGeofootprintLocation[] = [];
+    this.appLocationService.geocode(sites, siteType).subscribe(
+      locations => locationCache.push(...locations),
+      err => this.handleError('Geocoding Error', 'There was an error geocoding the provided sites', err),
+      () => {
+        const successfulLocations = locationCache.filter(loc => !loc.clientLocationTypeCode.startsWith('Failed'));
+        this.appLocationService.persistLocationsAndAttributes(locationCache);
+        if (successfulLocations.length > 0) this.appLocationService.zoomToLocations(successfulLocations);
+        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
+        if (isEdit == true) {
+          this.tradeAreaApplyOnEdit();
+        }
+      }
+    );*/
   }
 
   onAddBusiness(event: { siteType: string; businesses: BusinessSearchResponse[] }) {

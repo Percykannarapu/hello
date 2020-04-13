@@ -14,7 +14,7 @@ import { TargetAudienceService } from 'app/services/target-audience.service';
 import { FullAppState } from 'app/state/app.interfaces';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { EMPTY, of } from 'rxjs';
-import { catchError, concatMap, delay, filter, map, mergeMap, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, concatMap, filter, map, mergeMap, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppStateService } from '../../../../services/app-state.service';
 import { TargetAudienceCustomService } from '../../../../services/target-audience-custom.service';
 import { OfflineSourceTypes } from '../../../../services/target-audience-tda.service';
@@ -112,16 +112,13 @@ export class AudiencesEffects {
   applyAudiences$ = this.actions$.pipe(
     ofType<ApplyAudiences>(AudienceActionTypes.ApplyAudiences),
     map(action => ({ analysisLevel: action.payload.analysisLevel })),
-    tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: 'Retrieving audience data' }))),
-    delay(50),
     tap(() => stats = {...initialStatState}),
     tap(() => applyStart = performance.now()),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesAppliable))),
     tap(([, audiences]) => {
+      //audiences.forEach(aud => this.logger.debug.log('### ApplyAudiences - applying:', aud));
       if (audiences.length > 0)
         this.store$.dispatch(new GeoVarCacheGeofootprintGeos());
-      else
-        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
     }),
     switchMap(([action, selectedAudiences]) => this.actions$.pipe(
         ofType<GeoVarCacheGeosComplete | GeoVarCacheGeosFailure>(GeoVarActionTypes.GeoVarCacheGeosComplete, GeoVarActionTypes.GeoVarCacheGeosFailure),
@@ -784,6 +781,8 @@ export class AudiencesEffects {
       this.targetAudienceAudienceTA.rehydrateAudience();
       this.unifiedService.rehydrateAudience();
     }),
+    // withLatestFrom(this.appStateService.analysisLevel$),
+    // map(([, analysisLevel]) => new ApplyAudiences({ analysisLevel: analysisLevel }))
   );
 
   @Effect()
@@ -796,15 +795,6 @@ export class AudiencesEffects {
     map(action => new FetchMapVarCompleted({ transactionId: action.payload.transactionId }))
   );
 
-  @Effect()
-  finalizeGeoFetch$ = this.actions$.pipe(
-    ofType(AudienceActionTypes.FetchOfflineFailed, AudienceActionTypes.FetchOnlineFailed, AudienceActionTypes.FetchCustomFailed,
-      AudienceActionTypes.FetchOfflineTDACompleted, AudienceActionTypes.FetchOnlineInMarketCompleted,
-      AudienceActionTypes.FetchOnlineInterestCompleted, AudienceActionTypes.FetchOnlinePixelCompleted,
-      AudienceActionTypes.FetchOnlineVLHCompleted, AudienceActionTypes.FetchCustomCompleted),
-    map(() => new StopBusyIndicator({ key: this.spinnerKey }))
-  );
-
   @Effect({ dispatch: false })
   cleanUpShaders$ = this.actions$.pipe(
     ofType<DeleteAudience | DeleteAudiences>(AudienceActionTypes.DeleteAudience, AudienceActionTypes.DeleteAudiences),
@@ -814,8 +804,6 @@ export class AudiencesEffects {
     map(([ids, shaders]) => shaders.filter(s => ids.has(s.dataKey))),
     tap(shaders => this.esriShadingService.deleteShader(shaders))
   );
-
-  private spinnerKey = 'AudienceEffectsKey';
 
   constructor(private actions$: Actions<AudienceActions>,
               private store$: Store<FullAppState>,

@@ -35,7 +35,7 @@ export class ValDiscoveryUIModel {
   public static createFromProject(project: ImpProject, radItem: RadLookupUIModel, trackerItem: ProjectTrackerUIModel) : ValDiscoveryUIModel {
     const cpmTypeAttribute = project.impProjectPrefs.filter(pref => pref.pref === 'CPM_TYPE')[0];
     const materializedCpmType = project.estimatedBlendedCpm ? ProjectCpmTypeCodes.Blended : (project.smAnneCpm || project.smSoloCpm || project.smValassisCpm ? ProjectCpmTypeCodes.OwnerGroup : null);
-    const usableCpmType = cpmTypeAttribute != null ? ProjectCpmTypeCodes.parse(cpmTypeAttribute.getVal()) : materializedCpmType;
+    const usableCpmType = cpmTypeAttribute != null ? ProjectCpmTypeCodes.parse(cpmTypeAttribute.val) : materializedCpmType;
     const newFormValues = {
       projectId: project.projectId,
       projectName: project.projectName,
@@ -91,7 +91,7 @@ export class ValDiscoveryUIModel {
       cpmTypeAttribute = new ImpProjectPref({ pref: 'CPM_TYPE', prefType: 'STRING', isActive: true });
       projectToUpdate.impProjectPrefs.push(cpmTypeAttribute);
     }
-    cpmTypeAttribute.setVal((this.cpmType != null) ? this.cpmType : 'UNKNOWN');
+    cpmTypeAttribute.val = (this.cpmType != null) ? this.cpmType : 'UNKNOWN';
   }
 
   private toNumber(value: string) : number | null {

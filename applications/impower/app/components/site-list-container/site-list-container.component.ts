@@ -235,17 +235,17 @@ export class SiteListContainerComponent implements OnInit {
 
   private handleCustomTradeAreaIfExistAndEdit(oldData: ImpGeofootprintLocation) : void {
     const matchingLocation = this.impGeofootprintLocationService.get().filter(l => l.locationNumber == oldData.locationNumber);
-    const customTradeAreaCheck = this.tradeAreaService.get().filter(ta => ta.taType === 'CUSTOM');
-    let dataBuffer: string = '';
-    if (customTradeAreaCheck != null && customTradeAreaCheck.length > 0) {
+    const customTradeAreaCheck = this.tradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length;
+    let databuffer: string = '';
+    if ( customTradeAreaCheck != undefined && customTradeAreaCheck != null && customTradeAreaCheck > 0) {
          const customTradeAreaGeos = (matchingLocation[0].impGeofootprintTradeAreas[0].impGeofootprintGeos);
          const locationNumber = matchingLocation[0].locationNumber;
          this.logger.info.log(customTradeAreaGeos);
-         dataBuffer = 'Store,Geo';
+         databuffer = 'Store,Geo';
          for (let i = 0; i < customTradeAreaGeos.length; i++) {
-           dataBuffer = dataBuffer + '\n' + locationNumber + ',' + customTradeAreaGeos[i].geocode;
+           databuffer = databuffer + '\n' + locationNumber + ',' + customTradeAreaGeos[i].geocode;
          }
-         this.appEditSiteService.sendCustomData({'data': dataBuffer});
+         this.appEditSiteService.sendCustomData({'data': databuffer});
      }
      this.siteListService.deleteLocations(matchingLocation);
   }

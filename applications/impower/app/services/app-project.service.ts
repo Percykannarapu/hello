@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import { RestResponse } from '../models/RestResponse';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
@@ -25,7 +23,6 @@ export class AppProjectService {
               private impProjectPrefService: ImpProjectPrefService,
               private impProjectVarService: ImpProjectVarService,
               private impMasterService: ImpGeofootprintMasterService,
-              private impLocationService: ImpGeofootprintLocationService,
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
               private restService: RestDataService) {
@@ -43,23 +40,24 @@ export class AppProjectService {
     return this.impProjectService.loadFromServer(id);
   }
 
-  save(project?: ImpProject) : Observable<number> {
+  savePacked(project?: ImpProject) : Observable<number> {
+    const saveUrl = 'v1/targeting/base/impprojectmsgpack/deleteSave';
     const projectToSave = project == null ? this.impProjectService.get()[0] : project;
     if (projectToSave == null) return of(null as number);
     this.cleanupProject(projectToSave);
-    return this.saveImpl(projectToSave).pipe(
+    return this.restService.postMessagePack(saveUrl, projectToSave).pipe(
       map(response => Number(response.payload))
     );
   }
 
-  private saveImpl(project: ImpProject, useMsgPack: boolean = true) : Observable<RestResponse> {
-    const endpoint = useMsgPack ? 'impprojectmsgpack' : 'impproject';
-    const saveUrl = `v1/targeting/base/${endpoint}/deleteSave`;
-    if (useMsgPack) {
-      return this.restService.postMessagePack(saveUrl, project);
-    } else {
-      return this.restService.post(saveUrl, project);
-    }
+  saveStringified(project?: ImpProject) : Observable<number> {
+    const saveUrl = 'v1/targeting/base/impproject/deleteSave';
+    const projectToSave = project == null ? this.impProjectService.get()[0] : project;
+    if (projectToSave == null) return of(null as number);
+    this.cleanupProject(projectToSave);
+    return this.restService.post(saveUrl, projectToSave).pipe(
+      map(response => Number(response.payload))
+    );
   }
 
   createNew() : number {
@@ -90,8 +88,6 @@ export class AppProjectService {
   }
 
   private cleanupProject(localProject: ImpProject) {
-    // this line of code is dumb, but necessary
-    localProject.impGeofootprintMasters[0].impGeofootprintLocations = [ ...this.impLocationService.get()];
     // remove all Ids except the root Project Id
     localProject.impGeofootprintMasters.forEach(m => {
       m.cgmId = undefined;
@@ -116,7 +112,7 @@ export class AppProjectService {
         atr.projectId = undefined;
       });
       // filter out empty location attributes
-      loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue !== '' && atr.attributeValue != null);
+      loc.impGeofootprintLocAttribs = loc.impGeofootprintLocAttribs.filter(atr => atr.attributeValue !== '');
     });
     localProject.getImpGeofootprintTradeAreas().forEach(ta => {
       ta.gtaId = undefined;

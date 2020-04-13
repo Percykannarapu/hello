@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ErrorNotification } from '@val/messaging';
 import { RestResponse } from 'app/models/RestResponse';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { Observable } from 'rxjs';
@@ -42,24 +42,19 @@ export class AppExportService {
 
   exportGeofootprint(selectedOnly: boolean, currentProject: ImpProject) : Observable<Action> {
     return new Observable(observer => {
-      this.store$.dispatch(new StartBusyIndicator({ key: 'GFP_Export', message: 'Exporting Geofootprint' }));
-      setTimeout(() => {
-        try {
-          this.validateProjectForExport(currentProject, 'exporting a Geofootprint');
-          const storeFilter: (geo: ImpGeofootprintGeo) => boolean = selectedOnly ? (geo => geo.isActive === true) : null;
-          const filename = this.impGeofootprintGeoService.getFileName(currentProject.methAnalysis, currentProject.projectId);
-          this.impGeofootprintGeoService.exportStore(filename, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, currentProject.methAnalysis, storeFilter);
-          const metricValue = this.impGeofootprintGeoService.get().length;
-          const metricText = selectedOnly ? 'includeSelectedGeography' : 'includeAllGeography';
-          observer.next(new StopBusyIndicator({ key: 'GFP_Export' }));
-          observer.next(new CreateLocationUsageMetric('geofootprint', 'export', metricText, metricValue));
-          observer.next(new CreateGaugeMetric({ gaugeAction: 'location-geofootprint-export' }));
-          observer.complete();
-        } catch (err) {
-          observer.next(new StopBusyIndicator({ key: 'GFP_Export' }));
-          observer.error(err);
-        }
-      });
+      try {
+        this.validateProjectForExport(currentProject, 'exporting a Geofootprint');
+        const storeFilter: (geo: ImpGeofootprintGeo) => boolean = selectedOnly ? (geo => geo.isActive === true) : null;
+        const filename = this.impGeofootprintGeoService.getFileName(currentProject.methAnalysis, currentProject.projectId);
+        this.impGeofootprintGeoService.exportStore(filename, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, currentProject.methAnalysis, storeFilter);
+        const metricValue = this.impGeofootprintGeoService.get().length;
+        const metricText = selectedOnly ? 'includeSelectedGeography' : 'includeAllGeography';
+        observer.next(new CreateLocationUsageMetric('geofootprint', 'export', metricText, metricValue));
+        observer.next(new CreateGaugeMetric({ gaugeAction: 'location-geofootprint-export' }));
+        observer.complete();
+      } catch (err) {
+        observer.error(err);
+      }
     });
   }
 
@@ -94,13 +89,12 @@ export class AppExportService {
   exportValassisDigital(currentProject: ImpProject) : Observable<CreateUsageMetric> {
     return new Observable(observer => {
       try {
-        //this.validateValDigitalProjectForExport(currentProject, 'sending site list to Valassis Digital');
+        this.validateProjectForExport(currentProject, 'sending the custom site list to Valassis Digital');
         const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
         const filename = 'visit_locations_' + currentProject.projectId + '_' + this.config.environmentName + '_' + fmtDate + '.csv';
         const metricValue = this.locationExportImpl(ImpClientLocationTypeCodes.Site, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, filename, currentProject);
-        const metricText = 'clientName=' + currentProject.clientIdentifierName.trim() + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;
-        /*const clientIdentifierName = currentProject.clientIdentifierName != null ? currentProject.clientIdentifierName.trim() : null;
-        const metricText = 'clientName=' + clientIdentifierName + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;*/
+        const clientIdentifierName = currentProject.clientIdentifierName != null ? currentProject.clientIdentifierName.trim() : null;
+        const metricText = 'clientName=' + clientIdentifierName + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;
         observer.next(new CreateLocationUsageMetric('vlh-site-list', 'send', metricText, metricValue));
         observer.complete();
       } catch (err) {
@@ -159,27 +153,20 @@ export class AppExportService {
   }
 
 
-  /*private validateValDigitalProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
-    const message = `Please save your project before ${exportDescription}`;
+  private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
+    const message = `The project must be saved before ${exportDescription}`;
     if (currentProject.projectId == null) {
       throw message;
     }
-  }*/
-
-  private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
-     const message = `The project must be saved with a valid Project Tracker ID before ${exportDescription}`;
-    if (currentProject.projectId == null || currentProject.projectTrackerId == null) {
-      throw message;
-       }
   }
 
   public exportCustomTAIssuesLog(uploadFailures: TradeAreaDefinition[]){
     //this.logger.info.log('uploadFailures ====>', uploadFailures);
-    const header = 'Site #, Geocode, Reason';
+    const header = 'Site #, Geocode';
     const records: string[] = [];
     records.push(header +  '\n');
     uploadFailures.forEach(record => {
-        records.push(`${record.store}, ${record.geocode}, ${record.message}` + '\n');
+        records.push(`${record.store}, ${record.geocode}` + '\n');
     });
     this.downloadCSV(records, 'Custom TA Issues Log.csv');
   }

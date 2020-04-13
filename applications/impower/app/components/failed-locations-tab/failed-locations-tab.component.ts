@@ -65,12 +65,11 @@ export class FailedLocationsTabComponent implements OnInit {
         const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home Digital ATZ']);
         site.impGeofootprintLocAttribs.forEach(attr => {
           if (homeGeoColumnsSet.has(attr.attributeCode)){
-            attr.attributeValue = null;
+            attr.attributeValue = '';
           }
         });
         site.impGeofootprintTradeAreas = [];
         site['homeGeoFound'] = null;
-        site.carrierRoute = null;
         site.isActive = true;
         toHomeGeocode.push(site);
       }
@@ -105,7 +104,7 @@ export class FailedLocationsTabComponent implements OnInit {
       sites.filter(site => site.clientLocationTypeCode === siteType).forEach(site => {
         site.impGeofootprintLocAttribs.forEach(attr => {
           if (homeGeoColumnsSet.has(attr.attributeCode)){
-            attr.attributeValue = null;
+            attr.attributeValue = '';
           }
         });
         let isRadii: boolean = false;

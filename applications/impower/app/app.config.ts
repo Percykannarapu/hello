@@ -64,7 +64,6 @@ export class AppConfig implements LoggingConfiguration {
         defaultVisibility: true,
         popupTitle: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
         minScale: undefined,
-        batchMapMinScale: undefined,
         popUpFields: ['dma_name', 'dma_area', 'cent_lat', 'cent_long'],
         labelExpression: '$feature.dma_display_name',
         labelFontSizeOffset: 6
@@ -83,7 +82,6 @@ export class AppConfig implements LoggingConfiguration {
         defaultVisibility: true,
         popupTitle: 'County: {COUNTY_NAM}, {STATE_ABBR}',
         minScale: undefined,
-        batchMapMinScale: undefined,
         popUpFields: ['gdt_id', 'county_nam', 'state_fips', 'county_fip', 'county_are', 'cent_lat', 'cent_long', 'SHAPE.AREA', 'SHAPE.LEN'],
         labelExpression: 'TEXT($feature.state_fips, "00") + TEXT($feature.county_fip, "000") + TextFormatting.NewLine + $feature.county_nam',
         labelFontSizeOffset: 4
@@ -102,7 +100,6 @@ export class AppConfig implements LoggingConfiguration {
         defaultVisibility: true,
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
         minScale: 4622342,
-        batchMapMinScale: 9244684,
         popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
         labelExpression: '$feature.wrap_name',
         labelFontSizeOffset: 2
@@ -122,7 +119,6 @@ export class AppConfig implements LoggingConfiguration {
         sortOrder: 1,
         popupTitle: '',
         minScale: 1155600,
-        batchMapMinScale: 2311200,
         popUpFields: [],
         labelExpression: null
       },
@@ -134,7 +130,6 @@ export class AppConfig implements LoggingConfiguration {
         sortOrder: 0,
         popupTitle: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
-        batchMapMinScale: 2311200,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],
@@ -159,7 +154,6 @@ export class AppConfig implements LoggingConfiguration {
         sortOrder: 1,
         popupTitle: '',
         minScale: 1155600,
-        batchMapMinScale: 2311200,
         popUpFields: [],
         labelExpression: null
       },
@@ -171,7 +165,6 @@ export class AppConfig implements LoggingConfiguration {
         sortOrder: 0,
         popupTitle: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
-        batchMapMinScale: 2311200,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],
@@ -195,7 +188,6 @@ export class AppConfig implements LoggingConfiguration {
         sortOrder: 1,
         popupTitle: '',
         minScale: 577790,
-        batchMapMinScale: 1155580,
         popUpFields: [],
         labelExpression: null
       },
@@ -207,7 +199,6 @@ export class AppConfig implements LoggingConfiguration {
         sortOrder: 0,
         popupTitle: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 577790,
-        batchMapMinScale: 1155580,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],
@@ -231,7 +222,6 @@ export class AppConfig implements LoggingConfiguration {
         sortOrder: 1,
         popupTitle: '',
         minScale: 577790, // turn on at scale level 10
-        batchMapMinScale: 1155580,
         popUpFields: [],
         labelExpression: null
       },
@@ -243,7 +233,6 @@ export class AppConfig implements LoggingConfiguration {
         sortOrder: 0,
         popupTitle: 'PCR: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 577790,
-        batchMapMinScale: 1155580,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],

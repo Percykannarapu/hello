@@ -1,90 +1,82 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { formatDateForFuse } from '@val/common';
-import { ConfirmationPayload, ShowConfirmation, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { SelectItem } from 'primeng/api';
-import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
-import { filter, map, switchMap, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
-import { AppConfig } from '../../app.config';
-import { AppStateService } from '../../services/app-state.service';
-import { UserService } from '../../services/user.service';
-import { LocalAppState } from '../../state/app.interfaces';
-import { CloseExistingProjectDialog, DiscardThenLoadProject, SaveThenLoadProject } from '../../state/menu/menu.actions';
-import { openExistingDialogFlag } from '../../state/menu/menu.selectors';
-import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
-import { RestDataService } from '../../val-modules/common/services/restdata.service';
-import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-
-type FilterType = 'myProject' | 'allProjects';
-type TimeSpanType = 'sixMonths' | 'currentMonth' | 'fourWeeks' | 'threeMonths' | 'twelveMonths' | 'currentYear' | 'previousYear';
-const timeSpanSortOrder: TimeSpanType[] = ['sixMonths', 'currentMonth', 'fourWeeks', 'threeMonths', 'twelveMonths', 'currentYear', 'previousYear'];
-const timeSpanFriendlyNames: Record<TimeSpanType, string> = {
-  sixMonths: 'Last 6 Months',
-  currentMonth: 'Current Month',
-  fourWeeks: 'Last 4 Weeks',
-  threeMonths: 'Last 3 Months',
-  twelveMonths: 'Last 12 Months',
-  currentYear: 'Current Year',
-  previousYear: 'Previous Year'
-};
+import {AfterViewInit, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {Store, select} from '@ngrx/store';
+import {formatDateForFuse} from '@val/common';
+import {ConfirmationPayload, ShowConfirmation, StartBusyIndicator, StopBusyIndicator} from '@val/messaging';
+import {SelectItem} from 'primeng/api';
+import {Observable, pipe} from 'rxjs';
+import {filter, map, take, tap, switchMap} from 'rxjs/operators';
+import {AppLocationService} from '../../services/app-location.service';
+import {AppStateService} from '../../services/app-state.service';
+import {AppTradeAreaService} from '../../services/app-trade-area.service';
+import {TargetAudienceService} from '../../services/target-audience.service';
+import {UserService} from '../../services/user.service';
+import {LocalAppState} from '../../state/app.interfaces';
+import {CloseExistingProjectDialog, DiscardThenLoadProject, SaveThenLoadProject} from '../../state/menu/menu.actions';
+import {openExistingDialogFlag} from '../../state/menu/menu.selectors';
+import {CreateProjectUsageMetric} from '../../state/usage/targeting-usage.actions';
+import {RestDataService} from '../../val-modules/common/services/restdata.service';
+import {ImpProject} from '../../val-modules/targeting/models/ImpProject';
+import {ImpGeofootprintLocationService} from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 @Component({
-  selector: 'val-project',
-  templateUrl: './project.component.html',
-  styleUrls: ['./project.component.scss']
+    selector: 'val-project',
+    templateUrl: './project.component.html',
+    styleUrls: ['./project.component.scss']
 })
-export class ProjectComponent implements OnInit, OnDestroy {
+export class ProjectComponent implements OnInit, AfterViewInit {
 
-  public get showDialog() : boolean {
-    return this._showDialog;
-  }
+    private readonly projectSearchUrl = 'v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange';
+    private readonly cloneProjectUrl =  'v1/targeting/base/clone/cloneproject';
+    private _showDialog: boolean = false;
 
-  public set showDialog(value: boolean) {
-    this.onDialogHide(value);
-    this._showDialog = value;
-  }
+    // This is a workaround for a PrimeNg bug where dialogs aren't firing onHide() properly
+    public get showDialog() : boolean { return this._showDialog; }
+    public set showDialog(newValue: boolean) {
+      if (newValue !== this._showDialog && newValue === false) {
+        this.onDialogHide();
+      }
+      this._showDialog = newValue;
+    }
 
-  private readonly projectSearchUrl = 'v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange';
-  private readonly cloneProjectUrl =  'v1/targeting/base/clone/cloneproject';
+    public timeLines;
+    public selectedTimeLine = 'sixMonths';
+    public todayDate = new Date();
+    public selectedRow;
+    public allProjectsData: any;
+    public myProjectsData: any;
+    public selectedListType: 'myProject' | 'allProjects' = 'myProject';
+    public selectedColumns: any[] = [];
+    public columnOptions: SelectItem[] = [];
+    public currentProjectData: any[] = [];
 
-  private hasExistingData: boolean = false;
-  private triggerDataRefresh$ = new Subject<void>();
-  private destroyed$ = new Subject<void>();
-
-  private _showDialog: boolean = false;
-
-  public triggerDataFilter$ = new BehaviorSubject<FilterType>('myProject');
-  public timeSpans: SelectItem[];
-  public selectedTimeSpan: TimeSpanType;
-
-  public allProjectData$: Observable<Partial<ImpProject>[]>;
-  public currentProjectData$: Observable<Partial<ImpProject>[]>;
-  public selectedRow: Partial<ImpProject> = null;
-  public dataLength: number;
-
-  public gettingData: boolean;
-
-  public columnOptions: SelectItem[] = [];
-  public selectedColumns: any[] = [];
-  public allColumns: any[] = [
-    { field: 'projectId',                header: 'imPower ID',           size: '11%' },
-    { field: 'projectTrackerId',         header: 'Project Tracker ID',   size: '15%' },
-    { field: 'projectName',              header: 'imPower Project Name', size: '24%' },
-    { field: 'projectTrackerClientName', header: 'Client Name',          size: '20%' },
-    { field: 'modifyUserLoginname',      header: 'Username',             size: '10%' },
-    { field: 'modifyDate',               header: 'Last Modified Date',   size: '20%' }
-  ];
-
+    public allColumns: any[] = [
+        // { field: '',                     header: 'Select',                        size: '60px'},
+        { field: 'projectId',                    header: 'imPower ID',                    size: '11%'},
+        { field: 'projectTrackerId',             header: 'Project Tracker ID',            size: '15%'},
+        { field: 'projectName',                  header: 'imPower Project Name',          size: '24%'},
+        { field: 'projectTrackerClientName',     header: 'Client Name',                   size: '20%'},
+        { field: 'modifyUserLoginname',          header: 'Username',                      size: '10%'},
+        { field: 'modifyDate',                   header: 'Last Modified Date',            size: '20%'}
+      ];
   constructor(private restService: RestDataService,
               private userService: UserService,
+              private impGeofootprintLocationService: ImpGeofootprintLocationService,
+              private appLocationService: AppLocationService,
+              private appTradeAreaService: AppTradeAreaService,
               private stateService: AppStateService,
-              private config: AppConfig,
-              private store$: Store<LocalAppState>) {
-    this.timeSpans = timeSpanSortOrder.map(ts => ({
-      label: timeSpanFriendlyNames[ts],
-      value: ts
-    }));
-    this.selectedTimeSpan = 'sixMonths';
+              private targetAudienceService: TargetAudienceService,
+              private store$: Store<LocalAppState>,
+              private cd: ChangeDetectorRef) {
+
+    this.timeLines = [
+      {label: 'Last 6 Months',  value: 'sixMonths'},
+      {label: 'Current Month',  value: 'currentMonth'},
+      {label: 'Last 4 Weeks',   value: 'fourweeks'},
+      {label: 'Last 3 Months',  value: 'threeMonths'},
+      {label: 'Last 12 Months', value: 'tweleMonths'},
+      {label: 'Current Year',   value: 'currentYear'},
+      {label: 'Previous Year',  value: 'previousYear'}
+    ];
     for (const column of this.allColumns) {
       this.columnOptions.push({ label: column.header, value: column });
       this.selectedColumns.push(column);
@@ -92,59 +84,108 @@ export class ProjectComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.stateService.applicationIsReady$.pipe(
-      filter(isReady => isReady),
-      take(1),
-    ).subscribe(() => {
-      this.allProjectData$ = this.triggerDataRefresh$.pipe(
-        takeUntil(this.destroyed$),
-        switchMap(() => this.getData())
-      );
-      this.currentProjectData$ = combineLatest([this.triggerDataFilter$, this.allProjectData$]).pipe(
-        map(([filterType, data]) => {
-          const result = filterType === 'myProject' ? data.filter(p => p.modifyUser === this.userService.getUser().userId) : data;
-          return [filterType, result] as [FilterType, Partial<ImpProject>[]];
-        }),
-        tap(([filterType, data]) => this.recordMetrics(filterType, data.length)),
-        map(([, data]) => data)
-      );
-      this.store$.select(openExistingDialogFlag).pipe(
-        takeUntil(this.destroyed$),
-        withLatestFrom(this.stateService.allLocationCount$)
-      ).subscribe(([flag, locationCount]) => {
-        this._showDialog = flag;
-        this.hasExistingData = locationCount > 0;
-        if (this._showDialog) this.triggerDataRefresh$.next();
-      });
+    const updatedDateFrom = this.todayDate;
+    const updatedDateTo = new Date();
+    updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+
+    this.store$.select(openExistingDialogFlag).pipe(
+      tap(flag => {
+        this.clearDialog(flag);
+      }),
+      switchMap(flag => flag ? this.getAllProjectsData(updatedDateFrom, updatedDateTo) : [])
+    ).subscribe(data => {
+      if (data.length > 0){
+        this.onListTypeChange(this.selectedListType);
+      }
     });
   }
 
-  public ngOnDestroy() : void {
-    this.destroyed$.next();
+  ngAfterViewInit() {
+    this.stateService.applicationIsReady$.pipe(
+      filter(isReady => isReady),
+      take(1)
+    ).subscribe(() => {
+      const updatedDateFrom = this.todayDate;
+      const updatedDateTo = new Date();
+      updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+
+      this.getAllProjectsData(updatedDateFrom, updatedDateTo).subscribe({ complete: () => this.onListTypeChange(this.selectedListType)});
+    });
   }
 
-  private getData() : Observable<Partial<ImpProject>[]> {
-    const dates = this.getDates();
-    const query = `${this.projectSearchUrl}&&updatedDateFrom=${formatDateForFuse(dates.start)}&&updatedDateTo=${formatDateForFuse(dates.end)}`;
-    this.gettingData = true;
-    return this.restService.get(query).pipe(
-      map((result) => result.payload.rows as Partial<ImpProject>[]),
-
-    );
+  onFilter() {
+    this.cd.markForCheck();
   }
 
-  refreshData() : void {
-    this.triggerDataRefresh$.next();
+  private getAllProjectsData(updatedDateFrom: Date, updatedDateTo: Date) : Observable<ImpProject[]>{
+    updatedDateFrom.setDate(updatedDateFrom.getDate() - 1);
+    updatedDateTo.setDate(updatedDateTo.getDate() + 1);
+    const searchQuery = `${this.projectSearchUrl}&&updatedDateFrom=${formatDateForFuse(updatedDateFrom)}&&updatedDateTo=${formatDateForFuse(updatedDateTo)}`;
+    return this.restService.get(searchQuery).pipe(
+      map((result: any) => result.payload.rows as ImpProject[]),
+      tap(data => this.allProjectsData = data),
+      tap(data => this.myProjectsData = data.filter(p => p.modifyUser === this.userService.getUser().userId))
+     );
   }
 
-  public onDoubleClick(data: { projectId: number }) {
-    if (this.config.environmentName === 'DEV') {
-      this.loadProject(data.projectId);
+  onListTypeChange(data: 'myProject' | 'allProjects') {
+    this.selectedListType = data;
+
+    if (this.selectedListType === 'myProject'){
+        this.currentProjectData = this.myProjectsData;
+    } else {
+      this.currentProjectData = this.allProjectsData;
     }
+    this.cd.markForCheck();
+    this.searchFilterMetric();
   }
+
+  onSelectTimeFrame(event: string){
+    const updatedDateFrom = new Date();
+    const updatedDateTo = new Date();
+    this.selectedTimeLine = event;
+
+    if (event.toLowerCase() === 'sixmonths'){
+      updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+    }
+    if (event.toLowerCase() === 'currentmonth'){
+      updatedDateFrom.setDate(1);
+      updatedDateTo.setDate(30);
+    }
+    if (event.toLowerCase() === 'fourweeks'){
+       updatedDateFrom.setDate(updatedDateFrom.getDate() - 28);
+    }
+    if (event.toLowerCase() === 'threemonths'){
+      updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 3);
+    }
+    if (event.toLowerCase() === 'twelemonths'){
+      updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 12);
+    }
+    if (event.toLowerCase() === 'currentyear'){
+      updatedDateFrom.setMonth(1);
+      updatedDateFrom.setDate(1);
+      updatedDateTo.setMonth(12);
+      updatedDateTo.setDate(31);
+    }
+    if (event.toLowerCase() === 'previousyear'){
+      updatedDateFrom.setMonth(1);
+      updatedDateFrom.setDate(1);
+      updatedDateFrom.setFullYear(updatedDateFrom.getFullYear() - 1);
+      updatedDateTo.setMonth(12);
+      updatedDateTo.setDate(31);
+      updatedDateTo.setFullYear(updatedDateTo.getFullYear() - 1);
+    }
+
+    this.getAllProjectsData(updatedDateFrom, updatedDateTo).subscribe({ complete: () => this.onListTypeChange(this.selectedListType)});
+  }
+
+  // public onDoubleClick(data: { projectId: number }) {
+  //    this.loadProject(data.projectId);
+  // }
 
   public loadProject(projectId: number) {
-    if (this.hasExistingData) {
+    const locData = this.impGeofootprintLocationService.get();
+    if (locData.length > 0) {
       const payload: ConfirmationPayload = {
         title: 'Save Work',
         message: 'Would you like to save your work before proceeding?',
@@ -162,64 +203,36 @@ export class ProjectComponent implements OnInit, OnDestroy {
     }
   }
 
-  private recordMetrics(filterType: FilterType, dataLength: number) : void {
-    this.dataLength = dataLength;
-    const metricText  = `userFilter=${filterType}~timeFilter=${this.selectedTimeSpan}`;
-    this.store$.dispatch(new CreateProjectUsageMetric('project', 'search', metricText, dataLength));
-    this.gettingData = false;
+  private searchFilterMetric(){
+    const metricText  = `userFilter=${this.selectedListType}~timeFilter=${this.selectedTimeLine}`;
+    const searchResultLength = this.currentProjectData != null ? this.currentProjectData.length : 0;
+    this.store$.dispatch(new CreateProjectUsageMetric('project', 'search', metricText, searchResultLength));
   }
 
-  onDialogHide(newFlagValue: boolean) : void {
-    if (newFlagValue === false && newFlagValue != this._showDialog) {
-      // the field has changed from true to false
-      this.store$.dispatch(new CloseExistingProjectDialog());
-    }
+  onDialogHide() : void {
+    this.store$.dispatch(new CloseExistingProjectDialog());
+  }
+
+  private clearDialog(flag: boolean){
+    this.currentProjectData = [];
+    this.myProjectsData = [];
+    this.allProjectsData = [];
+    this._showDialog = flag;
+
   }
 
   public cloneProject(projectId: number){
-    const payload = { 'projectId': projectId, 'userId' : this.userService.getUser().userId };
-    const key = 'CLONE_PROJECT';
+    const payload = {'projectId': projectId, 'userId' : this.userService.getUser().userId};
+     const key = 'CLONE_PROJECT';
     this.store$.dispatch(new StartBusyIndicator({ key, message: `Cloning project ${projectId}`}));
-
-    this.restService.post(this.cloneProjectUrl, payload).subscribe(() => {
-      this.triggerDataRefresh$.next();
-      this.store$.dispatch(new StopBusyIndicator({ key }));
-    });
-  }
-
-  private getDates() : { start: Date, end: Date } {
-    const start = new Date();
-    const end = new Date();
-    switch (this.selectedTimeSpan) {
-      case 'sixMonths':
-        start.setMonth(start.getMonth() - 6, 1);
-        break;
-      case 'currentMonth':
-        start.setDate(1);
-        end.setMonth(end.getMonth() + 1);
-        end.setDate(0);
-        break;
-      case 'fourWeeks':
-        start.setDate(start.getDate() - 28);
-        break;
-      case 'threeMonths':
-        start.setMonth(start.getMonth() - 3, 1);
-        break;
-      case 'twelveMonths':
-        start.setMonth(start.getMonth() - 12, 1);
-        break;
-      case 'previousYear':
-        start.setFullYear(start.getFullYear() - 1);
-        end.setFullYear(start.getFullYear() - 1);
-      // tslint:disable-next-line:no-switch-case-fall-through
-      case 'currentYear':
-        start.setMonth(0, 1);
-        end.setMonth(11, 31);
-        break;
-    }
-    // expand the date ranges by 1 day on each side since Fuse queries based on < and >
-    start.setDate(start.getDate() - 1);
-    end.setDate(end.getDate() + 1);
-    return { start, end };
+    const updatedDateFrom = this.todayDate;
+    const updatedDateTo = new Date();
+    updatedDateFrom.setMonth(updatedDateFrom.getMonth() - 6);
+     this.restService.post(this.cloneProjectUrl, payload).pipe(
+       switchMap(() => this.getAllProjectsData(updatedDateFrom, updatedDateTo))
+     ).subscribe(() => {
+      this.onListTypeChange(this.selectedListType);
+      this.store$.dispatch(new StopBusyIndicator({ key}));
+     });
   }
 }

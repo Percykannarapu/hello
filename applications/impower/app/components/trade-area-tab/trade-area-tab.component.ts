@@ -81,23 +81,6 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
   }
 
   onTradeAreasChanged(newModel: DistanceTradeAreaUiModel, siteType: SuccessfulLocationTypeCodes) {
-    const key = 'TradeAreaTabApply';
-    // this.store$.dispatch(new StartBusyIndicator({ key, message: 'Applying Distance Trade Areas' }));
-
-    setTimeout(() => {
-      this.applyTradeAreaChanges(newModel, siteType);
-      // this.store$.dispatch(new StopBusyIndicator({ key }));
-    });
-
-    this.stateService.uniqueIdentifiedGeocodes$.pipe(
-      filter(geos => geos != null && geos.length > 0),
-      take(1)
-    ).subscribe (() => {
-      this.tradeAreaService.zoomToTradeArea();
-    });
-  }
-
-  private applyTradeAreaChanges(newModel: DistanceTradeAreaUiModel, siteType: SuccessfulLocationTypeCodes) : void {
     // always update the merge type - other code elsewhere deals with dupe notifications
     this.appProjectService.updateMergeType(newModel.mergeType, siteType);
 
@@ -135,6 +118,13 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
     } else {
       this.tradeAreaService.makeDirty();
     }
+
+    this.stateService.uniqueIdentifiedGeocodes$.pipe(
+      filter(geos => geos != null && geos.length > 0),
+      take(1)
+    ).subscribe (() => {
+      this.tradeAreaService.zoomToTradeArea();
+    });
   }
 
   isMustCover(event: any){
