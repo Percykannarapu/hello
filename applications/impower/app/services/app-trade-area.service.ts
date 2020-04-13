@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates, mapByExtended } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
@@ -340,7 +340,8 @@ export class AppTradeAreaService {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
-    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
+    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations.filter(loc => loc.clientLocationTypeCode === 'Site'), 'locationNumber');
+    //mapBy(allLocations, 'locationNumber');
     const matchedTradeAreas = new Set<TradeAreaDefinition>();
 
     // make sure we can find an associated location for each uploaded data row

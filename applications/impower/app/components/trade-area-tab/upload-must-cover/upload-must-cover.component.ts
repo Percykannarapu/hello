@@ -14,6 +14,7 @@ import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
+import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 
 interface CustomMCDefinition {
   Number: number;
@@ -103,6 +104,11 @@ export class UploadMustCoverComponent implements OnInit {
             this.fileAnalysisLevels = this.allAnalysisLevels;
             break;
       }
+    });
+
+    this.store$.select(projectIsReady).subscribe((flag) => {
+      if (flag)
+      this.impGeofootprintGeoService.uploadFailures = [];
     });
 
    }
