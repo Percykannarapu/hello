@@ -268,13 +268,10 @@ export class TargetAudienceTdaService {
     return EMPTY;
   }
 
-  
-
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
     const validatedResponse: OfflineBulkDataResponse[] = [];
     const responseArray: OfflineFuseResponse[] = response.payload.rows;
     const emptyAudiences: string[] = [];
-    console.log('tda response::', response);
 
     //this.logger.debug.log('### tda validateFuseResponse - response.length:', responseArray.length);
 
