@@ -5,6 +5,7 @@
 
 import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
+import { esri } from './esri-secrets';
 
 export const environment = {
   production: false,
@@ -38,9 +39,9 @@ export class EnvironmentData {
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
 
   public static esri = {
-    portalServer:  'https://vallomimpor1vm.val.vlss.local/',
-    userName: 'admin',
-    password: 'password'
+    portalServer:  esri.portalServer,
+    userName: esri.userName,
+    password: esri.password
   };
 
   public static oAuth = {

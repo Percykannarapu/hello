@@ -1,9 +1,9 @@
 <div class="ui-g">
    <div class="ui-g-12">
      <div class="upload-label">Upload a list of geographies that must be in the geofootprint.</div>
-     <!--<div  *ngIf="isMustCoverExists" class="valassis-brand-label">  
-            Must Cover geography applied
-     </div> -->
+     <div  *ngIf="!(currentAnalysisLevel$ | async)" class="valassis-brand-label">  
+        • You must select an Analysis Level, within the Discovery tab, before uploading a must cover file
+     </div>
      &nbsp;
     <div class="ui-g-12">
           <span class="md-inputfield">

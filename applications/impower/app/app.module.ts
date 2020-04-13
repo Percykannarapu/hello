@@ -179,6 +179,7 @@ import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjec
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 import { CompositeAudienceComponent } from './components/target-audience/composite-audience/composite-audience.component';
+import { SendSitesDigitalComponent } from './components/send-sites-digital/send-sites-digital.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -365,7 +366,8 @@ export function actionSanitizer(action: Action) : Action {
     EsriClassBreakInputComponent,
     ValidatedTextInputComponent,
     RadiusEntryComponent,
-    CompositeAudienceComponent
+    CompositeAudienceComponent,
+    SendSitesDigitalComponent,
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

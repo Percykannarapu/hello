@@ -3,21 +3,21 @@ import { AllLayerIds } from '@val/esri';
 import { esri } from './esri-secrets';
 
 export const environment = {
-  production: true,
-  serverBuild: true,
-  logLevel: LogLevels.WARN,
+  production: false,
+  serverBuild: false,
+  logLevel: LogLevels.DEBUG,
   sanitizeActions: false,
-  sanitizeState: true,
+  sanitizeState: false,
 };
 
 export class EnvironmentData {
 
   // The name of the environment
-  public static environmentName = 'QA';
+  public static environmentName = 'DEV';
 
   // OAuth information
-  public static clientId = 'cm246JqFF4EU5rbBlkftIf6olI8a';
-  public static clientSecret = 'MnfaK8NczJl884o0DpxRKWG0D_Ua';
+  public static clientId = 'seUTFCqmugdQFDOyznekLaHmFoAa';
+  public static clientSecret = '_QZJSLshNo8N590wXfQzsngSZika';
 
   // Can be used to hide/show debugging info
   public static debugMode: boolean = false;
@@ -26,12 +26,11 @@ export class EnvironmentData {
   // this *MUST* be set to false for all environments other than local
   public static authenticated = false;
 
-  //public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services-qa/';
-  public static fuseBaseUrl = 'https://services.valassislab.com/services/';
-  public static impowerBaseUrl = 'https://impowerqa.val.vlss.local/';
-
   // print service URL
-  public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
+  public static printServiceUrl = 'https://impowerpdf.valassisdigital.net/api/service';
+
+  public static fuseBaseUrl = 'https://services.valassis.com/services/';
+  public static impowerBaseUrl = 'https://impower.val.vlss.local/';
 
   public static esri = {
     portalServer:  esri.portalServer,
@@ -46,38 +45,38 @@ export class EnvironmentData {
 
   public static layerIds: AllLayerIds = {
     dma: {
-      boundary: '5c8d7e4a824f4aa0b254925348f2a14a',
+      boundary: '3c9cc326b95e4521bed397b5c2dfdc33',
       simplifiedBoundary: undefined,
       centroid: undefined
     },
     counties: {
-      boundary: '39b51d9d498f4107bc69ac30f31ac115',
+      boundary: '78dfd4524abd4665840ec898c03bc88e',
       simplifiedBoundary: undefined,
       centroid: undefined
     },
     zip: {
-      boundary: '23a54308e914496aa24d94a9b36776a0',
-      simplifiedBoundary: 'fb4295cfef1743f9a8a12c1d444effeb',
-      centroid: '88120ac630d746239b133296e87b8e1f'
+      boundary: 'b1d2b37add4d470ca32bfd9f40d91b9f',
+      simplifiedBoundary: '5432ed92099648b18e3b28d244492324',
+      centroid: 'f0dd4c98bd3843c2b7ed16f04040ff13'
     },
     atz: {
-      boundary: 'c0ee701ee95f4bbdbc15ded2a37ca802',
-      simplifiedBoundary: '269894235d7946d19500e4bbf3ea9b09',
-      centroid: 'fd4b078fc2424dd5a48af860dc421431'
+      boundary: 'dac5cea6976a42ceb3f0498d2c901447',
+      simplifiedBoundary: '5ba6eb49c71b475dbaa45783087a666b',
+      centroid: '7bde296c08254ed78460accd00c8af49'
     },
     dtz: {
-      boundary: 'a4449b3ee55442af881f6ac660ca8163',
-      simplifiedBoundary: '0dff970830cb4b14b58596a57e7f1518',
-      centroid: '377018a24ba14afa9e02e56110b3a568'
+      boundary: '9230ad1f421847f08d6bf0ae2f8ba00f',
+      simplifiedBoundary: undefined,
+      centroid: 'ae57986ce91144e98a65208ef8ae5a1d'
     },
     pcr: {
-      boundary: '53482efa44914dc199f3833276ddb5a1',
-      simplifiedBoundary: 'b2b002057e714a73b7760f4a4511534a',
-      centroid: 'ab655c84473748159307fe18962138d1'
+      boundary: '2fe987a3c8b74c18a719433e69644bb0',
+      simplifiedBoundary: '60b63871c250465e9071dffa167ed3f3',
+      centroid: '8ac8074ac3c44d91bce4271928ac7e20'
     },
     wrap: {
-      boundary: '12bae62392eb47aeb887b6509da557b5',
-      simplifiedBoundary: 'f9594a876236492dab4bb667c28e18a5',
+      boundary: '8dbaa84192c94b5eab3f4e685ba93af7',
+      simplifiedBoundary: '24c5bebecda14aed940504f8fda63e51',
       centroid: undefined
     }
   };

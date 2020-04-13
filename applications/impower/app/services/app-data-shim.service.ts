@@ -80,7 +80,7 @@ export class AppDataShimService {
   }
 
   save() : Observable<number> {
-    return this.appProjectService.savePacked();
+    return this.appProjectService.save();
   }
 
   load(id: number) : Observable<string> {
@@ -136,12 +136,16 @@ export class AppDataShimService {
       if (this.appConfig.isBatchMode) {
         if (sd.sourcePortalId === this.appConfig.layers.atz.boundaries.id)
           sd.sourcePortalId = this.appConfig.layers.atz.boundaries.simplifiedId;
+          sd.minScale = this.appConfig.layers.atz.boundaries.batchMapMinScale;
         if (sd.sourcePortalId === this.appConfig.layers.zip.boundaries.id)
           sd.sourcePortalId = this.appConfig.layers.zip.boundaries.simplifiedId;
+          sd.minScale = this.appConfig.layers.zip.boundaries.batchMapMinScale;
         if (sd.sourcePortalId === this.appConfig.layers.pcr.boundaries.id)
           sd.sourcePortalId = this.appConfig.layers.pcr.boundaries.simplifiedId;
+          sd.minScale = this.appConfig.layers.pcr.boundaries.batchMapMinScale;
         if (sd.sourcePortalId === this.appConfig.layers.wrap.boundaries.id)
           sd.sourcePortalId = this.appConfig.layers.wrap.boundaries.simplifiedId;
+          sd.minScale = this.appConfig.layers.wrap.boundaries.batchMapMinScale;
       }
     });
     this.esriService.loadInitialState(state, shadingDefinitions);

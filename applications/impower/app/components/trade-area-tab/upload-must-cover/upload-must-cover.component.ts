@@ -1,6 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ExportMCIssuesLog } from 'app/state/data-shim/data-shim.actions';
 import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
 import { ConfirmationService, SelectItem } from 'primeng/api';
@@ -13,7 +14,7 @@ import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
-import { ExportMCIssuesLog } from 'app/state/data-shim/data-shim.actions';
+import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 
 interface CustomMCDefinition {
   Number: number;
@@ -78,7 +79,7 @@ export class UploadMustCoverComponent implements OnInit {
     });
 
     this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => {
-       this.isMustCoverExists.emit(project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER' && pref.val != null));
+       this.isMustCoverExists.emit(project.impProjectPrefs.some(pref => pref.prefGroup === 'MUSTCOVER' && pref.getVal() != null));
        /*if (this.impGeofootprintGeoService.uploadFailures.length > 0)
          this.isMustCoverExists.emit(true);*/
     });
@@ -103,6 +104,11 @@ export class UploadMustCoverComponent implements OnInit {
             this.fileAnalysisLevels = this.allAnalysisLevels;
             break;
       }
+    });
+
+    this.store$.select(projectIsReady).subscribe((flag) => {
+      if (flag)
+      this.impGeofootprintGeoService.uploadFailures = [];
     });
 
    }
@@ -228,7 +234,7 @@ export class UploadMustCoverComponent implements OnInit {
 
    rollDownIssuesLog(){
       const records: string[] = [];
-      records.push('Geocode' + '\n'); 
+      records.push('Geocode' + '\n');
       this.impGeofootprintGeoService.uploadFailures.forEach(record => {
             records.push(`${record.geocode}` + '\n');
       });

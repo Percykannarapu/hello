@@ -7,6 +7,7 @@
  ** ImpGeofootprintGeo.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
 import { Injectable } from '@angular/core';
+import { Dictionary } from '@ngrx/entity';
 
 import { select, Store } from '@ngrx/store';
 import { roundTo } from '@val/common';
@@ -79,7 +80,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    public  allMustCoverBS$ = new BehaviorSubject<string[]>([]);
    private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
    private exportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
-   private geoVarsBS$ = new BehaviorSubject<GeoVar[]>([]);
+   private geoVarsBS$ = new BehaviorSubject<Dictionary<GeoVar>>({});
    private uploadFailuresSub: BehaviorSubject<CustomMCDefinition[]> = new BehaviorSubject<CustomMCDefinition[]>([]);
    public uploadFailuresObs$: Observable<CustomMCDefinition[]> = this.uploadFailuresSub.asObservable();
    public uploadFailures: CustomMCDefinition[] = [];
@@ -96,7 +97,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.store$.pipe(select(selectGeoAttributeEntities)).subscribe(attributes => this.attributeCache = attributes);
       this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
       this.store$.select(fromAudienceSelectors.getAudiencesInFootprint).subscribe(this.exportAudiencesBS$);
-      this.store$.select(fromGeoVarSelectors.getGeoVars).subscribe(this.geoVarsBS$);
+      this.store$.select(fromGeoVarSelectors.getGeoVarEntities).subscribe(this.geoVarsBS$);
     }
 
    load(items: ImpGeofootprintGeo[]) : void {
@@ -440,88 +441,59 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return varValue;
    }
 
-   public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, header: string) {
-      let result = '';
-      const locNum = geo.impGeofootprintLocation.locationNumber;
-      const currentAttribute = state.attributeCache[geo.geocode];
-      if (currentAttribute != null) {
-         const value = currentAttribute[header];
-         result = value == null ? '' : value.toString();
+  public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, audience: Audience, header: string) {
+    let result = '';
+    const locNum = geo.impGeofootprintLocation.locationNumber;
+    const currentAttribute = state.attributeCache[geo.geocode];
+    if (currentAttribute != null) {
+      const value = currentAttribute[header];
+      if (value != null) {
+        return value.toString();
       }
+    }
 
-      // Look for headers formed like 'xxxxx (yyyy)'
-      const matchRegex = /(.*)\s*(\(.*\))/gm;
-      let m;
-      const matches: string[] = [];
-      while ((m = matchRegex.exec(header)) !== null) {
-          // This is necessary to avoid infinite loops with zero-width matches
-          if (m.index === matchRegex.lastIndex)
-            matchRegex.lastIndex++;
+    const exportAudiences = state.exportAudiencesBS$.getValue();
 
-          m.forEach((match, groupIndex) => matches[groupIndex] = match);
-      }
+    if (audience != null) {
+      const geoVar = state.geoVarsBS$.value[geo.geocode];
+      if (geoVar != null) {
+        if ((!audience.isCombined && geoVar[audience.audienceIdentifier] != null) || audience.isCombined) {
+          switch (audience.fieldconte) {
+            case FieldContentTypeCodes.Char:
+              result = geoVar[audience.audienceIdentifier].toString();
+              break;
 
-      // If the header contained an audienceSource name in parens, pull out the actual audienceName to match on
-      let audienceName = matches.length > 0 ? matches[1].trim() : header;
-      let audienceSourceName = matches.length > 0 ? matches[2].trim() : null;
-      let audience = null;
-      const exportAudiences = state.exportAudiencesBS$.getValue();
- //   if (audienceSourceName != null){
-    if (header.toLowerCase().includes('(interest)')  || header.toLowerCase().includes('(in-market)')){
-      if (matches.length >= 2) {
-         audienceName = matches[1].trim();
-         audienceSourceName = matches[2];
-        }
-       audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName && audienceSourceName.includes(aud.audienceSourceName));
-      }
-      else{
-         if (audienceSourceName == null)
-               audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName);
-         else  {
-            audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === audienceName && audienceSourceName.includes(aud.audienceSourceName));
-            if (audience == null)
-                audience = state.exportAudiencesBS$.value.find(aud => aud.audienceName === header);
-         }
-      }
-      if (audience != null) {
-        const geoVar = state.geoVarsBS$.value.find(gv => gv.geocode === geo.geocode);
-        if (geoVar != null) {
-          if ((!audience.isCombined && geoVar[audience.audienceIdentifier] != null) || audience.isCombined) {
-            switch (audience.fieldconte) {
-              case FieldContentTypeCodes.Char:
-                result = geoVar[audience.audienceIdentifier].toString();
-                break;
+            case FieldContentTypeCodes.Percent:
+              for (const aud in exportAudiences){
+                if (exportAudiences[aud].isCombined && exportAudiences[aud].exportInGeoFootprint){
+                  geoVar[exportAudiences[aud].audienceIdentifier] = exportAudiences[aud].combinedAudiences.reduce((p, c) => {
+                    p += geoVar[c] as number;
+                    return p;
+                  }, 0);
+                  result = geoVar[exportAudiences[aud].audienceIdentifier].toString();
+                }
+              }
+              result = geoVar[audience.audienceIdentifier].toString();
+              break;
+            case FieldContentTypeCodes.Ratio:
+              result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(2);
+              break;
 
-              case FieldContentTypeCodes.Percent:
-                  for (const aud in exportAudiences){
-                     if (exportAudiences[aud].isCombined && exportAudiences[aud].exportInGeoFootprint){
-                              geoVar[exportAudiences[aud].audienceIdentifier] = exportAudiences[aud].combinedAudiences.reduce((p, c) => {
-                                 p += geoVar[c] as number;
-                                 return p;
-                              }, 0);
-                              result = geoVar[exportAudiences[aud].audienceIdentifier].toString();
-                           }
-                  }
-                  result = geoVar[audience.audienceIdentifier].toString();
-                  break;
-              case FieldContentTypeCodes.Ratio:
-                result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(2);
-                break;
-
-              default:
-                result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(0);
-                break;
-            }
+            default:
+              result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(0);
+              break;
           }
-          else if (geoVar[`${locNum}:${audience.audienceIdentifier}`] != null){
-                result = geoVar[`${locNum}:${audience.audienceIdentifier}`].toString();
-          }
-          else
-             result = '';
         }
+        else if (geoVar[`${locNum}:${audience.audienceIdentifier}`] != null){
+          result = geoVar[`${locNum}:${audience.audienceIdentifier}`].toString();
+        }
+        else
+          result = '';
       }
-      return result;
-}
+    }
+
+    return result;
+  }
 
    public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
    {
@@ -534,7 +506,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
         // If more than one variable has this audience name, add the source name to the header
         const dupeNameCount = (this.allAudiencesBS$.getValue() != null) ? this.allAudiencesBS$.getValue().filter(aud => aud.audienceName === impVar.audienceName).length : 0;
         const header = (dupeNameCount <= 1) ? impVar.audienceName : impVar.audienceName + ' (' + impVar.audienceSourceName + ')';
-        exportColumns.splice(insertAtPos++, 0, { header: header, row: this.exportVarAttributes});
+        const closure = (state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, h: string) => this.exportVarAttributes(state, geo, impVar, h);
+        exportColumns.splice(insertAtPos++, 0, { header: header, row: closure });
       });
    }
 

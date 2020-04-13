@@ -31,7 +31,8 @@ export class LoginComponent {
    * @param loginForm the login form data from the UI
    */
   public onSubmit(loginForm: NgForm) {
-    const authError = { message: 'Please check your username and password and try again', notificationTitle: 'Login Error' };
+    const authError = {notificationTitle: 'Login Error', message: `Please check your username and password and try again \n
+    TIP: @valassis.com should NOT be included as part of the Username`};
     const userError = { message: 'Unable to look up user info', notificationTitle: 'Login Error' };
     const username = loginForm.value.username;
     const pass = loginForm.value.password;

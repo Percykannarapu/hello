@@ -71,7 +71,7 @@ export function prepareLocations(sites: ImpGeofootprintLocation[], prefs?: ImpPr
   const result: LocationDrawDefinition[] = [];
   sitesByType.forEach((currentSites, siteType) => {
     const currentPrefs = (prefs || []).filter(pref => pref.pref === siteType);
-    const label = currentPrefs.length > 0 ? currentPrefs[0].val : 'Number';
+    const label = currentPrefs.length > 0 ? currentPrefs[0].getVal() : 'Number';
     const color: [number, number, number, number] = siteType === ImpClientLocationTypeCodes.Site ? [0, 0, 255, 1] : [255, 0, 0, 1];
     const currentResult = new LocationDrawDefinition(siteType, color, MapSymbols.STAR, '$feature.labelName', '{clientLocationTypeCode}: {labelName}');
     currentResult.sites = currentSites.map(l => createSiteGraphic(l, null, label));

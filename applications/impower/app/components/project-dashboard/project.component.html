@@ -6,15 +6,17 @@
       <div class="dialog-body">
         <div class="ui-g-12 ui-g-nopad search-bar">
           <label>View for:</label>
-          <p-radioButton name="projectListProjectGroup" value="myProject" label="My Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-          <p-radioButton name="projectListProjectGroup" value="allProjects" label="All Projects" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event)"></p-radioButton>
-          <p-dropdown [options]="timeLines" [(ngModel)]="selectedTimeLine" [style]="{'width':'150px'}" (ngModelChange)="onSelectTimeFrame($event)" dropdownIcon="fa fa-caret-down">
+          <p-radioButton name="filterGroup" value="myProject" label="My Projects"
+                         [ngModel]="triggerDataFilter$.getValue()" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
+          <p-radioButton name="filterGroup" value="allProjects" label="All Projects"
+                         [ngModel]="triggerDataFilter$.getValue()" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
+          <p-dropdown [options]="timeSpans" [(ngModel)]="selectedTimeSpan" [style]="{'width':'150px'}" (ngModelChange)="refreshData()" dropdownIcon="fa fa-caret-down">
           </p-dropdown>
         </div>
         <div class="ui-g-12 ui-g-nopad val-tbody-nowrap">
 
           <p-table #projGrid [columns]="allColumns"
-                   [value]="currentProjectData"
+                   [value]="currentProjectData$ | async"
                    [(selection)]="selectedRow"
                    selectionMode="single"
                    dataKey="projectId"
@@ -23,21 +25,20 @@
                    [reorderableColumns]="false"
                    [responsive]="true"
                    [paginator]="true" [rows]="10"
-                   sortField="modifyDate" sortOrder="-1"
-                   (onFilter)="onFilter()">
+                   sortField="modifyDate" sortOrder="-1">
             <ng-template pTemplate="caption">
               <div class="ui-g ui-g-nopad">
                 <div class="ui-g-4 ui-g-nopad grid-caption-left-group">
                   <div class="ui-inputgroup">
                     <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
                     <span class="md-inputfield">
-                      <input id="projectSearch" type="text" pInputText size="30"  (input)="projGrid.filterGlobal($event.target.value, 'contains')">
+                      <input id="projectSearch" type="text" pInputText size="30" (input)="projGrid.filterGlobal($event.target.value, 'contains')">
                       <label for="projectSearch">Search Projects</label>
                     </span>
                   </div>
                 </div>
                 <div class="ui-g-4 ui-g-nopad grid-caption-center-group">
-                  <label>Projects: {{currentProjectData.length}}</label>
+                  <label>Projects: {{dataLength}}</label>
                 </div>
                 <div class="ui-g=4 ui-g-nopad grid-caption-right-group">
                   <div>
@@ -70,9 +71,12 @@
             <ng-template pTemplate="emptymessage" let-columns>
               <tr class="empty-grid">
                 <td [attr.colspan]="columns.length">
-                  <div class="ui-g-12">
+                  <div class="ui-g-12" *ngIf="gettingData">
                     <h4>Loading...</h4>
                     <p-progressSpinner></p-progressSpinner>
+                  </div>
+                  <div class="ui-g-12" *ngIf="!gettingData">
+                    <h4>No results</h4>
                   </div>
                 </td>
               </tr>
@@ -84,7 +88,7 @@
       <div class="dialog-buttons">
         <div class="ui-g-1">
           <button pButton type="button" (click)="loadProject(selectedRow.projectId)" label="Load" [disabled]="selectedRow == null"></button>
-        </div>  
+        </div>
         <div class="ui-g-1">
           <button pButton type="button" (click)="cloneProject(selectedRow.projectId)" label="Clone" [disabled]="selectedRow == null"></button>
         </div>

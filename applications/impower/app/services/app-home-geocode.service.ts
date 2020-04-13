@@ -5,7 +5,7 @@ import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/m
 import { Geocode, PersistLocations } from 'app/state/homeGeocode/homeGeo.actions';
 import { ConfirmationService } from 'primeng/api';
 import { Observable } from 'rxjs';
-import { reduce } from 'rxjs/operators';
+import { reduce, tap } from 'rxjs/operators';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { LocalAppState } from '../state/app.interfaces';
 import { LoggingService } from '../val-modules/common/services/logging.service';
@@ -62,8 +62,8 @@ interface TradeAreaDefinition {
       const pluralize = payload.sites.length > 1 ? 's' : '';
       this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: `Geocoding ${payload.sites.length} ${payload.siteType}${pluralize}` }));
       return this.appLocationService.geocode(payload.sites, payload.siteType, payload.isLocationEdit).pipe(
-        //reduce((accumlatorLocs, locations) => { accumlatorLocs.push(...locations); return accumlatorLocs}, [] )
-        reduce((accumlatorLocs , locations) => [...accumlatorLocs, ...locations], [])
+        reduce((acc , locations) => [...acc, ...locations], [] as ImpGeofootprintLocation[]),
+        tap(locs => this.logger.debug.log('Final Geocoding response count', locs.length)),
       );
    }
 
@@ -122,29 +122,23 @@ interface TradeAreaDefinition {
 
    queryHomeGeocode(payload: { LocMap: Map<string, ImpGeofootprintLocation[]>, isLocationEdit: boolean}){
      this.logger.debug.log('queryHomeGeocode for PIP');
-    return this.appLocationService.queryAllHomeGeos(payload.LocMap);
+     return this.appLocationService.queryAllHomeGeos(payload.LocMap);
    }
 
-   determineHomeDTZ(payload: {attributes: any , locationsMap: Map<string, ImpGeofootprintLocation[]>, totalLocs: ImpGeofootprintLocation[]}){
-     this.logger.debug.log('determineHomeDTZ:::');
-     return this.appLocationService.determineDtzHomegeos(payload.attributes, payload.totalLocs);
-   }
-
-   processHomeGeoAttributes(payload: {attributes: any[], totalLocs: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
+  processHomeGeoAttributes(payload: {attributes: any[], totalLocs: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
     this.logger.debug.log('process geo attributes:::');
     const attributesBySiteNumber: Map<any, any> = mapBy(payload.attributes, 'siteNumber');
     const locs = payload.totalLocs.filter(loc => attributesBySiteNumber.has(loc.locationNumber));
 
-    this.impProjectService.startTx();
-     //this.appLocationService.persistLocationsAndAttributes(payload.totalLocs);
-     this.store$.dispatch(new PersistLocations({locations: payload.totalLocs, reCalculateHomeGeos: payload.reCalculateHomeGeos, isLocationEdit: payload.isLocationEdit}));
-     this.appLocationService.processHomeGeoAttributes(payload.attributes, locs);
-     this.impProjectService.stopTx();
-     this.appLocationService.flagHomeGeos(locs, null);
-   }
+    // this.impProjectService.startTx();
+    this.store$.dispatch(new PersistLocations({locations: payload.totalLocs, reCalculateHomeGeos: payload.reCalculateHomeGeos, isLocationEdit: payload.isLocationEdit}));
+    this.appLocationService.processHomeGeoAttributes(payload.attributes, locs);
+    // this.impProjectService.stopTx();
+    this.appLocationService.flagHomeGeos(locs, null);
+  }
 
    persistLocations(payload: {locations: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
-      if (payload.reCalculateHomeGeos){
+     if (payload.reCalculateHomeGeos){
         const customTAList: TradeAreaDefinition[] = [];
         if (this.impTradeAreaService.get().length > 0 && this.impTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0){
           this.impGeoService.get().filter(g => g.impGeofootprintTradeArea.taType === 'CUSTOM').forEach(geo => {
@@ -168,10 +162,6 @@ interface TradeAreaDefinition {
           this.appTradeAreaService.deleteTradeAreas(tas);
           this.appTradeAreaService.clearAll();
         }
-
-        // this.impLocationService.removeAll();
-        // this.impLocAttributeService.removeAll();
-
 
         if (locations[0].radius1 == null && locations[0].radius2 == null && locations[0].radius3 == null){
          this.impLocationService.add(locations);

@@ -62,6 +62,7 @@ export class DataStore<T>
 
    public makeDirty()
    {
+      this.logger.debug.log(`Make dirty for ${this.storeName} called`, this._dataStore.length);
       this._storeSubject.next(this._dataStore);
    }
 
