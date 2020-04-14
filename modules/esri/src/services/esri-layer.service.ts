@@ -285,10 +285,6 @@ export class EsriLayerService {
         currentLayer.labelsVisible = labelConfig.enabled;
       }
     });
-    const siteLayer = this.getFeatureLayer('Project Sites');
-    if (siteLayer != null) {
-      siteLayer.labelsVisible = labelConfig.siteEnabled;
-    }
   }
 
   addLayerToLegend(layerUniqueId: string, title: string) : void {

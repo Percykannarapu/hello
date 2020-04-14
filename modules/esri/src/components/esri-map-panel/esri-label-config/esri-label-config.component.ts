@@ -69,14 +69,6 @@ export class EsriLabelConfigComponent implements OnInit {
     this.changeDetector.markForCheck();
   }
 
-  onFontChanged(event: any) {
-    if (!this.enabled) {
-      return;
-    }
-    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, size: this.selectedSize, pobEnabled: this.pobEnabled, siteEnabled: this.siteEnabled };
-    this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
-  }
-
   onSizeChanged(event: any) {
     if (!this.enabled) {
       return;
@@ -94,11 +86,6 @@ export class EsriLabelConfigComponent implements OnInit {
   onPOBEnabledChanged(event: any) {
     this.pobEnabled = (!this.enabled && event.checked) ? false : event.checked && this.enabled;
     const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, size: this.selectedSize, pobEnabled: this.pobEnabled, siteEnabled: this.siteEnabled };
-    this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
-  }
-
-  onSiteEnabledChanged(event: any) {
-    const labelConfig: EsriLabelConfiguration = { enabled: this.enabled, size: this.selectedSize, pobEnabled: this.pobEnabled, siteEnabled: event.checked };
     this.store$.dispatch(new SetLabelConfiguration({ labelConfiguration: labelConfig }));
   }
 }
