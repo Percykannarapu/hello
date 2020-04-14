@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
-import { LabelDefinition, MarkerSymbolDefinition, RgbaTuple, SimplePoiConfiguration } from '@val/esri';
+import { rgbToHex } from '@val/common';
+import { LabelDefinition, MarkerSymbolDefinition, markerTypeFriendlyNames, RgbaTuple, SimplePoiConfiguration } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { PoiBaseComponent } from '../poi-base.component';
 
@@ -19,6 +20,15 @@ export class LocationShaderComponent extends PoiBaseComponent<SimplePoiConfigura
     const currentLabelConfig = (this.configuration.labelDefinition || {} as Partial<LabelDefinition>).featureAttribute;
     const foundItem = (this.labelChoices || []).filter(l => l.value === currentLabelConfig)[0];
     return foundItem == null ? '' : foundItem.label;
+  }
+
+  get currentMarkerIdentifier() : string {
+    const currentMarkerType = (this.configuration.symbolDefinition || {} as Partial<MarkerSymbolDefinition>).markerType;
+    return markerTypeFriendlyNames[currentMarkerType];
+  }
+
+  get currentMarkerColorInHex() : string {
+    return rgbToHex((this.configuration.symbolDefinition || {} as Partial<MarkerSymbolDefinition>).color || this.defaultColor);
   }
 
   constructor(private fb: FormBuilder) {
