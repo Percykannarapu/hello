@@ -24,14 +24,15 @@ import { EsriIdentityService } from './src/services/esri-identity.service';
 import { EsriLayerService } from './src/services/esri-layer.service';
 import { EsriMapInteractionService } from './src/services/esri-map-interaction.service';
 import { EsriMapService } from './src/services/esri-map.service';
+import { EsriPoiService } from './src/services/esri-poi.service';
 import { EsriPrintingService } from './src/services/esri-printing-service';
 import { EsriQueryService } from './src/services/esri-query.service';
-import { EsriShadingLayersService } from './src/services/esri-shading-layers.service';
+import { EsriShadingService } from './src/services/esri-shading.service';
 import { EsriService } from './src/services/esri.service';
 import { LoggingService } from './src/services/logging.service';
 import { allEffects } from './src/state/esri.effects';
-import { masterEsriReducer } from './src/state/esri.reducers';
-import { AppState, selectors } from './src/state/esri.selectors';
+import { AppState, masterEsriReducer } from './src/state/esri.reducers';
+import { selectors } from './src/state/esri.selectors';
 
 export function initializer(store: Store<AppState>) {
   return function () {
@@ -92,7 +93,8 @@ export class EsriModule {
         EsriMapInteractionService,
         EsriQueryService,
         EsriPrintingService,
-        EsriShadingLayersService,
+        EsriShadingService,
+        EsriPoiService,
         LoggingService,
         { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] }
       ]

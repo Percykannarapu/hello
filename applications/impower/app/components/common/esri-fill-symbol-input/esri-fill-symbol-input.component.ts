@@ -7,22 +7,12 @@ import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
-interface Rgb { r: number; g: number; b: number; }
-
-function esriToRgb(esriColor: [number, number, number, number]) : Rgb {
-  return { r: esriColor[0], g: esriColor[1], b: esriColor[2] };
-}
-
-function rgbToEsri(rgbColor: Rgb) : [number, number, number, number] {
-  return [ rgbColor.r, rgbColor.g, rgbColor.b, 1.0 ];
-}
-
 @Component({
-  selector: 'esri-symbol-input',
-  templateUrl: './esri-symbol-input.component.html',
-  styleUrls: ['./esri-symbol-input.component.scss']
+  selector: 'esri-fill-symbol-input',
+  templateUrl: './esri-fill-symbol-input.component.html',
+  styleUrls: ['./esri-fill-symbol-input.component.scss']
 })
-export class EsriSymbolInputComponent implements OnInit, OnDestroy {
+export class EsriFillSymbolInputComponent implements OnInit, OnDestroy {
   @Input() labelText: string;
 
   @Input() defaultCrossHatchColor: RgbaTuple = [0, 0, 0, 1];
@@ -33,14 +23,9 @@ export class EsriSymbolInputComponent implements OnInit, OnDestroy {
   controlId = getUuid();
   fillTypes: SelectItem[];
   showPicker: boolean;
-  currentRoot: FormGroup;
+  defaultPickerColor: RgbaTuple;
 
-  get selectedColor() : Rgb {
-    return esriToRgb(this.fillColorControl.value || [0, 0, 0, 1]);
-  }
-  set selectedColor(value: Rgb) {
-    this.fillColorControl.setValue(rgbToEsri(value));
-  }
+  currentRoot: FormGroup;
 
   private get fillColorControl() : AbstractControl {
     return this.controlContainer.control.get('fillColor');
@@ -57,10 +42,12 @@ export class EsriSymbolInputComponent implements OnInit, OnDestroy {
     this.currentRoot = this.controlContainer.control as FormGroup;
     this.showPicker = this.currentRoot.get('fillType').value === 'solid';
     const defaultSolidColor = this.defaultSolidColor || [ ...this.fillColorControl.value] as RgbaTuple;
+    this.defaultPickerColor = [...defaultSolidColor] as RgbaTuple;
     this.currentRoot.get('fillType').valueChanges.pipe(
       takeUntil(this.destroyed$),
       distinctUntilChanged()
     ).subscribe(newFillType => {
+      this.defaultPickerColor = [...defaultSolidColor] as RgbaTuple;
       if (newFillType === 'solid') {
         this.fillColorControl.setValue(Array.from(defaultSolidColor));
         this.showPicker = true;

@@ -1,4 +1,4 @@
-<add-shader-button [currentAnalysisLevel]="currentAnalysisLevel"
+<add-shader-button [geoCount]="(geos || []).length"
                    [tradeAreaCount]="tradeAreaCount"
                    [locationCount]="locationCount"
                    [audienceCount]="(audiences || []).length"
@@ -11,13 +11,12 @@
         <span class="fa" [class.fa-eye]="def.visible" [class.fa-eye-slash]="!def.visible" (click)="toggleVisibility($event, def)"></span>
         {{def.layerName}}
       </span>
-      <span class="fa fa-trash-o" (click)="deleteDefinition($event, def)" *ngIf="def.sourcePortalId != null"></span>
+      <span class="fa fa-trash-o" (click)="deleteDefinition($event, def)" *ngIf="def.sourcePortalId != null && def.dataKey !== shadingTypes.Selection"></span>
       <span *ngIf="def.sourcePortalId == null">New {{def.layerName == null ? 'Variable' : def.layerName}}</span>
     </p-header>
     <ng-container [ngSwitch]="def.dataKey">
       <val-selected-geo-shader *ngSwitchCase="shadingTypes.Selection" [definition]="def"
-                               (applyShader)="applyDefinition($event)"
-                               (deleteShader)="deleteDefinition(null, $event)"></val-selected-geo-shader>
+                               (applyShader)="applyDefinition($event)"></val-selected-geo-shader>
       <val-owner-site-shader *ngSwitchCase="shadingTypes.OwnerSite" [definition]="def"
                              [labelChoices]="siteLabels$ | async"
                              (applyShader)="applyDefinition($event)"

@@ -2,19 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppLocationService } from 'app/services/app-location.service';
+import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { UserService } from 'app/services/user.service';
-import { BatchMapPayload, BatchMapSizes, LocalAppState, SinglePageBatchMapPayload, TitlePayload, FitToPageOptions } from 'app/state/app.interfaces';
+import { BatchMapPayload, BatchMapSizes, FitToPageOptions, LocalAppState, SinglePageBatchMapPayload, TitlePayload } from 'app/state/app.interfaces';
 import { CloseBatchMapDialog, CreateBatchMap } from 'app/state/batch-map/batch-map.actions';
 import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
+import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
-import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
-import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -86,7 +86,7 @@ export class BatchMapDialogComponent implements OnInit {
         subTitleInput: '',
         subSubTitleInput: '',
         enableTradeAreaShading: false
-      }); 
+      });
   }
 
   onLoadFormData() {
@@ -112,7 +112,7 @@ export class BatchMapDialogComponent implements OnInit {
         subSubTitleInput: savedFormData.subSubTitleInput,
         enableTradeAreaShading: savedFormData.enableTradeAreaShading
       });
-    } 
+    }
   }
 
   ngOnInit() {
@@ -163,7 +163,7 @@ export class BatchMapDialogComponent implements OnInit {
       this.batchMapForm.patchValue({titleInput: this.currentProjectName});
       this.numSites = p.getImpGeofootprintLocations().length;
     });
-    this.appLocationService.listTypeBS$.subscribe( (list: SelectItem[]) => {
+    this.appLocationService.siteLabelOptions$.subscribe( (list: SelectItem[]) => {
       const customList: SelectItem[] = [];
       customList.push({ label: '<user defined>', value: 'user-defined' });
       list.forEach((listEntry) => {
@@ -189,7 +189,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.input['subTitle'] = dialogFields['subTitleInput'];
     this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
     const siteIds: string[] = this.getSiteIds();
-    const titles: Array<TitlePayload> = this.getTitles(siteIds); 
+    const titles: Array<TitlePayload> = this.getTitles(siteIds);
     const result = this.getTitlesByGroup(siteIds);
     const siteIdsByGroup: string[] = result[0];
     const titlesByGroup: Array<TitlePayload> = result[1];

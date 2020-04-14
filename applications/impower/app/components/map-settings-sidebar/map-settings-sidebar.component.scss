@@ -19,13 +19,22 @@ body .ui-sidebar.transparent-back {
     width: 1.4em;
     padding-top: ($valSidebarButtonPadding + 6.5em);
   }
-  p-card {
+  p-tabView {
     flex: 1;
-    height: 100%;
-    .ui-card.ui-widget-content {
+    .ui-tabview.ui-widget-content {
+      display: flex;
+      flex-direction: column;
+      padding: 0 0 1em 1em;
       height: 100%;
-      padding: 0 1em 1em;
-      overflow-x: auto;
+      > ul {
+        margin-right: 1em;
+        flex: 0;
+      }
+      > .ui-tabview-panels {
+        flex: 1;
+        margin-top: 1em;
+        overflow-x: auto;
+      }
     }
   }
 }

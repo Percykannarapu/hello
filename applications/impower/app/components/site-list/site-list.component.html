@@ -1,29 +1,29 @@
 <div class="ui-g ui-g-nopad">
   &nbsp;
   <div class="ui-g-12">
-    
-        <div class="ui-g-6">
-              <label>Manage for:</label>
-              &nbsp;
-              <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
-              &nbsp;
-              <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        </div>
+
       <div class="ui-g-6">
-          <span class="md-inputfield">
-              <p-dropdown defaultLabel="Choose Columns" id="selectLabel"  
-              [placeholder]="&nbsp;"
-              [options]="labelOptions" 
-              [(ngModel)]="selectedLabel" 
-              (ngModelChange)="onLabelChange($event)" 
-              filter="true" 
-              [style]="{'width': '50%'}" 
-              dropdownIcon="fa fa-caret-down">
-            </p-dropdown>
-            <label for="selectLabel">{{labelType}}</label>
-          </span>
+            <label>Manage for:</label>
+            &nbsp;
+            <p-radioButton name="siteListSiteGroup" value="Site" label="Sites" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
+            &nbsp;
+            <p-radioButton name="siteListSiteGroup" value="Competitor" label="Competitors" [(ngModel)]="selectedListType" (ngModelChange)="onListTypeChange($event); onClickResetFilters()"></p-radioButton>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       </div>
+<!--      <div class="ui-g-6">-->
+<!--          <span class="md-inputfield">-->
+<!--              <p-dropdown defaultLabel="Choose Columns" id="selectLabel"  -->
+<!--              [placeholder]="&nbsp;"-->
+<!--              [options]="labelOptions" -->
+<!--              [(ngModel)]="selectedLabel" -->
+<!--              (ngModelChange)="onLabelChange($event)" -->
+<!--              filter="true" -->
+<!--              [style]="{'width': '50%'}" -->
+<!--              dropdownIcon="fa fa-caret-down">-->
+<!--            </p-dropdown>-->
+<!--            <label for="selectLabel">{{labelType}}</label>-->
+<!--          </span>-->
+<!--      </div>-->
   </div>
   <div class="ui-g-12">
     <button pButton type="button" label="Calc Home Geocodes" (click)="calcHomeGeocode()"></button>
@@ -97,14 +97,14 @@
         <tr class="second-header">
           <th class="button-column-hdr" style="font-size: 1em; padding: 0.4em 0 0 0.4em">
             <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" class="val-toolbar-button" (click)="onFilterBySelection()"></button>
-          </th>  
+          </th>
           <th style="width: 4em"></th>
           <th style="width: 4em"></th>
           <th class="button-column">
             <div>
               <button pButton type="button" icon="fa fa-eraser" pTooltip="Clear Filters" class="ui-button-red-emphasis" (click)="onClickResetFilters()" style="width: 1em"></button>
             </div>
-          </th>  
+          </th>
           <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="overflow: visible">
             <input *ngSwitchCase="'locationNumber'"     pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(locGrid.filters != null && locGrid.filters[col.field]) ? locGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
             <input *ngSwitchCase="'locationName'"       pInputText type="text"   (input)="locGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(locGrid.filters != null && locGrid.filters[col.field]) ? locGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">

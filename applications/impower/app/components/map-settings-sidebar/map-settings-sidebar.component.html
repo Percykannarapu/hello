@@ -16,15 +16,23 @@
         </a>
       </div>
     </div>
-    <p-card>
-      <val-shader-list
-        [shadingDefinitions]="shadingDefinitions$ | async"
-        [audiences]="audiences$ | async"
-        [geos]="geos$ | async"
-        [locationCount]="locationCount$ | async"
-        [tradeAreaCount]="tradeAreaCount$ | async"
-        [currentAnalysisLevel]="analysisLevel$ | async"></val-shader-list>
-    </p-card>
+    <p-tabView>
+      <p-tabPanel header="Locations">
+        <val-location-list [poiConfigurations]="poiConfigurations$ | async"></val-location-list>
+      </p-tabPanel>
+<!--      <p-tabPanel header="Boundaries">-->
+<!--        <val-boundary-list></val-boundary-list>-->
+<!--      </p-tabPanel>-->
+      <p-tabPanel header="Shading">
+        <val-shader-list
+          [shadingDefinitions]="shadingDefinitions$ | async"
+          [audiences]="audiences$ | async"
+          [geos]="geos$ | async"
+          [locationCount]="locationCount$ | async"
+          [tradeAreaCount]="tradeAreaCount$ | async"
+          [currentAnalysisLevel]="analysisLevel$ | async"></val-shader-list>
+      </p-tabPanel>
+    </p-tabView>
   </div>
 </p-sidebar>
 

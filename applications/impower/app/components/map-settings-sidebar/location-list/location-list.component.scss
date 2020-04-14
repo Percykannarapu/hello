@@ -1,0 +1,39 @@
+@import "valassis-variables";
+@import "sass/mixins";
+
+body {
+  val-location-list {
+    div.ui-accordion-header {
+      .poi-header {
+        display: inline-flex;
+        justify-content: space-between;
+        align-items: center;
+        width: calc(100% - 1.5em);
+        line-height: 1.5em;
+        span.fa-eye-slash {
+          color: $valReversedDisabledColor;
+        }
+      }
+      &.ui-state-active {
+        .poi-header {
+          span.fa-eye-slash {
+            color: $valReversedDisabledColor;
+          }
+        }
+      }
+    }
+    div.poi-menu {
+      > a {
+        @include transition(background-color .3s);
+        @include transition(color .3s);
+        @include border-radius(3px);
+
+        padding: 0 0.5em;
+        &:hover {
+          color: #000;
+          background-color: $primaryLightColor;
+        }
+      }
+    }
+  }
+}

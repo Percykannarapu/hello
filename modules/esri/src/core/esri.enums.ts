@@ -48,6 +48,16 @@ export const fillTypeFriendlyNames = {
   ['vertical'] : 'Vertical',
 };
 
+export const markerTypeFriendlyNames = {
+  ['circle'] : 'Circle',
+  ['cross'] : 'Cross',
+  ['diamond'] : 'Diamond',
+  ['square'] : 'Square',
+  ['triangle'] : 'Triangle',
+  ['x'] : 'X',
+  ['path'] : 'Star'
+};
+
 export const shaderConfigTypeFriendlyNames = {
   ['Simple'] : 'Simple',
   ['Unique'] : 'Unique',

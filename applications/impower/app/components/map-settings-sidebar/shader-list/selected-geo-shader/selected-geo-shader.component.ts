@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { FormConfig, rgbToHex } from '@val/common';
-import { fillTypeFriendlyNames, SimpleShadingDefinition, SymbolDefinition } from '@val/esri';
-import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
+import { FillSymbolDefinition, fillTypeFriendlyNames, SimpleShadingDefinition } from '@val/esri';
+import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { GfpSelectionForm } from '../../../../state/forms/forms.interfaces';
 import { ShaderBaseComponent } from '../shader-base.component';
 
@@ -25,25 +25,31 @@ export class SelectedGeoShaderComponent extends ShaderBaseComponent<SimpleShadin
   }
 
   protected setupForm() : void {
-    const defaultSymbol: Partial<SymbolDefinition> = this.definition.defaultSymbolDefinition || {};
+    const defaultSymbol: Partial<FillSymbolDefinition> = this.definition.defaultSymbolDefinition || {};
 
     const formSetup: FormConfig<GfpSelectionForm> = {
       layerName: [this.definition.layerName, Validators.required],
       opacity: new FormControl(this.definition.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
       defaultSymbolDefinition: this.fb.group({
-        fillColor: new FormControl(defaultSymbol.fillColor, { updateOn: 'change' }),
-        fillType: new FormControl(defaultSymbol.fillType, { updateOn: 'change' }),
-        outlineColor: new FormControl(defaultSymbol.outlineColor, { updateOn: 'change' }),
+        fillColor: new FormControl(defaultSymbol.fillColor),
+        fillType: new FormControl(defaultSymbol.fillType),
+        outlineColor: new FormControl(defaultSymbol.outlineColor),
         legendName: defaultSymbol.legendName
       })
     };
-    this.shaderForm = this.fb.group(formSetup, { updateOn: 'blur' });
+    this.shaderForm = this.fb.group(formSetup);
 
-    this.shaderForm.get('defaultSymbolDefinition').valueChanges.pipe(
+    this.shaderForm.get('defaultSymbolDefinition.fillType').valueChanges.pipe(
       takeUntil(this.destroyed$),
-      map(value => value.fillType),
       distinctUntilChanged()
     ).subscribe(value => this.styleChanged(value));
+
+    this.shaderForm.get('layerName').valueChanges.pipe(
+      takeUntil(this.destroyed$),
+      distinctUntilChanged()
+    ).subscribe(newName => {
+      this.shaderForm.get('defaultSymbolDefinition.legendName').setValue(newName);
+    });
   }
 
   styleChanged(newValue: string) : void {

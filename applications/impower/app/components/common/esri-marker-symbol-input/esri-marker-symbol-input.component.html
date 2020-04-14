@@ -1,0 +1,23 @@
+<div class="component-root" [formGroup]="currentRoot">
+  <span class="md-inputfield">
+    <p-dropdown [options]="markerTypes" [style]="{'width':'100%'}" id="marker-input-{{controlId}}" formControlName="markerType">
+      <ng-template let-selected pTemplate="selectedItem">
+        <div class="item-container">
+          <span [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
+          <span class="item-label">{{selected.label}}</span>
+        </div>
+      </ng-template>
+      <ng-template let-item pTemplate="item">
+        <div class="item-container">
+          <span [ngClass]="item.icon"></span>
+          <span class="item-label">{{item.label}}</span>
+        </div>
+      </ng-template>
+    </p-dropdown>
+    <label class="drop-down-label" for="marker-input-{{controlId}}">{{labelText}}</label>
+  </span>
+  <span class="color-chip">
+    <palette-color-picker *ngIf="currentPalette != null" [palette]="currentPalette" [reversePalette]="reversePalette" formControlName="color"></palette-color-picker>
+    <val-extended-color-picker *ngIf="currentPalette == null" [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
+  </span>
+</div>

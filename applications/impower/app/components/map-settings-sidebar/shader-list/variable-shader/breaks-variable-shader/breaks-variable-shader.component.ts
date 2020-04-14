@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { rgbToHex } from '@val/common';
-import { ClassBreakDefinition, ClassBreakShadingDefinition, ColorPalette, DynamicAllocationTypes, FillPattern, fillTypeFriendlyNames, getColorPalette, RgbaTuple, RgbTuple, SymbolDefinition } from '@val/esri';
+import { ClassBreakFillDefinition, ClassBreakShadingDefinition, ColorPalette, DynamicAllocationTypes, FillPattern, FillSymbolDefinition, fillTypeFriendlyNames, getColorPalette, RgbaTuple, RgbTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -123,7 +123,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
         this.parentForm.get('dynamicAllocationType').setValue(null);
         this.parentForm.get('dynamicAllocationSlots').clearValidators();
         this.classBreakCleanup$.next();
-        const newBreakDefinitions: ClassBreakDefinition[] = getDefaultClassBreaks(this.currentAudience.fieldconte, currentTheme, currentReverse);
+        const newBreakDefinitions: ClassBreakFillDefinition[] = getDefaultClassBreaks(this.currentAudience.fieldconte, currentTheme, currentReverse);
         this.setupBreakControls(newBreakDefinitions);
         if (this.parentForm.get('userBreakDefaults') != null) {
           this.userBreakCleanup$.next();
@@ -161,7 +161,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     }
   }
 
-  private setupBreakControls(definitions: ClassBreakDefinition[]) : void {
+  private setupBreakControls(definitions: ClassBreakFillDefinition[]) : void {
     if (definitions != null && definitions.length > 0) {
       const breakControls = definitions.map(def => this.createClassBreakControl(def));
       this.parentForm.addControl('breakDefinitions', new FormArray(breakControls));
@@ -170,7 +170,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     }
   }
 
-  private setupUserBreakControls(definitions: SymbolDefinition[]) : void {
+  private setupUserBreakControls(definitions: FillSymbolDefinition[]) : void {
     if (definitions != null && definitions.length > 0) {
       const breakControls = definitions.map(def => this.createUserBreakControl(def));
       if (this.parentForm.contains('userBreakDefaults')) this.parentForm.removeControl('userBreakDefaults');
@@ -179,7 +179,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     }
   }
 
-  private createClassBreakControl(newBreakDefinition: ClassBreakDefinition) : FormGroup {
+  private createClassBreakControl(newBreakDefinition: ClassBreakFillDefinition) : FormGroup {
     return this.fb.group({
       fillColor: new FormControl(newBreakDefinition.fillColor, { updateOn: 'change' }),
       fillType: new FormControl(newBreakDefinition.fillType, { updateOn: 'change' }),
@@ -190,7 +190,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     });
   }
 
-  private createUserBreakControl(newBreakDefinition: SymbolDefinition) : FormGroup {
+  private createUserBreakControl(newBreakDefinition: FillSymbolDefinition) : FormGroup {
     return this.fb.group({
       fillColor: new FormControl(newBreakDefinition.fillColor, { updateOn: 'change' }),
       fillType: new FormControl(newBreakDefinition.fillType, { updateOn: 'change' }),
@@ -354,7 +354,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     this.classBreakCleanup$.next();
     const index = this.classBreakCount - 2;
     const previousMax = this.breakDefinitions[index].get('maxValue').value;
-    const newDefinition: ClassBreakDefinition = {
+    const newDefinition: ClassBreakFillDefinition = {
       fillType: fillPalette[this.classBreakCount % lm],
       minValue: null, maxValue: null,
       legendName: 'New Break',

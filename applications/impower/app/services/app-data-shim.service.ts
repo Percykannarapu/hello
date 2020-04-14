@@ -24,6 +24,7 @@ import { AppProjectService } from './app-project.service';
 import { AppRendererService } from './app-renderer.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
+import { PoiRenderingService } from './poi-rendering.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
 
@@ -56,6 +57,7 @@ export class AppDataShimService {
               private metricService: ValMetricsService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private appRendererService: AppRendererService,
+              private poiRenderingService: PoiRenderingService,
               private esriService: EsriService,
               private appConfig: AppConfig,
               private store$: Store<FullAppState>,
@@ -129,6 +131,7 @@ export class AppDataShimService {
       }
     };
     const shadingDefinitions = this.appRendererService.getShadingDefinitions(project);
+    const poiConfigurations = this.poiRenderingService.getConfigurations(project);
     // just in case stuff was saved with a destination id
     shadingDefinitions.forEach(sd => {
       delete sd.destinationLayerUniqueId;
@@ -147,7 +150,7 @@ export class AppDataShimService {
           sd.minScale = this.appConfig.layers.wrap.boundaries.batchMapMinScale;
       }
     });
-    this.esriService.loadInitialState(state, shadingDefinitions);
+    this.esriService.loadInitialState(state, shadingDefinitions, poiConfigurations);
     const savedBasemap = (project.impProjectPrefs || []).filter(pref => pref.pref === 'basemap')[0];
     if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null)) {
       const parsedJson = JSON.parse(savedBasemap.largeVal || savedBasemap.val);
@@ -181,7 +184,7 @@ export class AppDataShimService {
   createNew() : number {
     this.clearAll();
     const projectId = this.appProjectService.createNew();
-    this.esriService.loadInitialState({}, []);
+    this.esriService.loadInitialState({}, [], this.poiRenderingService.getConfigurations());
     return projectId;
   }
 

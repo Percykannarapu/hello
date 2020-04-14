@@ -1,9 +1,9 @@
 import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { isError } from '@val/common';
-import { EsriShadingLayersService, selectors as esriSelectors } from '@val/esri';
+import { EsriShadingService, selectors as esriSelectors } from '@val/esri';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { debounceTime, filter, map, take, takeUntil, withLatestFrom, tap } from 'rxjs/operators';
+import { debounceTime, filter, map, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import * as StackTrace from 'stacktrace-js';
 import { AppConfig } from '../../app.config';
 import { getMapAudienceIsFetching } from '../../impower-datastore/state/transient/audience/audience.selectors';
@@ -34,7 +34,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
 
   constructor(private store$: Store<FullAppState>,
               private batchMapService: BatchMapService,
-              private esriRendererService: EsriShadingLayersService,
+              private esriRendererService: EsriShadingService,
               private config: AppConfig,
               private zone: NgZone) {
     const stdErr = console.error;

@@ -3,8 +3,9 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { buttonToCursorMap, SelectedButtonTypeCodes } from '../../core/esri.enums';
-import { EsriShadingLayersService } from '../../services/esri-shading-layers.service';
-import { AppState, internalSelectors } from '../../state/esri.selectors';
+import { EsriShadingService } from '../../services/esri-shading.service';
+import { AppState } from '../../state/esri.reducers';
+import { internalSelectors } from '../../state/esri.selectors';
 import { MeasureDistanceSelected, PopupButtonSelected, SelectMultiPolySelected, SelectSinglePolySelected, UnselectMultiPolySelected, XYButtonSelected } from '../../state/map/esri.map-button.actions';
 import { MapClicked, SetMapHeight, SetMapViewpoint } from '../../state/map/esri.map.actions';
 
@@ -31,7 +32,7 @@ export class EsriMapPanelComponent implements OnInit {
   @Output() selectedButton = new EventEmitter();
 
   constructor(private store: Store<AppState>,
-              private shadingService: EsriShadingLayersService) {}
+              private shadingService: EsriShadingService) {}
 
   ngOnInit() : void {
     this.shadingService.initializeShadingWatchers();

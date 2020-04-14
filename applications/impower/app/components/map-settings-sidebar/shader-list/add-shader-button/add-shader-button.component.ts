@@ -10,8 +10,8 @@ import { GfpShaderKeys } from '../../../../models/ui-enums';
 })
 export class AddShaderButtonComponent {
 
-  @Input() currentAnalysisLevel: string;
   @Input() audienceCount: number;
+  @Input() geoCount: number;
   @Input() tradeAreaCount: number;
   @Input() locationCount: number;
 
@@ -25,16 +25,10 @@ export class AddShaderButtonComponent {
 
   private buttonMenu() : MenuItem[] {
     return [
-      { label: 'Add Selection Shading', command: () => this.add(GfpShaderKeys.Selection, this.getSelectionLayerName()) },
-      { label: 'Add Owner Site Shading', command: () => this.add(GfpShaderKeys.OwnerSite, 'Owner Site'), visible: this.locationCount > 0 },
-      { label: 'Add Owner TA Shading', command: () => this.add(GfpShaderKeys.OwnerTA, 'Owner Trade Area'), visible: this.tradeAreaCount > 0 },
+      { label: 'Add Owner Site Shading', command: () => this.add(GfpShaderKeys.OwnerSite, 'Owner Site'), visible: this.locationCount > 0 && this.geoCount > 0 },
+      { label: 'Add Owner TA Shading', command: () => this.add(GfpShaderKeys.OwnerTA, 'Owner Trade Area'), visible: this.tradeAreaCount > 0 && this.geoCount > 0 },
       { label: 'Add Variable Shading', command: () => this.add(''), visible: this.audienceCount > 0 }
     ];
-  }
-
-  private getSelectionLayerName() : string {
-    const analysisName = this.currentAnalysisLevel || 'Geo';
-    return `Selected ${analysisName}s`;
   }
 
   private add(dataKey: string, layerName?: string) : void {

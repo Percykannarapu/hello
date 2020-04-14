@@ -126,7 +126,7 @@ export class BatchMapService {
           l.getImpGeofootprintGeos().forEach(g => g.isActive = this.originalGeoState[g.ggId]);
         }
       });
-      this.store$.dispatch(new RenderLocations({ locations: sitesToMap, impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
+      this.store$.dispatch(new RenderLocations({ locations: sitesToMap }));
       this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
     }
     if (!params.shadeNeighboringSites) {
@@ -195,7 +195,7 @@ export class BatchMapService {
         }
 
         if (params.hideNeighboringSites) {
-          this.store$.dispatch(new RenderLocations({ locations: [currentSite], impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
+          this.store$.dispatch(new RenderLocations({ locations: [currentSite] }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         } else if (params.shadeNeighboringSites) {
           this.geoService.update(null, null);

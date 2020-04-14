@@ -18,6 +18,6 @@
   </span>
   <span class="color-chip" *ngIf="showPicker">
     <palette-color-picker *ngIf="currentPalette != null" [palette]="currentPalette" [reversePalette]="reversePalette" formControlName="fillColor"></palette-color-picker>
-    <p-colorPicker [(ngModel)]="selectedColor" format="rgb" [ngModelOptions]="{standalone: true}" *ngIf="currentPalette == null"></p-colorPicker>
+    <val-extended-color-picker *ngIf="currentPalette == null" [defaultColor]="defaultPickerColor" formControlName="fillColor"></val-extended-color-picker>
   </span>
 </div>
