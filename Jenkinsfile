@@ -35,12 +35,12 @@
             withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESR_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
               wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                 echo 'build for development'
-                /*sh '''
-                  node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
-                  '''*/
                 sh '''
+                  node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
+                  '''
+                /* sh '''
                   npm run build-dev
-                '''
+                ''' */
               }
             }
           }
@@ -48,11 +48,13 @@
         stage('build cpq-maps development') {
           when { branch 'dev' }
           steps {
-            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-              echo 'build for development'
-              sh '''
-                node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
-                '''
+            withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESR_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
+              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                echo 'build for development'
+                sh '''
+                  node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
+                  '''
+              }
             }
           }
         }
@@ -72,12 +74,12 @@
               '''
           }
         }
-        stage('Deploy CPQ Maps dev') {
+        /* stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
             sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20194!oyHOMG8OYGxM9Lk0j6k6gvIkM -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
           }
-        }
+        } */
       }
     }
     stage('build for QA') {

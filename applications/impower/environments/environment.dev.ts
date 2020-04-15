@@ -6,7 +6,6 @@
 
 import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
-import { esri } from './esri-secrets';
 /*
  * In development mode, to ignore zone related error stack frames such as
  * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
@@ -47,9 +46,9 @@ export class EnvironmentData {
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
 
   public static esri = {
-    portalServer:  esri.portalServer,
-    userName: esri.userName,
-    password: esri.password
+    portalServer:  process.env.ESRI_PORTAL_SERVER,
+    userName: process.env.ESRI_USERNAME,
+    password: process.env.ESRI_PASSWORD
   };
 
   public static oAuth = {

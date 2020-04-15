@@ -8,9 +8,9 @@ export const environment: EnvironmentData = {
   production: true,
   logLevel: LogLevels.ERROR,
   esri: {
-    portalServer: 'https://valvcsimpor1vm.val.vlss.local/',
-    username: 'quickmaps',
-    password: 'quickmaps123'
+    portalServer: process.env.ESRI_PORTAL_SERVER,
+    username: process.env.ESRI_USERNAME,
+    password: process.env.ESRI_PASSWORD
   },
   layerIds: {
     zip: {

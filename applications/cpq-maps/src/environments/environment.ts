@@ -19,9 +19,9 @@ export const environment: EnvironmentData = {
   production: false,
   logLevel: LogLevels.ALL,
   esri: {
-    portalServer: 'https://vallomimpor1vm.val.vlss.local/',
-    username: 'impower5',
-    password: 'impower123!'
+    portalServer: process.env.ESRI_PORTAL_SERVER,
+    username: process.env.ESRI_USERNAME,
+    password: process.env.ESRI_PASSWORD
   },
   layerIds: {
     zip: {
