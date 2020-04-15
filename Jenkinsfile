@@ -45,7 +45,7 @@
             }
           }
         }
-        stage('build cpq-maps development') {
+        /* stage('build cpq-maps development') {
           when { branch 'dev' }
           steps {
             withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESR_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
@@ -57,7 +57,7 @@
               }
             }
           }
-        }
+        } */
       }
     }
     stage('Deploy dev apps') {
@@ -77,7 +77,7 @@
         /* stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
-            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20194!oyHOMG8OYGxM9Lk0j6k6gvIkM -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
+            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y2020!AOVwACL07YmLvbnUOfM5ATJ2 -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
           }
         } */
       }
