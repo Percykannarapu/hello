@@ -7,6 +7,7 @@ const dotenvWebpack = require('dotenv-webpack');
  */
 module.exports = {
   plugins: [
+    new webpack.EnvironmentPlugin(),
     new dotenvWebpack({
       systemvars: true,
     }),
@@ -20,7 +21,12 @@ module.exports = {
     new webpack.optimize.LimitChunkCountPlugin({
       maxChunks: 5,
     })
-  ]
+  ],
+  node: {
+    process: true,
+    global: false,
+    fs: "empty"
+  }
 };
 
 // devtool: 'eval'
