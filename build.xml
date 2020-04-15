@@ -27,6 +27,16 @@
       </fileset>
     </move>
 
+    <move todir="${DEPLOY_ROOT}/common-js">
+      <fileset dir="${CPQ_MAPS_ROOT}">
+        <include name="common.js"/>
+        <include name="arcgis-js-api/**"/>
+        <include name="dojo/**"/>
+        <include name="esri/**"/>
+        <include name="moment/**"/>
+      </fileset>
+    </move>
+
     <!-- Gather the CPQMapsJS files -->
     <move todir="${DEPLOY_ROOT}/js">
       <fileset dir="${CPQ_MAPS_ROOT}">
@@ -36,10 +46,12 @@
 
     <!-- Create the static resource files -->
     <zip destfile="${DEPLOY_ROOT}/main-js.zip" basedir="${DEPLOY_ROOT}/main-js" level="9"/>
+    <zip destfile="${DEPLOY_ROOT}/common-js.zip" basedir="${DEPLOY_ROOT}/common-js" level="9"/>
     <zip destfile="${DEPLOY_ROOT}/js.zip" basedir="${DEPLOY_ROOT}/js" level="9"/>
 
     <!-- Rename the static resource files and prep the folder for SFDC upload-->
     <move file="${DEPLOY_ROOT}/main-js.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsMainJS.resource"/>
+    <move file="${DEPLOY_ROOT}/common-js.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsCommonJS.resource"/>
     <move file="${DEPLOY_ROOT}/js.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsJS.resource"/>
     <copy file="package.xml" todir="${DEPLOY_ROOT}"/>
 
