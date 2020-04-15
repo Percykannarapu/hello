@@ -7,6 +7,7 @@ const dotenvWebpack = require('dotenv-webpack');
  */
 module.exports = {
   plugins: [
+    new webpack.EnvironmentPlugin(),
     new dotenvWebpack({
       systemvars: true,
     }),
