@@ -7,7 +7,7 @@ const dotenvWebpack = require('dotenv-webpack');
  */
 module.exports = {
   plugins: [
-    new webpack.EnvironmentPlugin(),
+    new webpack.EnvironmentPlugin(['ESRI_PORTAL_SERVER', 'ESRI_USERNAME', 'ESRI_PASSWORD']),
     new dotenvWebpack({
       systemvars: true,
     }),
@@ -23,7 +23,7 @@ module.exports = {
     })
   ],
   node: {
-    process: true,
+    process: false,
     global: false,
     fs: "empty"
   }
