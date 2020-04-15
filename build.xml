@@ -27,20 +27,20 @@
       </fileset>
     </move>
 
+    <delete file="${CPQ_MAPS_ROOT}/common.js.map" />
+    <delete dir="${CPQ_MAPS_ROOT}/arcgis-js-api/geometry" />
+    <delete dir="${CPQ_MAPS_ROOT}/esri" />
+    <!--<delete dir="${CPQ_MAPS_ROOT}/dojo" />-->
+    <delete dir="${CPQ_MAPS_ROOT}/moment" />
+
     <move todir="${DEPLOY_ROOT}/common-js">
       <fileset dir="${CPQ_MAPS_ROOT}">
         <include name="common.js"/>
-<!--        <include name="arcgis-js-api/**"/>-->
-<!--        <include name="dojo/**"/>-->
+        <include name="arcgis-js-api/**"/>
+        <include name="dojo/**"/>
 <!--        <include name="moment/**"/>-->
       </fileset>
     </move>
-
-    <delete file="${CPQ_MAPS_ROOT}/common.js.map" />
-    <delete dir="${CPQ_MAPS_ROOT}/arcgis-js-api" />
-    <delete dir="${CPQ_MAPS_ROOT}/esri" />
-    <delete dir="${CPQ_MAPS_ROOT}/dojo" />
-    <delete dir="${CPQ_MAPS_ROOT}/moment" />
 
     <!-- Gather the CPQMapsJS files -->
     <move todir="${DEPLOY_ROOT}/js">

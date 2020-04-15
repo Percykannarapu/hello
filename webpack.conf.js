@@ -1,15 +1,16 @@
 const ArcGISPlugin = require("@arcgis/webpack-plugin");
 const webpack = require('webpack');
-const dotenvWebpack = require('dotenv-webpack');
+const dotenv = require('dotenv').config({path: __dirname + '/.env'});
 
 /**
  * Configuration items defined here will be appended to the end of the existing webpack config defined by the Angular CLI.
  */
 module.exports = {
   plugins: [
-    new webpack.EnvironmentPlugin(['ESRI_PORTAL_SERVER', 'ESRI_USERNAME', 'ESRI_PASSWORD']),
-    new dotenvWebpack({
-      systemvars: true,
+    new webpack.EnvironmentPlugin({
+      'ESRI_PORTAL_SERVER': dotenv.ESRI_PORTAL_SERVER,
+      'ESRI_USERNAME': dotenv.ESRI_USERNAME,
+      'ESRI_PASSWORD': dotenv.ESRI_PASSWORD
     }),
     new ArcGISPlugin({
       options: {
