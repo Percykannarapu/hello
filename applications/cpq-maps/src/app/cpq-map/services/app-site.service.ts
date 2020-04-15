@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
 import { groupByExtended } from '@val/common';
-import { EsriApi, EsriDomainFactoryService, EsriLayerService, MapSymbols } from '@val/esri';
+import { EsriDomainFactoryService, EsriLayerService, MapSymbols } from '@val/esri';
+import Color from 'esri/Color';
+import { Point } from 'esri/geometry';
+import geometryEngine from 'esri/geometry/geometryEngine';
+import Graphic from 'esri/Graphic';
+import { SimpleRenderer } from 'esri/renderers';
+import { SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol } from 'esri/symbols';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 
@@ -14,18 +20,18 @@ export class AppSiteService {
 
   createSiteFeatureLayer(edits: RfpUiEdit[], details: RfpUiEditDetail[], radius: number, groupName: string, layerName: string) : void {
     const siteGraphics = this.createSiteGraphics(edits, details, radius);
-    const renderer = new EsriApi.SimpleRenderer({
+    const renderer = new SimpleRenderer({
       label: 'Client Locations',
-      symbol: new EsriApi.SimpleMarkerSymbol({
+      symbol: new SimpleMarkerSymbol({
         color: [0, 0, 255, 1],
         path: MapSymbols.STAR,
-        outline: new EsriApi.SimpleLineSymbol({
+        outline: new SimpleLineSymbol({
           color: [0, 0, 0, 0],
           width: 0
         })
       })
     });
-    const label = this.esriFactory.createLabelClass(new EsriApi.Color([0, 0, 255, 1]), '$feature.siteName');
+    const label = this.esriFactory.createLabelClass(new Color([0, 0, 255, 1]), '$feature.siteName');
     this.layerService.createClientLayer(groupName, layerName, siteGraphics, 'OBJECTID', renderer, null, [label], true);
   }
 
@@ -46,7 +52,7 @@ export class AppSiteService {
   }
 
   createSiteRadii(edits: RfpUiEdit[], radius: number) : __esri.Graphic[] {
-    const symbol = new EsriApi.SimpleFillSymbol({
+    const symbol = new SimpleFillSymbol({
       style: 'solid',
       color: [0, 0, 0, 0],
       outline: {
@@ -55,9 +61,9 @@ export class AppSiteService {
         width: 2
       }
     });
-    const points = edits.map(e => new EsriApi.Point({ latitude: e.siteLat, longitude: e.siteLong }));
-    const buffer = EsriApi.geometryEngine.geodesicBuffer(points, radius, 'miles', false);
+    const points = edits.map(e => new Point({ latitude: e.siteLat, longitude: e.siteLong }));
+    const buffer = geometryEngine.geodesicBuffer(points, radius, 'miles', false);
     const bufferArray = Array.isArray(buffer) ? buffer : [buffer];
-    return bufferArray.map(geometry => new EsriApi.Graphic({ geometry, symbol }));
+    return bufferArray.map(geometry => new Graphic({ geometry, symbol }));
   }
 }

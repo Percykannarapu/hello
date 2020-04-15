@@ -39,8 +39,8 @@ import { AppEffects } from './state/app.effects';
 import { metaReducers, reducers } from './state/app.reducer';
 import { GridEffects } from './state/grid/grid.effects';
 import { InitEffects } from './state/init/init.effects';
-import { PopupEffects } from './state/popup/popup.effects';
 import { MapUIEffects } from './state/map-ui/map-ui.effects';
+import { PopupEffects } from './state/popup/popup.effects';
 
 
 @NgModule({
@@ -69,7 +69,6 @@ import { MapUIEffects } from './state/map-ui/map-ui.effects';
     StoreDevtoolsModule.instrument({
       name: 'CPQ Maps Application',
       logOnly: environment.production,
-
     }),
     EsriModule.forRoot({
       portalServerRootUrl: environment.esri.portalServer,
@@ -82,7 +81,11 @@ import { MapUIEffects } from './state/map-ui/map-ui.effects';
   ],
   declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent, LegendComponent, MapPopupComponent],
   exports: [CpqMapComponent],
-  providers: [RestDataService, AppConfig, MessageService],
+  providers: [
+    RestDataService,
+    AppConfig,
+    MessageService,
+  ],
   entryComponents: [MapPopupComponent, LegendComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

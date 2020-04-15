@@ -1,18 +1,21 @@
-import { RestResponse } from '../../../cpq-map/models/RestResponse';
-import { AppConfig } from '../../../app.config';
-import { HttpClient, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpParams, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject, concat } from 'rxjs';
+import { Observable } from 'rxjs';
+import { AppConfig } from '../../../app.config';
+import { RestResponse } from '../../../cpq-map/models/RestResponse';
+import { LoggingService } from './logging.service';
 
 @Injectable()
 export class RestDataService
 {
    public baseUrl: string;
 
-   constructor(private http: HttpClient, private appConfig: AppConfig) {
+   constructor(private http: HttpClient,
+               private appConfig: AppConfig,
+               private logger: LoggingService) {
       // Assign the base url from configuration
       this.baseUrl = appConfig.valServiceBase;
-      console.log('RestDataService - baseUrl: ' + this.baseUrl);
+      this.logger.debug.log('RestDataService - baseUrl: ' + this.baseUrl);
    }
 
    // -----------------------------------------------------------------------------------
@@ -31,7 +34,7 @@ export class RestDataService
      withCredentials?: boolean;
    }) : Observable<RestResponse>
    {
-      console.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
+      this.logger.debug.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
       //const headers = new HttpHeaders().set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken);
       return this.http.get<RestResponse>(this.baseUrl + url, options);
    }
@@ -85,12 +88,12 @@ export class RestDataInterceptor implements HttpInterceptor
 
         // check to see if the current oauth token is expired
         const refresh: any = this.refreshOauthToken();
-        
+
         // if there is already a Content-Type header we don't want to override it
         if (req.headers.get('Content-Type') || req.headers.get('content-type')) {
           req = req.clone({ headers: req.headers.set('Accept', 'application/json')
           .set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken)
-          .set('Accept', 'application/json') });  
+          .set('Accept', 'application/json') });
         } else {
           req = req.clone({ headers: req.headers.set('Accept', 'application/json')
           .set('Authorization', 'Bearer ' + DataStore.getConfig().oauthToken)

@@ -1,3 +1,5 @@
+import { LogLevels } from '@val/common';
+
 export interface LayerIdDefinition {
   centroid: string;
   boundary: string;
@@ -9,6 +11,7 @@ export interface EnvironmentData {
   environmentName: string;
   fuseBaseUrl: string;
   production: boolean;
+  logLevel: LogLevels;
   esri: {
     portalServer: string;
     username: string;

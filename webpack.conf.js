@@ -1,4 +1,5 @@
 const ArcGISPlugin = require("@arcgis/webpack-plugin");
+const webpack = require('webpack');
 
 /**
  * Configuration items defined here will be appended to the end of the existing webpack config defined by the Angular CLI.
@@ -10,6 +11,8 @@ module.exports = {
         root: "../../node_modules"
       }
     }
+  }), new webpack.optimize.LimitChunkCountPlugin({
+    maxChunks: 5,
   })],
   node: {
     process: false,

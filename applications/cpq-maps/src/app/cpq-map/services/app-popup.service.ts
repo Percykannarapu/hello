@@ -1,5 +1,6 @@
 import { ComponentFactoryResolver, ElementRef, Injectable, Injector } from '@angular/core';
-import { EsriApi, EsriLayerService, EsriMapService } from '@val/esri';
+import { EsriLayerService, EsriMapService } from '@val/esri';
+import PopupTemplate from 'esri/PopupTemplate';
 import { take } from 'rxjs/operators';
 import { MapPopupComponent } from '../components/map-popup/map-popup.component';
 import { ConfigService } from './config.service';
@@ -24,7 +25,7 @@ export class AppPopupService {
         layer.popupTemplate = null;
         return;
       }
-      layer.popupTemplate = new EsriApi.PopupTemplate({
+      layer.popupTemplate = new PopupTemplate({
         title: '{geocode} {city_name}',
         content: this.createPopup.bind(this),
         outFields: this.configService.popupFields.map(f => f.fieldName)

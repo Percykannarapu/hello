@@ -6,7 +6,6 @@ export class AppConfig {
    public environmentName = environment.environmentName;
 
    // The log level
-   //logLevel: LogLevels = environment.logLevel;
 
    // OAuth information
    //public clientId = environment.clientId;

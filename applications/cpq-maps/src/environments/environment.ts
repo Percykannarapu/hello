@@ -4,7 +4,8 @@
  * import the following file, but please comment it out in production mode
  * because it will have performance impact when throw error
  */
-import 'zone.js/dist/zone-error'; // Included with Angular CLI.
+import { LogLevels } from '@val/common'; // Included with Angular CLI.
+import 'zone.js/dist/zone-error';
 import { EnvironmentData } from './environmentData';
 
 // This file can be replaced during build by using the `fileReplacements` array.
@@ -16,6 +17,7 @@ export const environment: EnvironmentData = {
   environmentName: 'DEV',
   fuseBaseUrl: 'https://servicesdev.valassislab.com/services/',
   production: false,
+  logLevel: LogLevels.ALL,
   esri: {
     portalServer: 'https://vallomimpor1vm.val.vlss.local/',
     username: 'impower5',
