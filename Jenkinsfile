@@ -219,8 +219,8 @@
     }
     */
   }
-  post {
     /*
+  post {
     always {
       // publish html
       publishHTML target: [
@@ -232,6 +232,6 @@
           reportName: 'Checkmarx Static Analysis Report'
         ]
     }
-    */
   }
+    */
 }
