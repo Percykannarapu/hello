@@ -1,6 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ClearAllNotifications } from '@val/messaging';
+import { MessageService } from 'primeng/api';
 import { Observable, timer } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
@@ -72,6 +73,7 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
   constructor(private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
               private stateService: AppStateService,
+              private messageService: MessageService,
               private cd: ChangeDetectorRef,
               private store$: Store<FullAppState>) { }
 
@@ -85,6 +87,8 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
     });
 
     timer(0, 1000).subscribe(() => this.stateService.refreshDynamicControls());
+
+    this.messageService.messageObserver.subscribe(() => this.cd.markForCheck());
   }
 
   ngOnDestroy() {

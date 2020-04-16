@@ -31,8 +31,8 @@
 
 import 'zone.js/dist/zone'; // Included with Angular CLI.
 if (process.env.IS_LOCAL_BUILD) {
-  console.log('local build - setting zone error filter');
-  import('zone.js/dist/zone-error'); // Included with Angular CLI.
+  console.log('local build - filtering out zone errors');
+  import('zone.js/dist/zone-error');
 }
 
 /***************************************************************************************************
