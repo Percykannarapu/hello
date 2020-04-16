@@ -38,9 +38,6 @@
                 sh '''
                   node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
                   '''
-                /* sh '''
-                  npm run build-dev
-                ''' */
               }
             }
           }
@@ -82,6 +79,7 @@
         }
       }
     }
+    /*
     stage('build for QA') {
       when {
         branch 'qa'
@@ -107,7 +105,6 @@
         }
       }
     }
-
     stage('Deploy to QA') {
       when {
         branch 'qa'
@@ -115,7 +112,6 @@
       }
       steps {
         echo 'copy files to the first web server'
-        /*
         sh '''
             ssh web-deployer@valwgpweb004vm rm -rf /var/www/impower/*
            '''
@@ -129,9 +125,9 @@
         sh '''
             scp -r dist/* web-deployer@valwgpweb005vm:/var/www/impower
            '''
-          */
       }
     }
+    */
     /*stage('Static analysis') {
       parallel {
         stage('Scan imPower with Sonarqube') {
@@ -155,6 +151,7 @@
         }
       }
     }*/
+    /*
     stage('Run Tests') {
       when {
         expression {
@@ -191,11 +188,11 @@
               cd /robotTestcases/jenkins/reportLogs
             '''
             slackColor = '#FFFE89'
-            /*emailext attachmentsPattern: 'log.html',
+            emailext attachmentsPattern: 'log.html',
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true,
                      subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed",
-                     to: 'reddyn@valassis.com KannarapuP@valassis.com'*/
+                     to: 'reddyn@valassis.com KannarapuP@valassis.com'
             echo 'Test completed'
           }
           finally{
@@ -220,8 +217,10 @@
         }
       }
     }
+    */
   }
   post {
+    /*
     always {
       // publish html
       publishHTML target: [
@@ -233,5 +232,6 @@
           reportName: 'Checkmarx Static Analysis Report'
         ]
     }
+    */
   }
 }
