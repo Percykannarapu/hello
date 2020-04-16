@@ -129,8 +129,12 @@ export class UploadTradeAreasComponent implements OnInit {
     this.tooltip = 'Please select an Analysis Level before uploading a Custom TA file';
 
     this.store$.select(projectIsReady).subscribe((flag) => {
-      if (flag)
-      this.uploadFailures = [];
+      if (flag){
+        this.fileAnalysisSelected = null;
+           this.isDisable = true;
+           this.uploadFailures = [];
+     }
+      
     });
   }
 

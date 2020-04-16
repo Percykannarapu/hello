@@ -107,8 +107,11 @@ export class UploadMustCoverComponent implements OnInit {
     });
 
     this.store$.select(projectIsReady).subscribe((flag) => {
-      if (flag)
-      this.impGeofootprintGeoService.uploadFailures = [];
+      if (flag){
+         this.fileAnalysisSelected = null;
+            this.isDisable = true;
+            this.impGeofootprintGeoService.uploadFailures = [];
+      }
     });
 
    }
