@@ -2,14 +2,14 @@
   <div class="ui-g-12">
       <span>{{label}}</span>
       &nbsp;
-      <p-radioButton name="siteType" [value]="SiteType.Site" label="Sites" [(ngModel)]="selectedSiteType"></p-radioButton>
+      <p-radioButton [name]="controlId" [value]="AllSiteTypes.Site" label="Sites" [(ngModel)]="selectedSiteType"></p-radioButton>
       &nbsp;
-      <p-radioButton name="siteType" [value]="SiteType.Competitor" label="Competitors" [(ngModel)]="selectedSiteType"></p-radioButton>
+      <p-radioButton [name]="controlId" [value]="AllSiteTypes.Competitor" label="Competitors" [(ngModel)]="selectedSiteType"></p-radioButton>
   </div>
-  <div class="ui-g-12" *ngIf="selectedSiteType === SiteType.Site">
+  <div class="ui-g-12" *ngIf="selectedSiteType === AllSiteTypes.Site">
     <ng-content select="site-content"></ng-content>
   </div>
-  <div class="ui-g-12" *ngIf="selectedSiteType === SiteType.Competitor">
+  <div class="ui-g-12" *ngIf="selectedSiteType === AllSiteTypes.Competitor">
     <ng-content select="competitor-content"></ng-content>
   </div>
 </div>

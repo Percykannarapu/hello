@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { rgbToHex } from '@val/common';
 import { LabelDefinition, MarkerSymbolDefinition, markerTypeFriendlyNames, RgbaTuple, SimplePoiConfiguration } from '@val/esri';
 import { SelectItem } from 'primeng/api';
@@ -56,6 +56,16 @@ export class LocationShaderComponent extends PoiBaseComponent<SimplePoiConfigura
       })
     };
     this.configForm = this.fb.group(formSetup);
+  }
+
+  protected convertForm(form: FormGroup) : SimplePoiConfiguration {
+    const result: SimplePoiConfiguration = form.value;
+    // need to fixup halo colors for now
+    result.labelDefinition.haloColor = [ ...(result.labelDefinition.haloColor || this.configuration.labelDefinition.haloColor) ] as RgbaTuple;
+    result.symbolDefinition.outlineColor = [ ... (result.symbolDefinition.outlineColor || this.configuration.symbolDefinition.outlineColor) ] as RgbaTuple;
+    // copy symbol color over to label color
+    result.labelDefinition.color = [ ...result.symbolDefinition.color] as RgbaTuple;
+    return result;
   }
 
 }

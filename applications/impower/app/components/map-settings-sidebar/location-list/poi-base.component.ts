@@ -26,7 +26,7 @@ export abstract class PoiBaseComponent<T extends PoiConfiguration> implements On
         label: ColorPalette[key],
         value: ColorPalette[key]
       }));
-    const gradientThemes = new Set([ ColorPalette.Blue, ColorPalette.Orange, ColorPalette.Red, ColorPalette.EsriPurple ]);
+    const gradientThemes = new Set([ColorPalette.Blue, ColorPalette.Orange, ColorPalette.Red, ColorPalette.EsriPurple]);
     this.poiThemes = this.allThemes.filter(k => !gradientThemes.has(k.value));
   }
 
@@ -45,11 +45,14 @@ export abstract class PoiBaseComponent<T extends PoiConfiguration> implements On
 
   public apply(form: FormGroup) : void {
     if (form.valid) {
-      const newDef: T = { ...this.configuration, labelDefinition: { ...this.configuration.labelDefinition } };
-      Object.assign(newDef, form.value);
+      const newDef: T = {...this.configuration, labelDefinition: {...this.configuration.labelDefinition}};
+      const convertedForm = this.convertForm(form);
+      Object.assign(newDef, convertedForm);
       this.applyConfiguration.emit(newDef);
     }
   }
 
   protected abstract setupForm() : void;
+  protected abstract convertForm(form: FormGroup) : T;
+
 }

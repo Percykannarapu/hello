@@ -120,7 +120,7 @@ export class PoiRenderingService {
       visible: true,
       showLabels: true,
       labelDefinition: { color: [0, 0, 255, 1], featureAttribute: 'locationNumber', isBold: true, size: 12, haloColor: [255, 255, 255, 1] },
-      symbolDefinition: { color: [0, 0, 255, 1], markerType: 'path', legendName: 'Client Locations' }
+      symbolDefinition: { color: [0, 0, 255, 1], markerType: 'path', legendName: 'Client Locations', outlineColor: [255, 255, 255, 1] }
     }, {
       id: getUuid(),
       poiType: PoiConfigurationTypes.Simple,
@@ -133,7 +133,7 @@ export class PoiRenderingService {
       visible: true,
       showLabels: true,
       labelDefinition: { color: [255, 0, 0, 1], featureAttribute: 'locationNumber', isBold: true, size: 12, haloColor: [255, 255, 255, 1] },
-      symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitor Locations' }
+      symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitor Locations', outlineColor: [255, 255, 255, 1] }
     }];
   }
 }
