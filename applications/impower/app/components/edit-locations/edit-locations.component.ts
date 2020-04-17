@@ -53,13 +53,13 @@ export class EditLocationsComponent implements OnInit, OnChanges {
     if  (this.displayData) {
       this.editLocationsForm.reset();
       this.editLocationsForm.patchValue(this.displayData);
-      // [1, 2, 3].forEach(val => {
-      //   if (this.displayData[`radius${val}`] === undefined || this.displayData[`radius${val}`] === ''){
-      //     this.editLocationsForm.get(`radius${val}`).disable();
-      //   } else {
-      //     this.editLocationsForm.get(`radius${val}`).enable();
-      //   }
-      // });
+      [1, 2, 3].forEach(val => {
+        if (this.displayData[`radius${val}`] === undefined || this.displayData[`radius${val}`] === ''){
+          this.editLocationsForm.get(`radius${val}`).disable();
+        } else {
+          this.editLocationsForm.get(`radius${val}`).enable();
+        }
+      });
     }
   }
   ngOnInit() {
@@ -81,9 +81,6 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       radius2: [null, this.isInRange(0, 50)],
       radius3: [null, this.isInRange(0, 50)],
     }, {validators: this.isValidRadius});
-    this.editLocationsForm.get('radius1').disable();
-    this.editLocationsForm.get('radius2').disable();
-    this.editLocationsForm.get('radius3').disable();
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
   }
 
