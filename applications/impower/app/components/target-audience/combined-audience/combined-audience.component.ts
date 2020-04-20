@@ -175,6 +175,7 @@ export class CombinedAudienceComponent implements OnInit {
       selectedIndex: this.allIndexValues.find(a => a.label === selectedAudience.selectedDataSet) 
     });
     this.selectedColumns = currentSelections;
+    this.selectedOperation = this.allIndexValues.find(a => a.label === selectedAudience.selectedDataSet);
   }
 
   onDelete(audience: Audience) {
