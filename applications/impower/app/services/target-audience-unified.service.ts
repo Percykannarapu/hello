@@ -149,6 +149,9 @@ export class TargetAudienceUnifiedService {
             combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === v));
         });
       }
+      if (dependentVars != null && dependentVars.combinedAudiences != null && !identifiers.includes(dependentVars.audienceIdentifier)){
+        identifiers.push(dependentVars.audienceIdentifier);
+      }
     });
     const uniqueAudList =  Array.from(new Set(combinedVars));
     requestVars = uniqueAudList.map(aud => {
@@ -191,7 +194,7 @@ export class TargetAudienceUnifiedService {
       return this.restService.post(serviceURL, [inputData])
         .pipe(
           tap(response => this.logger.info.log('unified response payload::', response)),
-          map(response => this.validateFuseResponse(response,  identifiers.map(id => id.toString()), isForShading)),
+          map(response => this.validateFuseResponse(response,  identifiers.map(id => id.toString()).sort(), isForShading)),
           tap(response => (response)),
           catchError(() => {
             this.logger.error.log('Error posting to', serviceURL, 'with payload:');
@@ -211,14 +214,15 @@ export class TargetAudienceUnifiedService {
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
     const validatedResponse: UnifiedBulkResponse[] = [];
     const responseArray: UnifiedFuseResponse[] = response.payload != null ? response.payload.rows : [];
-
     const emptyAudiences: string[] = [];
     for (let r = 0; r < responseArray.length; r++){
       const responseVars = Object.keys(responseArray[r].variables);
       for (let i = 0; i < identifiers.length; i++){
-        if (responseVars[i] != null && identifiers.includes(responseVars[i].substring(0, 1)))
+
+        if (responseVars[i] != null && identifiers.includes(responseVars[i].substring(0, 1))){
           validatedResponse.push ({ geocode: responseArray[r].geocode, id: identifiers[i], 
                               score: responseArray[r].variables[responseVars[i]] });
+          }
       }
       // for (let i = 0; i < identifiers.length; i++)
       // if (isForShading[i] === false && response.payload.counts.hasOwnProperty(identifiers[i]) && response.payload.counts[identifiers[i]] === 0)
