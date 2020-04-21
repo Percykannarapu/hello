@@ -284,18 +284,35 @@ export class BatchMapDialogComponent implements OnInit {
     return (control.dirty || control.untouched || control.value == null) && (control.errors != null);
   }
 
-  closeDialog(){
+  closeAndResetDialog(){
     this.batchMapForm.controls['title'].reset('user-defined');
     this.batchMapForm.controls['subTitle'].reset('user-defined');
     this.batchMapForm.controls['subSubTitle'].reset('user-defined');
+    this.batchMapForm.controls['deduplicated'].reset(true);
     this.batchMapForm.controls['sitesPerPage'].reset('oneSitePerPage');
+    this.batchMapForm.controls['sitesByGroup'].reset('');
     this.batchMapForm.controls['neighboringSites'].reset('include');
+    this.batchMapForm.controls['fitTo'].reset('');
+    this.tradeAreaService.storeObservable.subscribe((tas) => {
+      if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
+        this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
+        this.disableTradeArea = false;
+      } else {
+        this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos});
+        this.disableTradeArea = true;
+      }
+    });
+    this.batchMapForm.controls['buffer'].reset(10);
     this.batchMapForm.controls['pageSettingsControl'].reset(BatchMapSizes.letter);
     this.batchMapForm.controls['layout'].reset('landscape');
     this.batchMapForm.controls['titleInput'].reset('');
     this.batchMapForm.controls['subTitleInput'].reset('');
     this.batchMapForm.controls['subSubTitleInput'].reset('');
     this.batchMapForm.controls['enableTradeAreaShading'].reset(false);
+    this.store$.dispatch(new CloseBatchMapDialog());
+  }
+
+  closeDialog(){
     this.store$.dispatch(new CloseBatchMapDialog());
   }
 
