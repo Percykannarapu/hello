@@ -1,15 +1,17 @@
-import {MenuActions, MenuActionTypes} from './menu.actions';
+import { MenuActions, MenuActionTypes } from './menu.actions';
 
 export interface MenuState {
   displayOpenExistingDialog: boolean;
   displayPrintViewDialog: boolean;
   displayCrossbowSitesDialog: boolean;
+  displaySendToValassisDigitalDialog: boolean;
 }
 
 const initialState: MenuState = {
   displayOpenExistingDialog: false,
   displayPrintViewDialog: false,
   displayCrossbowSitesDialog: false,
+  displaySendToValassisDigitalDialog: false,
 };
 
 export function menuReducer(state = initialState, action: MenuActions) {
@@ -44,6 +46,16 @@ export function menuReducer(state = initialState, action: MenuActions) {
         ...state,
         displayCrossbowSitesDialog: false
       };
+    case MenuActionTypes.ClientNmaeForValassisDigitalDialog:
+       return {
+         ...state,
+         displaySendToValassisDigitalDialog: true
+       };
+    case MenuActionTypes.CloseclientNmaeForValassisDigitalDialog:
+       return {
+          ...state,
+          displaySendToValassisDigitalDialog: false
+       };
     default:
       return state;
   }

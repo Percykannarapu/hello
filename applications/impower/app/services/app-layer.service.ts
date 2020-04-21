@@ -92,7 +92,8 @@ export class AppLayerService {
       const layerSortIndex = layerDef.sortOrder || 0;
       const isSimplifiedLayer = isBatchMapping && layerDef.simplifiedId != null;
       const layerId = isSimplifiedLayer ? layerDef.simplifiedId : layerDef.id;
-      const layerPipeline = this.layerService.createPortalLayer(layerId, layerDef.name, layerDef.minScale, layerDef.defaultVisibility, { legendEnabled: false }).pipe(
+      const minScale = isBatchMapping ? layerDef.batchMapMinScale : layerDef.minScale;
+      const layerPipeline = this.layerService.createPortalLayer(layerId, layerDef.name, minScale, layerDef.defaultVisibility, { legendEnabled: false }).pipe(
         tap(layer => this.setupIndividualLayer(layer, layerDef)),
         tap(layer => group.add(layer, layerSortIndex)),
       );

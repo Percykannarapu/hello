@@ -10,11 +10,12 @@ import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-
 import { TargetAudienceAudienceTA } from 'app/services/target-audience-audienceta';
 import { OnlineSourceTypes, TargetAudienceOnlineService } from 'app/services/target-audience-online.service';
 import { TargetAudienceTdaService } from 'app/services/target-audience-tda.service';
+import { TargetAudienceUnifiedService } from 'app/services/target-audience-unified.service';
 import { TargetAudienceService } from 'app/services/target-audience.service';
 import { FullAppState } from 'app/state/app.interfaces';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { EMPTY, of } from 'rxjs';
-import { catchError, concatMap, filter, map, mergeMap, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, concatMap, delay, filter, map, mergeMap, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppStateService } from '../../../../services/app-state.service';
 import { TargetAudienceCustomService } from '../../../../services/target-audience-custom.service';
 import { OfflineSourceTypes } from '../../../../services/target-audience-tda.service';
@@ -73,21 +74,20 @@ import {
   FetchOnlineVLHCompleted,
   FetchOnlineVLHCompletedMap,
   FetchOnlineVLHMap,
+  FetchUnified,
+  FetchUnifiedCompleted,
+  FetchUnifiedCompletedMap,
+  FetchUnifiedFailed,
+  FetchUnifiedFailedMap,
+  FetchUnifiedMap,
   MapFetchCompleteActions,
   MoveAudienceDn,
   MoveAudienceUp,
   RehydrateAudiences,
   SequenceChanged,
-  UpsertAudiences,
-  FetchUnifiedCompleted,
-  FetchUnified,
-  FetchUnifiedMap,
-  FetchUnifiedFailedMap,
-  FetchUnifiedFailed,
-  FetchUnifiedCompletedMap
+  UpsertAudiences
 } from './audience.actions';
 import { initialStatState, Stats } from './audience.reducer';
-import { TargetAudienceUnifiedService, OtherSourceTypes } from 'app/services/target-audience-unified.service';
 
 const audienceTaKey: string = 'AUDIENCE_TA_VARS';
 const shadingKey: string = 'SHADING_DATA';
@@ -112,13 +112,16 @@ export class AudiencesEffects {
   applyAudiences$ = this.actions$.pipe(
     ofType<ApplyAudiences>(AudienceActionTypes.ApplyAudiences),
     map(action => ({ analysisLevel: action.payload.analysisLevel })),
+    tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: 'Retrieving audience data' }))),
+    delay(50),
     tap(() => stats = {...initialStatState}),
     tap(() => applyStart = performance.now()),
     withLatestFrom(this.store$.pipe(select(fromAudienceSelectors.getAudiencesAppliable))),
     tap(([, audiences]) => {
-      //audiences.forEach(aud => this.logger.debug.log('### ApplyAudiences - applying:', aud));
       if (audiences.length > 0)
         this.store$.dispatch(new GeoVarCacheGeofootprintGeos());
+      else
+        this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
     }),
     switchMap(([action, selectedAudiences]) => this.actions$.pipe(
         ofType<GeoVarCacheGeosComplete | GeoVarCacheGeosFailure>(GeoVarActionTypes.GeoVarCacheGeosComplete, GeoVarActionTypes.GeoVarCacheGeosFailure),
@@ -158,11 +161,11 @@ export class AudiencesEffects {
               case 'Converted/TDA':
                 this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
-              
+
               case 'Combined/TDA':
                  this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                  break;
-              
+
               case 'Combined/Converted/TDA':
                 this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
@@ -620,7 +623,7 @@ export class AudiencesEffects {
     }),
     map(() => new FetchCountDecrement())
   );
-  
+
   @Effect()
   fetchUnifiedVariables$ = this.actions$.pipe(
     ofType<FetchUnified | FetchUnifiedMap>(AudienceActionTypes.FetchUnified, AudienceActionTypes.FetchUnifiedMap),
@@ -637,7 +640,7 @@ export class AudiencesEffects {
       isForShading: action.payload.showOnMap,
       chunks: this.config.geoInfoQueryChunks
     })),
-   
+
     // mergeMap to watch for completes on all active fetches
     mergeMap((params) => {
       this.store$.dispatch(new FetchCountIncrement()); // Count all out going fetches to know when all have completed
@@ -663,7 +666,7 @@ export class AudiencesEffects {
         );
     }),
   );
-  
+
   @Effect()
   fetchUnifiedCompleted$ = this.actions$.pipe(
     ofType<FetchUnifiedCompleted> (AudienceActionTypes.FetchUnifiedCompleted),
@@ -683,7 +686,7 @@ export class AudiencesEffects {
   return new UpsertGeoVars({ geoVars: geoVars});
 })
   );
-  
+
   @Effect()
   fetchUnifiedCompletedMap$ = this.actions$.pipe(
     ofType<FetchUnifiedCompletedMap> (AudienceActionTypes.FetchUnifiedCompletedMap),
@@ -781,8 +784,6 @@ export class AudiencesEffects {
       this.targetAudienceAudienceTA.rehydrateAudience();
       this.unifiedService.rehydrateAudience();
     }),
-    // withLatestFrom(this.appStateService.analysisLevel$),
-    // map(([, analysisLevel]) => new ApplyAudiences({ analysisLevel: analysisLevel }))
   );
 
   @Effect()
@@ -795,6 +796,15 @@ export class AudiencesEffects {
     map(action => new FetchMapVarCompleted({ transactionId: action.payload.transactionId }))
   );
 
+  @Effect()
+  finalizeGeoFetch$ = this.actions$.pipe(
+    ofType(AudienceActionTypes.FetchOfflineFailed, AudienceActionTypes.FetchOnlineFailed, AudienceActionTypes.FetchCustomFailed,
+      AudienceActionTypes.FetchOfflineTDACompleted, AudienceActionTypes.FetchOnlineInMarketCompleted,
+      AudienceActionTypes.FetchOnlineInterestCompleted, AudienceActionTypes.FetchOnlinePixelCompleted,
+      AudienceActionTypes.FetchOnlineVLHCompleted, AudienceActionTypes.FetchCustomCompleted),
+    map(() => new StopBusyIndicator({ key: this.spinnerKey }))
+  );
+
   @Effect({ dispatch: false })
   cleanUpShaders$ = this.actions$.pipe(
     ofType<DeleteAudience | DeleteAudiences>(AudienceActionTypes.DeleteAudience, AudienceActionTypes.DeleteAudiences),
@@ -804,6 +814,8 @@ export class AudiencesEffects {
     map(([ids, shaders]) => shaders.filter(s => ids.has(s.dataKey))),
     tap(shaders => this.esriShadingService.deleteShader(shaders))
   );
+
+  private spinnerKey = 'AudienceEffectsKey';
 
   constructor(private actions$: Actions<AudienceActions>,
               private store$: Store<FullAppState>,

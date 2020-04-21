@@ -1,6 +1,8 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
+import { ExportCustomTAIssuesLog } from 'app/state/data-shim/data-shim.actions';
+import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { FileUpload } from 'primeng/fileupload';
@@ -16,7 +18,6 @@ import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modu
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ExportCustomTAIssuesLog } from 'app/state/data-shim/data-shim.actions';
 
 
 interface TradeAreaDefinition {
@@ -126,6 +127,11 @@ export class UploadTradeAreasComponent implements OnInit {
       }
     });
     this.tooltip = 'Please select an Analysis Level before uploading a Custom TA file';
+
+    this.store$.select(projectIsReady).subscribe((flag) => {
+      if (flag)
+      this.uploadFailures = [];
+    });
   }
 
   public onResubmit(data: TradeAreaDefinition) {

@@ -1,6 +1,5 @@
 import { Action } from '@ngrx/store';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { CrossBowSitesPayload } from '../app.interfaces';
 
 export enum MenuActionTypes {
   SaveAndReloadProject = '[Application Menu] Save and Reload Project',
@@ -16,6 +15,8 @@ export enum MenuActionTypes {
   ExportLocations = '[Application Menu] Export Locations',
   ExportApioNationalData = '[Application Menu] Export Online Audience National Data',
   ExportToValassisDigital = '[Application Menu] Export Sites to Valassis Digital',
+  ClientNmaeForValassisDigitalDialog = '[Application Menu] Set Client Name for valassis Digital Dialog',
+  CloseclientNmaeForValassisDigitalDialog = '[Application Menu] close Client Name for valassis Digital Dialog',
 
   OpenExportCrossbowSitesDialog = '[Application Menu] Open Export Crossbow Sites Dialog',
   CloseExportCrossbowSitesDialog = '[Application Menu] Close Export Crossbow Sites Dialog',
@@ -97,6 +98,14 @@ export class PrintMapSuccess implements Action {
   constructor(public payload: { url: string }) {}
 }
 
+export class ClientNmaeForValassisDigitalDialog implements Action{
+  readonly type = MenuActionTypes.ClientNmaeForValassisDigitalDialog;
+}
+
+export class CloseclientNmaeForValassisDigitalDialog implements Action{
+  readonly type = MenuActionTypes.CloseclientNmaeForValassisDigitalDialog;
+}
+
 
 
 export type MenuActions =
@@ -114,11 +123,12 @@ export type MenuActions =
   OpenExportCrossbowSitesDialog |
   CloseExportCrossbowSitesDialog |
   OpenPrintViewDialog |
-  ClosePrintViewDialog;
+  ClosePrintViewDialog|
+  ClientNmaeForValassisDigitalDialog|
+  CloseclientNmaeForValassisDigitalDialog;
 
 
 export type PrintActions = PrintMapSuccess;
 
 
 
- 

@@ -4,16 +4,16 @@ import { Store } from '@ngrx/store';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { UserService } from 'app/services/user.service';
-import { BatchMapPayload, BatchMapSizes, LocalAppState, SinglePageBatchMapPayload, TitlePayload, FitToPageOptions } from 'app/state/app.interfaces';
+import { BatchMapPayload, BatchMapSizes, FitToPageOptions, LocalAppState, SinglePageBatchMapPayload, TitlePayload } from 'app/state/app.interfaces';
 import { CloseBatchMapDialog, CreateBatchMap } from 'app/state/batch-map/batch-map.actions';
 import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
+import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
-import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -83,7 +83,7 @@ export class BatchMapDialogComponent implements OnInit {
       subTitleInput: '',
       subSubTitleInput: '',
       enableTradeAreaShading: false
-    });   
+    });
   }
 
   ngOnInit() {
@@ -159,18 +159,22 @@ export class BatchMapDialogComponent implements OnInit {
     this.input['subTitle'] = dialogFields['subTitleInput'];
     this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
     const siteIds: string[] = this.getSiteIds();
-    const titles: Array<TitlePayload> = this.getTitles(siteIds); 
+    const titles: Array<TitlePayload> = this.getTitles(siteIds);
     const result = this.getTitlesByGroup(siteIds);
     const siteIdsByGroup: string[] = result[0];
     const titlesByGroup: Array<TitlePayload> = result[1];
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
     const fitTo: FitToPageOptions = <FitToPageOptions> dialogFields.fitTo;
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'deduped-shading' , dialogFields.deduplicated, dialogFields.deduplicated ? 1 : 0));
-    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighbor-exclude' , dialogFields.neighboringSites, dialogFields.neighboringSites !== 'include' ? 0  : 1));
-    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'fitTo' , fitTo, null));
-    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'buffer' , null, dialogFields.buffer));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighbor-sites' , dialogFields.neighboringSites, null));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'fit-to' , fitTo, null));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'buffer' , 'percent', dialogFields.buffer));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'page-size' , dialogFields.pageSettingsControl, null));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'page-orientation' , dialogFields.layout, null));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighboring-sites-shading' , dialogFields.enableTradeAreaShading, dialogFields.enableTradeAreaShading ? 1 : 0));
+    const sitesPerPage = dialogFields.sitesPerPage === 'sitesGroupedBy' ? `${dialogFields.sitesPerPage}=${dialogFields.sitesByGroup}` : dialogFields.sitesPerPage;
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'sites-per-page' , sitesPerPage, null));
+
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
       const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));

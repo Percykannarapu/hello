@@ -119,10 +119,12 @@ import { VariableShaderComponent } from './components/map-settings-sidebar/shade
 import { MapComponent } from './components/map/map.component';
 import { PrintViewComponent } from './components/print-view/print-view.component';
 import { ProjectComponent } from './components/project-dashboard/project.component';
+import { SendSitesDigitalComponent } from './components/send-sites-digital/send-sites-digital.component';
 import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
 import { SiteListComponent } from './components/site-list/site-list.component';
 import { CombinedAudienceComponent } from './components/target-audience/combined-audience/combined-audience.component';
 import { EditCombinedAudiencesComponent } from './components/target-audience/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
+import { CompositeAudienceComponent } from './components/target-audience/composite-audience/composite-audience.component';
 import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
 import { OfflineAudienceTdaComponent } from './components/target-audience/offline-audience-tda/offline-audience-tda.component';
 import { OnlineAudienceApioComponent } from './components/target-audience/online-audience-apio/online-audience-apio.component';
@@ -178,7 +180,6 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
-import { CompositeAudienceComponent } from './components/target-audience/composite-audience/composite-audience.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -365,7 +366,8 @@ export function actionSanitizer(action: Action) : Action {
     EsriClassBreakInputComponent,
     ValidatedTextInputComponent,
     RadiusEntryComponent,
-    CompositeAudienceComponent
+    CompositeAudienceComponent,
+    SendSitesDigitalComponent,
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

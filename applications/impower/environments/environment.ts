@@ -13,6 +13,7 @@ import { AllLayerIds } from '@val/esri';
  * because it will have performance impact when throw error
  */
 import 'zone.js/dist/zone-error'; // Included with Angular CLI.
+import { esri } from './esri-secrets';
 
 export const environment = {
   production: false,
@@ -46,9 +47,9 @@ export class EnvironmentData {
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
 
   public static esri = {
-    portalServer:  'https://vallomimpor1vm.val.vlss.local/',
-    userName: 'impower5',
-    password: 'impower123!'
+    portalServer:  esri.portalServer,
+    userName: esri.userName,
+    password: esri.password
   };
 
   public static oAuth = {

@@ -80,13 +80,13 @@ export class BatchMapService {
   validateProjectReadiness(project: ImpProject) : boolean {
     const notificationTitle = 'Batch Map Issue';
     const projectNotSaved = 'The project must be saved before you can generate a batch map.';
-    const tooManySites = 'Batch Maps can only be generated for projects with 200 active sites or less.';
+    const tooManySites = 'Batch Maps can only be generated for projects with 600 active sites or less.';
     let result = true;
     if (project.projectId == null) {
       this.store$.dispatch(new ErrorNotification({ message: projectNotSaved, notificationTitle }));
       result = false;
     }
-    if (project.getImpGeofootprintLocations().filter(l => l.isActive && l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site).length > 200) {
+    if (project.getImpGeofootprintLocations().filter(l => l.isActive && l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site).length > 600) {
       this.store$.dispatch(new ErrorNotification({ message: tooManySites, notificationTitle }));
       result = false;
     }

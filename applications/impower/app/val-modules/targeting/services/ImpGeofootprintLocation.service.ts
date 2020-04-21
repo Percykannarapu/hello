@@ -15,7 +15,7 @@ import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { EMPTY, Observable } from 'rxjs';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
-import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
+import { callbackElementType, callbackSuccessType, ColumnDefinition, DataStore, InTransaction } from '../../common/services/datastore.service';
 import { LoggingService } from '../../common/services/logging.service';
 import { RestDataService } from '../../common/services/restdata.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
@@ -59,6 +59,11 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       this.impGeofootprintTradeAreaService.load(simpleFlatten(items.map(l => l.impGeofootprintTradeAreas)));
       super.load(items);
     }
+
+  public add(dataArray: ImpGeofootprintLocation[] | ReadonlyArray<ImpGeofootprintLocation>, preOperation?: callbackElementType<ImpGeofootprintLocation>, postOperation?: callbackSuccessType<ImpGeofootprintLocation>, inTransaction: InTransaction = InTransaction.true) {
+     this.logger.debug.log('Adding data to location datastore', dataArray.length);
+    super.add(dataArray, preOperation, postOperation, inTransaction);
+  }
 
    // -----------------------------------------------------------
    // UTILITY METHODS
@@ -367,9 +372,11 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
               let notification: Action;
               const site = locations.length > 1 ? 'sites' : 'site';
               if (res.returnCode === 200) {
-                notification = new SuccessNotification({ notificationTitle, message: `Sent ${locations.length} ${site} to Valassis Digital successfully for Project ID: ${project.projectId}`});
+                notification = new SuccessNotification({ notificationTitle, message: `Sent ${locations.length} ${site} to Valassis Digital successfully for ${project.clientIdentifierName.trim()}. \n
+                ◼ Data will be returned by 9:00 AM tomorrow if submitted by 5:00 PM ET.
+                ◼ Custom VLH data will be removed 90 days after submit date`});
               } else {
-                notification = new ErrorNotification({ notificationTitle, message: `Error sending ${locations.length} ${site} to Valassis Digital for ${project.projectId}`});
+                notification = new ErrorNotification({ notificationTitle, message: `Error sending ${locations.length} ${site} to Valassis Digital for ${project.clientIdentifierName.trim()}`});
               }
               this.store$.dispatch(notification);
             });

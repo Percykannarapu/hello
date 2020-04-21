@@ -13,11 +13,11 @@ import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { OpenBatchMapDialog } from '../../state/batch-map/batch-map.actions';
 import {
+  ClientNmaeForValassisDigitalDialog,
   DiscardAndCreateNew,
   ExportApioNationalData,
   ExportGeofootprint,
   ExportLocations,
-  ExportToValassisDigital,
   OpenExistingProjectDialog,
   OpenExportCrossbowSitesDialog,
   OpenPrintViewDialog,
@@ -65,7 +65,7 @@ export class AppMenuComponent implements OnInit {
                   { label: 'Export Sites', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Site) },
                   { label: 'Export Competitors', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor) },
                   { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
-                  { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportToValassisDigital()) },
+                  { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.exportToValassisDigital()},
                   { label: 'Export Crossbow Sites', icon: 'ui-icon-store', command: () => this.store$.dispatch(new OpenExportCrossbowSitesDialog()) },
                   { label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
                   { label: 'Create Site Maps', icon: 'fa fa-book', command: () => this.createBatchMap() }
@@ -102,6 +102,10 @@ export class AppMenuComponent implements OnInit {
         this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'batch~map', this.locationService.get().length));
         this.store$.dispatch(new OpenBatchMapDialog());
       }
+    }
+
+    private exportToValassisDigital(){
+      this.store$.dispatch(new ClientNmaeForValassisDigitalDialog());
     }
 
     public createNewProject() {
