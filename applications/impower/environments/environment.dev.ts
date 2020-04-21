@@ -13,7 +13,6 @@ import { AllLayerIds } from '@val/esri';
  * because it will have performance impact when throw error
  */
 import 'zone.js/dist/zone-error'; // Included with Angular CLI.
-import { esri } from './esri-secrets';
 
 export const environment = {
   production: false,
