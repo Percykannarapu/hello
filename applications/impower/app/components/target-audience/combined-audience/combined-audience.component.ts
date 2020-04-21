@@ -107,7 +107,7 @@ export class CombinedAudienceComponent implements OnInit {
         compositeSource: !(isCombined || isCombineConverted) ? combinedAudIds : [],
       };
       this.varService.addAudience(newAudience);
-      this.store$.dispatch(new SuccessNotification({ message: 'The following audience was created successfully: \n' + newAudience.audienceName, notificationTitle: 'Combine/Convert Audience' }));
+      // this.store$.dispatch(new SuccessNotification({ message: 'The following audience was created successfully: \n' + newAudience.audienceName, notificationTitle: 'Combine/Convert Audience' }));
 
     } else {
       this.currentAudience = this.allAudiences.filter(a => a.audienceIdentifier === audienceFields.audienceId);
@@ -131,7 +131,7 @@ export class CombinedAudienceComponent implements OnInit {
         compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null ? combinedAudIds : [],
       };
       this.varService.updateProjectVars(editedAudience);
-      this.store$.dispatch(new SuccessNotification({ message: 'The following audience was updated successfully: \n' + editedAudience.audienceName, notificationTitle: 'Combine Audience' }));
+      // this.store$.dispatch(new SuccessNotification({ message: 'The following audience was updated successfully: \n' + editedAudience.audienceName, notificationTitle: 'Combine Audience' }));
 
     }
     this.currentAudience = '';
