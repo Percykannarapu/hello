@@ -15,6 +15,8 @@ import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { ErrorNotification } from '@val/messaging';
+import { groupByExtended, groupBy, mapByExtended } from '@val/common';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -76,7 +78,7 @@ export class BatchMapDialogComponent implements OnInit {
       subSubTitle: 'user-defined',
       deduplicated: true,
       sitesPerPage: 'oneSitePerPage',
-      sitesByGroup: '',
+      sitesByGroup: 'locationNumber',
       neighboringSites: 'include',
       fitTo: '',
       buffer: 10,
@@ -235,7 +237,11 @@ export class BatchMapDialogComponent implements OnInit {
         ]
       };
       this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
-      this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+      if (siteIds.length > 600){
+         this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
+      }
+      else
+        this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     } else if (dialogFields.sitesPerPage === 'sitesGroupedBy') {
       //print maps by site Attributes
       const formData: BatchMapPayload = {
@@ -264,7 +270,10 @@ export class BatchMapDialogComponent implements OnInit {
         ]
       };
       this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
-      this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+      if (this.getSiteByGroupCount(dialogFields.sitesByGroup) > 600){
+        this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
+      }else
+         this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     }
     this.closeDialog();
   }
@@ -277,6 +286,14 @@ export class BatchMapDialogComponent implements OnInit {
       }
     });
     return siteIds;
+  }
+
+  private getSiteByGroupCount(sitesByGroup: string) : number{
+     const locs = this.stateService.currentProject$.getValue().impGeofootprintMasters[0].
+                        impGeofootprintLocations.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site);  
+      
+      const sitesGroupBy =  groupByExtended(locs, l => l[sitesByGroup]);
+      return sitesGroupBy.size;
   }
 
   hasErrors(controlKey: string) : boolean {
