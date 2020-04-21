@@ -1,4 +1,4 @@
-<p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
+<p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeAndResetDialog()"
   [modal]="true" [style]="{width: '1000px', minWidth: '200px', height: '650px'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main" id="p-dialog">

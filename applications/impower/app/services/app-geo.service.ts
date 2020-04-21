@@ -302,7 +302,7 @@ export class AppGeoService {
         );
         queries.push(currentQuery);
       });
-      merge(...queries).pipe(
+      merge(...queries, 4).pipe(
         reduce((acc, current) => ({
             newGeos: [...acc.newGeos, ...current.newGeos],
             newTradeAreas: [...acc.newTradeAreas, ...current.newTradeAreas],

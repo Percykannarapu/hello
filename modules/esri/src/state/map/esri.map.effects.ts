@@ -10,7 +10,8 @@ import { EsriLayerService } from '../../services/esri-layer.service';
 import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { EsriMapService } from '../../services/esri-map.service';
 import { EsriPrintingService } from '../../services/esri-printing-service';
-import { AppState, internalSelectors, selectors } from '../esri.selectors';
+import { AppState } from '../esri.reducers';
+import { internalSelectors, selectors } from '../esri.selectors';
 import { CopyCoordinatesToClipboard, EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, PrintJobComplete, PrintMap, PrintMapFailure, SetPopupVisibility, } from './esri.map.actions';
 
 @Injectable()

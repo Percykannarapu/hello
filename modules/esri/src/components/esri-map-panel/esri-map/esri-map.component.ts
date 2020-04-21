@@ -4,7 +4,8 @@ import { combineLatest } from 'rxjs';
 import { filter, map, startWith, take } from 'rxjs/operators';
 import { EsriUtils } from '../../../core/esri-utils';
 import { EsriMapService } from '../../../services/esri-map.service';
-import { AppState, selectors } from '../../../state/esri.selectors';
+import { AppState } from '../../../state/esri.reducers';
+import { selectors } from '../../../state/esri.selectors';
 import { InitializeMap } from '../../../state/map/esri.map.actions';
 
 @Component({

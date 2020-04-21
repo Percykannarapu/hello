@@ -47,16 +47,15 @@ export class PaletteColorPickerComponent implements ControlValueAccessor {
   }
 
   set value(value: RgbaTuple) {
-    this._value = value;
-    this.propagateTouch(this._value);
-    this.propagateChange(this._value);
+    this.propagateTouch(value);
+    this.propagateChange(value);
   }
 
   private _palette: ColorPalette;
   private _reversePalette: boolean;
   private _value: RgbaTuple;
 
-  propagateChange = (_: any) => {};
+  propagateChange = (_: any) => { this.writeValue(_); };
   propagateTouch = (_: any) => {};
 
   constructor() {}
@@ -89,6 +88,6 @@ export class PaletteColorPickerComponent implements ControlValueAccessor {
   }
 
   writeValue(obj: any) : void {
-    this.value = obj;
+    this._value = obj;
   }
 }

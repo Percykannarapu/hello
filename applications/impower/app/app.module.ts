@@ -87,7 +87,9 @@ import { ConfirmationDialogComponent } from './components/common/confirmation-di
 import { ConnectFormDirective } from './components/common/connect-form.directive';
 import { DropdownInputComponent } from './components/common/dropdown-input/dropdown-input.component';
 import { EsriClassBreakInputComponent } from './components/common/esri-class-break-input/esri-class-break-input.component';
-import { EsriSymbolInputComponent } from './components/common/esri-symbol-input/esri-symbol-input.component';
+import { EsriFillSymbolInputComponent } from './components/common/esri-fill-symbol-input/esri-fill-symbol-input.component';
+import { EsriMarkerSymbolInputComponent } from './components/common/esri-marker-symbol-input/esri-marker-symbol-input.component';
+import { ExtendedColorPickerComponent } from './components/common/extended-color-picker/extended-color-picker.component';
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { PaletteColorPickerComponent } from './components/common/palette-color-picker/palette-color-picker.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
@@ -105,6 +107,9 @@ import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list
 import { GeofootprintGeoPanelComponent } from './components/geofootprint-geo-panel/geofootprint-geo-panel.component';
 import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
 import { LoginComponent } from './components/login/login.component';
+import { BoundaryListComponent } from './components/map-settings-sidebar/boundary-list/boundary-list.component';
+import { LocationListComponent } from './components/map-settings-sidebar/location-list/location-list.component';
+import { LocationShaderComponent } from './components/map-settings-sidebar/location-list/location-shader/location-shader.component';
 import { MapSettingsSidebarComponent } from './components/map-settings-sidebar/map-settings-sidebar.component';
 import { AddShaderButtonComponent } from './components/map-settings-sidebar/shader-list/add-shader-button/add-shader-button.component';
 import { OwnerSiteShaderComponent } from './components/map-settings-sidebar/shader-list/owner-site-shader/owner-site-shader.component';
@@ -356,7 +361,7 @@ export function actionSanitizer(action: Action) : Action {
     OwnerSiteShaderComponent,
     OwnerTradeAreaShaderComponent,
     DropdownInputComponent,
-    EsriSymbolInputComponent,
+    EsriFillSymbolInputComponent,
     AddShaderButtonComponent,
     RampVariableShaderComponent,
     UniqueVariableShaderComponent,
@@ -366,8 +371,13 @@ export function actionSanitizer(action: Action) : Action {
     EsriClassBreakInputComponent,
     ValidatedTextInputComponent,
     RadiusEntryComponent,
-    CompositeAudienceComponent,
+    BoundaryListComponent,
+    LocationListComponent,
+    EsriMarkerSymbolInputComponent,
     SendSitesDigitalComponent,
+    ExtendedColorPickerComponent,
+    LocationShaderComponent,
+    CompositeAudienceComponent,
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

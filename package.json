@@ -5,11 +5,7 @@
   "angular-cli": {},
   "scripts": {
     "ng": "ng",
-    "config-env": "node set-secrets.js",
-    "start": "npm run config-env && ng serve",
-    "build-dev": "npm run config-env && node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false",
-    "build-qa": "npm run config-env && node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=qa --progress=false",
-    "build-prod": "npm run config-env && node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=prod --progress=false",
+    "start": "ng serve",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
@@ -34,6 +30,7 @@
     "@ngrx/store-devtools": "^8.4.0",
     "angular-pipes": "^9.1.0",
     "core-js": "^3.3.3",
+    "dotenv-webpack": "^1.7.0",
     "font-awesome": "^4.7.0",
     "jquery": "^3.4.1",
     "moment": "^2.24.0",
@@ -70,6 +67,7 @@
     "protractor": "^5.4.2",
     "ts-node": "^8.4.1",
     "tslint": "^5.20.0",
-    "typescript": "~3.5.3"
+    "typescript": "~3.5.3",
+    "webpack": "^4.42.1"
   }
 }

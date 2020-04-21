@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
+import { LogLevels } from '@val/common';
 import { AllLayers } from '@val/esri';
 import { environment } from '../../../environments/environment';
+import { LoggingConfiguration } from '../../val-modules/common/services/logging.service';
 
 export interface FieldMetaData {
   fieldType: 'string' | 'numeric' | 'percent';
@@ -11,9 +13,10 @@ export interface FieldMetaData {
 @Injectable({
   providedIn: 'root'
 })
-export class ConfigService {
+export class ConfigService implements LoggingConfiguration {
 
   public defaultShadingTransparency = 0.5; // 50%
+  logLevel: LogLevels = environment.logLevel;
 
   public basemaps = [
     'streets-vector',
@@ -59,6 +62,7 @@ export class ConfigService {
         sortOrder: 0,
         popupTitle: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
         minScale: 4622342,
+        batchMapMinScale: 4622342,
         popUpFields: ['dma_name', 'county_name', 'hhld_s', 'hhld_w', 'num_ip_addrs', 'cov_desc', 'owner_group_primary', 'pricing_name', 'wrap_name', 'cl0c00', 'cl2a00', 'cl2hsz', 'cl2f00', 'cl2m00', 'cl0utw', 'cl2i00'],
         labelExpression: '$feature.wrap_name',
         labelFontSizeOffset: 2
@@ -79,6 +83,7 @@ export class ConfigService {
         sortOrder: 1,
         popupTitle: '',
         minScale: 1155600,
+        batchMapMinScale: 1155600,
         popUpFields: []
       },
       boundaries: { // ZIP Top Vars
@@ -89,6 +94,7 @@ export class ConfigService {
         sortOrder: 0,
         popupTitle: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
+        batchMapMinScale: 1155600,
         popUpFields: [],
         labelExpression: '$feature.geocode',
         labelFontSizeOffset: 2
@@ -109,6 +115,7 @@ export class ConfigService {
         sortOrder: 1,
         popupTitle: '',
         minScale: 1155600,
+        batchMapMinScale: 1155600,
         popUpFields: []
       },
       boundaries: { // ATZ_Top_Vars
@@ -119,6 +126,7 @@ export class ConfigService {
         sortOrder: 0,
         popupTitle: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 1155600,
+        batchMapMinScale: 1155600,
         popUpFields: [],
         labelExpression: 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")'
       },
@@ -139,6 +147,7 @@ export class ConfigService {
         sortOrder: 1,
         popupTitle: '',
         minScale: 577790,
+        batchMapMinScale: 577790,
         popUpFields: []
       },
       boundaries: { // DIG_ATZ_Top_Vars
@@ -149,6 +158,7 @@ export class ConfigService {
         sortOrder: 0,
         popupTitle: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
         minScale: 577790,
+        batchMapMinScale: 577790,
         useCustomPopUp: true,
         customPopUpDefinition: {
           rootFields: ['dma_name', 'county_name', 'Investment'],

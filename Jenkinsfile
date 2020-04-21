@@ -35,27 +35,26 @@
             withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESR_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
               wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                 echo 'build for development'
-                /*sh '''
-                  node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
-                  '''*/
                 sh '''
-                  npm run build-dev
-                '''
+                  node --max-old-space-size=8192  ./node_modules/.bin/ng build -c=dev-server --progress=false
+                  '''
               }
             }
           }
         }
-        /* stage('build cpq-maps development') {
+        stage('build cpq-maps development') {
           when { branch 'dev' }
           steps {
-            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-              echo 'build for development'
-              sh '''
-                node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
-                '''
+            withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESR_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
+              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                echo 'build for development'
+                sh '''
+                  node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
+                  '''
+              }
             }
           }
-        } */
+        }
       }
     }
     stage('Deploy dev apps') {
@@ -72,14 +71,15 @@
               '''
           }
         }
-        /* stage('Deploy CPQ Maps dev') {
+        stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
-            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y20194!oyHOMG8OYGxM9Lk0j6k6gvIkM -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
+            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y2020!AOVwACL07YmLvbnUOfM5ATJ2 -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
           }
-        } */
+        }
       }
     }
+    /*
     stage('build for QA') {
       when {
         branch 'qa'
@@ -105,7 +105,6 @@
         }
       }
     }
-
     stage('Deploy to QA') {
       when {
         branch 'qa'
@@ -113,7 +112,6 @@
       }
       steps {
         echo 'copy files to the first web server'
-        /*
         sh '''
             ssh web-deployer@valwgpweb004vm rm -rf /var/www/impower/*
            '''
@@ -127,9 +125,9 @@
         sh '''
             scp -r dist/* web-deployer@valwgpweb005vm:/var/www/impower
            '''
-          */
       }
     }
+    */
     /*stage('Static analysis') {
       parallel {
         stage('Scan imPower with Sonarqube') {
@@ -153,6 +151,7 @@
         }
       }
     }*/
+    /*
     stage('Run Tests') {
       when {
         expression {
@@ -189,11 +188,11 @@
               cd /robotTestcases/jenkins/reportLogs
             '''
             slackColor = '#FFFE89'
-            /*emailext attachmentsPattern: 'log.html',
+            emailext attachmentsPattern: 'log.html',
                      body: "Failed: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}",
                      mimeType: 'text/html', attachLog: true,
                      subject:  "Build Number - ${currentBuild.number}-${env.JOB_NAME} - Test conditions failed",
-                     to: 'reddyn@valassis.com KannarapuP@valassis.com'*/
+                     to: 'reddyn@valassis.com KannarapuP@valassis.com'
             echo 'Test completed'
           }
           finally{
@@ -218,7 +217,9 @@
         }
       }
     }
+    */
   }
+    /*
   post {
     always {
       // publish html
@@ -232,4 +233,5 @@
         ]
     }
   }
+    */
 }

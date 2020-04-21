@@ -1,0 +1,39 @@
+<div class="poi-display">
+  <div *ngIf="!isEditing">
+    <div class="poi-menu">
+      <a href="#" (click)="edit()">edit</a>
+    </div>
+    <div>
+      <label>Legend Name:</label>
+      <strong>{{configuration.symbolDefinition?.legendName}}</strong>
+    </div>
+    <div>
+      <label>Labels:</label>
+      <strong>{{currentLabelIdentifier}}</strong>&nbsp;<span *ngIf="configuration.showLabels === false">(hidden)</span>
+    </div>
+    <div>
+      <label>Symbology:</label>
+      <strong>{{currentMarkerIdentifier}}</strong>
+      <span class="color-chip" [ngStyle]="{ 'background-color': currentMarkerColorInHex }"></span>
+    </div>
+    <div>
+      <label>Opacity:</label>
+      <strong>{{configuration.opacity}}</strong>
+    </div>
+  </div>
+  <div class="poi-form-container" *ngIf="isEditing">
+    <form novalidate autocomplete="off" [formGroup]="configForm" (ngSubmit)="apply(configForm)">
+      <ng-container formGroupName="symbolDefinition">
+        <validated-text-input formControlName="legendName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
+      </ng-container>
+      <boolean-input labelText="Show Labels?" formControlName="showLabels"></boolean-input>
+      <ng-container *ngIf="configForm.get('showLabels').value === true" formGroupName="labelDefinition">
+        <dropdown-input formControlName="featureAttribute" labelText="Label Field" [options]="labelChoices"></dropdown-input>
+      </ng-container>
+      <esri-marker-symbol-input [defaultColor]="defaultColor" labelText="Symbology" formGroupName="symbolDefinition"></esri-marker-symbol-input>
+      <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+      <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!configForm.valid"></button>
+      <button pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
+    </form>
+  </div>
+</div>

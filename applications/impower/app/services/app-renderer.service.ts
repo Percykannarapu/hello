@@ -6,7 +6,7 @@ import {
   ConfigurationTypes,
   createDataArcade,
   EsriService,
-  EsriShadingLayersService,
+  EsriShadingService,
   FillPattern,
   generateContinuousValues,
   generateDynamicClassBreaks,
@@ -51,7 +51,7 @@ export class AppRendererService {
               private appPrefService: AppProjectPrefService,
               private impGeoService: ImpGeofootprintGeoService,
               private esriService: EsriService,
-              private esriShaderService: EsriShadingLayersService,
+              private esriShaderService: EsriShadingService,
               private config: AppConfig,
               private logger: LoggingService,
               private store$: Store<FullAppState>) {

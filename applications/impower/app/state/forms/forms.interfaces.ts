@@ -1,4 +1,4 @@
-import { ColorPalette, ConfigurationTypes, RgbaTuple, SymbolDefinition } from '@val/esri';
+import { ColorPalette, ConfigurationTypes, FillSymbolDefinition, RgbaTuple } from '@val/esri';
 
 export interface AddLocationForm {
   number: string;
@@ -17,7 +17,7 @@ export interface GfpForm {
 }
 
 export interface GfpSelectionForm extends GfpForm {
-  defaultSymbolDefinition: SymbolDefinition;
+  defaultSymbolDefinition: FillSymbolDefinition;
 }
 
 export interface GfpOwnerForm extends GfpForm {

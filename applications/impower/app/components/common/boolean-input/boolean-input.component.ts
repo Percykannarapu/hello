@@ -27,15 +27,14 @@ export class BooleanInputComponent implements ControlValueAccessor {
   }
 
   public set value(value: boolean) {
-    this._value = value;
-    this.propagateChange(value);
     this.propagateTouch(value);
+    this.propagateChange(value);
   }
 
   controlId = getUuid();
   isDisabled: boolean;
 
-  propagateChange = (_: any) => {};
+  propagateChange = (_: any) => { this.writeValue(_); };
   propagateTouch = (_: any) => {};
 
   constructor() { }
@@ -57,5 +56,4 @@ export class BooleanInputComponent implements ControlValueAccessor {
       this._value = obj;
     }
   }
-
 }

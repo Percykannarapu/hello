@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriShadingLayersService, ShadingDefinition } from '@val/esri';
+import { EsriShadingService, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
@@ -16,7 +16,7 @@ import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeo
   selector: 'val-shader-list',
   templateUrl: './shader-list.component.html',
   styleUrls: ['./shader-list.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class ShaderListComponent implements OnInit, OnDestroy {
 
@@ -37,7 +37,7 @@ export class ShaderListComponent implements OnInit, OnDestroy {
 
   constructor(private locationService: AppLocationService,
               private appRenderService: AppRendererService,
-              private esriShaderService: EsriShadingLayersService,
+              private esriShaderService: EsriShadingService,
               private store$: Store<FullAppState>,
               private logger: LoggingService) { }
 

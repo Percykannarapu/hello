@@ -18,12 +18,6 @@
     <div class="ui-g-4">
       <p-inputSwitch [(ngModel)]="pobEnabled" (onChange)="onPOBEnabledChanged($event)" [disabled]="!enabled"></p-inputSwitch>
     </div>
-    <div class="ui-g-8">
-      <label>Site Labels Enabled</label>
-    </div>
-    <div class="ui-g-4">
-      <p-inputSwitch [(ngModel)]="siteEnabled" (onChange)="onSiteEnabledChanged($event)"></p-inputSwitch>
-    </div>
   </div>
 </p-overlayPanel>
 <button type="text" pButton label="Label Configuration" (click)="op.toggle($event)"></button>

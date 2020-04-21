@@ -8,6 +8,7 @@ import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { filter, map, startWith, take } from 'rxjs/operators';
+import { groupByExtended } from '../../../../../modules/common/src/utils';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppLocationService } from '../../services/app-location.service';
 import { AppStateService } from '../../services/app-state.service';
@@ -126,8 +127,6 @@ export class SiteListComponent implements OnInit {
 
   public columnOptions: SelectItem[] = [];
   public labelType: string = 'Site Label';
-  public labelOptions: SelectItem[] = [];
-  public selectedLabel: string;
 
   public flatSiteGridColumns: any[] =
     [{field: 'locationNumber',       header: 'Number',              width: '7em',   styleClass: '',                filterMatchMode: 'contains' },
@@ -173,7 +172,6 @@ export class SiteListComponent implements OnInit {
 
   // Selection variables
   private selectedSitesBS$ = new BehaviorSubject<ImpGeofootprintLocation[]>([]);
-  public  selectedLov = [{isActive: true}, {isActive: false}];
   public  hasSelectedSites: boolean = false;
   public  numSelectedSites: number = 0;
 
@@ -195,7 +193,6 @@ export class SiteListComponent implements OnInit {
   private tableWrapOff: string = 'val-table val-tbody-nowrap';
   public  tableWrapStyle: string = this.tableWrapOff;
   public  tableWrapIcon: string = 'ui-icon-menu';
-  public  tableHdrSlice: boolean = false;
 
   // Control table sorting
   public  multiSortMeta: Array<SortMeta>;
@@ -212,7 +209,7 @@ export class SiteListComponent implements OnInit {
 
   ngOnInit() {
     // Observe the behavior subjects on the input parameters
-    this.allGeos$ = this.impGeofootprintGeosBS$.asObservable().pipe(startWith(null));
+    this.allGeos$ = this.impGeofootprintGeosBS$.asObservable().pipe(startWith(null as []));
 
     this.onListTypeChange('Site');
 
@@ -225,8 +222,6 @@ export class SiteListComponent implements OnInit {
       );
       this.hasFailures$ = this.appLocationService.hasFailures$;
       this.totalCount$ = this.appLocationService.totalCount$;
-
-
     });
 
     for (const column of this.flatSiteGridColumns) {
@@ -286,9 +281,7 @@ export class SiteListComponent implements OnInit {
       this.currentAllSites$ = this.allCompetitorLocationsBS$.asObservable();
       this.currentActiveSites$ = this.activeCompetitorLocationsBS$.asObservable();
     }
-    this.createLabelDropdown(this.currentAllSitesBS$.value);
-
-    this.flatAllSites$ = combineLatest(this.currentAllSites$, this.allGeos$)
+    this.flatAllSites$ = combineLatest([this.currentAllSites$, this.allGeos$])
                                       .pipe(map(([locs, geos]) => this.createComposite(locs, geos)));
 
     this.flatActiveSites$ = this.flatAllSites$.pipe(filterArray(flatLoc => flatLoc.loc.isActive === true));
@@ -622,63 +615,37 @@ export class SiteListComponent implements OnInit {
     return (numDeSelected > 0) ? 'Only visible sites will appear in the map below, Geo grid and created Site Map PDFs. Site allocation for created site maps, site lists, and GeoFootPrint All will honor all uploaded sites for geographic allocation' : null;
   }
 
-  onLabelChange(event: string){
-    this.createLabelAttr(this.labelOptions.filter(lbl => lbl.value === event)[0].value);
-  }
-
-  createLabelAttr(labelValue: any){
-    let isUpdate: boolean = false;
-    this.currentAllSitesBS$.getValue().forEach(loc => {
-      const existingLabel = this.appProjectPrefService.getPref(this.selectedListType);
-      if (existingLabel == null){
-        this.appProjectPrefService.createPref('label', this.selectedListType, labelValue, 'string');
-        isUpdate = true;
-
-      }
-      else if (existingLabel.getVal() !== labelValue){
-        this.appProjectPrefService.createPref('label', this.selectedListType,  labelValue, 'string');
-         isUpdate = true;
-     }
-    });
-    if (isUpdate) this.impLocationService.makeDirty();
-  }
-
-  createLabelDropdown(locations: ImpGeofootprintLocation[]){
-    let label = null;
-    const localOptions = [];
+  createLabelDropdown(locations: ImpGeofootprintLocation[]) {
+    const defaultLabels: SelectItem[] = [];
+    const siteLabels: SelectItem[] = [];
+    const competitorLabels: SelectItem[] = [];
     if (locations.length > 0) {
-      const sitesbyType = locations.filter(loc => loc.clientLocationTypeCode === this.selectedListType);
-      const labelOptionsSet = new Set<string>();
+      const existingLabels = new Set<string>();
       for (const column of this.flatSiteGridColumns) {
-        if (!labelOptionsSet.has(column.header.toString()) && column.header.toString() !== 'label'){
-          labelOptionsSet.add(column.header);
-          localOptions.push({ label: column.header, value: column.field });
+        if (!existingLabels.has(column.header.toString()) && column.header.toString() !== 'label') {
+          existingLabels.add(column.header);
+          defaultLabels.push({label: column.header, value: column.field});
         }
       }
 
-      sitesbyType[0].impGeofootprintLocAttribs.forEach(attr => {
-        if ( attr != null && !labelOptionsSet.has(attr.attributeCode.toString()) && !attr.attributeCode.includes('Home')){
-          labelOptionsSet.add(attr.attributeCode);
-          localOptions.push({label: attr.attributeCode, value: attr.attributeCode});
-        }
+      const sitesByType = groupByExtended(locations, l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode));
+
+      sitesByType.forEach((currentLocations, locationType) => {
+        const firstSite = currentLocations[0];
+        firstSite.impGeofootprintLocAttribs.forEach(attr => {
+          if (attr != null && !existingLabels.has(attr.attributeCode.toString()) && !attr.attributeCode.includes('Home')) {
+            existingLabels.add(attr.attributeCode);
+            if (ImpClientLocationTypeCodes.markSuccessful(locationType) == ImpClientLocationTypeCodes.Site) {
+              siteLabels.push({label: attr.attributeCode, value: attr.attributeCode});
+            } else {
+              competitorLabels.push({label: attr.attributeCode, value: attr.attributeCode});
+            }
+          }
+        });
       });
-      const projectPref = this.appProjectPrefService.getPref(this.selectedListType);
-      label = projectPref != null ? projectPref.getVal() : 'Number';
-
-      switch (this.selectedListType) {
-        case 'Site':
-          this.appLocationService.siteLabelOptions$.next(localOptions);
-          break;
-        case 'Competitor':
-          this.appLocationService.competitorLabelOptions$.next(localOptions);
-          break;
-      }
-      this.labelOptions = localOptions;
-      this.appLocationService.listTypeBS$.next(localOptions);
-      this.selectedLabel = label ;
-      //=== null ? this.labelOptions.filter(lbl => lbl.label === 'Number')[0].value : this.labelOptions.filter(lbl => lbl.value === label)[0].value;
-      this.createLabelAttr(this.selectedLabel);
+      this.appLocationService.siteLabelOptions$.next([ ...defaultLabels, ...siteLabels]);
+      this.appLocationService.competitorLabelOptions$.next([ ...defaultLabels, ...competitorLabels]);
     }
-
   }
+
 }

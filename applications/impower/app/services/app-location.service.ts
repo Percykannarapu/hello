@@ -8,12 +8,13 @@ import geometryEngine from 'esri/geometry/geometryEngine';
 import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
-import { filter, map, mergeMap, pairwise, reduce, startWith, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, mergeMap, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { FullAppState } from '../state/app.interfaces';
-import { ClearLocations, RenderLocations } from '../state/rendering/rendering.actions';
+import { projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { RenderLocations } from '../state/rendering/rendering.actions';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { MetricService } from '../val-modules/common/services/metric.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -72,7 +73,6 @@ export class AppLocationService {
   public competitorLabelOptions$ = new BehaviorSubject<SelectItem[]>([]);
 
   public siteTypeBS$ = new BehaviorSubject<'Site' | 'Competitor'>('Site');
-  public listTypeBS$ = new BehaviorSubject<SelectItem[]>([]);
 
   constructor(private impLocationService: ImpGeofootprintLocationService,
               private impTradeAreaService: ImpGeofootprintTradeAreaService,
@@ -157,25 +157,10 @@ export class AppLocationService {
     const successfulLocations$ = activeLocationsWithType$.pipe(
       filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
     );
-    const siteCount$ = successfulLocations$.pipe(
-      filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site),
-      map(locs => locs.length)
-    );
-    const competitorCount$ = successfulLocations$.pipe(
-      filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor),
-      map(locs => locs.length),
-      tap(len => this.logger.debug.log('Competitor count in datastore:', len))
-    );
 
-    successfulLocations$.subscribe(locations => this.store$.dispatch(new RenderLocations({ locations, impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') })));
-    siteCount$.pipe(
-      pairwise(),
-      filter(([prev, curr]) => prev > 0 && curr === 0)
-    ).subscribe(() => this.store$.dispatch(new ClearLocations({ type: ImpClientLocationTypeCodes.Site })));
-    competitorCount$.pipe(
-      pairwise(),
-      filter(([prev, curr]) => prev > 0 && curr === 0)
-    ).subscribe(() => this.store$.dispatch(new ClearLocations({ type: ImpClientLocationTypeCodes.Competitor })));
+    combineLatest([successfulLocations$, this.store$.select(projectIsReady)]).pipe(
+      filter(([locations, ready]) => locations != null && ready)
+    ).subscribe(([locations]) => this.store$.dispatch(new RenderLocations({ locations })));
 
     this.failedClientLocations$ = allLocationsWithType$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite)),

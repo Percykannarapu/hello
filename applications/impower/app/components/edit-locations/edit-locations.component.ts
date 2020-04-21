@@ -1,19 +1,18 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
-import { MenuItem } from 'primeng/api';
-import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl, AsyncValidatorFn, ValidationErrors, FormControl } from '@angular/forms';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AbstractControl, AsyncValidatorFn, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
 import { AnyFn } from '@ngrx/store/src/selector';
-import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
-import { UsageService } from '../../services/usage.service';
-import { AppStateService } from '../../services/app-state.service';
-import { AppEditSiteService } from '../../services/app-editsite.service';
-import { LocalAppState } from 'app/state/app.interfaces';
-import { Store, select } from '@ngrx/store';
-import { Observable, of, timer } from 'rxjs';
-import { map, switchMap, debounceTime, tap, reduce, mergeMap } from 'rxjs/operators';
 import { AppLocationService } from 'app/services/app-location.service';
-import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { LocalAppState } from 'app/state/app.interfaces';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
+import { MenuItem } from 'primeng/api';
+import { Observable, of, timer } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
+import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
+import { AppEditSiteService } from '../../services/app-editsite.service';
+import { AppStateService } from '../../services/app-state.service';
+import { UsageService } from '../../services/usage.service';
+import { ImpMetricName } from '../../val-modules/metrics/models/ImpMetricName';
 
 const numberOrNull = (value: any) => value == null || value === '' || Number.isNaN(Number(value)) ? null : Number(value);
 
@@ -29,11 +28,11 @@ export class EditLocationsComponent implements OnInit, OnChanges {
   @Output() submitSite = new EventEmitter();
 
   @Input() oldData: any;
-  
+
   loadItems: MenuItem[];
 
   editLocationsForm: FormGroup;
-  
+
   get coord() { return this.editLocationsForm.get('coord'); }
 
   get radius1() { return this.editLocationsForm.get('radius1'); }
@@ -60,7 +59,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
         } else {
           this.editLocationsForm.get(`radius${val}`).enable();
         }
-      });    
+      });
     }
   }
   ngOnInit() {
@@ -100,21 +99,21 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       //const tablename = 'CL_ZIPTAB14';
       const value: string = c.value != null ? c.value.toUpperCase() : null;
       const reqPayload = {'tableName': tablename, 'fieldNames': fieldNames, 'geocodeList': [value] };
-      
-       if (c.pristine || c.value == null || c.value === '') 
+
+       if (c.pristine || c.value == null || c.value === '')
             return of(null);
-       
+
        return timer(60).pipe(
          switchMap(() => this.appLocationService.getHomegeocodeData(reqPayload, 'v1/targeting/base/homegeo/homegeocode').
           pipe(map(response => {
                 if (response.payload.length == 0){
                   return {homeGeoValid: errorMsg};
                 }
-                else return null;  
+                else return null;
               }), tap(() => this.cd.markForCheck())
-          )    
+          )
          )
-       );     
+       );
     };
   }
 
@@ -157,15 +156,15 @@ export class EditLocationsComponent implements OnInit, OnChanges {
 
   onSubmit(data: any) {
     const formData = {
-      name: data.locationName, 
-      number: data.locationNumber, 
-      Market: data.marketName, 
-      'Market Code': data.marketCode, 
-      street: data.locAddress, 
-      city: data.locCity, 
-      state: data.locState, 
-      zip: data.locZip, 
-      latitude: data.coord.split(',')[0], 
+      name: data.locationName,
+      number: data.locationNumber,
+      Market: data.marketName,
+      'Market Code': data.marketCode,
+      street: data.locAddress,
+      city: data.locCity,
+      state: data.locState,
+      zip: data.locZip,
+      latitude: data.coord.split(',')[0],
       longitude: data.coord.split(',')[1],
       'Home Zip Code': data.homeZip,
       'Home ATZ': data.homeAtz,
@@ -183,7 +182,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
     this.usageService.createCounterMetric(usageMetricName, metricsText, null);
     this.cancelDialog();
   }
-  
+
   public formEdited() : void {
     this.editLocationsForm['controls']['coord'].setValue('');
   }

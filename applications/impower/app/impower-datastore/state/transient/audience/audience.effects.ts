@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { formatMilli, groupByExtended } from '@val/common';
-import { EsriShadingLayersService, shadingSelectors } from '@val/esri';
+import { EsriShadingService, shadingSelectors } from '@val/esri';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -827,7 +827,7 @@ export class AudiencesEffects {
               private targetAudienceTdaService: TargetAudienceTdaService,
               private targetAudienceCustomService: TargetAudienceCustomService,
               private targetAudienceAudienceTA: TargetAudienceAudienceTA,
-              private esriShadingService: EsriShadingLayersService,
+              private esriShadingService: EsriShadingService,
               private unifiedService: TargetAudienceUnifiedService,
               ) {}
 }

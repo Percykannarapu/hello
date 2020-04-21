@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppLocationService } from 'app/services/app-location.service';
+import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { UserService } from 'app/services/user.service';
 import { BatchMapPayload, BatchMapSizes, FitToPageOptions, LocalAppState, SinglePageBatchMapPayload, TitlePayload } from 'app/state/app.interfaces';
@@ -45,6 +46,7 @@ export class BatchMapDialogComponent implements OnInit {
     private appLocationService: AppLocationService,
     private stateService: AppStateService,
     private tradeAreaService: ImpGeofootprintTradeAreaService,
+    private appProjectPrefService: AppProjectPrefService,
     private userService: UserService) {
       this.pageSettings = [
         {label: '8.5 x 11 (Letter)', value: BatchMapSizes.letter},
@@ -64,6 +66,7 @@ export class BatchMapDialogComponent implements OnInit {
         {label: '45%', value: 45},
         {label: '50%', value: 50}
       ];
+      this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadFormData());
     }
 
   initForm() {
@@ -84,6 +87,32 @@ export class BatchMapDialogComponent implements OnInit {
       subSubTitleInput: '',
       enableTradeAreaShading: false
     });
+  }
+
+  onLoadFormData() {
+    let projectPrefValue: string;
+    const projectPref = this.appProjectPrefService.getPref('batchMapPayload');
+    if (projectPref != null) {
+      projectPrefValue = (projectPref.largeVal != null) ? projectPref.largeVal : projectPref.val;
+      const savedFormData = JSON.parse(projectPrefValue);
+      this.batchMapForm.patchValue({
+        title: savedFormData.title,
+        subTitle: savedFormData.subTitle,
+        subSubTitle: savedFormData.subSubTitle,
+        deduplicated: savedFormData.deduplicated,
+        sitesPerPage: savedFormData.sitesPerPage,
+        sitesByGroup: savedFormData.sitesByGroup,
+        neighboringSites: savedFormData.neighboringSites,
+        fitTo: savedFormData.fitTo,
+        buffer: savedFormData.buffer,
+        pageSettingsControl: savedFormData.pageSettingsControl,
+        layout: savedFormData.layout,
+        titleInput: savedFormData.titleInput,
+        subTitleInput: savedFormData.subTitleInput,
+        subSubTitleInput: savedFormData.subSubTitleInput,
+        enableTradeAreaShading: savedFormData.enableTradeAreaShading
+      });
+    }
   }
 
   ngOnInit() {
@@ -134,7 +163,7 @@ export class BatchMapDialogComponent implements OnInit {
       this.batchMapForm.patchValue({titleInput: this.currentProjectName});
       this.numSites = p.getImpGeofootprintLocations().length;
     });
-    this.appLocationService.listTypeBS$.subscribe( (list: SelectItem[]) => {
+    this.appLocationService.siteLabelOptions$.subscribe( (list: SelectItem[]) => {
       const customList: SelectItem[] = [];
       customList.push({ label: '<user defined>', value: 'user-defined' });
       list.forEach((listEntry) => {
@@ -155,6 +184,7 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   onSubmit(dialogFields: any) {
+    const data = JSON.stringify(dialogFields);
     this.input['title'] = (dialogFields['titleInput'] === null) ? this.currentProjectName : dialogFields['titleInput'];
     this.input['subTitle'] = dialogFields['subTitleInput'];
     this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
@@ -177,6 +207,7 @@ export class BatchMapDialogComponent implements OnInit {
 
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
       const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
+      this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     } else if (dialogFields.sitesPerPage === 'oneSitePerPage') {
       const formData: BatchMapPayload = {
@@ -203,6 +234,7 @@ export class BatchMapDialogComponent implements OnInit {
           }
         ]
       };
+      this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     } else if (dialogFields.sitesPerPage === 'sitesGroupedBy') {
       //print maps by site Attributes
@@ -231,6 +263,7 @@ export class BatchMapDialogComponent implements OnInit {
           }
         ]
       };
+      this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     }
     this.closeDialog();
@@ -251,18 +284,35 @@ export class BatchMapDialogComponent implements OnInit {
     return (control.dirty || control.untouched || control.value == null) && (control.errors != null);
   }
 
-  closeDialog(){
+  closeAndResetDialog(){
     this.batchMapForm.controls['title'].reset('user-defined');
     this.batchMapForm.controls['subTitle'].reset('user-defined');
     this.batchMapForm.controls['subSubTitle'].reset('user-defined');
+    this.batchMapForm.controls['deduplicated'].reset(true);
     this.batchMapForm.controls['sitesPerPage'].reset('oneSitePerPage');
+    this.batchMapForm.controls['sitesByGroup'].reset('');
     this.batchMapForm.controls['neighboringSites'].reset('include');
+    this.batchMapForm.controls['fitTo'].reset('');
+    this.tradeAreaService.storeObservable.subscribe((tas) => {
+      if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
+        this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
+        this.disableTradeArea = false;
+      } else {
+        this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos});
+        this.disableTradeArea = true;
+      }
+    });
+    this.batchMapForm.controls['buffer'].reset(10);
     this.batchMapForm.controls['pageSettingsControl'].reset(BatchMapSizes.letter);
     this.batchMapForm.controls['layout'].reset('landscape');
     this.batchMapForm.controls['titleInput'].reset('');
     this.batchMapForm.controls['subTitleInput'].reset('');
     this.batchMapForm.controls['subSubTitleInput'].reset('');
     this.batchMapForm.controls['enableTradeAreaShading'].reset(false);
+    this.store$.dispatch(new CloseBatchMapDialog());
+  }
+
+  closeDialog(){
     this.store$.dispatch(new CloseBatchMapDialog());
   }
 

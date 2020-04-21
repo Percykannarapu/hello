@@ -335,12 +335,12 @@ export class AppTradeAreaService {
     return this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType);
   }
 
-  public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null, isResubmit: boolean = false){
+  public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null, isResubmit: boolean = false, siteType: string = 'Site'){
     this.uploadFailures = [];
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
-    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations.filter(loc => loc.clientLocationTypeCode === 'Site'), 'locationNumber');
+    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations.filter(loc => loc.clientLocationTypeCode === siteType), 'locationNumber');
     //mapBy(allLocations, 'locationNumber');
     const matchedTradeAreas = new Set<TradeAreaDefinition>();
 

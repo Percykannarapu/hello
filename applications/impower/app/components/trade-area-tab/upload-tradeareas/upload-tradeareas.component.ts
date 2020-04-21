@@ -6,7 +6,7 @@ import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { FileUpload } from 'primeng/fileupload';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of, EMPTY } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import { AppEditSiteService } from '../../../services/app-editsite.service';
@@ -129,8 +129,14 @@ export class UploadTradeAreasComponent implements OnInit {
     this.tooltip = 'Please select an Analysis Level before uploading a Custom TA file';
 
     this.store$.select(projectIsReady).subscribe((flag) => {
-      if (flag)
-      this.uploadFailures = [];
+      if (flag){
+        this.fileAnalysisSelected = null;
+           this.isDisable = true;
+           this.uploadFailures = [];
+           this.listType1 = 'Site';
+           //this.currentAnalysisLevel$.subscribe(val => val = null).unsubscribe();
+     }
+      
     });
   }
 

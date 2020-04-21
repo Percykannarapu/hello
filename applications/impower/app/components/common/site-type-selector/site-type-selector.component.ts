@@ -1,19 +1,17 @@
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { getUuid } from '@val/common';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 
 @Component({
   selector: 'val-site-type-selector',
-  templateUrl: './site-type-selector.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  templateUrl: './site-type-selector.component.html'
 })
-export class SiteTypeSelectorComponent implements OnInit {
+export class SiteTypeSelectorComponent {
 
   @Input() label: string = '';
 
-  SiteType = ImpClientLocationTypeCodes;
-  selectedSiteType: ImpClientLocationTypeCodes;
+  controlId = getUuid();
 
-  ngOnInit() {
-    this.selectedSiteType = ImpClientLocationTypeCodes.Site;
-  }
+  AllSiteTypes = ImpClientLocationTypeCodes;
+  selectedSiteType: SuccessfulLocationTypeCodes = this.AllSiteTypes.Site;
 }

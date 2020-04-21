@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray } from '@val/common';
-import { ShadingDefinition, shadingSelectors } from '@val/esri';
+import { EsriPoiService, PoiConfiguration, ShadingDefinition, shadingSelectors } from '@val/esri';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppStateService } from 'app/services/app-state.service';
 import { Observable } from 'rxjs';
@@ -21,6 +21,7 @@ export class MapSettingsSidebarComponent implements OnInit {
   sideNavVisible = false;
 
   shadingDefinitions$: Observable<ShadingDefinition[]>;
+  poiConfigurations$: Observable<PoiConfiguration[]>;
   audiences$: Observable<Audience[]>;
   geos$: Observable<ImpGeofootprintGeo[]>;
   analysisLevel$: Observable<string>;
@@ -28,7 +29,8 @@ export class MapSettingsSidebarComponent implements OnInit {
   tradeAreaCount$: Observable<number>;
 
   constructor(private appStateService: AppStateService,
-              private impGeoDatastore: ImpGeofootprintGeoService,
+              private impGeoDataStore: ImpGeofootprintGeoService,
+              private poiService: EsriPoiService,
               private store$: Store<FullAppState>) {}
 
   ngOnInit() : void {
@@ -40,9 +42,12 @@ export class MapSettingsSidebarComponent implements OnInit {
     this.shadingDefinitions$ = this.store$.select(shadingSelectors.allLayerDefs).pipe(
        filter((defs) => defs != null),
     );
+    this.poiConfigurations$ = this.poiService.allPoiConfigurations$.pipe(
+      filter(configs => configs != null)
+    );
     this.locationCount$ = this.appStateService.clientLocationCount$;
     this.tradeAreaCount$ = this.appStateService.tradeAreaCount$;
-    this.geos$ = this.impGeoDatastore.storeObservable.pipe(
+    this.geos$ = this.impGeoDataStore.storeObservable.pipe(
       filter(geos => geos != null),
       filterArray(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive &&
                             g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive &&

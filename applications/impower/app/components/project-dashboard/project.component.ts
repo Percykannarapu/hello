@@ -208,17 +208,18 @@ export class ProjectComponent implements OnInit, OnDestroy {
       case 'twelveMonths':
         start.setMonth(start.getMonth() - 12, 1);
         break;
-      case 'previousYear':
-        start.setFullYear(start.getFullYear() - 1);
-        end.setFullYear(start.getFullYear() - 1);
-      // tslint:disable-next-line:no-switch-case-fall-through
       case 'currentYear':
         start.setMonth(0, 1);
         end.setMonth(11, 31);
         break;
+      case 'previousYear':
+        start.setFullYear(start.getFullYear() - 1, 0, 1);
+        end.setFullYear(end.getFullYear() - 1, 11, 31);
+        break;
     }
-    // expand the date ranges by 1 day on each side since Fuse queries based on < and >
-    start.setDate(start.getDate() - 1);
+    // expand the date range by 1 day at the end
+    // since we only send dates, and the DB uses date times
+    // each date gets midnight appended to it for the query
     end.setDate(end.getDate() + 1);
     return { start, end };
   }

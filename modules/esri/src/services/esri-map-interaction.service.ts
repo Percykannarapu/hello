@@ -7,7 +7,7 @@ import { map } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriGraphicTypeCodes } from '../core/esri.enums';
 import { CreateCompleteEvent } from '../core/esri.models';
-import { EsriState } from '../state/esri.selectors';
+import { AppState } from '../state/esri.reducers';
 import { StartSketchView } from '../state/map/esri.map-button.actions';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriMapService } from './esri-map.service';
@@ -19,7 +19,7 @@ export class EsriMapInteractionService {
   constructor(private mapService: EsriMapService,
               private domainFactory: EsriDomainFactoryService,
               private queryService: EsriQueryService,
-              private store$: Store<EsriState>) {}
+              private store$: Store<AppState>) {}
 
   processClick(event: __esri.MapViewImmediateClickEvent) : Observable<__esri.Graphic[]> {
     return from(EsriUtils.esriPromiseToEs6(this.mapService.mapView.hitTest(event))).pipe(

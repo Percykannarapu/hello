@@ -4,11 +4,14 @@ import { isString } from '@val/common';
 import Basemap from 'esri/Basemap';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap, take } from 'rxjs/operators';
+import { PoiConfiguration } from '../models/poi-configuration';
 import { ShadingDefinition } from '../models/shading-configuration';
 import { InitialEsriState, loadInitialState } from '../state/esri.actions';
-import { AppState, selectors } from '../state/esri.selectors';
+import { AppState } from '../state/esri.reducers';
+import { selectors } from '../state/esri.selectors';
 import { SetLayerLabelExpressions, SetPopupVisibility, SetSelectedLayer } from '../state/map/esri.map.actions';
 import { EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
+import { loadPois } from '../state/poi/esri.poi.actions';
 import { loadShadingDefinitions, setFeaturesOfInterest } from '../state/shading/esri.shading.actions';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
@@ -55,9 +58,10 @@ export class EsriService {
     this.store$.dispatch(new SetLayerLabelExpressions({ expressions }));
   }
 
-  loadInitialState(initialState: InitialEsriState, shadingDefinitions?: ShadingDefinition[]) : void {
+  loadInitialState(initialState: InitialEsriState, shadingDefinitions?: ShadingDefinition[], poiDefinitions?: PoiConfiguration[]) : void {
     this.store$.dispatch(loadInitialState(initialState));
     this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
+    this.store$.dispatch(loadPois({ pois: poiDefinitions }));
   }
 
   setBasemap(basemap: string | {}) : void {

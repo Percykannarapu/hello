@@ -42,7 +42,7 @@ export const defaultLocationPopupFields = [
   { fieldName: 'labelName', label: 'labelName', visible: false  }
 ];
 
-function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number, labelVal?: string) : __esri.Graphic {
+export function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) : __esri.Graphic {
   const graphic = new Graphic({
     geometry: new Point({
       x: site.xcoord,
@@ -52,15 +52,9 @@ function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number, labelVal
     visible: site.isActive
   });
 
-  let label = null;
-
-  const attribute = site.impGeofootprintLocAttribs.filter(attr => attr != null && attr.attributeCode === labelVal);
-  label = site[labelVal] != null ? site[labelVal].toString() : attribute != null && attribute.length > 0 ? attribute[0].attributeValue.toString() : site['locationNumber'];
-
   for (const field of defaultLocationPopupFields) {
     const fieldValue = site[field.fieldName];
-    //graphic.attributes[field.fieldName] = fieldValue == null ? '' : fieldValue.toString();
-    graphic.attributes[field.fieldName] = fieldValue == null ? field.fieldName === 'labelName' ? label : '' : fieldValue.toString();
+    graphic.attributes[field.fieldName] = fieldValue == null ? '' : fieldValue.toString();
   }
 
   return graphic;
@@ -74,7 +68,7 @@ export function prepareLocations(sites: ImpGeofootprintLocation[], prefs?: ImpPr
     const label = currentPrefs.length > 0 ? currentPrefs[0].getVal() : 'Number';
     const color: [number, number, number, number] = siteType === ImpClientLocationTypeCodes.Site ? [0, 0, 255, 1] : [255, 0, 0, 1];
     const currentResult = new LocationDrawDefinition(siteType, color, MapSymbols.STAR, '$feature.labelName', '{clientLocationTypeCode}: {labelName}');
-    currentResult.sites = currentSites.map(l => createSiteGraphic(l, null, label));
+    currentResult.sites = currentSites.map(l => createSiteGraphic(l, null));
     result.push(currentResult);
   });
   return result;

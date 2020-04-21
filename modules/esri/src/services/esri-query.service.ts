@@ -57,9 +57,11 @@ export class EsriQueryService {
       result.outFields = outFields;
     }
     if (this.dataIsNumber(data)) {
-      result.where = `${queryField} IN (${data.join(',')})`;
+      const condition = data.length === 1 ? `= ${data[0]}` : `IN (${data.join(',')})`;
+      result.where = `${queryField} ${condition}`;
     } else if (this.dataIsString(data)) {
-      result.where = `${queryField} IN ('${data.join(`','`)}')`;
+      const condition = data.length === 1 ? `= '${data[0]}'` : `IN ('${data.join(`','`)}')`;
+      result.where = `${queryField} ${condition}`;
     } else if (data.length === 1) {
       result.geometry = new Point(data[0]);
     } else {

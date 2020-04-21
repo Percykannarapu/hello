@@ -1,6 +1,7 @@
 import { ComponentFactoryResolver, Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriApi, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, EsriService } from '@val/esri';
+import { EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, EsriService } from '@val/esri';
+import Expand from 'esri/widgets/Expand';
 import { LegendComponent } from '../components/legend/legend.component';
 import { FullState } from '../state';
 import { MapUIState } from '../state/map-ui/map-ui.reducer';
@@ -118,7 +119,7 @@ export class AppLayerService {
    public setupLegend() {
       if (this.legendCreated) return;
       const node = this.generateLegendHTML();
-      const expand: __esri.Expand = new EsriApi.widgets.Expand({ content: node, view: this.esriMapService.mapView });
+      const expand: __esri.Expand = new Expand({ content: node, view: this.esriMapService.mapView });
       expand.expandIconClass = 'esri-icon-maps';
       expand.expandTooltip = 'Open Legend';
       this.esriMapService.mapView.ui.add(expand, 'top-right');
