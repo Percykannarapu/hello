@@ -351,7 +351,7 @@ export class AppTradeAreaService {
       } else {
         taDef.message = 'Invalid Site #';
         this.uploadFailures = [...this.uploadFailures, taDef];
-        matchedTradeAreas.add(taDef);
+        //matchedTradeAreas.add(taDef);
       }
     });
 
@@ -421,6 +421,7 @@ export class AppTradeAreaService {
 
   public validateRolldownGeos(payload: any[], queryResult: Map<string, {latitude: number, longitude: number}>,  matchedTradeAreas: any[], fileAnalysisLevel: string) {
     let failedGeos: any[] = [];
+    matchedTradeAreas.concat(this.uploadFailures);
     const uploadFailuresMapBy = mapBy(this.uploadFailures, 'geocode');
     const payloadByGeocode = mapBy(payload, 'orgGeo');
     const matchedTradeAreaByGeocode = groupBy(Array.from(matchedTradeAreas), 'geocode');
