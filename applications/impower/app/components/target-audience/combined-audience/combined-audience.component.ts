@@ -54,7 +54,7 @@ export class CombinedAudienceComponent implements OnInit {
     });
     this.allIndexValues = [
       { label: 'DMA', value: 'DMA' },
-      { label: 'National', value: 'National' },
+      { label: 'National', value: 'NAT' },
     ];
     this.groupedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(audiences => audiences != null),
@@ -119,7 +119,7 @@ export class CombinedAudienceComponent implements OnInit {
         exportInGeoFootprint: this.currentAudience[0].exportInGeoFootprint,
         exportNationally: this.currentAudience[0].exportNationally,
         allowNationalExport: this.currentAudience[0].allowNationalExport,
-        selectedDataSet: this.currentAudience[0].selectedDataSet,
+        selectedDataSet: audienceFields.selectedIndex != null ? audienceFields.selectedIndex.value : '',
         audienceSourceName: this.currentAudience[0].audienceSourceName,
         audienceSourceType: this.currentAudience[0].audienceSourceType,
         fieldconte: this.currentAudience[0].fieldconte,
@@ -151,6 +151,9 @@ export class CombinedAudienceComponent implements OnInit {
 
   onEdit(selectedAudience: Audience) {
     const currentSelections: Audience[] = [];
+    const currentIndex = selectedAudience.selectedDataSet != null && selectedAudience.selectedDataSet.length > 0 && selectedAudience.selectedDataSet === 'NAT' ?
+                        this.allIndexValues.find(a => a.label === 'National') : this.allIndexValues.find(a => a.label === selectedAudience.selectedDataSet);
+
     if (selectedAudience.combinedAudiences.length > 0){
       selectedAudience.combinedAudiences.forEach(previous => {
         this.allAudiences.forEach(current => {
@@ -172,10 +175,10 @@ export class CombinedAudienceComponent implements OnInit {
       audienceName: selectedAudience.audienceName,
       audienceList: currentSelections,
       audienceId: selectedAudience.audienceIdentifier,
-      selectedIndex: this.allIndexValues.find(a => a.label === selectedAudience.selectedDataSet) 
+      selectedIndex: currentIndex
     });
     this.selectedColumns = currentSelections;
-    this.selectedOperation = this.allIndexValues.find(a => a.label === selectedAudience.selectedDataSet);
+    this.selectedOperation = currentIndex;
   }
 
   onDelete(audience: Audience) {
