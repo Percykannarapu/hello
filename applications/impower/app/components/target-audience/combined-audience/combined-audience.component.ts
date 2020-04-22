@@ -54,7 +54,7 @@ export class CombinedAudienceComponent implements OnInit {
     });
     this.allIndexValues = [
       { label: 'DMA', value: 'DMA' },
-      { label: 'National', value: 'NAT' },
+      { label: 'National', value: 'National' },
     ];
     this.groupedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(audiences => audiences != null),
