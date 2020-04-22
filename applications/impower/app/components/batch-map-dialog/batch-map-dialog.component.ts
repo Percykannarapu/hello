@@ -14,7 +14,7 @@ import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/servi
 import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { ErrorNotification } from '@val/messaging';
 import { groupByExtended, groupBy, mapByExtended } from '@val/common';
 
@@ -237,7 +237,7 @@ export class BatchMapDialogComponent implements OnInit {
         ]
       };
       this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
-      if (siteIds.length > 600){
+      if (this.getActiveSites().length > 600){
          this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
       }
       else
@@ -270,7 +270,7 @@ export class BatchMapDialogComponent implements OnInit {
         ]
       };
       this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
-      if (this.getSiteByGroupCount(dialogFields.sitesByGroup) > 600){
+      if (groupByExtended(this.getActiveSites(), l => l[dialogFields.sitesByGroup]).size > 600){
         this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
       }else
          this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
@@ -288,12 +288,10 @@ export class BatchMapDialogComponent implements OnInit {
     return siteIds;
   }
 
-  private getSiteByGroupCount(sitesByGroup: string) : number{
-     const locs = this.stateService.currentProject$.getValue().impGeofootprintMasters[0].
-                        impGeofootprintLocations.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site);  
-      
-      const sitesGroupBy =  groupByExtended(locs, l => l[sitesByGroup]);
-      return sitesGroupBy.size;
+  private getActiveSites(){
+    //const t =  this.stateService.activeClientLocations$.pipe(map(sites => sites.length > 600));
+     return this.stateService.currentProject$.getValue().getImpGeofootprintLocations()
+     .filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site && loc.isActive); 
   }
 
   hasErrors(controlKey: string) : boolean {
