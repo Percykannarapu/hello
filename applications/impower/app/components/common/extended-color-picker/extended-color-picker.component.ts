@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, Optional, Self, ViewEncapsulation } from '@angular/core';
+import { Component, Input, Optional, Self, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, NgControl, NgModel } from '@angular/forms';
 import { getUuid, isConvertibleToInteger, rgbToHex } from '@val/common';
 import { RgbaTuple } from '@val/esri';
@@ -32,12 +32,12 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor {
   value2: string;
 
   get swatchHex() : string {
-    if (this._value == null) return rgbToHex([0, 0, 0]);
+    if (this._value == null) return rgbToHex(this.defaultColor || [0, 0, 0, 1]);
     return rgbToHex(this._value);
   }
 
   get value() : Rgb {
-    return this._value != null ? esriToRgb(this._value) : esriToRgb(this.defaultColor);
+    return this._value != null ? esriToRgb(this._value) : esriToRgb(this.defaultColor || [0, 0, 0, 1]);
   }
 
   set value(value: Rgb) {
@@ -52,8 +52,7 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor {
   propagateChange = (_: any) => { this.writeValue(_); };
   propagateTouch = (_: any) => {};
 
-  constructor(private cd: ChangeDetectorRef,
-              @Optional() @Self() private controlContainer: NgControl) {
+  constructor(@Optional() @Self() private controlContainer: NgControl) {
     if (this.controlContainer != null) {
       this.controlContainer.valueAccessor = this;
     }

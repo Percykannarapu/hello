@@ -1,26 +1,6 @@
-import { groupByExtended } from '@val/common';
-import { MapSymbols } from '@val/esri';
-import { ImpProjectPref } from 'app/val-modules/targeting/models/ImpProjectPref';
 import { Point } from 'esri/geometry';
 import Graphic from 'esri/Graphic';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-
-export class LocationDrawDefinition {
-  groupName: string;
-  layerName: string;
-  sites: __esri.Graphic[];
-  constructor(public siteType: SuccessfulLocationTypeCodes,
-              public color: [number, number, number, number],
-              public symbolPath: string,
-              public labelExpression: string,
-              public popupTitleExpression: string) {
-    this.groupName = `${siteType}s`;
-    this.layerName = `Project ${siteType}s`;
-  }
-}
-
-let oidCache = 0;
 
 export const defaultLocationPopupFields = [
   { fieldName: 'locationNumber', label: 'Location Number' },
@@ -42,13 +22,13 @@ export const defaultLocationPopupFields = [
   { fieldName: 'labelName', label: 'labelName', visible: false  }
 ];
 
-export function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) : __esri.Graphic {
+export function createSiteGraphic(site: ImpGeofootprintLocation, oid: number) : __esri.Graphic {
   const graphic = new Graphic({
     geometry: new Point({
       x: site.xcoord,
       y: site.ycoord
     }),
-    attributes: { parentId: oid == null ? oidCache++ : oid },
+    attributes: { objectId: oid },
     visible: site.isActive
   });
 
@@ -58,18 +38,4 @@ export function createSiteGraphic(site: ImpGeofootprintLocation, oid?: number) :
   }
 
   return graphic;
-}
-
-export function prepareLocations(sites: ImpGeofootprintLocation[], prefs?: ImpProjectPref[]) : LocationDrawDefinition[] {
-  const sitesByType = groupByExtended(sites, l => ImpClientLocationTypeCodes.parseAsSuccessful(l.clientLocationTypeCode));
-  const result: LocationDrawDefinition[] = [];
-  sitesByType.forEach((currentSites, siteType) => {
-    const currentPrefs = (prefs || []).filter(pref => pref.pref === siteType);
-    const label = currentPrefs.length > 0 ? currentPrefs[0].getVal() : 'Number';
-    const color: [number, number, number, number] = siteType === ImpClientLocationTypeCodes.Site ? [0, 0, 255, 1] : [255, 0, 0, 1];
-    const currentResult = new LocationDrawDefinition(siteType, color, MapSymbols.STAR, '$feature.labelName', '{clientLocationTypeCode}: {labelName}');
-    currentResult.sites = currentSites.map(l => createSiteGraphic(l, null));
-    result.push(currentResult);
-  });
-  return result;
 }

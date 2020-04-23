@@ -4,7 +4,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { LabelDefinition, MarkerSymbolDefinition } from '../models/common-configuration';
-import { MapSymbols } from '../models/esri-types';
 import { PoiConfiguration, PoiConfigurationTypes } from '../models/poi-configuration';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
@@ -104,12 +103,12 @@ export class EsriPoiService {
   private createSymbolFromDefinition(currentDef: MarkerSymbolDefinition) : __esri.symbols.SimpleMarkerSymbol {
     const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0]);
     // const path = currentDef.markerType === 'path' ? MapSymbols.STAR : undefined;
-    return this.domainFactory.createSimpleMarkerSymbol(currentDef.color, outline, 'path', MapSymbols.STAR);
+    return this.domainFactory.createSimpleMarkerSymbol(currentDef.color, outline);
   }
 
   private createLabelFromDefinition(currentDef: LabelDefinition) : __esri.LabelClass {
     const font = this.domainFactory.createFont(currentDef.size, currentDef.isBold ? 'bold' : 'normal');
-    const arcade = `$feature.${currentDef.featureAttribute}`;
+    const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     return this.domainFactory.createExtendedLabelClass(currentDef.color, currentDef.haloColor, arcade, font);
   }
 }

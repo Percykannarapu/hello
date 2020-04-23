@@ -13,6 +13,7 @@ export { ColorPalette, getColorPalette } from './src/models/color-palettes';
 export * from './src/models/common-configuration';
 export * from './src/models/shading-configuration';
 export * from './src/models/poi-configuration';
+export * from './src/models/boundary-configuration';
 export * from './src/models/esri-types';
 export * from './src/models/esri-sort';
 
@@ -25,6 +26,7 @@ export * from './src/services/esri-map-interaction.service';
 export * from './src/services/esri-query.service';
 export * from './src/services/esri-shading.service';
 export * from './src/services/esri-poi.service';
+export * from './src/services/esri-boundary.service';
 export * from './src/services/esri.service';
 
 export * from './src/state/esri.actions';

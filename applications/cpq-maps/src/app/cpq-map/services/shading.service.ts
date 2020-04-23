@@ -149,7 +149,7 @@ export class ShadingService {
     const query: __esri.Query = new Query();
     query.outFields = ['geocode, zip, atz, atzind, wrap_name'];
     query.where = `geocode in (${geocodes.join(',')})`;
-    return this.queryService.executeQuery(queryLayer, query, true).pipe(
+    return this.queryService.executeNativeQuery(queryLayer, query, true).pipe(
       map(featureSet => featureSet.features)
     );
   }

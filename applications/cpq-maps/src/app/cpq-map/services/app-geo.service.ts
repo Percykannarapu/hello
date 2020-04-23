@@ -68,7 +68,7 @@ export class AppGeoService {
 
   private queryAndCreateDetails(query: __esri.Query, analysisLevel: string, review: RfpUiReview, availsInfo: AvailabilityDetailResponse[],
                                 availableVars: VarDefinition[], wrapName?: string) : Observable<RfpUiEditDetail[]> {
-    return this.queryService.executeQuery(this.configService.layers[analysisLevel].centroids.id, query, true).pipe(
+    return this.queryService.executeNativeQuery(this.configService.layers[analysisLevel].centroids.id, query, true).pipe(
       map(pointRes => {
         const editDetailsInput = pointRes.features.map(f => ({
           geocode: f.getAttribute('geocode'),

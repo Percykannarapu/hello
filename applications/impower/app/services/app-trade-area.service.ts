@@ -91,7 +91,7 @@ export class AppTradeAreaService {
       // need to enlist the latest geos and isLoading flag
       withLatestFrom(this.impGeoService.storeObservable, this.stateService.applicationIsReady$),
       // halt the sequence if the project is loading
-      filter(([, , isReady]) => isReady),
+      filter(([, , isReady]) => isReady && !this.appConfig.isBatchMode),
       // halt the sequence if there are no geos
       filter(([, geos]) => geos != null && geos.length > 0),
     ).subscribe(() => this.clearGeos());

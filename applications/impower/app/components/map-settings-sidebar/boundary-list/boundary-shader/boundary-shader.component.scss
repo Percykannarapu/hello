@@ -1,0 +1,24 @@
+.boundary-display {
+  label {
+    display: inline;
+    padding-right: 1em;
+  }
+}
+
+.boundary-form-container {
+  form {
+    margin-top: 0.5em;
+    button {
+      margin-top: 0.5em;
+      margin-right: 1em;
+    }
+  }
+  padding: 0.5em;
+}
+
+.color-chip {
+  display: inline-block;
+  width: 20px;
+  height: 15px;
+  margin-left: 0.5em;
+}

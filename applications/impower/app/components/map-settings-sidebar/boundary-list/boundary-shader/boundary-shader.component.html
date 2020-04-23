@@ -1,0 +1,41 @@
+<div class="boundary-display">
+  <div *ngIf="!isEditing">
+    <div class="boundary-menu">
+      <a href="#" (click)="edit()">edit</a>
+    </div>
+    <div *ngIf="configuration.centroidPortalId != null">
+      <label>Centroids:</label>
+      <strong>{{configuration.showCentroids === false ? 'Hidden' : 'Displayed'}}</strong>
+    </div>
+    <div>
+      <label>Labels:</label>
+      <strong>{{configuration.showLabels === false ? 'Hidden' : 'Displayed'}}</strong>&nbsp;<span *ngIf="configuration.showHouseholdCounts">(including HH Counts)</span>
+    </div>
+    <div *ngIf="configuration.hasPOBs">
+      <label>POBs:</label>
+      <strong>{{configuration.showPOBs === false ? 'Hidden' : 'Displayed'}}</strong>
+    </div>
+    <div *ngIf="configuration.hasPOBs">
+      <label>Popups:</label>
+      <strong>{{configuration.showPopups === false ? 'Disabled' : 'Enabled'}}</strong>
+    </div>
+    <div>
+      <label>Opacity:</label>
+      <strong>{{configuration.opacity}}</strong>
+    </div>
+  </div>
+  <div class="boundary-form-container" *ngIf="isEditing">
+    <form novalidate autocomplete="off" [formGroup]="configForm" (ngSubmit)="apply(configForm)">
+      <boolean-input labelText="Show Centroids?" formControlName="showCentroids" *ngIf="configuration.centroidPortalId != null"></boolean-input>
+      <boolean-input labelText="Show Labels?" formControlName="showLabels"></boolean-input>
+      <ng-container *ngIf="configForm.get('showLabels').value === true && configuration.hhcLabelDefinition != null">
+        <boolean-input labelText="Show HH Counts on Labels?" formControlName="showHouseholdCounts"></boolean-input>
+      </ng-container>
+      <boolean-input labelText="Show POBs?" formControlName="showPOBs" *ngIf="configuration.hasPOBs"></boolean-input>
+      <boolean-input labelText="Show Popups?" formControlName="showPopups"></boolean-input>
+      <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+      <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!configForm.valid"></button>
+      <button pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
+    </form>
+  </div>
+</div>

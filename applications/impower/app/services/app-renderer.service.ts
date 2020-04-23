@@ -42,6 +42,7 @@ import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { BoundaryRenderingService } from './boundary-rendering.service';
 
 @Injectable()
 export class AppRendererService {
@@ -49,6 +50,7 @@ export class AppRendererService {
 
   constructor(private appStateService: AppStateService,
               private appPrefService: AppProjectPrefService,
+              private boundaryRenderingService: BoundaryRenderingService,
               private impGeoService: ImpGeofootprintGeoService,
               private esriService: EsriService,
               private esriShaderService: EsriShadingService,
@@ -343,12 +345,12 @@ export class AppRendererService {
   }
 
   updateForAnalysisLevel(definition: ShadingDefinition, newAnalysisLevel: string, isNewAnalysisLevel: boolean = false) : void {
-    const layerConfig = this.config.getLayerConfigForAnalysisLevel(newAnalysisLevel);
-    const newPortalId = this.config.getLayerIdForAnalysisLevel(newAnalysisLevel, true);
+    const layerKey = this.config.analysisLevelToLayerKey(newAnalysisLevel);
+    const layerData = this.boundaryRenderingService.getLayerSetupInfo(layerKey);
     const newSelectedLayerName = `Selected ${newAnalysisLevel}s`;
     if (definition.sourcePortalId == null || isNewAnalysisLevel) {
-      definition.sourcePortalId = newPortalId;
-      definition.minScale = layerConfig.boundaries.minScale;
+      definition.sourcePortalId = layerData.boundary;
+      definition.minScale = layerData.minScale;
     }
     if (definition.dataKey === 'selection-shading' && (definition.layerName == null || isNewAnalysisLevel)) {
       definition.layerName = newSelectedLayerName;

@@ -1,4 +1,5 @@
 import { Action, ActionReducer, ActionReducerMap, combineReducers } from '@ngrx/store';
+import { boundaryReducer, EsriBoundaryState } from './boundary/esri.boundary.reducer';
 import { EsriInitState, initReducer } from './init/esri.init.reducer';
 import { EsriMapState, mapReducer } from './map/esri.map.reducer';
 import { EsriPoiState, poiReducer } from './poi/esri.poi.reducer';
@@ -13,6 +14,7 @@ export interface EsriState {
   map: EsriMapState;
   shading: EsriShadingState;
   poi: EsriPoiState;
+  boundary: EsriBoundaryState;
 }
 
 const esriReducers: ActionReducerMap<EsriState> = {
@@ -20,6 +22,7 @@ const esriReducers: ActionReducerMap<EsriState> = {
   map: mapReducer,
   shading: shadingReducer,
   poi: poiReducer,
+  boundary: boundaryReducer,
 };
 
 const metaReducer: ActionReducer<EsriState> = combineReducers(esriReducers);

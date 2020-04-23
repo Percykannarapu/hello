@@ -108,6 +108,7 @@ import { GeofootprintGeoPanelComponent } from './components/geofootprint-geo-pan
 import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
 import { LoginComponent } from './components/login/login.component';
 import { BoundaryListComponent } from './components/map-settings-sidebar/boundary-list/boundary-list.component';
+import { BoundaryShaderComponent } from './components/map-settings-sidebar/boundary-list/boundary-shader/boundary-shader.component';
 import { LocationListComponent } from './components/map-settings-sidebar/location-list/location-list.component';
 import { LocationShaderComponent } from './components/map-settings-sidebar/location-list/location-shader/location-shader.component';
 import { MapSettingsSidebarComponent } from './components/map-settings-sidebar/map-settings-sidebar.component';
@@ -378,6 +379,7 @@ export function actionSanitizer(action: Action) : Action {
     ExtendedColorPickerComponent,
     LocationShaderComponent,
     CompositeAudienceComponent,
+    BoundaryShaderComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

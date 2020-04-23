@@ -11,6 +11,7 @@ import { of } from 'rxjs';
 import { catchError, concatMap, filter, map, reduce, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { mapFeaturesToGeocode } from '../../../models/rxjs-utils';
 import { FullAppState } from '../../../state/app.interfaces';
+import { ProjectLoadSuccess } from '../../../state/data-shim/data-shim.actions';
 import { TransientService } from '../../services/transient.service';
 import { ApplyAudiences, AudienceActionTypes, FetchMapVarCompleted } from './audience/audience.actions';
 import { RehydrateAttributes } from './geo-attributes/geo-attributes.actions';
@@ -67,11 +68,20 @@ export class TransientEffects {
   @Effect()
   rehydrateAfterLoad$ = this.actions$.pipe(
     ofType<RehydrateAfterLoad>(TransientActionTypes.RehydrateAfterLoad),
-    concatMap((action) => [
-      new RehydrateAttributes({ ...action.payload }),
-      new ApplyAudiences({ analysisLevel: action.payload.analysisLevel }),
-      new GetAllMappedVariables({ analysisLevel: action.payload.analysisLevel, correlationId: getUuid() })
-    ])
+    concatMap((action) => {
+      if (action.payload.isBatchMode) {
+        return [
+          new GetAllMappedVariables({ analysisLevel: action.payload.analysisLevel, correlationId: getUuid() }),
+          new ProjectLoadSuccess({ projectId: action.payload.projectId })
+        ];
+      } else {
+        return [
+          new RehydrateAttributes({ ...action.payload }),
+          new ApplyAudiences({ analysisLevel: action.payload.analysisLevel }),
+          new GetAllMappedVariables({ analysisLevel: action.payload.analysisLevel, correlationId: getUuid() })
+        ];
+      }
+    })
   );
 
   @Effect()

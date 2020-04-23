@@ -13,7 +13,7 @@ import { ClearGeoVars } from '../impower-datastore/state/transient/geo-vars/geo-
 import { ValSort } from '../models/valassis-sorters';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
-import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { CachedObservable } from '../val-modules/api/models/CachedObservable';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
@@ -102,12 +102,12 @@ export class AppStateService {
               private store$: Store<FullAppState>) {
     this.setupLocationObservables();
     this.setupTradeAreaObservables();
+    this.setupGeocodeObservables();
     this.mapIsReady.pipe(
       take(1)
     ).subscribe(() => {
       this.setupApplicationReadyObservable();
       this.setupProjectObservables();
-      this.setupGeocodeObservables();
       this.setupProvidedTaObservables();
       this.setupProjectVarObservables();
     });
@@ -145,8 +145,7 @@ export class AppStateService {
   }
 
   private setupApplicationReadyObservable() : void {
-    combineLatest([this.store$.select(layersAreReady), this.store$.select(projectIsReady)]).pipe(
-      map(([layersReady, projectReady]) => layersReady && projectReady),
+    this.store$.select(projectIsReady).pipe(
       distinctUntilChanged()
     ).subscribe(this.applicationIsReady$);
   }

@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@angular/core';
-import Color from 'esri/Color';
 import { Extent } from 'esri/geometry';
 import FeatureLayer from 'esri/layers/FeatureLayer';
 import GraphicsLayer from 'esri/layers/GraphicsLayer';
@@ -8,7 +7,7 @@ import { ClassBreaksRenderer, DotDensityRenderer, SimpleRenderer, UniqueValueRen
 import { Font, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, TextSymbol } from 'esri/symbols';
 import SketchViewModel from 'esri/widgets/Sketch/SketchViewModel';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
-import { AutoCastColor, FillPattern, LineStyle, MarkerStyles } from '../models/esri-types';
+import { AutoCastColor, FillPattern, LineStyle, MapSymbols, MarkerStyles } from '../models/esri-types';
 
 @Injectable()
 export class EsriDomainFactoryService {
@@ -98,36 +97,25 @@ export class EsriDomainFactoryService {
   }
 
   createLabelClass(color: __esri.Color, expression: string) : __esri.LabelClass {
-    const textSymbol: __esri.TextSymbol = new TextSymbol({
-      backgroundColor: new Color({a: 1, r: 255, g: 255, b: 255}),
-      haloColor: new Color({a: 1, r: 255, g: 255, b: 255}),
-      color,
-      haloSize: 1,
-      font: new Font({ family: 'sans-serif', size: 12, weight: 'bold' })
-    });
-    return new LabelClass({
-      symbol: textSymbol,
-      labelPlacement: 'below-center',
-      labelExpressionInfo: {
-        expression: expression
-      }
-    });
+    return this.createExtendedLabelClass(color, [255, 255, 255, 1], expression, this.createFont(12));
   }
 
-  createExtendedLabelClass(color: AutoCastColor, haloColor: AutoCastColor, expression: string, font: __esri.Font) : __esri.LabelClass {
+  createExtendedLabelClass(color: AutoCastColor, haloColor: AutoCastColor, expression: string, font: __esri.Font, placement: string = 'below-center', additionalOptions?: __esri.LabelClassProperties) : __esri.LabelClass {
     const textSymbol: __esri.TextSymbol = new TextSymbol({
       haloSize: 1,
       haloColor,
       color,
       font
     });
-    return new LabelClass({
+    const labelSetup: __esri.LabelClassProperties = {
       symbol: textSymbol,
-      labelPlacement: 'below-center',
+      labelPlacement: placement,
       labelExpressionInfo: {
         expression: expression
-      }
-    });
+      },
+      ...additionalOptions
+    };
+    return new LabelClass(labelSetup);
   }
 
   createFont(size: number, weight: 'normal' | 'bold' = 'bold', family: string = 'sans-serif') : __esri.Font {
@@ -181,12 +169,13 @@ export class EsriDomainFactoryService {
     });
   }
 
-  createSimpleMarkerSymbol(color: AutoCastColor, outline: __esri.symbols.SimpleLineSymbol, style: MarkerStyles = 'circle', path?: string) : __esri.symbols.SimpleMarkerSymbol {
+  createSimpleMarkerSymbol(color: AutoCastColor, outline: __esri.symbols.SimpleLineSymbol, size: number = 12, style: MarkerStyles = 'path', path: string = MapSymbols.STAR) : __esri.symbols.SimpleMarkerSymbol {
     return new SimpleMarkerSymbol({
       color,
       outline,
       style,
-      path
+      path,
+      size
     });
   }
 }

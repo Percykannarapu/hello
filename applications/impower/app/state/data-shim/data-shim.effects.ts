@@ -74,9 +74,7 @@ export class DataShimEffects {
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
       withLatestFrom(this.appDataShimService.currentGeocodeSet$),
-      map(([analysisLevel, geocodes]) => action.payload.isBatchMode
-        ? new ProjectLoadSuccess({ projectId: action.payload.projectId })
-        : new RehydrateAfterLoad({ ...action.payload, geocodes, analysisLevel })),
+      map(([analysisLevel, geocodes]) => new RehydrateAfterLoad({ ...action.payload, geocodes, analysisLevel })),
       catchError(err => of(new ProjectLoadFailure({ err }))),
     )),
   );

@@ -11,7 +11,6 @@ import { BatchMapService } from '../../services/batch-map.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode } from '../../state/batch-map/batch-map.actions';
 import { getBatchMapReady, getCurrentSiteNum, getLastSiteFlag, getMapMoving, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
-import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
 import { BatchMapQueryParams, getRouteParams, getTypedBatchQueryParams } from '../../state/shared/router.interfaces';
 
 @Component({
@@ -84,7 +83,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     );
     this.config.isBatchMode = true;
     this.store$.dispatch(new SetBatchMode());
-    this.store$.dispatch(new CreateNewProject());
+    // this.store$.dispatch(new CreateNewProject());
     this.esriRendererService.initializeShadingWatchers();
   }
 

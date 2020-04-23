@@ -1,17 +1,17 @@
-import {Injectable} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {filterByFields, formatDateForFuse, mapArray, mapBy} from '@val/common';
-import {ErrorNotification} from '@val/messaging';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {filter, map, take, tap} from 'rxjs/operators';
-import {LocalAppState} from '../state/app.interfaces';
-import {RestDataService} from '../val-modules/common/services/restdata.service';
-import {ImpMetricName} from '../val-modules/metrics/models/ImpMetricName';
-import {ImpProject} from '../val-modules/targeting/models/ImpProject';
-import {ImpRadLookup} from '../val-modules/targeting/models/ImpRadLookup';
-import {ImpRadLookupService} from '../val-modules/targeting/services/ImpRadLookup.service';
-import {AppLoggingService} from './app-logging.service';
-import {AppStateService} from './app-state.service';
+import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { filterByFields, formatDateForFuse, mapArray, mapBy } from '@val/common';
+import { ErrorNotification } from '@val/messaging';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { filter, map, take, tap } from 'rxjs/operators';
+import { LocalAppState } from '../state/app.interfaces';
+import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
+import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
+import { ImpRadLookupService } from '../val-modules/targeting/services/ImpRadLookup.service';
+import { AppLoggingService } from './app-logging.service';
+import { AppStateService } from './app-state.service';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {
@@ -57,9 +57,9 @@ export class AppDiscoveryService {
   public radCategoryNameByCode: Map<string, string>;
 
   constructor(private restDataService: RestDataService,
-               private appStateService: AppStateService,
-               private impRadService: ImpRadLookupService,
-               private logger: AppLoggingService,
+              private appStateService: AppStateService,
+              private impRadService: ImpRadLookupService,
+              private logger: AppLoggingService,
               private store$: Store<LocalAppState>) {
     this.radCategoryCodes = [
       { name: 'N/A',                            code: 'NA'},

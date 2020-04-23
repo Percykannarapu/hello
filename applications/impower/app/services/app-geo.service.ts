@@ -75,7 +75,7 @@ export class AppGeoService {
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
 
     this.appStateService.applicationIsReady$.pipe(
-      filter(ready => ready),
+      filter(ready => ready && !this.config.isBatchMode),
       take(1)
     ).subscribe(() => {
       this.setupRadiusSelectionObservable();

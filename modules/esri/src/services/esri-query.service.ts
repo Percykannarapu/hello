@@ -1,13 +1,14 @@
 import { Inject, Injectable } from '@angular/core';
-import { chunkArray, retryOnTimeout } from '@val/common';
+import { chunkArray, getUuid, retryOnTimeout } from '@val/common';
 import { Multipoint, Point } from 'esri/geometry';
 import Query from 'esri/tasks/support/Query';
-import { EMPTY, from, merge, Observable, of } from 'rxjs';
-import { expand, filter, map, switchMap, take } from 'rxjs/operators';
+import { EMPTY, from, merge, Observable } from 'rxjs';
+import { expand, filter, finalize, map, switchMap, take } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
+import { LoggingService } from './logging.service';
 
 type txCallback<T> = (graphic: __esri.Graphic) => T;
 type compositeData = string[] | number[] | __esri.PointProperties[];
@@ -18,10 +19,12 @@ const SIMULTANEOUS_STREAMS = 3;
 export class EsriQueryService {
 
   private static config: EsriAppSettings;
+  private currentExtentLayerId: string;
 
   constructor(@Inject(EsriAppSettingsToken) config: EsriAppSettings,
               private layerService: EsriLayerService,
-              private mapService: EsriMapService) {
+              private mapService: EsriMapService,
+              private logger: LoggingService) {
     EsriQueryService.config = config;
   }
 
@@ -93,92 +96,6 @@ export class EsriQueryService {
     return featureSet.features.map(f => transform(f));
   }
 
-  public executeQuery(layerId: string, query: __esri.Query, returnGeometry = false, outFields = null) : Observable<__esri.FeatureSet> {
-    if (returnGeometry) query.returnGeometry = true;
-    if (outFields != null) query.outFields = outFields;
-    return this.paginateEsriQuery(layerId, query);
-  }
-
-  public executeObjectIdQuery(layerId: string, query: __esri.Query) : Observable<number[]> {
-    return from(EsriUtils.esriPromiseToEs6(this.mapService.mapView.when())).pipe(
-      map(() => this.layerService.getPortalLayerById(layerId)),
-      switchMap(layer => layer == null ? EMPTY : EsriUtils.esriPromiseToEs6<__esri.FeatureLayer>(layer.when())),
-      switchMap(layer => EsriUtils.esriPromiseToEs6(layer.queryObjectIds(query)))
-    );
-  }
-
-  private executeFeatureQuery(layerId: string, query: __esri.Query) : Observable<__esri.FeatureSet> {
-    return from(EsriUtils.esriPromiseToEs6(this.mapService.mapView.when())).pipe(
-      map(() => this.layerService.getPortalLayerById(layerId)),
-      switchMap(layer => layer == null ? EMPTY : EsriUtils.esriPromiseToEs6<__esri.FeatureLayer>(layer.when())),
-      switchMap(layer => EsriUtils.esriPromiseToEs6(layer.queryFeatures(query)))
-    );
-  }
-
-  private paginateEsriQuery(layerId: string, query: __esri.Query) : Observable<__esri.FeatureSet> {
-    const recursiveQuery$ = (id: string, q: __esri.Query) =>
-      this.executeFeatureQuery(id, q).pipe(map(r => EsriQueryService.getNextQuery(r, q)));
-
-    return recursiveQuery$(layerId, query).pipe(
-      retryOnTimeout(5),
-      expand(({result, next}) => next ? recursiveQuery$(layerId, next) : EMPTY),
-      map(({ result }) => result)
-    );
-  }
-
-  private query<T>(layerId: string, queries: __esri.Query[], transform: txCallback<T> = null) : Observable<T[]> | Observable<__esri.Graphic[]> {
-    const observables: Observable<__esri.FeatureSet>[] = [];
-    for (const query of queries) {
-      observables.push(this.executeQuery(layerId, query));
-    }
-    const result$: Observable<__esri.FeatureSet> = merge(...observables, SIMULTANEOUS_STREAMS);
-    if (transform == null) {
-      return result$.pipe(map(fs => fs.features));
-    } else {
-      return result$.pipe(map(fs => EsriQueryService.transformFeatureSet(fs, transform)));
-    }
-  }
-
-  public queryPoint(layerId: string, points: pointInputs, returnGeometry?: boolean , outFields?: string[]) : Observable<__esri.Graphic[]>;
-  public queryPoint<T>(layerId: string, points: pointInputs, returnGeometry: boolean, outFields: string[], transform: txCallback<T>) : Observable<T[]>;
-  public queryPoint<T>(layerId: string, points: pointInputs, returnGeometry: boolean = false, outFields: string[] = null, transform: txCallback<T> = null) : Observable<T[]> | Observable<__esri.Graphic[]> {
-    return this.queryPointWithBuffer(layerId, points, 0, returnGeometry, outFields, transform);
-  }
-
-  public queryPointWithBuffer(layerId: string, points: pointInputs, bufferInMiles: number, returnGeometry?: boolean, outFields?: string[]) : Observable<__esri.Graphic[]>;
-  public queryPointWithBuffer<T>(layerId: string, points: pointInputs, bufferInMiles: number, returnGeometry: boolean, outFields: string[], transform: txCallback<T>) : Observable<T[]>;
-  public queryPointWithBuffer<T>(layerId: string, points: pointInputs, bufferInMiles: number, returnGeometry: boolean = false, outFields: string[] = null, transform: txCallback<T> = null) : Observable<T[]> | Observable<__esri.Graphic[]> {
-    const pointArray = Array.isArray(points) ? points : [points];
-    const chunkSize = EsriQueryService.calculateChunkSize(pointArray.length, returnGeometry, bufferInMiles);
-    const dataStreams: __esri.PointProperties[][] = chunkArray(pointArray, chunkSize);
-    const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, bufferInMiles));
-    return this.query(layerId, queries, transform);
-  }
-
-  public queryAttributeIn(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry?: boolean, outFields?: string[]) : Observable<__esri.Graphic[]>;
-  public queryAttributeIn<T>(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry: boolean, outFields: string[], transform: txCallback<T>) : Observable<T[]>;
-  public queryAttributeIn<T>(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry: boolean = false, outFields: string[] = null, transform: txCallback<T> = null) : Observable<T[]> | Observable<__esri.Graphic[]> {
-    const chunkSize = EsriQueryService.calculateChunkSize(queryData.length, returnGeometry);
-    const dataStreams = chunkArray<string, number>(queryData, chunkSize);
-    const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, queryField));
-    return this.query(layerId, queries, transform);
-  }
-
-  public queryExtent(layerId: string, extent?: __esri.Extent) : Observable<__esri.Graphic[]> {
-    const query = new Query({
-      geometry: extent == null ? this.mapService.mapView.extent : extent,
-      returnGeometry: false,
-      outFields: ['geocode', 'pob']
-    });
-    return this.query(layerId, [query]);
-  }
-
-  public queryPortalLayerView(layerId: string) : Observable<__esri.Graphic[]> {
-    if (layerId == null || layerId.length === 0) return of([]);
-    const layer = this.layerService.getPortalLayerById(layerId);
-    return this.queryLayerView([layer], null);
-  }
-
   public queryLayerView(layers: __esri.FeatureLayer[], extent: __esri.Extent, returnGeometry: boolean = false) : Observable<__esri.Graphic[]> {
     const observableResult: Observable<__esri.Graphic[]>[] = [];
     for (const currentLayer of layers) {
@@ -211,5 +128,107 @@ export class EsriQueryService {
       observableResult.push(layerResult);
     }
     return merge(...observableResult);
+  }
+
+  public queryPoint(layerId: string, points: pointInputs, returnGeometry?: boolean , outFields?: string[]) : Observable<__esri.Graphic[]>;
+  public queryPoint<T>(layerId: string, points: pointInputs, returnGeometry: boolean, outFields: string[], transform: txCallback<T>) : Observable<T[]>;
+  public queryPoint<T>(layerId: string, points: pointInputs, returnGeometry: boolean = false, outFields: string[] = null, transform: txCallback<T> = null) : Observable<T[] | __esri.Graphic[]> {
+    return this.queryPointWithBuffer(layerId, points, 0, returnGeometry, outFields, transform);
+  }
+
+  public queryPointWithBuffer(layerId: string, points: pointInputs, bufferInMiles: number, returnGeometry?: boolean, outFields?: string[]) : Observable<__esri.Graphic[]>;
+  public queryPointWithBuffer<T>(layerId: string, points: pointInputs, bufferInMiles: number, returnGeometry: boolean, outFields: string[], transform: txCallback<T>) : Observable<T[]>;
+  public queryPointWithBuffer<T>(layerId: string, points: pointInputs, bufferInMiles: number, returnGeometry: boolean = false, outFields: string[] = null, transform: txCallback<T> = null) : Observable<T[] | __esri.Graphic[]> {
+    const pointArray = Array.isArray(points) ? points : [points];
+    const chunkSize = EsriQueryService.calculateChunkSize(pointArray.length, returnGeometry, bufferInMiles);
+    const dataStreams: __esri.PointProperties[][] = chunkArray(pointArray, chunkSize);
+    const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, bufferInMiles));
+    const transactionId = getUuid();
+    this.logger.debug.log('Starting Query', transactionId);
+    return this.query(layerId, queries, transactionId, transform).pipe(
+      finalize(() => this.finalizeQuery(transactionId))
+    );
+  }
+
+  public queryAttributeIn(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry?: boolean, outFields?: string[]) : Observable<__esri.Graphic[]>;
+  public queryAttributeIn<T>(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry: boolean, outFields: string[], transform: txCallback<T>) : Observable<T[]>;
+  public queryAttributeIn<T>(layerId: string, queryField: string, queryData: string[] | number[], returnGeometry: boolean = false, outFields: string[] = null, transform: txCallback<T> = null) : Observable<T[] | __esri.Graphic[]> {
+    const chunkSize = EsriQueryService.calculateChunkSize(queryData.length, returnGeometry);
+    const dataStreams = chunkArray<string, number>(queryData, chunkSize);
+    const queries: __esri.Query[] = dataStreams.map(data => EsriQueryService.createQuery(returnGeometry, outFields, data, queryField));
+    const transactionId = getUuid();
+    this.logger.debug.log('Starting Query', transactionId);
+    return this.query(layerId, queries, transactionId, transform).pipe(
+      finalize(() => this.finalizeQuery(transactionId))
+    );
+  }
+
+  public queryExtent(layerId: string, extent?: __esri.Extent) : Observable<__esri.Graphic[]> {
+    const specialTxId = 'primary-extent-id';
+    if (this.currentExtentLayerId !== layerId) {
+      if (this.currentExtentLayerId != null) this.finalizeQuery(specialTxId);
+      this.currentExtentLayerId = layerId;
+    }
+    const query = new Query({
+      geometry: extent == null ? this.mapService.mapView.extent : extent,
+      returnGeometry: false,
+      outFields: ['geocode', 'pob']
+    });
+    return this.query(layerId, [query], specialTxId);
+  }
+
+  public executeNativeQuery(layerId: string, query: __esri.Query, returnGeometry = false, outFields = null) : Observable<__esri.FeatureSet> {
+    if (returnGeometry) query.returnGeometry = true;
+    if (outFields != null) query.outFields = outFields;
+    const transactionId = getUuid();
+    this.logger.debug.log('Starting Query', transactionId);
+    return this.paginateEsriQuery(layerId, query, transactionId).pipe(
+      finalize(() => this.finalizeQuery(transactionId))
+    );
+  }
+
+  private query<T>(layerId: string, queries: __esri.Query[], transactionId: string, transform: txCallback<T> = null) : Observable<T[] | __esri.Graphic[]> {
+    const observables: Observable<__esri.FeatureSet>[] = [];
+    for (const query of queries) {
+      observables.push(this.executeQuery(layerId, query, transactionId));
+    }
+    const result$: Observable<__esri.FeatureSet> = merge(...observables, SIMULTANEOUS_STREAMS);
+    let resultPipeline;
+    if (transform == null) {
+      resultPipeline = result$.pipe(map(fs => fs.features));
+    } else {
+      resultPipeline = result$.pipe(map(fs => EsriQueryService.transformFeatureSet(fs, transform)));
+    }
+    return resultPipeline;
+  }
+
+  private executeQuery(layerId: string, query: __esri.Query, transactionId: string, returnGeometry = false, outFields = null) : Observable<__esri.FeatureSet> {
+    if (returnGeometry) query.returnGeometry = true;
+    if (outFields != null) query.outFields = outFields;
+    return this.paginateEsriQuery(layerId, query, transactionId);
+  }
+
+  private paginateEsriQuery(layerId: string, query: __esri.Query, transactionId: string) : Observable<__esri.FeatureSet> {
+    const recursiveQuery$ = (id: string, q: __esri.Query) =>
+      this.executeFeatureQuery(id, q, transactionId).pipe(map(r => EsriQueryService.getNextQuery(r, q)));
+
+    return recursiveQuery$(layerId, query).pipe(
+      retryOnTimeout(5),
+      expand(({result, next}) => next ? recursiveQuery$(layerId, next) : EMPTY),
+      map(({ result }) => result)
+    );
+  }
+
+  private executeFeatureQuery(layerId: string, query: __esri.Query, transactionId: string) : Observable<__esri.FeatureSet> {
+    return from(EsriUtils.esriPromiseToEs6(this.mapService.mapView.when())).pipe(
+      map(() => this.layerService.getQueryLayer(layerId, transactionId)),
+      switchMap(layer => layer == null ? EMPTY : EsriUtils.esriPromiseToEs6<__esri.FeatureLayer>(layer.when())),
+      switchMap(layer => EsriUtils.esriPromiseToEs6(layer.queryFeatures(query)))
+    );
+  }
+
+  private finalizeQuery(transactionId: string) : void {
+    this.logger.debug.log('Finalizing Query', transactionId);
+    this.layerService.removeQueryLayer(transactionId);
   }
 }

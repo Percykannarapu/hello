@@ -5,11 +5,14 @@ export interface LabelDefinition {
   size: number;
   color: RgbaTuple;
   haloColor: RgbaTuple;
-  featureAttribute: string;
+  featureAttribute?: string;
+  customExpression?: string;
+  where?: string;
 }
 
 export interface SymbolDefinition {
   outlineColor?: RgbaTuple;
+  outlineWidth?: number;
   legendName?: string;
 }
 

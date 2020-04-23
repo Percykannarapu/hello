@@ -5,7 +5,6 @@ import { groupByExtended, skipUntilNonZeroBecomesZero } from '@val/common';
 import { EsriAppSettings, EsriAppSettingsToken, EsriPoiService, selectors } from '@val/esri';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { upsertPoi } from '../../../../../modules/esri/src/state/poi/esri.poi.actions';
 import { AppStateService } from '../../services/app-state.service';
 import { PoiRenderingService } from '../../services/poi-rendering.service';
 import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
@@ -87,28 +86,16 @@ export class RenderingEffects {
     tap(() => this.renderingService.clearLocations(ImpClientLocationTypeCodes.Competitor)),
   );
 
-  @Effect()
-  renderLocations$ = this.locationSplit$.pipe(
-    map(([sites]) => sites),
-    withLatestFrom(this.store$.pipe(select(selectors.getMapReady))),
-    filter(([locations, mapReady]) => mapReady && locations.length > 0),
-    withLatestFrom(this.esriPoiService.allPoiConfigurations$),
-    map(([[locations], configs]) => [locations, configs.filter(c => c.dataKey === ImpClientLocationTypeCodes.Site)[0]] as const),
-    concatMap(([locations, config]) => this.poiRenderingService.renderSites(locations, config)),
-    filter(poi => poi != null),
-    map(poi => upsertPoi({ poi }))
-  );
-
-  @Effect()
-  renderCompetitors$ = this.locationSplit$.pipe(
-    map(([, competitors]) => competitors),
-    withLatestFrom(this.store$.pipe(select(selectors.getMapReady))),
-    filter(([locations, mapReady]) => mapReady && locations.length > 0),
-    withLatestFrom(this.esriPoiService.allPoiConfigurations$),
-    map(([[locations], configs]) => [locations, configs.filter(c => c.dataKey === ImpClientLocationTypeCodes.Competitor)[0]] as const),
-    concatMap(([locations, config]) => this.poiRenderingService.renderSites(locations, config)),
-    filter(poi => poi != null),
-    map(poi => upsertPoi({ poi }))
+  @Effect({ dispatch: false })
+  renderLocations$ = this.actions$.pipe(
+    ofType<RenderLocations>(RenderingActionTypes.RenderLocations),
+    filter(action => action.payload.locations.length > 0),
+    withLatestFrom(this.store$.select(selectors.getMapReady), this.esriPoiService.allPoiConfigurations$),
+    filter(([, mapReady]) => mapReady),
+    map(([action, , configs]) => [action.payload.locations, configs] as const),
+    concatMap(([locations, configs]) => this.poiRenderingService.renderSites(locations, configs)),
+    filter(pois => pois.length > 0),
+    map(pois => this.esriPoiService.updatePoiConfig(pois))
   );
 
   constructor(private actions$: Actions,

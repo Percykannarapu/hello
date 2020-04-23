@@ -39,7 +39,7 @@ export class ValMetricsService implements OnDestroy {
               private store$: Store<FullAppState>) {
     this.registerMetrics();
     this.stateService.applicationIsReady$.pipe(
-      filter(isReady => isReady),
+      filter(isReady => isReady && !this.config.isBatchMode),
       take(1)
     ).subscribe(() => {
       this.stateService.currentProject$.subscribe(project => this.currentProject = project);

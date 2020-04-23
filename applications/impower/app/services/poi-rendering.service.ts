@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { getUuid, mapArrayToEntity } from '@val/common';
+import { filterArray, getUuid, groupByExtended, mapArrayToEntity } from '@val/common';
 import { EsriDomainFactoryService, EsriLayerService, EsriPoiService, EsriUtils, PoiConfiguration, PoiConfigurationTypes } from '@val/esri';
-import { Observable } from 'rxjs';
-import { filter, take, withLatestFrom } from 'rxjs/operators';
+import { merge, Observable } from 'rxjs';
+import { filter, reduce, take, withLatestFrom } from 'rxjs/operators';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -49,44 +49,56 @@ export class PoiRenderingService {
   /**
    * Creates or updates a point feature layer for Client Sites
    * @param sites - The list of Client Sites
-   * @param renderingSetup - the PoiConfiguration setup for this Poi Visualization
+   * @param renderingSetups - the PoiConfiguration setup for this Poi Visualization
    * @returns PoiConfiguration if it has been updated with a layerId, otherwise null
    */
-  renderSites(sites: ImpGeofootprintLocation[], renderingSetup: PoiConfiguration) : Observable<PoiConfiguration | null> {
-    return new Observable<PoiConfiguration>(subject => {
-      if (renderingSetup.featureLayerId != null) {
-        const existingLayer = this.layerService.getLayerByUniqueId(renderingSetup.featureLayerId);
-        if (EsriUtils.layerIsFeature(existingLayer)) {
-          existingLayer.queryFeatures().then(result => {
-            const newPoints = sites.map((s, i) => createSiteGraphic(s, i));
-            const edits = this.prepareLayerEdits(result.features, newPoints);
-            if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
-              existingLayer.applyEdits(edits);
+  renderSites(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]) : Observable<PoiConfiguration[]> {
+    const mergeResult: Observable<PoiConfiguration>[] = [];
+    const sitesByTypeCode = groupByExtended(sites, s => s.clientLocationTypeCode);
+    renderingSetups.forEach(renderingSetup => {
+      const currentSites = sitesByTypeCode.get(renderingSetup.dataKey);
+      if (currentSites != null && currentSites.length > 0) {
+        const currentObs = new Observable<PoiConfiguration>(subject => {
+          if (renderingSetup.featureLayerId != null) {
+            const existingLayer = this.layerService.getLayerByUniqueId(renderingSetup.featureLayerId);
+            if (EsriUtils.layerIsFeature(existingLayer)) {
+              existingLayer.queryFeatures().then(result => {
+                const newPoints = currentSites.map((s, i) => createSiteGraphic(s, i));
+                const edits = this.prepareLayerEdits(result.features, newPoints);
+                if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
+                  existingLayer.applyEdits(edits);
+                }
+              });
             }
-          });
-        }
-        subject.next(null);
-        subject.complete();
-      } else {
-        const newPoints = sites.map((s, i) => createSiteGraphic(s, i));
-        const existingGroup = this.layerService.createClientGroup(renderingSetup.groupName, true);
-        const newFeatureLayer = this.domainFactory.createFeatureLayer(newPoints, 'parentId');
-        newFeatureLayer.visible = false;
-        existingGroup.add(newFeatureLayer);
-        subject.next({ ...renderingSetup, featureLayerId: newFeatureLayer.id });
-        subject.complete();
+            subject.next(null);
+            subject.complete();
+          } else {
+            const newPoints = currentSites.map((s, i) => createSiteGraphic(s, i));
+            const existingGroup = this.layerService.createClientGroup(renderingSetup.groupName, true);
+            const newFeatureLayer = this.domainFactory.createFeatureLayer(newPoints, 'objectId');
+            newFeatureLayer.visible = false;
+            existingGroup.add(newFeatureLayer);
+            subject.next({ ...renderingSetup, featureLayerId: newFeatureLayer.id });
+            subject.complete();
+          }
+        });
+        mergeResult.push(currentObs);
       }
     });
+    return merge(...mergeResult).pipe(
+      reduce((acc, curr) => [...acc, curr], [] as PoiConfiguration[]),
+      filterArray(config => config != null),
+    );
   }
 
   private prepareLayerEdits(currentGraphics: __esri.Graphic[], newGraphics: __esri.Graphic[]) : __esri.FeatureLayerApplyEditsEdits {
-    const oidDictionary = mapArrayToEntity(currentGraphics, g => g.attributes['locationNumber'], g => g.attributes['parentId']);
+    const oidDictionary = mapArrayToEntity(currentGraphics, g => g.attributes['locationNumber'], g => g.attributes['objectId']);
     const currentGraphicIds = new Set<string>(currentGraphics.map(g => g.attributes['locationNumber'].toString()));
     const currentSiteIds = new Set<string>(newGraphics.map(g => g.attributes['locationNumber'].toString()));
     const adds = newGraphics.filter(g => !currentGraphicIds.has(g.attributes['locationNumber'].toString()));
     const deletes = currentGraphics.filter(g => !currentSiteIds.has(g.attributes['locationNumber']));
     const updates = newGraphics.filter(g => currentGraphicIds.has(g.attributes['locationNumber'].toString()));
-    updates.forEach(g => g.attributes['parentId'] = oidDictionary[g.attributes['locationNumber']]);
+    updates.forEach(g => g.attributes['objectId'] = oidDictionary[g.attributes['locationNumber']]);
     const result: __esri.FeatureLayerApplyEditsEdits = {};
     if (adds.length > 0) result.addFeatures = adds;
     if (deletes.length > 0) result.deleteFeatures = deletes;
@@ -119,7 +131,7 @@ export class PoiRenderingService {
       opacity: 1,
       visible: true,
       showLabels: true,
-      labelDefinition: { color: [0, 0, 255, 1], featureAttribute: 'locationNumber', isBold: true, size: 12, haloColor: [255, 255, 255, 1] },
+      labelDefinition: { color: [0, 0, 255, 1], featureAttribute: 'locationNumber', isBold: true, size: 12, haloColor: [255, 255, 255, 1], customExpression: null },
       symbolDefinition: { color: [0, 0, 255, 1], markerType: 'path', legendName: 'Client Locations', outlineColor: [255, 255, 255, 1] }
     }, {
       id: getUuid(),
@@ -132,7 +144,7 @@ export class PoiRenderingService {
       opacity: 1,
       visible: true,
       showLabels: true,
-      labelDefinition: { color: [255, 0, 0, 1], featureAttribute: 'locationNumber', isBold: true, size: 12, haloColor: [255, 255, 255, 1] },
+      labelDefinition: { color: [255, 0, 0, 1], featureAttribute: 'locationNumber', isBold: true, size: 12, haloColor: [255, 255, 255, 1], customExpression: null },
       symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitor Locations', outlineColor: [255, 255, 255, 1] }
     }];
   }

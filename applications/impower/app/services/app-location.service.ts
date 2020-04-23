@@ -9,6 +9,7 @@ import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
 import { filter, map, mergeMap, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { EnvironmentData } from '../../environments/environment';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../models/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -31,6 +32,7 @@ import { AppGeocodingService } from './app-geocoding.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
+import { BoundaryRenderingService } from './boundary-rendering.service';
 import Graphic = __esri.Graphic;
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
@@ -92,6 +94,7 @@ export class AppLocationService {
               private confirmationService: ConfirmationService,
               private restService: RestDataService,
               private appProjectPrefService: AppProjectPrefService,
+              private boundaryRenderingService: BoundaryRenderingService,
               private store$: Store<FullAppState>) {
 
     this.allClientLocations$ = this.appStateService.allClientLocations$;
@@ -102,7 +105,10 @@ export class AppLocationService {
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
       take(1)
-    ).subscribe(() => this.initializeSubscriptions());
+    ).subscribe(() => {
+      this.initializeRenderingSub();
+      this.initializeSubscriptions();
+    });
   }
 
   public static createMetricTextForLocation(site: ImpGeofootprintLocation) : string {
@@ -154,14 +160,6 @@ export class AppLocationService {
       map(locations => locations.length)
     );
 
-    const successfulLocations$ = activeLocationsWithType$.pipe(
-      filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
-    );
-
-    combineLatest([successfulLocations$, this.store$.select(projectIsReady)]).pipe(
-      filter(([locations, ready]) => locations != null && ready)
-    ).subscribe(([locations]) => this.store$.dispatch(new RenderLocations({ locations })));
-
     this.failedClientLocations$ = allLocationsWithType$.pipe(
       map(locations => locations.filter(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.FailedSite)),
       startWith([])
@@ -194,6 +192,23 @@ export class AppLocationService {
     combineLatest([locationsWithoutRadius$, this.appStateService.applicationIsReady$]).pipe(
       filter(([locations, isReady]) => locations.length > 0 && isReady)
     ).subscribe(([locations]) => this.appTradeAreaService.onLocationsWithoutRadius(locations));
+  }
+
+  private initializeRenderingSub() {
+    const allActiveLocations$ = this.impLocationService.storeObservable.pipe(
+      filter(locations => locations != null),
+      filterArray(loc => loc.isActive)
+    );
+    const activeLocationsWithType$ = allActiveLocations$.pipe(
+      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0),
+    );
+    const successfulLocations$ = activeLocationsWithType$.pipe(
+      filterArray(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site || loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor)
+    );
+
+    combineLatest([successfulLocations$, this.store$.select(projectIsReady)]).pipe(
+      filter(([locations, ready]) => locations != null && ready)
+    ).subscribe(([locations]) => this.store$.dispatch(new RenderLocations({ locations })));
   }
 
    public deleteLocations(sites: ImpGeofootprintLocation[]) : void {
@@ -357,10 +372,10 @@ export class AppLocationService {
       const requestToCall: Array<Observable<any>> = [];
       let call: Observable<__esri.Graphic[]>;
       const tagToEnvironmentData = {
-        'zip': this.config.layers.zip.boundaries.id,
-        'atz': this.config.layers.atz.boundaries.id,
-        'pcr': this.config.layers.pcr.boundaries.id,
-        'dtz': this.config.layers.digital_atz.boundaries.id
+        'zip': EnvironmentData.layerIds.zip.boundary,
+        'atz': EnvironmentData.layerIds.atz.boundary,
+        'pcr': EnvironmentData.layerIds.pcr.boundary,
+        'dtz': EnvironmentData.layerIds.dtz.boundary
       };
       editedTags.forEach((tag) => {
           call = this.queryService.queryAttributeIn(tagToEnvironmentData[tag], 'geocode', [attributes[0][tagToFieldName[tag]]], false, ['geocode']);
@@ -442,7 +457,7 @@ export class AppLocationService {
     const homeDMAs = new Set(attributes.filter(a => a['homeDmaName'] == null || a['homeDmaName'] === '').map(a => a['homeDma']).filter(a => a != null && a !== ''));
     const dmaLookup = {};
     if (homeDMAs.size > 0) {
-      this.queryService.queryAttributeIn(this.config.layers.dma.boundaries.id, 'dma_code', Array.from(homeDMAs), false, ['dma_code', 'dma_name']).pipe(
+      this.queryService.queryAttributeIn(EnvironmentData.layerIds.dma.boundary, 'dma_code', Array.from(homeDMAs), false, ['dma_code', 'dma_name']).pipe(
         filter(g => g != null)
       ).subscribe(
         graphics => {

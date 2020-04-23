@@ -18,6 +18,7 @@ import { EsriMapPanelComponent } from './src/components/esri-map-panel/esri-map-
 import { EsriMapComponent } from './src/components/esri-map-panel/esri-map/esri-map.component';
 import { EsriToolbarComponent } from './src/components/esri-map-panel/esri-toolbar/esri-toolbar.component';
 import { EsriAppSettingsToken, EsriAuthenticationToken, EsriLoaderToken } from './src/configuration';
+import { EsriBoundaryService } from './src/services/esri-boundary.service';
 import { EsriDomainFactoryService } from './src/services/esri-domain-factory.service';
 import { EsriGeoprocessorService } from './src/services/esri-geoprocessor.service';
 import { EsriIdentityService } from './src/services/esri-identity.service';
@@ -95,6 +96,7 @@ export class EsriModule {
         EsriPrintingService,
         EsriShadingService,
         EsriPoiService,
+        EsriBoundaryService,
         LoggingService,
         { provide: APP_INITIALIZER, useFactory: initializer, multi: true, deps: [Store] }
       ]

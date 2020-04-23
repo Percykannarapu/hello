@@ -9,12 +9,11 @@ import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { Observable, race, timer } from 'rxjs';
-import { debounceTime, delay, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { ValSort } from '../models/valassis-sorters';
 import { BatchMapPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
-import { getBatchMapReady } from '../state/batch-map/batch-map.selectors';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -46,8 +45,6 @@ export class BatchMapService {
               private http: HttpClient) { }
 
   initBatchMapping(projectId: number) : void {
-    this.appStateService.notifyMapReady();
-
     this.esriMapService.watchMapViewProperty('updating').pipe(
       debounceTime(500),
       withLatestFrom(this.store$.select(getMapAudienceIsFetching)),
@@ -57,12 +54,10 @@ export class BatchMapService {
     this.esriMapService.watchMapViewProperty('stationary').pipe(
       filter(result => result.newValue),
     ).subscribe(() => this.appStateService.refreshVisibleGeos());
+
     this.appMapService.setupMap(true);
-    this.store$.select(getBatchMapReady).pipe(
-      filter(ready => ready),
-      take(1),
-      delay(15000)
-    ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isBatchMode: true })));
+    this.store$.dispatch(new ProjectLoad({ projectId, isBatchMode: true }));
+    this.appStateService.notifyMapReady();
   }
 
   requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload, project: ImpProject) : Observable<any> {
@@ -237,6 +232,7 @@ export class BatchMapService {
   }
 
   private setMapLocation(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>, params: BatchMapQueryParams, siteNums: Array<string>, project: ImpProject) : Observable<void> {
+    console.log('Inside setMapLocation', params);
     if (params.fitTo === FitTo.GEOS) {
       const activeGeos = geos.filter(g => g.isActive);
       const geocodes = activeGeos.map(g => g.geocode);

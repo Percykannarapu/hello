@@ -47,7 +47,8 @@ export function dataShimReducer(state = initialState, action: DataShimActions) :
         ...state,
         projectIsSaving: false,
         projectIsLoaded: false,
-        projectIsLoading: true
+        projectIsLoading: true,
+        layersAreReady: false,
       };
     case DataShimActionTypes.ProjectLoadFailure:
       return {

@@ -39,7 +39,7 @@ export class RemoveGeoCache implements Action {
 
 export class RehydrateAfterLoad implements Action {
   readonly type = TransientActionTypes.RehydrateAfterLoad;
-  constructor(public payload: { projectId: number, geocodes: Set<string>, analysisLevel: string }) {}
+  constructor(public payload: { projectId: number, geocodes: Set<string>, analysisLevel: string, isBatchMode?: boolean }) {}
 }
 
 export class GetAllMappedVariables {
