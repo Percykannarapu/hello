@@ -39,7 +39,7 @@ export class EnvironmentData {
 
   //public static fuseBaseUrl = 'https://services.valassislab.com/services/';
   // public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services/';
-  public static fuseBaseUrl = 'https://servicesdev.valassislab.com/services/';
+  public static fuseBaseUrl = 'https://servicesdev.valassislab.com/impower/services/';
   public static impowerBaseUrl = 'https://impowerdev.val.vlss.local/';
 
   // print service URL
