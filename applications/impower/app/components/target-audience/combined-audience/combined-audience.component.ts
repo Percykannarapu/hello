@@ -103,7 +103,7 @@ export class CombinedAudienceComponent implements OnInit {
         seq: fkId,
         isCombined: isCombined,
         combinedAudiences: audienceFields.audienceList[0].fieldconte === 'PERCENT' && (isCombineConverted || isCombined)  ? combinedAudIds : [],
-        combinedVariableNames: (isCombined || isCombineConverted) ? combinedVariableNames.join('~') : '',
+        combinedVariableNames: combinedVariableNames.join('~'),
         compositeSource: !(isCombined || isCombineConverted) ? combinedAudIds : [],
       };
       this.varService.addAudience(newAudience);
@@ -127,7 +127,7 @@ export class CombinedAudienceComponent implements OnInit {
         seq: this.currentAudience[0].seq,
         isCombined: this.currentAudience[0].isCombined,
         combinedAudiences: this.currentAudience[0].fieldconte === 'PERCENT' ? combinedAudIds : [],
-        combinedVariableNames: this.currentAudience[0].isCombined ? combinedVariableNames.join('~') : '',
+        combinedVariableNames: combinedVariableNames.join('~'),
         compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null ? combinedAudIds : [],
       };
       this.varService.updateProjectVars(editedAudience);
