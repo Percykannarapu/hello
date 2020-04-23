@@ -64,9 +64,10 @@ export class AppMapService {
 
   private initializeLayers(selectedAnalysisLevel: string) : Observable<__esri.FeatureLayer> {
     const layerGroups = new Map<string, LayerDefinition[]>();
+    let i = 0;
     for (const layerGroup of Object.values(this.config.layers)) {
       layerGroups.set(layerGroup.group.name, [layerGroup.centroids, layerGroup.boundaries]);
-      this.setupPortalGroup(layerGroup.group.name, layerGroup.group.analysisLevelName, selectedAnalysisLevel);
+      this.setupPortalGroup(layerGroup.group.name, layerGroup.group.analysisLevelName, selectedAnalysisLevel, i++);
     }
     const results: Observable<__esri.FeatureLayer>[] = [];
     layerGroups.forEach((value, key) => {
@@ -76,9 +77,9 @@ export class AppMapService {
     return merge(...results, 2);
   }
 
-  private setupPortalGroup(groupName: string, layerAnalysisLevel: string, selectedAnalysisLevel: string) : void {
+  private setupPortalGroup(groupName: string, layerAnalysisLevel: string, selectedAnalysisLevel: string, sortOrder: number) : void {
     const visible = (layerAnalysisLevel === selectedAnalysisLevel || (selectedAnalysisLevel === 'atz' && layerAnalysisLevel === 'zip'));
-    this.layerService.createPortalGroup(groupName, visible);
+    this.layerService.createPortalGroup(groupName, visible, sortOrder);
     const group = this.layerService.getPortalGroup(groupName);
     if (group == null) throw new Error(`Invalid Group Name: '${groupName}'`);
   }
