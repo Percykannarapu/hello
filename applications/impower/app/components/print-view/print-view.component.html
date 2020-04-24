@@ -1,7 +1,6 @@
-<p-dialog header="Print Current View" [visible]="displayDialog$ | async" (visibleChange)="closeDialog($event)" [modal]="true" [style]="{width: '450px', minWidth: '200px', height: '350px'}" [maximizable]="false">
+<p-dialog header="Print Current View" [visible]="displayDialog$ | async" (visibleChange)="closeDialog($event)" [modal]="true" [style]="{width: '450px', minWidth: '200px', height: '250px'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main" id="p-dialog">
-      <p> <span style="color:red; font-size: 1.2em"> Use Ramp Shading style when exporting a map shaded by a variable. </span></p>
       <div class="dialog-body">
       <form novalidate  [formGroup]="printForm" autocomplete="off">
 
