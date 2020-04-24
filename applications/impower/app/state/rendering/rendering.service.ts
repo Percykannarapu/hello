@@ -13,6 +13,7 @@ import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeti
 import { TradeAreaDrawDefinition } from './trade-area.transform';
 
 interface ValueMap {
+  merged: boolean;
   [key: number] : number;
 }
 
@@ -30,8 +31,10 @@ export class RenderingService {
               private config: AppConfig,
               @Inject(EsriAppSettingsToken) private esriAppSettings: EsriAppSettings) { }
 
-  private static createValueMap(values: number[]) : ValueMap {
-    const result = {};
+  private static createValueMap(values: number[], merged: boolean) : ValueMap {
+    const result = {
+      merged
+    };
     values.forEach(v => {
       if (result[v] == undefined) {
         result[v] = 1;
@@ -98,7 +101,7 @@ export class RenderingService {
           width: 2
         }
       });
-      const currentValueMap = RenderingService.createValueMap(d.bufferedPoints.map(b => b.buffer));
+      const currentValueMap = RenderingService.createValueMap(d.bufferedPoints.map(b => b.buffer), d.merge);
       if (this.definitionNeedsRendered(currentValueMap, d.layerName) || this.config.isBatchMode) {
         const pointTree = new QuadTree(d.bufferedPoints);
         const chunks = pointTree.partition(100);

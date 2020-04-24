@@ -25,7 +25,7 @@
       <esri-fill-symbol-input labelText="Overlay Type" [defaultSolidColor]="[0, 255, 0, 1]" formGroupName="defaultSymbolDefinition"></esri-fill-symbol-input>
       <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
       <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!shaderForm.valid"></button>
-      <button pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
+      <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
     </form>
   </div>
 </div>

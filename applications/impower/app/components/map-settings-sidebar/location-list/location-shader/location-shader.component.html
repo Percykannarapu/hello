@@ -17,7 +17,7 @@
       <span class="color-chip" [ngStyle]="{ 'background-color': currentMarkerColorInHex }"></span>
     </div>
     <div>
-      <label>Opacity:</label>
+      <label>Icon Opacity:</label>
       <strong>{{configuration.opacity}}</strong>
     </div>
   </div>
@@ -31,9 +31,9 @@
         <dropdown-input formControlName="featureAttribute" labelText="Label Field" [options]="labelChoices"></dropdown-input>
       </ng-container>
       <esri-marker-symbol-input [defaultColor]="defaultColor" labelText="Symbology" formGroupName="symbolDefinition"></esri-marker-symbol-input>
-      <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+      <validated-text-input formControlName="opacity" labelText="Icon Opacity" validationMessage="Must be a number between 0 and 1"></validated-text-input>
       <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!configForm.valid"></button>
-      <button pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
+      <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
     </form>
   </div>
 </div>

@@ -17,12 +17,6 @@
       </div>
     </div>
     <p-tabView>
-      <p-tabPanel header="Locations">
-        <val-location-list [poiConfigurations]="poiConfigurations$ | async"></val-location-list>
-      </p-tabPanel>
-      <p-tabPanel header="Boundaries">
-        <val-boundary-list [boundaryConfigurations]="boundaryConfigurations$ | async"></val-boundary-list>
-      </p-tabPanel>
       <p-tabPanel header="Shading">
         <val-shader-list
           [shadingDefinitions]="shadingDefinitions$ | async"
@@ -31,6 +25,12 @@
           [locationCount]="locationCount$ | async"
           [tradeAreaCount]="tradeAreaCount$ | async"
           [currentAnalysisLevel]="analysisLevel$ | async"></val-shader-list>
+      </p-tabPanel>
+      <p-tabPanel header="Locations">
+        <val-location-list [poiConfigurations]="poiConfigurations$ | async"></val-location-list>
+      </p-tabPanel>
+      <p-tabPanel header="Boundaries">
+        <val-boundary-list [boundaryConfigurations]="boundaryConfigurations$ | async"></val-boundary-list>
       </p-tabPanel>
     </p-tabView>
   </div>

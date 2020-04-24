@@ -154,7 +154,7 @@ export class BoundaryRenderingService {
   }
 
   public createDefaultConfigurations(analysisLevel: string) : BoundaryConfiguration[] {
-    const legacyLabelExpression = 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "")';
+    const legacyLabelExpression = 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), " ")';
     const newLabelExpression = 'replace($feature.geocode, $feature.zip, "")';
     const labelExpression = legacyLabelExpression;
     const hhExpr = BoundaryRenderingService.isSummer() ? 'hhld_s' : 'hhld_w';
@@ -177,7 +177,8 @@ export class BoundaryRenderingService {
         sortOrder: 1,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 1], outlineWidth: 3 },
-        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 0, 0, 1], size: 14, customExpression: 'TEXT($feature.state_fips, "00") + TEXT($feature.county_fip, "000") + TextFormatting.NewLine + $feature.county_nam' },
+        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 0, 0, 1], size: 14,
+          customExpression: 'TEXT($feature.state_fips, "00") + TEXT($feature.county_fip, "000") + TextFormatting.NewLine + $feature.county_nam' },
         popupDefinition: {
           titleExpression: 'County: {COUNTY_NAM}, {STATE_ABBR}',
           useCustomPopup: false,
@@ -191,7 +192,8 @@ export class BoundaryRenderingService {
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 100, 0, 1], outlineWidth: 3 },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: 12, featureAttribute: 'wrap_name' },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: 12, customExpression: `$feature.wrap_name + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: 12,
+          customExpression: `$feature.wrap_name + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
           useCustomPopup: false,
@@ -205,7 +207,8 @@ export class BoundaryRenderingService {
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [51, 59, 103, 1], outlineWidth: 2 },
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 12, featureAttribute: 'geocode' },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 12, featureAttribute: 'geocode' },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 12, customExpression: `$feature.geocode + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 12,
+          customExpression: `$feature.geocode + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
@@ -221,7 +224,8 @@ export class BoundaryRenderingService {
           customExpression: labelExpression },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
           customExpression: labelExpression },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10, customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+          customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
@@ -237,7 +241,8 @@ export class BoundaryRenderingService {
           customExpression: labelExpression },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
           customExpression: labelExpression },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10, customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+          customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
@@ -253,7 +258,8 @@ export class BoundaryRenderingService {
           customExpression: labelExpression },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
           customExpression: labelExpression },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10, customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+          customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'PCR: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
