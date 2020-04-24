@@ -219,8 +219,8 @@ export class EsriShadingService {
   }
 
   private createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {
-    const currentDef = def || { fillColor: [0, 0, 0, 0], fillType: 'solid' };
-    const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0], currentDef.outlineWidth);
+    const currentDef: FillSymbolDefinition = { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 0], outlineWidth: 1, ...(def || {}) };
+    const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor, currentDef.outlineWidth);
     return this.domainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
   }
 
