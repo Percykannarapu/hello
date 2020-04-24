@@ -89,6 +89,7 @@ export class BatchMapDialogComponent implements OnInit {
       subSubTitleInput: '',
       enableTradeAreaShading: false
     });
+    this.batchMapForm.get('sitesByGroup').disable();
   }
 
   onLoadFormData() {
@@ -152,6 +153,13 @@ export class BatchMapDialogComponent implements OnInit {
         this.batchMapForm.get('enableTradeAreaShading').enable();
       } else if (val === 'exclude') {
         this.batchMapForm.get('enableTradeAreaShading').disable();
+      }
+    });
+    this.batchMapForm.get('sitesPerPage').valueChanges.subscribe(val => {
+      if (val === 'sitesGroupedBy') {
+        this.batchMapForm.get('sitesByGroup').enable();
+      } else {
+        this.batchMapForm.get('sitesByGroup').disable();
       }
     });
 
