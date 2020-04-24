@@ -5,6 +5,7 @@ import {
   ColorPalette,
   ConfigurationTypes,
   createDataArcade,
+  createTextArcade,
   EsriService,
   EsriShadingService,
   FillPattern,
@@ -193,10 +194,20 @@ export class AppRendererService {
                 }
                 return result;
               }, {});
-              const arcadeExpression = createDataArcade(mapVarDictionary);
+
               let colorPalette: RgbTuple[] = [];
               let fillPalette: FillPattern[] = [];
+              let uniqueValues: string[] = [];
               if (isArcadeCapableShadingDefinition(shaderCopy)) {
+                let arcadeExpression: string;
+                if (shaderCopy.shadingType === ConfigurationTypes.Unique) {
+                  uniqueValues = Array.from(uniqueStrings);
+                  uniqueValues.sort();
+                  arcadeExpression = createTextArcade(mapVarDictionary, uniqueValues);
+                } else {
+                  arcadeExpression = createDataArcade(mapVarDictionary);
+                }
+                this.logger.debug.log('Arcade string length', (arcadeExpression || '').length);
                 shaderCopy.arcadeExpression = arcadeExpression;
                 if (isComplexShadingDefinition(shaderCopy)) {
                   colorPalette = getColorPalette(shaderCopy.theme, shaderCopy.reverseTheme);
@@ -205,8 +216,7 @@ export class AppRendererService {
               }
               switch (shaderCopy.shadingType) {
                 case ConfigurationTypes.Unique:
-                  const uniqueValues = Array.from(uniqueStrings);
-                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette);
+                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true);
                   break;
                 case ConfigurationTypes.Ramp:
                   shaderCopy.breakDefinitions = generateContinuousValues(calculateStatistics(valuesForStats), colorPalette);
@@ -350,7 +360,7 @@ export class AppRendererService {
     const newSelectedLayerName = `Selected ${newAnalysisLevel}s`;
     if (definition.sourcePortalId == null || isNewAnalysisLevel) {
       definition.sourcePortalId = layerData.boundary;
-      definition.minScale = layerData.minScale;
+      definition.minScale = layerData.batchMinScale;
     }
     if (definition.dataKey === 'selection-shading' && (definition.layerName == null || isNewAnalysisLevel)) {
       definition.layerName = newSelectedLayerName;
@@ -402,7 +412,9 @@ export class AppRendererService {
       const sorter = useCustomSorter ? CommonSort.StringsAsNumbers : undefined;
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
-      definition.breakDefinitions = generateUniqueValues(Array.from(allSiteEntries), colorPalette, fillPalette, sorter);
+      const sortedSiteEntries = Array.from(allSiteEntries);
+      sortedSiteEntries.sort(sorter);
+      definition.breakDefinitions = generateUniqueValues(sortedSiteEntries, colorPalette, fillPalette);
       definition.breakDefinitions = definition.breakDefinitions.filter(b => activeSiteEntries.has(b.value));
     }
   }
@@ -486,7 +498,9 @@ export class AppRendererService {
       definition.arcadeExpression = createDataArcade(data);
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
-      definition.breakDefinitions = generateUniqueValues(Array.from(allTAEntries), colorPalette, fillPalette, ValSort.TradeAreaByTypeString);
+      const sortedTAEntries = Array.from(allTAEntries);
+      sortedTAEntries.sort(ValSort.TradeAreaByTypeString);
+      definition.breakDefinitions = generateUniqueValues(sortedTAEntries, colorPalette, fillPalette);
       definition.breakDefinitions = definition.breakDefinitions.filter(b => activeTAEntries.has(b.value));
     }
   }

@@ -352,11 +352,11 @@ export class EsriLayerService {
   }
 
   layerIsVisibleOnMap(layerId: string) : boolean {
-    const layer = this.getPortalLayerById(layerId);
-    if (layer == null) {
+    const layers = this.getPortalLayersById(layerId);
+    if (layers == null || layers.length === 0) {
       return false;
     } else {
-      return layer.visible && (this.mapService.mapView.scale <= layer.minScale);
+      return layers.some(layer => layer.visible && (this.mapService.mapView.scale <= layer.minScale));
     }
   }
 

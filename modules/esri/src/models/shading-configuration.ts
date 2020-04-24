@@ -90,11 +90,9 @@ export function isComplexShadingDefinition(s: ShadingDefinition) : s is ComplexS
          s.shadingType === ConfigurationTypes.ClassBreak;
 }
 
-export function generateUniqueValues(uniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], customSorter?: (a, b) => number) : UniqueValueFillDefinition[] {
-  const values = [...uniqueValues];
-  values.sort(customSorter);
-  return values.map((uv, i) => ({
-    value: uv,
+export function generateUniqueValues(sortedUniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], useIndexForValue: boolean = false) : UniqueValueFillDefinition[] {
+  return sortedUniqueValues.map((uv, i) => ({
+    value: useIndexForValue ? `${i}` : uv,
     fillColor: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
     fillType: fillPalette[i % fillPalette.length],
     legendName: uv,
