@@ -235,7 +235,7 @@ export class CombinedAudienceComponent implements OnInit {
       }
     }
     const audName = this.audienceForm.get('audienceName');
-    this.isDuplicateName = varNames.has(audName.value);  
+    this.isDuplicateName = !audName.untouched &&  varNames.has(audName.value);  
     return (result || this.isDuplicateName || audName.status === 'INVALID' || this.selectedColumns == null || this.selectedColumns.length === 0);
 
   }
