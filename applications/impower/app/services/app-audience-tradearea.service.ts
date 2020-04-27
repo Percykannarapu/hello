@@ -135,19 +135,21 @@ export class ValAudienceTradeareaService {
    */
   private onLoad() {
     const project = this.stateService.currentProject$.getValue();
-    const audienceTAConfig: AudienceTradeAreaConfig = {
-      analysisLevel: this.stateService.analysisLevel$.getValue(),
-      digCategoryId: project.audTaVarPk,
-      includeMustCover: project.audTaIsMustCover === 1,
-      maxRadius: project.audTaMaxRadiu,
-      minRadius: project.audTaMinRadiu,
-      scoreType: project.audTaIndexBase,
-      weight: project.audTaVarWeight,
-      locations: null, // we don't populate this until we run the trade area
-      audienceName: project.audTaVarSource
-    };
-    if (audienceTAConfig.scoreType == null || audienceTAConfig.scoreType.length > 0) audienceTAConfig.scoreType = 'DMA';
-    this.updateAudienceTAConfig(audienceTAConfig);
+    if (project != null) {
+      const audienceTAConfig: AudienceTradeAreaConfig = {
+        analysisLevel: this.stateService.analysisLevel$.getValue(),
+        digCategoryId: project.audTaVarPk,
+        includeMustCover: project.audTaIsMustCover === 1,
+        maxRadius: project.audTaMaxRadiu,
+        minRadius: project.audTaMinRadiu,
+        scoreType: project.audTaIndexBase,
+        weight: project.audTaVarWeight,
+        locations: null, // we don't populate this until we run the trade area
+        audienceName: project.audTaVarSource
+      };
+      if (audienceTAConfig.scoreType == null || audienceTAConfig.scoreType.length > 0) audienceTAConfig.scoreType = 'DMA';
+      this.updateAudienceTAConfig(audienceTAConfig);
+    }
   }
 
   /**

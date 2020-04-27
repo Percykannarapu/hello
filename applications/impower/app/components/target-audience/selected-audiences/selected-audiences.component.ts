@@ -31,8 +31,7 @@ export class SelectedAudiencesComponent implements OnInit {
   private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   public audienceCount: number = 0;
 
-  private combineAudiences: Audience[] = [];
-
+  private combineAudiences;
   constructor(private varService: TargetAudienceService,
               private appStateService: AppStateService,
               private confirmationService: ConfirmationService,
@@ -63,12 +62,10 @@ export class SelectedAudiencesComponent implements OnInit {
 
     this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null ),
-      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined')),
+      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted')),
     ).subscribe(audiences => {
-      this.combineAudiences = [];
-      this.combineAudiences.push(...audiences);
+      this.combineAudiences =  Array.from(new Set(audiences));
     });
-
   }
 
   public onApplyClicked() {
@@ -81,7 +78,7 @@ export class SelectedAudiencesComponent implements OnInit {
 
   public closeDialog(){
     this.audiences$.pipe(
-         map(all => all.filter(a => a.audienceIdentifier === this.audienceUnselect.audienceIdentifier)),
+         map(all => all.filter(a => this.audienceUnselect != null && a.audienceIdentifier === this.audienceUnselect.audienceIdentifier)),
          take(1),
      ).subscribe(unMapped => unMapped.forEach(a => {
       a.exportNationally = false;
@@ -131,46 +128,54 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onRemove(audience) {
-    const deleteAudience = this.combineAudiences.filter(combineAud => audience.audienceSourceType !== 'Combined' && combineAud.combinedAudiences.includes(audience.audienceIdentifier));
-    if (deleteAudience.length > 0){
+  const deleteAudience = this.combineAudiences.filter(combineAud => combineAud.audienceSourceType !== 'Custom' && (combineAud.combinedAudiences.includes(audience.audienceIdentifier) || 
+                                                      combineAud.compositeSource.includes(audience.audienceIdentifier)));
+  if (deleteAudience.length > 0){
       this.dialogboxHeader = 'Invalid Delete!';
-      this.dialogboxWarningmsg = 'Audiences used to create a Combined Audience can not be deleted.';
+      this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted Audience can not be deleted.';
       this.showDialog = true;
     }
     else{
-      const message = 'Do you want to delete the following audience from your project? <br/> <br/>' +
+   const message = 'Do you want to delete the following audience from your project? <br/> <br/>' +
                     `${audience.audienceName}  (${audience.audienceSourceType}: ${audience.audienceSourceName})`;
-      this.confirmationService.confirm({
-        message: message,
-        header: 'Delete Confirmation',
-        icon: 'ui-icon-delete',
-        accept: () => {
-          this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-          this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-          this.store$.dispatch(new RemoveVar({varPk: audience.audienceIdentifier}));
+   this.confirmationService.confirm({
+    message: message,
+    header: 'Delete Confirmation',
+    icon: 'ui-icon-delete',
+    accept: () => {
+      this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+      this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+      this.store$.dispatch(new RemoveVar({varPk: audience.audienceIdentifier}));
 
-          let metricText = null;
-          switch (audience.audienceSourceType) {
-            case 'Custom':
-              metricText = `CUSTOM~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
-              break;
-            case 'Offline':
-              metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~Offline~${this.appStateService.analysisLevel$.getValue()}` ;
-              break;
-            case 'Online':
-              metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
-              break;
-            case 'Combined':
-              metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
-              break;
-          }
-          this.store$.dispatch(new CreateAudienceUsageMetric('audience', 'delete', metricText));
-          this.varService.applyAudienceSelection();
-        },
-        reject: () => {}
-      });
+      let metricText = null;
+      switch (audience.audienceSourceType) {
+        case 'Custom':
+          metricText = `CUSTOM~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
+          break;
+        case 'Offline':
+          metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~Offline~${this.appStateService.analysisLevel$.getValue()}` ;
+          break;
+        case 'Online':
+          metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
+          break;
+        case 'Combined/Converted':
+           metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
+           break;
+        case 'Combined':
+            metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
+            break;
+        case 'Converted':
+             metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
+             break;     
     }
+      this.store$.dispatch(new CreateAudienceUsageMetric('audience', 'delete', metricText));
+      this.varService.applyAudienceSelection();
+    },
+    reject: () => {}
+   });
   }
+  }
+   
 
   public onMoveUp(audience: Audience) {
     this.store$.dispatch(new MoveAudienceUp({ audienceIdentifier: audience.audienceIdentifier }));

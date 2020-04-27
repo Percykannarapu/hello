@@ -32,9 +32,9 @@ export class EnvironmentData {
   public static impowerBaseUrl = 'https://impower.val.vlss.local/';
 
   public static esri = {
-    portalServer:  'https://valvcsimpor1vm.val.vlss.local/',
-    userName: 'quickmaps',
-    password: 'quickmaps123'
+    portalServer:  process.env.ESRI_PORTAL_SERVER,
+    userName: process.env.ESRI_USERNAME,
+    password: process.env.ESRI_PASSWORD
   };
 
   public static oAuth = {

@@ -1,26 +1,18 @@
 import { Action } from '@ngrx/store';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { ImpProjectPref } from 'app/val-modules/targeting/models/ImpProjectPref';
 
 export enum RenderingActionTypes {
   RenderTradeAreas = '[Rendering] Render All Trade Areas',
-  ClearTradeAreas = '[Rendering] Clear All Trade Areas',
   RenderAudienceTradeAreas = '[Rendering] Render Audience TAs',
   RenderRadiusTradeAreas = '[Rendering] Render Radius TAs',
 
   RenderLocations = '[Rendering] Render Locations',
-  ClearLocations = '[Rendering] Clear Locations',
 }
 
 export class RenderTradeAreas implements Action {
   readonly type = RenderingActionTypes.RenderTradeAreas;
   constructor(public payload: { tradeAreas: ImpGeofootprintTradeArea[] }) {}
-}
-
-export class ClearTradeAreas implements Action {
-  readonly type = RenderingActionTypes.ClearTradeAreas;
 }
 
 export class RenderAudienceTradeAreas implements Action {
@@ -35,19 +27,12 @@ export class RenderRadiusTradeAreas implements Action {
 
 export class RenderLocations implements Action {
     readonly type = RenderingActionTypes.RenderLocations;
-    constructor(public payload: { locations: ImpGeofootprintLocation[], impProjectPrefs?: ImpProjectPref[] }) {}
-}
-
-export class ClearLocations implements Action {
-    readonly type = RenderingActionTypes.ClearLocations;
-    constructor(public payload: { type: SuccessfulLocationTypeCodes }) {}
+    constructor(public payload: { locations: ImpGeofootprintLocation[] }) {}
 }
 
 export type RenderingActions =
   RenderTradeAreas |
-  ClearTradeAreas |
   RenderAudienceTradeAreas |
   RenderRadiusTradeAreas |
-  RenderLocations |
-  ClearLocations
+  RenderLocations
   ;

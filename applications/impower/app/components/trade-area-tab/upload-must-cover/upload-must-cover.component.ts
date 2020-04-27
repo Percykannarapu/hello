@@ -2,6 +2,7 @@ import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/cor
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ExportMCIssuesLog } from 'app/state/data-shim/data-shim.actions';
+import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
 import { ConfirmationService, SelectItem } from 'primeng/api';
@@ -102,6 +103,14 @@ export class UploadMustCoverComponent implements OnInit {
         default:
             this.fileAnalysisLevels = this.allAnalysisLevels;
             break;
+      }
+    });
+
+    this.store$.select(projectIsReady).subscribe((flag) => {
+      if (flag){
+         this.fileAnalysisSelected = null;
+            this.isDisable = true;
+            this.impGeofootprintGeoService.uploadFailures = [];
       }
     });
 

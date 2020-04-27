@@ -25,9 +25,8 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
   }
 
   set value(value: string) {
-    this._value = value;
-    this.propagateChange(this._value);
-    if (this.touchOnChange) this.propagateTouch(this._value);
+    if (this.touchOnChange) this.propagateTouch(value);
+    this.propagateChange(value);
   }
 
   get touchOnChange() : boolean {
@@ -36,7 +35,7 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
 
   private _value: string;
 
-  propagateChange = (_: any) => {};
+  propagateChange = (_: any) => { this.writeValue(_); };
   propagateTouch = (_: any) => {};
 
   constructor(@Optional() @Self() private controlContainer: NgControl) {
@@ -66,6 +65,6 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
   }
 
   writeValue(obj: any) : void {
-    this.value = obj;
+    this._value = obj;
   }
 }

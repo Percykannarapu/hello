@@ -1,18 +1,24 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { mapByExtended } from '@val/common';
-import { EsriApi, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, FillPattern, getColorPalette, LayerGroupDefinition } from '@val/esri';
+import { ColorPalette, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, FillPattern, getColorPalette, LayerGroupDefinition } from '@val/esri';
+import Color from 'esri/Color';
+import { Point } from 'esri/geometry';
+import geometryEngine from 'esri/geometry/geometryEngine';
+import { UniqueValueRenderer } from 'esri/renderers';
+import { SimpleFillSymbol } from 'esri/symbols';
+import Query from 'esri/tasks/support/Query';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { LocalState } from '../state';
 import { LegendData, NumericVariableShadingMethod, ShadingType, VarDefinition, VariableRanges } from '../state/app.interfaces';
+import { SetVariableShading } from '../state/map-ui/map-ui.actions';
 import { MapUIState } from '../state/map-ui/map-ui.reducer';
 import { SetLegendData } from '../state/shared/shared.actions';
 import { SharedState } from '../state/shared/shared.reducers';
 import { ConfigService } from './config.service';
-import { SetVariableShading } from '../state/map-ui/map-ui.actions';
 
 function formatNumber(value: number) {
   const localeOptions = {
@@ -140,10 +146,10 @@ export class ShadingService {
   private generateGraphics(analysisLevel: string, details: RfpUiEditDetail[]) : Observable<__esri.Graphic[]> {
     const queryLayer = this.configService.layers[analysisLevel].boundaries.id;
     const geocodes = details.map(d => `'${d.geocode}'`);
-    const query: __esri.Query = new EsriApi.Query();
+    const query: __esri.Query = new Query();
     query.outFields = ['geocode, zip, atz, atzind, wrap_name'];
     query.where = `geocode in (${geocodes.join(',')})`;
-    return this.queryService.executeQuery(queryLayer, query, true).pipe(
+    return this.queryService.executeNativeQuery(queryLayer, query, true).pipe(
       map(featureSet => featureSet.features)
     );
   }
@@ -246,7 +252,8 @@ export class ShadingService {
 
   public generateLegend(shared: SharedState, graphics: __esri.Graphic[], shadingData: MapUIState, siteData: RfpUiEdit[], siteDetails: RfpUiEditDetail[]) : void {
     const legend = new Map<string, { color: number[], hhc: number }>();
-    const palette = getColorPalette(shadingData.selectedPalette);
+    let palette = getColorPalette(shadingData.selectedPalette, false, true);
+    if (palette == null) palette = getColorPalette(ColorPalette.CpqMaps, false);
     const layerId = this.configService.layers[shared.analysisLevel].boundaries.id;
     const layers = this.layerService.getPortalLayersById(layerId);
     const shadingGroup = this.layerService.getGroup('Shading');
@@ -271,7 +278,7 @@ export class ShadingService {
       // update the graphic color to match the legend
       const newSymbol = ((layer.renderer as __esri.SimpleRenderer).symbol as __esri.SimpleFillSymbol).clone();
       const legendInfo = legend.get(graphic.getAttribute('SHADING_GROUP'));
-      newSymbol.color = new EsriApi.Color(legendInfo.color);
+      newSymbol.color = new Color(legendInfo.color);
       graphic.symbol = newSymbol;
       if (graphic.visible) {
         legendInfo.hhc += Number(graphic.getAttribute('householdCount'));
@@ -290,7 +297,7 @@ export class ShadingService {
       if (shared.radius != null && shared.radius > 0) {
         const promoEndDate = new Date(shared.promoDateTo);
         const countAttr = promoEndDate.getMonth() >= 4 && promoEndDate.getMonth() <= 8 ? 'hhld_s' : 'hhld_w';
-        const points = siteData.map(s => new EsriApi.Point({ latitude: s.siteLat, longitude: s.siteLong }));
+        const points = siteData.map(s => new Point({ latitude: s.siteLat, longitude: s.siteLong }));
         const hhCountMap = mapByExtended(siteDetails, s => s.geocode, s => s.distribution);
         const selectedGeos = new Set(siteDetails.filter(s => s.isSelected).map(s => s.geocode));
         this.queryService.queryPointWithBuffer(layerId, points, shared.radius, false, ['geocode', 'owner_group_primary', 'cov_frequency', 'hhld_w', 'hhld_s', 'latitude', 'longitude'])
@@ -298,7 +305,7 @@ export class ShadingService {
             let anneCount = 0;
             let soloCount = 0;
             results.forEach(r => {
-              const currentPoint = new EsriApi.Point({ latitude: r.attributes.latitude, longitude: r.attributes.longitude });
+              const currentPoint = new Point({ latitude: r.attributes.latitude, longitude: r.attributes.longitude });
               const useResult = points.some(p => EsriUtils.getDistance(p, currentPoint) <= shared.radius) && !selectedGeos.has(r.attributes.geocode);
               if (useResult) {
                 if (r.attributes.owner_group_primary === 'ANNE') anneCount += hhCountMap.get(r.attributes.geocode) || Number(r.attributes[countAttr]);
@@ -329,7 +336,7 @@ export class ShadingService {
 
   private zoomOnStartup(graphics: __esri.Graphic[]) {
     if (!this.zoomedFirstTime) {
-      this.mapService.mapView.extent = EsriApi.geometryEngine.union(graphics.map(g => g.geometry)).extent;
+      this.mapService.mapView.extent = geometryEngine.union(graphics.map(g => g.geometry)).extent;
       this.zoomedFirstTime = true;
     }
   }
@@ -372,11 +379,11 @@ export class ShadingService {
       legendEnabled : false,
       labelsVisible : false,
       popupEnabled : false,
-      renderer : new EsriApi.UniqueValueRenderer({
-        defaultSymbol: new EsriApi.SimpleFillSymbol({ color: [0, 0, 0, 0], outline: { color: [0, 0, 0, 0] } }),
+      renderer : new UniqueValueRenderer({
+        defaultSymbol: new SimpleFillSymbol({ color: [0, 0, 0, 0], outline: { color: [0, 0, 0, 0] } }),
         uniqueValueInfos: [{
           value: 1,
-          symbol: new EsriApi.SimpleFillSymbol({
+          symbol: new SimpleFillSymbol({
             style: pattern,
             color: [0, 0, 0, 0.5]
           })

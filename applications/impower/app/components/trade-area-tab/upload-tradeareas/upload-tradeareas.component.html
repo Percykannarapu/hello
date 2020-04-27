@@ -1,16 +1,19 @@
 <div class="ui-g">
     <div class="ui-g-12">
       <div class="ui-g-12">
-        <div class="ui-g-3">
+        <div class="ui-g-1">
           <label>Define for:</label>
         </div>
-        <div class="ui-g-3">
+        <div class="ui-g-1">
           <p-radioButton name="uploadListType1" value="Site" label="Sites" [(ngModel)]="listType1"></p-radioButton>
         </div>
-        <div class="ui-g-3">
+        <div class="ui-g-2">
           <p-radioButton name="uploadListType1" value="Competitor" label="Competitors" [(ngModel)]="listType1"></p-radioButton>
         </div>
       </div>
+      <div  *ngIf="!(currentAnalysisLevel$ | async)" class="valassis-brand-label">  
+          • &nbsp;You must select an Analysis Level, within the Discovery tab, before uploading a custom trade area file
+       </div>
       <br>
       &nbsp;
       <div class="ui-g-12">

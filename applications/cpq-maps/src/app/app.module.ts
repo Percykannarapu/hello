@@ -1,7 +1,9 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
 import { AppComponent } from './app.component';
 import { CpqMapModule } from './cpq-map/cpq-map.module';
+import { ConfigService } from './cpq-map/services/config.service';
+import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
 
 @NgModule({
   declarations: [
@@ -11,7 +13,9 @@ import { CpqMapModule } from './cpq-map/cpq-map.module';
     BrowserModule,
     CpqMapModule.forRoot()
   ],
-  providers: [],
+  providers: [
+    { provide: LoggingConfigurationToken, useClass: ConfigService },
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

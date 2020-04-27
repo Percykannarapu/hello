@@ -218,7 +218,7 @@ export class TargetAudienceService implements OnDestroy {
     }
   }
 
-  private removeProjectVar(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined', sourceName: string, audienceIdentifier: string) {
+  private removeProjectVar(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined' | 'Converted' | 'Combined/Converted' | 'Composite', sourceName: string, audienceIdentifier: string) {
     for (const projectVar of this.projectVarService.get()) {
       const parts = projectVar.source.split('~');
       const source = sourceType + '_' + sourceName;
@@ -233,7 +233,7 @@ export class TargetAudienceService implements OnDestroy {
     }
   }
 
-  public removeAudience(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined', sourceName: string, audienceIdentifier: string) : void {
+  public removeAudience(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined' | 'Converted' | 'Combined/Converted' | 'Composite', sourceName: string, audienceIdentifier: string) : void {
     this.store$.dispatch(new DeleteAudience ({ id: audienceIdentifier }));
 
     const sourceId = this.createKey(sourceType, sourceName);
@@ -249,7 +249,7 @@ export class TargetAudienceService implements OnDestroy {
     }
   }
 
-  public addDeletedAudience(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined', sourceName: string, audienceIdentifier: string) : void {
+  public addDeletedAudience(sourceType: 'Online' | 'Offline' | 'Custom' | 'Combined' | 'Converted' | 'Combined/Converted' | 'Composite', sourceName: string, audienceIdentifier: string) : void {
     const sourceId = this.createKey(sourceType, sourceName);
     const audienceId = this.createKey(sourceId, audienceIdentifier);
     if (this.audienceMap.has(audienceId)) {

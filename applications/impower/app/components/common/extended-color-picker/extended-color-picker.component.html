@@ -1,0 +1,17 @@
+<p-overlayPanel #picker [dismissable]="false" appendTo="body">
+  <div class="picker-container">
+    <p-colorPicker format="rgb" [(ngModel)]="value" [inline]="true" [disabled]="isDisabled"
+                   [showTransitionOptions]="'0ms'" [hideTransitionOptions]="'0ms'"></p-colorPicker>
+    <div class="input-container">
+      <input type="text" [(ngModel)]="value0" (blur)="updateRgbComponent('r', r)" [disabled]="isDisabled"
+             [attr.title]="validationErrors?.r" #r="ngModel" pInputText>
+      <input type="text" [(ngModel)]="value1" (blur)="updateRgbComponent('g', g)" [disabled]="isDisabled"
+             [attr.title]="validationErrors?.g" #g="ngModel" pInputText>
+      <input type="text" [(ngModel)]="value2" (blur)="updateRgbComponent('b', b)" [disabled]="isDisabled"
+             [attr.title]="validationErrors?.b" #b="ngModel" pInputText>
+      <i class="fa fa-recycle" title="Reset to default color" (click)="resetToDefault()" *ngIf="defaultColor != null"></i>
+    </div>
+  </div>
+</p-overlayPanel>
+
+<span class="color-swatch" [ngStyle]="{ 'background-color': swatchHex }" (click)="picker.toggle($event)"></span>

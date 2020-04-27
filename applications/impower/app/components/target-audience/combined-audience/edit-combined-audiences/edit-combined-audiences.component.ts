@@ -33,7 +33,7 @@ export class EditCombinedAudiencesComponent implements OnInit {
   }
   
   formatString(combinedVariables: string){
-    let formattedString = combinedVariables;
+    let formattedString = combinedVariables != null ? combinedVariables : '';
     formattedString = formattedString.replace(/[~]/g, '<br>');
     return formattedString;
   }

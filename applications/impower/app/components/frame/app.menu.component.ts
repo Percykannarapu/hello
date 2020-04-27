@@ -13,17 +13,16 @@ import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { OpenBatchMapDialog } from '../../state/batch-map/batch-map.actions';
 import {
+  ClientNmaeForValassisDigitalDialog,
   DiscardAndCreateNew,
   ExportApioNationalData,
   ExportGeofootprint,
   ExportLocations,
-  ExportToValassisDigital,
   OpenExistingProjectDialog,
   OpenExportCrossbowSitesDialog,
   OpenPrintViewDialog,
   SaveAndCreateNew,
-  SaveAndReloadProject,
-  ClientNmaeForValassisDigitalDialog
+  SaveAndReloadProject
 } from '../../state/menu/menu.actions';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ImpowerMainComponent } from '../impower-main/impower-main.component';

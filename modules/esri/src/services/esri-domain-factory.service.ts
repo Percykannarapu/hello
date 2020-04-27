@@ -1,18 +1,37 @@
 import { Inject, Injectable } from '@angular/core';
-import Color from 'esri/Color';
 import { Extent } from 'esri/geometry';
+import FeatureLayer from 'esri/layers/FeatureLayer';
 import GraphicsLayer from 'esri/layers/GraphicsLayer';
 import LabelClass from 'esri/layers/support/LabelClass';
 import { ClassBreaksRenderer, DotDensityRenderer, SimpleRenderer, UniqueValueRenderer } from 'esri/renderers';
-import { Font, SimpleFillSymbol, SimpleLineSymbol, TextSymbol } from 'esri/symbols';
+import { Font, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, TextSymbol } from 'esri/symbols';
 import SketchViewModel from 'esri/widgets/Sketch/SketchViewModel';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
-import { AutoCastColor, FillPattern, LineStyle } from '../models/esri-types';
+import { AutoCastColor, FillPattern, LineStyle, MapSymbols, MarkerStyles } from '../models/esri-types';
 
 @Injectable()
 export class EsriDomainFactoryService {
 
   constructor(@Inject(EsriAppSettingsToken) private config: EsriAppSettings) { }
+
+  createFeatureLayer(sourceGraphics: __esri.Graphic[], oidFieldName: string) : __esri.FeatureLayer {
+    const layerType = sourceGraphics[0].geometry.type;
+    let fields: any[];
+    if (sourceGraphics[0].attributes == null) {
+      fields = [];
+    } else {
+      fields = Object.keys(sourceGraphics[0].attributes).map(k => {
+        return { name: k, alias: k, type: k === oidFieldName ? 'oid' : 'string' };
+      });
+    }
+    return new FeatureLayer({
+      source: sourceGraphics,
+      objectIdField: oidFieldName,
+      fields: fields,
+      geometryType: layerType,
+      spatialReference: { wkid: 4326 }
+    });
+  }
 
   createExtent(xStats: { min: number, max: number }, yStats: { min: number, max: number }, minPadding?: number) : __esri.Extent {
     const result = new Extent({
@@ -78,20 +97,29 @@ export class EsriDomainFactoryService {
   }
 
   createLabelClass(color: __esri.Color, expression: string) : __esri.LabelClass {
+    return this.createExtendedLabelClass(color, [255, 255, 255, 1], expression, this.createFont(12));
+  }
+
+  createExtendedLabelClass(color: AutoCastColor, haloColor: AutoCastColor, expression: string, font: __esri.Font, placement: string = 'below-center', additionalOptions?: __esri.LabelClassProperties) : __esri.LabelClass {
     const textSymbol: __esri.TextSymbol = new TextSymbol({
-      backgroundColor: new Color({a: 1, r: 255, g: 255, b: 255}),
-      haloColor: new Color({a: 1, r: 255, g: 255, b: 255}),
-      color,
       haloSize: 1,
-      font: new Font({ family: 'sans-serif', size: 12, weight: 'bold' })
+      haloColor,
+      color,
+      font
     });
-    return new LabelClass({
+    const labelSetup: __esri.LabelClassProperties = {
       symbol: textSymbol,
-      labelPlacement: 'below-center',
+      labelPlacement: placement,
       labelExpressionInfo: {
         expression: expression
-      }
-    });
+      },
+      ...additionalOptions
+    };
+    return new LabelClass(labelSetup);
+  }
+
+  createFont(size: number, weight: 'normal' | 'bold' = 'bold', family: string = 'sans-serif') : __esri.Font {
+    return new Font({ size, weight, family });
   }
 
   createSimpleRenderer(symbol: __esri.Symbol, visualVariable?: __esri.ColorVariableProperties) : __esri.SimpleRenderer {
@@ -138,6 +166,16 @@ export class EsriDomainFactoryService {
       color,
       outline,
       style
+    });
+  }
+
+  createSimpleMarkerSymbol(color: AutoCastColor, outline: __esri.symbols.SimpleLineSymbol, size: number = 12, style: MarkerStyles = 'path', path: string = MapSymbols.STAR) : __esri.symbols.SimpleMarkerSymbol {
+    return new SimpleMarkerSymbol({
+      color,
+      outline,
+      style,
+      path,
+      size
     });
   }
 }

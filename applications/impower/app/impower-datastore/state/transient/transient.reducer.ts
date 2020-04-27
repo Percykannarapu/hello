@@ -113,24 +113,24 @@ export const selectGridGeoVars = createSelector(
 
     result.geoVars = transformedEntity as Dictionary<GeoVar>;
 
-    for (const aud in audiences) {
-      if (audiences.hasOwnProperty(aud)) {
-        const currentAudience = audiences[aud];
-        if (currentAudience != null && currentAudience.isCombined && currentAudience.showOnGrid) {
-          for (const gv in result.geoVars) {
-            if (result.geoVars.hasOwnProperty(gv)) {
-              const currentGv = result.geoVars[gv];
-              if (currentGv != null) {
-                currentGv[currentAudience.audienceIdentifier] = currentAudience.combinedAudiences.reduce((total, varPk) => {
-                  total += geoVars[gv][varPk] as number;
-                  return total;
-                }, 0);
-              }
-            }
-          }
-        }
-      }
-    }
+    // for (const aud in audiences) {
+    //   if (audiences.hasOwnProperty(aud)) {
+    //     const currentAudience = audiences[aud];
+    //     if (currentAudience != null && currentAudience.isCombined && currentAudience.showOnGrid) {
+    //       for (const gv in result.geoVars) {
+    //         if (result.geoVars.hasOwnProperty(gv)) {
+    //           const currentGv = result.geoVars[gv];
+    //           if (currentGv != null) {
+    //             currentGv[currentAudience.audienceIdentifier] = currentAudience.combinedAudiences.reduce((total, varPk) => {
+    //               total += geoVars[gv][varPk] as number;
+    //               return total;
+    //             }, 0);
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
 
     // Track the distinct list of values for CHAR and min/max for numerics

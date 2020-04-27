@@ -1,0 +1,20 @@
+<p-accordion>
+  <p-accordionTab *ngFor="let poi of poiConfigurations" [selected]="currentOpenId === poi.id" (selectedChange)="openConfiguration(poi)">
+    <p-header class="poi-header">
+      <span>
+        <span class="fa" [class.fa-eye]="poi.visible" [class.fa-eye-slash]="!poi.visible" (click)="toggleVisibility($event, poi)"></span>
+        {{poi.layerName}}
+      </span>
+    </p-header>
+    <ng-container [ngSwitch]="poi.dataKey">
+      <ng-container *ngSwitchCase="'Site'">
+        <val-location-shader [configuration]="poi" (applyConfiguration)="applyConfiguration($event)" [defaultColor]="[0, 0, 255, 1]"
+                             [labelChoices]="siteLabels$ | async"></val-location-shader>
+      </ng-container>
+      <ng-container *ngSwitchCase="'Competitor'">
+        <val-location-shader [configuration]="poi" (applyConfiguration)="applyConfiguration($event)" [defaultColor]="[255, 0, 0, 1]"
+                             [labelChoices]="competitorLabels$ | async"></val-location-shader>
+      </ng-container>
+    </ng-container>
+  </p-accordionTab>
+</p-accordion>

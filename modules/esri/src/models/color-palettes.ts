@@ -88,9 +88,13 @@ enum AllColorPalettes {
   EsriPurple = 'Gradient - Purple',
 }
 
-export function getColorPalette(palette: ColorPalette, reverse: boolean) : RgbTuple[] {
+export function getColorPalette(palette: ColorPalette, reverse: boolean, returnNullIfMissing: boolean = false) : RgbTuple[] {
   const currentPalette = getAllColorPalettes(palette);
-  const result = currentPalette == null ? [ ...onlyBlack ] : [ ...currentPalette ];
+  const result = currentPalette != null
+    ? [ ...currentPalette ]
+    : returnNullIfMissing
+      ? null
+      : [ ...onlyBlack ];
   if (reverse && result != null) {
     result.reverse();
   }

@@ -26,16 +26,16 @@ export class EnvironmentData {
   public static authenticated = false;
 
   //public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services-qa/';
-  public static fuseBaseUrl = 'https://services.valassislab.com/services/';
+  public static fuseBaseUrl = 'https://services.valassislab.com/impower/services/';
   public static impowerBaseUrl = 'https://impowerqa.val.vlss.local/';
 
   // print service URL
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
 
   public static esri = {
-    portalServer:  'https://vallomimpor1vm.val.vlss.local/',
-    userName: 'impower5',
-    password: 'impower123!'
+    portalServer:  process.env.ESRI_PORTAL_SERVER,
+    userName: process.env.ESRI_USERNAME,
+    password: process.env.ESRI_PASSWORD
   };
 
   public static oAuth = {

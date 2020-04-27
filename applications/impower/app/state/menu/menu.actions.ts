@@ -1,6 +1,5 @@
 import { Action } from '@ngrx/store';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { CrossBowSitesPayload } from '../app.interfaces';
 
 export enum MenuActionTypes {
   SaveAndReloadProject = '[Application Menu] Save and Reload Project',
@@ -133,4 +132,3 @@ export type PrintActions = PrintMapSuccess;
 
 
 
- 

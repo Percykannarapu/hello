@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { Store, select } from '@ngrx/store';
-import { LocalAppState } from '../../state/app.interfaces';
-import { openSendToValassisDigitalFlag } from 'app/state/menu/menu.selectors';
-import { tap } from 'rxjs/operators';
-import { CloseclientNmaeForValassisDigitalDialog, ExportToValassisDigital } from 'app/state/menu/menu.actions';
-import { AppStateService } from 'app/services/app-state.service';
-import { ImpProject } from 'app/val-modules/targeting/models/ImpProject';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
 import { ErrorNotification } from '@val/messaging';
+import { AppStateService } from 'app/services/app-state.service';
 import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
+import { CloseclientNmaeForValassisDigitalDialog, ExportToValassisDigital } from 'app/state/menu/menu.actions';
+import { openSendToValassisDigitalFlag } from 'app/state/menu/menu.selectors';
+import { ImpProject } from 'app/val-modules/targeting/models/ImpProject';
+import { LocalAppState } from '../../state/app.interfaces';
 
 @Component({
   selector: 'val-send-sites-digital',
@@ -39,8 +38,8 @@ export class SendSitesDigitalComponent implements OnInit {
         if (flag)
             this.openDialog(flag);
         else
-            this.showDialog = flag;    
-    }); 
+            this.showDialog = flag;
+    });
   }
 
 
@@ -55,7 +54,7 @@ export class SendSitesDigitalComponent implements OnInit {
       this.store$.dispatch(new ExportToValassisDigital());
       this.closeDialog();
     }
-    else 
+    else
       this.showDialog = flag;
   }
 

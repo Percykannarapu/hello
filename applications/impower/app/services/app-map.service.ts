@@ -8,7 +8,6 @@ import geometryEngine from 'esri/geometry/geometryEngine';
 import BasemapGallery from 'esri/widgets/BasemapGallery';
 import LocalBasemapsSource from 'esri/widgets/BasemapGallery/support/LocalBasemapsSource';
 import Home from 'esri/widgets/Home';
-import LayerList from 'esri/widgets/LayerList';
 import Legend from 'esri/widgets/Legend';
 import ScaleBar from 'esri/widgets/ScaleBar';
 import Search from 'esri/widgets/Search';
@@ -57,69 +56,55 @@ export class AppMapService {
               private store$: Store<LocalAppState>) {}
 
   public setupMap(isBatchMapping: boolean = false) : void {
-    let mapViewSetupComplete = false;
     const homeView = this.mapService.mapView.viewpoint;
     // Create the layer groups and load the portal items
-    this.appLayerService.initializeLayers(isBatchMapping).subscribe({
-      next: () => {
-        if (mapViewSetupComplete) return;
-        mapViewSetupComplete = true;
-        this.zone.runOutsideAngular(() => {
-          this.mapService.createBasicWidget(Legend, {}, 'top-right');
 
-          if (isBatchMapping) {
-            // if we're batch mapping, we want no widgets on the UI except for a custom legend
-            this.mapService.mapView.ui.remove('zoom');
-            return;
-          }
-          // setup the map widgets
-          this.mapService.createBasicWidget(Home, { viewpoint: homeView });
-          this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
-          this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
-          // this.mapService.createHiddenWidget(Legend, {}, { expandIconClass: 'esri-icon-documentation', expandTooltip: 'Legend', group: 'left-column' });
-          const source = new LocalBasemapsSource({
-            basemaps: this.config.basemaps.map(b => Basemap.fromId(b))
-          });
-          this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' }, 'bottom-left');
-          this.mapService.createBasicWidget(ScaleBar, { unit: 'dual' }, 'bottom-left');
+    this.mapService.createBasicWidget(Legend, {}, 'top-right');
+    // keep this here to aid in troubleshooting layer-related issues
+    // this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
+    if (isBatchMapping) {
+      // if we're batch mapping, we want no widgets on the UI except for a custom legend
+      this.mapService.mapView.ui.remove('zoom');
+      return;
+    }
+    // setup the map widgets
+    this.mapService.createBasicWidget(Home, { viewpoint: homeView });
+    this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
+    const source = new LocalBasemapsSource({
+      basemaps: this.config.basemaps.map(b => Basemap.fromId(b))
+    });
+    this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' }, 'bottom-left');
+    this.mapService.createBasicWidget(ScaleBar, { unit: 'dual' }, 'bottom-left');
 
-          const popup: __esri.Popup = this.mapService.mapView.popup;
-          popup.actionsMenuEnabled = false;
-          popup.highlightEnabled = false;
+    EsriUtils.setupWatch(this.mapService.mapView.map, 'basemap').subscribe(val => this.zone.run(() => {
+      this.appProjectPrefService.createPref('esri', 'basemap',  JSON.stringify(val.newValue.toJSON()), 'string');
+    }));
+    EsriUtils.setupWatch(this.mapService.mapView, 'extent').subscribe(extent => this.zone.run(() => {
+      this.appProjectPrefService.createPref('esri', 'extent',  JSON.stringify(extent.newValue.toJSON()), 'string');
+    }));
 
-          // Event handler that fires each time a popup action is clicked.
-          popup.on('trigger-action', (event) => {
-            // Execute the measureThis() function if the measure-this action is clicked
-            if (event.action.id === 'measure-this') {
-              this.measureThis();
-            }
-            // Execute the selectThis() function if the select-this action is clicked
-            if (event.action.id === 'select-this') {
-              this.zone.run(() => {
-                this.selectedButton = 1;
-                this.selectThis();
-              });
-            }
-          });
+    const popup: __esri.Popup = this.mapService.mapView.popup;
+    popup.actionsMenuEnabled = false;
+    popup.highlightEnabled = false;
 
-          EsriUtils.setupWatch(popup, 'visible').pipe(
-            filter(result => {
-              if (result.newValue === false && result.oldValue != null){
-                  return true;
-              }
-            })
-            //debounceTime(1)
-          ).subscribe(() => this.zone.run(() => this.componentGenerator.cleanUpGeoPopup()));
-
-          EsriUtils.setupWatch(this.mapService.mapView.map, 'basemap').subscribe(val => this.zone.run(() => {
-            this.appProjectPrefService.createPref('esri', 'basemap',  JSON.stringify(val.newValue.toJSON()), 'string');
-          }));
-          EsriUtils.setupWatch(this.mapService.mapView, 'extent').subscribe(extent => this.zone.run(() => {
-            this.appProjectPrefService.createPref('esri', 'extent',  JSON.stringify(extent.newValue.toJSON()), 'string');
-          }));
+    // Event handler that fires each time a popup action is clicked.
+    popup.on('trigger-action', (event) => {
+      // Execute the measureThis() function if the measure-this action is clicked
+      if (event.action.id === 'measure-this') {
+        this.measureThis();
+      }
+      // Execute the selectThis() function if the select-this action is clicked
+      if (event.action.id === 'select-this') {
+        this.zone.run(() => {
+          this.selectedButton = 1;
+          this.selectThis();
         });
       }
     });
+
+    EsriUtils.setupWatch(popup, 'visible').pipe(
+      filter(result => result.newValue === false && result.oldValue != null)
+    ).subscribe(() => this.componentGenerator.cleanUpGeoPopup());
   }
 
   public setViewpoint(view: __esri.Viewpoint) : void {

@@ -40,6 +40,17 @@ export interface AllLayers {
   [key: string] : LayerGroupDefinition;
 }
 
+export interface LayerIdDefinition {
+  centroid: string;
+  boundary: string;
+  simplifiedBoundary: string;
+}
+
+export interface BasicLayerSetup extends LayerIdDefinition {
+  minScale: number;
+  batchMinScale: number;
+}
+
 export interface AllLayerIds {
-  [key: string] : { centroid: string, boundary: string, simplifiedBoundary: string };
+  [key: string] : LayerIdDefinition;
 }

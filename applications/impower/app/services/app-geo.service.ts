@@ -75,7 +75,7 @@ export class AppGeoService {
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
 
     this.appStateService.applicationIsReady$.pipe(
-      filter(ready => ready),
+      filter(ready => ready && !this.config.isBatchMode),
       take(1)
     ).subscribe(() => {
       this.setupRadiusSelectionObservable();
@@ -302,7 +302,7 @@ export class AppGeoService {
         );
         queries.push(currentQuery);
       });
-      merge(...queries).pipe(
+      merge(...queries, 4).pipe(
         reduce((acc, current) => ({
             newGeos: [...acc.newGeos, ...current.newGeos],
             newTradeAreas: [...acc.newTradeAreas, ...current.newTradeAreas],

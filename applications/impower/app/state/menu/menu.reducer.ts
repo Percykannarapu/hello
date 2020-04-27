@@ -1,4 +1,4 @@
-import {MenuActions, MenuActionTypes} from './menu.actions';
+import { MenuActions, MenuActionTypes } from './menu.actions';
 
 export interface MenuState {
   displayOpenExistingDialog: boolean;
@@ -49,13 +49,13 @@ export function menuReducer(state = initialState, action: MenuActions) {
     case MenuActionTypes.ClientNmaeForValassisDigitalDialog:
        return {
          ...state,
-         displaySendToValassisDigitalDialog: true 
+         displaySendToValassisDigitalDialog: true
        };
     case MenuActionTypes.CloseclientNmaeForValassisDigitalDialog:
        return {
           ...state,
           displaySendToValassisDigitalDialog: false
-       };     
+       };
     default:
       return state;
   }

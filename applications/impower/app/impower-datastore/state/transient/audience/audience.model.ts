@@ -14,7 +14,7 @@ export interface Audience {
   selectedDataSet?: string;
   dataSetOptions?: { label: string, value: string }[];
   audienceSourceName: string;
-  audienceSourceType: 'Online' | 'Offline' | 'Custom' | 'Combined';
+  audienceSourceType: 'Online' | 'Offline' | 'Custom' | 'Combined' | 'Converted' | 'Combined/Converted' | 'Composite'  ;
   secondaryId?: string;
   audienceTAConfig?: AudienceTradeAreaConfig;
   fieldconte: FieldContentTypeCodes;
@@ -23,4 +23,5 @@ export interface Audience {
   isCombined?: boolean;
   combinedAudiences?: Array<string>;
   combinedVariableNames?: string;
+  compositeSource?: Array<string>;
 }

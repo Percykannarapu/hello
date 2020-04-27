@@ -91,7 +91,7 @@ export class AppTradeAreaService {
       // need to enlist the latest geos and isLoading flag
       withLatestFrom(this.impGeoService.storeObservable, this.stateService.applicationIsReady$),
       // halt the sequence if the project is loading
-      filter(([, , isReady]) => isReady),
+      filter(([, , isReady]) => isReady && !this.appConfig.isBatchMode),
       // halt the sequence if there are no geos
       filter(([, geos]) => geos != null && geos.length > 0),
     ).subscribe(() => this.clearGeos());
@@ -335,12 +335,13 @@ export class AppTradeAreaService {
     return this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType);
   }
 
-  public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null, isResubmit: boolean = false){
+  public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null, isResubmit: boolean = false, siteType: string = 'Site'){
     this.uploadFailures = [];
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
-    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
+    const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations.filter(loc => loc.clientLocationTypeCode === siteType), 'locationNumber');
+    //mapBy(allLocations, 'locationNumber');
     const matchedTradeAreas = new Set<TradeAreaDefinition>();
 
     // make sure we can find an associated location for each uploaded data row
@@ -350,7 +351,7 @@ export class AppTradeAreaService {
       } else {
         taDef.message = 'Invalid Site #';
         this.uploadFailures = [...this.uploadFailures, taDef];
-        matchedTradeAreas.add(taDef);
+        //matchedTradeAreas.add(taDef);
       }
     });
 
@@ -420,6 +421,7 @@ export class AppTradeAreaService {
 
   public validateRolldownGeos(payload: any[], queryResult: Map<string, {latitude: number, longitude: number}>,  matchedTradeAreas: any[], fileAnalysisLevel: string) {
     let failedGeos: any[] = [];
+    matchedTradeAreas.concat(this.uploadFailures);
     const uploadFailuresMapBy = mapBy(this.uploadFailures, 'geocode');
     const payloadByGeocode = mapBy(payload, 'orgGeo');
     const matchedTradeAreaByGeocode = groupBy(Array.from(matchedTradeAreas), 'geocode');
@@ -472,7 +474,7 @@ export class AppTradeAreaService {
     failedGeos.forEach(ta => {
        this.uploadFailures = this.uploadFailures.filter(failedTa => failedTa.geocode !== ta.geocode && failedTa.message !== ta.message);
     });
-    
+
 
     return { failedGeos, payload };
   }

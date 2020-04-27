@@ -58,6 +58,7 @@ export class RestDataService
         map(response => [performance.now(), decode(response) as RestResponse] as const),
         tap(([startTime]) => this.logger.info.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
         map(([, response]) => response),
+        tap(response => this.logger.debug.log('Deserialized payload', response)),
         catchError((err: HttpErrorResponse) => {
           if (err != null && err.error != null && err.error instanceof ArrayBuffer) {
             return throwError(new HttpErrorResponse({ ...err, error: decode(err.error) }));

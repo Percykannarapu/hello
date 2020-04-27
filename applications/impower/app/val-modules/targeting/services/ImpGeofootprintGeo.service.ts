@@ -457,22 +457,22 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
     if (audience != null) {
       const geoVar = state.geoVarsBS$.value[geo.geocode];
       if (geoVar != null) {
-        if ((!audience.isCombined && geoVar[audience.audienceIdentifier] != null) || audience.isCombined) {
+        if (geoVar[audience.audienceIdentifier] != null) {
           switch (audience.fieldconte) {
             case FieldContentTypeCodes.Char:
               result = geoVar[audience.audienceIdentifier].toString();
               break;
 
             case FieldContentTypeCodes.Percent:
-              for (const aud in exportAudiences){
-                if (exportAudiences[aud].isCombined && exportAudiences[aud].exportInGeoFootprint){
-                  geoVar[exportAudiences[aud].audienceIdentifier] = exportAudiences[aud].combinedAudiences.reduce((p, c) => {
-                    p += geoVar[c] as number;
-                    return p;
-                  }, 0);
-                  result = geoVar[exportAudiences[aud].audienceIdentifier].toString();
-                }
-              }
+            //   for (const aud in exportAudiences){
+            //     if (exportAudiences[aud].isCombined && exportAudiences[aud].exportInGeoFootprint){
+            //       geoVar[exportAudiences[aud].audienceIdentifier] = exportAudiences[aud].combinedAudiences.reduce((p, c) => {
+            //         p += geoVar[c] as number;
+            //         return p;
+            //       }, 0);
+            //       result = geoVar[exportAudiences[aud].audienceIdentifier].toString();
+            //     }
+            //   }
               result = geoVar[audience.audienceIdentifier].toString();
               break;
             case FieldContentTypeCodes.Ratio:
@@ -549,7 +549,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = [];
 
       switch (exportFormat)
-      {
+      { 
          case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx:
             this.logger.debug.log ('setExportFormat - alteryx');
             exportColumns.push({ header: this.exportVarGeoHeader(this),  row: (state, data) => data.geocode});
@@ -560,7 +560,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Site State',                   row: (state, data) => data.impGeofootprintLocation.locState});
             exportColumns.push({ header: 'Zip',                          row: this.exportVarTruncateZip});
             exportColumns.push({ header: 'Site Address',                 row: this.exportVarStreetAddress});
-            exportColumns.push({ header: 'Market',                       row: (state, data) => data.impGeofootprintLocation.marketName});
+            exportColumns.push({ header: 'Market',                       row: (state, data) => (data.impGeofootprintLocation.marketName) ? data.impGeofootprintLocation.marketName : 
+                                                                     data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue});
             exportColumns.push({ header: 'Market Code',                  row: (state, data) => data.impGeofootprintLocation.marketCode});
             exportColumns.push({ header: 'Group Name',                   row: (state, data) => data.impGeofootprintLocation.groupName});
             exportColumns.push({ header: 'Passes Filter',                row: 1});

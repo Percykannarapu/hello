@@ -1,5 +1,6 @@
 import { Statistics } from '@val/common';
 import { ColorPalette } from './color-palettes';
+import { ClassBreakFillDefinition, ContinuousDefinition, FillSymbolDefinition, UniqueValueFillDefinition } from './common-configuration';
 import { FillPattern, RgbaTuple, RgbTuple } from './esri-types';
 
 export enum ConfigurationTypes {
@@ -19,28 +20,6 @@ export interface RampProperties extends __esri.ColorVariableProperties {
   type: 'color';
 }
 
-export interface SymbolDefinition {
-  fillColor: RgbaTuple;
-  fillType: FillPattern;
-  outlineColor?: RgbaTuple;
-  legendName?: string;
-}
-
-export interface ClassBreakDefinition extends SymbolDefinition {
-  minValue?: number;
-  maxValue?: number;
-}
-
-export interface UniqueValueDefinition extends SymbolDefinition {
-  value: string;
-}
-
-export interface ContinuousDefinition {
-  stopColor: RgbTuple;
-  stopValue: number;
-  stopName: string;
-}
-
 export interface ShadingDefinitionBase {
   id: string;
   dataKey: string;
@@ -51,7 +30,7 @@ export interface ShadingDefinitionBase {
   minScale: number;
   opacity: number;
   visible: boolean;
-  defaultSymbolDefinition: SymbolDefinition;
+  defaultSymbolDefinition: FillSymbolDefinition;
   filterByFeaturesOfInterest: boolean;
   filterField: string;
 }
@@ -66,7 +45,7 @@ export interface UniqueShadingDefinition extends ShadingDefinitionBase {
   theme: ColorPalette;
   reverseTheme: boolean;
   arcadeExpression?: string;
-  breakDefinitions?: UniqueValueDefinition[];
+  breakDefinitions?: UniqueValueFillDefinition[];
 }
 
 export interface RampShadingDefinition extends ShadingDefinitionBase {
@@ -86,8 +65,8 @@ export interface ClassBreakShadingDefinition extends ShadingDefinitionBase {
   dynamicAllocationSlots?: number;
   dynamicLegend?: boolean;
   arcadeExpression?: string;
-  userBreakDefaults?: SymbolDefinition[];
-  breakDefinitions?: ClassBreakDefinition[];
+  userBreakDefaults?: FillSymbolDefinition[];
+  breakDefinitions?: ClassBreakFillDefinition[];
 }
 
 export interface DotDensityShadingDefinition extends ShadingDefinitionBase {
@@ -111,15 +90,13 @@ export function isComplexShadingDefinition(s: ShadingDefinition) : s is ComplexS
          s.shadingType === ConfigurationTypes.ClassBreak;
 }
 
-export function generateUniqueValues(uniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], customSorter?: (a, b) => number) : UniqueValueDefinition[] {
-  const values = [...uniqueValues];
-  values.sort(customSorter);
-  return values.map((uv, i) => ({
+export function generateUniqueValues(sortedUniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], useIndexForValue: boolean = false) : UniqueValueFillDefinition[] {
+  return sortedUniqueValues.map((uv, i) => ({
+    value: useIndexForValue ? `${i}` : uv,
     fillColor: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
     fillType: fillPalette[i % fillPalette.length],
     legendName: uv,
     outlineColor: [0, 0, 0, 0],
-    value: uv
   }));
 }
 
@@ -148,8 +125,8 @@ export function generateContinuousValues(stats: Statistics, colorPalette: RgbTup
   return result;
 }
 
-export function generateDynamicSymbology(stats: Statistics, colorPalette: RgbTuple[], fillPalette: FillPattern[]) : SymbolDefinition[] {
-  const result: SymbolDefinition[] = [];
+export function generateDynamicSymbology(stats: Statistics, colorPalette: RgbTuple[], fillPalette: FillPattern[]) : FillSymbolDefinition[] {
+  const result: FillSymbolDefinition[] = [];
   const len = stats.meanIntervals.length;
   const cm = colorPalette.length;
   const lm = fillPalette.length;
@@ -160,7 +137,7 @@ export function generateDynamicSymbology(stats: Statistics, colorPalette: RgbTup
       outlineColor: [0, 0, 0, 0]
     });
   }
-  const lastBreak: SymbolDefinition = {
+  const lastBreak: FillSymbolDefinition = {
     fillColor: RgbTuple.withAlpha(colorPalette[len % cm], 1),
     fillType: fillPalette[len % lm],
     outlineColor: [0, 0, 0, 0]
@@ -169,8 +146,19 @@ export function generateDynamicSymbology(stats: Statistics, colorPalette: RgbTup
   return result;
 }
 
-export function generateDynamicClassBreaks(stats: Statistics, breakTypes: DynamicAllocationTypes, symbology: SymbolDefinition[]) : ClassBreakDefinition[] {
-  const result: ClassBreakDefinition[] = [];
+function getLegendDescription(min: number, max: number, fixedPositions: number) : string {
+  if (min == null && max == null) return 'other';
+  if (min == null) {
+    return `Below ${max.toFixed(fixedPositions)}`;
+  }
+  if (max == null) {
+    return `${min.toFixed(fixedPositions)} and above`;
+  }
+  return `${min.toFixed(fixedPositions)} to ${max.toFixed(fixedPositions)}`;
+}
+
+export function generateDynamicClassBreaks(stats: Statistics, breakTypes: DynamicAllocationTypes, symbology: FillSymbolDefinition[]) : ClassBreakFillDefinition[] {
+  const result: ClassBreakFillDefinition[] = [];
   const breakValues = breakTypes === DynamicAllocationTypes.Interval ? stats.meanIntervals : stats.quantiles;
   if (symbology.length !== (breakValues.length + 1)) {
     console.error('There was a mismatch between the statistics breaks and the symbology breaks', stats, symbology);
@@ -201,13 +189,3 @@ export function generateDynamicClassBreaks(stats: Statistics, breakTypes: Dynami
   return result;
 }
 
-function getLegendDescription(min: number, max: number, fixedPositions: number) : string {
-  if (min == null && max == null) return 'other';
-  if (min == null) {
-    return `Below ${max.toFixed(fixedPositions)}`;
-  }
-  if (max == null) {
-    return `${min.toFixed(fixedPositions)} and above`;
-  }
-  return `${min.toFixed(fixedPositions)} to ${max.toFixed(fixedPositions)}`;
-}

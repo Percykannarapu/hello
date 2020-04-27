@@ -3,8 +3,9 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map, pairwise, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
-import { ConfigurationTypes, RampProperties, ShadingDefinition, SymbolDefinition } from '../models/shading-configuration';
-import { AppState, shadingSelectors } from '../state/esri.selectors';
+import { FillSymbolDefinition } from '../models/common-configuration';
+import { ConfigurationTypes, RampProperties, ShadingDefinition } from '../models/shading-configuration';
+import { AppState } from '../state/esri.reducers';
 import {
   addLayerToLegend,
   addShadingDefinition,
@@ -16,11 +17,12 @@ import {
   upsertShadingDefinition,
   upsertShadingDefinitions
 } from '../state/shading/esri.shading.actions';
+import { shadingSelectors } from '../state/shading/esri.shading.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 
 @Injectable()
-export class EsriShadingLayersService {
+export class EsriShadingService {
 
   constructor(private layerService: EsriLayerService,
               private store$: Store<AppState>,
@@ -216,9 +218,9 @@ export class EsriShadingLayersService {
     }
   }
 
-  private createSymbolFromDefinition(def: SymbolDefinition) : __esri.SimpleFillSymbol {
-    const currentDef = def || { fillColor: [0, 0, 0, 0], fillType: 'solid' };
-    const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0]);
+  private createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {
+    const currentDef: FillSymbolDefinition = { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 0], outlineWidth: 1, ...(def || {}) };
+    const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor, currentDef.outlineWidth);
     return this.domainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
   }
 

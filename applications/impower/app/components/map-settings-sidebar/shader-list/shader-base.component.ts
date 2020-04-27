@@ -59,7 +59,7 @@ export abstract class ShaderBaseComponent<T extends ShadingDefinitionBase> imple
 
   public apply(form: FormGroup) : void {
     if (form.valid) {
-      const newDef = { ...this.definition };
+      const newDef: T = { ...this.definition, defaultSymbolDefinition: { ...this.definition.defaultSymbolDefinition } };
       Object.assign(newDef, form.value);
       this.applyShader.emit(newDef);
     }

@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { groupBy, mapBy } from '@val/common';
-import { EsriApi, EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
+import geometryEngine from 'esri/geometry/geometryEngine';
+import PolyLine from 'esri/geometry/Polyline';
+import Query from 'esri/tasks/support/Query';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
@@ -39,7 +42,7 @@ export class AppGeoService {
 
   public addNewGeo(geocode: string, wrapName: string, availsInfo: AvailabilityDetailResponse[], arbitraryReviewDetail: RfpUiReview,
                    availableVars: VarDefinition[], isWrap: boolean, analysisLevel: string) {
-    const query: __esri.Query = new EsriApi.Query();
+    const query: __esri.Query = new Query();
     query.outFields = ['geocode'];
     if (isWrap) {
       query.where = `wrap_name = '${wrapName}'`;
@@ -65,7 +68,7 @@ export class AppGeoService {
 
   private queryAndCreateDetails(query: __esri.Query, analysisLevel: string, review: RfpUiReview, availsInfo: AvailabilityDetailResponse[],
                                 availableVars: VarDefinition[], wrapName?: string) : Observable<RfpUiEditDetail[]> {
-    return this.queryService.executeQuery(this.configService.layers[analysisLevel].centroids.id, query, true).pipe(
+    return this.queryService.executeNativeQuery(this.configService.layers[analysisLevel].centroids.id, query, true).pipe(
       map(pointRes => {
         const editDetailsInput = pointRes.features.map(f => ({
           geocode: f.getAttribute('geocode'),
@@ -94,10 +97,10 @@ export class AppGeoService {
         : '';
       let distance = 0;
       if (EsriUtils.geometryIsPoint(closestSite.geometry)) {
-        const line = new EsriApi.PolyLine({
+        const line = new PolyLine({
           paths: [[[edi.point.x, edi.point.y], [closestSite.geometry.x, closestSite.geometry.y]]]
         });
-        distance = EsriApi.geometryEngine.geodesicLength(line, 'miles');
+        distance = geometryEngine.geodesicLength(line, 'miles');
       }
       newDetail.distance = distance;
       newDetail.geocode = edi.geocode;

@@ -38,9 +38,9 @@ export class EnvironmentData {
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
 
   public static esri = {
-    portalServer:  'https://vallomimpor1vm.val.vlss.local/',
-    userName: 'admin',
-    password: 'password'
+    portalServer:  process.env.ESRI_PORTAL_SERVER,
+    userName: process.env.ESRI_USERNAME,
+    password: process.env.ESRI_PASSWORD
   };
 
   public static oAuth = {

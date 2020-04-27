@@ -8,7 +8,7 @@
  **
  ** ImpGeofootprintLocation.service.ts generated from VAL_ENTITY_GEN - v2.0
  **/
-import { Injectable, ApplicationRef, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
 import { simpleFlatten } from '@val/common';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
@@ -433,7 +433,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Block Group',        row: (state, data) => null});
             exportColumns.push({ header: 'Unit',               row: (state, data) => null});
             exportColumns.push({ header: 'ZIP4',               row: (state, data) => state.getGeocodeAs(data.locZip, false, false, false, true)});
-            exportColumns.push({ header: 'Market',             row: (state, data) => data.marketName});
+            exportColumns.push({ header: 'Market',             row: (state, data) => (data.marketName) ? data.marketName : state.exportHomeGeoAttribute(data, 'DMA Name')});
             exportColumns.push({ header: 'Market Code',        row: (state, data) => data.marketCode});
             exportColumns.push({ header: 'Map Group',          row: (state, data) => null});
             exportColumns.push({ header: 'STDLINXSCD',         row: (state, data) => null});

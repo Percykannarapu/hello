@@ -1,17 +1,24 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { isString } from '@val/common';
+import { isString, mapArray } from '@val/common';
 import Basemap from 'esri/Basemap';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap, take } from 'rxjs/operators';
+import { BoundaryConfiguration } from '../models/boundary-configuration';
+import { PoiConfiguration } from '../models/poi-configuration';
 import { ShadingDefinition } from '../models/shading-configuration';
+import { loadBoundaries } from '../state/boundary/esri.boundary.actions';
 import { InitialEsriState, loadInitialState } from '../state/esri.actions';
-import { AppState, selectors } from '../state/esri.selectors';
+import { AppState } from '../state/esri.reducers';
+import { selectors } from '../state/esri.selectors';
 import { SetLayerLabelExpressions, SetPopupVisibility, SetSelectedLayer } from '../state/map/esri.map.actions';
 import { EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
+import { loadPois } from '../state/poi/esri.poi.actions';
 import { loadShadingDefinitions, setFeaturesOfInterest } from '../state/shading/esri.shading.actions';
+import { EsriBoundaryService } from './esri-boundary.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
+import { EsriPoiService } from './esri-poi.service';
 import { EsriQueryService } from './esri-query.service';
 
 @Injectable()
@@ -22,7 +29,9 @@ export class EsriService {
   constructor(private store$: Store<AppState>,
               private mapService: EsriMapService,
               private layerService: EsriLayerService,
-              private queryService: EsriQueryService) {
+              private queryService: EsriQueryService,
+              private boundaryService: EsriBoundaryService,
+              private poiService: EsriPoiService) {
     this.initializeService();
   }
 
@@ -40,6 +49,34 @@ export class EsriService {
         filter(([, layerId]) => layerId != null),
         switchMap(([, layerId]) => this.layerService.layerIsVisibleOnMap(layerId) ? this.queryService.queryExtent(layerId) : of([]))
       ).subscribe(g => this.visibleFeatures$.next(g), e => this.visibleFeatures$.error(e));
+      const poiGroups$ = this.poiService.allPoiConfigurations$.pipe(
+        filter(p => p != null && p.length > 0),
+        mapArray(p => p.groupName),
+      );
+      const boundaryGroups$ = this.boundaryService.allVisibleBoundaryConfigs$.pipe(
+        filter(b => b != null && b.length > 0),
+        mapArray(b => b.groupName),
+      );
+      combineLatest([poiGroups$, boundaryGroups$]).subscribe(([pois, boundaries]) => {
+        let sortOrder = 1;
+        const completedGroups = new Set<string>();
+        const newBoundaries = [...boundaries].reverse();
+        newBoundaries.forEach(b => {
+          if (!completedGroups.has(b)) {
+            const group = this.layerService.getGroup(b);
+            this.mapService.mapView.map.layers.reorder(group, sortOrder++);
+            completedGroups.add(b);
+          }
+        });
+        const newPois = [...pois].reverse();
+        newPois.forEach(p => {
+          if (!completedGroups.has(p)) {
+            const group = this.layerService.getGroup(p);
+            this.mapService.mapView.map.layers.reorder(group, sortOrder++);
+            completedGroups.add(p);
+          }
+        });
+      });
     });
   }
 
@@ -55,9 +92,11 @@ export class EsriService {
     this.store$.dispatch(new SetLayerLabelExpressions({ expressions }));
   }
 
-  loadInitialState(initialState: InitialEsriState, shadingDefinitions?: ShadingDefinition[]) : void {
+  loadInitialState(initialState: InitialEsriState, shadingDefinitions?: ShadingDefinition[], poiDefinitions?: PoiConfiguration[], boundaryDefinitions?: BoundaryConfiguration[]) : void {
     this.store$.dispatch(loadInitialState(initialState));
     this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
+    this.store$.dispatch(loadPois({ pois: poiDefinitions }));
+    this.store$.dispatch(loadBoundaries({ boundaries: boundaryDefinitions }));
   }
 
   setBasemap(basemap: string | {}) : void {
@@ -70,5 +109,9 @@ export class EsriService {
 
   setFeaturesOfInterest(features: string[]) : void {
     this.store$.dispatch(setFeaturesOfInterest({ features }));
+  }
+
+  clearMapLayers() : void {
+    this.mapService.clear();
   }
 }

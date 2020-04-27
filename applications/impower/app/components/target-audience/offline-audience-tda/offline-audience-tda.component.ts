@@ -3,12 +3,13 @@ import { Store } from '@ngrx/store';
 import { ErrorNotification } from '@val/messaging';
 import { TreeNode } from 'primeng/api';
 import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, filter } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { AppStateService } from '../../../services/app-state.service';
 import { TargetAudienceTdaService, TdaAudienceDescription } from '../../../services/target-audience-tda.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { LocalAppState } from '../../../state/app.interfaces';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 
 @Component({
   selector: 'val-offline-audience-tda',
@@ -22,6 +23,11 @@ export class OfflineAudienceTdaComponent implements OnInit {
 
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
+  private combineAudiences;
+  private allAudiences;
+  public showDialog: boolean = false;
+  public dialogboxWarningmsg: string = '';
+  public dialogboxHeader: string = '';
 
   constructor(private audienceService: TargetAudienceTdaService,
               private parentAudienceService: TargetAudienceService,
@@ -76,6 +82,20 @@ export class OfflineAudienceTdaComponent implements OnInit {
     this.parentAudienceService.allAudiencesBS$.pipe(
     map(audiences => audiences.filter(a => a.audienceSourceType === 'Offline')),
     ).subscribe(audiences => this.syncAudiencesCheckData(audiences));
+
+    this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
+      filter(allAudiences => allAudiences != null),
+      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Online' || aud.audienceSourceType === 'Offline')),
+      ).subscribe(audiences => {
+        this.allAudiences =  Array.from(new Set(audiences));
+      });
+
+    this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
+      filter(allAudiences => allAudiences != null),
+      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted')),
+    ).subscribe(audiences => {
+      this.combineAudiences =  Array.from(new Set(audiences));
+    });
   }
 
   private filterNodes(term: string) {
@@ -98,11 +118,28 @@ export class OfflineAudienceTdaComponent implements OnInit {
   }
 
   public selectVariable(event: TreeNode) : void {
-    this.audienceService.addAudience(event.data);
+    const isExisting = this.allAudiences.filter(aud => aud.audienceIdentifier === event.data.identifier).length === 1;
+    if (!isExisting){
+      this.audienceService.addAudience(event.data);
+    }
   }
 
   public removeVariable(event: TreeNode) : void {
+  const uncheckAudience = this.combineAudiences.filter(combineAud => (combineAud.combinedAudiences.includes(event.data.identifier) || 
+                                                      combineAud.compositeSource.includes(event.data.identifier)));
+    if (uncheckAudience.length > 0){
+      this.dialogboxHeader = 'Invalid Delete!';
+      this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted Audience can not be deleted.';
+      this.showDialog = true;
+      this.selectVariable(event);
+    }
+    else{
     this.audienceService.removeAudience(event.data);
+    }
+  }
+
+  public closeDialog(){
+    this.showDialog = false;
   }
 
   private syncCheckData(result: AudienceDataDefinition[]){

@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { concatMap, map, mergeMap, takeUntil, tap, withLatestFrom, switchMap } from 'rxjs/operators';
-import { MonoTypeOperatorFunction, Observable } from 'rxjs';
-import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
-import { ClearSketchView, EsriMapToolbarButtonActionTypes, SelectMultiPolySelected, UnselectMultiPolySelected } from './esri.map-button.actions';
-import { EsriGraphicTypeCodes } from '../../core/esri.enums';
 import { Action, select, Store } from '@ngrx/store';
-import { AppState, internalSelectors } from '../esri.selectors';
+import { MonoTypeOperatorFunction, Observable } from 'rxjs';
+import { concatMap, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
+import { EsriGraphicTypeCodes } from '../../core/esri.enums';
+import { EsriMapInteractionService } from '../../services/esri-map-interaction.service';
 import { EsriMapService } from '../../services/esri-map.service';
+import { AppState } from '../esri.reducers';
+import { internalSelectors } from '../esri.selectors';
+import { ClearSketchView, EsriMapToolbarButtonActionTypes, SelectMultiPolySelected, UnselectMultiPolySelected } from './esri.map-button.actions';
 import { FeaturesSelected, SetPopupVisibility } from './esri.map.actions';
 
 const allButtonTypes = [
@@ -31,7 +32,7 @@ export class EsriMapButtonEffects {
 
   @Effect()
   handleXYButton$ = this.actions$.pipe(
-    ofType(EsriMapToolbarButtonActionTypes.XYButtonSelected),    
+    ofType(EsriMapToolbarButtonActionTypes.XYButtonSelected),
     this.resetSketchViewGraphics(),
     switchMap(() => [new ClearSketchView(), new SetPopupVisibility({ isVisible: false })]),
     tap(() => this.esriMapService.setWidget('default'))
@@ -81,7 +82,7 @@ export class EsriMapButtonEffects {
                           takeUntil(this.actions$.pipe(ofType(...allButtonTypes))))),
     mergeMap(geometry => this.mapInteractionService.selectFeatures(geometry)),
     concatMap(features => [new FeaturesSelected({ features }), new UnselectMultiPolySelected()])
-  ); 
+  );
 
   constructor(private actions$: Actions,
               private store$: Store<AppState>,

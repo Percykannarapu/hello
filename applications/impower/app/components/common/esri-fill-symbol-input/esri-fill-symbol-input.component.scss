@@ -16,22 +16,22 @@
         width: 20px;
         height: 20px;
         &.backward-diagonal {
-          background: url('~assets/layout/images/backward-diagonal.png') center no-repeat;
+          background: url('~assets/layout/images/fills/backward-diagonal.png') center no-repeat;
         }
         &.forward-diagonal {
-          background: url('~assets/layout/images/forward-diagonal.png') center no-repeat;
+          background: url('~assets/layout/images/fills/forward-diagonal.png') center no-repeat;
         }
         &.diagonal-cross {
-          background: url('~assets/layout/images/diagonal-cross.png') center no-repeat;
+          background: url('~assets/layout/images/fills/diagonal-cross.png') center no-repeat;
         }
         &.cross {
-          background: url('~assets/layout/images/cross.png') center no-repeat;
+          background: url('~assets/layout/images/fills/cross.png') center no-repeat;
         }
         &.horizontal {
-          background: url('~assets/layout/images/horizontal.png') center no-repeat;
+          background: url('~assets/layout/images/fills/horizontal.png') center no-repeat;
         }
         &.vertical {
-          background: url('~assets/layout/images/vertical.png') center no-repeat;
+          background: url('~assets/layout/images/fills/vertical.png') center no-repeat;
         }
       }
     }

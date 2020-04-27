@@ -28,5 +28,5 @@
   <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
   <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
   <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!parentForm.valid"></button>
-  <button pButton label="Cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
+  <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
 </div>

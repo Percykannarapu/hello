@@ -45,3 +45,7 @@ testem.log
 .DS_Store
 Thumbs.db
 /impower-angular-app.iml
+
+# Sensitive secrets
+.env
+/applications/impower/environments/esri-secrets.ts

@@ -12,7 +12,6 @@ import { AppStateService } from '../../services/app-state.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { CreateNewProject } from '../../state/data-shim/data-shim.actions';
-import { layersAreReady } from '../../state/data-shim/data-shim.selectors';
 import { CreateMapUsageMetric, CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
@@ -91,15 +90,10 @@ export class MapComponent implements OnInit {
   }
 
   private setupApplication() : void {
-    this.appStateService.notifyMapReady();
     this.appMapService.setupMap();
-    this.store$.select(layersAreReady).pipe(
-      filter(ready => ready),
-      take(1)
-    ).subscribe(() => {
-      this.setupMapFromStorage();
-      this.store$.dispatch(new CreateNewProject());
-    });
+    this.setupMapFromStorage();
+    this.appStateService.notifyMapReady();
+    setTimeout(() => this.store$.dispatch(new CreateNewProject()), 0);
   }
 
   private checkFilters(features: __esri.Graphic[], currentProject: ImpProject) : any {

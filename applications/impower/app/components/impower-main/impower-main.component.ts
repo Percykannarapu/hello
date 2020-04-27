@@ -1,7 +1,8 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, DoCheck, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ClearAllNotifications } from '@val/messaging';
-import { Observable } from 'rxjs';
+import { MessageService } from 'primeng/api';
+import { Observable, timer } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppStateService } from '../../services/app-state.service';
@@ -24,7 +25,7 @@ declare var jQuery: any;
   styleUrls: ['./impower-main.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit, DoCheck {
+export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
 
   layoutCompact = true;
 
@@ -72,6 +73,7 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit, D
   constructor(private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
               private stateService: AppStateService,
+              private messageService: MessageService,
               private cd: ChangeDetectorRef,
               private store$: Store<FullAppState>) { }
 
@@ -83,6 +85,10 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit, D
       this.currentRoute = url;
       this.cd.markForCheck();
     });
+
+    timer(0, 1000).subscribe(() => this.stateService.refreshDynamicControls());
+
+    this.messageService.messageObserver.subscribe(() => this.cd.markForCheck());
   }
 
   ngOnDestroy() {
@@ -96,10 +102,6 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit, D
     setTimeout(() => {
       jQuery(this.layoutMenuScroller).nanoScroller({flash: true});
     }, 10);
-  }
-
-  ngDoCheck() {
-    this.stateService.refreshDynamicControls();
   }
 
   onClearMessages() {

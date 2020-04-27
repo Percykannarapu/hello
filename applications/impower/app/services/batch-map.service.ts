@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { groupByExtended } from '@val/common';
+import { CommonSort, groupByExtended } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
@@ -9,12 +9,11 @@ import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { Observable, race, timer } from 'rxjs';
-import { debounceTime, delay, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { ValSort } from '../models/valassis-sorters';
 import { BatchMapPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
-import { getBatchMapReady } from '../state/batch-map/batch-map.selectors';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -46,8 +45,6 @@ export class BatchMapService {
               private http: HttpClient) { }
 
   initBatchMapping(projectId: number) : void {
-    this.appStateService.notifyMapReady();
-
     this.esriMapService.watchMapViewProperty('updating').pipe(
       debounceTime(500),
       withLatestFrom(this.store$.select(getMapAudienceIsFetching)),
@@ -57,20 +54,18 @@ export class BatchMapService {
     this.esriMapService.watchMapViewProperty('stationary').pipe(
       filter(result => result.newValue),
     ).subscribe(() => this.appStateService.refreshVisibleGeos());
+
     this.appMapService.setupMap(true);
-    this.store$.select(getBatchMapReady).pipe(
-      filter(ready => ready),
-      take(1),
-      delay(15000)
-    ).subscribe(() => this.store$.dispatch(new ProjectLoad({ projectId, isBatchMode: true })));
+    this.store$.dispatch(new ProjectLoad({ projectId, isBatchMode: true }));
+    this.appStateService.notifyMapReady();
   }
 
   requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload, project: ImpProject) : Observable<any> {
     if (payload.calls[0].args['printJobConfiguration'] != null) {
       const requestedSiteIds = new Set(payload.calls[0].args['printJobConfiguration'].siteIds);
       project.getImpGeofootprintLocations().forEach( l => {
-      if ((l.clientLocationTypeCode === 'Failed Site' || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor) && requestedSiteIds.has(l.locationNumber))
-        requestedSiteIds.delete(l.locationNumber); //we don't want to print failed sites
+      if ((l.clientLocationTypeCode === 'Failed Site' || l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor || !l.isActive) && requestedSiteIds.has(l.locationNumber))
+        requestedSiteIds.delete(l.locationNumber); //we don't want to print failed sites, competitors, or inactive sites
       });
       payload.calls[0].args['printJobConfiguration'].siteIds = Array.from(requestedSiteIds);
     }
@@ -80,14 +75,9 @@ export class BatchMapService {
   validateProjectReadiness(project: ImpProject) : boolean {
     const notificationTitle = 'Batch Map Issue';
     const projectNotSaved = 'The project must be saved before you can generate a batch map.';
-    const tooManySites = 'Batch Maps can only be generated for projects with 600 active sites or less.';
     let result = true;
     if (project.projectId == null) {
       this.store$.dispatch(new ErrorNotification({ message: projectNotSaved, notificationTitle }));
-      result = false;
-    }
-    if (project.getImpGeofootprintLocations().filter(l => l.isActive && l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site).length > 600) {
-      this.store$.dispatch(new ErrorNotification({ message: tooManySites, notificationTitle }));
       result = false;
     }
     return result;
@@ -126,7 +116,7 @@ export class BatchMapService {
           l.getImpGeofootprintGeos().forEach(g => g.isActive = this.originalGeoState[g.ggId]);
         }
       });
-      this.store$.dispatch(new RenderLocations({ locations: sitesToMap, impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
+      this.store$.dispatch(new RenderLocations({ locations: sitesToMap }));
       this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
     }
     if (!params.shadeNeighboringSites) {
@@ -165,10 +155,15 @@ export class BatchMapService {
   }
 
   showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    const result = { siteNum: project.getImpGeofootprintLocations()[project.getImpGeofootprintLocations().length - 1].locationNumber, isLastSite: true };
-    if (project.getImpGeofootprintGeos().length > 100)
-      params.fitTo = FitTo.TA; //if we have too many geos we need to fit the map to the TA rings
-    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, project.getImpGeofootprintLocations().map(l => l.locationNumber), project).pipe(
+    const currentLocationNumbers = project.getImpGeofootprintLocations().reduce((a, c) => {
+      if (c.isActive) a.push(c.locationNumber);
+      return a;
+    }, [] as string[]);
+    currentLocationNumbers.sort(CommonSort.StringsAsNumbers);
+    const currentGeos = project.getImpGeofootprintGeos().filter(geo => geo.impGeofootprintLocation.isActive);
+    const result = { siteNum: currentLocationNumbers[currentLocationNumbers.length - 1], isLastSite: true };
+    if (currentGeos.length > 100) params.fitTo = FitTo.TA; //if we have too many geos we need to fit the map to the TA rings
+    return this.setMapLocation(project.methAnalysis, currentGeos, params, currentLocationNumbers, project).pipe(
       map(() => result)
     );
   }
@@ -195,7 +190,7 @@ export class BatchMapService {
         }
 
         if (params.hideNeighboringSites) {
-          this.store$.dispatch(new RenderLocations({ locations: [currentSite], impProjectPrefs: this.appProjectPrefService.getPrefsByGroup('label') }));
+          this.store$.dispatch(new RenderLocations({ locations: [currentSite] }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         } else if (params.shadeNeighboringSites) {
           this.geoService.update(null, null);
@@ -242,6 +237,7 @@ export class BatchMapService {
   }
 
   private setMapLocation(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>, params: BatchMapQueryParams, siteNums: Array<string>, project: ImpProject) : Observable<void> {
+    console.log('Inside setMapLocation', params);
     if (params.fitTo === FitTo.GEOS) {
       const activeGeos = geos.filter(g => g.isActive);
       const geocodes = activeGeos.map(g => g.geocode);

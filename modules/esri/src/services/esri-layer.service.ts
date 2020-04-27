@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { UniversalCoordinates } from '@val/common';
 import Color from 'esri/Color';
@@ -10,30 +10,54 @@ import GroupLayer from 'esri/layers/GroupLayer';
 import Layer from 'esri/layers/Layer';
 import LabelClass from 'esri/layers/support/LabelClass';
 import { Font, SimpleMarkerSymbol, TextSymbol } from 'esri/symbols';
-import FeatureSet from 'esri/tasks/support/FeatureSet';
 import { Observable } from 'rxjs';
 import { EsriUtils } from '../core/esri-utils';
 import { MapSymbols } from '../models/esri-types';
-import { AppState } from '../state/esri.selectors';
+import { AppState } from '../state/esri.reducers';
 import { CopyCoordinatesToClipboard } from '../state/map/esri.map.actions';
 import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
 import { addLayerToLegend } from '../state/shading/esri.shading.actions';
+import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriMapService } from './esri-map.service';
 import { LoggingService } from './logging.service';
-
-const getSimpleType = (data: any) => Number.isNaN(Number(data)) || typeof data === 'string'  ? 'string' : 'double';
 
 @Injectable()
 export class EsriLayerService {
 
   private legendShimmed: boolean = false;
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
-  private layersShowingInLegend = new Set<string>();
+  private layerNamesShowingInLegend = new Map<string, string>();
+  private queryOnlyLayers = new Map<string, __esri.FeatureLayer>();
 
   constructor(private mapService: EsriMapService,
+              private domainFactory: EsriDomainFactoryService,
               private store$: Store<AppState>,
-              private logger: LoggingService,
-              private zone: NgZone) {}
+              private logger: LoggingService) {}
+
+  private static createLabelConfig(layer: __esri.FeatureLayer, fontSize: number, layerOptions: EsriLabelLayerOptions) : __esri.LabelClass[] {
+    if (layerOptions == null) return null;
+    const textSymbol: __esri.TextSymbol = new TextSymbol();
+    const offset = layerOptions.fontSizeOffset || 0;
+    const font = new Font({ family: 'arial', size: (fontSize + offset), weight: 'bold' });
+    if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol) && EsriUtils.symbolIsSimpleLine(layer.renderer.symbol.outline)) {
+      textSymbol.color = layer.renderer.symbol.outline.color;
+    } else {
+      textSymbol.color = new Color({a: 1, r: 255, g: 255, b: 255});
+    }
+    if (layerOptions.colorOverride != null) {
+      textSymbol.color = new Color(layerOptions.colorOverride);
+    }
+    textSymbol.haloColor = new Color({ r: 255, g: 255, b: 255, a: 1 });
+    textSymbol.haloSize = 1;
+    textSymbol.font = font;
+    return [new LabelClass({
+      labelPlacement: 'always-horizontal',
+      labelExpressionInfo: {
+        expression: layerOptions.expression
+      },
+      symbol: textSymbol
+    })];
+  }
 
   public clearClientLayers(groupName: string) : void {
     if (this.mapService.mapView == null || this.mapService.mapView.map == null || this.mapService.mapView.map.layers == null) return;
@@ -96,13 +120,16 @@ export class EsriLayerService {
     return null;
   }
 
-  public getAllPortalGroups() : __esri.GroupLayer[] {
-    return this.mapService.mapView.map.layers.reduce((a, c) => {
-      if (c.id === `portal-${c.title}` && EsriUtils.layerIsGroup(c)) {
-        a.push(c);
+  public getQueryLayer(portalId: string, queryId: string) : __esri.FeatureLayer {
+    let result = this.getPortalLayerById(portalId);
+    if (result == null) {
+      if (this.queryOnlyLayers.has(queryId)) {
+        result = this.queryOnlyLayers.get(queryId);
+      } else {
+        result = this.createQueryLayer(portalId, queryId);
       }
-      return a;
-    }, []);
+    }
+    return result;
   }
 
   public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
@@ -120,8 +147,8 @@ export class EsriLayerService {
     const result = [];
     for (const l of this.mapService.mapView.map.allLayers.toArray()) {
       if (EsriUtils.layerIsFeature(l)) {
-        if (EsriUtils.layerIsPortalFeature(l) && l.portalItem.id === portalId) result.push(l);
-        if (l.url != null && l.url.startsWith(portalId)) result.push(l);
+        if (EsriUtils.layerIsPortalFeature(l) && l.portalItem.id === portalId && !l.title.startsWith('Query Layer')) result.push(l);
+        if (l.url != null && l.url.startsWith(portalId) && !l.title.startsWith('Query Layer')) result.push(l);
       }
     }
     return result;
@@ -140,7 +167,22 @@ export class EsriLayerService {
     }
   }
 
-  public createPortalGroup(groupName: string, isVisible: boolean) : __esri.GroupLayer {
+  public removeGroup(groupName: string) : void {
+    const currentGroup = this.getPortalGroup(groupName);
+    if (currentGroup != null) {
+      this.mapService.mapView.map.layers.remove(currentGroup);
+    }
+  }
+
+  public removeQueryLayer(queryId: string) : void {
+    if (this.queryOnlyLayers.has(queryId)) {
+      const layer = this.queryOnlyLayers.get(queryId);
+      this.queryOnlyLayers.delete(queryId);
+      this.mapService.mapView.whenLayerView(layer).then(() => this.removeLayer(layer));
+    }
+  }
+
+  public createPortalGroup(groupName: string, isVisible: boolean, sortOrder: number) : __esri.GroupLayer {
     if (this.portalGroupExists(groupName)) return this.getPortalGroup(groupName);
     const group = new GroupLayer({
       id: `portal-${groupName}`,
@@ -148,7 +190,7 @@ export class EsriLayerService {
       listMode: 'show',
       visible: isVisible
     });
-    this.mapService.mapView.map.layers.unshift(group);
+    this.mapService.mapView.map.layers.add(group, sortOrder);
     return group;
   }
 
@@ -171,30 +213,29 @@ export class EsriLayerService {
     const isUrlRequest = portalId.toLowerCase().startsWith('http');
     const loader: any = isUrlRequest ? Layer.fromArcGISServerUrl : Layer.fromPortalItem;
     const itemLoadSpec = isUrlRequest ? { url: portalId } : { portalItem: {id: portalId } };
-    return new Observable(subject => this.zone.runOutsideAngular(() => {
+    return new Observable(subject => {
         loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
-          currentLayer.visible = defaultVisibility;
-          currentLayer.title = layerTitle;
-          currentLayer.minScale = minScale;
-          if (additionalLayerAttributes != null) {
-            Object.entries(additionalLayerAttributes).forEach(([key, value]) => {
-              currentLayer[key] = value;
-            });
-          }
+          const layerUpdater: Partial<__esri.FeatureLayer> = {
+            visible: defaultVisibility,
+            title: layerTitle,
+            minScale: minScale,
+            ...additionalLayerAttributes
+          };
+          currentLayer.set(layerUpdater);
+          subject.next(currentLayer);
           currentLayer.when(() => {
-            this.zone.run(() => {
-              subject.complete();
-            });
+            subject.complete();
           }, reason => {
-            this.zone.run(() => subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason }));
+            subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason });
           });
-          this.zone.run(() => subject.next(currentLayer));
         }).catch(reason => {
-          this.zone.run(() => subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason }));
+          subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason });
         });
-      })
+      }
     );
   }
+
+
 
   public coordinateToGraphic(coordinate: UniversalCoordinates,  symbol?: MapSymbols) : __esri.Graphic {
     const point: __esri.Point = new Point();
@@ -223,31 +264,18 @@ export class EsriLayerService {
                            addToLegend: boolean = false, legendHeader: string = null) : __esri.FeatureLayer {
     if (sourceGraphics.length === 0) return null;
     const group = this.createClientGroup(groupName, true);
-    const layerType = sourceGraphics[0].geometry.type;
     const popupEnabled = popupTemplate != null;
     const labelsVisible = labelInfo != null && labelInfo.length > 0;
-
-    let fields: any[];
-    if (sourceGraphics[0].attributes == null) {
-      fields = [];
-    } else {
-      fields = Object.keys(sourceGraphics[0].attributes).map(k => {
-        return { name: k, alias: k, type: k === oidFieldName ? 'oid' : 'string' };
-      });
-    }
-    const layer = new FeatureLayer({
-      source: sourceGraphics,
-      objectIdField: oidFieldName,
-      fields: fields,
-      geometryType: layerType,
-      spatialReference: { wkid: 4326 },
+    const layer = this.domainFactory.createFeatureLayer(sourceGraphics, oidFieldName);
+    const props = {
       popupEnabled: popupEnabled,
       popupTemplate: popupTemplate,
       title: layerName,
       renderer: renderer,
       labelsVisible: labelsVisible,
       labelingInfo: labelInfo,
-    });
+    };
+    layer.set(props);
 
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
     group.layers.add(layer);
@@ -255,28 +283,6 @@ export class EsriLayerService {
       layer.when(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: legendHeader })));
     }
     return layer;
-  }
-
-  public createDataSet(sourceGraphics: __esri.Graphic[], objectIdFieldName: string = 'OBJECTID') : __esri.FeatureSet {
-    if (sourceGraphics.length === 0) return null;
-    const fields = [];
-    if (sourceGraphics[0].attributes != null) {
-      const newFields = Object.keys(sourceGraphics[0].attributes)
-        .filter(k => k !== objectIdFieldName)
-        .map(k => ({ name: k, alias: k, type: getSimpleType(sourceGraphics[0].attributes[k]) }));
-      fields.push(...newFields);
-    }
-    fields.push({ name: objectIdFieldName, alias: 'OBJECTID', type: 'esriFieldTypeOID' });
-    return new FeatureSet({
-      features: sourceGraphics,
-      fields: fields
-    });
-  }
-
-  public getAllLayerNames() : string[] {
-    const currentMapView = this.mapService.mapView;
-    if (currentMapView == null) return [];
-    return currentMapView.map.allLayers.map(l => l.title).toArray();
   }
 
   public setAllPopupStates(popupsEnabled: boolean) : void {
@@ -293,14 +299,10 @@ export class EsriLayerService {
     Object.entries(layerExpressions).forEach(([layerId, options]) => {
       const currentLayer = this.getPortalLayerById(layerId);
       if (currentLayer != null) {
-        currentLayer.labelingInfo = this.createLabelConfig(currentLayer, labelConfig.size, options);
+        currentLayer.labelingInfo = EsriLayerService.createLabelConfig(currentLayer, labelConfig.size, options);
         currentLayer.labelsVisible = labelConfig.enabled;
       }
     });
-    const siteLayer = this.getFeatureLayer('Project Sites');
-    if (siteLayer != null) {
-      siteLayer.labelsVisible = labelConfig.siteEnabled;
-    }
   }
 
   addLayerToLegend(layerUniqueId: string, title: string) : void {
@@ -309,9 +311,12 @@ export class EsriLayerService {
 
     if (legendRef != null) {
       if (this.legendShimmed === false) {
+        legendRef['nameMap'] = this.layerNamesShowingInLegend;
         legendRef['legacyRender'] = legendRef.scheduleRender;
         legendRef.scheduleRender = (...args) => {
           legendRef.activeLayerInfos.forEach(ali => {
+            const currentId = ali.layer.id;
+            if (legendRef['nameMap'].has(currentId)) ali.title = legendRef['nameMap'].get(currentId);
             ali.legendElements.forEach(le => le.infos = le.infos.filter((si: any) => si.label != null && si.label !== '' && si.label !== 'others'));
             ali.legendElements = ali.legendElements.filter(le => le.infos.length > 0);
           });
@@ -319,11 +324,11 @@ export class EsriLayerService {
         };
         this.legendShimmed = true;
       }
-      if (layer != null && !this.layersShowingInLegend.has(layerUniqueId)) {
+      if (layer != null && !this.layerNamesShowingInLegend.has(layerUniqueId)) {
         // can't use .push() here - a new array instance is needed to trigger the
         // internal mechanics to convert these to activeLayerInfos
         legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer } ];
-        this.layersShowingInLegend.add(layerUniqueId);
+        this.layerNamesShowingInLegend.set(layerUniqueId, title);
       }
     }
   }
@@ -332,33 +337,8 @@ export class EsriLayerService {
     const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     if (legendRef != null) {
       legendRef.layerInfos = legendRef.layerInfos.filter(li => li.layer.id !== layerUniqueId);
-      this.layersShowingInLegend.delete(layerUniqueId);
+      this.layerNamesShowingInLegend.delete(layerUniqueId);
     }
-  }
-
-  private createLabelConfig(layer: __esri.FeatureLayer, fontSize: number, layerOptions: EsriLabelLayerOptions) : __esri.LabelClass[] {
-    if (layerOptions == null) return null;
-    const textSymbol: __esri.TextSymbol = new TextSymbol();
-    const offset = layerOptions.fontSizeOffset || 0;
-    const font = new Font({ family: 'arial', size: (fontSize + offset), weight: 'bold' });
-    if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol) && EsriUtils.symbolIsSimpleLine(layer.renderer.symbol.outline)) {
-      textSymbol.color = layer.renderer.symbol.outline.color;
-    } else {
-      textSymbol.color = new Color({a: 1, r: 255, g: 255, b: 255});
-    }
-    if (layerOptions.colorOverride != null) {
-      textSymbol.color = new Color(layerOptions.colorOverride);
-    }
-    textSymbol.haloColor = new Color({ r: 255, g: 255, b: 255, a: 1 });
-    textSymbol.haloSize = 1;
-    textSymbol.font = font;
-    return [new LabelClass({
-      labelPlacement: 'always-horizontal',
-      labelExpressionInfo: {
-        expression: layerOptions.expression
-      },
-      symbol: textSymbol
-    })];
   }
 
   public enableLatLongTool(action: CopyCoordinatesToClipboard) : void {
@@ -372,11 +352,24 @@ export class EsriLayerService {
   }
 
   layerIsVisibleOnMap(layerId: string) : boolean {
-    const layer = this.getPortalLayerById(layerId);
-    if (layer == null) {
+    const layers = this.getPortalLayersById(layerId);
+    if (layers == null || layers.length === 0) {
       return false;
     } else {
-      return layer.visible && (this.mapService.mapView.scale <= layer.minScale);
+      return layers.some(layer => layer.visible && (this.mapService.mapView.scale <= layer.minScale));
     }
+  }
+
+  private createQueryLayer(portalId: string, queryId: string) : __esri.FeatureLayer {
+    const result = new FeatureLayer({
+      portalItem: {
+        id: portalId
+      },
+      visible: false,
+      title: `Query Layer - ${portalId}`
+    });
+    this.queryOnlyLayers.set(queryId, result);
+    this.mapService.mapView.map.add(result);
+    return result;
   }
 }

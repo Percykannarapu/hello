@@ -2,17 +2,10 @@
 // The build system defaults to the dev environment which uses `environment.ts`, but if you do
 // `ng build -c prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `angular.json`
-// in the projects->esri-angular-first-look->architect->build->configurations section.
+// in the projects->impower->architect->build->configurations section.
 
 import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
-/*
- * In development mode, to ignore zone related error stack frames such as
- * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
- * import the following file, but please comment it out in production mode
- * because it will have performance impact when throw error
- */
-import 'zone.js/dist/zone-error'; // Included with Angular CLI.
 
 export const environment = {
   production: false,
@@ -46,9 +39,9 @@ export class EnvironmentData {
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
 
   public static esri = {
-    portalServer:  'https://vallomimpor1vm.val.vlss.local/',
-    userName: 'impower5',
-    password: 'impower123!'
+    portalServer:  process.env.ESRI_PORTAL_SERVER,
+    userName: process.env.ESRI_USERNAME,
+    password: process.env.ESRI_PASSWORD
   };
 
   public static oAuth = {

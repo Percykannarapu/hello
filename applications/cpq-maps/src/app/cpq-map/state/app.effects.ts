@@ -73,7 +73,7 @@ export class AppEffects {
   @Effect({ dispatch: false })
   navigate$ = this.actions$.pipe(
     ofType(SharedActionTypes.NavigateToReviewPage),
-    map(action => this.navigateService.getreviewPageUrl(action.payload.rfpId, action.payload.mediaPlanGroupNumber)),
+    map(action => this.navigateService.getReviewPageUrl(action.payload.rfpId, action.payload.mediaPlanGroupNumber)),
     tap(url => this.navigateService.navigateTo(url))
   );
 

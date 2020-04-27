@@ -2,10 +2,10 @@ import { ElementRef, Inject, Injectable, NgZone } from '@angular/core';
 import { calculateStatistics, expandRange, Statistics, UniversalCoordinates } from '@val/common';
 import Basemap from 'esri/Basemap';
 import { Point, Polygon } from 'esri/geometry';
-import EsriMap from 'esri/Map';
-import MapView from 'esri/views/MapView';
 import Circle from 'esri/geometry/Circle';
 import Graphic from 'esri/Graphic';
+import EsriMap from 'esri/Map';
+import MapView from 'esri/views/MapView';
 import DistanceMeasurement2D from 'esri/widgets/DistanceMeasurement2D';
 import Expand from 'esri/widgets/Expand';
 import { Observable } from 'rxjs';
@@ -217,5 +217,9 @@ export class EsriMapService {
     const graphic: Graphic = new Graphic();
     graphic.geometry = circle;
     return graphic;
+  }
+
+  public clear() : void {
+    this.mapView.map.layers.removeAll();
   }
 }

@@ -1,10 +1,10 @@
-import { Observable } from 'rxjs';
-import { distinctUntilChanged, map, retryWhen, scan } from 'rxjs/operators';
 import { Action } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import { distinctUntilChanged, filter, map, pairwise, retryWhen, scan, startWith } from 'rxjs/operators';
 
-export const filterArray = <T>(filter: (value: T, index: number, array: T[]) => boolean) => (source$: Observable<T[]>) : Observable<T[]> => {
+export const filterArray = <T>(callbackFn: (value: T, index: number, array: T[]) => boolean) => (source$: Observable<T[]>) : Observable<T[]> => {
   return source$.pipe(
-    map(items => items.filter(filter))
+    map(items => items.filter(callbackFn))
   );
 };
 
@@ -61,5 +61,19 @@ export function toPayload<T, U>(selector?: (payload: T) => U) : (source$: Observ
   return source$ => source$.pipe(
     map(action => action.payload),
     map(payload => selector != null ? selector(payload) : payload)
+  );
+}
+
+/**
+ * Filters an rxjs pipeline to prevent the flow of events until a non-zero value drops back down to 0.
+ * If the value starts at zero it will still filter until the value leaves and then returns.
+ * Will only fire once when the value reaches zero. To fire again, the value must leave and return again.
+ */
+export function skipUntilNonZeroBecomesZero() : (source$: Observable<number>) => Observable<number> {
+  return source$ => source$.pipe(
+    startWith(0),
+    pairwise(),
+    filter(([prev, curr]) => prev !== 0 && curr === 0),
+    map(([, curr]) => curr)
   );
 }
