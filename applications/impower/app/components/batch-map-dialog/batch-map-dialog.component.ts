@@ -194,7 +194,6 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   onSubmit(dialogFields: any) {
-    const data = JSON.stringify(dialogFields);
     this.input['title'] = (dialogFields['titleInput'] === null) ? this.currentProjectName : dialogFields['titleInput'];
     this.input['subTitle'] = dialogFields['subTitleInput'];
     this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
@@ -217,7 +216,6 @@ export class BatchMapDialogComponent implements OnInit {
 
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
       const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
-      this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     } else if (dialogFields.sitesPerPage === 'oneSitePerPage') {
       const formData: BatchMapPayload = {
@@ -244,7 +242,6 @@ export class BatchMapDialogComponent implements OnInit {
           }
         ]
       };
-      this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
       if (this.getActiveSites().length > 600){
          this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
       }
@@ -277,7 +274,6 @@ export class BatchMapDialogComponent implements OnInit {
           }
         ]
       };
-      this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
       if (groupByExtended(this.getActiveSites(), l => l[dialogFields.sitesByGroup]).size > 600){
         this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
       }else
@@ -308,6 +304,8 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   closeDialog(){
+    const data = JSON.stringify(this.batchMapForm.value);
+    this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
     this.store$.dispatch(new CloseBatchMapDialog());
   }
 
