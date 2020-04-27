@@ -115,6 +115,17 @@ export class BatchMapDialogComponent implements OnInit {
         subSubTitleInput: savedFormData.subSubTitleInput,
         enableTradeAreaShading: savedFormData.enableTradeAreaShading
       });
+      if (savedFormData.fitTo == '') {
+        this.tradeAreaService.storeObservable.subscribe((tas) => {
+          if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
+            this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
+            this.disableTradeArea = false;
+          } else {
+            this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos});
+            this.disableTradeArea = true;
+          }
+        });
+      }
     } else {
       this.batchMapForm.patchValue({
         title: 'user-defined',
@@ -132,6 +143,15 @@ export class BatchMapDialogComponent implements OnInit {
         subTitleInput: '',
         subSubTitleInput: '',
         enableTradeAreaShading: false
+      });
+      this.tradeAreaService.storeObservable.subscribe((tas) => {
+        if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
+          this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
+          this.disableTradeArea = false;
+        } else {
+          this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos});
+          this.disableTradeArea = true;
+        }
       });
     }
   }
