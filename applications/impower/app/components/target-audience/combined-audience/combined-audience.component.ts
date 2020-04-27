@@ -33,7 +33,7 @@ export class CombinedAudienceComponent implements OnInit {
   allAudiences: Audience[];
   currentAudience: any;
   showError: boolean;
-  displayError: boolean;
+  isDuplicateName: boolean;
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
@@ -234,10 +234,9 @@ export class CombinedAudienceComponent implements OnInit {
 
       }
     }
-    this.audienceForm.get('audienceName').valueChanges.subscribe(v => {
-    this.displayError =  ( v != null) && (v.errors != null || varNames.has(v));  
-    });
-    return (result || this.displayError || this.selectedColumns == null || this.selectedColumns.length === 0);
+    const audName = this.audienceForm.get('audienceName');
+    this.isDuplicateName = varNames.has(audName.value);  
+    return (result || this.isDuplicateName || audName.status === 'INVALID' || this.selectedColumns == null || this.selectedColumns.length === 0);
 
   }
 }
