@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { groupByExtended } from '@val/common';
+import { CommonSort, groupByExtended } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
@@ -155,10 +155,15 @@ export class BatchMapService {
   }
 
   showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    const result = { siteNum: project.getImpGeofootprintLocations()[project.getImpGeofootprintLocations().length - 1].locationNumber, isLastSite: true };
-    if (project.getImpGeofootprintGeos().length > 100)
-      params.fitTo = FitTo.TA; //if we have too many geos we need to fit the map to the TA rings
-    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, project.getImpGeofootprintLocations().map(l => l.locationNumber), project).pipe(
+    const currentLocationNumbers = project.getImpGeofootprintLocations().reduce((a, c) => {
+      if (c.isActive) a.push(c.locationNumber);
+      return a;
+    }, [] as string[]);
+    currentLocationNumbers.sort(CommonSort.StringsAsNumbers);
+    const currentGeos = project.getImpGeofootprintGeos().filter(geo => geo.impGeofootprintLocation.isActive);
+    const result = { siteNum: currentLocationNumbers[currentLocationNumbers.length - 1], isLastSite: true };
+    if (currentGeos.length > 100) params.fitTo = FitTo.TA; //if we have too many geos we need to fit the map to the TA rings
+    return this.setMapLocation(project.methAnalysis, currentGeos, params, currentLocationNumbers, project).pipe(
       map(() => result)
     );
   }
