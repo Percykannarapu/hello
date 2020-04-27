@@ -31,7 +31,7 @@ export class SelectedAudiencesComponent implements OnInit {
   private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   public audienceCount: number = 0;
 
-  private combineAudiences: Audience[] = [];
+  private combineAudiences;
   constructor(private varService: TargetAudienceService,
               private appStateService: AppStateService,
               private confirmationService: ConfirmationService,
@@ -62,10 +62,9 @@ export class SelectedAudiencesComponent implements OnInit {
 
     this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null ),
-      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined')),
+      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted')),
     ).subscribe(audiences => {
-      this.combineAudiences = [];
-      this.combineAudiences.push(...audiences);
+      this.combineAudiences =  Array.from(new Set(audiences));
     });
   }
 
@@ -79,7 +78,7 @@ export class SelectedAudiencesComponent implements OnInit {
 
   public closeDialog(){
     this.audiences$.pipe(
-         map(all => all.filter(a => a.audienceIdentifier === this.audienceUnselect.audienceIdentifier)),
+         map(all => all.filter(a => this.audienceUnselect != null && a.audienceIdentifier === this.audienceUnselect.audienceIdentifier)),
          take(1),
      ).subscribe(unMapped => unMapped.forEach(a => {
       a.exportNationally = false;
@@ -118,7 +117,7 @@ export class SelectedAudiencesComponent implements OnInit {
 
     if (this.nationalAudiencesBS$.value.length > 5) {
       this.audienceUnselect = audience;
- 	  this.dialogboxHeader = 'Selected Audiences Error';
+      this.dialogboxHeader = 'Selected Audiences Error';
       this.dialogboxWarningmsg = 'Only 5 variables can be selected at one time for the National export.';
       this.showDialog = true;
     }
@@ -129,10 +128,11 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onRemove(audience) {
-	const deleteAudience = this.combineAudiences.filter(combineAud => audience.audienceSourceType !== 'Combined' && combineAud.combinedAudiences.includes(audience.audienceIdentifier));
-    if (deleteAudience.length > 0){
+  const deleteAudience = this.combineAudiences.filter(combineAud => combineAud.audienceSourceType !== 'Custom' && (combineAud.combinedAudiences.includes(audience.audienceIdentifier) || 
+                                                      combineAud.compositeSource.includes(audience.audienceIdentifier)));
+  if (deleteAudience.length > 0){
       this.dialogboxHeader = 'Invalid Delete!';
-      this.dialogboxWarningmsg = 'Audiences used to create a Combined Audience can not be deleted.';
+      this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted Audience can not be deleted.';
       this.showDialog = true;
     }
     else{
