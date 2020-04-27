@@ -562,7 +562,8 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Site Address',                 row: this.exportVarStreetAddress});
             exportColumns.push({ header: 'Market',                       row: (state, data) => (data.impGeofootprintLocation.marketName) ? data.impGeofootprintLocation.marketName : 
                                                                      data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue});
-            exportColumns.push({ header: 'Market Code',                  row: (state, data) => data.impGeofootprintLocation.marketCode});
+            exportColumns.push({ header: 'Market Code',                  row: (state, data) => (data.impGeofootprintLocation.marketCode) ? data.impGeofootprintLocation.marketCode : 
+                                                                     data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0].attributeValue});
             exportColumns.push({ header: 'Group Name',                   row: (state, data) => data.impGeofootprintLocation.groupName});
             exportColumns.push({ header: 'Passes Filter',                row: 1});
             exportColumns.push({ header: 'Distance',                     row: (state, data) => +data.distance.toFixed(2)});
