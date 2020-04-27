@@ -95,7 +95,7 @@ export class BatchMapDialogComponent implements OnInit {
   onLoadFormData() {
     let projectPrefValue: string;
     const projectPref = this.appProjectPrefService.getPref('batchMapPayload');
-    if (projectPref != null) {
+    if (projectPref != null && projectPref != undefined) {
       projectPrefValue = (projectPref.largeVal != null) ? projectPref.largeVal : projectPref.val;
       const savedFormData = JSON.parse(projectPrefValue);
       this.batchMapForm.patchValue({
@@ -114,6 +114,24 @@ export class BatchMapDialogComponent implements OnInit {
         subTitleInput: savedFormData.subTitleInput,
         subSubTitleInput: savedFormData.subSubTitleInput,
         enableTradeAreaShading: savedFormData.enableTradeAreaShading
+      });
+    } else {
+      this.batchMapForm.patchValue({
+        title: 'user-defined',
+        subTitle: 'user-defined',
+        subSubTitle: 'user-defined',
+        deduplicated: true,
+        sitesPerPage: 'oneSitePerPage',
+        sitesByGroup: 'locationNumber',
+        neighboringSites: 'include',
+        fitTo: '',
+        buffer: 10,
+        pageSettingsControl: BatchMapSizes.letter,
+        layout: 'landscape',
+        titleInput: '',
+        subTitleInput: '',
+        subSubTitleInput: '',
+        enableTradeAreaShading: false
       });
     }
   }
