@@ -63,12 +63,9 @@ export class BatchMapService {
   requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload, project: ImpProject) : Observable<any> {
     if (payload.calls[0].args['printJobConfiguration'] != null) {
       const requestedSiteIds = new Set(payload.calls[0].args['printJobConfiguration'].siteIds);
-      const siteIds: Set<string> = new Set(project.getImpGeofootprintLocations().filter(l => l.clientLocationTypeCode === ImpClientLocationTypeCodes.Site).map(l => l.locationNumber));
       project.getImpGeofootprintLocations().forEach( l => {
       if ((l.clientLocationTypeCode === 'Failed Site' || !l.isActive) && requestedSiteIds.has(l.locationNumber))
         requestedSiteIds.delete(l.locationNumber); //we don't want to print failed sites, competitors, or inactive sites
-      if (l.clientLocationTypeCode === ImpClientLocationTypeCodes.Competitor && !siteIds.has(l.locationNumber))
-        requestedSiteIds.delete(l.locationNumber); //print sites with locationMubers that are the same as competitors
       });
       payload.calls[0].args['printJobConfiguration'].siteIds = Array.from(requestedSiteIds);
     }
