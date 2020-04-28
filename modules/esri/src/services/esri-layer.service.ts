@@ -126,6 +126,7 @@ export class EsriLayerService {
       if (this.queryOnlyLayers.has(queryId)) {
         result = this.queryOnlyLayers.get(queryId);
       } else {
+        this.logger.debug.log('Creating layer for transaction', queryId);
         result = this.createQueryLayer(portalId, queryId);
       }
     }
@@ -176,6 +177,7 @@ export class EsriLayerService {
 
   public removeQueryLayer(queryId: string) : void {
     if (this.queryOnlyLayers.has(queryId)) {
+      this.logger.debug.log('Removing layer for transaction', queryId);
       const layer = this.queryOnlyLayers.get(queryId);
       this.queryOnlyLayers.delete(queryId);
       this.mapService.mapView.whenLayerView(layer).then(() => this.removeLayer(layer));
