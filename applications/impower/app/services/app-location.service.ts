@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, groupByExtended, isConvertibleToNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, getUuid, groupByExtended, isConvertibleToNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -8,7 +8,7 @@ import geometryEngine from 'esri/geometry/geometryEngine';
 import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
-import { filter, map, mergeMap, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { filter, finalize, map, mergeMap, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { EnvironmentData } from '../../environments/environment';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../models/quad-tree';
@@ -856,10 +856,11 @@ export class AppLocationService {
     const queries: Observable<[ImpGeofootprintLocation, string][]>[] = [];
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
     const chunks = quadPartitionLocations(locations, analysisLevel);
+    const pipTransaction = getUuid();
     chunks.forEach(chunk => {
       if (chunk.length > 0) {
         const points = toUniversalCoordinates(chunk);
-        queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode']).pipe(
+        queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode'], pipTransaction).pipe(
           reduce((acc, result) => [...acc, ...result], [] as Graphic[]),
           map(graphics => {
             const result: [ImpGeofootprintLocation, string][] = [];
@@ -878,6 +879,7 @@ export class AppLocationService {
     });
     return merge(...queries, 4).pipe(
       reduce((acc, result) => [...acc, ...result], []),
+      finalize(() => this.esriLayerService.removeQueryLayer(pipTransaction)),
       map(result => {
         const resultMapByLocation: Map<ImpGeofootprintLocation, string> = new Map(result);
         this.logger.debug.log(`pip Response for ${analysisLevel} : ${Array.from(resultMapByLocation.values()).length} - total locations-${locations.length}`);

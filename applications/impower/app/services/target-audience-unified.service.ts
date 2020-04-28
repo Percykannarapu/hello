@@ -218,8 +218,7 @@ export class TargetAudienceUnifiedService {
     for (let r = 0; r < responseArray.length; r++){
       const responseVars = Object.keys(responseArray[r].variables);
       for (let i = 0; i < identifiers.length; i++){
-
-        if (responseVars[i] != null && identifiers.includes(responseVars[i].substring(0, 1))){
+        if (responseVars[i] != null && identifiers.includes(responseVars[i].substring(0, responseVars[i].indexOf('_', 1)))){
           validatedResponse.push ({ geocode: responseArray[r].geocode, id: identifiers[i], 
                               score: responseArray[r].variables[responseVars[i]] });
           }
