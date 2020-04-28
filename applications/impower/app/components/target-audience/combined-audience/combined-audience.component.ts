@@ -153,7 +153,6 @@ export class CombinedAudienceComponent implements OnInit {
     const currentSelections: Audience[] = [];
     const currentIndex = selectedAudience.selectedDataSet != null && selectedAudience.selectedDataSet.length > 0 && selectedAudience.selectedDataSet === 'NAT' ?
                         this.allIndexValues.find(a => a.label === 'National') : this.allIndexValues.find(a => a.label === selectedAudience.selectedDataSet);
-
     if (selectedAudience.combinedAudiences.length > 0){
       selectedAudience.combinedAudiences.forEach(previous => {
         this.allAudiences.forEach(current => {
@@ -170,12 +169,11 @@ export class CombinedAudienceComponent implements OnInit {
         });
       });
     }
-   
-    this.audienceForm = this.fb.group({
+    this.audienceForm.setValue({
       audienceName: selectedAudience.audienceName,
       audienceList: currentSelections,
+      selectedIndex: currentIndex != null ? currentIndex : null,
       audienceId: selectedAudience.audienceIdentifier,
-      selectedIndex: currentIndex
     });
     this.selectedColumns = currentSelections;
     this.selectedOperation = currentIndex;
@@ -225,17 +223,15 @@ export class CombinedAudienceComponent implements OnInit {
           this.selectedOperation = null;
           result = true;
         }
-
         if (audienceTypes.size > 1 || (audienceTypes.size === 1 && !audienceTypes.has('PERCENT'))) {
           this.selectedOperation = null;
           this.showError = true;
           result = true;
         }
-
       }
     }
     const audName = this.audienceForm.get('audienceName');
-    this.isDuplicateName = varNames.has(audName.value);  
+    this.isDuplicateName = !audName.untouched &&  varNames.has(audName.value);  
     return (result || this.isDuplicateName || audName.status === 'INVALID' || this.selectedColumns == null || this.selectedColumns.length === 0);
 
   }

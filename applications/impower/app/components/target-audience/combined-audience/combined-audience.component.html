@@ -15,20 +15,19 @@
       <span class="ui-inputgroup-addon" *ngIf="!hasErrors('audienceName')">&nbsp;</span>
      <label for="audienceName">New Audience Name (required)</label>
     </span>
-</div>
-<div class="ui-g-12 validation-messages">
-    <span *ngIf="isDuplicateName" >
-        <p>Duplicate audience name, please rename your variable</p>
+    <span class="validation-messages">
+        <span *ngIf="isDuplicateName" >
+            Duplicate audience name, please rename your variable
+            </span>
         </span>
 </div>
-
 <div class="ui-g-12"> 
 <p-listbox [options]="groupedAudiences$ | async" [(ngModel)]="selectedColumns" formControlName="audienceList" [listStyle]="{'max-height':'250px'}" [style]="{width:'40em'}" multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
-</div>
-<div class="ui-g-12 validation-messages">
+<span class="validation-messages">
     <span *ngIf="showError">
-        <p>Only percent variables can be combined, please fix your selection</p>
+        Only percent variables can be combined, please fix your selection
         </span>
+    </span>
 </div>
 <div class="ui-g-12">
     <span class="md-inputfield">
@@ -37,7 +36,7 @@
     </span>
   </div>
 <div class="ui-g-4" >
-      <button type="submit" pButton label="Create Variable" [disabled]= "isDisabled()" (click)="submitAudiences(audienceForm.value)" ></button>
+      <button type="button" pButton label="Create Variable" [disabled]= "isDisabled()" (click)="submitAudiences(audienceForm.value)" ></button>
 </div>
 <div *ngIf="hasAudienceSelections" class="ui-g-8">
     <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
