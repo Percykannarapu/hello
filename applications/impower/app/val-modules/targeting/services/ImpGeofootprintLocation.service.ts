@@ -39,6 +39,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
 {
    public  removes: ImpGeofootprintLocation[];
 
+   private isMarket: boolean = true;
+
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
                private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
@@ -341,6 +343,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, project: ImpProject, isDigital?: boolean, filter?: (loc: ImpGeofootprintLocation) => boolean, exportType?: string)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
+      this.isMarket = this.get().some(loc => loc.marketName !== '' && loc.marketCode !== '');
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
 
       if (filter == null) {
@@ -433,8 +436,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             exportColumns.push({ header: 'Block Group',        row: (state, data) => null});
             exportColumns.push({ header: 'Unit',               row: (state, data) => null});
             exportColumns.push({ header: 'ZIP4',               row: (state, data) => state.getGeocodeAs(data.locZip, false, false, false, true)});
-            exportColumns.push({ header: 'Market',             row: (state, data) => (data.marketName) ? data.marketName : state.exportHomeGeoAttribute(data, 'DMA Name')});
-            exportColumns.push({ header: 'Market Code',        row: (state, data) => (data.marketCode) ? data.marketCode : state.exportHomeGeoAttribute(data, 'DMA')});
+            exportColumns.push({ header: 'Market',             row: (state, data) => (this.isMarket) ? data.marketName : state.exportHomeGeoAttribute(data, 'DMA Name')});
+            exportColumns.push({ header: 'Market Code',        row: (state, data) => (this.isMarket) ? data.marketCode : state.exportHomeGeoAttribute(data, 'DMA')});
             exportColumns.push({ header: 'Map Group',          row: (state, data) => null});
             exportColumns.push({ header: 'STDLINXSCD',         row: (state, data) => null});
             exportColumns.push({ header: 'SWklyVol',           row: (state, data) => null});
