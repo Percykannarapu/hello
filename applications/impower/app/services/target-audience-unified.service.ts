@@ -39,9 +39,6 @@ export interface VarList {
 
 export interface UnifiedFuseResponse {
   geocode: string;
-  // dmaScore: string;
-  // nationalScore: string;
-  // digCategoryId: string;
   variables: Map<string, string>;
 }
 
@@ -56,7 +53,6 @@ export class TargetAudienceUnifiedService {
 
   public selectedAudiences$ = new BehaviorSubject<Audience[]>([]);
   private audienceSourceTypes = ['combined', 'converted', 'combined/converted'] ;
-  // private rawAudienceData: Map<string, string> = new Map<string, string>();
 
   constructor(private config: AppConfig,
     private restService: RestDataService,
@@ -188,12 +184,12 @@ export class TargetAudienceUnifiedService {
       chunks: this.config.geoInfoQueryChunks,
       vars: requestVars
     };
-    this.logger.info.log('unified request payload::', inputData);
+    // this.logger.info.log('unified request payload::', inputData);
 
     if (sourceIDs.size > 0) {
       return this.restService.post(serviceURL, [inputData])
         .pipe(
-          tap(response => this.logger.info.log('unified response payload::', response)),
+          // tap(response => this.logger.info.log('unified response payload::', response)),
           map(response => this.validateFuseResponse(response,  identifiers.map(id => id.toString()).sort(), isForShading)),
           tap(response => (response)),
           catchError(() => {
@@ -207,30 +203,27 @@ export class TargetAudienceUnifiedService {
           })
         );
     }
-
     this.logger.warn.log('getAllVars had no ids to process.');
     return EMPTY;
   }
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
     const validatedResponse: UnifiedBulkResponse[] = [];
-    const responseArray: UnifiedFuseResponse[] = response.payload != null ? response.payload.rows : [];
-    const emptyAudiences: string[] = [];
-    for (let r = 0; r < responseArray.length; r++){
-      const responseVars = Object.keys(responseArray[r].variables);
-      for (let i = 0; i < identifiers.length; i++){
-        if (responseVars[i] != null && identifiers.includes(responseVars[i].substring(0, responseVars[i].indexOf('_', 1)))){
-          validatedResponse.push ({ geocode: responseArray[r].geocode, id: identifiers[i], 
+    const responseArray: UnifiedFuseResponse[] = response.payload.rows;
+    if (responseArray.length > 0){
+      for (let r = 0; r < responseArray.length; r++){
+        const responseVars = Object.keys(responseArray[r].variables);
+        if (responseVars.length > 0){
+          for (let i = 0; i < identifiers.length; i++){
+            if (identifiers.includes(responseVars[i].substring(0, responseVars[i].indexOf('_', 1))))
+              validatedResponse.push ({ geocode: responseArray[r].geocode, id: identifiers[i], 
                               score: responseArray[r].variables[responseVars[i]] });
           }
-      }
-      // for (let i = 0; i < identifiers.length; i++)
-      // if (isForShading[i] === false && response.payload.counts.hasOwnProperty(identifiers[i]) && response.payload.counts[identifiers[i]] === 0)
-        // emptyAudiences.push((this.rawAudienceData.has(identifiers[i]) ? this.rawAudienceData.get(identifiers[i]).fielddescr : identifiers[i]));
-
-    // if (emptyAudiences.length > 0)
-      // this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
+        } 
+      } 
     }
-  return validatedResponse;
+   if (response.payload.issues != null && response.payload.issues.ERROR.length > 0)
+      this.store$.dispatch(new WarningNotification({ message: 'There was an error retrieving data for the audience variables', notificationTitle: 'Selected Audience Warning' }));
 
+    return validatedResponse;
   }
 }
