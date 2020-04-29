@@ -202,9 +202,6 @@ export class BatchMapDialogComponent implements OnInit {
     });
 
     this.showBatchMapDialog$ = this.store$.select(getBatchMapDialog);
-    this.showBatchMapDialog$.subscribe(() => {
-      this.batchMapForm.patchValue({titleInput: this.currentProjectName});
-    });
     this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
       this.currentProjectId = p.projectId;
       this.currentProjectName = p.projectName;
