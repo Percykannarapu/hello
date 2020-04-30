@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppLocationService } from 'app/services/app-location.service';
@@ -45,6 +45,7 @@ export class BatchMapDialogComponent implements OnInit {
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
+    private cd: ChangeDetectorRef,
     private appLocationService: AppLocationService,
     private stateService: AppStateService,
     private tradeAreaService: ImpGeofootprintTradeAreaService,
@@ -153,6 +154,11 @@ export class BatchMapDialogComponent implements OnInit {
           this.disableTradeArea = true;
         }
       });
+      this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
+        this.currentProjectName = p.projectName;
+        this.batchMapForm.patchValue({titleInput: this.currentProjectName});
+      });
+      this.cd.markForCheck();
     }
   }
 
