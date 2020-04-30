@@ -189,7 +189,7 @@ export class TargetAudienceUnifiedService {
     if (sourceIDs.size > 0) {
       return this.restService.post(serviceURL, [inputData])
         .pipe(
-          tap(response => this.logger.info.log('unified response payload::', response)),
+          // tap(response => this.logger.info.log('unified response payload::', response)),
           map(response => this.validateFuseResponse(response,  identifiers.map(id => id.toString()).sort(), isForShading)),
           tap(response => (response)),
           catchError(() => {
@@ -222,8 +222,10 @@ export class TargetAudienceUnifiedService {
         } 
       } 
     }
-   if (response.payload.issues != null && response.payload.issues.ERROR.length > 0)
+   if (response.payload.issues != null && response.payload.issues.ERROR.length > 0){
+    this.logger.error.log(response.payload.issues.ERROR);
     this.store$.dispatch(new WarningNotification({ message: 'There was an error retrieving data for one or more audience variables', notificationTitle: 'Selected Audience Warning' }));
+   }
 
     return validatedResponse;
   }
