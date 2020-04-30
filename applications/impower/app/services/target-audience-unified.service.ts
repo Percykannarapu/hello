@@ -189,7 +189,7 @@ export class TargetAudienceUnifiedService {
     if (sourceIDs.size > 0) {
       return this.restService.post(serviceURL, [inputData])
         .pipe(
-          // tap(response => this.logger.info.log('unified response payload::', response)),
+          tap(response => this.logger.info.log('unified response payload::', response)),
           map(response => this.validateFuseResponse(response,  identifiers.map(id => id.toString()).sort(), isForShading)),
           tap(response => (response)),
           catchError(() => {
@@ -209,6 +209,7 @@ export class TargetAudienceUnifiedService {
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
     const validatedResponse: UnifiedBulkResponse[] = [];
     const responseArray: UnifiedFuseResponse[] = response.payload.rows;
+
     if (responseArray.length > 0){
       for (let r = 0; r < responseArray.length; r++){
         const responseVars = Object.keys(responseArray[r].variables);
@@ -222,7 +223,7 @@ export class TargetAudienceUnifiedService {
       } 
     }
    if (response.payload.issues != null && response.payload.issues.ERROR.length > 0)
-      this.store$.dispatch(new WarningNotification({ message: 'There was an error retrieving data for the audience variables', notificationTitle: 'Selected Audience Warning' }));
+    this.store$.dispatch(new WarningNotification({ message: 'There was an error retrieving data for one or more audience variables', notificationTitle: 'Selected Audience Warning' }));
 
     return validatedResponse;
   }
