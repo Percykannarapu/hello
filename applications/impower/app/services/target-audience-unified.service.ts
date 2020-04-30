@@ -223,7 +223,7 @@ export class TargetAudienceUnifiedService {
       } 
     }
    if (response.payload.issues != null && response.payload.issues.ERROR.length > 0){
-    this.logger.error.log(response.payload.issues.ERROR);
+    this.logger.error.log(response.payload.issues);
     this.store$.dispatch(new WarningNotification({ message: 'There was an error retrieving data for one or more audience variables', notificationTitle: 'Selected Audience Warning' }));
    }
 
