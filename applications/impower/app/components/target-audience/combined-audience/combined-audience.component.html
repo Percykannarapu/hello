@@ -35,12 +35,11 @@
       <label for="selectedIndex">Select Index Base</label>
     </span>
   </div>
-<div class="ui-g-4" >
-      <button type="button" pButton label="Create Variable" [disabled]= "isDisabled()" (click)="submitAudiences(audienceForm.value)" ></button>
+<div class="ui-g-4">
+    <button type="button" pButton label="Create Variable" [disabled]= "isDisabled()" (click)="submitAudiences(audienceForm.value)" ></button>
 </div>
 <div *ngIf="hasAudienceSelections" class="ui-g-8">
     <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
-    
 </div> 
 </div>
 </form>
