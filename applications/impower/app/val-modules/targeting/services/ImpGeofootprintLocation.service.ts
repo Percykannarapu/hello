@@ -343,7 +343,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
    public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, project: ImpProject, isDigital?: boolean, filter?: (loc: ImpGeofootprintLocation) => boolean, exportType?: string)
    {
       console.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
-      this.isMarket = this.get().some(loc => loc.marketName !== '' || loc.marketCode !== '');
+      const siteType =  exportType && exportType.toLocaleUpperCase() === 'SITES' ? 'Site' : 'Competitor';
+      this.isMarket = this.get().some(loc => loc.clientLocationTypeCode === siteType &&  ( (loc.marketName != null && loc.marketName !== '') || (loc .marketCode != null && loc.marketCode !== '')));
       const exportColumns: ColumnDefinition<ImpGeofootprintLocation>[] = this.getExportFormat (exportFormat);
 
       if (filter == null) {
