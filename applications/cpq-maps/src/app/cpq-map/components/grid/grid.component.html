@@ -1,4 +1,4 @@
-<div style="height: 100%;">
+<div style="height: 100%;" class="cpq-grid">
     <p-table #dt scrollHeight="100%" selectionMode="multiple" columnResizeMode="expand" [filterDelay]="50"
              [value]="rows" [scrollable]="true" [globalFilterFields]="searchableColumnNames" (onFilter)="onFilter($event)"
              [resizableColumns]="true" [selection]="selectedRows" (onRowSelect)="onChangeRowSelection($event)"
@@ -22,7 +22,7 @@
             <th class="checkbox-column">
               <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>
-            <th *ngFor="let col of columns" [pSortableColumn]="col.field" [className]="gridStyle + '-' + col.field">
+            <th *ngFor="let col of columns" [pSortableColumn]="col.field" [className]="gridStyle + '-' + col.field" [title]="col.header">
               {{col.header}}
             </th>
           </tr>

@@ -8,29 +8,38 @@ import { Font, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, TextSymbo
 import SketchViewModel from 'esri/widgets/Sketch/SketchViewModel';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { AutoCastColor, FillPattern, LineStyle, MapSymbols, MarkerStyles } from '../models/esri-types';
+import { LoggingService } from './logging.service';
 
 @Injectable()
 export class EsriDomainFactoryService {
 
-  constructor(@Inject(EsriAppSettingsToken) private config: EsriAppSettings) { }
+  constructor(private logger: LoggingService,
+              @Inject(EsriAppSettingsToken) private config: EsriAppSettings) { }
 
-  createFeatureLayer(sourceGraphics: __esri.Graphic[], oidFieldName: string) : __esri.FeatureLayer {
+  createFeatureLayer(sourceGraphics: __esri.Graphic[], oidFieldName: string, fieldLookupInfo: Map<string, { label: string, visible?: boolean }>) : __esri.FeatureLayer {
     const layerType = sourceGraphics[0].geometry.type;
-    let fields: any[];
-    if (sourceGraphics[0].attributes == null) {
-      fields = [];
-    } else {
-      fields = Object.keys(sourceGraphics[0].attributes).map(k => {
-        return { name: k, alias: k, type: k === oidFieldName ? 'oid' : 'string' };
+    if (layerType === 'polygon' || layerType === 'point') {
+      let fields: __esri.FieldProperties[];
+      if (sourceGraphics[0].attributes == null) {
+        fields = [];
+      } else {
+        fields = Object.keys(sourceGraphics[0].attributes).map(k => ({
+          name: k,
+          alias: fieldLookupInfo != null && fieldLookupInfo.has(k) ? fieldLookupInfo.get(k).label : k,
+          type: k === oidFieldName ? 'oid' : 'string'
+        }));
+      }
+      return new FeatureLayer({
+        source: sourceGraphics,
+        objectIdField: oidFieldName,
+        fields: fields,
+        geometryType: layerType,
+        spatialReference: { wkid: 4326 }
       });
+    } else {
+      this.logger.error.log('Cannot generate a feature layer for geometry other than Point or Polygon');
+      return null;
     }
-    return new FeatureLayer({
-      source: sourceGraphics,
-      objectIdField: oidFieldName,
-      fields: fields,
-      geometryType: layerType,
-      spatialReference: { wkid: 4326 }
-    });
   }
 
   createExtent(xStats: { min: number, max: number }, yStats: { min: number, max: number }, minPadding?: number) : __esri.Extent {
@@ -100,7 +109,14 @@ export class EsriDomainFactoryService {
     return this.createExtendedLabelClass(color, [255, 255, 255, 1], expression, this.createFont(12));
   }
 
-  createExtendedLabelClass(color: AutoCastColor, haloColor: AutoCastColor, expression: string, font: __esri.Font, placement: string = 'below-center', additionalOptions?: __esri.LabelClassProperties) : __esri.LabelClass {
+  createExtendedLabelClass(
+    color: AutoCastColor,
+    haloColor: AutoCastColor,
+    expression: string,
+    font: __esri.Font,
+    placement: __esri.LabelClassProperties['labelPlacement'] = 'below-center',
+    additionalOptions?: __esri.LabelClassProperties
+  ) : __esri.LabelClass {
     const textSymbol: __esri.TextSymbol = new TextSymbol({
       haloSize: 1,
       haloColor,
@@ -129,7 +145,7 @@ export class EsriDomainFactoryService {
     });
   }
 
-  createUniqueValueRenderer(defaultSymbol: __esri.Symbol, infos: __esri.UniqueValueRendererUniqueValueInfos[], visualVariable?: __esri.ColorVariableProperties) : __esri.UniqueValueRenderer {
+  createUniqueValueRenderer(defaultSymbol: __esri.Symbol, infos: __esri.UniqueValueInfoProperties[], visualVariable?: __esri.ColorVariableProperties) : __esri.UniqueValueRenderer {
     return new UniqueValueRenderer({
       defaultSymbol,
       uniqueValueInfos: [...infos],
@@ -137,7 +153,7 @@ export class EsriDomainFactoryService {
     });
   }
 
-  createClassBreakRenderer(defaultSymbol: __esri.Symbol, classBreaks: __esri.ClassBreaksRendererClassBreakInfos[], visualVariable?: __esri.ColorVariableProperties) : __esri.ClassBreaksRenderer {
+  createClassBreakRenderer(defaultSymbol: __esri.Symbol, classBreaks: __esri.ClassBreakInfoProperties[], visualVariable?: __esri.ColorVariableProperties) : __esri.ClassBreaksRenderer {
     return new ClassBreaksRenderer({
       defaultSymbol,
       classBreakInfos: [...classBreaks],
@@ -145,10 +161,10 @@ export class EsriDomainFactoryService {
     });
   }
 
-  createDotDensityRenderer(outline: __esri.symbols.SimpleLineSymbol, referenceDotValue: number, attributes: __esri.AttributeColorInfoProperties[]) : __esri.DotDensityRenderer {
+  createDotDensityRenderer(outline: __esri.symbols.SimpleLineSymbol, dotValue: number, attributes: __esri.AttributeColorInfoProperties[]) : __esri.DotDensityRenderer {
     return new DotDensityRenderer({
       outline,
-      referenceDotValue,
+      dotValue,
       attributes
     });
   }

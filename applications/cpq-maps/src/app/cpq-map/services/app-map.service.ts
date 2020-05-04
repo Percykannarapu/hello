@@ -2,11 +2,9 @@ import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { simpleFlatten } from '@val/common';
 import { EsriLabelLayerOptions, EsriLayerService, EsriMapService, EsriService, EsriUtils, LayerDefinition, selectors } from '@val/esri';
-import Basemap from 'esri/Basemap';
 import Color from 'esri/Color';
-import projection from 'esri/geometry/projection';
 import BasemapGallery from 'esri/widgets/BasemapGallery';
-import LocalBasemapsSource from 'esri/widgets/BasemapGallery/support/LocalBasemapsSource';
+import PortalBasemapsSource from 'esri/widgets/BasemapGallery/support/PortalBasemapsSource';
 import Home from 'esri/widgets/Home';
 import LayerList from 'esri/widgets/LayerList';
 import ScaleBar from 'esri/widgets/ScaleBar';
@@ -37,18 +35,35 @@ export class AppMapService {
       finalize(() => {
         // setup the map widgets
         this.mapService.createBasicWidget(Home, { viewpoint: homeView });
-        this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search'});
-        this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List'});
-        const source = new LocalBasemapsSource({
-          basemaps: this.config.basemaps.map(b => Basemap.fromId(b))
+        this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'map-ui'});
+        this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'map-ui'});
+        const source = new PortalBasemapsSource({
+          filterFunction: (b: __esri.Basemap) => this.config.portalBaseMapNames.filter(pb => pb.originalName === b.portalItem.title).length > 0,
+          updateBasemapsCallback: (allBaseMaps: __esri.Basemap[]) => {
+            const baseMapSortOrder = this.config.portalBaseMapNames.map(n => n.originalName);
+            allBaseMaps.sort((a, b) => {
+              return baseMapSortOrder.indexOf(a.portalItem.title) - baseMapSortOrder.indexOf(b.portalItem.title);
+            });
+            allBaseMaps.forEach(basemap => {
+              const currentConfig = this.config.portalBaseMapNames.filter(n => n.originalName === basemap.portalItem.title)[0];
+              if (currentConfig != null && currentConfig.newName !== currentConfig.originalName) {
+                const handle = basemap.watch('loaded', (newValue, oldValue, propertyName, target) => {
+                  if (newValue) {
+                    (target as __esri.Basemap).title = currentConfig.newName;
+                    handle.remove();
+                  }
+                });
+              }
+            });
+            return allBaseMaps;
+          }
         });
-        this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery'});
+        this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'map-ui'}, 'bottom-left');
         this.mapService.createBasicWidget(ScaleBar, { unit: 'dual' }, 'bottom-left');
 
         const popup: __esri.Popup = this.mapService.mapView.popup;
         popup.highlightEnabled = false;
-        popup.actionsMenuEnabled = false;
-        projection.load();
+        popup.maxInlineActions = 2;
         this.esri.setPopupVisibility(true);
       })
     );
@@ -88,10 +103,14 @@ export class AppMapService {
     const group = this.layerService.getPortalGroup(groupName);
     const layerObservables: Observable<__esri.FeatureLayer>[] = [];
     layerDefinitions.forEach(layerDef => {
-      const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility, { popupEnabled: false }).pipe(
+      const attributes: __esri.FeatureLayerProperties = {
+        popupEnabled: false,
+        labelingInfo: []
+      };
+      const current = this.layerService.createPortalLayer(layerDef.id, layerDef.name, layerDef.minScale, layerDef.defaultVisibility, attributes).pipe(
         tap(newLayer => {
           if (EsriUtils.rendererIsSimple(newLayer.renderer)) {
-            const renderer: import ('esri/renderers/SimpleRenderer') = newLayer.renderer.clone();
+            const renderer: __esri.SimpleRenderer = newLayer.renderer.clone();
             renderer.symbol.color = new Color([128, 128, 128, 0.01]);
             newLayer.renderer = renderer;
           }

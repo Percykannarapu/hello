@@ -1,5 +1,4 @@
 import * as lang from 'esri/core/lang';
-import * as watchUtils from 'esri/core/watchUtils';
 import geometryEngine from 'esri/geometry/geometryEngine';
 import Polyline from 'esri/geometry/Polyline';
 import { Observable } from 'rxjs';
@@ -146,24 +145,6 @@ export class EsriUtils {
     });
   }
 
-  public static setupPausableWatch<T extends __esri.Accessor, K extends keyof T>(obj: T, propertyName: K, callback?: __esri.WatchCallback) : __esri.PausableWatchHandle {
-    return watchUtils.pausable(obj, propertyName as string, callback);
-  }
-
-  public static handleEvent<T>(instance: __esri.Evented, event: string) : Observable<T> {
-    return new Observable<T>(observer => {
-      let handle;
-      try {
-        handle = instance.on(event, e => observer.next(e));
-      } catch (err) {
-        observer.error(err);
-      }
-      return () => {
-        if (handle) handle.remove();
-      };
-    });
-  }
-
   public static handleMapViewEvent(mapView: __esri.MapView, event: 'resize') : Observable<__esri.MapViewResizeEvent>;
   public static handleMapViewEvent(mapView: __esri.MapView, event: 'layerview-create') : Observable<__esri.MapViewLayerviewCreateEvent>;
   public static handleMapViewEvent(mapView: __esri.MapView, event: 'layerview-destroy') : Observable<__esri.MapViewLayerviewDestroyEvent>;
@@ -194,14 +175,5 @@ export class EsriUtils {
         if (handle) handle.remove();
       };
     });
-  }
-
-  //NOTE: DO NOT add a reference to the Q library for this IPromise interface, it will interfere with Esri's IPromise interface definition
-  public static esriPromiseToEs6<T>(esriPromise: IPromise<T>) : Promise<T> {
-    return new Promise<T>((resolve, reject) => esriPromise.then(resolve, reject));
-  }
-
-  public static esriCallbackToEs6<T>(esriPromiseReturner: (callback?: Function, errback?: Function) => IPromise<any>) : Promise<T> {
-    return new Promise<T>((resolve, reject) => esriPromiseReturner(resolve, reject));
   }
 }

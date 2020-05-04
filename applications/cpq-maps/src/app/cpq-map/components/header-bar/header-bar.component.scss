@@ -1,0 +1,47 @@
+@import 'valassis-variables';
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: $textColor;
+  background-color: $bodyBgColor;
+  border: 1px solid $contentBorderColor;
+  font-size: 12px;
+  padding: 0.2em 1em;
+  .header-calc-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    justify-items: center;
+    align-items: center;
+    column-gap: 3em;
+    > span:nth-child(even) {
+      grid-row-start: 2;
+      font-weight: bold;
+    }
+  }
+  .header-names {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    column-gap: 1em;
+    margin-right: 1em;
+    > span:nth-child(odd) {
+      justify-self: end;
+    }
+    > span:nth-child(even) {
+      font-weight: bold;
+    }
+    > span:last-child {
+      grid-column-end: span 3;
+    }
+  }
+  .header-buttons {
+    font-size: 14px;
+    > * {
+      padding-left: 1em;
+    }
+  }
+}
+
+
+

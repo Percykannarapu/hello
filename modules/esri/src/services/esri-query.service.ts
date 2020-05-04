@@ -8,7 +8,6 @@ import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
-import { LoggingService } from './logging.service';
 
 type compositeData = string[] | number[] | __esri.PointProperties[];
 type pointInputs = __esri.PointProperties | __esri.PointProperties[];
@@ -22,8 +21,7 @@ export class EsriQueryService {
 
   constructor(@Inject(EsriAppSettingsToken) config: EsriAppSettings,
               private layerService: EsriLayerService,
-              private mapService: EsriMapService,
-              private logger: LoggingService) {
+              private mapService: EsriMapService) {
     EsriQueryService.config = config;
   }
 
@@ -205,10 +203,10 @@ export class EsriQueryService {
   }
 
   private executeFeatureQuery(layerId: string, query: __esri.Query, transactionId: string) : Observable<__esri.FeatureSet> {
-    return from(EsriUtils.esriPromiseToEs6(this.mapService.mapView.when())).pipe(
+    return from(this.mapService.mapView.when()).pipe(
       map(() => this.layerService.getQueryLayer(layerId, transactionId)),
-      switchMap(layer => layer == null ? EMPTY : EsriUtils.esriPromiseToEs6<__esri.FeatureLayer>(layer.when())),
-      switchMap(layer => EsriUtils.esriPromiseToEs6(layer.queryFeatures(query)))
+      switchMap(layer => layer == null ? EMPTY : layer.when() as Promise<__esri.FeatureLayer>),
+      switchMap(layer => layer.queryFeatures(query))
     );
   }
 

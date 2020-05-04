@@ -27,6 +27,7 @@ export interface BoundaryConfiguration {
   showPopups: boolean;
   hasPOBs: boolean;
   showHouseholdCounts: boolean;
+  isPrimarySelectableLayer: boolean;
   labelDefinition: LabelDefinition;
   pobLabelDefinition: LabelDefinition;
   hhcLabelDefinition: LabelDefinition;

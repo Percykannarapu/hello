@@ -11,7 +11,7 @@ import { GeneratePdf, NavigateToReviewPage, SaveMediaPlan } from '../../state/sh
 @Component({
   selector: 'cpq-header-bar',
   templateUrl: './header-bar.component.html',
-  styleUrls: ['./header-bar.component.css']
+  styleUrls: ['./header-bar.component.scss']
 })
 export class HeaderBarComponent implements OnInit, OnDestroy {
 

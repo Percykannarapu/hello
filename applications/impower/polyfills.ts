@@ -30,10 +30,7 @@
 (window as any).__zone_symbol__UNPATCHED_EVENTS = ['scroll', 'mousemove'];  // disable patch specified eventNames
 
 import 'zone.js/dist/zone'; // Included with Angular CLI.
-if (process.env.IS_LOCAL_BUILD) {
-  console.log('local build - filtering out zone errors');
-  import('zone.js/dist/zone-error');
-}
+import 'zone.js/dist/zone-error'; // patches the error class so that stack traces have zone stuff removed
 
 /***************************************************************************************************
  * APPLICATION IMPORTS

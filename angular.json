@@ -29,8 +29,8 @@
               ]
             },
             "styles": [
-              "node_modules/font-awesome/css/font-awesome.min.css",
-              "node_modules/primeng/resources/primeng.min.css",
+              "node_modules/font-awesome/css/font-awesome.css",
+              "node_modules/primeng/resources/primeng.css",
               "node_modules/primeicons/primeicons.css",
               "applications/impower/assets/layout/css/layout-valassis-blue.scss",
               "applications/impower/assets/theme/theme-valassis-blue.scss",
@@ -40,10 +40,20 @@
               "node_modules/jquery/dist/jquery.js",
               "node_modules/nanoscroller/bin/javascripts/jquery.nanoscroller.js",
               "node_modules/moment/min/moment.min.js"
-            ]
+            ],
+            "optimization": false,
+            "outputHashing": "none",
+            "sourceMap": true,
+            "extractCss": true,
+            "namedChunks": true,
+            "aot": false,
+            "extractLicenses": false,
+            "vendorChunk": true,
+            "buildOptimizer": false
           },
           "configurations": {
             "qa": {
+              "polyfills": "applications/impower/polyfills.deploy.ts",
               "optimization": true,
               "outputHashing": "bundles",
               "sourceMap": true,
@@ -61,6 +71,7 @@
               ]
             },
             "production": {
+              "polyfills": "applications/impower/polyfills.deploy.ts",
               "optimization": true,
               "outputHashing": "bundles",
               "sourceMap": false,
@@ -78,6 +89,7 @@
               ]
             },
             "prod-win": {
+              "polyfills": "applications/impower/polyfills.deploy.ts",
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
@@ -103,6 +115,7 @@
               ]
             },
             "dev-server": {
+              "polyfills": "applications/impower/polyfills.deploy.ts",
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": true,
@@ -215,7 +228,7 @@
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
             "customWebpackConfig": {
-              "path": "webpack.conf.js"
+              "path": "webpack-cpq.conf.js"
             },
             "outputPath": "dist/cpq-maps",
             "index": "applications/cpq-maps/src/index.html",
@@ -224,8 +237,10 @@
             "tsConfig": "applications/cpq-maps/tsconfig.app.json",
             "es5BrowserSupport": true,
             "assets": [
-              "applications/cpq-maps/src/favicon.ico",
-              "applications/cpq-maps/src/assets"
+              { "glob": "**/*",
+                "input": "applications/cpq-maps/src/assets/layout/fills",
+                "output": "/assets/"
+              }
             ],
             "stylePreprocessorOptions": {
               "includePaths": [
@@ -233,10 +248,23 @@
               ]
             },
             "styles": [
-              "applications/cpq-maps/src/assets/cpq-maps.css",
-              "applications/cpq-maps/src/styles.css"
+              "node_modules/font-awesome/css/font-awesome.css",
+              "node_modules/primeng/resources/primeng.css",
+              "node_modules/primeicons/primeicons.css",
+              "applications/cpq-maps/src/assets/layout/css/layout-valassis-blue.scss",
+              "applications/cpq-maps/src/assets/theme/theme-valassis-blue.scss",
+              "applications/cpq-maps/src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "optimization": false,
+            "outputHashing": "none",
+            "sourceMap": true,
+            "extractCss": true,
+            "namedChunks": true,
+            "aot": false,
+            "extractLicenses": false,
+            "vendorChunk": true,
+            "buildOptimizer": false
           },
           "configurations": {
             "production": {

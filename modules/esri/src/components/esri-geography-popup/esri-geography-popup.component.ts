@@ -1,6 +1,6 @@
 import { Component, DoCheck, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { TreeNode } from 'primeng/api';
-import { CustomPopUpDefinition } from '../../layer-configuration';
+import { PopupDefinition } from '../../models/boundary-configuration';
 
 interface AttributeFields {
   fieldName: string;
@@ -46,7 +46,7 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck {
   }
   @Input() attributes: { [key: string] : any };
   @Input() attributeFields: AttributeFields[];
-  @Input() customPopupDefinition: CustomPopUpDefinition;
+  @Input() customPopupDefinition: PopupDefinition;
 
   private dataChanged: boolean = false;
   private nodeExpandState: { [key: string] : boolean } = {};
@@ -122,7 +122,7 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck {
   }
 
   private getRootAttributeNodes() : TreeNode[] {
-    const rootNameSet = new Set<string>(this.customPopupDefinition.rootFields);
+    const rootNameSet = new Set<string>(this.customPopupDefinition.popupFields);
     const rootAttributes = this.attributeFields.filter(f => rootNameSet.has(f.fieldName));
     return this.buildAttributeNodes(rootAttributes);
   }
@@ -141,7 +141,7 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck {
   }
 
   private getStandardVariableTree() : TreeNode {
-    const standardNameSet = new Set<string>(this.customPopupDefinition.standardFields);
+    const standardNameSet = new Set<string>(this.customPopupDefinition.secondaryPopupFields);
     const standardAttributes = this.attributeFields.filter(f => standardNameSet.has(f.fieldName));
     return {
       data: {

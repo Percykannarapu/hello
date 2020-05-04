@@ -20,7 +20,7 @@ export class EsriPrintingService {
       } ;
       const template = new PrintTemplate({
           format: 'pdf',
-          layout: 'imPower_Print_Layout',
+          layout: 'imPower_Print_Layout' as any,
           layoutOptions: currentLayout ,
          });
 

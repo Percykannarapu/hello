@@ -1,28 +1,32 @@
-<div #appRoot class="app-root">
+<div class="app-root">
+  <div #appRoot>
 
-  <cpq-header-bar></cpq-header-bar>
+    <cpq-header-bar></cpq-header-bar>
 
-  <div class="app-content" [class.small]="gridIsSmall" [class.large]="gridIsLarge">
-    <cpq-grid class="grid-container" [smallSizeTable]="gridIsSmall" *ngIf="gridIsVisible"></cpq-grid>
+    <div class="app-content" [class.small]="gridIsSmall" [class.large]="gridIsLarge">
+      <cpq-grid class="grid-container" [smallSizeTable]="gridIsSmall" *ngIf="gridIsVisible"></cpq-grid>
 
-    <val-esri-map-panel class="map-container" [mapHeight]="700" baseMap="streets-vector" [showLabelConfigButton]="true" [showSelectionButtons]="false">
-      <additional-toolbar-group>
-        <div class="additional-toolbar-container">
-          <p-button icon="pi pi-angle-left" label="" (click)="sideNavVisible = !sideNavVisible"></p-button>
-        </div>
-      </additional-toolbar-group>
-    </val-esri-map-panel>
+      <val-esri-map-panel class="map-container" baseMap="streets-vector" [mapHeight]="700"
+                          [showLabelConfigButton]="true"
+                          [toolbarButtons]="toolbarButtons">
+        <additional-toolbar-group>
+          <div class="additional-toolbar-container">
+            <p-button icon="pi pi-angle-left" label="" (click)="sideNavVisible = !sideNavVisible"></p-button>
+          </div>
+        </additional-toolbar-group>
+      </val-esri-map-panel>
+    </div>
+
   </div>
 
+  <p-sidebar [appendTo]="appRoot" [(visible)]="sideNavVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
+    <div class="app-sidenav-content">
+      <cpq-map-controls (onGridSizeChange)="gridSize = $event"></cpq-map-controls>
+      <!--    <val-dev-tools></val-dev-tools>-->
+      <cpq-shading-config></cpq-shading-config>
+    </div>
+  </p-sidebar>
+
+  <val-busy-indicator></val-busy-indicator>
+  <p-toast styleClass="val-toast-top-right"></p-toast>
 </div>
-
-<p-sidebar [appendTo]="appRoot" [(visible)]="sideNavVisible" position="right" [modal]="false" styleClass="ui-sidebar-md">
-  <div class="app-sidenav-content">
-    <cpq-map-controls (onGridSizeChange)="gridSize = $event"></cpq-map-controls>
-<!--    <val-dev-tools></val-dev-tools>-->
-    <cpq-shading-config></cpq-shading-config>
-  </div>
-</p-sidebar>
-
-<val-busy-indicator></val-busy-indicator>
-<p-toast styleClass="val-toast-top-right"></p-toast>

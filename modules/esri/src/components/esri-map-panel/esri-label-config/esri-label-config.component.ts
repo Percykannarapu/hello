@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { SelectItem } from 'primeng/api';
 import { filter } from 'rxjs/operators';
@@ -11,7 +11,8 @@ import { EsriLabelConfiguration } from '../../../state/map/esri.map.reducer';
   selector: 'val-esri-label-config',
   templateUrl: './esri-label-config.component.html',
   styleUrls: ['./esri-label-config.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class EsriLabelConfigComponent implements OnInit {
 

@@ -1,4 +1,4 @@
-.app-root {
+.app-root > div {
   display: flex;
   align-items: stretch;
   flex-direction: column;

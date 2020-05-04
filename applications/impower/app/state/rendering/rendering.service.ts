@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { filterArray } from '@val/common';
-import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriUtils } from '@val/esri';
+import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService } from '@val/esri';
 import geometryEngineAsync from 'esri/geometry/geometryEngineAsync';
 import Graphic from 'esri/Graphic';
 import { SimpleFillSymbol } from 'esri/symbols';
@@ -107,7 +107,7 @@ export class RenderingService {
         const chunks = pointTree.partition(100);
         this.logger.info.log(`Generating radius graphics for ${chunks.length} chunks`);
         const circleChunks: Observable<__esri.Polygon[]>[] = chunks.map(chunk => {
-          return from(EsriUtils.esriPromiseToEs6(geometryEngineAsync.geodesicBuffer(chunk.map(c => c.point), chunk.map(c => c.buffer), 'miles', d.merge))).pipe(
+          return from(geometryEngineAsync.geodesicBuffer(chunk.map(c => c.point), chunk.map(c => c.buffer), 'miles', d.merge)).pipe(
             map(geoBuffer => Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer]),
             filterArray(poly => poly != null)
           );
@@ -117,7 +117,7 @@ export class RenderingService {
           result.push(merge(...circleChunks).pipe(
             reduce((acc, curr) => [...acc, ...curr], []),
             tap(polys => this.logger.debug.log(`Radius rings generated. ${polys.length} chunks being unioned.`)),
-            switchMap(polys => from(EsriUtils.esriPromiseToEs6(geometryEngineAsync.union(polys)))),
+            switchMap(polys => from(geometryEngineAsync.union(polys))),
             map(geoBuffer => [geoBuffer]),
             map(geometry => geometry.map(g => new Graphic({ geometry: g, symbol: symbol }))),
             tap(() => this.logger.debug.log('Creating Radius Layer')),

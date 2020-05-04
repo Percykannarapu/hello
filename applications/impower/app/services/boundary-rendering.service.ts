@@ -10,6 +10,7 @@ import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 
@@ -21,6 +22,7 @@ export class BoundaryRenderingService {
   constructor(private appConfig: AppConfig,
               private appStateService: AppStateService,
               private appPrefService: AppProjectPrefService,
+              private generator: AppComponentGeneratorService,
               private esriBoundaryService: EsriBoundaryService,
               private store$: Store<FullAppState>) {
     this.appStateService.applicationIsReady$.pipe(
@@ -62,10 +64,11 @@ export class BoundaryRenderingService {
       const analysisLevelLayers = new Set(['zip', 'atz', 'dtz', 'pcr']);
       const idsToAdd = configs.filter(c => this.isLayerVisible(c.dataKey, analysis)).map(c => c.id);
       const idsToRemove = configs.filter(c => analysisLevelLayers.has(c.dataKey) && c.visible).map(c => c.id);
+      const primaryMap = mapByExtended(configs, c => c.id, c => this.appConfig.analysisLevelToLayerKey(analysis) === c.dataKey);
       const addSet = new Set(idsToAdd);
       const removeSet = new Set(idsToRemove);
-      const adds = idsToAdd.filter(id => !removeSet.has(id)).map(id => ({ id, changes: { visible: true, alwaysLoad: false } }));
-      const removes = idsToRemove.filter(id => !addSet.has(id)).map(id => ({ id, changes: { visible: false, alwaysLoad: false } }));
+      const adds = idsToAdd.filter(id => !removeSet.has(id)).map(id => ({ id, changes: { visible: true, alwaysLoad: false, isPrimarySelectableLayer: primaryMap.get(id) } }));
+      const removes = idsToRemove.filter(id => !addSet.has(id)).map(id => ({ id, changes: { visible: false, alwaysLoad: false, isPrimarySelectableLayer: false } }));
       this.store$.dispatch(updateBoundaries({ boundaries: [ ...adds, ...removes ] }));
     });
   }
@@ -145,11 +148,13 @@ export class BoundaryRenderingService {
             b.hhcLabelDefinition.where = currentDefaults.hhcLabelDefinition.where;
           }
           b.popupDefinition = currentDefaults.popupDefinition;
+          b.isPrimarySelectableLayer = currentDefaults.isPrimarySelectableLayer;
         }
       });
       result = existingSetup;
     }
     this.appPrefService.createPref('esri', 'map-boundary-defs', JSON.stringify(result), 'STRING', true);
+    this.esriBoundaryService.setDynamicPopupFactory(this.generator.geographyPopupFactory, this.generator);
     return result;
   }
 
@@ -291,6 +296,7 @@ export class BoundaryRenderingService {
       hasPOBs: true,
       showPopups: true,
       showHouseholdCounts: false,
+      isPrimarySelectableLayer: analysisLevel == null ? false : this.appConfig.analysisLevelToLayerKey(analysisLevel) === key,
     } as BoundaryConfiguration;
   }
 

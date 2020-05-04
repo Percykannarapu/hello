@@ -10,8 +10,9 @@
   text-align: center;
 }
 
-.grid-header-row > th {
+.cpq-grid tr.grid-header-row > th {
   font-size: 12px;
+  text-align: center;
 }
 
 .grid-data-row > td {
@@ -26,7 +27,6 @@
 .checkbox-column {
   width: 30px;
   padding: 0 !important;
-  text-align: center;
 }
 
 .small-geocode {

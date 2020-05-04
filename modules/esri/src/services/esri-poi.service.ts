@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { filter, take, withLatestFrom } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { LabelDefinition, MarkerSymbolDefinition } from '../models/common-configuration';
 import { PoiConfiguration, PoiConfigurationTypes } from '../models/poi-configuration';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
-import { addPoi, addPois, deletePoi, deletePois, loadPois, upsertPoi, upsertPois } from '../state/poi/esri.poi.actions';
+import { addPoi, addPois, deletePoi, deletePois, loadPois, setPopupFields, upsertPoi, upsertPois } from '../state/poi/esri.poi.actions';
 import { poiSelectors } from '../state/poi/esri.poi.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
@@ -61,24 +61,38 @@ export class EsriPoiService {
     }
   }
 
+  setPopupFields(fieldNames: string[]) : void {
+    this.store$.dispatch(setPopupFields({ fieldNames: [...fieldNames]}));
+  }
+
   private setUpPoiUpdateWatcher() : void {
     this.store$.select(poiSelectors.poiDefsForUpdate).pipe(
-      filter(configs => configs != null && configs.length > 0)
-    ).subscribe(configs => {
-      configs.forEach(config => this.updatePoiLayer(config));
+      filter(configs => configs != null && configs.length > 0),
+      withLatestFrom(this.store$.select(poiSelectors.popupFields)),
+    ).subscribe(([configs, popupFields]) => {
+      configs.forEach(config => this.updatePoiLayer(config, popupFields));
     });
   }
 
-  private updatePoiLayer(config: PoiConfiguration) : void {
+  private updatePoiLayer(config: PoiConfiguration, popupFields: string[]) : void {
     const layer = this.layerService.getLayerByUniqueId(config.featureLayerId);
+    const visibleFieldSet = new Set(popupFields);
     if (EsriUtils.layerIsFeature(layer)) {
       layer.when(() => {
-        const props: Partial<__esri.FeatureLayer> = {
+        const popupTemplate = layer.createPopupTemplate();
+        popupTemplate.title = `${config.dataKey}: {locationName}`;
+        popupTemplate.fieldInfos = popupTemplate.fieldInfos.filter(fi => visibleFieldSet.has(fi.fieldName));
+        popupTemplate.fieldInfos.sort((a, b) => {
+          return popupFields.indexOf(a.fieldName) - popupFields.indexOf(b.fieldName);
+        });
+        const props: __esri.FeatureLayerProperties = {
           renderer: this.createGeneralizedRenderer(config),
           visible: config.visible,
           opacity: config.opacity,
           title: config.layerName,
           minScale: config.minScale,
+          popupEnabled: true,
+          popupTemplate,
           labelsVisible: config.showLabels,
           labelingInfo: [ this.createLabelFromDefinition(config.labelDefinition) ]
         };

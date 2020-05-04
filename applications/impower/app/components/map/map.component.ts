@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { selectors } from '@val/esri';
+import { SelectedButtonTypeCodes, selectors } from '@val/esri';
 import Viewpoint from 'esri/Viewpoint';
 import { ConfirmationService } from 'primeng/api';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -29,6 +29,14 @@ export class MapComponent implements OnInit {
   currentAnalysisLevel$: Observable<string>;
   mapHeight$: BehaviorSubject<number> = new BehaviorSubject<number>(400);
   selectedPanelButton: number;
+  toolbarButtons = [
+    SelectedButtonTypeCodes.ShowPopups,
+    SelectedButtonTypeCodes.XY,
+    SelectedButtonTypeCodes.SelectSinglePoly,
+    SelectedButtonTypeCodes.SelectMultiplePolys,
+    SelectedButtonTypeCodes.UnselectMultiplePolys,
+    SelectedButtonTypeCodes.MeasureDistance
+  ];
 
   constructor(private appStateService: AppStateService,
               private appMapService: AppMapService,

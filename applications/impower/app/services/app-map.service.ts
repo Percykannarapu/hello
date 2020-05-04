@@ -2,11 +2,10 @@ import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
-import Basemap from 'esri/Basemap';
 import { Point } from 'esri/geometry';
 import geometryEngine from 'esri/geometry/geometryEngine';
 import BasemapGallery from 'esri/widgets/BasemapGallery';
-import LocalBasemapsSource from 'esri/widgets/BasemapGallery/support/LocalBasemapsSource';
+import PortalBasemapsSource from 'esri/widgets/BasemapGallery/support/PortalBasemapsSource';
 import Home from 'esri/widgets/Home';
 import Legend from 'esri/widgets/Legend';
 import ScaleBar from 'esri/widgets/ScaleBar';
@@ -69,11 +68,29 @@ export class AppMapService {
     }
     // setup the map widgets
     this.mapService.createBasicWidget(Home, { viewpoint: homeView });
-    this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'left-column' });
-    const source = new LocalBasemapsSource({
-      basemaps: this.config.basemaps.map(b => Basemap.fromId(b))
+    this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'map-ui' });
+    const source = new PortalBasemapsSource({
+      filterFunction: (b: __esri.Basemap) => this.config.portalBaseMapNames.filter(pb => pb.originalName === b.portalItem.title).length > 0,
+      updateBasemapsCallback: (allBaseMaps: __esri.Basemap[]) => {
+        const baseMapSortOrder = this.config.portalBaseMapNames.map(n => n.originalName);
+        allBaseMaps.sort((a, b) => {
+          return baseMapSortOrder.indexOf(a.portalItem.title) - baseMapSortOrder.indexOf(b.portalItem.title);
+        });
+        allBaseMaps.forEach(basemap => {
+          const currentConfig = this.config.portalBaseMapNames.filter(n => n.originalName === basemap.portalItem.title)[0];
+          if (currentConfig != null && currentConfig.newName !== currentConfig.originalName) {
+            const handle = basemap.watch('loaded', (newValue, oldValue, propertyName, target) => {
+              if (newValue) {
+                (target as __esri.Basemap).title = currentConfig.newName;
+                handle.remove();
+              }
+            });
+          }
+        });
+        return allBaseMaps;
+      }
     });
-    this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'left-column' }, 'bottom-left');
+    this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'map-ui' }, 'bottom-left');
     this.mapService.createBasicWidget(ScaleBar, { unit: 'dual' }, 'bottom-left');
 
     EsriUtils.setupWatch(this.mapService.mapView.map, 'basemap').subscribe(val => this.zone.run(() => {
@@ -84,8 +101,9 @@ export class AppMapService {
     }));
 
     const popup: __esri.Popup = this.mapService.mapView.popup;
-    popup.actionsMenuEnabled = false;
     popup.highlightEnabled = false;
+    popup.maxInlineActions = 2;
+    popup.defaultPopupTemplateEnabled = false;
 
     // Event handler that fires each time a popup action is clicked.
     popup.on('trigger-action', (event) => {

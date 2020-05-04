@@ -6,7 +6,6 @@ import Circle from 'esri/geometry/Circle';
 import Graphic from 'esri/Graphic';
 import EsriMap from 'esri/Map';
 import MapView from 'esri/views/MapView';
-import DistanceMeasurement2D from 'esri/widgets/DistanceMeasurement2D';
 import Expand from 'esri/widgets/Expand';
 import { Observable } from 'rxjs';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
@@ -26,7 +25,6 @@ function calculateExpandedStats(xData: number[], yData: number[], expansionAmoun
 export class EsriMapService {
   public mapView: __esri.MapView;
   public widgetMap: Map<string, __esri.Widget> = new Map<string, __esri.Widget>();
-  public measureWidget: any = null;
 
   constructor(private domainService: EsriDomainFactoryService,
               private logger: LoggingService,
@@ -91,7 +89,7 @@ export class EsriMapService {
         subscriber.complete();
       } else {
         const options = { animate: false };
-        let target: __esri.Polygon | __esri.MapViewBaseGoToTarget;
+        let target: __esri.Polygon | __esri.GoToTarget2D;
         if (pointCount === 1) {
           target = {
             target: new Point({ x: xStats.min, y: yStats.min }),
@@ -101,7 +99,7 @@ export class EsriMapService {
           const polyExtent = this.domainService.createExtent(xStats, yStats);
           target = Polygon.fromExtent(polyExtent);
         }
-        EsriUtils.esriPromiseToEs6(this.mapView.goTo(target, options))
+        this.mapView.goTo(target, options)
           .catch(err => subscriber.error(err))
           .then(() => {
             subscriber.next();
@@ -117,62 +115,6 @@ export class EsriMapService {
 
   clearGraphics() : void {
     this.mapView.graphics.removeAll();
-  }
-
-  setWidget(type) {
-    switch (type) {
-      case 'measure':
-        this.measureWidget = new DistanceMeasurement2D({
-          view: this.mapView,
-          unit: 'miles'
-        });
-        this.measureWidget.viewModel.mode = 'geodesic';
-        this.measureWidget.view.surface.style.cursor = 'crosshair';
-        this.measureWidget.viewModel.newMeasurement();
-        break;
-      case 'select':
-        if (!this.measureWidget) {
-          this.measureWidget = new DistanceMeasurement2D({
-            view: this.mapView,
-            unit: 'miles'
-          });
-        }
-        this.measureWidget.viewModel.mode = 'geodesic';
-        this.measureWidget.view.surface.style.cursor = 'crosshair';
-        this.measureWidget.destroy();
-        this.measureWidget = null;
-        break;
-      case 'copy':
-        if (!this.measureWidget) {
-          this.measureWidget = new DistanceMeasurement2D({
-            view: this.mapView,
-            unit: 'miles'
-          });
-        }
-        this.measureWidget.viewModel.mode = 'geodesic';
-        this.measureWidget.view.surface.style.cursor = 'copy';
-        this.measureWidget.destroy();
-        this.measureWidget = null;
-        break;
-      case 'default':
-        if (!this.measureWidget) {
-          this.measureWidget = new DistanceMeasurement2D({
-            view: this.mapView,
-            unit: 'miles'
-          });
-        }
-        this.measureWidget.viewModel.mode = 'geodesic';
-        this.measureWidget.view.surface.style.cursor = 'default';
-        this.measureWidget.destroy();
-        this.measureWidget = null;
-        break;
-      case null:
-        if (this.measureWidget) {
-          this.measureWidget.destroy();
-          this.measureWidget = null;
-        }
-        break;
-    }
   }
 
   watchMapViewProperty<T extends keyof __esri.MapView>(propertyName: T) : Observable<WatchResult<__esri.MapView, T>> {
@@ -193,6 +135,16 @@ export class EsriMapService {
     const newExpanderProps = { view: this.mapView, ...expanderProperties, content: result.container };
     const expander = new Expand(newExpanderProps);
     this.addWidget(expander, position);
+  }
+
+  getWidgetInstance<T extends __esri.Widget>(declaredClassName: string) : T {
+    return this.widgetMap.get(declaredClassName) as T;
+  }
+
+  removeWidget(instance: __esri.Widget) : void {
+    this.widgetMap.delete(instance.declaredClass);
+    instance.destroy();
+    this.mapView.ui.remove(instance);
   }
 
   private addWidget(item: __esri.Widget, position: string);

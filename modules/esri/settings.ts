@@ -10,7 +10,7 @@ export const defaultEsriUrlFragments = {
 };
 
 export const defaultEsriConfig: EsriConfigOptions = {
-  version: '4.11',
+  version: '4.15',
   portalUrl:  null,
   request: {
     timeout: 120000

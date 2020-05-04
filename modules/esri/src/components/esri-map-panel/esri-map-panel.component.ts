@@ -19,9 +19,12 @@ export class EsriMapPanelComponent implements OnInit {
   currentMapState$: Observable<SelectedButtonTypeCodes> = this.store.select(internalSelectors.getEsriMapButtonState);
   height$: Observable<number> = this.store.select(internalSelectors.getEsriMapHeight);
   cursor$: Observable<string> = this.currentMapState$.pipe(map(state => buttonToCursorMap[state]));
+
   SelectedButtonTypeCodes = SelectedButtonTypeCodes;
 
-  @Input() showSelectionButtons: boolean = true;
+  @Input() toolbarButtons: SelectedButtonTypeCodes[] = [SelectedButtonTypeCodes.ShowPopups];
+  @Input() defaultToolbarButton: SelectedButtonTypeCodes = SelectedButtonTypeCodes.ShowPopups;
+
   @Input() showLabelConfigButton: boolean = true;
   @Input() set mapHeight(val: number) {
     this.store.dispatch(new SetMapHeight({ newMapHeight: val }));

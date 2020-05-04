@@ -1,1 +1,6 @@
-
+div#val-label-popup-container {
+  > div.ui-overlaypanel {
+    left: unset !important;
+    top: unset !important;
+  }
+}

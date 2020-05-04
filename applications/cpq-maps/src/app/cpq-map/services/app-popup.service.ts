@@ -27,7 +27,7 @@ export class AppPopupService {
       }
       layer.popupTemplate = new PopupTemplate({
         title: '{geocode} {city_name}',
-        content: this.createPopup.bind(this),
+        content: (feature: __esri.Feature) => this.createPopup(feature),
         outFields: this.configService.popupFields.map(f => f.fieldName)
       });
     });
@@ -51,7 +51,6 @@ export class AppPopupService {
       this.esriMapService.mapView.popup.close();
     });
     popupComponent.changeDetectorRef.detectChanges();
-
     return popupComponent.location.nativeElement;
   }
 }

@@ -256,6 +256,16 @@ body {
     .esri-attribution {
       padding-right: 10px;
     }
+    .esri-expand__content--expanded {
+      z-index: 100;
+    }
+    .esri-popup__footer {
+      > div.esri-popup__inline-actions-container {
+        > .esri-popup__button.esri-popup__action {
+          max-width: 50%;
+        }
+      }
+    }
   }
   .esriMapContainer.batch-mode {
     .esri-ui {

@@ -13,17 +13,17 @@
         </div>
         <span>Shade By:</span>
         <div>
-          <p-dropdown (onChange)="onShadingOptionChange($event)" [options]="shadingTypeOptions" [(ngModel)]="selectedShadingType"></p-dropdown>
+          <p-dropdown (onChange)="onShadingOptionChange($event)" [options]="shadingTypeOptions" [(ngModel)]="selectedShadingType" dropdownIcon="fa fa-caret-down" [style]="{'width':'50%'}"></p-dropdown>
         </div>
         <ng-container *ngIf="selectedShadingType === shadingTypes.VARIABLE">
           <span>Variable:</span>
           <div>
-            <p-dropdown [options]="variableOptions" [(ngModel)]="selectedVar" (onChange)="onVariableOptionChanged()"></p-dropdown>
+            <p-dropdown [options]="variableOptions" [(ngModel)]="selectedVar" (onChange)="onVariableOptionChanged()" dropdownIcon="fa fa-caret-down" [style]="{'width':'50%'}"></p-dropdown>
           </div>
           <span>Method:</span>
           <div>
             <ng-container *ngIf="selectedVar.isNumber">
-              <p-dropdown [options]="numericMethodOptions" [(ngModel)]="selectedNumericMethod" (onChange)="onMethodOptionChanged($event)"></p-dropdown>
+              <p-dropdown [options]="numericMethodOptions" [(ngModel)]="selectedNumericMethod" (onChange)="onMethodOptionChanged($event)" dropdownIcon="fa fa-caret-down" [style]="{'width':'50%'}"></p-dropdown>
             </ng-container>
             <ng-container *ngIf="!selectedVar.isNumber">
               Individual Values
@@ -33,7 +33,7 @@
             <span>Classes:</span>
             <div>
               <p-dropdown [options]="classBreakOptions" [(ngModel)]="selectedClassBreaks" (onChange)="onBreakCountChanged($event.value)"
-                          [disabled]="selectedNumericMethod === numericShadingMethods.StandardIndex"></p-dropdown>
+                          [disabled]="selectedNumericMethod === numericShadingMethods.StandardIndex" dropdownIcon="fa fa-caret-down" [style]="{'width':'50%'}"></p-dropdown>
             </div>
             <span>&nbsp;</span>
             <div class="shading-breaks-container">

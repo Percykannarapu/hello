@@ -6,7 +6,7 @@ import PopupTemplate from 'esri/PopupTemplate';
 import ActionButton from 'esri/support/actions/ActionButton';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap } from 'rxjs/operators';
-import { BoundaryConfiguration } from '../models/boundary-configuration';
+import { BoundaryConfiguration, PopupDefinition } from '../models/boundary-configuration';
 import { FillSymbolDefinition, LabelDefinition } from '../models/common-configuration';
 import { updateBoundaries, upsertBoundaries, upsertBoundary } from '../state/boundary/esri.boundary.actions';
 import { boundarySelectors } from '../state/boundary/esri.boundary.selectors';
@@ -20,6 +20,9 @@ export class EsriBoundaryService {
 
   allBoundaryConfigurations$: Observable<BoundaryConfiguration[]> = new BehaviorSubject<BoundaryConfiguration[]>([]);
   allVisibleBoundaryConfigs$: Observable<BoundaryConfiguration[]> = new BehaviorSubject<BoundaryConfiguration[]>([]);
+
+  private _popupFactory: (feature: __esri.Feature, fields: __esri.FieldInfo[], layerId: string, popupDefinition: PopupDefinition) => HTMLElement = null;
+  private _popupThisContext: any = null;
 
   constructor(private layerService: EsriLayerService,
               private store$: Store<AppState>,
@@ -63,6 +66,11 @@ export class EsriBoundaryService {
     } else {
       this.store$.dispatch(upsertBoundary({ boundary }));
     }
+  }
+
+  setDynamicPopupFactory(factory: (feature: __esri.Feature, fields: __esri.FieldInfo[], layerId: string, popupDefinition: PopupDefinition) => HTMLElement, thisContext: any) {
+    this._popupFactory = factory;
+    this._popupThisContext = thisContext;
   }
 
   private createBoundaryLayers(configurations: BoundaryConfiguration[]) : Observable<Update<BoundaryConfiguration>[]> {
@@ -119,16 +127,14 @@ export class EsriBoundaryService {
       currentLayer.when(() => {
         const minScale = config.useSimplifiedInfo && config.simplifiedMinScale != null ? config.simplifiedMinScale : config.minScale;
         const defaultSymbol = this.createSymbolFromDefinition(config.symbolDefinition);
-        // use this with where clauses once we upgrade to 4.12+
-        // const labels = [this.createLabelFromDefinition(config.labelDefinition)];
-        // if (config.showPOBs && config.pobLabelDefinition != null) {
-        //   labels.push(this.createLabelFromDefinition(config.pobLabelDefinition));
-        // }
         const labels = [
           config.showHouseholdCounts && config.hhcLabelDefinition != null
             ? this.createLabelFromDefinition(config.hhcLabelDefinition)
             : this.createLabelFromDefinition(config.labelDefinition)
         ];
+        // if (config.showPOBs && config.pobLabelDefinition != null) {
+        //   labels.push(this.createLabelFromDefinition(config.pobLabelDefinition));
+        // }
         let layerQuery = null;
         if (config.hasPOBs && !config.useSimplifiedInfo) {
           layerQuery = config.showPOBs ? null : `pob IS NULL`;
@@ -225,8 +231,17 @@ export class EsriBoundaryService {
     const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
     const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new FieldInfo({ fieldName: f.name, label: f.alias }));
     fieldInfos.sort(byDefinedFieldIndex);
-    const result: __esri.PopupTemplateProperties = { title: config.popupDefinition.titleExpression, actions: [selectThisAction] };
-    result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
+    const result: __esri.PopupTemplateProperties = { title: config.popupDefinition.titleExpression };
+    if (config.isPrimarySelectableLayer) {
+      result.actions = [selectThisAction];
+    } else {
+      result.actions = [];
+    }
+    if (config.popupDefinition.useCustomPopup && this._popupFactory != null) {
+      result.content = (feature: __esri.Feature) => this._popupFactory.call(this._popupThisContext, feature, fieldInfos, config.portalId, config.popupDefinition);
+    } else {
+      result.content = [{ type: 'fields', fieldInfos: fieldInfos }];
+    }
     result.outFields = Array.from(fieldsToUse);
     result.overwriteActions = true;
     return new PopupTemplate(result);

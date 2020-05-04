@@ -211,13 +211,13 @@ export class EsriLayerService {
     return group;
   }
 
-  public createPortalLayer(portalId: string, layerTitle: string, minScale: number, defaultVisibility: boolean, additionalLayerAttributes?: Partial<__esri.FeatureLayer>) : Observable<__esri.FeatureLayer> {
+  public createPortalLayer(portalId: string, layerTitle: string, minScale: number, defaultVisibility: boolean, additionalLayerAttributes?: __esri.FeatureLayerProperties) : Observable<__esri.FeatureLayer> {
     const isUrlRequest = portalId.toLowerCase().startsWith('http');
     const loader: any = isUrlRequest ? Layer.fromArcGISServerUrl : Layer.fromPortalItem;
     const itemLoadSpec = isUrlRequest ? { url: portalId } : { portalItem: {id: portalId } };
     return new Observable(subject => {
         loader(itemLoadSpec).then((currentLayer: __esri.FeatureLayer) => {
-          const layerUpdater: Partial<__esri.FeatureLayer> = {
+          const layerUpdater: __esri.FeatureLayerProperties = {
             visible: defaultVisibility,
             title: layerTitle,
             minScale: minScale,
@@ -268,7 +268,7 @@ export class EsriLayerService {
     const group = this.createClientGroup(groupName, true);
     const popupEnabled = popupTemplate != null;
     const labelsVisible = labelInfo != null && labelInfo.length > 0;
-    const layer = this.domainFactory.createFeatureLayer(sourceGraphics, oidFieldName);
+    const layer = this.domainFactory.createFeatureLayer(sourceGraphics, oidFieldName, null);
     const props = {
       popupEnabled: popupEnabled,
       popupTemplate: popupTemplate,
@@ -329,7 +329,7 @@ export class EsriLayerService {
       if (layer != null && !this.layerNamesShowingInLegend.has(layerUniqueId)) {
         // can't use .push() here - a new array instance is needed to trigger the
         // internal mechanics to convert these to activeLayerInfos
-        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer } ];
+        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer, hideLayers: [] } ];
         this.layerNamesShowingInLegend.set(layerUniqueId, title);
       }
     }

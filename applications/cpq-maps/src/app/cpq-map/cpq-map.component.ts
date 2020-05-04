@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { SelectedButtonTypeCodes } from '@val/esri';
 
 @Component({
   selector: 'cpq-map',
@@ -10,6 +11,12 @@ export class CpqMapComponent {
 
   sideNavVisible = false;
   gridSize = 'small';
+
+  toolbarButtons = [
+    SelectedButtonTypeCodes.ShowPopups,
+    SelectedButtonTypeCodes.XY,
+    SelectedButtonTypeCodes.MeasureDistance
+  ];
 
   get gridIsSmall() { return this.gridSize === 'small'; }
   get gridIsLarge() { return this.gridSize === 'large'; }

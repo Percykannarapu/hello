@@ -143,7 +143,7 @@ export class EsriShadingService {
   }
 
   private createGeneralizedShadingLayer(config: ShadingDefinition, featureFilter?: string, groupName: string = 'Shading') : Observable<string> {
-    const layerProps: Partial<__esri.FeatureLayer> = {
+    const layerProps: __esri.FeatureLayerProperties = {
       popupEnabled: false,
       labelingInfo: [],
       labelsVisible: false,
@@ -175,7 +175,7 @@ export class EsriShadingService {
     const defaultLabel = config.defaultSymbolDefinition ? config.defaultSymbolDefinition.legendName : '';
     switch (config.shadingType) {
       case ConfigurationTypes.ClassBreak:
-        const classBreaks: __esri.ClassBreaksRendererClassBreakInfos[] = config.breakDefinitions.map(d => ({
+        const classBreaks: __esri.ClassBreakInfoProperties[] = config.breakDefinitions.map(d => ({
           minValue: d.minValue || Number.MIN_VALUE,
           maxValue: d.maxValue || Number.MAX_VALUE,
           label: d.legendName,
@@ -201,7 +201,7 @@ export class EsriShadingService {
         simpleResult.label = defaultLabel;
         return simpleResult;
       case ConfigurationTypes.Unique:
-        const uniqueValues: __esri.UniqueValueRendererUniqueValueInfos[] = config.breakDefinitions.map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
+        const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
         const result = this.domainFactory.createUniqueValueRenderer(defaultSymbol, uniqueValues);
         result.defaultLabel = defaultLabel;
         result.valueExpression = config.arcadeExpression;

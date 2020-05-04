@@ -18,14 +18,14 @@ export class ConfigService implements LoggingConfiguration {
   public defaultShadingTransparency = 0.5; // 50%
   logLevel: LogLevels = environment.logLevel;
 
-  public basemaps = [
-    'streets-vector',
-    'streets-navigation-vector',
-    'gray-vector',
-    'dark-gray-vector',
-    'topo-vector',
-    'satellite',
-    'oceans'
+  public portalBaseMapNames = [
+    { originalName: 'Streets', newName: 'Streets' },
+    { originalName: 'Navigation', newName: 'World Navigation Map' },
+    { originalName: 'Light Gray Canvas', newName: 'Light Gray Canvas' },
+    { originalName: 'Dark Gray Canvas', newName: 'Dark Gray Canvas' },
+    { originalName: 'Topographic', newName: 'Topographic' },
+    { originalName: 'Imagery Hybrid', newName: 'Satellite' },
+    { originalName: 'Oceans', newName: 'Oceans' },
   ];
 
   public popupFields: FieldMetaData[] = [

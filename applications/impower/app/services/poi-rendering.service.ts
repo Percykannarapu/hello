@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, getUuid, groupByExtended, mapArrayToEntity } from '@val/common';
+import { filterArray, getUuid, groupByExtended, mapArrayToEntity, mapByExtended } from '@val/common';
 import { EsriDomainFactoryService, EsriLayerService, EsriPoiService, EsriUtils, PoiConfiguration, PoiConfigurationTypes } from '@val/esri';
 import { merge, Observable } from 'rxjs';
 import { filter, reduce, take, withLatestFrom } from 'rxjs/operators';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
-import { createSiteGraphic } from '../state/rendering/location.transform';
+import { createSiteGraphic, defaultLocationPopupFields } from '../state/rendering/location.transform';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
@@ -75,9 +75,11 @@ export class PoiRenderingService {
           } else {
             const newPoints = currentSites.map((s, i) => createSiteGraphic(s, i));
             const existingGroup = this.layerService.createClientGroup(renderingSetup.groupName, true);
-            const newFeatureLayer = this.domainFactory.createFeatureLayer(newPoints, 'objectId');
+            const fieldLookup = mapByExtended(defaultLocationPopupFields, item => item.fieldName, item => ({ label: item.label, visible: item.visible }));
+            const newFeatureLayer = this.domainFactory.createFeatureLayer(newPoints, 'objectId', fieldLookup);
             newFeatureLayer.visible = false;
             existingGroup.add(newFeatureLayer);
+            this.esriPoiService.setPopupFields(defaultLocationPopupFields.filter(f => f.visible !== false).map(f => f.fieldName));
             subject.next({ ...renderingSetup, featureLayerId: newFeatureLayer.id });
             subject.complete();
           }

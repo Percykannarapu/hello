@@ -8,8 +8,11 @@
 }
 
 .shading-controls-container > h4 {
+  font-size: large;
+  font-weight: normal;
   align-self: center;
-  padding-bottom: 1em;
+  padding-bottom: 1rem;
+  margin: 0;
 }
 
 .shading-controls-container > button {

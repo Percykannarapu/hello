@@ -33,14 +33,14 @@ export class AppConfig implements LoggingConfiguration {
   // runtime flags
   public isBatchMode = false;
 
-  public basemaps = [
-    'streets-vector',
-    'streets-navigation-vector',
-    'gray-vector',
-    'dark-gray-vector',
-    'topo-vector',
-    'satellite',
-    'oceans'
+  public portalBaseMapNames = [
+    { originalName: 'Streets', newName: 'Streets' },
+    { originalName: 'Navigation', newName: 'World Navigation Map' },
+    { originalName: 'Light Gray Canvas', newName: 'Light Gray Canvas' },
+    { originalName: 'Dark Gray Canvas', newName: 'Dark Gray Canvas' },
+    { originalName: 'Topographic', newName: 'Topographic' },
+    { originalName: 'Imagery Hybrid', newName: 'Satellite' },
+    { originalName: 'Oceans', newName: 'Oceans' },
   ];
 
   public analysisLevelToLayerKey(analysisLevel: string) : string {

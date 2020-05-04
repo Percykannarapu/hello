@@ -4,13 +4,13 @@ import { PoiConfiguration } from '../../models/poi-configuration';
 import * as PoiActions from './esri.poi.actions';
 
 export interface EsriPoiState extends EntityState<PoiConfiguration> {
-  // additional entities state properties
+  visibleSortedPopupFieldNames: string[];
 }
 
 export const adapter: EntityAdapter<PoiConfiguration> = createEntityAdapter<PoiConfiguration>();
 
 export const initialState: EsriPoiState = adapter.getInitialState({
-  // additional entity state properties
+  visibleSortedPopupFieldNames: []
 });
 
 export const poiReducer = createReducer(
@@ -44,6 +44,12 @@ export const poiReducer = createReducer(
   ),
   on(PoiActions.clearPois,
     state => adapter.removeAll(state)
+  ),
+  on(PoiActions.setPopupFields,
+    (state, action) => ({
+      ...state,
+      visibleSortedPopupFieldNames: [...action.fieldNames]
+    })
   ),
 );
 

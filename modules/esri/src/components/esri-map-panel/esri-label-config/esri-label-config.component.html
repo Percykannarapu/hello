@@ -1,10 +1,10 @@
-<p-overlayPanel #op [style]="{'width':'20em'}">
+<p-overlayPanel #op [style]="{'width':'20em'}" [appendTo]="popupContent">
   <div class="ui-g val-label-config">
     <div class="ui-g-8">
       <label>Size</label>
     </div>
     <div class="ui-g-4">
-      <p-dropdown [options]="sizes"  [(ngModel)]="selectedSize" (onChange)="onSizeChanged($event)" dropdownIcon="fa fa-caret-down"></p-dropdown>
+      <p-dropdown [options]="sizes"  [(ngModel)]="selectedSize" (onChange)="onSizeChanged($event)" dropdownIcon="fa fa-caret-down" [style]="{'width':'75%'}"></p-dropdown>
     </div>
     <div class="ui-g-8">
       <label>Geo Labels Enabled</label>
@@ -20,4 +20,5 @@
     </div>
   </div>
 </p-overlayPanel>
-<button type="text" pButton label="Label Configuration" (click)="op.toggle($event)"></button>
+<button type="button" pButton label="Label Configuration" (click)="op.toggle($event)"></button>
+<div id="val-label-popup-container" #popupContent></div>

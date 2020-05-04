@@ -50,3 +50,8 @@ export const deletePois = createAction(
 export const clearPois = createAction(
   '[Poi/API] Clear Pois'
 );
+
+export const setPopupFields = createAction(
+  '[Poi/API] Set Popup Fields',
+  props<{ fieldNames: string[] }>()
+);

@@ -1,6 +1,6 @@
 import { ComponentFactoryResolver, Injectable, Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQueryService, EsriService } from '@val/esri';
+import { EsriDomainFactoryService, EsriLabelLayerOptions, EsriLayerService, EsriMapService, EsriQueryService, EsriService } from '@val/esri';
 import Expand from 'esri/widgets/Expand';
 import { LegendComponent } from '../components/legend/legend.component';
 import { FullState } from '../state';
@@ -68,33 +68,34 @@ export class AppLayerService {
          case 'zip':
             updateId = this.configService.layers['zip'].boundaries.id;
             newExpression = `var geoData = ${this.createArcadeDictionary(state)};
-                             var distrQty = "";
                              if(hasKey(geoData, $feature.geocode)) {
-                               distrQty = geoData[$feature.geocode] + " HH";
+                               return $feature.geocode + TextFormatting.NewLine + Text(geoData[$feature.geocode], "#,###") + " HH";
                              }
-                             return Concatenate([$feature.geocode, distrQty], TextFormatting.NewLine);`;
+                             return $feature.geocode;`;
             break;
          case 'atz':
             updateId = this.configService.layers['atz'].boundaries.id;
             newExpression = `var geoData = ${this.createArcadeDictionary(state)};
-                             var id = iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "");
-                             var distrQty = "";
-                             if(hasKey(geoData, $feature.geocode)) {
-                               distrQty = geoData[$feature.geocode] + " HH";
+                             var atz = iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), "");
+                             if (hasKey(geoData, $feature.geocode)) {
+                               var dist = Text(geoData[$feature.geocode], "#,###") + " HH";
+                               if (count(atz) > 0) {
+                                 return atz + TextFormatting.NewLine + dist;
+                               }
+                               return dist;
                              }
-                             return Concatenate([id, distrQty], TextFormatting.NewLine);`;
+                             return atz;`;
             break;
          case 'wrap':
             updateId = this.configService.layers['zip'].boundaries.id; // yes, we update the zip labels if we are at wrap level
             newExpression = `var geoData = ${this.createArcadeDictionary(state)};
-                             var distrQty = "";
                              if(hasKey(geoData, $feature.geocode)) {
-                               distrQty = geoData[$feature.geocode] + " HH";
+                               return $feature.geocode + TextFormatting.NewLine + Text(geoData[$feature.geocode], "#,###") + " HH";
                              }
-                             return Concatenate([$feature.geocode, distrQty], TextFormatting.NewLine);`;
+                             return $feature.geocode;`;
             break;
       }
-     const layerExpressions: any = {
+     const layerExpressions: { [layerId: string] : EsriLabelLayerOptions } = {
        ...state.esri.map.layerExpressions
      };
       layerExpressions[updateId] = {
@@ -105,15 +106,12 @@ export class AppLayerService {
    }
 
    private createArcadeDictionary(state: FullState) : string {
-      let dictionary: string = '{';
-      for (const id of state.rfpUiEditDetail.ids) {
-         const geocode: string = state.rfpUiEditDetail.entities[id].geocode;
-         const distrQty: number = state.rfpUiEditDetail.entities[id].distribution;
-         dictionary = `${dictionary}"${geocode}":${distrQty},`;
-      }
-      dictionary = dictionary.substring(0, dictionary.length - 1);
-      dictionary = `${dictionary}}`;
-      return dictionary;
+     const data: Record<string, number> = {};
+     for (const id of state.rfpUiEditDetail.ids) {
+       const currentDetail = state.rfpUiEditDetail.entities[id];
+       data[currentDetail.geocode] = currentDetail.distribution;
+     }
+     return JSON.stringify(data);
    }
 
    public setupLegend() {

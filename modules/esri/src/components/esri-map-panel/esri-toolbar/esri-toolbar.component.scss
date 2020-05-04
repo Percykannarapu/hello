@@ -22,7 +22,7 @@
 
 .action-button:focus {
   cursor: pointer;
-  border: 1px solid $esriToolbarButtonBorderColor;
+  outline: none;
 }
 
 .active {

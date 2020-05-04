@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="cpq-maps" default="test" basedir="." xmlns:sf="antlib:com.salesforce">
+<project name="cpq-maps" default="clean" basedir="." xmlns:sf="antlib:com.salesforce">
 
   <property name="CPQ_MAPS_ROOT" value="./dist/cpq-maps"/>
   <property name="DEPLOY_ROOT" value="./dist/sfdc-deploy" />
@@ -13,59 +13,55 @@
     </delete>
   </target>
 
-  <target name="create-resources" depends="clean">
+  <target name="partition-assets" depends="clean">
     <!-- Create the directory structure -->
     <mkdir dir="${DEPLOY_ROOT}" />
-    <mkdir dir="${DEPLOY_ROOT}/main-js"/>
-    <mkdir dir="${DEPLOY_ROOT}/js"/>
 
-    <!-- Gather the CPQMapsMainJS files -->
-    <move todir="${DEPLOY_ROOT}/main-js">
+    <!-- remove files we don't need for SFDC deployment -->
+    <delete failonerror="false">
       <fileset dir="${CPQ_MAPS_ROOT}">
-        <include name="main.*"/>
-        <include name="assets/**"/>
+        <include name="common.js.map"/>
+        <include name="?.js.map"/>
+        <include name="index.html"/>
       </fileset>
-    </move>
+    </delete>
 
-    <delete file="${CPQ_MAPS_ROOT}/common.js.map" />
-    <delete dir="${CPQ_MAPS_ROOT}/arcgis-js-api/geometry" />
-    <delete dir="${CPQ_MAPS_ROOT}/esri" />
-    <!--<delete dir="${CPQ_MAPS_ROOT}/dojo" />-->
-    <delete dir="${CPQ_MAPS_ROOT}/moment" />
-
-    <move todir="${DEPLOY_ROOT}/common-js">
+    <!-- Gather the files into appropriate directories -->
+    <move todir="${DEPLOY_ROOT}/scripts">
       <fileset dir="${CPQ_MAPS_ROOT}">
-        <include name="common.js"/>
+        <include name="*.js*" />
         <include name="arcgis-js-api/**"/>
         <include name="dojo/**"/>
-<!--        <include name="moment/**"/>-->
       </fileset>
     </move>
 
     <!-- Gather the CPQMapsJS files -->
-    <move todir="${DEPLOY_ROOT}/js">
+    <move todir="${DEPLOY_ROOT}/assets">
       <fileset dir="${CPQ_MAPS_ROOT}">
         <include name="*"/>
       </fileset>
     </move>
 
+  </target>
+
+  <target name="create-resources" depends="partition-assets">
     <!-- Create the static resource files -->
-    <zip destfile="${DEPLOY_ROOT}/main-js.zip" basedir="${DEPLOY_ROOT}/main-js" level="9"/>
-    <zip destfile="${DEPLOY_ROOT}/common-js.zip" basedir="${DEPLOY_ROOT}/common-js" level="9"/>
-    <zip destfile="${DEPLOY_ROOT}/js.zip" basedir="${DEPLOY_ROOT}/js" level="9"/>
+    <zip destfile="${DEPLOY_ROOT}/scripts.zip" basedir="${DEPLOY_ROOT}/scripts" level="9"/>
+    <zip destfile="${DEPLOY_ROOT}/assets.zip" basedir="${DEPLOY_ROOT}/assets" level="9"/>
 
     <!-- Rename the static resource files and prep the folder for SFDC upload-->
-    <move file="${DEPLOY_ROOT}/main-js.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsMainJS.resource"/>
-    <move file="${DEPLOY_ROOT}/common-js.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsCommonJS.resource"/>
-    <move file="${DEPLOY_ROOT}/js.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsJS.resource"/>
+    <move file="${DEPLOY_ROOT}/scripts.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsScripts.resource"/>
+    <move file="${DEPLOY_ROOT}/assets.zip" tofile="${DEPLOY_ROOT}/staticresources/CPQMapsAssets.resource"/>
     <copy file="package.xml" todir="${DEPLOY_ROOT}"/>
 
     <!-- Clean up -->
-    <delete dir="${DEPLOY_ROOT}/main-js"/>
-    <delete dir="${DEPLOY_ROOT}/common-js"/>
-    <delete dir="${DEPLOY_ROOT}/js"/>
-
+    <delete dir="${DEPLOY_ROOT}/scripts"/>
+    <delete dir="${DEPLOY_ROOT}/assets"/>
   </target>
+
+  <property name="USER" value="jenkins@valassis.com.dev" />
+  <property name="PASS" value="D3pl0y2020!AOVwACL07YmLvbnUOfM5ATJ2" />
+  <property name="SERVER_URL" value="https://valassis--dev.cs15.my.salesforce.com" />
 
   <target name="deploy" depends="create-resources">
     <sf:deploy username="${USER}"

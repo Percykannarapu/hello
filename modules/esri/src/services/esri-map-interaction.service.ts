@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import geometryEngine from 'esri/geometry/geometryEngine';
 import Graphic from 'esri/Graphic';
 import { EMPTY, from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriGraphicTypeCodes } from '../core/esri.enums';
-import { CreateCompleteEvent } from '../core/esri.models';
 import { AppState } from '../state/esri.reducers';
 import { StartSketchView } from '../state/map/esri.map-button.actions';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
@@ -22,7 +20,7 @@ export class EsriMapInteractionService {
               private store$: Store<AppState>) {}
 
   processClick(event: __esri.MapViewImmediateClickEvent) : Observable<__esri.Graphic[]> {
-    return from(EsriUtils.esriPromiseToEs6(this.mapService.mapView.hitTest(event))).pipe(
+    return from(this.mapService.mapView.hitTest(event)).pipe(
       map(hitTestResult => hitTestResult.results.map(result => result.graphic))
     );
   }
@@ -45,11 +43,11 @@ export class EsriMapInteractionService {
   }
 
   abortSketchModel(model: __esri.SketchViewModel) : void {
-    if (model) model.reset();
+    if (model) model.cancel();
     this.mapService.clearGraphics();
   }
 
-  private stopSketchModel(model: __esri.SketchViewModel, event: CreateCompleteEvent) : void {
+  private stopSketchModel(model: __esri.SketchViewModel, event: __esri.SketchViewModelCreateEvent) : void {
     let symbol: __esri.Symbol;
     switch (event.tool) {
       case EsriGraphicTypeCodes.Point:
@@ -68,15 +66,15 @@ export class EsriMapInteractionService {
         throw new Error('Unknown SketchViewModel tool option selected.');
     }
     const sketchGraphic = new Graphic({
-      geometry: event.geometry,
+      geometry: event.graphic.geometry,
       symbol: symbol
     });
     this.mapService.mapView.graphics.add(sketchGraphic);
   }
 
-  selectFeatures(geometry: __esri.Geometry) : Observable<__esri.Graphic[]> {
+  selectFeatures(geometry: __esri.Geometry, portalId: string) : Observable<__esri.Graphic[]> {
     const graphicsList = [];
-    const layers = this.mapService.mapView.map.allLayers.filter(l => EsriUtils.layerIsFeature(l) && l.visible).toArray() as __esri.FeatureLayer[];
+    const layers = this.mapService.mapView.map.layers.filter(l => EsriUtils.layerIsPortalFeature(l) && l.visible && l.portalItem.id === portalId).toArray() as __esri.FeatureLayer[];
     if (layers.length === 0) return EMPTY;
     return new Observable(observer => {
       this.queryService.queryLayerView(layers, geometry.extent).subscribe(
@@ -88,30 +86,5 @@ export class EsriMapInteractionService {
           observer.complete();
         });
     });
-  }
-
-  measurePolyLine(geometry: __esri.Geometry) : void {
-    if (EsriUtils.geometryIsPolyline(geometry)) {
-      const length: number = geometryEngine.geodesicLength(geometry, 'miles');
-      const textSymbol = {
-        type: 'text',
-        color: 'black',
-        text: `${length.toFixed(4)} miles`,
-        xoffset: 50,
-        yoffset: 3,
-        font: { // auto casts as Font
-          size: 10,
-          weight: 'bold',
-          family: 'sans-serif'
-        }
-      };
-      const textGraphic = new Graphic({
-        geometry: geometry.getPoint(0, 0),
-        symbol: textSymbol
-      });
-      this.mapService.mapView.graphics.add(textGraphic);
-    } else {
-      throw new Error('A non-Polyline geometry was passed into measurePolyline()');
-    }
   }
 }

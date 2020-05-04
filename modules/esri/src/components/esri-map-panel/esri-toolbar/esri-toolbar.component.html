@@ -1,16 +1,12 @@
 <p-toolbar>
   <div class="ui-g ui-g-nopad ui-toolbar-group-left button-bar">
-    <button (click)="popupButtonClicked.emit()" [ngClass]="{ 'active': currentMapState === states.ShowPopups }"
-            title="Show Popups" class="action-button esri-icon-comment"></button>
-    <button (click)="xyButtonClicked.emit()" [ngClass]="{ 'active': currentMapState === states.XY }" title="Show XY" class="action-button esri-icon-radio-checked"></button>
-    <button (click)="singleSelectClicked.emit()" [ngClass]="{ 'active': currentMapState === states.SelectSinglePoly }"
-            title="Add/Remove Single Geo" class="action-button esri-icon-plus-circled" *ngIf="showSelectionButtons"></button>
-    <button (click)="multiSelectClicked.emit()" [ngClass]="{ 'active': currentMapState === states.SelectMultiplePolys }"
-            title="Add Multiple Geos" class="action-button fa fa-plus-square-o" *ngIf="showSelectionButtons"></button>
-    <button (click)="multiUnselectClicked.emit()" [ngClass]="{ 'active': currentMapState === states.UnselectMultiplePolys }"
-            title="Remove Multiple Geos" class="action-button fa fa-minus-square-o" *ngIf="showSelectionButtons"></button>
-    <button (click)="measureToolClicked.emit()" [ngClass]="{ 'active': currentMapState === states.MeasureDistance }"
-            title="Measure Line" class="action-button esri-icon-share"></button>
+    <ng-container *ngFor="let currentButton of buttonsToShow">
+      <button [class]="classes[currentButton]"
+              [title]="titles[currentButton]"
+              (click)="handleButtonClick(currentButton)"
+              [ngClass]="{ 'active': currentMapState === currentButton }">
+      </button>
+    </ng-container>
     <ng-content select="additional-toolbar-buttons"></ng-content>
     <ng-content select="val-esri-label-config"></ng-content>
   </div>

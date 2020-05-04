@@ -24,6 +24,16 @@ body {
     }
   }
 
+  button {
+    background-image: none;
+    font-weight: normal;
+    margin: 0;
+  }
+
+  th {
+    white-space: unset;
+  }
+
   .ui-inputtext:disabled {
     margin-top: -1px;
   }
