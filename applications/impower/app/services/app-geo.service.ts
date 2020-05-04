@@ -30,6 +30,7 @@ import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService, Season } from './app-state.service';
+import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
 
 const featureAttributes = ['geocode', 'latitude', 'longitude', 'cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
@@ -323,6 +324,7 @@ export class AppGeoService {
           this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: result.invalidLocations }));
         }
         this.store$.dispatch(new StopBusyIndicator({key}));
+        return result;
       });
     }
     if (locationsMissingHomeGeo.length > 0) {
@@ -449,6 +451,7 @@ export class AppGeoService {
       newTradeAreas: [],
       invalidLocations: []
     };
+    const impProjectPref = this.appStateService.currentProject$.getValue().impProjectPrefs.filter(pref => pref.prefGroup === 'project-flags' && pref.pref === 'FORCE_HOMEGEO')[0];
     const newGeoAttributes: GeoAttribute[] = [];
     const hhcAttribute = season === Season.Summer ? 'hhld_s' : 'hhld_w';
     const homeFeatureMap = groupByExtended(homeFeatures, f => f.attributes['geocode']);
@@ -464,26 +467,28 @@ export class AppGeoService {
             const geocodeDistance: number = EsriUtils.getDistance(currentFeature.attributes['longitude'], currentFeature.attributes['latitude'], loc.xcoord, loc.ycoord);
             const existingTA = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO')[0];
             const homeGeoTA = existingTA == null ? this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo) : existingTA;
-            if (existingTA == null) result.newTradeAreas.push(homeGeoTA);
-
-            const newGeo = new ImpGeofootprintGeo({
-              xcoord: currentFeature.attributes['longitude'],
-              ycoord: currentFeature.attributes['latitude'],
-              geocode: currentFeature.attributes['geocode'],
-              hhc: currentFeature.attributes[hhcAttribute],
-              distance: geocodeDistance,
-              impGeofootprintLocation: homeGeoTA.impGeofootprintLocation,
-              impGeofootprintTradeArea: homeGeoTA,
-              isActive: homeGeoTA.isActive
-            });
-            homeGeoTA.impGeofootprintGeos.push(newGeo);
-            result.newGeos.push(newGeo);
-            newGeoAttributes.push(currentFeature.attributes);
+            if (JSON.parse(impProjectPref.val)){
+              if (existingTA == null) result.newTradeAreas.push(homeGeoTA);
+              const newGeo = new ImpGeofootprintGeo({
+                xcoord: currentFeature.attributes['longitude'],
+                ycoord: currentFeature.attributes['latitude'],
+                geocode: currentFeature.attributes['geocode'],
+                hhc: currentFeature.attributes[hhcAttribute],
+                distance: geocodeDistance,
+                impGeofootprintLocation: homeGeoTA.impGeofootprintLocation,
+                impGeofootprintTradeArea: homeGeoTA,
+                isActive: homeGeoTA.isActive
+              });
+              homeGeoTA.impGeofootprintGeos.push(newGeo);
+              result.newGeos.push(newGeo);
+              newGeoAttributes.push(currentFeature.attributes);
+            }
           }
         }
       });
     }
     if (newGeoAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({geoAttributes: newGeoAttributes}));
+    
     return result;
   }
 

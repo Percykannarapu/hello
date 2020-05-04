@@ -70,6 +70,7 @@ export class DiscoveryInputComponent implements OnInit {
       selectedRadLookup: null,
       selectedSeason: null,
       selectedAnalysisLevel: [null, Validators.required],
+      forceHomeGeos: true,
       includePob: true,
       includeValassis: true,
       includeAnne: true,

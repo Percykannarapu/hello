@@ -2,6 +2,7 @@ import { ProjectTrackerUIModel, RadLookupUIModel } from '../services/app-discove
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ProjectCpmTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { isBoolean } from 'util';
 
 export class ValDiscoveryUIModel {
   projectId: number;
@@ -11,6 +12,7 @@ export class ValDiscoveryUIModel {
   selectedSeason: string;
   selectedAnalysisLevel: string;
   includePob: boolean;
+  forceHomeGeos: boolean;
   includeValassis: boolean;
   includeAnne: boolean;
   includeSolo: boolean;
@@ -34,6 +36,7 @@ export class ValDiscoveryUIModel {
 
   public static createFromProject(project: ImpProject, radItem: RadLookupUIModel, trackerItem: ProjectTrackerUIModel) : ValDiscoveryUIModel {
     const cpmTypeAttribute = project.impProjectPrefs.filter(pref => pref.pref === 'CPM_TYPE')[0];
+    const froceHomeGeoAttr = project.impProjectPrefs.filter(pref => pref.prefGroup === 'project-flags' && pref.pref === 'FORCE_HOMEGEO')[0];
     const materializedCpmType = project.estimatedBlendedCpm ? ProjectCpmTypeCodes.Blended : (project.smAnneCpm || project.smSoloCpm || project.smValassisCpm ? ProjectCpmTypeCodes.OwnerGroup : null);
     const usableCpmType = cpmTypeAttribute != null ? ProjectCpmTypeCodes.parse(cpmTypeAttribute.getVal()) : materializedCpmType;
     const newFormValues = {
@@ -53,7 +56,8 @@ export class ValDiscoveryUIModel {
       selectedAnalysisLevel: project.methAnalysis,
       selectedSeason: project.impGeofootprintMasters[0].methSeason,
       selectedProjectTracker: trackerItem ? trackerItem : null,
-      selectedRadLookup: radItem ? radItem : null
+      selectedRadLookup: radItem ? radItem : null,
+      forceHomeGeos: froceHomeGeoAttr == null ? true : froceHomeGeoAttr.val === 'true' ? true : false,
     };
     if (newFormValues.selectedSeason == null || newFormValues.selectedSeason === '') {
       newFormValues.selectedSeason = this.isSummer() ? 'S' : 'W';
@@ -92,6 +96,10 @@ export class ValDiscoveryUIModel {
       projectToUpdate.impProjectPrefs.push(cpmTypeAttribute);
     }
     cpmTypeAttribute.setVal((this.cpmType != null) ? this.cpmType : 'UNKNOWN');
+
+    const forceHomeGeos = new ImpProjectPref({prefGroup: 'project-flags', pref: 'FORCE_HOMEGEO', prefType: 'boolean', isActive: true, val:  this.forceHomeGeos ? 'true' : 'false'});
+    projectToUpdate.impProjectPrefs = projectToUpdate.impProjectPrefs.filter(pref => pref.prefGroup !== 'project-flags' && pref.pref !== 'FORCE_HOMEGEO');
+    projectToUpdate.impProjectPrefs.push(forceHomeGeos); 
   }
 
   private toNumber(value: string) : number | null {

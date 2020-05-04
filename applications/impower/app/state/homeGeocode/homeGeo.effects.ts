@@ -5,7 +5,7 @@ import { AppLocationService } from 'app/services/app-location.service';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { AppHomeGeocodingService } from '../../services/app-home-geocode.service';
-import { ApplyTradeAreaOnEdit, Geocode, HomeGeoActionTypes, HomeGeocode, PersistLocations, ProcessHomeGeoAttributes, ReCalcHomeGeos, SaveOnValidationSuccess, ValidateEditedHomeGeoAttributes, ZoomtoLocations } from './homeGeo.actions';
+import { ApplyTradeAreaOnEdit, Geocode, HomeGeoActionTypes, HomeGeocode, PersistLocations, ProcessHomeGeoAttributes, ReCalcHomeGeos, SaveOnValidationSuccess, ValidateEditedHomeGeoAttributes, ZoomtoLocations, ForceHomeGeos } from './homeGeo.actions';
 
 
 @Injectable({ providedIn: 'root' })
@@ -95,6 +95,12 @@ export class HomeGeoEffects {
    saveOnValidationSuccess$ = this.actions$.pipe(
       ofType<SaveOnValidationSuccess>(HomeGeoActionTypes.SaveOnValidationSuccess),
       tap(action => this.appLocationService.editLocationOnValidationSuccess(action.payload.oldData, action.payload.editedTags, action.payload.attributeList))
+   );
+
+   @Effect({dispatch: false})
+   forceHomeGeos$ = this.actions$.pipe(
+      ofType<ForceHomeGeos>(HomeGeoActionTypes.ForceHomeGeos),
+      map(action => this.appHomeGeocodingService.forceHomeGeos(action.payload.isForceHomeGeo))
    );
 
    constructor(private actions$: Actions,

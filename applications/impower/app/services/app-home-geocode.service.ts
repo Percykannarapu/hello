@@ -215,4 +215,18 @@ interface TradeAreaDefinition {
       this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
       this.logger.error.log(errorMessage, errorObject);
     }
+
+    public forceHomeGeos(isForceHomeGeo: boolean){
+
+      if (!isForceHomeGeo){
+        this.impTradeAreaService.get().forEach(ta => {
+          if (ta.taType === 'HOMEGEO'){
+              ta.isActive = false;
+              ta.impGeofootprintGeos.forEach(geo => geo.isActive == false);
+          }
+        });
+        this.impGeoService.makeDirty();
+      }
+
+    }
  }

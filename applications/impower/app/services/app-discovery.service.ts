@@ -12,6 +12,9 @@ import { ImpRadLookup } from '../val-modules/targeting/models/ImpRadLookup';
 import { ImpRadLookupService } from '../val-modules/targeting/services/ImpRadLookup.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {
@@ -60,6 +63,8 @@ export class AppDiscoveryService {
               private appStateService: AppStateService,
               private impRadService: ImpRadLookupService,
               private logger: AppLoggingService,
+              private taService: ImpGeofootprintTradeAreaService,
+              private geoService: ImpGeofootprintGeoService,
               private store$: Store<LocalAppState>) {
     this.radCategoryCodes = [
       { name: 'N/A',                            code: 'NA'},
@@ -92,6 +97,7 @@ export class AppDiscoveryService {
   private setSelectedValues(project: ImpProject) {
       this.selectRadProduct(project);
       this.selectProjectTracker(project);
+      this.selectForceHomeGeo(project);
   }
 
   private selectRadProduct(project: ImpProject) {
@@ -120,6 +126,24 @@ export class AppDiscoveryService {
         if (trackerItem != null) this.selectedProjectTracker.next(trackerItem);
       });
     }
+  }
+
+  private selectForceHomeGeo(project: ImpProject){
+   const impProjectPref = project.impProjectPrefs.filter(pref => pref.prefGroup === 'project-flags' && pref.pref === 'FORCE_HOMEGEO')[0];
+   if (impProjectPref != null){
+    this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : JSON.parse(impProjectPref.val)}));
+   }
+  
+   /*if (impProjectPref != null && impProjectPref.val === 'false'){
+        this.taService.get().forEach(ta => {
+          if (ta.taType === 'HOMEGEO'){
+              ta.isActive = false;
+              ta.impGeofootprintGeos.forEach(geo => geo.isActive == false);
+          }
+        });
+        //this.taService.makeDirty();
+        this.geoService.makeDirty();
+   }*/
   }
 
   private getProjectTrackerData(searchString) : Observable<ProjectTrackerUIModel[]> {
