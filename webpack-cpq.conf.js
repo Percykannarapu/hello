@@ -3,8 +3,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const Terser = require('terser');
 
 const webpack = require('webpack');
-const dotenv = require('dotenv').config({path: __dirname + '/.env'});
-const parsedEnv = dotenv.parsed || {};
+const Dotenv = require('dotenv-webpack');
 const path = require('path');
 const modulesLocation = path.join(__dirname, '/node_modules');
 
@@ -17,11 +16,8 @@ const optimize = (fileContent, path) =>
 console.log(__dirname);
 module.exports = {
   plugins: [
-    new webpack.EnvironmentPlugin({
-      'ESRI_PORTAL_SERVER': parsedEnv.ESRI_PORTAL_SERVER,
-      'ESRI_USERNAME': parsedEnv.ESRI_USERNAME,
-      'ESRI_PASSWORD': parsedEnv.ESRI_PASSWORD,
-      'IS_LOCAL_BUILD': (parsedEnv.ESRI_PORTAL_SERVER != null)
+    new Dotenv({
+      systemvars: true,
     }),
     new ArcGISPlugin({
       features: {

@@ -74,7 +74,11 @@
         stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
-            sh "/data/ant/bin/ant -DUSER=jenkins@valassis.com.dev -DPASS=D3pl0y2020!AOVwACL07YmLvbnUOfM5ATJ2 -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy"
+            withCredentials([usernamePassword(credentialsId: 'sfdc-deploy-creds', usernameVariable: 'SFDC_USER', passwordVariable: 'SFDC_PASSWORD')]) {
+              sh '''
+                /data/ant/bin/ant -DUSER=$SFDC_USER -DPASS=$SFDC_PASSWORD -DSERVER_URL=https://valassis--dev.cs15.my.salesforce.com deploy
+              '''
+            }
           }
         }
       }
