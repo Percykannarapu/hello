@@ -32,7 +32,7 @@
         stage('build impower development') {
           when { branch 'dev' }
           steps {
-            withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESR_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
+            withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESRI_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
               wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                 echo 'build for development'
                 sh '''
@@ -45,7 +45,7 @@
         stage('build cpq-maps development') {
           when { branch 'dev' }
           steps {
-            withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESR_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
+            withCredentials([string(credentialsId: 'ESRI_PORTAL_SERVER', variable: 'ESRI_PORTAL_SERVER'), string(credentialsId: 'ESRI_USERNAME', variable: 'ESRI_USERNAME'), string(credentialsId: 'ESRI_PASSWORD', variable: 'ESRI_PASSWORD')]) {
               wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                 echo 'build for development'
                 sh '''
