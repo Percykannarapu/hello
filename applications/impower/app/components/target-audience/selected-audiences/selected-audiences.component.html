@@ -6,8 +6,12 @@
         <ng-template pTemplate="header">
           <tr>
             <th>Move</th>
-            <th>Grid</th>
-            <th>GFP</th>
+            <th>Grid
+                <p-checkbox [(ngModel)]="gridFilter" binary="true" (click)="onSelectShowOnGrid(gridFilter)"></p-checkbox>
+            </th>
+            <th>GFP
+                <p-checkbox [(ngModel)]="gfpFilter" binary="true" (click)="onSelectShowOnGFP(gfpFilter)"></p-checkbox>
+            </th>
             <th>Nat'l Ex.</th>
             <th>Index Base</th>
             <th>Audience Name</th>

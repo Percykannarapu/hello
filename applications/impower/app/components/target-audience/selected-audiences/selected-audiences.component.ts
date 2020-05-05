@@ -27,11 +27,14 @@ export class SelectedAudiencesComponent implements OnInit {
   public audienceUnselect: Audience;
   public dialogboxWarningmsg: string = '';
   public dialogboxHeader: string = '';
+  public gridFilter: boolean;
+  public gfpFilter: boolean;
 
   private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   public audienceCount: number = 0;
 
   private combineAudiences;
+  private allAudiences: Audience[] = [];
   constructor(private varService: TargetAudienceService,
               private appStateService: AppStateService,
               private confirmationService: ConfirmationService,
@@ -41,6 +44,7 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   public ngOnInit() : void {
+    this.gfpFilter = true;
     // Setup an observable to watch the store for audiences
     this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       filter(audiences => audiences != null),
@@ -66,6 +70,10 @@ export class SelectedAudiencesComponent implements OnInit {
     ).subscribe(audiences => {
       this.combineAudiences =  Array.from(new Set(audiences));
     });
+
+    this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
+      filter(allAudiences => allAudiences != null)
+    ).subscribe(audiences => this.allAudiences = audiences);
   }
 
   public onApplyClicked() {
@@ -90,18 +98,31 @@ export class SelectedAudiencesComponent implements OnInit {
 
   onShowGridSelected(audience: Audience) : void {
     this.varService.updateProjectVars(audience);
-    this.audiences$.pipe(
+    /*this.audiences$.pipe(
       map(a => a.filter(a2 => a2.audienceIdentifier === audience.audienceIdentifier)),
       take(1),
-    ).subscribe(selected => selected[0].showOnGrid = audience.showOnGrid);
+    ).subscribe(selected => selected[0].showOnGrid = audience.showOnGrid);*/
+
+    this.allAudiences.forEach(aud => {
+      if (aud.audienceIdentifier === audience.audienceIdentifier){
+          aud.showOnGrid = audience.showOnGrid;
+      }
+    });
+    this.gridFilter =  this.allAudiences.filter(aud => aud.showOnGrid).length == this.allAudiences.length ? true : false;
   }
 
   onExportInGeoFootprintSelected(audience: Audience) : void {
     this.varService.updateProjectVars(audience);
-    this.audiences$.pipe(
+    /*this.audiences$.pipe(
       map(a => a.filter(a2 => a2.audienceIdentifier === audience.audienceIdentifier)),
       take(1),
-    ).subscribe(selected => selected[0].exportInGeoFootprint = audience.exportInGeoFootprint);
+    ).subscribe(selected => selected[0].exportInGeoFootprint = audience.exportInGeoFootprint);*/
+    this.allAudiences.forEach(aud => {
+      if (aud.audienceIdentifier === audience.audienceIdentifier){
+          aud.exportInGeoFootprint = audience.exportInGeoFootprint;
+      }
+    });
+    this.gfpFilter =  this.allAudiences.filter(aud => aud.exportInGeoFootprint).length == this.allAudiences.length ? true : false;
    }
 
   onNationalSelected(audience: Audience) : void {
@@ -193,4 +214,39 @@ export class SelectedAudiencesComponent implements OnInit {
     formattedString = formattedString.replace(/[+_.-]/g, char => charsToReplace[char]);
     return formattedString;
   }
+
+  public onSelectShowOnGrid(gridFilter: boolean){
+    const auds: Audience[] = [];
+   
+    this.audiences$.pipe(
+      map(audiences => audiences.filter(aud => aud.showOnGrid != gridFilter))
+    ).subscribe(audiences => {
+      audiences.forEach(aud => {
+        aud.showOnGrid = gridFilter;
+        auds.push(aud);
+      });
+    }).unsubscribe();
+
+    setTimeout(() => {
+        auds.forEach(aud => this.varService.updateProjectVars(aud), 50);
+    });
+  }
+
+  public onSelectShowOnGFP(gfpFilter: boolean){
+    const auds: Audience[] = [];
+
+    this.audiences$.pipe(
+      map(audiences => audiences.filter(aud => aud.exportInGeoFootprint != gfpFilter))
+    ).subscribe(audiences => {
+      audiences.forEach(aud => {
+        aud.exportInGeoFootprint = gfpFilter;
+        auds.push(aud);
+      });
+    }).unsubscribe();
+
+    setTimeout(() => {
+        auds.forEach(aud => this.varService.updateProjectVars(aud), 50);
+    });
+  }
+
 }
