@@ -7,7 +7,7 @@ import { ClassBreaksRenderer, DotDensityRenderer, SimpleRenderer, UniqueValueRen
 import { Font, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, TextSymbol } from 'esri/symbols';
 import SketchViewModel from 'esri/widgets/Sketch/SketchViewModel';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
-import { AutoCastColor, FillPattern, LineStyle, MapSymbols, MarkerStyles } from '../models/esri-types';
+import { AutoCastColor, FillPattern, LineStyle, MarkerStyles } from '../models/esri-types';
 import { LoggingService } from './logging.service';
 
 @Injectable()
@@ -185,13 +185,16 @@ export class EsriDomainFactoryService {
     });
   }
 
-  createSimpleMarkerSymbol(color: AutoCastColor, outline: __esri.symbols.SimpleLineSymbol, size: number = 12, style: MarkerStyles = 'path', path: string = MapSymbols.STAR) : __esri.symbols.SimpleMarkerSymbol {
-    return new SimpleMarkerSymbol({
+  createSimpleMarkerSymbol(color: AutoCastColor, outline: __esri.symbols.SimpleLineSymbol, style: MarkerStyles, path: string, size: number = 12) : __esri.symbols.SimpleMarkerSymbol {
+    const props: __esri.SimpleMarkerSymbolProperties = {
       color,
       outline,
       style,
-      path,
       size
-    });
+    };
+    if (path != null) {
+      props.path = path;
+    }
+    return new SimpleMarkerSymbol(props);
   }
 }

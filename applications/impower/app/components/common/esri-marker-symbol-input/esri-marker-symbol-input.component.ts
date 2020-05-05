@@ -22,8 +22,8 @@ export class EsriMarkerSymbolInputComponent implements OnInit {
   currentRoot: FormGroup;
 
   constructor(private controlContainer: ControlContainer) {
-    const markerTypesOrdered: MarkerStyles[] = ['path'];
-    //const markerTypesOrdered: MarkerStyles[] = ['path', 'circle', 'cross', 'diamond', 'square', 'triangle', 'x'];
+    //const markerTypesOrdered: MarkerStyles[] = ['path'];
+    const markerTypesOrdered: MarkerStyles[] = ['path', 'circle', 'cross', 'diamond', 'square', 'triangle', 'x'];
     this.markerTypes = markerTypesOrdered.map(mt => ({ label: markerTypeFriendlyNames[mt], value: mt, icon: mt }));
   }
 

@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, take, withLatestFrom } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { LabelDefinition, MarkerSymbolDefinition } from '../models/common-configuration';
+import { MapSymbols } from '../models/esri-types';
 import { PoiConfiguration, PoiConfigurationTypes } from '../models/poi-configuration';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
@@ -115,9 +116,16 @@ export class EsriPoiService {
   }
 
   private createSymbolFromDefinition(currentDef: MarkerSymbolDefinition) : __esri.symbols.SimpleMarkerSymbol {
-    const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0]);
-    // const path = currentDef.markerType === 'path' ? MapSymbols.STAR : undefined;
-    return this.domainFactory.createSimpleMarkerSymbol(currentDef.color, outline);
+    let outlineColor = currentDef.outlineColor || [0, 0, 0, 0];
+    let outlineSize = 1;
+    if (currentDef.markerType === 'cross' || currentDef.markerType === 'x') {
+      outlineColor = currentDef.color;
+      outlineSize = 2;
+    }
+    const outline = this.domainFactory.createSimpleLineSymbol(outlineColor, outlineSize);
+    const path = currentDef.markerType === 'path' ? MapSymbols.STAR : undefined;
+    const markerSize = currentDef.markerType === 'path' ? 14 : 10;
+    return this.domainFactory.createSimpleMarkerSymbol(currentDef.color, outline, currentDef.markerType, path, markerSize);
   }
 
   private createLabelFromDefinition(currentDef: LabelDefinition) : __esri.LabelClass {

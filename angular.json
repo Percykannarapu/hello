@@ -29,9 +29,18 @@
               ]
             },
             "styles": [
-              "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/primeng/resources/primeng.css",
-              "node_modules/primeicons/primeicons.css",
+              {
+                "input": "node_modules/font-awesome/css/font-awesome.css",
+                "bundleName": "font-awesome"
+              },
+              {
+                "input": "node_modules/primeng/resources/primeng.css",
+                "bundleName": "primeng-core"
+              },
+              {
+                "input": "node_modules/primeicons/primeicons.css",
+                "bundleName": "primeng-icons"
+              },
               "applications/impower/assets/layout/css/layout-valassis-blue.scss",
               "applications/impower/assets/theme/theme-valassis-blue.scss",
               "applications/impower/styles.scss"
@@ -91,7 +100,7 @@
             "prod-win": {
               "polyfills": "applications/impower/polyfills.deploy.ts",
               "optimization": true,
-              "outputHashing": "all",
+              "outputHashing": "bundles",
               "sourceMap": false,
               "extractCss": true,
               "namedChunks": false,
