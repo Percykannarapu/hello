@@ -131,7 +131,7 @@ export class AppDiscoveryService {
   private selectForceHomeGeo(project: ImpProject){
    const impProjectPref = project.impProjectPrefs.filter(pref => pref.prefGroup === 'project-flags' && pref.pref === 'FORCE_HOMEGEO')[0];
    if (impProjectPref != null){
-    this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : JSON.parse(impProjectPref.val)}));
+    this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : JSON.parse(impProjectPref.largeVal)}));
    }
   
    /*if (impProjectPref != null && impProjectPref.val === 'false'){

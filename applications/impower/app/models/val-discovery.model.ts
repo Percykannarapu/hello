@@ -57,7 +57,7 @@ export class ValDiscoveryUIModel {
       selectedSeason: project.impGeofootprintMasters[0].methSeason,
       selectedProjectTracker: trackerItem ? trackerItem : null,
       selectedRadLookup: radItem ? radItem : null,
-      forceHomeGeos: froceHomeGeoAttr == null ? true : froceHomeGeoAttr.val === 'true' ? true : false,
+      forceHomeGeos: froceHomeGeoAttr == null ? true : froceHomeGeoAttr.largeVal === 'true' ? true : false,
     };
     if (newFormValues.selectedSeason == null || newFormValues.selectedSeason === '') {
       newFormValues.selectedSeason = this.isSummer() ? 'S' : 'W';
@@ -97,7 +97,7 @@ export class ValDiscoveryUIModel {
     }
     cpmTypeAttribute.setVal((this.cpmType != null) ? this.cpmType : 'UNKNOWN');
 
-    const forceHomeGeos = new ImpProjectPref({prefGroup: 'project-flags', pref: 'FORCE_HOMEGEO', prefType: 'boolean', isActive: true, val:  this.forceHomeGeos ? 'true' : 'false'});
+    const forceHomeGeos = new ImpProjectPref({prefGroup: 'project-flags', pref: 'FORCE_HOMEGEO', prefType: 'boolean', isActive: true, largeVal:  this.forceHomeGeos ? 'true' : 'false'});
     projectToUpdate.impProjectPrefs = projectToUpdate.impProjectPrefs.filter(pref => pref.prefGroup !== 'project-flags' && pref.pref !== 'FORCE_HOMEGEO');
     projectToUpdate.impProjectPrefs.push(forceHomeGeos); 
   }

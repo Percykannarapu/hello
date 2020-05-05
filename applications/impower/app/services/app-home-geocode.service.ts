@@ -22,6 +22,7 @@ import { ValAudienceTradeareaService } from './app-audience-tradearea.service';
 import { AppEditSiteService } from './app-editsite.service';
 import { AppLocationService } from './app-location.service';
 import { AppTradeAreaService } from './app-trade-area.service';
+import { ImpGeofootprintGeo } from 'app/val-modules/targeting/models/ImpGeofootprintGeo';
 
 interface TradeAreaDefinition {
   store: string;
@@ -217,16 +218,27 @@ interface TradeAreaDefinition {
     }
 
     public forceHomeGeos(isForceHomeGeo: boolean){
-
-      if (!isForceHomeGeo){
+        const geos: string[] = [];
+        const geosSet: Set<string> = new Set();
+     // if (!isForceHomeGeo){
         this.impTradeAreaService.get().forEach(ta => {
           if (ta.taType === 'HOMEGEO'){
-              ta.isActive = false;
-              ta.impGeofootprintGeos.forEach(geo => geo.isActive == false);
+              ta.isActive = isForceHomeGeo;
+              ta.impGeofootprintGeos.forEach(geo => {
+                geosSet.add(geo.geocode);
+                geo.isActive = isForceHomeGeo;
+              });
+
           }
         });
-        this.impGeoService.makeDirty();
-      }
+        this.impGeoService.get().forEach(geo => {
+          if (geosSet.has(geo.geocode))
+                geo.isActive = isForceHomeGeo;
+        });
+        this.impTradeAreaService.makeDirty();
+        //this.impGeoService.makeDirty();
+        this.impGeoService.update(null, null);
+     // }
 
     }
  }

@@ -467,7 +467,7 @@ export class AppGeoService {
             const geocodeDistance: number = EsriUtils.getDistance(currentFeature.attributes['longitude'], currentFeature.attributes['latitude'], loc.xcoord, loc.ycoord);
             const existingTA = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO')[0];
             const homeGeoTA = existingTA == null ? this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo) : existingTA;
-            if (JSON.parse(impProjectPref.val)){
+            if (JSON.parse(impProjectPref.largeVal)){
               if (existingTA == null) result.newTradeAreas.push(homeGeoTA);
               const newGeo = new ImpGeofootprintGeo({
                 xcoord: currentFeature.attributes['longitude'],
