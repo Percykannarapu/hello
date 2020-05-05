@@ -156,45 +156,53 @@ export class UploadMustCoverComponent implements OnInit {
       const key = this.spinnerId;
       const project = this.appStateService.currentProject$.getValue();
       //let uniqueGeos: string[] = [];
-      if (name != null) {
-         this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Must Cover Data'}));
-         if (this.fileName.includes('.xlsx') || this.fileName.includes('.xls')) {
-            reader.readAsBinaryString(event.files[0]);
-            reader.onload = () => {
-               try {
-                  const wb: xlsx.WorkBook = xlsx.read(reader.result, {type: 'binary'});
-                  const worksheetName: string = wb.SheetNames[0];
-                  const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
-                  const csvData  = xlsx.utils.sheet_to_csv(ws);
-                  this.parseMustcovers(csvData, this.fileName);
-                  this.totalUploadedRowCount = csvData.split(/\r\n|\n/).length - 2;
+      this.confirmationService.confirm({
+         message: 'You are about to change analysis level and you have',
+         header: 'Change Analysis Level',
+         key: 'mustcover',
+         accept: () => {
+            if (name != null) {
+               this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Must Cover Data'}));
+               if (this.fileName.includes('.xlsx') || this.fileName.includes('.xls')) {
+                  reader.readAsBinaryString(event.files[0]);
+                  reader.onload = () => {
+                     try {
+                        const wb: xlsx.WorkBook = xlsx.read(reader.result, {type: 'binary'});
+                        const worksheetName: string = wb.SheetNames[0];
+                        const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
+                        const csvData  = xlsx.utils.sheet_to_csv(ws);
+                        this.parseMustcovers(csvData, this.fileName);
+                        this.totalUploadedRowCount = csvData.split(/\r\n|\n/).length - 2;
+                     }
+                     catch (e) {
+                        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
+                     }
+                     finally {
+                        this.store$.dispatch(new StopBusyIndicator({ key: key }));
+                     }
+                  };
                }
-               catch (e) {
-                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
+               else {
+                  reader.readAsText(event.files[0]);
+                  reader.onload = () => {
+                     try {
+                      this.parseMustcovers(reader.result.toString(), this.fileName);
+                      this.totalUploadedRowCount = reader.result.toString().split(/\r\n|\n/).length - 2;
+                     }
+                     catch (e) {
+                        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
+                     }
+                     finally {
+                        this.store$.dispatch(new StopBusyIndicator({ key: key }));
+                        // Create a new project pref for the upload file
+      
+                     }
+                  };
                }
-               finally {
-                  this.store$.dispatch(new StopBusyIndicator({ key: key }));
-               }
-            };
+            }
          }
-         else {
-            reader.readAsText(event.files[0]);
-            reader.onload = () => {
-               try {
-                this.parseMustcovers(reader.result.toString(), this.fileName);
-                this.totalUploadedRowCount = reader.result.toString().split(/\r\n|\n/).length - 2;
-               }
-               catch (e) {
-                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
-               }
-               finally {
-                  this.store$.dispatch(new StopBusyIndicator({ key: key }));
-                  // Create a new project pref for the upload file
-
-               }
-            };
-         }
-      }
+      });
+      
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
       //this.isDisable = true;

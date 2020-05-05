@@ -156,17 +156,24 @@ export class UploadTradeAreasComponent implements OnInit {
     const reader = new FileReader();
     const name: String = event.files[0].name;
     this.logger.debug.log('file Name:::', name);
-    if (name.includes('.xlsx') || name.includes('.xls')) {
-      reader.readAsBinaryString(event.files[0]);
-      reader.onload = () => {
-        this.parseExcelFile(reader.result);
-      };
-    } else {
-      reader.readAsText(event.files[0]);
-      reader.onload = () => {
-        this.parseCsvFile(reader.result as string);
-      };
-    }
+    this.confirmationService.confirm({
+        message: 'You are about to change analysis level and you have',
+        header: 'Change Analysis Level',
+        key: 'analysisLevelChange',
+        accept: () => {
+          if (name.includes('.xlsx') || name.includes('.xls')) {
+            reader.readAsBinaryString(event.files[0]);
+            reader.onload = () => {
+              this.parseExcelFile(reader.result);
+            };
+          } else {
+            reader.readAsText(event.files[0]);
+            reader.onload = () => {
+              this.parseCsvFile(reader.result as string);
+            };
+          }
+        }
+    });
 
     this.stateService.uniqueIdentifiedGeocodes$.pipe(
       filter(geos => geos != null && geos.length > 0),
