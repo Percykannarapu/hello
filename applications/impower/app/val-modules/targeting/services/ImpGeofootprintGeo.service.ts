@@ -527,7 +527,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          return; // need to return here so we don't create an invalid usage metric later in the function since the export failed
       }
 
-      this.isMarket = this.get().some(geo => geo.impGeofootprintLocation.marketName !== '' || geo.impGeofootprintLocation.marketCode !== '');
+      this.isMarket = this.get().some(geo => (geo.impGeofootprintLocation.marketName != null && geo.impGeofootprintLocation.marketName !== '') || (geo.impGeofootprintLocation.marketCode != null &&  geo.impGeofootprintLocation.marketCode !== ''));
 
       const exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = this.getExportFormat (exportFormat);
 
