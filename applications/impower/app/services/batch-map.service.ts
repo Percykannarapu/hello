@@ -7,7 +7,6 @@ import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { Observable, race, timer } from 'rxjs';
 import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
@@ -183,10 +182,12 @@ export class BatchMapService {
           currentGeos.forEach(g => {
             if (g.isDeduped === 1) {
               g.isActive = this.originalGeoState[g.ggId];
+            } else {
+              g.isActive = false;
             }
           });
         } else { // duplicated map
-          currentGeos.forEach(g => g.isActive = true);
+          currentGeos.forEach(g => g.isActive = this.originalGeoState[g.ggId]);
         }
 
         if (params.hideNeighboringSites) {

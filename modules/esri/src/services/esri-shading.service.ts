@@ -24,6 +24,8 @@ import { EsriLayerService } from './esri-layer.service';
 @Injectable()
 export class EsriShadingService {
 
+  private layersInFlight = new Set<string>();
+
   constructor(private layerService: EsriLayerService,
               private store$: Store<AppState>,
               private domainFactory: EsriDomainFactoryService) {}
@@ -68,16 +70,20 @@ export class EsriShadingService {
       withLatestFrom(this.store$.select(shadingSelectors.featuresCsv))
     ).subscribe(([defs, features]) => {
       defs.forEach(d => {
-        this.createGeneralizedShadingLayer(d, features).pipe(
-          take(1)
-        ).subscribe(id => {
-          const hideLegendHeader =
-            d.shadingType === ConfigurationTypes.Ramp ||
-            d.shadingType === ConfigurationTypes.Simple ||
-            d.shadingType === ConfigurationTypes.DotDensity;
-          this.store$.dispatch(updateShadingDefinition({ shadingDefinition: { id: d.id, changes: { destinationLayerUniqueId: id }}}));
-          this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: hideLegendHeader ? null : d.layerName }));
-        });
+        if (!this.layersInFlight.has(d.id)) {
+          this.layersInFlight.add(d.id);
+          this.createGeneralizedShadingLayer(d, features).pipe(
+            take(1)
+          ).subscribe(id => {
+            const hideLegendHeader =
+              d.shadingType === ConfigurationTypes.Ramp ||
+              d.shadingType === ConfigurationTypes.Simple ||
+              d.shadingType === ConfigurationTypes.DotDensity;
+            this.store$.dispatch(updateShadingDefinition({ shadingDefinition: { id: d.id, changes: { destinationLayerUniqueId: id }}}));
+            this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: hideLegendHeader ? null : d.layerName }));
+            this.layersInFlight.delete(d.id);
+          });
+        }
       });
     });
   }

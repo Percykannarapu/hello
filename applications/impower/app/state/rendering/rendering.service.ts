@@ -9,7 +9,6 @@ import { map, reduce, switchMap, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { QuadTree } from '../../models/quad-tree';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
-import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { TradeAreaDrawDefinition } from './trade-area.transform';
 
 interface ValueMap {
@@ -68,15 +67,12 @@ export class RenderingService {
   clearTradeAreas() : void {
     const layersToRemove = this.esriMapService.mapView.map.allLayers.toArray()
       .filter(l => l.title !== null && (l.title.toLowerCase().includes('audience') || l.title.toLowerCase().includes('radius')));
+    this.renderedDefinitionMap.clear();
     this.logger.debug.log('Removing', layersToRemove.length, 'layers');
     layersToRemove.forEach(l => {
       const layer = this.esriLayerService.getLayer(l.title);
       this.esriLayerService.removeLayer(layer);
     });
-  }
-
-  clearLocations(type: SuccessfulLocationTypeCodes) : void {
-    this.esriLayerService.clearClientLayers(`${type}s`);
   }
 
   renderTradeAreas(defs: TradeAreaDrawDefinition[]) : Observable<__esri.GraphicsLayer[]> {

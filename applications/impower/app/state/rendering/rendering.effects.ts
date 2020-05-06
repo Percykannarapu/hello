@@ -7,9 +7,9 @@ import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { PoiRenderingService } from '../../services/poi-rendering.service';
-import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { FullAppState } from '../app.interfaces';
-import { RenderAudienceTradeAreas, RenderingActionTypes, RenderLocations, RenderRadiusTradeAreas, RenderTradeAreas } from './rendering.actions';
+import { ClearTradeAreas, RenderAudienceTradeAreas, RenderingActionTypes, RenderLocations, RenderRadiusTradeAreas, RenderTradeAreas } from './rendering.actions';
 import { RenderingService } from './rendering.service';
 import { prepareAudienceTradeAreas, prepareRadiusTradeAreas } from './trade-area.transform';
 
@@ -26,10 +26,16 @@ export class RenderingEffects {
     map(([action]) => groupByExtended(action.payload.tradeAreas, ta => TradeAreaTypeCodes.parse(ta.taType))),
   );
 
-  @Effect({ dispatch: false })
+  @Effect()
   tradeAreaClear$ = this.tradeAreaSplit$.pipe(
     map(typeMap => typeMap.size),
     skipUntilNonZeroBecomesZero(),
+    map(() => new ClearTradeAreas())
+  );
+
+  @Effect({ dispatch: false })
+  clearTradeAreas$ = this.actions$.pipe(
+    ofType(RenderingActionTypes.ClearTradeAreas),
     tap(() => this.renderingService.clearTradeAreas())
   );
 
@@ -65,37 +71,14 @@ export class RenderingEffects {
 
   // Locations
 
-  locationSplit$ = this.actions$.pipe(
-    ofType<RenderLocations>(RenderingActionTypes.RenderLocations),
-    filter(action => action.payload.locations.length > 0),
-    map(action => groupByExtended(action.payload.locations, l => l.clientLocationTypeCode)),
-    map(locMap => ([(locMap.get(ImpClientLocationTypeCodes.Site) || []), (locMap.get(ImpClientLocationTypeCodes.Competitor) || [])] as const))
-  );
-
-  @Effect({ dispatch: false })
-  siteClear$ = this.locationSplit$.pipe(
-    map(([sites]) => sites.length),
-    skipUntilNonZeroBecomesZero(),
-    tap(() => this.renderingService.clearLocations(ImpClientLocationTypeCodes.Site)),
-  );
-
-  @Effect({ dispatch: false })
-  competitorClear$ = this.locationSplit$.pipe(
-    map(([, competitors]) => competitors.length),
-    skipUntilNonZeroBecomesZero(),
-    tap(() => this.renderingService.clearLocations(ImpClientLocationTypeCodes.Competitor)),
-  );
-
   @Effect({ dispatch: false })
   renderLocations$ = this.actions$.pipe(
     ofType<RenderLocations>(RenderingActionTypes.RenderLocations),
-    filter(action => action.payload.locations.length > 0),
+    filter(action => action.payload.locations != null),
     withLatestFrom(this.store$.select(selectors.getMapReady), this.esriPoiService.allPoiConfigurations$),
     filter(([, mapReady]) => mapReady),
     map(([action, , configs]) => [action.payload.locations, configs] as const),
-    concatMap(([locations, configs]) => this.poiRenderingService.renderSites(locations, configs)),
-    filter(pois => pois.length > 0),
-    map(pois => this.esriPoiService.updatePoiConfig(pois))
+    tap(([locations, configs]) => this.poiRenderingService.renderSites(locations, configs))
   );
 
   constructor(private actions$: Actions,
