@@ -32,7 +32,7 @@ export class EnvironmentData {
 
   public static fuseBaseUrl = 'http://localhost:8181/cxf/services/';
   //public static fuseBaseUrl = 'https://servicesdev.valassislab.com/services/';
-  public static impowerBaseUrl = 'https://impowerdev.val.vlss.local/';
+  public static impowerBaseUrl = 'http://localhost:4200/';
 
   // print service URL
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';

@@ -12,7 +12,7 @@ import { RestDataService } from '../val-modules/common/services/restdata.service
 export class UserService {
 
   // Private user, exposed publicly as an observable
-  private _user = new User;
+  private _user: User = null;
   private _userSubject = new BehaviorSubject<User>(this._user);
   private userFetch = new Subject<User>();
 

@@ -232,8 +232,6 @@ export class RestDataInterceptor implements HttpInterceptor
           internalRequest = internalRequest.clone({
             headers: internalRequest.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
           });
-          // check to see if the current oauth token is expired
-          refresh = this.refreshOauthToken();
         }
       }
       if (refresh != null && refresh instanceof Observable) {
@@ -243,28 +241,4 @@ export class RestDataInterceptor implements HttpInterceptor
       }
    }
 
-   /**
-    * Refresh the OAuth token if it has expired
-    * @returns An Observable<boolean> if the token needs to be refreshed, false if it does not need to be refreshed
-    */
-    private refreshOauthToken() : Observable<boolean> | false {
-      const tokenExpirationDate = new Date(RestDataService.getConfig().tokenExpiration);
-      const now = new Date(Date.now());
-      const refreshTokenSubject: Subject<boolean> = new Subject<boolean>();
-      if (tokenExpirationDate <= now) {
-        const refreshToken$: Observable<boolean> = <Observable<boolean>> RestDataService.getConfig().tokenRefreshFunction();
-        refreshToken$.subscribe(res => {
-          if (res) {
-            refreshTokenSubject.next(true);
-          } else {
-            refreshTokenSubject.next(false);
-          }
-        }, err => {
-          this.logger.error.log('Error refreshing oauth token in http interceptor: ', err);
-          refreshTokenSubject.next(false);
-        });
-        return refreshTokenSubject;
-      }
-      return false;
-    }
 }

@@ -21,7 +21,8 @@
             "tsConfig": "applications/impower/tsconfig.app.json",
             "polyfills": "applications/impower/polyfills.ts",
             "assets": [
-              "applications/impower/assets"
+              "applications/impower/assets",
+              "applications/impower/silent-refresh.html"
             ],
             "stylePreprocessorOptions": {
               "includePaths": [
