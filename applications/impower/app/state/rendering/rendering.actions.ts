@@ -4,6 +4,7 @@ import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/Imp
 
 export enum RenderingActionTypes {
   RenderTradeAreas = '[Rendering] Render All Trade Areas',
+  ClearTradeAreas = '[Rendering] Clear All Trade Areas',
   RenderAudienceTradeAreas = '[Rendering] Render Audience TAs',
   RenderRadiusTradeAreas = '[Rendering] Render Radius TAs',
 
@@ -13,6 +14,10 @@ export enum RenderingActionTypes {
 export class RenderTradeAreas implements Action {
   readonly type = RenderingActionTypes.RenderTradeAreas;
   constructor(public payload: { tradeAreas: ImpGeofootprintTradeArea[] }) {}
+}
+
+export class ClearTradeAreas implements Action {
+  readonly type = RenderingActionTypes.ClearTradeAreas;
 }
 
 export class RenderAudienceTradeAreas implements Action {
@@ -32,6 +37,7 @@ export class RenderLocations implements Action {
 
 export type RenderingActions =
   RenderTradeAreas |
+  ClearTradeAreas |
   RenderAudienceTradeAreas |
   RenderRadiusTradeAreas |
   RenderLocations

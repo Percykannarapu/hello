@@ -8,7 +8,7 @@ import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap } from 'rxjs/operators';
 import { BoundaryConfiguration } from '../models/boundary-configuration';
 import { FillSymbolDefinition, LabelDefinition } from '../models/common-configuration';
-import { updateBoundaries, upsertBoundaries, upsertBoundary } from '../state/boundary/esri.boundary.actions';
+import { loadBoundaries, updateBoundaries, upsertBoundaries, upsertBoundary } from '../state/boundary/esri.boundary.actions';
 import { boundarySelectors } from '../state/boundary/esri.boundary.selectors';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
@@ -55,6 +55,10 @@ export class EsriBoundaryService {
     ).subscribe(configs => {
       this.removeGroups(configs);
     });
+  }
+
+  loadBoundaryConfig(boundaries: BoundaryConfiguration[]) : void {
+    this.store$.dispatch(loadBoundaries({ boundaries }));
   }
 
   updateBoundaryConfig(boundary: BoundaryConfiguration | BoundaryConfiguration[]) : void {

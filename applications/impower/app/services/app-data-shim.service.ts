@@ -14,6 +14,7 @@ import { RehydrateAudiences } from '../impower-datastore/state/transient/audienc
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
+import { ClearTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppGeoService } from './app-geo.service';
@@ -222,6 +223,7 @@ export class AppDataShimService {
     this.appStateService.clearUserInterface();
     this.store$.dispatch(clearFeaturesOfInterest());
     this.store$.dispatch(clearShadingDefinitions());
+    this.store$.dispatch(new ClearTradeAreas());
   }
 
   calcMetrics(geocodes: string[], attribute: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {

@@ -77,7 +77,7 @@ export class AppTradeAreaService {
     ).subscribe(() => {
       combineLatest([this.impTradeAreaService.storeObservable, this.impLocationService.storeObservable]).pipe(
         map(([ta]) => ta),
-        filter(ta => ta != null && ta.length > 0),
+        filter(ta => ta != null),
         filterArray(ta => ta.impGeofootprintLocation != null && ta.impGeofootprintLocation.isActive && ta.isActive),
       ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
 
