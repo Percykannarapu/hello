@@ -191,7 +191,7 @@ export class TargetAudienceUnifiedService {
       return this.restService.post(serviceURL, [inputData])
         .pipe(
           // tap(response => this.logger.info.log('unified response payload::', response)),
-          map(response => this.validateFuseResponse(response,  identifiers.map(id => id.toString()), isForShading)),
+          map(response => this.validateFuseResponse(response,  identifiers.sort(CommonSort.StringsAsNumbers), isForShading)),
           tap(response => (response)),
           catchError(() => {
             this.logger.error.log('Error posting to', serviceURL, 'with payload:');
@@ -210,14 +210,13 @@ export class TargetAudienceUnifiedService {
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
     const validatedResponse: UnifiedBulkResponse[] = [];
     const responseArray: UnifiedFuseResponse[] = response.payload.rows;
-    const varIds = identifiers.sort(CommonSort.StringsAsNumbers);
     if (responseArray.length > 0){
       for (let r = 0; r < responseArray.length; r++){
         const responseVars = Object.keys(responseArray[r].variables);
         if (responseVars.length > 0){
-          for (let i = 0; i < varIds.length; i++)
+          for (let i = 0; i < identifiers.length; i++)
             if (identifiers.includes(responseVars[i].substring(0, responseVars[i].indexOf('_', 1)))){
-              validatedResponse.push ({ geocode: responseArray[r].geocode, id: varIds[i], 
+              validatedResponse.push ({ geocode: responseArray[r].geocode, id: identifiers[i], 
                               score: responseArray[r].variables[responseVars[i]] });
           }
         } 
