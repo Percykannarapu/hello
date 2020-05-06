@@ -104,6 +104,12 @@ module.exports = {
       {
         from: "arcgis-js-api/symbols/patterns/",
         to: "arcgis-js-api/symbols/patterns/"
+      },
+      // silent renew page for JWT renewal
+      {
+        context: '../applications/impower',
+        from: "silent-refresh.html",
+        to: "silent-refresh.html"
       }
     ], { context: modulesLocation }),
     new webpack.optimize.LimitChunkCountPlugin({
