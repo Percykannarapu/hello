@@ -30,7 +30,7 @@ export class EnvironmentData {
   // this must be set to false now for local environments so we get an OAUTH token
   public static authenticated = false;
 
-  public static fuseBaseUrl = 'http://localhost:8181/cxf/services/';
+  public static fuseBaseUrl = 'http://localhost:9191/cxf/services/';
   //public static fuseBaseUrl = 'https://servicesdev.valassislab.com/services/';
   public static impowerBaseUrl = 'http://localhost:4200/';
 
