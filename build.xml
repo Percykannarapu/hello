@@ -18,11 +18,15 @@
     <mkdir dir="${DEPLOY_ROOT}" />
 
     <!-- remove files we don't need for SFDC deployment -->
-    <delete failonerror="false">
+    <delete failonerror="false" includeemptydirs="true">
       <fileset dir="${CPQ_MAPS_ROOT}">
         <include name="common.js.map"/>
         <include name="?.js.map"/>
         <include name="index.html"/>
+        <include name="arcgis-js-api/geometry/support/**"/>
+        <include name="arcgis-js-api/images/**"/>
+        <include name="arcgis-js-api/themes/**"/>
+        <include name="arcgis-js-api/views/3d/**"/>
       </fileset>
     </delete>
 
@@ -59,8 +63,6 @@
     <delete dir="${DEPLOY_ROOT}/assets"/>
   </target>
 
-  <property name="USER" value="jenkins@valassis.com.dev" />
-  <property name="PASS" value="D3pl0y2020!AOVwACL07YmLvbnUOfM5ATJ2" />
   <property name="SERVER_URL" value="https://valassis--dev.cs15.my.salesforce.com" />
 
   <target name="deploy" depends="create-resources">
