@@ -34,6 +34,21 @@ module.exports = {
         context: 'applications/impower',
         from: "silent-refresh.html",
         to: "silent-refresh.html"
+      },
+      {
+        context: 'applications/impower',
+        from: "assets/data",
+        to: "assets/data"
+      },
+      {
+        context: 'applications/impower',
+        from: "assets/sample",
+        to: "assets/sample"
+      },
+      {
+        context: 'applications/impower',
+        from: "assets/favicon.png",
+        to: "favicon.png"
       }
     ])
   ],

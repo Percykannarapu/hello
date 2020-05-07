@@ -20,14 +20,10 @@
             "es5BrowserSupport": true,
             "tsConfig": "applications/impower/tsconfig.app.json",
             "polyfills": "applications/impower/polyfills.ts",
-            "assets": [
-              "applications/impower/assets",
-              "applications/impower/silent-refresh.html"
-            ],
+            "resourcesOutputPath": "assets/resources",
+            "assets": [],
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "applications/impower/assets"
-              ]
+              "includePaths": []
             },
             "styles": [
               {
