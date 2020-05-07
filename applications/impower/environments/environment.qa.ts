@@ -14,33 +14,14 @@ export class EnvironmentData {
   // The name of the environment
   public static environmentName = 'QA';
 
-  // OAuth information
-  public static clientId = 'cm246JqFF4EU5rbBlkftIf6olI8a';
-  public static clientSecret = 'MnfaK8NczJl884o0DpxRKWG0D_Ua';
-
-  // Can be used to hide/show debugging info
-  public static debugMode: boolean = false;
-
-  // this variable controls whether a user is currently authenticated
-  // this *MUST* be set to false for all environments other than local
-  public static authenticated = false;
-
-  //public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services-qa/';
   public static fuseBaseUrl = 'https://services.valassislab.com/impower/services/';
   public static impowerBaseUrl = 'https://impowerqa.val.vlss.local/';
-
-  // print service URL
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
 
   public static esri = {
     portalServer:  process.env.ESRI_PORTAL_SERVER,
     userName: process.env.ESRI_USERNAME,
     password: process.env.ESRI_PASSWORD
-  };
-
-  public static oAuth = {
-    registerUrl: `${EnvironmentData.impowerBaseUrl}oauth/register`,
-    tokenUrl: `${EnvironmentData.impowerBaseUrl}oauth/token`
   };
 
   public static layerIds: AllLayerIds = {

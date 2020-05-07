@@ -1,6 +1,6 @@
 import { Params } from '@angular/router';
 import { createSelector } from '@ngrx/store';
-import { strToBool } from '@val/common';
+import { isConvertibleToInteger, isConvertibleToNumber, strToBool } from '@val/common';
 import { LocalAppState } from '../app.interfaces';
 
 export interface RouterStateUrl {
@@ -15,6 +15,7 @@ export enum FitTo {
 }
 
 export interface BatchMapQueryParams {
+  id: number;
   height: number;
   hideNeighboringSites: boolean;
   startingSite: string;
@@ -27,6 +28,7 @@ export interface BatchMapQueryParams {
 }
 
 const defaultBatchQueryParams: BatchMapQueryParams = {
+  id: null,
   height: 850,
   hideNeighboringSites: false,
   startingSite: null,
@@ -48,10 +50,14 @@ export const getTypedBatchQueryParams = createSelector(getRouteQueryParams, stat
     ...(state || {})
   };
   if (state != null) {
-    if (state.height != null && !Number.isNaN(Number(state.height))) result.height = Number(state.height);
+    if (isConvertibleToInteger(state.id)) result.id = Number(state.id);
+    if (isConvertibleToInteger(state.height)) result.height = Number(state.height);
     if (state.hideNeighboringSites != null) result.hideNeighboringSites = strToBool(state.hideNeighboringSites);
     if (state.duplicated != null) result.duplicated = strToBool(state.duplicated);
-    if (state.buffer != null && !Number.isNaN(Number(state.buffer))) result.buffer = Number(state.buffer);
+    if (isConvertibleToNumber(state.buffer)) result.buffer = Number(state.buffer);
   }
   return result;
+});
+export const getRouteIdOrQueryId = createSelector(getRouteParams, getTypedBatchQueryParams, (params: Params, queryParams: BatchMapQueryParams) => {
+  return params.id || queryParams.id;
 });

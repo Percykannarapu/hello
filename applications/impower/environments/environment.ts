@@ -19,34 +19,14 @@ export class EnvironmentData {
   // The name of the environment
   public static environmentName = 'DEV';
 
-  // OAuth information
-  public static clientId = 'seUTFCqmugdQFDOyznekLaHmFoAa';
-  public static clientSecret = '_QZJSLshNo8N590wXfQzsngSZika';
-
-  // Can be used to hide/show debugging info
-  public static debugMode: boolean = true;
-
-  // this variable controls whether a user is currently authenticated
-  // this *MUST* be set to false for all environments other than local
-  public static authenticated = false;
-
-  //public static fuseBaseUrl = 'https://services.valassislab.com/services/';
-  // public static fuseBaseUrl = 'https://vallomwso002vm.val.vlss.local:8243/services/';
-  public static fuseBaseUrl = 'https://servicesdev.valassislab.com/services/';
+  public static fuseBaseUrl = 'https://servicesdev.valassislab.com/impower/services/';
   public static impowerBaseUrl = 'http://localhost:4200/';
-
-  // print service URL
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
 
   public static esri = {
     portalServer:  process.env.ESRI_PORTAL_SERVER,
     userName: process.env.ESRI_USERNAME,
     password: process.env.ESRI_PASSWORD
-  };
-
-  public static oAuth = {
-    registerUrl: `${EnvironmentData.impowerBaseUrl}oauth/register`,
-    tokenUrl: `${EnvironmentData.impowerBaseUrl}oauth/token`
   };
 
   public static layerIds: AllLayerIds = {
@@ -61,14 +41,12 @@ export class EnvironmentData {
       centroid: undefined
     },
     zip: {
-     boundary: '23a54308e914496aa24d94a9b36776a0',
-     //boundary: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/Zip_Boundaries__GL/FeatureServer',
+      boundary: '23a54308e914496aa24d94a9b36776a0',
       simplifiedBoundary: 'fb4295cfef1743f9a8a12c1d444effeb',
       centroid: '88120ac630d746239b133296e87b8e1f'
     },
     atz: {
       boundary: 'c0ee701ee95f4bbdbc15ded2a37ca802',
-      //boundary: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ATZ_Boundaries_GL/FeatureServer',
       simplifiedBoundary: '269894235d7946d19500e4bbf3ea9b09',
       centroid: 'fd4b078fc2424dd5a48af860dc421431'
     },

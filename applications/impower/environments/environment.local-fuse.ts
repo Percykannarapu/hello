@@ -19,33 +19,14 @@ export class EnvironmentData {
   // The name of the environment
   public static environmentName = 'LOCAL';
 
-  // OAuth information
-  public static clientId = 'seUTFCqmugdQFDOyznekLaHmFoAa';
-  public static clientSecret = '_QZJSLshNo8N590wXfQzsngSZika';
-
-  // Can be used to hide/show debugging info
-  public static debugMode: boolean = true;
-
-  // this variable controls whether a user is currently authenticated
-  // this must be set to false now for local environments so we get an OAUTH token
-  public static authenticated = false;
-
   public static fuseBaseUrl = 'http://localhost:9191/cxf/services/';
-  //public static fuseBaseUrl = 'https://servicesdev.valassislab.com/services/';
   public static impowerBaseUrl = 'http://localhost:4200/';
-
-  // print service URL
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net/api/service';
 
   public static esri = {
     portalServer:  process.env.ESRI_PORTAL_SERVER,
     userName: process.env.ESRI_USERNAME,
     password: process.env.ESRI_PASSWORD
-  };
-
-  public static oAuth = {
-    registerUrl: `${EnvironmentData.impowerBaseUrl}oauth/register`,
-    tokenUrl: `${EnvironmentData.impowerBaseUrl}oauth/token`
   };
 
   public static layerIds: AllLayerIds = {

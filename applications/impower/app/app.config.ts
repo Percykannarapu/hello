@@ -11,14 +11,8 @@ export class AppConfig implements LoggingConfiguration {
   public environmentName = EnvironmentData.environmentName;
   public logLevel: LogLevels = environment.logLevel;
 
-  // Authentication info
-  public authenticated: boolean = EnvironmentData.authenticated;
-  public clientId = EnvironmentData.clientId;
-  public clientSecret = EnvironmentData.clientSecret;
-  public oAuthParams = EnvironmentData.oAuth;
-
   // Urls
-  public valServiceBase = `${EnvironmentData.fuseBaseUrl}`;
+  public valServiceBase = EnvironmentData.fuseBaseUrl;
   public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
   public serviceUrls = EnvironmentData.serviceUrls;
   public printServiceUrl = EnvironmentData.printServiceUrl;

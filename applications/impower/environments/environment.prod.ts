@@ -14,32 +14,14 @@ export class EnvironmentData {
   // The name of the environment
   public static environmentName = 'PROD';
 
-  // OAuth information
-  public static clientId = 'seUTFCqmugdQFDOyznekLaHmFoAa';
-  public static clientSecret = '_QZJSLshNo8N590wXfQzsngSZika';
-
-  // Can be used to hide/show debugging info
-  public static debugMode: boolean = false;
-
-  // this variable controls whether a user is currently authenticated
-  // this *MUST* be set to false for all environments other than local
-  public static authenticated = false;
-
-  // print service URL
-  public static printServiceUrl = 'https://impowerpdf.valassisdigital.net/api/service';
-
   public static fuseBaseUrl = 'https://services.valassis.com/impower/services/';
   public static impowerBaseUrl = 'https://impower.val.vlss.local/';
+  public static printServiceUrl = 'https://impowerpdf.valassisdigital.net/api/service';
 
   public static esri = {
     portalServer:  process.env.ESRI_PORTAL_SERVER,
     userName: process.env.ESRI_USERNAME,
     password: process.env.ESRI_PASSWORD
-  };
-
-  public static oAuth = {
-    registerUrl: `${EnvironmentData.impowerBaseUrl}oauth/register`,
-    tokenUrl: `${EnvironmentData.impowerBaseUrl}oauth/token`
   };
 
   public static layerIds: AllLayerIds = {

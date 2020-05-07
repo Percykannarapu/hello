@@ -1,20 +1,13 @@
+const webpack = require('webpack');
 const ArcGISPlugin = require('@arcgis/webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const Terser = require('terser');
-
-const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
-const path = require('path');
-const modulesLocation = path.join(__dirname, '/node_modules');
-
-const optimize = (fileContent, path) =>
-  Terser.minify(fileContent.toString()).code.toString();
 
 /**
  * Configuration items defined here will be appended to the end of the existing webpack config defined by the Angular CLI.
  */
-console.log(__dirname);
 module.exports = {
+  context: __dirname,
   plugins: [
     new Dotenv({
       systemvars: true,
@@ -27,59 +20,17 @@ module.exports = {
         }
       },
       options: {
-        root: modulesLocation,
-        buildEnvironment: {
-          root: modulesLocation
-        },
         locales: ['en']
       }
     }),
     new CopyWebpackPlugin([
-      {
-        from: "dojo/resources/blank.gif",
-        to: "dojo/resources"
-      },
-      {
-        from: "@arcgis/webpack-plugin/extras/dojo/",
-        to: "dojo/"
-      },
-      {
-        from: "@arcgis/webpack-plugin/extras/dojo/dojo.js",
-        to: "dojo/dojo-lite.js"
-      },
-      {
-        from: "arcgis-js-api/workers/",
-        to: "arcgis-js-api/workers/",
-        transform: optimize
-      },
-      {
-        from: "arcgis-js-api/core/workers/",
-        to: "arcgis-js-api/core/workers/"
-      },
-      {
-        from: "arcgis-js-api/core/workers/worker.js",
-        to: "arcgis-js-api/core/workers/worker.js",
-        transform: optimize
-      },
-      {
-        from: "arcgis-js-api/views/2d/layers/features/",
-        to: "arcgis-js-api/views/2d/layers/features/"
-      },
-      {
-        from: "arcgis-js-api/layers/graphics/sources/support/",
-        to: "arcgis-js-api/layers/graphics/sources/support/"
-      },
-      // geometry engine worker
-      {
-        from: "arcgis-js-api/geometry/geometryenginewebworker.js",
-        to: "arcgis-js-api/geometry/geometryenginewebworker.js"
-      },
       // crosshatch symbol images
       {
+        context: 'node_modules',
         from: "arcgis-js-api/symbols/patterns/",
         to: "arcgis-js-api/symbols/patterns/"
       }
-    ], { context: modulesLocation }),
+    ]),
     new webpack.optimize.LimitChunkCountPlugin({
       maxChunks: 5,
     })
@@ -91,5 +42,3 @@ module.exports = {
     fs: "empty"
   }
 };
-
-// devtool: 'eval'

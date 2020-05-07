@@ -11,7 +11,7 @@ import { BatchMapService } from '../../services/batch-map.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode } from '../../state/batch-map/batch-map.actions';
 import { getBatchMapReady, getCurrentSiteNum, getLastSiteFlag, getMapMoving, getNextSiteNumber } from '../../state/batch-map/batch-map.selectors';
-import { BatchMapQueryParams, getRouteParams, getTypedBatchQueryParams } from '../../state/shared/router.interfaces';
+import { BatchMapQueryParams, getRouteIdOrQueryId, getTypedBatchQueryParams } from '../../state/shared/router.interfaces';
 
 @Component({
   templateUrl: './batch-map.component.html',
@@ -58,9 +58,9 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     this.store$.select(esriSelectors.getMapReady).pipe(
       filter(ready => ready),
       take(1),
-      withLatestFrom(this.store$.select(getRouteParams)),
-      filter(([, params]) => params.id != null)
-    ).subscribe(([, params]) => this.batchMapService.initBatchMapping(params.id));
+      withLatestFrom(this.store$.select(getRouteIdOrQueryId)),
+      filter(([, id]) => id != null)
+    ).subscribe(([, id]) => this.batchMapService.initBatchMapping(id));
 
     combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving), this.store$.select(getMapAudienceIsFetching), this.store$.select(getTypedBatchQueryParams)]).pipe(
       tap(([, , , params]) => params.height > 2000 ? this.debounceTime = 20000 : 5000),
