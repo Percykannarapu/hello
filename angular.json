@@ -242,16 +242,9 @@
             "polyfills": "applications/cpq-maps/src/polyfills.ts",
             "tsConfig": "applications/cpq-maps/tsconfig.app.json",
             "es5BrowserSupport": true,
-            "assets": [
-              { "glob": "**/*",
-                "input": "applications/cpq-maps/src/assets/layout/fills",
-                "output": "/assets/"
-              }
-            ],
+            "assets": [],
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "applications/cpq-maps/src/assets"
-              ]
+              "includePaths": []
             },
             "styles": [
               "node_modules/font-awesome/css/font-awesome.css",

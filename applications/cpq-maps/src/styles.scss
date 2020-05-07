@@ -1,22 +1,22 @@
 @import "assets/sass/mixins";
 
 .cpq-maps .legend-crosshatch.backward-diagonal {
-  background: url('~assets/layout/images/fills/backward-diagonal.png') top left no-repeat;
+  background: url('~src/assets/layout/images/fills/backward-diagonal.png') top left no-repeat;
 }
 .cpq-maps .legend-crosshatch.cross {
-  background: url('~assets/layout/images/fills/cross.png') top left no-repeat;
+  background: url('~src/assets/layout/images/fills/cross.png') top left no-repeat;
 }
 .cpq-maps .legend-crosshatch.diagonal-cross {
-  background: url('~assets/layout/images/fills/diagonal-cross.png') top left no-repeat;
+  background: url('~src/assets/layout/images/fills/diagonal-cross.png') top left no-repeat;
 }
 .cpq-maps .legend-crosshatch.forward-diagonal {
-  background: url('~assets/layout/images/fills/forward-diagonal.png') top left no-repeat;
+  background: url('~src/assets/layout/images/fills/forward-diagonal.png') top left no-repeat;
 }
 .cpq-maps .legend-crosshatch.horizontal {
-  background: url('~assets/layout/images/fills/horizontal.png') top left no-repeat;
+  background: url('~src/assets/layout/images/fills/horizontal.png') top left no-repeat;
 }
 .cpq-maps .legend-crosshatch.vertical {
-  background: url('~assets/layout/images/fills/vertical.png') top left no-repeat;
+  background: url('~src/assets/layout/images/fills/vertical.png') top left no-repeat;
 }
 
 // esri styling overrides
