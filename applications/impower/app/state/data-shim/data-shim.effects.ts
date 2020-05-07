@@ -50,7 +50,7 @@ export class DataShimEffects {
     switchMap(() => this.appDataShimService.save().pipe(
       tap(projectId => this.appDataShimService.updateProjectWithId(projectId)),
       concatMap(projectId => [
-        new ProcessGeoAttributes({ applyFilters: true }),
+        new ProcessGeoAttributes({ applyFilters: false }),
         new ProjectSaveSuccess({ projectId })
       ]),
       catchError(err => of(new ProjectSaveFailure({ err })))
