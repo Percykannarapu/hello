@@ -123,6 +123,47 @@ export class SiteListContainerComponent implements OnInit {
     const homeCarrierRouteFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']) :
     ((siteOrSites['Home Carrier Route'] === '' || siteOrSites['Home Carrier Route'] === null) ? false : true));
     const anyChangeinHomeGeoFields: boolean = homeZipFlag || homeAtzFlag || homeDigitalAtzFlag || homeCarrierRouteFlag;
+
+    const editedLocation: ImpGeofootprintLocation = oldData;
+    editedLocation.locationNumber = siteOrSites['number'];
+    editedLocation.locationName = siteOrSites['name'];
+    editedLocation.marketName = siteOrSites['Market'];
+    editedLocation.marketCode = siteOrSites['Market Code'];
+    this.impGeofootprintLocationService.update(oldData, editedLocation);    
+
+    let ifRadiusChanged: boolean = false;
+    if (newLocation.impGeofootprintTradeAreas !== null && newLocation.impGeofootprintTradeAreas.length > 0)
+    {
+      const newRadius: number[] = [siteOrSites.RADIUS1, siteOrSites.RADIUS2, siteOrSites.RADIUS3];
+      editedLocation.radius1 = newRadius[0];
+      editedLocation.radius2 = newRadius[1];
+      editedLocation.radius3 = newRadius[2];
+      for (let i = 0; i < newLocation.impGeofootprintTradeAreas.length; i++) {
+         const index = editedLocation.impGeofootprintTradeAreas[i].taNumber - 1;
+         if (editedLocation.impGeofootprintTradeAreas[i].taType === 'RADIUS' &&
+             editedLocation.impGeofootprintTradeAreas[i].taRadius !== newRadius[index]) {
+            ifRadiusChanged = true;
+            editedLocation.impGeofootprintTradeAreas[i].taRadius = newRadius[index];
+         }
+      }
+      if (ifRadiusChanged)
+      {
+         const tradeAreaModels = editedLocation.impGeofootprintTradeAreas.filter(ta => ta.taRadius != null);
+         const transformedAreas = tradeAreaModels.map(ta => ({ radius: Number(ta.taRadius), selected: ta.isActive, taNumber: ta.taNumber }));
+         //this.appTradeAreaService.applyRadiusTradeArea(transformedAreas, siteType);
+
+         // const currentLocations = this.getLocations(siteType);
+         // const tradeAreaFilter = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radius, TradeAreaTypeCodes.HomeGeo]);
+         // const currentTradeAreas = this.impTradeAreaService.get()
+         //   .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
+         //                 tradeAreaFilter.has(TradeAreaTypeCodes.parse(ta.taType)));
+
+         this.appTradeAreaService.deleteTradeAreas(editedLocation.impGeofootprintTradeAreas);
+         this.appTradeAreaService.applyRadiusTradeAreasToLocations(transformedAreas, [editedLocation]);
+         //return;
+      }
+    }
+
     if ((ifAddressChanged || ifLatLongChanged) && anyChangeinHomeGeoFields) {
       this.confirmationService.confirm({
         message: 'Geocoding and/or Home Geocoding is required and will override any changes made to the Home Geocode fields.',
@@ -207,18 +248,19 @@ export class SiteListContainerComponent implements OnInit {
       if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) {
           siteOrSites['latitude'] = null;
           siteOrSites['longitude'] = null;
+          this.logger.info.log('geocodeAndHomeGeocode will fire');
           this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
       } else if (ifLatLongChanged) {
           this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
           this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-      } else {
+      } /*else {
         const editedLocation: ImpGeofootprintLocation = oldData;
         editedLocation.locationNumber = siteOrSites['number'];
         editedLocation.locationName = siteOrSites['name'];
         editedLocation.marketName = siteOrSites['Market'];
         editedLocation.marketCode = siteOrSites['Market Code'];
         this.impGeofootprintLocationService.update(oldData, editedLocation);
-      }
+      }*/
     }
   }
 

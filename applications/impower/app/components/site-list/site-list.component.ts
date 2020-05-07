@@ -249,9 +249,11 @@ export class SiteListComponent implements OnInit {
   manuallyGeocode(site: ValGeocodingRequest, siteType) {
     site.Group = this.selectedRowData.groupName;
     site.Description = this.selectedRowData.description;
-    site.RADIUS1 = this.selectedRowData.radius1;
-    site.RADIUS2 = this.selectedRowData.radius2;
-    site.RADIUS3 = this.selectedRowData.radius3;
+    if (site.RADIUS1 === undefined) {
+      site.RADIUS1 = this.selectedRowData.radius1;
+      site.RADIUS2 = this.selectedRowData.radius2;
+      site.RADIUS3 = this.selectedRowData.radius3;
+    }
     site.previousAddress1 = this.selectedRowData.origAddress1;
     site.previousCity = this.selectedRowData.origCity;
     site.previousState = this.selectedRowData.origState;
