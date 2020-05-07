@@ -254,6 +254,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighboring-sites-shading' , dialogFields.enableTradeAreaShading, dialogFields.enableTradeAreaShading ? 1 : 0));
     const sitesPerPage = dialogFields.sitesPerPage === 'sitesGroupedBy' ? `${dialogFields.sitesPerPage}=${dialogFields.sitesByGroup}` : dialogFields.sitesPerPage;
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'sites-per-page' , sitesPerPage, null));
+    this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'total-pages' , siteIds.length.toString(), null));
 
     if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
       const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
@@ -336,7 +337,7 @@ export class BatchMapDialogComponent implements OnInit {
   private getActiveSites(){
     //const t =  this.stateService.activeClientLocations$.pipe(map(sites => sites.length > 600));
      return this.stateService.currentProject$.getValue().getImpGeofootprintLocations()
-     .filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site && loc.isActive); 
+     .filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site && loc.isActive);
   }
 
   hasErrors(controlKey: string) : boolean {

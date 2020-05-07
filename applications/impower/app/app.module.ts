@@ -1,4 +1,4 @@
-import { CommonModule, HashLocationStrategy, LocationStrategy } from '@angular/common';
+import { CommonModule, HashLocationStrategy, LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -106,7 +106,6 @@ import { AppMenuComponent, AppSubMenuComponent } from './components/frame/app.me
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import { GeofootprintGeoPanelComponent } from './components/geofootprint-geo-panel/geofootprint-geo-panel.component';
 import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
-import { LoginComponent } from './components/login/login.component';
 import { BoundaryListComponent } from './components/map-settings-sidebar/boundary-list/boundary-list.component';
 import { BoundaryShaderComponent } from './components/map-settings-sidebar/boundary-list/boundary-shader/boundary-shader.component';
 import { LocationListComponent } from './components/map-settings-sidebar/location-list/location-list.component';
@@ -186,6 +185,7 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
+import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -318,7 +318,6 @@ export function actionSanitizer(action: Action) : Action {
     SiteListComponent,
     DiscoveryInputComponent,
     UploadLocationsComponent,
-    LoginComponent,
     UploadTradeAreasComponent,
     OfflineAudienceTdaComponent,
     SelectedAudiencesComponent,
@@ -379,11 +378,11 @@ export function actionSanitizer(action: Action) : Action {
     ExtendedColorPickerComponent,
     LocationShaderComponent,
     CompositeAudienceComponent,
-    BoundaryShaderComponent
+    BoundaryShaderComponent,
+    AuthCallbackComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },
-    { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: RestDataInterceptor, multi: true },
     // from val-modules
     {provide: LoggingConfigurationToken, useClass: AppConfig},

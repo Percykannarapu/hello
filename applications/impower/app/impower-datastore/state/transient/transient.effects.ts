@@ -8,7 +8,7 @@ import { AppStateService } from 'app/services/app-state.service';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { of } from 'rxjs';
-import { catchError, concatMap, filter, map, reduce, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, concatMap, filter, map, mergeMap, skip, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { mapFeaturesToGeocode } from '../../../models/rxjs-utils';
 import { FullAppState } from '../../../state/app.interfaces';
 import { ProjectLoadSuccess } from '../../../state/data-shim/data-shim.actions';
@@ -60,7 +60,7 @@ export class TransientEffects {
     filter(action => action.payload.transactionId != null),
     tap(action => this.logger.info.log('Removing cached geos for transactionId:', action.payload.transactionId)),
     map(action => [action.payload.transactionId, performance.now()] as const),
-    switchMap(([transactionId, deleteStartTime]) => this.restService.delete('v1/targeting/base/chunkedgeos/deleteChunks/', transactionId).pipe(
+    mergeMap(([transactionId, deleteStartTime]) => this.restService.delete('v1/targeting/base/chunkedgeos/deleteChunks/', transactionId).pipe(
         tap(response => this.logger.info.log('deleteChunks took', formatMilli(performance.now() - deleteStartTime), ', Response:', response)),
     ))
   );
@@ -106,8 +106,8 @@ export class TransientEffects {
       switchMap(([cacheAction, dispatchCount]) => this.actions$.pipe(
         ofType<FetchMapVarCompleted>(AudienceActionTypes.FetchMapVarCompleted),
         filter(completeAction => completeAction.payload.transactionId === cacheAction.payload.transactionId),
-        take(dispatchCount),
-        reduce(() => null, null), // used to wait until all {dispatchCount} actions have been accounted for
+        skip(dispatchCount - 1),
+        take(1),
         map(() => new RemoveGeoCache({ transactionId: cacheAction.payload.transactionId }))
       ))
     )),

@@ -10,6 +10,7 @@ import { FullAppState } from '../../state/app.interfaces';
 import { getRouteUrl } from '../../state/shared/router.interfaces';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
+import { UserService } from 'app/services/user.service';
 
 enum MenuOrientation {
   STATIC,
@@ -75,7 +76,8 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
               private stateService: AppStateService,
               private messageService: MessageService,
               private cd: ChangeDetectorRef,
-              private store$: Store<FullAppState>) { }
+              private store$: Store<FullAppState>,
+              private userService: UserService) { }
 
   ngOnInit() {
     this.currentProject$ = this.stateService.currentProject$;

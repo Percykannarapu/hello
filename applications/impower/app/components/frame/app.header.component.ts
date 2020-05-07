@@ -23,7 +23,7 @@ export class AppHeaderComponent implements OnInit {
 
     ngOnInit() {
         this.userService.userObservable.subscribe(user => {
-            this.username = user.username;
+          this.username = user.username;
         });
     }
 }

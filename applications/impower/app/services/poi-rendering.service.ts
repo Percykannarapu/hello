@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, getUuid, groupByExtended, mapArrayToEntity, mapByExtended } from '@val/common';
+import { getUuid, groupByExtended, mapArrayToEntity, mapByExtended } from '@val/common';
 import { EsriDomainFactoryService, EsriLayerService, EsriPoiService, EsriUtils, PoiConfiguration, PoiConfigurationTypes } from '@val/esri';
-import { merge, Observable } from 'rxjs';
-import { filter, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { filter, take, withLatestFrom } from 'rxjs/operators';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -50,47 +49,38 @@ export class PoiRenderingService {
    * Creates or updates a point feature layer for Client Sites
    * @param sites - The list of Client Sites
    * @param renderingSetups - the PoiConfiguration setup for this Poi Visualization
-   * @returns PoiConfiguration if it has been updated with a layerId, otherwise null
    */
-  renderSites(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]) : Observable<PoiConfiguration[]> {
-    const mergeResult: Observable<PoiConfiguration>[] = [];
+  renderSites(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]) : void {
+    const updatedSetups: PoiConfiguration[] = [];
     const sitesByTypeCode = groupByExtended(sites, s => s.clientLocationTypeCode);
     renderingSetups.forEach(renderingSetup => {
-      const currentSites = sitesByTypeCode.get(renderingSetup.dataKey);
-      if (currentSites != null && currentSites.length > 0) {
-        const currentObs = new Observable<PoiConfiguration>(subject => {
-          if (renderingSetup.featureLayerId != null) {
-            const existingLayer = this.layerService.getLayerByUniqueId(renderingSetup.featureLayerId);
-            if (EsriUtils.layerIsFeature(existingLayer)) {
-              existingLayer.queryFeatures().then(result => {
-                const newPoints = currentSites.map((s, i) => createSiteGraphic(s, i));
-                const edits = this.prepareLayerEdits(result.features, newPoints);
-                if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
-                  existingLayer.applyEdits(edits);
-                }
-              });
-            }
-            subject.next(null);
-            subject.complete();
-          } else {
+      const currentSites = sitesByTypeCode.get(renderingSetup.dataKey) || [];
+      if (renderingSetup.featureLayerId != null) {
+        const existingLayer = this.layerService.getLayerByUniqueId(renderingSetup.featureLayerId);
+        if (EsriUtils.layerIsFeature(existingLayer)) {
+          existingLayer.queryFeatures().then(result => {
             const newPoints = currentSites.map((s, i) => createSiteGraphic(s, i));
-            const existingGroup = this.layerService.createClientGroup(renderingSetup.groupName, true);
+            const edits = this.prepareLayerEdits(result.features, newPoints);
+            if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
+              existingLayer.applyEdits(edits);
+            }
+            existingLayer.legendEnabled = newPoints.length > 0;
+          });
+        }
+      } else if (currentSites.length > 0) {
+        const newPoints = currentSites.map((s, i) => createSiteGraphic(s, i));
+        const existingGroup = this.layerService.createClientGroup(renderingSetup.groupName, true);
             const fieldLookup = mapByExtended(defaultLocationPopupFields, item => item.fieldName, item => ({ label: item.label, visible: item.visible }));
             const newFeatureLayer = this.domainFactory.createFeatureLayer(newPoints, 'objectId', fieldLookup);
-            newFeatureLayer.visible = false;
-            existingGroup.add(newFeatureLayer);
-            this.esriPoiService.setPopupFields(defaultLocationPopupFields.filter(f => f.visible !== false).map(f => f.fieldName));
-            subject.next({ ...renderingSetup, featureLayerId: newFeatureLayer.id });
-            subject.complete();
-          }
-        });
-        mergeResult.push(currentObs);
+        newFeatureLayer.visible = false;
+        existingGroup.add(newFeatureLayer);
+        this.esriPoiService.setPopupFields(defaultLocationPopupFields.filter(f => f.visible !== false).map(f => f.fieldName));
+        updatedSetups.push({...renderingSetup, featureLayerId: newFeatureLayer.id});
       }
     });
-    return merge(...mergeResult).pipe(
-      reduce((acc, curr) => [...acc, curr], [] as PoiConfiguration[]),
-      filterArray(config => config != null),
-    );
+    if (updatedSetups.length > 0) {
+      this.esriPoiService.updatePoiConfig(updatedSetups);
+    }
   }
 
   private prepareLayerEdits(currentGraphics: __esri.Graphic[], newGraphics: __esri.Graphic[]) : __esri.FeatureLayerApplyEditsEdits {

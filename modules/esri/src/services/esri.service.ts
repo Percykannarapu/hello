@@ -7,19 +7,18 @@ import { debounceTime, distinctUntilChanged, filter, switchMap, take } from 'rxj
 import { BoundaryConfiguration } from '../models/boundary-configuration';
 import { PoiConfiguration } from '../models/poi-configuration';
 import { ShadingDefinition } from '../models/shading-configuration';
-import { loadBoundaries } from '../state/boundary/esri.boundary.actions';
 import { InitialEsriState, loadInitialState } from '../state/esri.actions';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
 import { SetLayerLabelExpressions, SetPopupVisibility, SetSelectedLayer } from '../state/map/esri.map.actions';
 import { EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
-import { loadPois } from '../state/poi/esri.poi.actions';
-import { loadShadingDefinitions, setFeaturesOfInterest } from '../state/shading/esri.shading.actions';
+import { setFeaturesOfInterest } from '../state/shading/esri.shading.actions';
 import { EsriBoundaryService } from './esri-boundary.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 import { EsriPoiService } from './esri-poi.service';
 import { EsriQueryService } from './esri-query.service';
+import { EsriShadingService } from './esri-shading.service';
 
 @Injectable()
 export class EsriService {
@@ -30,6 +29,7 @@ export class EsriService {
               private mapService: EsriMapService,
               private layerService: EsriLayerService,
               private queryService: EsriQueryService,
+              private shadingService: EsriShadingService,
               private boundaryService: EsriBoundaryService,
               private poiService: EsriPoiService) {
     this.initializeService();
@@ -94,9 +94,9 @@ export class EsriService {
 
   loadInitialState(initialState: InitialEsriState, shadingDefinitions?: ShadingDefinition[], poiDefinitions?: PoiConfiguration[], boundaryDefinitions?: BoundaryConfiguration[]) : void {
     this.store$.dispatch(loadInitialState(initialState));
-    this.store$.dispatch(loadShadingDefinitions({ shadingDefinitions }));
-    this.store$.dispatch(loadPois({ pois: poiDefinitions }));
-    this.store$.dispatch(loadBoundaries({ boundaries: boundaryDefinitions }));
+    this.shadingService.loadShaders(shadingDefinitions);
+    this.poiService.loadPoiConfig(poiDefinitions);
+    this.boundaryService.loadBoundaryConfig(boundaryDefinitions);
   }
 
   setBasemap(basemap: string | {}) : void {
