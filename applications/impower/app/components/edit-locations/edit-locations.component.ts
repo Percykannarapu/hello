@@ -77,9 +77,9 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       homeAtz: new FormControl('',  {  asyncValidators: this.validateGeo('CL_ATZTAB14', 'geocode,ZIP', 'Not a valid Home ATZ')}),
       homeDigitalAtz: new FormControl('',  {  asyncValidators: this.validateGeo('VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ', 'Not a valid Home DTZ')}),
       homePcr: new FormControl('',  {  asyncValidators: this.validateGeo('CL_PCRTAB14', 'geocode,ZIP, ZIP_ATZ, DMA, DMA_Name, COUNTY', 'Not a valid Home PCR')}),
-      radius1: [null, this.isInRange(0, 50)],
-      radius2: [null, this.isInRange(0, 50)],
-      radius3: [null, this.isInRange(0, 50)],
+      radius1: [null, this.isInRange(0, 100)],
+      radius2: [null, this.isInRange(0, 100)],
+      radius3: [null, this.isInRange(0, 100)],
     }, {validators: this.isValidRadius});
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
   }
@@ -134,7 +134,13 @@ export class EditLocationsComponent implements OnInit, OnChanges {
     const radius2 = group.controls[`radius2`];
     const radius3 = group.controls[`radius3`];
 
-    if (radius2.dirty && radius1.value >= radius2.value ){
+    if (radius1.dirty && radius1.value >= radius2.value){
+      group.controls[`radius1`].setErrors({
+        errorMsg : `Value must be less than Trade Area 2`
+      });
+    }
+
+    if (radius2.dirty && radius1.value >= radius2.value){
       group.controls[`radius2`].setErrors({
         errorMsg : `Value must be greater than Trade Area 1`
       });
@@ -146,7 +152,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       });
     }
 
-    if (radius3.dirty && radius2.dirty && radius1.value >= radius3.value ) {
+    if (radius3.dirty && radius2.dirty && radius1.value >= radius3.value) {
       group.controls[`radius3`].setErrors({
         errorMsg: `Value must be greater than Trade Area 1 & Trade Area 2`
       });
@@ -184,7 +190,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
   }
 
   public formEdited() : void {
-    this.editLocationsForm['controls']['coord'].setValue('');
+    // this.editLocationsForm['controls']['coord'].setValue('');
   }
 
 }
