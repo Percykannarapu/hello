@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <project name="cpq-maps" default="clean" basedir="." xmlns:sf="antlib:com.salesforce">
 
+  <property file=".env"/>
   <property name="CPQ_MAPS_ROOT" value="./dist/cpq-maps"/>
   <property name="DEPLOY_ROOT" value="./dist/sfdc-deploy" />
   <property name="VALIDATE_ONLY" value="false" />
