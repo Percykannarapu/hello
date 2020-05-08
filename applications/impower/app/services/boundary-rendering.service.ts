@@ -73,6 +73,15 @@ export class BoundaryRenderingService {
     });
   }
 
+  public getDataKeyByBoundaryLayerId(layerId: string) : string {
+    const dataKey = Object.keys(EnvironmentData.layerIds).filter(key => EnvironmentData.layerIds[key].boundary === layerId);
+    if (dataKey != null && dataKey.length > 0) {
+      return dataKey[0];
+    } else {
+      throw new Error(`Boundary layer '${layerId}' could not be found in the Environment Settings`);
+    }
+  }
+
   public getLayerSetupInfo(key: string) : BasicLayerSetup {
     const scales = {
       dma: {

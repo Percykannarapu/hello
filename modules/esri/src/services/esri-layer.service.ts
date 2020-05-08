@@ -104,6 +104,10 @@ export class EsriLayerService {
     return this.mapService.mapView.map.allLayers.find(l => l.id === layerUniqueId);
   }
 
+  public getLayersByFilter(filter: (l: __esri.Layer) => boolean) : __esri.Layer[] {
+    return this.mapService.mapView.map.allLayers.filter(filter).toArray();
+  }
+
   public getFeatureLayer(layerName: string) : __esri.FeatureLayer {
     const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
     if (EsriUtils.layerIsFeature(layer)) {

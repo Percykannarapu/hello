@@ -7,7 +7,7 @@ import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
-import { Observable, race, timer } from 'rxjs';
+import { Observable, of, race, timer } from 'rxjs';
 import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
@@ -20,6 +20,7 @@ import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootpr
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
@@ -239,32 +240,42 @@ export class BatchMapService {
 
   private setMapLocation(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>, params: BatchMapQueryParams, siteNums: Array<string>, project: ImpProject) : Observable<void> {
     console.log('Inside setMapLocation', params);
-    if (params.fitTo === FitTo.GEOS) {
-      const activeGeos = geos.filter(g => g.isActive);
-      const geocodes = activeGeos.map(g => g.geocode);
-      const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-      return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
-        reduce((a, c) => [...a, ...c], []),
-        switchMap((polys) => {
-          return this.esriMapService.zoomToPolys(polys, params.buffer / 100);
-        })
-      );
-    } else if (params.fitTo === FitTo.TA) {
-      const siteNumsSet: Set<string> = new Set(siteNums);
-      const circles = [];
-      project.getImpGeofootprintLocations().forEach(l => {
-        let largestRadius = 0;
-        if (siteNumsSet.has(l.locationNumber)) {
-          l.impGeofootprintTradeAreas.forEach(ta => {
-            if (ta.taRadius > largestRadius)
-              largestRadius = ta.taRadius;
-          });
-          const circle = this.esriMapService.createCircleGraphic(l.xcoord, l.ycoord, largestRadius);
-          circles.push(circle);
-        }
-      });
-      return this.esriMapService.zoomToPolys(circles, params.buffer / 100);
+    let polyObservable: Observable<__esri.Graphic[]> = of(null);
+    switch (params.fitTo) {
+      case FitTo.GEOS:
+        polyObservable = this.polysFromGeos(analysisLevel, geos);
+        break;
+      case FitTo.TA:
+        polyObservable = this.polysFromRadii(siteNums, project);
+        break;
     }
+    return polyObservable.pipe(
+      switchMap(polys => polys != null ? this.esriMapService.zoomToPolys(polys, params.buffer / 100) : of(null))
+    );
+  }
 
+  private polysFromGeos(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>) : Observable<__esri.Graphic[]> {
+    const activeGeos = geos.filter(g => g.isActive);
+    const geocodes = activeGeos.map(g => g.geocode);
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
+    return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
+      reduce((a, c) => [...a, ...c], []),
+    );
+  }
+
+  private polysFromRadii(siteNums: Array<string>, project: ImpProject) : Observable<__esri.Graphic[]> {
+    const siteNumsSet: Set<string> = new Set(siteNums);
+    const circles = project.getImpGeofootprintLocations().reduce((a, c) => {
+      if (siteNumsSet.has(c.locationNumber)) {
+        const radii = c.impGeofootprintTradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius).map(ta => ta.taRadius);
+        if (radii.length > 0) {
+          const largestRadius = Math.max(...radii);
+          const circle = this.esriMapService.createCircleGraphic(c.xcoord, c.ycoord, largestRadius);
+          a.push(circle);
+        }
+      }
+      return a;
+    }, [] as __esri.Graphic[]);
+    return of(circles);
   }
 }

@@ -77,3 +77,17 @@ export function skipUntilNonZeroBecomesZero() : (source$: Observable<number>) =>
     map(([, curr]) => curr)
   );
 }
+
+/**
+ * Filters an rxjs pipeline to prevent the flow of events until a boolean value transitions from false to true.
+ * If the value starts true it will still filter until the value leaves and then returns.
+ * Will only fire once when the value becomes true. To fire again, the value must leave and return again.
+ */
+export function skipUntilFalseBecomesTrue() : (source$: Observable<boolean>) => Observable<boolean> {
+  return source$ => source$.pipe(
+    startWith(true),
+    pairwise(),
+    filter(([prev, curr]) => !prev && curr),
+    map(([, curr]) => curr)
+  );
+}

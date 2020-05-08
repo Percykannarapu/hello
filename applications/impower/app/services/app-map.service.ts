@@ -7,6 +7,7 @@ import geometryEngine from 'esri/geometry/geometryEngine';
 import BasemapGallery from 'esri/widgets/BasemapGallery';
 import PortalBasemapsSource from 'esri/widgets/BasemapGallery/support/PortalBasemapsSource';
 import Home from 'esri/widgets/Home';
+import LayerList from 'esri/widgets/LayerList';
 import Legend from 'esri/widgets/Legend';
 import ScaleBar from 'esri/widgets/ScaleBar';
 import Search from 'esri/widgets/Search';
@@ -60,7 +61,7 @@ export class AppMapService {
 
     this.mapService.createBasicWidget(Legend, {}, 'top-right');
     // keep this here to aid in troubleshooting layer-related issues
-    // this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
+    this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
     if (isBatchMapping) {
       // if we're batch mapping, we want no widgets on the UI except for a custom legend
       this.mapService.mapView.ui.remove('zoom');

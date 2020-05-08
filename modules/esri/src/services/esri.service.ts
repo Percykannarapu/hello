@@ -93,6 +93,7 @@ export class EsriService {
   }
 
   loadInitialState(initialState: InitialEsriState, shadingDefinitions?: ShadingDefinition[], poiDefinitions?: PoiConfiguration[], boundaryDefinitions?: BoundaryConfiguration[]) : void {
+    this.mapService.clear();
     this.store$.dispatch(loadInitialState(initialState));
     this.shadingService.loadShaders(shadingDefinitions);
     this.poiService.loadPoiConfig(poiDefinitions);
@@ -109,9 +110,5 @@ export class EsriService {
 
   setFeaturesOfInterest(features: string[]) : void {
     this.store$.dispatch(setFeaturesOfInterest({ features }));
-  }
-
-  clearMapLayers() : void {
-    this.mapService.clear();
   }
 }

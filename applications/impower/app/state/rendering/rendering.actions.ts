@@ -6,7 +6,9 @@ export enum RenderingActionTypes {
   RenderTradeAreas = '[Rendering] Render All Trade Areas',
   ClearTradeAreas = '[Rendering] Clear All Trade Areas',
   RenderAudienceTradeAreas = '[Rendering] Render Audience TAs',
+  RenderAudienceTradeAreasComplete = '[Rendering] Render Audience TAs Complete',
   RenderRadiusTradeAreas = '[Rendering] Render Radius TAs',
+  RenderRadiusTradeAreasComplete = '[Rendering] Render Radius TAs Complete',
 
   RenderLocations = '[Rendering] Render Locations',
 }
@@ -25,9 +27,17 @@ export class RenderAudienceTradeAreas implements Action {
   constructor(public payload: { tradeAreas: ImpGeofootprintTradeArea[] }) {}
 }
 
+export class RenderAudienceTradeAreasComplete implements Action {
+  readonly type = RenderingActionTypes.RenderAudienceTradeAreasComplete;
+}
+
 export class RenderRadiusTradeAreas implements Action {
   readonly type = RenderingActionTypes.RenderRadiusTradeAreas;
   constructor(public payload: { tradeAreas: ImpGeofootprintTradeArea[] }) {}
+}
+
+export class RenderRadiusTradeAreasComplete implements Action {
+  readonly type = RenderingActionTypes.RenderRadiusTradeAreasComplete;
 }
 
 export class RenderLocations implements Action {
@@ -39,6 +49,8 @@ export type RenderingActions =
   RenderTradeAreas |
   ClearTradeAreas |
   RenderAudienceTradeAreas |
+  RenderAudienceTradeAreasComplete |
   RenderRadiusTradeAreas |
+  RenderRadiusTradeAreasComplete |
   RenderLocations
   ;

@@ -4,12 +4,12 @@ import { select, Store } from '@ngrx/store';
 import { groupByExtended, skipUntilNonZeroBecomesZero } from '@val/common';
 import { EsriAppSettings, EsriAppSettingsToken, EsriPoiService, selectors } from '@val/esri';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { concatMap, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { concatMap, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
 import { PoiRenderingService } from '../../services/poi-rendering.service';
 import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { FullAppState } from '../app.interfaces';
-import { ClearTradeAreas, RenderAudienceTradeAreas, RenderingActionTypes, RenderLocations, RenderRadiusTradeAreas, RenderTradeAreas } from './rendering.actions';
+import { ClearTradeAreas, RenderAudienceTradeAreas, RenderAudienceTradeAreasComplete, RenderingActionTypes, RenderLocations, RenderRadiusTradeAreas, RenderRadiusTradeAreasComplete, RenderTradeAreas } from './rendering.actions';
 import { RenderingService } from './rendering.service';
 import { prepareAudienceTradeAreas, prepareRadiusTradeAreas } from './trade-area.transform';
 
@@ -56,7 +56,17 @@ export class RenderingEffects {
     withLatestFrom(this.appStateService.currentProject$),
     map(([action, currentProject]) => prepareRadiusTradeAreas(action.payload.tradeAreas, currentProject, this.esriSettings.defaultSpatialRef)),
     concatMap(definitions => this.renderingService.renderTradeAreas(definitions)),
-    map(() => new StopBusyIndicator({ key: this.renderingKey }))
+    concatMap(() => [
+      new RenderRadiusTradeAreasComplete(),
+      new StopBusyIndicator({ key: this.renderingKey })
+    ])
+  );
+
+  @Effect()
+  autoCompleteRadii$ = this.actions$.pipe(
+    ofType<RenderRadiusTradeAreas>(RenderingActionTypes.RenderRadiusTradeAreas),
+    filter(action => action.payload.tradeAreas == null || action.payload.tradeAreas.length === 0),
+    map(() => new RenderRadiusTradeAreasComplete())
   );
 
   @Effect()
@@ -65,8 +75,18 @@ export class RenderingEffects {
     filter(action => action.payload.tradeAreas != null &&  action.payload.tradeAreas.length > 0),
     withLatestFrom(this.appStateService.currentProject$),
     map(([action, currentProject]) => prepareAudienceTradeAreas(action.payload.tradeAreas, currentProject, this.esriSettings.defaultSpatialRef)),
-    switchMap(definitions => this.renderingService.renderTradeAreas(definitions)),
-    map(() => new StopBusyIndicator({ key: this.renderingKey }))
+    concatMap(definitions => this.renderingService.renderTradeAreas(definitions)),
+    concatMap(() => [
+      new RenderAudienceTradeAreasComplete(),
+      new StopBusyIndicator({ key: this.renderingKey })
+    ])
+  );
+
+  @Effect()
+  autoCompleteAudience$ = this.actions$.pipe(
+    ofType<RenderAudienceTradeAreas>(RenderingActionTypes.RenderAudienceTradeAreas),
+    filter(action => action.payload.tradeAreas == null || action.payload.tradeAreas.length === 0),
+    map(() => new RenderAudienceTradeAreasComplete())
   );
 
   // Locations

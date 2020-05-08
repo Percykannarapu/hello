@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
-import { BasicLayerSetup, clearFeaturesOfInterest, clearShadingDefinitions, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
+import { BasicLayerSetup, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Extent } from 'esri/geometry';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { EnvironmentData } from '../../environments/environment';
 import { AppConfig } from '../app.config';
 import { RehydrateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -20,6 +19,7 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppGeoService } from './app-geo.service';
 import { AppLayerService } from './app-layer.service';
 import { AppLocationService } from './app-location.service';
+import { AppLoggingService } from './app-logging.service';
 import { ValMetricsService } from './app-metrics.service';
 import { AppProjectService } from './app-project.service';
 import { AppRendererService } from './app-renderer.service';
@@ -64,6 +64,7 @@ export class AppDataShimService {
               private esriService: EsriService,
               private appConfig: AppConfig,
               private store$: Store<FullAppState>,
+              private logger: AppLoggingService,
               private mapService: EsriMapService,
               private impProjVarService: ImpProjectVarService) {
     this.currentProject$ = this.appProjectService.currentProject$;
@@ -138,34 +139,19 @@ export class AppDataShimService {
       // just in case stuff was saved with a destination id
       delete sd.destinationLayerUniqueId;
       if (this.appConfig.isBatchMode) {
-        let layerData: BasicLayerSetup;
-        switch (sd.sourcePortalId) {
-          case EnvironmentData.layerIds.zip.boundary:
-            layerData = this.boundaryRenderingService.getLayerSetupInfo('zip');
-            break;
-          case EnvironmentData.layerIds.atz.boundary:
-            layerData = this.boundaryRenderingService.getLayerSetupInfo('atz');
-            break;
-          case EnvironmentData.layerIds.dtz.boundary:
-            layerData = this.boundaryRenderingService.getLayerSetupInfo('dtz');
-            break;
-          case EnvironmentData.layerIds.pcr.boundary:
-            layerData = this.boundaryRenderingService.getLayerSetupInfo('pcr');
-            break;
-        }
-        if (layerData != null) {
-          sd.sourcePortalId = layerData.simplifiedBoundary;
-          sd.minScale = layerData.batchMinScale;
+        const newLayerSetup = this.getLayerSetupInfo(sd.sourcePortalId);
+        if (newLayerSetup != null) {
+          sd.sourcePortalId = newLayerSetup.simplifiedBoundary || newLayerSetup.boundary;
+          sd.minScale = newLayerSetup.batchMinScale || newLayerSetup.minScale;
         }
       }
-      boundaryConfigurations.forEach(bc => {
-        // just in case stuff was saved with a destination id
-        bc.destinationBoundaryId = undefined;
-        bc.destinationCentroidId = undefined;
-        bc.useSimplifiedInfo = this.appConfig.isBatchMode;
-      });
     });
-    this.esriService.clearMapLayers();
+    boundaryConfigurations.forEach(bc => {
+      // just in case stuff was saved with a destination id
+      bc.destinationBoundaryId = undefined;
+      bc.destinationCentroidId = undefined;
+      bc.useSimplifiedInfo = this.appConfig.isBatchMode;
+    });
     this.esriService.loadInitialState(state, shadingDefinitions, poiConfigurations, boundaryConfigurations);
     const savedBasemap = (project.impProjectPrefs || []).filter(pref => pref.pref === 'basemap')[0];
     if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null)) {
@@ -193,7 +179,7 @@ export class AppDataShimService {
   }
 
   onLoadFinished() : void {
-    //this.targetAudienceService.applyAudienceSelection();
+
   }
 
   createNew() : number {
@@ -221,8 +207,6 @@ export class AppDataShimService {
     this.targetAudienceService.clearAll();
     this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
-    this.store$.dispatch(clearFeaturesOfInterest());
-    this.store$.dispatch(clearShadingDefinitions());
     this.store$.dispatch(new ClearTradeAreas());
   }
 
@@ -316,6 +300,16 @@ export class AppDataShimService {
     }
     else
       this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: titleText}));
+  }
+
+  private getLayerSetupInfo(currentBoundaryId: string) : BasicLayerSetup {
+    try {
+      const dataKey = this.boundaryRenderingService.getDataKeyByBoundaryLayerId(currentBoundaryId);
+      return this.boundaryRenderingService.getLayerSetupInfo(dataKey);
+    } catch (e) {
+      this.logger.error.log(e);
+    }
+    return null;
   }
 
 }
