@@ -124,14 +124,14 @@ export class EsriLayerService {
     return null;
   }
 
-  public getQueryLayer(portalId: string, queryId: string) : __esri.FeatureLayer {
+  public getQueryLayer(portalId: string, queryId: string, hideQueryLayer: boolean) : __esri.FeatureLayer {
     let result = this.getPortalLayerById(portalId);
     if (result == null) {
       if (this.queryOnlyLayers.has(queryId)) {
         result = this.queryOnlyLayers.get(queryId);
       } else {
         this.logger.debug.log('Creating layer for transaction', queryId);
-        result = this.createQueryLayer(portalId, queryId);
+        result = this.createQueryLayer(portalId, queryId, hideQueryLayer);
       }
     }
     return result;
@@ -366,12 +366,13 @@ export class EsriLayerService {
     }
   }
 
-  private createQueryLayer(portalId: string, queryId: string) : __esri.FeatureLayer {
+  private createQueryLayer(portalId: string, queryId: string, hideLayer: boolean) : __esri.FeatureLayer {
     const result = new FeatureLayer({
       portalItem: {
         id: portalId
       },
       visible: false,
+      listMode: hideLayer ? 'hide' : 'show',
       title: `Query Layer - ${portalId}`
     });
     this.queryOnlyLayers.set(queryId, result);
