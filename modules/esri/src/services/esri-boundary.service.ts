@@ -20,6 +20,7 @@ export class EsriBoundaryService {
 
   allBoundaryConfigurations$: Observable<BoundaryConfiguration[]> = new BehaviorSubject<BoundaryConfiguration[]>([]);
   allVisibleBoundaryConfigs$: Observable<BoundaryConfiguration[]> = new BehaviorSubject<BoundaryConfiguration[]>([]);
+  allLoadedBoundaryConfigs$: Observable<BoundaryConfiguration[]> = new BehaviorSubject<BoundaryConfiguration[]>([]);
 
   private _popupFactory: (feature: __esri.Feature, fields: __esri.FieldInfo[], layerId: string, popupDefinition: PopupDefinition) => HTMLElement = null;
   private _popupThisContext: any = null;
@@ -39,6 +40,7 @@ export class EsriBoundaryService {
   private initializeSelectors() : void {
     this.store$.select(boundarySelectors.allBoundaryDefs).subscribe(this.allBoundaryConfigurations$ as BehaviorSubject<BoundaryConfiguration[]>);
     this.store$.select(boundarySelectors.visibleBoundaryDefs).subscribe(this.allVisibleBoundaryConfigs$ as BehaviorSubject<BoundaryConfiguration[]>);
+    this.store$.select(boundarySelectors.loadedBoundaryDefs).subscribe(this.allLoadedBoundaryConfigs$ as BehaviorSubject<BoundaryConfiguration[]>);
   }
 
   private setupWatchers() : void {

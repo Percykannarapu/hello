@@ -8,12 +8,14 @@ const getEsriBoundarySlice = createSelector(getEsriState, state => state.boundar
 const getEsriBoundaryConfigs = createSelector(getEsriBoundarySlice, fromBoundary.selectAll);
 const getVisibleLayerConfigs = createSelector(getEsriBoundaryConfigs, state => state.filter(s => s.visible));
 const getHiddenLayerConfigs = createSelector(getEsriBoundaryConfigs, state => state.filter(s => !s.visible));
+const getLoadedLayerConfigs = createSelector(getEsriBoundaryConfigs, state => state.filter(s => s.destinationBoundaryId != null));
 const getEsriBoundariesReadyToCreate = createSelector(getVisibleLayerConfigs, state => state.filter(s => s.destinationBoundaryId == null));
 const getEsriBoundariesReadyForUpdate = createSelector(getVisibleLayerConfigs, state => state.filter(s => s.destinationBoundaryId != null));
 const getEsriBoundariesReadyForDelete = createSelector(getHiddenLayerConfigs, state => state.filter(s => s.destinationBoundaryId != null));
 
 export const boundarySelectors = {
   allBoundaryDefs: getEsriBoundaryConfigs,
+  loadedBoundaryDefs: getLoadedLayerConfigs,
   visibleBoundaryDefs: getVisibleLayerConfigs,
   boundariesReadyToCreate: getEsriBoundariesReadyToCreate,
   boundariesReadyToUpdate: getEsriBoundariesReadyForUpdate,

@@ -1,18 +1,19 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray } from '@val/common';
-import { BasicLayerSetup, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
+import { BasicLayerSetup, EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Extent } from 'esri/geometry';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { RehydrateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
+import { LayerSetupComplete } from '../state/data-shim/data-shim.actions';
 import { ClearTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -62,6 +63,7 @@ export class AppDataShimService {
               private poiRenderingService: PoiRenderingService,
               private boundaryRenderingService: BoundaryRenderingService,
               private esriService: EsriService,
+              private esriBoundaryService: EsriBoundaryService,
               private appConfig: AppConfig,
               private store$: Store<FullAppState>,
               private logger: AppLoggingService,
@@ -93,6 +95,8 @@ export class AppDataShimService {
     this.clearAll();
     return this.appProjectService.load(id).pipe(
       tap(project => this.onLoad(project)),
+      switchMap(project => this.setupEsriInitialState(project)),
+      tap(() => this.dispatchPostLoadActions()),
       map(project => project.methAnalysis)
     );
   }
@@ -103,8 +107,11 @@ export class AppDataShimService {
 
   private onLoad(project: ImpProject) : void {
     this.processCustomVarPks(project);
+  }
+
+  private dispatchPostLoadActions() : void {
+    this.store$.dispatch(new LayerSetupComplete());
     this.store$.dispatch(new RehydrateAudiences());
-    this.setupEsriInitialState(project);
   }
 
   private processCustomVarPks(project: ImpProject) : void {
@@ -120,7 +127,7 @@ export class AppDataShimService {
     this.impProjVarService.currStoreId = maxVarPk + 1;
   }
 
-  private setupEsriInitialState(project: ImpProject) : void {
+  private setupEsriInitialState(project: ImpProject) : Observable<ImpProject> {
     const geocodes = new Set(project.getImpGeofootprintGeos().reduce((p, c) => {
       if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive) p.push(c.geocode);
       return p;
@@ -160,6 +167,13 @@ export class AppDataShimService {
     } else {
       this.esriService.setBasemap('streets-vector');
     }
+    return this.esriBoundaryService.allLoadedBoundaryConfigs$.pipe(
+      map(configs => configs.length),
+      distinctUntilChanged(),
+      filter(items => items > 0),
+      take(1),
+      map(() => project)
+    );
   }
 
   onLoadSuccess(isBatch: boolean) : void {
@@ -186,6 +200,7 @@ export class AppDataShimService {
     this.clearAll();
     const projectId = this.appProjectService.createNew();
     this.esriService.loadInitialState({}, [], this.poiRenderingService.getConfigurations(), this.boundaryRenderingService.getConfigurations());
+    this.store$.dispatch(new LayerSetupComplete());
     return projectId;
   }
 
