@@ -250,7 +250,7 @@ export class BatchMapService {
         break;
     }
     return polyObservable.pipe(
-      switchMap(polys => polys != null ? this.esriMapService.zoomToPolys(polys, params.buffer / 100) : of(null))
+      switchMap(polys => polys != null && polys.length > 0 ? this.esriMapService.zoomToPolys(polys, params.buffer / 100) : of(null))
     );
   }
 
