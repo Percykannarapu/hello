@@ -116,7 +116,7 @@ export class AppDataShimService {
       } else {
         return result;
       }
-    }, -1);
+    }, 0);
     this.impProjVarService.currStoreId = maxVarPk + 1;
   }
 
