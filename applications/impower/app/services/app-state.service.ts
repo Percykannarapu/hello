@@ -13,7 +13,7 @@ import { ClearGeoVars } from '../impower-datastore/state/transient/geo-vars/geo-
 import { ValSort } from '../models/valassis-sorters';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
-import { projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { CachedObservable } from '../val-modules/api/models/CachedObservable';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from '../val-modules/targeting/models/ImpGeofootprintMaster';
@@ -145,7 +145,11 @@ export class AppStateService {
   }
 
   private setupApplicationReadyObservable() : void {
-    this.store$.select(projectIsReady).pipe(
+    const projectReady$ = this.store$.select(projectIsReady).pipe(distinctUntilChanged());
+    const layersReady$ = this.store$.select(layersAreReady).pipe(distinctUntilChanged());
+
+    combineLatest([projectReady$, layersReady$]).pipe(
+      map(([project, layers]) => project && layers),
       distinctUntilChanged()
     ).subscribe(this.applicationIsReady$);
   }

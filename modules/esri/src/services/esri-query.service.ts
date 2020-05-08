@@ -162,38 +162,32 @@ export class EsriQueryService {
       returnGeometry: false,
       outFields: ['geocode', 'pob']
     });
-    return this.query(layerId, [query], specialTxId);
+    return this.query(layerId, [query], specialTxId, true);
   }
 
   public executeNativeQuery(layerId: string, query: __esri.Query, returnGeometry: boolean = false, outFields?: string[], alternateTxId?: string) : Observable<__esri.FeatureSet> {
     if (returnGeometry) query.returnGeometry = true;
     if (outFields != null) query.outFields = outFields;
     const transactionId = alternateTxId || getUuid();
-    return this.paginateEsriQuery(layerId, query, transactionId).pipe(
+    return this.paginateEsriQuery(layerId, query, transactionId, false).pipe(
       finalize(() => {
         if (alternateTxId == null) this.finalizeQuery(transactionId);
       })
     );
   }
 
-  private query(layerId: string, queries: __esri.Query[], transactionId: string) : Observable<__esri.Graphic[]> {
+  private query(layerId: string, queries: __esri.Query[], transactionId: string, isLongLivedQueryLayer: boolean = false) : Observable<__esri.Graphic[]> {
     const observables: Observable<__esri.FeatureSet>[] = [];
     for (const query of queries) {
-      observables.push(this.executeQuery(layerId, query, transactionId));
+      observables.push(this.paginateEsriQuery(layerId, query, transactionId, isLongLivedQueryLayer));
     }
     const result$: Observable<__esri.FeatureSet> = merge(...observables, SIMULTANEOUS_STREAMS);
     return result$.pipe(map(fs => fs.features));
   }
 
-  private executeQuery(layerId: string, query: __esri.Query, transactionId: string, returnGeometry: boolean = false, outFields?: string[]) : Observable<__esri.FeatureSet> {
-    if (returnGeometry) query.returnGeometry = true;
-    if (outFields != null) query.outFields = outFields;
-    return this.paginateEsriQuery(layerId, query, transactionId);
-  }
-
-  private paginateEsriQuery(layerId: string, query: __esri.Query, transactionId: string) : Observable<__esri.FeatureSet> {
+  private paginateEsriQuery(layerId: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean) : Observable<__esri.FeatureSet> {
     const recursiveQuery$ = (id: string, q: __esri.Query) =>
-      this.executeFeatureQuery(id, q, transactionId).pipe(map(r => EsriQueryService.getNextQuery(r, q)));
+      this.executeFeatureQuery(id, q, transactionId, isLongLivedQueryLayer).pipe(map(r => EsriQueryService.getNextQuery(r, q)));
 
     return recursiveQuery$(layerId, query).pipe(
       retryOnTimeout(5),
@@ -202,9 +196,9 @@ export class EsriQueryService {
     );
   }
 
-  private executeFeatureQuery(layerId: string, query: __esri.Query, transactionId: string) : Observable<__esri.FeatureSet> {
+  private executeFeatureQuery(layerId: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean) : Observable<__esri.FeatureSet> {
     return from(this.mapService.mapView.when()).pipe(
-      map(() => this.layerService.getQueryLayer(layerId, transactionId)),
+      map(() => this.layerService.getQueryLayer(layerId, transactionId, isLongLivedQueryLayer)),
       switchMap(layer => layer == null ? EMPTY : layer.when() as Promise<__esri.FeatureLayer>),
       switchMap(layer => layer.queryFeatures(query))
     );
