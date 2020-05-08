@@ -39,6 +39,7 @@ import { TransactionManager } from '../../common/services/TransactionManager.ser
 
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
+import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 
 interface CustomMCDefinition {
   Number: number;
@@ -563,10 +564,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Site State',                   row: (state, data) => data.impGeofootprintLocation.locState});
             exportColumns.push({ header: 'Zip',                          row: this.exportVarTruncateZip});
             exportColumns.push({ header: 'Site Address',                 row: this.exportVarStreetAddress});
-            exportColumns.push({ header: 'Market',                       row: (state, data) => (this.isMarket) ? data.impGeofootprintLocation.marketName : 
-                                                                                                data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue});
-            exportColumns.push({ header: 'Market Code',                  row: (state, data) => (this.isMarket) ? data.impGeofootprintLocation.marketCode : 
-                                                                                                data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0].attributeValue});
+            exportColumns.push({ header: 'Market',                       row: (state, data) => (this.isMarket) ? data.impGeofootprintLocation.marketName : this.getAttributeValue(data, 'Home DMA Name')});
+                                                                                                //data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue});
+            exportColumns.push({ header: 'Market Code',                  row: (state, data) => (this.isMarket) ? data.impGeofootprintLocation.marketCode : this.getAttributeValue(data, 'Home DMA')});
+                                                                                                //data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0].attributeValue});
             exportColumns.push({ header: 'Group Name',                   row: (state, data) => data.impGeofootprintLocation.groupName});
             exportColumns.push({ header: 'Passes Filter',                row: 1});
             exportColumns.push({ header: 'Distance',                     row: (state, data) => +data.distance.toFixed(2)});
@@ -749,6 +750,14 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.setMustCovers(successGeo, true);
       this.logger.debug.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
       return errorGeo.map(geo => geo.geocode);
+   }
+
+   private getAttributeValue(data: ImpGeofootprintGeo, attributeCode: string){
+     const locAttribute: ImpGeofootprintLocAttrib[] = data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === attributeCode);
+     if (locAttribute != null && locAttribute.length > 0){
+        return locAttribute[0].attributeValue;
+     }
+     return '';
    }
 
 }
