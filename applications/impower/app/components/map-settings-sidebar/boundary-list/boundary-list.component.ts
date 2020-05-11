@@ -1,5 +1,5 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { BoundaryConfiguration, EsriBoundaryService } from '@val/esri';
+import { Component, Input, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { BoundaryConfiguration, duplicateBoundaryConfig, EsriBoundaryService } from '@val/esri';
 import { Subject } from 'rxjs';
 import { AppLoggingService } from '../../../services/app-logging.service';
 
@@ -9,7 +9,7 @@ import { AppLoggingService } from '../../../services/app-logging.service';
   styleUrls: ['./boundary-list.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class BoundaryListComponent implements OnInit, OnDestroy {
+export class BoundaryListComponent implements OnDestroy {
 
   @Input() boundaryConfigurations: BoundaryConfiguration[];
 
@@ -20,8 +20,8 @@ export class BoundaryListComponent implements OnInit, OnDestroy {
   constructor(private esriBoundaryService: EsriBoundaryService,
               private logger: AppLoggingService) { }
 
-  ngOnInit() : void {
-
+  duplicateConfig(config: BoundaryConfiguration) : BoundaryConfiguration {
+    return duplicateBoundaryConfig(config);
   }
 
   ngOnDestroy() : void {
@@ -30,8 +30,7 @@ export class BoundaryListComponent implements OnInit, OnDestroy {
 
   toggleVisibility(event: MouseEvent, boundary: BoundaryConfiguration) : void {
     if (boundary.id == null) return;
-    const copy = { ...boundary, visible: !boundary.visible };
-    this.esriBoundaryService.updateBoundaryConfig(copy);
+    this.esriBoundaryService.updateBoundaryConfig({ id: boundary.id, changes: { visible: !boundary.visible }});
     if (event != null) event.stopPropagation();
   }
 
@@ -40,8 +39,8 @@ export class BoundaryListComponent implements OnInit, OnDestroy {
   }
 
   applyConfiguration(config: BoundaryConfiguration) : void {
-    const newBoundary: BoundaryConfiguration = { ...config };
-    this.logger.debug.log('Applying Configuration changes. New values:', { ...newBoundary });
-    this.esriBoundaryService.updateBoundaryConfig(newBoundary);
+    const newBoundary: BoundaryConfiguration = duplicateBoundaryConfig(config);
+    this.logger.debug.log('Applying Configuration changes. New values:', newBoundary);
+    this.esriBoundaryService.upsertBoundaryConfig(newBoundary);
   }
 }

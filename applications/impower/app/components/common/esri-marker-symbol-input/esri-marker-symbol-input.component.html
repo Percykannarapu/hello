@@ -17,7 +17,7 @@
     <label class="drop-down-label" for="marker-input-{{controlId}}">{{labelText}}</label>
   </span>
   <span class="color-chip">
-    <palette-color-picker *ngIf="currentPalette != null" [palette]="currentPalette" [reversePalette]="reversePalette" formControlName="color"></palette-color-picker>
+    <val-extended-palette-picker *ngIf="currentPalette != null" [palette]="currentPalette" [reversePalette]="reversePalette" formControlName="color"></val-extended-palette-picker>
     <val-extended-color-picker *ngIf="currentPalette == null" [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
   </span>
 </div>

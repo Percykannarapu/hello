@@ -156,7 +156,7 @@ export class AppRendererService {
       this.esriService.setFeaturesOfInterest(features);
 
       if (newDefs.length > 0) {
-        this.esriShaderService.updateShader(newDefs);
+        this.esriShaderService.upsertShader(newDefs);
       }
     });
   }
@@ -232,7 +232,7 @@ export class AppRendererService {
                   }
                   break;
               }
-              this.esriShaderService.updateShader(shaderCopy);
+              this.esriShaderService.upsertShader(shaderCopy);
             });
           }
         });

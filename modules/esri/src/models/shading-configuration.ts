@@ -1,6 +1,6 @@
 import { Statistics } from '@val/common';
 import { ColorPalette } from './color-palettes';
-import { ClassBreakFillDefinition, ContinuousDefinition, FillSymbolDefinition, UniqueValueFillDefinition } from './common-configuration';
+import { ClassBreakFillDefinition, ContinuousDefinition, duplicateContinuousDef, duplicateFill, FillSymbolDefinition, UniqueValueFillDefinition } from './common-configuration';
 import { FillPattern, RgbaTuple, RgbTuple } from './esri-types';
 
 export enum ConfigurationTypes {
@@ -35,8 +35,24 @@ export interface ShadingDefinitionBase {
   filterField: string;
 }
 
+function duplicateBase(def: ShadingDefinitionBase) : ShadingDefinitionBase {
+  if (def == null) return null;
+  return {
+    ...def,
+    defaultSymbolDefinition: duplicateFill(def.defaultSymbolDefinition)
+  };
+}
+
 export interface SimpleShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.Simple;
+}
+
+function duplicateSimple(def: SimpleShadingDefinition) : SimpleShadingDefinition {
+  if (def == null) return null;
+  return {
+    ...def,
+    defaultSymbolDefinition: duplicateFill(def.defaultSymbolDefinition)
+  };
 }
 
 export interface UniqueShadingDefinition extends ShadingDefinitionBase {
@@ -48,12 +64,30 @@ export interface UniqueShadingDefinition extends ShadingDefinitionBase {
   breakDefinitions?: UniqueValueFillDefinition[];
 }
 
+function duplicateUnique(def: UniqueShadingDefinition) : UniqueShadingDefinition {
+  if (def == null) return null;
+  return {
+    ...def,
+    defaultSymbolDefinition: duplicateFill(def.defaultSymbolDefinition),
+    breakDefinitions: (def.breakDefinitions || []).map(d => duplicateFill(d))
+  };
+}
+
 export interface RampShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.Ramp;
   theme: ColorPalette;
   reverseTheme: boolean;
   arcadeExpression?: string;
   breakDefinitions?: ContinuousDefinition[];
+}
+
+function duplicateRamp(def: RampShadingDefinition) : RampShadingDefinition {
+  if (def == null) return null;
+  return {
+    ...def,
+    defaultSymbolDefinition: duplicateFill(def.defaultSymbolDefinition),
+    breakDefinitions: (def.breakDefinitions || []).map(d => duplicateContinuousDef(d))
+  };
 }
 
 export interface ClassBreakShadingDefinition extends ShadingDefinitionBase {
@@ -69,6 +103,16 @@ export interface ClassBreakShadingDefinition extends ShadingDefinitionBase {
   breakDefinitions?: ClassBreakFillDefinition[];
 }
 
+function duplicateClassBreak(def: ClassBreakShadingDefinition) : ClassBreakShadingDefinition {
+  if (def == null) return null;
+  return {
+    ...def,
+    defaultSymbolDefinition: duplicateFill(def.defaultSymbolDefinition),
+    breakDefinitions: (def.breakDefinitions || []).map(d => duplicateFill(d)),
+    userBreakDefaults: (def.userBreakDefaults || []).map(d => duplicateFill(d))
+  };
+}
+
 export interface DotDensityShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.DotDensity;
   dotValue: number;
@@ -77,8 +121,35 @@ export interface DotDensityShadingDefinition extends ShadingDefinitionBase {
   arcadeExpression?: string;
 }
 
+function duplicateDotDensity(def: DotDensityShadingDefinition) : DotDensityShadingDefinition {
+  if (def == null) return null;
+  return {
+    ...def,
+    defaultSymbolDefinition: duplicateFill(def.defaultSymbolDefinition),
+    dotColor: RgbTuple.duplicate(def.dotColor)
+  };
+}
+
 export type ComplexShadingDefinition = UniqueShadingDefinition | RampShadingDefinition | ClassBreakShadingDefinition;
 export type ShadingDefinition = SimpleShadingDefinition | ComplexShadingDefinition | DotDensityShadingDefinition;
+
+export function duplicateShadingDefinition(def: ShadingDefinition) : ShadingDefinition {
+  if (def == null) return null;
+  switch (def.shadingType) {
+    case ConfigurationTypes.Simple:
+      return duplicateSimple(def);
+    case ConfigurationTypes.Unique:
+      return duplicateUnique(def);
+    case ConfigurationTypes.Ramp:
+      return duplicateRamp(def);
+    case ConfigurationTypes.ClassBreak:
+      return duplicateClassBreak(def);
+    case ConfigurationTypes.DotDensity:
+      return duplicateDotDensity(def);
+    default:
+      return duplicateBase(def) as ShadingDefinition;
+  }
+}
 
 export function isArcadeCapableShadingDefinition(s: ShadingDefinition) : s is ComplexShadingDefinition | DotDensityShadingDefinition {
   return isComplexShadingDefinition(s) || s.shadingType === ConfigurationTypes.DotDensity;

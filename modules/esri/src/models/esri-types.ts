@@ -8,10 +8,14 @@ export namespace RgbTuple {
   export function withAlpha(rgb: RgbTuple, alpha: number) : RgbaTuple {
     return [rgb[0], rgb[1], rgb[2], alpha];
   }
-  export function matches(rgba: RgbaTuple, other: RgbaTuple | RgbTuple) : boolean {
+  export function matches(rgba: RgbaTuple, other: RgbaTuple | RgbTuple, ignoreAlpha: boolean = true) : boolean {
     const coreMatch = other[0] === rgba[0] && other[1] === rgba[1] && other[2] === rgba[2];
-    if (other.length === 3) return coreMatch;
+    if (other.length === 3 || ignoreAlpha) return coreMatch;
     return coreMatch && other[3] === rgba[3];
+  }
+  export function duplicate<T extends RgbTuple | RgbaTuple>(rgb: T) : T {
+    if (rgb == null) return null;
+    return [...rgb] as T;
   }
 }
 

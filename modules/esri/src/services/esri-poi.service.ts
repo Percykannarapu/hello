@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, take, withLatestFrom } from 'rxjs/operators';
@@ -8,7 +9,7 @@ import { MapSymbols } from '../models/esri-types';
 import { PoiConfiguration, PoiConfigurationTypes } from '../models/poi-configuration';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
-import { addPoi, addPois, deletePoi, deletePois, loadPois, setPopupFields, upsertPoi, upsertPois } from '../state/poi/esri.poi.actions';
+import { addPoi, addPois, deletePoi, deletePois, loadPois, setPopupFields, updatePoi, updatePois, upsertPoi, upsertPois } from '../state/poi/esri.poi.actions';
 import { poiSelectors } from '../state/poi/esri.poi.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
@@ -46,11 +47,19 @@ export class EsriPoiService {
     }
   }
 
-  updatePoiConfig(poi: PoiConfiguration | PoiConfiguration[]) : void {
+  upsertPoiConfig(poi: PoiConfiguration | PoiConfiguration[]) : void {
     if (Array.isArray(poi)) {
       this.store$.dispatch(upsertPois({ pois: poi }));
     } else {
       this.store$.dispatch(upsertPoi({ poi }));
+    }
+  }
+
+  updatePoiConfig(poi: Update<PoiConfiguration> | Update<PoiConfiguration>[]) : void {
+    if (Array.isArray(poi)) {
+      this.store$.dispatch(updatePois({ pois: poi }));
+    } else {
+      this.store$.dispatch(updatePoi({ poi }));
     }
   }
 

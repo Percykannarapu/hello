@@ -8,11 +8,11 @@
     </p-header>
     <ng-container [ngSwitch]="poi.dataKey">
       <ng-container *ngSwitchCase="'Site'">
-        <val-location-shader [configuration]="poi" (applyConfiguration)="applyConfiguration($event)" [defaultColor]="[0, 0, 255, 1]"
+        <val-location-shader [configuration]="duplicatePoi(poi)" (applyConfiguration)="applyConfiguration($event)" [defaultColor]="[0, 0, 255, 1]"
                              [labelChoices]="siteLabels$ | async"></val-location-shader>
       </ng-container>
       <ng-container *ngSwitchCase="'Competitor'">
-        <val-location-shader [configuration]="poi" (applyConfiguration)="applyConfiguration($event)" [defaultColor]="[255, 0, 0, 1]"
+        <val-location-shader [configuration]="duplicatePoi(poi)" (applyConfiguration)="applyConfiguration($event)" [defaultColor]="[255, 0, 0, 1]"
                              [labelChoices]="competitorLabels$ | async"></val-location-shader>
       </ng-container>
     </ng-container>

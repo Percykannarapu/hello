@@ -1,4 +1,4 @@
-import { CommonModule, HashLocationStrategy, LocationStrategy, PathLocationStrategy } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -76,6 +76,7 @@ import { AddLocationsTabComponent } from './components/add-locations-tab/add-loc
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
 import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
+import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
@@ -90,6 +91,7 @@ import { EsriClassBreakInputComponent } from './components/common/esri-class-bre
 import { EsriFillSymbolInputComponent } from './components/common/esri-fill-symbol-input/esri-fill-symbol-input.component';
 import { EsriMarkerSymbolInputComponent } from './components/common/esri-marker-symbol-input/esri-marker-symbol-input.component';
 import { ExtendedColorPickerComponent } from './components/common/extended-color-picker/extended-color-picker.component';
+import { ExtendedPalettePickerComponent } from './components/common/extended-palette-picker/extended-palette-picker.component';
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { PaletteColorPickerComponent } from './components/common/palette-color-picker/palette-color-picker.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
@@ -185,7 +187,6 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
-import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -379,7 +380,8 @@ export function actionSanitizer(action: Action) : Action {
     LocationShaderComponent,
     CompositeAudienceComponent,
     BoundaryShaderComponent,
-    AuthCallbackComponent
+    AuthCallbackComponent,
+    ExtendedPalettePickerComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

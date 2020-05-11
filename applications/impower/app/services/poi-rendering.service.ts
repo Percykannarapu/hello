@@ -79,7 +79,7 @@ export class PoiRenderingService {
       }
     });
     if (updatedSetups.length > 0) {
-      this.esriPoiService.updatePoiConfig(updatedSetups);
+      this.esriPoiService.upsertPoiConfig(updatedSetups);
     }
   }
 

@@ -51,7 +51,7 @@ export class LocationShaderComponent extends PoiBaseComponent<SimplePoiConfigura
       symbolDefinition: this.fb.group({
         legendName: new FormControl(defaultSymbolDefinition.legendName, [Validators.required]),
         outlineColor: new FormControl(defaultSymbolDefinition.outlineColor),
-        color: new FormControl(defaultSymbolDefinition.color),
+        color: new FormControl(defaultSymbolDefinition.color, { updateOn: 'change' }),
         markerType: new FormControl(defaultSymbolDefinition.markerType, { updateOn: 'change' })
       })
     };

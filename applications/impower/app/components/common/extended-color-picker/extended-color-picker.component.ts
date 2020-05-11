@@ -1,12 +1,14 @@
-import { Component, Input, Optional, Self, ViewEncapsulation } from '@angular/core';
-import { ControlValueAccessor, NgControl, NgModel } from '@angular/forms';
+import { Component, forwardRef, Input, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, NgModel } from '@angular/forms';
 import { getUuid, isConvertibleToInteger, rgbToHex } from '@val/common';
 import { RgbaTuple } from '@val/esri';
+import { OverlayPanel } from 'primeng/overlaypanel';
 
 interface Rgb { r: number; g: number; b: number; }
 
 function esriToRgb(esriColor: RgbaTuple) : Rgb {
-  return { r: esriColor[0] || 0, g: esriColor[1] || 0, b: esriColor[2] || 0 };
+  const sanitized = esriColor || [null, null, null, null];
+  return { r: sanitized[0] || 0, g: sanitized[1] || 0, b: sanitized[2] || 0 };
 }
 
 function rgbToEsri(rgbColor: Rgb) : RgbaTuple {
@@ -17,11 +19,21 @@ function rgbToEsri(rgbColor: Rgb) : RgbaTuple {
   selector: 'val-extended-color-picker',
   templateUrl: './extended-color-picker.component.html',
   styleUrls: ['./extended-color-picker.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => ExtendedColorPickerComponent),
+      multi: true
+    }
+  ]
 })
 export class ExtendedColorPickerComponent implements ControlValueAccessor {
 
+  @ViewChild(OverlayPanel, { static: true }) panel: OverlayPanel;
+
   @Input() defaultColor: RgbaTuple;
+  @Input() swatchHeight: number = 20;
 
   controlId = getUuid();
   isDisabled: boolean;
@@ -36,26 +48,39 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor {
     return rgbToHex(this._value);
   }
 
-  get value() : Rgb {
-    return this._value != null ? esriToRgb(this._value) : esriToRgb(this.defaultColor || [0, 0, 0, 1]);
+  get pickerValue() : Rgb {
+    return this._pickerValue;
   }
 
-  set value(value: Rgb) {
-    const esriValue = rgbToEsri(value);
-    this.writeValue(esriValue);
-    this.propagateTouch(esriValue);
-    this.propagateChange(esriValue);
+  set pickerValue(value: Rgb) {
+    this.value = rgbToEsri(value);
   }
 
+  get value() : RgbaTuple {
+    return this._value;
+  }
+
+  set value(value: RgbaTuple) {
+    this.propagateTouch(value);
+    this.propagateChange(value);
+    this.writeValue(value);
+  }
+
+  private _pickerValue: Rgb;
   private _value: RgbaTuple;
 
-  propagateChange = (_: any) => { this.writeValue(_); };
+  propagateChange = (_: any) => {};
   propagateTouch = (_: any) => {};
 
-  constructor(@Optional() @Self() private controlContainer: NgControl) {
-    if (this.controlContainer != null) {
-      this.controlContainer.valueAccessor = this;
-    }
+  constructor() {}
+
+  haltClickPropagation(event: MouseEvent) {
+    event.stopPropagation();
+  }
+
+  openPicker(event: MouseEvent) {
+    this.panel.toggle(event);
+    this.haltClickPropagation(event);
   }
 
   updateRgbComponent(component: keyof Rgb, model: NgModel) {
@@ -63,7 +88,8 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor {
     if (isConvertibleToInteger(userValue)) {
       const newValue = Number(userValue);
       if (newValue >= 0 && newValue <= 255) {
-        this.value = { ...this.value as any, [component]: newValue };
+        const newRgb = { ...this._pickerValue, [component]: newValue };
+        this.value = rgbToEsri(newRgb);
         this.validationErrors = null;
         model.control.setErrors(null);
       } else {
@@ -79,7 +105,7 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor {
   }
 
   resetToDefault() {
-    this.value = esriToRgb(this.defaultColor);
+    this.value = [...this.defaultColor] as RgbaTuple;
   }
 
   registerOnChange(fn: any) : void {
@@ -94,16 +120,12 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor {
     this.isDisabled = isDisabled;
   }
 
-  writeValue(obj: any) : void {
+  writeValue(obj: RgbaTuple) : void {
     this._value = obj;
-    if (this._value != null) {
-      this.updateLocalValues(esriToRgb(this._value));
-    }
-  }
-
-  private updateLocalValues(newValue: Rgb) {
-    this.value0 = `${newValue.r}`;
-    this.value1 = `${newValue.g}`;
-    this.value2 = `${newValue.b}`;
+    const rgb = esriToRgb(this._value);
+    this._pickerValue = { ...rgb };
+    this.value0 = `${rgb.r}`;
+    this.value1 = `${rgb.g}`;
+    this.value2 = `${rgb.b}`;
   }
 }

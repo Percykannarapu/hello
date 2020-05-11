@@ -10,6 +10,11 @@ export interface LabelDefinition {
   where?: string;
 }
 
+export function duplicateLabel(label: LabelDefinition) : LabelDefinition {
+  if (label == null) return null;
+  return { ...label, color: RgbTuple.duplicate(label.color), haloColor: RgbTuple.duplicate(label.haloColor) };
+}
+
 export interface SymbolDefinition {
   outlineColor?: RgbaTuple;
   outlineWidth?: number;
@@ -21,11 +26,6 @@ export interface FillSymbolDefinition extends SymbolDefinition {
   fillType: FillPattern;
 }
 
-export interface MarkerSymbolDefinition extends SymbolDefinition {
-  color: RgbaTuple;
-  markerType: MarkerStyles;
-}
-
 export interface ClassBreakFillDefinition extends FillSymbolDefinition {
   minValue?: number;
   maxValue?: number;
@@ -33,6 +33,16 @@ export interface ClassBreakFillDefinition extends FillSymbolDefinition {
 
 export interface UniqueValueFillDefinition extends FillSymbolDefinition {
   value: string;
+}
+
+export function duplicateFill<T extends FillSymbolDefinition>(symbol: T) : T {
+  if (symbol == null) return null;
+  return { ...symbol, outlineColor: RgbTuple.duplicate(symbol.outlineColor), fillColor: RgbTuple.duplicate(symbol.fillColor) };
+}
+
+export interface MarkerSymbolDefinition extends SymbolDefinition {
+  color: RgbaTuple;
+  markerType: MarkerStyles;
 }
 
 export interface ClassBreakMarkerDefinition extends MarkerSymbolDefinition {
@@ -44,8 +54,17 @@ export interface UniqueValueMarkerDefinition extends MarkerSymbolDefinition {
   value: string;
 }
 
+export function duplicateMarker<T extends MarkerSymbolDefinition>(symbol: T) : T {
+  if (symbol == null) return null;
+  return { ...symbol, color: RgbTuple.duplicate(symbol.color), outlineColor: RgbTuple.duplicate(symbol.outlineColor) };
+}
+
 export interface ContinuousDefinition {
   stopColor: RgbTuple;
   stopValue: number;
   stopName: string;
+}
+
+export function duplicateContinuousDef(def: ContinuousDefinition) : ContinuousDefinition {
+  return { ...def, stopColor: RgbTuple.duplicate(def.stopColor) };
 }

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map, pairwise, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
@@ -14,6 +15,7 @@ import {
   deleteShadingDefinitions,
   loadShadingDefinitions,
   updateShadingDefinition,
+  updateShadingDefinitions,
   upsertShadingDefinition,
   upsertShadingDefinitions
 } from '../state/shading/esri.shading.actions';
@@ -49,11 +51,19 @@ export class EsriShadingService {
     }
   }
 
-  updateShader(shadingDefinition: ShadingDefinition | ShadingDefinition[]) : void {
+  upsertShader(shadingDefinition: ShadingDefinition | ShadingDefinition[]) : void {
     if (Array.isArray(shadingDefinition)) {
       this.store$.dispatch(upsertShadingDefinitions({ shadingDefinitions: shadingDefinition }));
     } else {
       this.store$.dispatch(upsertShadingDefinition({ shadingDefinition }));
+    }
+  }
+
+  updateShader(shadingDefinition: Update<ShadingDefinition> | Update<ShadingDefinition>[]) : void {
+    if (Array.isArray(shadingDefinition)) {
+      this.store$.dispatch(updateShadingDefinitions({ shadingDefinitions: shadingDefinition }));
+    } else {
+      this.store$.dispatch(updateShadingDefinition({ shadingDefinition }));
     }
   }
 

@@ -1,0 +1,24 @@
+<div class="component-root">
+  <span class="md-inputfield">
+    <p-dropdown id="palette-input-{{controlId}}" [(ngModel)]="selectionValue"
+                [options]="options" [filter]="false" dropdownIcon="fa fa-caret-down"
+                [autoDisplayFirst]="!includeUnselected" [style]="{'width':'100%'}"
+                [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass">
+      <ng-template let-selected pTemplate="selectedItem">
+        <div class="item-container">
+          <span class="selected-color-chip" [ngStyle]="{ 'background-color': selected.label }" *ngIf="selected.title === 'color'"></span>
+          <div *ngIf="selected.title === 'text'">
+            <val-extended-color-picker [(ngModel)]="value" [swatchHeight]="12"></val-extended-color-picker>
+          </div>
+        </div>
+      </ng-template>
+      <ng-template let-item pTemplate="item">
+        <div class="item-container">
+          <span class="color-chip" [ngStyle]="{ 'background-color': item.label }" *ngIf="item.title === 'color'"></span>
+          <span *ngIf="item.title === 'text'">{{item.label}}</span>
+        </div>
+      </ng-template>
+    </p-dropdown>
+    <label class="drop-down-label" for="palette-input-{{controlId}}">{{labelText}}</label>
+  </span>
+</div>

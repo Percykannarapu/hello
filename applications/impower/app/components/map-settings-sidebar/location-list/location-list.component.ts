@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriPoiService, PoiConfiguration } from '@val/esri';
+import { duplicatePoiConfiguration, EsriPoiService, PoiConfiguration } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
 import { AppLocationService } from '../../../services/app-location.service';
@@ -31,6 +31,10 @@ export class LocationListComponent implements OnInit, OnDestroy {
               private store$: Store<FullAppState>,
               private logger: LoggingService) { }
 
+  duplicatePoi(config: PoiConfiguration) : PoiConfiguration {
+    return duplicatePoiConfiguration(config);
+  }
+
   ngOnInit() : void {
     this.siteLabels$ = this.locationService.siteLabelOptions$;
     this.competitorLabels$ = this.locationService.competitorLabelOptions$;
@@ -42,8 +46,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
   toggleVisibility(event: MouseEvent, poi: PoiConfiguration) : void {
     if (poi.id == null) return;
-    const copy = { ...poi, visible: !poi.visible };
-    this.esriPoiService.updatePoiConfig(copy);
+    this.esriPoiService.updatePoiConfig({ id: poi.id, changes: { visible: !poi.visible }});
     if (event != null) event.stopPropagation();
   }
 
@@ -52,8 +55,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
   }
 
   applyConfiguration(definition: PoiConfiguration) : void {
-    const newPoi: PoiConfiguration = { ...definition };
-    this.logger.debug.log('Applying Configuration changes. New values:', { ...newPoi });
-    this.esriPoiService.updatePoiConfig(newPoi);
+    const newPoi: PoiConfiguration = duplicatePoiConfiguration(definition);
+    this.logger.debug.log('Applying Configuration changes. New values:', newPoi);
+    this.esriPoiService.upsertPoiConfig(newPoi);
   }
 }
