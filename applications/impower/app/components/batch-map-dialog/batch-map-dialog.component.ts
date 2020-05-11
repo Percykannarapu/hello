@@ -88,6 +88,7 @@ export class BatchMapDialogComponent implements OnInit {
       titleInput: '',
       subTitleInput: '',
       subSubTitleInput: '',
+      taTitle: '',
       enableTradeAreaShading: false
     });
     this.batchMapForm.get('sitesByGroup').disable();
@@ -424,7 +425,8 @@ export class BatchMapDialogComponent implements OnInit {
           siteId: siteId,
           title: this.getAttrValueByCode(filteredLocations[0], title, 'title'),
           subTitle: this.getAttrValueByCode(filteredLocations[0], subTitle, 'subTitle'),
-          subSubTitle: this.getAttrValueByCode(filteredLocations[0], subSubTitle, 'subSubTitle')
+          subSubTitle: this.getAttrValueByCode(filteredLocations[0], subSubTitle, 'subSubTitle'),
+          taName: this.batchMapForm.get('taTitle').value || ''
         };
         titlePayload.push(payload);
       }
@@ -459,7 +461,8 @@ export class BatchMapDialogComponent implements OnInit {
         siteId: index.toString(),
         title: this.getAttrValueByCode(location, title, 'title'),
         subTitle: this.getAttrValueByCode(location, subTitle, 'subTitle'),
-        subSubTitle: this.getAttrValueByCode(location, subSubTitle, 'subSubTitle')
+        subSubTitle: this.getAttrValueByCode(location, subSubTitle, 'subSubTitle'),
+        taName: this.batchMapForm.get('taTitle').value || ''
       };
       titlePayload.push(payload);
     });

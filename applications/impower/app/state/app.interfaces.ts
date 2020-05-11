@@ -100,4 +100,5 @@ export interface TitlePayload {
   title: string;
   subTitle: string;
   subSubTitle: string;
+  taName: string;
 }

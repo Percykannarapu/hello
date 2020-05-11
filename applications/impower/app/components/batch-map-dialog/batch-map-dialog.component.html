@@ -1,14 +1,14 @@
 <p-dialog header="Create Site Maps" [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '1000px', minWidth: '200px', height: '670px'}" [maximizable]="false">
+  [modal]="true" [style]="{width: '1000px', minWidth: '200px', height: '700px'}" [maximizable]="false">
   <div class="dialog-form">
     <div class="dialog-main" id="p-dialog">
-      <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are reflected on map </span> 
-        <br /> 
+      <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are reflected on map </span>
+        <br />
         PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.</p>
       <!--<p class="custom-headers">PDF map outputs may not exceed 600 pages. Please set up your maps accordingly. </p>    -->
       <div class="dialog-body">
 
-          
+
         <form novalidate [formGroup]="batchMapForm" autocomplete="off">
           <div class="flexTitle">
             <div class="titleFlex1">
@@ -38,6 +38,13 @@
             <div class="titleFlex2">
               <validated-text-input formControlName="subSubTitleInput"></validated-text-input>
             </div>
+          </div>
+
+          <div class="ui-g-12">
+            <span class="ui-float-label">
+              <input id="float-input" type="text" style="width: 33%;" formControlName="taTitle" pInputText>
+              <label for="float-input">Trade Area Title</label>
+            </span>
           </div>
 
           <div class="ui-g-12">
