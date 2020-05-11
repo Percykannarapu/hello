@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriShadingService, ShadingDefinition } from '@val/esri';
+import { duplicateShadingDefinition, EsriShadingService, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
@@ -49,6 +49,10 @@ export class ShaderListComponent implements OnInit, OnDestroy {
     this.destroyed$.next();
   }
 
+  duplicateDefinition(def: ShadingDefinition) : ShadingDefinition {
+    return duplicateShadingDefinition(def);
+  }
+
   deleteDefinition(event: MouseEvent, definition: ShadingDefinition) : void {
     if (definition.id == null) return;
     this.esriShaderService.deleteShader(definition);
@@ -57,8 +61,7 @@ export class ShaderListComponent implements OnInit, OnDestroy {
 
   toggleVisibility(event: MouseEvent, definition: ShadingDefinition) : void {
     if (definition.id == null) return;
-    const copy = { ...definition, visible: !definition.visible };
-    this.esriShaderService.updateShader(copy);
+    this.esriShaderService.updateShader({ id: definition.id, changes: { visible: !definition.visible }});
     if (event != null) event.stopPropagation();
   }
 
@@ -74,18 +77,18 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   }
 
   applyDefinition(definition: ShadingDefinition) : void {
-    const newDef: ShadingDefinition = { ...definition };
-    this.logger.debug.log('Applying Definition changes. New values:', { ...newDef });
-    this.appRenderService.updateForAnalysisLevel(newDef, this.currentAnalysisLevel);
-    switch (newDef.dataKey) {
+    this.appRenderService.updateForAnalysisLevel(definition, this.currentAnalysisLevel);
+    switch (definition.dataKey) {
       case GfpShaderKeys.OwnerSite:
-        this.appRenderService.updateForOwnerSite(newDef, this.geos);
+        this.appRenderService.updateForOwnerSite(definition, this.geos);
         break;
       case GfpShaderKeys.OwnerTA:
-        this.appRenderService.updateForOwnerTA(newDef, this.geos);
+        this.appRenderService.updateForOwnerTA(definition, this.geos);
         break;
     }
-    this.esriShaderService.updateShader(newDef);
+    const newDef: ShadingDefinition = duplicateShadingDefinition(definition);
+    this.logger.debug.log('Applying Definition changes. New values:', newDef);
+    this.esriShaderService.upsertShader(newDef);
     setTimeout(() => this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: this.currentAnalysisLevel })), 1000);
   }
 }

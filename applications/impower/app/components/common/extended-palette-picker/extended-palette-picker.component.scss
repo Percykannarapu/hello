@@ -1,0 +1,35 @@
+@import "~assets/valassis-variables";
+
+.color-chip {
+  display: inline-block;
+  width: 20px;
+  height: 15px;
+  margin-top: 3px;
+}
+
+.selected-color-chip {
+  display: inline-block;
+  width: 20px;
+  height: 12px;
+}
+
+:host(.ng-touched.ng-invalid) {
+  .md-inputfield {
+    input {
+      background-image: linear-gradient(to bottom, $inputInvalidBorderColor, $inputInvalidBorderColor),
+      linear-gradient(to bottom, $inputInvalidBorderColor, $inputInvalidBorderColor);
+
+      &:focus ~ label,
+      ~ label {
+        color: $inputErrorTextColor;
+      }
+
+      ~ span.ui-inputgroup-addon {
+        border-bottom-color: $inputInvalidBorderColor;
+        i {
+          color: $inputErrorTextColor;
+        }
+      }
+    }
+  }
+}

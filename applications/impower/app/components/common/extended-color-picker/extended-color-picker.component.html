@@ -1,6 +1,6 @@
-<p-overlayPanel #picker [dismissable]="false" appendTo="body">
-  <div class="picker-container">
-    <p-colorPicker format="rgb" [(ngModel)]="value" [inline]="true" [disabled]="isDisabled"
+<p-overlayPanel #picker [dismissable]="true" [appendTo]="panelParent" >
+  <div class="picker-container" (click)="haltClickPropagation($event)">
+    <p-colorPicker format="rgb" [(ngModel)]="pickerValue" [inline]="true" [disabled]="isDisabled"
                    [showTransitionOptions]="'0ms'" [hideTransitionOptions]="'0ms'"></p-colorPicker>
     <div class="input-container">
       <input type="text" [(ngModel)]="value0" (blur)="updateRgbComponent('r', r)" [disabled]="isDisabled"
@@ -14,4 +14,5 @@
   </div>
 </p-overlayPanel>
 
-<span class="color-swatch" [ngStyle]="{ 'background-color': swatchHex }" (click)="picker.toggle($event)"></span>
+<span class="color-swatch" [ngStyle]="{ 'background-color': swatchHex, 'height': swatchHeight + 'px' }" (click)="openPicker($event)"></span>
+<div #panelParent id="val-picker-popup-container"></div>

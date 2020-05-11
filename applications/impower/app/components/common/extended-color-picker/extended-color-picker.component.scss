@@ -6,13 +6,20 @@ body {
     .color-swatch {
       display: inline-block;
       width: 20px;
-      height: 20px;
       cursor: pointer;
       border: transparent 1px solid;
       border-radius: 3px;
       @include transition(border .3s);
       &:hover {
         border: $darkGray02 1px solid;
+      }
+    }
+
+    div#val-picker-popup-container {
+      > div.ui-overlaypanel {
+        left: unset !important;
+        top: unset !important;
+        margin-left: -185px;
       }
     }
   }
@@ -24,6 +31,7 @@ body {
     > p-colorPicker {
       .ui-colorpicker-panel {
         opacity: 1 !important;
+        transform: unset !important;
       }
     }
     > .input-container {

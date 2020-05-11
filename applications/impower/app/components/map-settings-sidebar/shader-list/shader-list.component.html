@@ -15,16 +15,16 @@
       <span *ngIf="def.sourcePortalId == null">New {{def.layerName == null ? 'Variable' : def.layerName}}</span>
     </p-header>
     <ng-container [ngSwitch]="def.dataKey">
-      <val-selected-geo-shader *ngSwitchCase="shadingTypes.Selection" [definition]="def"
+      <val-selected-geo-shader *ngSwitchCase="shadingTypes.Selection" [definition]="duplicateDefinition(def)"
                                (applyShader)="applyDefinition($event)"></val-selected-geo-shader>
-      <val-owner-site-shader *ngSwitchCase="shadingTypes.OwnerSite" [definition]="def"
+      <val-owner-site-shader *ngSwitchCase="shadingTypes.OwnerSite" [definition]="duplicateDefinition(def)"
                              [labelChoices]="siteLabels$ | async"
                              (applyShader)="applyDefinition($event)"
                              (deleteShader)="deleteDefinition(null, $event)"></val-owner-site-shader>
-      <val-owner-trade-area-shader *ngSwitchCase="shadingTypes.OwnerTA" [definition]="def"
+      <val-owner-trade-area-shader *ngSwitchCase="shadingTypes.OwnerTA" [definition]="duplicateDefinition(def)"
                                    (applyShader)="applyDefinition($event)"
                                    (deleteShader)="deleteDefinition(null, $event)"></val-owner-trade-area-shader>
-      <val-variable-shader *ngSwitchDefault [definition]="def" [audiences]="audiences"
+      <val-variable-shader *ngSwitchDefault [definition]="duplicateDefinition(def)" [audiences]="audiences"
                            (applyShader)="applyDefinition($event)"
                            (deleteShader)="deleteDefinition(null, $event)"></val-variable-shader>
     </ng-container>

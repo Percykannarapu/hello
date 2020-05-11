@@ -8,7 +8,7 @@ import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap } from 'rxjs/operators';
 import { BoundaryConfiguration, PopupDefinition } from '../models/boundary-configuration';
 import { FillSymbolDefinition, LabelDefinition } from '../models/common-configuration';
-import { loadBoundaries, updateBoundaries, upsertBoundaries, upsertBoundary } from '../state/boundary/esri.boundary.actions';
+import { loadBoundaries, updateBoundaries, updateBoundary, upsertBoundaries, upsertBoundary } from '../state/boundary/esri.boundary.actions';
 import { boundarySelectors } from '../state/boundary/esri.boundary.selectors';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
@@ -66,11 +66,19 @@ export class EsriBoundaryService {
     this.store$.dispatch(loadBoundaries({ boundaries }));
   }
 
-  updateBoundaryConfig(boundary: BoundaryConfiguration | BoundaryConfiguration[]) : void {
+  upsertBoundaryConfig(boundary: BoundaryConfiguration | BoundaryConfiguration[]) : void {
     if (Array.isArray(boundary)) {
       this.store$.dispatch(upsertBoundaries({ boundaries: boundary }));
     } else {
       this.store$.dispatch(upsertBoundary({ boundary }));
+    }
+  }
+
+  updateBoundaryConfig(boundary: Update<BoundaryConfiguration> | Update<BoundaryConfiguration>[]) : void {
+    if (Array.isArray(boundary)) {
+      this.store$.dispatch(updateBoundaries({ boundaries: boundary }));
+    } else {
+      this.store$.dispatch(updateBoundary({ boundary }));
     }
   }
 
