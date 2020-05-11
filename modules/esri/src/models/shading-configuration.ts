@@ -35,6 +35,14 @@ export interface ShadingDefinitionBase {
   filterField: string;
 }
 
+function duplicateBase(def: ShadingDefinitionBase) : ShadingDefinitionBase {
+  if (def == null) return null;
+  return {
+    ...def,
+    defaultSymbolDefinition: duplicateFill(def.defaultSymbolDefinition)
+  };
+}
+
 export interface SimpleShadingDefinition extends ShadingDefinitionBase {
   shadingType: ConfigurationTypes.Simple;
 }
@@ -138,6 +146,8 @@ export function duplicateShadingDefinition(def: ShadingDefinition) : ShadingDefi
       return duplicateClassBreak(def);
     case ConfigurationTypes.DotDensity:
       return duplicateDotDensity(def);
+    default:
+      return duplicateBase(def) as ShadingDefinition;
   }
 }
 
