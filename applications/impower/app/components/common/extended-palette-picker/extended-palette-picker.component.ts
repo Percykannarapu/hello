@@ -72,7 +72,7 @@ export class ExtendedPalettePickerComponent implements ControlValueAccessor {
   private _value: RgbaTuple;
   private _selectionValue: RgbaTuple | 'custom';
 
-  propagateChange = (_: any) => {};
+  propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};
 
   constructor() {}
@@ -116,12 +116,25 @@ export class ExtendedPalettePickerComponent implements ControlValueAccessor {
   }
 
   writeValue(obj: RgbaTuple) : void {
-    this._value = obj;
-    const matching = this.options.filter(i => i.title === 'color' && RgbTuple.matches(i.value, this._value))[0];
-    if (matching != null) {
-      this._selectionValue = matching.value;
+    const matching = this.getMatchingOption(obj);
+    this._value = matching;
+    this.writeToSecondaryFields(matching);
+  }
+
+  private writeToSecondaryFields(obj: RgbaTuple) : void {
+    if (obj != null) {
+      this._selectionValue = obj;
     } else {
       this._selectionValue = 'custom';
+    }
+  }
+
+  private getMatchingOption(obj: RgbaTuple) : RgbaTuple {
+    const matching = this.options.filter(i => i.title === 'color' && RgbTuple.matches(i.value, obj))[0];
+    if (matching != null) {
+      return matching.value;
+    } else {
+      return null;
     }
   }
 }

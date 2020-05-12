@@ -35,7 +35,7 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
 
   private _value: string;
 
-  propagateChange = (_: any) => {};
+  propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};
 
   constructor(@Optional() @Self() private controlContainer: NgControl) {

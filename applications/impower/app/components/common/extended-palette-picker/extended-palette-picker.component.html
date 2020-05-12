@@ -8,7 +8,7 @@
         <div class="item-container">
           <span class="selected-color-chip" [ngStyle]="{ 'background-color': selected.label }" *ngIf="selected.title === 'color'"></span>
           <div *ngIf="selected.title === 'text'">
-            <val-extended-color-picker [(ngModel)]="value" [swatchHeight]="12"></val-extended-color-picker>
+            <val-extended-color-picker [(ngModel)]="value" [swatchHeight]="12" [autoOpen]="true"></val-extended-color-picker>
           </div>
         </div>
       </ng-template>

@@ -41,7 +41,7 @@ export class DropdownInputComponent implements ControlValueAccessor {
 
   private _value: any;
 
-  propagateChange = (_: any) => {};
+  propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};
 
   constructor() {}

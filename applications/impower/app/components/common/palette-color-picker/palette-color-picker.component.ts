@@ -47,8 +47,9 @@ export class PaletteColorPickerComponent implements ControlValueAccessor {
   }
 
   set value(value: RgbaTuple) {
-    this.propagateTouch(value);
-    this.propagateChange(value);
+    const match = this.getMatchingOption(value);
+    this.propagateTouch(match);
+    this.propagateChange(match);
     this.writeValue(value);
   }
 
@@ -56,7 +57,7 @@ export class PaletteColorPickerComponent implements ControlValueAccessor {
   private _reversePalette: boolean;
   private _value: RgbaTuple;
 
-  propagateChange = (_: any) => {};
+  propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};
 
   constructor() {}
@@ -88,7 +89,16 @@ export class PaletteColorPickerComponent implements ControlValueAccessor {
     this.isDisabled = isDisabled;
   }
 
-  writeValue(obj: any) : void {
-    this._value = obj;
+  writeValue(obj: RgbaTuple) : void {
+    this._value = this.getMatchingOption(obj);
+  }
+
+  getMatchingOption(obj: RgbaTuple) : RgbaTuple {
+    const matching = this.options.filter(i => i.title === 'color' && RgbTuple.matches(i.value, obj))[0];
+    if (matching != null) {
+      return matching.value;
+    } else {
+      return null;
+    }
   }
 }

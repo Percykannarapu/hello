@@ -1,14 +1,12 @@
-<p-overlayPanel #picker [dismissable]="true" [appendTo]="panelParent" >
+<p-overlayPanel #picker [dismissable]="true" [appendTo]="panelParent">
   <div class="picker-container" (click)="haltClickPropagation($event)">
     <p-colorPicker format="rgb" [(ngModel)]="pickerValue" [inline]="true" [disabled]="isDisabled"
                    [showTransitionOptions]="'0ms'" [hideTransitionOptions]="'0ms'"></p-colorPicker>
     <div class="input-container">
-      <input type="text" [(ngModel)]="value0" (blur)="updateRgbComponent('r', r)" [disabled]="isDisabled"
-             [attr.title]="validationErrors?.r" #r="ngModel" pInputText>
-      <input type="text" [(ngModel)]="value1" (blur)="updateRgbComponent('g', g)" [disabled]="isDisabled"
-             [attr.title]="validationErrors?.g" #g="ngModel" pInputText>
-      <input type="text" [(ngModel)]="value2" (blur)="updateRgbComponent('b', b)" [disabled]="isDisabled"
-             [attr.title]="validationErrors?.b" #b="ngModel" pInputText>
+      <input type="text" [(ngModel)]="redComponent" [disabled]="isDisabled" [attr.title]="validationErrors?.r" #redInput="ngModel" pInputText>
+      <input type="text" [(ngModel)]="greenComponent" [disabled]="isDisabled" [attr.title]="validationErrors?.g" #greenInput="ngModel" pInputText>
+      <input type="text" [(ngModel)]="blueComponent" [disabled]="isDisabled" [attr.title]="validationErrors?.b" #blueInput="ngModel" pInputText>
+
       <i class="fa fa-recycle" title="Reset to default color" (click)="resetToDefault()" *ngIf="defaultColor != null"></i>
     </div>
   </div>

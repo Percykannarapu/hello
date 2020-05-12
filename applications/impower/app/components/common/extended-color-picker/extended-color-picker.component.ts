@@ -1,7 +1,7 @@
-import { Component, forwardRef, Input, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, Input, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, NgModel } from '@angular/forms';
 import { getUuid, isConvertibleToInteger, rgbToHex } from '@val/common';
-import { RgbaTuple } from '@val/esri';
+import { RgbaTuple, RgbTuple } from '@val/esri';
 import { OverlayPanel } from 'primeng/overlaypanel';
 
 interface Rgb { r: number; g: number; b: number; }
@@ -28,70 +28,103 @@ function rgbToEsri(rgbColor: Rgb) : RgbaTuple {
     }
   ]
 })
-export class ExtendedColorPickerComponent implements ControlValueAccessor {
+export class ExtendedColorPickerComponent implements ControlValueAccessor, AfterViewInit {
 
-  @ViewChild(OverlayPanel, { static: true }) panel: OverlayPanel;
+  @ViewChild('picker', { static: true }) overlay: OverlayPanel;
+  @ViewChild('panelParent', { static: true }) panelParent: ElementRef;
+  @ViewChild('redInput', { static: true }) redInput: NgModel;
+  @ViewChild('greenInput', { static: true }) greenInput: NgModel;
+  @ViewChild('blueInput', { static: true }) blueInput: NgModel;
 
-  @Input() defaultColor: RgbaTuple;
+  @Input() defaultColor: RgbaTuple = [0, 0, 0, 1];
   @Input() swatchHeight: number = 20;
+  @Input() autoOpen: boolean = false;
 
   controlId = getUuid();
   isDisabled: boolean;
   validationErrors: any = null;
 
-  value0: string;
-  value1: string;
-  value2: string;
-
   get swatchHex() : string {
-    if (this._value == null) return rgbToHex(this.defaultColor || [0, 0, 0, 1]);
-    return rgbToHex(this._value);
+    return rgbToHex(this.esriValue || this.defaultColor);
+  }
+
+  get redComponent() : string {
+    return this._redComponent;
+  }
+
+  set redComponent(_: string) {
+    this.updateRgbComponent('r', this.redInput);
+  }
+
+  get greenComponent() : string {
+    return this._greenComponent;
+  }
+
+  set greenComponent(_: string) {
+    this.updateRgbComponent('g', this.greenInput);
+  }
+
+  get blueComponent() : string {
+    return this._blueComponent;
+  }
+
+  set blueComponent(_: string) {
+    this.updateRgbComponent('b', this.blueInput);
   }
 
   get pickerValue() : Rgb {
-    return this._pickerValue;
+    return esriToRgb(this.esriValue);
   }
 
   set pickerValue(value: Rgb) {
-    this.value = rgbToEsri(value);
+    const newEsriValue = rgbToEsri(value);
+    this.writeValue(newEsriValue);
+    this.propagateTouch(newEsriValue);
+    this.propagateChange(newEsriValue);
   }
 
-  get value() : RgbaTuple {
-    return this._value;
-  }
+  private esriValue: RgbaTuple;
+  private _redComponent: string = '';
+  private _greenComponent: string = '';
+  private _blueComponent: string = '';
 
-  set value(value: RgbaTuple) {
-    this.propagateTouch(value);
-    this.propagateChange(value);
-    this.writeValue(value);
-  }
-
-  private _pickerValue: Rgb;
-  private _value: RgbaTuple;
-
-  propagateChange = (_: any) => {};
+  propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};
 
   constructor() {}
+
+  ngAfterViewInit() {
+    if (this.autoOpen) {
+      this.openPicker(null);
+    }
+  }
 
   haltClickPropagation(event: MouseEvent) {
     event.stopPropagation();
   }
 
   openPicker(event: MouseEvent) {
-    this.panel.toggle(event);
-    this.haltClickPropagation(event);
+    if (event != null) {
+      this.overlay.toggle(event);
+      this.haltClickPropagation(event);
+    } else {
+      this.overlay.toggle(null, this.panelParent.nativeElement);
+    }
   }
 
   updateRgbComponent(component: keyof Rgb, model: NgModel) {
-    const userValue = model.model;
+    const userValue = model.value;
     if (isConvertibleToInteger(userValue)) {
       const newValue = Number(userValue);
       if (newValue >= 0 && newValue <= 255) {
-        const newRgb = { ...this._pickerValue, [component]: newValue };
-        this.value = rgbToEsri(newRgb);
+        const oldRgb = esriToRgb(this.esriValue);
+        const newRgb = { ...oldRgb, [component]: newValue };
         this.validationErrors = null;
         model.control.setErrors(null);
+        const newEsriValue = rgbToEsri(newRgb);
+        this.writeValue(newEsriValue);
+        this.propagateTouch(newEsriValue);
+        this.propagateChange(newEsriValue);
       } else {
         const rangeError = { [component]: 'Must be 0 - 255' };
         this.validationErrors = { ...this.validationErrors, ...rangeError };
@@ -105,7 +138,7 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor {
   }
 
   resetToDefault() {
-    this.value = [...this.defaultColor] as RgbaTuple;
+    this.writeValue(RgbTuple.duplicate(this.defaultColor));
   }
 
   registerOnChange(fn: any) : void {
@@ -121,11 +154,11 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor {
   }
 
   writeValue(obj: RgbaTuple) : void {
-    this._value = obj;
-    const rgb = esriToRgb(this._value);
-    this._pickerValue = { ...rgb };
-    this.value0 = `${rgb.r}`;
-    this.value1 = `${rgb.g}`;
-    this.value2 = `${rgb.b}`;
+    this.esriValue = obj;
+    if (obj != null) {
+      this._redComponent = `${obj[0]}`;
+      this._greenComponent = `${obj[1]}`;
+      this._blueComponent = `${obj[2]}`;
+    }
   }
 }
