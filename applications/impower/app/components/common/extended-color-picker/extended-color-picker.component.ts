@@ -36,7 +36,7 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor, After
   @ViewChild('greenInput', { static: true }) greenInput: NgModel;
   @ViewChild('blueInput', { static: true }) blueInput: NgModel;
 
-  @Input() defaultColor: RgbaTuple = [0, 0, 0, 1];
+  @Input() defaultColor: RgbaTuple;
   @Input() swatchHeight: number = 20;
   @Input() autoOpen: boolean = false;
 
@@ -45,7 +45,7 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor, After
   validationErrors: any = null;
 
   get swatchHex() : string {
-    return rgbToHex(this.esriValue || this.defaultColor);
+    return rgbToHex(this.esriValue || this.defaultColor || [0, 0, 0, 1]);
   }
 
   get redComponent() : string {
@@ -154,8 +154,8 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor, After
   }
 
   writeValue(obj: RgbaTuple) : void {
-    this.esriValue = obj;
     if (obj != null) {
+      this.esriValue = obj;
       this._redComponent = `${obj[0]}`;
       this._greenComponent = `${obj[1]}`;
       this._blueComponent = `${obj[2]}`;
