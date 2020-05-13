@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
 import { ExportMCIssuesLog } from 'app/state/data-shim/data-shim.actions';
 import { projectIsReady, deleteMustCover } from 'app/state/data-shim/data-shim.selectors';
 import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
@@ -256,6 +256,7 @@ export class UploadMustCoverComponent implements OnInit {
          this.impGeofootprintGeoService.uploadFailures = [];
          this.fileAnalysisSelected = null;
          this.isDisable = true;
+         this.store$.dispatch(new SuccessNotification({message: 'All Must Cover geographies related to the previously selected Analysis Level have been deleted.', notificationTitle: 'Change Analysis Level Cleanup'}));
        }
     } 
 }

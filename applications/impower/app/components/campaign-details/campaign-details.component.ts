@@ -137,8 +137,14 @@ export class CampaignDetailsComponent implements OnInit {
     if (oldAnalysislevel != null && oldAnalysislevel !== newValues.selectedAnalysisLevel){
         const header = 'Change Analysis Level Confirmation';
         //oldAnalysislevel = currentProject.projectId != null && oldAnalysislevel == null ? newValues.selectedAnalysisLevel : oldAnalysislevel;
-        
-        if (this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0){
+        const isMustCoverExists = this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0;
+        const isCustomTaExists = this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0;
+        const isCustomDataExixts = this.targetAudienceService.allAudiencesBS$.value.filter(aud => aud.audienceSourceType === 'Custom').length > 0;
+        if (!isMustCoverExists && !isCustomTaExists && !isCustomDataExixts){
+          this.updateDiscoveryForm(newValues, currentProject);
+        }
+        else {
+          if (isMustCoverExists){
             const mustCovermsg = 'You have Must Cover geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?';
             this.confirmationService.confirm({
               message: mustCovermsg,
@@ -154,45 +160,46 @@ export class CampaignDetailsComponent implements OnInit {
                 this.updateDiscoveryForm(newValues, currentProject);
               }
             });
-        }
-        if (this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0){
-          const customTaGeos: ImpGeofootprintGeo[] = [];
-          this.impGeofootprintTradeAreaService.get().forEach(ta => { if (ta.taType === 'CUSTOM') customTaGeos.push(...ta.impGeofootprintGeos); });
+          }
+          if (isCustomTaExists){
+            const customTaGeos: ImpGeofootprintGeo[] = [];
+            this.impGeofootprintTradeAreaService.get().forEach(ta => { if (ta.taType === 'CUSTOM') customTaGeos.push(...ta.impGeofootprintGeos); });
 
-          const customTAMsg = 'You have Custom Trade Areas geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?';
-          this.confirmationService.confirm({
-            message: customTAMsg,
-            header: header,
-            key: 'customTAKey',
-            accept: () => {
-              this.store$.dispatch(new DeleteCustomTAGeos({ deleteCustomTa: true }));
-              this.updateDiscoveryForm(newValues, currentProject);
-              //setTimeout(() => this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : false})));
-              //this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : false}));
-            },
-            reject: () => {
-              newValues.selectedAnalysisLevel = oldAnalysislevel ;
-              this.updateDiscoveryForm(newValues, currentProject);
-            }
-          });
-        }
-        if (this.targetAudienceService.allAudiencesBS$.value.filter(aud => aud.audienceSourceType === 'Custom').length > 0){
-          const customDataMsg = 'You have Custom Data geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?';
-          this.confirmationService.confirm({
-            message: customDataMsg,
-            header: header,
-            key: 'customDataKey',
-            accept: () => {
-              this.store$.dispatch(new DeleteCustomData({ deleteCustomData: true }));
-              this.updateDiscoveryForm(newValues, currentProject);
-            },
-            reject: () => {
-              newValues.selectedAnalysisLevel = oldAnalysislevel ;
-              this.updateDiscoveryForm(newValues, currentProject);
-             // this.reSetAnalysisLevel(oldAnalysislevel, currentProject, newValues);
-              //this.targetAudienceService.applyAudienceSelection();
-            }
-          });
+            const customTAMsg = 'You have Custom Trade Areas geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?';
+            this.confirmationService.confirm({
+              message: customTAMsg,
+              header: header,
+              key: 'customTAKey',
+              accept: () => {
+                this.store$.dispatch(new DeleteCustomTAGeos({ deleteCustomTa: true }));
+                this.updateDiscoveryForm(newValues, currentProject);
+                //setTimeout(() => this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : false})));
+                //this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : false}));
+              },
+              reject: () => {
+                newValues.selectedAnalysisLevel = oldAnalysislevel ;
+                this.updateDiscoveryForm(newValues, currentProject);
+              }
+            });
+          }
+          if (isCustomDataExixts){
+            const customDataMsg = 'You have Custom Data geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?';
+            this.confirmationService.confirm({
+              message: customDataMsg,
+              header: header,
+              key: 'customDataKey',
+              accept: () => {
+                this.store$.dispatch(new DeleteCustomData({ deleteCustomData: true }));
+                this.updateDiscoveryForm(newValues, currentProject);
+              },
+              reject: () => {
+                newValues.selectedAnalysisLevel = oldAnalysislevel ;
+                this.updateDiscoveryForm(newValues, currentProject);
+              // this.reSetAnalysisLevel(oldAnalysislevel, currentProject, newValues);
+                //this.targetAudienceService.applyAudienceSelection();
+              }
+            });
+          }
         }
       }else{
         this.updateDiscoveryForm(newValues, currentProject);
