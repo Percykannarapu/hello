@@ -5,6 +5,9 @@ export interface DataShimState {
   projectIsLoading: boolean;
   projectIsSaving: boolean;
   layersAreReady: boolean;
+  deleteCustomTa: boolean;
+  deleteMustCover: boolean;
+  deleteCustomData: boolean;
 }
 
 const initialState: DataShimState = {
@@ -12,6 +15,9 @@ const initialState: DataShimState = {
   projectIsLoading: false,
   projectIsSaving: false,
   layersAreReady: false,
+  deleteCustomTa: false,
+  deleteMustCover: false,
+  deleteCustomData: false,
 };
 
 export function dataShimReducer(state = initialState, action: DataShimActions) : DataShimState {
@@ -64,6 +70,21 @@ export function dataShimReducer(state = initialState, action: DataShimActions) :
         projectIsLoaded: true,
         projectIsLoading: false,
       };
+    case DataShimActionTypes.DeleteCustomTAGeos:
+      return{
+        ...state,
+        deleteCustomTa: true,
+      };
+    case DataShimActionTypes.DeleteMustCoverGeos:
+      return {
+        ...state,
+        deleteMustCover: true,
+      };
+    case DataShimActionTypes.DeleteCustomData:
+      return {
+        ...state,
+        deleteCustomData: true,
+      };      
     default:
       return state;
   }

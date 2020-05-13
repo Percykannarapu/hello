@@ -222,7 +222,7 @@ interface TradeAreaDefinition {
         const geosSet: Set<string> = new Set();
      // if (!isForceHomeGeo){
         this.impTradeAreaService.get().forEach(ta => {
-          if (ta.taType === 'HOMEGEO'){
+          if (ta.taType === 'HOMEGEO' && ta.isActive !== isForceHomeGeo){
               ta.isActive = isForceHomeGeo;
               ta.impGeofootprintGeos.forEach(geo => {
                 geosSet.add(geo.geocode);
@@ -231,14 +231,16 @@ interface TradeAreaDefinition {
 
           }
         });
-        this.impGeoService.get().forEach(geo => {
-          if (geosSet.has(geo.geocode))
-                geo.isActive = isForceHomeGeo;
-        });
-        this.impTradeAreaService.makeDirty();
-        //this.impGeoService.makeDirty();
-        this.impGeoService.update(null, null);
-     // }
 
+        if (geosSet.size > 0){
+          this.impGeoService.get().forEach(geo => {
+            if (geosSet.has(geo.geocode))
+                  geo.isActive = isForceHomeGeo;
+          });
+  
+          this.impTradeAreaService.makeDirty();
+          //this.impGeoService.makeDirty();
+          this.impGeoService.update(null, null);
+        }
     }
  }

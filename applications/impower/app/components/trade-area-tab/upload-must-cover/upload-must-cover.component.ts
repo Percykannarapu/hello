@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/cor
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ExportMCIssuesLog } from 'app/state/data-shim/data-shim.actions';
-import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
+import { projectIsReady, deleteMustCover } from 'app/state/data-shim/data-shim.selectors';
 import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
 import { ConfirmationService, SelectItem } from 'primeng/api';
@@ -15,6 +15,7 @@ import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
+import { AppDiscoveryService } from 'app/services/app-discovery.service';
 
 interface CustomMCDefinition {
   Number: number;
@@ -50,6 +51,7 @@ export class UploadMustCoverComponent implements OnInit {
               , private confirmationService: ConfirmationService
               , private impProjectPrefService: ImpProjectPrefService
               , private impProjectService: ImpProjectService
+              , private appDiscoveryService: AppDiscoveryService
               , private store$: Store<LocalAppState>) {
                 this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
               }
@@ -114,6 +116,7 @@ export class UploadMustCoverComponent implements OnInit {
       }
     });
 
+    this.store$.select(deleteMustCover).subscribe(isDeleteMustCover => this.switchAnalysisLevel(isDeleteMustCover));
    }
 
    public onResubmit(data: CustomMCDefinition){
@@ -156,52 +159,45 @@ export class UploadMustCoverComponent implements OnInit {
       const key = this.spinnerId;
       const project = this.appStateService.currentProject$.getValue();
       //let uniqueGeos: string[] = [];
-      this.confirmationService.confirm({
-         message: 'You are about to change analysis level and you have',
-         header: 'Change Analysis Level',
-         key: 'mustcover',
-         accept: () => {
-            if (name != null) {
-               this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Must Cover Data'}));
-               if (this.fileName.includes('.xlsx') || this.fileName.includes('.xls')) {
-                  reader.readAsBinaryString(event.files[0]);
-                  reader.onload = () => {
-                     try {
-                        const wb: xlsx.WorkBook = xlsx.read(reader.result, {type: 'binary'});
-                        const worksheetName: string = wb.SheetNames[0];
-                        const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
-                        const csvData  = xlsx.utils.sheet_to_csv(ws);
-                        this.parseMustcovers(csvData, this.fileName);
-                        this.totalUploadedRowCount = csvData.split(/\r\n|\n/).length - 2;
-                     }
-                     catch (e) {
-                        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
-                     }
-                     finally {
-                        this.store$.dispatch(new StopBusyIndicator({ key: key }));
-                     }
-                  };
+      if (name != null) {
+         this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Must Cover Data'}));
+         if (this.fileName.includes('.xlsx') || this.fileName.includes('.xls')) {
+            reader.readAsBinaryString(event.files[0]);
+            reader.onload = () => {
+               try {
+                  const wb: xlsx.WorkBook = xlsx.read(reader.result, {type: 'binary'});
+                  const worksheetName: string = wb.SheetNames[0];
+                  const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
+                  const csvData  = xlsx.utils.sheet_to_csv(ws);
+                  this.parseMustcovers(csvData, this.fileName);
+                  this.totalUploadedRowCount = csvData.split(/\r\n|\n/).length - 2;
                }
-               else {
-                  reader.readAsText(event.files[0]);
-                  reader.onload = () => {
-                     try {
-                      this.parseMustcovers(reader.result.toString(), this.fileName);
-                      this.totalUploadedRowCount = reader.result.toString().split(/\r\n|\n/).length - 2;
-                     }
-                     catch (e) {
-                        this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
-                     }
-                     finally {
-                        this.store$.dispatch(new StopBusyIndicator({ key: key }));
-                        // Create a new project pref for the upload file
-      
-                     }
-                  };
+               catch (e) {
+                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
                }
-            }
+               finally {
+                  this.store$.dispatch(new StopBusyIndicator({ key: key }));
+               }
+            };
          }
-      });
+         else {
+            reader.readAsText(event.files[0]);
+            reader.onload = () => {
+               try {
+                this.parseMustcovers(reader.result.toString(), this.fileName);
+                this.totalUploadedRowCount = reader.result.toString().split(/\r\n|\n/).length - 2;
+               }
+               catch (e) {
+                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
+               }
+               finally {
+                  this.store$.dispatch(new StopBusyIndicator({ key: key }));
+                  // Create a new project pref for the upload file
+
+               }
+            };
+         }
+      }
       
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
@@ -251,4 +247,15 @@ export class UploadMustCoverComponent implements OnInit {
       });
       this.store$.dispatch(new ExportMCIssuesLog({uploadFailures: records}));
     }
+   
+    switchAnalysisLevel(isDeleteMustCover: boolean){
+       if (isDeleteMustCover){
+         this.impGeofootprintGeoService.clearMustCovers();
+         this.isMustCoverExists.emit(false);
+         this.impProjectService.get()[0].impProjectPrefs = this.impProjectPrefService.get().filter(pref => pref.prefGroup !== ProjectPrefGroupCodes.MustCover);
+         this.impGeofootprintGeoService.uploadFailures = [];
+         this.fileAnalysisSelected = null;
+         this.isDisable = true;
+       }
+    } 
 }

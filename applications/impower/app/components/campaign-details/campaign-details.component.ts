@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray } from '@val/common';
-import { combineLatest, Observable } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
+import { filterArray, mapBy, mapByExtended, groupByExtended } from '@val/common';
+import { combineLatest, Observable, of } from 'rxjs';
+import { filter, map, tap, switchMap } from 'rxjs/operators';
 import { User } from '../../models/User';
 import { ValDiscoveryUIModel } from '../../models/val-discovery.model';
 import { AppDiscoveryService, ProjectTrackerUIModel, RadLookupUIModel } from '../../services/app-discovery.service';
@@ -11,11 +11,19 @@ import { AppStateService } from '../../services/app-state.service';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { CalculateMetrics } from '../../state/data-shim/data-shim.actions';
+import { CalculateMetrics, DeleteCustomTAGeos, DeleteMustCoverGeos, DeleteCustomData } from '../../state/data-shim/data-shim.actions';
 import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { DiscoveryInputComponent } from './discovery-input/discovery-input.component';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ConfirmationService } from 'primeng/api';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { AppTradeAreaService } from 'app/services/app-trade-area.service';
+import { ImpGeofootprintGeo } from 'app/val-modules/targeting/models/ImpGeofootprintGeo';
+import { AppGeoService } from 'app/services/app-geo.service';
+import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
+import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
 
 @Component({
   selector: 'val-campaign-details',
@@ -40,8 +48,13 @@ export class CampaignDetailsComponent implements OnInit {
               private appDiscoveryService: AppDiscoveryService,
               private userService: UserService,
               private impProjectService: ImpProjectService,
+              private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private logger: AppLoggingService,
               private targetAudienceService: TargetAudienceService,
+              private confirmationService: ConfirmationService,
+              private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+              private appGeoService: AppGeoService,
+              private tradeAreaService: AppTradeAreaService,
               private store$: Store<LocalAppState>) { }
 
   ngOnInit() {
@@ -59,7 +72,6 @@ export class CampaignDetailsComponent implements OnInit {
       filterArray(audience => audience.audienceSourceType === 'Online'),
       map(audiences => audiences.length > 0 )
     );
-
 
 
     // this maps the form control names to the equivalent usage metric name
@@ -86,7 +98,15 @@ export class CampaignDetailsComponent implements OnInit {
     this.logUsageMetricForChange(this.previousForm, newValues);
 
     if (currentProject != null) {
-      newValues.updateProjectItem(currentProject);
+      this.validateSwitchAnalysisLevel(currentProject, newValues);
+      
+    }
+    this.previousForm = new ValDiscoveryUIModel({ ...newValues });
+  }
+
+  updateDiscoveryForm(newValues: ValDiscoveryUIModel, currentProject: ImpProject){
+    const currentUser: User = this.userService.getUser();
+    newValues.updateProjectItem(currentProject);
       // Update audit columns
       if (currentProject.createUser == null)
         currentProject.createUser = (currentUser.userId) ? (currentUser.userId) : -1;
@@ -108,8 +128,76 @@ export class CampaignDetailsComponent implements OnInit {
       }
 
       this.impProjectService.makeDirty();
-    }
-    this.previousForm = new ValDiscoveryUIModel({ ...newValues });
+      this.previousForm = new ValDiscoveryUIModel({ ...newValues });
+  }
+
+  validateSwitchAnalysisLevel(currentProject: ImpProject, newValues: ValDiscoveryUIModel){
+    const oldAnalysislevel = currentProject.methAnalysis;
+
+    if (oldAnalysislevel != null && oldAnalysislevel !== newValues.selectedAnalysisLevel){
+        const header = 'Change Analysis Level Confirmation';
+        //oldAnalysislevel = currentProject.projectId != null && oldAnalysislevel == null ? newValues.selectedAnalysisLevel : oldAnalysislevel;
+        
+        if (this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0){
+            const mustCovermsg = 'You have Must Cover geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?';
+            this.confirmationService.confirm({
+              message: mustCovermsg,
+              header: header,
+              key: 'mustCoverKey',
+              accept: () => {
+                this.store$.dispatch(new DeleteMustCoverGeos({deleteMustCover: true}));
+                this.updateDiscoveryForm(newValues, currentProject);
+                //setTimeout(() => this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : false})));
+              },
+              reject: () => {
+                newValues.selectedAnalysisLevel = oldAnalysislevel ;
+                this.updateDiscoveryForm(newValues, currentProject);
+              }
+            });
+        }
+        if (this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0){
+          const customTaGeos: ImpGeofootprintGeo[] = [];
+          this.impGeofootprintTradeAreaService.get().forEach(ta => { if (ta.taType === 'CUSTOM') customTaGeos.push(...ta.impGeofootprintGeos); });
+
+          const customTAMsg = 'You have Custom Trade Areas geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?';
+          this.confirmationService.confirm({
+            message: customTAMsg,
+            header: header,
+            key: 'customTAKey',
+            accept: () => {
+              this.store$.dispatch(new DeleteCustomTAGeos({ deleteCustomTa: true }));
+              this.updateDiscoveryForm(newValues, currentProject);
+              //setTimeout(() => this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : false})));
+              //this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : false}));
+            },
+            reject: () => {
+              newValues.selectedAnalysisLevel = oldAnalysislevel ;
+              this.updateDiscoveryForm(newValues, currentProject);
+            }
+          });
+        }
+        if (this.targetAudienceService.allAudiencesBS$.value.filter(aud => aud.audienceSourceType === 'Custom').length > 0){
+          const customDataMsg = 'You have Custom Data geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?';
+          this.confirmationService.confirm({
+            message: customDataMsg,
+            header: header,
+            key: 'customDataKey',
+            accept: () => {
+              this.store$.dispatch(new DeleteCustomData({ deleteCustomData: true }));
+              this.updateDiscoveryForm(newValues, currentProject);
+            },
+            reject: () => {
+              newValues.selectedAnalysisLevel = oldAnalysislevel ;
+              this.updateDiscoveryForm(newValues, currentProject);
+             // this.reSetAnalysisLevel(oldAnalysislevel, currentProject, newValues);
+              //this.targetAudienceService.applyAudienceSelection();
+            }
+          });
+        }
+      }else{
+        this.updateDiscoveryForm(newValues, currentProject);
+      }
+
   }
 
   onTrackerSearch(searchTerm: string) : void {

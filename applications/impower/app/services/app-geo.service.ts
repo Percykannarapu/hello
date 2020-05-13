@@ -13,7 +13,7 @@ import { quadPartitionLocations } from '../models/quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
-import { projectIsReady } from '../state/data-shim/data-shim.selectors';
+import { projectIsReady, deleteCustomTa, deleteMustCover } from '../state/data-shim/data-shim.selectors';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -202,8 +202,11 @@ export class AppGeoService {
   private setupHomeGeoSelectionObservable() : void {
     const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
     this.impGeoService.storeObservable.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$, this.appStateService.allClientLocations$),
-      filter(([, isReady, locs]) => isReady && locs.length > 0),
+      withLatestFrom(this.appStateService.applicationIsReady$, 
+                     this.appStateService.allClientLocations$, 
+                     this.store$.select(deleteCustomTa),
+                     this.store$.select(deleteMustCover)),
+      filter(([, isReady, locs, isCustomTaExists, isMustCoverExists]) => isReady && locs.length > 0 && !isCustomTaExists && !isMustCoverExists),
       map(([, , locs]) => locs),
       filterArray(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
         (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&

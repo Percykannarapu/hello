@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/cor
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 import { ExportCustomTAIssuesLog } from 'app/state/data-shim/data-shim.actions';
-import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
+import { projectIsReady, projectIsLoaded, deleteCustomTa } from 'app/state/data-shim/data-shim.selectors';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { FileUpload } from 'primeng/fileupload';
@@ -18,6 +18,7 @@ import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modu
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { AppDiscoveryService } from 'app/services/app-discovery.service';
 
 
 interface TradeAreaDefinition {
@@ -73,6 +74,7 @@ export class UploadTradeAreasComponent implements OnInit {
               private confirmationService: ConfirmationService,
               private appEditSiteService: AppEditSiteService,
               private logger: LoggingService,
+              private appDiscoveryService: AppDiscoveryService,
               private store$: Store<LocalAppState>) {
     this.currentAnalysisLevel$ = this.stateService.analysisLevel$;
 
@@ -138,6 +140,7 @@ export class UploadTradeAreasComponent implements OnInit {
      }
       
     });
+    this.store$.select(deleteCustomTa).subscribe(isDeleteCustomTA => this.switchAnalysisLevel(isDeleteCustomTA));
   }
 
   public onResubmit(data: TradeAreaDefinition) {
@@ -156,25 +159,17 @@ export class UploadTradeAreasComponent implements OnInit {
     const reader = new FileReader();
     const name: String = event.files[0].name;
     this.logger.debug.log('file Name:::', name);
-    this.confirmationService.confirm({
-        message: 'You are about to change analysis level and you have',
-        header: 'Change Analysis Level',
-        key: 'analysisLevelChange',
-        accept: () => {
-          if (name.includes('.xlsx') || name.includes('.xls')) {
-            reader.readAsBinaryString(event.files[0]);
-            reader.onload = () => {
-              this.parseExcelFile(reader.result);
-            };
-          } else {
-            reader.readAsText(event.files[0]);
-            reader.onload = () => {
-              this.parseCsvFile(reader.result as string);
-            };
-          }
-        }
-    });
-
+    if (name.includes('.xlsx') || name.includes('.xls')) {
+      reader.readAsBinaryString(event.files[0]);
+      reader.onload = () => {
+        this.parseExcelFile(reader.result);
+      };
+    } else {
+      reader.readAsText(event.files[0]);
+      reader.onload = () => {
+        this.parseCsvFile(reader.result as string);
+      };
+    }
     this.stateService.uniqueIdentifiedGeocodes$.pipe(
       filter(geos => geos != null && geos.length > 0),
       take(1)
@@ -299,5 +294,16 @@ export class UploadTradeAreasComponent implements OnInit {
 
   rollDownIssuesLog(){
     this.store$.dispatch(new ExportCustomTAIssuesLog({uploadFailures: this.uploadFailures}));
+  }
+
+  switchAnalysisLevel(isCustomTa: boolean){
+    if (isCustomTa){
+      //this.tradeAreaService.deleteTradeAreas(this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM' || ta.taType === 'HOMEGEO'));
+      //this.appGeoService.ensureMustCovers();
+      this.isCustomTAExists.emit(false);
+      this.uploadFailures = [];
+      this.fileAnalysisSelected = null;
+      this.isDisable = true;
+    }
   }
 }
