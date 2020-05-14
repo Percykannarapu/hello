@@ -264,6 +264,9 @@ export class AppGeoService {
           this.impGeoService.add(geosToPersist);
           this.finalizeTradeAreas(tradeAreas);
 
+          // Check the geo filters
+          this.setupFilterGeosObservable();
+
           // Add the must covers to geosToPersist
           let mustCovers = [];
           this.ensureMustCoversObs(null, null).subscribe(results => {
