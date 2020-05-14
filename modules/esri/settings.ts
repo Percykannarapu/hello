@@ -12,6 +12,7 @@ export const defaultEsriUrlFragments = {
 export const defaultEsriConfig: EsriConfigOptions = {
   version: '4.15',
   portalUrl:  null,
+  fontsUrl: 'https://static.arcgis.com/fonts',
   request: {
     timeout: 120000
   }

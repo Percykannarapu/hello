@@ -1,4 +1,6 @@
+import { ColorPalette } from './color-palettes';
 import { duplicateLabel, duplicateMarker, LabelDefinition, MarkerSymbolDefinition, UniqueValueMarkerDefinition } from './common-configuration';
+import { markerStyleValues, RgbTuple } from './esri-types';
 
 export enum PoiConfigurationTypes {
   Simple = 'Simple',
@@ -36,6 +38,9 @@ function duplicateSimple(config: SimplePoiConfiguration) : SimplePoiConfiguratio
 
 export interface UniquePoiConfiguration extends BasePoiConfiguration {
   poiType: PoiConfigurationTypes.Unique;
+  featureAttribute: string;
+  theme: ColorPalette;
+  reverseTheme: boolean;
   breakDefinitions: UniqueValueMarkerDefinition[];
 }
 
@@ -58,3 +63,14 @@ export function duplicatePoiConfiguration(config: PoiConfiguration) : PoiConfigu
 }
 
 export type PoiConfiguration = SimplePoiConfiguration | UniquePoiConfiguration;
+
+export function generateUniqueMarkerValues(sortedUniqueValues: string[], colorPalette: RgbTuple[]) : UniqueValueMarkerDefinition[] {
+  return sortedUniqueValues.map((uv, i) => ({
+    value: uv,
+    color: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
+    markerType: markerStyleValues[i % markerStyleValues.length],
+    legendName: uv,
+    outlineColor: [255, 255, 255, 1],
+    outlineWidth: 1
+  }));
+}

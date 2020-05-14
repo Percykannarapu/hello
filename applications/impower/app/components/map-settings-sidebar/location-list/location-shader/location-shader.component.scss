@@ -3,6 +3,13 @@
     display: inline;
     padding-right: 1em;
   }
+  .color-chip {
+    display: inline-block;
+    width: 20px;
+    height: 15px;
+    margin-left: 0.5em;
+    border-radius: 3px;
+  }
 }
 
 .poi-form-container {
@@ -12,13 +19,12 @@
       margin-top: 0.5em;
       margin-right: 1em;
     }
+    > .label-controls {
+      display: flex;
+      > *:last-child {
+        flex: 1;
+      }
+    }
   }
   padding: 0.5em;
-}
-
-.color-chip {
-  display: inline-block;
-  width: 20px;
-  height: 15px;
-  margin-left: 0.5em;
 }

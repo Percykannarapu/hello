@@ -135,19 +135,19 @@ export class SiteListComponent implements OnInit {
      {field: 'locCity',              header: 'City',                width: '10em',  styleClass: '',                filterMatchMode: 'contains' },
      {field: 'locState',             header: 'State',               width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains' },
      {field: 'locZip',               header: 'ZIP',                 width: '7em',   styleClass: '',                filterMatchMode: 'contains' },
-     {field: 'marketName',           header: 'Market',              width: '8em',   styleClass: '',                filterMatchMode: 'contains' },
-     {field: 'marketCode',           header: 'Market Code',         width: '9em',   styleClass: '',                filterMatchMode: 'contains' },
+     {field: 'marketName',           header: 'Market',              width: '8em',   styleClass: '',                filterMatchMode: 'contains', allowAsSymbolAttribute: true },
+     {field: 'marketCode',           header: 'Market Code',         width: '9em',   styleClass: '',                filterMatchMode: 'contains', allowAsSymbolAttribute: true },
      {field: 'totalHHC',             header: 'Total HHC',           width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains' },
      {field: 'totalAllocatedHHC',    header: 'Total Allocated HHC', width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains' },
      {field: 'description',          header: 'Description',         width: '10em',  styleClass: '',                filterMatchMode: 'contains' },
-     {field: 'groupName',            header: 'Group',               width: '8em',   styleClass: '',                filterMatchMode: 'contains' },
+     {field: 'groupName',            header: 'Group',               width: '8em',   styleClass: '',                filterMatchMode: 'contains', allowAsSymbolAttribute: true },
      {field: 'radius1',              header: 'Radius 1',            width: '7em',   styleClass: 'val-text-right',  filterMatchMode: 'contains' },
      {field: 'radius2',              header: 'Radius 2',            width: '7em',   styleClass: 'val-text-right',  filterMatchMode: 'contains' },
      {field: 'radius3',              header: 'Radius 3',            width: '7em',   styleClass: 'val-text-right',  filterMatchMode: 'contains' },
      {field: 'ycoord',               header: 'Latitude',            width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains' },
      {field: 'xcoord',               header: 'Longitude',           width: '8em',   styleClass: 'val-text-right',  filterMatchMode: 'contains' },
      {field: 'recordStatusCode',     header: 'Geocode Status',      width: '10em',  styleClass: 'val-text-center', filterMatchMode: 'contains' },
-     {field: 'Home Geocode Issue',   header: 'Home Geocode Issue',  width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains'},
+     {field: 'Home Geocode Issue',   header: 'Home Geocode Issue',  width: '5em',   styleClass: 'val-text-center', filterMatchMode: 'contains' },
      {field: 'Home Zip Code',        header: 'Home ZIP',            width: '8em',   styleClass: '',                filterMatchMode: 'contains' },
      {field: 'Home ATZ',             header: 'Home ATZ',            width: '8em',   styleClass: '',                filterMatchMode: 'contains' },
      {field: 'Home Digital ATZ',     header: 'Home Digital ATZ',    width: '11em',  styleClass: '',                filterMatchMode: 'contains' },
@@ -456,7 +456,7 @@ export class SiteListComponent implements OnInit {
         if (attribute != null && attribute.attributeCode !== 'label'){
           gridSite[attribute.attributeCode] = attribute.attributeValue;
 
-          const column = {'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': ''};
+          const column = {'field': attribute.attributeCode, 'header': attribute.attributeCode, 'width': '10em', 'styleClass': '', allowAsSymbolAttribute: true };
 
           // If the column isn't already in the list, add it
           if (!this.flatSiteGridColumns.some(c => c.field === attribute.attributeCode))
@@ -626,7 +626,7 @@ export class SiteListComponent implements OnInit {
       for (const column of this.flatSiteGridColumns) {
         if (!existingLabels.has(column.header.toString()) && column.header.toString() !== 'label') {
           existingLabels.add(column.header);
-          defaultLabels.push({label: column.header, value: column.field});
+          defaultLabels.push({label: column.header, value: column.field, title: column.allowAsSymbolAttribute ? 'all' : 'label-only' });
         }
       }
 
@@ -638,9 +638,9 @@ export class SiteListComponent implements OnInit {
           if (attr != null && !existingLabels.has(attr.attributeCode.toString()) && !attr.attributeCode.includes('Home')) {
             existingLabels.add(attr.attributeCode);
             if (ImpClientLocationTypeCodes.markSuccessful(locationType) == ImpClientLocationTypeCodes.Site) {
-              siteLabels.push({label: attr.attributeCode, value: attr.attributeCode});
+              siteLabels.push({label: attr.attributeCode, value: attr.attributeCode, title: 'all' });
             } else {
-              competitorLabels.push({label: attr.attributeCode, value: attr.attributeCode});
+              competitorLabels.push({label: attr.attributeCode, value: attr.attributeCode, title: 'all' });
             }
           }
         });

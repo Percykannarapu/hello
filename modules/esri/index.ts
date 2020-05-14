@@ -9,7 +9,7 @@ export * from './src/core/esri.models';
 export * from './src/core/esri-utils';
 export * from './src/core/esri-arcade.utils';
 
-export { ColorPalette, getColorPalette } from './src/models/color-palettes';
+export { ColorPalette, getColorPalette, getFillPalette } from './src/models/color-palettes';
 export * from './src/models/common-configuration';
 export * from './src/models/shading-configuration';
 export * from './src/models/poi-configuration';

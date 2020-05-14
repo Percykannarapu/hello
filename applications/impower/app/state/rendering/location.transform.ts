@@ -19,7 +19,10 @@ export const defaultLocationPopupFields = [
   { fieldName: 'origPostalCode', label: 'Original Zip' },
   { fieldName: 'clientLocationTypeCode', label: 'clientLocationTypeCode', visible: false },
   { fieldName: 'locationName', label: 'locationName', visible: false },
-  { fieldName: 'labelName', label: 'labelName', visible: false  }
+  { fieldName: 'labelName', label: 'labelName', visible: false },
+  { fieldName: 'marketName', label: 'Market', visible: false },
+  { fieldName: 'marketCode', label: 'Market Code', visible: false },
+  { fieldName: 'groupName', label: 'Group', visible: false }
 ];
 
 export function createSiteGraphic(site: ImpGeofootprintLocation, oid: number) : __esri.Graphic {
@@ -36,6 +39,10 @@ export function createSiteGraphic(site: ImpGeofootprintLocation, oid: number) : 
     const fieldValue = site[field.fieldName];
     graphic.attributes[field.fieldName] = fieldValue == null ? '' : fieldValue.toString();
   }
+
+  site.impGeofootprintLocAttribs.forEach(attr => {
+    graphic.attributes[attr.attributeCode] = attr.attributeValue;
+  });
 
   return graphic;
 }

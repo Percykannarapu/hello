@@ -134,7 +134,7 @@ export class EsriDomainFactoryService {
     return new LabelClass(labelSetup);
   }
 
-  createFont(size: number, weight: 'normal' | 'bold' = 'bold', family: string = 'sans-serif') : __esri.Font {
+  createFont(size: number, weight: 'normal' | 'bold' = 'bold', family: string = 'Noto Sans') : __esri.Font {
     return new Font({ size, weight, family });
   }
 

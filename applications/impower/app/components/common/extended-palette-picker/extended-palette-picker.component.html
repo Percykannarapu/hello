@@ -1,14 +1,14 @@
 <div class="component-root">
   <span class="md-inputfield">
-    <p-dropdown id="palette-input-{{controlId}}" [(ngModel)]="selectionValue"
-                [options]="options" [filter]="false" dropdownIcon="fa fa-caret-down"
-                [autoDisplayFirst]="!includeUnselected" [style]="{'width':'100%'}"
-                [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass">
+    <p-dropdown id="palette-input-{{controlId}}" [(ngModel)]="selectionValue" [options]="options" [filter]="false"
+                dropdownIcon="fa fa-caret-down" [autoDisplayFirst]="!includeUnselected" [style]="{'width':'100%'}"
+                [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass"
+                (onFocus)="autoOpen = true" (onBlur)="autoOpen = false">
       <ng-template let-selected pTemplate="selectedItem">
         <div class="item-container">
           <span class="selected-color-chip" [ngStyle]="{ 'background-color': selected.label }" *ngIf="selected.title === 'color'"></span>
           <div *ngIf="selected.title === 'text'">
-            <val-extended-color-picker [(ngModel)]="value" [swatchHeight]="12" [autoOpen]="true"></val-extended-color-picker>
+            <val-extended-color-picker [(ngModel)]="value" [swatchHeight]="12" [autoOpen]="autoOpen"></val-extended-color-picker>
           </div>
         </div>
       </ng-template>

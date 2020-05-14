@@ -24,3 +24,4 @@ export type CrossHatchFillPattern = 'backward-diagonal' | 'cross' | 'diagonal-cr
 export type FillPattern = CrossHatchFillPattern | 'none' | 'solid';
 export type LineStyle = 'dash' | 'dash-dot' | 'dot' | 'long-dash' | 'long-dash-dot' | 'long-dash-dot-dot' | 'none' | 'short-dash' | 'short-dash-dot' | 'short-dash-dot-dot' | 'short-dot' | 'solid';
 export type MarkerStyles = 'circle' | 'cross' | 'diamond' | 'square' | 'triangle' | 'x' | 'path';
+export const markerStyleValues: MarkerStyles[] = ['path', 'circle', 'diamond', 'square', 'triangle', 'cross', 'x'];

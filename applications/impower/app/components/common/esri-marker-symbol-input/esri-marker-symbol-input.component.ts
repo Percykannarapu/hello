@@ -2,7 +2,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ControlContainer, FormGroup } from '@angular/forms';
 import { getUuid } from '@val/common';
-import { ColorPalette, MarkerStyles, markerTypeFriendlyNames, RgbaTuple } from '@val/esri';
+import { ColorPalette, markerStyleValues, markerTypeFriendlyNames, RgbaTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 
 @Component({
@@ -15,6 +15,7 @@ export class EsriMarkerSymbolInputComponent implements OnInit {
 
   @Input() currentPalette: ColorPalette;
   @Input() reversePalette: boolean = false;
+  @Input() defaultHalo: RgbaTuple;
   @Input() defaultColor: RgbaTuple;
 
   controlId = getUuid();
@@ -24,8 +25,7 @@ export class EsriMarkerSymbolInputComponent implements OnInit {
   ColorPalette = ColorPalette;
 
   constructor(private controlContainer: ControlContainer) {
-    const markerTypesOrdered: MarkerStyles[] = ['path', 'circle', 'cross', 'diamond', 'square', 'triangle', 'x'];
-    this.markerTypes = markerTypesOrdered.map(mt => ({ label: markerTypeFriendlyNames[mt], value: mt, icon: mt }));
+    this.markerTypes = markerStyleValues.map(mt => ({ label: markerTypeFriendlyNames[mt], value: mt, icon: mt }));
   }
 
   ngOnInit() : void {

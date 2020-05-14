@@ -7,11 +7,12 @@ body {
       display: inline-block;
       width: 20px;
       cursor: pointer;
-      border: transparent 1px solid;
+      border: $midGray03 1px solid;
       border-radius: 3px;
-      @include transition(border .3s);
+      box-shadow: 2px 2px 3px $darkGray01;
+      @include transition(box-shadow .3s);
       &:hover {
-        border: $darkGray02 1px solid;
+        box-shadow: none;
       }
     }
 

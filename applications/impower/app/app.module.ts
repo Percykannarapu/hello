@@ -112,6 +112,8 @@ import { BoundaryListComponent } from './components/map-settings-sidebar/boundar
 import { BoundaryShaderComponent } from './components/map-settings-sidebar/boundary-list/boundary-shader/boundary-shader.component';
 import { LocationListComponent } from './components/map-settings-sidebar/location-list/location-list.component';
 import { LocationShaderComponent } from './components/map-settings-sidebar/location-list/location-shader/location-shader.component';
+import { SimpleLocationShaderComponent } from './components/map-settings-sidebar/location-list/location-shader/simple-location-shader/simple-location-shader.component';
+import { UniqueValueLocationShaderComponent } from './components/map-settings-sidebar/location-list/location-shader/unique-value-location-shader/unique-value-location-shader.component';
 import { MapSettingsSidebarComponent } from './components/map-settings-sidebar/map-settings-sidebar.component';
 import { AddShaderButtonComponent } from './components/map-settings-sidebar/shader-list/add-shader-button/add-shader-button.component';
 import { OwnerSiteShaderComponent } from './components/map-settings-sidebar/shader-list/owner-site-shader/owner-site-shader.component';
@@ -381,7 +383,9 @@ export function actionSanitizer(action: Action) : Action {
     CompositeAudienceComponent,
     BoundaryShaderComponent,
     AuthCallbackComponent,
-    ExtendedPalettePickerComponent
+    ExtendedPalettePickerComponent,
+    SimpleLocationShaderComponent,
+    UniqueValueLocationShaderComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

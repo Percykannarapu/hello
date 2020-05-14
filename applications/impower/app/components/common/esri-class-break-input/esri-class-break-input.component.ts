@@ -1,7 +1,7 @@
 /* tslint:disable:component-selector */
 import { Component, Input, OnInit } from '@angular/core';
 import { ControlContainer, FormGroup } from '@angular/forms';
-import { ColorPalette } from '@val/esri';
+import { ColorPalette, RgbaTuple } from '@val/esri';
 
 @Component({
   selector: 'esri-class-break-input',
@@ -12,12 +12,15 @@ export class EsriClassBreakInputComponent implements OnInit {
 
   @Input() formGroupName: string;
   @Input() currentPalette: ColorPalette;
+  @Input() defaultColor: RgbaTuple;
+  @Input() defaultHalo: RgbaTuple;
   @Input() reversePalette: boolean = false;
   @Input() showMinValue: boolean = true;
   @Input() showMaxValue: boolean = true;
   @Input() showCalculatedValue: boolean = true;
   @Input() usesCalculatedValues: boolean = false;
   @Input() calculatedValueMessage: string = 'Calculated values';
+  @Input() breakType: 'fill' | 'marker' = 'fill';
 
   currentRoot: FormGroup;
 

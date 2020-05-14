@@ -1,11 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { rgbToHex } from '@val/common';
-import { ClassBreakFillDefinition, ClassBreakShadingDefinition, ColorPalette, DynamicAllocationTypes, FillPattern, FillSymbolDefinition, fillTypeFriendlyNames, getColorPalette, RgbaTuple, RgbTuple } from '@val/esri';
+import {
+  ClassBreakFillDefinition,
+  ClassBreakShadingDefinition,
+  ColorPalette,
+  DynamicAllocationTypes,
+  FillPattern,
+  FillSymbolDefinition,
+  fillTypeFriendlyNames,
+  getColorPalette,
+  getFillPalette,
+  RgbaTuple,
+  RgbTuple
+} from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
-import { getFillPalette } from '../../../../../../../../modules/esri/src/models/color-palettes';
 import { getDefaultClassBreaks, getDefaultUserBreaks } from '../../../../../models/class-break-defaults.model';
 import { FieldContentTypeCodes } from '../../../../../val-modules/targeting/targeting.enums';
 import { VariableBaseComponent } from '../variable-base.component';
@@ -58,7 +69,7 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
 
   private classBreakCleanup$ = new Subject<void>();
   private userBreakCleanup$ = new Subject<void>();
-  private classBreakCount = 0;
+  classBreakCount = 0;
 
   constructor(private fb: FormBuilder) {
     super();

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { getUuid, rgbToHex } from '@val/common';
 import { ColorPalette, getColorPalette, RgbaTuple, RgbTuple } from '@val/esri';
@@ -16,7 +16,7 @@ import { SelectItem } from 'primeng/api';
     }
   ]
 })
-export class ExtendedPalettePickerComponent implements ControlValueAccessor {
+export class ExtendedPalettePickerComponent implements ControlValueAccessor, AfterViewInit {
 
   @Input()
   public set palette(value: ColorPalette) {
@@ -45,6 +45,7 @@ export class ExtendedPalettePickerComponent implements ControlValueAccessor {
   controlId = getUuid();
   options: SelectItem[];
   isDisabled: boolean;
+  autoOpen: boolean = false;
 
   get selectionValue() : RgbaTuple | 'custom' {
     return this._selectionValue;
@@ -77,6 +78,9 @@ export class ExtendedPalettePickerComponent implements ControlValueAccessor {
 
   constructor() {}
 
+  ngAfterViewInit() {
+  }
+
   private updatePaletteOptions() {
     const colors = getColorPalette(this._palette, this._reversePalette);
     let options: SelectItem[];
@@ -101,6 +105,9 @@ export class ExtendedPalettePickerComponent implements ControlValueAccessor {
       });
     }
     this.options = options;
+    if (this._value) {
+      this.writeValue(this._value);
+    }
   }
 
   registerOnChange(fn: any) : void {
@@ -117,7 +124,7 @@ export class ExtendedPalettePickerComponent implements ControlValueAccessor {
 
   writeValue(obj: RgbaTuple) : void {
     const matching = this.getMatchingOption(obj);
-    this._value = matching;
+    this._value = matching || obj;
     this.writeToSecondaryFields(matching);
   }
 

@@ -1,8 +1,13 @@
 <div class="component-root">
   <ng-container [formGroup]="currentRoot">
     <ng-container *ngIf="usesCalculatedValues">
-      <div class="calculated-value-message" *ngIf="showCalculatedValue">
-        {{calculatedValueMessage}}
+      <div class="calculated-value-message" *ngIf="showCalculatedValue" [title]="calculatedValueMessage">
+        <ng-container *ngIf="calculatedValueMessage.length <= 17">
+          {{calculatedValueMessage}}
+        </ng-container>
+        <ng-container *ngIf="calculatedValueMessage.length > 17">
+          {{calculatedValueMessage | truncate:14:'...'}}
+        </ng-container>
       </div>
       <div class="calculated-value-message" *ngIf="!showCalculatedValue">
         &nbsp;
@@ -23,6 +28,9 @@
     </div>
   </ng-container>
   <div class="symbol-values" [formGroup]="currentRoot.parent">
-    <esri-fill-symbol-input labelText="Overlay Type" [currentPalette]="currentPalette" [formGroupName]="formGroupName" [reversePalette]="reversePalette"></esri-fill-symbol-input>
+    <esri-fill-symbol-input labelText="Overlay Type" [currentPalette]="currentPalette" [formGroupName]="formGroupName"
+                            [reversePalette]="reversePalette" *ngIf="breakType === 'fill'" [defaultSolidColor]="defaultColor"></esri-fill-symbol-input>
+    <esri-marker-symbol-input labelText="Symbol" [currentPalette]="currentPalette" [formGroupName]="formGroupName" [defaultHalo]="defaultHalo"
+                              [reversePalette]="reversePalette" *ngIf="breakType === 'marker'" [defaultColor]="defaultColor"></esri-marker-symbol-input>
   </div>
 </div>

@@ -1,0 +1,18 @@
+<ng-container *ngIf="!isEditing">
+  <div>
+    <label>Legend Name:</label>
+    <strong>{{configuration.symbolDefinition.legendName}}</strong>
+  </div>
+  <div>
+    <label>Symbology:</label>
+    <strong>{{getMarkerDescription(configuration.symbolDefinition)}}</strong>
+    <span class="color-chip" [ngStyle]="{ 'background-color': getMarkerColor(configuration.symbolDefinition), 'border': getMarkerHalo(configuration.symbolDefinition) + ' 2px solid'  }"></span>
+  </div>
+</ng-container>
+
+<div *ngIf="isEditing" [formGroup]="parentForm">
+  <ng-container formGroupName="symbolDefinition">
+    <validated-text-input formControlName="legendName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
+  </ng-container>
+  <esri-marker-symbol-input [defaultColor]="defaultColor" [defaultHalo]="defaultHalo" labelText="Symbology" formGroupName="symbolDefinition"></esri-marker-symbol-input>
+</div>

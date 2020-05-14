@@ -9,11 +9,13 @@
     <ng-container [ngSwitch]="poi.dataKey">
       <ng-container *ngSwitchCase="'Site'">
         <val-location-shader [configuration]="duplicatePoi(poi)" (applyConfiguration)="applyConfiguration($event)" [defaultColor]="[0, 0, 255, 1]"
-                             [labelChoices]="siteLabels$ | async"></val-location-shader>
+                             [labelChoices]="siteLabels$ | async" [poiData]="sites$ | async"
+                             [symbologyAttributes]="siteSymbologyAttributes$ | async"></val-location-shader>
       </ng-container>
       <ng-container *ngSwitchCase="'Competitor'">
         <val-location-shader [configuration]="duplicatePoi(poi)" (applyConfiguration)="applyConfiguration($event)" [defaultColor]="[255, 0, 0, 1]"
-                             [labelChoices]="competitorLabels$ | async"></val-location-shader>
+                             [labelChoices]="competitorLabels$ | async" [poiData]="competitors$ | async"
+                             [symbologyAttributes]="competitorSymbologyAttributes$ | async"></val-location-shader>
       </ng-container>
     </ng-container>
   </p-accordionTab>

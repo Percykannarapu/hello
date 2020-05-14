@@ -1,44 +1,78 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { rgbToHex } from '@val/common';
-import { LabelDefinition, MarkerSymbolDefinition, markerTypeFriendlyNames, RgbaTuple, SimplePoiConfiguration } from '@val/esri';
+import { duplicatePoiConfiguration, LabelDefinition, PoiConfiguration, PoiConfigurationTypes, RgbaTuple, RgbTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
-import { PoiBaseComponent } from '../poi-base.component';
+import { Subject } from 'rxjs';
+import { ImpGeofootprintLocation } from '../../../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({
   selector: 'val-location-shader',
   templateUrl: './location-shader.component.html',
-  styleUrls: ['./location-shader.component.scss']
+  styleUrls: ['./location-shader.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class LocationShaderComponent extends PoiBaseComponent<SimplePoiConfiguration> {
+export class LocationShaderComponent implements OnDestroy {
 
   @Input() labelChoices: SelectItem[];
-
   @Input() defaultColor: RgbaTuple;
+  @Input() poiData: ImpGeofootprintLocation[];
+  @Input() configuration: PoiConfiguration;
+  @Output() applyConfiguration: EventEmitter<PoiConfiguration> = new EventEmitter<PoiConfiguration>();
 
-  get currentLabelIdentifier() : string {
-    const currentLabelConfig = (this.configuration.labelDefinition || {} as Partial<LabelDefinition>).featureAttribute;
-    const foundItem = (this.labelChoices || []).filter(l => l.value === currentLabelConfig)[0];
-    return foundItem == null ? '' : foundItem.label;
+  public get symbologyAttributes() : SelectItem[] {
+    return this._symbologyAttributes;
   }
 
-  get currentMarkerIdentifier() : string {
-    const currentMarkerType = (this.configuration.symbolDefinition || {} as Partial<MarkerSymbolDefinition>).markerType;
-    return markerTypeFriendlyNames[currentMarkerType];
+  @Input()
+  public set symbologyAttributes(value: SelectItem[]) {
+    value.sort((a, b) => {
+      if (a.label.toLowerCase() === 'icon') return -1;
+      if (b.label.toLowerCase() === 'icon') return 1;
+      return a.label.localeCompare(b.label);
+    });
+    this._symbologyAttributes = value;
   }
 
-  get currentMarkerColorInHex() : string {
-    return rgbToHex((this.configuration.symbolDefinition || {} as Partial<MarkerSymbolDefinition>).color || this.defaultColor);
+  configForm: FormGroup;
+  isEditing: boolean = false;
+  defaultHalo: RgbaTuple = [255, 255, 255, 1];
+  PoiConfigurationTypes = PoiConfigurationTypes;
+  shaderTypeChoices: SelectItem[] = [
+    { label: 'Same for All', value: PoiConfigurationTypes.Simple },
+    { label: 'Based on Attribute', value: PoiConfigurationTypes.Unique }
+  ];
+
+  private _symbologyAttributes: SelectItem[];
+  private destroyed$ = new Subject<void>();
+
+  constructor(private fb: FormBuilder) {}
+
+  ngOnDestroy() : void {
+    this.destroyed$.next();
   }
 
-  constructor(private fb: FormBuilder) {
-    super();
+  public edit() : void {
+    this.setupForm();
+    this.isEditing = true;
+  }
+
+  public cancel() : void {
+    this.isEditing = false;
+  }
+
+  public apply(form: FormGroup) : void {
+    if (form.valid) {
+      const newDef: PoiConfiguration = duplicatePoiConfiguration(this.configuration);
+      const convertedForm = this.convertForm(form);
+      Object.assign(newDef, convertedForm);
+      this.applyConfiguration.emit(newDef);
+    }
   }
 
   protected setupForm() : void {
     const defaultLabelDefinition: Partial<LabelDefinition> = this.configuration.labelDefinition || {};
-    const defaultSymbolDefinition: Partial<MarkerSymbolDefinition> = this.configuration.symbolDefinition || {};
     const formSetup: any = {
+      poiType: new FormControl(this.configuration.poiType, [Validators.required]),
       opacity: new FormControl(this.configuration.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
       showLabels: new FormControl(this.configuration.showLabels || false, { updateOn: 'change' }),
       labelDefinition: this.fb.group({
@@ -47,25 +81,33 @@ export class LocationShaderComponent extends PoiBaseComponent<SimplePoiConfigura
         color: new FormControl(defaultLabelDefinition.color),
         haloColor: new FormControl(defaultLabelDefinition.haloColor),
         featureAttribute: new FormControl(defaultLabelDefinition.featureAttribute, { updateOn: 'change' })
-      }),
-      symbolDefinition: this.fb.group({
-        legendName: new FormControl(defaultSymbolDefinition.legendName, [Validators.required]),
-        outlineColor: new FormControl(defaultSymbolDefinition.outlineColor),
-        color: new FormControl(defaultSymbolDefinition.color, { updateOn: 'change' }),
-        markerType: new FormControl(defaultSymbolDefinition.markerType, { updateOn: 'change' })
       })
     };
     this.configForm = this.fb.group(formSetup);
   }
 
-  protected convertForm(form: FormGroup) : SimplePoiConfiguration {
-    const result: SimplePoiConfiguration = form.value;
-    // need to fixup halo colors for now
-    result.labelDefinition.haloColor = [ ...(result.labelDefinition.haloColor || this.configuration.labelDefinition.haloColor) ] as RgbaTuple;
-    result.symbolDefinition.outlineColor = [ ... (result.symbolDefinition.outlineColor || this.configuration.symbolDefinition.outlineColor) ] as RgbaTuple;
-    // copy symbol color over to label color
-    result.labelDefinition.color = [ ...result.symbolDefinition.color] as RgbaTuple;
+  protected convertForm(form: FormGroup) : PoiConfiguration {
+    const result: PoiConfiguration = form.value;
+    switch (result.poiType) {
+      case PoiConfigurationTypes.Simple:
+        result.symbolDefinition.outlineColor = RgbTuple.duplicate(result.symbolDefinition.outlineColor || this.defaultHalo);
+        result.labelDefinition.haloColor = RgbTuple.duplicate(result.symbolDefinition.outlineColor || this.defaultHalo);
+        result.labelDefinition.color = RgbTuple.duplicate(result.symbolDefinition.color);
+        break;
+      case PoiConfigurationTypes.Unique:
+        result.breakDefinitions.forEach(bd => {
+          bd.outlineColor = RgbTuple.duplicate(bd.outlineColor || this.defaultHalo);
+          bd.outlineWidth = bd.outlineWidth || 1;
+        });
+        result.labelDefinition.haloColor = RgbTuple.duplicate(result.labelDefinition.haloColor || this.defaultHalo);
+        result.labelDefinition.color = RgbTuple.duplicate(result.labelDefinition.color || this.defaultColor);
+        break;
+    }
     return result;
   }
 
+  getLabelDescription(labelDef: LabelDefinition) : string {
+    const foundItem = (this.labelChoices || []).filter(l => l.value === labelDef.featureAttribute)[0];
+    return foundItem == null ? '' : foundItem.label;
+  }
 }

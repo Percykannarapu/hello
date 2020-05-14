@@ -6,10 +6,21 @@ import { filter, take, withLatestFrom } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { LabelDefinition, MarkerSymbolDefinition } from '../models/common-configuration';
 import { MapSymbols } from '../models/esri-types';
-import { PoiConfiguration, PoiConfigurationTypes } from '../models/poi-configuration';
+import { PoiConfiguration, PoiConfigurationTypes, UniquePoiConfiguration } from '../models/poi-configuration';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
-import { addPoi, addPois, deletePoi, deletePois, loadPois, setPopupFields, updatePoi, updatePois, upsertPoi, upsertPois } from '../state/poi/esri.poi.actions';
+import {
+  addPoi,
+  addPois,
+  deletePoi,
+  deletePois,
+  loadPois,
+  setPopupFields,
+  updatePoi,
+  updatePois,
+  upsertPoi,
+  upsertPois
+} from '../state/poi/esri.poi.actions';
 import { poiSelectors } from '../state/poi/esri.poi.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
@@ -104,7 +115,7 @@ export class EsriPoiService {
           popupEnabled: true,
           popupTemplate,
           labelsVisible: config.showLabels,
-          labelingInfo: [ this.createLabelFromDefinition(config.labelDefinition) ]
+          labelingInfo: this.createLabelFromDefinition(config)
         };
         layer.set(props);
         this.layerService.addLayerToLegend(layer.id, null);
@@ -120,7 +131,10 @@ export class EsriPoiService {
         simpleRenderer.label = config.symbolDefinition.legendName || config.layerName || config.groupName;
         return simpleRenderer;
       case PoiConfigurationTypes.Unique:
-        break;
+        const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
+        const uniqueRenderer = this.domainFactory.createUniqueValueRenderer(null, uniqueValues);
+        uniqueRenderer.valueExpression = `$feature.${config.featureAttribute}`;
+        return uniqueRenderer;
     }
   }
 
@@ -137,9 +151,30 @@ export class EsriPoiService {
     return this.domainFactory.createSimpleMarkerSymbol(currentDef.color, outline, currentDef.markerType, path, markerSize);
   }
 
-  private createLabelFromDefinition(currentDef: LabelDefinition) : __esri.LabelClass {
+  private createLabelFromDefinition(config: PoiConfiguration) : __esri.LabelClass[] {
+    switch (config.poiType) {
+      case PoiConfigurationTypes.Simple:
+        return [ this.createSimpleLabel(config.labelDefinition) ];
+      case PoiConfigurationTypes.Unique:
+        return this.createMultiLabel(config);
+    }
+  }
+
+  private createSimpleLabel(currentDef: LabelDefinition) : __esri.LabelClass {
     const font = this.domainFactory.createFont(currentDef.size, currentDef.isBold ? 'bold' : 'normal');
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     return this.domainFactory.createExtendedLabelClass(currentDef.color, currentDef.haloColor, arcade, font);
+  }
+
+  private createMultiLabel(config: UniquePoiConfiguration) : __esri.LabelClass[] {
+    const result: __esri.LabelClass[] = [];
+    const currentDef = config.labelDefinition;
+    const font = this.domainFactory.createFont(currentDef.size, currentDef.isBold ? 'bold' : 'normal');
+    const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
+    config.breakDefinitions.forEach(bd => {
+      const where = `${config.featureAttribute} = '${bd.value}'`;
+      result.push(this.domainFactory.createExtendedLabelClass(bd.color, bd.outlineColor, arcade, font, 'below-center', { where }));
+    });
+    return result;
   }
 }
