@@ -5,6 +5,7 @@ export interface PopupDefinition {
   useCustomPopup: boolean;
   popupFields: string[];
   secondaryPopupFields?: string[];
+  hiddenPopupFields?: string[];
 }
 
 export function duplicatePopupDefinition(def: PopupDefinition) : PopupDefinition {

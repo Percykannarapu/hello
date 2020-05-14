@@ -149,7 +149,7 @@ export class EsriGeographyPopupComponent implements OnInit, DoCheck {
         value: ''
       },
       leaf: false,
-      expanded: false,
+      expanded: true,
       children: this.buildAttributeNodes(standardAttributes)
     };
   }

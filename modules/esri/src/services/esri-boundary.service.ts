@@ -240,10 +240,11 @@ export class EsriBoundaryService {
       id: 'select-this',
       className: 'esri-icon-plus-circled'
     });
-    const definedFields = [...config.popupDefinition.popupFields, ...(config.popupDefinition.secondaryPopupFields || [])];
+    const definedFields = [...config.popupDefinition.popupFields, ...(config.popupDefinition.secondaryPopupFields || []), ...(config.popupDefinition.hiddenPopupFields || ['latitude', 'longitude'])];
+    const hiddenFields = new Set<string>(config.popupDefinition.hiddenPopupFields || ['latitude', 'longitude']);
     const fieldsToUse = new Set<string>(definedFields);
     const byDefinedFieldIndex = (f1, f2) => definedFields.indexOf(f1.fieldName) - definedFields.indexOf(f2.fieldName);
-    const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new FieldInfo({ fieldName: f.name, label: f.alias }));
+    const fieldInfos = target.fields.filter(f => fieldsToUse.has(f.name)).map(f => new FieldInfo({ fieldName: f.name, label: f.alias, visible: !hiddenFields.has(f.name) }));
     fieldInfos.sort(byDefinedFieldIndex);
     const result: __esri.PopupTemplateProperties = { title: config.popupDefinition.titleExpression };
     if (config.isPrimarySelectableLayer) {
