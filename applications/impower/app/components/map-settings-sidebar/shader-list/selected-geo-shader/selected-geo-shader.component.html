@@ -4,7 +4,7 @@
       <a href="#" (click)="edit()">edit</a>
     </div>
     <div>
-      <label>Layer Name:</label>
+      <label>Legend Name:</label>
       <strong>{{definition.layerName}}</strong>
     </div>
     <div>
@@ -21,7 +21,7 @@
   </div>
   <div class="shader-form-container" *ngIf="isEditing">
     <form novalidate autocomplete="off" [formGroup]="shaderForm" (ngSubmit)="apply(shaderForm)">
-      <validated-text-input formControlName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
+      <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
       <esri-fill-symbol-input labelText="Overlay Type" [defaultSolidColor]="[0, 255, 0, 1]" formGroupName="defaultSymbolDefinition"></esri-fill-symbol-input>
       <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
       <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!shaderForm.valid"></button>
