@@ -134,8 +134,8 @@ export class EsriBoundaryService {
             : this.createLabelFromDefinition(config.labelDefinition)
         ];
         let layerQuery = null;
-        if (config.hasPOBs && !config.useSimplifiedInfo) {
-          layerQuery = config.showPOBs ? null : `pob IS NULL`;
+        if (config.hasPOBs) {
+          layerQuery = config.showPOBs ? null : `COALESCE(pob, '') <> 'B'`;
         }
         let popupDef = null;
         if (config.showPopups && config.popupDefinition != null) {
