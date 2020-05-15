@@ -1,8 +1,18 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { duplicatePoiConfiguration, LabelDefinition, PoiConfiguration, PoiConfigurationTypes, RgbaTuple, RgbTuple } from '@val/esri';
+import { rgbToHex } from '@val/common';
+import {
+  completeEsriFaces,
+  duplicatePoiConfiguration,
+  LabelDefinition,
+  PoiConfiguration,
+  PoiConfigurationTypes,
+  RgbaTuple,
+  RgbTuple
+} from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
+import { ValassisValidators } from '../../../../models/valassis-validators';
 import { ImpGeofootprintLocation } from '../../../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({
@@ -41,11 +51,14 @@ export class LocationShaderComponent implements OnDestroy {
     { label: 'Same for All', value: PoiConfigurationTypes.Simple },
     { label: 'Based on Attribute', value: PoiConfigurationTypes.Unique }
   ];
+  fontFaces: SelectItem[];
 
   private _symbologyAttributes: SelectItem[];
   private destroyed$ = new Subject<void>();
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder) {
+    this.fontFaces = completeEsriFaces.map(f => ({ label: f, value: f }));
+  }
 
   ngOnDestroy() : void {
     this.destroyed$.next();
@@ -77,10 +90,13 @@ export class LocationShaderComponent implements OnDestroy {
       showLabels: new FormControl(this.configuration.showLabels || false, { updateOn: 'change' }),
       labelDefinition: this.fb.group({
         isBold: new FormControl(defaultLabelDefinition.isBold || false, { updateOn: 'change' }),
-        size: defaultLabelDefinition.size,
+        isItalic: new FormControl(defaultLabelDefinition.isItalic || false, { updateOn: 'change' }),
+        usesStaticColor: new FormControl(defaultLabelDefinition.usesStaticColor || false, { updateOn: 'change' }),
+        family: new FormControl(defaultLabelDefinition.family || 'Noto Sans', { updateOn: 'change', validators: [Validators.required] }),
+        size: new FormControl(defaultLabelDefinition.size || 12, [Validators.required, ValassisValidators.numeric, Validators.min(6), Validators.max(48)]),
         color: new FormControl(defaultLabelDefinition.color),
         haloColor: new FormControl(defaultLabelDefinition.haloColor),
-        featureAttribute: new FormControl(defaultLabelDefinition.featureAttribute, { updateOn: 'change' })
+        featureAttribute: new FormControl(defaultLabelDefinition.featureAttribute, { updateOn: 'change', validators: [Validators.required] })
       })
     };
     this.configForm = this.fb.group(formSetup);
@@ -91,16 +107,12 @@ export class LocationShaderComponent implements OnDestroy {
     switch (result.poiType) {
       case PoiConfigurationTypes.Simple:
         result.symbolDefinition.outlineColor = RgbTuple.duplicate(result.symbolDefinition.outlineColor || this.defaultHalo);
-        result.labelDefinition.haloColor = RgbTuple.duplicate(result.symbolDefinition.outlineColor || this.defaultHalo);
-        result.labelDefinition.color = RgbTuple.duplicate(result.symbolDefinition.color);
         break;
       case PoiConfigurationTypes.Unique:
         result.breakDefinitions.forEach(bd => {
           bd.outlineColor = RgbTuple.duplicate(bd.outlineColor || this.defaultHalo);
           bd.outlineWidth = bd.outlineWidth || 1;
         });
-        result.labelDefinition.haloColor = RgbTuple.duplicate(result.labelDefinition.haloColor || this.defaultHalo);
-        result.labelDefinition.color = RgbTuple.duplicate(result.labelDefinition.color || this.defaultColor);
         break;
     }
     return result;
@@ -108,6 +120,21 @@ export class LocationShaderComponent implements OnDestroy {
 
   getLabelDescription(labelDef: LabelDefinition) : string {
     const foundItem = (this.labelChoices || []).filter(l => l.value === labelDef.featureAttribute)[0];
-    return foundItem == null ? '' : foundItem.label;
+    return foundItem == null ? 'n/a' : foundItem.label;
+  }
+
+  getFontWeight(labelDef: LabelDefinition) : string {
+    const fontItems: string[] = [];
+    if (labelDef.isBold) fontItems.push('Bold');
+    if (labelDef.isItalic) fontItems.push('Italic');
+    return fontItems.length > 0 ? fontItems.join(' ') : 'Regular';
+  }
+
+  getLabelColor(symbolDef: LabelDefinition) : string {
+    return rgbToHex(symbolDef.color || this.defaultColor || [0, 0, 0, 1]);
+  }
+
+  getLabelHalo(symbolDef: LabelDefinition) : string {
+    return rgbToHex(symbolDef.haloColor || this.defaultHalo || [255, 255, 255, 1]);
   }
 }

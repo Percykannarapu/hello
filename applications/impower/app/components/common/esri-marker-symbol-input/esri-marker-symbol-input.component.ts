@@ -11,8 +11,9 @@ import { SelectItem } from 'primeng/api';
   styleUrls: ['./esri-marker-symbol-input.component.scss']
 })
 export class EsriMarkerSymbolInputComponent implements OnInit {
-  @Input() labelText: string;
 
+  @Input() labelText: string;
+  @Input() validationMessage: string;
   @Input() currentPalette: ColorPalette;
   @Input() reversePalette: boolean = false;
   @Input() defaultHalo: RgbaTuple;

@@ -13,7 +13,27 @@
 
     <div>
       <label>Labels:</label>
-      <strong>{{getLabelDescription(configuration.labelDefinition)}}</strong>&nbsp;<span *ngIf="configuration.showLabels === false">(hidden)</span>
+      <ng-container *ngIf="configuration.showLabels === false">
+        <strong>Hidden</strong>
+      </ng-container>
+      <div *ngIf="configuration.showLabels === true" class="label-display">
+        <div>
+          <label>Field:</label>
+          <strong>{{getLabelDescription(configuration.labelDefinition)}}</strong>
+        </div>
+        <div>
+          <label>Font:</label>
+          <strong>{{configuration.labelDefinition.family || 'Noto Sans'}}</strong>&nbsp;
+          <span>{{configuration.labelDefinition.size || 12}}pt</span>&nbsp;
+          <span>{{getFontWeight(configuration.labelDefinition)}}</span>
+        </div>
+        <div>
+          <label>Color:</label>
+          <strong *ngIf="!configuration.labelDefinition.usesStaticColor">Inherits Symbology Color</strong>
+          <span class="color-chip" *ngIf="configuration.labelDefinition.usesStaticColor"
+                [ngStyle]="{ 'background-color': getLabelColor(configuration.labelDefinition), 'border': getLabelHalo(configuration.labelDefinition) + ' 2px solid'  }"></span>
+        </div>
+      </div>
     </div>
     <div>
       <label>Icon Opacity:</label>
@@ -31,12 +51,29 @@
                                           [featureAttributeChoices]="symbologyAttributes" [defaultHalo]="defaultHalo"></val-unique-value-location-shader>
       </ng-container>
 
-      <div class="label-controls">
-        <boolean-input labelText="Show Labels?" formControlName="showLabels"></boolean-input>
-        <ng-container *ngIf="configForm.get('showLabels').value === true" formGroupName="labelDefinition">
-          <dropdown-input formControlName="featureAttribute" labelText="Label Field" [options]="labelChoices"></dropdown-input>
-        </ng-container>
+      <boolean-input labelText="Show Labels?" formControlName="showLabels"></boolean-input>
+      <div *ngIf="configForm.get('showLabels').value === true" formGroupName="labelDefinition" class="label-controls">
+        <dropdown-input labelText="Label Field" formControlName="featureAttribute" [options]="labelChoices"></dropdown-input>
+        <div class="label-font-controls">
+          <dropdown-input labelText="Font" [options]="fontFaces" formControlName="family"></dropdown-input>
+          <boolean-input labelText="Bold" formControlName="isBold"></boolean-input>
+          <boolean-input labelText="Italic" formControlName="isItalic"></boolean-input>
+          <validated-text-input labelText="Size (in points)" validationMessage="Size must be between 6 and 48 pts" formControlName="size"></validated-text-input>
+        </div>
+        <div class="label-color-controls">
+          <boolean-input labelText="Use Static Color for all Labels?" formControlName="usesStaticColor"></boolean-input>
+          <ng-container *ngIf="configForm.get('labelDefinition.usesStaticColor').value === true">
+            <span title="Fill Color">
+              <val-extended-color-picker [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
+            </span>
+            <span title="Halo Color">
+              <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="haloColor"></val-extended-color-picker>
+            </span>
+          </ng-container>
+        </div>
+
       </div>
+
 
       <validated-text-input formControlName="opacity" labelText="Icon Opacity" validationMessage="Must be a number between 0 and 1"></validated-text-input>
       <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!configForm.valid"></button>

@@ -12,10 +12,16 @@
           color: $inputErrorTextColor;
         }
 
+        &:focus ~ span.ui-inputgroup-addon {
+          border-bottom-width: 2px;
+        }
+
         ~ span.ui-inputgroup-addon {
           border-bottom-color: $inputInvalidBorderColor;
+          justify-content: flex-end;
           i {
             color: $inputErrorTextColor;
+            font-size: 1.1em;
           }
         }
       }

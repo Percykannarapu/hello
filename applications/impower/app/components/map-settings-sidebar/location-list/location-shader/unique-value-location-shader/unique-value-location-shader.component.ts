@@ -15,6 +15,7 @@ import {
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
+import { ValassisValidators } from '../../../../../models/valassis-validators';
 import { ImpGeofootprintLocation } from '../../../../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({
@@ -171,6 +172,7 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
         legendName: new FormControl(bd.legendName, [Validators.required]),
         outlineColor: new FormControl(bd.outlineColor),
         color: new FormControl(bd.color, { updateOn: 'change' }),
+        size: new FormControl(bd.size || 10, [Validators.required, ValassisValidators.numeric]),
         markerType: new FormControl(bd.markerType, { updateOn: 'change' })
       });
     }));

@@ -2,7 +2,10 @@ import { FillPattern, MarkerStyles, RgbaTuple, RgbTuple } from './esri-types';
 
 export interface LabelDefinition {
   isBold: boolean;
+  isItalic?: boolean;
+  family?: string;
   size: number;
+  usesStaticColor?: boolean;
   color: RgbaTuple;
   haloColor: RgbaTuple;
   featureAttribute?: string;
@@ -42,6 +45,7 @@ export function duplicateFill<T extends FillSymbolDefinition>(symbol: T) : T {
 
 export interface MarkerSymbolDefinition extends SymbolDefinition {
   color: RgbaTuple;
+  size: number;
   markerType: MarkerStyles;
 }
 

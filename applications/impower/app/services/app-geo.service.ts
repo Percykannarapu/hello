@@ -7,13 +7,17 @@ import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import {
+  ClearGeoAttributes,
+  DeleteGeoAttributes,
+  UpsertGeoAttributes
+} from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { quadPartitionLocations } from '../models/quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
-import { projectIsReady, deleteCustomTa, deleteMustCover } from '../state/data-shim/data-shim.selectors';
+import { deleteCustomTa, deleteMustCover, projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -30,9 +34,8 @@ import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService, Season } from './app-state.service';
-import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
 
-const featureAttributes = ['geocode', 'latitude', 'longitude', 'cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
+const featureAttributes = ['geocode', 'latitude', 'longitude', 'cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
 
 interface AttributeDistance {
   attribute: any;
@@ -202,8 +205,8 @@ export class AppGeoService {
   private setupHomeGeoSelectionObservable() : void {
     const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
     this.impGeoService.storeObservable.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$, 
-                     this.appStateService.allClientLocations$, 
+      withLatestFrom(this.appStateService.applicationIsReady$,
+                     this.appStateService.allClientLocations$,
                      this.store$.select(deleteCustomTa),
                      this.store$.select(deleteMustCover)),
       filter(([, isReady, locs, isCustomTaExists, isMustCoverExists]) => isReady && locs.length > 0 && !isCustomTaExists && !isMustCoverExists),
@@ -494,7 +497,7 @@ export class AppGeoService {
       });
     }
     if (newGeoAttributes.length > 0) this.store$.dispatch(new UpsertGeoAttributes({geoAttributes: newGeoAttributes}));
-    
+
     return result;
   }
 

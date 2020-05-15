@@ -6,7 +6,7 @@ import { filter, take, withLatestFrom } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { LabelDefinition, MarkerSymbolDefinition } from '../models/common-configuration';
 import { MapSymbols } from '../models/esri-types';
-import { PoiConfiguration, PoiConfigurationTypes, UniquePoiConfiguration } from '../models/poi-configuration';
+import { PoiConfiguration, PoiConfigurationTypes, SimplePoiConfiguration, UniquePoiConfiguration } from '../models/poi-configuration';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
 import {
@@ -147,34 +147,46 @@ export class EsriPoiService {
     }
     const outline = this.domainFactory.createSimpleLineSymbol(outlineColor, outlineSize);
     const path = currentDef.markerType === 'path' ? MapSymbols.STAR : undefined;
-    const markerSize = currentDef.markerType === 'path' ? 14 : 10;
+    const sizeMultiple = currentDef.markerType === 'path' ? 1.4 : 1;
+    const markerSize = (currentDef.size || 10) * sizeMultiple;
     return this.domainFactory.createSimpleMarkerSymbol(currentDef.color, outline, currentDef.markerType, path, markerSize);
   }
 
   private createLabelFromDefinition(config: PoiConfiguration) : __esri.LabelClass[] {
     switch (config.poiType) {
       case PoiConfigurationTypes.Simple:
-        return [ this.createSimpleLabel(config.labelDefinition) ];
+        return [ this.createSimpleLabel(config) ];
       case PoiConfigurationTypes.Unique:
         return this.createMultiLabel(config);
     }
   }
 
-  private createSimpleLabel(currentDef: LabelDefinition) : __esri.LabelClass {
-    const font = this.domainFactory.createFont(currentDef.size, currentDef.isBold ? 'bold' : 'normal');
+  private createSimpleLabel(config: SimplePoiConfiguration) : __esri.LabelClass {
+    const currentDef = config.labelDefinition;
+    const font = this.createLabelFont(currentDef);
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
-    return this.domainFactory.createExtendedLabelClass(currentDef.color, currentDef.haloColor, arcade, font);
+    const color = !currentDef.usesStaticColor ? config.symbolDefinition.color : currentDef.color;
+    const haloColor = !currentDef.usesStaticColor ? config.symbolDefinition.outlineColor : currentDef.haloColor;
+    return this.domainFactory.createExtendedLabelClass(color, haloColor, arcade, font);
   }
 
   private createMultiLabel(config: UniquePoiConfiguration) : __esri.LabelClass[] {
     const result: __esri.LabelClass[] = [];
     const currentDef = config.labelDefinition;
-    const font = this.domainFactory.createFont(currentDef.size, currentDef.isBold ? 'bold' : 'normal');
+    const font = this.createLabelFont(currentDef);
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     config.breakDefinitions.forEach(bd => {
       const where = `${config.featureAttribute} = '${bd.value}'`;
-      result.push(this.domainFactory.createExtendedLabelClass(bd.color, bd.outlineColor, arcade, font, 'below-center', { where }));
+      const color = !currentDef.usesStaticColor ? bd.color : currentDef.color;
+      const haloColor = !currentDef.usesStaticColor ? bd.outlineColor : currentDef.haloColor;
+      result.push(this.domainFactory.createExtendedLabelClass(color, haloColor, arcade, font, 'below-center', { where }));
     });
     return result;
+  }
+
+  private createLabelFont(currentDef: LabelDefinition) : __esri.Font {
+    const weight = currentDef.isBold ? 'bold' : 'normal';
+    const style = currentDef.isItalic ? 'italic' : 'normal';
+    return this.domainFactory.createFont(currentDef.size, weight, style, currentDef.family);
   }
 }

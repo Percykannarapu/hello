@@ -16,13 +16,18 @@
     </p-dropdown>
     <label class="drop-down-label" for="marker-input-{{controlId}}">{{labelText}}</label>
   </span>
-  <span *ngIf="currentPalette == null" title="Fill color" class="color-chip">
+
+  <span class="size-control">
+    <validated-text-input labelText="Size" [validationMessage]="validationMessage" formControlName="size"></validated-text-input>
+  </span>
+
+  <span *ngIf="currentPalette != null" class="color-drop-down">
+    <val-extended-palette-picker [palette]="currentPalette" [reversePalette]="reversePalette" formControlName="color" labelText="Fill"></val-extended-palette-picker>
+  </span>
+  <span *ngIf="currentPalette == null" title="Fill">
     <val-extended-color-picker [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
   </span>
-  <span *ngIf="currentPalette != null" class="color-chip drop-down">
-    <val-extended-palette-picker [palette]="currentPalette" [reversePalette]="reversePalette" formControlName="color" labelText="Fill Color"></val-extended-palette-picker>
-  </span>
-  <span title="Halo color" class="halo-chip">
+  <span title="Halo">
     <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="outlineColor"></val-extended-color-picker>
   </span>
 </div>

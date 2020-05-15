@@ -8,16 +8,16 @@
     flex: 1
   }
   .calculated-value-message {
-    padding-bottom: 0.5em;
+    padding-bottom: 1em;
     font-size: 12px;
     white-space: nowrap;
     max-width: 100px;
   }
   .legend-values {
-    padding: 0 0.5em;
-    flex: 3
+    padding: 0 0.5em 0.2em;
+    flex: 2
   }
   .symbol-values {
-    flex: 4
+    flex: 5
   }
 }

@@ -3,6 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { rgbToHex } from '@val/common';
 import { MarkerSymbolDefinition, markerTypeFriendlyNames, RgbaTuple, SimplePoiConfiguration } from '@val/esri';
 import { Subject } from 'rxjs';
+import { ValassisValidators } from '../../../../../models/valassis-validators';
 
 @Component({
   selector: 'val-simple-location-shader',
@@ -49,6 +50,7 @@ export class SimpleLocationShaderComponent implements OnInit, OnDestroy {
       legendName: new FormControl(defaultSymbol.legendName, [Validators.required]),
       outlineColor: new FormControl(defaultSymbol.outlineColor),
       color: new FormControl(defaultSymbol.color, { updateOn: 'change' }),
+      size: new FormControl(defaultSymbol.size || 10, [Validators.required, ValassisValidators.numeric]),
       markerType: new FormControl(defaultSymbol.markerType, { updateOn: 'change' })
     }));
   }

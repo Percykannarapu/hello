@@ -123,8 +123,18 @@ export class PoiRenderingService {
       opacity: 1,
       visible: true,
       showLabels: true,
-      labelDefinition: { color: [0, 0, 255, 1], featureAttribute: 'locationNumber', isBold: true, size: 12, haloColor: [255, 255, 255, 1], customExpression: null },
-      symbolDefinition: { color: [0, 0, 255, 1], markerType: 'path', legendName: 'Client Locations', outlineColor: [255, 255, 255, 1] }
+      labelDefinition: {
+        color: [0, 0, 255, 1],
+        haloColor: [255, 255, 255, 1],
+        usesStaticColor: false,
+        family: 'Noto Sans',
+        size: 12,
+        isBold: true,
+        isItalic: false,
+        featureAttribute: 'locationNumber',
+        customExpression: null,
+      },
+      symbolDefinition: { color: [0, 0, 255, 1], markerType: 'path', legendName: 'Client Locations', outlineColor: [255, 255, 255, 1], size: 10 }
     }, {
       id: getUuid(),
       poiType: PoiConfigurationTypes.Simple,
@@ -136,8 +146,18 @@ export class PoiRenderingService {
       opacity: 1,
       visible: true,
       showLabels: true,
-      labelDefinition: { color: [255, 0, 0, 1], featureAttribute: 'locationNumber', isBold: true, size: 12, haloColor: [255, 255, 255, 1], customExpression: null },
-      symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitor Locations', outlineColor: [255, 255, 255, 1] }
+      labelDefinition: {
+        color: [255, 0, 0, 1],
+        haloColor: [255, 255, 255, 1],
+        usesStaticColor: false,
+        family: 'Noto Sans',
+        size: 12,
+        isBold: true,
+        isItalic: false,
+        featureAttribute: 'locationNumber',
+        customExpression: null,
+      },
+      symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitor Locations', outlineColor: [255, 255, 255, 1], size: 10 }
     }];
   }
 }

@@ -1,4 +1,4 @@
-<ng-container *ngIf="!isEditing">
+<div *ngIf="!isEditing">
   <label>Breaks:</label>
   <div class="class-break-table">
     <table>
@@ -21,7 +21,7 @@
       </tbody>
     </table>
   </div>
-</ng-container>
+</div>
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
   <dropdown-input formControlName="featureAttribute" labelText="Attribute" [options]="featureAttributeChoices" [includeUnselected]="true"></dropdown-input>

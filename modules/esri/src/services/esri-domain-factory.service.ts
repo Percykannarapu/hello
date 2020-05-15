@@ -134,8 +134,8 @@ export class EsriDomainFactoryService {
     return new LabelClass(labelSetup);
   }
 
-  createFont(size: number, weight: 'normal' | 'bold' = 'bold', family: string = 'Noto Sans') : __esri.Font {
-    return new Font({ size, weight, family });
+  createFont(size: number, weight: 'normal' | 'bold' = 'bold', style: 'normal' | 'italic' = 'normal', family: string = 'Noto Sans') : __esri.Font {
+    return new Font({ size, weight, family, style });
   }
 
   createSimpleRenderer(symbol: __esri.Symbol, visualVariable?: __esri.ColorVariableProperties) : __esri.SimpleRenderer {

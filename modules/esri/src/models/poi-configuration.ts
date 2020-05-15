@@ -69,6 +69,7 @@ export function generateUniqueMarkerValues(sortedUniqueValues: string[], colorPa
     value: uv,
     color: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
     markerType: markerStyleValues[i % markerStyleValues.length],
+    size: 10,
     legendName: uv,
     outlineColor: [255, 255, 255, 1],
     outlineWidth: 1

@@ -14,6 +14,7 @@ import {
   generateDynamicSymbology,
   generateUniqueValues,
   getColorPalette,
+  getFillPalette,
   isArcadeCapableShadingDefinition,
   isComplexShadingDefinition,
   RgbTuple,
@@ -24,7 +25,6 @@ import { AppConfig } from 'app/app.config';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
-import { getFillPalette } from '../../../../modules/esri/src/models/color-palettes';
 import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';

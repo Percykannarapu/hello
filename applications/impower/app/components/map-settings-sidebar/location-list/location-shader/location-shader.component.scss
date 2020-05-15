@@ -10,6 +10,9 @@
     margin-left: 0.5em;
     border-radius: 3px;
   }
+  .label-display {
+    padding-left: 2rem;
+  }
 }
 
 .poi-form-container {
@@ -20,9 +23,19 @@
       margin-right: 1em;
     }
     > .label-controls {
-      display: flex;
-      > *:last-child {
-        flex: 1;
+      padding-left: 2rem;
+      > .label-color-controls {
+        display: flex;
+        > span {
+          padding-right: 1rem;
+          padding-top: 11px;
+        }
+      }
+      > .label-font-controls {
+        display: flex;
+        > *:first-child, > *:last-child {
+          flex: 1;
+        }
       }
     }
   }
