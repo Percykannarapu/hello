@@ -343,6 +343,16 @@ export class EsriLayerService {
     }
   }
 
+  updateLayerNameInLegend(layerUniqueId: string, newName: string) : void {
+    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
+    if (this.layerNamesShowingInLegend.has(layerUniqueId)) {
+      this.layerNamesShowingInLegend.set(layerUniqueId, newName);
+    }
+    if (legendRef != null) {
+      legendRef.layerInfos = [...legendRef.layerInfos];
+    }
+  }
+
   public enableLatLongTool(action: CopyCoordinatesToClipboard) : void {
     const textToBeCopied = (Math.round(action.payload.event.mapPoint.latitude * 1000000) / 1000000) + ',' + (Math.round(action.payload.event.mapPoint.longitude * 1000000) / 1000000);
     const latLong = document.createElement('textarea');

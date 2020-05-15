@@ -21,6 +21,8 @@ import { shadingSelectors } from '../state/shading/esri.shading.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 
+const hideLegendHeaderTypes = new Set<ConfigurationTypes>([ConfigurationTypes.Simple, ConfigurationTypes.DotDensity]);
+
 @Injectable()
 export class EsriShadingService {
 
@@ -60,8 +62,10 @@ export class EsriShadingService {
   deleteShader(shadingDefinition: ShadingDefinition | ShadingDefinition[]) : void {
     if (Array.isArray(shadingDefinition)) {
       this.store$.dispatch(deleteShadingDefinitions({ ids: shadingDefinition.map(s => s.id) }));
+      shadingDefinition.forEach(sd => this.layerService.removeLayerFromLegend(sd.destinationLayerUniqueId));
     } else {
       this.store$.dispatch(deleteShadingDefinition({ id: shadingDefinition.id }));
+      this.layerService.removeLayerFromLegend(shadingDefinition.destinationLayerUniqueId);
     }
   }
 
@@ -75,10 +79,7 @@ export class EsriShadingService {
           this.createGeneralizedShadingLayer(d, features).pipe(
             take(1)
           ).subscribe(id => {
-            const hideLegendHeader =
-              d.shadingType === ConfigurationTypes.Ramp ||
-              d.shadingType === ConfigurationTypes.Simple ||
-              d.shadingType === ConfigurationTypes.DotDensity;
+            const hideLegendHeader = hideLegendHeaderTypes.has(d.shadingType);
             this.store$.dispatch(updateShadingDefinition({ shadingDefinition: { id: d.id, changes: { destinationLayerUniqueId: id }}}));
             this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: hideLegendHeader ? null : d.layerName }));
             this.layersInFlight.delete(d.id);
@@ -145,6 +146,9 @@ export class EsriShadingService {
         props.definitionExpression = null;
       }
       layer.set(props);
+      if (!hideLegendHeaderTypes.has(config.shadingType)) {
+        this.layerService.updateLayerNameInLegend(config.destinationLayerUniqueId, config.layerName);
+      }
     }
   }
 

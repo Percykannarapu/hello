@@ -4,7 +4,7 @@
     <strong>{{currentAudience.audienceSourceName}}: {{currentAudience.audienceName}}</strong>
   </div>
   <div>
-    <label>Layer Name:</label>
+    <label>Legend Name:</label>
     <strong>{{definition.layerName}}</strong>
   </div>
   <div>
@@ -30,7 +30,7 @@
 </ng-container>
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
-  <validated-text-input formControlName="layerName" labelText="Layer Name (required)" validationMessage="Layer Name is required"></validated-text-input>
+  <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
   <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
   <label class="shader-control-label">Dot Color</label>
   <p-colorPicker [(ngModel)]="selectedDotColor" format="rgb" [ngModelOptions]="{standalone: true}"></p-colorPicker>
