@@ -19,7 +19,13 @@ import { catchError, concatMap, delay, filter, map, mergeMap, switchMap, take, t
 import { AppStateService } from '../../../../services/app-state.service';
 import { TargetAudienceCustomService } from '../../../../services/target-audience-custom.service';
 import { OfflineSourceTypes } from '../../../../services/target-audience-tda.service';
-import { GeoVarActionTypes, GeoVarCacheGeofootprintGeos, GeoVarCacheGeosComplete, GeoVarCacheGeosFailure, UpsertGeoVars } from '../geo-vars/geo-vars.actions';
+import {
+  GeoVarActionTypes,
+  GeoVarCacheGeofootprintGeos,
+  GeoVarCacheGeosComplete,
+  GeoVarCacheGeosFailure,
+  UpsertGeoVars
+} from '../geo-vars/geo-vars.actions';
 import { GeoVar } from '../geo-vars/geo-vars.model';
 import { UpsertMapVars } from '../map-vars/map-vars.actions';
 import { MapVar } from '../map-vars/map-vars.model';
@@ -87,6 +93,7 @@ import {
   SequenceChanged,
   UpsertAudiences
 } from './audience.actions';
+import { Audience } from './audience.model';
 import { initialStatState, Stats } from './audience.reducer';
 
 const audienceTaKey: string = 'AUDIENCE_TA_VARS';
@@ -111,7 +118,9 @@ export class AudiencesEffects {
   @Effect({dispatch: false})
   applyAudiences$ = this.actions$.pipe(
     ofType<ApplyAudiences>(AudienceActionTypes.ApplyAudiences),
-    map(action => ({ analysisLevel: action.payload.analysisLevel })),
+    withLatestFrom(this.appStateService.totalGeoCount$),
+    filter(([, geoCount]) => geoCount > 0),
+    map(([action]) => action),
     tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.spinnerKey, message: 'Retrieving audience data' }))),
     delay(50),
     tap(() => stats = {...initialStatState}),
@@ -123,7 +132,7 @@ export class AudiencesEffects {
       else
         this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
     }),
-    switchMap(([action, selectedAudiences]) => this.actions$.pipe(
+    switchMap(([action, selectedAudiences]: [ApplyAudiences, Audience[]]) => this.actions$.pipe(
         ofType<GeoVarCacheGeosComplete | GeoVarCacheGeosFailure>(GeoVarActionTypes.GeoVarCacheGeosComplete, GeoVarActionTypes.GeoVarCacheGeosFailure),
         take(1),
         tap(errorAction => (errorAction.type === GeoVarActionTypes.GeoVarCacheGeosFailure) ? this.logger.error.log('applyAudiences detected CacheGeosFailure:', errorAction.payload) : null),
@@ -139,35 +148,35 @@ export class AudiencesEffects {
             const showOnMap = audiences.map(audience => audience.showOnMap);
             switch (source) {
               case 'Online/Interest':
-                this.store$.dispatch(new FetchOnlineInterest({ fuseSource: 'interest', al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                this.store$.dispatch(new FetchOnlineInterest({ fuseSource: 'interest', al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
               case 'Online/In-Market':
-                this.store$.dispatch(new FetchOnlineInterest({ fuseSource: 'in_market', al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                this.store$.dispatch(new FetchOnlineInterest({ fuseSource: 'in_market', al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
               case 'Online/VLH':
-                this.store$.dispatch(new FetchOnlineVLH({ fuseSource: 'vlh', al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                this.store$.dispatch(new FetchOnlineVLH({ fuseSource: 'vlh', al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
               case 'Online/Pixel':
-                this.store$.dispatch(new FetchOnlinePixel({ fuseSource: 'pixel', al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                this.store$.dispatch(new FetchOnlinePixel({ fuseSource: 'pixel', al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
               case 'Offline/TDA':
-                this.store$.dispatch(new FetchOfflineTDA({ fuseSource: 'tda', al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                this.store$.dispatch(new FetchOfflineTDA({ fuseSource: 'tda', al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
               case 'Converted/TDA':
-                this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
               case 'Combined/TDA':
-                 this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                 this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                  break;
 
               case 'Combined/Converted/TDA':
-                this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+                this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
               default:
