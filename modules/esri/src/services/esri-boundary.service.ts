@@ -150,8 +150,8 @@ export class EsriBoundaryService {
         //   labels.push(this.createLabelFromDefinition(config.pobLabelDefinition));
         // }
         let layerQuery = null;
-        if (config.hasPOBs && !config.useSimplifiedInfo) {
-          layerQuery = config.showPOBs ? null : `pob IS NULL`;
+        if (config.hasPOBs) {
+          layerQuery = config.showPOBs ? null : `COALESCE(pob, '') <> 'B'`;
         }
         let popupDef = null;
         if (config.showPopups && config.popupDefinition != null) {
