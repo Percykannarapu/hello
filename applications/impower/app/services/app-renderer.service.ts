@@ -6,6 +6,8 @@ import {
   ConfigurationTypes,
   createDataArcade,
   createTextArcade,
+  duplicateShadingDefinition,
+  EsriLayerService,
   EsriService,
   EsriShadingService,
   FillPattern,
@@ -29,6 +31,7 @@ import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { getAllMappedAudiences } from '../impower-datastore/state/transient/transient.reducer';
+import { mapFeaturesToGeocode } from '../models/rxjs-utils';
 import { GfpShaderKeys } from '../models/ui-enums';
 import { ValSort } from '../models/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
@@ -55,6 +58,7 @@ export class AppRendererService {
               private impGeoService: ImpGeofootprintGeoService,
               private esriService: EsriService,
               private esriShaderService: EsriShadingService,
+              private esriLayerService: EsriLayerService,
               private config: AppConfig,
               private logger: LoggingService,
               private store$: Store<FullAppState>) {
@@ -162,19 +166,27 @@ export class AppRendererService {
   }
 
   private setupMapVarWatcher() {
+    const visibleGeos$ = this.esriService.visibleFeatures$.pipe(mapFeaturesToGeocode(true));
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences))
-    ).subscribe(([mapVars, layerDefs, geocodes, audiences]) => {
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences), visibleGeos$)
+    ).subscribe(([mapVars, layerDefs, geocodes, audiences, visibleGeos]) => {
       const varPks = audiences.map(audience => Number(audience.audienceIdentifier));
       if (varPks != null) {
-        const filteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
+        const gfpFilteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
+        const visibleGeoSet = new Set(visibleGeos);
+        const visibleMapVars = mapVars.filter(mv => visibleGeoSet.has(mv.geocode));
         varPks.forEach(varPk => {
           const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
           if (shadingLayers != null) {
             shadingLayers.forEach(shadingLayer => {
-              const shaderCopy: ShadingDefinition = { ...shadingLayer };
-              const currentMapVars = shaderCopy.filterByFeaturesOfInterest ? filteredMapVars : mapVars;
+              const shaderCopy: ShadingDefinition = duplicateShadingDefinition(shadingLayer);
+              const currentMapVars =
+                shaderCopy.filterByFeaturesOfInterest
+                  ? gfpFilteredMapVars
+                  : this.config.isBatchMode
+                    ? visibleMapVars
+                    : mapVars;
               const uniqueStrings = new Set<string>();
               const valuesForStats: number[] = [];
               const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {

@@ -241,8 +241,6 @@ export class EsriLayerService {
     );
   }
 
-
-
   public coordinateToGraphic(coordinate: UniversalCoordinates,  symbol?: MapSymbols) : __esri.Graphic {
     const point: __esri.Point = new Point();
     point.latitude = coordinate.y;
@@ -323,7 +321,9 @@ export class EsriLayerService {
           legendRef.activeLayerInfos.forEach(ali => {
             const currentId = ali.layer.id;
             if (legendRef['nameMap'].has(currentId)) ali.title = legendRef['nameMap'].get(currentId);
-            ali.legendElements.forEach(le => le.infos = le.infos.filter((si: any) => si.label != null && si.label !== '' && si.label !== 'others'));
+            ali.legendElements.forEach(le => {
+              le.infos = le.infos.filter((si: any) => si.label != null && si.label !== '' && si.label !== 'others');
+            });
             ali.legendElements = ali.legendElements.filter(le => le.infos.length > 0);
           });
           return legendRef['legacyRender'](...args);
@@ -339,6 +339,16 @@ export class EsriLayerService {
     }
   }
 
+  refreshLegendForLayer(layerUniqueId: string) : void {
+    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
+    const layer = this.getLayerByUniqueId(layerUniqueId);
+    if (legendRef != null && layer != null && this.layerNamesShowingInLegend.has(layerUniqueId)) {
+      const title = this.layerNamesShowingInLegend.get(layerUniqueId);
+      legendRef.layerInfos = legendRef.layerInfos.filter(li => li.layer.id !== layerUniqueId);
+      legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer, hideLayers: [] } ];
+    }
+  }
+
   removeLayerFromLegend(layerUniqueId: string) : void {
     const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     if (legendRef != null) {
@@ -348,12 +358,8 @@ export class EsriLayerService {
   }
 
   updateLayerNameInLegend(layerUniqueId: string, newName: string) : void {
-    const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
     if (this.layerNamesShowingInLegend.has(layerUniqueId)) {
       this.layerNamesShowingInLegend.set(layerUniqueId, newName);
-    }
-    if (legendRef != null) {
-      legendRef.layerInfos = [...legendRef.layerInfos];
     }
   }
 

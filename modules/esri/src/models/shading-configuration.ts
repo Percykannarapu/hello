@@ -1,6 +1,13 @@
 import { Statistics } from '@val/common';
 import { ColorPalette } from './color-palettes';
-import { ClassBreakFillDefinition, ContinuousDefinition, duplicateContinuousDef, duplicateFill, FillSymbolDefinition, UniqueValueFillDefinition } from './common-configuration';
+import {
+  ClassBreakFillDefinition,
+  ContinuousDefinition,
+  duplicateContinuousDef,
+  duplicateFill,
+  FillSymbolDefinition,
+  UniqueValueFillDefinition
+} from './common-configuration';
 import { FillPattern, RgbaTuple, RgbTuple } from './esri-types';
 
 export enum ConfigurationTypes {
@@ -33,6 +40,7 @@ export interface ShadingDefinitionBase {
   defaultSymbolDefinition: FillSymbolDefinition;
   filterByFeaturesOfInterest: boolean;
   filterField: string;
+  refreshLegendOnRedraw?: boolean;
 }
 
 function duplicateBase(def: ShadingDefinitionBase) : ShadingDefinitionBase {

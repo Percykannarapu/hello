@@ -145,6 +145,7 @@ export class AppDataShimService {
     shadingDefinitions.forEach(sd => {
       // just in case stuff was saved with a destination id
       delete sd.destinationLayerUniqueId;
+      sd.refreshLegendOnRedraw = this.appConfig.isBatchMode;
       if (this.appConfig.isBatchMode) {
         const newLayerSetup = this.getLayerSetupInfo(sd.sourcePortalId);
         if (newLayerSetup != null) {

@@ -155,9 +155,15 @@ export class EsriShadingService {
       } else {
         props.definitionExpression = null;
       }
-      layer.set(props);
-      if (!hideLegendHeaderTypes.has(config.shadingType)) {
-        this.layerService.updateLayerNameInLegend(config.destinationLayerUniqueId, config.layerName);
+      if (config.refreshLegendOnRedraw && EsriUtils.rendererIsNotSimple(props.renderer)) {
+        this.layerService.removeLayerFromLegend(config.destinationLayerUniqueId);
+        layer.set(props);
+        setTimeout(() => {
+          const layerName = hideLegendHeaderTypes.has(config.shadingType) ? null : config.layerName;
+          this.layerService.addLayerToLegend(config.destinationLayerUniqueId, layerName);
+        }, 0);
+      } else {
+        layer.set(props);
       }
     }
   }
