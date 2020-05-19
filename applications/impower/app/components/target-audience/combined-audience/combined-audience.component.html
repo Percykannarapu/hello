@@ -4,7 +4,7 @@
                                  (onDelete)="onDelete($event)">
     </val-edit-combined-audiences>
 </div>
-<form novalidate  [formGroup]="audienceForm" autocomplete="off">
+<form novalidate  [formGroup]="audienceForm" autocomplete="off" (submit) = "onSubmit(audienceForm.value)">
 <div class="ui-g">
 <div class="ui-g-12" >
     <input type="hidden" formControlName="audienceId">  
@@ -12,17 +12,16 @@
 <div class="ui-g-12" >
     <span class="md-inputfield">
       <input id="audienceName" type="text" formControlName="audienceName" pInputText size="40">
-      <span class="ui-inputgroup-addon" *ngIf="!hasErrors('audienceName')">&nbsp;</span>
-     <label for="audienceName">New Audience Name (required)</label>
+        <label for="nameInput">New Audience Name (required)</label>
     </span>
-    <span class="validation-messages">
+    <span class="validation-messages"> 
         <span *ngIf="isDuplicateName" >
             Duplicate audience name, please rename your variable
             </span>
         </span>
 </div>
 <div class="ui-g-12"> 
-<p-listbox [options]="groupedAudiences$ | async" [(ngModel)]="selectedColumns" formControlName="audienceList" [listStyle]="{'max-height':'250px'}" [style]="{width:'40em'}" multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
+<p-listbox [options]="groupedAudiences$ | async" formControlName="audienceList" [listStyle]="{'max-height':'250px'}" [style]="{width:'40em'}" multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
 <span class="validation-messages">
     <span *ngIf="showError">
         Only percent variables can be combined, please fix your selection
@@ -31,12 +30,12 @@
 </div>
 <div class="ui-g-12">
     <span class="md-inputfield">
-      <p-dropdown [options]="allIndexValues" optionLabel="label" formControlName="selectedIndex" styleClass="val-min-width" [(ngModel)]="selectedOperation"  placeholder="&nbsp;" dropdownIcon="fa fa-caret-down" ></p-dropdown>
+      <p-dropdown [options]="allIndexValues" optionLabel="label" formControlName="selectedIndex" styleClass="val-min-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down" ></p-dropdown>
       <label for="selectedIndex">Select Index Base</label>
     </span>
   </div>
 <div class="ui-g-4">
-    <button type="button" pButton label="Create Variable" [disabled]= "isDisabled()" (click)="submitAudiences(audienceForm.value)" ></button>
+    <button type="submit" pButton label="Create Variable" [disabled]= "audienceForm.invalid || isDisabled()" ></button>
 </div>
 <div *ngIf="hasAudienceSelections" class="ui-g-8">
     <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
