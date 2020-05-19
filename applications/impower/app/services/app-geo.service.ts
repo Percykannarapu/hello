@@ -5,7 +5,7 @@ import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import {
   ClearGeoAttributes,
@@ -850,30 +850,26 @@ export class AppGeoService {
 
   private setupFilterGeosObservable() : void {
     this.appStateService.currentProject$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([project, isReady]) => project != null && isReady),
-      map(([project]) => project.isIncludeValassis),
+      filter((project) => project != null),
+      map((project) => project.isIncludeValassis),
       distinctUntilChanged(),
     ).subscribe(() => this.store$.dispatch(new FiltersChanged({filterChanged: ProjectFilterChanged.Valassis})));
 
     this.appStateService.currentProject$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([project, isReady]) => project != null && isReady),
-      map(([project]) => project.isIncludeAnne),
+      filter((project) => project != null),
+      map((project) => project.isIncludeAnne),
       distinctUntilChanged(),
     ).subscribe(() => this.store$.dispatch(new FiltersChanged({filterChanged: ProjectFilterChanged.Anne})));
 
     this.appStateService.currentProject$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([project, isReady]) => project != null && isReady),
-      map(([project]) => project.isIncludeSolo),
+      filter((project) => project != null),
+      map((project) => project.isIncludeSolo),
       distinctUntilChanged(),
     ).subscribe(() => this.store$.dispatch(new FiltersChanged({filterChanged: ProjectFilterChanged.Solo})));
 
     this.appStateService.currentProject$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([project, isReady]) => project != null && isReady),
-      map(([project]) => project.isExcludePob),
+      filter((project) => project != null),
+      map((project) => project.isExcludePob),
       distinctUntilChanged(),
     ).subscribe(() => this.store$.dispatch(new FiltersChanged({filterChanged: ProjectFilterChanged.Pob})));
   }
