@@ -13,6 +13,7 @@ import { tap, switchMap } from 'rxjs/operators';
 import { UserRole } from 'app/models/UserRole';
 import { AppConfig } from 'app/app.config';
 import { CreateApplicationUsageMetric } from 'app/state/usage/targeting-usage.actions';
+import { CookieService } from 'ngx-cookie-service';
 
 @Injectable()
 export class AuthService implements CanActivate{
@@ -24,6 +25,7 @@ export class AuthService implements CanActivate{
     private store$: Store<LocalAppState>,
     private logger: LoggingService,
     private userService: UserService,
+    private cookieService: CookieService,
     private appConfig: AppConfig) {
     this.manager.getUser().then(oidcUser => {
       this.oidcUser = oidcUser;
@@ -78,6 +80,8 @@ export class AuthService implements CanActivate{
   completeAuthentication() : Observable<User> {
     const callBack$ = from(this.manager.signinRedirectCallback());
     return callBack$.pipe(
+      tap(oidcUser => localStorage.setItem('id', oidcUser.id_token)),
+      tap(oidcUser => this.cookieService.set('id', oidcUser.id_token)),
       tap(oidcUser => RestDataService.bootstrap(this.getRestConfig(oidcUser))),
       tap(oidcUser => this.oidcUser = oidcUser),
       switchMap(oidcUser => this.setupAppUser(oidcUser).pipe(
