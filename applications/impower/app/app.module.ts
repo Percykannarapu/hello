@@ -76,6 +76,7 @@ import { AddLocationsTabComponent } from './components/add-locations-tab/add-loc
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
 import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
+import { MarketLocationsComponent } from './components/add-locations-tab/market-locations/market-locations.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
@@ -385,7 +386,8 @@ export function actionSanitizer(action: Action) : Action {
     AuthCallbackComponent,
     ExtendedPalettePickerComponent,
     SimpleLocationShaderComponent,
-    UniqueValueLocationShaderComponent
+    UniqueValueLocationShaderComponent,
+    MarketLocationsComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

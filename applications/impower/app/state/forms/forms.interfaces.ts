@@ -11,6 +11,12 @@ export interface AddLocationForm {
   coord?: string;
 }
 
+export interface MarketLocationForm {
+  number: string;
+  states?: string;
+  market: string;
+}
+
 export interface GfpForm {
   layerName: string;
   opacity: number;
@@ -40,6 +46,7 @@ export interface VariableSelectionForm extends GfpForm {
 
 export interface FormsState {
   addLocation: Partial<AddLocationForm>;
+  marketLocation: Partial<MarketLocationForm>;
   shadingSettings: {
     [id: string] : Partial<GfpForm>
   };
