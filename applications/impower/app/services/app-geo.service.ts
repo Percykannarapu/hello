@@ -76,7 +76,7 @@ export class AppGeoService {
 
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready && !this.config.isBatchMode),
-      // take(1)
+      take(1)
     ).subscribe(() => {
       this.setupRadiusSelectionObservable();
       this.setupHomeGeoSelectionObservable();
@@ -839,30 +839,26 @@ export class AppGeoService {
 
   private setupFilterGeosObservable() : void {
     this.appStateService.currentProject$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([project, isReady]) => project != null && isReady),
-      map(([project]) => project.isIncludeValassis),
+      filter((project) => project != null),
+      map((project) => project.isIncludeValassis),
       distinctUntilChanged(),
     ).subscribe(() => this.store$.dispatch(new FiltersChanged({filterChanged: ProjectFilterChanged.Valassis})));
 
     this.appStateService.currentProject$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([project, isReady]) => project != null && isReady),
-      map(([project]) => project.isIncludeAnne),
+      filter((project) => project != null),
+      map((project) => project.isIncludeAnne),
       distinctUntilChanged(),
     ).subscribe(() => this.store$.dispatch(new FiltersChanged({filterChanged: ProjectFilterChanged.Anne})));
 
     this.appStateService.currentProject$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([project, isReady]) => project != null && isReady),
-      map(([project]) => project.isIncludeSolo),
+      filter((project) => project != null),
+      map((project) => project.isIncludeSolo),
       distinctUntilChanged(),
     ).subscribe(() => this.store$.dispatch(new FiltersChanged({filterChanged: ProjectFilterChanged.Solo})));
 
     this.appStateService.currentProject$.pipe(
-      withLatestFrom(this.appStateService.applicationIsReady$),
-      filter(([project, isReady]) => project != null && isReady),
-      map(([project]) => project.isExcludePob),
+      filter((project) => project != null),
+      map((project) => project.isExcludePob),
       distinctUntilChanged(),
     ).subscribe(() => this.store$.dispatch(new FiltersChanged({filterChanged: ProjectFilterChanged.Pob})));
   }
