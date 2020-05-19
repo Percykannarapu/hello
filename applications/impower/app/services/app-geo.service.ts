@@ -5,7 +5,7 @@ import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { ClearGeoAttributes, DeleteGeoAttributes, UpsertGeoAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -76,7 +76,7 @@ export class AppGeoService {
 
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready && !this.config.isBatchMode),
-      take(1)
+      // take(1)
     ).subscribe(() => {
       this.setupRadiusSelectionObservable();
       this.setupHomeGeoSelectionObservable();
