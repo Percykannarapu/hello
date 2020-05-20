@@ -25,6 +25,11 @@ export interface BatchMapQueryParams {
   fitTo: FitTo;
   duplicated: boolean;
   buffer: number;
+  currentView: boolean;
+  xmin: number;
+  ymin: number;
+  xmax: number;
+  ymax: number;
 }
 
 const defaultBatchQueryParams: BatchMapQueryParams = {
@@ -37,7 +42,12 @@ const defaultBatchQueryParams: BatchMapQueryParams = {
   groupByAttribute: null,
   fitTo: FitTo.GEOS,
   duplicated: false,
-  buffer: 0
+  buffer: 0,
+  currentView: false,
+  xmin: null,
+  ymin: null,
+  xmax: null,
+  ymax: null
 };
 
 const getRouterSlice = (state: LocalAppState) => state.router;

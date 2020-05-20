@@ -5,7 +5,7 @@ import { AppLocationService } from 'app/services/app-location.service';
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { UserService } from 'app/services/user.service';
-import { BatchMapPayload, BatchMapSizes, FitToPageOptions, LocalAppState, SinglePageBatchMapPayload, TitlePayload } from 'app/state/app.interfaces';
+import { BatchMapPayload, BatchMapSizes, FitToPageOptions, LocalAppState, SinglePageBatchMapPayload, TitlePayload, CurrentPageBatchMapPayload } from 'app/state/app.interfaces';
 import { CloseBatchMapDialog, CreateBatchMap } from 'app/state/batch-map/batch-map.actions';
 import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
@@ -89,7 +89,8 @@ export class BatchMapDialogComponent implements OnInit {
       subTitleInput: '',
       subSubTitleInput: '',
       taTitle: '',
-      enableTradeAreaShading: false
+      enableTradeAreaShading: false,
+      sitesToinclude: 'allActiveSites'
     });
     this.batchMapForm.get('sitesByGroup').disable();
   }
@@ -100,24 +101,48 @@ export class BatchMapDialogComponent implements OnInit {
     if (projectPref != null && projectPref != undefined) {
       projectPrefValue = (projectPref.largeVal != null) ? projectPref.largeVal : projectPref.val;
       const savedFormData = JSON.parse(projectPrefValue);
-      this.batchMapForm.patchValue({
-        title: savedFormData.title,
-        subTitle: savedFormData.subTitle,
-        subSubTitle: savedFormData.subSubTitle,
-        deduplicated: savedFormData.deduplicated,
-        sitesPerPage: savedFormData.sitesPerPage,
-        sitesByGroup: savedFormData.sitesByGroup,
-        neighboringSites: savedFormData.neighboringSites,
-        fitTo: savedFormData.fitTo,
-        buffer: savedFormData.buffer,
-        pageSettingsControl: savedFormData.pageSettingsControl,
-        layout: savedFormData.layout,
-        titleInput: savedFormData.titleInput,
-        subTitleInput: savedFormData.subTitleInput,
-        subSubTitleInput: savedFormData.subSubTitleInput,
-        enableTradeAreaShading: savedFormData.enableTradeAreaShading
-      });
-      if (savedFormData.fitTo === '') {
+      if (savedFormData.sitesToinclude == 'allActiveSites' ){
+        this.batchMapForm.patchValue({
+          title: savedFormData.title,
+          subTitle: savedFormData.subTitle,
+          subSubTitle: savedFormData.subSubTitle,
+          deduplicated: savedFormData.deduplicated,
+          sitesPerPage: savedFormData.sitesPerPage,
+          sitesByGroup: savedFormData.sitesByGroup,
+          neighboringSites: savedFormData.neighboringSites,
+          fitTo: savedFormData.fitTo == null ? '' : savedFormData.fitTo,
+          buffer: savedFormData.buffer == null ? 10 : savedFormData.buffer,
+          pageSettingsControl: savedFormData.pageSettingsControl,
+          layout: savedFormData.layout,
+          titleInput: savedFormData.titleInput,
+          subTitleInput: savedFormData.subTitleInput,
+          subSubTitleInput: savedFormData.subSubTitleInput,
+          enableTradeAreaShading: savedFormData.enableTradeAreaShading,
+          sitesToinclude: savedFormData.sitesToinclude
+        });
+        
+      }
+      else{
+        this.batchMapForm.patchValue({
+          title: savedFormData.title,
+          subTitle: savedFormData.subTitle,
+          subSubTitle: savedFormData.subSubTitle,
+          deduplicated: true,
+          sitesPerPage: 'oneSitePerPage',
+          sitesByGroup: 'locationNumber',
+          neighboringSites: 'include',
+          fitTo: savedFormData.fitTo == null ? '' : savedFormData.fitTo,
+          buffer: 10,
+          pageSettingsControl: savedFormData.pageSettingsControl,
+          layout: savedFormData.layout,
+          titleInput: '',
+          subTitleInput: '',
+          subSubTitleInput: '',
+          enableTradeAreaShading: false,
+          sitesToinclude: savedFormData.sitesToinclude
+        });
+      }
+      if (savedFormData.fitTo == '' || savedFormData.fitTo == null) {
         this.tradeAreaService.storeObservable.subscribe((tas) => {
           if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
             this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
@@ -144,7 +169,8 @@ export class BatchMapDialogComponent implements OnInit {
         titleInput: '',
         subTitleInput: '',
         subSubTitleInput: '',
-        enableTradeAreaShading: false
+        enableTradeAreaShading: false,
+        sitesToinclude: 'allActiveSites'
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
         if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
@@ -233,6 +259,26 @@ export class BatchMapDialogComponent implements OnInit {
         this.disableTradeArea = true;
       }
     });
+    this.batchMapForm.get('sitesToinclude').valueChanges.subscribe(val => {
+      if (val === 'currentMap'){
+        this.batchMapForm.get('sitesByGroup').disable();
+        this.batchMapForm.get('neighboringSites').disable();
+        this.batchMapForm.get('sitesPerPage').disable();
+        this.batchMapForm.get('deduplicated').disable();
+        this.batchMapForm.get('enableTradeAreaShading').disable();
+        this.batchMapForm.get('fitTo').disable();
+        this.batchMapForm.get('buffer').disable();
+      }else
+      {
+        this.batchMapForm.get('sitesByGroup').enable();
+        this.batchMapForm.get('neighboringSites').enable();
+        this.batchMapForm.get('sitesPerPage').enable();
+        this.batchMapForm.get('deduplicated').enable();
+        this.batchMapForm.get('enableTradeAreaShading').enable();
+        this.batchMapForm.get('fitTo').enable();
+        this.batchMapForm.get('buffer').enable();
+      }
+    });
   }
 
   onSubmit(dialogFields: any) {
@@ -257,71 +303,106 @@ export class BatchMapDialogComponent implements OnInit {
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'sites-per-page' , sitesPerPage, null));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'total-pages' , siteIds.length.toString(), null));
 
-    if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
-      const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
+    if (dialogFields.sitesToinclude === 'currentMap'){
+      let extent = (this.stateService.currentProject$.getValue().impProjectPrefs || []).filter(pref => pref.pref === 'extent')[0].largeVal;
+      extent = JSON.parse(extent);
+      const formData: CurrentPageBatchMapPayload = {
+        calls: [
+          {
+            service: 'ImpowerPdf',
+            function: 'printCurrentView',
+            args: {
+              currentPageConfiguration: {
+                email: `${this.userService.getUser().username}@valassis.com`,
+                projectId: this.currentProjectId,
+                size: size,
+                layout: dialogFields.layout,
+                title: this.batchMapForm.get('title').value,
+                subTitle: this.batchMapForm.get('subTitle').value,
+                subSubTitle: this.batchMapForm.get('subSubTitle').value,
+                //fitTo: fitTo,
+                xmin: extent['xmin'].toString(),
+                xmax: extent['xmax'].toString(),
+                ymin: extent['ymin'].toString(),
+                ymax: extent['ymax'].toString(),
+                taName: this.batchMapForm.get('taTitle').value || ''
+              }
+            }
+          }
+        ]
+      };
+      console.log('payload===>', formData);
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
-    } else if (dialogFields.sitesPerPage === 'oneSitePerPage') {
-      const formData: BatchMapPayload = {
-        calls: [
-          {
-            service: 'ImpowerPdf',
-            function: 'printMaps',
-            args: {
-              printJobConfiguration: {
-                email: `${this.userService.getUser().username}@valassis.com`,
-                titles: titles,
-                projectId: this.currentProjectId,
-                size: size,
-                pageSettings: dialogFields.pageSettingsControl,
-                layout: dialogFields.layout,
-                siteIds: siteIds,
-                hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
-                shadeNeighboringSites: ((dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false),
-                fitTo: fitTo,
-                duplicated: !(dialogFields.deduplicated),
-                buffer: dialogFields.buffer
-              }
-            }
-          }
-        ]
-      };
-      if (this.getActiveSites().length > 600){
-         this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
-      }
-      else
-        this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
-    } else if (dialogFields.sitesPerPage === 'sitesGroupedBy') {
-      //print maps by site Attributes
-      const formData: BatchMapPayload = {
-        calls: [
-          {
-            service: 'ImpowerPdf',
-            function: 'printMaps',
-            args: {
-              printJobConfiguration: {
-                email: `${this.userService.getUser().username}@valassis.com`,
-                titles: titlesByGroup,
-                projectId: this.currentProjectId,
-                size: size,
-                pageSettings: dialogFields.pageSettingsControl,
-                layout: dialogFields.layout,
-                siteIds: siteIdsByGroup,
-                hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
-                shadeNeighboringSites: (dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false,
-                fitTo: fitTo,
-                duplicated: !(dialogFields.deduplicated),
-                buffer: dialogFields.buffer,
-                groupByAttribute: dialogFields.sitesByGroup
-              }
-            }
-          }
-        ]
-      };
-      if (groupByExtended(this.getActiveSites(), l => l[dialogFields.sitesByGroup]).size > 600){
-        this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
-      }else
-         this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     }
+    else{
+      if (dialogFields.sitesPerPage === 'allSitesOnOnePage') {
+        const formData: SinglePageBatchMapPayload = this.getSinglePageMapPayload(size, dialogFields['layout'], this.getSiteIds().sort()[0], fitTo, dialogFields.buffer);
+        this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+      } else if (dialogFields.sitesPerPage === 'oneSitePerPage') {
+        const formData: BatchMapPayload = {
+          calls: [
+            {
+              service: 'ImpowerPdf',
+              function: 'printMaps',
+              args: {
+                printJobConfiguration: {
+                  email: `${this.userService.getUser().username}@valassis.com`,
+                  titles: titles,
+                  projectId: this.currentProjectId,
+                  size: size,
+                  pageSettings: dialogFields.pageSettingsControl,
+                  layout: dialogFields.layout,
+                  siteIds: siteIds,
+                  hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
+                  shadeNeighboringSites: ((dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false),
+                  fitTo: fitTo,
+                  duplicated: !(dialogFields.deduplicated),
+                  buffer: dialogFields.buffer
+                }
+              }
+            }
+          ]
+        };
+        if (this.getActiveSites().length > 600){
+           this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
+        }
+        else
+          this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+      } else if (dialogFields.sitesPerPage === 'sitesGroupedBy') {
+        //print maps by site Attributes
+        const formData: BatchMapPayload = {
+          calls: [
+            {
+              service: 'ImpowerPdf',
+              function: 'printMaps',
+              args: {
+                printJobConfiguration: {
+                  email: `${this.userService.getUser().username}@valassis.com`,
+                  titles: titlesByGroup,
+                  projectId: this.currentProjectId,
+                  size: size,
+                  pageSettings: dialogFields.pageSettingsControl,
+                  layout: dialogFields.layout,
+                  siteIds: siteIdsByGroup,
+                  hideNeighboringSites: !(dialogFields.neighboringSites === 'include'),
+                  shadeNeighboringSites: (dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false,
+                  fitTo: fitTo,
+                  duplicated: !(dialogFields.deduplicated),
+                  buffer: dialogFields.buffer,
+                  groupByAttribute: dialogFields.sitesByGroup
+                }
+              }
+            }
+          ]
+        };
+        if (groupByExtended(this.getActiveSites(), l => l[dialogFields.sitesByGroup]).size > 600){
+          this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
+        }else
+           this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
+      }
+
+    }
+    
     this.closeDialog();
   }
 
@@ -372,7 +453,8 @@ export class BatchMapDialogComponent implements OnInit {
               subTitle: this.getAttrValueByCode(location[0], subTitle, 'subTitle'),
               subSubTitle: this.getAttrValueByCode(location[0], subSubTitle, 'subSubTitle'),
               fitTo: fitTo,
-              buffer: buffer
+              buffer: buffer,
+              taName: this.batchMapForm.get('taTitle').value || ''
             }
           }
         }]

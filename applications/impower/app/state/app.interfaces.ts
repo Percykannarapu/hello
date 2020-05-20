@@ -83,6 +83,32 @@ export interface SinglePageBatchMapPayload {
         subSubTitle: string;
         fitTo: FitToPageOptions;
         buffer: number;
+        taName: string;
+      }
+    }
+  }];
+}
+
+export interface CurrentPageBatchMapPayload {
+  calls: [{
+    service: string,
+    function: string,
+    args: {
+      'currentPageConfiguration': {
+        email: string;
+        projectId: number;
+        size: BatchMapSizes;
+        layout: string;
+        title: string;
+        subTitle: string;
+        subSubTitle: string;
+        //fitTo: FitToPageOptions;
+        //buffer: number;
+        xmin: string;
+        xmax: string;
+        ymin: string;
+        ymax: string;
+        taName: string;
       }
     }
   }];
@@ -101,4 +127,16 @@ export interface TitlePayload {
   subTitle: string;
   subSubTitle: string;
   taName: string;
+}
+
+export interface ExtentPayload{
+  spatialReference: SpatialReference;
+  xmin: number;
+  ymin: number;
+  xmax: number;
+  ymax: number;
+}
+
+export interface SpatialReference{
+  wkid: number;
 }
