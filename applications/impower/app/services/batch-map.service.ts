@@ -25,6 +25,7 @@ import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { Extent } from 'esri/geometry';
+import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -288,7 +289,7 @@ export class BatchMapService {
   private polysFromRadii(siteNums: Array<string>, project: ImpProject) : Observable<__esri.Graphic[]> {
     const siteNumsSet: Set<string> = new Set(siteNums);
     const circles = project.getImpGeofootprintLocations().reduce((a, c) => {
-      if (siteNumsSet.has(c.locationNumber)) {
+      if (siteNumsSet.has(c.locationNumber) && c.clientLocationTypeCode === ImpClientLocationTypeCodes.Site) {
         const radii = c.impGeofootprintTradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius).map(ta => ta.taRadius);
         if (radii.length > 0) {
           const largestRadius = Math.max(...radii);
