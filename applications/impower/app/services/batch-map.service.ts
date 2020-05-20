@@ -23,6 +23,7 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -254,7 +255,7 @@ export class BatchMapService {
       const circles = [];
       project.getImpGeofootprintLocations().forEach(l => {
         let largestRadius = 0;
-        if (siteNumsSet.has(l.locationNumber)) {
+        if (siteNumsSet.has(l.locationNumber) && l.clientLocationTypeCode == ImpClientLocationTypeCodes.Site) {
           l.impGeofootprintTradeAreas.forEach(ta => {
             if (ta.taRadius > largestRadius)
               largestRadius = ta.taRadius;
