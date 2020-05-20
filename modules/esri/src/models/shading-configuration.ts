@@ -169,13 +169,14 @@ export function isComplexShadingDefinition(s: ShadingDefinition) : s is ComplexS
          s.shadingType === ConfigurationTypes.ClassBreak;
 }
 
-export function generateUniqueValues(sortedUniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], useIndexForValue: boolean = false) : UniqueValueFillDefinition[] {
+export function generateUniqueValues(sortedUniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], useIndexForValue: boolean = false, valuesToKeep?: Set<string>) : UniqueValueFillDefinition[] {
   return sortedUniqueValues.map((uv, i) => ({
     value: useIndexForValue ? `${i}` : uv,
     fillColor: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
     fillType: fillPalette[i % fillPalette.length],
     legendName: uv,
     outlineColor: [0, 0, 0, 0],
+    isHidden: valuesToKeep == null ? false : !valuesToKeep.has(uv)
   }));
 }
 

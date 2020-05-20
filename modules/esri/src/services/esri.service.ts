@@ -3,7 +3,7 @@ import { Store } from '@ngrx/store';
 import { isString, mapArray } from '@val/common';
 import Basemap from 'esri/Basemap';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, switchMap, take } from 'rxjs/operators';
+import { distinctUntilChanged, filter, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { BoundaryConfiguration } from '../models/boundary-configuration';
 import { PoiConfiguration } from '../models/poi-configuration';
 import { ShadingDefinition } from '../models/shading-configuration';
@@ -40,15 +40,13 @@ export class EsriService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      const mapIsStationary$ = this.mapService.watchMapViewProperty('stationary').pipe(
-        filter(result => result.newValue),
-        debounceTime(500)
-      );
       const selectedLayerIsReady$ = this.store$.select(selectors.getEsriSelectedLayer).pipe(distinctUntilChanged());
-      combineLatest([mapIsStationary$, selectedLayerIsReady$]).pipe(
-        filter(([, layerId]) => layerId != null),
+
+      this.mapService.viewsCanBeQueried$.pipe(
+        filter(ready => ready),
+        withLatestFrom(selectedLayerIsReady$),
         switchMap(([, layerId]) => this.layerService.layerIsVisibleOnMap(layerId) ? this.queryService.queryExtent(layerId) : of([]))
-      ).subscribe(g => this.visibleFeatures$.next(g), e => this.visibleFeatures$.error(e));
+      ).subscribe(this.visibleFeatures$);
       const poiGroups$ = this.poiService.allPoiConfigurations$.pipe(
         filter(p => p != null && p.length > 0),
         mapArray(p => p.groupName),

@@ -4,7 +4,7 @@ import { ShadingDefinition } from '../../models/shading-configuration';
 
 export const addLayerToLegend = createAction(
   '[Esri.Shading] Add Layer to Legend',
-  props<{ layerUniqueId: string, title: string }>()
+  props<{ layerUniqueId: string, title: string, showDefaultSymbol: boolean }>()
 );
 
 export const setFeaturesOfInterest = createAction(

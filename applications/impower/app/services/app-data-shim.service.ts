@@ -160,6 +160,10 @@ export class AppDataShimService {
       bc.destinationCentroidId = undefined;
       bc.useSimplifiedInfo = this.appConfig.isBatchMode;
     });
+    poiConfigurations.forEach(pc => {
+      pc.featureLayerId = undefined;
+      pc.refreshLegendOnRedraw = this.appConfig.isBatchMode;
+    });
     this.esriService.loadInitialState(state, shadingDefinitions, poiConfigurations, boundaryConfigurations);
     const savedBasemap = (project.impProjectPrefs || []).filter(pref => pref.pref === 'basemap')[0];
     if (savedBasemap != null && (savedBasemap.largeVal != null || savedBasemap.val != null)) {

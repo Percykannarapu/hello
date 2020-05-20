@@ -21,6 +21,7 @@ export interface BasePoiConfiguration {
   visible?: boolean;
   showLabels?: boolean;
   labelDefinition?: LabelDefinition;
+  refreshLegendOnRedraw?: boolean;
 }
 
 export interface SimplePoiConfiguration extends BasePoiConfiguration {

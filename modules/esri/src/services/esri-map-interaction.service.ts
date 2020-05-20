@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import Graphic from 'esri/Graphic';
 import { EMPTY, from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { EsriUtils } from '../core/esri-utils';
+import { finalize, map, reduce } from 'rxjs/operators';
 import { EsriGraphicTypeCodes } from '../core/esri.enums';
 import { AppState } from '../state/esri.reducers';
 import { StartSketchView } from '../state/map/esri.map-button.actions';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
+import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 import { EsriQueryService } from './esri-query.service';
 
@@ -17,6 +17,7 @@ export class EsriMapInteractionService {
   constructor(private mapService: EsriMapService,
               private domainFactory: EsriDomainFactoryService,
               private queryService: EsriQueryService,
+              private layerService: EsriLayerService,
               private store$: Store<AppState>) {}
 
   processClick(event: __esri.MapViewImmediateClickEvent) : Observable<__esri.Graphic[]> {
@@ -73,18 +74,12 @@ export class EsriMapInteractionService {
   }
 
   selectFeatures(geometry: __esri.Geometry, portalId: string) : Observable<__esri.Graphic[]> {
-    const graphicsList = [];
-    const layers = this.mapService.mapView.map.layers.filter(l => EsriUtils.layerIsPortalFeature(l) && l.visible && l.portalItem.id === portalId).toArray() as __esri.FeatureLayer[];
-    if (layers.length === 0) return EMPTY;
-    return new Observable(observer => {
-      this.queryService.queryLayerView(layers, geometry.extent).subscribe(
-        graphics => graphicsList.push(...graphics),
-        err => observer.error(err),
-        () => {
-          this.mapService.mapView.graphics.removeAll();
-          observer.next(graphicsList);
-          observer.complete();
-        });
-    });
+    const layer = this.layerService.getPortalLayerById(portalId);
+    if (layer == null) return EMPTY;
+
+    return this.queryService.queryLayerView(layer, geometry.extent).pipe(
+      reduce((a, c) => [...a, ...c], [] as __esri.Graphic[]),
+      finalize(() => this.mapService.mapView.graphics.removeAll())
+    );
   }
 }

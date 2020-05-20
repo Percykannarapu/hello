@@ -91,7 +91,7 @@ export class EsriShadingService {
           ).subscribe(id => {
             const hideLegendHeader = hideLegendHeaderTypes.has(d.shadingType);
             this.store$.dispatch(updateShadingDefinition({ shadingDefinition: { id: d.id, changes: { destinationLayerUniqueId: id }}}));
-            this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: hideLegendHeader ? null : d.layerName }));
+            this.store$.dispatch(addLayerToLegend({ layerUniqueId: id, title: hideLegendHeader ? null : d.layerName, showDefaultSymbol: false }));
             this.layersInFlight.delete(d.id);
           });
         }
@@ -155,12 +155,13 @@ export class EsriShadingService {
       } else {
         props.definitionExpression = null;
       }
-      if (config.refreshLegendOnRedraw && EsriUtils.rendererIsNotSimple(props.renderer)) {
+      const rendererIsComplex = EsriUtils.rendererIsNotSimple(props.renderer);
+      if (config.refreshLegendOnRedraw && rendererIsComplex) {
         this.layerService.removeLayerFromLegend(config.destinationLayerUniqueId);
         layer.set(props);
         setTimeout(() => {
           const layerName = hideLegendHeaderTypes.has(config.shadingType) ? null : config.layerName;
-          this.layerService.addLayerToLegend(config.destinationLayerUniqueId, layerName);
+          this.layerService.addLayerToLegend(config.destinationLayerUniqueId, layerName, !rendererIsComplex);
         }, 0);
       } else {
         layer.set(props);
@@ -227,7 +228,7 @@ export class EsriShadingService {
         simpleResult.label = defaultLabel;
         return simpleResult;
       case ConfigurationTypes.Unique:
-        const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
+        const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.filter(b => !b.isHidden).map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
         const result = this.domainFactory.createUniqueValueRenderer(defaultSymbol, uniqueValues);
         result.defaultLabel = defaultLabel;
         result.valueExpression = config.arcadeExpression;

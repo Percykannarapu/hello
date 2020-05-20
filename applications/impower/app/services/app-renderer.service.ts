@@ -175,7 +175,6 @@ export class AppRendererService {
       if (varPks != null) {
         const gfpFilteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
         const visibleGeoSet = new Set(visibleGeos);
-        const visibleMapVars = mapVars.filter(mv => visibleGeoSet.has(mv.geocode));
         varPks.forEach(varPk => {
           const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
           if (shadingLayers != null) {
@@ -184,23 +183,25 @@ export class AppRendererService {
               const currentMapVars =
                 shaderCopy.filterByFeaturesOfInterest
                   ? gfpFilteredMapVars
-                  : this.config.isBatchMode
-                    ? visibleMapVars
-                    : mapVars;
-              const uniqueStrings = new Set<string>();
-              const valuesForStats: number[] = [];
+                  : mapVars;
+              const allUniqueValues = new Set<string>();
+              const uniquesToKeep = new Set<string>();
+              const allValuesForStats: number[] = [];
               const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
                 switch (shaderCopy.shadingType) {
                   case ConfigurationTypes.Unique:
                     result[mapVar.geocode] = mapVar[varPk];
-                    if (mapVar[varPk] != null) uniqueStrings.add(`${mapVar[varPk]}`);
+                    if (mapVar[varPk] != null) {
+                      allUniqueValues.add(`${mapVar[varPk]}`);
+                      if (visibleGeoSet.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
+                    }
                     break;
                   case ConfigurationTypes.Ramp:
                   case ConfigurationTypes.ClassBreak:
                   case ConfigurationTypes.DotDensity:
                     result[mapVar.geocode] = Number(mapVar[varPk]);
                     if (mapVar[varPk] != null) {
-                      valuesForStats.push(Number(mapVar[varPk]));
+                      allValuesForStats.push(Number(mapVar[varPk]));
                     }
                     break;
                 }
@@ -213,7 +214,7 @@ export class AppRendererService {
               if (isArcadeCapableShadingDefinition(shaderCopy)) {
                 let arcadeExpression: string;
                 if (shaderCopy.shadingType === ConfigurationTypes.Unique) {
-                  uniqueValues = Array.from(uniqueStrings);
+                  uniqueValues = Array.from(allUniqueValues);
                   uniqueValues.sort();
                   arcadeExpression = createTextArcade(mapVarDictionary, uniqueValues);
                 } else {
@@ -228,14 +229,14 @@ export class AppRendererService {
               }
               switch (shaderCopy.shadingType) {
                 case ConfigurationTypes.Unique:
-                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true);
+                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true, uniquesToKeep);
                   break;
                 case ConfigurationTypes.Ramp:
-                  shaderCopy.breakDefinitions = generateContinuousValues(calculateStatistics(valuesForStats), colorPalette);
+                  shaderCopy.breakDefinitions = generateContinuousValues(calculateStatistics(allValuesForStats), colorPalette);
                   break;
                 case ConfigurationTypes.ClassBreak:
                   if (shaderCopy.dynamicallyAllocate) {
-                    const stats = calculateStatistics(valuesForStats, shaderCopy.dynamicAllocationSlots || 4);
+                    const stats = calculateStatistics(allValuesForStats, shaderCopy.dynamicAllocationSlots || 4);
                     let symbology = [ ...(shaderCopy.userBreakDefaults || []) ];
                     if (shaderCopy.dynamicLegend) {
                       symbology = generateDynamicSymbology(stats, colorPalette, fillPalette);

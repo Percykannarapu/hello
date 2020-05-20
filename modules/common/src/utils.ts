@@ -43,7 +43,7 @@ export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelec
  * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
  * @returns {Map<K, (T | R)[]>}
  */
-export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector: (item: T) => R) : Map<K, R[]>;
+export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector: (item: T, index: number) => R) : Map<K, R[]>;
 /**
  * Groups an array by the result of a keySelector function
  * @param {T[]} items: The array to group
@@ -51,13 +51,14 @@ export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelec
  * @param {(T) => R} valueSelector: Optional callback to transform each item before the final grouping
  * @returns {Map<K, (T | R)[]>}
  */
-export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector?: (item: T) => R) : Map<K, (T | R)[]> {
+export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector?: (item: T, index: number) => R) : Map<K, (T | R)[]> {
   const result = new Map<K, (T | R)[]>();
   if (items == null || items.length === 0) return result;
-  const tx: ((item: T) => T | R) = valueSelector != null ? valueSelector : (i) => i;
+  const tx: ((item: T, idx: number) => T | R) = valueSelector != null ? valueSelector : (i) => i;
+  let idx = 0;
   for (const i of items) {
     const currentKey = keySelector(i);
-    const currentValue = tx(i);
+    const currentValue = tx(i, idx++);
     if (result.has(currentKey)) {
       result.get(currentKey).push(currentValue);
     } else {
@@ -75,17 +76,18 @@ export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelec
  */
 export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string) : { [key: string] : T[] };
 export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number) : { [key: number] : T[] };
-export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string, valueSelector: (item: T) => R) : { [key: string] : R[] };
-export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number, valueSelector: (item: T) => R) : { [key: number] : R[] };
-export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: ((item: T) => string) | ((item: T) => number), valueSelector: (item: T) => T | R = (i) => i) : { [key: string] : (T | R)[] } | { [key: number] : (T | R)[] } {
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => string, valueSelector: (item: T, index: number) => R) : { [key: string] : R[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => number, valueSelector: (item: T, index: number) => R) : { [key: number] : R[] };
+export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: ((item: T) => string) | ((item: T) => number), valueSelector: (item: T, index: number) => T | R = (i) => i) : { [key: string] : (T | R)[] } | { [key: number] : (T | R)[] } {
   const result: { [k: string] : (T | R)[] } = {};
   if (items == null || items.length === 0) return result;
+  let idx = 0;
   for (const i of items) {
     const currentKey = keySelector(i);
     if (result[currentKey] == null) {
-      result[currentKey] = [valueSelector(i)];
+      result[currentKey] = [valueSelector(i, idx++)];
     } else {
-      result[currentKey].push(valueSelector(i));
+      result[currentKey].push(valueSelector(i, idx++));
     }
   }
   return result;

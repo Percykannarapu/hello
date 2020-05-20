@@ -88,38 +88,33 @@ export class EsriQueryService {
     return result;
   }
 
-  public queryLayerView(layers: __esri.FeatureLayer[], extent: __esri.Extent, returnGeometry: boolean = false) : Observable<__esri.Graphic[]> {
-    const observableResult: Observable<__esri.Graphic[]>[] = [];
-    for (const currentLayer of layers) {
-      const layerResult = new Observable<__esri.Graphic[]>(observer => {
-        this.mapService.mapView.whenLayerView(currentLayer).then((layerView: __esri.FeatureLayerView) => {
-          const query = extent == null ? undefined : new Query({
-            geometry: extent,
-            returnGeometry: returnGeometry,
-          });
-          if (layerView.updating) {
-            setTimeout(() => {
-              EsriUtils.setupWatch(layerView, 'updating').pipe(
-                filter(u => !u.newValue),
-                take(1)
-              ).subscribe(() => {
-                layerView.queryFeatures(query).then(results => {
-                  observer.next(results.features);
-                  observer.complete();
-                });
-              });
-            }, 0);
-          } else {
-            layerView.queryFeatures(query).then(results => {
-              observer.next(results.features);
-              observer.complete();
-            });
-          }
+  public queryLayerView(layer: __esri.FeatureLayer, extent: __esri.Extent, returnGeometry: boolean = false) : Observable<__esri.Graphic[]> {
+    return new Observable<__esri.Graphic[]>(observer => {
+      this.mapService.mapView.whenLayerView(layer).then((layerView: __esri.FeatureLayerView) => {
+        const query = extent == null ? undefined : new Query({
+          geometry: extent,
+          returnGeometry: returnGeometry,
         });
+        if (layerView.updating) {
+          setTimeout(() => {
+            EsriUtils.setupWatch(layerView, 'updating').pipe(
+              filter(u => !u.newValue),
+              take(1)
+            ).subscribe(() => {
+              layerView.queryFeatures(query).then(results => {
+                observer.next(results.features);
+                observer.complete();
+              });
+            });
+          }, 0);
+        } else {
+          layerView.queryFeatures(query).then(results => {
+            observer.next(results.features);
+            observer.complete();
+          });
+        }
       });
-      observableResult.push(layerResult);
-    }
-    return merge(...observableResult);
+    });
   }
 
   public queryPoint(layerId: string, points: pointInputs, returnGeometry?: boolean , outFields?: string[], alternateTxId?: string) : Observable<__esri.Graphic[]> {

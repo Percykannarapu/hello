@@ -36,6 +36,7 @@ export interface ClassBreakFillDefinition extends FillSymbolDefinition {
 
 export interface UniqueValueFillDefinition extends FillSymbolDefinition {
   value: string;
+  isHidden?: boolean;
 }
 
 export function duplicateFill<T extends FillSymbolDefinition>(symbol: T) : T {
@@ -56,6 +57,7 @@ export interface ClassBreakMarkerDefinition extends MarkerSymbolDefinition {
 
 export interface UniqueValueMarkerDefinition extends MarkerSymbolDefinition {
   value: string;
+  isHidden?: boolean;
 }
 
 export function duplicateMarker<T extends MarkerSymbolDefinition>(symbol: T) : T {

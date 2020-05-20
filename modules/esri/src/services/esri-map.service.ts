@@ -1,4 +1,5 @@
-import { ElementRef, Inject, Injectable, NgZone } from '@angular/core';
+import { ElementRef, Inject, Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { calculateStatistics, expandRange, Statistics, UniversalCoordinates } from '@val/common';
 import Basemap from 'esri/Basemap';
 import { Point, Polygon } from 'esri/geometry';
@@ -7,9 +8,12 @@ import Graphic from 'esri/Graphic';
 import EsriMap from 'esri/Map';
 import MapView from 'esri/views/MapView';
 import Expand from 'esri/widgets/Expand';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, from, Observable, of, throwError } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils, WatchResult } from '../core/esri-utils';
+import { AppState } from '../state/esri.reducers';
+import { selectors } from '../state/esri.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { LoggingService } from './logging.service';
 
@@ -23,34 +27,49 @@ function calculateExpandedStats(xData: number[], yData: number[], expansionAmoun
 
 @Injectable()
 export class EsriMapService {
+
+  public mapIsStationary$: Observable<boolean> = new BehaviorSubject<boolean>(false);
+  public viewsCanBeQueried$: Observable<boolean> = new BehaviorSubject<boolean>(false);
+
   public mapView: __esri.MapView;
   public widgetMap: Map<string, __esri.Widget> = new Map<string, __esri.Widget>();
 
   constructor(private domainService: EsriDomainFactoryService,
               private logger: LoggingService,
-              private zone: NgZone,
+              private store$: Store<AppState>,
               @Inject(EsriAppSettingsToken) private config: EsriAppSettings) {}
 
   initializeMap(container: ElementRef, baseMapId: string) : Observable<void> {
-    return new Observable<any>(sub => {
-      try {
-        const newMapParams = Object.assign({}, this.config.defaultMapParams);
-        newMapParams.basemap = Basemap.fromId(baseMapId);
-        const map = new EsriMap(newMapParams);
-        const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
-        newMapViewProps.container = container.nativeElement;
-        newMapViewProps.map = map;
-        const mapView = new MapView(newMapViewProps);
-        mapView.when(() => {
+    try {
+      const newMapParams = Object.assign({}, this.config.defaultMapParams);
+      newMapParams.basemap = Basemap.fromId(baseMapId);
+      const mapInstance = new EsriMap(newMapParams);
+      const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
+      newMapViewProps.container = container.nativeElement;
+      newMapViewProps.map = mapInstance;
+      const mapView = new MapView(newMapViewProps);
+      return from(mapView.when()).pipe(
+        tap(() => {
           this.mapView = mapView;
-          sub.next();
-          sub.complete();
-        }, err => sub.error(err));
-      } catch (e) {
-        this.logger.error.log('Map Initialization encountered an error', e);
-        sub.error(e);
-      }
-    });
+          this.setupMapSubscriptions();
+        })
+      );
+    } catch (e) {
+      this.logger.error.log('Map Initialization encountered an error', e);
+      return throwError(e);
+    }
+  }
+
+  private setupMapSubscriptions() : void {
+    this.watchMapViewProperty('stationary').pipe(
+      debounceTime(500),
+      map(result => result.newValue)
+    ).subscribe(this.mapIsStationary$ as BehaviorSubject<boolean>);
+
+    const selectedLayerIsReady$ = this.store$.select(selectors.getEsriSelectedLayer).pipe(distinctUntilChanged());
+    combineLatest([this.mapIsStationary$, selectedLayerIsReady$]).pipe(
+      map(([ready, layerId]) => ready && (layerId != null))
+    ).subscribe(this.viewsCanBeQueried$ as BehaviorSubject<boolean>);
   }
 
   zoomToPolys(polys: __esri.Graphic[], bufferPercent: number = 0.1) : Observable<void> {
@@ -83,30 +102,22 @@ export class EsriMapService {
   }
 
   private zoomOnMap(xStats: { min: number, max: number }, yStats: { min: number, max: number }, pointCount: number) : Observable<void> {
-    return new Observable<void>(subscriber => {
-      if (pointCount === 0 || xStats == null || yStats == null) {
-        subscriber.next();
-        subscriber.complete();
+    if (pointCount === 0 || xStats == null || yStats == null) {
+      return of();
+    } else {
+      const options = { animate: false };
+      let target: __esri.Polygon | __esri.GoToTarget2D;
+      if (pointCount === 1) {
+        target = {
+          target: new Point({ x: xStats.min, y: yStats.min }),
+          zoom: 11
+        };
       } else {
-        const options = { animate: false };
-        let target: __esri.Polygon | __esri.GoToTarget2D;
-        if (pointCount === 1) {
-          target = {
-            target: new Point({ x: xStats.min, y: yStats.min }),
-            zoom: 11
-          };
-        } else {
-          const polyExtent = this.domainService.createExtent(xStats, yStats);
-          target = Polygon.fromExtent(polyExtent);
-        }
-        this.mapView.goTo(target, options)
-          .catch(err => subscriber.error(err))
-          .then(() => {
-            subscriber.next();
-            subscriber.complete();
-          });
+        const polyExtent = this.domainService.createExtent(xStats, yStats);
+        target = Polygon.fromExtent(polyExtent);
       }
-    });
+      return from(this.mapView.goTo(target, options));
+    }
   }
 
   public zoomOut(){
