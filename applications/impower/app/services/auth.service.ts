@@ -33,6 +33,9 @@ export class AuthService implements CanActivate{
     this.manager.events.addAccessTokenExpiring(e => this.logger.debug.log('JWT is expiring soon'));
     this.manager.events.addAccessTokenExpired(e => 'JWT has expired');
     this.manager.events.addSilentRenewError(e => this.logger.error.log('Failed to renew JWT', e));
+    this.manager.events.addUserLoaded(oidcUser => {
+      RestDataService.bootstrap(this.getRestConfig(oidcUser));
+    });
   }
 
   canActivate() : Observable<boolean> {
