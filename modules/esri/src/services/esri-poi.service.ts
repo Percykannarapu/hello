@@ -131,7 +131,7 @@ export class EsriPoiService {
           labelsVisible: config.showLabels,
           labelingInfo: this.createLabelFromDefinition(config)
         };
-        if (config.refreshLegendOnRedraw && EsriUtils.rendererIsNotSimple(props.renderer)) {
+        if (EsriUtils.rendererIsUnique(props.renderer)) {
           this.layerService.removeLayerFromLegend(config.featureLayerId);
           layer.set(props);
           setTimeout(() => {
