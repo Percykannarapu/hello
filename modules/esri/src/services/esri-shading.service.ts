@@ -145,10 +145,11 @@ export class EsriShadingService {
       } else {
         props.definitionExpression = null;
       }
+      this.layerService.removeLayerFromLegend(config.destinationLayerUniqueId);
       layer.set(props);
-      if (!hideLegendHeaderTypes.has(config.shadingType)) {
-        this.layerService.updateLayerNameInLegend(config.destinationLayerUniqueId, config.layerName);
-      }
+      setTimeout(() => {
+        this.layerService.addLayerToLegend(config.destinationLayerUniqueId, config.layerName);
+      }, 0);
     }
   }
 
