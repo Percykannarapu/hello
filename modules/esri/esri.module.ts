@@ -11,7 +11,13 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { ToolbarModule } from 'primeng/toolbar';
 import { TreeTableModule } from 'primeng/treetable';
 import { filter, take } from 'rxjs/operators';
-import { ForRootOptions, forRootOptionsToken, provideEsriAppOptions, provideEsriAuthOptions, provideEsriLoaderOptions } from './esri-module-factories';
+import {
+  ForRootOptions,
+  forRootOptionsToken,
+  provideEsriAppOptions,
+  provideEsriAuthOptions,
+  provideEsriLoaderOptions
+} from './esri-module-factories';
 import { EsriGeographyPopupComponent } from './src/components/esri-geography-popup/esri-geography-popup.component';
 import { EsriLabelConfigComponent } from './src/components/esri-map-panel/esri-label-config/esri-label-config.component';
 import { EsriMapPanelComponent } from './src/components/esri-map-panel/esri-map-panel.component';
@@ -33,11 +39,11 @@ import { EsriService } from './src/services/esri.service';
 import { LoggingService } from './src/services/logging.service';
 import { allEffects } from './src/state/esri.effects';
 import { AppState, masterEsriReducer } from './src/state/esri.reducers';
-import { selectors } from './src/state/esri.selectors';
+import { internalSelectors } from './src/state/esri.selectors';
 
 export function initializer(store: Store<AppState>) {
   return function () {
-    return store.select(selectors.getEsriFeatureReady).pipe(filter(ready => ready), take(1)).toPromise();
+    return store.select(internalSelectors.getEsriInitialized).pipe(filter(init => init), take(1)).toPromise();
   };
 }
 

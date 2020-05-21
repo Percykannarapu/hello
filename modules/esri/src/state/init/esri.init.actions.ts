@@ -3,6 +3,7 @@ import { TokenResponse } from '../../core/esri-utils';
 
 export enum EsriInitActionTypes {
   Initialize = '[Esri] Initialize Configuration',
+  InitializeComplete = '[Esri] Initialization Complete',
   Authenticate = '[Esri] Authenticate',
   AuthenticateSuccess = '[Esri] Authenticate Success',
   AuthenticateFailure = '[Esri] Authenticate Failure',
@@ -10,6 +11,10 @@ export enum EsriInitActionTypes {
 
 export class Initialize implements Action {
     readonly type = EsriInitActionTypes.Initialize;
+}
+
+export class InitializeComplete implements Action {
+  readonly type = EsriInitActionTypes.InitializeComplete;
 }
 
 export class Authenticate implements Action {
@@ -26,4 +31,4 @@ export class AuthenticateFailure implements Action {
   constructor(public payload: { errorResponse: any }){}
 }
 
-export type EsriInitActions = Initialize | Authenticate | AuthenticateSuccess | AuthenticateFailure;
+export type EsriInitActions = Initialize | InitializeComplete | Authenticate | AuthenticateSuccess | AuthenticateFailure;

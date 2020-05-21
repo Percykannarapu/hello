@@ -5,7 +5,7 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { EsriConfigOptions, EsriLoaderToken } from '../../configuration';
 import { setupEsriConfig } from '../../core/esri-initialize';
 import { EsriIdentityService } from '../../services/esri-identity.service';
-import { Authenticate, AuthenticateFailure, AuthenticateSuccess, EsriInitActionTypes } from './esri.init.actions';
+import { AuthenticateFailure, AuthenticateSuccess, EsriInitActionTypes, InitializeComplete } from './esri.init.actions';
 
 @Injectable()
 export class EsriInitEffects {
@@ -14,7 +14,7 @@ export class EsriInitEffects {
   initialize$ = this.actions$.pipe(
     ofType(EsriInitActionTypes.Initialize),
     tap(() => setupEsriConfig(this.config)),
-    map(() => new Authenticate())
+    map(() => new InitializeComplete())
   );
 
   @Effect()

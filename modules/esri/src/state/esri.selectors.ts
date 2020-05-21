@@ -5,6 +5,7 @@ const getEsriState = createFeatureSelector<AppState, EsriState>('esri');
 const getEsriInitState = createSelector(getEsriState, state => state.init);
 const getEsriMapState = createSelector(getEsriState, state => state.map);
 
+const getEsriInitialized = createSelector(getEsriInitState, state => state.isInitialized);
 const getEsriFeatureReady = createSelector(getEsriInitState, (auth) => auth.isAuthenticated);
 
 const getEsriViewpointState = createSelector(getEsriMapState, state => state.mapViewpoint);
@@ -28,6 +29,7 @@ export const selectors = {
 };
 
 export const internalSelectors = {
+  getEsriInitialized,
   getEsriState,
   getEsriMapState,
   getEsriMapButtonState,
