@@ -53,6 +53,9 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
         label: shaderConfigTypeFriendlyNames[ConfigurationTypes[key]],
         value: ConfigurationTypes[key]
       }));
+    if (this.allShaders.length === 1) {
+      this.shaderForm.get('shadingType').setValue(this.allShaders[0].value);
+    }
   }
 
   protected setupForm() : void {

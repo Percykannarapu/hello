@@ -669,6 +669,11 @@ body {
     }
   }
 
+  .ui-splitbutton {
+    .ui-menu {
+      min-width: 15em;
+    }
+  }
 }
 
 @media (min-width: 1025px) {

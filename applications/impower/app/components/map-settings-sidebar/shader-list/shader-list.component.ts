@@ -8,6 +8,7 @@ import { GetAllMappedVariables } from '../../../impower-datastore/state/transien
 import { GfpShaderKeys } from '../../../models/ui-enums';
 import { AppLocationService } from '../../../services/app-location.service';
 import { AppRendererService } from '../../../services/app-renderer.service';
+import { TargetAudienceTdaService } from '../../../services/target-audience-tda.service';
 import { FullAppState } from '../../../state/app.interfaces';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -38,6 +39,7 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   constructor(private locationService: AppLocationService,
               private appRenderService: AppRendererService,
               private esriShaderService: EsriShadingService,
+              private tdaService: TargetAudienceTdaService,
               private store$: Store<FullAppState>,
               private logger: LoggingService) { }
 
@@ -66,6 +68,8 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   }
 
   addNewShader({ dataKey, layerName }: { dataKey: string, layerName?: string }) {
+    const tdaAudience = this.tdaService.getRawTDAAudienceData(dataKey);
+    if (tdaAudience != null) this.tdaService.addAudience(tdaAudience, false);
     const newShader = this.appRenderService.createNewShader(dataKey, layerName) as ShadingDefinition;
     newShader.sortOrder = Math.max(...this.shadingDefinitions.map(s => s.sortOrder), this.shadingDefinitions.length) + 1;
     this.esriShaderService.addShader(newShader);

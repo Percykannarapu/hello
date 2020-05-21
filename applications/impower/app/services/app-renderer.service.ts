@@ -266,7 +266,7 @@ export class AppRendererService {
       layerName,
       opacity: dataKey === GfpShaderKeys.Selection ? 0.25 : 0.5,
       filterField: 'geocode',
-      filterByFeaturesOfInterest: dataKey !== '',
+      filterByFeaturesOfInterest: shadingTypeMap[dataKey] != null,
       shadingType: shadingTypeMap[dataKey]
     };
     if (dataKey === GfpShaderKeys.OwnerSite && newForm.shadingType === ConfigurationTypes.Unique) {
