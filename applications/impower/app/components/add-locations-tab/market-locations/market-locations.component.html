@@ -1,23 +1,27 @@
-<form novalidate autocomplete="off" valConnectForm="marketLocation" [debounce]="0"
-      [formGroup]="marketLocationFormGroup" (submit)="onSubmit(marketLocationFormGroup.value)">
-<div class="ui-g-6">
-  <div class="ui-inputgroup">
-    <span class="md-inputfield">
-      <input pInputText id="mlf_numberInput" class="ui-g-12" formControlName="number" autocomplete="off" />
-      <span class="ui-inputgroup-addon" *ngIf="!hasErrors('number')">&nbsp;</span>
-      <span class="ui-inputgroup-addon" *ngIf="hasErrors('number')">
-        <i class="ui-icon-error error-icon" title="Starting site Number is required"></i>
-      </span>
-      <label class="validation-float-label" for="mlf_numberInput">Start Number (required)</label>
-    </span>
-  </div>
-</div>
+<!-- valConnectForm="marketLocation" [debounce]="0" -->
+<form novalidate autocomplete="off" [formGroup]="marketLocationFormGroup" (submit)="onSubmit(marketLocationFormGroup.value)">
 <div class="ui-g-12 ui-g-nopad">
   <div class="ui-g-2">
-    <dropdown-input id="mlf_states" formControlName="states" labelText="States" [options]="stateItems" [includeUnselected]="true"></dropdown-input>
+    <div class="ui-inputgroup">
+      <span class="md-inputfield">
+        <input pInputText id="mlf_numberInput" class="ui-g-12" formControlName="number" autocomplete="off" />
+        <span class="ui-inputgroup-addon" *ngIf="!hasErrors('number')">&nbsp;</span>
+        <span class="ui-inputgroup-addon" *ngIf="hasErrors('number')">
+          <i class="ui-icon-error error-icon" title="Starting site Number is required"></i>
+        </span>
+        <label class="validation-float-label" for="mlf_numberInput">Start Number (required)</label>
+      </span>
+    </div>
   </div>
-  <div class="ui-g-10">
-    <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" [includeUnselected]="true"></dropdown-input>
+  <div class="ui-g-2">
+    <span class="md-inputfield">
+      <dropdown-input id="mlf_states" formControlName="states" labelText="States" [options]="stateItems" [includeUnselected]="true"></dropdown-input>
+    </span>
+  </div>
+  <div class="ui-g-8">
+    <span class="md-inputfield">
+      <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" [includeUnselected]="true"></dropdown-input>
+    </span>
   </div>
 </div>
 <div class="ui-g-12 ui-g-nopad">
@@ -25,23 +29,27 @@
     <button (click)="clear()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
   </div>
   <div class="ui-g-4">
-    <button type="submit" label="Submit" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button>
+    <!-- <button (click)="onSubmit(marketLocationFormGroup.value)" type="submit" type="button" label="Query Market Values" icon="ui-icon-search" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button> -->
+    <button (click)="onSubmit(marketLocationFormGroup.value)" type="submit" type="button" label="Query Market Values" icon="ui-icon-search" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button>
+  </div>
+  <div class="ui-g-4">
+    <button  (click)="query()" label="Create Locations" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button>
   </div>
 </div>
 </form>
+
 <div id="containerValuesGrid" class="ui-g-12">
   <p-table #containersGrid
            class="{{tableWrapStyle}}"
            [columns]="containerGridColumns"
            [value]="containerValues$ | async"
-           [selection]="containerValuesSelected$ | async"
+           [selection]="containerValues$ | async"
            [resizableColumns]="true" columnResizeMode="expand"
            [reorderableColumns]="false"
            sortMode="multiple" [multiSortMeta]="multiSortMeta"
            [responsive]="true"
            [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50,100,200,500,1000]"
-           [alwaysShowPaginator]="false"
-           [first]="first"
+           [alwaysShowPaginator]="true"
            (onRowUnselect)="onRowSelect($event, false)"
            (onRowSelect)="onRowSelect($event, true)"
            (onFilter)="onFilter($event)">
@@ -107,11 +115,11 @@
         <td style="width: 30px; padding-left: 0.4em">
           <p-checkbox [(ngModel)]="container.isActive" binary="true" (click)="onSelectContainer(container)" pTooltip="{{getSelectionTooltip(container.loc)}}" tooltipPosition="right"></p-checkbox>
         </td>
-        <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass" [ngSwitch]="col.field">
+        <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass"> <!-- [ngSwitch]="col.field"> -->
           <!-- Display all other columns -->
-          <div *ngSwitchDefault>
+          <!-- div *ngSwitchDefault -->
             {{container[col.field]}}
-          </div>
+          <!-- /div -->
         </td>
       </tr>
     </ng-template>
@@ -121,10 +129,24 @@
         <td style="width: 30px; padding-left: 0.4em">&nbsp;</td>
         <td [attr.colspan]="columns.length">
           <div class="ui-g-12">
-            <h4>No container values</h4>
+            <div *ngIf="!isFetchingData">
+              <h4>No container values</h4>
+            </div>
+            <div *ngIf="isFetchingData">
+              <div class="ui-g-1">
+                <p-progressSpinner *ngIf="isFetchingData" [style]="{width: '50px', height: '50px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
+              </div>
+              <div  class="ui-g-11">
+                <h4>Fetching container values</h4>
+              </div>
+            </div>
           </div>
         </td>
       </tr>
     </ng-template>
   </p-table>
+</div>
+
+<div class="ui-g-12">
+  <button  label="A" icon="ui-icon-send" pButton class="ui-g-12"></button>
 </div>

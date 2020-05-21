@@ -24,13 +24,16 @@ class ContainerValue {
 
   constructor(data: Partial<ContainerValue>) {
     Object.assign(this, data);
+    this.isActive = true;
   }
+
+  public toString = () => JSON.stringify(this, null, '   ');
 }
 
 @Component({
   selector: 'val-market-locations',
   templateUrl: './market-locations.component.html',
-  styleUrls: ['./market-locations.component.scss']
+  styleUrls:  ['./market-locations.component.scss']
 })
 export class MarketLocationsComponent implements OnInit {
 
@@ -50,6 +53,10 @@ export class MarketLocationsComponent implements OnInit {
   marketLocationFormGroup: FormGroup;
   marketTypeItems: SelectItem[];
   stateItems: SelectItem[];
+  containerValues: ContainerValue[];
+
+  selectedState: SelectItem;
+  selectedContainer: SelectItem;
 
   // Grid Variables
   public containerGridColumns: any[] =
@@ -83,6 +90,8 @@ export class MarketLocationsComponent implements OnInit {
   // Control table sorting
   public  multiSortMeta: Array<SortMeta>;
 
+  public  isFetchingData: boolean = false;
+
   constructor(private fb: FormBuilder,
               private appEditSiteService: AppEditSiteService,
               private store$: Store<FullAppState>,
@@ -95,13 +104,13 @@ export class MarketLocationsComponent implements OnInit {
       states: '',
       market: '' //['', Validators.required]
     };
-    this.marketLocationFormGroup = this.fb.group(formSetup, { updateOn: 'blur' });
+    this.marketLocationFormGroup = this.fb.group(formSetup); //, { updateOn: 'blur' });
 
     this.marketTypeItems = [
       {label: 'DMA',                   value: 'DMA'},
       {label: 'Pricing Market',        value: 'PRICING'},
-      {label: 'Wrap Zone - Primary',   value: 'WRAPID'},
-//    {label: 'Wrap Zone - Secondary', value: 'WRAPID2'},
+      {label: 'Wrap Zone - Primary',   value: 'WRAP'},
+//    {label: 'Wrap Zone - Secondary', value: 'WRAP2'},
 //    {label: 'SDM',                   value: 'SDM'},
       {label: 'CBSA',                  value: 'CBSA'},
       {label: 'Infoscan',              value: 'INFOSCAN'},
@@ -136,12 +145,9 @@ export class MarketLocationsComponent implements OnInit {
       this.selectedColumns.push(column);
     }
 
-    /*this.impLocationService.storeObservable.subscribe(locations => {
-      this.createLabelDropdown(locations);
-    });*/
+    this.containerValues$ = this.containerValuesBS$.asObservable();
 
     this.initializeGridState();
-
     this.populateStatesDropdown();
   }
 
@@ -159,6 +165,14 @@ export class MarketLocationsComponent implements OnInit {
     this.store$.dispatch(resetNamedForm({ path: 'marketLocation' }));
   }
 
+  query(market: string) : void {
+    console.log('query fired');
+//    const market = this.marketLocationFormGroup.value['market'].value;
+    console.log('market: ' + market);    
+    
+    this.populateContainerValues(market);
+  }
+
   hasErrors(controlKey: string) : boolean {
     const control = this.marketLocationFormGroup.get(controlKey);
     return false;
@@ -166,7 +180,10 @@ export class MarketLocationsComponent implements OnInit {
   }
 
   onSubmit(formData: any) {
-    console.log('onSubmit Fired - formData: ' + formData);    
+    this.marketLocationFormGroup.patchValue({id: formData.id, code: formData.code, name: formData.name, state: formData.state});
+    console.log('onSubmit Fired');
+    console.log('formData: ' + formData['market']);
+    this.query(formData['market']);    
     /*
     if (formData.coord != null && formData.coord !== '') {
       formData.latitude = formData.coord.split(',')[0];
@@ -189,6 +206,7 @@ export class MarketLocationsComponent implements OnInit {
     const query = `${this.geoContainerLookupUrl}/${container}`;
     this.containerValues$ = this.restService.get(query).pipe(
       map((result) => result.payload.rows as Partial<ContainerValue>[]),
+      tap((result) =>     this.isFetchingData = false)
     );
   }
 
@@ -196,21 +214,16 @@ export class MarketLocationsComponent implements OnInit {
     this.getContainerData('state').subscribe(containerValues => {
       if (containerValues == null)
         console.log('### No state information returned');
-      else        
+      else
         if (containerValues.length === 0) {
           this.store$.dispatch(new ErrorNotification({ message: 'No States Found'}));
         } else {
           //const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
           //this.currentTrackerSuggestions.next(foundItems);
-          this.stateItems = [
-            {label: 'Michigan',              value: 'MI'},
-            {label: 'Indiana',               value: 'IN'},
-            {label: 'Louisiana',             value: 'LA'}
-          ];
           this.stateItems = [];
           for (let i = 0; i < containerValues.length; i++)
           {
-            console.log('States: ' + containerValues[i].state + ' - ' + containerValues[i].name);
+            //console.log('States: ' + containerValues[i].state + ' - ' + containerValues[i].name);
             this.stateItems.push({label: containerValues[i].name, value: containerValues[i].state});
           }
         }
@@ -219,11 +232,46 @@ export class MarketLocationsComponent implements OnInit {
     );
   }
 
+  public populateContainerValues(container: string) {
+    if (container == null || container === '') // TODO: replace with isValidContainer 
+    {
+      console.log('Invalid container passed: ' + container);
+      return;      
+    }
+    this.isFetchingData = true;
+
+    this.containerValues$ = this.getContainerData(container).pipe(tap(
+      containerValues => console.log(containerValues.toString().substr(1, 99)) 
+    ));
+
+    this.getContainerData(container).subscribe(values => this.containerValuesBS$.next(values));
+    //this.containerValues$.subscribe(data => console.log('data: ' + data));
+     /*.subscribe(containerValues => {
+      if (containerValues == null)
+        console.log('### No information returned for container: ' + container);
+      else        
+        if (containerValues.length === 0) {
+          this.store$.dispatch(new ErrorNotification({ message: 'No data found for container: ' + container}));
+        } else {
+          //const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
+          //this.currentTrackerSuggestions.next(foundItems);
+          this.containerValues = containerValues;*/
+/*         this.containerValues = [];
+          for (let i = 0; i < containerValues.length; i++)
+          {
+            console.log('Container Value: ' + containerValues[i].state + ' - ' + containerValues[i].name);
+            this.stateItems.push(new ContainerValue {label: containerValues[i].name, value: containerValues[i].state});
+          }*/
+ /*       }
+      },
+      err => this.logger.error.log('There was an error retrieving the states Data', err)
+    );*/
+  }
+
   private getContainerData(container: string) : Observable<ContainerValue[]> {
     console.log('getContainerData fired - container: ' + container);    
     const lookupUrl = `${this.geoContainerLookupUrl}/${container}`;
     return this.restService.get(lookupUrl).pipe(
-        tap(r => console.log('result: ' + r)),
         map((result: any) => result.payload.rows || []),
         map(data => data.map(result => new ContainerValue(result)))
     );
