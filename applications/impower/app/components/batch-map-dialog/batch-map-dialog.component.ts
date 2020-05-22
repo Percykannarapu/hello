@@ -13,7 +13,7 @@ import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeo
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { SelectItem } from 'primeng/api';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { ErrorNotification } from '@val/messaging';
 import { groupByExtended, groupBy, mapByExtended } from '@val/common';
@@ -42,6 +42,7 @@ export class BatchMapDialogComponent implements OnInit {
   };
   enableTradeAreaShading: boolean;
   disableTradeArea: boolean;
+  sitesCount$: Observable<number> = of(this.numSites);
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
@@ -101,7 +102,7 @@ export class BatchMapDialogComponent implements OnInit {
     if (projectPref != null && projectPref != undefined) {
       projectPrefValue = (projectPref.largeVal != null) ? projectPref.largeVal : projectPref.val;
       const savedFormData = JSON.parse(projectPrefValue);
-      if (savedFormData.sitesToinclude == 'allActiveSites' ){
+     // if (savedFormData.sitesToinclude == 'allActiveSites' ){
         this.batchMapForm.patchValue({
           title: savedFormData.title,
           subTitle: savedFormData.subTitle,
@@ -120,28 +121,7 @@ export class BatchMapDialogComponent implements OnInit {
           enableTradeAreaShading: savedFormData.enableTradeAreaShading,
           sitesToinclude: savedFormData.sitesToinclude
         });
-        
-      }
-      else{
-        this.batchMapForm.patchValue({
-          title: savedFormData.title,
-          subTitle: savedFormData.subTitle,
-          subSubTitle: savedFormData.subSubTitle,
-          deduplicated: true,
-          sitesPerPage: 'oneSitePerPage',
-          sitesByGroup: 'locationNumber',
-          neighboringSites: 'include',
-          fitTo: savedFormData.fitTo == null ? '' : savedFormData.fitTo,
-          buffer: 10,
-          pageSettingsControl: savedFormData.pageSettingsControl,
-          layout: savedFormData.layout,
-          titleInput: '',
-          subTitleInput: '',
-          subSubTitleInput: '',
-          enableTradeAreaShading: false,
-          sitesToinclude: savedFormData.sitesToinclude
-        });
-      }
+     
       if (savedFormData.fitTo == '' || savedFormData.fitTo == null) {
         this.tradeAreaService.storeObservable.subscribe((tas) => {
           if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
@@ -196,7 +176,7 @@ export class BatchMapDialogComponent implements OnInit {
       if (value !== null) {
         if (value === 'user-defined') {
           this.batchMapForm.get('titleInput').enable();
-        } else {
+        } else if (this.batchMapForm.get('sitesToinclude').value !== 'currentMap') {
           this.batchMapForm.get('titleInput').disable();
         }
       }
@@ -240,6 +220,7 @@ export class BatchMapDialogComponent implements OnInit {
       this.currentProjectName = p.projectName;
       this.batchMapForm.patchValue({titleInput: this.currentProjectName});
       this.numSites = p.getImpGeofootprintLocations().length;
+      this.sitesCount$ = of(this.getActiveSites().length);
     });
     this.appLocationService.siteLabelOptions$.subscribe( (list: SelectItem[]) => {
       const customList: SelectItem[] = [];
@@ -260,24 +241,11 @@ export class BatchMapDialogComponent implements OnInit {
       }
     });
     this.batchMapForm.get('sitesToinclude').valueChanges.subscribe(val => {
-      if (val === 'currentMap'){
-        this.batchMapForm.get('sitesByGroup').disable();
-        this.batchMapForm.get('neighboringSites').disable();
-        this.batchMapForm.get('sitesPerPage').disable();
-        this.batchMapForm.get('deduplicated').disable();
-        this.batchMapForm.get('enableTradeAreaShading').disable();
-        this.batchMapForm.get('fitTo').disable();
-        this.batchMapForm.get('buffer').disable();
-      }else
-      {
-        this.batchMapForm.get('sitesByGroup').enable();
-        this.batchMapForm.get('neighboringSites').enable();
-        this.batchMapForm.get('sitesPerPage').enable();
-        this.batchMapForm.get('deduplicated').enable();
-        this.batchMapForm.get('enableTradeAreaShading').enable();
-        this.batchMapForm.get('fitTo').enable();
-        this.batchMapForm.get('buffer').enable();
-      }
+      if (val === 'currentMap')
+        this.currentViewSetting();
+      else
+       this.activeSitesSetting();
+      
     });
   }
 
@@ -306,6 +274,9 @@ export class BatchMapDialogComponent implements OnInit {
     if (dialogFields.sitesToinclude === 'currentMap'){
       let extent = (this.stateService.currentProject$.getValue().impProjectPrefs || []).filter(pref => pref.pref === 'extent')[0].largeVal;
       extent = JSON.parse(extent);
+      const title = this.batchMapForm.get('title').value;
+      const subTitle = this.batchMapForm.get('subTitle').value;
+      const subSubTitle = this.batchMapForm.get('subSubTitle').value;
       const formData: CurrentPageBatchMapPayload = {
         calls: [
           {
@@ -317,10 +288,9 @@ export class BatchMapDialogComponent implements OnInit {
                 projectId: this.currentProjectId,
                 size: size,
                 layout: dialogFields.layout,
-                title: this.batchMapForm.get('title').value,
-                subTitle: this.batchMapForm.get('subTitle').value,
-                subSubTitle: this.batchMapForm.get('subSubTitle').value,
-                //fitTo: fitTo,
+                title: dialogFields.titleInput,
+                subTitle: dialogFields.subTitleInput,
+                subSubTitle: dialogFields.subSubTitleInput,
                 xmin: extent['xmin'].toString(),
                 xmax: extent['xmax'].toString(),
                 ymin: extent['ymin'].toString(),
@@ -331,7 +301,6 @@ export class BatchMapDialogComponent implements OnInit {
           }
         ]
       };
-      console.log('payload===>', formData);
       this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
     }
     else{
@@ -428,8 +397,22 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   closeDialog(){
+    this.batchMapForm.get('sitesByGroup').enable();
+    this.batchMapForm.get('neighboringSites').enable();
+    this.batchMapForm.get('sitesPerPage').enable();
+    this.batchMapForm.get('deduplicated').enable();
+    this.batchMapForm.get('enableTradeAreaShading').enable();
+    this.batchMapForm.get('fitTo').enable();
+    this.batchMapForm.get('buffer').enable();
+    this.batchMapForm.get('title').enable();
+    this.batchMapForm.get('subTitle').enable();
+    this.batchMapForm.get('subSubTitle').enable();
     const data = JSON.stringify(this.batchMapForm.value);
     this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
+    if (this.batchMapForm.get('sitesToinclude').value === 'currentMap')
+        this.currentViewSetting();
+    else
+        this.activeSitesSetting();    
     this.store$.dispatch(new CloseBatchMapDialog());
   }
 
@@ -551,4 +534,55 @@ export class BatchMapDialogComponent implements OnInit {
     const Ids = Array.from(Array(divisionArr.length).keys());
     return [Ids, titlePayload];
   }
+
+  private activeSitesSetting(){
+    this.batchMapForm.get('sitesByGroup').enable();
+    this.batchMapForm.get('neighboringSites').enable();
+    this.batchMapForm.get('sitesPerPage').enable();
+    this.batchMapForm.get('deduplicated').enable();
+    this.batchMapForm.get('enableTradeAreaShading').enable();
+    this.batchMapForm.get('fitTo').enable();
+    this.batchMapForm.get('buffer').enable();
+    this.batchMapForm.get('title').enable();
+    this.batchMapForm.get('subTitle').enable();
+    this.batchMapForm.get('subSubTitle').enable();
+
+    if (this.batchMapForm.get('title').value === 'user-defined') {
+      this.batchMapForm.get('titleInput').enable();
+    } else {
+      this.batchMapForm.get('titleInput').disable();
+    }
+
+    if (this.batchMapForm.get('subTitle').value === 'user-defined') {
+      this.batchMapForm.get('subTitleInput').enable();
+    } else {
+      this.batchMapForm.get('subTitleInput').disable();
+    }
+
+    if (this.batchMapForm.get('subSubTitle').value === 'user-defined') {
+      this.batchMapForm.get('subSubTitleInput').enable();
+    } else {
+      this.batchMapForm.get('subSubTitleInput').disable();
+    }
+  }
+
+  private currentViewSetting(){
+        this.batchMapForm.get('sitesByGroup').disable();
+        this.batchMapForm.get('neighboringSites').disable();
+        this.batchMapForm.get('sitesPerPage').disable();
+        this.batchMapForm.get('deduplicated').disable();
+        this.batchMapForm.get('enableTradeAreaShading').disable();
+        this.batchMapForm.get('fitTo').disable();
+        this.batchMapForm.get('buffer').disable();
+        this.batchMapForm.get('title').disable();
+        this.batchMapForm.get('subTitle').disable();
+        this.batchMapForm.get('subSubTitle').disable();
+
+        this.batchMapForm.get('titleInput').enable();
+        this.batchMapForm.get('subTitleInput').enable();
+        this.batchMapForm.get('subSubTitleInput').enable();
+
+        
+  }
+
 }
