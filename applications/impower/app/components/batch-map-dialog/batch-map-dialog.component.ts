@@ -407,6 +407,8 @@ export class BatchMapDialogComponent implements OnInit {
     this.batchMapForm.get('title').enable();
     this.batchMapForm.get('subTitle').enable();
     this.batchMapForm.get('subSubTitle').enable();
+    this.batchMapForm.get('subTitleInput').enable();
+    this.batchMapForm.get('subSubTitleInput').enable();
     const data = JSON.stringify(this.batchMapForm.value);
     this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
     if (this.batchMapForm.get('sitesToinclude').value === 'currentMap')
