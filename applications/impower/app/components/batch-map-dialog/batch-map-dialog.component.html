@@ -1,5 +1,5 @@
 <p-dialog  [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '1000px', minWidth: '200px', height: '830px'}" [maximizable]="false">
+  [modal]="true" [style]="{width: '1000px', minWidth: '200px', height: '840px'}" [maximizable]="false">
   <p-header>
       Export Map PDFs
     </p-header>
@@ -26,9 +26,15 @@
                   <p-radioButton name="sitesToinclude" value="currentMap" label="Current Map(visible sites only)"
                   formControlName="sitesToinclude"></p-radioButton>
               </div>
+              <div class="ui-g-12 customPadding">
+                    <p-checkbox label="De-duplicated shading" formControlName="deduplicated" binary="true"></p-checkbox>
+              </div>
           </div>
           <div class="ui-g-12">
-              <div class="flexTitle">
+              <div class="ui-g-12 labelTitle">
+                  <label><b> Titles </b></label>
+              </div>
+              <div class="flexTitle customPadding">
                   <div class="titleFlex1">
                     <dropdown-input formControlName="title" labelText="Title" [options]="siteLabels"
                       [includeUnselected]="true"></dropdown-input>
@@ -37,7 +43,7 @@
                     <validated-text-input formControlName="titleInput"></validated-text-input>
                   </div>
               </div>
-              <div class="flexTitle">
+              <div class="flexTitle customPadding">
                   <div class="titleFlex1">
                     <dropdown-input formControlName="subTitle" labelText="Subtitle 1" [options]="siteLabels"
                       [includeUnselected]="true"></dropdown-input>
@@ -46,7 +52,7 @@
                     <validated-text-input formControlName="subTitleInput"></validated-text-input>
                   </div>
               </div>
-              <div class="flexTitle">
+              <div class="flexTitle customPadding">
                   <div class="titleFlex1">
                     <dropdown-input formControlName="subSubTitle" labelText="Subtitle 2" [options]="siteLabels"
                       [includeUnselected]="true"></dropdown-input>
@@ -55,7 +61,7 @@
                     <validated-text-input formControlName="subSubTitleInput"></validated-text-input>
                   </div>
               </div>
-              <div class="ui-g-12">
+              <div class="ui-g-12 customPadding">
                   <span class="ui-float-label">
                     <input id="float-input" type="text" style="width: 33%;" formControlName="taTitle" pInputText>
                     <label for="float-input">Trade Area Title</label>
@@ -65,9 +71,7 @@
            
           
           <div class="ui-g-12 p-grid">
-            <div class="ui-g-12">
-              <p-checkbox label="De-duplicated shading" formControlName="deduplicated" binary="true"></p-checkbox>
-            </div>
+            
             <div class="p-col-6">
               <div class="sitesPerPage">
                 <div class="ui-g-12 labelTitle">

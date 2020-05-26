@@ -99,7 +99,7 @@ export class BatchMapDialogComponent implements OnInit {
   onLoadFormData() {
     let projectPrefValue: string;
     const projectPref = this.appProjectPrefService.getPref('batchMapPayload');
-    if (projectPref != null && projectPref != undefined) {
+    if (projectPref != null) {
       projectPrefValue = (projectPref.largeVal != null) ? projectPref.largeVal : projectPref.val;
       const savedFormData = JSON.parse(projectPrefValue);
      // if (savedFormData.sitesToinclude == 'allActiveSites' ){
@@ -119,7 +119,8 @@ export class BatchMapDialogComponent implements OnInit {
           subTitleInput: savedFormData.subTitleInput,
           subSubTitleInput: savedFormData.subSubTitleInput,
           enableTradeAreaShading: savedFormData.enableTradeAreaShading,
-          sitesToinclude: savedFormData.sitesToinclude
+          sitesToinclude: savedFormData.sitesToinclude == null ? 'allActiveSites' : savedFormData.sitesToinclude,
+          taTitle: savedFormData.taTitle,
         });
      
       if (savedFormData.fitTo == '' || savedFormData.fitTo == null) {
@@ -150,7 +151,8 @@ export class BatchMapDialogComponent implements OnInit {
         subTitleInput: '',
         subSubTitleInput: '',
         enableTradeAreaShading: false,
-        sitesToinclude: 'allActiveSites'
+        sitesToinclude: 'allActiveSites',
+        taTitle: ''
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
         if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
