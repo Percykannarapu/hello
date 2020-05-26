@@ -215,7 +215,9 @@ export class BatchMapService {
         }
 
         if (params.hideNeighboringSites) {
-          this.store$.dispatch(new RenderLocations({ locations: [currentSite] }));
+          const renderLocs = project.getImpGeofootprintLocations().filter(loc => loc.clientLocationTypeCode === 'Competitor');
+          renderLocs.push(currentSite);
+          this.store$.dispatch(new RenderLocations({ locations: renderLocs }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         } else if (params.shadeNeighboringSites) {
           this.geoService.update(null, null);
