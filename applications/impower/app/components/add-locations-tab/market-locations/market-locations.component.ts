@@ -1,7 +1,7 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { FormConfig } from '@val/common';
+import { FormConfig, mapArray, distinctArray } from '@val/common';
 import { AppEditSiteService } from 'app/services/app-editsite.service';
 import { SelectItem, SortMeta } from 'primeng/api';
 import { ErrorNotification } from '@val/messaging';
@@ -11,9 +11,10 @@ import { resetNamedForm, updateNamedForm } from '../../../state/forms/forms.acti
 import { MarketLocationForm } from '../../../state/forms/forms.interfaces';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, filter, startWith } from 'rxjs/operators';
 import { Table } from 'primeng/table';
 import { AppLoggingService } from 'app/services/app-logging.service';
+import { MultiSelect } from 'primeng/multiselect';
 
 class ContainerValue {
   id:    number;
@@ -24,7 +25,7 @@ class ContainerValue {
 
   constructor(data: Partial<ContainerValue>) {
     Object.assign(this, data);
-    this.isActive = true;
+    this.isActive = false;
   }
 
   public toString = () => JSON.stringify(this, null, '   ');
@@ -43,11 +44,21 @@ export class MarketLocationsComponent implements OnInit {
   private readonly geoContainerLookupUrl = 'v1/targeting/base/geoinfo/geocontainerlookup';
 
   @ViewChild('containersGrid', { static: true }) public _containersGrid: Table;
-    
+
+  // Get grid filter components to clear them
+  @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
+  
   // Data Observables
   public containerValuesBS$ = new BehaviorSubject<ContainerValue[]>([]);
   public containerValues$: Observable<Partial<ContainerValue>[]>;
   public containerValuesSelected$: Observable<Partial<ContainerValue>[]>;
+
+  // Observables for unique values to filter on in the grid
+  public  uniqueState$: Observable<SelectItem[]>;
+  public  uniqueMarket$: Observable<SelectItem[]>;
+  
+  // Track unique values for text variables for filtering
+  public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
   
   // Form and form component data
   marketLocationFormGroup: FormGroup;
@@ -58,18 +69,24 @@ export class MarketLocationsComponent implements OnInit {
   selectedState: SelectItem;
   selectedContainer: SelectItem;
 
-  // Grid Variables
+  // Grid Variables  
   public containerGridColumns: any[] =
-    [{field: 'state', header: 'state', width: '5em',   styleClass: '', filterMatchMode: 'contains' },
+    [{field: 'state', header: 'State', width: '5em',   styleClass: '', filterMatchMode: 'contains' },
      {field: 'id',    header: 'Id',    width: '10em',  styleClass: '', filterMatchMode: 'contains' },
      {field: 'code',  header: 'Code',  width: '10em',  styleClass: '', filterMatchMode: 'contains' },
-     {field: 'name',  header: 'Name',  width: '', styleClass: '', filterMatchMode: 'contains' },
+     {field: 'name',  header: 'Name',  width: '',      styleClass: '', filterMatchMode: 'contains' },
     ];  
   public selectedColumns: any[] = [];
   public columnOptions: SelectItem[] = [];
 
+  // Selection variables
+  private selectedValuesBS$ = new BehaviorSubject<ContainerValue[]>([]);
+  public  hasSelectedValues: boolean = false;
+  public  numSelectedValues: number = 0;
+
   // Grid filter UI variables
   public  headerFilter: boolean;
+  public  defaultLabel: string = 'All';
   private filterAllIcon = 'fa fa-check-square';
   private filterSelectedIcon = 'fa fa-check-square-o';
   private filterDeselectedIcon = 'fa fa-square';
@@ -91,6 +108,7 @@ export class MarketLocationsComponent implements OnInit {
   public  multiSortMeta: Array<SortMeta>;
 
   public  isFetchingData: boolean = false;
+  public  canCreate: boolean = false;
 
   constructor(private fb: FormBuilder,
               private appEditSiteService: AppEditSiteService,
@@ -100,9 +118,10 @@ export class MarketLocationsComponent implements OnInit {
 
   ngOnInit() {
     const formSetup: FormConfig<MarketLocationForm> = {
-      number: '', //['', Validators.required],
+      number: ['', Validators.required],
       states: '',
-      market: '' //['', Validators.required]
+      market: ['', Validators.required],
+      counts: ['', Validators.min(1)]
     };
     this.marketLocationFormGroup = this.fb.group(formSetup); //, { updateOn: 'blur' });
 
@@ -146,6 +165,46 @@ export class MarketLocationsComponent implements OnInit {
     }
 
     this.containerValues$ = this.containerValuesBS$.asObservable();
+    this.containerValuesSelected$ = this.containerValues$.pipe(
+      map((AllValues) => AllValues.filter(value => value != null && value.isActive)),
+      tap(selectedValues => {
+         console.log('Setting containerValuesSelected$ - count: ' + (selectedValues == null ? 'null' : selectedValues.length));
+         //this.syncHeaderFilter();
+         //this.headerFilter = false;
+        //  this._containersGrid.filteredValue
+        //  this._containersGrid._value 
+      }));
+
+
+    this.containerValues$.subscribe(vals => {
+      let numSelected = 0;
+      let count = 0;
+      vals.forEach(val => {
+        numSelected += val.isActive ? 1 : 0;
+        count++;
+      });
+      console.log('this.containerValues$.subscribe - count: ' + count + ', selected: ' + numSelected);
+    });
+    
+    this.containerValuesSelected$.subscribe(vals => {
+      // console.log('this.containerValuesSelected$.subscribe values'); // = ' + (vals == null ? 'null' : vals.toString()));
+      // vals.forEach(val => console.log(val.isActive + ': ' + val.code + ' - ' + val.name));
+      let numSelected = 0;
+      let count = 0;
+      vals.forEach(val => {
+        numSelected += val.isActive ? 1 : 0;
+        count++;
+      });
+      this.canCreate = (count > 0 && !this.marketLocationFormGroup.invalid) ? true : false;
+      console.log('this.containerValuesSelected$.subscribe - count: ' + count + ', selected: ' + numSelected);
+    });
+
+    // Create an observable for unique states (By helper methods)
+    this.uniqueState$ = this.containerValues$.pipe(
+      mapArray(containerValue => containerValue.state),
+      distinctArray(),
+      map(arr => arr.sort()),
+      mapArray(str => new Object({ label: str, value: str}) as SelectItem));
 
     this.initializeGridState();
     this.populateStatesDropdown();
@@ -153,11 +212,12 @@ export class MarketLocationsComponent implements OnInit {
 
   private initializeGridState() {
     // Set initial value of the header check box
-    this.syncHeaderFilter();
+//    this.syncHeaderFilter();
+    this.headerFilter = false;
 
     // Initialize the default sort order
     this.multiSortMeta = [];
-    this.multiSortMeta.push({field: 'loc.locationNumber', order: 1});
+    this.multiSortMeta.push({field: 'col.code', order: 1});
   }
 
   clear() : void {
@@ -183,7 +243,10 @@ export class MarketLocationsComponent implements OnInit {
     this.marketLocationFormGroup.patchValue({id: formData.id, code: formData.code, name: formData.name, state: formData.state});
     console.log('onSubmit Fired');
     console.log('formData: ' + formData['market']);
-    this.query(formData['market']);    
+    this.query(formData['market']);
+    this.onClickResetFilters();
+    // this.syncHeaderFilter();
+    this.headerFilter = false;
     /*
     if (formData.coord != null && formData.coord !== '') {
       formData.latitude = formData.coord.split(',')[0];
@@ -240,11 +303,18 @@ export class MarketLocationsComponent implements OnInit {
     }
     this.isFetchingData = true;
 
-    this.containerValues$ = this.getContainerData(container).pipe(tap(
-      containerValues => console.log(containerValues.toString().substr(1, 99)) 
-    ));
+    // this.containerValues$ = this.getContainerData(container).pipe(tap(
+    //   containerValues => console.log(containerValues.toString().substr(1, 99)) 
+    // ));
 
-    this.getContainerData(container).subscribe(values => this.containerValuesBS$.next(values));
+    this.getContainerData(container).subscribe(values => this.containerValuesBS$.next(values),
+      err => {
+        this.isFetchingData = false;
+        this.logger.error.log('There was an error retrieving the container (' + container + ') value data\n', err);
+        // Emit an empty array to get the table to stop the loading spinner
+        this.containerValuesBS$.next([]);
+      },
+      () => this.isFetchingData = false);
     //this.containerValues$.subscribe(data => console.log('data: ' + data));
      /*.subscribe(containerValues => {
       if (containerValues == null)
@@ -278,14 +348,41 @@ export class MarketLocationsComponent implements OnInit {
   }
 
   /**
-   * Ensures that the header checkbox is in sync with the actual state of the location isActive flag.
-   * If one site is inactive, then the header checkbox is unselected.  If all sites are selected, its checked.
+   * Ensures that the header checkbox is in sync with the actual state of the overall isActive flag.
+   * If one row is inactive, then the header checkbox is unselected.  If all rows are selected, its checked.
    */
   public syncHeaderFilter() {
     if (this._containersGrid.filteredValue != null)
-      this.headerFilter = !this._containersGrid.filteredValue.some(container => container.isActive === false);
+      this.headerFilter = this._containersGrid.filteredValue.length > 0
+                          ? !this._containersGrid.filteredValue.some(container => container.isActive === false)
+                          : false;
     else
-      this.headerFilter = !this._containersGrid._value.some(container => container.isActive === false);
+      this.headerFilter = this._containersGrid._value != null && this._containersGrid._value.length > 0
+                          ? !this._containersGrid._value.some(container => container.isActive === false)
+                          : false;
+    console.log('syncHeaderFilter: ' + this.headerFilter);
+    
+    if (this._containersGrid.filteredValue != null)
+    {
+     // this._containersGrid.filteredValue.forEach(val => console.log('FILTERED VAL: ' + val));
+      console.log('FILTERED HAS SOME INACTIVE: ' + this._containersGrid.filteredValue.some(container => container.isActive === false));
+      console.log('FILTERED HAS ALL ACTIVE:    ' + !this._containersGrid.filteredValue.some(container => container.isActive === false));
+    }
+    else
+    {
+      console.log('containersGrid all count:    ' + this._containersGrid._value.length);
+      console.log('containersGrid active count: ' + this._containersGrid._value.filter(cv => cv.isActive).length);      
+      // this._containersGrid._value.forEach(val => console.log('VAL: ' + val));
+    }
+    console.log('syncHeaderFilter: header checked: ' + this.headerFilter);
+    
+  }
+
+  setHasSelectedSites() : boolean {
+    this.numSelectedValues = this.containerValuesBS$.getValue().filter(containerValue => containerValue.isActive).length;
+  //  this.selectedValuesBS$.next(this.containerValuesBS$.getValue().filter(containerValue => containerValue.isActive));
+    this.syncHeaderFilter();
+    return this.hasSelectedValues =  this.numSelectedValues > 0;
   }
 
   // Grid events
@@ -296,15 +393,45 @@ export class MarketLocationsComponent implements OnInit {
   onSelectContainer(container: ContainerValue) {
     console.log('onSelectContainer fired - container: ' + container);    
     //this.onToggleLocations.emit({sites: [site], isActive: site.isActive});
-    //this.setHasSelectedSites();
+    this.containerValuesBS$.value.find(cv => cv.code === container.code).isActive = container.isActive;
+    this.containerValuesBS$.next(this.containerValuesBS$.value);
+    this.setHasSelectedSites();
+  }
+
+  onSelectContainers(newIsActive: boolean) {
+    const hasFilters = this.hasFilters();
+    console.log('onSelectContainers fired - newIsActive: ' + newIsActive + ', hasFilters: ' + hasFilters);
+    const containerValues: ContainerValue[] = this.containerValuesBS$.getValue().filter(site => !hasFilters
+      || (this._containersGrid.filteredValue.filter(flatSite => flatSite.code === site.code)).length > 0);    
+
+    //filteredValues.forEach(containerValue => console.log(containerValue));
+    console.log('container values count: ' + containerValues.length);
+    console.log('container before active: ' + this.containerValuesBS$.value.filter(val => val.isActive).length);    
+    containerValues.forEach(containerValue => containerValue.isActive = newIsActive);
+    console.log('container after  active: ' + this.containerValuesBS$.value.filter(val => val.isActive).length);
+
+    this.containerValuesBS$.next(this.containerValuesBS$.value);
+
+    //this.onToggleLocations.emit({sites: filteredSites, isActive: newIsActive});
+    this.setHasSelectedSites();
+//    this._containersGrid.toggleRowsWithCheckbox(null, newIsActive);
+//    this.containerValuesBS$.next(filteredValues);
+/*
+    this.containerValuesBS$.getValue().filter(site => !hasFilters || 
+                                                      (this._containersGrid.filteredValue.filter(flatSite => flatSite.code === site.code)).length > 0)
+       .forEach(value => {
+         console.log('setting value: ' + value.code + ' to isActive = ' + newIsActive);         
+         value.isActive = newIsActive;
+       });*/
+//       this.syncHeaderFilter();
   }
 
   onFilter(event: any)
   {
     console.log('onFilter fired - event: ' + event);    
-    if (event != null) {
-      //this.syncHeaderFilter();
-    }
+    //if (event != null) {
+      this.syncHeaderFilter();
+    //}
   }
 
   /**
@@ -313,14 +440,12 @@ export class MarketLocationsComponent implements OnInit {
    * @param loc The location whose isActive flag is being toggled
    */
   getSelectionTooltip(container: ContainerValue) : string {
-    return 'container tooltip';
-    //return (container == null) ? null : ((container.isActive) ? 'Visibly Turn Off' : 'Visibly Turn On') + ' ' + this.selectedListType;
+    return (container == null) ? null : ((container.isActive) ? 'Visibly Turn Off' : 'Visibly Turn On'); //FIXME: + ' ' + this.selectedListType;
   }
 
   getSelectionMessage() : string {
-    return 'selection message';
-    //const numDeSelected = this.currentAllSitesBS$.getValue().length - this.currentAllSitesBS$.getValue().filter(site => site.isActive).length;
-    //return (numDeSelected > 0) ? 'Only visible sites will appear in the map below' : null;
+    const numSelected = this.containerValuesBS$.getValue().length - this.containerValuesBS$.getValue().filter(value => value.isActive).length;
+    return numSelected +  '/' + this.containerValuesBS$.getValue().length + ' container values selected';
   }
 
     /**
@@ -371,13 +496,15 @@ export class MarketLocationsComponent implements OnInit {
   onClickResetFilters()
   {
     // Clear the multi select filters
-    // if (this.lovFilters)
-    //   this.lovFilters.forEach(lov => {
-    //     lov.clearFilter();
-    //   });
-
+    if (this.msFilters)
+      this.msFilters.forEach(ms => {
+        ms.value = null;
+        ms.valuesAsString = this.defaultLabel;
+      });
+  
     // Reset the grid and grid filters
     this._containersGrid.reset();
+    this.onFilter(null);
   }
 
   /**

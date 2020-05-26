@@ -15,6 +15,7 @@ export interface MarketLocationForm {
   number: string;
   states?: string;
   market: string;
+  counts: number;
 }
 
 export interface GfpForm {

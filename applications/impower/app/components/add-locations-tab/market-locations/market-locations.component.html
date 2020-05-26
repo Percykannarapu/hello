@@ -1,41 +1,27 @@
 <!-- valConnectForm="marketLocation" [debounce]="0" -->
 <form novalidate autocomplete="off" [formGroup]="marketLocationFormGroup" (submit)="onSubmit(marketLocationFormGroup.value)">
-<div class="ui-g-12 ui-g-nopad">
+  <!-- Form input fields-->
   <div class="ui-g-2">
-    <div class="ui-inputgroup">
-      <span class="md-inputfield">
-        <input pInputText id="mlf_numberInput" class="ui-g-12" formControlName="number" autocomplete="off" />
-        <span class="ui-inputgroup-addon" *ngIf="!hasErrors('number')">&nbsp;</span>
-        <span class="ui-inputgroup-addon" *ngIf="hasErrors('number')">
-          <i class="ui-icon-error error-icon" title="Starting site Number is required"></i>
-        </span>
-        <label class="validation-float-label" for="mlf_numberInput">Start Number (required)</label>
-      </span>
-    </div>
+    <validated-text-input formControlName="number" labelText="Start Number (required)" validationMessage="Starting site Number is required"></validated-text-input>
   </div>
   <div class="ui-g-2">
-    <span class="md-inputfield">
-      <dropdown-input id="mlf_states" formControlName="states" labelText="States" [options]="stateItems" [includeUnselected]="true"></dropdown-input>
-    </span>
+    <dropdown-input id="mlf_states" formControlName="states" labelText="States" [options]="stateItems" [includeUnselected]="true"></dropdown-input>
   </div>
   <div class="ui-g-8">
-    <span class="md-inputfield">
-      <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" [includeUnselected]="true"></dropdown-input>
-    </span>
+    <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" [includeUnselected]="true"></dropdown-input>
   </div>
-</div>
-<div class="ui-g-12 ui-g-nopad">
-  <div class="ui-g-4">
-    <button (click)="clear()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
+  <!-- Clear, Query and Create buttons -->
+  <div class="ui-g-12 ui-g-nopad">
+    <div class="ui-g-4">
+      <button (click)="clear()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
+    </div>
+    <div class="ui-g-4">
+      <button (click)="onSubmit(marketLocationFormGroup.value)" type="submit" type="button" label="Query Market Values" icon="ui-icon-search" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button>
+    </div>
+    <div class="ui-g-4">
+      <button (click)="query()" label="Create Locations" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="!canCreate"></button>
+    </div>
   </div>
-  <div class="ui-g-4">
-    <!-- <button (click)="onSubmit(marketLocationFormGroup.value)" type="submit" type="button" label="Query Market Values" icon="ui-icon-search" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button> -->
-    <button (click)="onSubmit(marketLocationFormGroup.value)" type="submit" type="button" label="Query Market Values" icon="ui-icon-search" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button>
-  </div>
-  <div class="ui-g-4">
-    <button  (click)="query()" label="Create Locations" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button>
-  </div>
-</div>
 </form>
 
 <div id="containerValuesGrid" class="ui-g-12">
@@ -43,7 +29,7 @@
            class="{{tableWrapStyle}}"
            [columns]="containerGridColumns"
            [value]="containerValues$ | async"
-           [selection]="containerValues$ | async"
+           [selection]="selectedValues$ | async"
            [resizableColumns]="true" columnResizeMode="expand"
            [reorderableColumns]="false"
            sortMode="multiple" [multiSortMeta]="multiSortMeta"
@@ -87,7 +73,7 @@
 
     <ng-template pTemplate="header" class="ui-g ui-g-nopad">
       <tr>
-        <th style="width: 30px; padding-left: 0.4em"><p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectSites(headerFilter)" class="val-table-hdr" pTooltip="{{getSelectButtonText(false)}}"> </p-checkbox></th>
+        <th style="width: 30px; padding-left: 0.4em"><p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectContainers(headerFilter)" class="val-table-hdr" pTooltip="{{getSelectButtonText(false)}}"> </p-checkbox></th>
         <th *ngFor="let col of selectedColumns" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
           {{col.header}}
           <p-sortIcon [field]="col.field"></p-sortIcon>
@@ -98,7 +84,8 @@
           <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" class="val-toolbar-button" (click)="onFilterBySelection()"></button>
         </th>
         <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="overflow: visible">
-          <input *ngSwitchCase="'state'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
+          <!-- <input *ngSwitchCase="'state'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}"> -->
+          <p-multiSelect #filterMs *ngSwitchCase="'state'" appendTo="body" [options]="uniqueState$ | async"        defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="containersGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
           <input *ngSwitchCase="'id'"    pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
           <input *ngSwitchCase="'code'"  pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
           <input *ngSwitchCase="'name'"  pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
@@ -145,8 +132,4 @@
       </tr>
     </ng-template>
   </p-table>
-</div>
-
-<div class="ui-g-12">
-  <button  label="A" icon="ui-icon-send" pButton class="ui-g-12"></button>
 </div>
