@@ -1,5 +1,5 @@
 <p-dialog  [visible]="showBatchMapDialog$ | async" (visibleChange)="closeDialog()"
-  [modal]="true" [style]="{width: '1000px', minWidth: '200px', height: '840px'}" [maximizable]="false">
+  [modal]="true" [style]="{width: '1000px', minWidth: '200px', height: '860px'}" [maximizable]="false">
   <p-header>
       Export Map PDFs
     </p-header>
@@ -23,7 +23,7 @@
                   formControlName="sitesToinclude"></p-radioButton>
               </div>
               <div class="ui-g-12 customPadding">
-                  <p-radioButton name="sitesToinclude" value="currentMap" label="Current Map(visible sites only)"
+                  <p-radioButton name="sitesToinclude" value="currentMap" label="Current Map (visible sites only)"
                   formControlName="sitesToinclude"></p-radioButton>
               </div>
               <div class="ui-g-12 customPadding">
@@ -61,9 +61,10 @@
                     <validated-text-input formControlName="subSubTitleInput"></validated-text-input>
                   </div>
               </div>
+              <div class="ui-g-12"></div>
               <div class="ui-g-12 customPadding">
                   <span class="ui-float-label">
-                    <input id="float-input" type="text" style="width: 33%;" formControlName="taTitle" pInputText>
+                    <input id="float-input" type="text" style="width: 31%;" formControlName="taTitle" pInputText>
                     <label for="float-input">Trade Area Title</label>
                   </span>
               </div>

@@ -104,9 +104,9 @@ export class BatchMapDialogComponent implements OnInit {
       const savedFormData = JSON.parse(projectPrefValue);
      // if (savedFormData.sitesToinclude == 'allActiveSites' ){
         this.batchMapForm.patchValue({
-          title: savedFormData.title,
-          subTitle: savedFormData.subTitle,
-          subSubTitle: savedFormData.subSubTitle,
+          title: savedFormData.title == null ? '' : savedFormData.title,
+          subTitle: savedFormData.subTitle == null ? '' : savedFormData.subTitle,
+          subSubTitle: savedFormData.subSubTitle == null ? '' : savedFormData.subSubTitle,
           deduplicated: savedFormData.deduplicated,
           sitesPerPage: savedFormData.sitesPerPage,
           sitesByGroup: savedFormData.sitesByGroup,
@@ -115,12 +115,12 @@ export class BatchMapDialogComponent implements OnInit {
           buffer: savedFormData.buffer == null ? 10 : savedFormData.buffer,
           pageSettingsControl: savedFormData.pageSettingsControl,
           layout: savedFormData.layout,
-          titleInput: savedFormData.titleInput,
-          subTitleInput: savedFormData.subTitleInput,
-          subSubTitleInput: savedFormData.subSubTitleInput,
+          titleInput: savedFormData.titleInput == null ? '' : savedFormData.titleInput,
+          subTitleInput: savedFormData.subTitleInput == null ? '' : savedFormData.subTitleInput,
+          subSubTitleInput: savedFormData.subSubTitleInput == null ? '' : savedFormData.subSubTitleInput,
           enableTradeAreaShading: savedFormData.enableTradeAreaShading,
           sitesToinclude: savedFormData.sitesToinclude == null ? 'allActiveSites' : savedFormData.sitesToinclude,
-          taTitle: savedFormData.taTitle,
+          taTitle: savedFormData.taTitle == null ? '' : savedFormData.taTitle,
         });
      
       if (savedFormData.fitTo == '' || savedFormData.fitTo == null) {
