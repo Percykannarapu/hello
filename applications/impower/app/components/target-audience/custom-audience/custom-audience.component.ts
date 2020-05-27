@@ -126,7 +126,6 @@ export class CustomAudienceComponent implements OnInit {
           });
           this.varService.syncProjectVars();
           this.store$.dispatch(new DeleteAudiences({ ids }));
-          this.store$.dispatch(new SuccessNotification({message: 'All Custom Data geographies related to the previously selected Analysis Level have been deleted.', notificationTitle: 'Change Analysis Level Cleanup'}));
     }
   }
 }

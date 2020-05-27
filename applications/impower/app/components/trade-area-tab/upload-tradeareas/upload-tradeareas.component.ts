@@ -304,7 +304,6 @@ export class UploadTradeAreasComponent implements OnInit {
       this.uploadFailures = [];
       this.fileAnalysisSelected = null;
       this.isDisable = true;
-      this.store$.dispatch(new SuccessNotification({message: 'All Custom Trade Areas geographies related to the previously selected Analysis Level have been deleted.', notificationTitle: 'Change Analysis Level Cleanup'}));
     }
   }
 }
