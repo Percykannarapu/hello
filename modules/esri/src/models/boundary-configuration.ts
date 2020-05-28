@@ -1,4 +1,5 @@
-import { duplicateFill, duplicateLabel, FillSymbolDefinition, LabelDefinition } from './common-configuration';
+import { DeepPartial } from '@val/common';
+import { applyFillChanges, applyLabelChanges, duplicateFill, duplicateLabel, FillSymbolDefinition, LabelDefinition } from './common-configuration';
 
 export interface PopupDefinition {
   titleExpression: string;
@@ -13,8 +14,28 @@ export function duplicatePopupDefinition(def: PopupDefinition) : PopupDefinition
     ...def,
     popupFields: [ ...def.popupFields ],
   };
-  if (def.secondaryPopupFields == null) {
+  if (def.secondaryPopupFields != null) {
     result.secondaryPopupFields = [ ...def.secondaryPopupFields ];
+  }
+  if (def.hiddenPopupFields != null) {
+    result.hiddenPopupFields = [ ...def.hiddenPopupFields ];
+  }
+  return result;
+}
+
+export function applyPopupChanges(original: PopupDefinition, newValues: DeepPartial<PopupDefinition>) : PopupDefinition {
+  if (original == null && newValues == null) return null;
+  const usableNewValues = newValues || {};
+  const result = {
+    ...original,
+    ...usableNewValues,
+    popupFields: Array.from(usableNewValues.popupFields || original.popupFields),
+  };
+  if (original.secondaryPopupFields != null || usableNewValues.secondaryPopupFields != null) {
+    result.secondaryPopupFields = Array.from(usableNewValues.secondaryPopupFields || original.secondaryPopupFields);
+  }
+  if (original.hiddenPopupFields != null || usableNewValues.hiddenPopupFields != null) {
+    result.hiddenPopupFields = Array.from(usableNewValues.hiddenPopupFields || original.hiddenPopupFields);
   }
   return result;
 }
@@ -57,5 +78,19 @@ export function duplicateBoundaryConfig(config: BoundaryConfiguration) : Boundar
     hhcLabelDefinition: duplicateLabel(config.hhcLabelDefinition),
     symbolDefinition: duplicateFill(config.symbolDefinition),
     popupDefinition: duplicatePopupDefinition(config.popupDefinition)
+  };
+}
+
+export function applyBoundaryChanges(original: BoundaryConfiguration, newValues: DeepPartial<BoundaryConfiguration>) : BoundaryConfiguration {
+  if (original == null && newValues == null) return null;
+  const usableNewValues = newValues || {};
+  return {
+    ...original,
+    ...usableNewValues,
+    labelDefinition: applyLabelChanges(original.labelDefinition, usableNewValues.labelDefinition),
+    pobLabelDefinition: applyLabelChanges(original.pobLabelDefinition, usableNewValues.pobLabelDefinition),
+    hhcLabelDefinition: applyLabelChanges(original.hhcLabelDefinition, usableNewValues.hhcLabelDefinition),
+    symbolDefinition: applyFillChanges(original.symbolDefinition, usableNewValues.symbolDefinition),
+    popupDefinition: applyPopupChanges(original.popupDefinition, usableNewValues.popupDefinition)
   };
 }

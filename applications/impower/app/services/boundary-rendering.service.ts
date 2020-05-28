@@ -86,31 +86,38 @@ export class BoundaryRenderingService {
     const scales = {
       dma: {
         minScale: undefined,
-        batchMinScale: undefined
+        batchMinScale: undefined,
+        defaultFontSize: 16
       },
       counties: {
         minScale: undefined,
-        batchMinScale: undefined
+        batchMinScale: undefined,
+        defaultFontSize: 14
       },
       wrap: {
         minScale: 4622342,
-        batchMinScale: 9244684
+        batchMinScale: 9244684,
+        defaultFontSize: 12
       },
       zip: {
         minScale: 1155600,
-        batchMinScale: 2311200
+        batchMinScale: 2311200,
+        defaultFontSize: 12
       },
       atz: {
         minScale: 1155600,
-        batchMinScale: 2311200
+        batchMinScale: 2311200,
+        defaultFontSize: 10
       },
       dtz: {
         minScale: 577790,
-        batchMinScale: 1155580
+        batchMinScale: 1155580,
+        defaultFontSize: 10
       },
       pcr: {
         minScale: 577790,
-        batchMinScale: 1155580
+        batchMinScale: 1155580,
+        defaultFontSize: 10
       },
     };
     return {
@@ -178,7 +185,10 @@ export class BoundaryRenderingService {
         sortOrder: 0,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [139, 76, 178, 1], outlineWidth: 2.5 },
-        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, featureAttribute: 'dma_display_name', color: [139, 76, 178, 1], size: 16 },
+        labelDefinition: {
+          haloColor: [255, 255, 255, 1], isBold: true, featureAttribute: 'dma_display_name', color: [139, 76, 178, 1],
+          size: this.getLayerSetupInfo('dma').defaultFontSize
+        },
         popupDefinition: {
           titleExpression: 'DMA: {DMA_CODE}&nbsp;&nbsp;&nbsp;&nbsp;{DMA_NAME}',
           useCustomPopup: false,
@@ -191,7 +201,7 @@ export class BoundaryRenderingService {
         sortOrder: 1,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 1], outlineWidth: 3 },
-        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 0, 0, 1], size: 14,
+        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 0, 0, 1], size: this.getLayerSetupInfo('counties').defaultFontSize,
           customExpression: 'TEXT($feature.state_fips, "00") + TEXT($feature.county_fip, "000") + TextFormatting.NewLine + $feature.county_nam' },
         popupDefinition: {
           titleExpression: 'County: {COUNTY_NAM}, {STATE_ABBR}',
@@ -205,8 +215,8 @@ export class BoundaryRenderingService {
         sortOrder: 2,
         hasPOBs: false,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 100, 0, 1], outlineWidth: 3 },
-        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: 12, featureAttribute: 'wrap_name' },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: 12,
+        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: this.getLayerSetupInfo('wrap').defaultFontSize, featureAttribute: 'wrap_name' },
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: this.getLayerSetupInfo('wrap').defaultFontSize,
           customExpression: `$feature.wrap_name + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
@@ -219,9 +229,9 @@ export class BoundaryRenderingService {
         ...this.createBasicBoundaryDefinition('zip', analysisLevel),
         sortOrder: 3,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [51, 59, 103, 1], outlineWidth: 2 },
-        pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 12, featureAttribute: 'geocode' },
-        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 12, featureAttribute: 'geocode' },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 12,
+        pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('zip').defaultFontSize, featureAttribute: 'geocode' },
+        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('zip').defaultFontSize, featureAttribute: 'geocode' },
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('zip').defaultFontSize,
           customExpression: `$feature.geocode + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
@@ -235,11 +245,11 @@ export class BoundaryRenderingService {
         ...this.createBasicBoundaryDefinition('atz', analysisLevel),
         sortOrder: 4,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [68, 79, 137, 1], outlineWidth: 0.75 },
-        pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+        pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('atz').defaultFontSize,
           customExpression: labelExpression },
-        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('atz').defaultFontSize,
           customExpression: labelExpression },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('atz').defaultFontSize,
           customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
@@ -253,11 +263,11 @@ export class BoundaryRenderingService {
         ...this.createBasicBoundaryDefinition('dtz', analysisLevel),
         sortOrder: 5,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [68, 79, 137, 1], outlineWidth: 0.75 },
-        pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+        pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('dtz').defaultFontSize,
           customExpression: labelExpression },
-        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('dtz').defaultFontSize,
           customExpression: labelExpression },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('dtz').defaultFontSize,
           customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
@@ -271,11 +281,11 @@ export class BoundaryRenderingService {
         ...this.createBasicBoundaryDefinition('pcr', analysisLevel),
         sortOrder: 6,
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [131, 134, 150, 1], outlineWidth: 0.5 },
-        pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+        pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('pcr').defaultFontSize,
           customExpression: labelExpression },
-        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+        labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('pcr').defaultFontSize,
           customExpression: labelExpression },
-        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: 10,
+        hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('pcr').defaultFontSize,
           customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
         popupDefinition: {
           titleExpression: 'PCR: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',

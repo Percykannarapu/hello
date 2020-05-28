@@ -6,6 +6,6 @@
         {{boundary.layerName}}
       </span>
     </p-header>
-    <val-boundary-shader [configuration]="duplicateConfig(boundary)" (applyConfiguration)="applyConfiguration($event)"></val-boundary-shader>
+    <val-boundary-shader [configuration]="duplicateConfig(boundary)" (applyConfiguration)="applyConfiguration($event)" [defaultFontSize]="getDefaultFontSize(boundary)"></val-boundary-shader>
   </p-accordionTab>
 </p-accordion>

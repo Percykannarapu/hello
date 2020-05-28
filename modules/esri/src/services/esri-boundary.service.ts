@@ -219,7 +219,9 @@ export class EsriBoundaryService {
   }
 
   private createLabelFromDefinition(currentDef: LabelDefinition) : __esri.LabelClass {
-    const font = this.domainFactory.createFont(currentDef.size, currentDef.isBold ? 'bold' : 'normal');
+    const weight = currentDef.isBold ? 'bold' : 'normal';
+    const style = currentDef.isItalic ? 'italic' : 'normal';
+    const font = this.domainFactory.createFont(currentDef.size, weight, style, currentDef.family);
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     const attributes = {};
     if (currentDef.where != null) {
