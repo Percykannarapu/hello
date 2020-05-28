@@ -174,7 +174,7 @@ export class BatchMapDialogComponent implements OnInit {
   ngOnInit() {
     this.initForm();
 
-    /*this.batchMapForm.get('title').valueChanges.subscribe(value => {
+    this.batchMapForm.get('title').valueChanges.subscribe(value => {
       if (value !== null) {
         if (value === 'user-defined') {
           this.batchMapForm.get('titleInput').enable();
@@ -200,7 +200,7 @@ export class BatchMapDialogComponent implements OnInit {
           this.batchMapForm.get('subSubTitleInput').disable();
         }
       }
-    });*/
+    });
     this.batchMapForm.get('neighboringSites').valueChanges.subscribe(val => {
       if (val === 'include') {
         this.batchMapForm.get('enableTradeAreaShading').enable();
