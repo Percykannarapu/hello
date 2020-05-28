@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy, ViewEncapsulation } from '@angular/core';
-import { BoundaryConfiguration, duplicateBoundaryConfig, EsriBoundaryService } from '@val/esri';
+import { BoundaryConfiguration, duplicateBoundaryConfig, EsriBoundaryService, RgbTuple } from '@val/esri';
 import { Subject } from 'rxjs';
 import { AppLoggingService } from '../../../services/app-logging.service';
 import { BoundaryRenderingService } from '../../../services/boundary-rendering.service';
@@ -32,6 +32,10 @@ export class BoundaryListComponent implements OnDestroy {
 
   getDefaultFontSize(boundary: BoundaryConfiguration) {
     return this.appBoundaryService.getLayerSetupInfo(boundary.dataKey).defaultFontSize;
+  }
+
+  getDefaultColor(boundary: BoundaryConfiguration) {
+    return RgbTuple.duplicate(boundary.symbolDefinition.outlineColor);
   }
 
   toggleVisibility(event: MouseEvent, boundary: BoundaryConfiguration) : void {

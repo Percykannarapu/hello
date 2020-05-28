@@ -1,7 +1,7 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { DeepPartial, rgbToHex } from '@val/common';
-import { applyBoundaryChanges, applyLabelChanges, BoundaryConfiguration, completeEsriFaces, LabelDefinition, RgbaTuple, RgbTuple } from '@val/esri';
+import { applyBoundaryChanges, applyLabelChanges, BoundaryConfiguration, completeEsriFaces, LabelDefinition, RgbaTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { ValassisValidators } from '../../../../models/valassis-validators';
@@ -12,14 +12,14 @@ import { ValassisValidators } from '../../../../models/valassis-validators';
   styleUrls: ['./boundary-shader.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class BoundaryShaderComponent implements OnInit, OnDestroy {
+export class BoundaryShaderComponent implements OnDestroy {
 
   @Input() configuration: BoundaryConfiguration;
   @Input() defaultFontSize: number;
+  @Input() defaultColor: RgbaTuple;
   @Output() applyConfiguration = new EventEmitter<BoundaryConfiguration>();
 
   defaultHalo: RgbaTuple = [255, 255, 255, 1];
-  defaultColor: RgbaTuple;
   configForm: FormGroup;
   isEditing: boolean = false;
   fontFaces: SelectItem[];
@@ -28,10 +28,6 @@ export class BoundaryShaderComponent implements OnInit, OnDestroy {
 
   constructor(private fb: FormBuilder) {
     this.fontFaces = completeEsriFaces.map(f => ({ label: f, value: f }));
-  }
-
-  public ngOnInit() : void {
-    this.defaultColor = RgbTuple.duplicate(this.configuration.symbolDefinition.outlineColor);
   }
 
   public ngOnDestroy() : void {
