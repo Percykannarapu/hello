@@ -1,27 +1,37 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewChildren, QueryList } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { Component, OnInit } from '@angular/core';
+import { EsriQueryService } from '../../../../../../modules/esri/src/services/esri-query.service';
+import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
+import { AppLocationService } from 'app/services/app-location.service';
+import { AppTradeAreaService, TradeAreaDefinition } from 'app/services/app-trade-area.service';
+import { AppProjectService } from 'app/services/app-project.service';
+import { AppRendererService } from 'app/services/app-renderer.service';
+import { AppConfig } from 'app/app.config';
+import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { ShadingDefinition, ConfigurationTypes } from '../../../../../../modules/esri/src/models/shading-configuration';
+import { getUuid } from '../../../../../../modules/common/src/utils';
+import { ImpGeofootprintLocAttrib } from 'app/val-modules/targeting/models/ImpGeofootprintLocAttrib';
+import { ImpClientLocationTypeCodes, TradeAreaTypeCodes, SuccessfulLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
+import { ImpProject } from 'app/val-modules/targeting/models/ImpProject';
+import { AppStateService } from 'app/services/app-state.service';
+import { EnvironmentData } from 'environments/environment';
+import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
+import { ErrorNotification } from '../../../../../../modules/messaging/state/messaging.actions';
+import { AppGeocodingService } from 'app/services/app-geocoding.service';
 import { Store } from '@ngrx/store';
-import { FormConfig, mapArray, distinctArray } from '@val/common';
-import { AppEditSiteService } from 'app/services/app-editsite.service';
-import { SelectItem, SortMeta } from 'primeng/api';
-import { ErrorNotification } from '@val/messaging';
-import { ValGeocodingRequest } from '../../../models/val-geocoding-request.model';
-import { FullAppState } from '../../../state/app.interfaces';
-import { resetNamedForm, updateNamedForm } from '../../../state/forms/forms.actions';
-import { MarketLocationForm } from '../../../state/forms/forms.interfaces';
-import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { map, tap, filter, startWith } from 'rxjs/operators';
-import { Table } from 'primeng/table';
+import { FullAppState } from 'app/state/app.interfaces';
+import { Geocode } from 'app/state/homeGeocode/homeGeo.actions';
 import { AppLoggingService } from 'app/services/app-logging.service';
-import { MultiSelect } from 'primeng/multiselect';
 
-class ContainerValue {
-  id:    number;
-  code:  string;
-  name:  string;
-  state: string;
+class ContainerValue {  //TODO: put in common location
+  id:       number;
+  code:     string;
+  name:     string;
+  state:    string;
   isActive: boolean;
+  geocodes: string[];
 
   constructor(data: Partial<ContainerValue>) {
     Object.assign(this, data);
@@ -38,487 +48,231 @@ class ContainerValue {
 })
 export class MarketLocationsComponent implements OnInit {
 
-  @Input() showLoadButtons: boolean;
-  @Output() submitSite = new EventEmitter<ValGeocodingRequest>();
+  private project: ImpProject;
+  private analysisLevel: string;
 
-  private readonly geoContainerLookupUrl = 'v1/targeting/base/geoinfo/geocontainerlookup';
-
-  @ViewChild('containersGrid', { static: true }) public _containersGrid: Table;
-
-  // Get grid filter components to clear them
-  @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
-  
-  // Data Observables
-  public containerValuesBS$ = new BehaviorSubject<ContainerValue[]>([]);
-  public containerValues$: Observable<Partial<ContainerValue>[]>;
-  public containerValuesSelected$: Observable<Partial<ContainerValue>[]>;
-
-  // Observables for unique values to filter on in the grid
-  public  uniqueState$: Observable<SelectItem[]>;
-  public  uniqueMarket$: Observable<SelectItem[]>;
-  
-  // Track unique values for text variables for filtering
-  public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
-  
-  // Form and form component data
-  marketLocationFormGroup: FormGroup;
-  marketTypeItems: SelectItem[];
-  stateItems: SelectItem[];
-  containerValues: ContainerValue[];
-
-  selectedState: SelectItem;
-  selectedContainer: SelectItem;
-
-  // Grid Variables  
-  public containerGridColumns: any[] =
-    [{field: 'state', header: 'State', width: '5em',   styleClass: '', filterMatchMode: 'contains' },
-     {field: 'id',    header: 'Id',    width: '10em',  styleClass: '', filterMatchMode: 'contains' },
-     {field: 'code',  header: 'Code',  width: '10em',  styleClass: '', filterMatchMode: 'contains' },
-     {field: 'name',  header: 'Name',  width: '',      styleClass: '', filterMatchMode: 'contains' },
-    ];  
-  public selectedColumns: any[] = [];
-  public columnOptions: SelectItem[] = [];
-
-  // Selection variables
-  private selectedValuesBS$ = new BehaviorSubject<ContainerValue[]>([]);
-  public  hasSelectedValues: boolean = false;
-  public  numSelectedValues: number = 0;
-
-  // Grid filter UI variables
-  public  headerFilter: boolean;
-  public  defaultLabel: string = 'All';
-  private filterAllIcon = 'fa fa-check-square';
-  private filterSelectedIcon = 'fa fa-check-square-o';
-  private filterDeselectedIcon = 'fa fa-square';
-  private filterAllTip = 'Selected & Deselected';
-  private filterSelectedTip = 'All Selected';
-  private filterDeselectedTip = 'All Deselected';
-
-  // Filter selected rows
-  public  isSelectedFilterState: string = this.filterAllIcon;
-  public  isSelectedToolTip: string = this.filterAllTip;
-
-  // Control table cell / header wrapping
-  private tableWrapOn: string = 'val-table val-tbody-wrap';
-  private tableWrapOff: string = 'val-table val-tbody-nowrap';
-  public  tableWrapStyle: string = this.tableWrapOff;
-  public  tableWrapIcon: string = 'ui-icon-menu';
-
-  // Control table sorting
-  public  multiSortMeta: Array<SortMeta>;
-
-  public  isFetchingData: boolean = false;
-  public  canCreate: boolean = false;
-
-  constructor(private fb: FormBuilder,
-              private appEditSiteService: AppEditSiteService,
-              private store$: Store<FullAppState>,
-              private restService: RestDataService,
-              private logger: AppLoggingService) { }
+  constructor(
+    private esriQueryService: EsriQueryService,
+    private factoryService: ImpDomainFactoryService,
+    private locationService: AppLocationService,
+    private tradeAreaService: AppTradeAreaService,
+    private projectService: AppProjectService,
+    private appStateService: AppStateService,
+    private store$: Store<FullAppState>,
+    private geocoderService: AppGeocodingService,
+    private impGeofootprintLocationService: ImpGeofootprintLocationService,
+    private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
+    private impGeofootprintGeoService: ImpGeofootprintGeoService,
+    //private esriShadingService: EsriShadingLayersService,
+    private appRendererService: AppRendererService,
+    private appConfig: AppConfig,
+    private logger: AppLoggingService) { }
 
   ngOnInit() {
-    const formSetup: FormConfig<MarketLocationForm> = {
-      number: ['', Validators.required],
-      states: '',
-      market: ['', Validators.required],
-      counts: ['', Validators.min(1)]
-    };
-    this.marketLocationFormGroup = this.fb.group(formSetup); //, { updateOn: 'blur' });
+    this.projectService.currentProject$.subscribe(p => {
+      this.project = p;
+      this.analysisLevel = this.appStateService.analysisLevel$.getValue();
+    });
+  }
 
-    this.marketTypeItems = [
-      {label: 'DMA',                   value: 'DMA'},
-      {label: 'Pricing Market',        value: 'PRICING'},
-      {label: 'Wrap Zone - Primary',   value: 'WRAP'},
-//    {label: 'Wrap Zone - Secondary', value: 'WRAP2'},
-//    {label: 'SDM',                   value: 'SDM'},
-      {label: 'CBSA',                  value: 'CBSA'},
-      {label: 'Infoscan',              value: 'INFOSCAN'},
-      {label: 'Scantrack',             value: 'SCANTRACK'},
-      {label: 'County',                value: 'COUNTY'},
-      {label: 'State',                 value: 'STATE'}
-    ];
-    this.stateItems = [
-      {label: 'Michigan',              value: 'MI'},
-      {label: 'Indiana',               value: 'IN'},
-      {label: 'Louisiana',             value: 'LA'}
-    ];
-    
-    // Observe the behavior subjects on the input parameters
- /*   this.allGeos$ = this.impGeofootprintGeosBS$.asObservable().pipe(startWith(null as []));
+  public onGetGeos(event: any) // markets: ContainerValue[])
+  {
+//    console.log('markets: ' + markets);
+    this.createLocations(event.market, event.values); // markets);
+  }
 
-    this.onListTypeChange('Site');
+  private createLocations(marketCode: string, marketList: ContainerValue[]) {
+    this.locationService.clearAll();
+    const ids: string[] = [];
+    marketList.forEach(d => ids.push(d.code));
 
-    this.appStateService.applicationIsReady$.pipe(
-      filter(ready => ready),
-      take(1)
-    ).subscribe(() => {
-      this.failures$ = combineLatest([this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$]).pipe(
-        map(([sites, competitors]) => [...sites, ...competitors])
-      );
-      this.hasFailures$ = this.appLocationService.hasFailures$;
-      this.totalCount$ = this.appLocationService.totalCount$;
-    });*/
+    const layerId = this.appConfig.getLayerIdForAnalysisLevel(this.project.methAnalysis); // (this.appStateService.analysisLevel$.getValue() != null) ? this.appStateService.analysisLevel$.getValue() : 'ATZ');
+//  const layerId = EnvironmentData.layerIds.dma.boundary;
+    const requests: ValGeocodingRequest[] = [];
 
-    for (const column of this.containerGridColumns) {
-      this.columnOptions.push({ label: column.header, value: column });
-      this.selectedColumns.push(column);
+    console.log('marketCode: ' + marketCode);
+    console.log('marketList: ' + marketList);
+    console.log('analysisLevel: ' + this.analysisLevel);
+    console.log('project lvl: ' + this.project.methAnalysis);
+
+    let queryField: string;
+    switch (marketCode) {
+      case 'DMA':
+            queryField = 'dma_code';
+            break;
+      case 'PRICING':
+            queryField = 'pricing_mkt'; // pricing_mkt_id
+            break;
+      case 'WRAP':
+            queryField = 'wrap_mkt_id'; // wrap
+            break;
+      case 'SDM':
+            queryField = 'sdm'; // sdm_id
+            break;
+      case 'CBSA':
+            queryField = 'cbsa';
+            break;
+      case 'INFOSCAN':
+            queryField = 'infoscan_code';
+            break;
+      case 'SCANTRACK':
+            queryField = 'scantrack_code';
+            break;
+      case 'COUNTY':
+            queryField = 'county';
+            break;
+      case 'STATE':
+            queryField = 'state_abbr'; // state_fips
+            break;
     }
 
-    this.containerValues$ = this.containerValuesBS$.asObservable();
-    this.containerValuesSelected$ = this.containerValues$.pipe(
-      map((AllValues) => AllValues.filter(value => value != null && value.isActive)),
-      tap(selectedValues => {
-         console.log('Setting containerValuesSelected$ - count: ' + (selectedValues == null ? 'null' : selectedValues.length));
-         //this.syncHeaderFilter();
-         //this.headerFilter = false;
-        //  this._containersGrid.filteredValue
-        //  this._containersGrid._value 
-      }));
+    this.esriQueryService.queryAttributeIn(layerId, queryField, ids , true, ['geocode', queryField])
+      .subscribe(graphics => {
+        marketList.forEach(market => {
+        const locations: ImpGeofootprintLocation[] = [];
+        for (const graphic of graphics) {
+          console.log('graphic:  geocode: ' + graphic.getAttribute('geocode') + ', ' + queryField + ': ' + graphic.getAttribute(queryField));
+          const currentDMAName: string = graphic.getAttribute('dma_name');
+          const currentCode: string = graphic.getAttribute(queryField);
+          if (currentCode != null && currentCode.toLowerCase().includes(market.code.toLowerCase())) {
+              const location: ImpGeofootprintLocation = new ImpGeofootprintLocation();
+            location.xcoord = graphic.geometry['centroid'].x;
+            location.ycoord = graphic.geometry['centroid'].y;
+            location.locationNumber = market.code;
+            location.locationName = market.name;
+            location.marketCode = market.code;
+            location.marketName = market.name;
+            location.impGeofootprintLocAttribs = new Array<ImpGeofootprintLocAttrib>();
+            location.clientLocationTypeCode = ImpClientLocationTypeCodes.Site;  // TODO: sites or competitors
+            location.isActive = true;
+            location.impProject = this.project;
+            location.homeGeocode = graphic.getAttribute('geocode');
+            switch (this.project.methAnalysis) {
+              case 'ZIP':
+                location.homeZip = location.homeGeocode;
+                break;
+              case 'ATZ':
+                location.homeAtz = location.homeGeocode;
+                break;
+              case 'PCR':
+                location.homePcr = location.homeGeocode;
+                break;
+            }
+//            this.impGeofootprintLocationService.add([location]);
+            //const request: ValGeocodingRequest = new ValGeocodingRequest(location);
+            //requests.push(request);
+            //this.manuallyGeocode(request, ImpClientLocationTypeCodes.Site, false); // TODO: sites or competitors
+            console.log('homegeocode: ' + location.homeGeocode);
+            this.createTradeArea(market, location);
+            //console.log('new location: ' + location.toString());
 
+            locations.push(location);
+            //console.log('location: ' + location);
 
-    this.containerValues$.subscribe(vals => {
-      let numSelected = 0;
-      let count = 0;
-      vals.forEach(val => {
-        numSelected += val.isActive ? 1 : 0;
-        count++;
-      });
-      console.log('this.containerValues$.subscribe - count: ' + count + ', selected: ' + numSelected);
-    });
-    
-    this.containerValuesSelected$.subscribe(vals => {
-      // console.log('this.containerValuesSelected$.subscribe values'); // = ' + (vals == null ? 'null' : vals.toString()));
-      // vals.forEach(val => console.log(val.isActive + ': ' + val.code + ' - ' + val.name));
-      let numSelected = 0;
-      let count = 0;
-      vals.forEach(val => {
-        numSelected += val.isActive ? 1 : 0;
-        count++;
-      });
-      this.canCreate = (count > 0 && !this.marketLocationFormGroup.invalid) ? true : false;
-      console.log('this.containerValuesSelected$.subscribe - count: ' + count + ', selected: ' + numSelected);
-    });
-
-    // Create an observable for unique states (By helper methods)
-    this.uniqueState$ = this.containerValues$.pipe(
-      mapArray(containerValue => containerValue.state),
-      distinctArray(),
-      map(arr => arr.sort()),
-      mapArray(str => new Object({ label: str, value: str}) as SelectItem));
-
-    this.initializeGridState();
-    this.populateStatesDropdown();
-  }
-
-  private initializeGridState() {
-    // Set initial value of the header check box
-//    this.syncHeaderFilter();
-    this.headerFilter = false;
-
-    // Initialize the default sort order
-    this.multiSortMeta = [];
-    this.multiSortMeta.push({field: 'col.code', order: 1});
-  }
-
-  clear() : void {
-    console.log('clear fired');    
-    this.store$.dispatch(resetNamedForm({ path: 'marketLocation' }));
-  }
-
-  query(market: string) : void {
-    console.log('query fired');
-//    const market = this.marketLocationFormGroup.value['market'].value;
-    console.log('market: ' + market);    
-    
-    this.populateContainerValues(market);
-  }
-
-  hasErrors(controlKey: string) : boolean {
-    const control = this.marketLocationFormGroup.get(controlKey);
-    return false;
-    // return (control.dirty || control.touched) && (control.errors != null);
-  }
-
-  onSubmit(formData: any) {
-    this.marketLocationFormGroup.patchValue({id: formData.id, code: formData.code, name: formData.name, state: formData.state});
-    console.log('onSubmit Fired');
-    console.log('formData: ' + formData['market']);
-    this.query(formData['market']);
-    this.onClickResetFilters();
-    // this.syncHeaderFilter();
-    this.headerFilter = false;
-    /*
-    if (formData.coord != null && formData.coord !== '') {
-      formData.latitude = formData.coord.split(',')[0];
-      formData.longitude = formData.coord.split(',')[1];
-    } else {
-      formData.latitude = '';
-      formData.longitude = '';
-    }
-    delete formData.coord;
-    this.submitSite.emit(new ValGeocodingRequest(formData));*/
-  }
-
-  private loadData(formData: MarketLocationForm) {
-    console.log('loadData fired for formData: ' + formData);
-    
-    //this.store$.dispatch(updateNamedForm({ path: 'marketLocation', formData }));
-  }
-
-  private getData(container: string) { // : Observable<Partial<RestResponse>> {
-    const query = `${this.geoContainerLookupUrl}/${container}`;
-    this.containerValues$ = this.restService.get(query).pipe(
-      map((result) => result.payload.rows as Partial<ContainerValue>[]),
-      tap((result) =>     this.isFetchingData = false)
-    );
-  }
-
-  public populateStatesDropdown() {
-    this.getContainerData('state').subscribe(containerValues => {
-      if (containerValues == null)
-        console.log('### No state information returned');
-      else
-        if (containerValues.length === 0) {
-          this.store$.dispatch(new ErrorNotification({ message: 'No States Found'}));
-        } else {
-          //const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
-          //this.currentTrackerSuggestions.next(foundItems);
-          this.stateItems = [];
-          for (let i = 0; i < containerValues.length; i++)
-          {
-            //console.log('States: ' + containerValues[i].state + ' - ' + containerValues[i].name);
-            this.stateItems.push({label: containerValues[i].name, value: containerValues[i].state});
+            // Found a match, so break out of the search loop
+            break;
           }
         }
-      },
-      err => this.logger.error.log('There was an error retrieving the states Data', err)
-    );
-  }
-
-  public populateContainerValues(container: string) {
-    if (container == null || container === '') // TODO: replace with isValidContainer 
-    {
-      console.log('Invalid container passed: ' + container);
-      return;      
-    }
-    this.isFetchingData = true;
-
-    // this.containerValues$ = this.getContainerData(container).pipe(tap(
-    //   containerValues => console.log(containerValues.toString().substr(1, 99)) 
-    // ));
-
-    this.getContainerData(container).subscribe(values => this.containerValuesBS$.next(values),
-      err => {
-        this.isFetchingData = false;
-        this.logger.error.log('There was an error retrieving the container (' + container + ') value data\n', err);
-        // Emit an empty array to get the table to stop the loading spinner
-        this.containerValuesBS$.next([]);
-      },
-      () => this.isFetchingData = false);
-    //this.containerValues$.subscribe(data => console.log('data: ' + data));
-     /*.subscribe(containerValues => {
-      if (containerValues == null)
-        console.log('### No information returned for container: ' + container);
-      else        
-        if (containerValues.length === 0) {
-          this.store$.dispatch(new ErrorNotification({ message: 'No data found for container: ' + container}));
-        } else {
-          //const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
-          //this.currentTrackerSuggestions.next(foundItems);
-          this.containerValues = containerValues;*/
-/*         this.containerValues = [];
-          for (let i = 0; i < containerValues.length; i++)
-          {
-            console.log('Container Value: ' + containerValues[i].state + ' - ' + containerValues[i].name);
-            this.stateItems.push(new ContainerValue {label: containerValues[i].name, value: containerValues[i].state});
-          }*/
- /*       }
-      },
-      err => this.logger.error.log('There was an error retrieving the states Data', err)
-    );*/
-  }
-
-  private getContainerData(container: string) : Observable<ContainerValue[]> {
-    console.log('getContainerData fired - container: ' + container);    
-    const lookupUrl = `${this.geoContainerLookupUrl}/${container}`;
-    return this.restService.get(lookupUrl).pipe(
-        map((result: any) => result.payload.rows || []),
-        map(data => data.map(result => new ContainerValue(result)))
-    );
-  }
-
-  /**
-   * Ensures that the header checkbox is in sync with the actual state of the overall isActive flag.
-   * If one row is inactive, then the header checkbox is unselected.  If all rows are selected, its checked.
-   */
-  public syncHeaderFilter() {
-    if (this._containersGrid.filteredValue != null)
-      this.headerFilter = this._containersGrid.filteredValue.length > 0
-                          ? !this._containersGrid.filteredValue.some(container => container.isActive === false)
-                          : false;
-    else
-      this.headerFilter = this._containersGrid._value != null && this._containersGrid._value.length > 0
-                          ? !this._containersGrid._value.some(container => container.isActive === false)
-                          : false;
-    console.log('syncHeaderFilter: ' + this.headerFilter);
-    
-    if (this._containersGrid.filteredValue != null)
-    {
-     // this._containersGrid.filteredValue.forEach(val => console.log('FILTERED VAL: ' + val));
-      console.log('FILTERED HAS SOME INACTIVE: ' + this._containersGrid.filteredValue.some(container => container.isActive === false));
-      console.log('FILTERED HAS ALL ACTIVE:    ' + !this._containersGrid.filteredValue.some(container => container.isActive === false));
-    }
-    else
-    {
-      console.log('containersGrid all count:    ' + this._containersGrid._value.length);
-      console.log('containersGrid active count: ' + this._containersGrid._value.filter(cv => cv.isActive).length);      
-      // this._containersGrid._value.forEach(val => console.log('VAL: ' + val));
-    }
-    console.log('syncHeaderFilter: header checked: ' + this.headerFilter);
-    
-  }
-
-  setHasSelectedSites() : boolean {
-    this.numSelectedValues = this.containerValuesBS$.getValue().filter(containerValue => containerValue.isActive).length;
-  //  this.selectedValuesBS$.next(this.containerValuesBS$.getValue().filter(containerValue => containerValue.isActive));
-    this.syncHeaderFilter();
-    return this.hasSelectedValues =  this.numSelectedValues > 0;
-  }
-
-  // Grid events
-  public onRowSelect(event: any, isSelected: boolean) {
-    console.log('onRowSelect fired - event: ' + event + ', isSelected: ' + isSelected);    
-  }
-
-  onSelectContainer(container: ContainerValue) {
-    console.log('onSelectContainer fired - container: ' + container);    
-    //this.onToggleLocations.emit({sites: [site], isActive: site.isActive});
-    this.containerValuesBS$.value.find(cv => cv.code === container.code).isActive = container.isActive;
-    this.containerValuesBS$.next(this.containerValuesBS$.value);
-    this.setHasSelectedSites();
-  }
-
-  onSelectContainers(newIsActive: boolean) {
-    const hasFilters = this.hasFilters();
-    console.log('onSelectContainers fired - newIsActive: ' + newIsActive + ', hasFilters: ' + hasFilters);
-    const containerValues: ContainerValue[] = this.containerValuesBS$.getValue().filter(site => !hasFilters
-      || (this._containersGrid.filteredValue.filter(flatSite => flatSite.code === site.code)).length > 0);    
-
-    //filteredValues.forEach(containerValue => console.log(containerValue));
-    console.log('container values count: ' + containerValues.length);
-    console.log('container before active: ' + this.containerValuesBS$.value.filter(val => val.isActive).length);    
-    containerValues.forEach(containerValue => containerValue.isActive = newIsActive);
-    console.log('container after  active: ' + this.containerValuesBS$.value.filter(val => val.isActive).length);
-
-    this.containerValuesBS$.next(this.containerValuesBS$.value);
-
-    //this.onToggleLocations.emit({sites: filteredSites, isActive: newIsActive});
-    this.setHasSelectedSites();
-//    this._containersGrid.toggleRowsWithCheckbox(null, newIsActive);
-//    this.containerValuesBS$.next(filteredValues);
-/*
-    this.containerValuesBS$.getValue().filter(site => !hasFilters || 
-                                                      (this._containersGrid.filteredValue.filter(flatSite => flatSite.code === site.code)).length > 0)
-       .forEach(value => {
-         console.log('setting value: ' + value.code + ' to isActive = ' + newIsActive);         
-         value.isActive = newIsActive;
-       });*/
-//       this.syncHeaderFilter();
-  }
-
-  onFilter(event: any)
-  {
-    console.log('onFilter fired - event: ' + event);    
-    //if (event != null) {
-      this.syncHeaderFilter();
-    //}
-  }
-
-  /**
-   * Returns the appropriate tooltip for activating / deactivating a site or competitor
-   *
-   * @param loc The location whose isActive flag is being toggled
-   */
-  getSelectionTooltip(container: ContainerValue) : string {
-    return (container == null) ? null : ((container.isActive) ? 'Visibly Turn Off' : 'Visibly Turn On'); //FIXME: + ' ' + this.selectedListType;
-  }
-
-  getSelectionMessage() : string {
-    const numSelected = this.containerValuesBS$.getValue().length - this.containerValuesBS$.getValue().filter(value => value.isActive).length;
-    return numSelected +  '/' + this.containerValuesBS$.getValue().length + ' container values selected';
-  }
-
-    /**
-   * Performs a three way toggle that filters the grid by selection (isActive)
-   * 1) Show selected and deselected,  2) Selected only,  3) Deselected only
-   */
-  onFilterBySelection()
-  {
-    let filterVal: boolean = true;
-    switch (this.isSelectedFilterState) {
-      case this.filterSelectedIcon:
-        this.isSelectedFilterState = this.filterDeselectedIcon;
-        this.isSelectedToolTip = this.filterDeselectedTip;
-        filterVal = false;
-        break;
-
-      case this.filterDeselectedIcon:
-        this.isSelectedFilterState = this.filterAllIcon;
-        this.isSelectedToolTip = this.filterAllTip;
-        filterVal = null;
-        break;
-
-      default:
-        this.isSelectedFilterState = this.filterSelectedIcon;
-        this.isSelectedToolTip = this.filterSelectedTip;
-        filterVal = true;
-        break;
-    }
-    if (this._containersGrid.rows > 0) {
-      this._containersGrid.filter(filterVal, 'container.isActive', 'equals');
-    }
-  }
-
-  // Returns true if the grid has a filter applied
-  hasFilters() : boolean
-  {
-    return (this._containersGrid.filteredValue != null && this._containersGrid.filteredValue.length > 0);
-  }
-
-  // Switches the select button label and tooltip based on if a filter is applied
-  getSelectButtonText(asLabel: boolean) : string
-  {
-    return (asLabel) ? this.hasFilters() ? 'Filtered' : 'All'
-                     : this.hasFilters() ? 'Select all market values in the filtered list' : 'Select all market values';
-  }
-
-  //Clears out the filters from the grid and reset the filter components
-  onClickResetFilters()
-  {
-    // Clear the multi select filters
-    if (this.msFilters)
-      this.msFilters.forEach(ms => {
-        ms.value = null;
-        ms.valuesAsString = this.defaultLabel;
+        // this.locationService.geocode(requests, ImpClientLocationTypeCodes.Site, false)
+        //   .subscribe(geocodedLocations => {
+        //     console.log('geocodedLocations: ' + geocodedLocations.length);
+        //     console.log(geocodedLocations);
+        //     geocodedLocations.forEach(loc => this.createTradeArea(market, loc));
+        //     this.impGeofootprintLocationService.add(geocodedLocations);
+        //   });
+        this.locationService.persistLocationsAndAttributes(locations);
       });
-  
-    // Reset the grid and grid filters
-    this._containersGrid.reset();
-    this.onFilter(null);
+      //this.createTradeAreas(dmaList);
+      //this.renderTradeAreas();
+    },
+    err => this.logger.error.log('There was an error querying the layer', err),
+    () => {
+      this.logger.info.log('Market locations completed successfully');
+    });
+
+/*  this.esriQueryService.queryAttributeIn(EnvironmentData.layerIds.dma.boundary, 'dma_code', Array.from(homeDMAs), false, ['dma_code', 'dma_name']).pipe(
+      filter(g => g != null)
+    ).subscribe(
+      graphics => {
+        graphics.forEach(g => {
+          dmaLookup[g.attributes.dma_code] = g.attributes.dma_name;
+        });
+      },
+      err => this.logger.error.log('There was an error querying the layer', err),
+      () => {
+        const dmaAttrsToAdd = [];
+        locations.forEach(l => {
+          const currentAttributes = attributesBySiteNumber.get(l.locationNumber);
+          if (currentAttributes != null) {
+            const dmaName = dmaLookup[currentAttributes['homeDma']];
+            if (dmaName != null) {
+              const newAttribute = this.domainFactory.createLocationAttribute(l, 'Home DMA Name', dmaName);
+              if (newAttribute != null) dmaAttrsToAdd.push(newAttribute);
+            }
+          }
+        });
+        this.impLocAttributeService.add(dmaAttrsToAdd);
+        this.impLocationService.makeDirty();
+      }); */
   }
 
-  /**
-   * Used to toggle the gizmo icon and styles used to turn word wrapping on and off in the grid
-   */
-  public onToggleTableWrap() {
-    if (this.tableWrapStyle === this.tableWrapOn) {
-      this.tableWrapStyle = this.tableWrapOff;
-      this.tableWrapIcon = 'ui-icon-menu';
+  manuallyGeocode(site: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
+    //validate Manually added geocodes
+    const locations = this.impGeofootprintLocationService.get();
+/* PB       if (locations.filter(loc => loc.locationNumber === site.number).length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor){
+      this.store$.dispatch(new ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
+      this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
     }
-    else {
-      this.tableWrapStyle = this.tableWrapOn;
-      this.tableWrapIcon = 'ui-icon-wrap-text';
+    else*/ {
+      // const mktValue = site.Market != null ? `~Market=${site.Market}` : '';
+      // const metricsText = `Number=${site.number}~Name=${site.name}~Street=${site.street}~City=${site.city}~State=${site.state}~ZIP=${site.zip}${mktValue}`;
+      // this.store$.dispatch(new CreateLocationUsageMetric('single-site', 'add', metricsText));
+      this.processSiteRequests(site,  siteType, isEdit);
+      if (siteType !== ImpClientLocationTypeCodes.Competitor)
+        this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
     }
+  }
+
+  processSiteRequests(siteOrSites: ValGeocodingRequest | ValGeocodingRequest[], siteType: SuccessfulLocationTypeCodes, isEdit?: boolean) {
+    const sites = Array.isArray(siteOrSites) ? siteOrSites : [siteOrSites];
+    const reCalculateHomeGeos = false;
+    const isLocationEdit: boolean =  (isEdit !== null && isEdit !== undefined) ? isEdit : false;
+    this.store$.dispatch(new Geocode({sites, siteType, reCalculateHomeGeos, isLocationEdit}));
+  }
+
+  private createTradeArea(market: ContainerValue, loc: ImpGeofootprintLocation)
+  {
+    const newTA = this.factoryService.createTradeArea(loc, TradeAreaTypeCodes.Custom);
+
+    market.geocodes.forEach(geocode => {
+      const newGeo = this.factoryService.createGeo(newTA, geocode, null, null, 0);
+    //  newTA.impGeofootprintGeos.push(newGeo);
+    });
+    this.impGeofootprintGeoService.add(newTA.impGeofootprintGeos);
+   // this.tradeAreaService.insertTradeAreas([newTA]);
+    loc.impGeofootprintTradeAreas.push(newTA);
+    this.impGeofootprintTradeAreaService.add([newTA]);
+  }
+
+  private renderTradeAreas(isAlsoShaded: boolean = false) {
+    const result: ShadingDefinition = {
+      id: getUuid(),
+      dataKey: 'selection-shading',
+      sortOrder: 1,
+      sourcePortalId: null,
+      layerName: null,
+      opacity: isAlsoShaded ? 1 : 0.25,
+      visible: true,
+      minScale: null,
+      defaultSymbolDefinition: {
+        fillColor: isAlsoShaded ? [0, 0, 0, 1] : [0, 255, 0, 1],
+        fillType: isAlsoShaded ? 'backward-diagonal' : 'solid',
+      },
+      filterByFeaturesOfInterest: true,
+      filterField: 'geocode',
+      shadingType: ConfigurationTypes.Simple
+    };
+    //this.esriShadingService.addShader(result);
   }
 
 }

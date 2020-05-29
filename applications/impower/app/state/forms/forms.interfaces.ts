@@ -12,7 +12,6 @@ export interface AddLocationForm {
 }
 
 export interface MarketLocationForm {
-  number: string;
   states?: string;
   market: string;
   counts: number;
