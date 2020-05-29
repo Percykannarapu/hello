@@ -44,6 +44,10 @@ export class BatchMapDialogComponent implements OnInit {
   disableTradeArea: boolean;
   sitesCount$: Observable<number> = of(this.numSites);
 
+  titleInputBoolean: boolean = false;
+  subTitleInputBoolean: boolean = false;
+  subSubTitleInputBoolean: boolean = false;
+
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
     private cd: ChangeDetectorRef,
@@ -177,28 +181,31 @@ export class BatchMapDialogComponent implements OnInit {
     this.batchMapForm.get('title').valueChanges.subscribe(value => {
       if (value !== null) {
         if (value === 'user-defined') {
-          this.batchMapForm.get('titleInput').enable();
+          this.titleInputBoolean = false;
         } else if (this.batchMapForm.get('sitesToinclude').value !== 'currentMap') {
-          this.batchMapForm.get('titleInput').disable();
+          this.titleInputBoolean = true;
         }
+        this.cd.markForCheck();
       }
     });
     this.batchMapForm.get('subTitle').valueChanges.subscribe(value => {
       if (value !== null) {
         if (value === 'user-defined') {
-          this.batchMapForm.get('subTitleInput').enable();
+          this.subTitleInputBoolean = false;
         } else {
-          this.batchMapForm.get('subTitleInput').disable();
+          this.titleInputBoolean = true;
         }
+        this.cd.markForCheck();
       }
     });
     this.batchMapForm.get('subSubTitle').valueChanges.subscribe(val => {
       if (val !== null) {
         if (val === 'user-defined') {
-          this.batchMapForm.get('subSubTitleInput').enable();
+          this.subSubTitleInputBoolean = false;
         } else {
-          this.batchMapForm.get('subSubTitleInput').disable();
+          this.subSubTitleInputBoolean = true;
         }
+        this.cd.markForCheck();
       }
     });
     this.batchMapForm.get('neighboringSites').valueChanges.subscribe(val => {
@@ -247,6 +254,7 @@ export class BatchMapDialogComponent implements OnInit {
         this.currentViewSetting();
       else
        this.activeSitesSetting();
+      this.cd.markForCheck(); 
       
     });
   }
@@ -552,21 +560,21 @@ export class BatchMapDialogComponent implements OnInit {
     this.batchMapForm.get('subSubTitle').enable();
 
     if (this.batchMapForm.get('title').value === 'user-defined') {
-      this.batchMapForm.get('titleInput').enable();
+      this.titleInputBoolean = false;
     } else {
-      this.batchMapForm.get('titleInput').disable();
+      this.titleInputBoolean = true;
     }
 
     if (this.batchMapForm.get('subTitle').value === 'user-defined') {
-      this.batchMapForm.get('subTitleInput').enable();
+      this.subTitleInputBoolean = false;
     } else {
-      this.batchMapForm.get('subTitleInput').disable();
+      this.subTitleInputBoolean = true;
     }
 
     if (this.batchMapForm.get('subSubTitle').value === 'user-defined') {
-      this.batchMapForm.get('subSubTitleInput').enable();
+      this.subSubTitleInputBoolean = false;
     } else {
-      this.batchMapForm.get('subSubTitleInput').disable();
+      this.subSubTitleInputBoolean = true;
     }
   }
 
@@ -585,8 +593,5 @@ export class BatchMapDialogComponent implements OnInit {
         this.batchMapForm.get('titleInput').enable();
         this.batchMapForm.get('subTitleInput').enable();
         this.batchMapForm.get('subSubTitleInput').enable();
-
-        
   }
-
 }
