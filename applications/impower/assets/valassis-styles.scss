@@ -34,8 +34,11 @@ body {
     white-space: unset;
   }
 
-  .ui-inputtext:disabled {
-    margin-top: -1px;
+  .ui-inputtext {
+    background-size: 0 2px, 100% 1.5px;
+    &:disabled {
+      margin-top: -1px;
+    }
   }
 
   .ui-button,
@@ -123,6 +126,7 @@ body {
   }
 
   .ui-dropdown {
+    background-size: 0 2px, 100% 1.5px;
     .ui-dropdown-label {
       &.ui-inputtext {
         padding-left: 0.5em;
