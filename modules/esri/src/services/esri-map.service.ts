@@ -47,7 +47,9 @@ export class EsriMapService {
       const newMapViewProps = Object.assign({}, this.config.defaultViewParams);
       newMapViewProps.container = container.nativeElement;
       newMapViewProps.map = mapInstance;
+      newMapViewProps.resizeAlign = 'top-left';
       const mapView = new MapView(newMapViewProps);
+      mapView.navigation.mouseWheelZoomEnabled = false;
       return from(mapView.when()).pipe(
         tap(() => {
           this.mapView = mapView;
@@ -184,5 +186,9 @@ export class EsriMapService {
 
   public clear() : void {
     this.mapView.map.layers.removeAll();
+  }
+
+  setMousewheelNavigation(value: boolean) : void {
+    this.mapView.navigation.mouseWheelZoomEnabled = value;
   }
 }

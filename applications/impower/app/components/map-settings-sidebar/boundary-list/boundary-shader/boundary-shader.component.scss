@@ -30,17 +30,24 @@
     }
     > .label-controls {
       padding-left: 2rem;
-      > .label-color-controls {
+      > .label-font-container {
         display: flex;
-        > span {
-          padding-right: 1rem;
-          padding-top: 11px;
-        }
-      }
-      > .label-font-controls {
-        display: flex;
-        > *:first-child, > *:last-child {
+        > div {
           flex: 1;
+          padding-right: 2em;
+        }
+        > .label-color-controls {
+          display: flex;
+          > span {
+            padding-right: 1rem;
+            padding-top: 11px;
+          }
+        }
+        > .label-font-controls {
+          display: flex;
+          > *:first-child, > *:last-child {
+            flex: 1;
+          }
         }
       }
     }

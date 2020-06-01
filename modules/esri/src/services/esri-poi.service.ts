@@ -6,7 +6,7 @@ import { BehaviorSubject, EMPTY, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { LabelDefinition, MarkerSymbolDefinition } from '../models/common-configuration';
-import { MapSymbols } from '../models/esri-types';
+import { MapSymbols, RgbTuple } from '../models/esri-types';
 import { PoiConfiguration, PoiConfigurationTypes, SimplePoiConfiguration, UniquePoiConfiguration } from '../models/poi-configuration';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
@@ -27,6 +27,7 @@ import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 import { EsriQueryService } from './esri-query.service';
+import { LoggingService } from './logging.service';
 
 @Injectable()
 export class EsriPoiService {
@@ -38,6 +39,7 @@ export class EsriPoiService {
               private mapService: EsriMapService,
               private queryService: EsriQueryService,
               private store$: Store<AppState>,
+              private logger: LoggingService,
               private domainFactory: EsriDomainFactoryService) {
     this.store$.select(selectors.getMapReady).pipe(
       filter(ready => ready),
@@ -56,7 +58,7 @@ export class EsriPoiService {
       withLatestFrom(filteredPois$),
       filter(([, pois]) => pois.length > 0),
       switchMap(([, pois]) => this.queryForVisiblePois(pois)),
-      tap(results => console.log('Query complete', results))
+      tap(results => this.logger.debug.log('POI query complete', results))
     ).subscribe(this.visiblePois$ as BehaviorSubject<Record<string, __esri.Graphic[]>>);
   }
 
@@ -135,7 +137,7 @@ export class EsriPoiService {
           this.layerService.removeLayerFromLegend(config.featureLayerId);
           layer.set(props);
           setTimeout(() => {
-            this.layerService.addLayerToLegend(config.featureLayerId, null, false);
+            this.layerService.addLayerToLegend(config.featureLayerId, config.layerName, false);
           }, 0);
         } else {
           layer.set(props);
@@ -165,7 +167,7 @@ export class EsriPoiService {
     let outlineSize = 1;
     if (currentDef.markerType === 'cross' || currentDef.markerType === 'x') {
       outlineColor = currentDef.color;
-      outlineSize = 2;
+      outlineSize = currentDef.markerType === 'x' ? 4 : 2;
     }
     const outline = this.domainFactory.createSimpleLineSymbol(outlineColor, outlineSize);
     const path = currentDef.markerType === 'path' ? MapSymbols.STAR : undefined;
@@ -189,7 +191,7 @@ export class EsriPoiService {
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     const color = !currentDef.usesStaticColor ? config.symbolDefinition.color : currentDef.color;
     const haloColor = !currentDef.usesStaticColor ? config.symbolDefinition.outlineColor : currentDef.haloColor;
-    return this.domainFactory.createExtendedLabelClass(color, haloColor, arcade, font);
+    return this.domainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font);
   }
 
   private createMultiLabel(config: UniquePoiConfiguration) : __esri.LabelClass[] {
@@ -201,7 +203,7 @@ export class EsriPoiService {
       const where = `${config.featureAttribute} = '${bd.value}'`;
       const color = !currentDef.usesStaticColor ? bd.color : currentDef.color;
       const haloColor = !currentDef.usesStaticColor ? bd.outlineColor : currentDef.haloColor;
-      result.push(this.domainFactory.createExtendedLabelClass(color, haloColor, arcade, font, 'below-center', { where }));
+      result.push(this.domainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font, 'below-center', { where }));
     });
     return result;
   }

@@ -1,4 +1,6 @@
+@import "~assets/sass/mixins";
 @import "~assets/valassis-variables";
+
 form.shading-controls-form {
   > div {
     padding-top: 1em;
@@ -35,6 +37,16 @@ body .ui-sidebar.transparent-back {
         margin-top: 1em;
         overflow-x: auto;
       }
+    }
+  }
+  button.ui-button.ui-button-primary {
+    background-color: $blueBird;
+    color: $lightGray03;
+    border-color: $darkGray01;
+    box-shadow: 2px 2px 3px $darkGray03;
+    @include transition(box-shadow .3s);
+    &:hover {
+      box-shadow: none;
     }
   }
 }

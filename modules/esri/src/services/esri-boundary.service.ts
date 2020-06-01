@@ -8,6 +8,7 @@ import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap } from 'rxjs/operators';
 import { BoundaryConfiguration, PopupDefinition } from '../models/boundary-configuration';
 import { FillSymbolDefinition, LabelDefinition } from '../models/common-configuration';
+import { RgbTuple } from '../models/esri-types';
 import { loadBoundaries, updateBoundaries, updateBoundary, upsertBoundaries, upsertBoundary } from '../state/boundary/esri.boundary.actions';
 import { boundarySelectors } from '../state/boundary/esri.boundary.selectors';
 import { AppState } from '../state/esri.reducers';
@@ -143,8 +144,8 @@ export class EsriBoundaryService {
         const defaultSymbol = this.createSymbolFromDefinition(config.symbolDefinition);
         const labels = [
           config.showHouseholdCounts && config.hhcLabelDefinition != null
-            ? this.createLabelFromDefinition(config.hhcLabelDefinition)
-            : this.createLabelFromDefinition(config.labelDefinition)
+            ? this.createLabelFromDefinition(config.hhcLabelDefinition, config.opacity)
+            : this.createLabelFromDefinition(config.labelDefinition, config.opacity)
         ];
         // if (config.showPOBs && config.pobLabelDefinition != null) {
         //   labels.push(this.createLabelFromDefinition(config.pobLabelDefinition));
@@ -218,7 +219,7 @@ export class EsriBoundaryService {
     if (updatesForDispatch.length > 0) this.store$.dispatch(updateBoundaries({ boundaries: updatesForDispatch }));
   }
 
-  private createLabelFromDefinition(currentDef: LabelDefinition) : __esri.LabelClass {
+  private createLabelFromDefinition(currentDef: LabelDefinition, layerOpacity: number) : __esri.LabelClass {
     const weight = currentDef.isBold ? 'bold' : 'normal';
     const style = currentDef.isItalic ? 'italic' : 'normal';
     const font = this.domainFactory.createFont(currentDef.size, weight, style, currentDef.family);
@@ -227,7 +228,9 @@ export class EsriBoundaryService {
     if (currentDef.where != null) {
       attributes['where'] = currentDef.where;
     }
-    return this.domainFactory.createExtendedLabelClass(currentDef.color, currentDef.haloColor, arcade, font, 'always-horizontal', attributes);
+    const color = RgbTuple.withAlpha(currentDef.color, layerOpacity);
+    const haloColor = RgbTuple.withAlpha(currentDef.haloColor, layerOpacity);
+    return this.domainFactory.createExtendedLabelClass(color, haloColor, arcade, font, 'always-horizontal', attributes);
   }
 
   private createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {

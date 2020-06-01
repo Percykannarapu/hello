@@ -90,7 +90,7 @@ export class AppRendererService {
       withLatestFrom(this.store$.select(projectIsReady), this.store$.select(getBatchMode)),
       filter(([, ready, isBatchMode]) => ready && !isBatchMode)
     ).subscribe(([sd]) => {
-      const newDefs: ShadingDefinition[] = JSON.parse(JSON.stringify(sd));
+      const newDefs: ShadingDefinition[] = sd.map(s => duplicateShadingDefinition(s));
       newDefs.forEach(s => {
         s.destinationLayerUniqueId = undefined;
         if (isComplexShadingDefinition(s)) {

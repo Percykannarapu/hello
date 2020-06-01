@@ -85,6 +85,7 @@ export class LocationShaderComponent implements OnDestroy {
   protected setupForm() : void {
     const defaultLabelDefinition: Partial<LabelDefinition> = this.configuration.labelDefinition || {};
     const formSetup: any = {
+      layerName: new FormControl(this.configuration.layerName, [Validators.required]),
       poiType: new FormControl(this.configuration.poiType, [Validators.required]),
       opacity: new FormControl(this.configuration.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
       showLabels: new FormControl(this.configuration.showLabels || false, { updateOn: 'change' }),

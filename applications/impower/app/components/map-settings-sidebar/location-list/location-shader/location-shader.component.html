@@ -22,10 +22,11 @@
           <strong>{{getLabelDescription(configuration.labelDefinition)}}</strong>
         </div>
         <div>
-          <label>Font:</label>
-          <strong>{{configuration.labelDefinition.family || 'Noto Sans'}}</strong>&nbsp;
-          <span>{{configuration.labelDefinition.size || 12}}pt</span>&nbsp;
-          <span>{{getFontWeight(configuration.labelDefinition)}}</span>
+          <label>Font Size:</label>
+          <strong>{{configuration.labelDefinition.size || 12}}pt</strong>
+<!--          <strong>{{configuration.labelDefinition.family || 'Noto Sans'}}</strong>&nbsp;-->
+<!--          <span>{{configuration.labelDefinition.size || 12}}pt</span>&nbsp;-->
+<!--          <span>{{getFontWeight(configuration.labelDefinition)}}</span>-->
         </div>
         <div>
           <label>Color:</label>
@@ -55,20 +56,20 @@
       <div *ngIf="configForm.get('showLabels').value === true" formGroupName="labelDefinition" class="label-controls">
         <dropdown-input labelText="Label Field" formControlName="featureAttribute" [options]="labelChoices"></dropdown-input>
         <div class="label-font-controls">
-          <dropdown-input labelText="Font" [options]="fontFaces" formControlName="family"></dropdown-input>
-          <boolean-input labelText="Bold" formControlName="isBold"></boolean-input>
-          <boolean-input labelText="Italic" formControlName="isItalic"></boolean-input>
-          <validated-text-input labelText="Size (in points)" validationMessage="Size must be between 6 and 48 pts" formControlName="size"></validated-text-input>
+<!--          <dropdown-input labelText="Font" [options]="fontFaces" formControlName="family"></dropdown-input>-->
+<!--          <boolean-input labelText="Bold" formControlName="isBold"></boolean-input>-->
+<!--          <boolean-input labelText="Italic" formControlName="isItalic"></boolean-input>-->
+          <validated-text-input labelText="Font size (in points)" validationMessage="Font size must be between 6 and 48 pts" formControlName="size"></validated-text-input>
         </div>
         <div class="label-color-controls">
-          <boolean-input labelText="Use Static Color for all Labels?" formControlName="usesStaticColor"></boolean-input>
+          <boolean-input labelText="Use single color for all Labels?" formControlName="usesStaticColor"></boolean-input>
           <ng-container *ngIf="configForm.get('labelDefinition.usesStaticColor').value === true">
             <span title="Fill Color">
               <val-extended-color-picker [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
             </span>
-            <span title="Halo Color">
-              <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="haloColor"></val-extended-color-picker>
-            </span>
+<!--            <span title="Halo Color">-->
+<!--              <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="haloColor"></val-extended-color-picker>-->
+<!--            </span>-->
           </ng-container>
         </div>
 
@@ -76,7 +77,7 @@
 
 
       <validated-text-input formControlName="opacity" labelText="Icon Opacity" validationMessage="Must be a number between 0 and 1"></validated-text-input>
-      <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!configForm.valid"></button>
+      <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': configForm.dirty, 'ui-button-secondary': configForm.pristine }" [disabled]="!configForm.valid"></button>
       <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
     </form>
   </div>

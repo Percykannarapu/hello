@@ -65,3 +65,13 @@ export const shaderConfigTypeFriendlyNames = {
   ['Ramp'] : 'Ramp',
   ['DotDensity'] : 'Dot Density'
 };
+
+export const markerStyleDefaultSizes = {
+  ['circle'] : 10,
+  ['cross'] : 10,
+  ['diamond'] : 12,
+  ['square'] : 10,
+  ['triangle'] : 12,
+  ['x'] : 10,
+  ['path'] : 10
+};

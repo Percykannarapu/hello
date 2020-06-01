@@ -5,7 +5,7 @@ export enum MapSymbols  {
 export type RgbTuple = [number, number, number];
 export type RgbaTuple = [number, number, number, number];
 export namespace RgbTuple {
-  export function withAlpha(rgb: RgbTuple, alpha: number) : RgbaTuple {
+  export function withAlpha(rgb: RgbTuple | RgbaTuple, alpha: number) : RgbaTuple {
     return [rgb[0], rgb[1], rgb[2], alpha];
   }
   export function matches(rgba: RgbaTuple, other: RgbaTuple | RgbTuple, ignoreAlpha: boolean = true) : boolean {
@@ -24,7 +24,7 @@ export type CrossHatchFillPattern = 'backward-diagonal' | 'cross' | 'diagonal-cr
 export type FillPattern = CrossHatchFillPattern | 'none' | 'solid';
 export type LineStyle = 'dash' | 'dash-dot' | 'dot' | 'long-dash' | 'long-dash-dot' | 'long-dash-dot-dot' | 'none' | 'short-dash' | 'short-dash-dot' | 'short-dash-dot-dot' | 'short-dot' | 'solid';
 export type MarkerStyles = 'circle' | 'cross' | 'diamond' | 'square' | 'triangle' | 'x' | 'path';
-export const markerStyleValues: MarkerStyles[] = ['path', 'circle', 'diamond', 'square', 'triangle', 'cross', 'x'];
+export const markerStyleValues: MarkerStyles[] = ['path', 'circle', 'square', 'triangle', 'diamond', 'cross', 'x'];
 export const completeEsriFaces: string[] = [
   'Alegreya',
   'Arial',

@@ -66,13 +66,16 @@ export function duplicatePoiConfiguration(config: PoiConfiguration) : PoiConfigu
 export type PoiConfiguration = SimplePoiConfiguration | UniquePoiConfiguration;
 
 export function generateUniqueMarkerValues(sortedUniqueValues: string[], colorPalette: RgbTuple[]) : UniqueValueMarkerDefinition[] {
-  return sortedUniqueValues.map((uv, i) => ({
-    value: uv,
-    color: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
-    markerType: markerStyleValues[i % markerStyleValues.length],
-    size: 10,
-    legendName: uv,
-    outlineColor: [255, 255, 255, 1],
-    outlineWidth: 1
-  }));
+  return sortedUniqueValues.map((uv, i) => {
+    const currentMarker = markerStyleValues[i % markerStyleValues.length];
+    return {
+      value: uv,
+      color: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
+      markerType: currentMarker,
+      size: currentMarker === 'triangle' || currentMarker === 'diamond' ? 12 : 10,
+      legendName: uv,
+      outlineColor: [255, 255, 255, 1],
+      outlineWidth: 1
+    };
+  });
 }
