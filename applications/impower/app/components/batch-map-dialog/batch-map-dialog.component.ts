@@ -42,7 +42,7 @@ export class BatchMapDialogComponent implements OnInit {
   };
   enableTradeAreaShading: boolean;
   disableTradeArea: boolean;
-  sitesCount$: Observable<number> = of(this.numSites);
+  sitesCount$: Observable<number> = of(0);
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
@@ -222,7 +222,6 @@ export class BatchMapDialogComponent implements OnInit {
       this.currentProjectName = p.projectName;
       this.batchMapForm.patchValue({titleInput: this.currentProjectName});
       this.numSites = p.getImpGeofootprintLocations().length;
-      this.sitesCount$ = of(this.getActiveSites().length);
     });
     this.appLocationService.siteLabelOptions$.subscribe( (list: SelectItem[]) => {
       const customList: SelectItem[] = [];
@@ -247,7 +246,10 @@ export class BatchMapDialogComponent implements OnInit {
         this.currentViewSetting();
       else
        this.activeSitesSetting();
-      
+    });
+    this.store$.select(getBatchMapDialog).subscribe(flag => {
+      if (flag)
+        this.sitesCount$ = of(this.getActiveSites().length);
     });
   }
 
