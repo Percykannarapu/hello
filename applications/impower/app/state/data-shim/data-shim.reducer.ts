@@ -89,6 +89,7 @@ export function dataShimReducer(state = initialState, action: DataShimActions) :
       return {
         ...state,
         deleteCustomTa: false,
+        deleteMustCover: false,
       };        
     default:
       return state;
