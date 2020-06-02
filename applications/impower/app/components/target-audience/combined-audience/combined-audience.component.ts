@@ -96,7 +96,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
           selectedIndex.updateValueAndValidity();
           value.forEach(variable => this.audienceTypes.add(variable.fieldconte));
           if (this.audienceTypes.size > 1 || (this.audienceTypes.size === 1 && !this.audienceTypes.has('PERCENT'))) {
-            selectedIndex.setErrors(null);
+            selectedIndex.setErrors({'Has Error': true});
             this.showError = true;
           }
         } 
@@ -105,8 +105,10 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       this.audienceForm.get('audienceName').valueChanges.pipe(takeUntil(this.destroyed$)).subscribe( value => {
         const audienceName = this.audienceForm.get('audienceName');
         this.isDuplicateName = false;
-        if (this.varNames.has(audienceName.value) && this.varNames.get(audienceName.value) !== audienceName.parent.controls['audienceId'].value)
-              this.isDuplicateName = true;
+        if (this.varNames.has(audienceName.value) && this.varNames.get(audienceName.value) !== audienceName.parent.controls['audienceId'].value){
+          audienceName.setErrors({'isDuplicateName': true});
+          this.isDuplicateName = true;
+        }
       });
   }
 
