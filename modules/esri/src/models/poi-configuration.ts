@@ -67,9 +67,10 @@ export function duplicatePoiConfiguration(config: PoiConfiguration) : PoiConfigu
 export type PoiConfiguration = SimplePoiConfiguration | UniquePoiConfiguration;
 
 export function generateUniqueMarkerValues(sortedUniqueValues: string[], colorPalette: RgbTuple[]) : UniqueValueMarkerDefinition[] {
+  const needsOffset = (markerStyleValues.length % colorPalette.length) === 0;
   return sortedUniqueValues.map((uv, i) => {
     const currentMarker = markerStyleValues[i % markerStyleValues.length];
-    const offset = Math.floor(i / colorPalette.length);
+    const offset = needsOffset ? Math.floor(i / colorPalette.length) : 0;
     const currentColor = colorPalette[(i + offset) % colorPalette.length];
     return {
       value: uv,
