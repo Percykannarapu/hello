@@ -19,7 +19,12 @@
       <button (click)="onSubmit(marketLocationFormGroup.value)" type="submit" type="button" label="Query Market Values" icon="ui-icon-search" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button>
     </div>
     <div class="ui-g-4">
-      <button (click)="getGeographies()" label="Create Locations" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="!canCreate"></button>
+      <div class="ui-g-11 ui-g-nopad">
+        <button (click)="getGeographies()" label="Create Locations" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="!canCreate"></button>
+      </div>
+      <div *ngIf="isFetchingGeos" class="ui-g-1 ui-g-nopad" style="text-align: center;">
+        <p-progressSpinner [style]="{width: '30px', height: '30px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
+      </div>
     </div>
   </div>
 </form>
@@ -121,7 +126,7 @@
             </div>
             <div *ngIf="isFetchingData">
               <div class="ui-g-1">
-                <p-progressSpinner *ngIf="isFetchingData" [style]="{width: '50px', height: '50px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
+                <p-progressSpinner [style]="{width: '50px', height: '50px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
               </div>
               <div  class="ui-g-11">
                 <h4>Fetching container values</h4>
