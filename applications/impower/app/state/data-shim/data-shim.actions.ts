@@ -40,7 +40,8 @@ export enum DataShimActionTypes {
 
   DeleteCustomTAGeos= '[Application Data Shim] Delete Custom Trade Areas Geos',
   DeleteMustCoverGeos= '[Application Data Shim] Delete Must Cover Geos',
-  DeleteCustomData= '[Application Data Shim] Delete Custom Data Geos'
+  DeleteCustomData= '[Application Data Shim] Delete Custom Data Geos',
+  DeleteCustomTAMustCoverGeosReset= '[Application Data Shim] Delete Custom Ta or Must Cover Geos flagreset',
 
 }
 
@@ -173,6 +174,12 @@ export class DeleteCustomData implements Action{
   constructor(public payload: {deleteCustomData: boolean}){}
 }
 
+export class DeleteCustomTAMustCoverGeosReset implements Action{
+  readonly type = DataShimActionTypes.DeleteCustomTAMustCoverGeosReset;
+  constructor(public payload: {resetFlag: boolean}){}
+  
+}
+
 export type DataShimActions =
   ProjectSaveAndNew |
   ProjectSaveAndLoad |
@@ -197,4 +204,5 @@ export type DataShimActions =
   RollDownGeosComplete|
   ExportCustomTAIssuesLog|
   ExportMCIssuesLog|
-  DeleteCustomTAGeos| DeleteMustCoverGeos | DeleteCustomData;
+  DeleteCustomTAGeos| DeleteMustCoverGeos | DeleteCustomData |
+  DeleteCustomTAMustCoverGeosReset;

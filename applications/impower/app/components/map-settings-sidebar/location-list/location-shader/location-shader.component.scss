@@ -22,7 +22,7 @@
       margin-top: 0.5em;
       margin-right: 1em;
     }
-    > .label-controls {
+    > .label-setup {
       padding-left: 2rem;
       > .label-color-controls {
         display: flex;
@@ -31,10 +31,13 @@
           padding-top: 11px;
         }
       }
-      > .label-font-controls {
+      > .label-controls {
         display: flex;
-        > *:first-child, > *:last-child {
+        > * {
           flex: 1;
+        }
+        > *:first-child {
+          padding-right: 1em;
         }
       }
     }

@@ -1,3 +1,4 @@
+import { markerStyleDefaultSizes } from '../core/esri.enums';
 import { ColorPalette } from './color-palettes';
 import { duplicateLabel, duplicateMarker, LabelDefinition, MarkerSymbolDefinition, UniqueValueMarkerDefinition } from './common-configuration';
 import { markerStyleValues, RgbTuple } from './esri-types';
@@ -21,6 +22,7 @@ export interface BasePoiConfiguration {
   visible?: boolean;
   showLabels?: boolean;
   labelDefinition?: LabelDefinition;
+  refreshLegendOnRedraw?: boolean;
 }
 
 export interface SimplePoiConfiguration extends BasePoiConfiguration {
@@ -65,13 +67,19 @@ export function duplicatePoiConfiguration(config: PoiConfiguration) : PoiConfigu
 export type PoiConfiguration = SimplePoiConfiguration | UniquePoiConfiguration;
 
 export function generateUniqueMarkerValues(sortedUniqueValues: string[], colorPalette: RgbTuple[]) : UniqueValueMarkerDefinition[] {
-  return sortedUniqueValues.map((uv, i) => ({
-    value: uv,
-    color: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
-    markerType: markerStyleValues[i % markerStyleValues.length],
-    size: 10,
-    legendName: uv,
-    outlineColor: [255, 255, 255, 1],
-    outlineWidth: 1
-  }));
+  const needsOffset = (markerStyleValues.length % colorPalette.length) === 0;
+  return sortedUniqueValues.map((uv, i) => {
+    const currentMarker = markerStyleValues[i % markerStyleValues.length];
+    const offset = needsOffset ? Math.floor(i / colorPalette.length) : 0;
+    const currentColor = colorPalette[(i + offset) % colorPalette.length];
+    return {
+      value: uv,
+      color: RgbTuple.withAlpha(currentColor, 1),
+      markerType: currentMarker,
+      size: markerStyleDefaultSizes[currentMarker],
+      legendName: uv,
+      outlineColor: [255, 255, 255, 1],
+      outlineWidth: 1
+    };
+  });
 }

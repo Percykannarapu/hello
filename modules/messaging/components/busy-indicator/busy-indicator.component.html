@@ -3,3 +3,9 @@
     <p-progressSpinner></p-progressSpinner>
   </div>
 </p-dialog>
+
+<p-dialog [closable]="true" [header]="currentLiveMessage$ | async" [visible]="currentLiveState$ | async" [style]="{ width: '25%' }">
+  <div class="busy-container">
+    <p-progressSpinner></p-progressSpinner>
+  </div>
+</p-dialog>

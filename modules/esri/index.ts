@@ -4,6 +4,7 @@
 export * from './src/components/esri-geography-popup/esri-geography-popup.component';
 export * from './src/components/esri-map-panel/esri-map-panel.component';
 
+export * from './src/core/type-checks';
 export * from './src/core/esri.enums';
 export * from './src/core/esri.models';
 export * from './src/core/esri-utils';

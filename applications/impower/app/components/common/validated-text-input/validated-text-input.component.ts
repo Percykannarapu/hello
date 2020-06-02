@@ -13,11 +13,18 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
   @Input() validationMessage: string;
   @Input() labelText: string;
   @Input() tabIndex: number;
-  @Input() readOnly: boolean = false;
   @Input() inputClass: string;
 
   controlId = getUuid();
   isDisabled: boolean;
+
+  public get readOnly() : boolean {
+    return this._readOnly;
+  }
+  @Input()
+  public set readOnly(value: boolean) {
+    this._readOnly = value;
+  }
 
   get value() : string {
     return this._value;
@@ -34,6 +41,7 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
   }
 
   private _value: string;
+  private _readOnly: boolean = false;
 
   propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};

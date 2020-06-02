@@ -214,7 +214,7 @@ export class RestDataInterceptor implements HttpInterceptor
    {
       let internalRequest: HttpRequest<any> = req.clone();
       let refresh: any;
-      if (req.url.includes(this.appConfig.valServiceBase)) {
+      if (req.url.includes(this.appConfig.valServiceBase) || req.url.includes(this.appConfig.printServiceUrl)) {
         if (req.responseType === 'json') {
           // if there is already a Content-Type header we don't want to override it
           if (req.headers.get('Content-Type') || req.headers.get('content-type')) {

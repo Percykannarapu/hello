@@ -3,6 +3,16 @@
     display: inline;
     padding-right: 1em;
   }
+  .label-display {
+    padding-left: 2rem;
+  }
+  .color-chip {
+    display: inline-block;
+    width: 20px;
+    height: 15px;
+    margin-left: 0.5em;
+    border-radius: 3px;
+  }
 }
 
 .boundary-form-container {
@@ -12,13 +22,35 @@
       margin-top: 0.5em;
       margin-right: 1em;
     }
+    > .toggle-container {
+      display: flex;
+      > span {
+        flex: 1;
+      }
+    }
+    > .label-controls {
+      padding-left: 2rem;
+      > .label-font-container {
+        display: flex;
+        > div {
+          flex: 1;
+          padding-right: 2em;
+        }
+        > .label-color-controls {
+          display: flex;
+          > span {
+            padding-right: 1rem;
+            padding-top: 11px;
+          }
+        }
+        > .label-font-controls {
+          display: flex;
+          > *:first-child, > *:last-child {
+            flex: 1;
+          }
+        }
+      }
+    }
   }
   padding: 0.5em;
-}
-
-.color-chip {
-  display: inline-block;
-  width: 20px;
-  height: 15px;
-  margin-left: 0.5em;
 }

@@ -2,7 +2,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ControlContainer, FormGroup } from '@angular/forms';
 import { getUuid } from '@val/common';
-import { ColorPalette, markerStyleValues, markerTypeFriendlyNames, RgbaTuple } from '@val/esri';
+import { ColorPalette, markerStyleDefaultSizes, MarkerStyles, markerStyleValues, markerTypeFriendlyNames, RgbaTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 
 @Component({
@@ -31,5 +31,9 @@ export class EsriMarkerSymbolInputComponent implements OnInit {
 
   ngOnInit() : void {
     this.currentRoot = this.controlContainer.control as FormGroup;
+  }
+
+  public setDefaultPointSize({ value }: { value: MarkerStyles }) {
+    if (markerStyleDefaultSizes[value] != null) this.currentRoot.get('size').setValue(markerStyleDefaultSizes[value]);
   }
 }

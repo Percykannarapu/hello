@@ -1,8 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { getUuid, groupByExtended, mapArrayToEntity, mapByExtended } from '@val/common';
-import { EsriDomainFactoryService, EsriLayerService, EsriPoiService, EsriUtils, PoiConfiguration, PoiConfigurationTypes } from '@val/esri';
+import { getUuid, groupToEntity, mapArrayToEntity, mapByExtended } from '@val/common';
+import {
+  duplicatePoiConfiguration,
+  EsriDomainFactoryService,
+  EsriLayerService,
+  EsriPoiService,
+  EsriUtils,
+  PoiConfiguration,
+  PoiConfigurationTypes
+} from '@val/esri';
 import { filter, take, withLatestFrom } from 'rxjs/operators';
+import { AppConfig } from '../app.config';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -23,12 +32,14 @@ export class PoiRenderingService {
               private domainFactory: EsriDomainFactoryService,
               private appPrefService: AppProjectPrefService,
               private esriPoiService: EsriPoiService,
+              private config: AppConfig,
               private store$: Store<FullAppState>) {
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
       this.setupProjectPrefsWatcher();
+      this.setupVisibilityWatcher();
     });
   }
 
@@ -45,21 +56,36 @@ export class PoiRenderingService {
     });
   }
 
+  private setupVisibilityWatcher() : void {
+    this.esriPoiService.visiblePois$.pipe(
+      withLatestFrom(this.esriPoiService.allPoiConfigurations$, this.store$.select(getBatchMode)),
+      // filter(([, , isBatchMode]) => isBatchMode)
+    ).subscribe(([visiblePois, allConfigs]) => {
+      const configsToUpdate = allConfigs.filter(c => visiblePois[c.featureLayerId] != null && visiblePois[c.featureLayerId].length > 0);
+      if (configsToUpdate.length > 0) {
+        this.updateConfigRenderers(visiblePois, configsToUpdate);
+      }
+    });
+  }
+
   /**
    * Creates or updates a point feature layer for Client Sites
    * @param sites - The list of Client Sites
    * @param renderingSetups - the PoiConfiguration setup for this Poi Visualization
    */
   renderSites(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]) : void {
+    const sitesByTypeCode: Record<string, __esri.Graphic[]> = groupToEntity(sites, s => s.clientLocationTypeCode, (s, i) => createSiteGraphic(s, i));
+    this.renderPois(sitesByTypeCode, renderingSetups);
+  }
+
+  private renderPois(poisByTypeCode: Record<string, __esri.Graphic[]>, renderingSetups: PoiConfiguration[]) : void {
     const updatedSetups: PoiConfiguration[] = [];
-    const sitesByTypeCode = groupByExtended(sites, s => s.clientLocationTypeCode);
     renderingSetups.forEach(renderingSetup => {
-      const currentSites = sitesByTypeCode.get(renderingSetup.dataKey) || [];
+      const newPoints = poisByTypeCode[renderingSetup.dataKey] || [];
       if (renderingSetup.featureLayerId != null) {
         const existingLayer = this.layerService.getLayerByUniqueId(renderingSetup.featureLayerId);
         if (EsriUtils.layerIsFeature(existingLayer)) {
           existingLayer.queryFeatures().then(result => {
-            const newPoints = currentSites.map((s, i) => createSiteGraphic(s, i));
             const edits = this.prepareLayerEdits(result.features, newPoints);
             if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
               existingLayer.applyEdits(edits);
@@ -67,15 +93,16 @@ export class PoiRenderingService {
             existingLayer.legendEnabled = newPoints.length > 0;
           });
         }
-      } else if (currentSites.length > 0) {
-        const newPoints = currentSites.map((s, i) => createSiteGraphic(s, i));
+      } else if (newPoints.length > 0) {
         const existingGroup = this.layerService.createClientGroup(renderingSetup.groupName, true);
-            const fieldLookup = mapByExtended(defaultLocationPopupFields, item => item.fieldName, item => ({ label: item.label, visible: item.visible }));
-            const newFeatureLayer = this.domainFactory.createFeatureLayer(newPoints, 'objectId', fieldLookup);
+        const fieldLookup = mapByExtended(defaultLocationPopupFields, item => item.fieldName, item => ({ label: item.label, visible: item.visible }));
+        const newFeatureLayer = this.domainFactory.createFeatureLayer(newPoints, 'objectId', fieldLookup);
         newFeatureLayer.visible = false;
         existingGroup.add(newFeatureLayer);
         this.esriPoiService.setPopupFields(defaultLocationPopupFields.filter(f => f.visible !== false).map(f => f.fieldName));
-        updatedSetups.push({...renderingSetup, featureLayerId: newFeatureLayer.id});
+        const newSetup = duplicatePoiConfiguration(renderingSetup);
+        newSetup.featureLayerId = newFeatureLayer.id;
+        updatedSetups.push(newSetup);
       }
     });
     if (updatedSetups.length > 0) {
@@ -98,6 +125,21 @@ export class PoiRenderingService {
     return result;
   }
 
+  private updateConfigRenderers(poisByFeatureId: Record<string, __esri.Graphic[]>, renderingSetups: PoiConfiguration[]) : void {
+    const updatedSetups: PoiConfiguration[] = [];
+    renderingSetups.forEach(config => {
+      if (config.poiType === PoiConfigurationTypes.Unique) {
+        const currentPois = poisByFeatureId[config.featureLayerId];
+        const existingFeatures = new Set<string>(currentPois.map(poi => poi.attributes[config.featureAttribute]));
+        config.breakDefinitions.forEach(b => b.isHidden = !existingFeatures.has(b.value));
+        updatedSetups.push(duplicatePoiConfiguration(config));
+      }
+    });
+    if (updatedSetups.length > 0) {
+      this.esriPoiService.upsertPoiConfig(updatedSetups);
+    }
+  }
+
   public getConfigurations(project?: ImpProject) : PoiConfiguration[] {
     let result = this.createDefaultConfigurations();
     if (project != null) {
@@ -118,7 +160,7 @@ export class PoiRenderingService {
       dataKey: ImpClientLocationTypeCodes.Site,
       groupName: 'Sites',
       sortOrder: 0,
-      layerName: 'Project Sites',
+      layerName: 'Client Locations',
       minScale: 0,
       opacity: 1,
       visible: true,
@@ -141,7 +183,7 @@ export class PoiRenderingService {
       dataKey: ImpClientLocationTypeCodes.Competitor,
       groupName: 'Competitors',
       sortOrder: 1,
-      layerName: 'Project Competitors',
+      layerName: 'Competitors',
       minScale: 0,
       opacity: 1,
       visible: true,
@@ -157,7 +199,7 @@ export class PoiRenderingService {
         featureAttribute: 'locationNumber',
         customExpression: null,
       },
-      symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitor Locations', outlineColor: [255, 255, 255, 1], size: 10 }
+      symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitors', outlineColor: [255, 255, 255, 1], size: 10 }
     }];
   }
 }

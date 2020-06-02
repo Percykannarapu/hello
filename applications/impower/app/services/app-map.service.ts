@@ -58,7 +58,7 @@ export class AppMapService {
     const homeView = this.mapService.mapView.viewpoint;
     // Create the layer groups and load the portal items
 
-    this.mapService.createBasicWidget(Legend, {}, 'top-right');
+    this.mapService.createBasicWidget(Legend, { }, 'top-right');
     // keep this here to aid in troubleshooting layer-related issues
     // this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
     if (isBatchMapping) {

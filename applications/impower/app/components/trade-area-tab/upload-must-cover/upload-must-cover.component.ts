@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
-import { ExportMCIssuesLog } from 'app/state/data-shim/data-shim.actions';
+import { ExportMCIssuesLog, DeleteCustomTAMustCoverGeosReset } from 'app/state/data-shim/data-shim.actions';
 import { projectIsReady, deleteMustCover } from 'app/state/data-shim/data-shim.selectors';
 import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
@@ -154,6 +154,7 @@ export class UploadMustCoverComponent implements OnInit {
    }
 
    public uploadFile(event: any) : void {
+      this.store$.dispatch(new DeleteCustomTAMustCoverGeosReset({ resetFlag: false }));
       const reader = new FileReader();
       this.fileName = event.files[0].name ? event.files[0].name.toLowerCase() : null;
       const key = this.spinnerId;
@@ -256,7 +257,6 @@ export class UploadMustCoverComponent implements OnInit {
          this.impGeofootprintGeoService.uploadFailures = [];
          this.fileAnalysisSelected = null;
          this.isDisable = true;
-         this.store$.dispatch(new SuccessNotification({message: 'All Must Cover geographies related to the previously selected Analysis Level have been deleted.', notificationTitle: 'Change Analysis Level Cleanup'}));
        }
     } 
 }

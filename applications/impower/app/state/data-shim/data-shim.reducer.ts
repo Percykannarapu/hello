@@ -84,7 +84,13 @@ export function dataShimReducer(state = initialState, action: DataShimActions) :
       return {
         ...state,
         deleteCustomData: true,
-      };      
+      };
+    case DataShimActionTypes.DeleteCustomTAMustCoverGeosReset:
+      return {
+        ...state,
+        deleteCustomTa: false,
+        deleteMustCover: false,
+      };        
     default:
       return state;
   }

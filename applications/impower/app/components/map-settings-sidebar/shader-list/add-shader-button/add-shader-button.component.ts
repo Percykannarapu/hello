@@ -14,9 +14,14 @@ export class AddShaderButtonComponent {
   @Input() geoCount: number;
   @Input() tradeAreaCount: number;
   @Input() locationCount: number;
+  @Input() currentAnalysisLevel: string;
 
   get buttonOptions() : MenuItem[] {
     return this.buttonMenu();
+  }
+
+  get buttonEnabled() : boolean {
+    return this.buttonMenu().some(m => m.visible);
   }
 
   @Output() addShader = new EventEmitter<{ dataKey: string, layerName?: string }>();
@@ -24,9 +29,11 @@ export class AddShaderButtonComponent {
   constructor() { }
 
   private buttonMenu() : MenuItem[] {
+    const ATZIndicatorVarPk = '40683';
     return [
       { label: 'Add Owner Site Shading', command: () => this.add(GfpShaderKeys.OwnerSite, 'Owner Site'), visible: this.locationCount > 0 && this.geoCount > 0 },
       { label: 'Add Owner TA Shading', command: () => this.add(GfpShaderKeys.OwnerTA, 'Owner Trade Area'), visible: this.tradeAreaCount > 0 && this.geoCount > 0 },
+      { label: 'Add ATZ Indicator Shading', command: () => this.add(ATZIndicatorVarPk, 'ATZ Indicator'), visible: this.currentAnalysisLevel != null && this.currentAnalysisLevel.toLowerCase() === 'atz' },
       { label: 'Add Variable Shading', command: () => this.add(''), visible: this.audienceCount > 0 }
     ];
   }

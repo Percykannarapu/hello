@@ -36,6 +36,11 @@ module.exports = {
         to: "silent-refresh.html"
       },
       {
+        context: 'applications/impower/assets',
+        from: "oidc-client.min.js",
+        to: "oidc-client.min.js"
+      },
+      {
         context: 'applications/impower',
         from: "assets/data",
         to: "assets/data"

@@ -1,41 +1,44 @@
 <div *ngIf="!isEditing">
-  <label>Breaks:</label>
-  <div class="class-break-table">
-    <table>
-      <thead>
-      <tr>
-        <th [ngStyle]="{ 'width': '30%' }">Value</th>
-        <th [ngStyle]="{ 'width': '40%' }">Legend</th>
-        <th [ngStyle]="{ 'width': '30%' }">Symbology</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr *ngFor="let defBreak of configuration.breakDefinitions">
-        <td [title]="defBreak.value">{{defBreak.value | truncate:15:'...'}}</td>
-        <td [title]="defBreak.legendName">{{defBreak.legendName | truncate:20:'...'}}</td>
-        <td>
-          {{getMarkerDescription(defBreak)}}
-          <span class="color-chip" [ngStyle]="{ 'background-color': getMarkerColor(defBreak), 'border': getMarkerHalo(defBreak) + ' 2px solid' }"></span>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+  <span>
+    <label>Legend Header:</label>
+    <strong>{{configuration.layerName}}</strong>
+  </span>
+  <div>
+    <label>Breaks:</label>
+    <div class="class-break-table">
+      <table>
+        <thead>
+        <tr>
+          <th [ngStyle]="{ 'width': '30%' }">Value</th>
+          <th [ngStyle]="{ 'width': '40%' }">Legend</th>
+          <th [ngStyle]="{ 'width': '30%' }">Symbology</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let defBreak of configuration.breakDefinitions">
+          <td [title]="defBreak.value">{{defBreak.value | truncate:15:'...'}}</td>
+          <td [title]="defBreak.legendName">{{defBreak.legendName | truncate:20:'...'}}</td>
+          <td>
+            {{getMarkerDescription(defBreak)}}
+            <span class="color-chip" [ngStyle]="{ 'background-color': getMarkerColor(defBreak), 'border': getMarkerHalo(defBreak) + ' 2px solid' }"></span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
   <dropdown-input formControlName="featureAttribute" labelText="Attribute" [options]="featureAttributeChoices" [includeUnselected]="true"></dropdown-input>
+  <validated-text-input formControlName="layerName" labelText="Legend Header (required)" validationMessage="Legend Header is required"></validated-text-input>
   <ng-container *ngIf="parentForm.get('featureAttribute').value != null && !showUniqueValueUI">
     Reading data...
   </ng-container>
   <ng-container *ngIf="showUniqueValueUI">
-    <div class="theme-controls">
-      <dropdown-input formControlName="theme" labelText="Theme" [options]="poiThemes"></dropdown-input>
-      <boolean-input formControlName="reverseTheme" labelText="Reverse?"></boolean-input>
-    </div>
     <div class="class-break-list" formArrayName="breakDefinitions">
       <div *ngFor="let x of breakDefinitions; index as i" class="break-container">
-        <esri-class-break-input breakType="marker" [formGroupName]="i.toString()" [currentPalette]="currentTheme" [reversePalette]="reverseTheme"
+        <esri-class-break-input breakType="marker" [formGroupName]="i.toString()" [currentPalette]="currentTheme"
                                 [calculatedValueMessage]="x.get('value').value" [usesCalculatedValues]="true" [defaultHalo]="defaultHalo"></esri-class-break-input>
       </div>
     </div>

@@ -1,19 +1,22 @@
-import { ModuleWithProviders, NgModule, Optional, SkipSelf, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StoreModule } from '@ngrx/store';
+import { ModuleWithProviders, NgModule, Optional, SkipSelf, Type } from '@angular/core';
 import { EffectsModule } from '@ngrx/effects';
+import { StoreModule } from '@ngrx/store';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { BusyIndicatorComponent } from './components/busy-indicator/busy-indicator.component';
+import { LiveIndicatorService } from './core/live-indicator.service';
 import { NotificationProvider, NotificationProviderToken } from './core/notification-provider.interface';
 import { NullNotificationService } from './core/null-notification.service';
-import { messagingReducers } from './state/messaging.interfaces';
-import { MessagingEffects } from './state/messaging.effects';
+import { BusyEffects } from './state/busyIndicator/busy.state';
 import { ConfirmationEffects } from './state/confirmation/confirmation.effects';
-import { BusyIndicatorComponent } from './components/busy-indicator/busy-indicator.component';
+import { MessagingEffects } from './state/messaging.effects';
+import { messagingReducers } from './state/messaging.interfaces';
 
 const allEffects = [
   MessagingEffects,
-  ConfirmationEffects
+  ConfirmationEffects,
+  BusyEffects
 ];
 
 @NgModule({
@@ -38,6 +41,7 @@ export class MessagingModule {
     return {
       ngModule: MessagingModule,
       providers: [
+        LiveIndicatorService,
         { provide: NotificationProviderToken, useClass: notificationProvider }
       ]
     };

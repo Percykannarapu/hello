@@ -49,6 +49,7 @@ export interface LayerIdDefinition {
 export interface BasicLayerSetup extends LayerIdDefinition {
   minScale: number;
   batchMinScale: number;
+  defaultFontSize: number;
 }
 
 export interface AllLayerIds {

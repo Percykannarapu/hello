@@ -9,7 +9,7 @@ export class EsriShadingEffects {
 
   addLayerToLegend$ = createEffect(() => this.actions$.pipe(
       ofType(addLayerToLegend),
-      tap(payload => this.layerService.addLayerToLegend(payload.layerUniqueId, payload.title))
+      tap(payload => this.layerService.addLayerToLegend(payload.layerUniqueId, payload.title, payload.showDefaultSymbol))
     ),
     { dispatch: false }
   );

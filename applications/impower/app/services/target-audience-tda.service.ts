@@ -104,13 +104,13 @@ export class TargetAudienceTdaService {
     this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadProject());
   }
 
-  private static createDataDefinition(name: string, pk: string, fieldconte: FieldContentTypeCodes) : AudienceDataDefinition {
+  private static createDataDefinition(name: string, pk: string, fieldconte: FieldContentTypeCodes, presetExportFlag: boolean) : AudienceDataDefinition {
    const audience: AudienceDataDefinition = {
       audienceName: name,
       audienceIdentifier: pk,
       audienceSourceType: 'Offline',
       audienceSourceName: 'TDA',
-      exportInGeoFootprint: true,
+      exportInGeoFootprint: presetExportFlag,
       showOnGrid: false,
       showOnMap: false,
       exportNationally: false,
@@ -172,7 +172,7 @@ export class TargetAudienceTdaService {
       //       this.audienceService.addAudience(audience, null, true);
       //     }
       //   }
-        
+
       // }
 
     }
@@ -185,10 +185,10 @@ export class TargetAudienceTdaService {
     this.rehydrateAudience();
   }
 
-  public addAudience(audience: TdaAudienceDescription) {
+  public addAudience(audience: TdaAudienceDescription, manuallyAdded: boolean = true) {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
-      const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte);
+      const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte, manuallyAdded);
       this.audienceService.addAudience(model, null);
       this.usageMetricCheckUncheckOffline('checked', model);
     }
@@ -198,7 +198,7 @@ export class TargetAudienceTdaService {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
       this.audienceService.removeAudience('Offline', 'TDA', audience.identifier);
-      const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte);
+      const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte, true);
       this.usageMetricCheckUncheckOffline('unchecked', model);
     }
   }
@@ -296,5 +296,13 @@ export class TargetAudienceTdaService {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     const metricText = audience.audienceIdentifier + '~' + audience.audienceName  + '~' + audience.audienceSourceName + '~' + audience.audienceSourceType + '~' + currentAnalysisLevel;
     this.store$.dispatch(new CreateAudienceUsageMetric('offline', checkType, metricText));
+  }
+
+  public getRawTDAAudienceData(varPk: string) : TdaAudienceDescription {
+    if (this.rawAudienceData.has(varPk)) {
+      return new TdaAudienceDescription(this.rawAudienceData.get(varPk));
+    } else {
+      return null;
+    }
   }
 }

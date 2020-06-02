@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification, SuccessNotification } from '@val/messaging';
-import { ExportCustomTAIssuesLog } from 'app/state/data-shim/data-shim.actions';
+import { ExportCustomTAIssuesLog, DeleteCustomTAMustCoverGeosReset } from 'app/state/data-shim/data-shim.actions';
 import { projectIsReady, projectIsLoaded, deleteCustomTa } from 'app/state/data-shim/data-shim.selectors';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { MessageService } from 'primeng/components/common/messageservice';
@@ -197,6 +197,7 @@ export class UploadTradeAreasComponent implements OnInit {
   }
 
   private parseCsvFile(dataBuffer: string) {
+    this.store$.dispatch(new DeleteCustomTAMustCoverGeosReset({ resetFlag: false }));
     const key = 'CUSTOM_TRADEAREA';
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Applying Custom Trade Area'}));
     const rows: string[] = dataBuffer.split(/\r\n|\n/);
@@ -304,7 +305,6 @@ export class UploadTradeAreasComponent implements OnInit {
       this.uploadFailures = [];
       this.fileAnalysisSelected = null;
       this.isDisable = true;
-      this.store$.dispatch(new SuccessNotification({message: 'All Custom Trade Areas geographies related to the previously selected Analysis Level have been deleted.', notificationTitle: 'Change Analysis Level Cleanup'}));
     }
   }
 }

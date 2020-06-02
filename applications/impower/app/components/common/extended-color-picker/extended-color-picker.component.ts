@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, NgModel } from '@angular/forms';
 import { getUuid, isConvertibleToInteger, rgbToHex } from '@val/common';
-import { RgbaTuple, RgbTuple } from '@val/esri';
+import { RgbaTuple } from '@val/esri';
 import { OverlayPanel } from 'primeng/overlaypanel';
 
 interface Rgb { r: number; g: number; b: number; }
@@ -138,7 +138,7 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor, After
   }
 
   resetToDefault() {
-    this.writeValue(RgbTuple.duplicate(this.defaultColor));
+    this.pickerValue = esriToRgb(this.defaultColor);
   }
 
   registerOnChange(fn: any) : void {

@@ -1,6 +1,13 @@
 import { Statistics } from '@val/common';
 import { ColorPalette } from './color-palettes';
-import { ClassBreakFillDefinition, ContinuousDefinition, duplicateContinuousDef, duplicateFill, FillSymbolDefinition, UniqueValueFillDefinition } from './common-configuration';
+import {
+  ClassBreakFillDefinition,
+  ContinuousDefinition,
+  duplicateContinuousDef,
+  duplicateFill,
+  FillSymbolDefinition,
+  UniqueValueFillDefinition
+} from './common-configuration';
 import { FillPattern, RgbaTuple, RgbTuple } from './esri-types';
 
 export enum ConfigurationTypes {
@@ -33,6 +40,7 @@ export interface ShadingDefinitionBase {
   defaultSymbolDefinition: FillSymbolDefinition;
   filterByFeaturesOfInterest: boolean;
   filterField: string;
+  refreshLegendOnRedraw?: boolean;
 }
 
 function duplicateBase(def: ShadingDefinitionBase) : ShadingDefinitionBase {
@@ -161,14 +169,20 @@ export function isComplexShadingDefinition(s: ShadingDefinition) : s is ComplexS
          s.shadingType === ConfigurationTypes.ClassBreak;
 }
 
-export function generateUniqueValues(sortedUniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], useIndexForValue: boolean = false) : UniqueValueFillDefinition[] {
-  return sortedUniqueValues.map((uv, i) => ({
-    value: useIndexForValue ? `${i}` : uv,
-    fillColor: RgbTuple.withAlpha(colorPalette[i % colorPalette.length], 1),
-    fillType: fillPalette[i % fillPalette.length],
-    legendName: uv,
-    outlineColor: [0, 0, 0, 0],
-  }));
+export function generateUniqueValues(sortedUniqueValues: string[], colorPalette: RgbTuple[], fillPalette: FillPattern[], useIndexForValue: boolean = false, valuesToKeep?: Set<string>) : UniqueValueFillDefinition[] {
+  const needsOffset = (fillPalette.length % colorPalette.length) === 0;
+  return sortedUniqueValues.map((uv, i) => {
+    const offset = needsOffset ? Math.floor(i / colorPalette.length) : 0;
+    const currentColor = colorPalette[(i + offset) % colorPalette.length];
+    return {
+      value: useIndexForValue ? `${i}` : uv,
+      fillColor: RgbTuple.withAlpha(currentColor, 1),
+      fillType: fillPalette[i % fillPalette.length],
+      legendName: uv,
+      outlineColor: [0, 0, 0, 0],
+      isHidden: valuesToKeep == null ? false : !valuesToKeep.has(uv)
+    };
+  });
 }
 
 export function generateContinuousValues(stats: Statistics, colorPalette: RgbTuple[]) : ContinuousDefinition[] {

@@ -167,8 +167,8 @@ export class AppExportService {
   }*/
 
   private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
-     const message = `The project must be saved with a valid Project Tracker ID before ${exportDescription}`;
-    if (currentProject.projectId == null || currentProject.projectTrackerId == null) {
+     const message = `The project must be saved before ${exportDescription}`;
+    if (currentProject.projectId == null) {
       throw message;
        }
   }

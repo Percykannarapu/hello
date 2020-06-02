@@ -6,6 +6,8 @@ import {
   ConfigurationTypes,
   createDataArcade,
   createTextArcade,
+  duplicateShadingDefinition,
+  EsriLayerService,
   EsriService,
   EsriShadingService,
   FillPattern,
@@ -29,6 +31,7 @@ import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { getAllMappedAudiences } from '../impower-datastore/state/transient/transient.reducer';
+import { mapFeaturesToGeocode } from '../models/rxjs-utils';
 import { GfpShaderKeys } from '../models/ui-enums';
 import { ValSort } from '../models/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
@@ -55,6 +58,7 @@ export class AppRendererService {
               private impGeoService: ImpGeofootprintGeoService,
               private esriService: EsriService,
               private esriShaderService: EsriShadingService,
+              private esriLayerService: EsriLayerService,
               private config: AppConfig,
               private logger: LoggingService,
               private store$: Store<FullAppState>) {
@@ -86,7 +90,7 @@ export class AppRendererService {
       withLatestFrom(this.store$.select(projectIsReady), this.store$.select(getBatchMode)),
       filter(([, ready, isBatchMode]) => ready && !isBatchMode)
     ).subscribe(([sd]) => {
-      const newDefs: ShadingDefinition[] = JSON.parse(JSON.stringify(sd));
+      const newDefs: ShadingDefinition[] = sd.map(s => duplicateShadingDefinition(s));
       newDefs.forEach(s => {
         s.destinationLayerUniqueId = undefined;
         if (isComplexShadingDefinition(s)) {
@@ -162,33 +166,42 @@ export class AppRendererService {
   }
 
   private setupMapVarWatcher() {
+    const visibleGeos$ = this.esriService.visibleFeatures$.pipe(mapFeaturesToGeocode(true));
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences))
-    ).subscribe(([mapVars, layerDefs, geocodes, audiences]) => {
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences), visibleGeos$)
+    ).subscribe(([mapVars, layerDefs, geocodes, audiences, visibleGeos]) => {
       const varPks = audiences.map(audience => Number(audience.audienceIdentifier));
       if (varPks != null) {
-        const filteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
+        const gfpFilteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
+        const visibleGeoSet = new Set(visibleGeos);
         varPks.forEach(varPk => {
           const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
           if (shadingLayers != null) {
             shadingLayers.forEach(shadingLayer => {
-              const shaderCopy: ShadingDefinition = { ...shadingLayer };
-              const currentMapVars = shaderCopy.filterByFeaturesOfInterest ? filteredMapVars : mapVars;
-              const uniqueStrings = new Set<string>();
-              const valuesForStats: number[] = [];
+              const shaderCopy: ShadingDefinition = duplicateShadingDefinition(shadingLayer);
+              const currentMapVars =
+                shaderCopy.filterByFeaturesOfInterest
+                  ? gfpFilteredMapVars
+                  : mapVars;
+              const allUniqueValues = new Set<string>();
+              const uniquesToKeep = new Set<string>();
+              const allValuesForStats: number[] = [];
               const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
                 switch (shaderCopy.shadingType) {
                   case ConfigurationTypes.Unique:
                     result[mapVar.geocode] = mapVar[varPk];
-                    if (mapVar[varPk] != null) uniqueStrings.add(`${mapVar[varPk]}`);
+                    if (mapVar[varPk] != null) {
+                      allUniqueValues.add(`${mapVar[varPk]}`);
+                      if (visibleGeoSet.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
+                    }
                     break;
                   case ConfigurationTypes.Ramp:
                   case ConfigurationTypes.ClassBreak:
                   case ConfigurationTypes.DotDensity:
                     result[mapVar.geocode] = Number(mapVar[varPk]);
                     if (mapVar[varPk] != null) {
-                      valuesForStats.push(Number(mapVar[varPk]));
+                      allValuesForStats.push(Number(mapVar[varPk]));
                     }
                     break;
                 }
@@ -201,7 +214,7 @@ export class AppRendererService {
               if (isArcadeCapableShadingDefinition(shaderCopy)) {
                 let arcadeExpression: string;
                 if (shaderCopy.shadingType === ConfigurationTypes.Unique) {
-                  uniqueValues = Array.from(uniqueStrings);
+                  uniqueValues = Array.from(allUniqueValues);
                   uniqueValues.sort();
                   arcadeExpression = createTextArcade(mapVarDictionary, uniqueValues);
                 } else {
@@ -216,14 +229,14 @@ export class AppRendererService {
               }
               switch (shaderCopy.shadingType) {
                 case ConfigurationTypes.Unique:
-                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true);
+                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true, uniquesToKeep);
                   break;
                 case ConfigurationTypes.Ramp:
-                  shaderCopy.breakDefinitions = generateContinuousValues(calculateStatistics(valuesForStats), colorPalette);
+                  shaderCopy.breakDefinitions = generateContinuousValues(calculateStatistics(allValuesForStats), colorPalette);
                   break;
                 case ConfigurationTypes.ClassBreak:
                   if (shaderCopy.dynamicallyAllocate) {
-                    const stats = calculateStatistics(valuesForStats, shaderCopy.dynamicAllocationSlots || 4);
+                    const stats = calculateStatistics(allValuesForStats, shaderCopy.dynamicAllocationSlots || 4);
                     let symbology = [ ...(shaderCopy.userBreakDefaults || []) ];
                     if (shaderCopy.dynamicLegend) {
                       symbology = generateDynamicSymbology(stats, colorPalette, fillPalette);
@@ -253,7 +266,7 @@ export class AppRendererService {
       layerName,
       opacity: dataKey === GfpShaderKeys.Selection ? 0.25 : 0.5,
       filterField: 'geocode',
-      filterByFeaturesOfInterest: dataKey !== '',
+      filterByFeaturesOfInterest: shadingTypeMap[dataKey] != null,
       shadingType: shadingTypeMap[dataKey]
     };
     if (dataKey === GfpShaderKeys.OwnerSite && newForm.shadingType === ConfigurationTypes.Unique) {

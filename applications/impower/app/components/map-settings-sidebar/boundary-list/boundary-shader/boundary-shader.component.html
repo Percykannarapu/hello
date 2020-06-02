@@ -7,15 +7,33 @@
       <label>Centroids:</label>
       <strong>{{configuration.showCentroids === false ? 'Hidden' : 'Displayed'}}</strong>
     </div>
-    <div>
-      <label>Labels:</label>
-      <strong>{{configuration.showLabels === false ? 'Hidden' : 'Displayed'}}</strong>&nbsp;<span *ngIf="configuration.showHouseholdCounts">(including HH Counts)</span>
-    </div>
     <div *ngIf="configuration.hasPOBs">
       <label>POBs:</label>
       <strong>{{configuration.showPOBs === false ? 'Hidden' : 'Displayed'}}</strong>
     </div>
-    <div *ngIf="configuration.hasPOBs">
+    <div>
+      <label>Labels:</label>
+      <ng-container *ngIf="configuration.showLabels === false">
+        <strong>Hidden</strong>
+      </ng-container>
+      <div *ngIf="configuration.showLabels === true" class="label-display">
+        <div *ngIf="configuration.showHouseholdCounts">
+          (includes HH Counts)
+        </div>
+        <div>
+          <label>Font Size:</label>
+          <strong>{{configuration.labelDefinition.size || 12}}pt</strong>
+          <!--          <strong>{{configuration.labelDefinition.family || 'Noto Sans'}}</strong>&nbsp;-->
+          <!--          <span>{{configuration.labelDefinition.size || 12}}pt</span>&nbsp;-->
+          <!--          <span>{{getFontWeight(configuration.labelDefinition)}}</span>-->
+        </div>
+        <div>
+          <label>Color:</label>
+          <span class="color-chip" [ngStyle]="{ 'background-color': getLabelColor(configuration.labelDefinition), 'border': getLabelHalo(configuration.labelDefinition) + ' 2px solid'  }"></span>
+        </div>
+      </div>
+    </div>
+    <div>
       <label>Popups:</label>
       <strong>{{configuration.showPopups === false ? 'Disabled' : 'Enabled'}}</strong>
     </div>
@@ -26,15 +44,48 @@
   </div>
   <div class="boundary-form-container" *ngIf="isEditing">
     <form novalidate autocomplete="off" [formGroup]="configForm" (ngSubmit)="apply(configForm)">
-      <boolean-input labelText="Show Centroids?" formControlName="showCentroids" *ngIf="configuration.centroidPortalId != null"></boolean-input>
-      <boolean-input labelText="Show Labels?" formControlName="showLabels"></boolean-input>
-      <ng-container *ngIf="configForm.get('showLabels').value === true && configuration.hhcLabelDefinition != null">
-        <boolean-input labelText="Show HH Counts on Labels?" formControlName="showHouseholdCounts"></boolean-input>
-      </ng-container>
-      <boolean-input labelText="Show POBs?" formControlName="showPOBs" *ngIf="configuration.hasPOBs"></boolean-input>
-      <boolean-input labelText="Show Popups?" formControlName="showPopups"></boolean-input>
+      <div class="toggle-container">
+        <span *ngIf="configuration.centroidPortalId != null">
+          <boolean-input labelText="Show Centroids?" formControlName="showCentroids"></boolean-input>
+        </span>
+        <span *ngIf="configuration.hasPOBs">
+          <boolean-input labelText="Show POBs?" formControlName="showPOBs"></boolean-input>
+        </span>
+      </div>
+      <div class="toggle-container">
+        <span>
+          <boolean-input labelText="Show Labels?" formControlName="showLabels"></boolean-input>
+        </span>
+        <span>
+          <boolean-input labelText="Show Popups?" formControlName="showPopups"></boolean-input>
+        </span>
+      </div>
+      <div *ngIf="configForm.get('showLabels').value === true" class="label-controls">
+        <ng-container *ngIf="configuration.hhcLabelDefinition != null">
+          <boolean-input labelText="Show HH Counts on Labels?" formControlName="showHouseholdCounts"></boolean-input>
+        </ng-container>
+        <ng-container formGroupName="labelDefinition">
+          <div class="label-font-container">
+            <div class="label-font-controls">
+              <!--<dropdown-input labelText="Font" [options]="fontFaces" formControlName="family"></dropdown-input>-->
+              <!--<boolean-input labelText="Bold" formControlName="isBold"></boolean-input>-->
+              <!--<boolean-input labelText="Italic" formControlName="isItalic"></boolean-input>-->
+              <validated-text-input labelText="Font size (in points)" validationMessage="Font size must be between 6 and 48 pts" formControlName="size"></validated-text-input>
+            </div>
+            <div class="label-color-controls">
+              <span>Label Color:</span>
+              <span title="Fill Color">
+                <val-extended-color-picker [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
+              </span>
+              <!--<span title="Halo Color">-->
+              <!--  <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="haloColor"></val-extended-color-picker>-->
+              <!--</span>-->
+            </div>
+          </div>
+        </ng-container>
+      </div>
       <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-      <button type="submit" pButton label="Apply" class="ui-button-secondary" [disabled]="!configForm.valid"></button>
+      <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': configForm.dirty, 'ui-button-secondary': configForm.pristine }" [disabled]="!configForm.valid"></button>
       <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
     </form>
   </div>

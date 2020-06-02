@@ -191,6 +191,7 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
+import { BatchMapAuthService } from './services/batch-map-auth-service';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -409,7 +410,7 @@ export function actionSanitizer(action: Action) : Action {
     AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
     AppLayerService, AppGeocodingService, AppTradeAreaService,
     AppMapService, ValMetricsService, ValAudienceTradeareaService,
-    AppEditSiteService
+    AppEditSiteService, BatchMapAuthService
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

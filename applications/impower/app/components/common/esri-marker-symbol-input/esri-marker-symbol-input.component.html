@@ -1,6 +1,7 @@
 <div class="component-root" [formGroup]="currentRoot">
   <span class="md-inputfield">
-    <p-dropdown [options]="markerTypes" [style]="{'width':'100%'}" id="marker-input-{{controlId}}" formControlName="markerType" dropdownIcon="fa fa-caret-down">
+    <p-dropdown [options]="markerTypes" [style]="{'width':'100%'}" id="marker-input-{{controlId}}" formControlName="markerType"
+                dropdownIcon="fa fa-caret-down" (onChange)="setDefaultPointSize($event)">
       <ng-template let-selected pTemplate="selectedItem">
         <div class="item-container">
           <span [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
@@ -27,7 +28,7 @@
   <span *ngIf="currentPalette == null" title="Fill">
     <val-extended-color-picker [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
   </span>
-  <span title="Halo">
-    <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="outlineColor"></val-extended-color-picker>
-  </span>
+<!--  <span title="Halo">-->
+<!--    <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="outlineColor"></val-extended-color-picker>-->
+<!--  </span>-->
 </div>

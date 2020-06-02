@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CommonSort, groupByExtended } from '@val/common';
+import { CommonSort, groupByExtended, UniversalCoordinates, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
@@ -12,7 +12,7 @@ import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } fr
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { ValSort } from '../models/valassis-sorters';
-import { BatchMapPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
+import { BatchMapPayload, LocalAppState, SinglePageBatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload } from '../state/app.interfaces';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -24,6 +24,8 @@ import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { Extent } from 'esri/geometry';
+import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -60,7 +62,7 @@ export class BatchMapService {
     this.appStateService.notifyMapReady();
   }
 
-  requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload, project: ImpProject) : Observable<any> {
+  requestBatchMap(payload: BatchMapPayload | SinglePageBatchMapPayload | CurrentPageBatchMapPayload, project: ImpProject) : Observable<any> {
     if (payload.calls[0].args['printJobConfiguration'] != null) {
       const requestedSiteIds = new Set(payload.calls[0].args['printJobConfiguration'].siteIds);
       project.getImpGeofootprintLocations().forEach( l => {
@@ -88,7 +90,9 @@ export class BatchMapService {
       this.geoService.calculateGeoRanks();
       this.recordOriginalState(project);
     }
-    if (params.groupByAttribute != null)
+    if (params.currentView)
+       return  this.zoomToCurrentView(project, params);
+    else if (params.groupByAttribute != null)
       return this.mapByAttribute(project, siteNum, params);
     else if (!params.singlePage)
       return this.moveToSite(project, siteNum, params);
@@ -168,6 +172,25 @@ export class BatchMapService {
     );
   }
 
+  zoomToCurrentView(project: ImpProject, params: BatchMapQueryParams){
+    const currentLocationNumbers = project.getImpGeofootprintLocations().reduce((a, c) => {
+      if (c.isActive) a.push(c.locationNumber);
+      return a;
+    }, [] as string[]);
+    currentLocationNumbers.sort(CommonSort.StringsAsNumbers);
+    const extent: ExtentPayload = {
+      spatialReference: {
+        wkid : 102100
+      },
+      xmin: Number(params.xmin),
+      ymin: Number(params.ymin),
+      xmax: Number(params.xmax),
+      ymax: Number(params.ymax)
+    };
+    this.esriMapService.mapView.extent = Extent.fromJSON(extent);
+    return of({ siteNum: currentLocationNumbers[currentLocationNumbers.length - 1], isLastSite: true });
+  }
+
   moveToSite(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
     const locations = [ ...project.getImpGeofootprintLocations().filter(l => l.isActive) ];
     const result = { siteNum: siteNum, isLastSite: false };
@@ -192,7 +215,9 @@ export class BatchMapService {
         }
 
         if (params.hideNeighboringSites) {
-          this.store$.dispatch(new RenderLocations({ locations: [currentSite] }));
+          const renderLocs = project.getImpGeofootprintLocations().filter(loc => loc.clientLocationTypeCode === 'Competitor');
+          renderLocs.push(currentSite);
+          this.store$.dispatch(new RenderLocations({ locations: renderLocs }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         } else if (params.shadeNeighboringSites) {
           this.geoService.update(null, null);
@@ -266,7 +291,7 @@ export class BatchMapService {
   private polysFromRadii(siteNums: Array<string>, project: ImpProject) : Observable<__esri.Graphic[]> {
     const siteNumsSet: Set<string> = new Set(siteNums);
     const circles = project.getImpGeofootprintLocations().reduce((a, c) => {
-      if (siteNumsSet.has(c.locationNumber)) {
+      if (siteNumsSet.has(c.locationNumber) && c.clientLocationTypeCode === ImpClientLocationTypeCodes.Site) {
         const radii = c.impGeofootprintTradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius).map(ta => ta.taRadius);
         if (radii.length > 0) {
           const largestRadius = Math.max(...radii);

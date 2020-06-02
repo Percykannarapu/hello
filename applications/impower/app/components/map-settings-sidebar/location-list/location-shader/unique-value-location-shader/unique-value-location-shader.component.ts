@@ -8,13 +8,12 @@ import {
   MarkerSymbolDefinition,
   markerTypeFriendlyNames,
   RgbaTuple,
-  RgbTuple,
   UniquePoiConfiguration,
   UniqueValueMarkerDefinition
 } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
-import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
+import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { ValassisValidators } from '../../../../../models/valassis-validators';
 import { ImpGeofootprintLocation } from '../../../../../val-modules/targeting/models/ImpGeofootprintLocation';
 
@@ -33,7 +32,6 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
   @Input() poiData: ImpGeofootprintLocation[] = [];
   @Input() featureAttributeChoices: SelectItem[] = [];
 
-  poiThemes: SelectItem[] = [];
   showUniqueValueUI: boolean = false;
 
   get breakDefinitions() : FormGroup[] {
@@ -43,34 +41,13 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
   }
 
   get currentTheme() : ColorPalette {
-    if (this.isEditing) {
-      return this.parentForm.get('theme').value;
-    } else {
-      return this.configuration.theme;
-    }
-  }
-
-  get reverseTheme() : boolean {
-    if (this.isEditing) {
-      return this.parentForm.get('reverseTheme').value;
-    } else {
-      return this.configuration.reverseTheme;
-    }
+    return ColorPalette.Symbology;
   }
 
   private destroyed$ = new Subject<void>();
-  private formBreaksChanged$ = new Subject<void>();
 
   constructor(private fb: FormBuilder,
-              private cd: ChangeDetectorRef) {
-    const allThemes = Object.keys(ColorPalette)
-      .map(key => ({
-        label: ColorPalette[key],
-        value: ColorPalette[key]
-      }));
-    const gradientThemes = new Set([ColorPalette.Blue, ColorPalette.Orange, ColorPalette.Red, ColorPalette.EsriPurple, ColorPalette.CrossHatching]);
-    this.poiThemes = allThemes.filter(k => !gradientThemes.has(k.value));
-  }
+              private cd: ChangeDetectorRef) {}
 
   ngOnInit() {
     if (this.isEditing) this.setupForm();
@@ -104,41 +81,21 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
       new FormControl(this.configuration.featureAttribute, { validators: [Validators.required], updateOn: 'change' })
     );
     if (this.configuration.featureAttribute != null && this.configuration.featureAttribute.length > 0) {
-      this.setUpFormBreaks(this.configuration.featureAttribute);
+      this.setUpFormBreaks(this.configuration.featureAttribute, true);
     }
     this.parentForm.get('featureAttribute').valueChanges.pipe(
       takeUntil(this.destroyed$),
       distinctUntilChanged()
-    ).subscribe(featureAttribute => this.setUpFormBreaks(featureAttribute));
+    ).subscribe(featureAttribute => this.setUpFormBreaks(featureAttribute, false));
   }
 
-  private setUpFormBreaks(featureAttribute: string) {
-    const currentTheme = this.configuration.theme || ColorPalette.CpqMaps;
-    const currentReverse = this.configuration.reverseTheme || false;
-    const newBreaks = generateUniqueMarkerValues(this.getBreakValues(featureAttribute), getColorPalette(currentTheme, currentReverse));
+  private setUpFormBreaks(featureAttribute: string, useExisting: boolean) {
+    const newBreaks = generateUniqueMarkerValues(this.getBreakValues(featureAttribute), getColorPalette(ColorPalette.Symbology, false));
     const configBreaks = this.configuration.breakDefinitions || [];
-    const currentBreaks = configBreaks.length > 0 ? configBreaks : newBreaks;
-
-    this.addOrSetControl('theme', new FormControl(currentTheme, { updateOn: 'change' }));
-    this.addOrSetControl('reverseTheme', new FormControl(currentReverse));
+    const currentBreaks = configBreaks.length > 0 && useExisting ? configBreaks : newBreaks;
     this.addOrSetControl('breakDefinitions', this.getDefaultUniqueSymbolFormControl(currentBreaks));
-
-    this.formBreaksChanged$.next(); // cleans up the previous subscriptions
     this.showUniqueValueUI = true;
-
-    this.parentForm.get('theme').valueChanges.pipe(
-      takeUntil(this.destroyed$),
-      takeUntil(this.formBreaksChanged$),
-      distinctUntilChanged(),
-      map(theme => getColorPalette(theme, this.parentForm.get('reverseTheme').value))
-    ).subscribe(palette => this.updatePalette(palette));
-
-    this.parentForm.get('reverseTheme').valueChanges.pipe(
-      takeUntil(this.destroyed$),
-      takeUntil(this.formBreaksChanged$),
-      distinctUntilChanged(),
-      map(reverse => getColorPalette(this.parentForm.get('theme').value, reverse))
-    ).subscribe(palette => this.updatePalette(palette));
+    this.cd.markForCheck();
   }
 
   private addOrSetControl(name: string, control: AbstractControl) : void {
@@ -176,14 +133,5 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
         markerType: new FormControl(bd.markerType, { updateOn: 'change' })
       });
     }));
-  }
-
-  private updatePalette(palette: RgbTuple[]) {
-    this.breakDefinitions.forEach((b, i) => {
-      b.patchValue({
-        color: RgbTuple.withAlpha(palette[i % palette.length], 1)
-      });
-    });
-    this.cd.markForCheck();
   }
 }

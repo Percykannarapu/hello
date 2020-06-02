@@ -34,8 +34,11 @@ body {
     white-space: unset;
   }
 
-  .ui-inputtext:disabled {
-    margin-top: -1px;
+  .ui-inputtext {
+    background-size: 0 2px, 100% 1.5px;
+    &:disabled {
+      margin-top: -1px;
+    }
   }
 
   .ui-button,
@@ -123,9 +126,11 @@ body {
   }
 
   .ui-dropdown {
+    background-size: 0 2px, 100% 1.5px;
     .ui-dropdown-label {
       &.ui-inputtext {
         padding-left: 0.5em;
+        padding-right: 2em;
       }
     }
   }
@@ -141,6 +146,7 @@ body {
 
   .ui-inputgroup {
     .md-inputfield {
+      min-height: 1.51em;
       input.no-touch-validation.ng-invalid,
       input.ng-touched.ng-invalid {
         background-image: linear-gradient(to bottom, $brandRed, $brandRed), linear-gradient(to bottom, $brandRed, $brandRed);
@@ -669,6 +675,11 @@ body {
     }
   }
 
+  .ui-splitbutton {
+    .ui-menu {
+      min-width: 15em;
+    }
+  }
 }
 
 @media (min-width: 1025px) {
