@@ -160,7 +160,7 @@ export class PoiRenderingService {
       dataKey: ImpClientLocationTypeCodes.Site,
       groupName: 'Sites',
       sortOrder: 0,
-      layerName: 'Project Sites',
+      layerName: 'Client Locations',
       minScale: 0,
       opacity: 1,
       visible: true,
@@ -183,7 +183,7 @@ export class PoiRenderingService {
       dataKey: ImpClientLocationTypeCodes.Competitor,
       groupName: 'Competitors',
       sortOrder: 1,
-      layerName: 'Project Competitors',
+      layerName: 'Competitors',
       minScale: 0,
       opacity: 1,
       visible: true,
@@ -199,7 +199,7 @@ export class PoiRenderingService {
         featureAttribute: 'locationNumber',
         customExpression: null,
       },
-      symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitor Locations', outlineColor: [255, 255, 255, 1], size: 10 }
+      symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitors', outlineColor: [255, 255, 255, 1], size: 10 }
     }];
   }
 }

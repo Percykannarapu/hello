@@ -30,8 +30,8 @@
 </div>
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
-  <validated-text-input formControlName="layerName" labelText="Legend Header (required)" validationMessage="Legend Header is required"></validated-text-input>
   <dropdown-input formControlName="featureAttribute" labelText="Attribute" [options]="featureAttributeChoices" [includeUnselected]="true"></dropdown-input>
+  <validated-text-input formControlName="layerName" labelText="Legend Header (required)" validationMessage="Legend Header is required"></validated-text-input>
   <ng-container *ngIf="parentForm.get('featureAttribute').value != null && !showUniqueValueUI">
     Reading data...
   </ng-container>
