@@ -104,8 +104,9 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
 
       this.audienceForm.get('audienceName').valueChanges.pipe(takeUntil(this.destroyed$)).subscribe( value => {
         const audienceName = this.audienceForm.get('audienceName');
+        const currentName = audienceName.value != null ?  audienceName.value.trim() : '';
         this.isDuplicateName = false;
-        if (this.varNames.has(audienceName.value) && this.varNames.get(audienceName.value) !== audienceName.parent.controls['audienceId'].value){
+        if (this.varNames.has(currentName) && this.varNames.get(audienceName.value) !== audienceName.parent.controls['audienceId'].value){
           audienceName.setErrors({'isDuplicateName': true});
           this.isDuplicateName = true;
         }
@@ -144,6 +145,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         requiresGeoPreCaching: true,
         seq: fkId,
         isCombined: isCombined,
+        isComposite: false,
         combinedAudiences: audienceFields.audienceList[0].fieldconte === 'PERCENT' && (isCombineConverted || isCombined) ? combinedAudIds : [],
         combinedVariableNames: combinedVariableNames.join('~'),
         compositeSource: !(isCombined || isCombineConverted) ? combinedAudIds : [],
@@ -167,6 +169,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         requiresGeoPreCaching: this.currentAudience[0].requiresGeoPreCaching,
         seq: this.currentAudience[0].seq,
         isCombined: this.currentAudience[0].isCombined,
+        isComposite: this.currentAudience[0].isComposite,
         combinedAudiences: this.currentAudience[0].fieldconte === 'PERCENT' ? combinedAudIds : [],
         combinedVariableNames: combinedVariableNames.join('~'),
         compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null ? combinedAudIds : [],
