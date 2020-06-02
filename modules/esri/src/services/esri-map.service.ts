@@ -48,8 +48,10 @@ export class EsriMapService {
       newMapViewProps.container = container.nativeElement;
       newMapViewProps.map = mapInstance;
       newMapViewProps.resizeAlign = 'top-left';
+      newMapViewProps.navigation = {
+        mouseWheelZoomEnabled: false
+      };
       const mapView = new MapView(newMapViewProps);
-      mapView.navigation.mouseWheelZoomEnabled = false;
       return from(mapView.when()).pipe(
         tap(() => {
           this.mapView = mapView;

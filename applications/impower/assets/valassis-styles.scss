@@ -130,6 +130,7 @@ body {
     .ui-dropdown-label {
       &.ui-inputtext {
         padding-left: 0.5em;
+        padding-right: 2em;
       }
     }
   }
@@ -145,6 +146,7 @@ body {
 
   .ui-inputgroup {
     .md-inputfield {
+      min-height: 1.51em;
       input.no-touch-validation.ng-invalid,
       input.ng-touched.ng-invalid {
         background-image: linear-gradient(to bottom, $brandRed, $brandRed), linear-gradient(to bottom, $brandRed, $brandRed);

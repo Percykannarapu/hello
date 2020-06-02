@@ -36,13 +36,9 @@
     Reading data...
   </ng-container>
   <ng-container *ngIf="showUniqueValueUI">
-    <div class="theme-controls">
-      <dropdown-input formControlName="theme" labelText="Theme" [options]="poiThemes"></dropdown-input>
-      <boolean-input formControlName="reverseTheme" labelText="Reverse?"></boolean-input>
-    </div>
     <div class="class-break-list" formArrayName="breakDefinitions">
       <div *ngFor="let x of breakDefinitions; index as i" class="break-container">
-        <esri-class-break-input breakType="marker" [formGroupName]="i.toString()" [currentPalette]="currentTheme" [reversePalette]="reverseTheme"
+        <esri-class-break-input breakType="marker" [formGroupName]="i.toString()" [currentPalette]="currentTheme"
                                 [calculatedValueMessage]="x.get('value').value" [usesCalculatedValues]="true" [defaultHalo]="defaultHalo"></esri-class-break-input>
       </div>
     </div>

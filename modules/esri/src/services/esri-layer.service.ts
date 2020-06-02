@@ -357,6 +357,10 @@ export class EsriLayerService {
     }
   }
 
+  removeLayerHeader(layerUniqueId: string) : void {
+    this.layerNamesShowingInLegend.delete(layerUniqueId);
+  }
+
   private cleanupLegendWatch(layerUniqueId: string) : void {
     if (this.legendElementWatchHandles.has(layerUniqueId)) {
       this.legendElementWatchHandles.get(layerUniqueId).remove();

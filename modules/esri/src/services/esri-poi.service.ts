@@ -141,6 +141,7 @@ export class EsriPoiService {
           }, 0);
         } else {
           layer.set(props);
+          this.layerService.removeLayerHeader(layer.id);
           this.layerService.addLayerToLegend(layer.id, null, true);
         }
       });

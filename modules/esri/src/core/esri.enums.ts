@@ -72,6 +72,6 @@ export const markerStyleDefaultSizes = {
   ['diamond'] : 12,
   ['square'] : 10,
   ['triangle'] : 12,
-  ['x'] : 10,
+  ['x'] : 8,
   ['path'] : 10
 };

@@ -11,12 +11,14 @@ export enum ColorPalette {
   Red = 'Gradient - Red',
   Orange = 'Gradient - Orange',
   EsriPurple = 'Gradient - Purple',
-  CrossHatching = '6 Cross Hatching'
+  CrossHatching = '6 Cross Hatching',
+  Symbology = 'Symbology',
 }
 
 enum AllColorPalettes {
   Random = 'Random',
   CrossHatching = '6 Cross Hatching',
+  Symbology = 'Symbology',
   CpqMaps = '20 Colors',
   Lightyellow = '1 Light yellow',
   Lightblue = '1 Light blue',
@@ -256,6 +258,8 @@ function getAllColorPalettes(palette: string) : RgbTuple[] {
       return DarkColors;
     case AllColorPalettes.EsriPurple:
       return esriPurple;
+    case AllColorPalettes.Symbology:
+      return symbologyPalette;
     default:
       return null;
   }
@@ -265,6 +269,7 @@ const crossHatchPalette: FillPattern[] = ['backward-diagonal', 'forward-diagonal
 const solidOnlyPalette: FillPattern[] = ['solid'];
 
 const onlyBlack: RgbTuple[] = [[0, 0, 0]];
+const symbologyPalette: RgbTuple[] = [[0, 175, 0], [235, 125, 0], [100, 0, 200], [45, 85, 220], [255, 192, 0], [255, 0, 255], [150, 100, 50]];
 const LightYellow: RgbTuple[] = [[255, 255, 150]];
 const LightBlue: RgbTuple[] = [[100, 255, 255]];
 const LightGreen: RgbTuple[] = [[150, 255, 150]];
