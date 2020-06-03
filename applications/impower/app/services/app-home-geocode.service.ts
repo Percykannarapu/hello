@@ -23,6 +23,8 @@ import { AppEditSiteService } from './app-editsite.service';
 import { AppLocationService } from './app-location.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { ImpGeofootprintGeo } from 'app/val-modules/targeting/models/ImpGeofootprintGeo';
+import { AppGeoService } from './app-geo.service';
+import { AppStateService } from './app-state.service';
 
 interface TradeAreaDefinition {
   store: string;
@@ -49,6 +51,8 @@ interface TradeAreaDefinition {
                private impGeoService: ImpGeofootprintGeoService,
                private impProjectService: ImpProjectService,
                private confirmationService: ConfirmationService,
+               private appGeoService: AppGeoService,
+               private appStateService: AppStateService,
                private logger: LoggingService ){
 
                 this.appEditSiteService.customData$.subscribe(message => {
@@ -218,7 +222,6 @@ interface TradeAreaDefinition {
     }
 
     public forceHomeGeos(isForceHomeGeo: boolean){
-        const geos: string[] = [];
         const geosSet: Set<string> = new Set();
      // if (!isForceHomeGeo){
         this.impTradeAreaService.get().forEach(ta => {
@@ -233,14 +236,20 @@ interface TradeAreaDefinition {
         });
 
         if (geosSet.size > 0){
-          this.impGeoService.get().forEach(geo => {
+          /*this.impGeoService.get().forEach(geo => {
             if (geosSet.has(geo.geocode))
                   geo.isActive = isForceHomeGeo;
-          });
+          });*/
+          const geostodelete = this.impGeoService.get().filter(geo => geosSet.has(geo.geocode));
+          this.appGeoService.deleteGeos(geostodelete);
   
           this.impTradeAreaService.makeDirty();
-          //this.impGeoService.makeDirty();
-          this.impGeoService.update(null, null);
+                         
         }
+        if (this.impLocationService.get().length > 0 && this.appStateService.analysisLevel$.getValue() != null)
+            this.appGeoService.selectAndPersistHomeGeos(this.impLocationService.get(), 
+                            this.appStateService.analysisLevel$.getValue(), this.appStateService.season$.getValue());
+          this.impGeoService.makeDirty();
+          this.impLocationService.makeDirty();   
     }
  }
