@@ -30,6 +30,7 @@ import { BoundaryRenderingService } from './boundary-rendering.service';
 import { PoiRenderingService } from './poi-rendering.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -68,7 +69,8 @@ export class AppDataShimService {
               private store$: Store<FullAppState>,
               private logger: AppLoggingService,
               private mapService: EsriMapService,
-              private impProjVarService: ImpProjectVarService) {
+              private impProjVarService: ImpProjectVarService,
+              private impGeofootprintLocationService: ImpGeofootprintLocationService) {
     this.currentProject$ = this.appProjectService.currentProject$;
     this.currentGeos$ = this.appGeoService.currentGeos$;
     this.currentGeocodeSet$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
@@ -299,6 +301,7 @@ export class AppDataShimService {
   }
 
   rollDownComplete(isResubmit: boolean, resubmitGeo: string[], rollDownType: string){
+    this.appGeoService.selectAndPersistHomeGeos(this.impGeofootprintLocationService.get(), this.appStateService.analysisLevel$.getValue(), this.appStateService.season$.getValue());
     let uploadFailures: string[];
     let titleText: string;
     if (rollDownType === 'TRADEAREA'){

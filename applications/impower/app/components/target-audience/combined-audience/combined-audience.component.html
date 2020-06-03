@@ -4,7 +4,7 @@
                                  (onDelete)="onDelete($event)">
     </val-edit-combined-audiences>
 </div>
-<form novalidate  [formGroup]="audienceForm" autocomplete="off" (submit) = "onSubmit(audienceForm.value)">
+<form novalidate  [formGroup]="audienceForm" autocomplete="off" (ngSubmit) = "onSubmit(audienceForm.value)">
 <div class="ui-g">
 <div class="ui-g-12" >
     <input type="hidden" formControlName="audienceId">  

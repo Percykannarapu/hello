@@ -68,9 +68,8 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
     this.combinedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted')),
+      tap(a => a.forEach(aud => this.varNames.set(aud.audienceName, aud.audienceIdentifier)))
     );
-
-    this.combinedAudiences$.subscribe(a => a.forEach(aud => this.varNames.set(aud.audienceName, aud.audienceIdentifier)));
 
     this.audienceForm = this.fb.group({
       audienceId: '',
@@ -104,8 +103,9 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
 
       this.audienceForm.get('audienceName').valueChanges.pipe(takeUntil(this.destroyed$)).subscribe( value => {
         const audienceName = this.audienceForm.get('audienceName');
+        const currentName = audienceName.value != null ?  audienceName.value.trim() : '';
         this.isDuplicateName = false;
-        if (this.varNames.has(audienceName.value) && this.varNames.get(audienceName.value) !== audienceName.parent.controls['audienceId'].value){
+        if (this.varNames.has(currentName) && this.varNames.get(audienceName.value) !== audienceName.parent.controls['audienceId'].value){
           audienceName.setErrors({'isDuplicateName': true});
           this.isDuplicateName = true;
         }
@@ -217,6 +217,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       header: 'Delete Combined Variable',
       icon: 'ui-icon-delete',
       accept: () => {
+        this.varNames.delete(audience.audienceName);
         this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
         this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
         this.store$.dispatch(new RemoveVar({ varPk: audience.audienceIdentifier }));

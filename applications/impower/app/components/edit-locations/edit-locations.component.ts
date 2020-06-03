@@ -35,11 +35,12 @@ export class EditLocationsComponent implements OnInit, OnChanges {
 
   get coord() { return this.editLocationsForm.get('coord'); }
 
+  /* Removed until ready
   get radius1() { return this.editLocationsForm.get('radius1'); }
 
   get radius2() { return this.editLocationsForm.get('radius2'); }
 
-  get radius3() { return this.editLocationsForm.get('radius3'); }
+  get radius3() { return this.editLocationsForm.get('radius3'); }*/
 
   constructor(private fb: FormBuilder,
               private appStateService: AppStateService,
@@ -53,13 +54,14 @@ export class EditLocationsComponent implements OnInit, OnChanges {
     if  (this.displayData) {
       this.editLocationsForm.reset();
       this.editLocationsForm.patchValue(this.displayData);
+/* Removed until ready
       [1, 2, 3].forEach(val => {
         if (this.displayData[`radius${val}`] === undefined || this.displayData[`radius${val}`] === ''){
           this.editLocationsForm.get(`radius${val}`).disable();
         } else {
           this.editLocationsForm.get(`radius${val}`).enable();
         }
-      });
+      });*/
     }
   }
   ngOnInit() {
@@ -77,10 +79,11 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       homeAtz: new FormControl('',  {  asyncValidators: this.validateGeo('CL_ATZTAB14', 'geocode,ZIP', 'Not a valid Home ATZ')}),
       homeDigitalAtz: new FormControl('',  {  asyncValidators: this.validateGeo('VAL_DIGTAB14', 'geocode, ZIP, ZIP_ATZ', 'Not a valid Home DTZ')}),
       homePcr: new FormControl('',  {  asyncValidators: this.validateGeo('CL_PCRTAB14', 'geocode,ZIP, ZIP_ATZ, DMA, DMA_Name, COUNTY', 'Not a valid Home PCR')}),
+/* Removed until ready
       radius1: [null, this.isInRange(0, 100)],
       radius2: [null, this.isInRange(0, 100)],
-      radius3: [null, this.isInRange(0, 100)],
-    }, {validators: this.isValidRadius});
+      radius3: [null, this.isInRange(0, 100)],*/
+    }, /* Removed until ready {validators: this.isValidRadius} */);
     this.appStateService.clearUI$.subscribe(() => this.editLocationsForm.reset());
   }
 
@@ -175,10 +178,10 @@ export class EditLocationsComponent implements OnInit, OnChanges {
       'Home Zip Code': data.homeZip,
       'Home ATZ': data.homeAtz,
       'Home Digital ATZ': data.homeDigitalAtz,
-      'Home Carrier Route': data.homePcr,
+      'Home Carrier Route': data.homePcr /* Removed until ready,
       RADIUS1: data.radius1,
       RADIUS2: data.radius2,
-      RADIUS3: data.radius3
+      RADIUS3: data.radius3 */
     };
     this.submitSite.emit(new ValGeocodingRequest(formData));
     const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location', target: 'single-site', action: 'add' });
