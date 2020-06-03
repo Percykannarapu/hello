@@ -218,9 +218,7 @@ export class AppGeoService {
         loc.clientLocationTypeCode === 'Site'),
       withLatestFrom(this.appStateService.season$, this.validAnalysisLevel$),
     ).subscribe(([locations, season, analysisLevel]) => {
-      setTimeout(() => {
-        this.selectAndPersistHomeGeos(locations, analysisLevel, season);
-      }, 0);
+     // this.selectAndPersistHomeGeos(locations, analysisLevel, season);
     });
   }
 
@@ -266,6 +264,7 @@ export class AppGeoService {
           const geosToPersist = this.createGeosToPersist(locationDistanceMap, tradeAreaSet, season);
           this.impGeoService.add(geosToPersist);
           this.finalizeTradeAreas(tradeAreas);
+          this.selectAndPersistHomeGeos(this.locationService.get(), analysisLevel, season);
 
           // Check the geo filters
           this.setupFilterGeosObservable();
@@ -286,16 +285,23 @@ export class AppGeoService {
         });
   }
 
-  private selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string, season: Season) : void {
+  public selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string, season: Season) : void {
     const key = 'selectAndPersistHomeGeos';
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     this.store$.dispatch(new StartBusyIndicator({key, message: `Selecting Home ${currentAnalysisLevel}s...`}));
 
-    this.logger.debug.log('Firing home geo selection', locations.length);
+    const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
+    const locs = locations.filter(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
+        (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta['isComplete'] === true)) &&
+        loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
+        loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
+        loc.clientLocationTypeCode === 'Site');
+
+    this.logger.debug.log('Firing home geo selection', locs.length);
     const layerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
     const locationsWithHomeGeo: ImpGeofootprintLocation[] = [];
     const locationsMissingHomeGeo: ImpGeofootprintLocation[] = [];
-    locations.forEach(loc => {
+    locs.forEach(loc => {
       if (loc.homeGeocode == null || loc.homeGeocode.length === 0) {
         locationsMissingHomeGeo.push(loc);
       } else {
