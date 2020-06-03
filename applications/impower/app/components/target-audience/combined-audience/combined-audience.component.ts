@@ -68,9 +68,8 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
     this.combinedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted')),
+      tap(a => a.forEach(aud => this.varNames.set(aud.audienceName, aud.audienceIdentifier)))
     );
-
-    this.combinedAudiences$.subscribe(a => a.forEach(aud => this.varNames.set(aud.audienceName, aud.audienceIdentifier)));
 
     this.audienceForm = this.fb.group({
       audienceId: '',
@@ -218,6 +217,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       header: 'Delete Combined Variable',
       icon: 'ui-icon-delete',
       accept: () => {
+        this.varNames.delete(audience.audienceName);
         this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
         this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
         this.store$.dispatch(new RemoveVar({ varPk: audience.audienceIdentifier }));
