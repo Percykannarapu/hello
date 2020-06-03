@@ -14,6 +14,7 @@ import {
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { extractUniqueAttributeValues } from '../../../../../common/model.transforms';
 import { ValassisValidators } from '../../../../../models/valassis-validators';
 import { ImpGeofootprintLocation } from '../../../../../val-modules/targeting/models/ImpGeofootprintLocation';
 
@@ -90,7 +91,7 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
   }
 
   private setUpFormBreaks(featureAttribute: string, useExisting: boolean) {
-    const newBreaks = generateUniqueMarkerValues(this.getBreakValues(featureAttribute), getColorPalette(ColorPalette.Symbology, false));
+    const newBreaks = generateUniqueMarkerValues(extractUniqueAttributeValues(this.poiData, featureAttribute), getColorPalette(ColorPalette.Symbology, false));
     const configBreaks = this.configuration.breakDefinitions || [];
     const currentBreaks = configBreaks.length > 0 && useExisting ? configBreaks : newBreaks;
     this.addOrSetControl('breakDefinitions', this.getDefaultUniqueSymbolFormControl(currentBreaks));
@@ -104,22 +105,6 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
     } else {
       this.parentForm.setControl(name, control);
     }
-  }
-
-  private getBreakValues(featureAttribute: string) : string[] {
-    const dedupedResults = new Set<string>();
-    this.poiData.forEach(loc => {
-      const directField = loc[featureAttribute];
-      const attribute = loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === featureAttribute)[0];
-      if (directField != null) {
-        dedupedResults.add(directField);
-      } else if (attribute != null) {
-        dedupedResults.add(attribute.attributeValue);
-      }
-    });
-    const result = Array.from(dedupedResults);
-    result.sort();
-    return result;
   }
 
   private getDefaultUniqueSymbolFormControl(breakDefinitions: UniqueValueMarkerDefinition[]) : FormArray {

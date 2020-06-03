@@ -48,9 +48,9 @@ export class EsriMapService {
       newMapViewProps.container = container.nativeElement;
       newMapViewProps.map = mapInstance;
       newMapViewProps.resizeAlign = 'top-left';
-      newMapViewProps.navigation = {
-        mouseWheelZoomEnabled: false
-      };
+      // newMapViewProps.navigation = {
+      //   mouseWheelZoomEnabled: false
+      // };
       const mapView = new MapView(newMapViewProps);
       return from(mapView.when()).pipe(
         tap(() => {
@@ -191,6 +191,6 @@ export class EsriMapService {
   }
 
   setMousewheelNavigation(value: boolean) : void {
-    this.mapView.navigation.mouseWheelZoomEnabled = value;
+    // this.mapView.navigation.mouseWheelZoomEnabled = value;
   }
 }

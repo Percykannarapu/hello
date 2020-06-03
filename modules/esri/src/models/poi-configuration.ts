@@ -30,6 +30,10 @@ export interface SimplePoiConfiguration extends BasePoiConfiguration {
   symbolDefinition: MarkerSymbolDefinition;
 }
 
+function isSimple(config: PoiConfiguration) : config is SimplePoiConfiguration {
+  return config.poiType === PoiConfigurationTypes.Simple;
+}
+
 function duplicateSimple(config: SimplePoiConfiguration) : SimplePoiConfiguration {
   return {
     ...config,
@@ -46,6 +50,10 @@ export interface UniquePoiConfiguration extends BasePoiConfiguration {
   breakDefinitions: UniqueValueMarkerDefinition[];
 }
 
+function isUnique(config: PoiConfiguration) : config is UniquePoiConfiguration {
+  return config.poiType === PoiConfigurationTypes.Unique;
+}
+
 function duplicateUnique(config: UniquePoiConfiguration) : UniquePoiConfiguration {
   return {
     ...config,
@@ -54,13 +62,13 @@ function duplicateUnique(config: UniquePoiConfiguration) : UniquePoiConfiguratio
   };
 }
 
-export function duplicatePoiConfiguration(config: PoiConfiguration) : PoiConfiguration {
+export function duplicatePoiConfiguration<T extends PoiConfiguration>(config: T) : T {
   if (config == null) return null;
-  switch (config.poiType) {
-    case PoiConfigurationTypes.Simple:
-      return duplicateSimple(config);
-    case PoiConfigurationTypes.Unique:
-      return duplicateUnique(config);
+  if (isSimple(config)) {
+    return duplicateSimple(config) as T;
+  }
+  if (isUnique(config)) {
+    return duplicateUnique(config) as T;
   }
 }
 

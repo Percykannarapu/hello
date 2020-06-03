@@ -2,16 +2,20 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { getUuid, groupToEntity, mapArrayToEntity, mapByExtended } from '@val/common';
 import {
+  ColorPalette,
   duplicatePoiConfiguration,
   EsriDomainFactoryService,
   EsriLayerService,
   EsriPoiService,
   EsriUtils,
+  generateUniqueMarkerValues,
+  getColorPalette,
   PoiConfiguration,
   PoiConfigurationTypes
 } from '@val/esri';
 import { filter, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { extractUniqueAttributeValues } from '../common/model.transforms';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -74,17 +78,29 @@ export class PoiRenderingService {
    * @param renderingSetups - the PoiConfiguration setup for this Poi Visualization
    */
   renderSites(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]) : void {
-    const sitesByTypeCode: Record<string, __esri.Graphic[]> = groupToEntity(sites, s => s.clientLocationTypeCode, (s, i) => createSiteGraphic(s, i));
+    const sitesByTypeCode: Record<string, ImpGeofootprintLocation[]> = groupToEntity(sites, s => s.clientLocationTypeCode);
     this.renderPois(sitesByTypeCode, renderingSetups);
   }
 
-  private renderPois(poisByTypeCode: Record<string, __esri.Graphic[]>, renderingSetups: PoiConfiguration[]) : void {
+  private renderPois(poisByTypeCode: Record<string, ImpGeofootprintLocation[]>, renderingSetups: PoiConfiguration[]) : void {
     const updatedSetups: PoiConfiguration[] = [];
     renderingSetups.forEach(renderingSetup => {
-      const newPoints = poisByTypeCode[renderingSetup.dataKey] || [];
+      const newLocations = [...(poisByTypeCode[renderingSetup.dataKey] || [])];
+      const newPoints = newLocations.map((l, i) => createSiteGraphic(l, i));
       if (renderingSetup.featureLayerId != null) {
         const existingLayer = this.layerService.getLayerByUniqueId(renderingSetup.featureLayerId);
         if (EsriUtils.layerIsFeature(existingLayer)) {
+          if (renderingSetup.poiType === PoiConfigurationTypes.Unique) {
+            const newSetup = duplicatePoiConfiguration(renderingSetup);
+            const existingValues = new Set<string>(renderingSetup.breakDefinitions.map(b => b.value));
+            const markerSetups = generateUniqueMarkerValues(extractUniqueAttributeValues(newLocations, renderingSetup.featureAttribute), getColorPalette(ColorPalette.Symbology, false));
+            const newValues = new Set<string>(markerSetups.map(b => b.value));
+            const newUniques = markerSetups.filter(s => !existingValues.has(s.value));
+            const keepUniques = newSetup.breakDefinitions.filter(b => newValues.has(b.value));
+            newSetup.breakDefinitions = [ ...keepUniques, ...newUniques ];
+            newSetup.breakDefinitions.sort((a, b) => a.value.localeCompare(b.value));
+            updatedSetups.push(newSetup);
+          }
           existingLayer.queryFeatures().then(result => {
             const edits = this.prepareLayerEdits(result.features, newPoints);
             if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
