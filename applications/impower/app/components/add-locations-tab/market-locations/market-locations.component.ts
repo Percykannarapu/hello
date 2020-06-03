@@ -1,3 +1,4 @@
+import { BehaviorSubject } from 'rxjs';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -24,7 +25,7 @@ import { Store } from '@ngrx/store';
 import { FullAppState } from 'app/state/app.interfaces';
 import { Geocode } from 'app/state/homeGeocode/homeGeo.actions';
 import { AppLoggingService } from 'app/services/app-logging.service';
-import { StartBusyIndicator, StopBusyIndicator } from '../../../../../../modules/messaging/state/busyIndicator/busy.state';
+import { StartBusyIndicator, StopBusyIndicator, StartLiveIndicator, StopLiveIndicator } from '../../../../../../modules/messaging/state/busyIndicator/busy.state';
 
 class ContainerValue {  //TODO: put in common location
   id:       number;
@@ -52,6 +53,7 @@ export class MarketLocationsComponent implements OnInit {
 
   private project: ImpProject;
   private analysisLevel: string;
+  private spinnerBS$ = new BehaviorSubject<string>('Creating Locations From Markets');
 
   constructor(
     private esriQueryService: EsriQueryService,
@@ -80,16 +82,21 @@ export class MarketLocationsComponent implements OnInit {
   // Event that fires when geos are starting to be retrieved
   public onGetGeos(event: any)
   {
-    this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Determining geos for ${event.markets.length} ${event.container} markets`}));
+//    this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Determining geos for ${event.markets.length} ${event.container} markets`}));
+    this.spinnerBS$.next(`Determining geos for ${event.markets.length} ${event.container} markets`);
+    this.store$.dispatch(new StartLiveIndicator({ key: this.busyKey, messageSource: this.spinnerBS$}));
   }
 
   // Event that fires once geos have been retrieved
   public onGeosRetrieved(event: any)
   {
+    this.spinnerBS$.next('Finished retrieving geos, starting to create locations');
     this.createLocations(event.market, event.values);
   }
 
   private createLocations(marketCode: string, marketList: ContainerValue[]) {
+    try
+    {
     this.logger.info.log('-'.repeat(80));
     this.logger.info.log('createLocations fired: marketCode: ' + marketCode); // + ', marketList: ' + marketList);
     this.logger.info.log('-'.repeat(80));
@@ -145,7 +152,7 @@ export class MarketLocationsComponent implements OnInit {
             break;
     }
 
-    this.logger.info.log('centroidGeos: ' + centroidGeos);
+    this.logger.info.log('queryField: ' + queryField + ', centroidGeos: ' + centroidGeos);
     const geoSub = this.esriQueryService.queryAttributeIn(layerId, 'geocode', centroidGeos , true, ['geocode', queryField])
       .subscribe(graphics => {
         this.logger.info.log('geoSub fired - graphics.length: ' + graphics.length);
@@ -163,7 +170,7 @@ export class MarketLocationsComponent implements OnInit {
         geoSub.unsubscribe();
       });
 
-    this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Creating locations for ${marketList.length} markets with ${numGeos} geos`}));
+    //this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Creating locations for ${marketList.length} markets with ${numGeos} geos`}));
     this.logger.info.log('Starting location creation, queryField: ' + queryField);
 
     let locations: ImpGeofootprintLocation[] = [];
@@ -174,6 +181,9 @@ export class MarketLocationsComponent implements OnInit {
         let index = 0;
         let currGeos = 0;
         locations = [];
+        //const spinnerBS$ = new BehaviorSubject<string>(`Creating locations for ${marketList.length} markets with ${numGeos} geos!`);
+        //this.store$.dispatch(new StartLiveIndicator({ key: this.busyKey, messageSource: spinnerBS$}));
+
         marketList.forEach(market => {
           if (this.impGeofootprintLocationService.get().filter(loc => loc.locationNumber === market.code).length === 0)
           {
@@ -193,8 +203,12 @@ export class MarketLocationsComponent implements OnInit {
               const location: ImpGeofootprintLocation = new ImpGeofootprintLocation();
               currGeos += market.geocodes.length;
               index++;
-              this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`}));
+//              this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`}));
+              this.spinnerBS$.next(`Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`);
               this.logger.info.log(`Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`);
+              setTimeout(() => {
+                console.log('sleep');
+              }, 5000);
               location.xcoord = graphic.geometry['centroid'].x;
               location.ycoord = graphic.geometry['centroid'].y;
               location.locationNumber = market.code;
@@ -250,15 +264,19 @@ export class MarketLocationsComponent implements OnInit {
       },
       err => {
         this.logger.error.log('There was an error querying the layer', err);
-        this.store$.dispatch(new StopBusyIndicator({ key: this.busyKey }));
+        this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
       },
       () => {
         //this.locationService.persistLocationsAndAttributes(locations);
         this.logger.info.log('Market locations completed successfully');
-        this.store$.dispatch(new StopBusyIndicator({ key: this.busyKey }));
+        this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
         querySub.unsubscribe();
       });
-
+    }
+    catch (exception)
+    {
+      this.reportError('Could not create market sites', '\t\t¯\\_(ツ)_/¯\nUNEXPECTED ERROR:\n' + exception, exception);
+    }
     /*  this.esriQueryService.queryAttributeIn(EnvironmentData.layerIds.dma.boundary, 'dma_code', Array.from(homeDMAs), false, ['dma_code', 'dma_name']).pipe(
       filter(g => g != null)
     ).subscribe(
@@ -342,6 +360,12 @@ export class MarketLocationsComponent implements OnInit {
       shadingType: ConfigurationTypes.Simple
     };
     //this.esriShadingService.addShader(result);
+  }
+
+  private reportError(errorHeader: string, errorMessage: string, errorObject: any) {
+//    this.logger.error.log(errorHeader, errorObject);
+    this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
+    this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader, additionalErrorInfo: errorObject }));
   }
 
 }
