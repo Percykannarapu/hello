@@ -223,8 +223,7 @@ interface TradeAreaDefinition {
 
     public forceHomeGeos(isForceHomeGeo: boolean){
         const geosSet: Set<string> = new Set();
-     // if (!isForceHomeGeo){
-        this.impTradeAreaService.get().forEach(ta => {
+      this.impProjectService.get()[0].getImpGeofootprintTradeAreas().forEach(ta => {
           if (ta.taType === 'HOMEGEO' && ta.isActive !== isForceHomeGeo){
               ta.isActive = isForceHomeGeo;
               ta.impGeofootprintGeos.forEach(geo => {
@@ -234,7 +233,6 @@ interface TradeAreaDefinition {
 
           }
         });
-
         if (geosSet.size > 0){
           /*this.impGeoService.get().forEach(geo => {
             if (geosSet.has(geo.geocode))

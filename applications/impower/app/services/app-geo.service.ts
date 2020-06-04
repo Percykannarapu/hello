@@ -327,9 +327,11 @@ export class AppGeoService {
       ).subscribe(result => {
         if (result.newGeos.length > 0) {
           this.impGeoService.add(result.newGeos);
+          this.impGeoService.makeDirty();
         }
         if (result.newTradeAreas.length > 0) {
           this.tradeAreaService.add(result.newTradeAreas);
+          this.tradeAreaService.makeDirty();
         }
         if (result.invalidLocations.length > 0) {
           this.flagLocationsWithInvalidHomeGeos(result.invalidLocations);
