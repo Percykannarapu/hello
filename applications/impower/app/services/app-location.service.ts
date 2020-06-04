@@ -886,7 +886,7 @@ export class AppLocationService {
         ));
       }
     });
-    return merge(...queries, 3).pipe(
+    return merge(...queries, 2).pipe(
       reduce((acc, result) => [...acc, ...result], []),
       finalize(() => this.esriLayerService.removeQueryLayer(pipTransaction)),
       map(result => {
