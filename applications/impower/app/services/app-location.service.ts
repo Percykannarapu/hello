@@ -1,6 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, getUuid, groupByExtended, isConvertibleToNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import {
+  filterArray,
+  getUuid,
+  groupByExtended,
+  isConvertibleToNumber,
+  mapBy,
+  mapByExtended,
+  simpleFlatten,
+  toUniversalCoordinates
+} from '@val/common';
 import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -877,7 +886,7 @@ export class AppLocationService {
         ));
       }
     });
-    return merge(...queries, 4).pipe(
+    return merge(...queries, 3).pipe(
       reduce((acc, result) => [...acc, ...result], []),
       finalize(() => this.esriLayerService.removeQueryLayer(pipTransaction)),
       map(result => {
