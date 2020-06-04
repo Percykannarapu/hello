@@ -187,7 +187,10 @@ export class BatchMapService {
       xmax: Number(params.xmax),
       ymax: Number(params.ymax)
     };
-    this.esriMapService.mapView.extent = Extent.fromJSON(extent);
+    //this.esriMapService.mapView.extent = Extent.fromJSON(extent);
+    const coords = {x: Extent.fromJSON(extent).center.x, y: Extent.fromJSON(extent).center.y};
+    this.esriMapService.zoomToPoints([coords]);
+    //this.esriMapService.zoomToPoints([this.esriMapService.mapView.extent.center]);
     return of({ siteNum: currentLocationNumbers[currentLocationNumbers.length - 1], isLastSite: true });
   }
 
