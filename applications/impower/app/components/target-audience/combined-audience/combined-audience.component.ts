@@ -105,7 +105,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         const audienceName = this.audienceForm.get('audienceName');
         const currentName = audienceName.value != null ?  audienceName.value.trim() : '';
         this.isDuplicateName = false;
-        if (this.varNames.has(currentName) && this.varNames.get(audienceName.value) !== audienceName.parent.controls['audienceId'].value){
+        if (this.varNames.has(currentName) && (this.varNames.get(currentName) !== audienceName.parent.controls['audienceId'].value)){
           audienceName.setErrors({'isDuplicateName': true});
           this.isDuplicateName = true;
         }
