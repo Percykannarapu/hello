@@ -83,11 +83,11 @@ export class EsriModule {
     }
   }
 
-  static forRoot(options?: ForRootOptions) : ModuleWithProviders {
+  static forRoot(optionFactory: () => ForRootOptions = () => null) : ModuleWithProviders {
     return {
       ngModule: EsriModule,
       providers: [
-        { provide: forRootOptionsToken, useValue: options },
+        { provide: forRootOptionsToken, useFactory: optionFactory },
         { provide: EsriLoaderToken, useFactory: provideEsriLoaderOptions, deps: [forRootOptionsToken] },
         { provide: EsriAuthenticationToken, useFactory: provideEsriAuthOptions, deps: [forRootOptionsToken] },
         { provide: EsriAppSettingsToken, useFactory: provideEsriAppOptions, deps: [forRootOptionsToken] },
