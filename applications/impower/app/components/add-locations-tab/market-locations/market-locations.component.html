@@ -8,7 +8,6 @@
       <p-radioButton name="marketLocationGroup" value="Competitor" label="Competitors" [(ngModel)]="locationType" (ngModelChange)="onListTypeChange($event);" styleClass="spaced-radio-buttons"></p-radioButton>
     </div>
   </div>
-  <div><label>{{spinnerBS$ | async}}</label></div>
   <val-market-geos
     (onGetGeos)="onGetGeos($event)"
     (onGeosRetrieved)="onGeosRetrieved($event)"

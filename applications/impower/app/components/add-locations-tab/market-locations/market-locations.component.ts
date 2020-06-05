@@ -194,12 +194,11 @@ export class MarketLocationsComponent implements OnInit {
     const querySub1 = this.esriQueryService.queryAttributeIn(layerId, 'geocode', centroidGeos , false, ['geocode', 'longitude', 'latitude', queryField])
       .subscribe(graphics => {
           for (const graphic of graphics) {
-            console.log('graphic:  geocode: ' + graphic.getAttribute('geocode') + ', ' + queryField + ': ' + graphic.getAttribute(queryField));
             const currentCode: string = graphic.getAttribute(queryField).toString();
             if (currentCode != null)
               marketInfo[currentCode] = { homegeo: graphic.getAttribute('geocode'),
-                                          xcoord:  graphic.getAttribute('longitude'), // graphic.geometry['centroid'].x,
-                                          ycoord:  graphic.getAttribute('latitude')  // graphic.geometry['centroid'].y
+                                          xcoord:  graphic.getAttribute('longitude'),
+                                          ycoord:  graphic.getAttribute('latitude')
                                         };
           }
         },

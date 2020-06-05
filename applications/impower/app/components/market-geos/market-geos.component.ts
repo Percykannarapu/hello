@@ -118,6 +118,7 @@ export class MarketGeosComponent implements OnInit {
   // Filter selected rows
   public  isSelectedFilterState: string = this.filterAllIcon;
   public  isSelectedToolTip: string = this.filterAllTip;
+  public  globalSearch: string;
 
   // Control table cell / header wrapping
   private tableWrapOn: string = 'val-table val-tbody-wrap';
@@ -159,60 +160,27 @@ export class MarketGeosComponent implements OnInit {
       {label: 'State',                 value: 'STATE'}
     ];
 
-    // Observe the behavior subjects on the input parameters
- /*   this.allGeos$ = this.impGeofootprintGeosBS$.asObservable().pipe(startWith(null as []));
-
-    this.onListTypeChange('Site');
-
-    this.appStateService.applicationIsReady$.pipe(
-      filter(ready => ready),
-      take(1)
-    ).subscribe(() => {
-      this.failures$ = combineLatest([this.appLocationService.failedClientLocations$, this.appLocationService.failedCompetitorLocations$]).pipe(
-        map(([sites, competitors]) => [...sites, ...competitors])
-      );
-      this.hasFailures$ = this.appLocationService.hasFailures$;
-      this.totalCount$ = this.appLocationService.totalCount$;
-    });*/
-
+    // Prepare the grid columns
     for (const column of this.containerGridColumns) {
       this.columnOptions.push({ label: column.header, value: column });
       this.selectedColumns.push(column);
     }
 
+    // Observe the container values behavior subject for all and selected values
     this.containerValues$ = this.containerValuesBS$.asObservable();
     this.containerValuesSelected$ = this.containerValues$.pipe(
       map((AllValues) => AllValues.filter(value => value != null && value.isActive)),
       tap(selectedValues => {
-         console.log('Setting containerValuesSelected$ - count: ' + (selectedValues == null ? 'null' : selectedValues.length));
-         //this.syncHeaderFilter();
-         //this.headerFilter = false;
-        //  this._containersGrid.filteredValue
-        //  this._containersGrid._value
+         this.logger.debug.log('Setting containerValuesSelected$ - count: ' + (selectedValues == null ? 'null' : selectedValues.length));
       }));
 
-
-    this.containerValues$.subscribe(vals => {
-      let numSelected = 0;
-      let count = 0;
-      vals.forEach(val => {
-        numSelected += val.isActive ? 1 : 0;
-        count++;
-      });
-      console.log('this.containerValues$.subscribe - count: ' + count + ', selected: ' + numSelected);
-    });
-
+    // Enables the creation of locations when values are selected
     this.containerValuesSelected$.subscribe(vals => {
-      // console.log('this.containerValuesSelected$.subscribe values'); // = ' + (vals == null ? 'null' : vals.toString()));
-      // vals.forEach(val => console.log(val.isActive + ': ' + val.code + ' - ' + val.name));
-      let numSelected = 0;
       let count = 0;
       vals.forEach(val => {
-        numSelected += val.isActive ? 1 : 0;
         count++;
       });
       this.canCreate = (count > 0 && !this.marketGeosFormGroup.invalid) ? true : false;
-      console.log('this.containerValuesSelected$.subscribe - count: ' + count + ', selected: ' + numSelected);
     });
 
     // Create an observable for unique states (By helper methods)
@@ -237,16 +205,12 @@ export class MarketGeosComponent implements OnInit {
   }
 
   clear() : void {
-    console.log('clear fired');
     this.store$.dispatch(resetNamedForm({ path: 'marketGeos' }));
     this.onClickResetFilters();
-    this.onSelectContainers(false);
+    this.onSelectContainerValues(false);
   }
 
   getGeographies() : void {
-    // console.log('getGeographies fired');
-    // console.log('market: ' + this.selectedMarket); // this.marketGeosFormGroup['market']);
-
     const markets: string [] = [];
     const selectedMarkets: ContainerValue[] = this.containerValuesBS$.getValue().filter(cv => cv.isActive);
 
@@ -289,40 +253,44 @@ this.logger.info.log('payload rows', results.payload['rows']);
             // Note: If multiple market types were ever sent to the service, you could get a market you didn't ask for, this filter would fix that
             selectedMarkets.forEach(market => {
               market.geocodes = containerGeos.filter(geo => {
-                                                switch (inputData.container)
-                                                {
-                                                  case 'DMA':       return market.code === geo.dma;
-                                                  case 'PRICING':   return market.code === geo.dma;  // TODO: fixme
-                                                  case 'WRAP':      return market.id   === geo.wrapMktId;
-                                                  case 'WRAP2':     return market.id   === geo.wrapMktId;
-                                                  case 'SDM':       return market.code === geo.dma;  // TODO: fixme
-                                                  case 'CBSA':      return market.code === geo.cbsa;
-                                                  case 'INFOSCAN':  return market.code === geo.infoscan;
-                                                  case 'SCANTRACK': return market.code === geo.scantrack;
-                                                  case 'COUNTY':    return market.code === geo.county;
-                                                  case 'STATE':     return market.code === geo.state;
-                                                  default: return true;
-                                                }
-                                              })
-                                             .map(resp => resp.geocode);
+                switch (inputData.container)
+                {
+                  case 'DMA':       return market.code === geo.dma;
+                  case 'PRICING':   return market.code === geo.dma;  // TODO: fixme
+                  case 'WRAP':      return market.id   === geo.wrapMktId;
+                  case 'WRAP2':     return market.id   === geo.wrapMktId;
+                  case 'SDM':       return market.code === geo.dma;  // TODO: fixme
+                  case 'CBSA':      return market.code === geo.cbsa;
+                  case 'INFOSCAN':  return market.code === geo.infoscan;
+                  case 'SCANTRACK': return market.code === geo.scantrack;
+                  case 'COUNTY':    return market.code === geo.county;
+                  case 'STATE':     return market.code === geo.state;
+                  default: return true;
+                }
+              })
+              .map(resp => resp.geocode);
             });
 
             // Emit the results
             this.onGeosRetrieved.emit({ market: inputData.container, values: selectedMarkets });
           }
           else {
+            // There was a problem, log the error
             this.logger.error.log('There was an error getting market geos. returnCode: ' + (results != null ? results.returnCode : null));
 
+            // All unfriendly unexpected errors are logged to the developer console
             if (results.payload.issues != null && results.payload.issues.UNEXPECTED.length > 0) {
               for (let i = 0; i < results.payload.issues.UNEXPECTED.length; i++ )
                 this.logger.error.log(results.payload.issues.UNEXPECTED[i], results);
             }
 
+            // All friendly error messages are reported to the user via toast messages
             if (results.payload.issues != null && results.payload.issues.ERROR.length > 0) {
               for (let i = 0; i < results.payload.issues.ERROR.length; i++ )
                 this.reportError('Error getting market geos', results.payload.issues.ERROR[i], results);
             }
-            // Emit the error event
+
+            // Tell consumer components that an error has occurred
             this.onError.emit({ returnCode: results.returnCode, issues: results.payload.issues });
           }
         });
@@ -346,52 +314,34 @@ this.logger.info.log('payload rows', results.payload['rows']);
     this.headerFilter = false;
   }
 
-  private loadData(formData: MarketGeosForm) {
-    console.log('loadData fired for formData: ' + formData);
-    //this.store$.dispatch(updateNamedForm({ path: 'marketGeos', formData }));
-  }
-
-  private getData(container: string) { // : Observable<Partial<RestResponse>> {
-    const query = `${this.geoContainerLookupUrl}/${container}`;
-    this.containerValues$ = this.restService.get(query).pipe(
-      map((result) => result.payload.rows as Partial<ContainerValue>[]),
-      tap((result) => this.isFetchingData = false)
-    );
-  }
-
   public populateStatesDropdown() {
     this.getContainerData('state').subscribe(containerValues => {
       if (containerValues == null)
-        console.warn('No state information returned');
+        this.logger.warn.log('No state information returned');
       else
-        if (containerValues.length === 0) {
-          this.store$.dispatch(new ErrorNotification({ message: 'No States Found'}));
-        } else {
-          //const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
-          //this.currentTrackerSuggestions.next(foundItems);
+        if (containerValues.length === 0)
+          this.store$.dispatch(new ErrorNotification({ message: 'No States Found To Populate Dropdown'}));
+        else {
           this.stateItems = [];
           for (let i = 0; i < containerValues.length; i++)
-          {
-            //console.log('States: ' + containerValues[i].state + ' - ' + containerValues[i].name);
             this.stateItems.push({label: containerValues[i].name, value: containerValues[i].state});
-          }
         }
       },
-      err => this.logger.error.log('There was an error retrieving the states Data', err)
+      err => this.logger.error.log('There was an error retrieving the states data', err)
     );
   }
 
+  public isValidContainer(container: string) : boolean {
+    return this.marketTypeItems.map(marketItem => marketItem.value).includes(container.toUpperCase());
+  }
+
   public populateContainerValues(container: string) {
-    if (container == null || container === '') // TODO: replace with isValidContainer
+    if (container == null || !this.isValidContainer(container))
     {
-      console.error('Invalid container passed: ' + container);
+      this.reportError('Unexpected error populating container values', 'An invalid container was passed: (' + container + ')', null);
       return;
     }
     this.isFetchingData = true;
-
-    // this.containerValues$ = this.getContainerData(container).pipe(tap(
-    //   containerValues => console.log(containerValues.toString().substr(1, 99))
-    // ));
 
     this.getContainerData(container).subscribe(values => this.containerValuesBS$.next(values),
       err => {
@@ -401,31 +351,10 @@ this.logger.info.log('payload rows', results.payload['rows']);
         this.containerValuesBS$.next([]);
       },
       () => this.isFetchingData = false);
-    //this.containerValues$.subscribe(data => console.log('data: ' + data));
-     /*.subscribe(containerValues => {
-      if (containerValues == null)
-        console.log('### No information returned for container: ' + container);
-      else
-        if (containerValues.length === 0) {
-          this.store$.dispatch(new ErrorNotification({ message: 'No data found for container: ' + container}));
-        } else {
-          //const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
-          //this.currentTrackerSuggestions.next(foundItems);
-          this.containerValues = containerValues;*/
-/*         this.containerValues = [];
-          for (let i = 0; i < containerValues.length; i++)
-          {
-            console.log('Container Value: ' + containerValues[i].state + ' - ' + containerValues[i].name);
-            this.stateItems.push(new ContainerValue {label: containerValues[i].name, value: containerValues[i].state});
-          }*/
- /*       }
-      },
-      err => this.logger.error.log('There was an error retrieving the states Data', err)
-    );*/
   }
 
+  // Calls a rest service to get the container values that populate the grid
   private getContainerData(container: string) : Observable<ContainerValue[]> {
-    console.log('getContainerData fired - container: ' + container);
     const lookupUrl = `${this.geoContainerLookupUrl}/${container}`;
     return this.restService.get(lookupUrl).pipe(
         map((result: any) => result.payload.rows || []),
@@ -446,27 +375,10 @@ this.logger.info.log('payload rows', results.payload['rows']);
       this.headerFilter = this._containersGrid._value != null && this._containersGrid._value.length > 0
                           ? !this._containersGrid._value.some(container => container.isActive === false)
                           : false;
-    console.log('syncHeaderFilter: ' + this.headerFilter);
-
-    if (this._containersGrid.filteredValue != null)
-    {
-     // this._containersGrid.filteredValue.forEach(val => console.log('FILTERED VAL: ' + val));
-      console.log('FILTERED HAS SOME INACTIVE: ' + this._containersGrid.filteredValue.some(container => container.isActive === false));
-      console.log('FILTERED HAS ALL ACTIVE:    ' + !this._containersGrid.filteredValue.some(container => container.isActive === false));
-    }
-    else
-    {
-      console.log('containersGrid all count:    ' + this._containersGrid._value.length);
-      console.log('containersGrid active count: ' + this._containersGrid._value.filter(cv => cv.isActive).length);
-      // this._containersGrid._value.forEach(val => console.log('VAL: ' + val));
-    }
-    console.log('syncHeaderFilter: header checked: ' + this.headerFilter);
-
   }
 
   setHasSelectedSites() : boolean {
     this.numSelectedValues = this.containerValuesBS$.getValue().filter(containerValue => containerValue.isActive).length;
-  //  this.selectedValuesBS$.next(this.containerValuesBS$.getValue().filter(containerValue => containerValue.isActive));
     this.syncHeaderFilter();
     return this.hasSelectedValues =  this.numSelectedValues > 0;
   }
@@ -476,40 +388,24 @@ this.logger.info.log('payload rows', results.payload['rows']);
     console.log('onRowSelect fired - event: ' + event + ', isSelected: ' + isSelected);
   }
 
-  onSelectContainer(container: ContainerValue) {
-    console.log('onSelectContainer fired - container: ' + container);
-    //this.onToggleLocations.emit({sites: [site], isActive: site.isActive});
+  onSelectContainerValue(container: ContainerValue) {
     this.containerValuesBS$.value.find(cv => cv.code === container.code).isActive = container.isActive;
     this.containerValuesBS$.next(this.containerValuesBS$.value);
     this.setHasSelectedSites();
   }
 
-  onSelectContainers(newIsActive: boolean) {
+  onSelectContainerValues(newIsActive: boolean) {
     const hasFilters = this.hasFilters();
-    console.log('onSelectContainers fired - newIsActive: ' + newIsActive + ', hasFilters: ' + hasFilters);
-    const containerValues: ContainerValue[] = this.containerValuesBS$.getValue().filter(site => !hasFilters
-      || (this._containersGrid.filteredValue.filter(flatSite => flatSite.code === site.code)).length > 0);
+    const containerValues: ContainerValue[] = this.containerValuesBS$.getValue().filter(containerValue => !hasFilters
+      || (this._containersGrid.filteredValue.filter(gridValue => gridValue.code === containerValue.code)).length > 0);
 
-    //filteredValues.forEach(containerValue => console.log(containerValue));
-    console.log('container values count: ' + containerValues.length);
-    console.log('container before active: ' + this.containerValuesBS$.value.filter(val => val.isActive).length);
+    // Set the new isActive value for the container values
     containerValues.forEach(containerValue => containerValue.isActive = newIsActive);
-    console.log('container after  active: ' + this.containerValuesBS$.value.filter(val => val.isActive).length);
 
+    // Broadcast the changes
     this.containerValuesBS$.next(this.containerValuesBS$.value);
 
-    //this.onToggleLocations.emit({sites: filteredSites, isActive: newIsActive});
     this.setHasSelectedSites();
-//    this._containersGrid.toggleRowsWithCheckbox(null, newIsActive);
-//    this.containerValuesBS$.next(filteredValues);
-/*
-    this.containerValuesBS$.getValue().filter(site => !hasFilters ||
-                                                      (this._containersGrid.filteredValue.filter(flatSite => flatSite.code === site.code)).length > 0)
-       .forEach(value => {
-         console.log('setting value: ' + value.code + ' to isActive = ' + newIsActive);
-         value.isActive = newIsActive;
-       });*/
-//       this.syncHeaderFilter();
   }
 
   onFilter(event: any)
@@ -520,9 +416,9 @@ this.logger.info.log('payload rows', results.payload['rows']);
     //}
   }
 
+  // When the market drop down changes values, clear everything out
   onMarketChange(event: any)
   {
-    this.logger.info.log('onMarketChange fired', event);
     this.clear();
     this.containerValuesBS$.next([]);
   }
@@ -597,10 +493,11 @@ this.logger.info.log('payload rows', results.payload['rows']);
 
     // Reset the grid and grid filters
     this._containersGrid.reset();
+    this.globalSearch = '';
     this.onFilter(null);
   }
 
-  //Used to toggle the gizmo icon and styles used to turn word wrapping on and off in the grid
+  // Used to toggle the gizmo icon and styles used to turn word wrapping on and off in the grid
   public onToggleTableWrap() {
     if (this.tableWrapStyle === this.tableWrapOn) {
       this.tableWrapStyle = this.tableWrapOff;
@@ -612,6 +509,7 @@ this.logger.info.log('payload rows', results.payload['rows']);
     }
   }
 
+  // Shuts down spinners and reports an error to the user via toast message
   private reportError(errorHeader: string, errorMessage: string, errorObject: any) {
     this.isFetchingData = false;
     this.isFetchingGeos = false;

@@ -51,7 +51,7 @@
           <div class="ui-inputgroup">
             <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
             <span class="md-inputfield">
-              <input id="containerSearch" type="text" pInputText size="30" (input)="containersGrid.filterGlobal($event.target.value, 'contains')">
+              <input id="containerSearch" type="text" pInputText size="30" [(ngModel)]="globalSearch" (input)="containersGrid.filterGlobal($event.target.value, 'contains')">
               <label for="containerSearch">Filter Markets</label>
             </span>
             <div>
@@ -78,7 +78,7 @@
 
     <ng-template pTemplate="header" class="ui-g ui-g-nopad">
       <tr>
-        <th style="width: 30px; padding-left: 0.4em"><p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectContainers(headerFilter)" class="val-table-hdr" pTooltip="{{getHeaderSelectTooltip()}}"> </p-checkbox></th>
+        <th style="width: 30px; padding-left: 0.4em"><p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectContainerValues(headerFilter)" class="val-table-hdr" pTooltip="{{getHeaderSelectTooltip()}}"> </p-checkbox></th>
         <th *ngFor="let col of selectedColumns" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
           {{col.header}}
           <p-sortIcon [field]="col.field"></p-sortIcon>
@@ -105,7 +105,7 @@
     <ng-template pTemplate="body" let-container let-columns="selectedColumns">
       <tr [pSelectableRow]="container">
         <td style="width: 30px; padding-left: 0.4em">
-          <p-checkbox [(ngModel)]="container.isActive" binary="true" (click)="onSelectContainer(container)" pTooltip="{{getSelectionTooltip(container)}}" tooltipPosition="left"></p-checkbox>
+          <p-checkbox [(ngModel)]="container.isActive" binary="true" (click)="onSelectContainerValue(container)" pTooltip="{{getSelectionTooltip(container)}}" tooltipPosition="left"></p-checkbox>
         </td>
         <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass"> <!-- [ngSwitch]="col.field"> -->
           <!-- Display all other columns -->
