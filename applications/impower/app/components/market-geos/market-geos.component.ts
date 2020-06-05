@@ -1,4 +1,3 @@
-
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
@@ -6,8 +5,8 @@ import { FormConfig, mapArray, distinctArray } from '@val/common';
 import { SelectItem, SortMeta } from 'primeng/api';
 import { ErrorNotification } from '@val/messaging';
 import { FullAppState } from '../../state/app.interfaces';
-import { resetNamedForm } from '../../state/forms/forms.actions';
-import { MarketLocationForm } from '../../state/forms/forms.interfaces';
+import { resetNamedForm, updateNamedForm } from '../../state/forms/forms.actions';
+import { MarketGeosForm  } from '../../state/forms/forms.interfaces';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
@@ -62,6 +61,7 @@ export class MarketGeosComponent implements OnInit {
   @Input()  showLoadButtons: boolean;
   @Output() onGetGeos = new EventEmitter<any>();
   @Output() onGeosRetrieved = new EventEmitter<MarketGeos>();
+  @Output() onError = new EventEmitter<any>();
 
   @ViewChild('containersGrid', { static: true }) public _containersGrid: Table;
 
@@ -83,7 +83,7 @@ export class MarketGeosComponent implements OnInit {
   private selectedMarket: string;
 
   // Form and form component data
-  marketLocationFormGroup: FormGroup;
+  marketGeosFormGroup: FormGroup;
   marketTypeItems: SelectItem[];
   stateItems: SelectItem[];
   containerValues: ContainerValue[];
@@ -139,12 +139,12 @@ export class MarketGeosComponent implements OnInit {
               private logger: AppLoggingService) { }
 
   ngOnInit() {
-    const formSetup: FormConfig<MarketLocationForm> = {
+    const formSetup: FormConfig<MarketGeosForm> = {
       states: '',
       market: ['', Validators.required],
       counts: ['', Validators.min(1)]
     };
-    this.marketLocationFormGroup = this.fb.group(formSetup); //, { updateOn: 'blur' });
+    this.marketGeosFormGroup = this.fb.group(formSetup); // , { updateOn: 'blur' });
 
     this.marketTypeItems = [
       {label: 'DMA',                   value: 'DMA'},
@@ -211,7 +211,7 @@ export class MarketGeosComponent implements OnInit {
         numSelected += val.isActive ? 1 : 0;
         count++;
       });
-      this.canCreate = (count > 0 && !this.marketLocationFormGroup.invalid) ? true : false;
+      this.canCreate = (count > 0 && !this.marketGeosFormGroup.invalid) ? true : false;
       console.log('this.containerValuesSelected$.subscribe - count: ' + count + ', selected: ' + numSelected);
     });
 
@@ -238,18 +238,21 @@ export class MarketGeosComponent implements OnInit {
 
   clear() : void {
     console.log('clear fired');
-    this.store$.dispatch(resetNamedForm({ path: 'marketLocation' }));
+    this.store$.dispatch(resetNamedForm({ path: 'marketGeos' }));
+    this.onClickResetFilters();
+    this.onSelectContainers(false);
   }
 
   getGeographies() : void {
     // console.log('getGeographies fired');
-    // console.log('market: ' + this.selectedMarket); // this.marketLocationFormGroup['market']);
+    // console.log('market: ' + this.selectedMarket); // this.marketGeosFormGroup['market']);
 
     const markets: string [] = [];
     const selectedMarkets: ContainerValue[] = this.containerValuesBS$.getValue().filter(cv => cv.isActive);
 
     selectedMarkets.forEach(val => {
       //console.log('val = ' + val);
+      //markets.push(['WRAP', 'WRAP2'].includes(this.selectedMarket) ? val.id.toString() : val.code);
       markets.push(val.code);
     });
     console.log('market values: ' + markets);
@@ -263,7 +266,7 @@ export class MarketGeosComponent implements OnInit {
       chunks: 1,
       geocodes: markets,
       container: this.selectedMarket,
-      analysisLevel: (this.appStateService.analysisLevel$.getValue() != null) ? this.appStateService.analysisLevel$.getValue() : 'ATZ'
+      analysisLevel: this.appStateService.analysisLevel$.getValue()
     };
 
     this.isFetchingGeos = true;
@@ -272,24 +275,36 @@ export class MarketGeosComponent implements OnInit {
         catchError((err) => {
           this.logger.error.log('Error posting to ' + this.getGeosForContainerUrl);
           this.logger.error.log('payload:', inputData);
-          this.logger.error.log('payload:\n{\n' +
-                        '   chunks: ', inputData.chunks, '\n',
-                        '   geocodes:  ', inputData.geocodes, '\n',
-                        '   container: ', inputData.container, '\n',
-                        '   analysisLevel:', inputData.analysisLevel, '\n}'
-                        );
+          this.logger.error.log('err:', err);
           this.reportError('Error Getting Geos For Markets', 'No geos were returned for the selected markets', err);
+          this.onError.emit({ returnCode: 400, issues: { ERROR: ['No geos were returned for the selected markets'] }});
           return throwError('No geos were returned for the selected markets');
         })
       ).subscribe(results => {
           this.isFetchingGeos = false;
           if (results != null && results.returnCode == 200) {
             const containerGeos: GetGeosForContainerResponse[] = results.payload['rows'] as GetGeosForContainerResponse[];
-
+this.logger.info.log('payload rows', results.payload['rows']);
             // Assign geos to the market they belong to
             // Note: If multiple market types were ever sent to the service, you could get a market you didn't ask for, this filter would fix that
             selectedMarkets.forEach(market => {
-              market.geocodes = containerGeos.filter(geo => geo.dma === market.code).map(resp => resp.geocode);
+              market.geocodes = containerGeos.filter(geo => {
+                                                switch (inputData.container)
+                                                {
+                                                  case 'DMA':       return market.code === geo.dma;
+                                                  case 'PRICING':   return market.code === geo.dma;  // TODO: fixme
+                                                  case 'WRAP':      return market.id   === geo.wrapMktId;
+                                                  case 'WRAP2':     return market.id   === geo.wrapMktId;
+                                                  case 'SDM':       return market.code === geo.dma;  // TODO: fixme
+                                                  case 'CBSA':      return market.code === geo.cbsa;
+                                                  case 'INFOSCAN':  return market.code === geo.infoscan;
+                                                  case 'SCANTRACK': return market.code === geo.scantrack;
+                                                  case 'COUNTY':    return market.code === geo.county;
+                                                  case 'STATE':     return market.code === geo.state;
+                                                  default: return true;
+                                                }
+                                              })
+                                             .map(resp => resp.geocode);
             });
 
             // Emit the results
@@ -297,18 +312,30 @@ export class MarketGeosComponent implements OnInit {
           }
           else {
             this.logger.error.log('There was an error getting market geos. returnCode: ' + (results != null ? results.returnCode : null));
+
+            if (results.payload.issues != null && results.payload.issues.UNEXPECTED.length > 0) {
+              for (let i = 0; i < results.payload.issues.UNEXPECTED.length; i++ )
+                this.logger.error.log(results.payload.issues.UNEXPECTED[i], results);
+            }
+
+            if (results.payload.issues != null && results.payload.issues.ERROR.length > 0) {
+              for (let i = 0; i < results.payload.issues.ERROR.length; i++ )
+                this.reportError('Error getting market geos', results.payload.issues.ERROR[i], results);
+            }
+            // Emit the error event
+            this.onError.emit({ returnCode: results.returnCode, issues: results.payload.issues });
           }
         });
   }
 
   hasErrors(controlKey: string) : boolean {
-    const control = this.marketLocationFormGroup.get(controlKey);
+    const control = this.marketGeosFormGroup.get(controlKey);
     return false;
     // return (control.dirty || control.touched) && (control.errors != null);
   }
 
   onSubmit(formData: any) {
-    this.marketLocationFormGroup.patchValue({id: formData.id, code: formData.code, name: formData.name, state: formData.state});
+    this.marketGeosFormGroup.patchValue({id: formData.id, code: formData.code, name: formData.name, state: formData.state});
     console.log('onSubmit Fired');
     console.log('formData: ' + formData['market']);
     this.selectedMarket = formData['market'];
@@ -319,9 +346,9 @@ export class MarketGeosComponent implements OnInit {
     this.headerFilter = false;
   }
 
-  private loadData(formData: MarketLocationForm) {
+  private loadData(formData: MarketGeosForm) {
     console.log('loadData fired for formData: ' + formData);
-    //this.store$.dispatch(updateNamedForm({ path: 'marketLocation', formData }));
+    //this.store$.dispatch(updateNamedForm({ path: 'marketGeos', formData }));
   }
 
   private getData(container: string) { // : Observable<Partial<RestResponse>> {
@@ -493,6 +520,13 @@ export class MarketGeosComponent implements OnInit {
     //}
   }
 
+  onMarketChange(event: any)
+  {
+    this.logger.info.log('onMarketChange fired', event);
+    this.clear();
+    this.containerValuesBS$.next([]);
+  }
+
   /**
    * Returns the appropriate tooltip for activating / deactivating a site or competitor
    *
@@ -579,11 +613,9 @@ export class MarketGeosComponent implements OnInit {
   }
 
   private reportError(errorHeader: string, errorMessage: string, errorObject: any) {
-    //this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
     this.isFetchingData = false;
     this.isFetchingGeos = false;
     this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader, additionalErrorInfo: errorObject }));
   }
 
 }
-

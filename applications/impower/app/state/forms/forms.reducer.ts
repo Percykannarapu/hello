@@ -4,7 +4,7 @@ import { FormsState } from './forms.interfaces';
 
 export const initialState: FormsState = {
   addLocation: null,
-  marketLocation: null,
+  marketGeos: null,
   shadingSettings: null
 };
 

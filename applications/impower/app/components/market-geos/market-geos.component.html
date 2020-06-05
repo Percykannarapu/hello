@@ -1,11 +1,11 @@
 <!-- valConnectForm="marketLocation" [debounce]="0" -->
-<form novalidate autocomplete="off" [formGroup]="marketLocationFormGroup">
+<form novalidate autocomplete="off" [formGroup]="marketGeosFormGroup">
   <!-- Form input fields-->
   <!-- <div class="ui-g-2">
     <validated-text-input formControlName="number" labelText="Start Number (required)" validationMessage="Starting site Number is required"></validated-text-input>
   </div> -->
   <div class="ui-g-9">
-    <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" [includeUnselected]="true"></dropdown-input>
+    <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" (selectionChanged)="onMarketChange(event$)" [includeUnselected]="true"></dropdown-input>
   </div>
   <div class="ui-g-3">
     <dropdown-input id="mlf_states" formControlName="states" labelText="States" [options]="stateItems" [includeUnselected]="true"></dropdown-input>
@@ -16,7 +16,7 @@
       <button (click)="clear()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
     </div>
     <div class="ui-g-4">
-      <button (click)="onSubmit(marketLocationFormGroup.value)" type="submit" type="button" label="Query Market Values" icon="ui-icon-search" pButton class="ui-g-12" [disabled]="marketLocationFormGroup.invalid"></button>
+      <button (click)="onSubmit(marketGeosFormGroup.value)" type="submit" type="button" label="Query Market Values" icon="ui-icon-search" pButton class="ui-g-12" [disabled]="marketGeosFormGroup.invalid"></button>
     </div>
     <div class="ui-g-4">
       <div class="ui-g-11 ui-g-nopad">

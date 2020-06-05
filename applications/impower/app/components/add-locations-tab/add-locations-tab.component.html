@@ -20,16 +20,9 @@
     </val-site-type-selector>
   </p-accordionTab>
   <p-accordionTab header="Add Locations By Market" [transitionOptions]="'0ms'">
-    <val-site-type-selector label="Add as:">
-      <site-content>
-        <val-market-locations></val-market-locations>
-      </site-content>
-      <competitor-content>
-        <val-market-locations></val-market-locations>
-      </competitor-content>
-    </val-site-type-selector>
+    <val-market-locations></val-market-locations>
   </p-accordionTab>
-     
+
   <!--<p-accordionTab header="Business Search" [transitionOptions]="'0ms'">
     <val-business-search #businessSearch
                          [allCategories]="searchCategories$ | async"

@@ -11,7 +11,7 @@ export interface AddLocationForm {
   coord?: string;
 }
 
-export interface MarketLocationForm {
+export interface MarketGeosForm {
   states?: string;
   market: string;
   counts: number;
@@ -46,7 +46,7 @@ export interface VariableSelectionForm extends GfpForm {
 
 export interface FormsState {
   addLocation: Partial<AddLocationForm>;
-  marketLocation: Partial<MarketLocationForm>;
+  marketGeos: Partial<MarketGeosForm>;
   shadingSettings: {
     [id: string] : Partial<GfpForm>
   };
