@@ -5,7 +5,7 @@ import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import {
   ClearGeoAttributes,
@@ -341,7 +341,13 @@ export class AppGeoService {
           this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: result.invalidLocations }));
         }
         this.store$.dispatch(new StopBusyIndicator({key}));
-        return result;
+      }, err => {
+        this.store$.dispatch(new ErrorNotification({
+          notificationTitle: 'Home Geocode Error',
+          message: 'There was a fatal error during home geocode processing. See console for more details.',
+          additionalErrorInfo: err
+        }));
+        this.store$.dispatch(new StopBusyIndicator({key}));
       });
     }
     if (locationsMissingHomeGeo.length > 0) {
