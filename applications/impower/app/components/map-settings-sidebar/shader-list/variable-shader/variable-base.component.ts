@@ -16,6 +16,10 @@ export abstract class VariableBaseComponent<T extends ShadingDefinitionBase> imp
   @Input() isEditing: boolean;
   @Input() currentAudience: Audience;
 
+  public get audienceDescription() : string {
+    return this.currentAudience == null ? '' : `${this.currentAudience.audienceName} (${this.currentAudience.audienceSourceName})`;
+  }
+
   @Output() cancelForm: EventEmitter<void> = new EventEmitter<void>();
 
   numericThemes: SelectItem[] = [];
