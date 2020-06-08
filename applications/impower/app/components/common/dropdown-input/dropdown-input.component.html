@@ -3,7 +3,18 @@
     <p-dropdown id="dropdown-input-{{controlId}}" [(ngModel)]="value" [options]="options"
                 [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"
                 (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
-                [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass"></p-dropdown>
+                [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass">
+      <ng-template let-item pTemplate="selectedItem">
+        <span [title]="item.label">
+          {{item.label | truncate:75:'...'}}
+        </span>
+      </ng-template>
+      <ng-template let-variable pTemplate="item">
+        <span [title]="variable.label">
+          {{variable.label | truncate:75:'...'}}
+        </span>
+      </ng-template>
+    </p-dropdown>
     <label class="drop-down-label" for="dropdown-input-{{controlId}}">{{labelText}}</label>
   </span>
 </div>

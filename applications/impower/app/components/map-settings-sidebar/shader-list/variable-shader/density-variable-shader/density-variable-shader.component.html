@@ -1,7 +1,7 @@
 <ng-container *ngIf="!isEditing">
   <div>
     <label>Audience:</label>
-    <strong>{{currentAudience.audienceSourceName}}: {{currentAudience.audienceName}}</strong>
+    <strong [title]="audienceDescription">{{audienceDescription | truncate:50:'...'}}</strong>
   </div>
   <div>
     <label>Legend Name:</label>
