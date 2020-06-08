@@ -5,15 +5,15 @@ import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeof
 
 export function quadPartitionLocations(locations: ImpGeofootprintLocation[], analysisLevel: string) : ImpGeofootprintLocation[][] {
   const quadTree = new QuadTree(locations);
-  let maxDimension = 500;
+  let maxDimension = 250;
   let chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery;
   switch ((analysisLevel || '').toLowerCase()) {
     case 'atz':
-      maxDimension = 250;
+      maxDimension = 175;
       chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 2;
       break;
     case 'digital atz':
-      maxDimension = 200;
+      maxDimension = 100;
       chunkSize = defaultEsriAppSettings.maxPointsPerBufferQuery / 5;
       break;
     case 'pcr':
