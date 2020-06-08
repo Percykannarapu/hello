@@ -5,14 +5,24 @@
                 (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
                 [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass">
       <ng-template let-item pTemplate="selectedItem">
-        <span [title]="item.label">
-          {{item.label | truncate:75:'...'}}
-        </span>
+        <ng-container *ngIf="allowTruncation">
+          <span [title]="item.label">
+            {{item.label | truncate:truncateLength:truncateSuffix}}
+          </span>
+        </ng-container>
+        <ng-container *ngIf="!allowTruncation">
+          {{item.label}}
+        </ng-container>
       </ng-template>
       <ng-template let-variable pTemplate="item">
-        <span [title]="variable.label">
-          {{variable.label | truncate:75:'...'}}
-        </span>
+        <ng-container *ngIf="allowTruncation">
+          <span [title]="variable.label">
+            {{variable.label | truncate:truncateLength:truncateSuffix}}
+          </span>
+        </ng-container>
+        <ng-container *ngIf="!allowTruncation">
+          {{variable.label}}
+        </ng-container>
       </ng-template>
     </p-dropdown>
     <label class="drop-down-label" for="dropdown-input-{{controlId}}">{{labelText}}</label>

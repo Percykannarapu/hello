@@ -25,6 +25,9 @@ export class DropdownInputComponent implements ControlValueAccessor {
   @Input() tabIndex: number;
   @Input() readOnly: boolean = false;
   @Input() inputClass: string;
+  @Input() allowTruncation: boolean = true;
+  @Input() truncateLength: number = 75;
+  @Input() truncateSuffix: string = '...';
 
   controlId = getUuid();
   isDisabled: boolean;
