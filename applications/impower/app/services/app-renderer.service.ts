@@ -228,7 +228,6 @@ export class AppRendererService {
               }
               switch (shaderCopy.shadingType) {
                 case ConfigurationTypes.Unique:
-                  console.log('Uniques being kept:', uniquesToKeep);
                   shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true, uniquesToKeep);
                   break;
                 case ConfigurationTypes.Ramp:
