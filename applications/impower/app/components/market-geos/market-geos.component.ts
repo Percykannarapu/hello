@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewChildren, QueryList } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { FormConfig, mapArray, distinctArray } from '@val/common';
 import { SelectItem, SortMeta } from 'primeng/api';
@@ -14,6 +14,7 @@ import { Table } from 'primeng/table';
 import { AppLoggingService } from 'app/services/app-logging.service';
 import { MultiSelect } from 'primeng/multiselect';
 import { AppStateService } from 'app/services/app-state.service';
+import { MultiselectInputComponent } from '../common/multiselect-input/multiselect-input.component';
 
 class ContainerValue {
   id:       number;
@@ -48,6 +49,15 @@ interface MarketGeos {
   values: ContainerValue[];
 }
 
+export function statesValidator(control: AbstractControl) : { [key: string] : boolean } | null {
+  this.logger.info.log('statesValidator fired:  control: '); // + control);
+  return {'states': true };
+  // if (control.value !== undefined && (isNaN(control.value) || control.value < 18 || control.value > 45)) {
+  //   return { 'states': true };
+  // }
+  // return null;
+}
+
 @Component({
   selector: 'val-market-geos',
   templateUrl: './market-geos.component.html',
@@ -64,6 +74,7 @@ export class MarketGeosComponent implements OnInit {
   @Output() onError = new EventEmitter<any>();
 
   @ViewChild('containersGrid', { static: true }) public _containersGrid: Table;
+  @ViewChild('msStates', { static: true }) public _statesMultiSelect: MultiselectInputComponent;
 
   // Get grid filter components to clear them
   @ViewChildren('filterMs') msFilters: QueryList<MultiSelect>;
@@ -81,6 +92,7 @@ export class MarketGeosComponent implements OnInit {
   public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
 
   private selectedMarket: string;
+  private selectedStates: string[];
 
   // Form and form component data
   marketGeosFormGroup: FormGroup;
@@ -88,7 +100,7 @@ export class MarketGeosComponent implements OnInit {
   stateItems: SelectItem[];
   containerValues: ContainerValue[];
 
-  selectedState: SelectItem;
+  //selectedState: SelectItem;
   selectedContainer: SelectItem;
 
   // Grid Variables
@@ -132,6 +144,7 @@ export class MarketGeosComponent implements OnInit {
   public  isFetchingData: boolean = false;
   public  isFetchingGeos: boolean = false;
   public  canCreate: boolean = false;
+  public  mustPickState: boolean = false;
 
   constructor(private fb: FormBuilder,
               private appStateService: AppStateService,
@@ -141,7 +154,7 @@ export class MarketGeosComponent implements OnInit {
 
   ngOnInit() {
     const formSetup: FormConfig<MarketGeosForm> = {
-      states: '',
+      states: ['', null], // statesValidator],
       market: ['', Validators.required],
       counts: ['', Validators.min(1)]
     };
@@ -196,7 +209,6 @@ export class MarketGeosComponent implements OnInit {
 
   private initializeGridState() {
     // Set initial value of the header check box
-//    this.syncHeaderFilter();
     this.headerFilter = false;
 
     // Initialize the default sort order
@@ -205,9 +217,12 @@ export class MarketGeosComponent implements OnInit {
   }
 
   clear() : void {
+    this._statesMultiSelect.clearSelection();
     this.store$.dispatch(resetNamedForm({ path: 'marketGeos' }));
     this.onClickResetFilters();
     this.onSelectContainerValues(false);
+    this.selectedStates = null;
+    this.populateContainerValues(this.selectedMarket);
   }
 
   getGeographies() : void {
@@ -219,7 +234,6 @@ export class MarketGeosComponent implements OnInit {
       //markets.push(['WRAP', 'WRAP2'].includes(this.selectedMarket) ? val.id.toString() : val.code);
       markets.push(val.code);
     });
-    console.log('market values: ' + markets);
 
     if (markets.length == 0)
       return;
@@ -232,7 +246,6 @@ export class MarketGeosComponent implements OnInit {
       container: this.selectedMarket,
       analysisLevel: this.appStateService.analysisLevel$.getValue()
     };
-
     this.isFetchingGeos = true;
     this.restService.post(this.getGeosForContainerUrl, [inputData])
       .pipe(
@@ -307,6 +320,7 @@ this.logger.info.log('payload rows', results.payload['rows']);
     console.log('onSubmit Fired');
     console.log('formData: ' + formData['market']);
     this.selectedMarket = formData['market'];
+    this.selectedStates = formData['states'];
 //    this.query(formData['market']);
     this.populateContainerValues(formData['market']);
     this.onClickResetFilters();
@@ -336,7 +350,10 @@ this.logger.info.log('payload rows', results.payload['rows']);
   }
 
   public populateContainerValues(container: string) {
-    if (container == null || !this.isValidContainer(container))
+    if (container == null)
+      return;
+
+    if (!this.isValidContainer(container))
     {
       this.reportError('Unexpected error populating container values', 'An invalid container was passed: (' + container + ')', null);
       return;
@@ -355,7 +372,9 @@ this.logger.info.log('payload rows', results.payload['rows']);
 
   // Calls a rest service to get the container values that populate the grid
   private getContainerData(container: string) : Observable<ContainerValue[]> {
-    const lookupUrl = `${this.geoContainerLookupUrl}/${container}`;
+    const states: string = this.selectedStates != null ? this.selectedStates.toString() : null;
+
+    const lookupUrl = `${this.geoContainerLookupUrl}/${container}` + (states != null ? `?states=${states}` : '');
     return this.restService.get(lookupUrl).pipe(
         map((result: any) => result.payload.rows || []),
         map(data => data.map(result => new ContainerValue(result)))
@@ -417,10 +436,15 @@ this.logger.info.log('payload rows', results.payload['rows']);
   }
 
   // When the market drop down changes values, clear everything out
-  onMarketChange(event: any)
-  {
+  onMarketChange(event: any) {
+    this.logger.info.log('onMarketChange event: ', event);
     this.clear();
     this.containerValuesBS$.next([]);
+  }
+
+  // When the states multiselect changes values
+  onStatesChange(event: any) {
+    this.logger.info.log('onStatesChange fired - event: ', event);
   }
 
   /**

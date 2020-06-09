@@ -89,6 +89,7 @@ import { ConfirmationContainerComponent } from './components/common/confirmation
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ConnectFormDirective } from './components/common/connect-form.directive';
 import { DropdownInputComponent } from './components/common/dropdown-input/dropdown-input.component';
+import { MultiselectInputComponent } from './components/common/multiselect-input/multiselect-input.component';
 import { EsriClassBreakInputComponent } from './components/common/esri-class-break-input/esri-class-break-input.component';
 import { EsriFillSymbolInputComponent } from './components/common/esri-fill-symbol-input/esri-fill-symbol-input.component';
 import { EsriMarkerSymbolInputComponent } from './components/common/esri-marker-symbol-input/esri-marker-symbol-input.component';
@@ -390,7 +391,8 @@ export function actionSanitizer(action: Action) : Action {
     SimpleLocationShaderComponent,
     UniqueValueLocationShaderComponent,
     MarketLocationsComponent,
-    MarketGeosComponent
+    MarketGeosComponent,
+    MultiselectInputComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

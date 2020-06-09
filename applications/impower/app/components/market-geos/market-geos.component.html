@@ -5,10 +5,10 @@
     <validated-text-input formControlName="number" labelText="Start Number (required)" validationMessage="Starting site Number is required"></validated-text-input>
   </div> -->
   <div class="ui-g-9">
-    <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" (selectionChanged)="onMarketChange(event$)" [includeUnselected]="true"></dropdown-input>
+    <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" (selectionChanged)="onMarketChange($event)" [includeUnselected]="true"></dropdown-input>
   </div>
   <div class="ui-g-3">
-    <dropdown-input id="mlf_states" formControlName="states" labelText="States" [options]="stateItems" [includeUnselected]="true"></dropdown-input>
+    <multiselect-input #msStates id="mlf_states" formControlName="states" labelText="States" [options]="stateItems" (selectionChanged)="onStatesChange($event)" [includeUnselected]="false"></multiselect-input>
   </div>
   <!-- Clear, Query and Create buttons -->
   <div class="ui-g-12 ui-g-nopad">
