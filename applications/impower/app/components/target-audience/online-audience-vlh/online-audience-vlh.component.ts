@@ -61,7 +61,9 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   }
 
   selectNodes(audiences: AudienceDataDefinition[], ready: boolean) {
+    this.clearSelectedFields();
     if (!ready || audiences == null || audiences.length === 0) return;
+   
     for (const audience of audiences) {
       const node = this.allNodes.filter(n => n.label === audience.audienceName);
       if (this.currentSelectedNodes.filter(n => n.label === node[0].label).length === 0) {

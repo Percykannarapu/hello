@@ -81,7 +81,10 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   selectNodes(audiences: AudienceDataDefinition[], ready: boolean) {
-    if (!ready || audiences == null || audiences.length === 0) return;
+    if (!ready || audiences == null || audiences.length === 0) {
+      this.clearSelections();
+      return;
+    }
     for (const audience of audiences) {
       const node = this.filterSingleNode(this.allNodes, audience.audienceName);
       if (node == null) {
