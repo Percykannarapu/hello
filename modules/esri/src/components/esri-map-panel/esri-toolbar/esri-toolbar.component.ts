@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { getUuid } from '@val/common';
+import { esriZoomLocalStorageKey } from '../../../configuration';
 import { SelectedButtonTypeCodes } from '../../../core/esri.enums';
 
 const buttonTitles: { [key: number] : string } = {
@@ -29,12 +31,23 @@ export class EsriToolbarComponent {
   @Input() buttonsToShow: SelectedButtonTypeCodes[];
   @Input() currentMapState: SelectedButtonTypeCodes;
   @Input() defaultToolbarState: SelectedButtonTypeCodes;
+  @Input() showAlternateZoomChoice = false;
 
-  states = SelectedButtonTypeCodes;
   titles = buttonTitles;
   classes = buttonClasses;
+  alternateZoomControlId = getUuid();
+
+  get useAlternateZoom() : boolean {
+    return JSON.parse(localStorage.getItem(esriZoomLocalStorageKey)) || false;
+  }
+
+  set useAlternateZoom(value: boolean) {
+    localStorage.setItem(esriZoomLocalStorageKey, JSON.stringify(value));
+    this.zoomChoiceChanged.emit(value);
+  }
 
   @Output() toolButtonClicked = new EventEmitter<SelectedButtonTypeCodes>();
+  @Output() zoomChoiceChanged = new EventEmitter<boolean>();
 
   handleButtonClick(buttonType: SelectedButtonTypeCodes) : void {
     if (buttonType === this.currentMapState) {

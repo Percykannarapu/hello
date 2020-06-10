@@ -10,7 +10,7 @@ import MapView from 'esri/views/MapView';
 import Expand from 'esri/widgets/Expand';
 import { BehaviorSubject, combineLatest, from, Observable, of, throwError } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
-import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
+import { EsriAppSettings, EsriAppSettingsToken, esriZoomLocalStorageKey } from '../configuration';
 import { EsriUtils, WatchResult } from '../core/esri-utils';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
@@ -48,9 +48,10 @@ export class EsriMapService {
       newMapViewProps.container = container.nativeElement;
       newMapViewProps.map = mapInstance;
       newMapViewProps.resizeAlign = 'top-left';
-      // newMapViewProps.navigation = {
-      //   mouseWheelZoomEnabled: false
-      // };
+      const useShiftZoom = JSON.parse(localStorage.getItem(esriZoomLocalStorageKey)) || false;
+      newMapViewProps.navigation = {
+        mouseWheelZoomEnabled: !useShiftZoom
+      };
       const mapView = new MapView(newMapViewProps);
       return from(mapView.when()).pipe(
         tap(() => {
@@ -191,6 +192,6 @@ export class EsriMapService {
   }
 
   setMousewheelNavigation(value: boolean) : void {
-    // this.mapView.navigation.mouseWheelZoomEnabled = value;
+    this.mapView.navigation.mouseWheelZoomEnabled = value;
   }
 }

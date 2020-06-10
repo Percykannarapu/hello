@@ -1,10 +1,12 @@
 import { Inject, Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { of } from 'rxjs';
+import IdentityManager from 'esri/identity/IdentityManager';
+import { from, Observable, of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { EsriConfigOptions, EsriLoaderToken } from '../../configuration';
+import { EsriAuthenticationParams, EsriAuthenticationToken, EsriConfigOptions, EsriLoaderToken } from '../../configuration';
 import { setupEsriConfig } from '../../core/esri-initialize';
-import { EsriIdentityService } from '../../services/esri-identity.service';
+import { TokenResponse } from '../../core/esri-utils';
+import { LoggingService } from '../../services/logging.service';
 import { AuthenticateFailure, AuthenticateSuccess, EsriInitActionTypes, InitializeComplete } from './esri.init.actions';
 
 @Injectable()
@@ -13,15 +15,16 @@ export class EsriInitEffects {
   @Effect()
   initialize$ = this.actions$.pipe(
     ofType(EsriInitActionTypes.Initialize),
-    tap(() => setupEsriConfig(this.config)),
+    tap(() => setupEsriConfig(this.loadConfig)),
     map(() => new InitializeComplete())
   );
 
   @Effect()
   authenticate$ = this.actions$.pipe(
     ofType(EsriInitActionTypes.Authenticate),
-    switchMap(() => this.identityService.authenticate().pipe(
-      map(token => new AuthenticateSuccess({ tokenResponse: token})),
+    switchMap(() => this.generateToken().pipe(
+      tap(token => IdentityManager.registerToken(token)),
+      map(token => new AuthenticateSuccess({ tokenResponse: token })),
       catchError(err => of(new AuthenticateFailure({ errorResponse: err })))
     )),
   );
@@ -29,10 +32,19 @@ export class EsriInitEffects {
   @Effect({ dispatch: false })
   authFailure$ = this.actions$.pipe(
     ofType<AuthenticateFailure>(EsriInitActionTypes.AuthenticateFailure),
-    tap(action => console.error('There was an error authenticating the Esri Api', action.payload.errorResponse))
+    tap(action => this.logger.error.log('There was an error authenticating the Esri Api', action.payload.errorResponse))
   );
 
   constructor(private actions$: Actions,
-              private identityService: EsriIdentityService,
-              @Inject(EsriLoaderToken) private config: EsriConfigOptions) {}
+              private logger: LoggingService,
+              @Inject(EsriAuthenticationToken) private authConfig: EsriAuthenticationParams,
+              @Inject(EsriLoaderToken) private loadConfig: EsriConfigOptions) {}
+
+  private generateToken() : Observable<TokenResponse> {
+    const serverInfo = { tokenServiceUrl: this.authConfig.tokenGenerator } as __esri.ServerInfo;
+    const userInfo = { username: this.authConfig.userName, password: this.authConfig.password };
+    return from(IdentityManager.generateToken(serverInfo, userInfo)).pipe(
+      map(response => ({ ...response, server: this.authConfig.tokenServer }))
+    );
+  }
 }

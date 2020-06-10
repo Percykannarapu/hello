@@ -7,6 +7,13 @@
               [ngClass]="{ 'active': currentMapState === currentButton }">
       </button>
     </ng-container>
+    <div class="zoom-root" *ngIf="showAlternateZoomChoice" title="Use SHIFT for mousewheel zoom">
+      <p-inputSwitch inputId="boolean-input-{{alternateZoomControlId}}" [(ngModel)]="useAlternateZoom"
+                     (onChange)="zoomChoiceChanged.emit(useAlternateZoom)"></p-inputSwitch>
+      <label class="zoom-switch-label" for="boolean-input-{{alternateZoomControlId}}">
+        <span *ngIf="useAlternateZoom">(shift)&nbsp;</span><span class="fa fa-search"></span>
+      </label>
+    </div>
     <ng-content select="additional-toolbar-buttons"></ng-content>
     <ng-content select="val-esri-label-config"></ng-content>
   </div>

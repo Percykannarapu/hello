@@ -213,8 +213,7 @@ export function esriSetupFactory() : ForRootOptions {
     portalServerRootUrl: EnvironmentData.esri.portalServer,
     auth: {
       userName: EnvironmentData.esri.userName,
-      password: EnvironmentData.esri.password,
-      referer: window.location.origin
+      password: EnvironmentData.esri.password
     }, app: {
       printServiceUrl: EnvironmentData.serviceUrls.valPrintService,
       logLevel: environment.logLevel

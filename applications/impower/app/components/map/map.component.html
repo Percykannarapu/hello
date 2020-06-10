@@ -3,7 +3,7 @@
     <div id="outerMapDiv" class="val-flush-to-edges">
       <val-esri-map-panel [mapHeight]="mapHeight$ | async" baseMap="streets-vector"
                           (viewChanged)="onViewExtentChanged($event)" (selectedButton)="fnSelectedButton($event)"
-                          [showLabelConfigButton]="false" [toolbarButtons]="toolbarButtons">
+                          [showLabelConfigButton]="false" [toolbarButtons]="toolbarButtons" [showAlternateZoomChoice]="true">
         <additional-toolbar-buttons>
           &nbsp;&nbsp;&nbsp;&nbsp;
           <button  label="Clear All"  pButton (click)="onClearSelections()"  title="Clear All Selections"></button>

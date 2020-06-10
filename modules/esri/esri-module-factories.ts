@@ -1,6 +1,6 @@
-import { EsriAppSettings, EsriAuthenticationParams, EsriConfigOptions } from './src/configuration';
 import { InjectionToken } from '@angular/core';
 import { defaultEsriAppSettings, defaultEsriAuthParams, defaultEsriConfig, defaultEsriUrlFragments } from './settings';
+import { EsriAppSettings, EsriAuthenticationParams, EsriConfigOptions } from './src/configuration';
 
 export interface ForRootOptions {
   portalServerRootUrl: string;
@@ -28,8 +28,8 @@ export function provideEsriAuthOptions(options?: ForRootOptions) : EsriAuthentic
   if (options != null) {
     result = {
       ...defaultEsriAuthParams,
-      generatorUrl: `${options.portalServerRootUrl}${defaultEsriUrlFragments.portal}${defaultEsriUrlFragments.generator}`,
-      tokenServerUrl: `${options.portalServerRootUrl}${defaultEsriUrlFragments.portal}${defaultEsriUrlFragments.tokenServer}`,
+      tokenGenerator: `${options.portalServerRootUrl}${defaultEsriUrlFragments.portal}${defaultEsriUrlFragments.tokenGenerator}`,
+      tokenServer: `${options.portalServerRootUrl}${defaultEsriUrlFragments.portal}${defaultEsriUrlFragments.tokenServer}`,
       ...options.auth
     };
   }

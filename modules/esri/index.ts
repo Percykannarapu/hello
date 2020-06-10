@@ -20,7 +20,6 @@ export * from './src/models/esri-sort';
 
 export * from './src/services/esri-domain-factory.service';
 export * from './src/services/esri-geoprocessor.service';
-export * from './src/services/esri-identity.service';
 export * from './src/services/esri-layer.service';
 export * from './src/services/esri-map.service';
 export * from './src/services/esri-map-interaction.service';

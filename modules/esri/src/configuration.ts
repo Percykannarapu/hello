@@ -6,11 +6,10 @@ export interface EsriConfigOptions extends Partial<__esri.config> {
 }
 
 export interface EsriAuthenticationParams {
-  generatorUrl: string;
-  tokenServerUrl: string;
+  tokenGenerator: string;
+  tokenServer: string;
   userName: string;
   password: string;
-  referer: string;
 }
 
 export interface EsriAppSettings {
@@ -25,6 +24,7 @@ export interface EsriAppSettings {
   logLevel: LogLevels;
 }
 
+export const esriZoomLocalStorageKey = 'esri-map-use-alternate-zoom';
 export const EsriLoaderToken = new InjectionToken<EsriConfigOptions>('esri-config-options');
 export const EsriAuthenticationToken = new InjectionToken<EsriAuthenticationParams>('esri-authentication-params');
 export const EsriAppSettingsToken = new InjectionToken<EsriAppSettings>('esri-app-settings');

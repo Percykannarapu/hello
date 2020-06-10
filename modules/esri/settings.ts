@@ -1,11 +1,9 @@
 import { LogLevels } from '@val/common';
 import { EsriAppSettings, EsriAuthenticationParams, EsriConfigOptions } from './src/configuration';
 
-export const SelectedShadingLayerPrefix = 'Selected';
-
 export const defaultEsriUrlFragments = {
   portal: 'arcgis/',
-  generator: 'sharing/rest/generateToken',
+  tokenGenerator: 'sharing/rest/generateToken',
   tokenServer: 'sharing/rest/portals'
 };
 
@@ -19,11 +17,10 @@ export const defaultEsriConfig: EsriConfigOptions = {
 };
 
 export const defaultEsriAuthParams: EsriAuthenticationParams = {
-  generatorUrl: null,
-  tokenServerUrl: null,
+  tokenGenerator: null,
+  tokenServer: null,
   userName: null,
   password: null,
-  referer: null
 };
 
 export const defaultEsriAppSettings: EsriAppSettings = {

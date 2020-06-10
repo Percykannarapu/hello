@@ -27,7 +27,6 @@ import { EsriAppSettingsToken, EsriAuthenticationToken, EsriLoaderToken } from '
 import { EsriBoundaryService } from './src/services/esri-boundary.service';
 import { EsriDomainFactoryService } from './src/services/esri-domain-factory.service';
 import { EsriGeoprocessorService } from './src/services/esri-geoprocessor.service';
-import { EsriIdentityService } from './src/services/esri-identity.service';
 import { EsriLayerService } from './src/services/esri-layer.service';
 import { EsriMapInteractionService } from './src/services/esri-map-interaction.service';
 import { EsriMapService } from './src/services/esri-map.service';
@@ -94,7 +93,6 @@ export class EsriModule {
         EsriService,
         EsriDomainFactoryService,
         EsriGeoprocessorService,
-        EsriIdentityService,
         EsriLayerService,
         EsriMapService,
         EsriMapInteractionService,
