@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@angular/core';
-import { chunkArray, getUuid, retryOnTimeout } from '@val/common';
+import { chunkArray, getUuid } from '@val/common';
 import { Multipoint, Point } from 'esri/geometry';
 import Query from 'esri/tasks/support/Query';
 import { EMPTY, from, merge, Observable } from 'rxjs';
-import { expand, filter, finalize, map, switchMap, take } from 'rxjs/operators';
+import { expand, filter, finalize, map, retry, switchMap, take } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
@@ -185,7 +185,6 @@ export class EsriQueryService {
       this.executeFeatureQuery(id, q, transactionId, isLongLivedQueryLayer).pipe(map(r => EsriQueryService.getNextQuery(r, q)));
 
     return recursiveQuery$(layerId, query).pipe(
-      retryOnTimeout(5),
       expand(({result, next}) => next ? recursiveQuery$(layerId, next) : EMPTY),
       map(({ result }) => result)
     );
@@ -195,7 +194,7 @@ export class EsriQueryService {
     return from(this.mapService.mapView.when()).pipe(
       map(() => this.layerService.getQueryLayer(layerId, transactionId, isLongLivedQueryLayer)),
       switchMap(layer => layer == null ? EMPTY : layer.when() as Promise<__esri.FeatureLayer>),
-      switchMap(layer => layer.queryFeatures(query))
+      switchMap(layer => from(layer.queryFeatures(query)).pipe(retry(3))),
     );
   }
 
