@@ -45,6 +45,13 @@ export enum OnlineSourceTypes {
   Pixel = 'Pixel'
 }
 
+export const FuseSourceMap = {
+  'In-Market': 'in_market',
+  'Interest': 'interest',
+  'VLH': 'vlh',
+  'Pixel': 'pixel'
+};
+
 export class OnlineAudienceDescription {
   private childMap: Map<string, OnlineAudienceDescription> = new Map<string, OnlineAudienceDescription>();
   isLeaf: boolean;
@@ -56,23 +63,22 @@ export class OnlineAudienceDescription {
   taxonomy: string;
   fieldconte: FieldContentTypeCodes;
   get children() : OnlineAudienceDescription[] {
-    return Array.from(this.childMap.values());
+    const currentRoot: OnlineAudienceDescription = this.childMap.has('root') ? this.childMap.get('root') : this;
+    return Array.from(currentRoot.childMap.values());
   }
 
   constructor(categories?: OnlineCategoryResponse[]) {
     if (categories != null) {
       for (const category of categories) {
-        let pathItems: string[] = [];
-        if (category.categoryName.includes('/') && category.taxonomy.endsWith(category.categoryName)) {
-          const currentTaxonomy = category.taxonomy.replace(category.categoryName, '');
-          pathItems = currentTaxonomy.split('/').filter(s => s != null && s.length > 0);
-          pathItems.push(category.categoryName);
-        } else {
-          pathItems = category.taxonomy.split('/').filter(s => s != null && s.length > 0);
-        }
+        category.taxonomy = `root/${category.taxonomy}`;
+        const pathItems: string[] = category.taxonomy.split('/').filter(s => s != null && s.length > 0);
         this.createSubTree(pathItems, category);
       }
     }
+  }
+
+  hasSource(source: OnlineSourceTypes) : boolean {
+    return this.digLookup.has(FuseSourceMap[source]);
   }
 
   createSubTree(treeItems: string[], response: OnlineCategoryResponse) {
@@ -81,9 +87,9 @@ export class OnlineAudienceDescription {
     child.taxonomyParsedName = currentCategory;
     if (treeItems.length === 0) {
       // we're at the bottom of the taxonomy chain
-      if (this.childMap.has(response.categoryId)) {
+      if (this.childMap.has(response.taxonomy)) {
         // this category has already been added once - just need to append the source
-        const localCategory = this.childMap.get(response.categoryId);
+        const localCategory = this.childMap.get(response.taxonomy);
         localCategory.digLookup.set(response.source, Number(response.digCategoryId));
       } else {
         child.isLeaf = true;
@@ -92,7 +98,7 @@ export class OnlineAudienceDescription {
         child.categoryDescription = response.categoryDescr;
         child.categoryName = response.categoryName;
         child.taxonomy = response.taxonomy;
-        this.childMap.set(response.categoryId, child);
+        this.childMap.set(response.taxonomy, child);
       }
     } else {
       // we're still at a folder level of the taxonomy
@@ -110,7 +116,6 @@ export class OnlineAudienceDescription {
   providedIn: 'root'
 })
 export class TargetAudienceOnlineService {
-  public  fuseSourceMapping: Map<OnlineSourceTypes, string>;
   private audienceSourceMap = new Map<OnlineSourceTypes, Observable<OnlineCategoryResponse[]>>();
   private audienceCache$ = new Map<string, Observable<OnlineAudienceDescription[]>>();
   private audDescription = {};
@@ -123,15 +128,7 @@ export class TargetAudienceOnlineService {
               private appStateService: AppStateService,
               private store$: Store<LocalAppState>,
               private logger: AppLoggingService) {
-    this.fuseSourceMapping = new Map<OnlineSourceTypes, string>([
-      [OnlineSourceTypes.Interest, 'interest'],
-      [OnlineSourceTypes.InMarket, 'in_market'],
-      [OnlineSourceTypes.VLH, 'vlh'],
-      [OnlineSourceTypes.Pixel, 'pixel']
-    ]);
-
     this.appStateService.applicationIsReady$.subscribe(ready => this.onLoadProject());
-
     this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
   }
 
@@ -236,7 +233,7 @@ export class TargetAudienceOnlineService {
 
   public addAudience(audience: OnlineAudienceDescription, source: OnlineSourceTypes) {
     this.usageMetricCheckUncheckApio('checked', audience, source);
-    const model = TargetAudienceOnlineService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digLookup.get(this.fuseSourceMapping.get(source)));
+    const model = TargetAudienceOnlineService.createDataDefinition(source, audience.categoryName, audience.categoryId, audience.digLookup.get(FuseSourceMap[source]));
     this.audienceService.addAudience(
       model,
       (al, pk, transactionId) => this.nationalRefreshCallback(source, al, pk, transactionId)
@@ -245,7 +242,7 @@ export class TargetAudienceOnlineService {
 
   public removeAudience(audience: OnlineAudienceDescription, source: OnlineSourceTypes) {
     this.usageMetricCheckUncheckApio('unchecked', audience, source);
-    this.audienceService.removeAudience('Online', source, audience.digLookup.get(this.fuseSourceMapping.get(source)).toString());
+    this.audienceService.removeAudience('Online', source, audience.digLookup.get(FuseSourceMap[source]).toString());
   }
 
   public getAudienceDescriptions(sources: OnlineSourceTypes[]) : Observable<OnlineAudienceDescription[]> {
@@ -255,8 +252,7 @@ export class TargetAudienceOnlineService {
       const individualRequests: Observable<OnlineCategoryResponse[]>[] = [];
       sources.forEach(source => {
         if (!this.audienceSourceMap.has(source)) {
-          const fuseKey = this.fuseSourceMapping.get(source);
-          const currentRequest = this.restService.get(`v1/targeting/base/impdigcategory/search?q=impdigcategory&source=${fuseKey}`).pipe(
+          const currentRequest = this.restService.get(`v1/targeting/base/impdigcategory/search?q=impdigcategory&source=${FuseSourceMap[source]}`).pipe(
             map(response => response.payload.rows as OnlineCategoryResponse[]),
             map(categories => categories.filter(c => c.isActive === 1)),
             shareReplay()
@@ -321,7 +317,7 @@ export class TargetAudienceOnlineService {
 
       const inputData = {
         geoType: serviceAnalysisLevel,
-        source: this.fuseSourceMapping.get(source),
+        source: FuseSourceMap[source],
         digCategoryIds: numericIds,
         varType: varTypes,
         transactionId: transactionId,
@@ -363,7 +359,7 @@ export class TargetAudienceOnlineService {
 
     const inputData = {
       geoType: serviceAnalysisLevel.toUpperCase(),
-      source: this.fuseSourceMapping.get(source),
+      source: FuseSourceMap[source],
       geocodes: geocodes,
       digCategoryIds: numericIds,
       varType: varTypes,
@@ -487,9 +483,9 @@ export class TargetAudienceOnlineService {
     const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
     let metricText = null;
     if (source === OnlineSourceTypes.Pixel)
-      metricText = audience.digLookup.get(this.fuseSourceMapping.get(source)) + '~' + audience.categoryName + '~' + source + '~' + currentAnalysisLevel;
+      metricText = audience.digLookup.get(FuseSourceMap[source]) + '~' + audience.categoryName + '~' + source + '~' + currentAnalysisLevel;
     else
-      metricText = audience.digLookup.get(this.fuseSourceMapping.get(source)) + '~' + audience.taxonomyParsedName.replace('~', ':') + '~' + source + '~' + currentAnalysisLevel;
+      metricText = audience.digLookup.get(FuseSourceMap[source]) + '~' + audience.taxonomyParsedName.replace('~', ':') + '~' + source + '~' + currentAnalysisLevel;
     this.store$.dispatch(new CreateAudienceUsageMetric('online', checkType, metricText));
   }
 }
