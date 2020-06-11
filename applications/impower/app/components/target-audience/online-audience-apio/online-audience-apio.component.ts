@@ -178,6 +178,8 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   public onSourceChanged(source: OnlineSourceTypes) {
+    this.enableSource(source, this.allNodes);
+    this.currentNodes = Array.from(this.allNodes);
     this.cd.markForCheck();
   }
 
@@ -205,6 +207,16 @@ export class OnlineAudienceApioComponent implements OnInit {
     });
   }
 
+  private enableSource(source: OnlineSourceTypes, nodes?: ApioTreeNode[]) : void {
+    nodes.forEach(n => {
+      if (n.leaf) {
+        n.selectable = (n.data as OnlineAudienceDescription).hasSource(source);
+      } else {
+        this.enableSource(source, n.children);
+      }
+    });
+  }
+
   private unFilterRecursive(nodes: ApioTreeNode[]) {
     nodes.forEach(n => {
       if (!n.leaf && n.originalChildren != null) {
@@ -227,6 +239,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   private clearSelections(){
+
     this.currentSelectedNodesInterest = [];
     this.currentSelectedNodesInMarket = [];
     this.cd.markForCheck();
