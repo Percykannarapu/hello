@@ -7,6 +7,12 @@ import { UserService } from '../../services/user.service';
         <div class="impower-header-wrapper">
           <div class="impower-header">
             <div class="logo"></div>
+            <div class="announcement">
+              <span>
+                Please Note: Distribution has changed.
+                Users should reference the <a target="_blank" href="http://myvalassis/Sales%20%20Marketing/marketplanning/marketreach/2020%20Direct%20Mail%20Optimization/Forms/AllItems.aspx">'2020 Zip-ATZ Closures-Reductions-ATZ Footprint 060820' file</a> to ensure all desired geographies and distribution methods are included.
+              </span>
+            </div>
             <div *ngIf="username" class="user">
               <span>Welcome, {{username}}</span>
             </div>
