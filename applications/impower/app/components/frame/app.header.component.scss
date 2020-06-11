@@ -4,28 +4,44 @@
   position: fixed;
   width: 100%;
   z-index: 99;
+  .impower-header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-content: stretch;
+    align-items: center;
+    background-color: $lightGray04;
+    height: $valTitleHeight;
+    > .logo {
+      margin: 0 18px;
+      width: 137px;
+      height: 47px;
+      background: url('~assets/layout/images/valassis-header-logo.png') center no-repeat;
+    }
+    > .announcement {
+      max-width: 800px;
+      padding: 0.1em 0.5em;
+      background-color: $darkerRed;
+      border-radius: 5px;
+      box-shadow: 2px 2px 3px $darkGray01;
+      span {
+        color: $lightGray03;
+        font-weight: bold;
+        > a {
+          color: $lightGray03;
+          outline: $lightGray03 dotted 1px;
+          &:hover {
+            color: $blueBird;
+          }
+        }
+      }
+    }
+    > .user {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+    }
+  }
 }
 
-.impower-header {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  align-content: stretch;
-  align-items: center;
-  background-color: $lightGray04;
-  height: $valTitleHeight;
-}
-
-.impower-header > .logo {
-  margin: 0 18px;
-  width: 137px;
-  height: 47px;
-  background: url('~assets/layout/images/valassis-header-logo.png') center no-repeat;
-}
-
-.user {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-}
