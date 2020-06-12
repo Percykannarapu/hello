@@ -1,19 +1,19 @@
 import { Injectable } from '@angular/core';
-
-import { UserManager, UserManagerSettings, User as OIDCUser } from 'oidc-client';
 import { CanActivate, Router } from '@angular/router';
-import { LocalAppState } from 'app/state/app.interfaces';
 import { Store } from '@ngrx/store';
-import { LoggingService } from 'app/val-modules/common/services/logging.service';
-import { UserService } from './user.service';
-import { User } from 'app/models/User';
-import { RestDataService, OauthConfiguration } from 'app/val-modules/common/services/restdata.service';
-import { Observable, from, of } from 'rxjs';
-import { tap, switchMap } from 'rxjs/operators';
-import { UserRole } from 'app/models/UserRole';
 import { AppConfig } from 'app/app.config';
+import { User } from 'app/models/User';
+import { UserRole } from 'app/models/UserRole';
+import { LocalAppState } from 'app/state/app.interfaces';
 import { CreateApplicationUsageMetric } from 'app/state/usage/targeting-usage.actions';
+import { LoggingService } from 'app/val-modules/common/services/logging.service';
+import { OauthConfiguration, RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { CookieService } from 'ngx-cookie-service';
+
+import { User as OIDCUser, UserManager, UserManagerSettings } from 'oidc-client';
+import { from, Observable, of } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
+import { UserService } from './user.service';
 
 @Injectable()
 export class AuthService implements CanActivate{
@@ -131,14 +131,14 @@ export class AuthService implements CanActivate{
     return {
       authority: 'https://openid-connect.onelogin.com/oidc',
       client_id: '2e344cc0-6c5f-0138-38d5-06052b831332154450',
-      redirect_uri: `${this.appConfig.impowerBaseUrl}auth-callback`,
-      post_logout_redirect_uri: `${this.appConfig.impowerBaseUrl}`,
+      redirect_uri: `${window.location.origin}/auth-callback`,
+      post_logout_redirect_uri: `${window.location.origin}`,
       response_type: 'id_token token',
       scope: 'openid profile name groups email params phone',
       filterProtocolClaims: true,
       loadUserInfo: true,
       automaticSilentRenew: true,
-      silent_redirect_uri: `${this.appConfig.impowerBaseUrl}silent-refresh.html`,
+      silent_redirect_uri: `${window.location.origin}/silent-refresh.html`,
       includeIdTokenInSilentRenew: false,
       silentRequestTimeout: 30000
     };

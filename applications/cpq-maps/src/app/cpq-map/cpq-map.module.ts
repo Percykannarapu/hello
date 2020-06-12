@@ -42,6 +42,16 @@ import { InitEffects } from './state/init/init.effects';
 import { MapUIEffects } from './state/map-ui/map-ui.effects';
 import { PopupEffects } from './state/popup/popup.effects';
 
+export function esriOptionsFactory() {
+  return {
+    portalServerRootUrl: environment.esri.portalServer,
+    auth: {
+      userName: environment.esri.username,
+      password: environment.esri.password,
+      referer: window.location.origin
+    }
+  };
+}
 
 @NgModule({
   imports: [
@@ -70,14 +80,7 @@ import { PopupEffects } from './state/popup/popup.effects';
       name: 'CPQ Maps Application',
       logOnly: environment.production,
     }),
-    EsriModule.forRoot({
-      portalServerRootUrl: environment.esri.portalServer,
-      auth: {
-        userName: environment.esri.username,
-        password: environment.esri.password,
-        referer: window.location.origin
-      }
-    }),
+    EsriModule.forRoot(esriOptionsFactory),
   ],
   declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent, LegendComponent, MapPopupComponent],
   exports: [CpqMapComponent],

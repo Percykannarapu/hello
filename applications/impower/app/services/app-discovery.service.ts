@@ -15,6 +15,7 @@ import { AppStateService } from './app-state.service';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
+import { deleteCustomTa } from 'app/state/data-shim/data-shim.selectors';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {
@@ -59,6 +60,8 @@ export class AppDiscoveryService {
   public radCategoryCodeByName: Map<string, string>;
   public radCategoryNameByCode: Map<string, string>;
 
+  private deleteCustomTAflag: boolean = false;
+
   constructor(private restDataService: RestDataService,
               private appStateService: AppStateService,
               private impRadService: ImpRadLookupService,
@@ -92,6 +95,9 @@ export class AppDiscoveryService {
     this.radCategoryCodeByName = mapBy(this.radCategoryCodes, 'name', (r) => r.code);
     this.radCategoryNameByCode = mapBy(this.radCategoryCodes, 'code', (r) => r.name);
     this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => this.setSelectedValues(project));
+    this.store$.select(deleteCustomTa).subscribe(flag => {
+        this.deleteCustomTAflag = flag;
+    });
   }
 
   private setSelectedValues(project: ImpProject) {
@@ -130,20 +136,9 @@ export class AppDiscoveryService {
 
   private selectForceHomeGeo(project: ImpProject){
    const impProjectPref = project.impProjectPrefs.filter(pref => pref.prefGroup === 'project-flags' && pref.pref === 'FORCE_HOMEGEO')[0];
-   if (impProjectPref != null){
+   if (impProjectPref != null && !this.deleteCustomTAflag){
     this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : JSON.parse(impProjectPref.largeVal)}));
    }
-  
-   /*if (impProjectPref != null && impProjectPref.val === 'false'){
-        this.taService.get().forEach(ta => {
-          if (ta.taType === 'HOMEGEO'){
-              ta.isActive = false;
-              ta.impGeofootprintGeos.forEach(geo => geo.isActive == false);
-          }
-        });
-        //this.taService.makeDirty();
-        this.geoService.makeDirty();
-   }*/
   }
 
   private getProjectTrackerData(searchString) : Observable<ProjectTrackerUIModel[]> {

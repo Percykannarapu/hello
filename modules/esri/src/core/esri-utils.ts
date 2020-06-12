@@ -7,6 +7,7 @@ export interface TokenResponse {
   token: string;
   expires: number;
   ssl: boolean;
+  server: string;
 }
 
 export interface WatchResult<T extends __esri.Accessor, K extends keyof T> {

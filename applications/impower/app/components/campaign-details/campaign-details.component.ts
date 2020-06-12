@@ -25,6 +25,7 @@ import { AppGeoService } from 'app/services/app-geo.service';
 import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
 import { SuccessNotification } from '@val/messaging';
+import { ImpProjectPref } from 'app/val-modules/targeting/models/ImpProjectPref';
 
 @Component({
   selector: 'val-campaign-details',
@@ -169,6 +170,8 @@ export class CampaignDetailsComponent implements OnInit {
                   this.store$.dispatch(new DeleteCustomTAGeos({ deleteCustomTa: true }));
                 if (isCustomDataExixts)
                   this.store$.dispatch(new DeleteCustomData({ deleteCustomData: true }));  
+                
+                newValues.forceHomeGeos = true;
                 this.updateDiscoveryForm(newValues, currentProject);
                 this.store$.dispatch(new SuccessNotification({message: `All ${customType} geographies related to the previously selected Analysis Level have been deleted.`, 
                                                               notificationTitle: 'Change Analysis Level Cleanup'}));

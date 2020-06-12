@@ -1,7 +1,9 @@
 <val-esri-toolbar [currentMapState]="currentMapState$ | async"
                   [defaultToolbarState]="defaultToolbarButton"
                   [buttonsToShow]="toolbarButtons"
-                  (toolButtonClicked)="selectButton($event)">
+                  (toolButtonClicked)="onButtonSelected($event)"
+                  [showAlternateZoomChoice]="showAlternateZoomChoice"
+                  (zoomChoiceChanged)="onZoomChanged($event)">
   <ng-content select="additional-toolbar-buttons" ngProjectAs="additional-toolbar-buttons"></ng-content>
   &nbsp;&nbsp;
   <val-esri-label-config *ngIf="showLabelConfigButton"></val-esri-label-config>

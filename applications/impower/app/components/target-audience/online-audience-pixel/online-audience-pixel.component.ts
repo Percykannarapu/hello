@@ -50,6 +50,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
   }
 
   selectNodes(audiences: AudienceDataDefinition[], ready: boolean) {
+    this.clearSelectedFields();
     if (!ready || audiences == null || audiences.length === 0) return;
     for (const audience of audiences) {
       const node = this.allNodes.filter(n => n.label === audience.audienceName);

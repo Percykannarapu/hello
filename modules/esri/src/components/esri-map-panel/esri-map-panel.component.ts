@@ -1,12 +1,21 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { esriZoomLocalStorageKey } from '../../configuration';
 import { buttonToCursorMap, SelectedButtonTypeCodes } from '../../core/esri.enums';
+import { EsriMapService } from '../../services/esri-map.service';
 import { EsriShadingService } from '../../services/esri-shading.service';
 import { AppState } from '../../state/esri.reducers';
 import { internalSelectors } from '../../state/esri.selectors';
-import { MeasureDistanceSelected, PopupButtonSelected, SelectMultiPolySelected, SelectSinglePolySelected, UnselectMultiPolySelected, XYButtonSelected } from '../../state/map/esri.map-button.actions';
+import {
+  MeasureDistanceSelected,
+  PopupButtonSelected,
+  SelectMultiPolySelected,
+  SelectSinglePolySelected,
+  UnselectMultiPolySelected,
+  XYButtonSelected
+} from '../../state/map/esri.map-button.actions';
 import { MapClicked, SetMapHeight, SetMapViewpoint } from '../../state/map/esri.map.actions';
 
 @Component({
@@ -20,8 +29,6 @@ export class EsriMapPanelComponent implements OnInit {
   height$: Observable<number> = this.store.select(internalSelectors.getEsriMapHeight);
   cursor$: Observable<string> = this.currentMapState$.pipe(map(state => buttonToCursorMap[state]));
 
-  SelectedButtonTypeCodes = SelectedButtonTypeCodes;
-
   @Input() toolbarButtons: SelectedButtonTypeCodes[] = [SelectedButtonTypeCodes.ShowPopups];
   @Input() defaultToolbarButton: SelectedButtonTypeCodes = SelectedButtonTypeCodes.ShowPopups;
 
@@ -30,15 +37,42 @@ export class EsriMapPanelComponent implements OnInit {
     this.store.dispatch(new SetMapHeight({ newMapHeight: val }));
   }
   @Input() baseMap: string;
+  @Input() showAlternateZoomChoice = false;
 
   @Output() viewChanged = new EventEmitter<__esri.MapView>();
-  @Output() selectedButton = new EventEmitter();
+  @Output() selectedButton = new EventEmitter<SelectedButtonTypeCodes>();
+
+  private useAlternateZoom = false;
 
   constructor(private store: Store<AppState>,
+              private mapService: EsriMapService,
               private shadingService: EsriShadingService) {}
+
+  @HostListener('window:keydown', ['$event'])
+  keyDownEvent(event: KeyboardEvent) {
+    if (event.defaultPrevented || !this.useAlternateZoom) return;
+    switch (event.code) {
+      case 'ShiftLeft':
+      case 'ShiftRight':
+        this.mapService.setMousewheelNavigation(true);
+        break;
+    }
+  }
+
+  @HostListener('window:keyup', ['$event'])
+  keyUpEvent(event: KeyboardEvent) {
+    if (event.defaultPrevented || !this.useAlternateZoom) return;
+    switch (event.code) {
+      case 'ShiftLeft':
+      case 'ShiftRight':
+        this.mapService.setMousewheelNavigation(false);
+        break;
+    }
+  }
 
   ngOnInit() : void {
     this.shadingService.initializeShadingWatchers();
+    this.useAlternateZoom = JSON.parse(localStorage.getItem(esriZoomLocalStorageKey)) || false;
   }
 
   onMapClick(location:  __esri.MapViewImmediateClickEvent) : void {
@@ -50,7 +84,7 @@ export class EsriMapPanelComponent implements OnInit {
     this.viewChanged.emit(mapView);
   }
 
-  selectButton(newButton: SelectedButtonTypeCodes) : void {
+  onButtonSelected(newButton: SelectedButtonTypeCodes) : void {
     switch (newButton) {
       case SelectedButtonTypeCodes.ShowPopups:
         this.store.dispatch(new PopupButtonSelected());
@@ -74,5 +108,10 @@ export class EsriMapPanelComponent implements OnInit {
         throw new Error('Unknown Button type selected');
     }
     this.selectedButton.emit(newButton);
+  }
+
+  onZoomChanged(value: boolean) {
+    this.useAlternateZoom = value;
+    this.mapService.setMousewheelNavigation(!value);
   }
 }

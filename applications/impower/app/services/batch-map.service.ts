@@ -188,6 +188,10 @@ export class BatchMapService {
       ymax: Number(params.ymax)
     };
     this.esriMapService.mapView.extent = Extent.fromJSON(extent);
+    const coords = {x: Extent.fromJSON(extent).center.x, y: Extent.fromJSON(extent).center.y};
+    //this.esriMapService.zoomToPoints([coords]);
+    //this.esriMapService.zoomToPoints([this.esriMapService.mapView.extent.center]);
+    this.esriMapService.mapView.zoom =  this.esriMapService.mapView.zoom + 1 ;
     return of({ siteNum: currentLocationNumbers[currentLocationNumbers.length - 1], isLastSite: true });
   }
 

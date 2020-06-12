@@ -20,7 +20,7 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
   @Input()
   public set audiences(value: Audience[]) {
     this._audiences = value;
-    this.allAudiences = this._audiences.map(aud => ({label: `${aud.audienceSourceName}: ${aud.audienceName}`, value: aud.audienceIdentifier}));
+    this.allAudiences = this._audiences.map(aud => ({label: `${aud.audienceName} (${aud.audienceSourceName})`, value: aud.audienceIdentifier}));
   }
 
   public get currentAudience() : Audience {

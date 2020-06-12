@@ -1,6 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, getUuid, groupByExtended, isConvertibleToNumber, mapBy, mapByExtended, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import {
+  filterArray,
+  getUuid,
+  groupByExtended,
+  isConvertibleToNumber,
+  mapBy,
+  mapByExtended,
+  simpleFlatten,
+  toUniversalCoordinates
+} from '@val/common';
 import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';

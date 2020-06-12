@@ -68,6 +68,7 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeModule } from 'primeng/tree';
 import { TreeTableModule } from 'primeng/treetable';
+import { ForRootOptions } from '../../../modules/esri/esri-module-factories';
 import { environment, EnvironmentData } from '../environments/environment';
 import { AppComponent } from './app.component';
 import { AppConfig } from './app.config';
@@ -167,6 +168,7 @@ import { AppProjectService } from './services/app-project.service';
 import { AppRendererService } from './services/app-renderer.service';
 import { AppTradeAreaService } from './services/app-trade-area.service';
 import { AuthService } from './services/auth.service';
+import { BatchMapAuthService } from './services/batch-map-auth-service';
 import { RadService } from './services/rad.service';
 import { TargetAudienceService } from './services/target-audience.service';
 import { UsageService } from './services/usage.service';
@@ -192,7 +194,6 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
-import { BatchMapAuthService } from './services/batch-map-auth-service';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -210,6 +211,19 @@ export function actionSanitizer(action: Action) : Action {
   }
 }
 
+export function esriSetupFactory() : ForRootOptions {
+  return {
+    portalServerRootUrl: EnvironmentData.esri.portalServer,
+    auth: {
+      userName: EnvironmentData.esri.userName,
+      password: EnvironmentData.esri.password
+    }, app: {
+      printServiceUrl: EnvironmentData.serviceUrls.valPrintService,
+      logLevel: environment.logLevel
+    }
+  };
+}
+
 @NgModule({
   imports: [
     StoreModule.forRoot(appReducer, {
@@ -223,17 +237,7 @@ export function actionSanitizer(action: Action) : Action {
     }),
     EffectsModule.forRoot([]),
     MessagingModule.forRoot(AppMessagingService),
-    EsriModule.forRoot({
-      portalServerRootUrl: EnvironmentData.esri.portalServer,
-      auth: {
-        userName: EnvironmentData.esri.userName,
-        password: EnvironmentData.esri.password,
-        referer: window.location.origin
-      }, app: {
-        printServiceUrl: EnvironmentData.serviceUrls.valPrintService,
-        logLevel: environment.logLevel
-      }
-    }),
+    EsriModule.forRoot(esriSetupFactory),
     StateModule.forRoot(),
     ImpowerDatastoreModule.forRoot(),
     StoreRouterConnectingModule.forRoot(),

@@ -65,8 +65,8 @@
               "sourceMap": true,
               "extractCss": true,
               "namedChunks": false,
-              "aot": false,
-              "extractLicenses": true,
+              "aot": true,
+              "extractLicenses": false,
               "vendorChunk": false,
               "buildOptimizer": false,
               "fileReplacements": [
@@ -86,7 +86,7 @@
               "aot": true,
               "extractLicenses": true,
               "vendorChunk": false,
-              "buildOptimizer": true,
+              "buildOptimizer": false,
               "fileReplacements": [
                 {
                   "replace": "applications/impower/environments/environment.ts",

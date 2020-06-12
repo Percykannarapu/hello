@@ -31,7 +31,6 @@ import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { getAllMappedAudiences } from '../impower-datastore/state/transient/transient.reducer';
-import { mapFeaturesToGeocode } from '../models/rxjs-utils';
 import { GfpShaderKeys } from '../models/ui-enums';
 import { ValSort } from '../models/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
@@ -166,11 +165,11 @@ export class AppRendererService {
   }
 
   private setupMapVarWatcher() {
-    const visibleGeos$ = this.esriService.visibleFeatures$.pipe(mapFeaturesToGeocode(true));
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences), visibleGeos$)
-    ).subscribe(([mapVars, layerDefs, geocodes, audiences, visibleGeos]) => {
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences))
+    ).subscribe(([mapVars, layerDefs, geocodes, audiences]) => {
+      const visibleGeos = this.esriService.visibleFeatures$.getValue().map(f => f.attributes.geocode);
       const varPks = audiences.map(audience => Number(audience.audienceIdentifier));
       if (varPks != null) {
         const gfpFilteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));

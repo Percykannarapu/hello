@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { EsriMapService } from '@val/esri';
 import { BehaviorSubject } from 'rxjs';
@@ -20,28 +20,6 @@ export class AppComponent implements OnInit {
               private config: AppConfig,
               private authService: AuthService,
               private mapService: EsriMapService) {
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  keyDownEvent(event: KeyboardEvent) {
-    if (event.defaultPrevented) return;
-    switch (event.code) {
-      case 'ShiftLeft':
-      case 'ShiftRight':
-        this.mapService.setMousewheelNavigation(true);
-        break;
-    }
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  keyUpEvent(event: KeyboardEvent) {
-    if (event.defaultPrevented) return;
-    switch (event.code) {
-      case 'ShiftLeft':
-      case 'ShiftRight':
-        this.mapService.setMousewheelNavigation(false);
-        break;
-    }
   }
 
   // @HostListener('window:beforeunload')

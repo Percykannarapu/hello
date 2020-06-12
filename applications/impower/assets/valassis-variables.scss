@@ -40,8 +40,8 @@ $layoutMenuItemIconColor: $textColor;
 
 $letterSpacing: normal;
 
-$valTitleHeight: 55px;
-$valHeaderHeight: 90px;
+$valTitleHeight: 65px;
+$valHeaderHeight: $valTitleHeight + 35px;
 $valReversedTextColor: $lightGray04;
 $valReversedDisabledColor: $midGray03;
 $valDeselectedTextColor: $midGray01;
