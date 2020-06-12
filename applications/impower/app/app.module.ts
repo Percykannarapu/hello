@@ -77,6 +77,8 @@ import { AddLocationsTabComponent } from './components/add-locations-tab/add-loc
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
 import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
+import { MarketLocationsComponent } from './components/add-locations-tab/market-locations/market-locations.component';
+import { MarketGeosComponent } from './components/market-geos/market-geos.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
@@ -88,6 +90,7 @@ import { ConfirmationContainerComponent } from './components/common/confirmation
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ConnectFormDirective } from './components/common/connect-form.directive';
 import { DropdownInputComponent } from './components/common/dropdown-input/dropdown-input.component';
+import { MultiselectInputComponent } from './components/common/multiselect-input/multiselect-input.component';
 import { EsriClassBreakInputComponent } from './components/common/esri-class-break-input/esri-class-break-input.component';
 import { EsriFillSymbolInputComponent } from './components/common/esri-fill-symbol-input/esri-fill-symbol-input.component';
 import { EsriMarkerSymbolInputComponent } from './components/common/esri-marker-symbol-input/esri-marker-symbol-input.component';
@@ -390,7 +393,10 @@ export function esriSetupFactory() : ForRootOptions {
     AuthCallbackComponent,
     ExtendedPalettePickerComponent,
     SimpleLocationShaderComponent,
-    UniqueValueLocationShaderComponent
+    UniqueValueLocationShaderComponent,
+    MarketLocationsComponent,
+    MarketGeosComponent,
+    MultiselectInputComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

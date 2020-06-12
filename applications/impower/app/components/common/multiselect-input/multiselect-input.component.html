@@ -1,0 +1,13 @@
+<div class="multiselect-component-root">
+  <span class="md-inputfield">
+    <p-multiSelect id="multiselect-input-{{controlId}}" [(ngModel)]="value" [options]="options"
+                   [style]="{'width':'100%'}" [styleClass]="inputClass"
+                   [filter]="true" filterBy="label,value.name" dropdownIcon="fa fa-caret-down"
+                   (onChange)="selectionChanged.emit($event.value)"
+                   (onPanelShow)="onPanelShow.emit($event)"
+                   (onPanelHide)="onPanelHide.emit($event)"
+                   [disabled]="isDisabled || readOnly" [tabindex]="tabIndex">
+    </p-multiSelect>
+    <label class="drop-down-label" for="multiselect-input-{{controlId}}">{{labelText}}</label>
+  </span>
+</div>
