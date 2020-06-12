@@ -4,10 +4,11 @@ import { filterArray, groupBy, mapArray } from '@val/common';
 import { BasicLayerSetup, EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Extent } from 'esri/geometry';
 import { Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs/operators';
+import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { RehydrateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
@@ -30,7 +31,6 @@ import { BoundaryRenderingService } from './boundary-rendering.service';
 import { PoiRenderingService } from './poi-rendering.service';
 import { TargetAudienceCustomService } from './target-audience-custom.service';
 import { TargetAudienceService } from './target-audience.service';
-import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -175,9 +175,8 @@ export class AppDataShimService {
       this.esriService.setBasemap('streets-vector');
     }
     return this.esriBoundaryService.allLoadedBoundaryConfigs$.pipe(
-      map(configs => configs.length),
-      distinctUntilChanged(),
-      filter(items => items > 0),
+      withLatestFrom(this.esriBoundaryService.allVisibleBoundaryConfigs$),
+      filter(([loaded, visible]) => loaded.length === visible.length),
       take(1),
       map(() => project)
     );
