@@ -25,9 +25,9 @@
  * Zone JS is required by Angular itself.
  */
 
+import './zone-settings';
 import 'zone.js/dist/zone'; // Included with Angular CLI.
 import 'zone.js/dist/zone-error'; // patches the error class so that stack traces have zone stuff removed
-import './zone-settings';
 
 /***************************************************************************************************
  * APPLICATION IMPORTS
