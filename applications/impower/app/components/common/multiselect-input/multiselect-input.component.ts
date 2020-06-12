@@ -82,6 +82,7 @@ export class MultiselectInputComponent implements ControlValueAccessor  {
 
     this.multiSelect.value = null;
     this.multiSelect.valuesAsString = null;
+    this.multiSelect.filterValue = null;
 
     // Trigger a grid change without filters
     this.selectionChanged.emit(null);

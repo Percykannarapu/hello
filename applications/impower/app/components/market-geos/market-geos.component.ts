@@ -37,11 +37,15 @@ interface GetGeosForContainerResponse {
   geocode:   string;
   state:     string;
   county:    string;
+  city:      string;
   dma:       string;
+  sdmId:     number;
   cbsa:      string;
   infoscan:  string;
   scantrack: string;
   wrapMktId: number;
+  wrapMktIdSecondary: number;
+  pricingMktId: number;
 }
 
 interface MarketGeos {
@@ -164,12 +168,13 @@ export class MarketGeosComponent implements OnInit {
       {label: 'DMA',                   value: 'DMA'},
       {label: 'Pricing Market',        value: 'PRICING'},
       {label: 'Wrap Zone - Primary',   value: 'WRAP'},
-//    {label: 'Wrap Zone - Secondary', value: 'WRAP2'},
-//    {label: 'SDM',                   value: 'SDM'},
+      {label: 'Wrap Zone - Secondary', value: 'WRAP2'},
+      {label: 'SDM',                   value: 'SDM'},
       {label: 'CBSA',                  value: 'CBSA'},
       {label: 'Infoscan',              value: 'INFOSCAN'},
       {label: 'Scantrack',             value: 'SCANTRACK'},
       {label: 'County',                value: 'COUNTY'},
+      {label: 'City',                  value: 'CITY'},
       {label: 'State',                 value: 'STATE'}
     ];
 
@@ -222,7 +227,8 @@ export class MarketGeosComponent implements OnInit {
     this.onClickResetFilters();
     this.onSelectContainerValues(false);
     this.selectedStates = null;
-    this.populateContainerValues(this.selectedMarket);
+    this.marketGeosFormGroup.value['states'] = null;
+    // this.populateContainerValues(this.selectedMarket);
   }
 
   getGeographies() : void {
@@ -230,15 +236,18 @@ export class MarketGeosComponent implements OnInit {
     const selectedMarkets: ContainerValue[] = this.containerValuesBS$.getValue().filter(cv => cv.isActive);
 
     selectedMarkets.forEach(val => {
-      //console.log('val = ' + val);
-      //markets.push(['WRAP', 'WRAP2'].includes(this.selectedMarket) ? val.id.toString() : val.code);
-      markets.push(val.code);
+      this.logger.debug.log('this.selectedMarket:', this.selectedMarket, ', val', val);
+      markets.push(['PRICING', 'WRAP', 'WRAP2', 'SDM'].includes(this.selectedMarket)
+         ? val.id.toString()
+         : this.selectedMarket === 'STATE' ? val.state : val.code);
     });
 
     if (markets.length == 0)
       return;
 
-    this.onGetGeos.emit({ container: this.selectedMarket, markets: markets });
+    const selectedMarketTypeItem = this.marketTypeItems.filter(item => item.value == this.selectedMarket)[0];
+
+    this.onGetGeos.emit({ container: this.selectedMarket, containerName: selectedMarketTypeItem.label, markets: markets });
 
     const inputData = {
       chunks: 1,
@@ -261,23 +270,24 @@ export class MarketGeosComponent implements OnInit {
           this.isFetchingGeos = false;
           if (results != null && results.returnCode == 200) {
             const containerGeos: GetGeosForContainerResponse[] = results.payload['rows'] as GetGeosForContainerResponse[];
-this.logger.info.log('payload rows', results.payload['rows']);
+            // this.logger.info.log('payload rows', results.payload['rows']);
             // Assign geos to the market they belong to
             // Note: If multiple market types were ever sent to the service, you could get a market you didn't ask for, this filter would fix that
             selectedMarkets.forEach(market => {
               market.geocodes = containerGeos.filter(geo => {
                 switch (inputData.container)
                 {
-                  case 'DMA':       return market.code === geo.dma;
-                  case 'PRICING':   return market.code === geo.dma;  // TODO: fixme
-                  case 'WRAP':      return market.id   === geo.wrapMktId;
-                  case 'WRAP2':     return market.id   === geo.wrapMktId;
-                  case 'SDM':       return market.code === geo.dma;  // TODO: fixme
-                  case 'CBSA':      return market.code === geo.cbsa;
-                  case 'INFOSCAN':  return market.code === geo.infoscan;
-                  case 'SCANTRACK': return market.code === geo.scantrack;
-                  case 'COUNTY':    return market.code === geo.county;
-                  case 'STATE':     return market.code === geo.state;
+                  case 'DMA':       return market.code  === geo.dma;
+                  case 'PRICING':   return market.id    === geo.pricingMktId;
+                  case 'WRAP':      return market.id    === geo.wrapMktId;
+                  case 'WRAP2':     return market.id    === geo.wrapMktIdSecondary;
+                  case 'SDM':       return market.id    === geo.sdmId;
+                  case 'CBSA':      return market.code  === geo.cbsa;
+                  case 'INFOSCAN':  return market.code  === geo.infoscan;
+                  case 'SCANTRACK': return market.code  === geo.scantrack;
+                  case 'COUNTY':    return market.code  === geo.county;
+                  case 'CITY':      return market.code  === geo.city;
+                  case 'STATE':     return market.state === geo.state;
                   default: return true;
                 }
               })
@@ -513,11 +523,13 @@ this.logger.info.log('payload rows', results.payload['rows']);
       this.msFilters.forEach(ms => {
         ms.value = null;
         ms.valuesAsString = this.defaultLabel;
+        ms.filterValue = null;
       });
 
     // Reset the grid and grid filters
     this._containersGrid.reset();
     this.globalSearch = '';
+    this.selectedStates = null;
     this.onFilter(null);
   }
 

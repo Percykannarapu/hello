@@ -47,8 +47,6 @@ class ContainerValue {  //TODO: put in common location
   styleUrls:  ['./market-locations.component.scss']
 })
 export class MarketLocationsComponent implements OnInit {
-  //@Input() locationTypeCode: ImpClientLocationTypeCodes;
-
   public  locationType: ImpClientLocationTypeCodes;
 
   private readonly busyKey = 'MarketLocationsAdd';
@@ -83,8 +81,7 @@ export class MarketLocationsComponent implements OnInit {
   // Event that fires when geos are starting to be retrieved
   public onGetGeos(event: any)
   {
-//    this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Determining geos for ${event.markets.length} ${event.container} markets`}));
-    this.spinnerBS$.next(`Determining geos for ${event.markets.length} ${event.container} markets`);
+    this.spinnerBS$.next(`Determining geos for ${event.markets.length} ${event.containerName} markets`);
     this.store$.dispatch(new StartLiveIndicator({ key: this.busyKey, messageSource: this.spinnerBS$}));
   }
 
@@ -104,9 +101,7 @@ export class MarketLocationsComponent implements OnInit {
   private createLocations(marketCode: string, marketList: ContainerValue[]) {
     try
     {
-    this.logger.info.log('-'.repeat(80));
-    this.logger.info.log('createLocations fired: marketCode: ' + marketCode); // + ', marketList: ' + marketList);
-    this.logger.info.log('-'.repeat(80));
+    this.logger.info.log('createLocations fired: marketCode: ' + marketCode);
     //this.locationService.clearAll();
     const ids: string[] = [];
     const centroidGeos: string[] = [];
@@ -115,24 +110,42 @@ export class MarketLocationsComponent implements OnInit {
     const syncWait = ms => {
       const end = Date.now() + ms;
       while (Date.now() < end) continue;
-    }
+    };
 
     // Build an array of markets to process and count total number of geos
+    let existingMkts: string = '';
+    const existingIds: string[] = [];
     marketList.forEach(d => {
-      ids.push(d.code);
-      numGeos += d.geocodes.length;
-      centroidGeos.push(d.geocodes[0]);
-      this.logger.info.log('Market: ' + d.name + ' has ' + d.geocodes.length + ' geos');
+      if (this.impGeofootprintLocationService.get().filter(loc => loc.locationNumber === (d.id == null ? d.code : d.id.toString())).length > 0) {
+        existingMkts += d.code + ' - ' + d.name + '\n';
+        existingIds.push(d.id == null ? d.code : d.id.toString());
+      }
+      else {
+        ids.push(marketCode === 'STATE' ? d.state : d.code);
+        numGeos += d.geocodes.length;
+        centroidGeos.push(d.geocodes[0]);
+        this.logger.info.log('Market: ' + (d.name != null ? d.name : d.code) + ' has ' + d.geocodes.length + ' geos');
+      }
     });
 
-    const layerId = this.appConfig.getLayerIdForAnalysisLevel(this.project.methAnalysis); // (this.appStateService.analysisLevel$.getValue() != null) ? this.appStateService.analysisLevel$.getValue() : 'ATZ');
-//  const layerId = EnvironmentData.layerIds.dma.boundary;
+    if (existingMkts !== '') {
+      this.store$.dispatch(new WarningNotification({ message: existingMkts, notificationTitle: 'These locations already exist' }));
+      marketList = marketList.filter(market => !existingIds.includes(market.id == null ? market.code : market.id.toString()));
+    }
+
+    if (marketList == null || marketList.length === 0) {
+      this.reportError('Could not create market sites', 'There were no valid markets to use', { marketCode: marketCode, invalidMarkets: existingMkts });
+      return;
+    }
+
+    if (centroidGeos.length == 0) {
+      this.reportError('Could not create market sites', 'There were no geos returned for those markets', { marketCode: marketCode, markets: marketList });
+    }
+
+    const layerId = this.appConfig.getLayerIdForAnalysisLevel(this.project.methAnalysis);
     const requests: ValGeocodingRequest[] = [];
 
-    console.log('marketCode: ' + marketCode);
-    //console.log('marketList: ' + marketList);
-    console.log('analysisLevel: ' + this.analysisLevel);
-    console.log('project lvl: ' + this.project.methAnalysis);
+    this.logger.debug.log('marketCode: ', marketCode, ', analysisLevel: ', this.analysisLevel);
 
     let queryField: string;
     switch (marketCode) {
@@ -140,13 +153,16 @@ export class MarketLocationsComponent implements OnInit {
             queryField = 'dma_code';
             break;
       case 'PRICING':
-            queryField = 'pricing_mkt'; // pricing_mkt_id
+            queryField = 'pricing_mkt';
             break;
       case 'WRAP':
-            queryField = 'wrap_mkt_id'; // wrap
+            queryField = 'wrap';
+            break;
+      case 'WRAP2':
+            queryField = 'wrap_secondary';
             break;
       case 'SDM':
-            queryField = 'sdm'; // sdm_id
+            queryField = 'sdm';
             break;
       case 'CBSA':
             queryField = 'cbsa';
@@ -161,17 +177,20 @@ export class MarketLocationsComponent implements OnInit {
             queryField = 'county';
             break;
       case 'STATE':
-            queryField = 'state_abbr'; // state_fips
+            queryField = 'state_abbr';
+            break;
+      case 'CITY':
+            queryField = 'city_name';
             break;
     }
 
-    this.logger.info.log('queryField: ' + queryField + ', centroidGeos: ' + centroidGeos);
+    this.logger.debug.log('queryField: ' + queryField + ', centroidGeos: ' + centroidGeos);
     const geoSub = this.esriQueryService.queryAttributeIn(layerId, 'geocode', centroidGeos , true, ['geocode', queryField])
       .subscribe(graphics => {
-        this.logger.info.log('geoSub fired - graphics.length: ' + graphics.length);
+        this.logger.debug.log('geoSub fired - graphics.length: ' + graphics.length);
         for (const graphic of graphics) {
           const currentCode: string = graphic.getAttribute(queryField);
-          this.logger.info.log('geoSub - currentCode: ' + currentCode + ', geocode: ' + graphic.getAttribute('geocode') + ', x: ' + graphic.geometry['centroid'].x + ', y: ' + graphic.geometry['centroid'].y);
+          this.logger.debug.log('geoSub - currentCode: ' + currentCode + ', geocode: ' + graphic.getAttribute('geocode') + ', x: ' + graphic.geometry['centroid'].x + ', y: ' + graphic.geometry['centroid'].y);
         }
       },
       err => {
@@ -179,19 +198,19 @@ export class MarketLocationsComponent implements OnInit {
         geoSub.unsubscribe();
       },
       () => {
-        this.logger.info.log('geoSub - Market locations completed successfully');
+        this.logger.debug.log('geoSub - Market locations completed successfully');
         geoSub.unsubscribe();
       });
 
     //this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Creating locations for ${marketList.length} markets with ${numGeos} geos`}));
-    this.logger.info.log('Starting location creation, queryField: ' + queryField);
+    this.logger.debug.log('Starting location creation, queryField: ' + queryField);
 
     const locations: ImpGeofootprintLocation[] = [];
     this.spinnerBS$.next(`Creating ${marketList.length} locations`);
 
     // Query for geos that will become the locations homegeo
     const marketInfo: { [key: string] : any; } = {};
-    const querySub1 = this.esriQueryService.queryAttributeIn(layerId, 'geocode', centroidGeos , false, ['geocode', 'longitude', 'latitude', queryField])
+    const querySub = this.esriQueryService.queryAttributeIn(layerId, 'geocode', centroidGeos , false, ['geocode', 'longitude', 'latitude', queryField])
       .subscribe(graphics => {
           for (const graphic of graphics) {
             const currentCode: string = graphic.getAttribute(queryField).toString();
@@ -212,21 +231,22 @@ export class MarketLocationsComponent implements OnInit {
           let currGeos = 0;
           let index = 0;
 
-          querySub1.unsubscribe();
+          querySub.unsubscribe();
           marketList.forEach(market => {
             index++;
             currGeos += market.geocodes.length;
-            this.logger.info.log('TEST results - xcoord: ' + marketInfo[market.code].xcoord + ', ycoord: ' + marketInfo[market.code].ycoord);
-            this.spinnerBS$.next(`Creating location ${market.code} - xcoord: ${marketInfo[market.code].xcoord}, ycoord: ${marketInfo[market.code].ycoord}`);
-//            syncWait(5000);
+            // Determine what to look up the market information with
+//          const marketIdx = ['WRAP', 'WRAP2'].includes(marketCode) ? market.id.toString() : market.code;
+            const marketIdx = marketCode === 'STATE' ? market.state : market.code;
+
+            //this.logger.info.log('TEST results - xcoord: ' + marketInfo[marketIdx].xcoord + ', ycoord: ' + marketInfo[marketIdx].ycoord);
+            this.spinnerBS$.next(`Creating location ${market.code} - xcoord: ${marketInfo[marketIdx].xcoord}, ycoord: ${marketInfo[marketIdx].ycoord}`);
 
             if (this.impGeofootprintLocationService.get().filter(loc => loc.locationNumber === market.code).length === 0)
             {
-              this.logger.info.log('marketId: ' + market.id + ', marketCode: ' + market.code + ' data store count: '
+              this.logger.debug.log('marketId: ' + market.id + ', marketCode: ' + market.code + ' data store count: '
                                 + this.impGeofootprintLocationService.get().filter(loc => loc.locationNumber == market.code).length
                                 + ', locations count: ' + locations.filter(loc => loc.locationNumber == market.code).length);
-              // Determine what to look up the market information with
-              const marketIdx = ['WRAP', 'WRAP2'].includes(marketCode) ? market.id.toString() : market.code;
 
               // Create a new location
               this.spinnerBS$.next(`Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`);
@@ -235,7 +255,7 @@ export class MarketLocationsComponent implements OnInit {
               location.xcoord = marketInfo[marketIdx].xcoord;
               location.ycoord = marketInfo[marketIdx].ycoord;
               location.locationNumber = market.id == null ? market.code : market.id.toString();
-              location.locationName = (market.id != null ? market.code + '-' : '') + market.name;
+              location.locationName = market.name;
               location.marketCode = market.code;
               location.marketName = market.name;
               location.impGeofootprintLocAttribs = new Array<ImpGeofootprintLocAttrib>();
