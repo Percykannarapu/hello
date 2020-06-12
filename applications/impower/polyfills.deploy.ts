@@ -21,17 +21,13 @@
 /** ALL Firefox browsers require the following to support `@angular/animation`. **/
 // import 'web-animations-js';  // Run `npm install --save web-animations-js`.
 
-
 /***************************************************************************************************
  * Zone JS is required by Angular itself.
  */
-// a couple of performance hacks
-(window as any).__Zone_disable_requestAnimationFrame = true;                // disable patch requestAnimationFrame
-(window as any).__zone_symbol__UNPATCHED_EVENTS = ['scroll', 'mousemove'];  // disable patch specified eventNames
 
 import 'zone.js/dist/zone'; // Included with Angular CLI.
+import './zone-settings';
 
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
-(window as any).global = window;
