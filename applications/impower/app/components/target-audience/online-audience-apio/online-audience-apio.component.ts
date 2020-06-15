@@ -140,6 +140,7 @@ export class OnlineAudienceApioComponent implements OnInit {
       err => this.logger.error.log('There was an error during retrieval of the Apio Audience descriptions', err),
       () => {
         this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
+        this.enableSource(this.selectedSource, this.allNodes);
         this.currentNodes = Array.from(this.allNodes);
         this.loading = false;
         this.cd.markForCheck();
@@ -178,8 +179,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   public onSourceChanged(source: OnlineSourceTypes) {
-    this.enableSource(source, this.allNodes);
-    this.currentNodes = Array.from(this.allNodes);
+    this.enableSource(source, this.currentNodes);
     this.cd.markForCheck();
   }
 
@@ -202,6 +202,7 @@ export class OnlineAudienceApioComponent implements OnInit {
         return n.children.length > 0;
       } else {
         const searchField = includeFolders ? n.data.taxonomy : n.label;
+        n.selectable = (n.data as OnlineAudienceDescription).hasSource(this.selectedSource);
         return searchField.toLowerCase().includes(term);
       }
     });
@@ -228,7 +229,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   private syncCheckData(result: AudienceDataDefinition[]) {
-    if (result && result.length && (result[0].audienceSourceName == 'In-Market' || result[0].audienceSourceName == 'Interest')) {
+    if (result && result.length && (result[0].audienceSourceName === 'In-Market' || result[0].audienceSourceName === 'Interest')) {
       if (result[0].audienceSourceName == 'In-Market') {
         this.currentSelectedNodesInMarket = this.currentSelectedNodesInMarket.filter(node => node.data.digLookup.get('in_market') != result[0].audienceIdentifier);
       } else if (result[0].audienceSourceName == 'Interest') {
@@ -239,7 +240,6 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   private clearSelections(){
-
     this.currentSelectedNodesInterest = [];
     this.currentSelectedNodesInMarket = [];
     this.cd.markForCheck();
