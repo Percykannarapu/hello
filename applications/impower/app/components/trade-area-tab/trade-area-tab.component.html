@@ -1,4 +1,4 @@
-<p-accordion>
+<p-accordion (onOpen)="onTabOpen($event)" [(activeIndex)]="index">
   <p-accordionTab header="Distance" [transitionOptions]="'0ms'">
     <val-site-type-selector label="Define for:">
       <site-content>

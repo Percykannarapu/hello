@@ -22,9 +22,9 @@
                      icon="my_location"
                      [model]="metricMapGreen"
                      displayOverlay="true"
-                     [dismissible]="false"
+                     [dismissible]="true"
                      #locationsColorBox>
-        <p-tabView>
+        <p-tabView [activeIndex]="index"  (onChange)="handleChange($event)">
           <p-tabPanel header="Add Locations">
             <val-add-locations-tab #addLocations></val-add-locations-tab>
           </p-tabPanel>

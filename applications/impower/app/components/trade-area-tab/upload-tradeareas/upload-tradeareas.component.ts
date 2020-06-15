@@ -45,7 +45,7 @@ const tradeAreaUpload: Parser<TradeAreaDefinition> = {
   styleUrls: ['./upload-tradeareas.component.scss']
 })
 export class UploadTradeAreasComponent implements OnInit {
-  public listType1: string = 'Site';
+  public selectedSiteType: string = 'Site';
   public impGeofootprintLocations: ImpGeofootprintLocation[];
   public uploadFailures: TradeAreaDefinition[] = [];
   public totalUploadedRowCount = 0;
@@ -135,11 +135,11 @@ export class UploadTradeAreasComponent implements OnInit {
         this.fileAnalysisSelected = null;
            this.isDisable = true;
            this.uploadFailures = [];
-           this.listType1 = 'Site';
+           this.selectedSiteType = 'Site';
            //this.currentAnalysisLevel$.subscribe(val => val = null).unsubscribe();
      }
-      
     });
+    this.stateService.clearUI$.subscribe(() => this.selectedSiteType = 'Sites');
     this.store$.select(deleteCustomTa).subscribe(isDeleteCustomTA => this.switchAnalysisLevel(isDeleteCustomTA));
   }
 

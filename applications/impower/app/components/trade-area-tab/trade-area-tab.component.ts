@@ -47,6 +47,7 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
   siteTypes = ImpClientLocationTypeCodes;
 
   private destroyed$ = new Subject<void>();
+  index: number = -1;
 
   constructor(private stateService: AppStateService,
               private appProjectService: AppProjectService,
@@ -74,6 +75,8 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
 
     this.hasSites$ = this.stateService.activeClientLocations$.pipe(map(sites => sites.length > 0));
     this.hasCompetitors$ = this.stateService.activeCompetitorLocations$.pipe(map(sites => sites.length > 0));
+
+    this.stateService.clearUI$.subscribe(() => this.index = -1);
   }
 
   ngOnDestroy() : void {
@@ -143,5 +146,9 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
 
   isCustomTa(event: any){
     this.customTaText = event ? 'Custom - Exists' : 'Custom';
+  }
+
+  onTabOpen(e) {
+     this.index = e.index;
   }
 }
