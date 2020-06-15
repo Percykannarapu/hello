@@ -45,6 +45,7 @@ export class AddLocationsTabComponent implements OnInit {
   siteTypes = ImpClientLocationTypeCodes;
 
   private spinnerKey = 'ADD_LOCATION_TAB_SPINNER';
+  index: number = -1;
 
   constructor(private appLocationService: AppLocationService,
               private impGeofootprintLocationService: ImpGeofootprintLocationService,
@@ -82,6 +83,7 @@ export class AddLocationsTabComponent implements OnInit {
       this.manualSiteEntry.clear();
       this.manualCompetitorEntry.clear();
     });
+    this.appStateService.clearUI$.subscribe(() => this.index = -1);
   }
 
   onUpload(csvData: string[], siteType: SuccessfulLocationTypeCodes) {
@@ -185,5 +187,9 @@ export class AddLocationsTabComponent implements OnInit {
   private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
     this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
     this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader, additionalErrorInfo: errorObject }));
+  }
+
+  onTabOpen(e) {
+     this.index = e.index;
   }
 }

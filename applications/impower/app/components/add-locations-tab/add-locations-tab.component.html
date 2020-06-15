@@ -1,4 +1,4 @@
-<p-accordion>
+<p-accordion [(activeIndex)]="index" (onOpen)="onTabOpen($event)">
   <p-accordionTab header="Upload" [transitionOptions]="'0ms'">
     <val-site-type-selector label="Add as:">
       <site-content>
