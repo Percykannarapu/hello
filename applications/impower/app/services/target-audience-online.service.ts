@@ -6,7 +6,7 @@ import { WarningNotification } from '@val/messaging';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { BehaviorSubject, EMPTY, forkJoin, merge, Observable, throwError } from 'rxjs';
-import { catchError, map, shareReplay, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { RestResponse } from '../models/RestResponse';
@@ -67,11 +67,16 @@ export class OnlineAudienceDescription {
     return Array.from(currentRoot.childMap.values());
   }
 
-  constructor(categories?: OnlineCategoryResponse[]) {
+  constructor(categories?: OnlineCategoryResponse[], parseTaxonomy: boolean = true) {
     if (categories != null) {
       for (const category of categories) {
-        category.taxonomy = `root/${category.taxonomy}`;
-        const pathItems: string[] = category.taxonomy.split('/').filter(s => s != null && s.length > 0);
+        let pathItems: string[];
+        if (parseTaxonomy) {
+          category.taxonomy = `root/${category.taxonomy}`;
+          pathItems = category.taxonomy.split('/').filter(s => s != null && s.length > 0);
+        } else {
+          pathItems = [category.taxonomy];
+        }
         this.createSubTree(pathItems, category);
       }
     }
@@ -247,6 +252,7 @@ export class TargetAudienceOnlineService {
 
   public getAudienceDescriptions(sources: OnlineSourceTypes[]) : Observable<OnlineAudienceDescription[]> {
     if (sources == null || sources.length === 0) return EMPTY;
+    const shouldParseTaxonomy = sources.includes(OnlineSourceTypes.Interest) || sources.includes(OnlineSourceTypes.InMarket);
     const resultKey = sources.join('-');
     if (!this.audienceCache$.has(resultKey)) {
       const individualRequests: Observable<OnlineCategoryResponse[]>[] = [];
@@ -254,8 +260,7 @@ export class TargetAudienceOnlineService {
         if (!this.audienceSourceMap.has(source)) {
           const currentRequest = this.restService.get(`v1/targeting/base/impdigcategory/search?q=impdigcategory&source=${FuseSourceMap[source]}`).pipe(
             map(response => response.payload.rows as OnlineCategoryResponse[]),
-            map(categories => categories.filter(c => c.isActive === 1)),
-            shareReplay()
+            map(categories => categories.filter(c => c.isActive === 1))
           );
           individualRequests.push(currentRequest);
         } else {
@@ -271,8 +276,7 @@ export class TargetAudienceOnlineService {
         result$ = individualRequests[0];
       }
       this.audienceCache$.set(resultKey, result$.pipe(
-        map(categories => (new OnlineAudienceDescription(categories)).children),
-        shareReplay()
+        map(categories => (new OnlineAudienceDescription(categories, shouldParseTaxonomy)).children)
       ));
     }
 

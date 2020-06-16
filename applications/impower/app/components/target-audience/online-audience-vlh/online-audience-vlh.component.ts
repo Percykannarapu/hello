@@ -19,7 +19,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
 
   private allNodes: TreeNode[] = [];
   public currentNodes: TreeNode[] = [];
-  public currentSelectedNodes: TreeNode[];
+  public currentSelectedNodes: TreeNode[] = [];
 
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
@@ -29,8 +29,6 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
               private cd: ChangeDetectorRef,
               private appStateService: AppStateService,
               private logger: LoggingService) {
-    this.currentSelectedNodes = this.allNodes;
-
     this.parentAudienceService.deletedAudiences$.subscribe(result => this.syncCheckData(result));
   }
 
