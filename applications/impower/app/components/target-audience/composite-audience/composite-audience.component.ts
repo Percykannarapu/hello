@@ -8,6 +8,7 @@ import { filter, map, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { mapArray } from '@val/common';
+import { AppStateService } from 'app/services/app-state.service';
 
 @Component({
   selector: 'val-composite-audience',
@@ -27,6 +28,7 @@ export class CompositeAudienceComponent implements OnInit {
 
 
   constructor(private fb: FormBuilder,
+              private appStateService: AppStateService,
               private store$: Store<LocalAppState>, ) { }
 
   ngOnInit() {
@@ -53,6 +55,7 @@ export class CompositeAudienceComponent implements OnInit {
       // mapArray(audience => ({label: audience.audienceName, value: audience})),
       // );
     
+    this.appStateService.clearUI$.subscribe(() => this.compositeForm.reset());  
     
     
 

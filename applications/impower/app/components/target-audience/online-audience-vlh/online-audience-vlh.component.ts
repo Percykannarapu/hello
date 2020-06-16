@@ -6,6 +6,7 @@ import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
+import { AppStateService } from 'app/services/app-state.service';
 
 @Component({
   selector: 'val-online-audience-vlh',
@@ -26,6 +27,7 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   constructor(private audienceService: TargetAudienceOnlineService,
               private parentAudienceService: TargetAudienceService,
               private cd: ChangeDetectorRef,
+              private appStateService: AppStateService,
               private logger: LoggingService) {
     this.currentSelectedNodes = this.allNodes;
 
@@ -54,6 +56,8 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === 'VLH'))
     ).subscribe(audiences => this.selectNodes(audiences, true));
 
+    this.appStateService.clearUI$.subscribe(() =>  this.searchTerm$.next(''));
+
     /*combineLatest(this.parentAudienceService.audiences$, this.appStateService.applicationIsReady$).pipe(
       map(([audiences, ready]) => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === 'VLH')),
       distinctUntilChanged()
@@ -63,10 +67,9 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
   selectNodes(audiences: AudienceDataDefinition[], ready: boolean) {
     this.clearSelectedFields();
     if (!ready || audiences == null || audiences.length === 0) return;
-   
     for (const audience of audiences) {
       const node = this.allNodes.filter(n => n.label === audience.audienceName);
-      if (this.currentSelectedNodes.filter(n => n.label === node[0].label).length === 0) {
+      if (node.length > 0 && this.currentSelectedNodes.filter(n => n.label === node[0].label).length === 0) {
         this.currentSelectedNodes.push(node[0]);
       }
     }

@@ -11,11 +11,36 @@ import { TargetAudienceService } from '../../services/target-audience.service';
 export class TargetAudienceComponent implements OnInit {
   public audiences$: Observable<Audience[]>;
   public analysisLevel$: Observable<string>;
+  index: number  = -1;
+  tabViewIndex: number = 0;
+  customIndex: number = -1;
+  offlineIndex: number = -1;
+  
 
   constructor(private audienceService: TargetAudienceService, private appStateService: AppStateService) { }
 
   ngOnInit() {
     this.audiences$ = this.audienceService.allAudiencesBS$;
     this.analysisLevel$ = this.appStateService.analysisLevel$;
+    this.appStateService.clearUI$.subscribe(() => {
+      this.index = -1;
+      this.tabViewIndex = 0;
+      this.customIndex = -1;
+      this.offlineIndex = -1;
+    });
+  }
+
+  onTabOpen(e: any) {
+     this.index = e.index;
+  }
+
+  handleChange(e: any){
+    this.tabViewIndex = e.tabViewIndex;
+  }
+  onTabCustom(e: any){
+    this.customIndex = e.customIndex;
+  }
+  onTabOffline(e: any){
+    this.offlineIndex = e.offlineIndex;
   }
 }

@@ -1,7 +1,7 @@
-<p-tabView>
+<p-tabView [activeIndex]="tabViewIndex"  (onChange)="handleChange($event)">
 
   <p-tabPanel header="Online Audience">
-    <p-accordion>
+    <p-accordion [activeIndex]="index" (onOpen)="onTabOpen($event)">
       <p-accordionTab header="Interest and In-Market" [transitionOptions]="'0ms'">
         <val-online-audience-apio></val-online-audience-apio>
       </p-accordionTab>
@@ -14,7 +14,7 @@
     </p-accordion>
   </p-tabPanel>
 
-  <p-tabPanel header="Offline Audience">
+  <p-tabPanel header="Offline Audience" [activeIndex]="offlineIndex" (onOpen)="onTabOffline($event)">
     <p-accordion>
       <p-accordionTab header="TDA" [transitionOptions]="'0ms'" [selected]="true">
         <val-offline-audience-tda></val-offline-audience-tda>
@@ -23,7 +23,7 @@
   </p-tabPanel>
 
   <p-tabPanel header="Custom Audience">
-    <p-accordion>
+    <p-accordion  [activeIndex]="customIndex" (onOpen)="onTabCustom($event)">
       <p-accordionTab header="Upload" [transitionOptions]="'0ms'">
         <val-custom-audience></val-custom-audience>
       </p-accordionTab>

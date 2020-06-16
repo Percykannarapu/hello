@@ -6,6 +6,7 @@ import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
+import { AppStateService } from 'app/services/app-state.service';
 
 const UnSelectableLimit = 1000;
 
@@ -29,6 +30,7 @@ export class OnlineAudiencePixelComponent implements OnInit {
   constructor(private audienceService: TargetAudienceOnlineService,
               private parentAudienceService: TargetAudienceService,
               private cd: ChangeDetectorRef,
+              private appStateService: AppStateService,
               private logger: LoggingService) {
     this.currentSelectedNodes = this.allNodes;
 
@@ -85,6 +87,8 @@ export class OnlineAudiencePixelComponent implements OnInit {
     this.parentAudienceService.allAudiencesBS$.pipe(
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && a.audienceSourceName === OnlineSourceTypes.Pixel))
     ).subscribe(audiences => this.selectNodes(audiences, true));
+
+    this.appStateService.clearUI$.subscribe(() => this.searchTerm$ = new Subject<string>());
   }
 
   public selectVariable(event: TreeNode) : void {

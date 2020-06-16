@@ -96,6 +96,8 @@ export class OfflineAudienceTdaComponent implements OnInit {
     ).subscribe(audiences => {
       this.combineAudiences =  Array.from(new Set(audiences));
     });
+
+    this.stateService.clearUI$.subscribe(() => this.searchTerm$.next(''));
   }
 
   private filterNodes(term: string) {

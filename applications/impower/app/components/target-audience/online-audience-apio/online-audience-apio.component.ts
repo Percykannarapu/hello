@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { TreeNode } from 'primeng/api';
-import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
+import { AppStateService } from 'app/services/app-state.service';
 
 interface ApioTreeNode extends TreeNode {
   originalChildren?: ApioTreeNode[];
@@ -41,6 +42,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   constructor(private audienceService: TargetAudienceOnlineService,
               private parentAudienceService: TargetAudienceService,
               private cd: ChangeDetectorRef,
+              private appStateService: AppStateService,
               private logger: LoggingService) {
     this.selectedNodeMapInMarket.set(OnlineSourceTypes.InMarket, []);
     this.selectedNodeMapInterest.set(OnlineSourceTypes.Interest, []);
@@ -155,6 +157,12 @@ export class OnlineAudienceApioComponent implements OnInit {
     this.parentAudienceService.allAudiencesBS$.pipe(
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && (a.audienceSourceName === OnlineSourceTypes.Interest || a.audienceSourceName === OnlineSourceTypes.InMarket)))
     ).subscribe(audiences => this.selectNodes(audiences, true));
+
+    this.appStateService.clearUI$.subscribe(( ) => {
+      this.selectedSource =  OnlineSourceTypes.Interest;
+      this.includeFolder$.next(false); //new BehaviorSubject<boolean>(false);
+      this.searchTerm$.next(''); //= new Subject<string>();
+    });
 
   }
 
