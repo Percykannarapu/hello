@@ -1,4 +1,5 @@
 import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
+import { VarSpecs } from 'app/services/target-audience-unified.service';
 
 export interface AudienceDataDefinition {
   audienceName: string;
@@ -20,9 +21,10 @@ export interface AudienceDataDefinition {
   requiresGeoPreCaching: boolean;
   seq: number;
   isCombined?: boolean;
+  isComposite?: boolean;
   combinedAudiences?: Array<string>;
   combinedVariableNames?: string;
-  compositeSource?: Array<string>;
+  compositeSource?: Array<VarSpecs>;
 }
 
 export interface AudienceTradeAreaConfig {

@@ -13,6 +13,7 @@ import { ConfirmationService, SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
 import { filter, map, tap, takeUntil } from 'rxjs/operators';
 import { ImpProjectVarService } from '../../../val-modules/targeting/services/ImpProjectVar.service';
+import { VarSpecs } from 'app/services/target-audience-unified.service';
 
 @Component({
   selector: 'val-combined-audience',
@@ -120,11 +121,13 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
     const isCombined = (audienceFields.audienceList.length > 1 && (audienceFields.selectedIndex == null || audienceFields.selectedIndex == ''));
     const isCombineConverted = audienceFields.audienceList.length > 1 && audienceFields.selectedIndex != null;
     const combinedAudIds: string[] = [];
+    const convertSource: VarSpecs[] = [];
     const combinedVariableNames: string[] = [];
     if (audienceFields.audienceList.length > 0) {
       audienceFields.audienceList.forEach(audience => {
         combinedVariableNames.push(audience.audienceName);
         combinedAudIds.push(audience.audienceIdentifier);
+        convertSource.push({id: audience.audienceIdentifier, pct: 100.0  });
       });
     }
     if (audienceFields.audienceId == null || audienceFields.audienceId.length === 0) {
@@ -144,9 +147,10 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         requiresGeoPreCaching: true,
         seq: fkId,
         isCombined: isCombined,
+        isComposite: false,
         combinedAudiences: audienceFields.audienceList[0].fieldconte === 'PERCENT' && (isCombineConverted || isCombined) ? combinedAudIds : [],
         combinedVariableNames: combinedVariableNames.join('~'),
-        compositeSource: !(isCombined || isCombineConverted) ? combinedAudIds : [],
+        compositeSource: !(isCombined || isCombineConverted) ? convertSource : [],
       };
       this.varService.addAudience(newAudience);
 
@@ -167,9 +171,10 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         requiresGeoPreCaching: this.currentAudience[0].requiresGeoPreCaching,
         seq: this.currentAudience[0].seq,
         isCombined: this.currentAudience[0].isCombined,
+        isComposite: this.currentAudience[0].isComposite,
         combinedAudiences: this.currentAudience[0].fieldconte === 'PERCENT' ? combinedAudIds : [],
         combinedVariableNames: combinedVariableNames.join('~'),
-        compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null ? combinedAudIds : [],
+        compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null ? convertSource : [],
       };
       this.varService.updateProjectVars(editedAudience);
     }
@@ -196,7 +201,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
     if (selectedAudience.compositeSource.length > 0) {
       selectedAudience.compositeSource.forEach(previous => {
         this.allAudiences.forEach(current => {
-          if (current != null && current.audienceIdentifier === previous)
+          if (current != null && current.audienceIdentifier === previous.id.toString())
             currentSelections.push(current);
         });
       });

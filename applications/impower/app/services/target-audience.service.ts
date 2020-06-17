@@ -441,7 +441,8 @@ export class TargetAudienceService implements OnDestroy {
       observables.push(
         this.cacheGeosOnServer(geos, startTransaction).pipe(
           mergeMap(txId => concat(this.getDataForCachedGeos(analysisLevel, preCachedAudiences, txId, startTransaction),
-                                  this.removeServerGeoCache(txId, startTransaction)))
+                                  this.removeServerGeoCache(txId, startTransaction)
+                                  ))
       ));
     }
 

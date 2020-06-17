@@ -234,6 +234,7 @@ export class SiteListComponent implements OnInit {
     });
 
     this.initializeGridState();
+    this.appStateService.clearUI$.subscribe(() => this.selectedListType = 'Site');
 
   }
 

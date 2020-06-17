@@ -24,6 +24,8 @@ export class DashboardComponent implements OnInit {
 
     fakeItems: MenuItem[];
     public miles: number;
+    public isDismissible: boolean = false;
+    public index: number = 1;
 
     public metricMapGreen: Map<string, string>;
     public flagMapGreen: Map<string, boolean>;
@@ -147,10 +149,19 @@ export class DashboardComponent implements OnInit {
         ).subscribe(() => {
           this.hasLocationFailures$ = this.appLocationService.hasFailures$;
         });
+
+        this.appStateService.clearUI$.subscribe(() => {
+            this.isDismissible  = true;
+            this.index = 0;
+        });
     }
 
     onCampaignDetailsClose(){
         this.campaignDetailsComponent.onDiscoveryFormClose();
+    }
+
+    handleChange(e) {
+         this.index = e.index;
     }
 
 }

@@ -54,7 +54,7 @@
               {{ audience.audienceName | truncate:35:'...' }}<i class="fa fa-comment" *ngIf="(audience.audienceName || '').length > 35" pTooltip="{{audience.audienceName}}"></i>
             </td>
             <td nowrap>
-                <div *ngIf="(audience.audienceSourceType === 'Combined/Converted' || audience.audienceSourceType === 'Combined' || audience.audienceSourceType === 'Converted')"> 
+                <div *ngIf="(audience.audienceSourceType === 'Combined/Converted' || audience.audienceSourceType === 'Combined' || audience.audienceSourceType === 'Converted' || audience.audienceSourceType === 'Composite')"> 
                     {{ audience.audienceSourceType }} 
                  </div>
                 <div *ngIf="(audience.audienceSourceType === 'Custom');"> 

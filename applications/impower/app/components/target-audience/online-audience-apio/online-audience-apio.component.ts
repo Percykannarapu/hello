@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { TreeNode } from 'primeng/api';
-import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
+import { AppStateService } from 'app/services/app-state.service';
 
 interface ApioTreeNode extends TreeNode {
   originalChildren?: ApioTreeNode[];
@@ -41,6 +42,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   constructor(private audienceService: TargetAudienceOnlineService,
               private parentAudienceService: TargetAudienceService,
               private cd: ChangeDetectorRef,
+              private appStateService: AppStateService,
               private logger: LoggingService) {
     this.selectedNodeMapInMarket.set(OnlineSourceTypes.InMarket, []);
     this.selectedNodeMapInterest.set(OnlineSourceTypes.Interest, []);
@@ -140,6 +142,7 @@ export class OnlineAudienceApioComponent implements OnInit {
       err => this.logger.error.log('There was an error during retrieval of the Apio Audience descriptions', err),
       () => {
         this.allNodes.sort((a, b) => a.leaf === b.leaf ? a.label.localeCompare(b.label) : a.leaf ? 1 : -1);
+        this.enableSource(this.selectedSource, this.allNodes);
         this.currentNodes = Array.from(this.allNodes);
         this.loading = false;
         this.cd.markForCheck();
@@ -154,6 +157,12 @@ export class OnlineAudienceApioComponent implements OnInit {
     this.parentAudienceService.allAudiencesBS$.pipe(
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && (a.audienceSourceName === OnlineSourceTypes.Interest || a.audienceSourceName === OnlineSourceTypes.InMarket)))
     ).subscribe(audiences => this.selectNodes(audiences, true));
+
+    this.appStateService.clearUI$.subscribe(( ) => {
+      this.selectedSource =  OnlineSourceTypes.Interest;
+      this.includeFolder$.next(false); //new BehaviorSubject<boolean>(false);
+      this.searchTerm$.next(''); //= new Subject<string>();
+    });
 
   }
 
@@ -178,8 +187,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   public onSourceChanged(source: OnlineSourceTypes) {
-    this.enableSource(source, this.allNodes);
-    this.currentNodes = Array.from(this.allNodes);
+    this.enableSource(source, this.currentNodes);
     this.cd.markForCheck();
   }
 
@@ -202,6 +210,7 @@ export class OnlineAudienceApioComponent implements OnInit {
         return n.children.length > 0;
       } else {
         const searchField = includeFolders ? n.data.taxonomy : n.label;
+        n.selectable = (n.data as OnlineAudienceDescription).hasSource(this.selectedSource);
         return searchField.toLowerCase().includes(term);
       }
     });
@@ -228,7 +237,7 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   private syncCheckData(result: AudienceDataDefinition[]) {
-    if (result && result.length && (result[0].audienceSourceName == 'In-Market' || result[0].audienceSourceName == 'Interest')) {
+    if (result && result.length && (result[0].audienceSourceName === 'In-Market' || result[0].audienceSourceName === 'Interest')) {
       if (result[0].audienceSourceName == 'In-Market') {
         this.currentSelectedNodesInMarket = this.currentSelectedNodesInMarket.filter(node => node.data.digLookup.get('in_market') != result[0].audienceIdentifier);
       } else if (result[0].audienceSourceName == 'Interest') {
@@ -239,7 +248,6 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   private clearSelections(){
-
     this.currentSelectedNodesInterest = [];
     this.currentSelectedNodesInMarket = [];
     this.cd.markForCheck();
