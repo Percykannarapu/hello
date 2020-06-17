@@ -22,8 +22,7 @@
 }
 
 .multiselect-component-root {
-  margin-top: 1.6em;
-  padding-bottom: 0.5em;
+  margin-top: 1.4em;
 }
 
 .multiselect-component-root .md-inputfield {
@@ -43,4 +42,16 @@
   .ui-multiselect-trigger  > .ui-inputwrapper-filled {
     top: -1em;
   }
+}
+
+.error-addon i {
+  color: $inputErrorTextColor;
+  vertical-align: bottom;
+  margin-top: -0.1em;
+}
+
+.flex-container {
+  display: flex;
+  flex-flow: flex start;
+  justify-content: space-around;
 }

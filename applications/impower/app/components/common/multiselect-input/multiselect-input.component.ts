@@ -1,6 +1,6 @@
 /* tslint:disable:component-selector */
-import { Component, EventEmitter, forwardRef, Input, Output, ɵCompiler_compileModuleSync__POST_R3__, ViewEncapsulation, ViewChildren, QueryList } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Component, EventEmitter, forwardRef, Input, Output, ɵCompiler_compileModuleSync__POST_R3__, ViewEncapsulation, ViewChildren, QueryList, Optional, Self } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, NgControl } from '@angular/forms';
 import { getUuid } from '@val/common';
 import { SelectItem } from 'primeng/api';
 import { MultiSelect } from 'primeng/multiselect';
@@ -9,14 +9,14 @@ import { MultiSelect } from 'primeng/multiselect';
   selector: 'multiselect-input',
   templateUrl: './multiselect-input.component.html',
   styleUrls:  ['./multiselect-input.component.scss'],
-  encapsulation: ViewEncapsulation.None,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => MultiselectInputComponent),
-      multi: true
-    }
-  ]
+  // encapsulation: ViewEncapsulation.None,
+  // providers: [
+  //   {
+  //     provide: NG_VALUE_ACCESSOR,
+  //     useExisting: forwardRef(() => MultiselectInputComponent),
+  //     multi: true
+  //   }
+  // ]
 })
 export class MultiselectInputComponent implements ControlValueAccessor  {
   @Output() selectionChanged: EventEmitter<any> = new EventEmitter<any>();
@@ -30,6 +30,7 @@ export class MultiselectInputComponent implements ControlValueAccessor  {
   @Input() tabIndex: number;
   @Input() readOnly: boolean = false;
   @Input() inputClass: string;
+  @Input() validationMessage: string;
 
   @ViewChildren(MultiSelect) multiSelectInputs: QueryList<MultiSelect>;
   private multiSelect: MultiSelect;
@@ -52,7 +53,12 @@ export class MultiselectInputComponent implements ControlValueAccessor  {
   propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};
 
-  constructor() {}
+//  constructor() {}
+  constructor(@Optional() @Self() private controlContainer: NgControl) {
+    if (this.controlContainer != null) {
+      this.controlContainer.valueAccessor = this;
+    }
+  }
 
   registerOnChange(fn: any) : void {
     this.propagateChange = fn;
@@ -87,5 +93,14 @@ export class MultiselectInputComponent implements ControlValueAccessor  {
 
     // Trigger a grid change without filters
     this.selectionChanged.emit(null);
+  }
+
+  hasErrors() : boolean {
+    if (this.controlContainer != null) {
+      const control = this.controlContainer.control;
+      //console.log('multiselect-input - hasErrors fired - returning', control.touched && !control.valid && (this.validationMessage != null));
+      return control.touched && !control.valid && (this.validationMessage != null);
+    }
+    return false;
   }
 }
