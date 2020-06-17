@@ -35,12 +35,12 @@ export class TargetAudienceComponent implements OnInit {
   }
 
   handleChange(e: any){
-    this.tabViewIndex = e.tabViewIndex;
+    this.tabViewIndex = e.index;
   }
   onTabCustom(e: any){
-    this.customIndex = e.customIndex;
+    this.customIndex = e.index;
   }
   onTabOffline(e: any){
-    this.offlineIndex = e.offlineIndex;
+    this.offlineIndex = e.index;
   }
 }
