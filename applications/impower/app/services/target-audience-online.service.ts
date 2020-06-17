@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { mapBy, simpleFlatten } from '@val/common';
-import { WarningNotification } from '@val/messaging';
+import { WarningNotification, SuccessNotification } from '@val/messaging';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { BehaviorSubject, EMPTY, forkJoin, merge, Observable, throwError } from 'rxjs';
@@ -163,7 +163,7 @@ export class TargetAudienceOnlineService {
       const project = this.appStateService.currentProject$.getValue();
       if (project == null || project.impProjectVars == null)
          return;
-      let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online');
+      let projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online' && v.isActive);
       projectVars = projectVars.filter(v => !v.source.split('_')[1].toLowerCase().includes('audience'));
       if (projectVars.length > 0) {
         for (const projectVar of projectVars) {
@@ -205,6 +205,18 @@ export class TargetAudienceOnlineService {
 
   private onLoadProject() {
     this.rehydrateAudience();
+    const project = this.appStateService.currentProject$.getValue();
+      if (project == null || project.impProjectVars == null)
+         return;
+      const projectVars = project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'online' && !v.isActive);
+      if (projectVars.length > 0){
+        let msg = 'The following audience selections are no longer available, and have been removed from the Selected Audiences grid: \n\n';
+        projectVars.forEach(v => msg += `● ${v.fieldname}`);
+
+        this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Issues', 
+              message: msg
+             }));
+      }
   }
 
   public createGeofootprintVar(response: OnlineBulkDataResponse, source: OnlineSourceTypes, descriptionMap: Map<string, AudienceDataDefinition>, geoCache: Map<string, ImpGeofootprintGeo[]>, isForShading: boolean) : ImpGeofootprintVar[] {

@@ -70,6 +70,12 @@ export class OnlineAudienceVlhComponent implements OnInit, AfterViewInit {
       if (node.length > 0 && this.currentSelectedNodes.filter(n => n.label === node[0].label).length === 0) {
         this.currentSelectedNodes.push(node[0]);
       }
+      else{
+        this.appStateService.currentProject$.getValue().impProjectVars.forEach(v => {
+            if (v.varPk.toString() === audience.audienceIdentifier)
+                v.isActive = false;
+        });
+      }
     }
     this.cd.markForCheck();
   }
