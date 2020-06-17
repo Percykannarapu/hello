@@ -66,7 +66,7 @@ export class SelectedAudiencesComponent implements OnInit {
 
     this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null ),
-      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted')),
+      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Composite')),
     ).subscribe(audiences => {
       this.combineAudiences =  Array.from(new Set(audiences));
     });
@@ -188,6 +188,10 @@ export class SelectedAudiencesComponent implements OnInit {
         case 'Converted':
              metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
              break;     
+        case 'Composite':
+          metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
+          break;
+
     }
       this.store$.dispatch(new CreateAudienceUsageMetric('audience', 'delete', metricText));
       this.varService.applyAudienceSelection();

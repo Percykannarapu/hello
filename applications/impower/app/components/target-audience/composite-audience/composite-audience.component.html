@@ -1,72 +1,71 @@
-<br>
-<form novalidate  [formGroup]="compositeForm" autocomplete="off">
+<div class="ui-g">
+  <val-edit-composite-audiences [editAudiences]="compositeAudiences$ | async"
+                                (onEdit)="onEdit($event)"
+                                (onDelete)="onDelete($event)">
+  </val-edit-composite-audiences>
+</div>
 
-  <div class="ui-g">
-  
-  <div class="ui-g-12" >
-      <span class="md-inputfield">
-        <input id="compositeAudName" type="text" formControlName="compositeAudName" pInputText size="40">
-        <span class="ui-inputgroup-addon" >&nbsp;</span>
-       <label for="compositeAudName">Composite Audience Name (required)</label>
+<form novalidate [formGroup]="compositeForm" autocomplete="off" (ngSubmit)="onSubmit(compositeForm.value)">
+  <div class="ui-g-12">
+    <input type="hidden" formControlName="compositeAudienceId">
+  </div>
+  <div class="ui-g-12">
+    <span class="md-inputfield">
+      <input id="compositeAudName" type="text" formControlName="compositeAudName" pInputText size="40">
+      <label for="nameInput">Composite Audience Name (required)</label>
+    </span>
+    <span class="validation-messages">
+      <span *ngIf="isDuplicateName">
+        Duplicate audience name, please rename your variable
       </span>
+    </span>
   </div>
-  
-  <p-table [columns]="selectedAudiences" styleClass="ui-table-custom" [rows]="10" [paginator]="true" [alwaysShowPaginator]="false" [autoLayout]="false">
+  &nbsp;
+  <div>
+    <table class="ui-table" style="width: 80%;">
+      <thead class="ui-table-thead">
+        <tr>
+          <th style="width: 50%">Audience Name</th>
+          <th style="width: 10%">Percent</th>
+          <th style="width: 15%">Index Base</th>
+          <th style="width: 5%">Remove</th>
+        </tr>
+      </thead>
+      <tbody formArrayName="audienceRows" class="ui-table-tbody">
+        <ng-container *ngFor="let aud of audienceRows.controls; index as i">
+          <tr [formGroupName]="i">
+            <td>
+              <dropdown-input [options]="filteredAudiences$ | async" [includeUnselected]="true"
+                formControlName="selectedAudienceList"></dropdown-input>
+            </td>
+            <td>
+              <input formControlName="percent" type="text" pInputText size="5">
+            </td>
+            <td>
+              <dropdown-input [options]="allIndexValues" [includeUnselected]="true" formControlName="indexBase">
+              </dropdown-input>
+            </td>
+            <td>
+              <i class="val-clickable fa fa-trash" (click)="onRemove(i)"></i>
 
-    <ng-template pTemplate="caption">
-      List of Audiences
-    </ng-template>
-
-
-    <ng-template pTemplate="header" let-columns>
-    <tr>
-      <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngSwitch]="col.field">
-        {{col.header}}
-        <p-dropdown *ngSwitchCase="'compositeAudienceName'" [options]="brands" styleClass="ui-column-filter" [showClear]="true" [style]="{'width':'100%'}">
-
-         
-      </p-dropdown>
-
-      </th>
-    </tr>
-
-    </ng-template>
-
-    <!-- <ng-template pTemplate="header">
-      <tr>
-        <th>Audience Name</th>
-        <th>Percent</th>
-        <th>Index</th>
-        <th></th>
-      </tr>
-    </ng-template> -->
-    <ng-template pTemplate="body" let-rowData let-columns="columns">
-      <tr [pSelectableRow]="rowData" [pEditableRow]="rowData">
-
-        <td>{{rowData.audienceName}}</td>
-
-        <!-- <td nowrap>
-          {{ audience.audienceName | truncate:35:'...' }}<i class="fa fa-comment" *ngIf="(audience.audienceName || '').length > 35" pTooltip="{{audience.audienceName}}"></i>
-        </td> -->
-        <!-- <td>
-              <p-dropdown [options]="filteredAudiences$ | async"
-                          styleClass="val-full-width"
-                          dropdownIcon="fa fa-caret-down">
-              </p-dropdown>
-        </td> -->
-        <td>
-          <i (click)="onRemove(audience)" class="fa fa-trash val-clickable"></i>
-        </td>
-      </tr>
-    </ng-template>
-   </p-table>
-  <div class="ui-g-4" >
-        <button type="submit" pButton label="Create Variable" ></button>
-  </div> 
-  <!-- <div  class="ui-g-8">
-      <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
-      
-  </div>  -->
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+      <tfoot>
+        <div class="ui-g-12">
+          <a href="#" (click)="addRow()">Add Row</a>
+        </div>
+      </tfoot>
+    </table>
   </div>
-  </form>
-  
+
+  <div class="ui-g-4">
+    <button type="submit" pButton label="Create Variable" [disabled]="compositeForm.invalid"></button>
+  </div>
+  <div *ngIf="hasAudienceSelections" class="ui-g-8">
+    <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
+</div> 
+
+
+</form>

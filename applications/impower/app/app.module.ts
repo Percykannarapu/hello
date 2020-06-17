@@ -194,6 +194,7 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
+import { EditCompositeAudiencesComponent } from './components/target-audience/composite-audience/edit-composite-audiences/edit-composite-audiences.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -396,7 +397,8 @@ export function esriSetupFactory() : ForRootOptions {
     UniqueValueLocationShaderComponent,
     MarketLocationsComponent,
     MarketGeosComponent,
-    MultiselectInputComponent
+    MultiselectInputComponent,
+    EditCompositeAudiencesComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

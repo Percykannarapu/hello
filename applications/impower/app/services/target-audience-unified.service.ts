@@ -19,6 +19,7 @@ import { CommonSort } from '@val/common';
 export interface VarSpecs {
   id: number;
   pct: number;
+  base?: string;
 }
 
 export interface UnifiedBulkResponse {
@@ -53,7 +54,7 @@ export enum OtherSourceTypes {
 export class TargetAudienceUnifiedService {
 
   public selectedAudiences$ = new BehaviorSubject<Audience[]>([]);
-  private audienceSourceTypes = ['combined', 'converted', 'combined/converted'] ;
+  private audienceSourceTypes = ['combined', 'converted', 'combined/converted'];
 
   constructor(private config: AppConfig,
     private restService: RestDataService,
@@ -76,7 +77,8 @@ export class TargetAudienceUnifiedService {
             audienceName: projectVar.fieldname,
             audienceIdentifier: projectVar.varPk.toString(),
             audienceSourceType: projectVar.source.split('_')[0].toLowerCase() === 'combined' ? 'Combined' :
-                                projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? 'Combined/Converted' : 'Converted',
+              projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? 'Combined/Converted' :
+                projectVar.source.split('_')[0].toLocaleLowerCase() === 'composite' ? 'Composite' : 'Converted',
             audienceSourceName: 'TDA',
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
             showOnGrid: projectVar.isIncludedInGeoGrid,
@@ -87,12 +89,14 @@ export class TargetAudienceUnifiedService {
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
             requiresGeoPreCaching: true,
             seq: projectVar.sortOrder,
-            isCombined: projectVar.indexBase != null ? false : true,
+            isCombined: projectVar.source.split('_')[0].toLocaleLowerCase() === 'combined' ||
+              projectVar.source.split('_')[0].toLocaleLowerCase() === 'combined/converted' ? true : false,
+            isComposite: projectVar.source.split('_')[0].toLocaleLowerCase() === 'composite' ? true : false,
             combinedAudiences: projectVar.source.split('_')[0].toLowerCase() === 'combined' || projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? groupedAudiences : [],
             combinedVariableNames: projectVar.customVarExprDisplay,
-            compositeSource: projectVar.source.split('_')[0].toLowerCase() === 'converted' ? groupedAudiences : [] 
+            compositeSource: projectVar.source.split('_')[0].toLowerCase() === 'converted' ||
+              projectVar.source.split('_')[0].toLowerCase() === 'composite' ? groupedAudiences : []
           };
-
           if (projectVar.source.toLowerCase().match('combined')) {
             this.audienceService.addAudience(audience, null, true);
           }
@@ -102,10 +106,11 @@ export class TargetAudienceUnifiedService {
           if (projectVar.source.toLowerCase().match('combined/converted')) {
             this.audienceService.addAudience(audience, null, true);
           }
+          if (projectVar.source.toLowerCase().match('composite')) {
+            this.audienceService.addAudience(audience, null, true);
+          }
         }
-
       }
-
     }
     catch (error) {
       this.logger.error.log(error);
@@ -116,63 +121,69 @@ export class TargetAudienceUnifiedService {
     this.rehydrateAudience();
   }
 
-  public getAllVars(source: string, audienceList: Audience[], analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number) : Observable<UnifiedBulkResponse[]> {
+  public getAllVars(source: string, audienceList: Audience[], analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number): Observable<UnifiedBulkResponse[]> {
     const combinedVars: Audience[] = [];
-    const sourceTypes = ['Combined', 'Converted', 'Combined/Converted'] ;
+    let dependentVars: Audience;
+    const sourceTypes = ['Combined', 'Converted', 'Combined/Converted', 'Composite'];
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     let requestVars: Array<VarList> = [];
     const sourceIDs: Map<number, number[]> = new Map<number, number[]>();
     const serviceURL = 'v1/targeting/base/geoinfo/varlookup';
     audienceList.map(audience => {
       combinedVars.push(audience);
-       const dependentVars = (this.selectedAudiences$.getValue().find( a => a.audienceIdentifier === audience.compositeSource[0] && a.combinedAudiences != null &&  a.combinedAudiences.length > 0));
-       if (audience.combinedAudiences.length > 0){
+      if (audience.combinedAudiences.length > 0) {
         sourceIDs.set(Number(audience.audienceIdentifier), audience.combinedAudiences.map(a => Number(a)));
         audience.combinedAudiences.forEach(id => {
-        if (this.selectedAudiences$ != null && this.selectedAudiences$.getValue().length > 0)
-          combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === id));
+          if (this.selectedAudiences$ != null && this.selectedAudiences$.getValue().length > 0)
+            combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === id));
         });
       }
-      if (audience.compositeSource.length > 0){
-        sourceIDs.set(Number(audience.audienceIdentifier), audience.compositeSource.map(a => Number(a)));
-        audience.compositeSource.forEach(id => {
-        if (this.selectedAudiences$ != null && this.selectedAudiences$.getValue().length > 0)
-          combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === id));
+      if (audience.compositeSource.length > 0) {
+        dependentVars = this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === audience.compositeSource[0].id.toString());
+        // if (!audience.isComposite){
+        const temp: number[] = [];
+        audience.compositeSource.forEach(a => {
+          temp.push(Number(a.id));
+          if (!sourceIDs.has(a.id))
+            sourceIDs.set(Number(audience.audienceIdentifier), temp);
         });
+        audience.compositeSource.forEach(row => {
+          if (this.selectedAudiences$ != null && this.selectedAudiences$.getValue().length > 0)
+            combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === row.id.toString()));
+        });
+        // }
       }
-      if (audience.audienceSourceType === 'Converted' && dependentVars != null && dependentVars.combinedAudiences != null ){
+      if (audience.audienceSourceType === 'Converted' && dependentVars != null && dependentVars.combinedAudiences != null) {
         sourceIDs.set(Number(audience.audienceIdentifier), dependentVars.combinedAudiences.map(a => Number(a)));
         dependentVars.combinedAudiences.forEach(v => {
-            combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === v));
+          combinedVars.push(this.selectedAudiences$.getValue().find(aud => aud.audienceIdentifier === v));
         });
       }
-      if (dependentVars != null && dependentVars.combinedAudiences != null && !identifiers.includes(dependentVars.audienceIdentifier)){
+      if (dependentVars != null && dependentVars.combinedAudiences != null && !identifiers.includes(dependentVars.audienceIdentifier)) {
         identifiers.push(dependentVars.audienceIdentifier);
       }
     });
-    const uniqueAudList =  Array.from(new Set(combinedVars));
+    const uniqueAudList = Array.from(new Set(combinedVars));
     requestVars = uniqueAudList.map(aud => {
-       return ({
-      id: Number(aud.audienceIdentifier),
-      desc: aud.audienceName, 
-      source: sourceTypes.includes(aud.audienceSourceType) &&  aud.compositeSource.length === 0  ? 'combine' :  
-              aud.compositeSource != null && aud.compositeSource.length > 0 ? 'composite' : aud.audienceSourceType,
-      base: aud.selectedDataSet != null ? aud.selectedDataSet : '', 
-      combineSource: sourceIDs.has(Number(aud.audienceIdentifier)) ? sourceIDs.get(Number(aud.audienceIdentifier)) 
-                 : aud.combinedAudiences != null && aud.combinedAudiences.length > 0 ? aud.combinedAudiences.map(a => Number(a)) : [],
-      compositeSource : aud.selectedDataSet != null && sourceIDs.has(Number(aud.audienceIdentifier)) ?
-                    sourceIDs.get(Number(aud.audienceIdentifier)).length === 1 ? 
-                    [{id: Number(sourceIDs.get(Number(aud.audienceIdentifier))), pct: 100.0}] : [{id: (Number(aud.compositeSource[0])), pct: 100.0}] : []
+      return ({
+        id: Number(aud.audienceIdentifier),
+        desc: aud.audienceName,
+        source: sourceTypes.includes(aud.audienceSourceType) && aud.compositeSource.length === 0 ? 'combine' :
+          aud.compositeSource != null && aud.compositeSource.length > 0 ? 'composite' : aud.audienceSourceType,
+        base: aud.selectedDataSet != null ? aud.selectedDataSet : '',
+        combineSource: sourceIDs.has(Number(aud.audienceIdentifier)) ? sourceIDs.get(Number(aud.audienceIdentifier))
+          : aud.combinedAudiences != null && aud.combinedAudiences.length > 0 ? aud.combinedAudiences.map(a => Number(a)) : [],
+        compositeSource: aud.compositeSource != null && aud.compositeSource.length > 0 ? aud.compositeSource : []
+      });
     });
-  });
     requestVars.forEach(v => {
       if (v.source !== 'combine' && v.source !== 'composite') {
         v.base = 'SRC';
         delete v.combineSource;
       }
       if (v.source !== 'combine' && v.base !== 'SRC')
-       delete v.combineSource;
-      if (v.base == null || v.base === 'SRC' || v.source === 'combine'){
+        delete v.combineSource;
+      if (v.base == null || v.base === 'SRC' || v.source === 'combine') {
         delete v.compositeSource;
       }
     });
@@ -185,48 +196,46 @@ export class TargetAudienceUnifiedService {
       chunks: this.config.geoInfoQueryChunks,
       vars: requestVars
     };
-    // this.logger.info.log('unified request payload::', inputData);
-
-    if (sourceIDs.size > 0) {
-      return this.restService.post(serviceURL, [inputData])
-        .pipe(
-          // tap(response => this.logger.info.log('unified response payload::', response)),
-          map(response => this.validateFuseResponse(response,  identifiers.sort(CommonSort.StringsAsNumbers), isForShading)),
-          tap(response => (response)),
-          catchError(() => {
-            this.logger.error.log('Error posting to', serviceURL, 'with payload:');
-            this.logger.error.log('payload:', inputData);
-            this.logger.error.log('payload:\n{\n' +
-              '   geoType: ', inputData.geoType, '\n',
-              '   geocodes: ', geocodes.toString(), '\n',
-            );
-            return throwError('No data was returned for the selected audiences');
-          })
-        );
-    }
+    // if (sourceIDs.size > 0) {
+    return this.restService.post(serviceURL, [inputData])
+      .pipe(
+        map(response => this.validateFuseResponse(response, identifiers.sort(CommonSort.StringsAsNumbers), isForShading)),
+        tap(response => (response)),
+        catchError(() => {
+          this.logger.error.log('Error posting to', serviceURL, 'with payload:');
+          this.logger.error.log('payload:', inputData);
+          this.logger.error.log('payload:\n{\n' +
+            '   geoType: ', inputData.geoType, '\n',
+            '   geocodes: ', geocodes.toString(), '\n',
+          );
+          return throwError('No data was returned for the selected audiences');
+        })
+      );
+    // }
     this.logger.warn.log('getAllVars had no ids to process.');
     return EMPTY;
   }
   private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
     const validatedResponse: UnifiedBulkResponse[] = [];
     const responseArray: UnifiedFuseResponse[] = response.payload.rows;
-    if (responseArray.length > 0){
-      for (let r = 0; r < responseArray.length; r++){
+    if (responseArray.length > 0) {
+      for (let r = 0; r < responseArray.length; r++) {
         const responseVars = Object.keys(responseArray[r].variables);
-        if (responseVars.length > 0){
+        if (responseVars.length > 0) {
           for (let i = 0; i < identifiers.length; i++)
-            if (identifiers.includes(responseVars[i].substring(0, responseVars[i].indexOf('_', 1)))){
-              validatedResponse.push ({ geocode: responseArray[r].geocode, id: identifiers[i], 
-                              score: responseArray[r].variables[responseVars[i]] });
-          }
-        } 
-      } 
+            if (identifiers.includes(responseVars[i].substring(0, responseVars[i].indexOf('_', 1)))) {
+              validatedResponse.push({
+                geocode: responseArray[r].geocode, id: identifiers[i],
+                score: responseArray[r].variables[responseVars[i]]
+              });
+            }
+        }
+      }
     }
-   if (response.payload.issues != null && response.payload.issues.ERROR.length > 0){
-    this.logger.error.log(response.payload.issues);
-    this.store$.dispatch(new WarningNotification({ message: 'There was an error retrieving data for one or more audience variables', notificationTitle: 'Selected Audience Warning' }));
-   }
-
+    if (response.payload.issues != null && response.payload.issues.ERROR.length > 0) {
+      this.logger.error.log(response.payload.issues);
+      this.store$.dispatch(new WarningNotification({ message: 'There was an error retrieving data for one or more audience variables', notificationTitle: 'Selected Audience Warning' }));
+    }
     return validatedResponse;
   }
 }

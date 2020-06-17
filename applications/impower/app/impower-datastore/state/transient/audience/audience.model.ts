@@ -1,5 +1,6 @@
 import { AudienceTradeAreaConfig } from 'app/models/audience-data.model';
 import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
+import { VarSpecs } from 'app/services/target-audience-unified.service';
 
 export interface Audience {
   audienceIdentifier: string;
@@ -21,7 +22,8 @@ export interface Audience {
   requiresGeoPreCaching: boolean;
   seq: number;
   isCombined?: boolean;
+  isComposite?: boolean;
   combinedAudiences?: Array<string>;
   combinedVariableNames?: string;
-  compositeSource?: Array<string>;
+  compositeSource?: Array<VarSpecs>;
 }
