@@ -1,6 +1,6 @@
 /* tslint:disable:component-selector */
-import { Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Component, EventEmitter, forwardRef, Input, Output, Optional, Self, ViewEncapsulation, ViewChild, SkipSelf } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, NgControl, NgModel } from '@angular/forms';
 import { getUuid } from '@val/common';
 import { SelectItem } from 'primeng/api';
 
@@ -8,13 +8,13 @@ import { SelectItem } from 'primeng/api';
   selector: 'dropdown-input',
   templateUrl: './dropdown-input.component.html',
   styleUrls: ['./dropdown-input.component.scss'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => DropdownInputComponent),
-      multi: true
-    }
-  ]
+  // providers: [
+  //   {
+  //     provide: NG_VALUE_ACCESSOR,
+  //     useExisting: forwardRef(() => DropdownInputComponent),
+  //     multi: true
+  //   }
+  // ]
 })
 export class DropdownInputComponent implements ControlValueAccessor {
   @Output() selectionChanged: EventEmitter<any> = new EventEmitter<any>();
@@ -28,6 +28,7 @@ export class DropdownInputComponent implements ControlValueAccessor {
   @Input() allowTruncation: boolean = false;
   @Input() truncateLength: number = 75;
   @Input() truncateSuffix: string = '...';
+  @Input() validationMessage: string;
 
   controlId = getUuid();
   isDisabled: boolean;
@@ -47,7 +48,11 @@ export class DropdownInputComponent implements ControlValueAccessor {
   propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};
 
-  constructor() {}
+  constructor(@Optional() @Self() private controlContainer: NgControl) {
+    if (this.controlContainer != null) {
+      this.controlContainer.valueAccessor = this;
+    }
+  }
 
   registerOnChange(fn: any) : void {
     this.propagateChange = fn;
@@ -63,5 +68,13 @@ export class DropdownInputComponent implements ControlValueAccessor {
 
   writeValue(obj: any) : void {
     this._value = obj;
+  }
+
+  hasErrors() : boolean {
+    if (this.controlContainer != null) {
+      const control = this.controlContainer.control;
+      return control.touched && !control.valid && (this.validationMessage != null);
+    }
+    return false;
   }
 }

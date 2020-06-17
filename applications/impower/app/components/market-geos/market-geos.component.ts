@@ -53,13 +53,55 @@ interface MarketGeos {
   values: ContainerValue[];
 }
 
-export function statesValidator(control: AbstractControl) : { [key: string] : boolean } | null {
-  this.logger.info.log('statesValidator fired:  control: '); // + control);
-  return {'states': true };
-  // if (control.value !== undefined && (isNaN(control.value) || control.value < 18 || control.value > 45)) {
-  //   return { 'states': true };
-  // }
-  // return null;
+export function marketValidator(control: AbstractControl) //: { [key: string] : boolean } | null
+{
+  //console.log('marketValidator fired:  control: ', control);
+  let valid: boolean = control.value != null && control.value !== '';
+  if (control != null && control.parent != null)
+  {
+    const numStates = control.parent.controls['states'].value != null ? control.parent.controls['states'].value.length : 0;
+    //console.log('current market: ', control.parent.controls['market'].value, ' states: ', numStates);
+    switch (control.parent.controls['market'].value)
+    {
+      case 'CITY':
+      case 'COUNTY':
+        valid = numStates > 0;
+        break;
+      case 'STATE':
+        valid = numStates <= 1;
+        break;
+    }
+  }
+  //console.log ('marketValidator - valid: ', valid);
+  return valid ? null : { marketValidator: { valid: 'Must pick at least one state for this market' }};
+}
+
+export function statesValidator(control: AbstractControl) //: { [key: string] : boolean } | null
+{
+  //console.log('statesValidator fired:  control: ', control);
+  let valid: boolean = true;
+  if (control != null && control.parent != null)
+  {
+    const market = control.parent.controls['market'].value;
+    //console.log('current market: ', market, ', states: ', control.value);
+    switch (market)
+    {
+      case 'CITY':
+      case 'COUNTY':
+        valid = control.value != null ? control.value.length > 0 : false;
+        break;
+      case 'STATE':
+        valid = control.value != null ? control.value.length <= 1 : false;
+        break;
+    }
+    if (valid) {
+      marketValidator(control.parent.controls['market']);
+      if (control.dirty)
+        control.markAllAsTouched();
+    }
+  }
+  //console.log ('statesValidator - valid: ', valid);
+  return valid ? null : { statesValidator: { valid: 'statesValidator failed' }};
 }
 
 @Component({
@@ -158,8 +200,8 @@ export class MarketGeosComponent implements OnInit {
 
   ngOnInit() {
     const formSetup: FormConfig<MarketGeosForm> = {
-      states: ['', null], // statesValidator],
-      market: ['', Validators.required],
+      states: ['', statesValidator], // null],
+      market: ['', marketValidator], // Validators.required],
       counts: ['', Validators.min(1)]
     };
     this.marketGeosFormGroup = this.fb.group(formSetup); // , { updateOn: 'blur' });
@@ -221,14 +263,22 @@ export class MarketGeosComponent implements OnInit {
     this.multiSortMeta.push({field: 'col.code', order: 1});
   }
 
-  clear() : void {
-    this._statesMultiSelect.clearSelection();
-    this.store$.dispatch(resetNamedForm({ path: 'marketGeos' }));
+  resetFiltersAndSelections() {
     this.onClickResetFilters();
     this.onSelectContainerValues(false);
+  }
+
+  clearStates() {
+    this._statesMultiSelect.clearSelection();
     this.selectedStates = null;
-    this.marketGeosFormGroup.value['states'] = null;
-    // this.populateContainerValues(this.selectedMarket);
+    this.marketGeosFormGroup.controls['states'].patchValue(null);
+    this.onStatesChange(null);
+  }
+
+  clear() : void {
+    this.store$.dispatch(resetNamedForm({ path: 'marketGeos' }));
+    this.resetFiltersAndSelections();
+    this.clearStates();
   }
 
   getGeographies() : void {
@@ -321,20 +371,18 @@ export class MarketGeosComponent implements OnInit {
 
   hasErrors(controlKey: string) : boolean {
     const control = this.marketGeosFormGroup.get(controlKey);
-    return false;
-    // return (control.dirty || control.touched) && (control.errors != null);
+    //this.logger.debug.log('marketGoes.hasErrors - controlKey: ', controlKey, ', control', control, ' has errors: ', (control != null && (control.dirty || control.touched) && (control.errors != null)));
+    return control != null && (control.dirty || control.touched) && (control.errors != null);
   }
 
   onSubmit(formData: any) {
     this.marketGeosFormGroup.patchValue({id: formData.id, code: formData.code, name: formData.name, state: formData.state});
-    console.log('onSubmit Fired');
-    console.log('formData: ' + formData['market']);
+//  this.logger.debug.log('formData: ', formData['market']);
     this.selectedMarket = formData['market'];
     this.selectedStates = formData['states'];
-//    this.query(formData['market']);
+//  this.query(formData['market']);
     this.populateContainerValues(formData['market']);
     this.onClickResetFilters();
-    // this.syncHeaderFilter();
     this.headerFilter = false;
   }
 
@@ -414,7 +462,7 @@ export class MarketGeosComponent implements OnInit {
 
   // Grid events
   public onRowSelect(event: any, isSelected: boolean) {
-    console.log('onRowSelect fired - event: ' + event + ', isSelected: ' + isSelected);
+    //console.log('onRowSelect fired - event: ' + event + ', isSelected: ' + isSelected);
   }
 
   onSelectContainerValue(container: ContainerValue) {
@@ -439,7 +487,7 @@ export class MarketGeosComponent implements OnInit {
 
   onFilter(event: any)
   {
-    console.log('onFilter fired - event: ' + event);
+    //console.log('onFilter fired - event: ' + event);
     //if (event != null) {
       this.syncHeaderFilter();
     //}
@@ -447,14 +495,15 @@ export class MarketGeosComponent implements OnInit {
 
   // When the market drop down changes values, clear everything out
   onMarketChange(event: any) {
-    this.logger.info.log('onMarketChange event: ', event);
-    this.clear();
+    this.clearStates();
+    this.resetFiltersAndSelections();
     this.containerValuesBS$.next([]);
   }
 
   // When the states multiselect changes values
   onStatesChange(event: any) {
-    this.logger.info.log('onStatesChange fired - event: ', event);
+ // marketValidator(this.marketGeosFormGroup.value['market']);
+    this.marketGeosFormGroup.controls['market'].updateValueAndValidity();
   }
 
   /**

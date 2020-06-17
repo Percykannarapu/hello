@@ -1,5 +1,5 @@
-<div class="component-root">
-  <span class="md-inputfield">
+<div class="component-root flex-container">
+  <span class="md-inputfield" style="width: 100%">
     <p-dropdown id="dropdown-input-{{controlId}}" [(ngModel)]="value" [options]="options"
                 [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"
                 (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
@@ -26,5 +26,8 @@
       </ng-template>
     </p-dropdown>
     <label class="drop-down-label" for="dropdown-input-{{controlId}}">{{labelText}}</label>
+  </span>
+  <span class="ui-inputgroup-addon error-addon" *ngIf="hasErrors()">
+    <i class="ui-icon-error" title="{{validationMessage}}"></i>
   </span>
 </div>

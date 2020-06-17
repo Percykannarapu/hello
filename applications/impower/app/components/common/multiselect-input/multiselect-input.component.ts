@@ -24,6 +24,7 @@ export class MultiselectInputComponent implements ControlValueAccessor  {
   @Output() onPanelHide: EventEmitter<any> = new EventEmitter<any>();
 
   @Input() labelText: string;
+  @Input() defaultLabel: string;
   @Input() options: SelectItem[];
   @Input() includeUnselected: boolean;
   @Input() tabIndex: number;
