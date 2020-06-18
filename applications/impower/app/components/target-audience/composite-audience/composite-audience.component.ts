@@ -123,6 +123,8 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
           if (val.audienceSourceType === 'Composite') {
             row.get('indexBase').clearValidators();
             row.get('indexBase').disable();
+          } else {
+            row.get('indexBase').enable();
           }
         }  
       });
