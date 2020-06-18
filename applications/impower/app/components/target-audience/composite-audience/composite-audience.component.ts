@@ -129,6 +129,9 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         }  
       });
     });
+    this.appStateService.clearUI$.subscribe(() => {
+      this.compositeForm.reset();
+    });
   }
 
   ngOnDestroy() : void {
