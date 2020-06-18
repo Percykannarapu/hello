@@ -10,6 +10,7 @@ import Home from 'esri/widgets/Home';
 import Legend from 'esri/widgets/Legend';
 import ScaleBar from 'esri/widgets/ScaleBar';
 import Search from 'esri/widgets/Search';
+// import LayerList from 'esri/widgets/LayerList';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppConfig } from '../app.config';

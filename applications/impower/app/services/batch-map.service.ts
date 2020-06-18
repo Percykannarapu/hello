@@ -1,18 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CommonSort, groupByExtended, UniversalCoordinates, toUniversalCoordinates } from '@val/common';
+import { CommonSort, groupByExtended } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
+import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { Extent } from 'esri/geometry';
 import { Observable, of, race, timer } from 'rxjs';
 import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { ValSort } from '../models/valassis-sorters';
-import { BatchMapPayload, LocalAppState, SinglePageBatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload } from '../state/app.interfaces';
+import { BatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
@@ -24,8 +26,6 @@ import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
-import { Extent } from 'esri/geometry';
-import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -188,15 +188,16 @@ export class BatchMapService {
       ymax: Number(params.ymax)
     };
     this.esriMapService.mapView.extent = Extent.fromJSON(extent);
-    const coords = {x: Extent.fromJSON(extent).center.x, y: Extent.fromJSON(extent).center.y};
-    //this.esriMapService.zoomToPoints([coords]);
-    //this.esriMapService.zoomToPoints([this.esriMapService.mapView.extent.center]);
+    // const coords = {x: Extent.fromJSON(extent).center.x, y: Extent.fromJSON(extent).center.y};
+    // this.esriMapService.zoomToPoints([coords]);
+    // this.esriMapService.zoomToPoints([this.esriMapService.mapView.extent.center]);
     this.esriMapService.mapView.zoom =  this.esriMapService.mapView.zoom + 1 ;
     return of({ siteNum: currentLocationNumbers[currentLocationNumbers.length - 1], isLastSite: true });
   }
 
   moveToSite(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    const locations = [ ...project.getImpGeofootprintLocations().filter(l => l.isActive) ];
+    const locations = [ ...project.getImpGeofootprintLocations()
+      .filter(l => l.isActive && ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
     const result = { siteNum: siteNum, isLastSite: false };
     locations.sort(ValSort.LocationBySiteNum);
     for (let i = 0; i < locations.length; ++i) {
@@ -219,7 +220,8 @@ export class BatchMapService {
         }
 
         if (params.hideNeighboringSites) {
-          const renderLocs = project.getImpGeofootprintLocations().filter(loc => loc.clientLocationTypeCode === 'Competitor');
+          const renderLocs = project.getImpGeofootprintLocations()
+            .filter(loc => loc.isActive && ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Competitor);
           renderLocs.push(currentSite);
           this.store$.dispatch(new RenderLocations({ locations: renderLocs }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
