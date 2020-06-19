@@ -69,7 +69,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
     this.combinedAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted')),
-      tap(a => a.forEach(aud => this.varNames.set(aud.audienceName, aud.audienceIdentifier)))
+      tap(a => a.forEach(aud => this.varNames.set(aud.audienceName.toLowerCase(), aud.audienceIdentifier)))
     );
 
     this.audienceForm = this.fb.group({
@@ -106,7 +106,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         const audienceName = this.audienceForm.get('audienceName');
         const currentName = audienceName.value != null ?  audienceName.value.trim() : '';
         this.isDuplicateName = false;
-        if (this.varNames.has(currentName) && (this.varNames.get(currentName) !== audienceName.parent.controls['audienceId'].value)){
+        if (this.varNames.has(currentName.toLowerCase()) && (this.varNames.get(currentName.toLowerCase()) !== audienceName.parent.controls['audienceId'].value)){
           audienceName.setErrors({'isDuplicateName': true});
           this.isDuplicateName = true;
         }

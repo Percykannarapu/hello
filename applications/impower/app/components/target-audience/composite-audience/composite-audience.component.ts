@@ -79,7 +79,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Composite')),
     );
 
-    this.compositeAudiences$.subscribe(a => a.forEach(aud => this.varNames.set(aud.audienceName, aud.audienceIdentifier)));
+    this.compositeAudiences$.subscribe(a => a.forEach(aud => this.varNames.set(aud.audienceName.toLowerCase(), aud.audienceIdentifier)));
 
     this.allIndexValues = [
       { label: 'DMA', value: 'DMA' },
@@ -93,12 +93,12 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         new FormGroup({
           selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
           indexBase: new FormControl('', { validators: [Validators.required] }),
-          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric] })
+          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(100)] })
         }),
         new FormGroup({
           selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
           indexBase: new FormControl('', { validators: [Validators.required] }),
-          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric] })
+          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(100)] })
         })
       ])
     });
@@ -107,7 +107,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       const audienceName = this.compositeForm.get('compositeAudName');
       const currentName = audienceName.value != null ? audienceName.value.trim() : '';
       this.isDuplicateName = false;
-      if (this.varNames.has(currentName) && this.varNames.get(currentName) !== audienceName.parent.controls['compositeAudienceId'].value)
+      if (this.varNames.has(currentName.toLowerCase()) && this.varNames.get(currentName.toLowerCase()) !== audienceName.parent.controls['compositeAudienceId'].value)
         this.isDuplicateName = true;
     });
 
@@ -140,7 +140,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy() : void {
     this.destroyed$.next();
   }
 
@@ -151,7 +151,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       audienceFields.audienceRows.forEach(selectedRow => {
         this.indexTypes.add(selectedRow.indexBase);
         selectedVariableNames.push(selectedRow.selectedAudienceList.audienceName + '-' + selectedRow.indexBase + '-' + selectedRow.percent);
-        compositeAudIds.push({ id: Number(selectedRow.selectedAudienceList.audienceIdentifier), pct: Number(selectedRow.percent) });
+        compositeAudIds.push({ id: Number(selectedRow.selectedAudienceList.audienceIdentifier), pct: Number(selectedRow.percent), base: selectedRow.indexBase });
       });
     }
     if (audienceFields.compositeAudienceId == null || audienceFields.compositeAudienceId.length === 0) {
@@ -164,7 +164,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         exportInGeoFootprint: true,
         exportNationally: false,
         allowNationalExport: false,
-        selectedDataSet: this.indexTypes.size == 2 ? 'ALL' : Array.from(this.indexTypes)[0],
+        selectedDataSet: this.indexTypes.size == 2 ? 'DMA/NAT' : Array.from(this.indexTypes)[0],
         audienceSourceName: 'TDA',
         audienceSourceType: 'Composite',
         fieldconte: FieldContentTypeCodes.Index,
