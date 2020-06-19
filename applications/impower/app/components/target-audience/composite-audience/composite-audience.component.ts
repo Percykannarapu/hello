@@ -91,14 +91,14 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       compositeAudName: new FormControl('', { validators: [Validators.required], updateOn: 'blur' }),
       audienceRows: new FormArray([
         new FormGroup({
-          selectedAudienceList: new FormControl('', {validators: [ Validators.required] }),
-          indexBase: new FormControl('', {validators: [ Validators.required]}),
-          percent: new FormControl('', {validators: [ Validators.required, ValassisValidators.numeric] })
+          selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
+          indexBase: new FormControl('', { validators: [Validators.required] }),
+          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric] })
         }),
         new FormGroup({
-          selectedAudienceList: new FormControl('', {validators: [ Validators.required] }),
-          indexBase: new FormControl('', {validators: [ Validators.required]}),
-          percent: new FormControl('', {validators: [ Validators.required, ValassisValidators.numeric] })
+          selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
+          indexBase: new FormControl('', { validators: [Validators.required] }),
+          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric] })
         })
       ])
     });
@@ -113,20 +113,26 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
 
     this.audienceRows.controls.forEach((row: FormGroup) => {
       row.get('selectedAudienceList').valueChanges.pipe(takeUntil(this.destroyed$)).subscribe(val => {
-        if ( val != null && val.fieldconte != null && val.audienceSourceType != null) {
+        if (val != null && val.fieldconte != null && val.audienceSourceType != null) {
           if (val.fieldconte === 'INDEX' && (val.audienceSourceType === 'Offline' || val.audienceSourceType === 'Online')) {
             row.patchValue({ indexBase: this.allIndexValues.find(a => a.label === 'National').value });
           }
           if (val.audienceSourceType === 'Converted' || val.audienceSourceType === 'Combined/Converted') {
-            row.patchValue({indexBase: this.allIndexValues.find(a => a.label === val.selectedDataSet).value  });
-          }
-          if (val.audienceSourceType === 'Composite') {
-            row.get('indexBase').clearValidators();
-            row.get('indexBase').disable();
+            if (val.selectedDataSet === 'DMA'){
+              row.get('indexBase').enable();
+              row.patchValue({ indexBase: this.allIndexValues.find(a => a.label === val.selectedDataSet).value });
+            }
+            if (val.selectedDataSet === 'NAT'){
+              row.get('indexBase').enable();
+              row.patchValue({ indexBase: this.allIndexValues.find(a => a.label === 'National').value });
+            }
+          } else if (val.audienceSourceType === 'Composite') {
+              row.get('indexBase').clearValidators();
+              row.get('indexBase').disable();
           } else {
-            row.get('indexBase').enable();
+              row.get('indexBase').enable();
           }
-        }  
+        }
       });
     });
     this.appStateService.clearUI$.subscribe(() => {
@@ -134,7 +140,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy() : void {
+  ngOnDestroy(): void {
     this.destroyed$.next();
   }
 
@@ -158,7 +164,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         exportInGeoFootprint: true,
         exportNationally: false,
         allowNationalExport: false,
-        selectedDataSet: this.indexTypes.size == 2 ? 'DMA/NAT' : Array.from(this.indexTypes)[0],
+        selectedDataSet: this.indexTypes.size == 2 ? 'ALL' : Array.from(this.indexTypes)[0],
         audienceSourceName: 'TDA',
         audienceSourceType: 'Composite',
         fieldconte: FieldContentTypeCodes.Index,
@@ -181,7 +187,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         exportInGeoFootprint: this.currentAudience[0].exportInGeoFootprint,
         exportNationally: this.currentAudience[0].exportNationally,
         allowNationalExport: this.currentAudience[0].allowNationalExport,
-        selectedDataSet: this.indexTypes.size == 2 ? 'DMA/NAT' : Array.from(this.indexTypes)[0],
+        selectedDataSet: this.indexTypes.size == 2 ? 'ALL' : Array.from(this.indexTypes)[0],
         audienceSourceName: this.currentAudience[0].audienceSourceName,
         audienceSourceType: this.currentAudience[0].audienceSourceType,
         fieldconte: this.currentAudience[0].fieldconte,
@@ -263,7 +269,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       compositeAudName: selectedAudience.audienceName,
       audienceRows: currentRows,
     });
-  currentRows = [];
+    currentRows = [];
 
   }
 

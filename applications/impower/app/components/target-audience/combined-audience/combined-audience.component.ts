@@ -119,7 +119,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
 
   onSubmit(audienceFields: any) {
     const isCombined = (audienceFields.audienceList.length > 1 && (audienceFields.selectedIndex == null || audienceFields.selectedIndex == ''));
-    const isCombineConverted = audienceFields.audienceList.length > 1 && audienceFields.selectedIndex != null;
+    const isCombineConverted = audienceFields.audienceList.length > 1 && audienceFields.selectedIndex != null && audienceFields.selectedIndex !== '';
     const combinedAudIds: string[] = [];
     const convertSource: VarSpecs[] = [];
     const combinedVariableNames: string[] = [];

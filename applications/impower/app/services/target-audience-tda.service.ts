@@ -147,34 +147,6 @@ export class TargetAudienceTdaService {
           }
         }
       }
-      // if (project && project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
-      //   for (const projectVar of project.impProjectVars.filter(v => v.source.split('_')[0].toLowerCase() === 'combined')) {
-      //     const groupedAudiences = JSON.parse(projectVar.customVarExprQuery);
-      //     const audience: AudienceDataDefinition = {
-      //       audienceName: projectVar.fieldname,
-      //       audienceIdentifier: projectVar.varPk.toString(),
-      //       audienceSourceType: 'Combined',
-      //       audienceSourceName: 'TDA',
-      //       exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
-      //       showOnGrid: projectVar.isIncludedInGeoGrid,
-      //       showOnMap: projectVar.isShadedOnMap,
-      //       exportNationally: false,
-      //       allowNationalExport: false,
-      //       fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
-      //       requiresGeoPreCaching: false,
-      //       seq: projectVar.sortOrder,
-      //       isCombined: true,
-      //       combinedAudiences: groupedAudiences,
-      //       combinedVariableNames: projectVar.customVarExprDisplay
-      //     };
-
-      //     if (projectVar.source.toLowerCase().match('combined')) {
-      //       this.audienceService.addAudience(audience, null, true);
-      //     }
-      //   }
-
-      // }
-
     }
     catch (error) {
       this.logger.error.log(error);
