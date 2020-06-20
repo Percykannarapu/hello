@@ -33,7 +33,7 @@ export class SelectedAudiencesComponent implements OnInit {
   private nationalAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   public audienceCount: number = 0;
 
-  private combineAudiences;
+  private filteredAudiences;
   private allAudiences: Audience[] = [];
   constructor(private varService: TargetAudienceService,
               private appStateService: AppStateService,
@@ -68,7 +68,7 @@ export class SelectedAudiencesComponent implements OnInit {
       filter(allAudiences => allAudiences != null ),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Composite')),
     ).subscribe(audiences => {
-      this.combineAudiences =  Array.from(new Set(audiences));
+      this.filteredAudiences =  Array.from(new Set(audiences));
     });
 
     this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
@@ -149,11 +149,15 @@ export class SelectedAudiencesComponent implements OnInit {
   }
 
   onRemove(audience) {
-  const deleteAudience = this.combineAudiences.filter(combineAud => combineAud.audienceSourceType !== 'Custom' && (combineAud.combinedAudiences.includes(audience.audienceIdentifier) || 
-                                                      combineAud.compositeSource.includes(audience.audienceIdentifier)));
-  if (deleteAudience.length > 0){
+  let isDependent: boolean = false;
+  isDependent = this.filteredAudiences.filter(combineAud => combineAud.combinedAudiences.includes(audience.audienceIdentifier)).length > 0;
+  this.filteredAudiences.forEach((aud: Audience) => aud.compositeSource.forEach( a => {
+    if (a.id.toString() === audience.audienceIdentifier)
+      isDependent = true;
+  }));
+  if (isDependent){
       this.dialogboxHeader = 'Invalid Delete!';
-      this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted Audience can not be deleted.';
+      this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
       this.showDialog = true;
     }
     else{

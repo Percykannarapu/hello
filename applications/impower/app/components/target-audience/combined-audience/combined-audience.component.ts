@@ -118,7 +118,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(audienceFields: any) {
-    const isCombined = (audienceFields.audienceList.length > 1 && (audienceFields.selectedIndex == null || audienceFields.selectedIndex == ''));
+    const isCombined = (audienceFields.audienceList.length > 1 && (audienceFields.selectedIndex == null || audienceFields.selectedIndex === ''));
     const isCombineConverted = audienceFields.audienceList.length > 1 && audienceFields.selectedIndex != null && audienceFields.selectedIndex !== '';
     const combinedAudIds: string[] = [];
     const convertSource: VarSpecs[] = [];
@@ -127,7 +127,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       audienceFields.audienceList.forEach(audience => {
         combinedVariableNames.push(audience.audienceName);
         combinedAudIds.push(audience.audienceIdentifier);
-        convertSource.push({id: audience.audienceIdentifier, pct: 100.0  });
+        convertSource.push({id: audience.audienceIdentifier, pct: 100.0, base: audienceFields.selectedIndex});
       });
     }
     if (audienceFields.audienceId == null || audienceFields.audienceId.length === 0) {

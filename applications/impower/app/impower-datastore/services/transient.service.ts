@@ -68,9 +68,11 @@ export class TransientService {
           break;
  
         case 'Converted/TDA':
-          actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'combine', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+          actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'composite', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
           break;
- 
+        case 'Composite/TDA':
+            actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'composite', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
+            break;
         default:
           if (source.startsWith('Custom/'))
             actionsToDispatch.push(new FetchCustomFromPrefsMap({ geocodes }));

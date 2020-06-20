@@ -164,7 +164,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         exportInGeoFootprint: true,
         exportNationally: false,
         allowNationalExport: false,
-        selectedDataSet: this.indexTypes.size == 2 ? 'DMA/NAT' : Array.from(this.indexTypes)[0],
+        selectedDataSet: this.indexTypes.size == 2 ? 'ALL' : Array.from(this.indexTypes)[0],
         audienceSourceName: 'TDA',
         audienceSourceType: 'Composite',
         fieldconte: FieldContentTypeCodes.Index,

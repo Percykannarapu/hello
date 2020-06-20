@@ -120,7 +120,7 @@ export class AppDataShimService {
     const maxVarPk = (project.impProjectVars || []).reduce((result, projectVar) => {
       const sourceParts = projectVar.source.split('_');
       if (sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'converted' ||
-                                     sourceParts[0].toLowerCase() === 'combined/converted' || sourceParts[0].toLowerCase() === 'custom')) {
+                                     sourceParts[0].toLowerCase() === 'combined/converted' || sourceParts[0].toLowerCase() === 'custom' || sourceParts[0].toLowerCase() === 'composite')) {
         return Math.max(projectVar.varPk, result);
       } else {
         return result;

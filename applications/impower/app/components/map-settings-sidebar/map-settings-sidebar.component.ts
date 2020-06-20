@@ -39,7 +39,7 @@ export class MapSettingsSidebarComponent implements OnInit {
     this.analysisLevel$ = this.appStateService.analysisLevel$;
     this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       filter(audiences => audiences != null),
-      filterArray(aud => aud.audienceSourceType !== 'Combined/Converted' && aud.audienceSourceType !== 'Combined' && aud.audienceSourceType !== 'Converted')
+      filterArray(aud => aud.audienceSourceType !== 'Combined/Converted' && aud.audienceSourceType !== 'Combined' && aud.audienceSourceType !== 'Converted' && aud.audienceSourceType !== 'Composite')
     );
     this.shadingDefinitions$ = this.store$.select(shadingSelectors.allLayerDefs).pipe(
        filter((defs) => defs != null),

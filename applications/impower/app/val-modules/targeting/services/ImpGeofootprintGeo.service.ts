@@ -466,17 +466,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
               break;
 
             case FieldContentTypeCodes.Percent:
-            //   for (const aud in exportAudiences){
-            //     if (exportAudiences[aud].isCombined && exportAudiences[aud].exportInGeoFootprint){
-            //       geoVar[exportAudiences[aud].audienceIdentifier] = exportAudiences[aud].combinedAudiences.reduce((p, c) => {
-            //         p += geoVar[c] as number;
-            //         return p;
-            //       }, 0);
-            //       result = geoVar[exportAudiences[aud].audienceIdentifier].toString();
-            //     }
-            //   }
               result = geoVar[audience.audienceIdentifier].toString();
               break;
+
             case FieldContentTypeCodes.Ratio:
               result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(2);
               break;
