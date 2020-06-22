@@ -76,27 +76,27 @@ import { AppRoutes } from './app.routes';
 import { AddLocationsTabComponent } from './components/add-locations-tab/add-locations-tab.component';
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
-import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
 import { MarketLocationsComponent } from './components/add-locations-tab/market-locations/market-locations.component';
-import { MarketGeosComponent } from './components/market-geos/market-geos.component';
+import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
 import { DiscoveryInputComponent } from './components/campaign-details/discovery-input/discovery-input.component';
 import { ColorBoxComponent } from './components/color-box/color-box.component';
+import { AcsGrantDirective } from './components/common/acs-grant.directive';
 import { BooleanInputComponent } from './components/common/boolean-input/boolean-input.component';
 import { ConfirmationContainerComponent } from './components/common/confirmation-dialog/confirmation-container.component';
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ConnectFormDirective } from './components/common/connect-form.directive';
 import { DropdownInputComponent } from './components/common/dropdown-input/dropdown-input.component';
-import { MultiselectInputComponent } from './components/common/multiselect-input/multiselect-input.component';
 import { EsriClassBreakInputComponent } from './components/common/esri-class-break-input/esri-class-break-input.component';
 import { EsriFillSymbolInputComponent } from './components/common/esri-fill-symbol-input/esri-fill-symbol-input.component';
 import { EsriMarkerSymbolInputComponent } from './components/common/esri-marker-symbol-input/esri-marker-symbol-input.component';
 import { ExtendedColorPickerComponent } from './components/common/extended-color-picker/extended-color-picker.component';
 import { ExtendedPalettePickerComponent } from './components/common/extended-palette-picker/extended-palette-picker.component';
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
+import { MultiselectInputComponent } from './components/common/multiselect-input/multiselect-input.component';
 import { PaletteColorPickerComponent } from './components/common/palette-color-picker/palette-color-picker.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
 import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
@@ -130,6 +130,7 @@ import { RampVariableShaderComponent } from './components/map-settings-sidebar/s
 import { UniqueVariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/unique-variable-shader/unique-variable-shader.component';
 import { VariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/variable-shader.component';
 import { MapComponent } from './components/map/map.component';
+import { MarketGeosComponent } from './components/market-geos/market-geos.component';
 import { PrintViewComponent } from './components/print-view/print-view.component';
 import { ProjectComponent } from './components/project-dashboard/project.component';
 import { SendSitesDigitalComponent } from './components/send-sites-digital/send-sites-digital.component';
@@ -138,6 +139,7 @@ import { SiteListComponent } from './components/site-list/site-list.component';
 import { CombinedAudienceComponent } from './components/target-audience/combined-audience/combined-audience.component';
 import { EditCombinedAudiencesComponent } from './components/target-audience/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
 import { CompositeAudienceComponent } from './components/target-audience/composite-audience/composite-audience.component';
+import { EditCompositeAudiencesComponent } from './components/target-audience/composite-audience/edit-composite-audiences/edit-composite-audiences.component';
 import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
 import { OfflineAudienceTdaComponent } from './components/target-audience/offline-audience-tda/offline-audience-tda.component';
 import { OnlineAudienceApioComponent } from './components/target-audience/online-audience-apio/online-audience-apio.component';
@@ -194,7 +196,6 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
-import { EditCompositeAudiencesComponent } from './components/target-audience/composite-audience/edit-composite-audiences/edit-composite-audiences.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -398,7 +399,8 @@ export function esriSetupFactory() : ForRootOptions {
     MarketLocationsComponent,
     MarketGeosComponent,
     MultiselectInputComponent,
-    EditCompositeAudiencesComponent
+    EditCompositeAudiencesComponent,
+    AcsGrantDirective
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

@@ -8,11 +8,15 @@ import { User } from '../models/User';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 
+export type GrantType = 'ALL' | 'ANY';
+export const DEFAULT_GRANT_TYPE: GrantType = 'ALL';
+
 @Injectable()
 export class UserService {
 
   // Private user, exposed publicly as an observable
   private _user: User = null;
+  private userGrantList: string[] = [];
   private _userSubject = new BehaviorSubject<User>(this._user);
   private userFetch = new Subject<User>();
 
@@ -29,8 +33,13 @@ export class UserService {
    * @param user The User object that will be used for storing user information
    */
   public setUser(user: User) {
-    this.logger.debug.log('fired setUser() in UserService');
+    this.logger.debug.log('fired setUser() in UserService', user);
     this._user = user;
+    if (user && user.userRoles) {
+      this.userGrantList = user.userRoles.filter(r => r.roleName != null).map(r => r.roleName.toUpperCase());
+    } else {
+      this.userGrantList = [];
+    }
     this._userSubject.next(this._user);
   }
 
@@ -100,5 +109,22 @@ export class UserService {
    */
   public getUser() : User {
     return this._user;
+  }
+
+  public userHasGrants(requiredGrants: string[], grantType: GrantType = DEFAULT_GRANT_TYPE) : boolean {
+    let result = false;
+    const currentUserGrants = new Set<string>(this.userGrantList);
+    requiredGrants.forEach((p, i) => {
+      if (i === 0) {
+        result = currentUserGrants.has(p.toUpperCase());
+      } else {
+        if (grantType === 'ALL') {
+          result = result && currentUserGrants.has(p.toUpperCase());
+        } else {
+          result = result || currentUserGrants.has(p.toUpperCase());
+        }
+      }
+    });
+    return result;
   }
 }

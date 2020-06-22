@@ -42,37 +42,40 @@ export class AppMenuComponent implements OnInit {
                 private locationService: ImpGeofootprintLocationService,
                 private batchService: BatchMapService) { }
 
-    ngOnInit() {
-        this.userService.userObservable.pipe(
-          filter(user => user != null && user.username != null && user.username.length > 0),
-          take(1)
-        ).subscribe(() => this.isLoggedIn = true);
-
-        this.model = [
-            { label: 'Dashboard', icon: 'ui-icon-dashboard', routerLink: ['/'] },
-            { label: 'Save', id: 'saveProject', icon: 'ui-icon-save', command: () => this.saveProject() },
-            { label: 'Projects', icon: 'ui-icon-storage',
-              items: [
-                  { label: 'Create New', icon: 'fa fa-files-o', command: () =>  this.createNewProject() },
-                  { label: 'Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
-                  { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.saveProject() }
-              ]
-            },
-            { label: 'Export', icon: 'ui-icon-file-download',
-              items: [
-                  { label: 'Export Geofootprint - All', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: false })) },
-                  { label: 'Export Geofootprint - Selected Only', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: true })) },
-                  { label: 'Export Sites', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Site) },
-                  { label: 'Export Competitors', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor) },
-                  { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
-                  { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.exportToValassisDigital()},
-                  { label: 'Export Crossbow Sites', icon: 'ui-icon-store', command: () => this.store$.dispatch(new OpenExportCrossbowSitesDialog()) },
-                  //{ label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
-                  { label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap() }
-              ]
-            }
-        ];
-    }
+  ngOnInit() {
+    this.model = [];
+    this.userService.userObservable.pipe(
+      filter(user => user != null && user.username != null && user.username.length > 0),
+      take(1)
+    ).subscribe(() => {
+      this.model = [
+        { label: 'Dashboard', icon: 'ui-icon-dashboard', routerLink: ['/'] },
+        { label: 'Save', id: 'saveProject', icon: 'ui-icon-save', command: () => this.saveProject() },
+        { label: 'Projects', icon: 'ui-icon-storage',
+          items: [
+            { label: 'Create New', icon: 'fa fa-files-o', command: () =>  this.createNewProject() },
+            { label: 'Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
+            { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.saveProject() }
+          ]
+        },
+        { label: 'Export', icon: 'ui-icon-file-download',
+          items: [
+            { label: 'Export Geofootprint - All', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: false })) },
+            { label: 'Export Geofootprint - Selected Only', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: true })) },
+            { label: 'Export Sites', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Site) },
+            { label: 'Export Competitors', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor) },
+            { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
+            { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.exportToValassisDigital()},
+            { label: 'Export Crossbow Sites', icon: 'ui-icon-store', command: () => this.store$.dispatch(new OpenExportCrossbowSitesDialog()) },
+            //{ label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
+            //{ label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap(), visible: this.userService.userHasGrants(['AHP READERS', 'FOO'], 'ALL') }
+            { label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap() }
+          ]
+        }
+      ];
+      this.isLoggedIn = true;
+    });
+  }
 
     private saveProject(){
         this.stateService.closeOverlays();
