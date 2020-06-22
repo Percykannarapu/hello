@@ -41,4 +41,10 @@ export class DensityVariableShaderComponent extends VariableBaseComponent<DotDen
     this.parentForm.addControl('legendUnits', new FormControl(this.definition.legendUnits, { updateOn: 'blur', validators: [Validators.required] }));
   }
 
+  protected tearDownForm() : void {
+    this.parentForm.removeControl('arcadeExpression');
+    this.parentForm.removeControl('dotColor');
+    this.parentForm.removeControl('dotValue');
+    this.parentForm.removeControl('legendUnits');
+  }
 }

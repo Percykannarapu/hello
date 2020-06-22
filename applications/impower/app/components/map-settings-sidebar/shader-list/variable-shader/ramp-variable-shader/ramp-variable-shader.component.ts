@@ -16,4 +16,9 @@ export class RampVariableShaderComponent extends VariableBaseComponent<RampShadi
     this.parentForm.addControl('reverseTheme', new FormControl(this.definition.reverseTheme || false, { updateOn: 'change' }));
   }
 
+  protected tearDownForm() : void {
+    this.parentForm.removeControl('theme');
+    this.parentForm.removeControl('reverseTheme');
+  }
+
 }

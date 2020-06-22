@@ -3,6 +3,7 @@ import { FormGroup } from '@angular/forms';
 import { ColorPalette, ShadingDefinitionBase } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { Audience } from '../../../../impower-datastore/state/transient/audience/audience.model';
 
 // @Component({
@@ -45,7 +46,10 @@ export abstract class VariableBaseComponent<T extends ShadingDefinitionBase> imp
   }
 
   ngOnInit() {
-    if (this.isEditing) this.setupForm();
+    if (this.isEditing) {
+      this.destroyed$.pipe(take(1)).subscribe(() => this.tearDownForm());
+      this.setupForm();
+    }
   }
 
   public ngOnDestroy() : void {
@@ -53,4 +57,5 @@ export abstract class VariableBaseComponent<T extends ShadingDefinitionBase> imp
   }
 
   protected abstract setupForm() : void;
+  protected abstract  tearDownForm() : void;
 }

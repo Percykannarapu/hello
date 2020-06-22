@@ -125,6 +125,23 @@ export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBr
     this.setupUserBreakControls(this.definition.userBreakDefaults);
   }
 
+  protected tearDownForm() : void {
+    this.parentForm.removeControl('theme');
+    this.parentForm.removeControl('reverseTheme');
+    this.parentForm.removeControl('dynamicallyAllocate');
+    this.parentForm.removeControl('dynamicAllocationType');
+    this.parentForm.removeControl('dynamicAllocationSlots');
+    this.parentForm.removeControl('dynamicLegend');
+    if (this.parentForm.get('userBreakDefaults') != null) {
+      this.userBreakCleanup$.next();
+      this.parentForm.removeControl('userBreakDefaults');
+    }
+    if (this.parentForm.get('breakDefinitions') != null) {
+      this.classBreakCleanup$.next();
+      this.parentForm.removeControl('breakDefinitions');
+    }
+  }
+
   public breakTypeChanged(value: any) {
     const currentTheme = this.parentForm.get('theme').value;
     const currentReverse = this.parentForm.get('reverseTheme').value;
