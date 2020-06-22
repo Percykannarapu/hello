@@ -54,7 +54,7 @@ export enum OtherSourceTypes {
 export class TargetAudienceUnifiedService {
 
   public selectedAudiences$ = new BehaviorSubject<Audience[]>([]);
-  private audienceSourceTypes = ['combined', 'converted', 'combined/converted'];
+  private audienceSourceTypes = ['combined', 'converted', 'combined/converted', 'composite'];
 
   constructor(private config: AppConfig,
     private restService: RestDataService,
@@ -77,8 +77,8 @@ export class TargetAudienceUnifiedService {
             audienceName: projectVar.fieldname,
             audienceIdentifier: projectVar.varPk.toString(),
             audienceSourceType: projectVar.source.split('_')[0].toLowerCase() === 'combined' ? 'Combined' :
-              projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? 'Combined/Converted' :
-                projectVar.source.split('_')[0].toLocaleLowerCase() === 'composite' ? 'Composite' : 'Converted',
+                                projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? 'Combined/Converted' :
+                                projectVar.source.split('_')[0].toLocaleLowerCase() === 'composite' ? 'Composite' : 'Converted',
             audienceSourceName: 'TDA',
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
             showOnGrid: projectVar.isIncludedInGeoGrid,
@@ -90,12 +90,12 @@ export class TargetAudienceUnifiedService {
             requiresGeoPreCaching: true,
             seq: projectVar.sortOrder,
             isCombined: projectVar.source.split('_')[0].toLocaleLowerCase() === 'combined' ||
-              projectVar.source.split('_')[0].toLocaleLowerCase() === 'combined/converted' ? true : false,
+                        projectVar.source.split('_')[0].toLocaleLowerCase() === 'combined/converted' ? true : false,
             isComposite: projectVar.source.split('_')[0].toLocaleLowerCase() === 'composite' ? true : false,
             combinedAudiences: projectVar.source.split('_')[0].toLowerCase() === 'combined' || projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? groupedAudiences : [],
             combinedVariableNames: projectVar.customVarExprDisplay,
             compositeSource: projectVar.source.split('_')[0].toLowerCase() === 'converted' ||
-              projectVar.source.split('_')[0].toLowerCase() === 'composite' ? groupedAudiences : []
+                             projectVar.source.split('_')[0].toLowerCase() === 'composite' ? groupedAudiences : []
           };
           if (projectVar.source.toLowerCase().match('combined')) {
             this.audienceService.addAudience(audience, null, true);
