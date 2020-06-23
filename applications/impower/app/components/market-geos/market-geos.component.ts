@@ -90,9 +90,9 @@ export function statesValidator(control: AbstractControl) //: { [key: string] : 
       case 'COUNTY':
         valid = control.value != null ? control.value.length > 0 : false;
         break;
-      case 'STATE':
-        valid = control.value != null ? control.value.length <= 1 : false;
-        break;
+      // case 'STATE':
+      //   valid = control.value != null ? control.value.length <= 1 : false;
+      //   break;
     }
     if (valid) {
       marketValidator(control.parent.controls['market']);
