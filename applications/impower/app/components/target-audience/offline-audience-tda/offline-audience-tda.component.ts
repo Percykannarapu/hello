@@ -23,7 +23,7 @@ export class OfflineAudienceTdaComponent implements OnInit {
 
   public loading: boolean = true;
   public searchTerm$: Subject<string> = new Subject<string>();
-  private combineAudiences;
+  private createdAudiences;
   private allAudiences;
   public showDialog: boolean = false;
   public dialogboxWarningmsg: string = '';
@@ -92,9 +92,9 @@ export class OfflineAudienceTdaComponent implements OnInit {
 
     this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null),
-      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted')),
+      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Composite')),
     ).subscribe(audiences => {
-      this.combineAudiences =  Array.from(new Set(audiences));
+      this.createdAudiences =  Array.from(new Set(audiences));
     });
 
     this.stateService.clearUI$.subscribe(() => this.searchTerm$.next(''));
@@ -127,15 +127,18 @@ export class OfflineAudienceTdaComponent implements OnInit {
   }
 
   public removeVariable(event: TreeNode) : void {
-  const uncheckAudience = this.combineAudiences.filter(combineAud => (combineAud.combinedAudiences.includes(event.data.identifier) || 
-                                                      combineAud.compositeSource.includes(event.data.identifier)));
-    if (uncheckAudience.length > 0){
+   let isDependent: boolean = false;
+   isDependent = this.createdAudiences.filter(combineAud => combineAud.combinedAudiences.includes(event.data.identifier)).length > 0;
+   this.createdAudiences.forEach(aud => aud.compositeSource.forEach(a => {
+    if (a.id.toString() === event.data.identifier)
+      isDependent = true;
+    }));
+    if (isDependent){
       this.dialogboxHeader = 'Invalid Delete!';
-      this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted Audience can not be deleted.';
+      this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
       this.showDialog = true;
       this.selectVariable(event);
-    }
-    else{
+    } else {
     this.audienceService.removeAudience(event.data);
     }
   }
