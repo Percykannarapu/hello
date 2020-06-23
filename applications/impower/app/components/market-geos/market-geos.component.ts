@@ -380,7 +380,6 @@ export class MarketGeosComponent implements OnInit {
 //  this.logger.debug.log('formData: ', formData['market']);
     this.selectedMarket = formData['market'];
     this.selectedStates = formData['states'];
-//  this.query(formData['market']);
     this.populateContainerValues(formData['market']);
     this.onClickResetFilters();
     this.headerFilter = false;
@@ -487,10 +486,7 @@ export class MarketGeosComponent implements OnInit {
 
   onFilter(event: any)
   {
-    //console.log('onFilter fired - event: ' + event);
-    //if (event != null) {
-      this.syncHeaderFilter();
-    //}
+    this.syncHeaderFilter();
   }
 
   // When the market drop down changes values, clear everything out
@@ -502,7 +498,6 @@ export class MarketGeosComponent implements OnInit {
 
   // When the states multiselect changes values
   onStatesChange(event: any) {
- // marketValidator(this.marketGeosFormGroup.value['market']);
     this.marketGeosFormGroup.controls['market'].updateValueAndValidity();
   }
 

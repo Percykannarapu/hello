@@ -102,7 +102,7 @@ export class MarketLocationsComponent implements OnInit {
     try
     {
     this.logger.info.log('createLocations fired: marketCode: ' + marketCode);
-    //this.locationService.clearAll();
+    //this.locationService.clearAll();  // Enable to only allow one market type per project
     const ids: string[] = [];
     const centroidGeos: string[] = [];
     let numGeos = 0;
@@ -295,136 +295,11 @@ export class MarketLocationsComponent implements OnInit {
           }
           this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
         });
-
-/*
-    //const querySub = this.esriQueryService.queryAttributeIn(layerId, queryField, ids , true, ['geocode', queryField])
-    const querySub = this.esriQueryService.queryAttributeIn(layerId, 'geocode', centroidGeos , true, ['geocode', queryField])
-      .subscribe(graphics => {
-        this.logger.info.log('querySub fired - graphics.length: ' + graphics.length);
-        let index = 0;
-        let currGeos = 0;
-        locations = [];
-        //const spinnerBS$ = new BehaviorSubject<string>(`Creating locations for ${marketList.length} markets with ${numGeos} geos!`);
-        //this.store$.dispatch(new StartLiveIndicator({ key: this.busyKey, messageSource: spinnerBS$}));
-
-        marketList.forEach(market => {
-          if (this.impGeofootprintLocationService.get().filter(loc => loc.locationNumber === market.code).length === 0)
-          {
-          this.logger.info.log('index: ' + index + ', graphics.count: ' + graphics.length);
-          for (const graphic of graphics) {
-            //console.log('graphic:  geocode: ' + graphic.getAttribute('geocode') + ', ' + queryField + ': ' + graphic.getAttribute(queryField));
-            const currentCode: string = graphic.getAttribute(queryField).toString();
-this.logger.info.log('currentCode: ' + currentCode + ', marketCode: ' + market.code + ', marketId: ' + market.id);
-            this.logger.info.log('market: ' + market.code + ' data store count: ' + this.impGeofootprintLocationService.get().filter(loc => loc.locationNumber == market.code).length
-                              + ', locations count: ' + locations.filter(loc => loc.locationNumber == market.code).length);
-//          if (currentCode != null && currentCode.toLowerCase().includes(market.code.toLowerCase())) {
-            if (currentCode != null && ['WRAP', 'WRAP2'].includes(marketCode) ? currentCode.toLowerCase().includes(market.id.toString())
-                                                                              : currentCode.toLowerCase().includes(market.code.toLowerCase()) ) {
-              this.logger.info.log('Found market: ' + market.code + ' data store count: ' + this.impGeofootprintLocationService.get().filter(loc => loc.locationNumber == market.code).length);
-              // if (this.impGeofootprintLocationService.get().filter(loc => loc.locationNumber == market.code).length > 0)
-              // {
-              //   this.logger.warn.log('Location: ' + market.code + ' already exists');
-              //   break;
-              // }
-              const location: ImpGeofootprintLocation = new ImpGeofootprintLocation();
-              currGeos += market.geocodes.length;
-              index++;
-//              this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`}));
-              this.spinnerBS$.next(`Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`);
-              this.logger.info.log(`Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`);
-              location.xcoord = graphic.geometry['centroid'].x;
-              location.ycoord = graphic.geometry['centroid'].y;
-              location.locationNumber = market.id == null ? market.code : market.id.toString();
-              location.locationName = (market.id != null ? market.code + '-' : '') + market.name;
-              location.marketCode = market.code;
-              location.marketName = market.name;
-              location.impGeofootprintLocAttribs = new Array<ImpGeofootprintLocAttrib>();
-              location.clientLocationTypeCode = ImpClientLocationTypeCodes.Site;  // TODO: sites or competitors
-              location.isActive = true;
-              location.impProject = this.project;
-              location.homeGeocode = graphic.getAttribute('geocode');
-              switch (this.project.methAnalysis) {
-                case 'ZIP':
-                  location.homeZip = location.homeGeocode;
-                  break;
-                case 'ATZ':
-                  location.homeAtz = location.homeGeocode;
-                  break;
-                case 'PCR':
-                  location.homePcr = location.homeGeocode;
-                  break;
-              }
-            //  this.impGeofootprintLocationService.add([location]);
-              //const request: ValGeocodingRequest = new ValGeocodingRequest(location);
-              //requests.push(request);
-              //this.manuallyGeocode(request, ImpClientLocationTypeCodes.Site, false); // TODO: sites or competitors
-              //console.log('homegeocode: ' + location.homeGeocode);
-              this.createTradeArea(market, location);
-              //console.log('new location: ' + location.toString());
-              syncWait(5000);
-
-              locations.push(location);
-              //console.log('location: ' + location);
-              this.locationService.persistLocationsAndAttributes([location]);
-
-              // Found a match, so break out of the search loop
-              break;
-            }
-          }
-          // this.locationService.geocode(requests, ImpClientLocationTypeCodes.Site, false)
-          //   .subscribe(geocodedLocations => {
-          //     console.log('geocodedLocations: ' + geocodedLocations.length);
-          //     console.log(geocodedLocations);
-          //     geocodedLocations.forEach(loc => this.createTradeArea(market, loc));
-          //     this.impGeofootprintLocationService.add(geocodedLocations);
-          //   });
- // PB Maybe       this.locationService.persistLocationsAndAttributes(locations);
-        }
-        else
-          this.logger.info.log('A location for market: ' + market.code + ' already exists - count: ' + this.impGeofootprintLocationService.get().filter(loc => loc.locationNumber === market.code).length);
-        });
-        //this.createTradeAreas(dmaList);
-        //this.renderTradeAreas();
-      },
-      err => {
-        this.logger.error.log('There was an error querying the layer', err);
-        this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
-      },
-      () => {
-        //this.locationService.persistLocationsAndAttributes(locations);
-        this.logger.info.log('Market locations completed successfully');
-        this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
-        querySub.unsubscribe();
-      }); */
     }
     catch (exception)
     {
       this.reportError('Could not create market sites', '\t\t¯\\_(ツ)_/¯\nUNEXPECTED ERROR:\n' + exception, exception);
     }
-    /*  this.esriQueryService.queryAttributeIn(EnvironmentData.layerIds.dma.boundary, 'dma_code', Array.from(homeDMAs), false, ['dma_code', 'dma_name']).pipe(
-      filter(g => g != null)
-    ).subscribe(
-      graphics => {
-        graphics.forEach(g => {
-          dmaLookup[g.attributes.dma_code] = g.attributes.dma_name;
-        });
-      },
-      err => this.logger.error.log('There was an error querying the layer', err),
-      () => {
-        const dmaAttrsToAdd = [];
-        locations.forEach(l => {
-          const currentAttributes = attributesBySiteNumber.get(l.locationNumber);
-          if (currentAttributes != null) {
-            const dmaName = dmaLookup[currentAttributes['homeDma']];
-            if (dmaName != null) {
-              const newAttribute = this.domainFactory.createLocationAttribute(l, 'Home DMA Name', dmaName);
-              if (newAttribute != null) dmaAttrsToAdd.push(newAttribute);
-            }
-          }
-        });
-        this.impLocAttributeService.add(dmaAttrsToAdd);
-        this.impLocationService.makeDirty();
-      }); */
   }
 
   public onListTypeChange(data: 'Site' | 'Competitor') {
@@ -461,10 +336,8 @@ this.logger.info.log('currentCode: ' + currentCode + ', marketCode: ' + market.c
 
     market.geocodes.forEach(geocode => {
       const newGeo = this.factoryService.createGeo(newTA, geocode, null, null, 0);
-    //  newTA.impGeofootprintGeos.push(newGeo);
     });
     this.impGeofootprintGeoService.add(newTA.impGeofootprintGeos);
-   // this.tradeAreaService.insertTradeAreas([newTA]);
     loc.impGeofootprintTradeAreas.push(newTA);
     this.impGeofootprintTradeAreaService.add([newTA]);
   }
