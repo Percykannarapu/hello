@@ -305,6 +305,8 @@ export class MarketGeosComponent implements OnInit {
       container: this.selectedMarket,
       analysisLevel: this.appStateService.analysisLevel$.getValue()
     };
+    if (inputData.analysisLevel === 'Digital ATZ')
+      inputData.analysisLevel = 'DTZ';
     this.isFetchingGeos = true;
     this.restService.post(this.getGeosForContainerUrl, [inputData])
       .pipe(
