@@ -16,7 +16,7 @@
     </span>
     <span class="validation-messages">
       <span *ngIf="isDuplicateName">
-        Duplicate audience name, please rename your variable
+        Duplicate audience name, please rename your variable.
       </span>
     </span>
   </div>
@@ -58,6 +58,10 @@
         </div>
       </tfoot>
     </table>
+      <p style="color:red;" *ngIf="showError">
+        The sum of the weights should be 100, Please fix your values.
+      </p>
+    it
   </div>
 
   <div class="ui-g-4">
