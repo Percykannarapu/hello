@@ -32,6 +32,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   hasAudienceSelections: boolean = false;
   destroyed$ = new Subject<void>();
   selectedVars: SelectItem[];
+  showError: boolean = false;
   compositeAudiences$: Observable<Audience[]>;
   varNames: Map<string, string> = new Map<string, string>([]);
   audiences$: Observable<Audience[]>;
@@ -68,7 +69,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         this.allAudiences = aud;
         return aud.filter(a => (a.audienceSourceType === 'Offline' || a.audienceSourceType === 'Online' || a.audienceSourceType === 'Combined' ||
           a.audienceSourceType === 'Combined/Converted' || a.audienceSourceType === 'Converted' || a.audienceSourceType === 'Composite') &&
-          (a.fieldconte === 'PERCENT' || a.fieldconte === 'INDEX' || a.fieldconte === 'MEDIAN' || a.fieldconte === 'COUNT'));
+          (a.fieldconte === 'PERCENT' || a.fieldconte === 'INDEX' || a.fieldconte === 'MEDIAN'));
       }),
       tap(audiences => this.hasAudienceSelections = audiences.length > 0),
       map(audList => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
@@ -146,63 +147,78 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
 
   onSubmit(audienceFields: any) {
     const compositeAudIds: VarSpecs[] = [];
+    const weights: number[] = [];
+    let total: number;
     const selectedVariableNames: string[] = [];
     if (audienceFields.audienceRows.length > 0) {
       audienceFields.audienceRows.forEach(selectedRow => {
         this.indexTypes.add(selectedRow.indexBase);
+        weights.push(selectedRow.percent);
         selectedVariableNames.push(selectedRow.selectedAudienceList.audienceName + '-' + selectedRow.indexBase + '-' + selectedRow.percent);
         compositeAudIds.push({ id: Number(selectedRow.selectedAudienceList.audienceIdentifier), pct: Number(selectedRow.percent), base: selectedRow.indexBase });
       });
     }
-    if (audienceFields.compositeAudienceId == null || audienceFields.compositeAudienceId.length === 0) {
-      const fkId = this.impVarService.getNextStoreId();
-      const newAudience: Audience = {
-        audienceIdentifier: fkId.toString(),
-        audienceName: audienceFields.compositeAudName,
-        showOnMap: false,
-        showOnGrid: false,
-        exportInGeoFootprint: true,
-        exportNationally: false,
-        allowNationalExport: false,
-        selectedDataSet: this.indexTypes.size == 2 ? 'ALL' : Array.from(this.indexTypes)[0],
-        audienceSourceName: 'TDA',
-        audienceSourceType: 'Composite',
-        fieldconte: FieldContentTypeCodes.Index,
-        requiresGeoPreCaching: true,
-        seq: fkId,
-        isComposite: true,
-        combinedAudiences: [],
-        combinedVariableNames: selectedVariableNames.join('~'),
-        compositeSource: compositeAudIds,
-      };
-      this.varService.addAudience(newAudience);
+
+    if (weights.length > 0 ){
+      total = weights.reduce((p, c) => p + Number(c), 0);
+    } 
+
+    if (total === 100){
+      this.showError = false;
+      if (audienceFields.compositeAudienceId == null || audienceFields.compositeAudienceId.length === 0) {
+        const fkId = this.impVarService.getNextStoreId();
+        const newAudience: Audience = {
+          audienceIdentifier: fkId.toString(),
+          audienceName: audienceFields.compositeAudName,
+          showOnMap: false,
+          showOnGrid: false,
+          exportInGeoFootprint: true,
+          exportNationally: false,
+          allowNationalExport: false,
+          selectedDataSet: this.indexTypes.size == 2 ? 'ALL' : Array.from(this.indexTypes)[0],
+          audienceSourceName: 'TDA',
+          audienceSourceType: 'Composite',
+          fieldconte: FieldContentTypeCodes.Index,
+          requiresGeoPreCaching: true,
+          seq: fkId,
+          isComposite: true,
+          combinedAudiences: [],
+          combinedVariableNames: selectedVariableNames.join('~'),
+          compositeSource: compositeAudIds,
+        };
+        this.varService.addAudience(newAudience);
+      }
+      else {
+        this.currentAudience = this.allAudiences.filter(a => a.audienceIdentifier === audienceFields.compositeAudienceId);
+        const editedAudience: Audience = {
+          audienceIdentifier: audienceFields.compositeAudienceId,
+          audienceName: audienceFields.compositeAudName,
+          showOnMap: this.currentAudience[0].showOnMap,
+          showOnGrid: this.currentAudience[0].showOnGrid,
+          exportInGeoFootprint: this.currentAudience[0].exportInGeoFootprint,
+          exportNationally: this.currentAudience[0].exportNationally,
+          allowNationalExport: this.currentAudience[0].allowNationalExport,
+          selectedDataSet: this.indexTypes.size == 2 ? 'ALL' : Array.from(this.indexTypes)[0],
+          audienceSourceName: this.currentAudience[0].audienceSourceName,
+          audienceSourceType: this.currentAudience[0].audienceSourceType,
+          fieldconte: this.currentAudience[0].fieldconte,
+          requiresGeoPreCaching: this.currentAudience[0].requiresGeoPreCaching,
+          seq: this.currentAudience[0].seq,
+          isComposite: this.currentAudience[0].isComposite,
+          combinedAudiences: this.currentAudience[0].combinedAudiences,
+          combinedVariableNames: selectedVariableNames.join('~'),
+          compositeSource: compositeAudIds,
+        };
+        this.varService.updateProjectVars(editedAudience);
+
+      }
+      this.currentAudience = '';
+      this.indexTypes.clear();
+      this.compositeForm.reset();
+
+    } else {
+      this.showError = true;
     }
-    else {
-      this.currentAudience = this.allAudiences.filter(a => a.audienceIdentifier === audienceFields.compositeAudienceId);
-      const editedAudience: Audience = {
-        audienceIdentifier: audienceFields.compositeAudienceId,
-        audienceName: audienceFields.compositeAudName,
-        showOnMap: this.currentAudience[0].showOnMap,
-        showOnGrid: this.currentAudience[0].showOnGrid,
-        exportInGeoFootprint: this.currentAudience[0].exportInGeoFootprint,
-        exportNationally: this.currentAudience[0].exportNationally,
-        allowNationalExport: this.currentAudience[0].allowNationalExport,
-        selectedDataSet: this.indexTypes.size == 2 ? 'ALL' : Array.from(this.indexTypes)[0],
-        audienceSourceName: this.currentAudience[0].audienceSourceName,
-        audienceSourceType: this.currentAudience[0].audienceSourceType,
-        fieldconte: this.currentAudience[0].fieldconte,
-        requiresGeoPreCaching: this.currentAudience[0].requiresGeoPreCaching,
-        seq: this.currentAudience[0].seq,
-        isComposite: this.currentAudience[0].isComposite,
-        combinedAudiences: this.currentAudience[0].combinedAudiences,
-        combinedVariableNames: selectedVariableNames.join('~'),
-        compositeSource: compositeAudIds,
-      };
-      this.varService.updateProjectVars(editedAudience);
-    }
-    this.currentAudience = '';
-    this.indexTypes.clear();
-    this.compositeForm.reset();
   }
 
   addRow() {
