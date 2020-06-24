@@ -5,7 +5,7 @@ import { FormConfig, mapArray, distinctArray } from '@val/common';
 import { SelectItem, SortMeta } from 'primeng/api';
 import { ErrorNotification } from '@val/messaging';
 import { FullAppState } from '../../state/app.interfaces';
-import { resetNamedForm, updateNamedForm } from '../../state/forms/forms.actions';
+import { resetNamedForm } from '../../state/forms/forms.actions';
 import { MarketGeosForm  } from '../../state/forms/forms.interfaces';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
@@ -260,7 +260,8 @@ export class MarketGeosComponent implements OnInit {
 
     // Initialize the default sort order
     this.multiSortMeta = [];
-    this.multiSortMeta.push({field: 'col.code', order: 1});
+    this.multiSortMeta.push({field: 'name', order: 1});
+    this.multiSortMeta.push({field: 'code', order: -1});
   }
 
   resetFiltersAndSelections() {
@@ -419,7 +420,7 @@ export class MarketGeosComponent implements OnInit {
     }
     this.isFetchingData = true;
 
-    this.getContainerData(container).subscribe(values => this.containerValuesBS$.next(values),
+    this.getContainerData(container).subscribe(values => this.containerValuesBS$.next(values.sort((a, b) => this.defaultSort(a, b))),
       err => {
         this.isFetchingData = false;
         this.logger.error.log('There was an error retrieving the container (' + container + ') value data\n', err);
@@ -598,4 +599,35 @@ export class MarketGeosComponent implements OnInit {
     this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader, additionalErrorInfo: errorObject }));
   }
 
+  // ContainerValue sort method by name, code, id
+  public defaultSort (a: ContainerValue, b: ContainerValue) : number
+  {
+     if (a == null || b == null)
+        return 0;
+
+     if (a.name === b.name)
+     {
+        if (a.code === b.code)
+        {
+          if (a.id === b.id)
+            return 0;
+          else
+            if (a.id > b.id)
+              return -1;
+            else
+              return  1;
+        }
+        else {
+           if (a.code > b.code)
+              return 1;
+           else
+              return -1;
+        }
+     }
+     else
+        if (a.name > b.name)
+           return 1;
+        else
+           return -1;
+  }
 }

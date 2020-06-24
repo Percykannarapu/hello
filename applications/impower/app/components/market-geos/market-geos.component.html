@@ -86,14 +86,10 @@
           <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" class="val-toolbar-button" (click)="onFilterBySelection()"></button>
         </th>
         <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="overflow: visible">
-          <!-- <input *ngSwitchCase="'state'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}"> -->
-          <p-multiSelect #filterMs *ngSwitchCase="'state'" appendTo="body" [options]="uniqueState$ | async"        defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="containersGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-          <input *ngSwitchCase="'id'"    pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
-          <input *ngSwitchCase="'code'"  pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
-          <input *ngSwitchCase="'name'"  pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
-<!--      <val-table-filter-lov *ngSwitchCase="'locState'"             field="locState"             [source]="flatAllSites$ | async" (filterApplied)="containersGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
-          <val-table-filter-lov *ngSwitchCase="'locCity'"              field="locCity"              [source]="flatAllSites$ | async" (filterApplied)="containersGrid.filter($event, col.field, 'in'); onFilter();"></val-table-filter-lov>
--->
+          <p-multiSelect #filterMs *ngSwitchCase="'state'" appendTo="body" [options]="uniqueState$ | async" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="containersGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
+          <input *ngSwitchCase="'id'"   pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
+          <input *ngSwitchCase="'code'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
+          <input *ngSwitchCase="'name'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
           <input *ngSwitchDefault pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, 'contains')" [ngStyle]="{'width':'100%'}">
         </th>
       </tr>
@@ -104,11 +100,8 @@
         <td style="width: 30px; padding-left: 0.4em">
           <p-checkbox [(ngModel)]="container.isActive" binary="true" (click)="onSelectContainerValue(container)" pTooltip="{{getSelectionTooltip(container)}}" tooltipPosition="left"></p-checkbox>
         </td>
-        <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass"> <!-- [ngSwitch]="col.field"> -->
-          <!-- Display all other columns -->
-          <!-- div *ngSwitchDefault -->
-            {{container[col.field]}}
-          <!-- /div -->
+        <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass">
+          {{container[col.field]}}
         </td>
       </tr>
     </ng-template>
