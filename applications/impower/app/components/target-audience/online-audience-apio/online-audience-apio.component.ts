@@ -1,12 +1,15 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { TreeNode } from 'primeng/api';
 import { BehaviorSubject, combineLatest, Subject, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, filter } from 'rxjs/operators';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { OnlineAudienceDescription, OnlineSourceTypes, TargetAudienceOnlineService } from '../../../services/target-audience-online.service';
 import { TargetAudienceService } from '../../../services/target-audience.service';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { AppStateService } from 'app/services/app-state.service';
+import { Store } from '@ngrx/store';
+import { LocalAppState } from 'app/state/app.interfaces';
+import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 
 interface ApioTreeNode extends TreeNode {
   originalChildren?: ApioTreeNode[];
@@ -38,12 +41,17 @@ export class OnlineAudienceApioComponent implements OnInit {
 
   // these have to be exposed like this so they are available in the template
   public SourceType = OnlineSourceTypes;
+  private createdAudiences;
+  public showDialog: boolean = false;
+  public dialogboxWarningmsg: string = '';
+  public dialogboxHeader: string = '';
 
   constructor(private audienceService: TargetAudienceOnlineService,
-              private parentAudienceService: TargetAudienceService,
-              private cd: ChangeDetectorRef,
-              private appStateService: AppStateService,
-              private logger: LoggingService) {
+    private parentAudienceService: TargetAudienceService,
+    private cd: ChangeDetectorRef,
+    private appStateService: AppStateService,
+    private logger: LoggingService,
+    private store$: Store<LocalAppState>) {
     this.selectedNodeMapInMarket.set(OnlineSourceTypes.InMarket, []);
     this.selectedNodeMapInterest.set(OnlineSourceTypes.Interest, []);
     this.currentSelectedNodesInterest = this.selectedNodeMapInterest.get(this.selectedSource);
@@ -158,8 +166,16 @@ export class OnlineAudienceApioComponent implements OnInit {
       map(audiences => audiences.filter(a => a.audienceSourceType === 'Online' && (a.audienceSourceName === OnlineSourceTypes.Interest || a.audienceSourceName === OnlineSourceTypes.InMarket)))
     ).subscribe(audiences => this.selectNodes(audiences, true));
 
-    this.appStateService.clearUI$.subscribe(( ) => {
-      this.selectedSource =  OnlineSourceTypes.Interest;
+
+    this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
+      filter(allAudiences => allAudiences != null),
+      map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Composite')),
+    ).subscribe(audiences => {
+      this.createdAudiences = Array.from(new Set(audiences));
+    });
+
+    this.appStateService.clearUI$.subscribe(() => {
+      this.selectedSource = OnlineSourceTypes.Interest;
       this.includeFolder$.next(false); //new BehaviorSubject<boolean>(false);
       this.searchTerm$.next(''); //= new Subject<string>();
     });
@@ -176,14 +192,38 @@ export class OnlineAudienceApioComponent implements OnInit {
   }
 
   public removeVariable(event: ApioTreeNode) : void {
-    if (this.selectedSource == 'Interest') {
-      const indexToRemove = this.currentSelectedNodesInterest.indexOf(event);
-      this.currentSelectedNodesInterest.splice(indexToRemove, 1);
-    } else if (this.selectedSource == 'In-Market') {
-      const indexToRemove = this.currentSelectedNodesInMarket.indexOf(event);
-      this.currentSelectedNodesInMarket.splice(indexToRemove, 1);
+    let isDependent: boolean = false;
+    if (this.selectedSource === 'Interest') {
+      this.createdAudiences.forEach(aud => aud.compositeSource.forEach(a => {
+        if (a.id === event.data.digLookup.get('interest'))
+          isDependent = true;
+      }));
+      if (isDependent) {
+        this.dialogboxHeader = 'Invalid Delete!';
+        this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
+        this.showDialog = true;
+        this.selectVariable(event, 'Interest');
+      } else {
+        const indexToRemove = this.currentSelectedNodesInterest.indexOf(event);
+        this.currentSelectedNodesInterest.splice(indexToRemove, 1);
+        this.audienceService.removeAudience(event.data, this.selectedSource);
+      }
+    } else if (this.selectedSource === 'In-Market') {
+      this.createdAudiences.forEach(aud => aud.compositeSource.forEach(a => {
+        if (a.id === event.data.digLookup.get('in_market'))
+          isDependent = true;
+      }));
+      if (isDependent) {
+        this.dialogboxHeader = 'Invalid Delete!';
+        this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
+        this.showDialog = true;
+        this.selectVariable(event, 'In-Market');
+      } else {
+        const indexToRemove = this.currentSelectedNodesInterest.indexOf(event);
+        this.currentSelectedNodesInterest.splice(indexToRemove, 1);
+        this.audienceService.removeAudience(event.data, this.selectedSource);
+      }
     }
-    this.audienceService.removeAudience(event.data, this.selectedSource);
   }
 
   public onSourceChanged(source: OnlineSourceTypes) {
@@ -251,5 +291,9 @@ export class OnlineAudienceApioComponent implements OnInit {
     this.currentSelectedNodesInterest = [];
     this.currentSelectedNodesInMarket = [];
     this.cd.markForCheck();
+  }
+
+  public closeDialog() {
+    this.showDialog = false;
   }
 }
