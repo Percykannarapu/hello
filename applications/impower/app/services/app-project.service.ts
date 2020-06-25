@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
+import { isValidNumber } from '@val/common';
+import { Observable, of, throwError } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs/operators';
 import { RestResponse } from '../models/RestResponse';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -48,8 +49,8 @@ export class AppProjectService {
     if (projectToSave == null) return of(null as number);
     this.cleanupProject(projectToSave);
     return this.saveImpl(projectToSave).pipe(
-      tap(response => this.logger.debug.log('Decompressed response: ', response)),
-      map(response => Number(response.payload))
+      map(response => Number(response.payload)),
+      switchMap(id => isValidNumber(id) ? of(id) : throwError('There was an error saving the project'))
     );
   }
 

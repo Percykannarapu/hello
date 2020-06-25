@@ -36,7 +36,7 @@ export function isNumber(value: any) : value is number {
 }
 
 export function isValidNumber(value: any) : value is number {
-  return isNumber(value) && !isNaN(value);
+  return isNumber(value) && !isNaN(value); // isNumber will fail on null, isNaN fails on undefined
 }
 
 export function isString(value: any) : value is string {
