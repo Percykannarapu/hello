@@ -31,7 +31,7 @@
            class="{{tableWrapStyle}}"
            [columns]="containerGridColumns"
            [value]="containerValues$ | async"
-           [selection]="selectedValues$ | async"
+           [selection]="containerValuesSelected$ | async"
            [resizableColumns]="true" columnResizeMode="expand"
            [reorderableColumns]="false"
            sortMode="multiple" [multiSortMeta]="multiSortMeta"
@@ -57,7 +57,7 @@
           </div>
         </div>
         <div class="ui-g-4 ui-g-nopad grid-caption-center-group">
-          <label pTooltip="Selected {{activeSiteCount$ | async}} / {{allSiteCount$ | async}} sites" tooltipPosition="top">Market Values</label>
+          <label pTooltip="Selected {{activeContainerValuesCount$ | async}} / {{allContainerValuesCount$ | async}} market values" tooltipPosition="top">Market Values</label>
         </div>
         <div class="ui-g-4 ui-g-nopad grid-caption-right-group" align="right">
           <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" dropdownIcon="fa fa-caret-down"></p-multiSelect>

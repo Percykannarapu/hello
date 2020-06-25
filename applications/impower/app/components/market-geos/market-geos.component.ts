@@ -134,6 +134,9 @@ export class MarketGeosComponent implements OnInit {
   public  uniqueState$: Observable<SelectItem[]>;
   public  uniqueMarket$: Observable<SelectItem[]>;
 
+  public allContainerValuesCount$: Observable<number>;
+  public activeContainerValuesCount$: Observable<number>;
+
   // Track unique values for text variables for filtering
   public  uniqueTextVals: Map<string, SelectItem[]> = new Map();
 
@@ -231,7 +234,8 @@ export class MarketGeosComponent implements OnInit {
     this.containerValuesSelected$ = this.containerValues$.pipe(
       map((AllValues) => AllValues.filter(value => value != null && value.isActive)),
       tap(selectedValues => {
-         this.logger.debug.log('Setting containerValuesSelected$ - count: ' + (selectedValues == null ? 'null' : selectedValues.length));
+        this.setCounts();
+        this.logger.debug.log('Setting containerValuesSelected$ - count: ' + (selectedValues == null ? 'null' : selectedValues.length));
       }));
 
     // Enables the creation of locations when values are selected
@@ -629,5 +633,10 @@ export class MarketGeosComponent implements OnInit {
            return 1;
         else
            return -1;
+  }
+
+  private setCounts() {
+    this.allContainerValuesCount$ = this.containerValues$.pipe(map(s => s.length));
+    this.activeContainerValuesCount$ = this.containerValuesSelected$.pipe(map(s => s.length));
   }
 }
