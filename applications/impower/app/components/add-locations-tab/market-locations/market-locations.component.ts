@@ -1,29 +1,30 @@
-import { BehaviorSubject } from 'rxjs';
-import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Component, OnInit } from '@angular/core';
-import { EsriQueryService } from '../../../../../../modules/esri/src/services/esri-query.service';
-import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
+import { Store } from '@ngrx/store';
+import { AppConfig } from 'app/app.config';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
+import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
+import { AppGeocodingService } from 'app/services/app-geocoding.service';
 import { AppLocationService } from 'app/services/app-location.service';
+import { AppLoggingService } from 'app/services/app-logging.service';
 import { AppProjectService } from 'app/services/app-project.service';
 import { AppRendererService } from 'app/services/app-renderer.service';
-import { AppConfig } from 'app/app.config';
-import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
-import { ShadingDefinition, ConfigurationTypes } from '../../../../../../modules/esri/src/models/shading-configuration';
-import { getUuid } from '../../../../../../modules/common/src/utils';
-import { ImpGeofootprintLocAttrib } from 'app/val-modules/targeting/models/ImpGeofootprintLocAttrib';
-import { ImpClientLocationTypeCodes, TradeAreaTypeCodes, SuccessfulLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
-import { ImpProject } from 'app/val-modules/targeting/models/ImpProject';
 import { AppStateService } from 'app/services/app-state.service';
-import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
-import { ErrorNotification, WarningNotification } from '../../../../../../modules/messaging/state/messaging.actions';
-import { AppGeocodingService } from 'app/services/app-geocoding.service';
-import { Store } from '@ngrx/store';
 import { FullAppState } from 'app/state/app.interfaces';
 import { Geocode } from 'app/state/homeGeocode/homeGeo.actions';
-import { AppLoggingService } from 'app/services/app-logging.service';
+import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintLocAttrib } from 'app/val-modules/targeting/models/ImpGeofootprintLocAttrib';
+import { ImpProject } from 'app/val-modules/targeting/models/ImpProject';
+import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { BehaviorSubject } from 'rxjs';
+import { getUuid } from '../../../../../../modules/common/src/utils';
+import { ConfigurationTypes, ShadingDefinition } from '../../../../../../modules/esri/src/models/shading-configuration';
+import { EsriQueryService } from '../../../../../../modules/esri/src/services/esri-query.service';
 import { StartLiveIndicator, StopLiveIndicator } from '../../../../../../modules/messaging/state/busyIndicator/busy.state';
+import { ErrorNotification, WarningNotification } from '../../../../../../modules/messaging/state/messaging.actions';
+import { DAOBaseStatus } from '../../../val-modules/api/models/BaseModel';
 
 class ContainerValue {  //TODO: put in common location
   id:       number;
@@ -185,22 +186,22 @@ export class MarketLocationsComponent implements OnInit {
     }
 
     this.logger.debug.log('queryField: ' + queryField + ', centroidGeos: ' + centroidGeos);
-    const geoSub = this.esriQueryService.queryAttributeIn(layerId, 'geocode', centroidGeos , true, ['geocode', queryField])
-      .subscribe(graphics => {
-        this.logger.debug.log('geoSub fired - graphics.length: ' + graphics.length);
-        for (const graphic of graphics) {
-          const currentCode: string = graphic.getAttribute(queryField);
-          this.logger.debug.log('geoSub - currentCode: ' + currentCode + ', geocode: ' + graphic.getAttribute('geocode') + ', x: ' + graphic.geometry['centroid'].x + ', y: ' + graphic.geometry['centroid'].y);
-        }
-      },
-      err => {
-        this.logger.error.log('geoSub - There was an error querying the layer', err);
-        geoSub.unsubscribe();
-      },
-      () => {
-        this.logger.debug.log('geoSub - Market locations completed successfully');
-        geoSub.unsubscribe();
-      });
+    // const geoSub = this.esriQueryService.queryAttributeIn(layerId, 'geocode', centroidGeos , true, ['geocode', queryField])
+    //   .subscribe(graphics => {
+    //     this.logger.debug.log('geoSub fired - graphics.length: ' + graphics.length);
+    //     for (const graphic of graphics) {
+    //       const currentCode: string = graphic.getAttribute(queryField);
+    //       this.logger.debug.log('geoSub - currentCode: ' + currentCode + ', geocode: ' + graphic.getAttribute('geocode') + ', x: ' + graphic.geometry['centroid'].x + ', y: ' + graphic.geometry['centroid'].y);
+    //     }
+    //   },
+    //   err => {
+    //     this.logger.error.log('geoSub - There was an error querying the layer', err);
+    //     geoSub.unsubscribe();
+    //   },
+    //   () => {
+    //     this.logger.debug.log('geoSub - Market locations completed successfully');
+    //     geoSub.unsubscribe();
+    //   });
 
     //this.store$.dispatch(new StartBusyIndicator({ key: this.busyKey, message: `Creating locations for ${marketList.length} markets with ${numGeos} geos`}));
     this.logger.debug.log('Starting location creation, queryField: ' + queryField);
@@ -252,6 +253,7 @@ export class MarketLocationsComponent implements OnInit {
               this.spinnerBS$.next(`Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`);
               this.logger.info.log(`Creating location ${market.code} ${index}/${marketList.length} - ${currGeos}/${numGeos} geos`);
               const location: ImpGeofootprintLocation = new ImpGeofootprintLocation();
+              location.baseStatus = DAOBaseStatus.INSERT;
               location.xcoord = marketInfo[marketIdx].xcoord;
               location.ycoord = marketInfo[marketIdx].ycoord;
               location.locationNumber = market.id == null ? market.code : market.id.toString();
@@ -260,6 +262,9 @@ export class MarketLocationsComponent implements OnInit {
               location.marketName = market.name;
               location.impGeofootprintLocAttribs = new Array<ImpGeofootprintLocAttrib>();
               location.clientLocationTypeCode = this.locationType;
+              // Mandatory fields for saving
+              location.clientIdentifierId = 123;
+              location.recordStatusCode = 'PROVIDED';
               location.isActive = true;
               location.impProject = this.project;
               location.homeGeocode = marketInfo[marketIdx].homegeo;
@@ -338,7 +343,6 @@ export class MarketLocationsComponent implements OnInit {
       const newGeo = this.factoryService.createGeo(newTA, geocode, null, null, 0);
     });
     this.impGeofootprintGeoService.add(newTA.impGeofootprintGeos);
-    loc.impGeofootprintTradeAreas.push(newTA);
     this.impGeofootprintTradeAreaService.add([newTA]);
   }
 
