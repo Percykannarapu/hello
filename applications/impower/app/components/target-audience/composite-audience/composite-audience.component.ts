@@ -5,7 +5,7 @@ import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import { SelectItem, ConfirmationService } from 'primeng/api';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { filter, map, tap, takeUntil } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
+import { Store, select } from '@ngrx/store';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { getAllAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
@@ -238,9 +238,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   }
 
   onDelete(audience: Audience) {
-    console.log('inside delete');
-    const message = 'Are you sure you want to delete the following composite variable? <br/> <br/>' +
-      `${audience.audienceName}`;
+    const message = 'Are you sure you want to delete the following composite variable? <br/> <br/>' + `${audience.audienceName}`;
     this.confirmationService.confirm({
       message: message,
       header: 'Delete Composite Variable',
@@ -265,18 +263,18 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   }
 
   onEdit(selectedAudience: Audience) {
-    const currentSelections: Audience[] = [];
     let currentRows: any = [];
     if (selectedAudience.compositeSource.length > 0) {
       selectedAudience.compositeSource.forEach(audience => {
         this.allAudiences.forEach(current => {
-          if (current != null && current.audienceIdentifier === audience.id.toString())
-            currentSelections.push(current);
-          currentRows.push({
-            selectedAudienceList: current,
-            indexBase: selectedAudience.selectedDataSet,
-            percent: audience.pct
-          });
+
+          if (current != null && current.audienceIdentifier === audience.id.toString()){
+            currentRows.push({
+              selectedAudienceList: current,
+              indexBase: selectedAudience.selectedDataSet,
+              percent: audience.pct
+            });
+          }
         });
       });
     }
@@ -286,7 +284,6 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       audienceRows: currentRows,
     });
     currentRows = [];
-
   }
 
 }

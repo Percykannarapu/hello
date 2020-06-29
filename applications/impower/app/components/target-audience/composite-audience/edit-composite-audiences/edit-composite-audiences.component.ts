@@ -24,11 +24,11 @@ export class EditCompositeAudiencesComponent implements OnInit {
     ];
   }
 
-  onEditAudiences(currentAudience: Audience){
+  onEditAudience(currentAudience: Audience){
     this.onEdit.emit(currentAudience);
 
   }
-  onDeleteAudiences(currentAudience: Audience){
+  onDeleteAudience(currentAudience: Audience){
     this.onDelete.emit(currentAudience);
   }
   
