@@ -40,5 +40,18 @@
 <div *ngIf="hasAudienceSelections" class="ui-g-8">
     <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
 </div> 
+<p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="true" [responsive]="true" appendTo="body" [style]="{ width: '710px' }">
+    <div>
+      <span>
+          {{dialogboxWarningmsg}}
+      </span>
+    </div>
+
+    <p-footer>
+      <div class="sa-footer-container">
+          <button type="button" (click)="closeDialog()" pButton label="OK"></button>
+      </div>
+  </p-footer>
+ </p-dialog>
 </div>
 </form>

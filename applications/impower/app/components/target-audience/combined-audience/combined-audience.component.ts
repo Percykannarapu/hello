@@ -27,6 +27,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
   allIndexValues: SelectItem[];
   groupedAudiences$: Observable<SelectItem[]>;
   combinedAudiences$: Observable<Audience[]>;
+  dependentVars: Audience[];
   hasAudienceSelections: boolean = false;
   allAudiences: Audience[];
   currentAudience: any;
@@ -35,6 +36,9 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
   varNames: Map<string, string> = new Map<string, string>([]);
   destroyed$ = new Subject<void>();
   audienceTypes: Set<string> = new Set<string>([]);
+  public showDialog: boolean = false;
+  public dialogboxWarningmsg: string = '';
+  public dialogboxHeader: string = '';
 
   get audienceId() { return this.audienceForm.get('audienceId'); }
   get selectedIndex() { return this.audienceForm.get('selectedIndex'); }
@@ -71,6 +75,11 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted')),
       tap(a => a.forEach(aud => this.varNames.set(aud.audienceName.toLowerCase(), aud.audienceIdentifier)))
     );
+
+    this.store$.select(getAllAudiences).pipe(
+      filter(audiences => audiences != null),
+      map(allVars => allVars.filter(aud => aud.audienceSourceType === 'Composite')),
+    ).subscribe(audiences => this.dependentVars = audiences);
 
     this.audienceForm = this.fb.group({
       audienceId: '',
@@ -217,23 +226,38 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
   onDelete(audience: Audience) {
     const message = 'Are you sure you want to delete the following combined variable? <br/> <br/>' +
       `${audience.audienceName}`;
-    this.confirmationService.confirm({
-      message: message,
-      header: 'Delete Combined Variable',
-      icon: 'ui-icon-delete',
-      accept: () => {
-        this.varNames.delete(audience.audienceName);
-        this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-        this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
-        this.store$.dispatch(new RemoveVar({ varPk: audience.audienceIdentifier }));
+      let isDependent: boolean = false;
+      this.dependentVars.map((aud: Audience) => aud.compositeSource.forEach(a => {
+        if (a.id.toString() === audience.audienceIdentifier)
+            isDependent = true;
+      }));
+      if (isDependent){
+          this.dialogboxHeader = 'Invalid Delete!';
+          this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
+          this.showDialog = true;
+        } else{
+          this.confirmationService.confirm({
+            message: message,
+            header: 'Delete Combined Variable',
+            icon: 'ui-icon-delete',
+            accept: () => {
+              this.varNames.delete(audience.audienceName);
+              this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+              this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
+              this.store$.dispatch(new RemoveVar({ varPk: audience.audienceIdentifier }));
+      
+              let metricText = null;
+              metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
+              this.store$.dispatch(new CreateAudienceUsageMetric('combined audience', 'delete', metricText));
+              this.audienceForm.reset();
+            },
+            reject: () => { }
+          });
+        }
+  }
 
-        let metricText = null;
-        metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}`;
-        this.store$.dispatch(new CreateAudienceUsageMetric('combined audience', 'delete', metricText));
-        this.audienceForm.reset();
-      },
-      reject: () => { }
-    });
+  public closeDialog(){
+    this.showDialog = false;
   }
 
   isDisabled() : boolean{

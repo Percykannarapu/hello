@@ -176,7 +176,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
           exportNationally: false,
           allowNationalExport: false,
           selectedDataSet: this.indexTypes.size == 2 ? 'ALL' : Array.from(this.indexTypes)[0],
-          audienceSourceName: 'TDA',
+          audienceSourceName: '',
           audienceSourceType: 'Composite',
           fieldconte: FieldContentTypeCodes.Index,
           requiresGeoPreCaching: true,
