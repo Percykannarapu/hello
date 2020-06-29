@@ -70,7 +70,7 @@ export class TransientService {
         case 'Converted/TDA':
           actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'composite', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
           break;
-        case 'Composite':
+        case 'Composite/':
             actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'composite', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
             break;
         default:
