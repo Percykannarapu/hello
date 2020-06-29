@@ -97,7 +97,10 @@ export class OfflineAudienceTdaComponent implements OnInit {
       this.createdAudiences =  Array.from(new Set(audiences));
     });
 
-    this.stateService.clearUI$.subscribe(() => this.searchTerm$.next(''));
+    this.stateService.clearUI$.subscribe(() => {
+      this.searchTerm$.next('');
+      this.currentNodes.forEach(node => node.expanded = false);
+    });
   }
 
   private filterNodes(term: string) {
