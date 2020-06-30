@@ -90,7 +90,7 @@ export class ImpDomainFactoryService {
     if (parent == null) throw new Error('Project Var factory requires a valid Project instance');
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
     const isCustom = audience.audienceSourceType === 'Custom';
-    const source =   audience.audienceSourceType.toLowerCase() === 'composite' ? 'composite' : audience.audienceSourceType + '_' + audience.audienceSourceName;
+    const source =   audience.audienceSourceType.toLowerCase() === 'composite' ? 'Composite_TDA' : audience.audienceSourceType + '_' + audience.audienceSourceName;
 
     let existingVar;
 
@@ -121,10 +121,10 @@ export class ImpDomainFactoryService {
       projectVar.isActive = true;
       projectVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       projectVar.sortOrder = audience.seq; // audience.audienceCounter;
-      projectVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || source.toUpperCase() === 'COMPOSITE') 
+      projectVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || source.toUpperCase() === 'COMPOSITE_TDA') 
                                          ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
       projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : ((source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || 
-                                       source.toUpperCase() === 'COMPOSITE') ?
+                                       source.toUpperCase() === 'COMPOSITE_TDA') ?
                                       (audience.combinedAudiences.length > 0 ? JSON.stringify(audience.combinedAudiences) : audience.compositeSource.length > 0 ? JSON.stringify(audience.compositeSource) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
        projectVar.impProject = parent;
       parent.impProjectVars.push(projectVar);
@@ -146,10 +146,10 @@ export class ImpDomainFactoryService {
       existingVar.isActive = true;
       existingVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
       existingVar.sortOrder = audience.seq; // audience.audienceCounter;
-      existingVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || source.toUpperCase() === 'COMPOSITE') 
+      existingVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || source.toUpperCase() === 'COMPOSITE_TDA') 
                                          ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
       existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' ||
-                                        source.toUpperCase() === 'COMPOSITE') ?
+                                        source.toUpperCase() === 'COMPOSITE_TDA') ?
                                         (audience.combinedAudiences.length > 0 ? JSON.stringify(audience.combinedAudiences) :  audience.compositeSource.length > 0 ? JSON.stringify(audience.compositeSource) : '' ) : 'Online' + `/${audience.audienceSourceName}/${varPk}`);
       existingVar.impProject = parent;
       if (existingVar.baseStatus === DAOBaseStatus.UNCHANGED) existingVar.baseStatus = DAOBaseStatus.UPDATE;

@@ -70,15 +70,15 @@ export class TargetAudienceUnifiedService {
   public rehydrateAudience() {
     try {
       const project = this.stateService.currentProject$.getValue();
-      if (project && project.impProjectVars.filter(v => this.audienceSourceTypes.includes( v.source.toLowerCase() || v.source.split('_')[0].toLowerCase()))) {
-        for (const projectVar of project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.toLowerCase() || v.source.split('_')[0].toLowerCase()))) {
+      if (project && project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.split('_')[0].toLowerCase()))) {
+        for (const projectVar of project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.split('_')[0].toLowerCase()))) {
           const groupedAudiences = JSON.parse(projectVar.customVarExprQuery);
           const audience: AudienceDataDefinition = {
             audienceName: projectVar.fieldname,
             audienceIdentifier: projectVar.varPk.toString(),
             audienceSourceType: projectVar.source.split('_')[0].toLowerCase() === 'combined' ? 'Combined' :
                                 projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? 'Combined/Converted' :
-                                projectVar.source.split('_')[0].toLocaleLowerCase() === 'composite' ? 'Composite' : 'Converted',
+                                projectVar.source.split('_')[0].toLowerCase() === 'composite' ? 'Composite' : 'Converted',
             audienceSourceName: 'TDA',
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
             showOnGrid: projectVar.isIncludedInGeoGrid,
@@ -89,9 +89,9 @@ export class TargetAudienceUnifiedService {
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
             requiresGeoPreCaching: true,
             seq: projectVar.sortOrder,
-            isCombined: projectVar.source.split('_')[0].toLocaleLowerCase() === 'combined' ||
-                        projectVar.source.split('_')[0].toLocaleLowerCase() === 'combined/converted' ? true : false,
-            isComposite: projectVar.source.split('_')[0].toLocaleLowerCase() === 'composite' ? true : false,
+            isCombined: projectVar.source.split('_')[0].toLowerCase() === 'combined' ||
+                        projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? true : false,
+            isComposite: projectVar.source.split('_')[0].toLowerCase() === 'composite' ? true : false,
             combinedAudiences: projectVar.source.split('_')[0].toLowerCase() === 'combined' || projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? groupedAudiences : [],
             combinedVariableNames: projectVar.customVarExprDisplay,
             compositeSource: projectVar.source.split('_')[0].toLowerCase() === 'converted' ||
