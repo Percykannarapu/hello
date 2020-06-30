@@ -70,8 +70,8 @@ export class TargetAudienceUnifiedService {
   public rehydrateAudience() {
     try {
       const project = this.stateService.currentProject$.getValue();
-      if (project && project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.split('_')[0].toLowerCase()))) {
-        for (const projectVar of project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.split('_')[0].toLowerCase()))) {
+      if (project && project.impProjectVars.filter(v => this.audienceSourceTypes.includes( v.source.toLowerCase() || v.source.split('_')[0].toLowerCase()))) {
+        for (const projectVar of project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.toLowerCase() || v.source.split('_')[0].toLowerCase()))) {
           const groupedAudiences = JSON.parse(projectVar.customVarExprQuery);
           const audience: AudienceDataDefinition = {
             audienceName: projectVar.fieldname,
@@ -152,6 +152,8 @@ export class TargetAudienceUnifiedService {
               if (dependentVar.combinedAudiences != null && dependentVar.combinedAudiences.length > 0) {
                 dependentVar.combinedAudiences.forEach(aud => {
                   requiredVars.push(this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === aud));
+                  if(!identifiers.includes(dependentVar.audienceIdentifier))
+                      identifiers.push(dependentVar.audienceIdentifier);
                 });
               }
               if (dependentVar.compositeSource != null && dependentVar.compositeSource.length > 0) {
@@ -204,7 +206,6 @@ export class TargetAudienceUnifiedService {
       return this.restService.post(serviceURL, [inputData])
         .pipe(
           map(response => this.validateFuseResponse(response, identifiers.sort(CommonSort.StringsAsNumbers), isForShading)),
-          tap(response => (response)),
           catchError(() => {
             this.logger.error.log('Error posting to', serviceURL, 'with payload:');
             this.logger.error.log('payload:', inputData);
