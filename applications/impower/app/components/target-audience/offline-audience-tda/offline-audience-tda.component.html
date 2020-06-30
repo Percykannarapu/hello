@@ -1,5 +1,5 @@
 <div class="ui-g val-audience-wrapper">
-  <div class="ui-g-12">
+  <div class="ui-g-12"  #dialogParent>
     <div class="ui-inputgroup">
       <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
       <span class="md-inputfield">
@@ -11,10 +11,10 @@
   <div class="ui-g-12 val-audience-tree">
     <p-tree loadingIcon="fa fa-circle-o-notch fa-spin fa-3x fa-fw" [loading]="loading"
             [value]="currentNodes" selectionMode="checkbox"
-            [(selection)]="selectedVariables" (onNodeSelect)="selectVariable($event.node)"
+            [selection]="selectedVariables" (onNodeSelect)="selectVariable($event.node)"
             (onNodeUnselect)="removeVariable($event.node)"></p-tree>
   </div>
-  <p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="true" [responsive]="true" appendTo="body" [style]="{ width: '710px' }">
+  <p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" [responsive]="true" [appendTo]="dialogParent" styleClass="offline-audience-dialog">
     <div>
       <span>
           {{dialogboxWarningmsg}}

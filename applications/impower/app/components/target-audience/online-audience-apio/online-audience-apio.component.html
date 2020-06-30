@@ -11,7 +11,7 @@
       <p-checkbox  [ngModel]="includeFolder$ | async" binary="true" (onChange)="includeFolder$.next($event)" label="Include folder in search"></p-checkbox>
     </div>
   </div>
-  <div class="ui-g-12 search-source">
+  <div class="ui-g-12 search-source" #dialogParent>
     <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="Interest (rolling 12 months)" [value]="SourceType.Interest" (onClick)="onSourceChanged(SourceType.Interest)"></p-radioButton>
     <p-radioButton name="sourceType" [(ngModel)]="selectedSource" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
   </div>
@@ -30,7 +30,7 @@
           (onNodeUnselect)="removeVariable($event.node)"></p-tree>
   </div>
 
-  <p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="true" [responsive]="true" appendTo="body" [style]="{ width: '710px' }">
+  <p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" [responsive]="true" [appendTo]="dialogParent" styleClass= "online-audience-dialog">
     <div>
       <span>
           {{dialogboxWarningmsg}}

@@ -202,7 +202,8 @@ export class OnlineAudienceApioComponent implements OnInit {
         this.dialogboxHeader = 'Invalid Delete!';
         this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
         this.showDialog = true;
-        this.selectVariable(event, 'Interest');
+        this.currentSelectedNodesInterest = Array.from(this.currentSelectedNodesInterest);
+        this.cd.markForCheck();
       } else {
         const indexToRemove = this.currentSelectedNodesInterest.indexOf(event);
         this.currentSelectedNodesInterest.splice(indexToRemove, 1);
@@ -217,7 +218,8 @@ export class OnlineAudienceApioComponent implements OnInit {
         this.dialogboxHeader = 'Invalid Delete!';
         this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
         this.showDialog = true;
-        this.selectVariable(event, 'In-Market');
+        this.currentSelectedNodesInMarket = Array.from(this.currentSelectedNodesInMarket);
+        this.cd.markForCheck();
       } else {
         const indexToRemove = this.currentSelectedNodesInterest.indexOf(event);
         this.currentSelectedNodesInterest.splice(indexToRemove, 1);

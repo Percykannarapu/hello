@@ -40,7 +40,11 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   currentAudience: any;
   allAudiences: Audience[];
   indexTypes: Set<string> = new Set<string>([]);
+  dependentVars: Audience[];
 
+  public showDialog: boolean = false;
+  public dialogboxWarningmsg: string = '';
+  public dialogboxHeader: string = '';
 
   get audienceRows() : FormArray { return this.compositeForm.get('audienceRows') as FormArray; }
   get compositeAudienceId() { return this.compositeForm.get('compositeAudienceId'); }
@@ -78,6 +82,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     this.compositeAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Composite')),
+      tap(filteredVars => this.dependentVars = filteredVars )
     );
 
     this.compositeAudiences$.subscribe(a => a.forEach(aud => this.varNames.set(aud.audienceName.toLowerCase(), aud.audienceIdentifier)));
@@ -239,6 +244,16 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
 
   onDelete(audience: Audience) {
     const message = 'Are you sure you want to delete the following composite variable? <br/> <br/>' + `${audience.audienceName}`;
+    let isDependent: boolean = false;
+      this.dependentVars.map((aud: Audience) => aud.compositeSource.forEach(a => {
+        if (a.id.toString() === audience.audienceIdentifier)
+            isDependent = true;
+      }));
+      if (isDependent){
+          this.dialogboxHeader = 'Invalid Delete!';
+          this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
+          this.showDialog = true;
+        } else{
     this.confirmationService.confirm({
       message: message,
       header: 'Delete Composite Variable',
@@ -257,9 +272,14 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       reject: () => { }
     });
   }
+  }
 
   resetForm() {
     this.compositeForm.reset();
+  }
+
+  closeDialog(){
+    this.showDialog = false;
   }
 
   onEdit(selectedAudience: Audience) {

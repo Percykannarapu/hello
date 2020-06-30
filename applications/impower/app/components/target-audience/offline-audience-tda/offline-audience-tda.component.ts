@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ErrorNotification } from '@val/messaging';
 import { TreeNode } from 'primeng/api';
@@ -14,7 +14,9 @@ import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/au
 @Component({
   selector: 'val-offline-audience-tda',
   templateUrl: './offline-audience-tda.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./offline-audience-tda.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
 })
 export class OfflineAudienceTdaComponent implements OnInit {
   private allNodes: TreeNode[] = [];
@@ -140,7 +142,8 @@ export class OfflineAudienceTdaComponent implements OnInit {
       this.dialogboxHeader = 'Invalid Delete!';
       this.dialogboxWarningmsg = 'Audiences used to create a Combined or Converted or Composite Audience can not be deleted.';
       this.showDialog = true;
-      this.selectVariable(event);
+      this.selectedVariables = Array.from(this.selectedVariables);
+      this.cd.markForCheck();
     } else {
     this.audienceService.removeAudience(event.data);
     }

@@ -1,4 +1,4 @@
-<div class="ui-g">
+<div class="ui-g" #dialogParent>
   <div *ngIf="hasAudiences" class="ui-g-12 val-table-with-dropdowns">
     <div class="ui-g ui-g-nopad" (click)="$event.stopPropagation()">
 
@@ -81,7 +81,7 @@
     Please select or upload Audience Data from one of the other tabs.
   </div>
 
-  <p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="true" [responsive]="true" appendTo="body" [style]="{ width: '710px' }">
+  <p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" [responsive]="true" [appendTo]="dialogParent" styleClass="selected-audience-dialog">
     <div>
       <span>
           {{dialogboxWarningmsg}}

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { mapArray } from '@val/common';
@@ -19,6 +19,7 @@ import { VarSpecs } from 'app/services/target-audience-unified.service';
   selector: 'val-combined-audience',
   templateUrl: './combined-audience.component.html',
   styleUrls: ['./combined-audience.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 
 export class CombinedAudienceComponent implements OnInit, OnDestroy {
@@ -256,7 +257,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         }
   }
 
-  public closeDialog(){
+  closeDialog(){
     this.showDialog = false;
   }
 
