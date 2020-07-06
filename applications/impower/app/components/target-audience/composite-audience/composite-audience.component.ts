@@ -133,7 +133,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
               row.patchValue({ indexBase: this.allIndexValues.find(a => a.label === 'National').value });
             }
           } else if (val.audienceSourceType === 'Composite') {
-              row.get('indexBase').clearValidators();
+              row.clearValidators();
               row.get('indexBase').disable();
           } else {
               row.get('indexBase').enable();
@@ -160,7 +160,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         this.indexTypes.add(selectedRow.indexBase);
         weights.push(selectedRow.percent);
         selectedVariableNames.push(selectedRow.selectedAudienceList.audienceName + '-' + selectedRow.indexBase + '-' + selectedRow.percent);
-        compositeAudIds.push({ id: Number(selectedRow.selectedAudienceList.audienceIdentifier), pct: Number(selectedRow.percent), base: selectedRow.indexBase });
+        compositeAudIds.push({ id: Number(selectedRow.selectedAudienceList.audienceIdentifier), pct: Number(selectedRow.percent), base: selectedRow.indexBase != null ? selectedRow.indexBase : 'NAT' });
       });
     }
 
