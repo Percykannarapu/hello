@@ -1,21 +1,21 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { DeleteAudiences, FetchCustom } from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
+import { AppDiscoveryService } from 'app/services/app-discovery.service';
+import { AppStateService } from 'app/services/app-state.service';
 import { TargetAudienceService } from 'app/services/target-audience.service';
+import { deleteCustomData } from 'app/state/data-shim/data-shim.selectors';
 import { ImpProjectPrefService } from 'app/val-modules/targeting/services/ImpProjectPref.service';
 import { ConfirmationService } from 'primeng/api';
 import { FileUpload } from 'primeng/fileupload';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import * as xlsx from 'xlsx';
 import { AppProjectPrefService } from '../../../services/app-project-pref.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
-import { AppStateService } from 'app/services/app-state.service';
-import { AppDiscoveryService } from 'app/services/app-discovery.service';
-import { projectIsReady, deleteCustomData } from 'app/state/data-shim/data-shim.selectors';
 
 @Component({
   selector: 'val-custom-audience',
@@ -23,7 +23,6 @@ import { projectIsReady, deleteCustomData } from 'app/state/data-shim/data-shim.
 })
 export class CustomAudienceComponent implements OnInit {
   private readonly spinnerId = 'CUSTOM_UPLOAD';
-  private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
   public audiences: Audience[] = [];
   public currentAnalysisLevel$: Observable<string>;
 
@@ -41,7 +40,6 @@ export class CustomAudienceComponent implements OnInit {
 
   ngOnInit() {
     this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(audiences => this.audiences = audiences.filter(aud => aud.audienceSourceType === 'Custom'));
-    //this.audiences = this.allAudiencesBS$.value.filter(aud => aud.audienceSourceType === 'Custom');
     this.store$.select(deleteCustomData).subscribe(isDeleteCustomData => this.switchAnalysisLevel(isDeleteCustomData));
   }
 
@@ -89,7 +87,7 @@ export class CustomAudienceComponent implements OnInit {
         };
       }
     }
-    
+
     this.audienceUploadEl.clear();
     // workaround for https://github.com/primefaces/primeng/issues/4816
     this.audienceUploadEl.basicFileInput.nativeElement.value = '';
@@ -102,30 +100,28 @@ export class CustomAudienceComponent implements OnInit {
       header: 'Delete Custom Data',
       icon: 'ui-icon-delete',
       accept: () => {
-        const ids: string[] = [];
-        this.audiences.forEach(aud => {
-          this.varService.addDeletedAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
-          this.varService.removeAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
-          ids.push(aud.audienceIdentifier);
-        });
-        this.varService.syncProjectVars();
-        this.store$.dispatch(new DeleteAudiences({ ids }));
+        this.deleteDataImpl();
         // need to clean up the map vars at some point, too
       },
       reject: () => {}
     });
   }
 
-  switchAnalysisLevel(isCustomDtataExists: boolean){
-    if (isCustomDtataExists){
-      const ids: string[] = [];
-          this.audiences.forEach(aud => {
-            this.varService.addDeletedAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
-            this.varService.removeAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
-            ids.push(aud.audienceIdentifier);
-          });
-          this.varService.syncProjectVars();
-          this.store$.dispatch(new DeleteAudiences({ ids }));
+  switchAnalysisLevel(isCustomDataExists: boolean) {
+    if (isCustomDataExists){
+      this.deleteDataImpl();
     }
+  }
+
+  private deleteDataImpl() {
+    const ids: string[] = [];
+    this.audiences.forEach(aud => {
+      this.varService.addDeletedAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
+      this.varService.removeAudience(aud.audienceSourceType, aud.audienceSourceName, aud.audienceIdentifier);
+      ids.push(aud.audienceIdentifier);
+    });
+    this.appProjectPrefService.deletePref(ProjectPrefGroupCodes.CustomVar);
+    this.varService.syncProjectVars();
+    this.store$.dispatch(new DeleteAudiences({ ids }));
   }
 }

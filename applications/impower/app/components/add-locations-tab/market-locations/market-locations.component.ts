@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { getUuid } from '@val/common';
+import { ConfigurationTypes, EsriQueryService, ShadingDefinition } from '@val/esri';
+import { ErrorNotification, StartLiveIndicator, StopLiveIndicator, WarningNotification } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
@@ -19,11 +22,6 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { BehaviorSubject } from 'rxjs';
-import { getUuid } from '../../../../../../modules/common/src/utils';
-import { ConfigurationTypes, ShadingDefinition } from '../../../../../../modules/esri/src/models/shading-configuration';
-import { EsriQueryService } from '../../../../../../modules/esri/src/services/esri-query.service';
-import { StartLiveIndicator, StopLiveIndicator } from '../../../../../../modules/messaging/state/busyIndicator/busy.state';
-import { ErrorNotification, WarningNotification } from '../../../../../../modules/messaging/state/messaging.actions';
 import { DAOBaseStatus } from '../../../val-modules/api/models/BaseModel';
 
 class ContainerValue {  //TODO: put in common location

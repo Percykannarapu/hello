@@ -1,19 +1,19 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewChildren, QueryList } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
+import { Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { FormConfig, mapArray, distinctArray } from '@val/common';
-import { SelectItem, SortMeta } from 'primeng/api';
+import { distinctArray, FormConfig, mapArray } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
+import { AppLoggingService } from 'app/services/app-logging.service';
+import { AppStateService } from 'app/services/app-state.service';
+import { RestDataService } from 'app/val-modules/common/services/restdata.service';
+import { SelectItem, SortMeta } from 'primeng/api';
+import { MultiSelect } from 'primeng/multiselect';
+import { Table } from 'primeng/table';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { FullAppState } from '../../state/app.interfaces';
 import { resetNamedForm } from '../../state/forms/forms.actions';
-import { MarketGeosForm  } from '../../state/forms/forms.interfaces';
-import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { map, tap, catchError } from 'rxjs/operators';
-import { Table } from 'primeng/table';
-import { AppLoggingService } from 'app/services/app-logging.service';
-import { MultiSelect } from 'primeng/multiselect';
-import { AppStateService } from 'app/services/app-state.service';
+import { MarketGeosForm } from '../../state/forms/forms.interfaces';
 import { MultiselectInputComponent } from '../common/multiselect-input/multiselect-input.component';
 
 class ContainerValue {
@@ -234,10 +234,11 @@ export class MarketGeosComponent implements OnInit {
     this.containerValuesSelected$ = this.containerValues$.pipe(
       map((AllValues) => AllValues.filter(value => value != null && value.isActive)),
       tap(selectedValues => {
-        this.setCounts();
+        // this.setCounts();
         this.logger.debug.log('Setting containerValuesSelected$ - count: ' + (selectedValues == null ? 'null' : selectedValues.length));
       }));
-
+    this.allContainerValuesCount$ = this.containerValues$.pipe(map(s => s != null ? s.length : 0));
+    this.activeContainerValuesCount$ = this.containerValuesSelected$.pipe(map(s => s != null ? s.length : 0));
     // Enables the creation of locations when values are selected
     this.containerValuesSelected$.subscribe(vals => {
       let count = 0;
@@ -473,6 +474,7 @@ export class MarketGeosComponent implements OnInit {
 
   onSelectContainerValue(container: ContainerValue) {
     this.containerValuesBS$.value.find(cv => cv.code === container.code).isActive = container.isActive;
+    console.log('::: onSelectContainerValue');
     this.containerValuesBS$.next(this.containerValuesBS$.value);
     this.setHasSelectedSites();
   }
@@ -486,6 +488,7 @@ export class MarketGeosComponent implements OnInit {
     containerValues.forEach(containerValue => containerValue.isActive = newIsActive);
 
     // Broadcast the changes
+    console.log('::: onSelectContainerValues');
     this.containerValuesBS$.next(this.containerValuesBS$.value);
 
     this.setHasSelectedSites();
@@ -500,6 +503,7 @@ export class MarketGeosComponent implements OnInit {
   onMarketChange(event: any) {
     this.clearStates();
     this.resetFiltersAndSelections();
+    console.log('::: onMarketChange');
     this.containerValuesBS$.next([]);
   }
 
@@ -636,7 +640,7 @@ export class MarketGeosComponent implements OnInit {
   }
 
   private setCounts() {
-    this.allContainerValuesCount$ = this.containerValues$.pipe(map(s => s.length));
-    this.activeContainerValuesCount$ = this.containerValuesSelected$.pipe(map(s => s.length));
+    // this.allContainerValuesCount$ = this.containerValues$.pipe(map(s => s.length));
+    // this.activeContainerValuesCount$ = this.containerValuesSelected$.pipe(map(s => s.length));
   }
 }

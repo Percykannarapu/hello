@@ -68,6 +68,26 @@ export class AppProjectPrefService {
       }
    }
 
+   public deletePref(group: string, pref?: string) {
+     const currentProject = this.appStateService.currentProject$.getValue();
+     if (currentProject == null) return;
+     let prefsToDelete;
+     let prefsToKeep;
+     if (pref == null) {
+       prefsToDelete = currentProject.impProjectPrefs.filter(p => p.prefGroup === group);
+       prefsToKeep = currentProject.impProjectPrefs.filter(p => p.prefGroup !== group);
+     } else {
+       prefsToDelete = currentProject.impProjectPrefs.filter(p => p.prefGroup === group && p.pref === pref);
+       prefsToKeep = currentProject.impProjectPrefs.filter(p => p.prefGroup !== group || p.pref !== pref);
+     }
+     if (prefsToDelete.length > 0) {
+       currentProject.impProjectPrefs = prefsToKeep;
+       this.impProjectPrefService.remove(prefsToDelete);
+       this.logger.info.log('Removing project preferences', prefsToDelete);
+       this.logger.debug.log('Project Prefs retained:', prefsToKeep);
+     }
+   }
+
    private debugTestPrefs() {
       this.logger.debug.log('### getPref: Must Cover Upload = ' + this.getPref('Must Cover Upload'));
       this.logger.debug.log('### getPref: CPM_TYPE          = ' + this.getPref('CPM_TYPE'));

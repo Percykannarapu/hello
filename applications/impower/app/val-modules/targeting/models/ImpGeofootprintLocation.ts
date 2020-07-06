@@ -245,7 +245,7 @@ export class ImpGeofootprintLocation extends BaseModel
     */
    // public toString = () => JSON.stringify(this, null, '   ');
    public toString() {
-      return JSON.stringify(this, null, '   ');
+      return `GFPLocation (num: ${this.locationNumber == null ? 'null' : this.locationNumber}, type: ${this.clientLocationTypeCode == null ? 'null' : this.clientLocationTypeCode} )`;
    }
 
 }
