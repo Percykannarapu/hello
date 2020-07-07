@@ -152,13 +152,15 @@ export class TargetAudienceUnifiedService {
               if (dependentVar.combinedAudiences != null && dependentVar.combinedAudiences.length > 0) {
                 dependentVar.combinedAudiences.forEach(aud => {
                   requiredVars.push(this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === aud));
-                  if(!identifiers.includes(dependentVar.audienceIdentifier))
+                  if (!identifiers.includes(dependentVar.audienceIdentifier))
                       identifiers.push(dependentVar.audienceIdentifier);
                 });
               }
               if (dependentVar.compositeSource != null && dependentVar.compositeSource.length > 0) {
                 dependentVar.compositeSource.forEach(row => {
                   requiredVars.push(this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === row.id.toString()));
+                  if (!identifiers.includes(dependentVar.audienceIdentifier))
+                    identifiers.push(dependentVar.audienceIdentifier);
                 });
               }
             }
