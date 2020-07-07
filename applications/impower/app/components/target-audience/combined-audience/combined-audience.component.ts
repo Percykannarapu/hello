@@ -72,7 +72,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
     );
 
     this.combinedAudiences$ = this.store$.select(getAllAudiences).pipe(
-      filter(allAudiences => allAudiences != null),
+      filter(selectedVars => selectedVars != null),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted')),
       tap(a => a.forEach(aud => this.varNames.set(aud.audienceName.toLowerCase(), aud.audienceIdentifier)))
     );
@@ -80,7 +80,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
     this.store$.select(getAllAudiences).pipe(
       filter(audiences => audiences != null),
       map(allVars => allVars.filter(aud => aud.audienceSourceType === 'Composite')),
-    ).subscribe(audiences => this.dependentVars = audiences);
+    ).subscribe(filteredAudiences => this.dependentVars = filteredAudiences);
 
     this.audienceForm = this.fb.group({
       audienceId: '',
@@ -137,7 +137,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       audienceFields.audienceList.forEach(audience => {
         combinedVariableNames.push(audience.audienceName);
         combinedAudIds.push(audience.audienceIdentifier);
-        convertSource.push({id: audience.audienceIdentifier, pct: 100.0, base: audienceFields.selectedIndex});
+        convertSource.push({id: audience.audienceIdentifier, pct: 100.0, base: audienceFields.selectedIndex.value});
       });
     }
     if (audienceFields.audienceId == null || audienceFields.audienceId.length === 0) {

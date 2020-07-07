@@ -215,15 +215,13 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
           compositeSource: compositeAudIds,
         };
         this.varService.updateProjectVars(editedAudience);
-
       }
-      this.currentAudience = '';
-      this.indexTypes.clear();
-      this.compositeForm.reset();
-
     } else {
       this.showError = true;
     }
+    this.currentAudience = '';
+    this.indexTypes.clear();
+    this.compositeForm.reset();
   }
 
   addRow() {
