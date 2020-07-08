@@ -42,7 +42,7 @@ export class EnvironmentData {
     },
     zip: {
       boundary: '23a54308e914496aa24d94a9b36776a0',
-      simplifiedBoundary: 'a73b8263dd5b49efbf3826d120a73f62',
+      simplifiedBoundary: 'fb4295cfef1743f9a8a12c1d444effeb',
       centroid: '88120ac630d746239b133296e87b8e1f'
     },
     atz: {

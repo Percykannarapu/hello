@@ -335,13 +335,17 @@ export class MarketLocationsComponent implements OnInit {
 
   private createTradeArea(market: ContainerValue, loc: ImpGeofootprintLocation)
   {
+    const layerId = this.appConfig.getLayerIdForAnalysisLevel(this.project.methAnalysis);
     const newTA = this.factoryService.createTradeArea(loc, TradeAreaTypeCodes.Custom);
-
-    market.geocodes.forEach(geocode => {
-      const newGeo = this.factoryService.createGeo(newTA, geocode, null, null, 0);
+    //we need to query for the latitude and longitude of the new geos so all downstream things will still work, like printing
+    this.esriQueryService.queryAttributeIn(layerId, 'geocode', market.geocodes, false, ['geocode', 'latitude', 'longitude']).subscribe(graphics => {
+      graphics.forEach(g => {
+        const newGeo = this.factoryService.createGeo(newTA, g.getAttribute('geocode'), g.getAttribute('longitude'), g.getAttribute('latitude'), 0);
+      });
+      this.impGeofootprintGeoService.add(newTA.impGeofootprintGeos);
+      this.impGeofootprintTradeAreaService.add([newTA]);
     });
-    this.impGeofootprintGeoService.add(newTA.impGeofootprintGeos);
-    this.impGeofootprintTradeAreaService.add([newTA]);
+
   }
 
   private renderTradeAreas(isAlsoShaded: boolean = false) {

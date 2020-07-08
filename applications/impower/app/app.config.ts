@@ -53,10 +53,10 @@ export class AppConfig implements LoggingConfiguration {
     return EnvironmentData.layerIds[layerKey];
   }
 
-  public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true) : string {
+  public getLayerIdForAnalysisLevel(analysisLevel: string, boundary: boolean = true, forceFullDetail: boolean = false) : string {
     const config = this.getLayerConfigForAnalysisLevel(analysisLevel);
     return boundary
-      ? this.isBatchMode ? config.simplifiedBoundary || config.boundary : config.boundary
+      ? this.isBatchMode && !forceFullDetail ? config.simplifiedBoundary || config.boundary : config.boundary
       : config.centroid || null;
   }
 }
