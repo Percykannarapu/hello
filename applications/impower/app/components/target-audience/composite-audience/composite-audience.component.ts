@@ -77,7 +77,9 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       }),
       tap(audiences => this.hasAudienceSelections = audiences.length > 0),
       map(audList => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
-      mapArray(audience => ({ label: audience.audienceName, value: audience })),
+      mapArray(audience => ({ label: audience.audienceSourceName != null && audience.audienceSourceName.length > 0 ? 
+                                      audience.audienceName + ' - ' + audience.audienceSourceName : audience.audienceName, 
+                              value: audience })),
     );
     this.compositeAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null),
@@ -99,12 +101,12 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         new FormGroup({
           selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
           indexBase: new FormControl('', { validators: [Validators.required] }),
-          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(100)] })
+          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(101)] })
         }),
         new FormGroup({
           selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
           indexBase: new FormControl('', { validators: [Validators.required] }),
-          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(100)] })
+          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(101)] })
         })
       ])
     });
@@ -167,7 +169,6 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     if (weights.length > 0 ){
       total = weights.reduce((p, c) => p + Number(c), 0);
     } 
-
     if (total === 100){
       this.showError = false;
       if (audienceFields.compositeAudienceId == null || audienceFields.compositeAudienceId.length === 0) {
@@ -216,12 +217,12 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         };
         this.varService.updateProjectVars(editedAudience);
       }
+      this.currentAudience = '';
+      this.indexTypes.clear();
+      this.compositeForm.reset();
     } else {
       this.showError = true;
     }
-    this.currentAudience = '';
-    this.indexTypes.clear();
-    this.compositeForm.reset();
   }
 
   addRow() {
@@ -273,6 +274,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   }
 
   resetForm() {
+    this.showError = false;
     this.compositeForm.reset();
   }
 
@@ -299,7 +301,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     this.compositeForm.patchValue({
       compositeAudienceId: selectedAudience.audienceIdentifier,
       compositeAudName: selectedAudience.audienceName,
-      audienceRows: currentRows,
+      audienceRows: currentRows
     });
     currentRows = [];
   }
