@@ -228,9 +228,9 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     const audienceArray = this.compositeForm.controls.audienceRows as FormArray;
     const arraylen = audienceArray.length;
     const newAudienceGroup: FormGroup = this.fb.group({
-      selectedAudienceList: '',
-      indexBase: '',
-      percent: ''
+      selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
+      indexBase: new FormControl('', { validators: [Validators.required] }),
+      percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(100)] })
     });
     audienceArray.insert(arraylen + 1, newAudienceGroup);
   }
