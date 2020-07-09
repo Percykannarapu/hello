@@ -14,7 +14,7 @@ import { WarningNotification } from '@val/messaging';
 import { EMPTY, throwError, Observable, BehaviorSubject } from 'rxjs';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { CommonSort } from '@val/common';
+import { CommonSort, isString, isObject } from '@val/common';
 
 export interface VarSpecs {
   id: number;
@@ -70,8 +70,12 @@ export class TargetAudienceUnifiedService {
   public rehydrateAudience() {
     try {
       const project = this.stateService.currentProject$.getValue();
-      if (project && project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.split('_')[0].toLowerCase()))) {
-        for (const projectVar of project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.split('_')[0].toLowerCase()))) {
+      if (project == null || project.impProjectVars == null)
+        return;
+
+      const projectVars = project.impProjectVars.filter(v => this.audienceSourceTypes.includes(v.source.split('_')[0].toLowerCase()));
+      if (projectVars != null) {
+        for (const projectVar of projectVars) {
           const groupedAudiences = JSON.parse(projectVar.customVarExprQuery);
           const audience: AudienceDataDefinition = {
             audienceName: projectVar.fieldname,
@@ -122,13 +126,12 @@ export class TargetAudienceUnifiedService {
   }
 
   public getAllVars(source: string, audienceList: Audience[], analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number): Observable<UnifiedBulkResponse[]> {
-    let requiredVars: Audience[] = [];
+    const requiredVars: Audience[] = audienceList;
     let dependentVar: Audience;
     const sourceTypes = ['Combined', 'Converted', 'Combined/Converted', 'Composite'];
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
     let requestVars: Array<VarList> = [];
     const serviceURL = 'v1/targeting/base/geoinfo/varlookup';
-    requiredVars = audienceList;
     audienceList.map(audience => {
       if (audience.combinedAudiences.length > 0) {
         audience.combinedAudiences.forEach(id => {
@@ -144,9 +147,12 @@ export class TargetAudienceUnifiedService {
         });
       }
       if (audience.compositeSource.length > 0) {
-        audience.compositeSource.forEach(variable => {
-          if (this.selectedAudiences$ != null && this.selectedAudiences$.getValue().length > 0) {
-            dependentVar = this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === variable.id.toString());
+        audience.compositeSource.forEach((variable: any) => {
+          if (this.selectedAudiences$ != null && this.selectedAudiences$.getValue().length > 0 ) {
+            if (variable.id != null)
+              dependentVar = this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === variable.id.toString());
+            else
+              dependentVar = this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === variable.toString());
             requiredVars.push(dependentVar);
             if (dependentVar != null && sourceTypes.includes(dependentVar.audienceSourceType)) {
               if (dependentVar.combinedAudiences != null && dependentVar.combinedAudiences.length > 0) {
@@ -157,8 +163,11 @@ export class TargetAudienceUnifiedService {
                 });
               }
               if (dependentVar.compositeSource != null && dependentVar.compositeSource.length > 0) {
-                dependentVar.compositeSource.forEach(row => {
-                  requiredVars.push(this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === row.id.toString()));
+                dependentVar.compositeSource.forEach((row: any) => {
+                  if (row.id != null)
+                    requiredVars.push(this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === row.id.toString()));
+                  else
+                    requiredVars.push(this.selectedAudiences$.getValue().find(a => a.audienceIdentifier === row.toString()));
                   if (!identifiers.includes(dependentVar.audienceIdentifier))
                     identifiers.push(dependentVar.audienceIdentifier);
                 });
@@ -168,7 +177,6 @@ export class TargetAudienceUnifiedService {
         });
       }
     });
-
     const uniqueAudienceList = Array.from(new Set(requiredVars));
 
     requestVars = uniqueAudienceList.map(aud => {
@@ -179,7 +187,8 @@ export class TargetAudienceUnifiedService {
           aud.compositeSource != null && aud.compositeSource.length > 0 ? 'composite' : aud.audienceSourceType,
         base: aud.selectedDataSet != null ? aud.selectedDataSet : '',
         combineSource: aud.combinedAudiences != null && aud.combinedAudiences.length > 0 ? aud.combinedAudiences.map(a => Number(a)) : [],
-        compositeSource: aud.compositeSource != null && aud.compositeSource.length > 0 ? aud.compositeSource : []
+        compositeSource:   aud.compositeSource != null && aud.compositeSource.length > 0 && isString(aud.compositeSource[0]) ? [{id: (Number(aud.compositeSource[0])), pct: 100.0, base: aud.selectedDataSet != null ? aud.selectedDataSet : ''}] :
+                           aud.compositeSource != null && aud.compositeSource.length > 0 && isObject(aud.compositeSource[0]) ? aud.compositeSource : []
       });
     });
 
