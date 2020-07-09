@@ -209,10 +209,15 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       });
     }
     if (selectedAudience.compositeSource.length > 0) {
-      selectedAudience.compositeSource.forEach(previous => {
+      selectedAudience.compositeSource.forEach((previous: any) => {
         this.allAudiences.forEach(current => {
-          if (current != null && current.audienceIdentifier === previous.id.toString())
-            currentSelections.push(current);
+          if (previous.id != null){
+            if (current != null && current.audienceIdentifier === previous.id.toString())
+              currentSelections.push(current);
+          } else {
+            if (current != null && current.audienceIdentifier === previous.toString())
+              currentSelections.push(current);
+          }
         });
       });
     }
