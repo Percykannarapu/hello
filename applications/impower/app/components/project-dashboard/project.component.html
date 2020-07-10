@@ -92,6 +92,9 @@
         <div class="ui-g-1">
           <button pButton type="button" (click)="cloneProject(selectedRow.projectId)" label="Clone" [disabled]="selectedRow == null"></button>
         </div>
+        <div class="ui-g-1">
+          <button pButton type="button" (click)="deActivateProject(selectedRow.projectId)" label="Remove" [(disabled)]="selectedRow == null || isDisable"></button>
+        </div>
       </div>
     </div>
 </p-dialog>
