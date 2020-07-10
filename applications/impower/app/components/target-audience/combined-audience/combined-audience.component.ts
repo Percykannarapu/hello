@@ -129,7 +129,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
 
   onSubmit(audienceFields: any) {
     const isCombined = (audienceFields.audienceList.length > 1 && (audienceFields.selectedIndex == null || audienceFields.selectedIndex === ''));
-    const isCombineConverted = audienceFields.audienceList.length > 1 && audienceFields.selectedIndex != null && audienceFields.selectedIndex.length > 0;
+    const isCombineConverted = audienceFields.audienceList.length > 1 && audienceFields.selectedIndex != null && audienceFields.selectedIndex !== '';
     const combinedAudIds: string[] = [];
     const convertSource: VarSpecs[] = [];
     const combinedVariableNames: string[] = [];
@@ -138,7 +138,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         combinedVariableNames.push(audience.audienceName);
         combinedAudIds.push(audience.audienceIdentifier);
         convertSource.push({id: audience.audienceIdentifier, pct: 100.0, 
-                            base: audienceFields.selectedIndex != null && audienceFields.selectedDataSet.length > 0 ? audienceFields.selectedIndex.value : '' });
+                            base: audienceFields.selectedIndex != null ? audienceFields.selectedIndex.value : '' });
       });
     }
     if (audienceFields.audienceId == null || audienceFields.audienceId.length === 0) {
@@ -151,10 +151,10 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         exportInGeoFootprint: true,
         exportNationally: false,
         allowNationalExport: false,
-        selectedDataSet: audienceFields.selectedIndex != null && audienceFields.selectedIndex !== '' ? audienceFields.selectedIndex.value : '',
+        selectedDataSet: audienceFields.selectedIndex != null ? audienceFields.selectedIndex.value : '',
         audienceSourceName: audienceFields.audienceList[0].audienceSourceName,
         audienceSourceType: isCombined ? 'Combined' : (isCombineConverted ? 'Combined/Converted' : 'Converted'),
-        fieldconte: audienceFields.selectedIndex != null && audienceFields.selectedIndex.length > 0 ? 'INDEX' : audienceFields.audienceList[0].fieldconte,
+        fieldconte: audienceFields.selectedIndex != null ? 'INDEX' : audienceFields.audienceList[0].fieldconte,
         requiresGeoPreCaching: true,
         seq: fkId,
         isCombined: isCombined,
@@ -175,7 +175,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         exportInGeoFootprint: this.currentAudience[0].exportInGeoFootprint,
         exportNationally: this.currentAudience[0].exportNationally,
         allowNationalExport: this.currentAudience[0].allowNationalExport,
-        selectedDataSet: audienceFields.selectedIndex != null && audienceFields.selectedIndex.length > 0 ? audienceFields.selectedIndex.value : '',
+        selectedDataSet: audienceFields.selectedIndex != null && audienceFields.selectedIndex !== '' ? audienceFields.selectedIndex.value : '',
         audienceSourceName: this.currentAudience[0].audienceSourceName,
         audienceSourceType: this.currentAudience[0].audienceSourceType,
         fieldconte: this.currentAudience[0].fieldconte,
@@ -185,7 +185,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         isComposite: this.currentAudience[0].isComposite,
         combinedAudiences: this.currentAudience[0].fieldconte === 'PERCENT' ? combinedAudIds : [],
         combinedVariableNames: combinedVariableNames.join('~'),
-        compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null && this.currentAudience[0].selectedDataSet.length > 0 ? convertSource : [],
+        compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null && audienceFields.selectedIndex !== ''  ? convertSource : [],
       };
       this.varService.updateProjectVars(editedAudience);
     }
