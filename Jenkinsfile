@@ -42,6 +42,7 @@
             }
           }
         }
+        /* Removing CPQ build from the pipeline
         stage('build cpq-maps development') {
           when { branch 'dev' }
           steps {
@@ -52,9 +53,9 @@
                   node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
                   '''
               }
-            }
+            } 
           }
-        }
+        }*/
       }
     }
     stage('Deploy dev apps') {
@@ -71,6 +72,7 @@
               '''
           }
         }
+        /* Removing CPQ build from the pipeline
         stage('Deploy CPQ Maps dev') {
           when { branch 'dev' }
           steps {
@@ -80,7 +82,7 @@
               '''
             }
           }
-        }
+        }*/
       }
     }
     /*
