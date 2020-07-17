@@ -154,7 +154,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         selectedDataSet: audienceFields.selectedIndex != null ? audienceFields.selectedIndex.value : '',
         audienceSourceName: audienceFields.audienceList[0].audienceSourceName,
         audienceSourceType: isCombined ? 'Combined' : (isCombineConverted ? 'Combined/Converted' : 'Converted'),
-        fieldconte: audienceFields.selectedIndex != null ? 'INDEX' : audienceFields.audienceList[0].fieldconte,
+        fieldconte: audienceFields.selectedIndex != null && audienceFields.selectedIndex !== '' ? 'INDEX' : audienceFields.audienceList[0].fieldconte,
         requiresGeoPreCaching: true,
         seq: fkId,
         isCombined: isCombined,
