@@ -285,6 +285,11 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
 
   onEdit(selectedAudience: Audience) {
     let currentRows: any = [];
+    const compositeSelectItem = this.allIndexValues.find(v => v.label === '');
+    const nationalSelectItem = this.allIndexValues.find(base => base.label === 'National');
+    const compositeBase = compositeSelectItem != null ? compositeSelectItem.value : null;
+    const nationalBase = nationalSelectItem != null ? nationalSelectItem.value : null;
+    
     if (selectedAudience.compositeSource.length > 0) {
       selectedAudience.compositeSource.forEach(audience => {
         this.allAudiences.forEach(current => {
@@ -293,7 +298,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
             currentRows.push({
               selectedAudienceList: current,
               indexBase: current.selectedDataSet != null && current.selectedDataSet !== 'ALL' ? current.selectedDataSet :
-                current.selectedDataSet === 'ALL' ? this.allIndexValues.find(v => v.label === '').value : this.allIndexValues.find(v => v.label === 'National').value ,
+                            current.selectedDataSet === 'ALL' ? compositeBase : nationalBase,
               percent: audience.pct
             });
           }
