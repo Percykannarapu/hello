@@ -92,6 +92,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     this.allIndexValues = [
       { label: 'DMA', value: 'DMA' },
       { label: 'National', value: 'NAT' },
+      {label: '', value: 'ALL'}
     ];
 
     this.compositeForm = this.fb.group({
@@ -291,7 +292,8 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
           if (current != null && current.audienceIdentifier === audience.id.toString()){
             currentRows.push({
               selectedAudienceList: current,
-              indexBase: selectedAudience.selectedDataSet,
+              indexBase: current.selectedDataSet != null && current.selectedDataSet !== 'ALL' ? current.selectedDataSet :
+                current.selectedDataSet === 'ALL' ? this.allIndexValues.find(v => v.label === '').value : this.allIndexValues.find(v => v.label === 'National').value ,
               percent: audience.pct
             });
           }
