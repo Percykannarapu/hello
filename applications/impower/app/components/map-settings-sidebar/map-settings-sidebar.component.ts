@@ -31,7 +31,7 @@ export class MapSettingsSidebarComponent implements OnInit {
 
   constructor(private appStateService: AppStateService,
               private impGeoDataStore: ImpGeofootprintGeoService,
-              private poiService: EsriPoiService,
+              private esriPoiService: EsriPoiService,
               private esriBoundaryService: EsriBoundaryService,
               private store$: Store<FullAppState>) {}
 
@@ -39,12 +39,11 @@ export class MapSettingsSidebarComponent implements OnInit {
     this.analysisLevel$ = this.appStateService.analysisLevel$;
     this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       filter(audiences => audiences != null),
-      filterArray(aud => aud.audienceSourceType !== 'Combined/Converted' && aud.audienceSourceType !== 'Combined' && aud.audienceSourceType !== 'Converted' && aud.audienceSourceType !== 'Composite')
     );
     this.shadingDefinitions$ = this.store$.select(shadingSelectors.allLayerDefs).pipe(
        filter((defs) => defs != null),
     );
-    this.poiConfigurations$ = this.poiService.allPoiConfigurations$.pipe(
+    this.poiConfigurations$ = this.esriPoiService.allPoiConfigurations$.pipe(
       filter(configs => configs != null)
     );
     this.boundaryConfigurations$ = this.esriBoundaryService.allBoundaryConfigurations$.pipe(
