@@ -1,8 +1,8 @@
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { decode, encode, ExtensionCodec } from '@msgpack/msgpack';
-import { formatMilli } from '@val/common';
-import { concat, Observable, Subject, throwError } from 'rxjs';
+import { formatMilli, isDate, isFunction } from '@val/common';
+import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { AppConfig } from '../../../app.config';
 import { RestResponse } from '../../../models/RestResponse';
@@ -124,6 +124,8 @@ export class RestDataService
           req.open('POST', url);
           req.responseType = 'arraybuffer';
           req.setRequestHeader('Accept', '*/*');
+          req.setRequestHeader('Cache-Control', 'no-cache');
+          req.setRequestHeader('Pragma', 'no-cache');
           if (token != null) {
             req.setRequestHeader('Authorization', 'Bearer ' + token);
           }
@@ -182,12 +184,11 @@ export class RestDataService
     extensionCodec.register({
       type: FUNCTION_EXT_TYPE,
       encode: (input: any) => {
-        if (typeof input === 'function') {
+        if (isFunction(input)) {
           return encode(null);
-        } else if (input instanceof Date) {
+        } else if (isDate(input)) {
           return encode(input.valueOf());
         } else {
-          //return encode(input);
           return null;
         }
       },
@@ -202,43 +203,42 @@ export class RestDataService
 @Injectable()
 export class RestDataInterceptor implements HttpInterceptor
 {
-   constructor(private appConfig: AppConfig, private logger: LoggingService) {}
+   constructor(private appConfig: AppConfig) {}
 
    /**
     * Intercept all HTTP calls being made from the imPower application, if the request is going
     * to a Fuse service we need to append the OAuth token in an Authorization header
-    * @param req
+    * @param originalRequest
     * @param next
     */
-   intercept(req: HttpRequest<any>, next: HttpHandler) : Observable<HttpEvent<any>>
+   intercept(originalRequest: HttpRequest<any>, next: HttpHandler) : Observable<HttpEvent<any>>
    {
-      let internalRequest: HttpRequest<any> = req.clone();
-      let refresh: any;
-      if (req.url.includes(this.appConfig.valServiceBase) || req.url.includes(this.appConfig.printServiceUrl)) {
-        if (req.responseType === 'json') {
-          // if there is already a Content-Type header we don't want to override it
-          if (req.headers.get('Content-Type') || req.headers.get('content-type')) {
-            internalRequest = req.clone({ headers: req.headers.set('Accept', 'application/json') });
-          } else {
-            internalRequest = req.clone({
-              headers: req.headers.set('Accept', 'application/json')
-                .set('Content-Type', 'application/json')
-            });
-          }
-        }
+     let req: HttpRequest<any> = originalRequest.clone();
+     if (req.url.includes(this.appConfig.valServiceBase) || req.url.includes(this.appConfig.printServiceUrl)) {
+       req = req.clone({
+         headers: req.headers.set('Cache-Control', 'no-cache')
+                             .set('Pragma', 'no-cache')
+       });
+       if (req.responseType === 'json') {
+         // if there is already a Content-Type header we don't want to override it
+         if (req.headers.get('Content-Type') || req.headers.get('content-type')) {
+           req = req.clone({ headers: req.headers.set('Accept', 'application/json') });
+         } else {
+           req = req.clone({
+             headers: req.headers.set('Accept', 'application/json')
+                                 .set('Content-Type', 'application/json')
+           });
+         }
+       }
 
-        const tokenConfig = RestDataService.getConfig();
-        if (tokenConfig != null && tokenConfig.oauthToken != null) {
-          internalRequest = internalRequest.clone({
-            headers: internalRequest.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
-          });
-        }
-      }
-      if (refresh != null && refresh instanceof Observable) {
-         return concat(refresh, next.handle(internalRequest));
-      } else {
-         return next.handle(internalRequest);
-      }
+       const tokenConfig = RestDataService.getConfig();
+       if (tokenConfig != null && tokenConfig.oauthToken != null) {
+         req = req.clone({
+           headers: req.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
+         });
+       }
+     }
+     return next.handle(req);
    }
 
 }
