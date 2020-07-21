@@ -208,35 +208,37 @@ export class RestDataInterceptor implements HttpInterceptor
    /**
     * Intercept all HTTP calls being made from the imPower application, if the request is going
     * to a Fuse service we need to append the OAuth token in an Authorization header
-    * @param req
+    * @param originalRequest
     * @param next
     */
-   intercept(req: HttpRequest<any>, next: HttpHandler) : Observable<HttpEvent<any>>
+   intercept(originalRequest: HttpRequest<any>, next: HttpHandler) : Observable<HttpEvent<any>>
    {
-     let internalRequest: HttpRequest<any> = req.clone();
+     let req: HttpRequest<any> = originalRequest.clone();
      if (req.url.includes(this.appConfig.valServiceBase) || req.url.includes(this.appConfig.printServiceUrl)) {
-       req.headers.set('Cache-Control', 'no-cache');
-       req.headers.set('Pragma', 'no-cache');
+       req = req.clone({
+         headers: req.headers.set('Cache-Control', 'no-cache')
+                             .set('Pragma', 'no-cache')
+       });
        if (req.responseType === 'json') {
          // if there is already a Content-Type header we don't want to override it
          if (req.headers.get('Content-Type') || req.headers.get('content-type')) {
-           internalRequest = req.clone({ headers: req.headers.set('Accept', 'application/json') });
+           req = req.clone({ headers: req.headers.set('Accept', 'application/json') });
          } else {
-           internalRequest = req.clone({
+           req = req.clone({
              headers: req.headers.set('Accept', 'application/json')
-               .set('Content-Type', 'application/json')
+                                 .set('Content-Type', 'application/json')
            });
          }
        }
 
        const tokenConfig = RestDataService.getConfig();
        if (tokenConfig != null && tokenConfig.oauthToken != null) {
-         internalRequest = internalRequest.clone({
-           headers: internalRequest.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
+         req = req.clone({
+           headers: req.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
          });
        }
      }
-     return next.handle(internalRequest);
+     return next.handle(req);
    }
 
 }
