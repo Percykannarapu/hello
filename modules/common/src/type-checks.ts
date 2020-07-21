@@ -54,3 +54,7 @@ export function isArray(value: any)  : value is any[] {
 export function isFunction(value: any) : value is Function {
   return typeof value === 'function';
 }
+
+export function isDate(value: any) : value is Date {
+  return value instanceof Date;
+}
