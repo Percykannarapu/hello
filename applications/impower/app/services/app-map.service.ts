@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriLayerService, EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, selectors } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { Point } from 'esri/geometry';
 import geometryEngine from 'esri/geometry/geometryEngine';
@@ -14,7 +14,7 @@ import Search from 'esri/widgets/Search';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { LocalAppState } from '../state/app.interfaces';
+import { LocalAppState, FullAppState } from '../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../state/usage/targeting-usage.actions';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLayerService } from './app-layer.service';
@@ -53,7 +53,7 @@ export class AppMapService {
               private config: AppConfig,
               private zone: NgZone,
               private appProjectPrefService: AppProjectPrefService,
-              private store$: Store<LocalAppState>) {}
+              private store$: Store<FullAppState>) {}
 
   public setupMap(isBatchMapping: boolean = false) : void {
     const homeView = this.mapService.mapView.viewpoint;
@@ -124,6 +124,23 @@ export class AppMapService {
     EsriUtils.setupWatch(popup, 'visible').pipe(
       filter(result => result.newValue === false && result.oldValue != null)
     ).subscribe(() => this.componentGenerator.cleanUpGeoPopup());
+
+    this.store$.select(selectors.getEsriFeatureForSelectedLayer).pipe(
+      filter(allFeatures => allFeatures != null)
+    ).subscribe(feature => {
+        this.addSelections(feature);
+    });
+
+  }
+
+  public addSelections(selections: __esri.Graphic[]) {
+    const uniqueGeos  = new Set<string>();
+    selections.forEach(selectedFeature => {
+        const geocode: string = selectedFeature.attributes.geocode;
+        if (geocode != null)
+            uniqueGeos.add(geocode);
+    });
+    uniqueGeos.forEach(geo => this.selectSingleGeocode(geo));
   }
 
   public setViewpoint(view: __esri.Viewpoint) : void {

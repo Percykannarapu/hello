@@ -1,5 +1,6 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { AppState, EsriState } from './esri.reducers';
+import { EsriUtils } from '../core/esri-utils';
 
 const getEsriState = createFeatureSelector<AppState, EsriState>('esri');
 const getEsriInitState = createSelector(getEsriState, state => state.init);
@@ -18,6 +19,18 @@ const getEsriSketchViewModel = createSelector(getEsriMapState, state => state.sk
 const getMapReady = createSelector(getEsriMapState, state => state.mapIsReady);
 const getEsriFeaturesSelected = createSelector(getEsriMapState, state => state.selectedFeatures);
 
+const selectedLayerFeatures = (selectedFeatures: __esri.Graphic[], selectedLayerId: string) => {
+  if (selectedFeatures == null || selectedLayerId == null || selectedFeatures.length === 0 ) return null;
+  const filteredFeatures: __esri.Graphic[] = [];
+  selectedFeatures.forEach(feature => {
+    if (EsriUtils.layerIsPortalFeature(feature.layer) && feature.layer.portalItem.id === selectedLayerId)
+      filteredFeatures.push(feature) ;
+  });
+  return filteredFeatures;
+};
+
+const getEsriFeatureForSelectedLayer = createSelector(getEsriFeaturesSelected, getEsriSelectedLayer, selectedLayerFeatures);
+
 // These are the publicly available selectors
 export const selectors = {
   getEsriFeatureReady,
@@ -26,6 +39,7 @@ export const selectors = {
   getEsriLabelConfiguration,
   getEsriViewpointState,
   getEsriSelectedLayer,
+  getEsriFeatureForSelectedLayer,
 };
 
 export const internalSelectors = {

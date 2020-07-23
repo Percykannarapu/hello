@@ -852,7 +852,8 @@ export class AppGeoService {
         return previous;
       }
     }, null);
-    let tradeArea = closestLocation.impGeofootprintTradeAreas.filter(ta => ta.taType === 'MANUAL')[0];
+    if (closestLocation != null){
+      let tradeArea = closestLocation.impGeofootprintTradeAreas.filter(ta => ta.taType === 'MANUAL')[0];
     if (tradeArea == null) {
       tradeArea = this.domainFactory.createTradeArea(closestLocation, TradeAreaTypeCodes.Manual);
       this.tradeAreaService.add([tradeArea]);
@@ -861,6 +862,7 @@ export class AppGeoService {
     if (filterFlag !== null && filterFlag !== undefined) newGeo.isActive = filterFlag;
     this.impGeoService.add([newGeo]);
   }
+}
 
   private setupFilterGeosObservable() : void {
     this.appStateService.currentProject$.pipe(
