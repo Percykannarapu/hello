@@ -125,8 +125,9 @@ export class AppMapService {
       filter(result => result.newValue === false && result.oldValue != null)
     ).subscribe(() => this.componentGenerator.cleanUpGeoPopup());
 
-    this.store$.select(selectors.getEsriFeatureForSelectedLayer).subscribe(feature => {
-      if (feature != null)
+    this.store$.select(selectors.getEsriFeatureForSelectedLayer).pipe(
+      filter(allFeatures => allFeatures != null)
+    ).subscribe(feature => {
         this.addSelections(feature);
     });
 
