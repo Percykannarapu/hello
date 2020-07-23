@@ -134,11 +134,13 @@ export class AppMapService {
   }
 
   public addSelections(selections: __esri.Graphic[]) {
+    const uniqueGeos  = new Set<string>();
     selections.forEach(selectedFeature => {
-          const geocode: string = selectedFeature.attributes.geocode;
-          if (geocode != null)
-              this.selectSingleGeocode(geocode);
+        const geocode: string = selectedFeature.attributes.geocode;
+        if (geocode != null)
+            uniqueGeos.add(geocode);
     });
+    uniqueGeos.forEach(geo => this.selectSingleGeocode(geo));
   }
 
   public setViewpoint(view: __esri.Viewpoint) : void {
