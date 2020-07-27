@@ -579,6 +579,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       const varPkSet = new Set<number>();
       projectVars.forEach(pv => varPkSet.add(pv.varPk));
 
+      // Geocodes whose site count tooltip needs to be fixed
+      const fixGeos = new Set<String>();
+
       geos.filter(geo => geo.impGeofootprintLocation && geo.impGeofootprintTradeArea && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea.isActive).forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo;
          gridGeo.geo = geo;
@@ -678,15 +681,18 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Set the tooltip for the geography
          gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
 
-        // Update geos with the dupecount
-        if (geoSites != null && geoSites.has(gridGeo.geo.geocode)) {
-          gridGeo['sitesTooltip'] = gridGeo.geo.geocode + ' is in ' + (geoSites.get(gridGeo.geo.geocode).size + 1) + ' sites';
-        } else {
-          gridGeo['sitesTooltip'] = gridGeo.geo.geocode + ' is in 1 site';
-        }
+         // Update geos with the dupecount
+         if (geoSites != null && geoSites.has(gridGeo.geo.geocode))
+            fixGeos.add(gridGeo.geo.geocode);
+         else
+            gridGeo['sitesTooltip'] = gridGeo.geo.geocode + ' is in 1 site';
 
          geoGridData.push(gridGeo);
       });
+
+      // After flat geos are processed, we have a count of sites a geo is in. For overlapping geos, set the tooltip to show the number of sites
+      geoGridData.filter(geoGrid => fixGeos.has(geoGrid.geo.geocode))
+                 .map(flatGeo => flatGeo['sitesTooltip'] = flatGeo.geo.geocode + ' is in ' + (geoSites.get(flatGeo.geo.geocode).size + 1) + ' sites');
 
       // Clear out the temporary map of sites for geos
       if (geoSites != null)
