@@ -280,6 +280,7 @@ export class MarketLocationsComponent implements OnInit {
               this.createTradeArea(market, location);
 
               locations.push(location);
+              this.project.impGeofootprintMasters[0].impGeofootprintLocations.push(location);
               //this.locationService.persistLocationsAndAttributes([location]);
             }
             else {
