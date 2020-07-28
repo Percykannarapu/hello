@@ -90,8 +90,7 @@ export class ImpDomainFactoryService {
     if (parent == null) throw new Error('Project Var factory requires a valid Project instance');
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
     const isCustom = audience.audienceSourceType === 'Custom';
-    const source =   audience.audienceSourceType.toLowerCase() === 'composite' ? 'Composite_TDA' : audience.audienceSourceType + '_' + audience.audienceSourceName;
-
+    const source =   audience.audienceSourceType + '_' + audience.audienceSourceName;
     let existingVar;
 
     if (isCustom) {

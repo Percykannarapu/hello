@@ -565,7 +565,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
           colWidth = (audience.audienceSourceName.length + 3 > audience.audienceName.length) ? Math.min(200, Math.max(60, (audience.audienceSourceName.length + 3) * 6 + 24)) : colWidth;
 
         this.flatGeoGridExtraColumns.push({field: audience.audienceIdentifier,
-                                           header: audience.audienceName + ((dupeNameCount > 1) ? ' (' + audience.audienceSourceName + ')' : ''),
+                                           header: (dupeNameCount > 1 && audience.audienceSourceType !== 'Composite') ? audience.audienceName + ' (' + audience.audienceSourceName + ')' : audience.audienceName,
                                            width: colWidth + 'px',
                                            fieldname: audience.audienceName,
                                            decimals:  ['PERCENT', 'RATIO'].includes(audience.fieldconte) ? 2 : 0,

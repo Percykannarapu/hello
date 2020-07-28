@@ -36,10 +36,10 @@
   </div>
 
 <div class="ui-g-4" #dialogParent>
-    <button type="submit" pButton label="Create Variable" [disabled]= "audienceForm.invalid || isDisabled()" ></button>
+    <button type="submit" pButton icon="ui-icon-send" label="Create Variable" [disabled]= "audienceForm.invalid || isDisabled()" ></button>
 </div>
 <div *ngIf="hasAudienceSelections" class="ui-g-8">
-    <button type="button" (click)="resetForm()" pButton icon="ui-icon-send" label="Clear Selections"></button>
+    <button type="button" (click)="resetForm()" pButton label="Clear Selections"></button>
 </div> 
 
 <p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" [responsive]="true" [appendTo]="dialogParent" styleClass= "combined-audience-dialog">
