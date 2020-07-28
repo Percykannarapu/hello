@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { decode, encode, ExtensionCodec } from '@msgpack/msgpack';
 import { formatMilli, isDate, isFunction } from '@val/common';
@@ -198,47 +198,4 @@ export class RestDataService
     });
     return extensionCodec;
   }
-}
-
-@Injectable()
-export class RestDataInterceptor implements HttpInterceptor
-{
-   constructor(private appConfig: AppConfig) {}
-
-   /**
-    * Intercept all HTTP calls being made from the imPower application, if the request is going
-    * to a Fuse service we need to append the OAuth token in an Authorization header
-    * @param originalRequest
-    * @param next
-    */
-   intercept(originalRequest: HttpRequest<any>, next: HttpHandler) : Observable<HttpEvent<any>>
-   {
-     let req: HttpRequest<any> = originalRequest.clone();
-     if (req.url.includes(this.appConfig.valServiceBase) || req.url.includes(this.appConfig.printServiceUrl)) {
-       req = req.clone({
-         headers: req.headers.set('Cache-Control', 'no-cache')
-                             .set('Pragma', 'no-cache')
-       });
-       if (req.responseType === 'json') {
-         // if there is already a Content-Type header we don't want to override it
-         if (req.headers.get('Content-Type') || req.headers.get('content-type')) {
-           req = req.clone({ headers: req.headers.set('Accept', 'application/json') });
-         } else {
-           req = req.clone({
-             headers: req.headers.set('Accept', 'application/json')
-                                 .set('Content-Type', 'application/json')
-           });
-         }
-       }
-
-       const tokenConfig = RestDataService.getConfig();
-       if (tokenConfig != null && tokenConfig.oauthToken != null) {
-         req = req.clone({
-           headers: req.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
-         });
-       }
-     }
-     return next.handle(req);
-   }
-
 }
