@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
@@ -73,6 +73,7 @@ import { environment, EnvironmentData } from '../environments/environment';
 import { AppComponent } from './app.component';
 import { AppConfig } from './app.config';
 import { AppRoutes } from './app.routes';
+import { allInterceptorProviders } from './common/interceptors';
 import { AddLocationsTabComponent } from './components/add-locations-tab/add-locations-tab.component';
 import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
@@ -182,7 +183,7 @@ import { ImpClientLocationService } from './val-modules/client/services/ImpClien
 import { MessageComponent } from './val-modules/common/components/message.component';
 import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
 import { MetricService } from './val-modules/common/services/metric.service';
-import { RestDataInterceptor, RestDataService } from './val-modules/common/services/restdata.service';
+import { RestDataService } from './val-modules/common/services/restdata.service';
 import { TransactionManager } from './val-modules/common/services/TransactionManager.service';
 import { ImpMetricNameService } from './val-modules/metrics/services/ImpMetricName.service';
 import { ImpGeofootprintGeoService } from './val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -404,9 +405,9 @@ export function esriSetupFactory() : ForRootOptions {
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },
-    { provide: HTTP_INTERCEPTORS, useClass: RestDataInterceptor, multi: true },
+    ...allInterceptorProviders,
     // from val-modules
-    {provide: LoggingConfigurationToken, useClass: AppConfig},
+    { provide: LoggingConfigurationToken, useClass: AppConfig },
     ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
     ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
     ImpGeofootprintLocAttribService, AppDiscoveryService, ImpMetricNameService,
