@@ -201,7 +201,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
     const currentSelections: Audience[] = [];
     const currentIndex = selectedAudience.selectedDataSet != null && selectedAudience.selectedDataSet.length > 0 && selectedAudience.selectedDataSet === 'NAT' ?
     this.allIndexValues.find(a => a.label === 'National') : this.allIndexValues.find(a => a.label === selectedAudience.selectedDataSet);
-    if (selectedAudience.combinedAudiences.length > 0) {
+    if (selectedAudience.combinedAudiences != null && selectedAudience.combinedAudiences.length > 0) {
       selectedAudience.combinedAudiences.forEach(previous => {
         this.allAudiences.forEach(current => {
           if (current != null && current.audienceIdentifier === previous)
@@ -209,7 +209,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         });
       });
     }
-    if (selectedAudience.compositeSource.length > 0) {
+    if (selectedAudience.compositeSource != null && selectedAudience.compositeSource.length > 0) {
       selectedAudience.compositeSource.forEach((previous: any) => {
         this.allAudiences.forEach(current => {
           if (previous.id != null){

@@ -179,10 +179,6 @@ export class AudiencesEffects {
                 this.store$.dispatch(new FetchUnified({ fuseSource: 'combine', audienceList: audiences, al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                 break;
 
-              case 'Composite/':
-                  this.store$.dispatch(new FetchUnified({ fuseSource: 'composite', audienceList: audiences, al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
-                  break;
-
               case 'Composite/TDA':
                     this.store$.dispatch(new FetchUnified({ fuseSource: 'composite', audienceList: audiences, al: action.payload.analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
                     break;
