@@ -740,11 +740,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Sort the geo variable columns
       this.sortFlatGeoGridExtraColumns();
 
-      // Rebuild Selected columns including the variable columns
-      this.selectedColumns = [];
-      for (const column of this.flatGeoGridColumns) {
-         this.selectedColumns.push(column);
-      }
+      // Rebuild Selected columns including the variable columns, maintaining order
+      const selectedStockColumns = this.selectedColumns.filter(col => this.flatGeoGridColumns.includes(col));
+      this.selectedColumns = selectedStockColumns;
+
+      // Add variable columns at the end
       this.flatGeoGridExtraColumns.forEach(column => this.selectedColumns.push(column));
 
       // Update geo grid total columns
@@ -1072,7 +1072,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * bottom of the column.
     */
    setGridTotals(flatGeos?: FlatGeo[]) {
-      if (this._geoGrid == null || this._geoGrid._value == null || this._geoGrid._value.length === 0)
+      if (this._geoGrid == null || this._geoGrid._value == null)
          return;
 
       //this.logger.debug.log('setGridTotals - Fired');
