@@ -10,22 +10,20 @@ import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { Extent } from 'esri/geometry';
 import { Observable, of, race, timer } from 'rxjs';
-import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { ValSort } from '../models/valassis-sorters';
 import { BatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
-import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { LoggingService } from 'app/val-modules/common/services/logging.service';
 
 @Injectable({
   providedIn: 'root'
@@ -35,15 +33,13 @@ export class BatchMapService {
   private originalGeoState: Record<number, boolean> = null;
 
   constructor(private geoService: ImpGeofootprintGeoService,
-              private locationService: ImpGeofootprintLocationService,
               private esriMapService: EsriMapService,
               private esriQueryService: EsriQueryService,
               private config: AppConfig,
               private appStateService: AppStateService,
               private appMapService: AppMapService,
-              private restService: RestDataService,
               private store$: Store<LocalAppState>,
-              private appProjectPrefService: AppProjectPrefService,
+              private logService: LoggingService,
               private http: HttpClient) { }
 
   initBatchMapping(projectId: number) : void {
@@ -90,6 +86,14 @@ export class BatchMapService {
       this.geoService.calculateGeoRanks();
       this.recordOriginalState(project);
     }
+    project.impGeofootprintMasters[0].impGeofootprintLocations.forEach(l => {
+      l.impGeofootprintTradeAreas.forEach(ta => {
+        if (ta.taType.toLowerCase() === TradeAreaTypeCodes.Custom.toLowerCase() && params.fitTo === FitTo.TA) {
+          params.fitTo = FitTo.GEOS; //if the project has any custom trade areas we must fit to geos
+          this.logService.warn.log('Project has cutsom trade areas, but selected fit to TA, forcing fit to geos instead');
+        }
+      });
+    });
     if (params.currentView)
        return  this.zoomToCurrentView(project, params);
     else if (params.groupByAttribute != null)
@@ -166,7 +170,6 @@ export class BatchMapService {
     currentLocationNumbers.sort(CommonSort.StringsAsNumbers);
     const currentGeos = project.getImpGeofootprintGeos().filter(geo => geo.impGeofootprintLocation.isActive);
     const result = { siteNum: currentLocationNumbers[currentLocationNumbers.length - 1], isLastSite: true };
-    if (currentGeos.length > 100) params.fitTo = FitTo.TA; //if we have too many geos we need to fit the map to the TA rings
     return this.setMapLocation(project.methAnalysis, currentGeos, params, currentLocationNumbers, project).pipe(
       map(() => result)
     );
@@ -286,11 +289,24 @@ export class BatchMapService {
   }
 
   private polysFromGeos(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>) : Observable<__esri.Graphic[]> {
-    const activeGeos = geos.filter(g => g.isActive);
-    const geocodes = activeGeos.map(g => g.geocode);
-    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel);
-    return this.esriQueryService.queryAttributeIn(layerId, 'geocode', geocodes, true).pipe(
-      reduce((a, c) => [...a, ...c], []),
+    const activeGeos: string[] = geos.map(g => {
+      if (g.isActive)
+        return g.geocode;
+    });
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true, true);
+    return this.esriQueryService.queryAttributeIn(layerId, 'geocode', activeGeos, false, ['geocode', 'latitude', 'longitude', 'areasquaremiles']).pipe(
+      map(graphics => {
+        const points: number[][] = [];
+        let largestArea = 0;
+        graphics.forEach(g => {
+          points.push([g.getAttribute('longitude'), g.getAttribute('latitude')]);
+          if (g.getAttribute('areasquaremiles') > largestArea)
+            largestArea = g.getAttribute('areasquaremiles');
+        });
+        const multipoint = this.esriMapService.multipointFromPoints(points);
+        const bufferedPoly = this.esriMapService.bufferExtent(multipoint.extent, Math.sqrt(largestArea) / 2);
+        return [this.esriMapService.graphicFromPolygon(bufferedPoly)];
+      })
     );
   }
 

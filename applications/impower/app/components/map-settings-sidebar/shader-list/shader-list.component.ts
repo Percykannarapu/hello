@@ -12,6 +12,7 @@ import { TargetAudienceTdaService } from '../../../services/target-audience-tda.
 import { FullAppState } from '../../../state/app.interfaces';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintTradeArea } from '../../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 
 @Component({
   selector: 'val-shader-list',
@@ -26,6 +27,7 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   @Input() locationCount: number;
   @Input() audiences: Audience[];
   @Input() geos: ImpGeofootprintGeo[];
+  @Input() tradeAreas: ImpGeofootprintTradeArea[];
 
   @Input() shadingDefinitions: ShadingDefinition[];
 
@@ -87,7 +89,7 @@ export class ShaderListComponent implements OnInit, OnDestroy {
         this.appRenderService.updateForOwnerSite(definition, this.geos);
         break;
       case GfpShaderKeys.OwnerTA:
-        this.appRenderService.updateForOwnerTA(definition, this.geos);
+        this.appRenderService.updateForOwnerTA(definition, this.geos, this.tradeAreas);
         break;
     }
     const newDef: ShadingDefinition = duplicateShadingDefinition(definition);

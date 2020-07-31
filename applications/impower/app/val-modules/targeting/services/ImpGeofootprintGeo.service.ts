@@ -499,7 +499,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.exportAudiencesBS$.value.forEach(impVar => {
         // If more than one variable has this audience name, add the source name to the header
         const dupeNameCount = (this.allAudiencesBS$.getValue() != null) ? this.allAudiencesBS$.getValue().filter(aud => aud.audienceName === impVar.audienceName).length : 0;
-        const header = (dupeNameCount <= 1) ? impVar.audienceName : impVar.audienceName + ' (' + impVar.audienceSourceName + ')';
+        const header = (dupeNameCount > 1 && impVar.audienceSourceType !== 'Composite') ? impVar.audienceName + ' (' + impVar.audienceSourceName + ')' : impVar.audienceName;
         const closure = (state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, h: string) => this.exportVarAttributes(state, geo, impVar, h);
         exportColumns.splice(insertAtPos++, 0, { header: header, row: closure });
       });

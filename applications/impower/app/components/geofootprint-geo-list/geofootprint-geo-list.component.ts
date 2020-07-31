@@ -565,7 +565,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
           colWidth = (audience.audienceSourceName.length + 3 > audience.audienceName.length) ? Math.min(200, Math.max(60, (audience.audienceSourceName.length + 3) * 6 + 24)) : colWidth;
 
         this.flatGeoGridExtraColumns.push({field: audience.audienceIdentifier,
-                                           header: audience.audienceName + ((dupeNameCount > 1) ? ' (' + audience.audienceSourceName + ')' : ''),
+                                           header: (dupeNameCount > 1 && audience.audienceSourceType !== 'Composite') ? audience.audienceName + ' (' + audience.audienceSourceName + ')' : audience.audienceName,
                                            width: colWidth + 'px',
                                            fieldname: audience.audienceName,
                                            decimals:  ['PERCENT', 'RATIO'].includes(audience.fieldconte) ? 2 : 0,
@@ -578,6 +578,9 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // For every geo, create a FlatGeo to pivot up the variables and attributes
       const varPkSet = new Set<number>();
       projectVars.forEach(pv => varPkSet.add(pv.varPk));
+
+      // Geocodes whose site count tooltip needs to be fixed
+      const fixGeos = new Set<String>();
 
       geos.filter(geo => geo.impGeofootprintLocation && geo.impGeofootprintTradeArea && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea.isActive).forEach(geo => {
          const gridGeo: FlatGeo = new Object() as FlatGeo;
@@ -678,15 +681,18 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
          // Set the tooltip for the geography
          gridGeo['tooltip'] = this.getGeoTooltip(gridGeo);
 
-        // Update geos with the dupecount
-        if (geoSites != null && geoSites.has(gridGeo.geo.geocode)) {
-          gridGeo['sitesTooltip'] = gridGeo.geo.geocode + ' is in ' + (geoSites.get(gridGeo.geo.geocode).size + 1) + ' sites';
-        } else {
-          gridGeo['sitesTooltip'] = gridGeo.geo.geocode + ' is in 1 site';
-        }
+         // Update geos with the dupecount
+         if (geoSites != null && geoSites.has(gridGeo.geo.geocode))
+            fixGeos.add(gridGeo.geo.geocode);
+         else
+            gridGeo['sitesTooltip'] = gridGeo.geo.geocode + ' is in 1 site';
 
          geoGridData.push(gridGeo);
       });
+
+      // After flat geos are processed, we have a count of sites a geo is in. For overlapping geos, set the tooltip to show the number of sites
+      geoGridData.filter(geoGrid => fixGeos.has(geoGrid.geo.geocode))
+                 .map(flatGeo => flatGeo['sitesTooltip'] = flatGeo.geo.geocode + ' is in ' + (geoSites.get(flatGeo.geo.geocode).size + 1) + ' sites');
 
       // Clear out the temporary map of sites for geos
       if (geoSites != null)
@@ -734,11 +740,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Sort the geo variable columns
       this.sortFlatGeoGridExtraColumns();
 
-      // Rebuild Selected columns including the variable columns
-      this.selectedColumns = [];
-      for (const column of this.flatGeoGridColumns) {
-         this.selectedColumns.push(column);
-      }
+      // Rebuild Selected columns including the variable columns, maintaining order
+      const selectedStockColumns = this.selectedColumns.filter(col => this.flatGeoGridColumns.includes(col));
+      this.selectedColumns = selectedStockColumns;
+
+      // Add variable columns at the end
       this.flatGeoGridExtraColumns.forEach(column => this.selectedColumns.push(column));
 
       // Update geo grid total columns
@@ -1066,7 +1072,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * bottom of the column.
     */
    setGridTotals(flatGeos?: FlatGeo[]) {
-      if (this._geoGrid == null || this._geoGrid._value == null || this._geoGrid._value.length === 0)
+      if (this._geoGrid == null || this._geoGrid._value == null)
          return;
 
       //this.logger.debug.log('setGridTotals - Fired');

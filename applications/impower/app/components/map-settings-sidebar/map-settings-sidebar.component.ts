@@ -9,7 +9,9 @@ import { filter } from 'rxjs/operators';
 import { Audience } from '../../impower-datastore/state/transient/audience/audience.model';
 import { FullAppState } from '../../state/app.interfaces';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintTradeAreaService } from '../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 @Component({
   selector: 'val-map-settings-sidebar',
@@ -25,13 +27,15 @@ export class MapSettingsSidebarComponent implements OnInit {
   boundaryConfigurations$: Observable<BoundaryConfiguration[]>;
   audiences$: Observable<Audience[]>;
   geos$: Observable<ImpGeofootprintGeo[]>;
+  tradeAreas$: Observable<ImpGeofootprintTradeArea[]>;
   analysisLevel$: Observable<string>;
   locationCount$: Observable<number>;
   tradeAreaCount$: Observable<number>;
 
   constructor(private appStateService: AppStateService,
               private impGeoDataStore: ImpGeofootprintGeoService,
-              private poiService: EsriPoiService,
+              private impTradeAreaDataStore: ImpGeofootprintTradeAreaService,
+              private esriPoiService: EsriPoiService,
               private esriBoundaryService: EsriBoundaryService,
               private store$: Store<FullAppState>) {}
 
@@ -39,12 +43,11 @@ export class MapSettingsSidebarComponent implements OnInit {
     this.analysisLevel$ = this.appStateService.analysisLevel$;
     this.audiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       filter(audiences => audiences != null),
-      filterArray(aud => aud.audienceSourceType !== 'Combined/Converted' && aud.audienceSourceType !== 'Combined' && aud.audienceSourceType !== 'Converted' && aud.audienceSourceType !== 'Composite')
     );
     this.shadingDefinitions$ = this.store$.select(shadingSelectors.allLayerDefs).pipe(
        filter((defs) => defs != null),
     );
-    this.poiConfigurations$ = this.poiService.allPoiConfigurations$.pipe(
+    this.poiConfigurations$ = this.esriPoiService.allPoiConfigurations$.pipe(
       filter(configs => configs != null)
     );
     this.boundaryConfigurations$ = this.esriBoundaryService.allBoundaryConfigurations$.pipe(
@@ -57,6 +60,10 @@ export class MapSettingsSidebarComponent implements OnInit {
       filterArray(g => g.impGeofootprintLocation && g.impGeofootprintLocation.isActive &&
                             g.impGeofootprintTradeArea && g.impGeofootprintTradeArea.isActive &&
                             g.isActive && g.isDeduped === 1)
+    );
+    this.tradeAreas$ = this.impTradeAreaDataStore.storeObservable.pipe(
+      filter(tas => tas != null),
+      filterArray(ta => ta.isActive && ta.impGeofootprintLocation && ta.impGeofootprintLocation.isActive)
     );
   }
 }

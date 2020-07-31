@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
+import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { getUuid, mapByExtended } from '@val/common';
-import { BasicLayerSetup, BoundaryConfiguration, EsriBoundaryService } from '@val/esri';
+import { BasicLayerSetup, BoundaryConfiguration, duplicateLabel, EsriBoundaryService } from '@val/esri';
 import { distinctUntilChanged, filter, take, withLatestFrom } from 'rxjs/operators';
 import { updateBoundaries } from '../../../../modules/esri/src/state/boundary/esri.boundary.actions';
 import { EnvironmentData } from '../../environments/environment';
@@ -12,7 +13,7 @@ import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppProjectPrefService } from './app-project-pref.service';
-import { AppStateService } from './app-state.service';
+import { AppStateService, Season } from './app-state.service';
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +32,13 @@ export class BoundaryRenderingService {
     ).subscribe(() => {
       this.setupProjectPrefsWatcher();
       this.setupAnalysisLevelWatcher();
+      this.setupSeasonWatcher();
     });
+  }
+
+  private static getHHCLabelExpression(featureExpression: string, isSummer: boolean) : string {
+    const hhExpr = isSummer ? 'hhld_s' : 'hhld_w';
+    return `${featureExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"`;
   }
 
   private static isSummer() : boolean {
@@ -50,6 +57,7 @@ export class BoundaryRenderingService {
         s.destinationBoundaryId = undefined;
         s.destinationCentroidId = undefined;
       });
+      this.appPrefService.deletePref('esri', 'map-boundary-defs');
       this.appPrefService.createPref('esri', 'map-boundary-defs', JSON.stringify(newDefs), 'STRING', true);
     });
   }
@@ -69,7 +77,31 @@ export class BoundaryRenderingService {
       const removeSet = new Set(idsToRemove);
       const adds = idsToAdd.filter(id => !removeSet.has(id)).map(id => ({ id, changes: { visible: true, alwaysLoad: false, isPrimarySelectableLayer: primaryMap.get(id) } }));
       const removes = idsToRemove.filter(id => !addSet.has(id)).map(id => ({ id, changes: { visible: false, alwaysLoad: false, isPrimarySelectableLayer: false } }));
-      this.store$.dispatch(updateBoundaries({ boundaries: [ ...adds, ...removes ] }));
+      if (adds.length > 0 || removes.length > 0) {
+        this.store$.dispatch(updateBoundaries({ boundaries: [ ...adds, ...removes ] }));
+      }
+    });
+  }
+
+  private setupSeasonWatcher() : void {
+    this.appStateService.season$.pipe(
+      withLatestFrom(this.store$.select(getBatchMode)),
+      filter(([season, isBatch]) => season != null && !isBatch),
+      withLatestFrom(this.esriBoundaryService.allBoundaryConfigurations$)
+    ).subscribe(([[season], configs]) => {
+      const newHhldField = season === Season.Summer ? 'hhld_s' : 'hhld_w';
+      const oldHhldField = season !== Season.Summer ? 'hhld_s' : 'hhld_w';
+      const edits: Update<BoundaryConfiguration>[] = [];
+      configs.forEach(c => {
+        if (c.hhcLabelDefinition != null) {
+          const newLabel = duplicateLabel(c.hhcLabelDefinition);
+          newLabel.customExpression = newLabel.customExpression.replace(oldHhldField, newHhldField);
+          edits.push({ id: c.id, changes: { hhcLabelDefinition: newLabel }});
+        }
+      });
+      if (edits.length > 0) {
+        this.store$.dispatch(updateBoundaries({ boundaries: edits }));
+      }
     });
   }
 
@@ -130,14 +162,16 @@ export class BoundaryRenderingService {
     let analysisLevel = null;
     let existingSetup: BoundaryConfiguration[] = null;
     let result: BoundaryConfiguration[];
+    let isSummer = BoundaryRenderingService.isSummer();
     if (project != null) {
       const newPref = this.appPrefService.getPrefVal('map-boundary-defs');
       if (newPref) {
         existingSetup = JSON.parse(newPref);
       }
       analysisLevel = project.methAnalysis;
+      isSummer = project.impGeofootprintMasters[0].methSeason.toUpperCase() === 'S';
     }
-    const defaultSetup = this.createDefaultConfigurations(analysisLevel);
+    const defaultSetup = this.createDefaultConfigurations(analysisLevel, isSummer);
 
     if (existingSetup == null) {
       result = defaultSetup;
@@ -174,11 +208,9 @@ export class BoundaryRenderingService {
     return result;
   }
 
-  public createDefaultConfigurations(analysisLevel: string) : BoundaryConfiguration[] {
-    const legacyLabelExpression = 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), " ")';
-    const newLabelExpression = 'replace($feature.geocode, $feature.zip, "")';
-    const labelExpression = legacyLabelExpression;
-    const hhExpr = BoundaryRenderingService.isSummer() ? 'hhld_s' : 'hhld_w';
+  private createDefaultConfigurations(analysisLevel: string, isSummer: boolean) : BoundaryConfiguration[] {
+    const labelExpression = 'iif(count($feature.geocode) > 5, right($feature.geocode, count($feature.geocode) - 5), " ")';
+    // const labelExpression = 'replace($feature.geocode, $feature.zip, "")'; new label - requires layer changes to work
     return [
       {
         ...this.createBasicBoundaryDefinition('dma', analysisLevel),
@@ -217,7 +249,7 @@ export class BoundaryRenderingService {
         symbolDefinition: { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 100, 0, 1], outlineWidth: 3 },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: this.getLayerSetupInfo('wrap').defaultFontSize, featureAttribute: 'wrap_name' },
         hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [0, 100, 0, 1], size: this.getLayerSetupInfo('wrap').defaultFontSize,
-          customExpression: `$feature.wrap_name + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+          customExpression: BoundaryRenderingService.getHHCLabelExpression('$feature.wrap_name', isSummer) },
         popupDefinition: {
           titleExpression: 'Wrap: {GEOCODE}<br>{WRAP_NAME}',
           useCustomPopup: false,
@@ -232,7 +264,7 @@ export class BoundaryRenderingService {
         pobLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('zip').defaultFontSize, featureAttribute: 'geocode' },
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('zip').defaultFontSize, featureAttribute: 'geocode' },
         hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('zip').defaultFontSize,
-          customExpression: `$feature.geocode + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+          customExpression: BoundaryRenderingService.getHHCLabelExpression('$feature.geocode', isSummer) },
         popupDefinition: {
           titleExpression: 'ZIP: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
@@ -250,7 +282,7 @@ export class BoundaryRenderingService {
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('atz').defaultFontSize,
           customExpression: labelExpression },
         hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('atz').defaultFontSize,
-          customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+          customExpression: BoundaryRenderingService.getHHCLabelExpression(labelExpression, isSummer) },
         popupDefinition: {
           titleExpression: 'ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
@@ -268,7 +300,7 @@ export class BoundaryRenderingService {
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('dtz').defaultFontSize,
           customExpression: labelExpression },
         hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('dtz').defaultFontSize,
-          customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+          customExpression: BoundaryRenderingService.getHHCLabelExpression(labelExpression, isSummer) },
         popupDefinition: {
           titleExpression: 'Digital ATZ: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,
@@ -286,7 +318,7 @@ export class BoundaryRenderingService {
         labelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('pcr').defaultFontSize,
           customExpression: labelExpression },
         hhcLabelDefinition: { haloColor: [255, 255, 255, 1], isBold: true, color: [51, 59, 103, 1], size: this.getLayerSetupInfo('pcr').defaultFontSize,
-          customExpression: `${labelExpression} + TextFormatting.NewLine + "(" + Text($feature.${hhExpr}, "#,###") + ")"` },
+          customExpression: BoundaryRenderingService.getHHCLabelExpression(labelExpression, isSummer) },
         popupDefinition: {
           titleExpression: 'PCR: {GEOCODE}&nbsp;&nbsp;&nbsp;&nbsp;{CITY_NAME}',
           useCustomPopup: true,

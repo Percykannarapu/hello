@@ -2,7 +2,7 @@ import { ElementRef, Inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { calculateStatistics, expandRange, Statistics, UniversalCoordinates } from '@val/common';
 import Basemap from 'esri/Basemap';
-import { Point, Polygon } from 'esri/geometry';
+import { Point, Polygon, Extent } from 'esri/geometry';
 import Circle from 'esri/geometry/Circle';
 import Graphic from 'esri/Graphic';
 import EsriMap from 'esri/Map';
@@ -16,6 +16,8 @@ import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { LoggingService } from './logging.service';
+import Multipoint from 'esri/geometry/Multipoint';
+import geometryEngine from 'esri/geometry/geometryEngine';
 
 function calculateExpandedStats(xData: number[], yData: number[], expansionAmount: number) : [Statistics, Statistics] {
   let xStats = calculateStatistics(xData);
@@ -194,4 +196,20 @@ export class EsriMapService {
   setMousewheelNavigation(value: boolean) : void {
     this.mapView.navigation.mouseWheelZoomEnabled = value;
   }
+
+  public graphicFromPolygon(poly: Polygon) : Graphic {
+    const graphic: Graphic = new Graphic;
+    graphic.geometry = poly;
+    return graphic;
+  }
+
+  public multipointFromPoints(points: number[][]) : Multipoint {
+    return new Multipoint({points: points});
+  }
+
+  public bufferExtent(extent: Extent, distance: number) : Polygon  {
+    const bufferedPolygon: Polygon = <Polygon> geometryEngine.geodesicBuffer(extent, distance, 'miles');
+    return bufferedPolygon;
+  }
+
 }

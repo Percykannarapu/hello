@@ -39,9 +39,11 @@ import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { getTypedBatchQueryParams } from '../state/shared/router.interfaces';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
+import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
@@ -55,6 +57,7 @@ export class AppRendererService {
               private appPrefService: AppProjectPrefService,
               private boundaryRenderingService: BoundaryRenderingService,
               private impGeoService: ImpGeofootprintGeoService,
+              private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private esriService: EsriService,
               private esriShaderService: EsriShadingService,
               private esriLayerService: EsriLayerService,
@@ -67,7 +70,7 @@ export class AppRendererService {
     ).subscribe(() => {
       this.setupAnalysisLevelWatcher();
       this.setupProjectPrefsWatcher();
-      this.setupGeoWatchers(this.impGeoService.storeObservable);
+      this.setupGeoWatchers(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
       this.setupMapVarWatcher();
     });
   }
@@ -121,16 +124,16 @@ export class AppRendererService {
     });
   }
 
-  private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>) : void {
+  private setupGeoWatchers(geoDataStore: Observable<ImpGeofootprintGeo[]>, tradeAreaDataStore: Observable<ImpGeofootprintTradeArea[]>) : void {
     if (this.selectedWatcher) this.selectedWatcher.unsubscribe();
 
     this.selectedWatcher = combineLatest([geoDataStore, this.store$.select(projectIsReady)]).pipe(
       filter(([geos, ready]) => ready && geos != null),
       map(([geos]) => geos as ImpGeofootprintGeo[]),
       debounceTime(500),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(getBatchMode), this.store$.select(getTypedBatchQueryParams)),
-      map(([geos, layerDefs, batchMode, queryParams]) => ([ geos, layerDefs, batchMode && queryParams.duplicated ] as const))
-    ).subscribe(([geos, currentLayerDefs, shouldDedupe]) => {
+      withLatestFrom(tradeAreaDataStore, this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(getBatchMode), this.store$.select(getTypedBatchQueryParams)),
+      map(([geos, tas, layerDefs, batchMode, queryParams]) => ([ geos, tas, layerDefs, batchMode && queryParams.duplicated ] as const))
+    ).subscribe(([geos, tas, currentLayerDefs, shouldDedupe]) => {
       const ownerKeys = new Set<string>([GfpShaderKeys.OwnerSite, GfpShaderKeys.OwnerTA]);
       const definitions = currentLayerDefs.filter(sd => ownerKeys.has(sd.dataKey));
       const newDefs = definitions.reduce((updates, definition) => {
@@ -141,7 +144,7 @@ export class AppRendererService {
               this.updateForOwnerSite(newDef, geos, shouldDedupe);
               break;
             case GfpShaderKeys.OwnerTA:
-              this.updateForOwnerTA(newDef, geos, shouldDedupe);
+              this.updateForOwnerTA(newDef, geos, tas, shouldDedupe);
           }
           updates.push(newDef);
         }
@@ -431,12 +434,13 @@ export class AppRendererService {
     }
   }
 
-  updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], showDuplicates: boolean = true) : void {
+  updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], tradeAreas: ImpGeofootprintTradeArea[], showDuplicates: boolean = true) : void {
     if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
       if (definition.theme == null) definition.theme = ColorPalette.CpqMaps;
       const deferredHomeGeos: ImpGeofootprintGeo[] = [];
       const tradeAreaTypesInPlay = new Set<TradeAreaTypeCodes>();
-      let radiusForFirstTa: string;
+      const firstRadiusTradeArea = tradeAreas.filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius && ta.taNumber === 1)[0];
+      const radiusForFirstTa: string = firstRadiusTradeArea != null ? `${firstRadiusTradeArea.taRadius} Mile Radius` : '';
       const allTAEntries = new Set<string>();
       const activeTAEntries = new Set<string>();
       const data: Record<string, string> = geos.reduce((result, geo) => {
@@ -448,9 +452,6 @@ export class AppRendererService {
             } else {
               currentEntry = `${geo.impGeofootprintTradeArea.taRadius} Mile Radius`;
               tradeAreaTypesInPlay.add(TradeAreaTypeCodes.Radius);
-              if (geo.impGeofootprintTradeArea.taNumber === 1) {
-                radiusForFirstTa = currentEntry;
-              }
             }
             break;
           case TradeAreaTypeCodes.HomeGeo:

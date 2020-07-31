@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { formatDateForFuse } from '@val/common';
 import { ConfirmationPayload, ShowConfirmation, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { SelectItem } from 'primeng/api';
+import { SelectItem, ConfirmationService } from 'primeng/api';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, switchMap, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
@@ -46,6 +46,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
 
   private readonly projectSearchUrl = 'v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange';
   private readonly cloneProjectUrl =  'v1/targeting/base/clone/cloneproject';
+  private readonly deActivateProjectUrl = 'v1/targeting/base/deactivate/project/';
 
   private hasExistingData: boolean = false;
   private triggerDataRefresh$ = new Subject<void>();
@@ -61,6 +62,8 @@ export class ProjectComponent implements OnInit, OnDestroy {
   public currentProjectData$: Observable<Partial<ImpProject>[]>;
   public selectedRow: Partial<ImpProject> = null;
   public dataLength: number;
+
+  isDisable = false;
 
   public gettingData: boolean;
 
@@ -79,7 +82,8 @@ export class ProjectComponent implements OnInit, OnDestroy {
               private userService: UserService,
               private stateService: AppStateService,
               private config: AppConfig,
-              private store$: Store<LocalAppState>) {
+              private store$: Store<LocalAppState>,
+              private confirmationService: ConfirmationService) {
     this.timeSpans = timeSpanSortOrder.map(ts => ({
       label: timeSpanFriendlyNames[ts],
       value: ts
@@ -102,7 +106,8 @@ export class ProjectComponent implements OnInit, OnDestroy {
       );
       this.currentProjectData$ = combineLatest([this.triggerDataFilter$, this.allProjectData$]).pipe(
         map(([filterType, data]) => {
-          const result = filterType === 'myProject' ? data.filter(p => p.modifyUser === this.userService.getUser().userId) : data;
+          const result = filterType === 'myProject' ? data.filter(p => p.modifyUser === this.userService.getUser().userId && p.isActive) : data.filter(p => p.isActive);
+          this.isDisable = filterType === 'myProject' ? false : true;
           return [filterType, result] as [FilterType, Partial<ImpProject>[]];
         }),
         tap(([filterType, data]) => this.recordMetrics(filterType, data.length)),
@@ -184,6 +189,24 @@ export class ProjectComponent implements OnInit, OnDestroy {
     this.restService.post(this.cloneProjectUrl, payload).subscribe(() => {
       this.triggerDataRefresh$.next();
       this.store$.dispatch(new StopBusyIndicator({ key }));
+    });
+  }
+
+  deActivateProject(projectId: number){
+    
+
+    this.confirmationService.confirm({
+         message: 'Are you sure you want to remove this project?',
+         header: 'Delete Project',
+         icon: 'ui-icon-delete',
+      accept: () => {   
+        const key = 'DEACTIVATE_PROJECT';
+        this.store$.dispatch(new StartBusyIndicator({ key, message: `Deactivating project ${projectId}`}));
+        this.restService.delete(this.deActivateProjectUrl, projectId).subscribe(() => {
+        this.refreshData();
+        this.store$.dispatch(new StopBusyIndicator({ key }));
+        });
+      }
     });
   }
 
