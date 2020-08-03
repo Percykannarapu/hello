@@ -14,7 +14,7 @@ import Search from 'esri/widgets/Search';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { LocalAppState, FullAppState } from '../state/app.interfaces';
+import { FullAppState } from '../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../state/usage/targeting-usage.actions';
 import { AppComponentGeneratorService } from './app-component-generator.service';
 import { AppLayerService } from './app-layer.service';
@@ -157,8 +157,8 @@ export class AppMapService {
             const event = {
               geocode: geocode,
               geometry: {
-                x: Number(graphics[0].attributes.latitude),
-                y: Number(graphics[0].attributes.longitude)
+                x: Number(graphics[0].attributes.longitude),
+                y: Number(graphics[0].attributes.latitude)
               }
             };
             eventData.push(event);
