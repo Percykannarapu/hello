@@ -289,12 +289,13 @@ export class BatchMapService {
   }
 
   private polysFromGeos(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>) : Observable<__esri.Graphic[]> {
-    const activeGeos: string[] = geos.map(g => {
+    const activeGeos: Set<string> = new Set();
+    geos.forEach(g => {
       if (g.isActive)
-        return g.geocode;
+        activeGeos.add(g.geocode);
     });
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true, true);
-    return this.esriQueryService.queryAttributeIn(layerId, 'geocode', activeGeos, false, ['geocode', 'latitude', 'longitude', 'areasquaremiles']).pipe(
+    return this.esriQueryService.queryAttributeIn(layerId, 'geocode', Array.from(activeGeos), false, ['geocode', 'latitude', 'longitude', 'areasquaremiles']).pipe(
       map(graphics => {
         const points: number[][] = [];
         let largestArea = 0;
