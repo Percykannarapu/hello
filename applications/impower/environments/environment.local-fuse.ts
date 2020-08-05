@@ -21,7 +21,8 @@ export class EnvironmentData {
 
   public static fuseBaseUrl = 'http://localhost:9191/cxf/services/';
   public static impowerBaseUrl = 'http://localhost:4200/';
-  public static printServiceUrl = 'http://localhost:9128/api/service';
+  public static printServiceUrl = 'http://localhost:9128';
+
 
   public static esri = {
     portalServer:  process.env.ESRI_PORTAL_SERVER,

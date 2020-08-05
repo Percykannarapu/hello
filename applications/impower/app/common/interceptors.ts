@@ -11,7 +11,7 @@ export class ContentInterceptor implements HttpInterceptor {
 
   public intercept(req: HttpRequest<any>, next: HttpHandler) : Observable<HttpEvent<any>> {
     let clone: HttpRequest<any> = req.clone();
-    if ((clone.url.includes(this.appConfig.valServiceBase) || clone.url.includes(this.appConfig.printServiceUrl)) && clone.responseType === 'json') {
+    if ((clone.url.includes(this.appConfig.valServiceBase) || (clone.url.includes(this.appConfig.printServiceUrl)) && clone.responseType === 'json')) {
       clone = clone.clone({ headers: clone.headers.set('Accept', 'application/json') });
       // if there is already a Content-Type header we don't want to override it
       if (!(clone.headers.get('Content-Type') || clone.headers.get('content-type'))) {

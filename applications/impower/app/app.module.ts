@@ -81,6 +81,7 @@ import { MarketLocationsComponent } from './components/add-locations-tab/market-
 import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
+import { BatchMapDashboardComponent } from './components/batch-map-dashboard/batch-map-dashboard.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
 import { DiscoveryInputComponent } from './components/campaign-details/discovery-input/discovery-input.component';
@@ -197,6 +198,7 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
+
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -400,8 +402,11 @@ export function esriSetupFactory() : ForRootOptions {
     MarketLocationsComponent,
     MarketGeosComponent,
     MultiselectInputComponent,
+    BatchMapDashboardComponent,
     EditCompositeAudiencesComponent,
-    AcsGrantDirective
+    AcsGrantDirective,
+    //BatchMapDashboardComponent
+    
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

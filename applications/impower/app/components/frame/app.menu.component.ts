@@ -11,7 +11,7 @@ import { MenuItem } from 'primeng/api';
 import { filter, take } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { OpenBatchMapDialog } from '../../state/batch-map/batch-map.actions';
+import { OpenBatchMapDialog, OpenBatchMapStatusDialog, CloseBatchMapStatusDialog } from '../../state/batch-map/batch-map.actions';
 import {
   ClientNmaeForValassisDigitalDialog,
   DiscardAndCreateNew,
@@ -71,12 +71,17 @@ export class AppMenuComponent implements OnInit {
             //{ label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap(), visible: this.userService.userHasGrants(['AHP READERS', 'FOO'], 'ALL') }
             { label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap() }
           ]
-        }
+        },
+        { label: 'Batch Map Status', icon: 'pi pi-info', command: () => this.getBatchMapStatus() }
       ];
       this.isLoggedIn = true;
     });
   }
 
+    private getBatchMapStatus(){
+      this.store$.dispatch(new OpenBatchMapStatusDialog());
+
+    }
     private saveProject(){
         this.stateService.closeOverlays();
         setTimeout(() => {

@@ -63,6 +63,8 @@ export interface BatchMapPayload {
         duplicated: boolean;
         buffer: number;
         groupByAttribute?: string;
+        projectName: string;
+        jobType: string;
       }
     }
   }];
@@ -84,6 +86,8 @@ export interface SinglePageBatchMapPayload {
         fitTo: FitToPageOptions;
         buffer: number;
         taName: string;
+        projectName: string;
+        jobType: string;
       }
     }
   }];
@@ -109,6 +113,8 @@ export interface CurrentPageBatchMapPayload {
         ymin: string;
         ymax: string;
         taName: string;
+        projectName: string;
+        jobType: string;
       }
     }
   }];

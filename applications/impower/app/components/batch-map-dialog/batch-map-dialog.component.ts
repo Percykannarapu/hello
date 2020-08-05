@@ -7,7 +7,7 @@ import { AppStateService } from 'app/services/app-state.service';
 import { UserService } from 'app/services/user.service';
 import { BatchMapPayload, BatchMapSizes, FitToPageOptions, LocalAppState, SinglePageBatchMapPayload, TitlePayload, CurrentPageBatchMapPayload } from 'app/state/app.interfaces';
 import { CloseBatchMapDialog, CreateBatchMap } from 'app/state/batch-map/batch-map.actions';
-import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
+import { getBatchMapDialog, getBatchMapStatusDialog } from 'app/state/batch-map/batch-map.selectors';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
@@ -299,7 +299,9 @@ export class BatchMapDialogComponent implements OnInit {
                 xmax: extent['xmax'].toString(),
                 ymin: extent['ymin'].toString(),
                 ymax: extent['ymax'].toString(),
-                taName: this.batchMapForm.get('taTitle').value || ''
+                taName: this.batchMapForm.get('taTitle').value || '',
+                projectName: this.currentProjectName,
+                jobType: 'Current Map'
               }
             }
           }
@@ -330,7 +332,9 @@ export class BatchMapDialogComponent implements OnInit {
                   shadeNeighboringSites: ((dialogFields.enableTradeAreaShading !== undefined) ? dialogFields.enableTradeAreaShading : false),
                   fitTo: fitTo,
                   duplicated: !(dialogFields.deduplicated),
-                  buffer: dialogFields.buffer
+                  buffer: dialogFields.buffer,
+                  projectName: this.currentProjectName,
+                  jobType: 'One Site per Page'
                 }
               }
             }
@@ -362,7 +366,10 @@ export class BatchMapDialogComponent implements OnInit {
                   fitTo: fitTo,
                   duplicated: !(dialogFields.deduplicated),
                   buffer: dialogFields.buffer,
-                  groupByAttribute: dialogFields.sitesByGroup
+                  groupByAttribute: dialogFields.sitesByGroup,
+                  projectName: this.currentProjectName,
+                  jobType: 'Sites Group By'
+
                 }
               }
             }
@@ -443,7 +450,9 @@ export class BatchMapDialogComponent implements OnInit {
               subSubTitle: this.getAttrValueByCode(location[0], subSubTitle, 'subSubTitle'),
               fitTo: fitTo,
               buffer: buffer,
-              taName: this.batchMapForm.get('taTitle').value || ''
+              taName: this.batchMapForm.get('taTitle').value || '',
+              projectName: this.currentProjectName,
+              jobType: 'All Sites One Page'
             }
           }
         }]

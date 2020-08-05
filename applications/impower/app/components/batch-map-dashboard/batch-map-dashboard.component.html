@@ -1,0 +1,74 @@
+<p-dialog styleClass="load-project-dialog" [(visible)]="showDialog" (visibleChange)="closeDialog()" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true" [style]="{ width: '1500px' }">
+    <p-header middle="ui-panel-title">
+      Batch Map Status
+    </p-header>
+    <div class="dialog-main">
+      <div class="dialog-body">
+          <p-table  #statusGrid [columns]="allColumns" [value]="printJobDetails"
+                     [(selection)]="selectedRow"
+                     [scrollable]="true"
+                     selectionMode="single"
+                     dataKey="projectId"
+                     [resizableColumns]="false"
+                     columnResizeMode="expand"
+                     [reorderableColumns]="false"
+                     [responsive]="true"
+                     [paginator]="true" [rows]="10"
+                     sortField="createDate" sortOrder="-1">
+              <!-- <ng-template pTemplate="caption">Test Data</ng-template> -->
+              <ng-template pTemplate="header" class="ui-g ui-g-nopad" let-columns>
+                  <tr>
+                    <th *ngFor="let col of columns"  [pSortableColumn]="col.field" [style.width]="col.size">
+                        <span *ngIf="col.field !=='zipUrl'">
+                            {{col.header}}
+                            <p-sortIcon [field]="col.field"></p-sortIcon>
+                        </span>
+                    </th>
+                  </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-rowData let-columns="columns">
+                  <tr>
+                    <td *ngFor="let col of columns" [ngSwitch]="col.field" [style.width]="col.size">
+  
+                        <span *ngIf="col.field === 'elapsedTime'" pTooltip="{{rowData['elapsedTimeTooltip']}}">
+                             {{rowData[col.field]}}
+                        </span>
+                        <span *ngIf="col.field === 'jobNumber'" pTooltip="{{rowData['jobNumber']}}" tooltipPosition="top" showDelay="1000">
+                              {{rowData['jobNumShort']}}
+                        </span>
+                        <span *ngIf="col.field ==='createDate'">
+                            {{rowData[col.field]}}
+                        </span> 
+                        <span *ngIf="col.header === 'URL' &&  isDisable(rowData)">
+                             <a href="{{rowData[col.field]}}" target="_blank">Pdf Download</a><br>
+                             <!-- <a href="{{rowData['zipUrl']}}"  target="_blank">ZIP Download</a> -->
+                        </span>
+                        <span *ngIf="col.header === 'URL' &&  validateZipUrl(rowData)">
+                            <a href="{{rowData['zipUrl']}}"  target="_blank">ZIP </a>
+                       </span>
+                        <span *ngIf="col.header === 'Refresh'; else otherHeaders">
+                          <button (click)="refresh(rowData)" icon="pi pi-refresh" [disabled]="isDisable(rowData)" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
+                        </span>
+                        <ng-template #otherHeaders>
+                          <span *ngIf="col.header !== 'URL' && col.field !=='createDate' && col.field !== 'elapsedTime' && col.field !== 'jobNumber'">{{rowData[col.field]}}</span>
+                        </ng-template>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage" let-columns>
+                    <tr class="empty-grid">
+                        <td [attr.colspan]="columns.length">
+                          <div class="ui-g-12" *ngIf="gettingData">
+                            <h4>Loading...</h4>
+                            <p-progressSpinner></p-progressSpinner>
+                          </div>
+                          <div class="ui-g-12" *ngIf="!gettingData">
+                            <h4>No results</h4>
+                          </div>
+                        </td>
+                      </tr>
+                </ng-template>
+          </p-table>
+      </div>
+    </div>
+  </p-dialog>

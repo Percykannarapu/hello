@@ -67,7 +67,15 @@ export class BatchMapService {
       });
       payload.calls[0].args['printJobConfiguration'].siteIds = Array.from(requestedSiteIds);
     }
-    return this.http.put(this.config.printServiceUrl, payload);
+    return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);
+  }
+
+  getBatchMapDetailsByUser(username: string){
+    return this.http.get(`${this.config.printServiceUrl}/jobdetails/username/${username}`);
+  }
+
+  getBatchMapDetailsById(jobId: number){
+      return this.http.get(`${this.config.printServiceUrl}/jobdetails/byjobid/${jobId}`);
   }
 
   validateProjectReadiness(project: ImpProject) : boolean {

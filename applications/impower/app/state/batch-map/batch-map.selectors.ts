@@ -9,3 +9,4 @@ export const getLastSiteFlag = createSelector(getBatchMapSlice, state => state.i
 export const getMapMoving = createSelector(getBatchMapSlice, state => state.moving);
 export const getBatchMapDialog = createSelector(getBatchMapSlice, state => state.displayBatchMapDialog);
 export const getCurrentSiteNum = createSelector(getBatchMapSlice, state => state.currentSiteNum);
+export const getBatchMapStatusDialog = createSelector(getBatchMapSlice, state => state.displayBatchMapStatusDialog);
