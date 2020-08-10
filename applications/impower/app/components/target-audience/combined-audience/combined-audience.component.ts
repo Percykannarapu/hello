@@ -89,35 +89,43 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       selectedIndex: '',
     });
 
-
     this.audienceForm.get('audienceList').valueChanges.pipe(
-      takeUntil(this.destroyed$)).subscribe(value => {
+      filter(val => val != null && val !== ''),
+      takeUntil(this.destroyed$)).subscribe(selectedAudience => {
         this.showError = false;
         this.audienceTypes.clear();
-        const selectedIndex = this.audienceForm.get('selectedIndex');
-        if (value != null && value.length === 1) {
-          selectedIndex.setValidators([Validators.required]);
-          selectedIndex.updateValueAndValidity();
-          if (value[0].fieldconte === 'INDEX')
-            selectedIndex.setValue(this.allIndexValues.find(a => a.label === 'DMA'));
+        if (selectedAudience.length === 1) {
+          this.selectedIndex.setValidators([Validators.required]);
+          this.selectedIndex.updateValueAndValidity();
+          if (selectedAudience[0].fieldconte === 'INDEX')
+            this.selectedIndex.setValue(this.allIndexValues.find(a => a.label === 'DMA'));
         } 
-        if (value != null && value.length > 1) {
-          selectedIndex.clearValidators();
-          selectedIndex.updateValueAndValidity();
-          value.forEach(variable => this.audienceTypes.add(variable.fieldconte));
-          if (this.audienceTypes.size > 1 || (this.audienceTypes.size === 1 && !this.audienceTypes.has('PERCENT'))) {
-            selectedIndex.setErrors({'Has Error': true});
+        if (selectedAudience.length > 1) {
+          this.selectedIndex.clearValidators();
+          this.selectedIndex.updateValueAndValidity();
+          selectedAudience.forEach(variable => this.audienceTypes.add(variable.fieldconte));
+          if ((this.selectedIndex != null && this.selectedIndex.value !== '' && this.audienceTypes.size > 1 || (this.audienceTypes.size === 1 && this.audienceTypes.has('INDEX')))) {
             this.showError = true;
+            this.selectedIndex.setErrors({'Has Error': true});
           }
         } 
       });
 
+      this.audienceForm.get('selectedIndex').valueChanges.pipe(
+        filter(base => base != null && base.val !== ''),
+        takeUntil(this.destroyed$)).subscribe(value => {
+        if (this.audienceList != null && this.audienceList.value.length > 1 && (this.audienceTypes.size > 1 || (this.audienceTypes.size === 1 && this.audienceTypes.has('INDEX')) )){
+          setTimeout(() => {
+            this.audienceForm.setErrors({'Has Error': true});
+           }, 0);
+        }
+      });
+
       this.audienceForm.get('audienceName').valueChanges.pipe(takeUntil(this.destroyed$)).subscribe( value => {
-        const audienceName = this.audienceForm.get('audienceName');
-        const currentName = audienceName.value != null ?  audienceName.value.trim() : '';
+        const currentName = this.audienceName.value != null ?  this.audienceName.value.trim() : '';
         this.isDuplicateName = false;
-        if (this.varNames.has(currentName.toLowerCase()) && (this.varNames.get(currentName.toLowerCase()) !== audienceName.parent.controls['audienceId'].value)){
-          audienceName.setErrors({'isDuplicateName': true});
+        if (this.varNames.has(currentName.toLowerCase()) && (this.varNames.get(currentName.toLowerCase()) !== this.audienceName.parent.controls['audienceId'].value)){
+          this.audienceName.setErrors({'isDuplicateName': true});
           this.isDuplicateName = true;
         }
       });
@@ -194,6 +202,8 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
   }
 
   resetForm() {
+    this.showError = false;
+    this.isDuplicateName = false;
     this.audienceForm.reset();
   }
 
@@ -268,8 +278,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
   }
 
   isDisabled() : boolean{
-    const audiences = this.audienceForm.get('audienceList');
-    return audiences.value == null || audiences.value.length === 0 ;
+    return this.audienceList.value == null || this.audienceList.value.length === 0 ;
   }
 }
 
