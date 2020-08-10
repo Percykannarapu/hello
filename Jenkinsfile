@@ -53,7 +53,7 @@
                   node --max-old-space-size=8192  ./node_modules/.bin/ng build cpq-maps --progress=false
                   '''
               }
-            } 
+            }
           }
         }*/
       }
@@ -65,10 +65,16 @@
           steps {
             echo 'deploy dev'
             sh '''
-              ssh root@vallomjbs002vm rm -rf /var/www/impower/*
+              ssh root@74.121.101.77 rm -rf /var/www/impower/*
               '''
             sh '''
-              scp -r dist/impower/* root@vallomjbs002vm:/var/www/impower
+              scp -r dist/impower/* root@74.121.101.77:/var/www/impower
+              '''
+            sh '''
+              ssh root@74.121.101.78 rm -rf /var/www/impower/*
+              '''
+            sh '''
+              scp -r dist/impower/* root@74.121.101.78:/var/www/impower
               '''
           }
         }

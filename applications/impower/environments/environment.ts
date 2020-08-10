@@ -19,7 +19,7 @@ export class EnvironmentData {
   // The name of the environment
   public static environmentName = 'DEV';
 
-  public static fuseBaseUrl = 'https://servicesdev.valassislab.com/impower/services/';
+  public static fuseBaseUrl = 'https://impowerdev.valassis.com/services/';
   public static impowerBaseUrl = 'http://localhost:4200/';
   public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net';
 
