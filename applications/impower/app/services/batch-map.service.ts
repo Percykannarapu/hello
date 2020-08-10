@@ -1,16 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CommonSort, groupByExtended } from '@val/common';
+import { getUuid, groupByExtended } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
+import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { Extent } from 'esri/geometry';
 import { Observable, of, race, timer } from 'rxjs';
-import { debounceTime, filter, map, reduce, switchMap, take, withLatestFrom, tap } from 'rxjs/operators';
+import { debounceTime, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { ValSort } from '../models/valassis-sorters';
@@ -23,7 +24,6 @@ import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/Imp
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
 import { AppStateService } from './app-state.service';
-import { LoggingService } from 'app/val-modules/common/services/logging.service';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +31,8 @@ import { LoggingService } from 'app/val-modules/common/services/logging.service'
 export class BatchMapService {
 
   private originalGeoState: Record<number, boolean> = null;
+  private originalTradeAreaState: Record<number, boolean> = null;
+  private geoQueryId: string;
 
   constructor(private geoService: ImpGeofootprintGeoService,
               private esriMapService: EsriMapService,
@@ -85,6 +87,7 @@ export class BatchMapService {
     if (this.originalGeoState == null) {
       this.geoService.calculateGeoRanks();
       this.recordOriginalState(project);
+      this.geoQueryId = getUuid();
     }
     project.impGeofootprintMasters[0].impGeofootprintLocations.forEach(l => {
       l.impGeofootprintTradeAreas.forEach(ta => {
@@ -116,11 +119,9 @@ export class BatchMapService {
     if (params.hideNeighboringSites) {
       project.getImpGeofootprintLocations().forEach(l => {
         if (!activeSiteIds.has(l.locationNumber)) {
-          l.isActive = false;
           l.impGeofootprintTradeAreas.forEach(t => t.isActive = false);
         } else {
-          l.isActive = true;
-          l.impGeofootprintTradeAreas.forEach(t => t.isActive = true);
+          l.impGeofootprintTradeAreas.forEach(t => t.isActive = this.originalTradeAreaState[t.gtaId]);
           l.getImpGeofootprintGeos().forEach(g => g.isActive = this.originalGeoState[g.ggId]);
         }
       });
@@ -137,9 +138,12 @@ export class BatchMapService {
       });
       this.store$.dispatch(new RenderTradeAreas( { tradeAreas: project.getImpGeofootprintTradeAreas().filter(ta => ta.isActive) }));
     }
+    const geosToMap = sitesToMap.reduce((p, c) => {
+      return p.concat(c.getImpGeofootprintGeos());
+    }, [] as ImpGeofootprintGeo[]);
     this.geoService.update(null, null);
     this.forceMapUpdate();
-    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, sitesToMap.map(s => s.locationNumber), project).pipe(
+    return this.setMapLocation(geosToMap, params, sitesToMap, project).pipe(
       map(() => result)
     );
   }
@@ -163,24 +167,20 @@ export class BatchMapService {
   }
 
   showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    const currentLocationNumbers = project.getImpGeofootprintLocations().reduce((a, c) => {
-      if (c.isActive) a.push(c.locationNumber);
-      return a;
-    }, [] as string[]);
-    currentLocationNumbers.sort(CommonSort.StringsAsNumbers);
+    const locations = [ ...project.getImpGeofootprintLocations()
+      .filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
+    locations.sort(ValSort.LocationBySiteNum);
     const currentGeos = project.getImpGeofootprintGeos().filter(geo => geo.impGeofootprintLocation.isActive);
-    const result = { siteNum: currentLocationNumbers[currentLocationNumbers.length - 1], isLastSite: true };
-    return this.setMapLocation(project.methAnalysis, currentGeos, params, currentLocationNumbers, project).pipe(
+    const result = { siteNum: locations[locations.length - 1].locationNumber, isLastSite: true };
+    return this.setMapLocation(currentGeos, params, locations, project).pipe(
       map(() => result)
     );
   }
 
   zoomToCurrentView(project: ImpProject, params: BatchMapQueryParams){
-    const currentLocationNumbers = project.getImpGeofootprintLocations().reduce((a, c) => {
-      if (c.isActive) a.push(c.locationNumber);
-      return a;
-    }, [] as string[]);
-    currentLocationNumbers.sort(CommonSort.StringsAsNumbers);
+    const locations = [ ...project.getImpGeofootprintLocations()
+      .filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
+    locations.sort(ValSort.LocationBySiteNum);
     const extent: ExtentPayload = {
       spatialReference: {
         wkid : 102100
@@ -195,56 +195,87 @@ export class BatchMapService {
     // this.esriMapService.zoomToPoints([coords]);
     // this.esriMapService.zoomToPoints([this.esriMapService.mapView.extent.center]);
     this.esriMapService.mapView.zoom =  this.esriMapService.mapView.zoom + 1 ;
-    return of({ siteNum: currentLocationNumbers[currentLocationNumbers.length - 1], isLastSite: true });
+    return of({ siteNum: locations[locations.length - 1].locationNumber, isLastSite: true });
   }
 
   moveToSite(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
     const locations = [ ...project.getImpGeofootprintLocations()
-      .filter(l => l.isActive && ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
-    const result = { siteNum: siteNum, isLastSite: false };
+      .filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
+    const result = { siteNum: siteNum, isLastSite: true };
     locations.sort(ValSort.LocationBySiteNum);
+    let currentGeosForZoom: ReadonlyArray<ImpGeofootprintGeo> = [];
+    let currentSiteForZoom: ImpGeofootprintLocation;
     for (let i = 0; i < locations.length; ++i) {
       const currentSite = locations[i];
-      const currentGeos = currentSite.getImpGeofootprintGeos();
-      const nextSiteNum = i + 1 < locations.length ? locations[i + 1].locationNumber : null;
+      let nextSiteNum: string = null;
+      let nextSiteOffset = 1;
+      while ((i + nextSiteOffset) < locations.length) {
+        const nextSite = locations[i + nextSiteOffset];
+        if (nextSite.isActive) {
+          nextSiteNum = nextSite.locationNumber;
+          break;
+        } else {
+          nextSiteOffset++;
+        }
+      }
       if (currentSite.locationNumber === siteNum || (siteNum == null && i === 0)) {
         result.siteNum = nextSiteNum || '';
         result.isLastSite = nextSiteNum == null;
-        if (!params.duplicated) { // deduped map
-          currentGeos.forEach(g => {
-            if (g.isDeduped === 1) {
-              g.isActive = this.originalGeoState[g.ggId];
-            } else {
-              g.isActive = false;
-            }
-          });
-        } else { // duplicated map
-          currentGeos.forEach(g => g.isActive = this.originalGeoState[g.ggId]);
-        }
-
+        this.processCurrentSite(currentSite, params);
+        currentSiteForZoom = currentSite;
+        currentGeosForZoom = currentSite.getImpGeofootprintGeos();
         if (params.hideNeighboringSites) {
           const renderLocs = project.getImpGeofootprintLocations()
-            .filter(loc => loc.isActive && ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Competitor);
+            .filter(loc => ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Competitor);
           renderLocs.push(currentSite);
           this.store$.dispatch(new RenderLocations({ locations: renderLocs }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
-        } else if (params.shadeNeighboringSites) {
-          this.geoService.update(null, null);
-          this.forceMapUpdate();
-          return this.setMapLocation(project.methAnalysis, currentSite.getImpGeofootprintGeos(), params, [siteNum], project).pipe(
-            map(() => result)
-          );
         }
         this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));
-      } else if (!params.shadeNeighboringSites) {
-        currentGeos.forEach(g => g.isActive = false);
+      } else {
+        this.processOtherSite(currentSite, params);
       }
     }
-    this.geoService.update(null, null);
-    this.forceMapUpdate();
-    return this.setMapLocation(project.methAnalysis, project.getImpGeofootprintGeos(), params, [siteNum], project).pipe(
-      map(() => result)
-    );
+    if (currentSiteForZoom == null) { // no current site was found, i.e. we're at the end of the list
+      return of(result);
+    } else {
+      this.geoService.update(null, null);
+      this.forceMapUpdate();
+      return this.setMapLocation(currentGeosForZoom, params, [currentSiteForZoom], project).pipe(
+        map(() => result)
+      );
+    }
+  }
+
+  private processCurrentSite(site: ImpGeofootprintLocation, params: BatchMapQueryParams) : void {
+    const currentGeos = site.getImpGeofootprintGeos();
+    site.impGeofootprintTradeAreas.forEach(ta => ta.isActive = this.originalTradeAreaState[ta.gtaId]);
+    if (params.duplicated) {
+      currentGeos.forEach(geo => geo.isActive = this.originalGeoState[geo.ggId]);
+    } else {
+      currentGeos.forEach(g => {
+        if (g.isDeduped === 1) {
+          g.isActive = this.originalGeoState[g.ggId];
+        } else {
+          g.isActive = false;
+        }
+      });
+    }
+  }
+
+  private processOtherSite(site: ImpGeofootprintLocation, params: BatchMapQueryParams) : void {
+    const currentGeos = site.getImpGeofootprintGeos();
+    if (params.hideNeighboringSites) {
+      site.impGeofootprintTradeAreas.forEach(ta => ta.isActive = false);
+      currentGeos.forEach(geo => geo.isActive = false);
+    } else {
+      site.impGeofootprintTradeAreas.forEach(ta => ta.isActive = this.originalTradeAreaState[ta.gtaId]);
+      if (params.shadeNeighboringSites) {
+        currentGeos.forEach(geo => geo.isActive = this.originalGeoState[geo.ggId]);
+      } else {
+        currentGeos.forEach(geo => geo.isActive = false);
+      }
+    }
   }
 
   private forceMapUpdate() {
@@ -266,21 +297,26 @@ export class BatchMapService {
 
   private recordOriginalState(project: ImpProject) : void {
     const currentGeos = project.getImpGeofootprintGeos();
+    const currentTradeAreas = project.getImpGeofootprintTradeAreas();
     this.originalGeoState = {};
+    this.originalTradeAreaState = {};
     currentGeos.forEach(geo => {
       this.originalGeoState[geo.ggId] = geo.isActive;
     });
+    currentTradeAreas.forEach(ta => {
+      this.originalTradeAreaState[ta.gtaId] = ta.isActive;
+    });
   }
 
-  private setMapLocation(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>, params: BatchMapQueryParams, siteNums: Array<string>, project: ImpProject) : Observable<void> {
+  private setMapLocation(geos: ReadonlyArray<ImpGeofootprintGeo>, params: BatchMapQueryParams, sites: ImpGeofootprintLocation[], project: ImpProject) : Observable<void> {
     console.log('Inside setMapLocation', params);
     let polyObservable: Observable<__esri.Graphic[]> = of(null);
     switch (params.fitTo) {
       case FitTo.GEOS:
-        polyObservable = this.polysFromGeos(analysisLevel, geos);
+        polyObservable = this.polysFromGeos(project.methAnalysis, geos, sites.map(s => [s.xcoord, s.ycoord]));
         break;
       case FitTo.TA:
-        polyObservable = this.polysFromRadii(siteNums, project);
+        polyObservable = this.polysFromRadii(sites.map(s => s.locationNumber), project);
         break;
     }
     return polyObservable.pipe(
@@ -288,27 +324,32 @@ export class BatchMapService {
     );
   }
 
-  private polysFromGeos(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>) : Observable<__esri.Graphic[]> {
+  private polysFromGeos(analysisLevel: string, geos: ReadonlyArray<ImpGeofootprintGeo>, additionalPoints: [number, number][]) : Observable<__esri.Graphic[]> {
     const activeGeos: Set<string> = new Set();
     geos.forEach(g => {
       if (g.isActive)
         activeGeos.add(g.geocode);
     });
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true, true);
-    return this.esriQueryService.queryAttributeIn(layerId, 'geocode', Array.from(activeGeos), false, ['geocode', 'latitude', 'longitude', 'areasquaremiles']).pipe(
-      map(graphics => {
-        const points: number[][] = [];
-        let largestArea = 0;
-        graphics.forEach(g => {
-          points.push([g.getAttribute('longitude'), g.getAttribute('latitude')]);
-          if (g.getAttribute('areasquaremiles') > largestArea)
-            largestArea = g.getAttribute('areasquaremiles');
-        });
-        const multipoint = this.esriMapService.multipointFromPoints(points);
-        const bufferedPoly = this.esriMapService.bufferExtent(multipoint.extent, Math.sqrt(largestArea) / 2);
-        return [this.esriMapService.graphicFromPolygon(bufferedPoly)];
-      })
-    );
+    if (activeGeos.size > 0) {
+      return this.esriQueryService.queryAttributeIn(layerId, 'geocode', Array.from(activeGeos), false, ['geocode', 'latitude', 'longitude', 'areasquaremiles'], this.geoQueryId).pipe(
+        map(graphics => {
+          const points: number[][] = [];
+          let largestArea = 0;
+          graphics.forEach(g => {
+            points.push([g.getAttribute('longitude'), g.getAttribute('latitude')]);
+            if (g.getAttribute('areasquaremiles') > largestArea)
+              largestArea = g.getAttribute('areasquaremiles');
+          });
+          additionalPoints.forEach(p => points.push(p));
+          const multipoint = this.esriMapService.multipointFromPoints(points);
+          const bufferedPoly = this.esriMapService.bufferExtent(multipoint.extent, Math.sqrt(largestArea) / 2);
+          return [this.esriMapService.graphicFromPolygon(bufferedPoly)];
+        })
+      );
+    } else {
+      return of([]);
+    }
   }
 
   private polysFromRadii(siteNums: Array<string>, project: ImpProject) : Observable<__esri.Graphic[]> {
