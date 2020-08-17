@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewEncapsulation, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { FormBuilder, Validators, FormGroup, FormArray, FormControl } from '@angular/forms';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { Observable, BehaviorSubject, Subject } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { SelectItem, ConfirmationService } from 'primeng/api';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { filter, map, tap, takeUntil } from 'rxjs/operators';
@@ -28,20 +28,20 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
 
   compositeForm: FormGroup;
   allIndexValues: SelectItem[];
-  filteredAudiences$: Observable<SelectItem[]>;
   hasAudienceSelections: boolean = false;
   destroyed$ = new Subject<void>();
-  selectedVars: SelectItem[];
   showError: boolean = false;
-  compositeAudiences$: Observable<Audience[]>;
   varNames: Map<string, string> = new Map<string, string>([]);
-  audiences$: Observable<Audience[]>;
   isDuplicateName: boolean = false;
   currentAudience: any;
   allAudiences: Audience[];
   indexTypes: Set<string> = new Set<string>([]);
   dependentVars: Audience[];
 
+  private selectedAudiences: Observable<Audience[]>;
+  private compositeAudiences$: Observable<Audience[]>;
+  private editAudience$ = new BehaviorSubject<Audience>(null);
+  public filteredAudiences$: Observable<SelectItem[]>;
   public showDialog: boolean = false;
   public dialogboxWarningmsg: string = '';
   public dialogboxHeader: string = '';
@@ -56,7 +56,6 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     return this.audienceRows.controls as FormGroup[];
   }
 
-
   constructor(private fb: FormBuilder,
               private appStateService: AppStateService,
               private store$: Store<LocalAppState>,
@@ -67,7 +66,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
               ) { }
 
   ngOnInit() {
-    this.filteredAudiences$ = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
+    this.selectedAudiences = this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       filter(audiences => audiences != null && audiences.length > 0),
       map(aud => {
         this.allAudiences = aud;
@@ -76,15 +75,25 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
           (a.fieldconte === 'PERCENT' || a.fieldconte === 'INDEX' || a.fieldconte === 'MEDIAN'));
       }),
       tap(audiences => this.hasAudienceSelections = audiences.length > 0),
-      map(audList => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
-      mapArray(audience => ({ label: audience.audienceSourceName != null && audience.audienceSourceName.length > 0 ? 
-                                      audience.audienceName + ' - ' + audience.audienceSourceName : audience.audienceName, 
-                              value: audience })),
+      map((audList: Audience[]) => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
     );
+
+    this.filteredAudiences$ = combineLatest(this.selectedAudiences, this.editAudience$).pipe(
+        map(([selected, currentSelection]) => {
+          if (currentSelection != null){
+            return selected.filter(audience => audience.audienceIdentifier !== currentSelection.audienceIdentifier);  //handles self-referencing 
+          }else 
+            return selected;
+        }),
+        mapArray(filtered => ({ label: filtered.audienceSourceName != null && filtered.audienceSourceName.length > 0 ? 
+                                      filtered.audienceName + ' - ' + filtered.audienceSourceName : filtered.audienceName, 
+                              value: filtered })),
+     );
+    
     this.compositeAudiences$ = this.store$.select(getAllAudiences).pipe(
       filter(allAudiences => allAudiences != null),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Composite')),
-      tap(filteredVars => this.dependentVars = filteredVars )
+      tap(filteredVars => this.dependentVars = filteredVars)
     );
 
     this.compositeAudiences$.subscribe(a => a.forEach(aud => this.varNames.set(aud.audienceName.toLowerCase(), aud.audienceIdentifier)));
@@ -94,23 +103,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
       { label: 'National', value: 'NAT' },
       {label: '', value: 'ALL'}
     ];
-
-    this.compositeForm = this.fb.group({
-      compositeAudienceId: new FormControl(''),
-      compositeAudName: new FormControl('', { validators: [Validators.required], updateOn: 'blur' }),
-      audienceRows: new FormArray([
-        new FormGroup({
-          selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
-          indexBase: new FormControl('', { validators: [Validators.required] }),
-          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(101)] })
-        }),
-        new FormGroup({
-          selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
-          indexBase: new FormControl('', { validators: [Validators.required] }),
-          percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(101)] })
-        })
-      ])
-    });
+    this.setupForm();
 
     this.compositeForm.get('compositeAudName').valueChanges.pipe(takeUntil(this.destroyed$)).subscribe(value => {
       const audienceName = this.compositeForm.get('compositeAudName');
@@ -120,30 +113,6 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         this.isDuplicateName = true;
     });
 
-    this.audienceRows.controls.forEach((row: FormGroup) => {
-      row.get('selectedAudienceList').valueChanges.pipe(takeUntil(this.destroyed$)).subscribe(val => {
-        if (val != null && val.fieldconte != null && val.audienceSourceType != null) {
-          if (val.fieldconte === 'INDEX' && (val.audienceSourceType === 'Offline' || val.audienceSourceType === 'Online')) {
-            row.patchValue({ indexBase: this.allIndexValues.find(a => a.label === 'National').value });
-          }
-          if (val.audienceSourceType === 'Converted' || val.audienceSourceType === 'Combined/Converted') {
-            if (val.selectedDataSet === 'DMA'){
-              row.get('indexBase').enable();
-              row.patchValue({ indexBase: this.allIndexValues.find(a => a.label === val.selectedDataSet).value });
-            }
-            if (val.selectedDataSet === 'NAT'){
-              row.get('indexBase').enable();
-              row.patchValue({ indexBase: this.allIndexValues.find(a => a.label === 'National').value });
-            }
-          } else if (val.audienceSourceType === 'Composite') {
-              row.clearValidators();
-              row.get('indexBase').disable();
-          } else {
-              row.get('indexBase').enable();
-          }
-        }
-      });
-    });
     this.appStateService.clearUI$.subscribe(() => {
       this.compositeForm.reset();
     });
@@ -151,6 +120,16 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() : void {
     this.destroyed$.next();
+  }
+  setupForm() : void {
+    const formSetup = {
+    compositeAudienceId: new FormControl(''),
+    compositeAudName: new FormControl('', { validators: [Validators.required], updateOn: 'blur' }),
+    audienceRows: new FormArray([])
+  };
+  this.compositeForm = this.fb.group(formSetup);
+  this.addRow();
+  this.addRow();
   }
 
   onSubmit(audienceFields: any) {
@@ -226,15 +205,48 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     }
   }
 
-  addRow() {
+  addRow(newRow?: any) {
+    //TODO: introduces memory leak
     const audienceArray = this.compositeForm.controls.audienceRows as FormArray;
     const arraylen = audienceArray.length;
-    const newAudienceGroup: FormGroup = this.fb.group({
-      selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
-      indexBase: new FormControl('', { validators: [Validators.required] }),
-      percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(100)] })
-    });
-    audienceArray.insert(arraylen + 1, newAudienceGroup);
+    let newAudienceGroup: FormGroup;
+    if (newRow != null){
+      newAudienceGroup = this.fb.group({
+        selectedAudienceList: new FormControl(newRow.selectedAudienceList, { validators: [Validators.required] }),
+        indexBase: new FormControl(newRow.indexBase, { validators: [Validators.required] }),
+        percent: new FormControl(newRow.percent, { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(100)] })
+      });
+    } else{
+      newAudienceGroup = this.fb.group({
+        selectedAudienceList: new FormControl('', { validators: [Validators.required] }),
+        indexBase: new FormControl('', { validators: [Validators.required] }),
+        percent: new FormControl('', { validators: [Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(0), ValassisValidators.lessThan(100)] })
+      });
+    }
+    newAudienceGroup.get('selectedAudienceList').valueChanges.pipe(takeUntil(this.destroyed$)).subscribe(val => {
+        if (val != null && val.fieldconte != null && val.audienceSourceType != null) {
+          if (val.fieldconte === 'INDEX' && (val.audienceSourceType === 'Offline' || val.audienceSourceType === 'Online')) {
+            newAudienceGroup.patchValue({ indexBase: this.allIndexValues.find(a => a.label === 'National').value });
+          }
+          if (val.audienceSourceType === 'Converted' || val.audienceSourceType === 'Combined/Converted') {
+            if (val.selectedDataSet === 'DMA'){
+              newAudienceGroup.get('indexBase').enable();
+              newAudienceGroup.patchValue({ indexBase: this.allIndexValues.find(a => a.label === val.selectedDataSet).value });
+            }
+            if (val.selectedDataSet === 'NAT'){
+              newAudienceGroup.get('indexBase').enable();
+              newAudienceGroup.patchValue({ indexBase: this.allIndexValues.find(a => a.label === 'National').value });
+            }
+          } else if (val.audienceSourceType === 'Composite') {
+            // newAudienceGroup.clearValidators();
+            newAudienceGroup.get('indexBase').reset();
+            newAudienceGroup.get('indexBase').disable();
+          } else {
+            newAudienceGroup.get('indexBase').enable();
+          }
+        }
+      });
+      audienceArray.insert(arraylen + 1, newAudienceGroup);
   }
 
   onRemove(i: number) {
@@ -289,11 +301,10 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     const nationalSelectItem = this.allIndexValues.find(base => base.label === 'National');
     const compositeBase = compositeSelectItem != null ? compositeSelectItem.value : null;
     const nationalBase = nationalSelectItem != null ? nationalSelectItem.value : null;
-    
+
     if (selectedAudience.compositeSource.length > 0) {
       selectedAudience.compositeSource.forEach(audience => {
         this.allAudiences.forEach(current => {
-
           if (current != null && current.audienceIdentifier === audience.id.toString()){
             currentRows.push({
               selectedAudienceList: current,
@@ -305,11 +316,15 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
         });
       });
     }
+
     this.compositeForm.patchValue({
       compositeAudienceId: selectedAudience.audienceIdentifier,
       compositeAudName: selectedAudience.audienceName,
-      audienceRows: currentRows
     });
+    
+    this.editAudience$.next(selectedAudience);
+    this.audienceRows.clear();
+    currentRows.forEach(row => this.addRow(row));
     currentRows = [];
   }
 
