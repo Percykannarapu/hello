@@ -17,6 +17,10 @@ body {
   margin-left: -45px;
 }
 
+li.val-hidden-by-search {
+  display: none;
+}
+
 .val-centered {
   display: flex;
   align-items: center;

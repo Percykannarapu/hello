@@ -2,11 +2,10 @@ import { Update } from '@ngrx/entity';
 import { Action } from '@ngrx/store';
 import { OnlineBulkDataResponse } from 'app/services/target-audience-online.service';
 import { OfflineBulkDataResponse } from 'app/services/target-audience-tda.service';
+import { UnifiedBulkResponse } from 'app/services/target-audience-unified.service';
 import { GeoVar } from '../geo-vars/geo-vars.model';
-import { MapVar } from '../map-vars/map-vars.model';
 import { Audience } from './audience.model';
 import { Stats } from './audience.reducer';
-import { UnifiedBulkResponse } from 'app/services/target-audience-unified.service';
 
 export enum AudienceActionTypes {
   LoadAudiences                      = '[Audience] Load Audiences',
@@ -34,7 +33,6 @@ export enum AudienceActionTypes {
   GetDataFromGeos                    = '[Audience] Get Data From Geos',
   RehydrateAudiences                 = '[Audience] Rehydrate Audiences',
 
-  FetchAudienceTradeArea             = '[Audience] Fetch Audience: Trade Area',
   FetchOnlineInterest                = '[Audience] Fetch Online Audience: Interest',
   FetchOnlineInMarket                = '[Audience] Fetch Online Audience: In-Market',
   FetchOnlineVLH                     = '[Audience] Fetch Online Audience: VLH',
@@ -44,7 +42,6 @@ export enum AudienceActionTypes {
   FetchCustomFromPrefs               = '[Audience] Fetch Custom Audience From Project Prefs',
   FetchUnified                       = '[Audience] Fetch Audience : Unified',
 
-  FetchAudienceTradeAreaCompleted    = '[Audience] Fetch Audience: Trade Area Completed',
   FetchOnlineInterestCompleted       = '[Audience] Fetch Online Audience: Interest Completed',
   FetchOnlineInMarketCompleted       = '[Audience] Fetch Online Audience: In-Market Completed',
   FetchOnlineVLHCompleted            = '[Audience] Fetch Online Audience: VLH Completed',
@@ -53,7 +50,6 @@ export enum AudienceActionTypes {
   FetchCustomCompleted               = '[Audience] Fetch Custom Audience: Completed',
   FetchUnifiedCompleted              = '[Audience] Fetch Audience : Unified Completed',
 
-  FetchAudienceTradeAreaMap          = '[Audience] Fetch For Map Audience: Trade Area',
   FetchOnlineInterestMap             = '[Audience] Fetch For Map Online Audience: Interest',
   FetchOnlineInMarketMap             = '[Audience] Fetch For Map Online Audience: In-Market',
   FetchOnlineVLHMap                  = '[Audience] Fetch For Map Online Audience: VLH',
@@ -63,7 +59,6 @@ export enum AudienceActionTypes {
   FetchCustomFromPrefsMap            = '[Audience] Fetch For Map Custom Audience From Project Prefs',
   FetchUnifiedMap                    = '[Audience] Fetch For Map Audience : Unified',
 
-  FetchAudienceTradeAreaCompletedMap = '[Audience] Fetch For Map Audience: Trade Area Completed',
   FetchOnlineInterestCompletedMap    = '[Audience] Fetch For Map Online Audience: Interest Completed',
   FetchOnlineInMarketCompletedMap    = '[Audience] Fetch For Map Online Audience: In-Market Completed',
   FetchOnlineVLHCompletedMap         = '[Audience] Fetch For Map Online Audience: VLH Completed',
@@ -72,11 +67,9 @@ export enum AudienceActionTypes {
   FetchCustomCompletedMap            = '[Audience] Fetch For Map Custom Audience: Completed',
   FetchUnifiedCompletedMap           = '[Audience] Fetch For Map Audience : Unified Completed',
 
-  FetchAudienceTradeAreaFailed       = '[Audience] Fetch Audience: Trade Area Failed',
   FetchOnlineFailed                  = '[Audience] Fetch Online Audience Failed',
   FetchOfflineFailed                 = '[Audience] Fetch Offline Audience Failed',
   FetchCustomFailed                  = '[Audience] Fetch Custom Audience Failed',
-  FetchAudienceTradeAreaFailedMap    = '[Audience] Fetch For Map Audience: Trade Area Failed',
   FetchOnlineFailedMap               = '[Audience] Fetch For Map Online Audience Failed',
   FetchOfflineFailedMap              = '[Audience] Fetch For Map Offline Audience Failed',
   FetchCustomFailedMap               = '[Audience] Fetch For Map Custom Audience Failed',
@@ -180,10 +173,6 @@ export class FetchCountDecrement implements Action {
   readonly type = AudienceActionTypes.FetchCountDecrement;
 }
 
-export class FetchAudienceTradeArea implements Action {
-  readonly type = AudienceActionTypes.FetchAudienceTradeArea;
-}
-
 export class FetchOnlineInterest implements Action {
   readonly type = AudienceActionTypes.FetchOnlineInterest;
   constructor(public payload: {fuseSource: string, al: string, showOnMap: boolean[], ids: string[], geos: string[], transactionId?: number}) {}
@@ -223,11 +212,6 @@ export class FetchUnified implements Action {
   constructor(public payload: {fuseSource: string, audienceList: Audience[], al: string, showOnMap: boolean[], ids: string[], geos: string[], transactionId?: number}) {}
 }
 
-export class FetchAudienceTradeAreaCompleted implements Action {
-  readonly type = AudienceActionTypes.FetchAudienceTradeAreaCompleted;
-  constructor(public payload: {source: string, startTime: number, response: GeoVar[]}) {}
-}
-
 export class FetchOnlineInterestCompleted implements Action {
   readonly type = AudienceActionTypes.FetchOnlineInterestCompleted;
   constructor(public payload: {source: string, startTime: number, response: OnlineBulkDataResponse[]}) {}
@@ -261,10 +245,6 @@ export class FetchCustomCompleted implements Action {
 export class FetchUnifiedCompleted implements Action {
   readonly type = AudienceActionTypes.FetchUnifiedCompleted;
   constructor(public payload: {source: string, startTime: number, response: UnifiedBulkResponse[]}) {}
-}
-
-export class FetchAudienceTradeAreaMap implements Action {
-  readonly type = AudienceActionTypes.FetchAudienceTradeAreaMap;
 }
 
 export class FetchOnlineInterestMap implements Action {
@@ -307,11 +287,6 @@ export class FetchUnifiedMap implements Action {
   constructor(public payload: {fuseSource: string, audienceList: Audience[], al: string, showOnMap: boolean[], ids: string[], geos: string[], transactionId?: number}) {}
 }
 
-export class FetchAudienceTradeAreaCompletedMap implements Action {
-  readonly type = AudienceActionTypes.FetchAudienceTradeAreaCompletedMap;
-  constructor(public payload: {source: string, startTime: number, response: MapVar[], transactionId: number }) {}
-}
-
 export class FetchOnlineInterestCompletedMap implements Action {
   readonly type = AudienceActionTypes.FetchOnlineInterestCompletedMap;
   constructor(public payload: {source: string, startTime: number, response: OnlineBulkDataResponse[], transactionId: number }) {}
@@ -347,11 +322,6 @@ export class FetchUnifiedCompletedMap implements Action {
   constructor(public payload: {source: string, startTime: number, response: UnifiedBulkResponse[], transactionId: number }) {}
 }
 
-export class FetchAudienceTradeAreaFailed implements Action {
-  readonly type = AudienceActionTypes.FetchAudienceTradeAreaFailed;
-  constructor(public payload: { err: any }) {}
-}
-
 export class FetchOnlineFailed implements Action {
   readonly type = AudienceActionTypes.FetchOnlineFailed;
   constructor(public payload: { err: any }) {}
@@ -370,12 +340,6 @@ export class FetchCustomFailed implements Action {
 export class FetchUnifiedFailed implements Action {
   readonly type = AudienceActionTypes.FetchUnifiedFailed;
   constructor(public payload: { err: any }) {}
-}
-
-
-export class FetchAudienceTradeAreaFailedMap implements Action {
-  readonly type = AudienceActionTypes.FetchAudienceTradeAreaFailedMap;
-  constructor(public payload: { err: any, transactionId: number  }) {}
 }
 
 export class FetchOnlineFailedMap implements Action {
@@ -458,7 +422,6 @@ export type AudienceActions =
   | FetchAudiences
   | FetchCountIncrement
   | FetchCountDecrement
-  | FetchAudienceTradeArea
   | FetchOnlineInterest
   | FetchOnlineInMarket
   | FetchOnlineVLH
@@ -467,7 +430,6 @@ export type AudienceActions =
   | FetchCustom
   | FetchCustomFromPrefs
   | FetchUnified
-  | FetchAudienceTradeAreaCompleted
   | FetchOnlineInterestCompleted
   | FetchOnlineInMarketCompleted
   | FetchOnlineVLHCompleted
@@ -475,7 +437,6 @@ export type AudienceActions =
   | FetchOfflineTDACompleted
   | FetchCustomCompleted
   | FetchUnifiedCompleted
-  | FetchAudienceTradeAreaMap
   | FetchOnlineInterestMap
   | FetchOnlineInMarketMap
   | FetchOnlineVLHMap
@@ -484,7 +445,6 @@ export type AudienceActions =
   | FetchCustomMap
   | FetchCustomFromPrefsMap
   | FetchUnifiedMap
-  | FetchAudienceTradeAreaCompletedMap
   | FetchOnlineInterestCompletedMap
   | FetchOnlineInMarketCompletedMap
   | FetchOnlineVLHCompletedMap
@@ -492,12 +452,10 @@ export type AudienceActions =
   | FetchOfflineTDACompletedMap
   | FetchCustomCompletedMap
   | FetchUnifiedCompletedMap
-  | FetchAudienceTradeAreaFailed
   | FetchOnlineFailed
   | FetchOfflineFailed
   | FetchCustomFailed
   | FetchUnifiedFailed
-  | FetchAudienceTradeAreaFailedMap
   | FetchOnlineFailedMap
   | FetchOfflineFailedMap
   | FetchCustomFailedMap
@@ -511,7 +469,6 @@ export type AudienceActions =
   | SelectMappingAudience;
 
 export type MapFetchCompleteActions =
-  FetchAudienceTradeAreaCompletedMap
   | FetchOnlineInterestCompletedMap
   | FetchOnlineInMarketCompletedMap
   | FetchOnlineVLHCompletedMap
@@ -519,7 +476,6 @@ export type MapFetchCompleteActions =
   | FetchOfflineTDACompletedMap
   | FetchCustomCompletedMap
   | FetchUnifiedCompletedMap
-  | FetchAudienceTradeAreaFailedMap
   | FetchOnlineFailedMap
   | FetchOfflineFailedMap
   | FetchCustomFailedMap

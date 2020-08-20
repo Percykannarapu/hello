@@ -1,16 +1,13 @@
-import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
 import { VarSpecs } from 'app/services/target-audience-unified.service';
+import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
 
 export interface AudienceDataDefinition {
   audienceName: string;
   audienceIdentifier: string;
-  showOnMap: boolean;
   showOnGrid: boolean;
   exportInGeoFootprint: boolean;
-  disableUISplit?: boolean;
   exportNationally: boolean;
   allowNationalExport: boolean;
-  nationalCsvTransform?: (fieldName: string) => { name: string, field: string }[];
   selectedDataSet?: string;
   dataSetOptions?: { label: string, value: string }[];
   audienceSourceName: string;
@@ -19,7 +16,7 @@ export interface AudienceDataDefinition {
   audienceTAConfig?: AudienceTradeAreaConfig;
   fieldconte: FieldContentTypeCodes;
   requiresGeoPreCaching: boolean;
-  seq: number;
+  sortOrder: number;
   isCombined?: boolean;
   isComposite?: boolean;
   combinedAudiences?: Array<string>;

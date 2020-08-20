@@ -7,10 +7,10 @@ import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProj
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, startWith, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import * as ValSort from '../common/valassis-sorters';
 import { ApplyAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { ClearGeoVars } from '../impower-datastore/state/transient/geo-vars/geo-vars.actions';
-import { ValSort } from '../models/valassis-sorters';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
 import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -22,7 +22,12 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
+import {
+  ImpClientLocationTypeCodes,
+  SuccessfulLocationTypeCodes,
+  TradeAreaMergeTypeCodes,
+  TradeAreaTypeCodes
+} from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppProjectService } from './app-project.service';
 

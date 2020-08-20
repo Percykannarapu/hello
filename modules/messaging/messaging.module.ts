@@ -2,9 +2,11 @@ import { CommonModule } from '@angular/common';
 import { ModuleWithProviders, NgModule, Optional, SkipSelf, Type } from '@angular/core';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
+import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BusyIndicatorComponent } from './components/busy-indicator/busy-indicator.component';
+import { SimpleMessageComponent } from './components/simple-message/simple-message.component';
 import { LiveIndicatorService } from './core/live-indicator.service';
 import { NotificationProvider, NotificationProviderToken } from './core/notification-provider.interface';
 import { NullNotificationService } from './core/null-notification.service';
@@ -25,10 +27,11 @@ const allEffects = [
     StoreModule.forFeature('messaging', messagingReducers),
     EffectsModule.forFeature(allEffects),
     DialogModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    ButtonModule
   ],
-  declarations: [BusyIndicatorComponent],
-  exports: [BusyIndicatorComponent]
+  declarations: [BusyIndicatorComponent, SimpleMessageComponent],
+  exports: [BusyIndicatorComponent, SimpleMessageComponent]
 })
 export class MessagingModule {
   constructor(@Optional() @SkipSelf() parentModule: MessagingModule) {

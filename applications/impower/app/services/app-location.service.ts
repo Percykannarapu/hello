@@ -20,7 +20,7 @@ import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of 
 import { filter, finalize, map, mergeMap, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { EnvironmentData } from '../../environments/environment';
 import { AppConfig } from '../app.config';
-import { quadPartitionLocations } from '../models/quad-tree';
+import { quadPartitionLocations } from '../common/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { FullAppState } from '../state/app.interfaces';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';

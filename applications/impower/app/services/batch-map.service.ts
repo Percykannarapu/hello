@@ -13,8 +13,8 @@ import { Extent } from 'esri/geometry';
 import { Observable, of, race, timer } from 'rxjs';
 import { debounceTime, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { LocationBySiteNum } from '../common/valassis-sorters';
 import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
-import { ValSort } from '../models/valassis-sorters';
 import { BatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
@@ -177,7 +177,7 @@ export class BatchMapService {
   showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
     const locations = [ ...project.getImpGeofootprintLocations()
       .filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
-    locations.sort(ValSort.LocationBySiteNum);
+    locations.sort(LocationBySiteNum);
     const currentGeos = project.getImpGeofootprintGeos().filter(geo => geo.impGeofootprintLocation.isActive);
     const result = { siteNum: locations[locations.length - 1].locationNumber, isLastSite: true };
     return this.setMapLocation(currentGeos, params, locations, project).pipe(
@@ -188,7 +188,7 @@ export class BatchMapService {
   zoomToCurrentView(project: ImpProject, params: BatchMapQueryParams){
     const locations = [ ...project.getImpGeofootprintLocations()
       .filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
-    locations.sort(ValSort.LocationBySiteNum);
+    locations.sort(LocationBySiteNum);
     const extent: ExtentPayload = {
       spatialReference: {
         wkid : 102100
@@ -210,7 +210,7 @@ export class BatchMapService {
     const locations = [ ...project.getImpGeofootprintLocations()
       .filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
     const result = { siteNum: siteNum, isLastSite: true };
-    locations.sort(ValSort.LocationBySiteNum);
+    locations.sort(LocationBySiteNum);
     let currentGeosForZoom: ReadonlyArray<ImpGeofootprintGeo> = [];
     let currentSiteForZoom: ImpGeofootprintLocation;
     for (let i = 0; i < locations.length; ++i) {

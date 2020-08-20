@@ -1,40 +1,17 @@
-<p-tabView [activeIndex]="tabViewIndex"  (onChange)="handleChange($event)">
+<p-tabView [(activeIndex)]="activeTabIndex">
 
   <p-tabPanel header="Online Audience">
-    <p-accordion [activeIndex]="index" (onOpen)="onTabOpen($event)">
-      <p-accordionTab header="Interest and In-Market" [transitionOptions]="'0ms'">
-        <val-online-audience-apio></val-online-audience-apio>
-      </p-accordionTab>
-      <p-accordionTab header="Visit Likelihood" [transitionOptions]="'0ms'">
-        <val-online-audience-vlh></val-online-audience-vlh>
-      </p-accordionTab>
-      <p-accordionTab header="Pixel Data" [transitionOptions]="'0ms'">
-        <val-online-audience-pixel></val-online-audience-pixel>
-      </p-accordionTab>
-    </p-accordion>
+    <val-audiences-online></val-audiences-online>
   </p-tabPanel>
 
-  <p-tabPanel header="Offline Audience" [activeIndex]="offlineIndex" (onOpen)="onTabOffline($event)">
-    <p-accordion>
-      <p-accordionTab header="TDA" [transitionOptions]="'0ms'" [selected]="true">
-        <val-offline-audience-tda></val-offline-audience-tda>
-      </p-accordionTab>
-    </p-accordion>
+  <p-tabPanel header="Offline Audience">
+    <val-audiences-offline></val-audiences-offline>
   </p-tabPanel>
 
   <p-tabPanel header="Custom Audience">
-    <p-accordion  [activeIndex]="customIndex" (onOpen)="onTabCustom($event)">
-      <p-accordionTab header="Upload" [transitionOptions]="'0ms'">
-        <val-custom-audience></val-custom-audience>
-      </p-accordionTab>
-      <p-accordionTab header="Combine/Convert" [transitionOptions]="'0ms'">
-        <val-combined-audience></val-combined-audience>
-      </p-accordionTab>
-      <p-accordionTab header="Composite" [transitionOptions]="'0ms'">    
-         <val-composite-audience></val-composite-audience>
-      </p-accordionTab>
-    </p-accordion>
+    <val-audiences-custom></val-audiences-custom>
   </p-tabPanel>
+
   <p-tabPanel header="Selected Audiences">
     <val-selected-audiences></val-selected-audiences>
   </p-tabPanel>

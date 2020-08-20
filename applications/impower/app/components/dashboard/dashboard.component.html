@@ -8,7 +8,6 @@
                     [model]="metricMapBlue"
                     [flags]="flagMapBlue"
                     displayOverlay="true"
-                    [dismissible]="true"
                     #campaignColorBox (overlayClosed)= "onCampaignDetailsClose()">
        <val-campaign-details #campaignDetailsComponent></val-campaign-details>
      </val-color-box>
@@ -22,11 +21,10 @@
                      icon="my_location"
                      [model]="metricMapGreen"
                      displayOverlay="true"
-                     [dismissible]="true"
                      #locationsColorBox>
         <p-tabView [activeIndex]="index"  (onChange)="handleChange($event)">
           <p-tabPanel header="Add Locations">
-            <val-add-locations-tab #addLocations></val-add-locations-tab>
+            <val-add-locations-tab></val-add-locations-tab>
           </p-tabPanel>
           <p-tabPanel *ngIf="(hasLocationFailures$ | async)" header="Interactive Geocoding" headerStyleClass="val-important-element">
             <val-failed-locations-tab>Loading Failed Locations...</val-failed-locations-tab>
@@ -49,7 +47,6 @@
                       [model]="metricMapPurple"
                       [flags]="flagMapPurple"
                       displayOverlay="true"
-                      [dismissible]="true"
                       #audienceColorBox>
         <val-target-audience></val-target-audience>
       </val-color-box>
@@ -68,7 +65,6 @@
                        [model]="metricMapTeal"
                        [flags]="flagMapTeal"
                        displayOverlay="false"
-                       [dismissible]="true"
                        #performanceColorBox>
       </val-color-box>
     </div>

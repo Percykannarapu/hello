@@ -1,8 +1,8 @@
+import { toNullOrNumber } from '@val/common';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../services/app-discovery.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ProjectCpmTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { isBoolean } from 'util';
 
 export class ValDiscoveryUIModel {
   projectId: number;
@@ -57,7 +57,7 @@ export class ValDiscoveryUIModel {
       selectedSeason: project.impGeofootprintMasters[0].methSeason,
       selectedProjectTracker: trackerItem ? trackerItem : null,
       selectedRadLookup: radItem ? radItem : null,
-      forceHomeGeos: froceHomeGeoAttr == null ? true : froceHomeGeoAttr.largeVal === 'true' ? true : false,
+      forceHomeGeos: froceHomeGeoAttr == null ? true : froceHomeGeoAttr.largeVal === 'true',
     };
     if (newFormValues.selectedSeason == null || newFormValues.selectedSeason === '') {
       newFormValues.selectedSeason = this.isSummer() ? 'S' : 'W';
@@ -66,8 +66,8 @@ export class ValDiscoveryUIModel {
   }
 
   public updateProjectItem(projectToUpdate: ImpProject) : void {
-    const dollarBudget = this.toNumber(this.dollarBudget);
-    const circBudget = this.toNumber(this.circulationBudget);
+    const dollarBudget = toNullOrNumber(this.dollarBudget);
+    const circBudget = toNullOrNumber(this.circulationBudget);
     // Populate the ImpProject model
 
     projectToUpdate.clientIdentifierName     =  this.selectedProjectTracker ? this.selectedProjectTracker.clientName : null;
@@ -83,10 +83,10 @@ export class ValDiscoveryUIModel {
     projectToUpdate.isIncludeSolo      = this.includeSolo;
     projectToUpdate.projectTrackerId   = this.selectedProjectTracker != null && this.selectedProjectTracker.projectId != null ? this.selectedProjectTracker.projectId : null;
     projectToUpdate.projectName        = this.selectedProjectTracker != null && this.selectedProjectTracker.projectName != null && this.projectName == null ? this.selectedProjectTracker.projectName : this.projectName ;
-    projectToUpdate.estimatedBlendedCpm = this.toNumber(this.cpmBlended);
-    projectToUpdate.smValassisCpm      = this.toNumber(this.cpmValassis);
-    projectToUpdate.smAnneCpm          = this.toNumber(this.cpmAnne);
-    projectToUpdate.smSoloCpm          = this.toNumber(this.cpmSolo);
+    projectToUpdate.estimatedBlendedCpm = toNullOrNumber(this.cpmBlended);
+    projectToUpdate.smValassisCpm      = toNullOrNumber(this.cpmValassis);
+    projectToUpdate.smAnneCpm          = toNullOrNumber(this.cpmAnne);
+    projectToUpdate.smSoloCpm          = toNullOrNumber(this.cpmSolo);
     projectToUpdate.radProduct         = this.selectedRadLookup ? this.selectedRadLookup.product : null;
     projectToUpdate.impGeofootprintMasters[0].methSeason = this.selectedSeason;
 
@@ -99,12 +99,6 @@ export class ValDiscoveryUIModel {
 
     const forceHomeGeos = new ImpProjectPref({prefGroup: 'project-flags', pref: 'FORCE_HOMEGEO', prefType: 'boolean', isActive: true, largeVal:  this.forceHomeGeos ? 'true' : 'false'});
     projectToUpdate.impProjectPrefs = projectToUpdate.impProjectPrefs.filter(pref => pref.prefGroup !== 'project-flags' && pref.pref !== 'FORCE_HOMEGEO');
-    projectToUpdate.impProjectPrefs.push(forceHomeGeos); 
-  }
-
-  private toNumber(value: string) : number | null {
-    const result: number = Number(value);
-    if (value == null || value.trim() === '' || Number.isNaN(result)) return null;
-    return result;
+    projectToUpdate.impProjectPrefs.push(forceHomeGeos);
   }
 }

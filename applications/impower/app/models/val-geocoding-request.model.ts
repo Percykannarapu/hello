@@ -1,9 +1,6 @@
+import { isConvertibleToNumber, isEmpty, isFunction } from '@val/common';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ValGeocodingResponse } from './val-geocoding-response.model';
-
-const isEmpty = (s: any) => s == null || s.toString().trim().length === 0;
-const isNumber = (s: any) => !isEmpty(s) && !Number.isNaN(Number(s));
-const isBetween = (min: number, max: number, s: any) => isNumber(s) && s >= min && s <= max;
 
 export class ValGeocodingRequest {
   name: string;
@@ -28,12 +25,12 @@ export class ValGeocodingRequest {
   [key: string] : any;
   clientIdentifierId: string;  // Mandatory DB field
   clientLocationId: number;    // Mandatory DB field
-  'Home ATZ' : string;
-  'Home Zip Code' : string;
-  'Home Carrier Route' : string;
-  'Home Digital ATZ' : string;
-  'Home County' : string;
-  'Home DMA' : string;
+  'Home ATZ': string;
+  'Home Zip Code': string;
+  'Home Carrier Route': string;
+  'Home Digital ATZ': string;
+  'Home County': string;
+  'Home DMA': string;
 
   constructor();
   constructor(partial: Partial<ValGeocodingRequest>);
@@ -50,7 +47,8 @@ export class ValGeocodingRequest {
 
   // values are not empty, numeric, and inside the specified bounds
   public hasGoodLatAndLong() : boolean {
-    return isBetween(-180, 180, this.longitude) && isBetween(-90, 90, this.latitude);
+    return (isConvertibleToNumber(this.longitude) && Number(this.longitude) >= -180 && Number(this.latitude) <= 180) &&
+           (isConvertibleToNumber(this.latitude) && Number(this.latitude) >= -90 && Number(this.latitude) <= 90);
   }
 
   // values are not empty, and either non-numeric, or numeric and outside the specified bounds
@@ -71,8 +69,9 @@ export class ValGeocodingRequest {
   }
 
   public toGeocodingResponse(status: 'PROVIDED' | 'BAD XY') : ValGeocodingResponse {
-    const nonAttributeProps = ['name', 'number', 'Market', 'Market Code', 'Description', 'Group',
-                               'street', 'city', 'state', 'zip', 'latitude', 'longitude', 'Home Zip Code','Home ATZ', 'Home Carrier Route', 'Home Digital ATZ', 'Home County', 'Home DMA'];
+    const nonAttributeProps = new Set<string>(['name', 'number', 'Market', 'Market Code', 'Description', 'Group', 'street',
+      'city', 'state', 'zip', 'latitude', 'longitude', 'Home Zip Code', 'Home ATZ', 'Home Carrier Route',
+      'Home Digital ATZ', 'Home County', 'Home DMA']);
     const result = new ValGeocodingResponse({
       Name: this.name,
       Market: this.Market,
@@ -91,13 +90,11 @@ export class ValGeocodingRequest {
       'Home Carrier Route' : this['Home Carrier Route'],
       'Home Digital ATZ': this['Home Digital ATZ'],
       'Home County' : this['Home County'],
-      'Home DMA' : this['Home DMA'],   
+      'Home DMA' : this['Home DMA'],
     });
     if (status === 'PROVIDED') {
       result.Address = this.street;
       result.City = this.city;
-      //commented as a part of user story : US9232
-      //result.LocalState = this.state;
       result.State = this.state;
       result.ZIP = this.zip;
     } else {
@@ -107,7 +104,7 @@ export class ValGeocodingRequest {
       result['Original ZIP'] = this.zip;
     }
     for (const [k, v] of Object.entries(this)) {
-      if (nonAttributeProps.indexOf(k) < 0 && typeof v !== 'function') {
+      if (!nonAttributeProps.has(k) && !isFunction(v)) {
         result[k] = v;
       }
     }

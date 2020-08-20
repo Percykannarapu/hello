@@ -9,13 +9,23 @@ import { LoggingService } from 'app/val-modules/common/services/logging.service'
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { of } from 'rxjs';
 import { catchError, concatMap, filter, map, mergeMap, skip, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
-import { mapFeaturesToGeocode } from '../../../models/rxjs-utils';
+import { mapFeaturesToGeocode } from '../../../common/rxjs-utils';
 import { FullAppState } from '../../../state/app.interfaces';
 import { ProjectLoadSuccess } from '../../../state/data-shim/data-shim.actions';
 import { TransientService } from '../../services/transient.service';
 import { ApplyAudiences, AudienceActionTypes, FetchMapVarCompleted } from './audience/audience.actions';
 import { RehydrateAttributes } from './geo-attributes/geo-attributes.actions';
-import { CacheGeofootprintGeos, CacheGeos, CacheGeosComplete, CacheGeosFailure, GetAllMappedVariables, RehydrateAfterLoad, RemoveGeoCache, TransientActions, TransientActionTypes } from './transient.actions';
+import {
+  CacheGeofootprintGeos,
+  CacheGeos,
+  CacheGeosComplete,
+  CacheGeosFailure,
+  GetAllMappedVariables,
+  RehydrateAfterLoad,
+  RemoveGeoCache,
+  TransientActions,
+  TransientActionTypes
+} from './transient.actions';
 import { getAllMappedAudiences } from './transient.reducer';
 
 @Injectable()

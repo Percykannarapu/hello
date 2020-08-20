@@ -4,7 +4,15 @@ import { groupByExtended } from '@val/common';
 import { TargetAudienceService } from '../../services/target-audience.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
-import { FetchAudienceTradeAreaMap, FetchCustomFromPrefsMap, FetchOfflineTDAMap, FetchOnlineInMarketMap, FetchOnlineInterestMap, FetchOnlinePixelMap, FetchOnlineVLHMap, FetchUnifiedMap } from '../state/transient/audience/audience.actions';
+import {
+  FetchCustomFromPrefsMap,
+  FetchOfflineTDAMap,
+  FetchOnlineInMarketMap,
+  FetchOnlineInterestMap,
+  FetchOnlinePixelMap,
+  FetchOnlineVLHMap,
+  FetchUnifiedMap
+} from '../state/transient/audience/audience.actions';
 import { Audience } from '../state/transient/audience/audience.model';
 
 @Injectable({
@@ -24,16 +32,7 @@ export class TransientService {
     // Dispatch a fetch for each audience source
     audiencesBySource.forEach((currentAudiences, source) => {
       const ids = currentAudiences.map(audience => audience.audienceIdentifier);
-      const showOnMap = currentAudiences.map(() => true);
-      // If the source is from an audience trade area, determine the real source and id
-      // if (source === 'Online/Audience-TA' && currentAudiences.length > 0 && currentAudiences[0].audienceTAConfig != null) {
-      //   const realAudience = currentAudiences.find(aud => aud.audienceIdentifier === currentAudiences[0].audienceTAConfig.digCategoryId.toString());
-      //   if (realAudience != null) {
-      //     source = this.targetAudienceService.createKey(realAudience.audienceSourceType, realAudience.audienceSourceName);
-      //     ids = [realAudience.audienceIdentifier];
-      //     // this.logger.info.log('### FetchMapVar - found real audience for id:', audiences[0].audienceTAConfig.digCategoryId, 'new source is:', source);
-      //   }
-      // }
+      const showOnMap = currentAudiences.map(() => false);
       switch (source) {
         case 'Online/Interest':
           actionsToDispatch.push(new FetchOnlineInterestMap({ fuseSource: 'interest', al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
@@ -55,10 +54,6 @@ export class TransientService {
           actionsToDispatch.push(new FetchOfflineTDAMap({ fuseSource: 'tda', al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
           break;
 
-        case 'Online/Audience-TA':
-          actionsToDispatch.push(new FetchAudienceTradeAreaMap());
-          break;
-        
         case 'Combined/Converted/TDA':
           actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'combine', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
           break;
@@ -66,7 +61,7 @@ export class TransientService {
         case 'Combined/TDA':
           actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'combine', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
           break;
- 
+
         case 'Converted/TDA':
           actionsToDispatch.push(new FetchUnifiedMap({ fuseSource: 'composite', audienceList: currentAudiences, al: analysisLevel, showOnMap: showOnMap, ids: ids, geos: null, transactionId: transactionId }));
           break;

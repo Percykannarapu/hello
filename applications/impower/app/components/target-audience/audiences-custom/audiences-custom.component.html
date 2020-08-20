@@ -1,0 +1,11 @@
+<p-accordion [activeIndex]="activeCustomAccordion" (onOpen)="onCustomAccordionChange($event)">
+  <p-accordionTab header="Upload" [transitionOptions]="'0ms'">
+    <val-custom-audience></val-custom-audience>
+  </p-accordionTab>
+  <p-accordionTab header="Combine/Convert" [transitionOptions]="'0ms'">
+    <val-combined-audience></val-combined-audience>
+  </p-accordionTab>
+  <p-accordionTab header="Composite" [transitionOptions]="'0ms'">
+    <val-composite-audience></val-composite-audience>
+  </p-accordionTab>
+</p-accordion>

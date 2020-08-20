@@ -4,7 +4,13 @@ import { Store } from '@ngrx/store';
 import { accumulateArrays, dedupeSimpleSet, formatMilli, groupByExtended, isConvertibleToNumber, mapByExtended } from '@val/common';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
-import { ApplyAudiences, ClearAudiences, ClearAudienceStats, DeleteAudience, UpsertAudience } from 'app/impower-datastore/state/transient/audience/audience.actions';
+import {
+  ApplyAudiences,
+  ClearAudiences,
+  ClearAudienceStats,
+  DeleteAudience,
+  UpsertAudience
+} from 'app/impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
@@ -117,15 +123,12 @@ export class TargetAudienceService implements OnDestroy {
     const sourceId = this.createKey(audience.audienceSourceType, audience.audienceSourceName);
     const audienceId = this.createKey(sourceId, audience.audienceIdentifier);
 
-    this.logger.debug.log('addAudience - seq:', audience.seq, ', sourceId:', sourceId, ', audienceName:', audience.audienceName, ', audienceSourceName: ', audience.audienceSourceName);
+    this.logger.debug.log('addAudience - seq:', audience.sortOrder, ', sourceId:', sourceId, ', audienceName:', audience.audienceName, ', audienceSourceName: ', audience.audienceSourceName);
 
     if (audience.audienceSourceName === 'Audience-TA')
       this.audienceMap.set(`/${sourceId}-${audience.secondaryId}`, audience);
     else
       this.audienceMap.set(audienceId, audience);
-
-    if (nationalRefresh != null)
-      this.nationalSources.set(sourceId, nationalRefresh);
 
     if (audience.audienceSourceType === 'Custom' && audience.fieldconte === null)
       audience.fieldconte = FieldContentTypeCodes.Char;
@@ -134,17 +137,17 @@ export class TargetAudienceService implements OnDestroy {
     const existingAudience = (this.allAudiencesBS$.getValue() != null) ? this.allAudiencesBS$.getValue().find(aud => aud.audienceIdentifier === audience.audienceIdentifier) : null;
 
     // If necessary assign a new seq value (audience sort order)
-    if (audience.seq == null) {
-      if (existingAudience != null && existingAudience.seq != null) {
-        audience.seq = existingAudience.seq;
+    if (audience.sortOrder == null) {
+      if (existingAudience != null && existingAudience.sortOrder != null) {
+        audience.sortOrder = existingAudience.sortOrder;
       }
       else {
-        audience.seq = this.allAudiencesBS$.value.length;
+        audience.sortOrder = this.allAudiencesBS$.value.length;
       }
     }
     else
-      if (!isReload && (audience.seq < this.allAudiencesBS$.value.length))
-        audience.seq = this.allAudiencesBS$.value.length;
+      if (!isReload && (audience.sortOrder < this.allAudiencesBS$.value.length))
+        audience.sortOrder = this.allAudiencesBS$.value.length;
 
     if (!isReload) {
       const projectVar = this.createProjectVar(audience);

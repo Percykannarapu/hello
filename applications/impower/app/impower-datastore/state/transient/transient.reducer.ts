@@ -2,6 +2,7 @@ import { Dictionary } from '@ngrx/entity';
 import { Action, ActionReducer, ActionReducerMap, combineReducers, createSelector } from '@ngrx/store';
 import { groupEntityToArray, transformEntity } from '@val/common';
 import { shadingSelectors } from '@val/esri';
+import * as fromDefinitions from './audience-definitions/audience-definitions.reducer';
 import * as fromAudience from './audience/audience.reducer';
 import * as fromAudienceSel from './audience/audience.selectors';
 import * as fromGeoAttribute from './geo-attributes/geo-attributes.reducer';
@@ -15,13 +16,15 @@ export interface ImpowerTransientState {
   geoVars: fromGeoVars.State;
   mapVars: fromMapVars.State;
   geoAttributes: fromGeoAttribute.State;
+  audienceDefinitions: fromDefinitions.State;
 }
 
 const transientReducers: ActionReducerMap<ImpowerTransientState> = {
   audiences: fromAudience.reducer,
   geoVars: fromGeoVars.reducer,
   mapVars: fromMapVars.reducer,
-  geoAttributes: fromGeoAttribute.reducer
+  geoAttributes: fromGeoAttribute.reducer,
+  audienceDefinitions: fromDefinitions.reducer,
 };
 
 const metaReducer: ActionReducer<ImpowerTransientState> = combineReducers(transientReducers);

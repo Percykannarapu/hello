@@ -1,0 +1,11 @@
+<p-accordion [activeIndex]="activeAccordion" (onOpen)="onAccordionChange($event)">
+  <p-accordionTab header="Interest and In-Market" [transitionOptions]="'0ms'">
+    <val-online-audience-apio [reservedAudienceIds]="reservedAudiences$ | async" ></val-online-audience-apio>
+  </p-accordionTab>
+  <p-accordionTab header="Visit Likelihood" [transitionOptions]="'0ms'">
+    <val-online-audience-vlh [reservedAudienceIds]="reservedAudiences$ | async" ></val-online-audience-vlh>
+  </p-accordionTab>
+  <p-accordionTab header="Pixel Data" [transitionOptions]="'0ms'">
+    <val-online-audience-pixel [reservedAudienceIds]="reservedAudiences$ | async" ></val-online-audience-pixel>
+  </p-accordionTab>
+</p-accordion>

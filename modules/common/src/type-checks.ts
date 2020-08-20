@@ -1,5 +1,5 @@
 export function isConvertibleToNumber(value: any) : value is number {
-  return value != null && value !== '' && isValidNumber(Number(value));
+  return !isEmpty(value) && isValidNumber(Number(value));
 }
 
 export function isConvertibleToInteger(value: any) : boolean {
@@ -10,13 +10,12 @@ export function isFiniteNumber(value: any) : boolean {
   return isNumber(value) && isFinite(value);
 }
 
-// Not strict positive
 export function isPositive(value: any) : boolean {
-  return isNumber(value) && value >= 0;
+  return isValidNumber(value) && value >= 0;
 }
 
 export function isInteger(value: any) : boolean {
-  return isNumber(value) && (value % 1) === 0;
+  return isValidNumber(value) && (value % 1) === 0;
 }
 
 export function isUndefined(value: any) : value is undefined {
@@ -28,7 +27,11 @@ export function isNull(value: any) : value is null {
 }
 
 export function isNil(value: any) : value is (null | undefined) {
-  return value === null || typeof (value) === 'undefined';
+  return isNull(value) || isUndefined(value);
+}
+
+export function isEmpty(value: any) : value is (null | undefined | '') {
+  return isNil(value) || (isString(value) && value.trim().length === 0);
 }
 
 export function isNumber(value: any) : value is number {

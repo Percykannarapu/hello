@@ -3,12 +3,13 @@ import { isConvertibleToNumber } from './type-checks';
 export class CommonSort {
 
   public static GenericNumber = (a: number, b: number) => a - b;
+  public static GenericString = (a: string, b: string) => a.localeCompare(b);
 
   public static StringsAsNumbers(a: string, b: string) {
     if (isConvertibleToNumber(a) && isConvertibleToNumber(b)) {
       return Number(a) - Number(b);
     } else {
-      return CommonSort.NullableSortWrapper(a, b, (x, y) => x.localeCompare(y));
+      return CommonSort.NullableSortWrapper(a, b, CommonSort.GenericString);
     }
   }
 

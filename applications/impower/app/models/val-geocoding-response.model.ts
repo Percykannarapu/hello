@@ -22,20 +22,22 @@ export class ValGeocodingResponse {
   'Match Code': string;
   'Match Quality': string;
   'CarrierRoute': string;
-  'Home ATZ' : string;
-  'Home Zip Code':string;
-  'Home Carrier Route': string; 
-  'Home Digital ATZ' : string;
-  'Home County' : string;
-  'Home DMA' : string;
+  'Home ATZ': string;
+  'Home Zip Code': string;
+  'Home Carrier Route': string;
+  'Home Digital ATZ': string;
+  'Home County': string;
+  'Home DMA': string;
   [key: string] : any;
 
   constructor(initializer: any) {
     Object.assign(this, initializer);
     if (this['Geocode Status'] !== 'PROVIDED' && this['Geocode Status'] !== 'BAD XY') {
-      if (this['Match Quality'] === 'E' || (this['Match Code'].startsWith('E') && !this['Match Quality'].startsWith('Z'))) {
+      const matchCode = this['Match Code'].toUpperCase();
+      const matchQuality = this['Match Quality'].toUpperCase();
+      if (matchQuality === 'E' || (matchCode.startsWith('E') && !matchQuality.startsWith('Z'))) {
         this['Geocode Status'] = 'ERROR';
-      } else if ((this['Match Quality'].startsWith('Z') && !this['Match Quality'].startsWith('ZT9')) /*|| this['Match Code'] === 'Z'*/) {
+      } else if (matchQuality.startsWith('Z') && !matchQuality.startsWith('ZT9')) {
         this['Geocode Status'] = 'CENTROID';
       } else {
         this['Geocode Status'] = 'SUCCESS';

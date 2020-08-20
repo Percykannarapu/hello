@@ -1,6 +1,5 @@
-import { ClassBreakFillDefinition, ColorPalette, FillSymbolDefinition, getColorPalette, RgbTuple } from '@val/esri';
+import { ClassBreakFillDefinition, ColorPalette, FillSymbolDefinition, getColorPalette, getFillPalette, RgbTuple } from '@val/esri';
 import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
-import { getFillPalette } from '../../../../modules/esri/src/models/color-palettes';
 
 const indexDefaults: Partial<ClassBreakFillDefinition>[] = [
   { minValue: null, maxValue: 80, legendName: 'Below 80' },

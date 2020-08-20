@@ -1,11 +1,10 @@
 import { AudienceTradeAreaConfig } from 'app/models/audience-data.model';
-import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { VarSpecs } from 'app/services/target-audience-unified.service';
+import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 
 export interface Audience {
   audienceIdentifier: string;
   audienceName: string;
-  showOnMap: boolean;
   showOnGrid: boolean;
   exportInGeoFootprint: boolean;
   disableUISplit?: boolean;
@@ -20,7 +19,7 @@ export interface Audience {
   audienceTAConfig?: AudienceTradeAreaConfig;
   fieldconte: FieldContentTypeCodes;
   requiresGeoPreCaching: boolean;
-  seq: number;
+  sortOrder: number;
   isCombined?: boolean;
   isComposite?: boolean;
   combinedAudiences?: Array<string>;

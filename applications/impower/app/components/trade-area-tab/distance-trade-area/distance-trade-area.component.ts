@@ -4,7 +4,7 @@ import { FormConfig, isConvertibleToNumber, isFunction } from '@val/common';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, filter, takeUntil } from 'rxjs/operators';
-import { ValassisValidators } from '../../../models/valassis-validators';
+import { ValassisValidators } from '../../../common/valassis-validators';
 import { ImpGeofootprintTradeArea } from '../../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';

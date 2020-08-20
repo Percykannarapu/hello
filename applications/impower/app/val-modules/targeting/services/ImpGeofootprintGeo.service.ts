@@ -38,8 +38,8 @@ import { RestDataService } from '../../common/services/restdata.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
-import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
+import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 
 interface CustomMCDefinition {
   Number: number;
@@ -97,7 +97,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       super(restDataService, dataUrl, logger, projectTransactionManager, 'ImpGeofootprintGeo');
       this.store$.pipe(select(selectGeoAttributeEntities)).subscribe(attributes => this.attributeCache = attributes);
-      this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
+      this.store$.select(fromAudienceSelectors.allAudiences).subscribe(this.allAudiencesBS$);
       this.store$.select(fromAudienceSelectors.getAudiencesInFootprint).subscribe(this.exportAudiencesBS$);
       this.store$.select(fromGeoVarSelectors.getGeoVarEntities).subscribe(this.geoVarsBS$);
     }
@@ -545,7 +545,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       const exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = [];
 
       switch (exportFormat)
-      { 
+      {
          case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx:
             this.logger.debug.log ('setExportFormat - alteryx');
             exportColumns.push({ header: this.exportVarGeoHeader(this),  row: (state, data) => data.geocode});

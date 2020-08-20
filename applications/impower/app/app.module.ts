@@ -80,8 +80,8 @@ import { ManualEntryComponent } from './components/add-locations-tab/manual-entr
 import { MarketLocationsComponent } from './components/add-locations-tab/market-locations/market-locations.component';
 import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
-import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
 import { BatchMapDashboardComponent } from './components/batch-map-dashboard/batch-map-dashboard.component';
+import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
 import { BatchMapComponent } from './components/batch-map/batch-map.component';
 import { CampaignDetailsComponent } from './components/campaign-details/campaign-details.component';
 import { DiscoveryInputComponent } from './components/campaign-details/discovery-input/discovery-input.component';
@@ -138,15 +138,18 @@ import { ProjectComponent } from './components/project-dashboard/project.compone
 import { SendSitesDigitalComponent } from './components/send-sites-digital/send-sites-digital.component';
 import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
 import { SiteListComponent } from './components/site-list/site-list.component';
-import { CombinedAudienceComponent } from './components/target-audience/combined-audience/combined-audience.component';
-import { EditCombinedAudiencesComponent } from './components/target-audience/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
-import { CompositeAudienceComponent } from './components/target-audience/composite-audience/composite-audience.component';
-import { EditCompositeAudiencesComponent } from './components/target-audience/composite-audience/edit-composite-audiences/edit-composite-audiences.component';
-import { CustomAudienceComponent } from './components/target-audience/custom-audience/custom-audience.component';
-import { OfflineAudienceTdaComponent } from './components/target-audience/offline-audience-tda/offline-audience-tda.component';
-import { OnlineAudienceApioComponent } from './components/target-audience/online-audience-apio/online-audience-apio.component';
-import { OnlineAudiencePixelComponent } from './components/target-audience/online-audience-pixel/online-audience-pixel.component';
-import { OnlineAudienceVlhComponent } from './components/target-audience/online-audience-vlh/online-audience-vlh.component';
+import { AudiencesCustomComponent } from './components/target-audience/audiences-custom/audiences-custom.component';
+import { CombinedAudienceComponent } from './components/target-audience/audiences-custom/combined-audience/combined-audience.component';
+import { EditCombinedAudiencesComponent } from './components/target-audience/audiences-custom/combined-audience/edit-combined-audiences/edit-combined-audiences.component';
+import { CompositeAudienceComponent } from './components/target-audience/audiences-custom/composite-audience/composite-audience.component';
+import { EditCompositeAudiencesComponent } from './components/target-audience/audiences-custom/composite-audience/edit-composite-audiences/edit-composite-audiences.component';
+import { CustomAudienceComponent } from './components/target-audience/audiences-custom/custom-audience/custom-audience.component';
+import { AudiencesOfflineComponent } from './components/target-audience/audiences-offline/audiences-offline.component';
+import { OfflineAudienceTdaComponent } from './components/target-audience/audiences-offline/offline-audience-tda/offline-audience-tda.component';
+import { AudiencesOnlineComponent } from './components/target-audience/audiences-online/audiences-online.component';
+import { OnlineAudienceApioComponent } from './components/target-audience/audiences-online/online-audience-apio/online-audience-apio.component';
+import { OnlineAudiencePixelComponent } from './components/target-audience/audiences-online/online-audience-pixel/online-audience-pixel.component';
+import { OnlineAudienceVlhComponent } from './components/target-audience/audiences-online/online-audience-vlh/online-audience-vlh.component';
 import { SelectedAudiencesComponent } from './components/target-audience/selected-audiences/selected-audiences.component';
 import { TargetAudienceComponent } from './components/target-audience/target-audience.component';
 import { AudienceTradeareaComponent } from './components/trade-area-tab/audience-tradearea/audience-tradearea.component';
@@ -399,14 +402,17 @@ export function esriSetupFactory() : ForRootOptions {
     ExtendedPalettePickerComponent,
     SimpleLocationShaderComponent,
     UniqueValueLocationShaderComponent,
+    AudiencesOnlineComponent,
     MarketLocationsComponent,
     MarketGeosComponent,
     MultiselectInputComponent,
     BatchMapDashboardComponent,
     EditCompositeAudiencesComponent,
     AcsGrantDirective,
+    AudiencesCustomComponent,
+    AudiencesOfflineComponent,
     //BatchMapDashboardComponent
-    
+
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

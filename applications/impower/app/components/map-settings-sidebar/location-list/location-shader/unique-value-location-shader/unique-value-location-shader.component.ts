@@ -15,7 +15,7 @@ import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { extractUniqueAttributeValues } from '../../../../../common/model.transforms';
-import { ValassisValidators } from '../../../../../models/valassis-validators';
+import { ValassisValidators } from '../../../../../common/valassis-validators';
 import { ImpGeofootprintLocation } from '../../../../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({

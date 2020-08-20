@@ -37,6 +37,11 @@ export class AppConfig implements LoggingConfiguration {
     { originalName: 'Oceans', newName: 'Oceans' },
   ];
 
+  public serviceUrlFragments = {
+    populateGeoCacheUrl: 'v1/targeting/base/chunkedgeos/populateChunkedGeos',
+    deleteGeoCacheUrl: 'v1/targeting/base/chunkedgeos/deleteChunks/'
+  };
+
   public analysisLevelToLayerKey(analysisLevel: string) : string {
     switch ((analysisLevel || '').toLowerCase()) {
       case 'digital atz':

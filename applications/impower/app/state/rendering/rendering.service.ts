@@ -7,7 +7,7 @@ import { SimpleFillSymbol } from 'esri/symbols';
 import { from, merge, Observable, of } from 'rxjs';
 import { map, reduce, switchMap, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
-import { QuadTree } from '../../models/quad-tree';
+import { QuadTree } from '../../common/quad-tree';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { TradeAreaDrawDefinition } from './trade-area.transform';
 
@@ -109,32 +109,28 @@ export class RenderingService {
           );
         });
 
+        let currentRadiusLayer$: Observable<any> = merge(...circleChunks).pipe(
+          reduce((acc, curr) => [...acc, ...curr], []),
+        );
+
         if (d.merge) {
-          result.push(merge(...circleChunks).pipe(
-            reduce((acc, curr) => [...acc, ...curr], []),
+          currentRadiusLayer$ = currentRadiusLayer$.pipe(
             tap(polys => this.logger.debug.log(`Radius rings generated. ${polys.length} chunks being unioned.`)),
             switchMap(polys => from(geometryEngineAsync.union(polys))),
             map(geoBuffer => [geoBuffer]),
-            map(geometry => geometry.map(g => new Graphic({ geometry: g, symbol: symbol }))),
-            tap(() => this.logger.debug.log('Creating Radius Layer')),
-            tap(() => {
-              const currentLayer = this.esriLayerService.getLayer(d.layerName);
-              this.esriLayerService.removeLayer(currentLayer);
-            }),
-            map(graphics => this.esriLayerService.createGraphicsLayer(d.groupName, d.layerName, graphics))
-          ));
-        } else {
-          result.push(merge(...circleChunks).pipe(
-            reduce((acc, curr) => [...acc, ...curr], []),
-            map(geometry => geometry.map(g => new Graphic({ geometry: g, symbol: symbol }))),
-            tap(() => this.logger.debug.log('Creating Radius Layer')),
-            tap(() => {
-              const currentLayer = this.esriLayerService.getLayer(d.layerName);
-              this.esriLayerService.removeLayer(currentLayer);
-            }),
-            map(graphics => this.esriLayerService.createGraphicsLayer(d.groupName, d.layerName, graphics))
-          ));
+          );
         }
+
+        currentRadiusLayer$ = currentRadiusLayer$.pipe(
+          map(geometry => geometry.map(g => new Graphic({ geometry: g, symbol: symbol }))),
+          tap(() => this.logger.debug.log('Creating Radius Layer')),
+          tap(() => {
+            const currentLayer = this.esriLayerService.getLayer(d.layerName);
+            this.esriLayerService.removeLayer(currentLayer);
+          }),
+          map(graphics => this.esriLayerService.createGraphicsLayer(d.groupName, d.layerName, graphics))
+        );
+        result.push(currentRadiusLayer$);
       }
     });
 

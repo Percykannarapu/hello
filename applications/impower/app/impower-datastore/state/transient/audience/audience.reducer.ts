@@ -21,7 +21,7 @@ export interface State extends EntityState<Audience> {
 }
 
 function sortBySeq(e1: Audience, e2: Audience) {
-  return e1.seq - e2.seq;
+  return e1.sortOrder - e2.sortOrder;
 }
 
 export const adapter: EntityAdapter<Audience> = createEntityAdapter<Audience>({

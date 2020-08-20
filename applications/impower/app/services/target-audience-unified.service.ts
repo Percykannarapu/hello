@@ -1,20 +1,20 @@
 import { Injectable } from '@angular/core';
-import { AppConfig } from 'app/app.config';
-import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { TargetAudienceService } from './target-audience.service';
-import { AppStateService } from './app-state.service';
 import { Store } from '@ngrx/store';
-import { LocalAppState } from 'app/state/app.interfaces';
-import { AppLoggingService } from './app-logging.service';
-import { filter, tap, map, catchError } from 'rxjs/operators';
-import { AudienceDataDefinition } from 'app/models/audience-data.model';
-import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
-import { RestResponse } from 'app/models/RestResponse';
+import { CommonSort, isObject, isString } from '@val/common';
 import { WarningNotification } from '@val/messaging';
-import { EMPTY, throwError, Observable, BehaviorSubject } from 'rxjs';
+import { AppConfig } from 'app/app.config';
+import { FieldContentTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-import { CommonSort, isString, isObject } from '@val/common';
+import { AudienceDataDefinition } from 'app/models/audience-data.model';
+import { RestResponse } from 'app/models/RestResponse';
+import { LocalAppState } from 'app/state/app.interfaces';
+import { RestDataService } from 'app/val-modules/common/services/restdata.service';
+import { BehaviorSubject, EMPTY, Observable, throwError } from 'rxjs';
+import { catchError, filter, map } from 'rxjs/operators';
+import { AppLoggingService } from './app-logging.service';
+import { AppStateService } from './app-state.service';
+import { TargetAudienceService } from './target-audience.service';
 
 export interface VarSpecs {
   id: number;
@@ -44,10 +44,6 @@ export interface UnifiedFuseResponse {
   variables: Map<string, string>;
 }
 
-export enum OtherSourceTypes {
-  COMBINE = 'combine',
-  COMPOSITE = 'composite'
-}
 @Injectable({
   providedIn: 'root'
 })
@@ -77,25 +73,25 @@ export class TargetAudienceUnifiedService {
       if (projectVars != null) {
         for (const projectVar of projectVars) {
           const groupedAudiences = JSON.parse(projectVar.customVarExprQuery);
+          const sourceParts: string[] = projectVar.source != null ? projectVar.source.split('_') : [];
+          const sourceIdentifier = sourceParts.length != 0 ? sourceParts[0].toLowerCase() : '';
           const audience: AudienceDataDefinition = {
             audienceName: projectVar.fieldname,
             audienceIdentifier: projectVar.varPk.toString(),
-            audienceSourceType: projectVar.source.split('_')[0].toLowerCase() === 'combined' ? 'Combined' :
-                                projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? 'Combined/Converted' :
-                                projectVar.source.split('_')[0].toLowerCase() === 'composite' ? 'Composite' : 'Converted',
+            audienceSourceType: sourceIdentifier === 'combined' ? 'Combined' :
+                                sourceIdentifier === 'combined/converted' ? 'Combined/Converted' :
+                                sourceIdentifier === 'composite' ? 'Composite' : 'Converted',
             audienceSourceName: 'TDA',
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
             showOnGrid: projectVar.isIncludedInGeoGrid,
-            showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
             allowNationalExport: false,
             selectedDataSet: projectVar.indexBase,
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
             requiresGeoPreCaching: true,
-            seq: projectVar.sortOrder,
-            isCombined: projectVar.source.split('_')[0].toLowerCase() === 'combined' ||
-                        projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? true : false,
-            isComposite: projectVar.source.split('_')[0].toLowerCase() === 'composite' ? true : false,
+            sortOrder: projectVar.sortOrder,
+            isCombined: (sourceIdentifier === 'combined' || sourceIdentifier === 'combined/converted'),
+            isComposite: (sourceIdentifier === 'composite'),
             combinedAudiences: projectVar.source.split('_')[0].toLowerCase() === 'combined' || projectVar.source.split('_')[0].toLowerCase() === 'combined/converted' ? groupedAudiences : [],
             combinedVariableNames: projectVar.customVarExprDisplay,
             compositeSource: projectVar.source.split('_')[0].toLowerCase() === 'converted' ||
@@ -125,12 +121,12 @@ export class TargetAudienceUnifiedService {
     this.rehydrateAudience();
   }
 
-  public getAllVars(source: string, audienceList: Audience[], analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number): Observable<UnifiedBulkResponse[]> {
+  public getAllVars(audienceList: Audience[], analysisLevel: string, identifiers: string[], transactionId: number) : Observable<UnifiedBulkResponse[]> {
     const requiredVars: Audience[] = audienceList;
     let dependentVar: Audience;
     const sourceTypes = ['Combined', 'Converted', 'Combined/Converted', 'Composite'];
     const serviceAnalysisLevel = analysisLevel === 'Digital ATZ' ? 'DTZ' : analysisLevel;
-    let requestVars: Array<VarList> = [];
+    let requestVars: Array<VarList>;
     const serviceURL = 'v1/targeting/base/geoinfo/varlookup';
     audienceList.map(audience => {
       if (audience.combinedAudiences.length > 0) {
@@ -207,7 +203,6 @@ export class TargetAudienceUnifiedService {
     });
     const inputData = {
       geoType: serviceAnalysisLevel,
-      geocodes: geocodes,
       transactionId: transactionId,
       deleteTransaction: false,
       chunks: this.config.geoInfoQueryChunks,
@@ -216,13 +211,13 @@ export class TargetAudienceUnifiedService {
     if (requestVars.length > 0) {
       return this.restService.post(serviceURL, [inputData])
         .pipe(
-          map(response => this.validateFuseResponse(response, identifiers.sort(CommonSort.StringsAsNumbers), isForShading)),
+        map(response => this.validateFuseResponse(response, identifiers.sort(CommonSort.StringsAsNumbers))),
           catchError(() => {
             this.logger.error.log('Error posting to', serviceURL, 'with payload:');
             this.logger.error.log('payload:', inputData);
             this.logger.error.log('payload:\n{\n' +
               '   geoType: ', inputData.geoType, '\n',
-              '   geocodes: ', geocodes.toString(), '\n',
+              '   transactionId: ', transactionId.toString(), '\n',
             );
             return throwError('No data was returned for the selected audiences');
           })
@@ -232,7 +227,7 @@ export class TargetAudienceUnifiedService {
     return EMPTY;
   }
 
-  private validateFuseResponse(response: RestResponse, identifiers: string[], isForShading: boolean[]) {
+  private validateFuseResponse(response: RestResponse, identifiers: string[]) {
     const validatedResponse: UnifiedBulkResponse[] = [];
     const responseArray: UnifiedFuseResponse[] = response.payload.rows;
     if (responseArray.length > 0) {

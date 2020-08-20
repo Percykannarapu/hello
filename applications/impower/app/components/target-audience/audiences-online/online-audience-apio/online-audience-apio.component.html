@@ -1,0 +1,27 @@
+<div class="ui-g val-audience-wrapper">
+  <div class="ui-g-12 search-controls">
+    <div class="ui-inputgroup search-text">
+      <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
+      <span class="md-inputfield">
+        <input pInputText id="onlineAudApioSearch" name="onlineAudApioSearch" class="ui-g-12" (keyup)="searchTerm$.next($event.target.value)" [ngModel]="searchTerm$ | async"/>
+        <label for="onlineAudApioSearch">Search</label>
+      </span>
+    </div>
+    <div class="search-folder">
+      <p-checkbox  [ngModel]="includeFolder$ | async" binary="true" (onChange)="includeFolder$.next($event)" label="Include folder in search"></p-checkbox>
+    </div>
+  </div>
+  <div class="ui-g-12 search-source">
+    <p-radioButton name="sourceType" [ngModel]="selectedSource$ | async" label="Interest (rolling 12 months)" [value]="SourceType.Interest" (onClick)="onSourceChanged(SourceType.Interest)"></p-radioButton>
+    <p-radioButton name="sourceType" [ngModel]="selectedSource$ | async" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
+  </div>
+  <div class="ui-g-12 val-audience-tree">
+    <p-tree loadingIcon="fa fa-circle-o-notch fa-spin fa-3x fa-fw" selectionMode="checkbox"
+            [loading]="loading$ | async"
+            [value]="currentNodes$ | async"
+            [selection]="currentSelectedNodes$ | async"
+            [nodeTrackBy]="trackByKey"
+            (onNodeSelect)="selectVariable($event.node)"
+            (onNodeUnselect)="removeVariable($event.node)"></p-tree>
+  </div>
+</div>

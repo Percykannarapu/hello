@@ -1,4 +1,16 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+  ViewEncapsulation
+} from '@angular/core';
 import { distinctArray, mapArray, resolveFieldData, roundTo } from '@val/common';
 import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
@@ -572,7 +584,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                            fieldConte: audience.fieldconte,
                                            matchType: (['COUNT', 'MEDIAN', 'INDEX', 'PERCENT', 'RATIO'].includes(audience.fieldconte)) ? 'numeric' : 'text',
                                            matchOper: matchOper,
-                                           matchMode: 'contains', styleClass: colStyleClass, sortOrder: audience.seq, sourceType: audience.audienceSourceType});
+                                           matchMode: 'contains', styleClass: colStyleClass, sortOrder: audience.sortOrder, sourceType: audience.audienceSourceType});
       });
 
       // For every geo, create a FlatGeo to pivot up the variables and attributes

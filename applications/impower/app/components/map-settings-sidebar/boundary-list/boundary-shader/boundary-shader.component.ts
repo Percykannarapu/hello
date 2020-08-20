@@ -4,7 +4,7 @@ import { DeepPartial, rgbToHex } from '@val/common';
 import { applyBoundaryChanges, applyLabelChanges, BoundaryConfiguration, completeEsriFaces, LabelDefinition, RgbaTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
-import { ValassisValidators } from '../../../../models/valassis-validators';
+import { ValassisValidators } from '../../../../common/valassis-validators';
 
 @Component({
   selector: 'val-boundary-shader',

@@ -10,7 +10,7 @@ import { RestDataService } from 'app/val-modules/common/services/restdata.servic
 import { BehaviorSubject, combineLatest, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { ValSort } from '../models/valassis-sorters';
+import * as ValSort from '../common/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
 import { RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';

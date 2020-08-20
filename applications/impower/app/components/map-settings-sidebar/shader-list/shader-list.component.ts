@@ -3,12 +3,15 @@ import { Store } from '@ngrx/store';
 import { duplicateShadingDefinition, EsriShadingService, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { GetAllMappedVariables } from '../../../impower-datastore/state/transient/transient.actions';
+import { OfflineAudienceDefinition } from '../../../models/audience-categories.model';
 import { GfpShaderKeys } from '../../../models/ui-enums';
 import { AppLocationService } from '../../../services/app-location.service';
 import { AppRendererService } from '../../../services/app-renderer.service';
 import { TargetAudienceTdaService } from '../../../services/target-audience-tda.service';
+import { UnifiedAudienceDefinitionService } from '../../../services/unified-audience-definition.service';
 import { FullAppState } from '../../../state/app.interfaces';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -42,6 +45,7 @@ export class ShaderListComponent implements OnInit, OnDestroy {
               private appRenderService: AppRendererService,
               private esriShaderService: EsriShadingService,
               private tdaService: TargetAudienceTdaService,
+              private definitionService: UnifiedAudienceDefinitionService,
               private store$: Store<FullAppState>,
               private logger: LoggingService) { }
 
@@ -70,8 +74,10 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   }
 
   addNewShader({ dataKey, layerName }: { dataKey: string, layerName?: string }) {
-    const tdaAudience = this.tdaService.getRawTDAAudienceData(dataKey);
-    if (tdaAudience != null) this.tdaService.addAudience(tdaAudience, false);
+    this.definitionService.getRawTdaDefinition(dataKey).pipe(
+      filter(data => data != null),
+      map(data => new OfflineAudienceDefinition(data))
+    ).subscribe(audience => this.tdaService.addAudience(audience, false));
     const newShader = this.appRenderService.createNewShader(dataKey, layerName) as ShadingDefinition;
     newShader.sortOrder = Math.max(...this.shadingDefinitions.map(s => s.sortOrder), this.shadingDefinitions.length) + 1;
     this.esriShaderService.addShader(newShader);

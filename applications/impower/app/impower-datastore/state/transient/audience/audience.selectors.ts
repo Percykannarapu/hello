@@ -1,7 +1,8 @@
 import { createSelector } from '@ngrx/store';
+import { OnlineSourceTypes } from '../../../../models/audience-enums';
 import { transientSlice } from '../../impower-datastore.selectors';
-import { Audience } from './audience.model';
 import * as fromAudience from '../audience/audience.reducer';
+import { Audience } from './audience.model';
 
 export const audienceSlice = createSelector(transientSlice, state => state.audiences);
 export const allAudiences = createSelector(audienceSlice, fromAudience.selectAll);
@@ -9,9 +10,6 @@ export const allAudienceEntities = createSelector(audienceSlice, fromAudience.se
 
 export const getAudiencesInFootprint = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportInGeoFootprint));
 export const getAudiencesInGrid = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.showOnGrid));
-export const getAudiencesOnMap = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.showOnMap));
-export const getAudiencesForTA = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.audienceTAConfig != null));
-export const getAudiencesForTAOnMap = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.audienceTAConfig != null && audience.showOnMap));
 export const getAudiencesNationalExtract = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportNationally));
 export const getAudiencesAppliable = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.audienceTAConfig == null));
 
@@ -35,3 +33,14 @@ export const getAudienceIdFromName = createSelector(allAudiences, (audiences: Au
 });
 
 export const getMapAudienceIsFetching = createSelector(audienceSlice, state => state.mapIsFetching);
+
+const allDigitalAudiences = createSelector(allAudiences, (audiences) => audiences.filter(a => a.audienceSourceType === 'Online'));
+export const getInterestAudiences = createSelector(allDigitalAudiences, (audiences) => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.Interest));
+export const getInMarketAudiences = createSelector(allDigitalAudiences, (audiences) => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.InMarket));
+export const getVlhAudiences = createSelector(allDigitalAudiences, (audiences) => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.VLH));
+export const getPixelAudiences = createSelector(allDigitalAudiences, (audiences) => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.Pixel));
+export const getTdaAudiences = createSelector(allAudiences, (audiences) => audiences.filter(a => a.audienceSourceType === 'Offline'));
+
+const createdSources = new Set(['Combined', 'Converted', 'Combined/Converted', 'Composite']);
+export const getCreatedAudiences = createSelector(allAudiences, (audiences) => audiences.filter(a => createdSources.has(a.audienceSourceType)));
+

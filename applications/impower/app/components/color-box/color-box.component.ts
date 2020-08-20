@@ -1,8 +1,11 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { selectors } from '@val/messaging';
 import { OverlayPanel } from 'primeng/overlaypanel';
 import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { distinctUntilChanged, filter } from 'rxjs/operators';
 import { AppStateService } from '../../services/app-state.service';
+import { FullAppState } from '../../state/app.interfaces';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 
 @Component({
@@ -10,7 +13,7 @@ import { LoggingService } from '../../val-modules/common/services/logging.servic
   templateUrl: './color-box.component.html',
   styleUrls: ['./color-box.component.scss']
 })
-export class ColorBoxComponent implements OnInit, OnDestroy{
+export class ColorBoxComponent implements OnInit, OnDestroy {
    @ViewChild('op', { static: true }) overlayPanel: OverlayPanel;
    @Input() header:         string = 'Header';
    @Input() boxStyle:       string = 'colorbox-1';
@@ -19,7 +22,6 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    @Input() model:          Map<string, string>;
    @Input() flags:          Map<string, boolean>;
    @Input() displayOverlay: string;
-   @Input() dismissible:    boolean = true;  // This property is currently only set once, not toggled, but will revisit if we can get change detection from child panels
 
    @Output() overlayClosed = new EventEmitter<void>();
 
@@ -29,9 +31,11 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
    isFlagged: boolean;
 
    private overlaySub: Subscription;
+   private dialogSub: Subscription;
 
    constructor(private appStateService: AppStateService,
-               private logger: LoggingService) {
+               private logger: LoggingService,
+               private store$: Store<FullAppState>) {
      this.flags = new Map<string, boolean>();
     }
 
@@ -39,20 +43,31 @@ export class ColorBoxComponent implements OnInit, OnDestroy{
       this.generateColorBoxValues();
       this.overlaySub = this.appStateService.closeOverlayPanel$.pipe(
         filter(header => header !== this.header)
-      ).subscribe(header => {
+      ).subscribe(() => {
         this.overlayClosed.emit();
         this.overlayPanel.hide();
       });
    }
 
-   ngOnDestroy(){
+  ngOnDestroy(){
      if (this.overlaySub) this.overlaySub.unsubscribe();
+     if (this.dialogSub) this.dialogSub.unsubscribe();
    }
 
    public onShowOverlay(event: any) {
      if (this.displayOverlay === 'true') {
        this.appStateService.closeOverlays(this.header);
        this.overlayPanel.toggle(event);
+       if (this.dialogSub) this.dialogSub.unsubscribe();
+       this.dialogSub = this.store$.select(selectors.simpleMessageDisplay).pipe(
+         distinctUntilChanged()
+       ).subscribe(dialogVisible => {
+         if (dialogVisible) {
+           this.overlayPanel.unbindDocumentClickListener();
+         } else {
+           this.overlayPanel.bindDocumentClickListener();
+         }
+       });
      }
    }
 

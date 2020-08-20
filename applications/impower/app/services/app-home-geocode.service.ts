@@ -20,11 +20,10 @@ import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { ValAudienceTradeareaService } from './app-audience-tradearea.service';
 import { AppEditSiteService } from './app-editsite.service';
-import { AppLocationService } from './app-location.service';
-import { AppTradeAreaService } from './app-trade-area.service';
-import { ImpGeofootprintGeo } from 'app/val-modules/targeting/models/ImpGeofootprintGeo';
 import { AppGeoService } from './app-geo.service';
+import { AppLocationService } from './app-location.service';
 import { AppStateService } from './app-state.service';
+import { AppTradeAreaService } from './app-trade-area.service';
 
 interface TradeAreaDefinition {
   store: string;
@@ -205,7 +204,7 @@ interface TradeAreaDefinition {
     }
 
     if (this.appTradeAreaService.tradeareaType == 'audience') {
-      this.audienceTradeAreaService.createAudienceTradearea(this.audienceTradeAreaService.getAudienceTAConfig())
+      this.audienceTradeAreaService.createAudienceTradearea()
       .subscribe(null,
       error => {
         this.logger.error.log('Error while creating audience tradearea', error);
@@ -240,14 +239,14 @@ interface TradeAreaDefinition {
           });*/
           const geostodelete = this.impGeoService.get().filter(geo => geosSet.has(geo.geocode));
           this.appGeoService.deleteGeos(geostodelete);
-  
+
           this.impTradeAreaService.makeDirty();
-                         
+
         }
         if (this.impLocationService.get().length > 0 && this.appStateService.analysisLevel$.getValue() != null)
-            this.appGeoService.selectAndPersistHomeGeos(this.impLocationService.get(), 
+            this.appGeoService.selectAndPersistHomeGeos(this.impLocationService.get(),
                             this.appStateService.analysisLevel$.getValue(), this.appStateService.season$.getValue());
           this.impGeoService.makeDirty();
-          this.impLocationService.makeDirty();   
+          this.impLocationService.makeDirty();
     }
  }

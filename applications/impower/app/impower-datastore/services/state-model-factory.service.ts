@@ -67,7 +67,7 @@ export class StateModelFactoryService {
 
   createProjectVar(parentId: number, varPk: number, audience: AudienceDataDefinition, isActive: boolean = true) : ImpProjectVarState {
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
-    const source = audience.audienceSourceType !== 'Combined'? audience.audienceSourceType + '_' + audience.audienceSourceName : 'Combined';
+    const source = audience.audienceSourceType !== 'Combined' ? audience.audienceSourceType + '_' + audience.audienceSourceName : 'Combined';
     const isCustom = audience.audienceSourceType === 'Custom';
     return new ImpProjectVarState({
       pvId: StateModelFactoryService.getNextId(),
@@ -75,7 +75,7 @@ export class StateModelFactoryService {
       baseStatus: DAOBaseStatus.INSERT,
       dirty: true,
       varPk: varPk,
-      isShadedOnMap: audience.showOnMap,
+      isShadedOnMap: false,
       isIncludedInGeoGrid: audience.showOnGrid,
       isIncludedInGeofootprint: audience.exportInGeoFootprint,
       isNationalExtract: audience.exportNationally,
@@ -88,7 +88,7 @@ export class StateModelFactoryService {
       isUploaded: isCustom,
       isActive: isActive,
       uploadFileName: isCustom ? audience.audienceSourceName : '',
-      sortOrder: audience.seq
+      sortOrder: audience.sortOrder
     });
   }
 

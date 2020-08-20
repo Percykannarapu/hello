@@ -141,12 +141,12 @@ export function groupToEntity<T, R>(items: T[] | ReadonlyArray<T>, keySelector: 
  *    m[namespace.151126]  = 4,8
  *    m[namespace.textvar] = One,Two
  */
-export function groupEntityToArray<T, R>(items: T[] | ReadonlyArray<T>, keySelector?: (item: string) => string) : Map<string, T[]>;
+export function groupEntityToArray<T, R>(items: T[] | ReadonlyArray<T>, keySelector?: (item: string) => string) : Map<string, R[]>;
 export function groupEntityToArray<T, R>(items: T[] | ReadonlyArray<T>, keySelector?: (item: string) => string, valueSelector?: (item: T) => R) : Map<string, R[]>;
-export function groupEntityToArray<T, R>(items: T[] | ReadonlyArray<T>, keySelector?: (item: string) => string, valueSelector?: (item: T) => R) : Map<string, (T | R)[]> {
-  const result = new Map<string, (T | R)[]>();
+export function groupEntityToArray<T, R>(items: T[] | ReadonlyArray<T>, keySelector?: (item: string) => string, valueSelector?: (item: T) => R) : Map<string, R[]> {
+  const result = new Map<string, R[]>();
   if (items == null || items.length === 0) return result;
-  const tx: ((item: T) => T | R) = valueSelector != null ? valueSelector : (i) => i;
+  const tx: ((item: T) => R) = valueSelector != null ? valueSelector : (i) => (i as unknown) as R;
   for (const i of items) {
     for (const field of Object.keys(i)) {
       const currentKey = (keySelector == null) ? field : keySelector(field);
@@ -162,7 +162,7 @@ export function groupEntityToArray<T, R>(items: T[] | ReadonlyArray<T>, keySelec
   return result;
 }
 
-export function transformEntity(entity: object, valueSelector: (field: string, item: any) => any, keySelector?: (key: string) => string) : object {
+export function transformEntity(entity: Record<any, any>, valueSelector: (field: string, item: any) => any, keySelector?: (key: string) => string) : Record<any, any> {
   const newEntity: any = {};
   if (entity == null) return null;
   const tx: ((field: string, item: any) => any) = valueSelector != null ? valueSelector : (i) => i;

@@ -73,7 +73,7 @@ export class AuthService implements CanActivate{
   }
 
   getAuthorizationHeaderValue() : string {
-    return `${this.oidcUser.token_type} ${this.oidcUser.access_token}`;
+    return `${this.oidcUser.token_type} ${this.oidcUser.id_token}`;
   }
 
   startAuthentication() : Promise<void> {
@@ -91,6 +91,7 @@ export class AuthService implements CanActivate{
         tap(appUser => {
           this.manager.startSilentRenew();
           appUser.username = oidcUser.profile['custom_fields'].spokesamaccountname;
+          appUser.displayName = oidcUser.profile['custom_fields'].name;
           appUser.userRoles = this.getRolesFromOIDC(oidcUser);
           appUser.email = oidcUser.profile.email;
           this.userService.setUser(appUser);

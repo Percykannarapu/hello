@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
-import { AppConfig } from '../../../app.config';
 import { ImpClientLocationTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
@@ -13,11 +11,9 @@ import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintMaster } from '../models/ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 import { ImpProject } from '../models/ImpProject';
 import { ImpProjectPref } from '../models/ImpProjectPref';
 import { ImpProjectVar } from '../models/ImpProjectVar';
-
 import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 
 @Injectable({
@@ -25,8 +21,7 @@ import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 })
 export class ImpDomainFactoryService {
 
-  constructor(private config: AppConfig,
-              private userService: UserService,
+  constructor(private userService: UserService,
               private logger: LoggingService) {}
 
   private static createTradeAreaName(locationTypeCode: string, tradeAreaType: TradeAreaTypeCodes, taNumber: number) : string {
@@ -91,69 +86,46 @@ export class ImpDomainFactoryService {
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
     const isCustom = audience.audienceSourceType === 'Custom';
     const source =   audience.audienceSourceType + '_' + audience.audienceSourceName;
-    let existingVar;
+    let existingVar: ImpProjectVar;
 
     if (isCustom) {
       existingVar = parent.impProjectVars.find(pv => pv.fieldname === audience.audienceName);
-    } else{
+    } else {
       existingVar = parent.impProjectVars.find(pv => pv.varPk === varPk);
     }
 
     if (existingVar != null && !duplicatePksOverwrite) throw new Error('A duplicate Project Var addition was attempted');
     if (existingVar == null) {
-      const projectVar = new ImpProjectVar();
-      projectVar.baseStatus = DAOBaseStatus.INSERT;
-      projectVar.dirty = true;
-      projectVar.varPk = varPk;
-      projectVar.isShadedOnMap = audience.showOnMap;
-      projectVar.isIncludedInGeoGrid = audience.showOnGrid;
-      projectVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
-      projectVar.isNationalExtract = audience.exportNationally;
-      projectVar.indexBase = audience.selectedDataSet;
-      projectVar.fieldname = audience.audienceName;
-      projectVar.fieldconte = (audience.fieldconte != null) ? audience.fieldconte : FieldContentTypeCodes.Char;
-      projectVar.source = source;
-      projectVar.isCustom = isCustom;
-      projectVar.isString = false;
-      projectVar.isNumber = false;
-      projectVar.isUploaded = isCustom;
-      projectVar.isActive = true;
-      projectVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
-      projectVar.sortOrder = audience.seq; // audience.audienceCounter;
-      projectVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || source.toUpperCase() === 'COMPOSITE_TDA') 
-                                         ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
-      projectVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : ((source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || 
-                                       source.toUpperCase() === 'COMPOSITE_TDA') ?
-                                      (audience.combinedAudiences.length > 0 ? JSON.stringify(audience.combinedAudiences) : audience.compositeSource.length > 0 ? JSON.stringify(audience.compositeSource) : '') : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
-       projectVar.impProject = parent;
-      parent.impProjectVars.push(projectVar);
-      return projectVar;
+      existingVar = new ImpProjectVar({
+        baseStatus: DAOBaseStatus.INSERT,
+        varPk
+      });
+      parent.impProjectVars.push(existingVar);
     } else {
-      existingVar.dirty = true;
-      existingVar.isShadedOnMap = audience.showOnMap;
-      existingVar.isIncludedInGeoGrid = audience.showOnGrid;
-      existingVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
-      existingVar.isNationalExtract = audience.exportNationally;
-      existingVar.indexBase = audience.selectedDataSet;
-      existingVar.fieldname = audience.audienceName;
-      existingVar.fieldconte = audience.fieldconte;
-      existingVar.source = source;
-      existingVar.isCustom = isCustom;
-      existingVar.isString = false;
-      existingVar.isNumber = false;
-      existingVar.isUploaded = isCustom;
-      existingVar.isActive = true;
-      existingVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
-      existingVar.sortOrder = audience.seq; // audience.audienceCounter;
-      existingVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || source.toUpperCase() === 'COMPOSITE_TDA') 
-                                         ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
-      existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' ||
-                                        source.toUpperCase() === 'COMPOSITE_TDA') ?
-                                        (audience.combinedAudiences.length > 0 ? JSON.stringify(audience.combinedAudiences) :  audience.compositeSource.length > 0 ? JSON.stringify(audience.compositeSource) : '' ) : 'Online' + `/${audience.audienceSourceName}/${varPk}`);
-      existingVar.impProject = parent;
       if (existingVar.baseStatus === DAOBaseStatus.UNCHANGED) existingVar.baseStatus = DAOBaseStatus.UPDATE;
-      return existingVar;
     }
+    existingVar.dirty = true;
+    existingVar.isIncludedInGeoGrid = audience.showOnGrid;
+    existingVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
+    existingVar.isNationalExtract = audience.exportNationally;
+    existingVar.indexBase = audience.selectedDataSet;
+    existingVar.fieldname = audience.audienceName;
+    existingVar.fieldconte = (audience.fieldconte != null) ? audience.fieldconte : FieldContentTypeCodes.Char;
+    existingVar.source = source;
+    existingVar.isCustom = isCustom;
+    existingVar.isString = false;
+    existingVar.isNumber = false;
+    existingVar.isUploaded = isCustom;
+    existingVar.isActive = true;
+    existingVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
+    existingVar.sortOrder = audience.sortOrder; // audience.audienceCounter;
+    existingVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || source.toUpperCase() === 'COMPOSITE_TDA')
+                                       ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
+    existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : ((source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' ||
+                                    source.toUpperCase() === 'COMPOSITE_TDA') ?
+                                        (audience.combinedAudiences.length > 0 ? JSON.stringify(audience.combinedAudiences) :  audience.compositeSource.length > 0 ? JSON.stringify(audience.compositeSource) : '' ) : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
+    existingVar.impProject = parent;
+    return existingVar;
   }
 
    createProjectPref(parent: ImpProject, group: string, pref: string, type: string, value: string, forceLOB: boolean = true, isActive: boolean = true, overwriteDuplicate: boolean = true) : ImpProjectPref {
@@ -374,38 +346,6 @@ export class ImpDomainFactoryService {
       throw new Error('A duplicate trade area number addition was attempted');
     }
     if (attachToHierarchy) parent.impGeofootprintTradeAreas.push(result);
-    return result;
-  }
-
-  createGeoVar(parent: ImpGeofootprintTradeArea, geocode: string, varPk: number, value: string | number, fullId: string,
-               fieldDescription: string = '', fieldType?: FieldContentTypeCodes, fieldName: string = '',
-               nationalAvg: string = '', isActive: boolean = true, overwriteDuplicates: boolean = true) : ImpGeofootprintVar {
-
-    const result = new ImpGeofootprintVar({
-      dirty: true,
-      baseStatus: DAOBaseStatus.INSERT,
-      geocode,
-      varPk
-    });
-    result.value = value;
-    if (parent != null) {
-      const existingVar = parent.impGeofootprintVars.find(v => v.geocode === geocode && v.varPk === varPk);
-      if (existingVar == null) {
-        result.impGeofootprintTradeArea = parent;
-        result.impGeofootprintLocation = parent.impGeofootprintLocation; // DPG
-        parent.impGeofootprintVars.push(result);
-      } else {
-        if (overwriteDuplicates) {
-          existingVar.dirty = true;
-          existingVar.baseStatus = DAOBaseStatus.UPDATE;
-          existingVar.value = value;
-          return existingVar;
-        } else {
-          this.logger.error.log('A duplicate GeoVar addition was attempted: ', { existingVar, newVar: result });
-          throw new Error('A duplicate GeoVar addition was attempted');
-        }
-      }
-    }
     return result;
   }
 

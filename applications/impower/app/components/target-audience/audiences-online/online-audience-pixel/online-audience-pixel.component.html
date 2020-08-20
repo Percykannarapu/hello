@@ -1,0 +1,32 @@
+<div class="ui-g">
+  <div class="ui-g-12">
+    Pixel Id - First Fire Date - Fire Count are listed below
+  </div>
+  <div class="ui-g-12">
+    <div class="ui-inputgroup">
+      <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
+      <span class="md-inputfield">
+        <input pInputText id="pixelSearch" name="pixelSearch" class="ui-g-12" (keyup)="searchTerm$.next($event.target.value)" [ngModel]="searchTerm$ | async"/>
+        <label for="pixelSearch">Search</label>
+      </span>
+    </div>
+  </div>
+  <div class="ui-g-12 val-audience-tree">
+    <p-tree selectionMode="checkbox" loadingIcon="fa fa-circle-o-notch fa-spin fa-3x fa-fw"
+            [loading]="loading$ | async"
+            [value]="currentNodes$ | async"
+            [selection]="selectedNodes$ | async"
+            [nodeTrackBy]="trackByKey"
+            (onNodeSelect)="selectVariable($event.node)"
+            (onNodeUnselect)="removeVariable($event.node)">
+      <ng-template let-node pTemplate="disabled">
+        <span class="unselectable">
+          {{node.data.categoryName}}&nbsp;&nbsp;&nbsp;{{node.data.categoryDescription}}&nbsp;&nbsp;&nbsp;{{formatCount(node.data.taxonomy)}}
+        </span>
+      </ng-template>
+      <ng-template let-node pTemplate="default">
+        {{node.data.categoryName}}&nbsp;&nbsp;&nbsp;{{node.data.categoryDescription}}&nbsp;&nbsp;&nbsp;{{formatCount(node.data.taxonomy)}}
+      </ng-template>
+    </p-tree>
+  </div>
+</div>

@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { MenuItem } from 'primeng/api';
@@ -6,6 +7,7 @@ import { Observable } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { RadService } from '../../services/rad.service';
 import { UserService } from '../../services/user.service';
+import { FullAppState } from '../../state/app.interfaces';
 import { MetricOperations, MetricService } from '../../val-modules/common/services/metric.service';
 import { CampaignDetailsComponent } from '../campaign-details/campaign-details.component';
 import { ColorBoxComponent } from '../color-box/color-box.component';
@@ -24,7 +26,6 @@ export class DashboardComponent implements OnInit {
 
     fakeItems: MenuItem[];
     public miles: number;
-    public isDismissible: boolean = false;
     public index: number = 1;
 
     public metricMapGreen: Map<string, string>;
@@ -61,7 +62,8 @@ export class DashboardComponent implements OnInit {
                 private radService: RadService,
                 private userService: UserService,
                 private appLocationService: AppLocationService,
-                private appStateService: AppStateService) { }
+                private appStateService: AppStateService,
+                private store$: Store<FullAppState>) { }
 
     ngOnInit() {
         // Load models
@@ -151,7 +153,6 @@ export class DashboardComponent implements OnInit {
         });
 
         this.appStateService.clearUI$.subscribe(() => {
-            this.isDismissible  = true;
             this.index = 0;
         });
     }

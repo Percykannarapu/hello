@@ -64,7 +64,7 @@ export class TargetAudienceCustomService {
               private store$: Store<LocalAppState>) {
 
     this.stateService.applicationIsReady$.subscribe(ready => this.onLoadProject(ready));
-    this.store$.select(fromAudienceSelectors.getAllAudiences).subscribe(this.allAudiencesBS$);
+    this.store$.select(fromAudienceSelectors.allAudiences).subscribe(this.allAudiencesBS$);
   }
 
   private static createDataDefinition(name: string, source: string, id: string) : AudienceDataDefinition {
@@ -75,12 +75,11 @@ export class TargetAudienceCustomService {
       audienceSourceName: source,
       exportInGeoFootprint: true,
       showOnGrid: false,
-      showOnMap: false,
       exportNationally: false,
       allowNationalExport: false,
       fieldconte: null,
       requiresGeoPreCaching: false,
-      seq: null
+      sortOrder: null
     };
   }
 
@@ -100,12 +99,11 @@ export class TargetAudienceCustomService {
             audienceSourceName: projectVar.source.replace(/^Custom_/, ''),
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
             showOnGrid: projectVar.isIncludedInGeoGrid,
-            showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
             allowNationalExport: false,
             fieldconte: null,
             requiresGeoPreCaching: false,
-            seq: projectVar.sortOrder
+            sortOrder: projectVar.sortOrder
           };
           this.currentFileName = audience.audienceSourceName;
           this.audienceService.addAudience(audience, null, true);
@@ -201,12 +199,11 @@ export class TargetAudienceCustomService {
                 const audDataDefinition = TargetAudienceCustomService.createDataDefinition(column, fileName, varPk);
                 if (projectVars != null && projectVars.length > 0) {
                   audDataDefinition.showOnGrid = projectVars[0].isIncludedInGeoGrid;
-                  audDataDefinition.showOnMap  = projectVars[0].isShadedOnMap;
                   audDataDefinition.exportInGeoFootprint = projectVars[0].isIncludedInGeofootprint;
-                  audDataDefinition.seq = projectVars[0].sortOrder;
+                  audDataDefinition.sortOrder = projectVars[0].sortOrder;
                 }
                 else
-                  audDataDefinition.seq = nextColSeq++;
+                  audDataDefinition.sortOrder = nextColSeq++;
                 audDataDefinition.fieldconte = FieldContentTypeCodes.Index;
                 fieldConteMap.set(column, FieldContentTypeCodes.Index);
                 audienceMap.set(column, audDataDefinition);
@@ -248,9 +245,6 @@ export class TargetAudienceCustomService {
                }
             }
 
-//fieldConteMap.forEach((value, key) => this.logger.debug.log('### parseCustomVarData - fieldConteMap after - key:', key, ', value:', value));
-//correctAudience.forEach(key => this.logger.debug.log('### parseCustomVarData - correctAudience:', key));
-
             // Push the massaged geoVar onto the results list
             results.push(geoVar);
           });
@@ -275,13 +269,6 @@ export class TargetAudienceCustomService {
           // Update the audiences with the corrected fieldconte
           if (updates.length > 0)
             this.store$.dispatch(new UpdateAudiences( { audiences: updates }));
-
-          // TODO: The below is necessary to create the project var, should look into using project vars just for persistance
-          // this.logger.debug.log('### parseCustomVarData - adding audience - for project var');
-          // audienceMap.forEach((audienceDefinition, audienceName) => {
-          //   this.audienceService.addAudience(audienceDefinition/*, (al, pks, geos) => this.audienceRefreshCallback(al, pks, geos)*/);
-          // });
-          // this.logger.debug.log('### parseCustomVarData - adding audience - for project var - done');
 
           if (!isReload){
             const geos = data.parsedData.length === 1 ? 'Geo' : 'Geos';

@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { rgbToHex } from '@val/common';
 import { MarkerSymbolDefinition, markerTypeFriendlyNames, RgbaTuple, SimplePoiConfiguration } from '@val/esri';
 import { Subject } from 'rxjs';
-import { ValassisValidators } from '../../../../../models/valassis-validators';
+import { ValassisValidators } from '../../../../../common/valassis-validators';
 
 @Component({
   selector: 'val-simple-location-shader',

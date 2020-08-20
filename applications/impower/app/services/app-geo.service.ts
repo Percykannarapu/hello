@@ -7,13 +7,13 @@ import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { quadPartitionLocations } from '../common/quad-tree';
 import {
   ClearGeoAttributes,
   DeleteGeoAttributes,
   UpsertGeoAttributes
 } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { quadPartitionLocations } from '../models/quad-tree';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';

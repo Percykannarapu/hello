@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
-import { EMPTY, merge, Observable, throwError } from 'rxjs';
-import { catchError, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { EMPTY, Observable, throwError } from 'rxjs';
+import { catchError, filter, map, tap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
+import { OfflineAudienceDefinition } from '../models/audience-categories.model';
 import { AudienceDataDefinition } from '../models/audience-data.model';
 import { RestResponse } from '../models/RestResponse';
 import { LocalAppState } from '../state/app.interfaces';
@@ -13,38 +14,7 @@ import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums'
 import { AppLoggingService } from './app-logging.service';
 import { AppStateService } from './app-state.service';
 import { TargetAudienceService } from './target-audience.service';
-
-interface TdaCategoryResponse {
-  '@ref': number;
-  'pk': number;
-  'tablename': string;
-  'tabledesc': string;
-  'sort': number;
-  'accessType': string;
-}
-
-function isCategory(r: any) : r is TdaCategoryResponse {
-  return r.hasOwnProperty('tablename') && r.hasOwnProperty('tabledesc') && r.hasOwnProperty('sort');
-}
-
-interface TdaVariableResponse {
-  '@ref': number;
-  'tablename': string;
-  'fieldnum': string;
-  'fieldname': string;
-  'fielddescr': string;
-  'fieldtype': string;
-  'fieldconte': string;
-  'decimals': string;
-  'source': string;
-  'userAccess': string;
-  'varFormat': string;
-  'natlAvg': string;
-  'avgType': string;
-  'pk': string;
-  'includeInCb': string;
-  'includeInDatadist': string;
-}
+import { UnifiedAudienceDefinitionService } from './unified-audience-definition.service';
 
 export interface OfflineFuseResponse {
   geocode: string;
@@ -64,40 +34,15 @@ export enum OfflineSourceTypes {
   TDA = 'tda'
 }
 
-export class TdaAudienceDescription {
-  identifier: string;
-  displayName: string;
-  fieldconte: FieldContentTypeCodes;
-  additionalSearchField: string;
-  sortOrder: number;
-  children: TdaAudienceDescription[];
-  constructor(response: TdaCategoryResponse | TdaVariableResponse) {
-    if (isCategory(response)) {
-      this.displayName = response.tabledesc;
-      this.identifier = response.tablename;
-      this.sortOrder = response.sort;
-      this.fieldconte = FieldContentTypeCodes.Char;
-      this.children = [];
-    } else {
-      this.displayName = response.fielddescr;
-      this.identifier = response.pk;
-      this.fieldconte = FieldContentTypeCodes.parse(response.fieldconte);
-      this.additionalSearchField = response.fieldname;
-      this.sortOrder = 0;
-    }
-  }
-}
-
 @Injectable({
   providedIn: 'root'
 })
 export class TargetAudienceTdaService {
 
-  private rawAudienceData: Map<string, TdaVariableResponse> = new Map<string, TdaVariableResponse>();
-
   constructor(private config: AppConfig,
     private restService: RestDataService,
     private audienceService: TargetAudienceService,
+    private definitionService: UnifiedAudienceDefinitionService,
     private stateService: AppStateService,
     private store$: Store<LocalAppState>,
     private logger: AppLoggingService) {
@@ -112,12 +57,11 @@ export class TargetAudienceTdaService {
       audienceSourceName: 'TDA',
       exportInGeoFootprint: presetExportFlag,
       showOnGrid: false,
-      showOnMap: false,
       exportNationally: false,
       allowNationalExport: false,
       fieldconte: fieldconte,
       requiresGeoPreCaching: true,
-      seq: null
+      sortOrder: null
     };
     return audience;
   }
@@ -134,12 +78,11 @@ export class TargetAudienceTdaService {
             audienceSourceName: 'TDA',
             exportInGeoFootprint: projectVar.isIncludedInGeofootprint,
             showOnGrid: projectVar.isIncludedInGeoGrid,
-            showOnMap: projectVar.isShadedOnMap,
             exportNationally: false,
             allowNationalExport: false,
             fieldconte: FieldContentTypeCodes.parse(projectVar.fieldconte),
             requiresGeoPreCaching: true,
-            seq: projectVar.sortOrder
+            sortOrder: projectVar.sortOrder
           };
 
           if (projectVar.source.toLowerCase().match('tda')) {
@@ -157,7 +100,7 @@ export class TargetAudienceTdaService {
     this.rehydrateAudience();
   }
 
-  public addAudience(audience: TdaAudienceDescription, manuallyAdded: boolean = true) {
+  public addAudience(audience: OfflineAudienceDefinition, manuallyAdded: boolean = true) {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
       const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte, manuallyAdded);
@@ -166,39 +109,13 @@ export class TargetAudienceTdaService {
     }
   }
 
-  public removeAudience(audience: TdaAudienceDescription) {
+  public removeAudience(audience: OfflineAudienceDefinition) {
     const isValidAudience = !Number.isNaN(Number(audience.identifier));
     if (isValidAudience) {
       this.audienceService.removeAudience('Offline', 'TDA', audience.identifier);
       const model = TargetAudienceTdaService.createDataDefinition(audience.displayName, audience.identifier, audience.fieldconte, true);
       this.usageMetricCheckUncheckOffline('unchecked', model);
     }
-  }
-
-  public getAudienceDescriptions() : Observable<TdaAudienceDescription> {
-    return this.restService.get('v1/targeting/base/amtabledesc/search?q=amtabledesc').pipe(
-      map(result => result.payload.rows as TdaCategoryResponse[]),
-      map(data => data.map(d => new TdaAudienceDescription(d))),
-      mergeMap(data => this.getAudienceVariables(data))
-    );
-  }
-
-  private getAudienceVariables(allParents: TdaAudienceDescription[]) : Observable<TdaAudienceDescription> {
-    const allObservables: Observable<TdaAudienceDescription>[] = [];
-    for (const currentParent of allParents) {
-      const currentObservable$ =
-        this.restService.get(`v1/targeting/base/cldesctab/search?q=cldesctab&tablename=${currentParent.identifier}&includeInImp=1`).pipe(
-          map(result => result.payload.rows as TdaVariableResponse[]),
-          tap(data => data.forEach(d => this.rawAudienceData.set(d.pk, d))),
-          map(data => data.map(d => new TdaAudienceDescription(d))),
-          map(variables => {
-            currentParent.children.push(...variables);
-            return currentParent;
-          })
-        );
-      allObservables.push(currentObservable$);
-    }
-    return merge(...allObservables, 4);
   }
 
   public offlineVarRefresh(source: OfflineSourceTypes, analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean[], transactionId: number) : Observable<OfflineBulkDataResponse[]> {
@@ -214,9 +131,6 @@ export class TargetAudienceTdaService {
       chunks: this.config.geoInfoQueryChunks
     };
 
-    // Simulate error
-    // if (inputData.source === 'tda')
-    //   return throwError('No Data was returned for the selected audiences');
     if (inputData.categoryIds.length > 0) {
       this.audienceService.timingMap.set('(' + inputData.source.toLowerCase() + ')', performance.now());
       return this.restService.post(serviceURL, [inputData])
@@ -256,10 +170,15 @@ export class TargetAudienceTdaService {
     // Look for variables that did not have data
     for (let i = 0; i < identifiers.length; i++)
       if (isForShading[i] === false && response.payload.counts.hasOwnProperty(identifiers[i]) && response.payload.counts[identifiers[i]] === 0)
-        emptyAudiences.push((this.rawAudienceData.has(identifiers[i]) ? this.rawAudienceData.get(identifiers[i]).fielddescr : identifiers[i]));
+        emptyAudiences.push(identifiers[i]);
 
-    if (emptyAudiences.length > 0)
-      this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + emptyAudiences.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
+    if (emptyAudiences.length > 0) {
+      this.definitionService.getRawTdaDefinition(emptyAudiences).pipe(
+        map(definitions => definitions.map(def => def.fielddescr)),
+      ).subscribe(fieldNames => {
+        this.store$.dispatch(new WarningNotification({ message: 'No data was returned for the following selected offline audiences: \n' + fieldNames.join(' , \n'), notificationTitle: 'Selected Audience Warning' }));
+      });
+    }
 
     return validatedResponse;
   }
@@ -268,13 +187,5 @@ export class TargetAudienceTdaService {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     const metricText = audience.audienceIdentifier + '~' + audience.audienceName  + '~' + audience.audienceSourceName + '~' + audience.audienceSourceType + '~' + currentAnalysisLevel;
     this.store$.dispatch(new CreateAudienceUsageMetric('offline', checkType, metricText));
-  }
-
-  public getRawTDAAudienceData(varPk: string) : TdaAudienceDescription {
-    if (this.rawAudienceData.has(varPk)) {
-      return new TdaAudienceDescription(this.rawAudienceData.get(varPk));
-    } else {
-      return null;
-    }
   }
 }

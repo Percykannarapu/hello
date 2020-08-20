@@ -1,0 +1,92 @@
+<div class="ui-g">
+  <val-edit-composite-audiences [editAudiences]="compositeAudiences$ | async"
+                                (onEdit)="onEdit($event)"
+                                (onDelete)="onDelete($event)">
+  </val-edit-composite-audiences>
+</div>
+
+<form novalidate [formGroup]="compositeForm" autocomplete="off" (ngSubmit)="onSubmit(compositeForm.value)">
+  <div class="ui-g-12">
+    <input type="hidden" formControlName="compositeAudienceId">
+  </div>
+  <div class="ui-g-12">
+    <span class="md-inputfield">
+      <input id="compositeAudName" type="text" formControlName="compositeAudName" pInputText size="40">
+      <label for="compositeAudName">Composite Audience Name (required)</label>
+    </span>
+    <span class="validation-messages">
+      <span *ngIf="isDuplicateName">
+        Duplicate audience name, please rename your variable.
+      </span>
+    </span>
+  </div>
+  &nbsp;
+  <div>
+    <table class="ui-table" style="width: 80%;">
+      <thead class="ui-table-thead">
+        <tr>
+          <th style="width: 50%">Audience Name</th>
+          <th style="width: 10%">Weight(%)</th>
+          <th style="width: 15%">Index Base</th>
+          <th style="width: 5%">Remove</th>
+        </tr>
+      </thead>
+      <tbody formArrayName="audienceRows" class="ui-table-tbody">
+        <ng-container *ngFor="let aud of audienceRows.controls; index as i">
+          <tr [formGroupName]="i.toString(10)">
+            <td>
+              <dropdown-input [options]="filteredAudiences$ | async" [includeUnselected]="true"
+                formControlName="selectedAudienceList"></dropdown-input>
+            </td>
+            <td>
+              <input formControlName="percent" type="text" pInputText size="5">
+            </td>
+            <td>
+              <dropdown-input [options]="allIndexValues" [includeUnselected]="true" formControlName="indexBase">
+              </dropdown-input>
+            </td>
+            <td>
+              <i class="val-clickable fa fa-trash" (click)="onRemove(i)"></i>
+
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>
+            <div class="ui-g-12">
+              <a href="#" (click)="addRow()">Add Row</a>
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+      <p style="color:red;" *ngIf="showError">
+        The sum of the weights should be 100, Please fix your values.
+      </p>
+  </div>
+
+  <div class="ui-g-4" #dialogParent>
+    <button type="submit" pButton icon="ui-icon-send" label="Create Variable" [disabled]="compositeForm.invalid"></button>
+  </div>
+  <div *ngIf="hasAudienceSelections" class="ui-g-8">
+    <button type="button" (click)="resetForm()" pButton label="Clear Selections"></button>
+</div>
+
+<p-dialog [header]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" [responsive]="true" [appendTo]="dialogParent" styleClass= "composite-audience-dialog">
+  <div>
+    <span>
+        {{dialogboxWarningmsg}}
+    </span>
+  </div>
+
+  <p-footer>
+    <div class="sa-footer-container">
+        <button type="button" (click)="closeDialog()" pButton label="OK"></button>
+    </div>
+</p-footer>
+</p-dialog>
+
+
+</form>

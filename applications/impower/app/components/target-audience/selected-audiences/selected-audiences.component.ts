@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
 import { MoveAudienceDn, MoveAudienceUp } from 'app/impower-datastore/state/transient/audience/audience.actions';
@@ -21,6 +21,9 @@ import { CreateAudienceUsageMetric } from '../../../state/usage/targeting-usage.
   encapsulation: ViewEncapsulation.None
 })
 export class SelectedAudiencesComponent implements OnInit {
+
+  @Input() audiences: Audience[] = [];
+
   audiences$: Observable<Audience[]>;
   hasAudiences: boolean = false;
   public showDialog: boolean = false;
@@ -64,14 +67,14 @@ export class SelectedAudiencesComponent implements OnInit {
       });
     });
 
-    this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
+    this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       filter(allAudiences => allAudiences != null ),
       map(audiences => audiences.filter(aud => aud.audienceSourceType === 'Combined' || aud.audienceSourceType === 'Converted' || aud.audienceSourceType === 'Combined/Converted' || aud.audienceSourceType === 'Composite')),
     ).subscribe(audiences => {
       this.filteredAudiences =  Array.from(new Set(audiences));
     });
 
-    this.store$.select(fromAudienceSelectors.getAllAudiences).pipe(
+    this.store$.select(fromAudienceSelectors.allAudiences).pipe(
       filter(allAudiences => allAudiences != null)
     ).subscribe(audiences => this.allAudiences = audiences);
   }
@@ -191,7 +194,7 @@ export class SelectedAudiencesComponent implements OnInit {
             break;
         case 'Converted':
              metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
-             break;     
+             break;
         case 'Composite':
           metricText = `${audience.audienceIdentifier}~${audience.audienceName}~${audience.audienceSourceName}~${this.appStateService.analysisLevel$.getValue()}` ;
           break;
@@ -204,7 +207,7 @@ export class SelectedAudiencesComponent implements OnInit {
    });
   }
   }
-   
+
 
   public onMoveUp(audience: Audience) {
     this.store$.dispatch(new MoveAudienceUp({ audienceIdentifier: audience.audienceIdentifier }));
@@ -225,7 +228,7 @@ export class SelectedAudiencesComponent implements OnInit {
 
   public onSelectShowOnGrid(gridFilter: boolean){
     const auds: Audience[] = [];
-   
+
     this.audiences$.pipe(
       map(audiences => audiences.filter(aud => aud.showOnGrid != gridFilter))
     ).subscribe(audiences => {
