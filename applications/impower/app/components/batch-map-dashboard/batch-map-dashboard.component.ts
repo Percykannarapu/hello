@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Observable, of, from } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from 'app/state/app.interfaces';
@@ -50,6 +50,7 @@ export class BatchMapDashboardComponent implements OnInit {
               private stateService: AppStateService,
               private config: AppConfig,
               private userService: UserService,
+              private cd: ChangeDetectorRef,
               private batMapService: BatchMapService) {}
 
   ngOnInit() {
@@ -62,6 +63,7 @@ export class BatchMapDashboardComponent implements OnInit {
             const details: ImpPrintJob[] = data as ImpPrintJob[]; 
             this.getPrintJobDetails(details);
           });
+          this.cd.markForCheck();
       }
     });
 
@@ -94,6 +96,7 @@ export class BatchMapDashboardComponent implements OnInit {
                 val.createDate = moment(printJob.createDate).format('MM/DD/YY hh:mm a');
           }
       });
+      this.cd.markForCheck();
     });
   }
 
@@ -115,6 +118,7 @@ export class BatchMapDashboardComponent implements OnInit {
       val.elapsedTime = `${duration.asMinutes().toFixed()} minutes`;
       val.createDate = moment(val.createDate).format('MM/DD/YY hh:mm a');
     });
+    this.cd.markForCheck();
   }
 
   closeDialog (){
@@ -122,11 +126,27 @@ export class BatchMapDashboardComponent implements OnInit {
   }
 
   isDisable(event: ImpPrintJob){
-    return event.status === 'inProgress' || event.status === 'Failed' ? false : true;
+      //if(event.status in ['inProgress', 'Failed', ])
+
+    return event.status === 'inProgress' || event.status === 'Failed' || event.status === 'FAILURE_EMAIL_SENT' || event.status == 'Cancel' ? false : true;
   }
 
   validateZipUrl(impPrintJob: ImpPrintJob){
     return this.isDisable(impPrintJob) && impPrintJob.jobType === 'One Site per Page';
+  }
+
+  copy(val: string){
+      const selBox = document.createElement('textarea');
+      selBox.style.position = 'fixed';
+      selBox.style.left = '0';
+      selBox.style.top = '0';
+      selBox.style.opacity = '0';
+      selBox.value = val;
+      document.body.appendChild(selBox);
+      selBox.focus();
+      selBox.select();
+      document.execCommand('copy');
+      document.body.removeChild(selBox);
   }
 
   convertMS(ms: number) {

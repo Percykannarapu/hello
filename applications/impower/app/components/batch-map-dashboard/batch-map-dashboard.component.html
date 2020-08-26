@@ -33,8 +33,9 @@
                         <span *ngIf="col.field === 'elapsedTime'" pTooltip="{{rowData['elapsedTimeTooltip']}}">
                              {{rowData[col.field]}}
                         </span>
-                        <span *ngIf="col.field === 'jobNumber'" pTooltip="{{rowData['jobNumber']}}" tooltipPosition="top" showDelay="1000">
-                              {{rowData['jobNumShort']}}
+                        <span *ngIf="col.field === 'jobNumber'" pTooltip="{{rowData['jobNumber']}}" tooltipPosition="top">
+                              <button  (click)="copy(rowData['jobNumber'])" label="{{rowData['jobNumShort']}}" pButton style="display: contents;margin:auto" class="copyButton" ></button>
+                              <!-- pButton style="margin: auto;display: block; width:100px;height:25px" -->
                         </span>
                         <span *ngIf="col.field ==='createDate'">
                             {{rowData[col.field]}}
