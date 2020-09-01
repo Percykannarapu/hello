@@ -47,11 +47,14 @@
                         <span *ngIf="col.header === 'URL' &&  validateZipUrl(rowData)">
                             <a href="{{rowData['zipUrl']}}"  target="_blank">ZIP </a>
                        </span>
+                       <span *ngIf="col.header === 'Cancel'">
+                          <button (click)="cancel(rowData)" label="cancel" [disabled]="refreshButton(rowData)" pButton style="margin: auto; display: block"></button>
+                        </span>
                         <span *ngIf="col.header === 'Refresh'; else otherHeaders">
-                          <button (click)="refresh(rowData)" icon="pi pi-refresh" [disabled]="isDisable(rowData)" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
+                          <button (click)="refresh(rowData)" icon="pi pi-refresh" [disabled]="refreshButton(rowData)" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
                         </span>
                         <ng-template #otherHeaders>
-                          <span *ngIf="col.header !== 'URL' && col.field !=='createDate' && col.field !== 'elapsedTime' && col.field !== 'jobNumber'">{{rowData[col.field]}}</span>
+                          <span *ngIf="col.header !== 'URL' && col.field !=='createDate' && col.field !== 'elapsedTime' && col.field !== 'cancel' && col.field !== 'jobNumber'">{{rowData[col.field]}}</span>
                         </ng-template>
                     </td>
                   </tr>

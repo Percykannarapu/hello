@@ -38,10 +38,11 @@ export class BatchMapDashboardComponent implements OnInit {
     { field: 'jobNumber',                header: 'Print job Number',     size: '15%' },
     { field: 'createDate',               header: 'Date/Time of request', size: '20%' },
     { field: 'elapsedTime',              header: 'Elapsed Time',         size: '12%' },
-    { field: 'status',                   header: 'Status',               size: '25%' },
+    { field: 'status',                   header: 'Status',               size: '20%' },
     { field: 'url',                      header: 'URL',                  size: '20%' },
     //{ field: 'zipUrl',                   header: 'ZIPURL',               size: '15%' },
-    { field: 'refresh',                  header: 'Refresh',              size: '8%' }
+    { field: 'refresh',                  header: 'Refresh',              size: '8%' },
+    { field: 'cancel',                   header: 'Cancel',               size: '12%' }
   ];
 
   constructor(private store$: Store<LocalAppState>,
@@ -78,10 +79,26 @@ export class BatchMapDashboardComponent implements OnInit {
     });
   }
 
-
+  cancel(event: ImpPrintJob){
+    this.batMapService.cancelBatchMapInProcess(event.jobId).subscribe((data) => {
+      const printJob = data as ImpPrintJob; 
+      this.printJobDetails.forEach((val) => {
+          if (val.jobId == printJob.jobId){
+                val.refresh = printJob.status === 'inProgress' ? false : true;
+                val.status = printJob.status;
+                val.jobNumShort = val.jobNumber.substring(0, 7); 
+                printJob.modifyDate = printJob.modifyDate == null ? printJob.createDate : printJob.modifyDate;
+                const duration = moment.duration(moment(printJob.modifyDate).diff(moment(printJob.createDate)));
+                val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
+                val.elapsedTime = `${duration.asMinutes().toFixed()} minutes`;
+                val.createDate = moment(printJob.createDate).format('MM/DD/YY hh:mm a');
+          }
+      });
+      this.cd.markForCheck();
+    });
+  }
 
   refresh(event: ImpPrintJob){
-    this.isDisable(event);       
     this.batMapService.getBatchMapDetailsById(event.jobId).subscribe((data) => {
       const printJob = data as ImpPrintJob; 
       this.printJobDetails.forEach((val) => {
@@ -125,10 +142,12 @@ export class BatchMapDashboardComponent implements OnInit {
     this.store$.dispatch(new CloseBatchMapStatusDialog());
   }
 
-  isDisable(event: ImpPrintJob){
-      //if(event.status in ['inProgress', 'Failed', ])
+  refreshButton(event: ImpPrintJob){
+    return event.status === 'inProgress' ? false : true;
+  }
 
-    return event.status === 'inProgress' || event.status === 'Failed' || event.status === 'FAILURE_EMAIL_SENT' || event.status == 'Cancel' ? false : true;
+  isDisable(event: ImpPrintJob){
+    return event.status === 'inProgress' || event.status === 'Failed' || event.status == 'cancel' ? false : true;
   }
 
   validateZipUrl(impPrintJob: ImpPrintJob){

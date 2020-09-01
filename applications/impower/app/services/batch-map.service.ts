@@ -80,6 +80,10 @@ export class BatchMapService {
       return this.http.get(`${this.config.printServiceUrl}/jobdetails/byjobid/${jobId}`);
   }
 
+  cancelBatchMapInProcess(jobId: number){
+      return this.http.get(`${this.config.printServiceUrl}/jobdetails/canceljob/${jobId}`);
+  }
+
   validateProjectReadiness(project: ImpProject) : boolean {
     const notificationTitle = 'Batch Map Issue';
     const projectNotSaved = 'The project must be saved before you can generate a batch map.';
