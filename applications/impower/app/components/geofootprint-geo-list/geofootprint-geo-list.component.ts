@@ -34,6 +34,7 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 export interface ColMetric {
   tot:  number;
@@ -214,6 +215,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  isSelectedFilterState: string = this.filterAllIcon;
    public  isSelectedToolTip: string = this.filterAllTip;
 
+   public assignOwnerSite: Map<string, string> = this.impGeoService.sharedGeos;
+
    // Grid Column Variables
    public flatGeoGridColumns: any[] =
    [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',          width: '5em',   matchMode: 'contains', styleClass: ''},
@@ -238,6 +241,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     {field: 'pob',                                        header: 'POB',             width: '4em',   matchMode: 'contains', styleClass: 'val-text-center'},
     {field: 'dma',                                        header: 'DMA',             width: '10em',  matchMode: 'contains', styleClass: ''},
     {field: 'geo.isDeduped',                              header: 'In Deduped',      width: '6em',   matchMode: 'contains', styleClass: 'val-text-center'},
+    {field: 'geo.ownerSite',                              header: 'Owner Site',      width: '6em',   matchMode: 'contains', styleClass: 'val-text-center'},
    ];
 
    public  flatGeoGridExtraColumns: any[];
@@ -274,7 +278,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
    constructor(private logger: LoggingService,
-               private appStateService: AppStateService) { }
+               private appStateService: AppStateService,
+               private impGeoService: ImpGeofootprintGeoService) { }
 
    ngOnInit()
    {

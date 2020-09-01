@@ -28,6 +28,7 @@ export class ImpGeofootprintGeo extends BaseModel
    // ----------------------------------
    public isDeduped:     number;         /// 1 = deduped, 0 = not deduped
    public rank:          number;         /// Rank used to calculate dupes
+   public ownerSite:     string;         /// Site number which owns a geo when shared 
 
    // -------------------------------------------
    // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
