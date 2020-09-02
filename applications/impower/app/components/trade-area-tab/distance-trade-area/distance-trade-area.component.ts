@@ -8,6 +8,9 @@ import { ValassisValidators } from '../../../common/valassis-validators';
 import { ImpGeofootprintTradeArea } from '../../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
+import { Store } from '@ngrx/store';
+import { LocalAppState } from 'app/state/app.interfaces';
+import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 
 @Component({
   selector: 'val-distance-trade-area',
@@ -70,7 +73,8 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject<void>();
   private cleanup$ = new Subject<void>();
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder,
+              private store$: Store<LocalAppState>) {
     this.tradeAreaMergeTypes = Object.keys(TradeAreaMergeTypeCodes)
       .filter(k => !isFunction(TradeAreaMergeTypeCodes[k]))
       .map(k => ({
@@ -82,6 +86,11 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.currentTradeAreaCount = this._currentTradeAreas == null || this._currentTradeAreas.length === 0 ? 1 : this._currentTradeAreas.length;
     this.setupForm();
+    /*this.store$.select(projectIsReady).subscribe((flag) => {
+        if (flag){
+          this.setupForm();
+        }
+    });*/
   }
 
   ngOnDestroy() : void {
@@ -107,6 +116,7 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
     formArray.removeAt(index);
     this.currentTradeAreaCount -= 1;
     this.setupRadiusValidations();
+    if (index == 0) this.addNewRadius();
   }
 
   private setFormValue<T extends DistanceTradeAreaUiModel, K extends keyof T>(field: K, value: T[K]) : void {
