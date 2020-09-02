@@ -20,7 +20,7 @@ export class AppConfig implements LoggingConfiguration {
   // Magic numbers
   public maxBufferRadius = 100;
   public maxValGeocodingReqSize = 50;
-  public maxRadiusTradeAreas = 3;
+  public maxRadiusTradeAreas = 4;
   public geoInfoQueryChunks = 5;        // Number of chunks the geos will be split into for multi threading
   public maxGeosForPrecisionZoom = 100;
 
