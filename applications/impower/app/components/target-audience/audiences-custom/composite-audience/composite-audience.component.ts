@@ -296,8 +296,10 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     let currentRows: any = [];
     const compositeSelectItem = this.allIndexValues.find(v => v.label === '');
     const nationalSelectItem = this.allIndexValues.find(base => base.label === 'National');
+    const dmaSelectItem = this.allIndexValues.find(b => b.label === 'DMA');
     const compositeBase = compositeSelectItem != null ? compositeSelectItem.value : null;
     const nationalBase = nationalSelectItem != null ? nationalSelectItem.value : null;
+    const dmaBase = dmaSelectItem != null ? dmaSelectItem.value : null;
 
     if (selectedAudience.compositeSource.length > 0) {
       selectedAudience.compositeSource.forEach(audience => {
@@ -305,8 +307,9 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
           if (current != null && current.audienceIdentifier === audience.id.toString()){
             currentRows.push({
               selectedAudienceList: current,
-              indexBase: current.selectedDataSet != null && current.selectedDataSet !== 'ALL' ? current.selectedDataSet :
-                            current.selectedDataSet === 'ALL' ? compositeBase : nationalBase,
+              indexBase: current.selectedDataSet != null && current.selectedDataSet !== 'ALL' ? 
+                          current.selectedDataSet !== 'nationalScore' && current.selectedDataSet !== 'dmaScore' ? current.selectedDataSet :
+                            current.selectedDataSet === 'nationalScore' ?  nationalBase : dmaBase : current.selectedDataSet === 'ALL' ? compositeBase : nationalBase,
               percent: audience.pct
             });
           }
