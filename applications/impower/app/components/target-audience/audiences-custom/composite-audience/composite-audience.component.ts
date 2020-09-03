@@ -39,7 +39,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   dependentVars: Audience[];
 
   private selectedAudiences: Observable<Audience[]>;
-  private compositeAudiences$: Observable<Audience[]>;
+  public compositeAudiences$: Observable<Audience[]>;
   private editAudience$ = new BehaviorSubject<Audience>(null);
   public filteredAudiences$: Observable<SelectItem[]>;
   public showDialog: boolean = false;
