@@ -9,6 +9,7 @@
                                  [hasProvidedTradeAreas]="(hasSiteProvidedTradeAreas$ | async)"
                                  [hasLocations]="hasSites$ | async"
                                  (formSubmitted)="onTradeAreasChanged($event, siteTypes.Site)"
+                                 (deleteTradeArea)="deleteTradeArea($event, siteTypes.Site)"
                                  [locationType]="siteTypes.Site"
                                  [analysisLevel]="analysisLevel$ | async">
         </val-distance-trade-area>
@@ -21,6 +22,7 @@
                                  [hasProvidedTradeAreas]="(hasCompetitorProvidedTradeAreas$ | async)"
                                  [hasLocations]="hasCompetitors$ | async"
                                  (formSubmitted)="onTradeAreasChanged($event, siteTypes.Competitor)"
+                                 (deleteTradeArea)="deleteTradeArea($event, siteTypes.Competitor)"
                                  [locationType]="siteTypes.Competitor"
                                  [analysisLevel]="analysisLevel$ | async">
         </val-distance-trade-area>

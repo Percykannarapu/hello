@@ -17,6 +17,8 @@ import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel } from './distance-trade-area/distance-trade-area-ui.model';
+import { TradeAreaTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 @Component({
   selector: 'val-trade-area-tab',
@@ -59,6 +61,7 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
               private appGeoService: AppGeoService,
               private geoService: ImpGeofootprintGeoService,
               private logger: AppLoggingService,
+              private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private store$: Store<LocalAppState>) { }
 
   ngOnInit() {
@@ -98,6 +101,16 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
     ).subscribe (() => {
       this.tradeAreaService.zoomToTradeArea();
     });
+  }
+
+  deleteTradeArea(newModel: DistanceTradeAreaUiModel, siteType: SuccessfulLocationTypeCodes){
+    const tradeAreaModels = newModel.tradeAreas.filter(ta => ta.radius != null);
+    const transformedAreas = tradeAreaModels.map(ta => ({ radius: Number(ta.radius), selected: ta.isActive, taNumber: ta.tradeAreaNumber }));
+    const tradeAreaFilter = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radius, TradeAreaTypeCodes.HomeGeo]);
+    const currentTradeAreas = this.impTradeAreaService.get()
+      .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
+                    tradeAreaFilter.has(TradeAreaTypeCodes.parse(ta.taType)));
+    this.tradeAreaService.deleteTradeAreas(currentTradeAreas);                
   }
 
   private applyTradeAreaChanges(newModel: DistanceTradeAreaUiModel, siteType: SuccessfulLocationTypeCodes) : void {

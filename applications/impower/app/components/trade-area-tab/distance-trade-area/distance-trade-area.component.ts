@@ -52,6 +52,7 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
   @Input() locationType: SuccessfulLocationTypeCodes;
 
   @Output() formSubmitted = new EventEmitter<DistanceTradeAreaUiModel>();
+  @Output() deleteTradeArea = new EventEmitter<DistanceTradeAreaUiModel>();
 
   radiusForm: FormGroup;
   tradeAreaMergeTypes: SelectItem[];
@@ -116,7 +117,10 @@ export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
     formArray.removeAt(index);
     this.currentTradeAreaCount -= 1;
     this.setupRadiusValidations();
-    if (index == 0) this.addNewRadius();
+    if (index == 0) {
+      this.addNewRadius();
+      this.deleteTradeArea.emit(this.radiusForm.value);
+    }
   }
 
   private setFormValue<T extends DistanceTradeAreaUiModel, K extends keyof T>(field: K, value: T[K]) : void {
