@@ -121,6 +121,16 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         }
       });
 
+      this.audienceForm.get('selectedIndex').valueChanges.pipe(
+        filter(base => base != null && base.val !== ''),
+        takeUntil(this.destroyed$)).subscribe(value => {
+        if (this.audienceList != null && this.audienceList.value.length > 1 && (this.audienceTypes.size > 1 || (this.audienceTypes.size === 1 && this.audienceTypes.has('INDEX')) )){
+          setTimeout(() => {
+            this.audienceForm.setErrors({'Has Error': true});
+           }, 0);
+        }
+      });
+
       this.audienceForm.get('audienceName').valueChanges.pipe(takeUntil(this.destroyed$)).subscribe( () => {
         const currentName = this.audienceName.value != null ?  this.audienceName.value.trim() : '';
         this.isDuplicateName = false;
