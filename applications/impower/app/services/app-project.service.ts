@@ -106,6 +106,7 @@ export class AppProjectService {
     localProject.impProjectVars.forEach(pv => {
       pv.pvId = undefined;
       pv.projectId = undefined;
+      pv.isShadedOnMap = false;
     });
     localProject.getImpGeofootprintLocations().forEach(loc => {
       loc.glId = undefined;
