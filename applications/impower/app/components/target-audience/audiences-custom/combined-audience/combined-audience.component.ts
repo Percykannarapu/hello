@@ -176,7 +176,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         sortOrder: fkId,
         isCombined: isCombined,
         isComposite: false,
-        combinedAudiences: audienceFields.audienceList[0].fieldconte === 'PERCENT' && (isCombineConverted || isCombined) ? combinedAudIds : [],
+        combinedAudiences: (isCombineConverted || isCombined) ? combinedAudIds : [],
         combinedVariableNames: combinedVariableNames.join('~'),
         compositeSource: !(isCombined || isCombineConverted) ? convertSource : [],
       };
@@ -199,9 +199,9 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         sortOrder: this.currentAudience[0].sortOrder,
         isCombined: this.currentAudience[0].isCombined,
         isComposite: this.currentAudience[0].isComposite,
-        combinedAudiences: this.currentAudience[0].fieldconte === 'PERCENT' ? combinedAudIds : [],
+        combinedAudiences: (isCombineConverted || isCombined)  ? combinedAudIds : [],
         combinedVariableNames: combinedVariableNames.join('~'),
-        compositeSource: !this.currentAudience[0].isCombined && this.currentAudience[0].selectedDataSet != null && audienceFields.selectedIndex !== ''  ? convertSource : [],
+        compositeSource: !(isCombined || isCombineConverted)  ? convertSource : [],
       };
       this.varService.updateProjectVars(editedAudience);
     }
