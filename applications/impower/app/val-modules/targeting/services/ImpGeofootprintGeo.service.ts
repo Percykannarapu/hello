@@ -570,7 +570,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
             exportColumns.push({ header: 'Is Final Home Geocode',        row: this.exportVarIsHomeGeocode});
             exportColumns.push({ header: 'Is Must Cover',                row: this.exportMustCoverFlag});
             exportColumns.push({ header: 'Owner Trade Area',             row: this.exportVarOwnerTradeArea});
-            exportColumns.push({ header: 'Owner Site',                   row: (state, data) => this.sharedGeos.get(data.geocode)});
+            exportColumns.push({ header: 'Owner Site',                   row: (state, data) => data.impGeofootprintLocation.locationNumber});
             exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
             exportColumns.push({ header: 'Base Count',                   row: null});
             exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive === true ? 1 : 0});
