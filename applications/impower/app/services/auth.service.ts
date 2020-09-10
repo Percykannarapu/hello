@@ -53,7 +53,6 @@ export class AuthService implements CanActivate{
         return this.setupAppUser(this.oidcUser).pipe(
           tap(appUser => {
             appUser.username = this.oidcUser.profile['custom_fields'].spokesamaccountname;
-            appUser.userRoles = this.getRolesFromOIDC(this.oidcUser);
             appUser.email = this.oidcUser.profile.email;
             this.userService.setUser(appUser);
           }),
@@ -92,24 +91,12 @@ export class AuthService implements CanActivate{
           this.manager.startSilentRenew();
           appUser.username = oidcUser.profile['custom_fields'].spokesamaccountname;
           appUser.displayName = oidcUser.profile['custom_fields'].name;
-          appUser.userRoles = this.getRolesFromOIDC(oidcUser);
           appUser.email = oidcUser.profile.email;
           this.userService.setUser(appUser);
           this.store$.dispatch(new CreateApplicationUsageMetric('entry', 'login', appUser.username + '~' + appUser.userId));
         })
       ))
     );
-  }
-
-  private getRolesFromOIDC(oidcUser: OIDCUser) : Array<UserRole> {
-    const userRoles: Array<UserRole> = [];
-    const rolesArray: Array<string> = oidcUser.profile['groups'];
-    rolesArray.forEach(r => {
-      const role: UserRole = new UserRole;
-      role.roleName = r;
-      userRoles.push(role);
-    });
-    return userRoles;
   }
 
   private setupAppUser(oidcUser: OIDCUser) : Observable<User>{
