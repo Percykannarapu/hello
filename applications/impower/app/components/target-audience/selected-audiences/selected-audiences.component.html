@@ -22,9 +22,9 @@
         <ng-template pTemplate="body" let-audience>
           <tr>
             <td class="button-column">
-              <i (click)="onMoveUp(audience)" class="fa fa-arrow-up val-clickable" *ngIf="audience.seq > 0"></i>
-              <i class="fa fa-arrow-up val-non-clickable" *ngIf="(audience.seq === 0) && (audienceCount > 1)"></i>
-              <i (click)="onMoveDn(audience)" class="fa fa-arrow-down val-clickable" *ngIf="audience.seq < (audienceCount - 1)"></i>
+              <i (click)="onMoveUp(audience)" class="fa fa-arrow-up val-clickable" *ngIf="audience.sortOrder > 0"></i>
+              <i class="fa fa-arrow-up val-non-clickable" *ngIf="(audience.sortOrder === 0) && (audienceCount > 1)"></i>
+              <i (click)="onMoveDn(audience)" class="fa fa-arrow-down val-clickable" *ngIf="audience.sortOrder < (audienceCount - 1)"></i>
             </td>
             <td>
               <div class="val-center-controls">
