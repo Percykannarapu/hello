@@ -8,6 +8,7 @@ import { AppState } from '../../../state/esri.reducers';
 import { selectors } from '../../../state/esri.selectors';
 import { Authenticate } from '../../../state/init/esri.init.actions';
 import { InitializeMap } from '../../../state/map/esri.map.actions';
+import { AppLoggingService } from 'app/services/app-logging.service';
 
 @Component({
   selector: 'val-esri-map',
@@ -28,6 +29,7 @@ export class EsriMapComponent implements OnInit {
 
   constructor(private mapService: EsriMapService,
               private store$: Store<AppState>,
+              private logger: AppLoggingService,
               private zone: NgZone) { }
 
   private static compareCenters(current: __esri.Point, previous: __esri.Point) : boolean {
@@ -74,5 +76,11 @@ export class EsriMapComponent implements OnInit {
         });
       });
     });
+    /*
+    refresh token for every 50 min
+    */
+     window.setInterval(() => {
+      this.logger.debug.log('token refreshed: ', new Date().toLocaleTimeString()); 
+      this.store$.dispatch(new Authenticate()); }, 3000000);
   }
 }
