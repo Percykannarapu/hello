@@ -285,7 +285,7 @@ export class TargetAudienceCustomService {
     return results;
   }
 
-  public parseCustomMapVar(dataPref: ImpProjectPref, audiences: Audience[], geocodes: Set<string>) : MapVar[] {
+  private parseCustomMapVar(dataPref: ImpProjectPref, audiences: Audience[]) : MapVar[] {
     let results: MapVar[] = [];
     const currentAudiences = audiences.filter(a => a.audienceSourceName === dataPref.pref);
     if (currentAudiences.length === 0) return results;
@@ -295,17 +295,15 @@ export class TargetAudienceCustomService {
         this.cacheFileData(dataBuffer, dataPref.pref);
       }
       const currentCache: { [geo: string] : CustomAudienceData } = this.dataCache[dataPref.pref];
-      geocodes.forEach(geo => {
-        const currentDataRow = currentCache[geo];
-        if (currentDataRow != null) {
-          const currentResult: Partial<MapVar> = {};
-          currentAudiences.forEach(aud => {
-            currentResult[aud.audienceIdentifier] = currentDataRow[aud.audienceName];
-          });
-          if (Object.keys(currentResult).length > 0) {
-            currentResult.geocode = geo;
-            results.push(currentResult as MapVar);
-          }
+      this.logger.debug.log('Current variable cache object', currentCache);
+      Object.values(currentCache).forEach(data => {
+        const currentResult: Partial<MapVar> = {};
+        currentAudiences.forEach(aud => {
+          currentResult[aud.audienceIdentifier] = data[aud.audienceName];
+        });
+        if (Object.keys(currentResult).length > 0) {
+          currentResult.geocode = data.geocode;
+          results.push(currentResult as MapVar);
         }
       });
     } catch (e) {
@@ -336,7 +334,7 @@ export class TargetAudienceCustomService {
     return result;
   }
 
-  public reloadMapVarFromPrefs(audiences: Audience[], geocodes: Set<string>) : MapVar[] {
+  public reloadMapVarFromPrefs(audiences: Audience[]) : MapVar[] {
     let result: MapVar[] = [];
     try {
       // Retrieve all of the custom vars from project prefs
@@ -346,7 +344,7 @@ export class TargetAudienceCustomService {
       if (prefs != null && prefs.length > 0) {
         prefs.forEach(customVarPref => {
           if (customVarPref != null) {
-            const currentResults = this.parseCustomMapVar(customVarPref, audiences, geocodes);
+            const currentResults = this.parseCustomMapVar(customVarPref, audiences);
             result = result.concat(currentResults);
           }
         });

@@ -1,6 +1,6 @@
 // tslint:disable:no-bitwise
 
-import { isConvertibleToNumber, isFunction, isNil } from './type-checks';
+import { isConvertibleToNumber, isFunction, isNil, isNull, isUndefined } from './type-checks';
 
 /**
  * Splits an array into chunks of a maximum size
@@ -476,6 +476,8 @@ export function rgbToHex(color: number[], withAlpha: boolean = true) : string {
 export function arrayToSet<T>(items: T[] | ReadonlyArray<T>) : Set<T>;
 export function arrayToSet<T>(items: T[] | ReadonlyArray<T>, filter?: (item: T) => boolean) : Set<T>;
 export function arrayToSet<T, R>(items: T[] | ReadonlyArray<T>, filter?: (item: T) => boolean, valueSelector?: (item: T) => R) : Set<T | R> {
+  if (isUndefined(items)) return undefined;
+  if (isNull(items)) return null;
   const result = new Set<T | R>();
   const len = items.length;
   const effectiveFilter = filter || (() => true);

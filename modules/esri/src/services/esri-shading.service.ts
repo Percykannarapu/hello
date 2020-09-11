@@ -112,9 +112,7 @@ export class EsriShadingService {
     this.store$.select(shadingSelectors.layerDefsForUpdate).pipe(
       withLatestFrom(this.store$.select(shadingSelectors.featuresCsv))
     ).subscribe(([defs, features]) => {
-      defs.forEach(d => {
-        this.updateGeneralizedShadingLayer(d, features);
-      });
+      defs.forEach(d => this.updateGeneralizedShadingLayer(d, features));
     });
   }
 

@@ -44,7 +44,7 @@ export class RehydrateAfterLoad implements Action {
 
 export class GetAllMappedVariables {
   readonly type = TransientActionTypes.GetAllMappedVariables;
-  constructor(public payload: { analysisLevel: string, correlationId?: string }) {
+  constructor(public payload: { analysisLevel: string, correlationId?: string, additionalGeos?: string[] }) {
     if (payload != null && payload.correlationId == null) payload.correlationId = getUuid();
   }
 }

@@ -28,7 +28,8 @@
       <ng-container *ngIf="audiences != null && audiences.length > 0">
         <val-variable-shader *ngSwitchDefault [definition]="duplicateDefinition(def)" [audiences]="audiences"
                              (applyShader)="applyDefinition($event)"
-                             (deleteShader)="deleteDefinition(null, $event)"></val-variable-shader>
+                             (deleteShader)="deleteDefinition(null, $event)"
+                             (customAudienceSelected)="onCustomAudienceSelected($event, def)"></val-variable-shader>
       </ng-container>
     </ng-container>
   </p-accordionTab>
