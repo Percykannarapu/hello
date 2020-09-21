@@ -7,6 +7,7 @@ import { ProjectCpmTypeCodes } from '../../../val-modules/targeting/targeting.en
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-discovery.service';
 import { Store } from '@ngrx/store';
 import { FullAppState } from 'app/state/app.interfaces';
+import { UserService } from 'app/services/user.service';
 
 @Component({
   selector: 'val-discovery-input',
@@ -36,17 +37,25 @@ export class DiscoveryInputComponent implements OnInit {
 
   discoveryForm: FormGroup;
   allAnalysisLevels: SelectItem[] = [];
+  limitedAnalysisLevels: SelectItem[] = [];
   allSeasons: SelectItem[];
   allCPMTypes: SelectItem[];
+  hasGrant: boolean = false;
 
   cpmTypes = ProjectCpmTypeCodes;
 
   constructor(private fb: FormBuilder,
-              private store$: Store<FullAppState>) { }
+              private store$: Store<FullAppState>,
+              private userService: UserService) { }
 
   ngOnInit() : void {
     this.allAnalysisLevels = [
       {label: 'Digital ATZ', value: 'Digital ATZ'},
+      {label: 'ATZ', value: 'ATZ'},
+      {label: 'ZIP', value: 'ZIP'},
+      {label: 'PCR', value: 'PCR'}
+    ];
+    this.limitedAnalysisLevels = [
       {label: 'ATZ', value: 'ATZ'},
       {label: 'ZIP', value: 'ZIP'},
       {label: 'PCR', value: 'PCR'}
@@ -60,6 +69,7 @@ export class DiscoveryInputComponent implements OnInit {
       { label: 'By Owner Group', value: ProjectCpmTypeCodes.OwnerGroup },
     ];
 
+    this.hasGrant = this.userService.userHasGrants(['IMPOWER_ANALYSIS_DATAZ']);
     // Create the form fields, and populate default values & validations.
     // These fields need to be named the same as the ValDiscoveryUIModel class
     // to make for easy mapping/patching back and forth.

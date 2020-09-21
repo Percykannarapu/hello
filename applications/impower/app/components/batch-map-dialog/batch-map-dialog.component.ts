@@ -36,13 +36,16 @@ export class BatchMapDialogComponent implements OnInit {
   showBatchMapDialog$: Observable<boolean>;
   batchMapForm: FormGroup;
   currentProjectId: number;
-  currentProjectName: string;
+  currentProjectName: string = '';
   numSites: number = 0;
   pageSettings: SelectItem[];
+  limitedPageSettings: SelectItem[];
+  hasGrant: boolean;
   siteLabels: SelectItem[];
   siteByGroupList: SelectItem[];
   mapBufferOptions: SelectItem[];
   selectedVariable: string;
+  totalSites: number;
   input = {
     'title': this.currentProjectName,
     'subTitle': '',
@@ -67,6 +70,11 @@ export class BatchMapDialogComponent implements OnInit {
         {label: '24 x 36 (Arch-D)', value: BatchMapSizes.large},
         {label: '36 x 48 (Arch-E)', value: BatchMapSizes.jumbo}
       ];
+      this.limitedPageSettings = [
+        {label: '8.5 x 11 (Letter)', value: BatchMapSizes.letter},
+        {label: '8.5 x 14 (Legal)', value: BatchMapSizes.legal},
+        {label: '11 x 17 (Tabloid)', value: BatchMapSizes.tabloid},
+      ];
       this.mapBufferOptions = [
         {label: '10%', value: 10},
         {label: '15%', value: 15},
@@ -79,6 +87,7 @@ export class BatchMapDialogComponent implements OnInit {
         {label: '50%', value: 50}
       ];
       this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadFormData());
+      this.hasGrant = this.userService.userHasGrants(['IMPOWER_PDF_FULL']);
     }
 
   initForm() {
@@ -259,8 +268,10 @@ export class BatchMapDialogComponent implements OnInit {
        this.activeSitesSetting();
     });
     this.store$.select(getBatchMapDialog).subscribe(flag => {
-      if (flag)
+      if (flag){
         this.sitesCount$ = of(this.getActiveSites().length);
+        this.totalSites = this.getActiveSites().length;
+      }
     });
   }
 

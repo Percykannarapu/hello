@@ -28,7 +28,12 @@
 
     <div class="ui-g-4">
       <span class="md-inputfield">
-        <p-dropdown id="selectedAnalysisLevel" [options]="allAnalysisLevels" formControlName="selectedAnalysisLevel" styleClass="val-full-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down"></p-dropdown>
+        <div *ngIf="hasGrant">
+          <p-dropdown id="selectedAnalysisLevel" [options]="allAnalysisLevels" formControlName="selectedAnalysisLevel" styleClass="val-full-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down"></p-dropdown>
+        </div>
+        <div *ngIf="!hasGrant">
+          <p-dropdown id="selectedAnalysisLevel" [options]="limitedAnalysisLevels" formControlName="selectedAnalysisLevel" styleClass="val-full-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down"></p-dropdown>
+        </div>
         <label for="selectedAnalysisLevel">Analysis Level</label>
       </span>
     </div>

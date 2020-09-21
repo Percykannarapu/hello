@@ -41,7 +41,6 @@
         <div class="primary-content">
           <val-dashboard></val-dashboard>
           <val-map></val-map>
-<!--          <val-geofootprint-geo-panel *acsGrant="['AHP READERS', 'FOO']; type 'ALL'"></val-geofootprint-geo-panel>-->
           <val-geofootprint-geo-panel></val-geofootprint-geo-panel>
         </div>
         <div class="side-panel-content">
@@ -58,9 +57,9 @@
     <val-simple-message></val-simple-message>
     <val-export-crossbow-sites></val-export-crossbow-sites>
     <val-print-view></val-print-view>
-    <val-batch-map-dialog></val-batch-map-dialog>
+    <val-batch-map-dialog *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']; type 'ANY'"></val-batch-map-dialog>
     <val-send-sites-digital></val-send-sites-digital>
-    <val-batch-map-dashboard></val-batch-map-dashboard>
+    <val-batch-map-dashboard *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']; type 'ANY'"></val-batch-map-dashboard>
     <div class="layout-mask"></div>
   </div>
 

@@ -36,7 +36,7 @@ export class UserService {
     this.logger.debug.log('fired setUser() in UserService', user);
     this._user = user;
     if (user && user.userRoles) {
-      this.userGrantList = user.userRoles.filter(r => r.roleName != null).map(r => r.roleName.toUpperCase());
+      this.userGrantList = user.userRoles.filter(r => r != null).map(r => r.toString().toUpperCase());
     } else {
       this.userGrantList = [];
     }

@@ -60,19 +60,18 @@ export class AppMenuComponent implements OnInit {
         },
         { label: 'Export', icon: 'ui-icon-file-download',
           items: [
-            { label: 'Export Geofootprint - All', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: false })) },
-            { label: 'Export Geofootprint - Selected Only', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: true })) },
+            { label: 'Export Geofootprint - All', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: false })), visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT']) },
+            { label: 'Export Geofootprint - Selected Only', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: true })), visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT']) },
             { label: 'Export Sites', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Site) },
             { label: 'Export Competitors', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor) },
-            { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()) },
+            { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()), visible: this.userService.userHasGrants(['IMPOWER_EXPORT_NATIONAL']) },
             { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.exportToValassisDigital()},
             { label: 'Export Crossbow Sites', icon: 'ui-icon-store', command: () => this.store$.dispatch(new OpenExportCrossbowSitesDialog()) },
             //{ label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
-            //{ label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap(), visible: this.userService.userHasGrants(['AHP READERS', 'FOO'], 'ALL') }
-            { label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap() }
+            { label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'], 'ANY')  }
           ]
         },
-        { label: 'Batch Map Status', icon: 'pi pi-info', command: () => this.getBatchMapStatus() }
+        { label: 'Batch Map Status', icon: 'pi pi-info', command: () => this.getBatchMapStatus(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'], 'ANY')   }
       ];
       this.isLoggedIn = true;
     });
