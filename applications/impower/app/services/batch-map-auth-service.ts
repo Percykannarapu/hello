@@ -47,15 +47,26 @@ export class BatchMapAuthService implements CanActivate {
 
   private checkCookies() : boolean {
     this.logger.info.log('Checking for JWT in cookies');
-    if (this.cookieService.check('id')) {
-      const jwt: string = this.cookieService.get('id');
-      RestDataService.bootstrap({oauthToken: jwt, tokenExpiration: null, tokenRefreshFunction: () => {}});
-      this.logger.info.log('Found JWT in cookies');
-      return true;
-    } else {
-      this.logger.info.log('Did not find JWT in cookies');
+    let jwt: string = null;
+    let acsUsername: string = null;
+    let acsPassword: string =  null;
+    if (this.cookieService.check('id'))
+      jwt = this.cookieService.get('id');
+    else
+      this.logger.error.log('unable to find JWT in cookies');
+    if (this.cookieService.check('ACS_USERNAME'))
+      acsUsername = this.cookieService.get('ACS_USERNAME');
+    else
+      this.logger.error.log('unable to find ACS username in cookies')
+    if (this.cookieService.check('ACS_PASSWORD'))
+      acsPassword = this.cookieService.get('ACS_PASSWORD');
+    else
+      this.logger.error.log('unable to find ACS password in cookies');
+    if (jwt == null || acsUsername == null || acsPassword == null)
       return false;
-    }
+    RestDataService.bootstrap({oauthToken: jwt, tokenExpiration: null, tokenRefreshFunction: () => {}}, acsUsername, acsPassword);
+    return true;
+
   }
 
 }
