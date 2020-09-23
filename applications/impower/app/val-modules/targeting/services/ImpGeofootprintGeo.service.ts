@@ -371,10 +371,20 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       for (const geo of geos) {
          if (geo.rank === 0){
             geo.isDeduped = 1;
-            this.sharedGeos.set(geo.geocode, geo.impGeofootprintTradeArea.impGeofootprintLocation.locationNumber);
+            if (geo.impGeofootprintTradeArea != null && geo.impGeofootprintTradeArea.impGeofootprintLocation != null)
+               this.sharedGeos.set(geo.geocode, geo.impGeofootprintTradeArea.impGeofootprintLocation.locationNumber);
          }
          else
             geo.isDeduped = 0;
+      }
+      this.assignOwnerSite(geos);
+   }
+
+   public assignOwnerSite(geos: ImpGeofootprintGeo[]){
+      if (this.sharedGeos != null && this.sharedGeos.size > 0){
+      for (const geo of geos){
+            geo.ownerSite = this.sharedGeos.get(geo.geocode);
+         }
       }
    }
 
