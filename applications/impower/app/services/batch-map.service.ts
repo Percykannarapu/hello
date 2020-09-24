@@ -162,10 +162,12 @@ export class BatchMapService {
 
   private groupLocationsByAttribute(project: ImpProject, params: BatchMapQueryParams) : Map<string, Array<ImpGeofootprintLocation>>{
     let groupedSites: Map<string, Array<ImpGeofootprintLocation>>;
-    if (project.getImpGeofootprintLocations()[0].hasOwnProperty(params.groupByAttribute)) {
-      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => item[params.groupByAttribute]);
+    const clientLocations = project.getImpGeofootprintLocations()
+      .filter(loc => ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site && loc.isActive);
+    if (clientLocations[0].hasOwnProperty(params.groupByAttribute)) {
+      groupedSites = groupByExtended(clientLocations, item => item[params.groupByAttribute]);
     } else {
-      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => {
+      groupedSites = groupByExtended(clientLocations, item => {
         let key: string = null;
         item.impGeofootprintLocAttribs.forEach(a => {
           if (a.attributeCode === params.groupByAttribute) {
