@@ -64,4 +64,10 @@ export class AppConfig implements LoggingConfiguration {
       ? this.isBatchMode && !forceFullDetail ? config.simplifiedBoundary || config.boundary : config.boundary
       : config.centroid || null;
   }
+
+  public getRefreshedLayerId(existingId: string) : string {
+    if (existingId == null) return existingId;
+    const result = EnvironmentData.portalIdUpdates[existingId];
+    return result || existingId;
+  }
 }
