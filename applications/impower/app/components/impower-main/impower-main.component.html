@@ -19,10 +19,10 @@
                 {{ currentProject.projectId }} - {{ currentProject.projectName | truncate:40:' ...' }}
               </span>
             </div>
-            <div class="ui-g-1 ui-g-nopad">
+            <div class="clear-container">
                 <p-button icon="pi pi-fw pi-question" label="Help" (onClick)="getHelpPopup($event)"></p-button> 
             </div>
-            <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noClear" class="ui-g-1 ui-g-nopad clear-container">
+            <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noClear" class="clear-container">
                 
               <p-button  label="Clear Messages" (onClick)="onClearMessages()"></p-button>
             </div>
