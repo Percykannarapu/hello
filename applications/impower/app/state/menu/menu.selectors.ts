@@ -7,3 +7,4 @@ export const openExistingDialogFlag = createSelector(getMenuSlice, state => stat
 export const printViewDialogFlag = createSelector(getMenuSlice, state => state.displayPrintViewDialog);
 export const openExportCrossbowSitesFlag = createSelector(getMenuSlice, state => state.displayCrossbowSitesDialog);
 export const openSendToValassisDigitalFlag = createSelector(getMenuSlice, state => state.displaySendToValassisDigitalDialog);
+export const openImpowerHelpDialog = createSelector(getMenuSlice, state => state.displayImpowerHelpDialog);

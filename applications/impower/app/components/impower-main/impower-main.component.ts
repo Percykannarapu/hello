@@ -11,6 +11,7 @@ import { getRouteUrl } from '../../state/shared/router.interfaces';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
 import { UserService } from 'app/services/user.service';
+import { ImpowerHelpOpen } from 'app/state/menu/menu.actions';
 
 enum MenuOrientation {
   STATIC,
@@ -108,6 +109,16 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
 
   onClearMessages() {
     this.store$.dispatch(new ClearAllNotifications());
+  }
+
+  getHelpPopup(event: any){
+    if (this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'], 'ANY')){
+      const internal = 'http://myvalassis/da/ts/imPower%20Resources/Forms/AllItems.aspx';
+      window.open(internal, '_blank');
+    }
+    else{
+      this.store$.dispatch(new ImpowerHelpOpen(event));
+    }
   }
 
   onLayoutClick() {

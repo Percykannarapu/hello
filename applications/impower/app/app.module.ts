@@ -201,6 +201,7 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
+import { ImpowerHelpComponent } from './components/impower-help/impower-help.component';
 
 
 export function stateSanitizer(state: any) : any {
@@ -411,6 +412,7 @@ export function esriSetupFactory() : ForRootOptions {
     AcsGrantDirective,
     AudiencesCustomComponent,
     AudiencesOfflineComponent,
+    ImpowerHelpComponent,
     //BatchMapDashboardComponent
 
   ],

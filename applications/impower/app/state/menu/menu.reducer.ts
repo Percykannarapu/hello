@@ -5,6 +5,7 @@ export interface MenuState {
   displayPrintViewDialog: boolean;
   displayCrossbowSitesDialog: boolean;
   displaySendToValassisDigitalDialog: boolean;
+  displayImpowerHelpDialog: any;
 }
 
 const initialState: MenuState = {
@@ -12,6 +13,7 @@ const initialState: MenuState = {
   displayPrintViewDialog: false,
   displayCrossbowSitesDialog: false,
   displaySendToValassisDigitalDialog: false,
+  displayImpowerHelpDialog: null,
 };
 
 export function menuReducer(state = initialState, action: MenuActions) {
@@ -56,6 +58,11 @@ export function menuReducer(state = initialState, action: MenuActions) {
           ...state,
           displaySendToValassisDigitalDialog: false
        };
+    case MenuActionTypes.ImpowerHelpOpen:
+      return {
+        ...state,
+        displayImpowerHelpDialog: action.payload
+      };
     default:
       return state;
   }

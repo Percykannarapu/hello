@@ -19,8 +19,12 @@
                 {{ currentProject.projectId }} - {{ currentProject.projectName | truncate:40:' ...' }}
               </span>
             </div>
-            <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noClear" class="ui-g-2 ui-g-nopad clear-container">
-              <p-button label="Clear Messages" (onClick)="onClearMessages()"></p-button>
+            <div class="ui-g-1 ui-g-nopad">
+                <p-button icon="pi pi-fw pi-question" label="Help" (onClick)="getHelpPopup($event)"></p-button> 
+            </div>
+            <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noClear" class="ui-g-1 ui-g-nopad clear-container">
+                
+              <p-button  label="Clear Messages" (onClick)="onClearMessages()"></p-button>
             </div>
             <ng-template #noMenu>
               <div class="ui-g-6 ui-g-nopad">&nbsp;</div>
@@ -60,6 +64,7 @@
     <val-batch-map-dialog *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']; type 'ANY'"></val-batch-map-dialog>
     <val-send-sites-digital></val-send-sites-digital>
     <val-batch-map-dashboard *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']; type 'ANY'"></val-batch-map-dashboard>
+    <val-impower-help></val-impower-help>
     <div class="layout-mask"></div>
   </div>
 
