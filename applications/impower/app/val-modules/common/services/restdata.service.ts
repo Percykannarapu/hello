@@ -21,6 +21,8 @@ export class OauthConfiguration {
 export class RestDataService
 {
   private static configuration: OauthConfiguration;
+  private static acsUsername: string;
+  private static acsPassword: string;
 
   public baseUrl: string;
 
@@ -35,12 +37,22 @@ export class RestDataService
   /**
    * Bootstrap the data store, right now the only thing we bootstrap with is the oauth token
    */
-  public static bootstrap(config: OauthConfiguration) {
+  public static bootstrap(config: OauthConfiguration, acsUsername?: string, acsPassword?: string) {
     this.configuration = config;
+    this.acsUsername = acsUsername;
+    this.acsPassword = acsPassword;
   }
 
   public static getConfig() : OauthConfiguration {
     return this.configuration;
+  }
+
+  public static getAcsUsername() : string {
+    return this.acsUsername;
+  }
+
+  public static getAcsPassword() : string {
+    return this.acsPassword;
   }
 
    // -----------------------------------------------------------------------------------

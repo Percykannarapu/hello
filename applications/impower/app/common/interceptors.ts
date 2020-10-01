@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppConfig } from '../app.config';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
+import { ReducerManager } from '@ngrx/store';
 
 @Injectable()
 export class ContentInterceptor implements HttpInterceptor {
@@ -34,6 +35,16 @@ export class AuthInterceptor implements HttpInterceptor {
       if (tokenConfig != null && tokenConfig.oauthToken != null) {
         clone = clone.clone({
           headers: clone.headers.set('Authorization', 'Bearer ' + tokenConfig.oauthToken)
+        });
+      }
+      if (RestDataService.getAcsUsername() != null && RestDataService.getAcsUsername().length > 0) {
+        clone = clone.clone({
+          headers: clone.headers.set('ACS_USERNAME', RestDataService.getAcsUsername())
+        });
+      }
+      if (RestDataService.getAcsPassword() != null && RestDataService.getAcsPassword().length > 0) {
+        clone = clone.clone({
+          headers: clone.headers.set('ACS_PASSWORD', RestDataService.getAcsPassword())
         });
       }
     }

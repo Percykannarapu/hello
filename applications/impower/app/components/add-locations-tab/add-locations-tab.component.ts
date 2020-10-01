@@ -22,6 +22,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../v
 import { BusinessSearchComponent, SearchEventData } from './business-search/business-search.component';
 import { ManualEntryComponent } from './manual-entry/manual-entry.component';
 import { siteListUpload } from './upload.rules';
+import { UserService } from 'app/services/user.service';
 
 @Component({
   selector: 'val-add-locations-tab',
@@ -56,7 +57,8 @@ export class AddLocationsTabComponent implements OnInit {
               private appStateService: AppStateService,
               private logger: AppLoggingService,
               private store$: Store<FullAppState>,
-              private appEditSiteService: AppEditSiteService) {}
+              private appEditSiteService: AppEditSiteService,
+              private userService: UserService) {}
 
   ngOnInit() {
     this.appEditSiteService.editLocationData$.subscribe(message => {
@@ -91,10 +93,15 @@ export class AddLocationsTabComponent implements OnInit {
       this.geocoderService.duplicateKeyMap.get(siteType).add(site.locationNumber);
     });
     const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListUpload);
+    const hasUserGrant = this.userService.userHasGrants(['IMPOWER_UNRESTRICTED_SITES']);
     this.logger.debug.log('File Upload valid count', requests.length);
     if (requests.length > 0){
-      this.validateHomeDmaIfExists(requests);
-      this.processSiteRequests(requests, siteType);
+      if (requests.length > 2000 && !hasUserGrant){
+        this.store$.dispatch(new ErrorNotification({ message: 'You are limited to 2,000 sites per analysis. Please reduce your site list and try again', notificationTitle: 'Location Upload Error' }));
+      } else {
+        this.validateHomeDmaIfExists(requests);
+        this.processSiteRequests(requests, siteType);
+      }
     }
   }
 

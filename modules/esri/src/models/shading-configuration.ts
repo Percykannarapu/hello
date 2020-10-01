@@ -41,6 +41,7 @@ export interface ShadingDefinitionBase {
   filterByFeaturesOfInterest: boolean;
   filterField: string;
   refreshLegendOnRedraw?: boolean;
+  isStaticArcadeString?: boolean;
 }
 
 function duplicateBase(def: ShadingDefinitionBase) : ShadingDefinitionBase {

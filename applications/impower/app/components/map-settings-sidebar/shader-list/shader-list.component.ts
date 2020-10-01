@@ -101,6 +101,13 @@ export class ShaderListComponent implements OnInit, OnDestroy {
     const newDef: ShadingDefinition = duplicateShadingDefinition(definition);
     this.logger.debug.log('Applying Definition changes. New values:', newDef);
     this.esriShaderService.upsertShader(newDef);
-    setTimeout(() => this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: this.currentAnalysisLevel })), 1000);
+    setTimeout(() => {
+      const additionalGeos = this.geos.map(g => g.geocode);
+      this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: this.currentAnalysisLevel, additionalGeos }));
+    }, 1000);
+  }
+
+  onCustomAudienceSelected(selected: boolean, definition: ShadingDefinition) : void {
+    definition.isStaticArcadeString = selected;
   }
 }

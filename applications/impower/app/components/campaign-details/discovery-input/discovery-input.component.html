@@ -16,7 +16,7 @@
     </div>
 
     <div class="ui-g-8">
-      <span class="md-inputfield">
+      <span class="md-inputfield" *acsGrant="['IMPOWER_INTERNAL_FEATURES'];">
         <p-autoComplete id="projectTrackerLookup" inputStyleClass="val-full-width" styleClass="val-full-width"
                         [minLength]="3" [dropdown]="false" [forceSelection] = "true" formControlName="selectedProjectTracker" field="display"
                         [suggestions]="projectTrackerSuggestions" (completeMethod)="trackerSearchRequest.emit($event.query)">
@@ -25,12 +25,15 @@
       </span>
     </div>
     <div class="ui-g-4"></div>
-
     <div class="ui-g-4">
-      <span class="md-inputfield">
-        <p-dropdown id="selectedAnalysisLevel" [options]="allAnalysisLevels" formControlName="selectedAnalysisLevel" styleClass="val-full-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down"></p-dropdown>
+      <span class="md-inputfield" *ngIf="hasGrant">
+          <p-dropdown id="selectedAnalysisLevel" [options]="allAnalysisLevels" formControlName="selectedAnalysisLevel" styleClass="val-full-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down"></p-dropdown>
         <label for="selectedAnalysisLevel">Analysis Level</label>
       </span>
+      <span class="md-inputfield" *ngIf="!hasGrant">
+          <p-dropdown id="currentAnalysisLevel" [options]="limitedAnalysisLevels" formControlName="selectedAnalysisLevel" styleClass="val-full-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down"></p-dropdown>
+          <label for="currentAnalysisLevel">Analysis Level</label>
+    </span>
     </div>
     <div class="ui-g-8"></div>
   </div>

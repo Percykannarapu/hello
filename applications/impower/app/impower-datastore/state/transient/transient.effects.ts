@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { arrayToSet, formatMilli, getUuid } from '@val/common';
+import { arrayToSet, formatMilli } from '@val/common';
 import { EsriService } from '@val/esri';
 import { AppConfig } from 'app/app.config';
 import { AppStateService } from 'app/services/app-state.service';
@@ -81,14 +81,14 @@ export class TransientEffects {
     concatMap((action) => {
       if (action.payload.isBatchMode) {
         return [
-          new GetAllMappedVariables({ analysisLevel: action.payload.analysisLevel, correlationId: getUuid() }),
+          new GetAllMappedVariables({ analysisLevel: action.payload.analysisLevel, additionalGeos: Array.from(action.payload.geocodes) }),
           new ProjectLoadSuccess({ projectId: action.payload.projectId })
         ];
       } else {
         return [
           new RehydrateAttributes({ ...action.payload }),
           new ApplyAudiences({ analysisLevel: action.payload.analysisLevel }),
-          new GetAllMappedVariables({ analysisLevel: action.payload.analysisLevel, correlationId: getUuid() })
+          new GetAllMappedVariables({ analysisLevel: action.payload.analysisLevel, additionalGeos: Array.from(action.payload.geocodes) })
         ];
       }
     })
@@ -104,14 +104,14 @@ export class TransientEffects {
     )),
     filter(([, audiences]) => audiences.filter(a => a.audienceSourceType !== 'Custom').length > 0),
     tap(() => this.logger.debug.log('Getting server-based audience data...')),
-    map(([action, audiences, geocodes]) => ([action, audiences, arrayToSet(geocodes)] as const)),
+    map(([action, audiences, geocodes]) => ([action, audiences, arrayToSet([...geocodes, ...(action.payload.additionalGeos || []) ])] as const)),
     tap(([action, , geocodes]) => this.store$.dispatch(new CacheGeos({ geocodes, correlationId: action.payload.correlationId }))),
-    switchMap(([primaryAction, audiences, geocodes]) => this.actions$.pipe(
+    switchMap(([primaryAction, audiences]) => this.actions$.pipe(
       ofType<CacheGeosComplete | CacheGeosFailure>(TransientActionTypes.CacheGeosComplete, TransientActionTypes.CacheGeosFailure),
       filter(cacheAction => cacheAction.payload.correlationId === primaryAction.payload.correlationId),
       take(1),
       filter(cacheAction => cacheAction.type === TransientActionTypes.CacheGeosComplete),
-      map((cacheAction: CacheGeosComplete) => [cacheAction, this.transientService.dispatchMappedAudienceRequests(audiences, cacheAction.payload.transactionId, primaryAction.payload.analysisLevel, geocodes)] as const),
+      map((cacheAction: CacheGeosComplete) => [cacheAction, this.transientService.dispatchMappedAudienceRequests(audiences, cacheAction.payload.transactionId, primaryAction.payload.analysisLevel)] as const),
       filter(([, dispatchCount]) => dispatchCount > 0),
       switchMap(([cacheAction, dispatchCount]) => this.actions$.pipe(
         ofType<FetchMapVarCompleted>(AudienceActionTypes.FetchMapVarCompleted),
@@ -126,15 +126,10 @@ export class TransientEffects {
   @Effect({ dispatch: false })
   getLocalMappedAudiences$ = this.actions$.pipe(
     ofType<GetAllMappedVariables>(TransientActionTypes.GetAllMappedVariables),
-    switchMap(action => this.esriService.visibleFeatures$.pipe(
-      mapFeaturesToGeocode(true),
-      withLatestFrom(this.store$.select(getAllMappedAudiences)),
-      map(([geocodes, audiences]) => ([action, audiences, geocodes] as const))
-    )),
+    withLatestFrom(this.store$.select(getAllMappedAudiences)),
     filter(([, audiences]) => audiences.filter(a => a.audienceSourceType === 'Custom').length > 0),
     tap(() => this.logger.debug.log('Getting pref-based audience data...')),
-    map(([action, audiences, geocodes]) => ([action, audiences, arrayToSet(geocodes)] as const)),
-    tap(([action, audiences, geocodes]) => this.transientService.dispatchMappedAudienceRequests(audiences, -1, action.payload.analysisLevel, geocodes)),
+    tap(([action, audiences]) => this.transientService.dispatchMappedAudienceRequests(audiences, -1, action.payload.analysisLevel)),
   );
 
   constructor(private actions$: Actions<TransientActions>,

@@ -5,14 +5,14 @@
     </p-header>
   <!-- <div class="dialog-form"> -->
     <div class="dialog-main" id="p-dialog">
-      
+
       <!--<p class="custom-headers">PDF map outputs may not exceed 600 pages. Please set up your maps accordingly. </p>    -->
       <div class="dialog-body">
         <div calss="ui-g-12 ui-g-nopad search-bar">
           <p> <span style="color:red; font-size: 1.2em"> Reminder: Save any changes before printing so that they are reflected on map </span>
             <br />
             PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.</p>
-        </div>    
+        </div>
         <form novalidate [formGroup]="batchMapForm" autocomplete="off">
           <div class="ui-g-4">
               <div class="ui-g-12 labelTitle">
@@ -67,10 +67,10 @@
                   </div>
               </div>
           </div>
-           
-          
+
+
           <div class="ui-g-12 p-grid">
-            
+
             <div class="p-col-6">
               <div class="sitesPerPage">
                 <div class="ui-g-12 labelTitle">
@@ -135,8 +135,7 @@
                   </div>
                 </div>
                 <div class="ui-g-12 customPadding">
-                  <p-radioButton name="fitToPageGroup" value="ta" label="Trade Area" formControlName="fitTo"
-                    [disabled]="disableTradeArea"></p-radioButton>
+                  <p-radioButton name="fitToPageGroup" value="ta" label="Trade Area" formControlName="fitTo"></p-radioButton>
                 </div>
               </div>
               <div class="pageSettings">
@@ -146,10 +145,18 @@
                 <div class="ui-g-12" style="padding-top: 14px; padding-bottom: 0px;"></div>
                 <div class="ui-g-12 pageSettingsPadding">
                   <div class="ui-g-6 md-inputfield dropdown-padding">
-                    <p-dropdown id="pageSettings" formControlName="pageSettingsControl" [options]="pageSettings"
+                    <div *ngIf="hasGrant">
+                      <p-dropdown id="pageSettings" formControlName="pageSettingsControl" [options]="pageSettings"
                       styleClass="val-full-width" [autoWidth]="false" placeholder="&nbsp;"
                       dropdownIcon="fa fa-caret-down">
                     </p-dropdown>
+                    </div>
+                    <div *ngIf="!hasGrant">
+                      <p-dropdown id="pageSettings" formControlName="pageSettingsControl" [options]="limitedPageSettings"
+                      styleClass="val-full-width" [autoWidth]="false" placeholder="&nbsp;"
+                      dropdownIcon="fa fa-caret-down">
+                    </p-dropdown>
+                    </div>
                     <label for="pageSettings">Page Size</label>
                   </div>
                   <div class="ui-g-3">
@@ -167,10 +174,20 @@
         </form>
       </div>
     </div>
- <!-- </div> --> 
   <div class="text-right">
-    <button id="createBtn" type="submit" pButton label="Create" (click)="onSubmit(batchMapForm.value)"
-      [disabled]="batchMapForm.invalid"></button>
+    <div *ngIf="!hasGrant && totalSites > 25">
+      <span style="color:red; font-size: 1em">
+        <p>You cannot print maps with more than 25 pages. Please adjust sites and try again.</p>
+      </span>
+    <button id="createBtn" type="button" pButton label="Create" (click)="onSubmit(batchMapForm.value)" [disabled]="true" >
+    </button> 
+    </div>
+    <div *ngIf="hasGrant || (!hasGrant && totalSites <= 25)">
+    <button id="createBtn" type="button" pButton label="Create" (click)="onSubmit(batchMapForm.value)"
+      [disabled]="batchMapForm.invalid">
+    </button>
+    </div>
+
     <p>A link containing both individual and stitched PDF files will be emailed to you for download when your maps are
       ready</p>
   </div>

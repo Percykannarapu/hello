@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
 import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
+import { type } from 'os';
 
 export enum MenuActionTypes {
   SaveAndReloadProject = '[Application Menu] Save and Reload Project',
@@ -22,6 +23,8 @@ export enum MenuActionTypes {
   CloseExportCrossbowSitesDialog = '[Application Menu] Close Export Crossbow Sites Dialog',
   OpenPrintViewDialog = '[Application Menu] Open Print View Dialog',
   ClosePrintViewDialog = '[Application Menu] Close Print View Dialog',
+
+  ImpowerHelpOpen = '[Help Impower] Open Impower Help Dialog',
 
 }
 export enum PrintActionTypes{
@@ -106,7 +109,10 @@ export class CloseclientNmaeForValassisDigitalDialog implements Action{
   readonly type = MenuActionTypes.CloseclientNmaeForValassisDigitalDialog;
 }
 
-
+export class ImpowerHelpOpen implements Action{
+    readonly type = MenuActionTypes.ImpowerHelpOpen;
+    constructor(public payload: {event: any}) {}
+}
 
 export type MenuActions =
   SaveAndReloadProject |
@@ -125,10 +131,11 @@ export type MenuActions =
   OpenPrintViewDialog |
   ClosePrintViewDialog|
   ClientNmaeForValassisDigitalDialog|
-  CloseclientNmaeForValassisDigitalDialog;
-
+  CloseclientNmaeForValassisDigitalDialog |
+  ImpowerHelpOpen; 
 
 export type PrintActions = PrintMapSuccess;
+
 
 
 

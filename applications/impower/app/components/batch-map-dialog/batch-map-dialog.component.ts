@@ -1,22 +1,30 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
+import { groupByExtended } from '@val/common';
+import { ErrorNotification } from '@val/messaging';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { AppStateService } from 'app/services/app-state.service';
 import { UserService } from 'app/services/user.service';
-import { BatchMapPayload, BatchMapSizes, FitToPageOptions, LocalAppState, SinglePageBatchMapPayload, TitlePayload, CurrentPageBatchMapPayload } from 'app/state/app.interfaces';
+import {
+  BatchMapPayload,
+  BatchMapSizes,
+  CurrentPageBatchMapPayload,
+  FitToPageOptions,
+  LocalAppState,
+  SinglePageBatchMapPayload,
+  TitlePayload
+} from 'app/state/app.interfaces';
 import { CloseBatchMapDialog, CreateBatchMap } from 'app/state/batch-map/batch-map.actions';
-import { getBatchMapDialog, getBatchMapStatusDialog } from 'app/state/batch-map/batch-map.selectors';
+import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { SelectItem } from 'primeng/api';
 import { Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { ErrorNotification } from '@val/messaging';
-import { groupByExtended, groupBy, mapByExtended } from '@val/common';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'val-batch-map-dialog',
@@ -28,13 +36,16 @@ export class BatchMapDialogComponent implements OnInit {
   showBatchMapDialog$: Observable<boolean>;
   batchMapForm: FormGroup;
   currentProjectId: number;
-  currentProjectName: string;
+  currentProjectName: string = '';
   numSites: number = 0;
   pageSettings: SelectItem[];
+  limitedPageSettings: SelectItem[];
+  hasGrant: boolean;
   siteLabels: SelectItem[];
   siteByGroupList: SelectItem[];
   mapBufferOptions: SelectItem[];
   selectedVariable: string;
+  totalSites: number;
   input = {
     'title': this.currentProjectName,
     'subTitle': '',
@@ -59,6 +70,11 @@ export class BatchMapDialogComponent implements OnInit {
         {label: '24 x 36 (Arch-D)', value: BatchMapSizes.large},
         {label: '36 x 48 (Arch-E)', value: BatchMapSizes.jumbo}
       ];
+      this.limitedPageSettings = [
+        {label: '8.5 x 11 (Letter)', value: BatchMapSizes.letter},
+        {label: '8.5 x 14 (Legal)', value: BatchMapSizes.legal},
+        {label: '11 x 17 (Tabloid)', value: BatchMapSizes.tabloid},
+      ];
       this.mapBufferOptions = [
         {label: '10%', value: 10},
         {label: '15%', value: 15},
@@ -71,6 +87,7 @@ export class BatchMapDialogComponent implements OnInit {
         {label: '50%', value: 50}
       ];
       this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadFormData());
+      this.hasGrant = this.userService.userHasGrants(['IMPOWER_PDF_FULL']);
     }
 
   initForm() {
@@ -122,19 +139,20 @@ export class BatchMapDialogComponent implements OnInit {
           sitesToinclude: savedFormData.sitesToinclude == null ? 'allActiveSites' : savedFormData.sitesToinclude,
           taTitle: savedFormData.taTitle == null ? '' : savedFormData.taTitle,
         });
-     
+
       if (savedFormData.fitTo == '' || savedFormData.fitTo == null) {
         this.tradeAreaService.storeObservable.subscribe((tas) => {
+          const fitToFormControl = this.batchMapForm.get('fitTo');
           if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
-            this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
-            this.disableTradeArea = false;
+            this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta });
+            fitToFormControl.enable();
           } else {
-            this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos});
-            this.disableTradeArea = true;
+            this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos });
+            fitToFormControl.disable();
           }
         });
       }
-    } else { 
+    } else {
       this.batchMapForm.patchValue({
         title: 'user-defined',
         subTitle: 'user-defined',
@@ -155,12 +173,13 @@ export class BatchMapDialogComponent implements OnInit {
         taTitle: ''
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
+        const fitToFormControl = this.batchMapForm.get('fitTo');
         if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
           this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
-          this.disableTradeArea = false;
+          fitToFormControl.enable();
         } else {
           this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos});
-          this.disableTradeArea = true;
+          fitToFormControl.disable();
         }
       });
       this.stateService.currentProject$.pipe(filter(p => p != null)).subscribe(p => {
@@ -233,12 +252,13 @@ export class BatchMapDialogComponent implements OnInit {
       this.siteLabels = customList;
     });
     this.tradeAreaService.storeObservable.subscribe((tas) => {
+      const fitToFormControl = this.batchMapForm.get('fitTo');
       if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
         this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
-        this.disableTradeArea = false;
+        fitToFormControl.enable();
       } else {
         this.batchMapForm.patchValue({ fitTo: FitToPageOptions.geos});
-        this.disableTradeArea = true;
+        fitToFormControl.disable();
       }
     });
     this.batchMapForm.get('sitesToinclude').valueChanges.subscribe(val => {
@@ -248,8 +268,10 @@ export class BatchMapDialogComponent implements OnInit {
        this.activeSitesSetting();
     });
     this.store$.select(getBatchMapDialog).subscribe(flag => {
-      if (flag)
+      if (flag){
         this.sitesCount$ = of(this.getActiveSites().length);
+        this.totalSites = this.getActiveSites().length;
+      }
     });
   }
 
@@ -382,7 +404,7 @@ export class BatchMapDialogComponent implements OnInit {
       }
 
     }
-    
+
     this.closeDialog();
   }
 
@@ -425,7 +447,7 @@ export class BatchMapDialogComponent implements OnInit {
     if (this.batchMapForm.get('sitesToinclude').value === 'currentMap')
         this.currentViewSetting();
     else
-        this.activeSitesSetting();    
+        this.activeSitesSetting();
     this.store$.dispatch(new CloseBatchMapDialog());
   }
 
@@ -597,7 +619,7 @@ export class BatchMapDialogComponent implements OnInit {
         this.batchMapForm.get('subTitleInput').enable();
         this.batchMapForm.get('subSubTitleInput').enable();
 
-        
+
   }
 
 }

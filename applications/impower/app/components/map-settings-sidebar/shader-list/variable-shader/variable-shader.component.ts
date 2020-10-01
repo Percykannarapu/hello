@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { ConfigurationTypes, shaderConfigTypeFriendlyNames, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
@@ -23,6 +23,8 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
     this.allAudiences = this._audiences.map(aud => ({label: `${aud.audienceName} (${aud.audienceSourceName})`, value: aud.audienceIdentifier}));
   }
 
+  @Output() customAudienceSelected: EventEmitter<boolean> = new EventEmitter<boolean>();
+
   public get currentAudience() : Audience {
     const currentAudienceId = this.definition.dataKey || this.shaderForm.get('dataKey').value;
     return this._audiences.filter(a => a.audienceIdentifier === currentAudienceId)[0];
@@ -40,8 +42,10 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
     const newVar = this.audiences.filter(a => a.audienceIdentifier === newKey)[0];
     if (newVar != null) {
       if (newVar.audienceSourceType !== 'Custom') {
+        this.customAudienceSelected.emit(false);
         this.limitShaderTypesByVar(newVar.fieldconte);
       } else {
+        this.customAudienceSelected.emit(true);
         this.setShaderTypes(ConfigurationTypes.Ramp, ConfigurationTypes.ClassBreak, ConfigurationTypes.DotDensity, ConfigurationTypes.Unique);
       }
       this.shaderForm.get('layerName').setValue(newVar.audienceName);

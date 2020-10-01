@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, CommonSort, getUuid } from '@val/common';
+import { calculateStatistics, CommonSort, getUuid, isEmpty } from '@val/common';
 import {
   ColorPalette,
+  ComplexShadingDefinition,
   ConfigurationTypes,
   createDataArcade,
   createTextArcade,
@@ -28,7 +29,9 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, take, withLatestFrom } from 'rxjs/operators';
 import * as ValSort from '../common/valassis-sorters';
+import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import { ClearMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.actions';
+import { MapVar } from '../impower-datastore/state/transient/map-vars/map-vars.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
 import { GetAllMappedVariables } from '../impower-datastore/state/transient/transient.actions';
 import { getAllMappedAudiences } from '../impower-datastore/state/transient/transient.reducer';
@@ -71,6 +74,7 @@ export class AppRendererService {
       this.setupAnalysisLevelWatcher();
       this.setupProjectPrefsWatcher();
       this.setupGeoWatchers(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
+      this.setupMapWatcher();
       this.setupMapVarWatcher();
     });
   }
@@ -95,7 +99,7 @@ export class AppRendererService {
       const newDefs: ShadingDefinition[] = sd.map(s => duplicateShadingDefinition(s));
       newDefs.forEach(s => {
         s.destinationLayerUniqueId = undefined;
-        if (isComplexShadingDefinition(s)) {
+        if (isArcadeCapableShadingDefinition(s)) {
           s.arcadeExpression = undefined;
         }
       });
@@ -120,7 +124,7 @@ export class AppRendererService {
       }
       this.store$.dispatch(new ClearMapVars());
       this.esriShaderService.loadShaders(shadingDefinitions);
-      setTimeout(() => this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: al })), 1000);
+      setTimeout(() => this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: al, additionalGeos: this.appStateService.uniqueSelectedGeocodes$.getValue() })), 1000);
     });
   }
 
@@ -138,7 +142,7 @@ export class AppRendererService {
       const definitions = currentLayerDefs.filter(sd => ownerKeys.has(sd.dataKey));
       const newDefs = definitions.reduce((updates, definition) => {
         if (definition != null && isComplexShadingDefinition(definition)) {
-          const newDef = { ...definition };
+          const newDef: ComplexShadingDefinition = duplicateShadingDefinition(definition) as ComplexShadingDefinition;
           switch (newDef.dataKey) {
             case GfpShaderKeys.OwnerSite:
               this.updateForOwnerSite(newDef, geos, shouldDedupe);
@@ -146,6 +150,7 @@ export class AppRendererService {
             case GfpShaderKeys.OwnerTA:
               this.updateForOwnerTA(newDef, geos, tas, shouldDedupe);
           }
+          if (newDef.isStaticArcadeString) newDef.arcadeExpression = null;
           updates.push(newDef);
         }
         return updates;
@@ -160,6 +165,7 @@ export class AppRendererService {
       }, []);
       features.sort();
       this.esriService.setFeaturesOfInterest(features);
+      setTimeout(() => this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: this.appStateService.analysisLevel$.getValue(), additionalGeos: features })), 1000);
 
       if (newDefs.length > 0) {
         this.esriShaderService.upsertShader(newDefs);
@@ -167,92 +173,45 @@ export class AppRendererService {
     });
   }
 
+  private setupMapWatcher() : void {
+    this.esriService.visibleFeatures$.pipe(
+      filter(mapVars => mapVars.length > 0),
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences), this.store$.select(getMapVars))
+    ).subscribe(([features, layerDefs, geocodes, audiences, mapVars]) => {
+      const visibleGeos = features.map(f => f.attributes.geocode);
+      this.updateAudiences(mapVars, visibleGeos, layerDefs, geocodes, audiences);
+    });
+  }
+
   private setupMapVarWatcher() {
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences))
-    ).subscribe(([mapVars, layerDefs, geocodes, audiences]) => {
-      const visibleGeos = this.esriService.visibleFeatures$.getValue().map(f => f.attributes.geocode);
-      const varPks = audiences.map(audience => Number(audience.audienceIdentifier));
-      if (varPks != null) {
-        const gfpFilteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
-        const visibleGeoSet = new Set(visibleGeos);
-        varPks.forEach(varPk => {
-          const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
-          if (shadingLayers != null) {
-            shadingLayers.forEach(shadingLayer => {
-              const shaderCopy: ShadingDefinition = duplicateShadingDefinition(shadingLayer);
-              const currentMapVars =
-                shaderCopy.filterByFeaturesOfInterest
-                  ? gfpFilteredMapVars
-                  : mapVars;
-              const allUniqueValues = new Set<string>();
-              const uniquesToKeep = new Set<string>();
-              const allValuesForStats: number[] = [];
-              const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
-                switch (shaderCopy.shadingType) {
-                  case ConfigurationTypes.Unique:
-                    result[mapVar.geocode] = mapVar[varPk];
-                    if (mapVar[varPk] != null) {
-                      allUniqueValues.add(`${mapVar[varPk]}`);
-                      if (visibleGeoSet.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
-                    }
-                    break;
-                  case ConfigurationTypes.Ramp:
-                  case ConfigurationTypes.ClassBreak:
-                  case ConfigurationTypes.DotDensity:
-                    result[mapVar.geocode] = Number(mapVar[varPk]);
-                    if (mapVar[varPk] != null) {
-                      allValuesForStats.push(Number(mapVar[varPk]));
-                    }
-                    break;
-                }
-                return result;
-              }, {});
-
-              let colorPalette: RgbTuple[] = [];
-              let fillPalette: FillPattern[] = [];
-              let uniqueValues: string[] = [];
-              if (isArcadeCapableShadingDefinition(shaderCopy)) {
-                let arcadeExpression: string;
-                if (shaderCopy.shadingType === ConfigurationTypes.Unique) {
-                  uniqueValues = Array.from(allUniqueValues);
-                  uniqueValues.sort();
-                  arcadeExpression = createTextArcade(mapVarDictionary, uniqueValues);
-                } else {
-                  arcadeExpression = createDataArcade(mapVarDictionary);
-                }
-                this.logger.debug.log('Arcade string length', (arcadeExpression || '').length);
-                shaderCopy.arcadeExpression = arcadeExpression;
-                if (isComplexShadingDefinition(shaderCopy)) {
-                  colorPalette = getColorPalette(shaderCopy.theme, shaderCopy.reverseTheme);
-                  fillPalette = getFillPalette(shaderCopy.theme, shaderCopy.reverseTheme);
-                }
-              }
-              switch (shaderCopy.shadingType) {
-                case ConfigurationTypes.Unique:
-                  shaderCopy.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true, uniquesToKeep);
-                  break;
-                case ConfigurationTypes.Ramp:
-                  shaderCopy.breakDefinitions = generateContinuousValues(calculateStatistics(allValuesForStats), colorPalette);
-                  break;
-                case ConfigurationTypes.ClassBreak:
-                  if (shaderCopy.dynamicallyAllocate) {
-                    const stats = calculateStatistics(allValuesForStats, shaderCopy.dynamicAllocationSlots || 4);
-                    let symbology = [ ...(shaderCopy.userBreakDefaults || []) ];
-                    if (shaderCopy.dynamicLegend) {
-                      symbology = generateDynamicSymbology(stats, colorPalette, fillPalette);
-                    }
-                    shaderCopy.breakDefinitions = generateDynamicClassBreaks(stats, shaderCopy.dynamicAllocationType, symbology);
-                  }
-                  break;
-              }
-              this.esriShaderService.upsertShader(shaderCopy);
-            });
-          }
-        });
-      }
+      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences), this.esriService.visibleFeatures$)
+    ).subscribe(([mapVars, layerDefs, geocodes, audiences, features]) => {
+      const visibleGeos = features.map(f => f.attributes.geocode);
+      this.updateAudiences(mapVars, visibleGeos, layerDefs, geocodes, audiences);
     });
+  }
+
+  private updateAudiences(mapVars: MapVar[], visibleGeos: string[], layerDefs: ShadingDefinition[], geocodes: Set<string>, audiences: Audience[]) : void {
+    const varPks = audiences.map(audience => Number(audience.audienceIdentifier));
+    if (varPks != null) {
+      const gfpFilteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
+      const visibleGeoSet = new Set(visibleGeos);
+      varPks.forEach(varPk => {
+        const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
+        if (shadingLayers != null) {
+          shadingLayers.forEach(shadingLayer => {
+            const shaderCopy: ShadingDefinition = duplicateShadingDefinition(shadingLayer);
+            const currentMapVars = shaderCopy.filterByFeaturesOfInterest
+              ? gfpFilteredMapVars
+              : mapVars;
+            this.updateForAudience(shaderCopy, currentMapVars, visibleGeoSet, varPk);
+            this.esriShaderService.upsertShader(shaderCopy);
+          });
+        }
+      });
+    }
   }
 
   createNewShader(dataKey: string, layerName?: string) : Partial<ShadingDefinition> {
@@ -515,6 +474,75 @@ export class AppRendererService {
       sortedTAEntries.sort(ValSort.TradeAreaByTypeString);
       definition.breakDefinitions = generateUniqueValues(sortedTAEntries, colorPalette, fillPalette);
       definition.breakDefinitions = definition.breakDefinitions.filter(b => activeTAEntries.has(b.value));
+    }
+  }
+
+  updateForAudience(definition: ShadingDefinition, currentMapVars: MapVar[], currentVisibleGeos: Set<string>, varPk: number) : void {
+    const allUniqueValues = new Set<string>();
+    const uniquesToKeep = new Set<string>();
+    const allValuesForStats: number[] = [];
+    const mapVarDictionary: Record<string, string | number> = currentMapVars.reduce((result, mapVar) => {
+      switch (definition.shadingType) {
+        case ConfigurationTypes.Unique:
+          result[mapVar.geocode] = mapVar[varPk];
+          if (mapVar[varPk] != null) {
+            allUniqueValues.add(`${mapVar[varPk]}`);
+            if (currentVisibleGeos.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
+          }
+          break;
+        case ConfigurationTypes.Ramp:
+        case ConfigurationTypes.ClassBreak:
+        case ConfigurationTypes.DotDensity:
+          result[mapVar.geocode] = Number(mapVar[varPk]);
+          if (mapVar[varPk] != null) {
+            allValuesForStats.push(Number(mapVar[varPk]));
+          }
+          break;
+      }
+      return result;
+    }, {});
+
+    let colorPalette: RgbTuple[] = [];
+    let fillPalette: FillPattern[] = [];
+    if (isComplexShadingDefinition(definition)) {
+      colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
+      fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
+    }
+
+    let uniqueValues: string[] = [];
+    if (isArcadeCapableShadingDefinition(definition)) {
+      let arcadeGenerator: () => string;
+      if (definition.shadingType === ConfigurationTypes.Unique) {
+        uniqueValues = Array.from(allUniqueValues);
+        uniqueValues.sort();
+        arcadeGenerator = () => createTextArcade(mapVarDictionary, uniqueValues);
+      } else {
+        arcadeGenerator = () => createDataArcade(mapVarDictionary);
+      }
+      if (!definition.isStaticArcadeString || isEmpty(definition.arcadeExpression)) {
+        const arcadeExpression = arcadeGenerator();
+        this.logger.debug.log('New arcade string length', (arcadeExpression || '').length);
+        definition.arcadeExpression = arcadeExpression;
+      }
+    }
+
+    switch (definition.shadingType) {
+      case ConfigurationTypes.Unique:
+        definition.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true, uniquesToKeep);
+        break;
+      case ConfigurationTypes.Ramp:
+        definition.breakDefinitions = generateContinuousValues(calculateStatistics(allValuesForStats), colorPalette);
+        break;
+      case ConfigurationTypes.ClassBreak:
+        if (definition.dynamicallyAllocate) {
+          const stats = calculateStatistics(allValuesForStats, definition.dynamicAllocationSlots || 4);
+          let symbology = [ ...(definition.userBreakDefaults || []) ];
+          if (definition.dynamicLegend) {
+            symbology = generateDynamicSymbology(stats, colorPalette, fillPalette);
+          }
+          definition.breakDefinitions = generateDynamicClassBreaks(stats, definition.dynamicAllocationType, symbology);
+        }
+        break;
     }
   }
 }

@@ -12,8 +12,12 @@
     </div>
   </div>
   <div class="ui-g-12 search-source">
-    <p-radioButton name="sourceType" [ngModel]="selectedSource$ | async" label="Interest (rolling 12 months)" [value]="SourceType.Interest" (onClick)="onSourceChanged(SourceType.Interest)"></p-radioButton>
-    <p-radioButton name="sourceType" [ngModel]="selectedSource$ | async" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
+    <div *acsGrant="['VARIABLE_CATEGORY_INTEREST']">
+      <p-radioButton name="sourceType" [ngModel]="selectedSource$ | async" label="Interest (rolling 12 months)" [value]="SourceType.Interest" (onClick)="onSourceChanged(SourceType.Interest)"></p-radioButton>
+    </div>
+    <div *acsGrant="['VARIABLE_CATEGORY_INMARKET']">
+      <p-radioButton name="sourceType" [ngModel]="selectedSource$ | async" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
+    </div>
   </div>
   <div class="ui-g-12 val-audience-tree">
     <p-tree loadingIcon="fa fa-circle-o-notch fa-spin fa-3x fa-fw" selectionMode="checkbox"

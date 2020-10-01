@@ -26,7 +26,7 @@ export namespace ImpClientLocationTypeCodes {
   export function parse(code: string) : ImpClientLocationTypeCodes {
     const strippedCode = code.replace(' ', ''); // remove first instance of space
     const result = ImpClientLocationTypeCodes[strippedCode];
-    if (result == null) throw new Error('Invalid Client Location Type Code');
+    if (result == null) throw new Error(`Invalid Client Location Type Code: ${strippedCode}`);
     return result;
   }
   export function markSuccessful(code: ImpClientLocationTypeCodes) : SuccessfulLocationTypeCodes {

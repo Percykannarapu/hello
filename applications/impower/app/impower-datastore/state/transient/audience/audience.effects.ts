@@ -489,10 +489,10 @@ export class AudiencesEffects {
     ofType<FetchCustomFromPrefsMap>(AudienceActionTypes.FetchCustomFromPrefsMap),
     withLatestFrom(this.store$.select(getAllMappedAudiences), this.appStateService.applicationIsReady$),
     filter(([, , isReady]) => isReady),
-    map(([action, selectedAudiences]) => {
+    map(([, selectedAudiences]) => {
       this.store$.dispatch(new FetchCountIncrement());
       const refreshStart = performance.now();
-      const mapVars = this.targetAudienceCustomService.reloadMapVarFromPrefs(selectedAudiences, action.payload.geocodes);
+      const mapVars = this.targetAudienceCustomService.reloadMapVarFromPrefs(selectedAudiences);
       //this.logger.debug.log('### fetchCustomFromPrefsMap - fired - mapVars:', mapVars, 'audiences:', selectedAudiences);
       if (mapVars.length > 0)
         return new FetchCustomCompletedMap({ source: 'custom', startTime: refreshStart, response: mapVars, transactionId: -1 });

@@ -9,10 +9,10 @@
             <th>Grid
                 <p-checkbox [(ngModel)]="gridFilter" binary="true" (click)="onSelectShowOnGrid(gridFilter)"></p-checkbox>
             </th>
-            <th>GFP
+            <th *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']">GFP
                 <p-checkbox [(ngModel)]="gfpFilter" binary="true" (click)="onSelectShowOnGFP(gfpFilter)"></p-checkbox>
             </th>
-            <th>Nat'l Ex.</th>
+            <th *acsGrant="['IMPOWER_EXPORT_NATIONAL']">Nat'l Ex.</th>
             <th>Index Base</th>
             <th>Audience Name</th>
             <th class="absorb">Source</th>
@@ -22,21 +22,21 @@
         <ng-template pTemplate="body" let-audience>
           <tr>
             <td class="button-column">
-              <i (click)="onMoveUp(audience)" class="fa fa-arrow-up val-clickable" *ngIf="audience.seq > 0"></i>
-              <i class="fa fa-arrow-up val-non-clickable" *ngIf="(audience.seq === 0) && (audienceCount > 1)"></i>
-              <i (click)="onMoveDn(audience)" class="fa fa-arrow-down val-clickable" *ngIf="audience.seq < (audienceCount - 1)"></i>
+              <i (click)="onMoveUp(audience)" class="fa fa-arrow-up val-clickable" *ngIf="audience.sortOrder > 0"></i>
+              <i class="fa fa-arrow-up val-non-clickable" *ngIf="(audience.sortOrder === 0) && (audienceCount > 1)"></i>
+              <i (click)="onMoveDn(audience)" class="fa fa-arrow-down val-clickable" *ngIf="audience.sortOrder < (audienceCount - 1)"></i>
             </td>
             <td>
               <div class="val-center-controls">
                 <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience.showOnGrid" binary="true" (onChange)="onShowGridSelected(audience)"></p-checkbox>
               </div>
             </td>
-            <td>
+            <td *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']">
               <div class="val-center-controls">
                 <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience.exportInGeoFootprint" binary="true" (onChange)="onExportInGeoFootprintSelected(audience)"></p-checkbox>
               </div>
             </td>
-            <td>
+            <td *acsGrant="['IMPOWER_EXPORT_NATIONAL']">
               <div class="val-center-controls">
                 <p-checkbox *ngIf="audience.allowNationalExport" [(ngModel)]="audience.exportNationally" binary="true" (onChange)="onNationalSelected(audience)"></p-checkbox>
               </div>

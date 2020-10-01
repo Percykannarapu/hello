@@ -215,8 +215,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  isSelectedFilterState: string = this.filterAllIcon;
    public  isSelectedToolTip: string = this.filterAllTip;
 
-   public assignOwnerSite: Map<string, string> = this.impGeoService.sharedGeos;
-
    // Grid Column Variables
    public flatGeoGridColumns: any[] =
    [{field: 'geo.impGeofootprintLocation.locationNumber', header: 'Number',          width: '5em',   matchMode: 'contains', styleClass: ''},

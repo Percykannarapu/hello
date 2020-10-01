@@ -36,7 +36,7 @@ export class UserService {
     this.logger.debug.log('fired setUser() in UserService', user);
     this._user = user;
     if (user && user.userRoles) {
-      this.userGrantList = user.userRoles.filter(r => r.roleName != null).map(r => r.roleName.toUpperCase());
+      this.userGrantList = user.userRoles.filter(r => r != null).map(r => r.toString().toUpperCase());
     } else {
       this.userGrantList = [];
     }
@@ -80,7 +80,8 @@ export class UserService {
   public fetchUserRecord(username: string) : Observable<User> {
     this._fetchUserRecord(username).subscribe(res => {
       const user: User = new User();
-      user.userId = res.payload;
+      user.userId = res.payload.userId;
+      user.userRoles = res.payload.accessRights;
       if (isNaN(user.userId)) {
         this.userFetch.next(null);
       }

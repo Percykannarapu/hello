@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { getUuid, groupByExtended } from '@val/common';
+import { getUuid, groupByExtended, isConvertibleToNumber } from '@val/common';
 import { EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
@@ -162,10 +162,12 @@ export class BatchMapService {
 
   private groupLocationsByAttribute(project: ImpProject, params: BatchMapQueryParams) : Map<string, Array<ImpGeofootprintLocation>>{
     let groupedSites: Map<string, Array<ImpGeofootprintLocation>>;
-    if (project.getImpGeofootprintLocations()[0].hasOwnProperty(params.groupByAttribute)) {
-      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => item[params.groupByAttribute]);
+    const clientLocations = project.getImpGeofootprintLocations()
+      .filter(loc => ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site && loc.isActive);
+    if (clientLocations[0].hasOwnProperty(params.groupByAttribute)) {
+      groupedSites = groupByExtended(clientLocations, item => item[params.groupByAttribute]);
     } else {
-      groupedSites = groupByExtended(project.getImpGeofootprintLocations(), item => {
+      groupedSites = groupByExtended(clientLocations, item => {
         let key: string = null;
         item.impGeofootprintLocAttribs.forEach(a => {
           if (a.attributeCode === params.groupByAttribute) {
@@ -344,14 +346,16 @@ export class BatchMapService {
     });
     const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true, true);
     if (activeGeos.size > 0) {
-      return this.esriQueryService.queryAttributeIn(layerId, 'geocode', Array.from(activeGeos), false, ['geocode', 'latitude', 'longitude', 'areasquaremiles'], this.geoQueryId).pipe(
+      return this.esriQueryService.queryAttributeIn(layerId, 'geocode', Array.from(activeGeos), false, ['geocode', 'latitude', 'longitude', 'SHAPE__Area'], this.geoQueryId).pipe(
         map(graphics => {
           const points: number[][] = [];
           let largestArea = 0;
           graphics.forEach(g => {
             points.push([g.getAttribute('longitude'), g.getAttribute('latitude')]);
-            if (g.getAttribute('areasquaremiles') > largestArea)
-              largestArea = g.getAttribute('areasquaremiles');
+            const currentShapeArea = isConvertibleToNumber(g.getAttribute('SHAPE__Area'))
+              ? (Number(g.getAttribute('SHAPE__Area')) * 3527.5)
+              : 0;
+            if (currentShapeArea > largestArea) largestArea = currentShapeArea;
           });
           additionalPoints.forEach(p => points.push(p));
           const multipoint = this.esriMapService.multipointFromPoints(points);

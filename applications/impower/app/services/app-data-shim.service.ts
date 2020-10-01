@@ -154,6 +154,8 @@ export class AppDataShimService {
           sd.sourcePortalId = newLayerSetup.simplifiedBoundary || newLayerSetup.boundary;
           sd.minScale = newLayerSetup.batchMinScale || newLayerSetup.minScale;
         }
+      } else {
+        sd.sourcePortalId = this.appConfig.getRefreshedLayerId(sd.sourcePortalId);
       }
     });
     boundaryConfigurations.forEach(bc => {
@@ -161,6 +163,9 @@ export class AppDataShimService {
       bc.destinationBoundaryId = undefined;
       bc.destinationCentroidId = undefined;
       bc.useSimplifiedInfo = this.appConfig.isBatchMode;
+      bc.portalId = this.appConfig.getRefreshedLayerId(bc.portalId);
+      bc.centroidPortalId = this.appConfig.getRefreshedLayerId(bc.centroidPortalId);
+      bc.simplifiedPortalId = this.appConfig.getRefreshedLayerId(bc.simplifiedPortalId);
     });
     poiConfigurations.forEach(pc => {
       pc.featureLayerId = undefined;
@@ -326,7 +331,8 @@ export class AppDataShimService {
 
   private getLayerSetupInfo(currentBoundaryId: string) : BasicLayerSetup {
     try {
-      const dataKey = this.boundaryRenderingService.getDataKeyByBoundaryLayerId(currentBoundaryId);
+      const updatedId = this.appConfig.getRefreshedLayerId(currentBoundaryId);
+      const dataKey = this.boundaryRenderingService.getDataKeyByBoundaryLayerId(updatedId);
       return this.boundaryRenderingService.getLayerSetupInfo(dataKey);
     } catch (e) {
       this.logger.error.log(e);

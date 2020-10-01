@@ -1,11 +1,11 @@
 <p-tabView [(activeIndex)]="activeTabIndex">
 
-  <p-tabPanel header="Online Audience">
-    <val-audiences-online></val-audiences-online>
+  <p-tabPanel header="Online Audience" *acsGrant="['VARIABLE_CATEGORY_INMARKET', 'VARIABLE_CATEGORY_INTEREST', 'VARIABLE_CATEGORY_VISIT_LIKELIHOOD', 'VARIABLE_CATEGORY_PIXEL']; type 'ANY'">
+     <val-audiences-online></val-audiences-online>
   </p-tabPanel>
 
-  <p-tabPanel header="Offline Audience">
-    <val-audiences-offline></val-audiences-offline>
+  <p-tabPanel header="Offline Audience" *acsGrant="['VARIABLE_CATEGORY_CAS', 'VARIABLE_CATEGORY_CBP', 'VARIABLE_CATEGORY_CONNEXIONS', 'VARIABLE_CATEGORY_DEMOGRAPHICS', 'VARIABLE_CATEGORY_PBT_ADVANCED', 'VARIABLE_CATEGORY_PBT_BASIC', 'VARIABLE_CATEGORY_PRIZM', 'VARIABLE_CATEGORY_SHARPSHOOTER', 'VARIABLE_CATEGORY_TAP']; type 'ANY'">
+     <val-audiences-offline></val-audiences-offline>
   </p-tabPanel>
 
   <p-tabPanel header="Custom Audience">
