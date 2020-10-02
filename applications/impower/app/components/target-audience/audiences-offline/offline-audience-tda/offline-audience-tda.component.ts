@@ -75,7 +75,7 @@ export class OfflineAudienceTdaComponent implements OnInit, OnDestroy {
     );
     const nodes$ = this.definitionService.getTdaDefinitions().pipe(
       map(definitions => {
-        const nodes = definitions.map(d => OfflineAudienceTdaComponent.asFolder(d));
+        const nodes = definitions.filter(d => d.children.length > 0).map(d => OfflineAudienceTdaComponent.asFolder(d));
         nodes.sort(treeNodeSortBuilder(n => n.data.sortOrder, CommonSort.GenericNumber));
         return nodes;
       }),

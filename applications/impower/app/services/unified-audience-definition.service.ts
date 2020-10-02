@@ -78,7 +78,7 @@ export class UnifiedAudienceDefinitionService {
   public getTdaDefinitions() : Observable<OfflineAudienceDefinition[]> {
     if (this.tdaFetchNeeded) {
       this.store$.dispatch(fromTdaActions.fetchAudienceDefinitions());
-      this.tdaFetchNeeded = true;
+      this.tdaFetchNeeded = false;
     }
     return this.store$.select(fromTda.allDefinitions).pipe(
       map(definitions => definitions.filter(d => d != null)),

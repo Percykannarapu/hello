@@ -92,6 +92,7 @@ export class AppProjectService {
   }
 
   private cleanupProject(localProject: ImpProject) {
+    localProject.modifyDate = Date.now();
     // this line of code is dumb, but necessary
     localProject.impGeofootprintMasters[0].impGeofootprintLocations = [ ...this.impLocationService.get()];
     // remove all Ids except the root Project Id

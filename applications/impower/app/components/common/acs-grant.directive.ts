@@ -1,38 +1,21 @@
 /* tslint:disable:directive-selector */
-import { Directive, ElementRef, Input, OnDestroy, OnInit, TemplateRef, ViewContainerRef } from '@angular/core';
+import { Directive, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
 import { isArray, isNil } from '@val/common';
 import { Subject } from 'rxjs';
-import { debounceTime, takeUntil } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { DEFAULT_GRANT_TYPE, GrantType, UserService } from '../../services/user.service';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 
 @Directive({
   selector: '[acsGrant]'
 })
-export class AcsGrantDirective implements OnInit, OnDestroy {
+export class AcsGrantDirective implements OnInit, OnDestroy, OnChanges {
 
   private isHidden = true;
-  private requiredGrants: string[] = [];
-  private grantType: GrantType = DEFAULT_GRANT_TYPE;
-
-  private fireUpdate$ = new Subject<void>();
   private destroyed$ = new Subject<void>();
 
-  @Input() set acsGrant(value: string | string[]) {
-    if (isNil(value)) {
-      this.requiredGrants = [];
-    } else if (isArray(value)) {
-      this.requiredGrants = [ ...value ];
-    } else {
-      this.requiredGrants = [ value ];
-    }
-    this.fireUpdate$.next();
-  }
-
-  @Input() set acsGrantType(value: GrantType) {
-    this.grantType = value || DEFAULT_GRANT_TYPE;
-    this.fireUpdate$.next();
-  }
+  @Input() acsGrant: string | string[];
+  @Input() acsGrantType: GrantType = DEFAULT_GRANT_TYPE;
 
   constructor(private element: ElementRef,
               private templateRef: TemplateRef<any>,
@@ -41,13 +24,14 @@ export class AcsGrantDirective implements OnInit, OnDestroy {
               private logger: LoggingService) { }
 
   ngOnInit() : void {
-    this.fireUpdate$.pipe(
-      takeUntil(this.destroyed$),
-      debounceTime(5)
-    ).subscribe(() => this.updateView());
     this.userService.userObservable.pipe(
       takeUntil(this.destroyed$)
-    ).subscribe(() => this.fireUpdate$.next());
+    ).subscribe(() => this.updateView());
+    this.updateView();
+  }
+
+  ngOnChanges(changes: SimpleChanges) : void {
+    this.updateView();
   }
 
   ngOnDestroy() : void {
@@ -55,8 +39,17 @@ export class AcsGrantDirective implements OnInit, OnDestroy {
   }
 
   private updateView() : void {
-    const grantInfo = { requiredGrants: this.requiredGrants, grantType: this.grantType };
-    if (this.userHasGrants()) {
+    const grantType = this.acsGrantType || DEFAULT_GRANT_TYPE;
+    let requiredGrants: string[];
+    if (isNil(this.acsGrant)) {
+      requiredGrants = [];
+    } else if (isArray(this.acsGrant)) {
+      requiredGrants = [ ...this.acsGrant ];
+    } else {
+      requiredGrants = [ this.acsGrant ];
+    }
+    const grantInfo = { requiredGrants, grantType };
+    if (this.userHasGrants(requiredGrants, grantType)) {
       if (this.isHidden) {
         this.logger.debug.log('User has ACS Grants', grantInfo);
         this.viewContainer.createEmbeddedView(this.templateRef);
@@ -64,12 +57,12 @@ export class AcsGrantDirective implements OnInit, OnDestroy {
       }
     } else {
       this.logger.debug.log('User does not have ACS Grants', grantInfo);
-      this.isHidden = true;
       this.viewContainer.clear();
+      this.isHidden = true;
     }
   }
 
-  private userHasGrants() : boolean {
-    return this.userService.userHasGrants(this.requiredGrants, this.grantType);
+  private userHasGrants(requiredGrants: string[], grantType: GrantType) : boolean {
+    return this.userService.userHasGrants(requiredGrants, grantType);
   }
 }
