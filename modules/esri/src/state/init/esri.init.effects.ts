@@ -32,7 +32,8 @@ export class EsriInitEffects {
   @Effect({ dispatch: false })
   authFailure$ = this.actions$.pipe(
     ofType<AuthenticateFailure>(EsriInitActionTypes.AuthenticateFailure),
-    tap(action => this.logger.error.log('There was an error authenticating the Esri Api', action.payload.errorResponse))
+    tap(action => this.logger.error.log('There was an error authenticating the Esri Api', action.payload.errorResponse)),
+    tap(action => this.displayError(JSON.stringify(action.payload.errorResponse)))
   );
 
   constructor(private actions$: Actions,
@@ -46,5 +47,18 @@ export class EsriInitEffects {
     return from(IdentityManager.generateToken(serverInfo, userInfo)).pipe(
       map(response => ({ ...response, server: this.authConfig.tokenServer }))
     );
+  }
+
+  private displayError(err: any) : void {
+    const errorMsgElement = document.querySelector('#errorMsgElement');
+    let message = 'Application initialization failed';
+    if (err) {
+      if (err.message) {
+        message = message + ': ' + err.message;
+      } else {
+        message = message + ': ' + err;
+      }
+    }
+    errorMsgElement.textContent = message;
   }
 }
