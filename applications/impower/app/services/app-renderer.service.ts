@@ -3,7 +3,6 @@ import { Store } from '@ngrx/store';
 import { calculateStatistics, CommonSort, getUuid, isEmpty } from '@val/common';
 import {
   ColorPalette,
-  ComplexShadingDefinition,
   ConfigurationTypes,
   createDataArcade,
   createTextArcade,
@@ -54,7 +53,9 @@ import { BoundaryRenderingService } from './boundary-rendering.service';
 
 @Injectable()
 export class AppRendererService {
+
   private selectedWatcher: Subscription;
+  private currentBatchDedupeFlag: boolean = false;
 
   constructor(private appStateService: AppStateService,
               private appPrefService: AppProjectPrefService,
@@ -71,10 +72,11 @@ export class AppRendererService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
+      this.setupBatchWatcher();
       this.setupAnalysisLevelWatcher();
       this.setupProjectPrefsWatcher();
       this.setupGeoWatchers(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
-      this.setupMapWatcher();
+      this.setupMapWatcher(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
       this.setupMapVarWatcher();
     });
   }
@@ -89,6 +91,13 @@ export class AppRendererService {
     } else if (tradeAreaTypesInPlay.has(TradeAreaTypeCodes.MustCover)) {
       return 'Must Cover';
     }
+  }
+
+  private setupBatchWatcher() : void {
+    combineLatest([
+      this.store$.select(getBatchMode),
+      this.store$.select(getTypedBatchQueryParams)
+    ]).subscribe(([batchMode, params]) => this.currentBatchDedupeFlag = batchMode && params.duplicated);
   }
 
   private setupProjectPrefsWatcher() : void {
@@ -135,26 +144,31 @@ export class AppRendererService {
       filter(([geos, ready]) => ready && geos != null),
       map(([geos]) => geos as ImpGeofootprintGeo[]),
       debounceTime(500),
-      withLatestFrom(tradeAreaDataStore, this.store$.select(shadingSelectors.allLayerDefs), this.store$.select(getBatchMode), this.store$.select(getTypedBatchQueryParams)),
-      map(([geos, tas, layerDefs, batchMode, queryParams]) => ([ geos, tas, layerDefs, batchMode && queryParams.duplicated ] as const))
-    ).subscribe(([geos, tas, currentLayerDefs, shouldDedupe]) => {
-      const ownerKeys = new Set<string>([GfpShaderKeys.OwnerSite, GfpShaderKeys.OwnerTA]);
-      const definitions = currentLayerDefs.filter(sd => ownerKeys.has(sd.dataKey));
-      const newDefs = definitions.reduce((updates, definition) => {
-        if (definition != null && isComplexShadingDefinition(definition)) {
-          const newDef: ComplexShadingDefinition = duplicateShadingDefinition(definition) as ComplexShadingDefinition;
+      withLatestFrom(
+        tradeAreaDataStore,
+        this.store$.select(shadingSelectors.allLayerDefs),
+        this.appStateService.uniqueSelectedGeocodeSet$
+      ),
+      map(([geos, tas, layerDefs, visibleGeos]) => ([ geos, tas, layerDefs, visibleGeos ] as const))
+    ).subscribe(([geos, tas, currentLayerDefs, visibleGeos]) => {
+      const newDefs: ShadingDefinition[] = [];
+      currentLayerDefs.forEach(definition => {
+        const newDef = duplicateShadingDefinition(definition);
+        if (newDef != null && isComplexShadingDefinition(newDef)) {
           switch (newDef.dataKey) {
             case GfpShaderKeys.OwnerSite:
-              this.updateForOwnerSite(newDef, geos, shouldDedupe);
+              newDef.arcadeExpression = null;
+              this.updateForOwnerSite(newDef, geos, visibleGeos);
+              newDefs.push(newDef);
               break;
             case GfpShaderKeys.OwnerTA:
-              this.updateForOwnerTA(newDef, geos, tas, shouldDedupe);
+              newDef.arcadeExpression = null;
+              this.updateForOwnerTA(newDef, geos, tas, visibleGeos);
+              newDefs.push(newDef);
+              break;
           }
-          if (newDef.isStaticArcadeString) newDef.arcadeExpression = null;
-          updates.push(newDef);
         }
-        return updates;
-      }, []);
+      });
       const deDuper = new Set<string>();
       const features = geos.reduce((a, c) => {
         if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive && !deDuper.has(c.geocode)) {
@@ -173,13 +187,20 @@ export class AppRendererService {
     });
   }
 
-  private setupMapWatcher() : void {
+  private setupMapWatcher(geoDataStore: Observable<ImpGeofootprintGeo[]>, tradeAreaDataStore: Observable<ImpGeofootprintTradeArea[]>) : void {
     this.esriService.visibleFeatures$.pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences), this.store$.select(getMapVars))
-    ).subscribe(([features, layerDefs, geocodes, audiences, mapVars]) => {
-      const visibleGeos = features.map(f => f.attributes.geocode);
-      this.updateAudiences(mapVars, visibleGeos, layerDefs, geocodes, audiences);
+      withLatestFrom(
+        this.store$.select(shadingSelectors.allLayerDefs),
+        this.appStateService.uniqueSelectedGeocodeSet$,
+        this.store$.select(getAllMappedAudiences),
+        this.store$.select(getMapVars),
+        geoDataStore,
+        tradeAreaDataStore
+      )
+    ).subscribe(([features, layerDefs, geocodes, audiences, mapVars, geos, tradeAreas]) => {
+      const visibleGeos = new Set<string>(features.map(f => f.attributes.geocode));
+      this.updateAudiences(mapVars, visibleGeos, layerDefs, geocodes, audiences, geos, tradeAreas);
     });
   }
 
@@ -188,16 +209,16 @@ export class AppRendererService {
       filter(mapVars => mapVars.length > 0),
       withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences), this.esriService.visibleFeatures$)
     ).subscribe(([mapVars, layerDefs, geocodes, audiences, features]) => {
-      const visibleGeos = features.map(f => f.attributes.geocode);
-      this.updateAudiences(mapVars, visibleGeos, layerDefs, geocodes, audiences);
+      const visibleGeos = new Set(features.map(f => f.attributes.geocode));
+      this.updateAudiences(mapVars, visibleGeos, layerDefs, geocodes, audiences, null, null);
     });
   }
 
-  private updateAudiences(mapVars: MapVar[], visibleGeos: string[], layerDefs: ShadingDefinition[], geocodes: Set<string>, audiences: Audience[]) : void {
+  private updateAudiences(mapVars: MapVar[], visibleGeoSet: Set<string>, layerDefs: ShadingDefinition[], geocodes: Set<string>, audiences: Audience[], geos: ImpGeofootprintGeo[], tradeAreas: ImpGeofootprintTradeArea[]) : void {
     const varPks = audiences.map(audience => Number(audience.audienceIdentifier));
+    const shadersForUpsert: ShadingDefinition[] = [];
     if (varPks != null) {
       const gfpFilteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
-      const visibleGeoSet = new Set(visibleGeos);
       varPks.forEach(varPk => {
         const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
         if (shadingLayers != null) {
@@ -207,10 +228,28 @@ export class AppRendererService {
               ? gfpFilteredMapVars
               : mapVars;
             this.updateForAudience(shaderCopy, currentMapVars, visibleGeoSet, varPk);
-            this.esriShaderService.upsertShader(shaderCopy);
+            shadersForUpsert.push(shaderCopy);
           });
         }
       });
+    }
+    if (geos != null && tradeAreas != null) {
+      layerDefs.forEach(shadingLayer => {
+        const shaderCopy: ShadingDefinition = duplicateShadingDefinition(shadingLayer);
+        switch (shaderCopy.dataKey) {
+          case GfpShaderKeys.OwnerSite:
+            this.updateForOwnerSite(shaderCopy, geos, visibleGeoSet);
+            shadersForUpsert.push(shaderCopy);
+            break;
+          case GfpShaderKeys.OwnerTA:
+            this.updateForOwnerTA(shaderCopy, geos, tradeAreas, visibleGeoSet);
+            shadersForUpsert.push(shaderCopy);
+            break;
+        }
+      });
+    }
+    if (shadersForUpsert.length > 0) {
+      this.esriShaderService.upsertShader(shadersForUpsert);
     }
   }
 
@@ -230,6 +269,9 @@ export class AppRendererService {
       filterByFeaturesOfInterest: shadingTypeMap[dataKey] != null,
       shadingType: shadingTypeMap[dataKey]
     };
+    if (shadingTypeMap[dataKey] != null) {
+      newForm.isStaticArcadeString = true;
+    }
     if (dataKey === GfpShaderKeys.OwnerSite && newForm.shadingType === ConfigurationTypes.Unique) {
       newForm.secondaryDataKey = 'locationNumber';
     }
@@ -357,7 +399,7 @@ export class AppRendererService {
     }
   }
 
-  updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], showDuplicates: boolean = false) : void {
+  updateForOwnerSite(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], visibleGeos: Set<string>) : void {
     if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
       if (definition.theme == null) definition.theme = ColorPalette.CpqMaps;
       const secondaryKey = definition.secondaryDataKey || 'locationNumber';
@@ -369,31 +411,32 @@ export class AppRendererService {
         if (geo.impGeofootprintLocation.hasOwnProperty(secondaryKey)) {
           siteEntry = geo.impGeofootprintLocation[secondaryKey];
         } else {
-          const matchingAttribute = geo.impGeofootprintLocation.impGeofootprintLocAttribs.filter(a => a.attributeCode === secondaryKey)[0];
+          const matchingAttribute = geo.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === secondaryKey)[0];
           siteEntry = matchingAttribute == null ? null : matchingAttribute.attributeValue;
         }
-        const isDeduped = showDuplicates ? true : geo.isDeduped === 1;
+        const isDeduped = this.currentBatchDedupeFlag ? true : geo.isDeduped === 1;
         if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive &&
           geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive &&
-          geo.isActive && isDeduped) {
-          result[geo.geocode] = siteEntry;
+          geo.isActive && isDeduped && visibleGeos.has(geo.geocode)) {
           activeSiteEntries.add(siteEntry);
         }
         allSiteEntries.add(siteEntry);
+        result[geo.geocode] = siteEntry;
         return result;
       }, {});
-      definition.arcadeExpression = createDataArcade(data);
       const sorter = useCustomSorter ? CommonSort.StringsAsNumbers : undefined;
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
       const sortedSiteEntries = Array.from(allSiteEntries);
       sortedSiteEntries.sort(sorter);
-      definition.breakDefinitions = generateUniqueValues(sortedSiteEntries, colorPalette, fillPalette);
-      definition.breakDefinitions = definition.breakDefinitions.filter(b => activeSiteEntries.has(b.value));
+      if (!definition.isStaticArcadeString || isEmpty(definition.arcadeExpression)) {
+        definition.arcadeExpression = createTextArcade(data, sortedSiteEntries);
+      }
+      definition.breakDefinitions = generateUniqueValues(sortedSiteEntries, colorPalette, fillPalette, true, activeSiteEntries);
     }
   }
 
-  updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], tradeAreas: ImpGeofootprintTradeArea[], showDuplicates: boolean = true) : void {
+  updateForOwnerTA(definition: ShadingDefinition, geos: ImpGeofootprintGeo[], tradeAreas: ImpGeofootprintTradeArea[], visibleGeos: Set<string>, showDuplicates: boolean = true) : void {
     if (definition != null && definition.shadingType === ConfigurationTypes.Unique) {
       if (definition.theme == null) definition.theme = ColorPalette.CpqMaps;
       const deferredHomeGeos: ImpGeofootprintGeo[] = [];
@@ -445,11 +488,11 @@ export class AppRendererService {
           const isDeduped = showDuplicates ? true : geo.isDeduped === 1;
           if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive &&
             geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive &&
-            geo.isActive && isDeduped) {
-            result[geo.geocode] = currentEntry;
+            geo.isActive && isDeduped && visibleGeos.has(geo.geocode)) {
             activeTAEntries.add(currentEntry);
           }
           allTAEntries.add(currentEntry);
+          result[geo.geocode] = currentEntry;
         }
 
         return result;
@@ -460,20 +503,20 @@ export class AppRendererService {
         const hgEntry = AppRendererService.getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay, radiusForFirstTa);
         if (hg.impGeofootprintLocation && hg.impGeofootprintLocation.isActive &&
           hg.impGeofootprintTradeArea && hg.impGeofootprintTradeArea.isActive &&
-          hg.isActive && isDeduped) {
-          data[hg.geocode] = hgEntry;
+          hg.isActive && isDeduped && visibleGeos.has(hg.geocode)) {
           activeTAEntries.add(hgEntry);
         }
         allTAEntries.add(hgEntry);
-        data[hg.geocode] = AppRendererService.getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay, radiusForFirstTa);
+        data[hg.geocode] = hgEntry;
       });
-      definition.arcadeExpression = createDataArcade(data);
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
       const sortedTAEntries = Array.from(allTAEntries);
       sortedTAEntries.sort(ValSort.TradeAreaByTypeString);
-      definition.breakDefinitions = generateUniqueValues(sortedTAEntries, colorPalette, fillPalette);
-      definition.breakDefinitions = definition.breakDefinitions.filter(b => activeTAEntries.has(b.value));
+      if (!definition.isStaticArcadeString || isEmpty(definition.arcadeExpression)) {
+        definition.arcadeExpression = createTextArcade(data, sortedTAEntries);
+      }
+      definition.breakDefinitions = generateUniqueValues(sortedTAEntries, colorPalette, fillPalette, true, activeTAEntries);
     }
   }
 

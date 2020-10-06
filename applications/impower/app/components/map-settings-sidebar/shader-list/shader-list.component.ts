@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { duplicateShadingDefinition, EsriShadingService, ShadingDefinition } from '@val/esri';
+import { duplicateShadingDefinition, EsriShadingService, isArcadeCapableShadingDefinition, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
@@ -89,16 +89,19 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   }
 
   applyDefinition(definition: ShadingDefinition) : void {
-    this.appRenderService.updateForAnalysisLevel(definition, this.currentAnalysisLevel);
-    switch (definition.dataKey) {
+    const newDef: ShadingDefinition = duplicateShadingDefinition(definition);
+    this.appRenderService.updateForAnalysisLevel(newDef, this.currentAnalysisLevel);
+    switch (newDef.dataKey) {
       case GfpShaderKeys.OwnerSite:
-        this.appRenderService.updateForOwnerSite(definition, this.geos);
+        this.appRenderService.updateForOwnerSite(newDef, this.geos, new Set<string>(this.geos.map(g => g.geocode)));
         break;
       case GfpShaderKeys.OwnerTA:
-        this.appRenderService.updateForOwnerTA(definition, this.geos, this.tradeAreas);
+        this.appRenderService.updateForOwnerTA(newDef, this.geos, this.tradeAreas, new Set<string>(this.geos.map(g => g.geocode)));
         break;
     }
-    const newDef: ShadingDefinition = duplicateShadingDefinition(definition);
+    if (isArcadeCapableShadingDefinition(newDef)) {
+      newDef.arcadeExpression = null;
+    }
     this.logger.debug.log('Applying Definition changes. New values:', newDef);
     this.esriShaderService.upsertShader(newDef);
     setTimeout(() => {
