@@ -37,7 +37,7 @@ export class EnvironmentData {
       centroid: undefined
     },
     counties: {
-      boundary: 'dba9d6282fd24e29b40445c3c05be500',
+      boundary: '4f6b219aabca46beb9f03add5f7e54d1',
       simplifiedBoundary: undefined,
       centroid: undefined
     },
@@ -96,6 +96,7 @@ export class EnvironmentData {
     '5c8d7e4a824f4aa0b254925348f2a14a': EnvironmentData.layerIds.dma.boundary,
     // county
     '39b51d9d498f4107bc69ac30f31ac115': EnvironmentData.layerIds.counties.boundary,
+    'dba9d6282fd24e29b40445c3c05be500': EnvironmentData.layerIds.counties.boundary,
     // wrap
     '12bae62392eb47aeb887b6509da557b5': EnvironmentData.layerIds.wrap.boundary,
     'f9594a876236492dab4bb667c28e18a5': EnvironmentData.layerIds.wrap.simplifiedBoundary,

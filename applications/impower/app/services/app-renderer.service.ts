@@ -417,11 +417,11 @@ export class AppRendererService {
         const isDeduped = this.currentBatchDedupeFlag ? true : geo.isDeduped === 1;
         if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive &&
           geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive &&
-          geo.isActive && isDeduped && visibleGeos.has(geo.geocode)) {
-          activeSiteEntries.add(siteEntry);
+          geo.isActive && isDeduped) {
+          result[geo.geocode] = siteEntry;
+          if (visibleGeos.has(geo.geocode)) activeSiteEntries.add(siteEntry);
         }
         allSiteEntries.add(siteEntry);
-        result[geo.geocode] = siteEntry;
         return result;
       }, {});
       const sorter = useCustomSorter ? CommonSort.StringsAsNumbers : undefined;
@@ -488,11 +488,11 @@ export class AppRendererService {
           const isDeduped = showDuplicates ? true : geo.isDeduped === 1;
           if (geo.impGeofootprintLocation && geo.impGeofootprintLocation.isActive &&
             geo.impGeofootprintTradeArea && geo.impGeofootprintTradeArea.isActive &&
-            geo.isActive && isDeduped && visibleGeos.has(geo.geocode)) {
-            activeTAEntries.add(currentEntry);
+            geo.isActive && isDeduped) {
+            result[geo.geocode] = currentEntry;
+            if (visibleGeos.has(geo.geocode)) activeTAEntries.add(currentEntry);
           }
           allTAEntries.add(currentEntry);
-          result[geo.geocode] = currentEntry;
         }
 
         return result;
@@ -503,11 +503,11 @@ export class AppRendererService {
         const hgEntry = AppRendererService.getHomeGeoTradeAreaDescriptor(tradeAreaTypesInPlay, radiusForFirstTa);
         if (hg.impGeofootprintLocation && hg.impGeofootprintLocation.isActive &&
           hg.impGeofootprintTradeArea && hg.impGeofootprintTradeArea.isActive &&
-          hg.isActive && isDeduped && visibleGeos.has(hg.geocode)) {
-          activeTAEntries.add(hgEntry);
+          hg.isActive && isDeduped) {
+          data[hg.geocode] = hgEntry;
+          if (visibleGeos.has(hg.geocode)) activeTAEntries.add(hgEntry);
         }
         allTAEntries.add(hgEntry);
-        data[hg.geocode] = hgEntry;
       });
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
