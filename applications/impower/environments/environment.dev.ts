@@ -46,9 +46,9 @@ export class EnvironmentData {
       centroid: '59b36847a706488f8adcd1828bc13ecf'
     },
     atz: {
-      boundary: 'bd941e14303f48c899e468c14b06d6ba',
+      boundary: '7ac8b2643c1c4ea885aa4e38094211cb',
       simplifiedBoundary: '3159ff92c05243c58cf032c759c44876',
-      centroid: 'b58a024badbc4b63bce258aceaab7f31'
+      centroid: 'bd941e14303f48c899e468c14b06d6ba'
     },
     dtz: {
       boundary: '094bb799ba50450cb1656e32a743b163',
