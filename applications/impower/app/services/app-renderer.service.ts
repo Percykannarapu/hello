@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { calculateStatistics, CommonSort, getUuid, isEmpty } from '@val/common';
+import { calculateStatistics, CommonSort, getUuid } from '@val/common';
 import {
   ColorPalette,
   ConfigurationTypes,
@@ -166,6 +166,14 @@ export class AppRendererService {
               this.updateForOwnerTA(newDef, geos, tas, visibleGeos);
               newDefs.push(newDef);
               break;
+            case GfpShaderKeys.Selection:
+              // noop
+              break;
+            default:
+              if (newDef.filterByFeaturesOfInterest) {
+                newDef.arcadeExpression = null;
+                newDefs.push(newDef);
+              }
           }
         }
       });
@@ -425,12 +433,13 @@ export class AppRendererService {
       const sorter = useCustomSorter ? CommonSort.StringsAsNumbers : undefined;
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
-      const shouldGenerateArcade = !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
       const sortedSiteEntries = Array.from(allSiteEntries);
       sortedSiteEntries.sort(sorter);
-      if (shouldGenerateArcade) {
-        definition.arcadeExpression = createTextArcade(data, sortedSiteEntries);
-      }
+      // const shouldGenerateArcade = !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
+      // if (shouldGenerateArcade) {
+      //   definition.arcadeExpression = createTextArcade(data, sortedSiteEntries);
+      // }
+      definition.arcadeExpression = createTextArcade(data, sortedSiteEntries);
       definition.breakDefinitions = generateUniqueValues(sortedSiteEntries, colorPalette, fillPalette, true, activeSiteEntries);
     }
   }
@@ -510,12 +519,13 @@ export class AppRendererService {
       });
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
-      const shouldGenerateArcade = !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
       const sortedTAEntries = Array.from(allTAEntries);
       sortedTAEntries.sort(ValSort.TradeAreaByTypeString);
-      if (shouldGenerateArcade) {
-        definition.arcadeExpression = createTextArcade(data, sortedTAEntries);
-      }
+      // const shouldGenerateArcade = !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
+      // if (shouldGenerateArcade) {
+      //   definition.arcadeExpression = createTextArcade(data, sortedTAEntries);
+      // }
+      definition.arcadeExpression = createTextArcade(data, sortedTAEntries);
       definition.breakDefinitions = generateUniqueValues(sortedTAEntries, colorPalette, fillPalette, true, activeTAEntries);
     }
   }
@@ -562,10 +572,11 @@ export class AppRendererService {
       } else {
         arcadeGenerator = () => createDataArcade(mapVarDictionary);
       }
-      const shouldGenerateArcade = definition.isCustomAudienceShader || !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
-      if (shouldGenerateArcade) {
-        definition.arcadeExpression = arcadeGenerator();
-      }
+      definition.arcadeExpression = arcadeGenerator();
+      // const shouldGenerateArcade = definition.isCustomAudienceShader || !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
+      // if (shouldGenerateArcade) {
+      //   definition.arcadeExpression = arcadeGenerator();
+      // }
     }
 
     switch (definition.shadingType) {
