@@ -41,31 +41,69 @@ export class EnvironmentData {
       centroid: undefined
     },
     zip: {
-      boundary: '28ab27c41d214e7e83a4f05372c7f387',
-      simplifiedBoundary: '47817fd990cc40e28b6bec5ff1fb7ac5',
-      centroid: '1be0a79bf27b46ce82cf459fd70c1bad'
+      boundary: '8a2065f805854cc3a4fb4f12b5b147f6',
+      simplifiedBoundary: '142cd5a57e054f2aa697b0a5282ca538',
+      centroid: '59b36847a706488f8adcd1828bc13ecf'
     },
     atz: {
-      boundary: '9918dff6c1b34b139cb00bc3561ad81a',
-      simplifiedBoundary: 'f9b657116f8c4a5a855de601f012e16e',
+      boundary: 'bd941e14303f48c899e468c14b06d6ba',
+      simplifiedBoundary: '3159ff92c05243c58cf032c759c44876',
       centroid: 'b58a024badbc4b63bce258aceaab7f31'
     },
     dtz: {
-      boundary: '45aedd8bb4d845bb999c287d76009372',
+      boundary: '094bb799ba50450cb1656e32a743b163',
       simplifiedBoundary: undefined,
-      centroid: 'e44e37afe10d4145b5e09d1a9027003b'
+      centroid: 'ce8d080b84044ee792f18f04f40a1f8d'
     },
     pcr: {
-      boundary: '80b9f78d11ea49d6a325375d47c946bc',
+      boundary: '02a4cfa835ff4675babb7a93cc56b442',
       simplifiedBoundary: undefined,
-      centroid: 'a4a8221c2c9b453ca84acbc8cb31df5c'
+      centroid: '351764ab9cdf4c7d83a0dc9739bbf739'
     },
     wrap: {
-      boundary: '7fa52ae91fb047519a7e3e1651d91b1b',
-      simplifiedBoundary: 'ba378a55b58647b7ba2ee2fedea1adad',
+      boundary: '298675155dff46a286358944de4cbd38',
+      simplifiedBoundary: 'ec4f9de4fed347cf94f43ed6613bd7ef',
       centroid: undefined
     }
   };
+
+  // public static layerIds: AllLayerIds = {
+  //   dma: {
+  //     boundary: '423fa5dd0d824080b4026dbce6752e02',
+  //     simplifiedBoundary: undefined,
+  //     centroid: undefined
+  //   },
+  //   counties: {
+  //     boundary: '4f6b219aabca46beb9f03add5f7e54d1',
+  //     simplifiedBoundary: undefined,
+  //     centroid: undefined
+  //   },
+  //   zip: {
+  //     boundary: '28ab27c41d214e7e83a4f05372c7f387',
+  //     simplifiedBoundary: '47817fd990cc40e28b6bec5ff1fb7ac5',
+  //     centroid: '1be0a79bf27b46ce82cf459fd70c1bad'
+  //   },
+  //   atz: {
+  //     boundary: '9918dff6c1b34b139cb00bc3561ad81a',
+  //     simplifiedBoundary: 'f9b657116f8c4a5a855de601f012e16e',
+  //     centroid: 'b58a024badbc4b63bce258aceaab7f31'
+  //   },
+  //   dtz: {
+  //     boundary: '45aedd8bb4d845bb999c287d76009372',
+  //     simplifiedBoundary: undefined,
+  //     centroid: 'e44e37afe10d4145b5e09d1a9027003b'
+  //   },
+  //   pcr: {
+  //     boundary: '80b9f78d11ea49d6a325375d47c946bc',
+  //     simplifiedBoundary: undefined,
+  //     centroid: 'a4a8221c2c9b453ca84acbc8cb31df5c'
+  //   },
+  //   wrap: {
+  //     boundary: '7fa52ae91fb047519a7e3e1651d91b1b',
+  //     simplifiedBoundary: 'ba378a55b58647b7ba2ee2fedea1adad',
+  //     centroid: undefined
+  //   }
+  // };
 
   public static serviceUrls = {
     homeGeocode: `${EnvironmentData.esri.portalServer}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`,
