@@ -25,7 +25,7 @@ export class EnvironmentData {
 
 
   public static esri = {
-    portalServer:  process.env.ESRI_PORTAL_SERVER,
+    portalServer:  'https://impowerqa.valassis.com/',
     userName: process.env.ESRI_USERNAME,
     password: process.env.ESRI_PASSWORD
   };

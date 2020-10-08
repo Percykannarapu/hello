@@ -40,8 +40,8 @@ export interface ShadingDefinitionBase {
   defaultSymbolDefinition: FillSymbolDefinition;
   filterByFeaturesOfInterest: boolean;
   filterField: string;
+  isCustomAudienceShader: boolean;
   refreshLegendOnRedraw?: boolean;
-  isStaticArcadeString?: boolean;
 }
 
 function duplicateBase(def: ShadingDefinitionBase) : ShadingDefinitionBase {

@@ -60,7 +60,6 @@ export abstract class ShaderBaseComponent<T extends ShadingDefinitionBase> imple
   public apply(form: FormGroup) : void {
     if (form.valid) {
       const newDef: T = { ...this.definition, defaultSymbolDefinition: { ...this.definition.defaultSymbolDefinition } };
-      if (!newDef.isStaticArcadeString) newDef.isStaticArcadeString = newDef.filterByFeaturesOfInterest;
       Object.assign(newDef, form.value);
       this.applyShader.emit(newDef);
     }

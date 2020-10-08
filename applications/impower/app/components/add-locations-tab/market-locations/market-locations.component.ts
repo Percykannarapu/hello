@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { getUuid } from '@val/common';
-import { ConfigurationTypes, EsriQueryService, ShadingDefinition } from '@val/esri';
+import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, StartLiveIndicator, StopLiveIndicator, WarningNotification } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
@@ -347,27 +346,6 @@ export class MarketLocationsComponent implements OnInit {
       this.impGeofootprintTradeAreaService.add([newTA]);
     });
 
-  }
-
-  private renderTradeAreas(isAlsoShaded: boolean = false) {
-    const result: ShadingDefinition = {
-      id: getUuid(),
-      dataKey: 'selection-shading',
-      sortOrder: 1,
-      sourcePortalId: null,
-      layerName: null,
-      opacity: isAlsoShaded ? 1 : 0.25,
-      visible: true,
-      minScale: null,
-      defaultSymbolDefinition: {
-        fillColor: isAlsoShaded ? [0, 0, 0, 1] : [0, 255, 0, 1],
-        fillType: isAlsoShaded ? 'backward-diagonal' : 'solid',
-      },
-      filterByFeaturesOfInterest: true,
-      filterField: 'geocode',
-      shadingType: ConfigurationTypes.Simple
-    };
-    //this.esriShadingService.addShader(result);
   }
 
   private reportError(errorHeader: string, errorMessage: string, errorObject: any) {

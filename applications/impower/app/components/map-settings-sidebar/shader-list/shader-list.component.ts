@@ -111,6 +111,6 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   }
 
   onCustomAudienceSelected(selected: boolean, definition: ShadingDefinition) : void {
-    definition.isStaticArcadeString = selected;
+    definition.isCustomAudienceShader = selected;
   }
 }

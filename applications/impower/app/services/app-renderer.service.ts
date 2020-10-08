@@ -269,9 +269,6 @@ export class AppRendererService {
       filterByFeaturesOfInterest: shadingTypeMap[dataKey] != null,
       shadingType: shadingTypeMap[dataKey]
     };
-    if (shadingTypeMap[dataKey] != null) {
-      newForm.isStaticArcadeString = true;
-    }
     if (dataKey === GfpShaderKeys.OwnerSite && newForm.shadingType === ConfigurationTypes.Unique) {
       newForm.secondaryDataKey = 'locationNumber';
     }
@@ -337,7 +334,8 @@ export class AppRendererService {
       },
       filterByFeaturesOfInterest: true,
       filterField: 'geocode',
-      shadingType: ConfigurationTypes.Simple
+      shadingType: ConfigurationTypes.Simple,
+      isCustomAudienceShader: false
     };
     this.updateForAnalysisLevel(result, analysisLevel);
     return result;
@@ -427,9 +425,10 @@ export class AppRendererService {
       const sorter = useCustomSorter ? CommonSort.StringsAsNumbers : undefined;
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
+      const shouldGenerateArcade = !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
       const sortedSiteEntries = Array.from(allSiteEntries);
       sortedSiteEntries.sort(sorter);
-      if (!definition.isStaticArcadeString || isEmpty(definition.arcadeExpression)) {
+      if (shouldGenerateArcade) {
         definition.arcadeExpression = createTextArcade(data, sortedSiteEntries);
       }
       definition.breakDefinitions = generateUniqueValues(sortedSiteEntries, colorPalette, fillPalette, true, activeSiteEntries);
@@ -511,9 +510,10 @@ export class AppRendererService {
       });
       const colorPalette = getColorPalette(definition.theme, definition.reverseTheme);
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
+      const shouldGenerateArcade = !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
       const sortedTAEntries = Array.from(allTAEntries);
       sortedTAEntries.sort(ValSort.TradeAreaByTypeString);
-      if (!definition.isStaticArcadeString || isEmpty(definition.arcadeExpression)) {
+      if (shouldGenerateArcade) {
         definition.arcadeExpression = createTextArcade(data, sortedTAEntries);
       }
       definition.breakDefinitions = generateUniqueValues(sortedTAEntries, colorPalette, fillPalette, true, activeTAEntries);
@@ -562,10 +562,9 @@ export class AppRendererService {
       } else {
         arcadeGenerator = () => createDataArcade(mapVarDictionary);
       }
-      if (!definition.isStaticArcadeString || isEmpty(definition.arcadeExpression)) {
-        const arcadeExpression = arcadeGenerator();
-        this.logger.debug.log('New arcade string length', (arcadeExpression || '').length);
-        definition.arcadeExpression = arcadeExpression;
+      const shouldGenerateArcade = definition.isCustomAudienceShader || !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
+      if (shouldGenerateArcade) {
+        definition.arcadeExpression = arcadeGenerator();
       }
     }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, groupBy, mapArray } from '@val/common';
+import { filterArray, groupBy, mapArray, mapByExtended } from '@val/common';
 import { BasicLayerSetup, EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
@@ -144,10 +144,14 @@ export class AppDataShimService {
     const shadingDefinitions = this.appRendererService.getShadingDefinitions(project);
     const poiConfigurations = this.poiRenderingService.getConfigurations(project);
     const boundaryConfigurations = this.boundaryRenderingService.getConfigurations(project);
+    const projectVarMap = mapByExtended(project.impProjectVars, pv => `${pv.varPk}`);
     shadingDefinitions.forEach(sd => {
       // just in case stuff was saved with a destination id
       delete sd.destinationLayerUniqueId;
       sd.refreshLegendOnRedraw = this.appConfig.isBatchMode;
+      if (projectVarMap.has(sd.dataKey)) {
+        sd.isCustomAudienceShader = projectVarMap.get(sd.dataKey).isCustom;
+      }
       if (this.appConfig.isBatchMode) {
         const newLayerSetup = this.getLayerSetupInfo(sd.sourcePortalId);
         if (newLayerSetup != null) {

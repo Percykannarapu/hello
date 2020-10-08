@@ -41,12 +41,12 @@ export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefiniti
   variableSelectionChanged(newKey: string) : void {
     const newVar = this.audiences.filter(a => a.audienceIdentifier === newKey)[0];
     if (newVar != null) {
-      if (newVar.audienceSourceType !== 'Custom') {
-        this.customAudienceSelected.emit(false);
-        this.limitShaderTypesByVar(newVar.fieldconte);
-      } else {
+      if (newVar.audienceSourceType === 'Custom') {
         this.customAudienceSelected.emit(true);
         this.setShaderTypes(ConfigurationTypes.Ramp, ConfigurationTypes.ClassBreak, ConfigurationTypes.DotDensity, ConfigurationTypes.Unique);
+      } else {
+        this.customAudienceSelected.emit(false);
+        this.limitShaderTypesByVar(newVar.fieldconte);
       }
       this.shaderForm.get('layerName').setValue(newVar.audienceName);
     }

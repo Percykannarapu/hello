@@ -19,7 +19,7 @@ export class EnvironmentData {
   public static printServiceUrl = 'https://impowerpdf.valassisdigital.net';
 
   public static esri = {
-    portalServer:  process.env.ESRI_PORTAL_SERVER,
+    portalServer:  'https://impower.valassis.com/',
     userName: process.env.ESRI_USERNAME,
     password: process.env.ESRI_PASSWORD
   };
