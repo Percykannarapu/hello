@@ -24,6 +24,7 @@ import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/Imp
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
 import { AppStateService } from './app-state.service';
+import { User } from 'app/models/User';
 
 @Injectable({
   providedIn: 'root'
@@ -72,8 +73,12 @@ export class BatchMapService {
     return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);
   }
 
-  getBatchMapDetailsByUser(username: string){
-    return this.http.get(`${this.config.printServiceUrl}/jobdetails/username/${username}`);
+  getBatchMapDetailsByUser(user: User){
+    /*this.logService.debug.log('TODO REMOVE user details=====:', user);
+    const mapPayload = {'email': user.email, 'userName': user.username};
+    return this.http.post(`${this.config.printServiceUrl}/jobdetails/username`, JSON.stringify(mapPayload));*/
+    return this.http.get(`${this.config.printServiceUrl}/jobdetails/username?email=${user.email}&userName=${user.username}`);
+
   }
 
   getBatchMapDetailsById(jobId: number){
