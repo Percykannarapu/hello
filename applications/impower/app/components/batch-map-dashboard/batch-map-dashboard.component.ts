@@ -60,7 +60,7 @@ export class BatchMapDashboardComponent implements OnInit {
     this.store$.select(getBatchMapStatusDialog).subscribe( flag => {
       this.showDialog = flag;
       if (flag){
-         this.batMapService.getBatchMapDetailsByUser(this.userService.getUser().username).subscribe((data) => {
+         this.batMapService.getBatchMapDetailsByUser(this.userService.getUser()).subscribe((data) => {
             const details: ImpPrintJob[] = data as ImpPrintJob[]; 
             this.getPrintJobDetails(details);
           });
@@ -72,7 +72,7 @@ export class BatchMapDashboardComponent implements OnInit {
       filter(isReady => isReady),
       take(1),
     ).subscribe(() => {
-      this.batMapService.getBatchMapDetailsByUser(this.userService.getUser().username).subscribe((data) => {
+      this.batMapService.getBatchMapDetailsByUser(this.userService.getUser()).subscribe((data) => {
           const details: ImpPrintJob[] = data as ImpPrintJob[]; 
           this.getPrintJobDetails(details);
         });
