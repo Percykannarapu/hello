@@ -310,7 +310,7 @@ export class BatchMapDialogComponent implements OnInit {
             function: 'printCurrentView',
             args: {
               currentPageConfiguration: {
-                email: `${this.userService.getUser().username}@valassis.com`,
+                email: `${this.userService.getUser().email}`,
                 projectId: this.currentProjectId,
                 size: size,
                 layout: dialogFields.layout,
@@ -343,7 +343,7 @@ export class BatchMapDialogComponent implements OnInit {
               function: 'printMaps',
               args: {
                 printJobConfiguration: {
-                  email: `${this.userService.getUser().username}@valassis.com`,
+                  email: `${this.userService.getUser().email}`,
                   titles: titles,
                   projectId: this.currentProjectId,
                   size: size,
@@ -376,7 +376,7 @@ export class BatchMapDialogComponent implements OnInit {
               function: 'printMaps',
               args: {
                 printJobConfiguration: {
-                  email: `${this.userService.getUser().username}@valassis.com`,
+                  email: `${this.userService.getUser().email}`,
                   titles: titlesByGroup,
                   projectId: this.currentProjectId,
                   size: size,
@@ -463,7 +463,7 @@ export class BatchMapDialogComponent implements OnInit {
           function: 'printSinglePage',
           args: {
             singlePageConfiguration: {
-              email: `${this.userService.getUser().username}@valassis.com`,
+              email: `${this.userService.getUser().email}`,
               projectId: this.currentProjectId,
               size: size,
               layout: layout,
