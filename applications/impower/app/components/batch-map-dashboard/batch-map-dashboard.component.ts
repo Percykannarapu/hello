@@ -92,6 +92,7 @@ export class BatchMapDashboardComponent implements OnInit {
                 val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
                 val.elapsedTime = `${duration.asMinutes().toFixed()} minutes`;
                 val.createDate = moment(printJob.createDate).format('MM/DD/YY hh:mm a');
+                val.userName = printJob.userName.split('@')[0];
           }
       });
       this.cd.markForCheck();
@@ -111,6 +112,7 @@ export class BatchMapDashboardComponent implements OnInit {
                 val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
                 val.elapsedTime = `${duration.asMinutes().toFixed()} minutes`;
                 val.createDate = moment(printJob.createDate).format('MM/DD/YY hh:mm a');
+                val.userName = printJob.userName.split('@')[0];
           }
       });
       this.cd.markForCheck();
@@ -134,6 +136,7 @@ export class BatchMapDashboardComponent implements OnInit {
       val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
       val.elapsedTime = `${duration.asMinutes().toFixed()} minutes`;
       val.createDate = moment(val.createDate).format('MM/DD/YY hh:mm a');
+      val.userName = val.userName.split('@')[0];
     });
     this.cd.markForCheck();
   }
