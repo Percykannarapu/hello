@@ -84,7 +84,7 @@ export class BatchMapDashboardComponent implements OnInit {
       const printJob = data as ImpPrintJob; 
       this.printJobDetails.forEach((val) => {
           if (val.jobId == printJob.jobId){
-                val.refresh = printJob.status === 'inProgress' ? false : true;
+                val.refresh = printJob.status === 'inProgress' || printJob.status === 'Submitted' ? false : true;
                 val.status = printJob.status;
                 val.jobNumShort = val.jobNumber.substring(0, 7); 
                 printJob.modifyDate = printJob.modifyDate == null ? printJob.createDate : printJob.modifyDate;
@@ -104,7 +104,7 @@ export class BatchMapDashboardComponent implements OnInit {
       const printJob = data as ImpPrintJob; 
       this.printJobDetails.forEach((val) => {
           if (val.jobId == printJob.jobId){
-                val.refresh = printJob.status === 'inProgress' ? false : true;
+                val.refresh = printJob.status === 'inProgress' || printJob.status === 'Submitted' ? false : true;
                 val.status = printJob.status;
                 val.jobNumShort = val.jobNumber.substring(0, 7); 
                 printJob.modifyDate = printJob.modifyDate == null ? printJob.createDate : printJob.modifyDate;
@@ -130,7 +130,7 @@ export class BatchMapDashboardComponent implements OnInit {
           val.zipUrl = null;  
       
       val.jobNumShort = val.jobNumber.substring(0, 7);    
-      val.refresh = val.status === 'inProgress' ? false : true;
+      val.refresh = val.status === 'inProgress' || val.status === 'Submitted' ? false : true;
       val.modifyDate = val.modifyDate == null ? val.createDate : val.modifyDate;
       const duration = moment.duration(moment(val.modifyDate).diff(moment(val.createDate)));
       val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
@@ -146,11 +146,11 @@ export class BatchMapDashboardComponent implements OnInit {
   }
 
   refreshButton(event: ImpPrintJob){
-    return event.status === 'inProgress' ? false : true;
+    return event.status === 'inProgress' || event.status === 'Submitted' ? false : true;
   }
 
   isDisable(event: ImpPrintJob){
-    return event.status === 'inProgress' || event.status === 'Failed' || event.status == 'cancel' ? false : true;
+    return event.status === 'inProgress' || event.status === 'Submitted' || event.status === 'Failed' || event.status == 'cancel' ? false : true;
   }
 
   validateZipUrl(impPrintJob: ImpPrintJob){
