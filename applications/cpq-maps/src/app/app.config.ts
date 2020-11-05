@@ -26,7 +26,7 @@ export class AppConfig {
    // public valPrintServiceURL = 'https://vallomimpor1vm.val.vlss.local/arcgis-server/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task';
 
    // Service Url for the GP Print Service
-   public printServiceUrl = `${environment.portalUrl}/arcgis-server2/rest/services/exportMapBook/GPServer/exportMapBook`;
+   public printServiceUrl = `${environment.portalUrl}/arcgis-server/rest/services/exportMapBook/GPServer/exportMapBook`;
 
    //public impowerBaseUrl = EnvironmentData.impowerBaseUrl;
 
