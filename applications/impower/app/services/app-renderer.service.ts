@@ -146,7 +146,7 @@ export class AppRendererService {
       debounceTime(500),
       withLatestFrom(
         tradeAreaDataStore,
-        this.store$.select(shadingSelectors.allLayerDefs),
+        this.store$.select(shadingSelectors.visibleLayerDefs),
         this.appStateService.uniqueSelectedGeocodeSet$
       ),
       map(([geos, tas, layerDefs, visibleGeos]) => ([ geos, tas, layerDefs, visibleGeos ] as const))
@@ -187,7 +187,9 @@ export class AppRendererService {
       }, []);
       features.sort();
       this.esriService.setFeaturesOfInterest(features);
-      setTimeout(() => this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: this.appStateService.analysisLevel$.getValue(), additionalGeos: features })), 1000);
+      setTimeout(() => {
+        this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: this.appStateService.analysisLevel$.getValue(), additionalGeos: features }));
+      }, 1000);
 
       if (newDefs.length > 0) {
         this.esriShaderService.upsertShader(newDefs);
@@ -199,8 +201,8 @@ export class AppRendererService {
     this.esriService.visibleFeatures$.pipe(
       filter(mapVars => mapVars.length > 0),
       withLatestFrom(
-        this.store$.select(shadingSelectors.allLayerDefs),
-        this.appStateService.uniqueSelectedGeocodeSet$,
+        this.store$.select(shadingSelectors.visibleLayerDefs),
+        this.appStateService.uniqueIdentifiedGeocodeSet$,
         this.store$.select(getAllMappedAudiences),
         this.store$.select(getMapVars),
         geoDataStore,
@@ -215,7 +217,12 @@ export class AppRendererService {
   private setupMapVarWatcher() {
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
-      withLatestFrom(this.store$.select(shadingSelectors.allLayerDefs), this.appStateService.uniqueSelectedGeocodeSet$, this.store$.select(getAllMappedAudiences), this.esriService.visibleFeatures$)
+      withLatestFrom(
+        this.store$.select(shadingSelectors.visibleLayerDefs),
+        this.appStateService.uniqueIdentifiedGeocodeSet$,
+        this.store$.select(getAllMappedAudiences),
+        this.esriService.visibleFeatures$
+      )
     ).subscribe(([mapVars, layerDefs, geocodes, audiences, features]) => {
       const visibleGeos = new Set(features.map(f => f.attributes.geocode));
       this.updateAudiences(mapVars, visibleGeos, layerDefs, geocodes, audiences, null, null);
@@ -225,7 +232,7 @@ export class AppRendererService {
   private updateAudiences(mapVars: MapVar[], visibleGeoSet: Set<string>, layerDefs: ShadingDefinition[], geocodes: Set<string>, audiences: Audience[], geos: ImpGeofootprintGeo[], tradeAreas: ImpGeofootprintTradeArea[]) : void {
     const varPks = audiences.map(audience => Number(audience.audienceIdentifier));
     const shadersForUpsert: ShadingDefinition[] = [];
-    if (varPks != null) {
+    if (varPks != null && mapVars != null && mapVars.length > 0) {
       const gfpFilteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
       varPks.forEach(varPk => {
         const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
@@ -584,10 +591,12 @@ export class AppRendererService {
         definition.breakDefinitions = generateUniqueValues(uniqueValues, colorPalette, fillPalette, true, uniquesToKeep);
         break;
       case ConfigurationTypes.Ramp:
-        definition.breakDefinitions = generateContinuousValues(calculateStatistics(allValuesForStats), colorPalette);
+        if (allValuesForStats.length > 0) {
+          definition.breakDefinitions = generateContinuousValues(calculateStatistics(allValuesForStats), colorPalette);
+        }
         break;
       case ConfigurationTypes.ClassBreak:
-        if (definition.dynamicallyAllocate) {
+        if (definition.dynamicallyAllocate && allValuesForStats.length > 0) {
           const stats = calculateStatistics(allValuesForStats, definition.dynamicAllocationSlots || 4);
           let symbology = [ ...(definition.userBreakDefaults || []) ];
           if (definition.dynamicLegend) {

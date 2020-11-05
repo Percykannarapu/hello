@@ -1,4 +1,4 @@
-import { Statistics } from '@val/common';
+import { isEmpty, Statistics } from '@val/common';
 import { ColorPalette } from './color-palettes';
 import {
   ClassBreakFillDefinition,
@@ -213,10 +213,10 @@ export function generateContinuousValues(stats: Statistics, colorPalette: RgbTup
 
 export function generateDynamicSymbology(stats: Statistics, colorPalette: RgbTuple[], fillPalette: FillPattern[]) : FillSymbolDefinition[] {
   const result: FillSymbolDefinition[] = [];
-  const len = stats.meanIntervals.length;
+  const len = (stats.meanIntervals || []).length;
   const cm = colorPalette.length;
   const lm = fillPalette.length;
-  for (let i = 0; i < stats.meanIntervals.length; ++i) {
+  for (let i = 0; i < len; ++i) {
     result.push({
       fillColor: RgbTuple.withAlpha(colorPalette[i % cm], 1),
       fillType: fillPalette[i % lm],
@@ -245,7 +245,7 @@ function getLegendDescription(min: number, max: number, fixedPositions: number) 
 
 export function generateDynamicClassBreaks(stats: Statistics, breakTypes: DynamicAllocationTypes, symbology: FillSymbolDefinition[]) : ClassBreakFillDefinition[] {
   const result: ClassBreakFillDefinition[] = [];
-  const breakValues = breakTypes === DynamicAllocationTypes.Interval ? stats.meanIntervals : stats.quantiles;
+  const breakValues = breakTypes === DynamicAllocationTypes.Interval ? (stats.meanIntervals || []) : (stats.quantiles || []);
   if (symbology.length !== (breakValues.length + 1)) {
     console.error('There was a mismatch between the statistics breaks and the symbology breaks', stats, symbology);
     return [];
@@ -255,17 +255,16 @@ export function generateDynamicClassBreaks(stats: Statistics, breakTypes: Dynami
   breakValues.forEach((bv, i) => {
     const currentMin = i === 0 ? null : breakValues[i - 1] + Number.EPSILON;
     const legendDescription = getLegendDescription(currentMin, bv, fixedPositions);
-    const userLegendIsEmpty = symbology[i].legendName == null || symbology[i].legendName.trim().length == 0;
     result.push({
       minValue: currentMin,
       maxValue: bv,
       ...symbology[i],
-      legendName: userLegendIsEmpty ? legendDescription : `${symbology[i].legendName.trim()} (${legendDescription})`
+      legendName: isEmpty(symbology[i].legendName) ? legendDescription : `${symbology[i].legendName.trim()} (${legendDescription})`
     });
   });
   const finalMin = breakValues[breakValues.length - 1] + Number.EPSILON;
   const finalDescription = getLegendDescription(finalMin, null, fixedPositions);
-  const finalLegendIsEmpty = symbology[symbology.length - 1].legendName == null || symbology[symbology.length - 1].legendName.trim().length == 0;
+  const finalLegendIsEmpty = symbology[symbology.length - 1] == null || isEmpty(symbology[symbology.length - 1].legendName);
   result.push({
     minValue: breakValues[breakValues.length - 1] + Number.EPSILON,
     maxValue: null,

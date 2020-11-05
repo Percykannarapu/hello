@@ -153,17 +153,19 @@ export class EsriShadingService {
       } else {
         props.definitionExpression = null;
       }
-      const rendererIsComplex = EsriUtils.rendererIsNotSimple(props.renderer);
-      if (config.refreshLegendOnRedraw && rendererIsComplex) {
-        this.layerService.removeLayerFromLegend(config.destinationLayerUniqueId);
-        layer.set(props);
-        setTimeout(() => {
-          const layerName = hideLegendHeaderTypes.has(config.shadingType) ? null : config.layerName;
-          this.layerService.addLayerToLegend(config.destinationLayerUniqueId, layerName, !rendererIsComplex);
-        }, 0);
-      } else {
-        layer.set(props);
-      }
+      layer.when().then(() => {
+        const rendererIsComplex = EsriUtils.rendererIsNotSimple(props.renderer);
+        if (config.refreshLegendOnRedraw && rendererIsComplex) {
+          this.layerService.removeLayerFromLegend(config.destinationLayerUniqueId);
+          layer.set(props);
+          setTimeout(() => {
+            const layerName = hideLegendHeaderTypes.has(config.shadingType) ? null : config.layerName;
+            this.layerService.addLayerToLegend(config.destinationLayerUniqueId, layerName, !rendererIsComplex);
+          }, 0);
+        } else {
+          layer.set(props);
+        }
+      });
     }
   }
 
@@ -232,10 +234,12 @@ export class EsriShadingService {
         result.valueExpression = config.arcadeExpression;
         return result;
       case ConfigurationTypes.Ramp:
+        const stops = (config.breakDefinitions || []).map(c => ({ color: c.stopColor, label: c.stopName, value: c.stopValue }));
+        stops.sort((a, b) => a.value - b.value);
         const visVar: RampProperties = {
           type: 'color',
           valueExpression: config.arcadeExpression,
-          stops: config.breakDefinitions.map(c => ({ color: c.stopColor, label: c.stopName, value: c.stopValue }))
+          stops
         };
         return this.domainFactory.createSimpleRenderer(defaultSymbol, visVar);
       default:
