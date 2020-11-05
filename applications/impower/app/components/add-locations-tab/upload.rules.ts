@@ -86,14 +86,14 @@ export const siteListUpload: Parser<ValGeocodingRequest> = {
   
   columnParsers: [
     { headerIdentifier: ['street', 'address', 'addr'], outputFieldName: 'street', width: 60 },
-    { headerIdentifier: ['city', 'cty'], outputFieldName: 'city' , width: 60},
-    { headerIdentifier: ['state', 'st'], outputFieldName: 'state', dataProcess: stateCodeProcessor, width: 2 },
+    { headerIdentifier: ['city', 'cty', 'City'], outputFieldName: 'city' , width: 60},
+    { headerIdentifier: ['state', 'st', 'State'], outputFieldName: 'state', dataProcess: stateCodeProcessor, width: 2 },
     { headerIdentifier: ['zip', 'zipcode', 'zip code', 'code', 'postal', 'postal code'], outputFieldName: 'zip', width: 10 },
     { headerIdentifier: ['y', 'y (optional)', 'y(optional)', 'y optional', 'latitude', 'lat'], outputFieldName: 'latitude', dataProcess: latLongProcessor },
     { headerIdentifier: ['x', 'x (optional)', 'x(optional)', 'x optional', 'longitude', 'long', 'lon'], outputFieldName: 'longitude', dataProcess: latLongProcessor },
     { headerIdentifier: [/\bname\b/i, /\bfirm\b/i], outputFieldName: 'name', required: false, width: 80 },
     { headerIdentifier: [/\bnumber\b/i, /\bnbr\b/i, /\bid\b/i, /\bnum\b/i, /#/], outputFieldName: 'number', required: true, mustBeUnique: true, width: 80 },
-    { headerIdentifier: ['market', 'mkt', 'market (optional)', 'market(optional)', 'market (opt)', 'market(opt)'], outputFieldName: 'Market', width: 80 },
+    { headerIdentifier: ['market', 'mkt', 'market (optional)', 'market(optional)', 'market (opt)', 'market(opt)', 'market name', 'Market Name'], outputFieldName: 'Market', width: 80 },
     { headerIdentifier: ['marketCode', 'mktcode', 'market code', 'Market Code'], outputFieldName: 'Market Code', width: 30 },
     { headerIdentifier: ['description', 'desc', 'Description'], outputFieldName: 'Description', width: 240 },
     { headerIdentifier: ['group', 'groupname', ' group name', 'Group Name', 'Group'], outputFieldName: 'Group', width: 80 },
