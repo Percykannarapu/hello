@@ -175,14 +175,14 @@
       </div>
     </div>
   <div class="text-right">
-    <div *ngIf="!hasGrant && totalSites > 25">
+    <!-- <div *ngIf="!hasGrant && (totalSites > 25 ) ">
       <span style="color:red; font-size: 1em">
         <p>You cannot print maps with more than 25 pages. Please adjust sites and try again.</p>
       </span>
     <button id="createBtn" type="button" pButton label="Create" (click)="onSubmit(batchMapForm.value)" [disabled]="true" >
     </button> 
-    </div>
-    <div *ngIf="hasGrant || (!hasGrant && totalSites <= 25)">
+    </div> -->
+    <div>
     <button id="createBtn" type="button" pButton label="Create" (click)="onSubmit(batchMapForm.value)"
       [disabled]="batchMapForm.invalid">
     </button>

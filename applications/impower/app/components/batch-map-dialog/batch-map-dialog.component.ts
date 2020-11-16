@@ -364,8 +364,9 @@ export class BatchMapDialogComponent implements OnInit {
         };
         if (this.getActiveSites().length > 600){
            this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
-        }
-        else
+        } else if (siteIds.length > 25 && !this.hasGrant){
+          this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'You cannot print maps with more than 25 pages. Please adjust sites and try again.'}));
+        } else
           this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
       } else if (dialogFields.sitesPerPage === 'sitesGroupedBy') {
         //print maps by site Attributes
@@ -399,7 +400,9 @@ export class BatchMapDialogComponent implements OnInit {
         };
         if (groupByExtended(this.getActiveSites(), l => l[dialogFields.sitesByGroup]).size > 600){
           this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
-        }else
+        }else if (siteIdsByGroup.length > 25 && !this.hasGrant){
+          this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'You cannot print maps with more than 25 pages. Please adjust sites and try again.'}));
+        } else
            this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
       }
 
