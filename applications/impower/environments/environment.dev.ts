@@ -29,6 +29,7 @@ export class EnvironmentData {
     password: process.env.ESRI_PASSWORD
   };
 
+  /* Layer IDs pointing to TDAPRD
   public static layerIds: AllLayerIds = {
     dma: {
       boundary: '423fa5dd0d824080b4026dbce6752e02',
@@ -65,45 +66,45 @@ export class EnvironmentData {
       simplifiedBoundary: 'ec4f9de4fed347cf94f43ed6613bd7ef',
       centroid: undefined
     }
-  };
+  }; */
 
-  // public static layerIds: AllLayerIds = {
-  //   dma: {
-  //     boundary: '423fa5dd0d824080b4026dbce6752e02',
-  //     simplifiedBoundary: undefined,
-  //     centroid: undefined
-  //   },
-  //   counties: {
-  //     boundary: '4f6b219aabca46beb9f03add5f7e54d1',
-  //     simplifiedBoundary: undefined,
-  //     centroid: undefined
-  //   },
-  //   zip: {
-  //     boundary: '28ab27c41d214e7e83a4f05372c7f387',
-  //     simplifiedBoundary: '47817fd990cc40e28b6bec5ff1fb7ac5',
-  //     centroid: '1be0a79bf27b46ce82cf459fd70c1bad'
-  //   },
-  //   atz: {
-  //     boundary: '9918dff6c1b34b139cb00bc3561ad81a',
-  //     simplifiedBoundary: 'f9b657116f8c4a5a855de601f012e16e',
-  //     centroid: 'b58a024badbc4b63bce258aceaab7f31'
-  //   },
-  //   dtz: {
-  //     boundary: '45aedd8bb4d845bb999c287d76009372',
-  //     simplifiedBoundary: undefined,
-  //     centroid: 'e44e37afe10d4145b5e09d1a9027003b'
-  //   },
-  //   pcr: {
-  //     boundary: '80b9f78d11ea49d6a325375d47c946bc',
-  //     simplifiedBoundary: undefined,
-  //     centroid: 'a4a8221c2c9b453ca84acbc8cb31df5c'
-  //   },
-  //   wrap: {
-  //     boundary: '7fa52ae91fb047519a7e3e1651d91b1b',
-  //     simplifiedBoundary: 'ba378a55b58647b7ba2ee2fedea1adad',
-  //     centroid: undefined
-  //   }
-  // };
+  public static layerIds: AllLayerIds = {
+    dma: {
+      boundary: '423fa5dd0d824080b4026dbce6752e02',
+      simplifiedBoundary: undefined,
+      centroid: undefined
+    },
+    counties: {
+      boundary: '4f6b219aabca46beb9f03add5f7e54d1',
+      simplifiedBoundary: undefined,
+      centroid: undefined
+    },
+    zip: {
+      boundary: '28ab27c41d214e7e83a4f05372c7f387',
+      simplifiedBoundary: '47817fd990cc40e28b6bec5ff1fb7ac5',
+      centroid: '1be0a79bf27b46ce82cf459fd70c1bad'
+    },
+    atz: {
+      boundary: '9918dff6c1b34b139cb00bc3561ad81a',
+      simplifiedBoundary: 'f9b657116f8c4a5a855de601f012e16e',
+      centroid: 'b58a024badbc4b63bce258aceaab7f31'
+    },
+    dtz: {
+      boundary: '45aedd8bb4d845bb999c287d76009372',
+      simplifiedBoundary: undefined,
+      centroid: 'e44e37afe10d4145b5e09d1a9027003b'
+    },
+    pcr: {
+      boundary: '80b9f78d11ea49d6a325375d47c946bc',
+      simplifiedBoundary: undefined,
+      centroid: 'a4a8221c2c9b453ca84acbc8cb31df5c'
+    },
+    wrap: {
+      boundary: '7fa52ae91fb047519a7e3e1651d91b1b',
+      simplifiedBoundary: 'ba378a55b58647b7ba2ee2fedea1adad',
+      centroid: undefined
+    }
+  };
 
   public static serviceUrls = {
     homeGeocode: `${EnvironmentData.esri.portalServer}arcgis-server/rest/services/HomeGeocode/GPServer/HomeGeocode`,
