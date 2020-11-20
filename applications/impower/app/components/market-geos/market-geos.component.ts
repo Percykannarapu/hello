@@ -474,7 +474,6 @@ export class MarketGeosComponent implements OnInit {
 
   onSelectContainerValue(container: ContainerValue) {
     this.containerValuesBS$.value.find(cv => cv.code === container.code).isActive = container.isActive;
-    console.log('::: onSelectContainerValue');
     this.containerValuesBS$.next(this.containerValuesBS$.value);
     this.setHasSelectedSites();
   }
@@ -488,7 +487,6 @@ export class MarketGeosComponent implements OnInit {
     containerValues.forEach(containerValue => containerValue.isActive = newIsActive);
 
     // Broadcast the changes
-    console.log('::: onSelectContainerValues');
     this.containerValuesBS$.next(this.containerValuesBS$.value);
 
     this.setHasSelectedSites();
@@ -503,7 +501,6 @@ export class MarketGeosComponent implements OnInit {
   onMarketChange(event: any) {
     this.clearStates();
     this.resetFiltersAndSelections();
-    console.log('::: onMarketChange');
     this.containerValuesBS$.next([]);
   }
 
