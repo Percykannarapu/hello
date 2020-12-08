@@ -41,11 +41,14 @@
                             {{rowData[col.field]}}
                         </span> 
                         <span *ngIf="col.header === 'URL' &&  isDisable(rowData)">
-                             <a href="{{rowData[col.field]}}" target="_blank">Pdf Download</a><br>
+                            <!-- <a href="{{rowData[col.field]}}" target="_blank">Pdf Download</a><br> -->
                              <!-- <a href="{{rowData['zipUrl']}}"  target="_blank">ZIP Download</a> -->
+                             <a href="javascript:void(0)" (click)="downloadPdf(rowData[col.field], rowData['jobNumber'])" >Pdf Download</a><br>
                         </span>
                         <span *ngIf="col.header === 'URL' &&  validateZipUrl(rowData)">
-                            <a href="{{rowData['zipUrl']}}"  target="_blank">ZIP </a>
+                            <!--<a href="{{rowData['zipUrl']}}"  target="_blank">ZIP </a>-->
+                            <a href="javascript:void(0)" (click)="downloadZIP(rowData['zipUrl'], rowData)" >ZIP</a><br>
+
                        </span>
                        <span *ngIf="col.header === 'Cancel'">
                           <button (click)="cancel(rowData)" label="cancel" [disabled]="refreshButton(rowData)" pButton style="margin: auto; display: block"></button>

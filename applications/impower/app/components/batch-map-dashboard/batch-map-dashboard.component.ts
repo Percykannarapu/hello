@@ -157,6 +157,34 @@ export class BatchMapDashboardComponent implements OnInit {
     return this.isDisable(impPrintJob) && impPrintJob.jobType === 'One Site per Page';
   }
 
+  downloadPdf(url: string, jobNumber: string){
+    this.batMapService.downloadBatchmap(url).subscribe(data => {
+      const newBlob = new Blob([data], { type: 'application/pdf' });
+      const uri = window.URL.createObjectURL(newBlob);
+      const link = document.createElement('a');
+      link.href = uri;
+      link.download = `${jobNumber}.pdf`;
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+
+      /*setTimeout(function () {
+          // For Firefox it is necessary to delay revoking the ObjectURL
+          window.URL.revokeObjectURL(uri);
+          link.remove();
+      }, 100);*/
+    });
+  }
+
+  downloadZIP(url: string, impPrintJob: ImpPrintJob){
+    this.batMapService.downloadZipBatchmap(url).subscribe(data => {
+      const uri = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement('a');
+      link.href = uri;
+      link.setAttribute('download', `${impPrintJob.projectId}_all_sites.zip`);
+      document.body.appendChild(link);
+      link.click();
+    });
+  }
+
   copy(val: string){
       const selBox = document.createElement('textarea');
       selBox.style.position = 'fixed';

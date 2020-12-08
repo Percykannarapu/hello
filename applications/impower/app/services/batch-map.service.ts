@@ -89,6 +89,14 @@ export class BatchMapService {
       return this.http.get(`${this.config.printServiceUrl}/jobdetails/canceljob/${jobId}`);
   }
 
+  downloadBatchmap(batchMapuri: string){
+    return this.http.get(batchMapuri, { responseType: 'blob' });
+  }
+
+  downloadZipBatchmap(batchMapuri: string){
+    return this.http.get(batchMapuri, { responseType: 'arraybuffer' });
+  }
+
   validateProjectReadiness(project: ImpProject) : boolean {
     const notificationTitle = 'Batch Map Issue';
     const projectNotSaved = 'The project must be saved before you can generate a batch map.';
