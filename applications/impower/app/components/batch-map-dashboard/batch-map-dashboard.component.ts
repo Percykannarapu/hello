@@ -7,11 +7,12 @@ import { RestDataService } from 'app/val-modules/common/services/restdata.servic
 import { HttpClient } from '@angular/common/http';
 import { AppConfig } from 'app/app.config';
 import { AppStateService } from 'app/services/app-state.service';
-import { filter, take } from 'rxjs/operators';
+import { filter, take, switchMap } from 'rxjs/operators';
 import { CloseBatchMapStatusDialog } from 'app/state/batch-map/batch-map.actions';
 import moment from 'moment';
 import { BatchMapService } from 'app/services/batch-map.service';
 import { UserService } from 'app/services/user.service';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 
 
 @Component({
@@ -158,23 +159,20 @@ export class BatchMapDashboardComponent implements OnInit {
   }
 
   downloadPdf(url: string, jobNumber: string){
+    this.store$.dispatch(new StartBusyIndicator({ key: 'PdfDownload', message: `PDF downloading`}));
     this.batMapService.downloadBatchmap(url).subscribe(data => {
-      const newBlob = new Blob([data], { type: 'application/pdf' });
-      const uri = window.URL.createObjectURL(newBlob);
-      const link = document.createElement('a');
-      link.href = uri;
-      link.download = `${jobNumber}.pdf`;
-      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-
-      /*setTimeout(function () {
-          // For Firefox it is necessary to delay revoking the ObjectURL
-          window.URL.revokeObjectURL(uri);
-          link.remove();
-      }, 100);*/
+        const newBlob = new Blob([data], { type: 'application/pdf' });
+        const uri = window.URL.createObjectURL(newBlob);
+        const link = document.createElement('a');
+        link.href = uri;
+        link.download = `${jobNumber}.pdf`;
+        link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        this.store$.dispatch(new StopBusyIndicator({ key: 'PdfDownload' }));
     });
   }
 
   downloadZIP(url: string, impPrintJob: ImpPrintJob){
+    this.store$.dispatch(new StartBusyIndicator({ key: 'ZipDownload', message: `ZIP downloading`}));
     this.batMapService.downloadZipBatchmap(url).subscribe(data => {
       const uri = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement('a');
@@ -182,6 +180,7 @@ export class BatchMapDashboardComponent implements OnInit {
       link.setAttribute('download', `${impPrintJob.projectId}_all_sites.zip`);
       document.body.appendChild(link);
       link.click();
+      this.store$.dispatch(new StopBusyIndicator({ key: 'ZipDownload' }));
     });
   }
 
