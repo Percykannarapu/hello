@@ -340,7 +340,7 @@ export class AppRendererService {
       sortOrder: 1,
       sourcePortalId: null,
       layerName: null,
-      opacity: isAlsoShaded ? 1 : 0.25,
+      opacity: isAlsoShaded ? 1 : 0.75,
       visible: true,
       minScale: null,
       defaultSymbolDefinition: {
