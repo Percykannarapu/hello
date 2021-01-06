@@ -158,7 +158,7 @@ export class TargetAudienceCustomService {
   public parseCustomVarData(dataBuffer: string, fileName: string, justColumn?: string, isReload: boolean = false) : GeoVar[] {
     // this.logger.debug.log('### parseCustomVarData - fired - dataBuffer size:', dataBuffer.length, 'filename:', fileName, 'justColumn:', justColumn);
     let results: GeoVar[] = [];
-    const rows: string[] = dataBuffer.split(/\r\n|\n/);
+    const rows: string[] = dataBuffer.split(/\r\n|\n|\r/);
     const header: string = rows.shift();
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     try {
@@ -413,7 +413,7 @@ export class TargetAudienceCustomService {
   }
 
   private cacheFileData(dataBuffer: string, fileName: string) : void {
-    const rows: string[] = dataBuffer.split(/\r\n|\n/);
+    const rows: string[] = dataBuffer.split(/\r\n|\n|\r/);
     const header: string = rows.shift();
     const data: ParseResponse<CustomAudienceData> = FileService.parseDelimitedData(header, rows, customAudienceDataParser);
     const failCount = data.failedRows.length;

@@ -200,7 +200,7 @@ export class UploadTradeAreasComponent implements OnInit {
     this.store$.dispatch(new DeleteCustomTAMustCoverGeosReset({ resetFlag: false }));
     const key = 'CUSTOM_TRADEAREA';
     this.store$.dispatch(new StartBusyIndicator({ key, message: 'Applying Custom Trade Area'}));
-    const rows: string[] = dataBuffer.split(/\r\n|\n/);
+    const rows: string[] = dataBuffer.split(/\r\n|\n|\r/);
     const header: string = rows.shift();
     if (header.split(/,/).length >= 2) {
       const uniqueRows: string[] = [];

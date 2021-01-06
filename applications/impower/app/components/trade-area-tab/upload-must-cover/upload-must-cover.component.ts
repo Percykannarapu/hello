@@ -171,7 +171,7 @@ export class UploadMustCoverComponent implements OnInit {
                   const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
                   const csvData  = xlsx.utils.sheet_to_csv(ws);
                   this.parseMustcovers(csvData, this.fileName);
-                  this.totalUploadedRowCount = csvData.split(/\r\n|\n/).length - 2;
+                  this.totalUploadedRowCount = csvData.split(/\r\n|\n|\r/).length - 2;
                }
                catch (e) {
                   this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));

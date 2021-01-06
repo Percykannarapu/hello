@@ -26,7 +26,7 @@ export class UploadLocationsComponent {
     this.isLoading = true;
 
     const reader = new FileReader();
-    const lineBreakRegEx = /\r\n|\n/;
+    const lineBreakRegEx = /\r\n|\n|\r/;
     const name: String = event.files[0].name;
     if (name.toLowerCase().includes('.xls')) {
       reader.readAsBinaryString(event.files[0]);
