@@ -77,7 +77,7 @@ export class AppRendererService {
       this.setupProjectPrefsWatcher();
       this.setupGeoWatchers(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
       this.setupMapWatcher(this.impGeoService.storeObservable, this.impTradeAreaService.storeObservable);
-      this.setupMapVarWatcher();
+      this.setupMapVarWatcher(this.impGeoService.storeObservable);
     });
   }
 
@@ -214,18 +214,19 @@ export class AppRendererService {
     });
   }
 
-  private setupMapVarWatcher() {
+  private setupMapVarWatcher(geoDataStore: Observable<ImpGeofootprintGeo[]>) {
     this.store$.select(getMapVars).pipe(
       filter(mapVars => mapVars.length > 0),
       withLatestFrom(
         this.store$.select(shadingSelectors.visibleLayerDefs),
         this.appStateService.uniqueIdentifiedGeocodeSet$,
         this.store$.select(getAllMappedAudiences),
-        this.esriService.visibleFeatures$
+        this.esriService.visibleFeatures$,
+        geoDataStore
       )
-    ).subscribe(([mapVars, layerDefs, geocodes, audiences, features]) => {
+    ).subscribe(([mapVars, layerDefs, geocodes, audiences, features, geos]) => {
       const visibleGeos = new Set(features.map(f => f.attributes.geocode));
-      this.updateAudiences(mapVars, visibleGeos, layerDefs, geocodes, audiences, null, null);
+      this.updateAudiences(mapVars, visibleGeos, layerDefs, geocodes, audiences, geos, null);
     });
   }
 
@@ -234,6 +235,10 @@ export class AppRendererService {
     const shadersForUpsert: ShadingDefinition[] = [];
     if (varPks != null && mapVars != null && mapVars.length > 0) {
       const gfpFilteredMapVars = mapVars.filter(mv => geocodes.has(mv.geocode));
+      const activeGeocodes = new Set<string>((geos || []).reduce((p, c) => {
+        if (c.isActive) p.push(c.geocode);
+        return p;
+      }, [] as string[]));
       varPks.forEach(varPk => {
         const shadingLayers = layerDefs.filter(ld => ld.dataKey === varPk.toString());
         if (shadingLayers != null) {
@@ -242,7 +247,7 @@ export class AppRendererService {
             const currentMapVars = shaderCopy.filterByFeaturesOfInterest
               ? gfpFilteredMapVars
               : mapVars;
-            this.updateForAudience(shaderCopy, currentMapVars, visibleGeoSet, varPk);
+            this.updateForAudience(shaderCopy, currentMapVars, visibleGeoSet, activeGeocodes, varPk);
             shadersForUpsert.push(shaderCopy);
           });
         }
@@ -537,7 +542,7 @@ export class AppRendererService {
     }
   }
 
-  updateForAudience(definition: ShadingDefinition, currentMapVars: MapVar[], currentVisibleGeos: Set<string>, varPk: number) : void {
+  updateForAudience(definition: ShadingDefinition, currentMapVars: MapVar[], currentVisibleGeos: Set<string>, currentActiveGeocodes: Set<string>, varPk: number) : void {
     const allUniqueValues = new Set<string>();
     const uniquesToKeep = new Set<string>();
     const allValuesForStats: number[] = [];
@@ -547,7 +552,7 @@ export class AppRendererService {
           result[mapVar.geocode] = mapVar[varPk];
           if (mapVar[varPk] != null) {
             allUniqueValues.add(`${mapVar[varPk]}`);
-            if (currentVisibleGeos.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
+            if (currentVisibleGeos.has(mapVar.geocode) && currentActiveGeocodes.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
           }
           break;
         case ConfigurationTypes.Ramp:
