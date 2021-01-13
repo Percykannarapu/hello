@@ -284,7 +284,7 @@ export class AppRendererService {
       dataKey,
       visible: true,
       layerName,
-      opacity: dataKey === GfpShaderKeys.Selection ? 0.25 : 0.5,
+      opacity: dataKey === GfpShaderKeys.Selection ? 0.25 : 0.75,
       filterField: 'geocode',
       filterByFeaturesOfInterest: shadingTypeMap[dataKey] != null,
       shadingType: shadingTypeMap[dataKey]
