@@ -36,12 +36,14 @@ export class EnvironmentData {
       centroid: undefined
     },
     zip: {
-      boundary: '3e2a4a9836864cfca10d87d0160d2697',
+      // boundary: '3e2a4a9836864cfca10d87d0160d2697',
+      boundary: 'ecde553e764e452c8dedda24236fa8d8',
       simplifiedBoundary: 'da6a828d6bef47958e80e23522ff3727',
       centroid: '89cac0a2c866482b9d4e934105f445a2'
     },
     atz: {
-      boundary: 'fedd50a5759c45ccb41edd96713628f9',
+      // boundary: 'fedd50a5759c45ccb41edd96713628f9',
+      boundary: '5d2988905256472bb6a86af5141d1912',
       simplifiedBoundary: 'a975f431a654437e891a2a534e805894',
       centroid: '9f56b26cf3ea4b93bc65cb90f831cf24'
     },
@@ -70,6 +72,10 @@ export class EnvironmentData {
 
   // old portal Id: new portal Id
   public static portalIdUpdates = {
+    //hotfix after TDA Update
+    'fedd50a5759c45ccb41edd96713628f9': EnvironmentData.layerIds.atz.boundary,
+    '3e2a4a9836864cfca10d87d0160d2697': EnvironmentData.layerIds.zip.boundary,
+
     // zip
     'b1d2b37add4d470ca32bfd9f40d91b9f': EnvironmentData.layerIds.zip.boundary,
     'f0dd4c98bd3843c2b7ed16f04040ff13': EnvironmentData.layerIds.zip.centroid,
