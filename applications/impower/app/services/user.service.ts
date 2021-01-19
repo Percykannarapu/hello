@@ -9,7 +9,7 @@ import { LoggingService } from '../val-modules/common/services/logging.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 
 export type GrantType = 'ALL' | 'ANY';
-export const DEFAULT_GRANT_TYPE: GrantType = 'ALL';
+export const DEFAULT_GRANT_TYPE: GrantType = 'ANY';
 
 @Injectable()
 export class UserService {

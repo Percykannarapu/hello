@@ -690,6 +690,15 @@ body {
         .layout-main {
           padding-top: $valHeaderHeight + 5px;
         }
+        .layout-menu {
+          ul.ultima-menu {
+            > li {
+              > a {
+                padding: 0.5em 0.7em;
+              }
+            }
+          }
+        }
       }
     }
   }

@@ -2,7 +2,7 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ConfirmationPayload, ErrorNotification, ShowConfirmation } from '@val/messaging';
+import { ConfirmationPayload, ShowConfirmation } from '@val/messaging';
 import { AppStateService } from 'app/services/app-state.service';
 import { BatchMapService } from 'app/services/batch-map.service';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
@@ -11,7 +11,7 @@ import { MenuItem } from 'primeng/api';
 import { filter, take } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { OpenBatchMapDialog, OpenBatchMapStatusDialog, CloseBatchMapStatusDialog } from '../../state/batch-map/batch-map.actions';
+import { OpenBatchMapDialog, OpenBatchMapStatusDialog } from '../../state/batch-map/batch-map.actions';
 import {
   ClientNmaeForValassisDigitalDialog,
   DiscardAndCreateNew,
@@ -20,7 +20,6 @@ import {
   ExportLocations,
   OpenExistingProjectDialog,
   OpenExportCrossbowSitesDialog,
-  OpenPrintViewDialog,
   SaveAndCreateNew,
   SaveAndReloadProject
 } from '../../state/menu/menu.actions';
@@ -49,12 +48,11 @@ export class AppMenuComponent implements OnInit {
       take(1)
     ).subscribe(() => {
       this.model = [
-        { label: 'Dashboard', icon: 'ui-icon-dashboard', routerLink: ['/'] },
         { label: 'Save', id: 'saveProject', icon: 'ui-icon-save', command: () => this.saveProject() },
         { label: 'Projects', icon: 'ui-icon-storage',
           items: [
             { label: 'Create New', icon: 'fa fa-files-o', command: () =>  this.createNewProject() },
-            { label: 'Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
+            { label: 'Open Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
             { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.saveProject() }
           ]
         },
@@ -67,11 +65,10 @@ export class AppMenuComponent implements OnInit {
             { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()), visible: this.userService.userHasGrants(['IMPOWER_EXPORT_NATIONAL']) },
             { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.exportToValassisDigital(), visible: this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'])},
             { label: 'Export Crossbow Sites', icon: 'ui-icon-store', command: () => this.store$.dispatch(new OpenExportCrossbowSitesDialog()) },
-            //{ label: 'Export Current Map View', icon: 'pi pi-print', command: () => this.exportCurrentView() },
-            { label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'], 'ANY')  }
+            { label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])  }
           ]
         },
-        { label: 'Batch Map Status', icon: 'pi pi-info', command: () => this.getBatchMapStatus(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'], 'ANY')   }
+        { label: 'Batch Map Status', icon: 'pi pi-info', command: () => this.getBatchMapStatus(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])   }
       ];
       this.isLoggedIn = true;
     });
@@ -90,16 +87,6 @@ export class AppMenuComponent implements OnInit {
 
     private exportLocations(locationType: SuccessfulLocationTypeCodes) : void {
       this.store$.dispatch(new ExportLocations({ locationType }));
-    }
-
-    private exportCurrentView(){
-      const analysisLevel = this.stateService.analysisLevel$.getValue();
-      if (analysisLevel != null && analysisLevel.length > 0){
-        this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'current~view~map~export', 1));
-        this.store$.dispatch(new OpenPrintViewDialog());
-      }
-      else
-        this.store$.dispatch(new ErrorNotification({message: 'Analysis Level is required to print Current view'}));
     }
 
     private createBatchMap(){
@@ -192,7 +179,7 @@ export class AppSubMenuComponent {
 
     constructor(public app: ImpowerMainComponent) { }
 
-    itemClick(event: Event, item: MenuItem, index: number)  {
+    itemClick(event: Event, item: MenuItem, index: number) {
         if (this.root) {
             this.app.menuHoverActive = !this.app.menuHoverActive;
         }
@@ -242,7 +229,7 @@ export class AppSubMenuComponent {
     set reset(val: boolean) {
         this._reset = val;
 
-        if (this._reset && (this.app.isHorizontal() ||  this.app.isSlim())) {
+        if (this._reset && (this.app.isHorizontal() || this.app.isSlim())) {
             this.activeIndex = null;
         }
     }

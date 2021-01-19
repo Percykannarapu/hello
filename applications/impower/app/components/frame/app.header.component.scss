@@ -45,3 +45,12 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .impower-header-wrapper {
+    .impower-header {
+      > .announcement {
+        display: none;
+      }
+    }
+  }
+}
