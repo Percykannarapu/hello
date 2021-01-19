@@ -53,7 +53,8 @@ export class EnvironmentData {
       centroid: '763c31ada0db4d09831edb2d19780c2d'
     },
     pcr: {
-      boundary: '53b17d3b6de5403889dba73fa767f8ec',
+      // boundary: '53b17d3b6de5403889dba73fa767f8ec',
+      boundary: 'c8840366618342d293723bc54ed2b0b5',
       simplifiedBoundary: undefined,
       centroid: 'c55883ee9dca4bcfa9651c30d4945096'
     },
@@ -75,6 +76,7 @@ export class EnvironmentData {
     //hotfix after TDA Update
     'fedd50a5759c45ccb41edd96713628f9': EnvironmentData.layerIds.atz.boundary,
     '3e2a4a9836864cfca10d87d0160d2697': EnvironmentData.layerIds.zip.boundary,
+    '53b17d3b6de5403889dba73fa767f8ec': EnvironmentData.layerIds.pcr.boundary,
 
     // zip
     'b1d2b37add4d470ca32bfd9f40d91b9f': EnvironmentData.layerIds.zip.boundary,
