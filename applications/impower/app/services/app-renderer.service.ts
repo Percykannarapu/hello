@@ -552,7 +552,13 @@ export class AppRendererService {
           result[mapVar.geocode] = mapVar[varPk];
           if (mapVar[varPk] != null) {
             allUniqueValues.add(`${mapVar[varPk]}`);
-            if (currentVisibleGeos.has(mapVar.geocode) && currentActiveGeocodes.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
+            if (currentVisibleGeos.has(mapVar.geocode)) {
+              if (definition.filterByFeaturesOfInterest) {
+                if (currentActiveGeocodes.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
+              } else {
+                uniquesToKeep.add(`${mapVar[varPk]}`);
+              }
+            }
           }
           break;
         case ConfigurationTypes.Ramp:
