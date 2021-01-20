@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { AppConfig } from 'app/app.config';
 import { User } from 'app/models/User';
-import { UserRole } from 'app/models/UserRole';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { CreateApplicationUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
@@ -25,8 +23,7 @@ export class AuthService implements CanActivate{
     private store$: Store<LocalAppState>,
     private logger: LoggingService,
     private userService: UserService,
-    private cookieService: CookieService,
-    private appConfig: AppConfig) {
+    private cookieService: CookieService) {
     this.manager.getUser().then(oidcUser => {
       this.oidcUser = oidcUser;
     });
@@ -89,8 +86,8 @@ export class AuthService implements CanActivate{
       switchMap(oidcUser => this.setupAppUser(oidcUser).pipe(
         tap(appUser => {
           this.manager.startSilentRenew();
-          appUser.username = oidcUser.profile['custom_fields'].spokesamaccountname;
-          appUser.displayName = oidcUser.profile['custom_fields'].name;
+          appUser.username = oidcUser.profile.params.sAmAccountName;
+          appUser.displayName = oidcUser.profile.name;
           appUser.email = oidcUser.profile.email;
           this.userService.setUser(appUser);
           this.store$.dispatch(new CreateApplicationUsageMetric('entry', 'login', appUser.username + '~' + appUser.userId));
@@ -103,7 +100,8 @@ export class AuthService implements CanActivate{
     if (oidcUser == null) {
       return;
     }
-    return this.userService.fetchUserRecord(oidcUser.profile['custom_fields'].spokesamaccountname);
+    this.logger.debug.log('App User retrieved from onelogin', oidcUser);
+    return this.userService.fetchUserRecord(oidcUser.profile.params.sAmAccountName);
   }
 
   private getRestConfig(oidcUser: OIDCUser) : OauthConfiguration {
@@ -111,13 +109,12 @@ export class AuthService implements CanActivate{
     config.oauthToken = oidcUser.id_token;
     config.tokenExpiration = null;
     config.tokenRefreshFunction = () => { };
-
     return config;
   }
 
   getClientSettings() : UserManagerSettings {
     return {
-      authority: 'https://openid-connect.onelogin.com/oidc',
+      authority: 'https://vericast.onelogin.com/oidc/2',
       client_id: '2e344cc0-6c5f-0138-38d5-06052b831332154450',
       redirect_uri: `${window.location.origin}/auth-callback`,
       post_logout_redirect_uri: `${window.location.origin}`,
@@ -130,6 +127,5 @@ export class AuthService implements CanActivate{
       includeIdTokenInSilentRenew: false,
       silentRequestTimeout: 30000
     };
-
   }
 }
