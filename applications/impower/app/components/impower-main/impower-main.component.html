@@ -1,42 +1,22 @@
 <div class="layout-wrapper" [ngClass]="{'layout-compact':layoutCompact}" (click)="onLayoutClick()">
 
-  <div #layoutContainer class="layout-container menu-layout-static menu-layout-horizontal"
+  <div class="layout-container menu-layout-static menu-layout-horizontal"
        [ngClass]="{ 'layout-menu-overlay-active': overlayMenuActive,
             'layout-menu-static-inactive': staticMenuDesktopInactive,
             'layout-menu-static-active': staticMenuMobileActive }">
 
     <val-app-header></val-app-header>
 
-    <div class="layout-menu" [ngClass]="{'layout-menu-dark':darkMenu}" (click)="onMenuClick($event)">
-      <div #layoutMenuScroller class="nano">
-        <div class="nano-content menu-scroll-content">
-          <div class="ui-g ui-g-nopad menu-bar">
-            <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noMenu" class="ui-g-6 ui-g-nopad">
-              <app-menu [reset]="resetMenu"></app-menu>
-            </div>
-            <div *ngIf="currentProject$ | async as currentProject; else noProject" class="ui-g-4 ui-g-nopad">
-              <span *ngIf="currentProject.projectId > 0" class="val-project-name">
-                {{ currentProject.projectId }} - {{ currentProject.projectName | truncate:40:' ...' }}
-              </span>
-            </div>
-            <div class="clear-container">
-                <p-button icon="pi pi-fw pi-question" label="Help" (onClick)="getHelpPopup($event)"></p-button> 
-            </div>
-            <div *ngIf="!currentRoute.toLowerCase().endsWith('login'); else noClear" class="clear-container">
-                
-              <p-button  label="Clear Messages" (onClick)="onClearMessages()"></p-button>
-            </div>
-            <ng-template #noMenu>
-              <div class="ui-g-6 ui-g-nopad">&nbsp;</div>
-            </ng-template>
-            <ng-template #noProject>
-              <div class="ui-g-4 ui-g-nopad">&nbsp;</div>
-            </ng-template>
-            <ng-template #noClear>
-              <div class="ui-g-2 ui-g-nopad">&nbsp;</div>
-            </ng-template>
-          </div>
+    <div class="layout-menu" [ngClass]="{'layout-menu-dark':darkMenu}" (click)="onMenuClick()">
+      <div class="menu-controls">
+        <app-menu [reset]="resetMenu"></app-menu>
+      </div>
+      <div class="menu-addons">
+        <div *ngIf="currentProject && currentProject.projectId > 0" class="val-project-name" title="{{ currentProject.projectId }} - {{ currentProject.projectName }}">
+            {{ currentProject.projectId }} - {{ currentProject.projectName | truncate:30:' ...' }}
         </div>
+        <p-button label="Help" icon="pi pi-fw pi-question" (onClick)="getHelpPopup($event)"></p-button>
+        <p-button label="Clear&nbsp;Messages" (onClick)="onClearMessages()"></p-button>
       </div>
     </div>
 
@@ -61,9 +41,9 @@
     <val-simple-message></val-simple-message>
     <val-export-crossbow-sites></val-export-crossbow-sites>
     <val-print-view></val-print-view>
-    <val-batch-map-dialog *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']; type 'ANY'"></val-batch-map-dialog>
+    <val-batch-map-dialog *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']"></val-batch-map-dialog>
     <val-send-sites-digital></val-send-sites-digital>
-    <val-batch-map-dashboard *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']; type 'ANY'"></val-batch-map-dashboard>
+    <val-batch-map-dashboard *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']"></val-batch-map-dashboard>
     <val-impower-help></val-impower-help>
     <div class="layout-mask"></div>
   </div>

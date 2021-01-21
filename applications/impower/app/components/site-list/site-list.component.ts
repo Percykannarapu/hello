@@ -128,6 +128,8 @@ export class SiteListComponent implements OnInit {
   public columnOptions: SelectItem[] = [];
   public labelType: string = 'Site Label';
 
+  private selectedLocationsForDelete = new Set();
+
   public flatSiteGridColumns: any[] =
     [{field: 'locationNumber',       header: 'Number',              width: '7em',   styleClass: '',                filterMatchMode: 'contains', allowAsSymbolAttribute: true },
      {field: 'locationName',         header: 'Name',                width: '20em',  styleClass: '',                filterMatchMode: 'contains', allowAsSymbolAttribute: true },
@@ -348,6 +350,36 @@ export class SiteListComponent implements OnInit {
           this.logger.debug.log('cancelled remove');
         }
     });
+  }
+
+  onDeleteSelectedLocations(){
+    const locsForDelete: ImpGeofootprintLocation[] = this.currentAllSitesBS$.getValue().filter(site => 
+                         this.selectedLocationsForDelete.has(site.locationNumber));
+       // const metricText = AppLocationService.createMetricTextForLocation(row);
+        this.confirmationService.confirm({
+            message: 'Do you want to delete this record?',
+            header: 'Delete Confirmation',
+            icon: 'ui-icon-trash',
+            accept: () => {
+                this.onDeleteLocations.emit({locations: locsForDelete, metricText: 'selected locations for delete', selectedListType: this.selectedListType});
+                this.logger.debug.log('remove successful');
+            },
+            reject: () => {
+                this.logger.debug.log('cancelled remove');
+            }
+        });                     
+  }
+
+  onSelectLoc(row: ImpGeofootprintLocation){
+    
+    if (!this.selectedLocationsForDelete.has(row.locationNumber)){
+      this.selectedLocationsForDelete.add(row.locationNumber);
+      row.isSelected = true;   
+    }
+    else{
+      this.selectedLocationsForDelete.delete(row.locationNumber); 
+      row.isSelected = false;     
+    }
   }
 
   /**

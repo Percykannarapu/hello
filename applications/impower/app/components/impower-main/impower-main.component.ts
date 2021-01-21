@@ -1,17 +1,17 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ClearAllNotifications } from '@val/messaging';
+import { UserService } from 'app/services/user.service';
+import { ImpowerHelpOpen } from 'app/state/menu/menu.actions';
 import { MessageService } from 'primeng/api';
-import { Observable, timer } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { Subject, timer } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AppStateService } from '../../services/app-state.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { getRouteUrl } from '../../state/shared/router.interfaces';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../../val-modules/targeting/services/imp-domain-factory.service';
-import { UserService } from 'app/services/user.service';
-import { ImpowerHelpOpen } from 'app/state/menu/menu.actions';
 
 enum MenuOrientation {
   STATIC,
@@ -20,91 +20,71 @@ enum MenuOrientation {
   HORIZONTAL
 }
 
-declare var jQuery: any;
-
 @Component({
   templateUrl: './impower-main.component.html',
   styleUrls: ['./impower-main.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
-
-  layoutCompact = true;
+export class ImpowerMainComponent implements OnInit, OnDestroy {
 
   layoutMode: MenuOrientation = MenuOrientation.HORIZONTAL;
-
+  layoutCompact = true;
   darkMenu = false;
-
-  profileMode = 'inline';
-
-  rotateMenuButton: boolean;
-
-  topbarMenuActive: boolean;
-
   overlayMenuActive: boolean;
-
   staticMenuDesktopInactive: boolean;
-
   staticMenuMobileActive: boolean;
-
-  rightPanelActive: boolean;
-
-  rightPanelClick: boolean;
-
-  layoutContainer: HTMLDivElement;
-
-  layoutMenuScroller: HTMLDivElement;
-
-  menuClick: boolean;
-
-  topbarItemClick: boolean;
-
-  activeTopbarItem: any;
-
   resetMenu: boolean;
-
   menuHoverActive: boolean;
+  currentProject: ImpProject;
 
-  @ViewChild('layoutContainer', { static: true }) layourContainerViewChild: ElementRef;
+  menuTypes = MenuOrientation;
 
-  @ViewChild('layoutMenuScroller', { static: true }) layoutMenuScrollerViewChild: ElementRef;
-
-  currentProject$: Observable<ImpProject>;
-  currentRoute: string = '';
+  private rotateMenuButton: boolean;
+  private topBarMenuActive: boolean;
+  private rightPanelActive: boolean;
+  private rightPanelClick: boolean;
+  private menuClick: boolean;
+  private topBarItemClick: boolean;
+  private activeTopBarItem: any;
+  private currentRoute: string = '';
+  private destroyed$ = new Subject<void>();
 
   constructor(private config: AppConfig,
               private domainFactory: ImpDomainFactoryService,
               private stateService: AppStateService,
+              private userService: UserService,
               private messageService: MessageService,
-              private cd: ChangeDetectorRef,
               private store$: Store<FullAppState>,
-              private userService: UserService) { }
+              private cd: ChangeDetectorRef) { }
 
-  ngOnInit() {
-    this.currentProject$ = this.stateService.currentProject$;
+  ngOnInit() : void {
+    this.stateService.currentProject$.pipe(
+      takeUntil(this.destroyed$),
+      filter(project => project != null)
+    ).subscribe(project => {
+      this.currentProject = project;
+      this.cd.markForCheck();
+    });
     this.store$.select(getRouteUrl).pipe(
+      takeUntil(this.destroyed$),
       filter(url => url != null)
     ).subscribe(url => {
       this.currentRoute = url;
       this.cd.markForCheck();
     });
+    this.messageService.messageObserver.pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(() => {
+      this.cd.markForCheck();
+    });
 
-    timer(0, 1000).subscribe(() => this.stateService.refreshDynamicControls());
-
-    this.messageService.messageObserver.subscribe(() => this.cd.markForCheck());
+    timer(0, 1000).pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(() => this.stateService.refreshDynamicControls());
   }
 
-  ngOnDestroy() {
-    jQuery(this.layoutMenuScroller).nanoScroller({flash: true});
-  }
-
-  ngAfterViewInit() {
-    this.layoutContainer = <HTMLDivElement> this.layourContainerViewChild.nativeElement;
-    this.layoutMenuScroller = <HTMLDivElement> this.layoutMenuScrollerViewChild.nativeElement;
-
-    setTimeout(() => {
-      jQuery(this.layoutMenuScroller).nanoScroller({flash: true});
-    }, 10);
+  ngOnDestroy() : void {
+    this.destroyed$.next();
   }
 
   onClearMessages() {
@@ -112,7 +92,7 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   getHelpPopup(event: any){
-    if (this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'], 'ANY')){
+    if (this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'])){
       const internal = 'http://myvalassis/da/ts/imPower%20Resources/Forms/AllItems.aspx';
       window.open(internal, '_blank');
     }
@@ -122,9 +102,9 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   onLayoutClick() {
-    if (!this.topbarItemClick) {
-      this.activeTopbarItem = null;
-      this.topbarMenuActive = false;
+    if (!this.topBarItemClick) {
+      this.activeTopBarItem = null;
+      this.topBarMenuActive = false;
     }
 
     if (!this.menuClick) {
@@ -143,20 +123,14 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
       this.rightPanelActive = false;
     }
 
-    this.topbarItemClick = false;
+    this.topBarItemClick = false;
     this.menuClick = false;
     this.rightPanelClick = false;
   }
 
-  onMenuClick($event) {
+  onMenuClick() {
     this.menuClick = true;
     this.resetMenu = false;
-
-    if (!this.isHorizontal()) {
-      setTimeout(() => {
-        jQuery(this.layoutMenuScroller).nanoScroller();
-      }, 500);
-    }
   }
 
   hideOverlayMenu() {
@@ -172,5 +146,4 @@ export class ImpowerMainComponent implements AfterViewInit, OnDestroy, OnInit {
   isSlim() {
     return this.layoutMode === MenuOrientation.SLIM;
   }
-
 }

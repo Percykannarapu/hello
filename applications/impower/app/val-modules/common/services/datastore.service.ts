@@ -1,5 +1,4 @@
 import { groupBy } from '@val/common';
-import * as $ from 'jquery';
 import { BehaviorSubject, EMPTY, Observable, Subject, throwError } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
@@ -860,14 +859,15 @@ export class DataStore<T>
 
       const blob = new Blob(['\ufeff', csvString]);
       const url = URL.createObjectURL(blob);
-      // Use jquery to create and autoclick a link that downloads the CSV file
-      const link = $('<a/>', {
-         style: 'display:none',
-         href:  url,
-         download: filename
-      }).appendTo('body');
-      link[0].click();
-      link.remove();
+      // create and autoclick a link that downloads the CSV file
+      const element = window.document.createElement('a');
+      document.body.appendChild(element);
+      element.style.cssText = 'display: none';
+      element['download'] = filename;
+      element.target = '_blank';
+      element.href = url;
+      element.click();
+      element.remove();
    }
 
 }

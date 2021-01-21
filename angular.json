@@ -43,8 +43,6 @@
               "applications/impower/styles.scss"
             ],
             "scripts": [
-              "node_modules/jquery/dist/jquery.js",
-              "node_modules/nanoscroller/bin/javascripts/jquery.nanoscroller.js",
               "node_modules/moment/min/moment.min.js"
             ],
             "optimization": false,
@@ -188,8 +186,6 @@
             "polyfills": "applications/impower/polyfills.ts",
             "tsConfig": "applications/impower/tsconfig.spec.json",
             "scripts": [
-              "node_modules/jquery/dist/jquery.js",
-              "node_modules/nanoscroller/bin/javascripts/jquery.nanoscroller.js",
               "node_modules/moment/moment.js"
             ],
             "stylePreprocessorOptions": {

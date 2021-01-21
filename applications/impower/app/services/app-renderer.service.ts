@@ -284,7 +284,7 @@ export class AppRendererService {
       dataKey,
       visible: true,
       layerName,
-      opacity: dataKey === GfpShaderKeys.Selection ? 0.25 : 0.5,
+      opacity: dataKey === GfpShaderKeys.Selection ? 0.25 : 0.75,
       filterField: 'geocode',
       filterByFeaturesOfInterest: shadingTypeMap[dataKey] != null,
       shadingType: shadingTypeMap[dataKey]
@@ -552,7 +552,13 @@ export class AppRendererService {
           result[mapVar.geocode] = mapVar[varPk];
           if (mapVar[varPk] != null) {
             allUniqueValues.add(`${mapVar[varPk]}`);
-            if (currentVisibleGeos.has(mapVar.geocode) && currentActiveGeocodes.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
+            if (currentVisibleGeos.has(mapVar.geocode)) {
+              if (definition.filterByFeaturesOfInterest) {
+                if (currentActiveGeocodes.has(mapVar.geocode)) uniquesToKeep.add(`${mapVar[varPk]}`);
+              } else {
+                uniquesToKeep.add(`${mapVar[varPk]}`);
+              }
+            }
           }
           break;
         case ConfigurationTypes.Ramp:

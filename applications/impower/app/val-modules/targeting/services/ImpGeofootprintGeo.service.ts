@@ -609,7 +609,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    public parseMustCoverFile(dataBuffer: string, fileName: string, analysisLevel: string, isResubmit: boolean, fileAnalysisLevel: string = null) : Observable<any> {
     //console.debug("### parseMustCoverFile fired");
-    const rows: string[] = dataBuffer.split(/\r\n|\n/);
+    const rows: string[] = dataBuffer.split(/\r\n|\n|\r/);
     const header: string = rows.shift();
     const errorTitle: string = 'Must Cover Geographies Upload';
 

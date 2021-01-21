@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { AppConfig } from 'app/app.config';
+import { isNil } from '@val/common';
 import { User } from 'app/models/User';
-import { UserRole } from 'app/models/UserRole';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { CreateApplicationUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
@@ -11,7 +10,7 @@ import { OauthConfiguration, RestDataService } from 'app/val-modules/common/serv
 import { CookieService } from 'ngx-cookie-service';
 
 import { User as OIDCUser, UserManager, UserManagerSettings } from 'oidc-client';
-import { from, Observable, of } from 'rxjs';
+import { from, Observable, of, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { UserService } from './user.service';
 
@@ -25,13 +24,12 @@ export class AuthService implements CanActivate{
     private store$: Store<LocalAppState>,
     private logger: LoggingService,
     private userService: UserService,
-    private cookieService: CookieService,
-    private appConfig: AppConfig) {
+    private cookieService: CookieService) {
     this.manager.getUser().then(oidcUser => {
       this.oidcUser = oidcUser;
     });
     this.manager.events.addAccessTokenExpiring(e => this.logger.debug.log('JWT is expiring soon'));
-    this.manager.events.addAccessTokenExpired(e => 'JWT has expired');
+    this.manager.events.addAccessTokenExpired(e => this.logger.error.log('JWT has expired'));
     this.manager.events.addSilentRenewError(e => this.logger.error.log('Failed to renew JWT', e));
     this.manager.events.addUserLoaded(oidcUser => {
       RestDataService.bootstrap(this.getRestConfig(oidcUser));
@@ -49,13 +47,8 @@ export class AuthService implements CanActivate{
       }
       if (this.userService.getUser() == null) {
         RestDataService.bootstrap(this.getRestConfig(this.oidcUser));
-        this.manager.startSilentRenew();
         return this.setupAppUser(this.oidcUser).pipe(
-          tap(appUser => {
-            appUser.username = this.oidcUser.profile['custom_fields'].spokesamaccountname;
-            appUser.email = this.oidcUser.profile.email;
-            this.userService.setUser(appUser);
-          }),
+          tap(() => this.manager.startSilentRenew()),
           switchMap(() => of(true))
         );
       }
@@ -89,10 +82,6 @@ export class AuthService implements CanActivate{
       switchMap(oidcUser => this.setupAppUser(oidcUser).pipe(
         tap(appUser => {
           this.manager.startSilentRenew();
-          appUser.username = oidcUser.profile['custom_fields'].spokesamaccountname;
-          appUser.displayName = oidcUser.profile['custom_fields'].name;
-          appUser.email = oidcUser.profile.email;
-          this.userService.setUser(appUser);
           this.store$.dispatch(new CreateApplicationUsageMetric('entry', 'login', appUser.username + '~' + appUser.userId));
         })
       ))
@@ -100,10 +89,18 @@ export class AuthService implements CanActivate{
   }
 
   private setupAppUser(oidcUser: OIDCUser) : Observable<User>{
-    if (oidcUser == null) {
-      return;
+    if (isNil(oidcUser)) {
+      return throwError('OIDC User cannot be null');
     }
-    return this.userService.fetchUserRecord(oidcUser.profile['custom_fields'].spokesamaccountname);
+    this.logger.debug.log('App User retrieved from onelogin', oidcUser);
+    return this.userService.fetchUserRecord(oidcUser.profile.params.sAmAccountName).pipe(
+      tap(appUser => {
+        appUser.username = oidcUser.profile.params.sAmAccountName;
+        appUser.displayName = oidcUser.profile.name;
+        appUser.email = oidcUser.profile.email;
+        this.userService.setUser(appUser);
+      })
+    );
   }
 
   private getRestConfig(oidcUser: OIDCUser) : OauthConfiguration {
@@ -111,13 +108,12 @@ export class AuthService implements CanActivate{
     config.oauthToken = oidcUser.id_token;
     config.tokenExpiration = null;
     config.tokenRefreshFunction = () => { };
-
     return config;
   }
 
   getClientSettings() : UserManagerSettings {
     return {
-      authority: 'https://openid-connect.onelogin.com/oidc',
+      authority: 'https://vericast.onelogin.com/oidc/2',
       client_id: '2e344cc0-6c5f-0138-38d5-06052b831332154450',
       redirect_uri: `${window.location.origin}/auth-callback`,
       post_logout_redirect_uri: `${window.location.origin}`,
@@ -130,6 +126,5 @@ export class AuthService implements CanActivate{
       includeIdTokenInSilentRenew: false,
       silentRequestTimeout: 30000
     };
-
   }
 }
