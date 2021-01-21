@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
+import { isNil } from '@val/common';
 import { User } from 'app/models/User';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { CreateApplicationUsageMetric } from 'app/state/usage/targeting-usage.actions';
@@ -9,7 +10,7 @@ import { OauthConfiguration, RestDataService } from 'app/val-modules/common/serv
 import { CookieService } from 'ngx-cookie-service';
 
 import { User as OIDCUser, UserManager, UserManagerSettings } from 'oidc-client';
-import { from, Observable, of } from 'rxjs';
+import { from, Observable, of, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { UserService } from './user.service';
 
@@ -28,7 +29,7 @@ export class AuthService implements CanActivate{
       this.oidcUser = oidcUser;
     });
     this.manager.events.addAccessTokenExpiring(e => this.logger.debug.log('JWT is expiring soon'));
-    this.manager.events.addAccessTokenExpired(e => 'JWT has expired');
+    this.manager.events.addAccessTokenExpired(e => this.logger.error.log('JWT has expired'));
     this.manager.events.addSilentRenewError(e => this.logger.error.log('Failed to renew JWT', e));
     this.manager.events.addUserLoaded(oidcUser => {
       RestDataService.bootstrap(this.getRestConfig(oidcUser));
@@ -46,13 +47,8 @@ export class AuthService implements CanActivate{
       }
       if (this.userService.getUser() == null) {
         RestDataService.bootstrap(this.getRestConfig(this.oidcUser));
-        this.manager.startSilentRenew();
         return this.setupAppUser(this.oidcUser).pipe(
-          tap(appUser => {
-            appUser.username = this.oidcUser.profile['custom_fields'].spokesamaccountname;
-            appUser.email = this.oidcUser.profile.email;
-            this.userService.setUser(appUser);
-          }),
+          tap(() => this.manager.startSilentRenew()),
           switchMap(() => of(true))
         );
       }
@@ -86,10 +82,6 @@ export class AuthService implements CanActivate{
       switchMap(oidcUser => this.setupAppUser(oidcUser).pipe(
         tap(appUser => {
           this.manager.startSilentRenew();
-          appUser.username = oidcUser.profile.params.sAmAccountName;
-          appUser.displayName = oidcUser.profile.name;
-          appUser.email = oidcUser.profile.email;
-          this.userService.setUser(appUser);
           this.store$.dispatch(new CreateApplicationUsageMetric('entry', 'login', appUser.username + '~' + appUser.userId));
         })
       ))
@@ -97,11 +89,18 @@ export class AuthService implements CanActivate{
   }
 
   private setupAppUser(oidcUser: OIDCUser) : Observable<User>{
-    if (oidcUser == null) {
-      return;
+    if (isNil(oidcUser)) {
+      return throwError('OIDC User cannot be null');
     }
     this.logger.debug.log('App User retrieved from onelogin', oidcUser);
-    return this.userService.fetchUserRecord(oidcUser.profile.params.sAmAccountName);
+    return this.userService.fetchUserRecord(oidcUser.profile.params.sAmAccountName).pipe(
+      tap(appUser => {
+        appUser.username = oidcUser.profile.params.sAmAccountName;
+        appUser.displayName = oidcUser.profile.name;
+        appUser.email = oidcUser.profile.email;
+        this.userService.setUser(appUser);
+      })
+    );
   }
 
   private getRestConfig(oidcUser: OIDCUser) : OauthConfiguration {
