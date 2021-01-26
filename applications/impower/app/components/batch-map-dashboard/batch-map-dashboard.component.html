@@ -14,8 +14,9 @@
                      [reorderableColumns]="false"
                      [responsive]="true"
                      [paginator]="true" [rows]="10"
-                     sortField="createDate" sortOrder="-1">
-              <!-- <ng-template pTemplate="caption">Test Data</ng-template> -->
+                     (onSort)="customSort($event)"
+                     >
+              <!-- <ng-template pTemplate="caption">Test Data</ng-template> sortField="createDate" sortOrder="-1" -->
               <ng-template pTemplate="header" class="ui-g ui-g-nopad" let-columns>
                   <tr>
                     <th *ngFor="let col of columns"  [pSortableColumn]="col.field" [style.width]="col.size">

@@ -122,8 +122,11 @@ export class BatchMapDashboardComponent implements OnInit {
 
 
   private getPrintJobDetails(data: ImpPrintJob[]){
-    this.printJobDetails = data;
-    this.printJobDetails.forEach((val) => {
+    const Moment = require('moment');
+    this.printJobDetails = data.sort((a, b) => {
+      return new Moment(new Date(b.createDate)) - new Moment(new Date(a.createDate));
+    } );
+    data.forEach((val) => {
       val.url = `${this.config.printServiceUrl}/printjob/${val.jobNumber}`;
       if (val.jobType === 'One Site per Page')
           val.zipUrl = `${val.url}/zip`;
@@ -209,6 +212,21 @@ export class BatchMapDashboardComponent implements OnInit {
     h = h % 24;
     h += d * 24;
     return h + ':' + m + ':' + s + '  H : M: S';
+  }
+
+  customSort(event: any){
+    const Moment = require('moment');
+    const field = event['field'];
+    if (field === 'createDate'){
+      this.printJobDetails = this.printJobDetails.sort((a, b) => {
+        return new Moment(new Date(b.createDate)) - new Moment(new Date(a.createDate));
+      } );
+    }else {
+      this.printJobDetails = this.printJobDetails.sort((a, b) => {
+        return b[field] - a[field];  
+      } );
+    }
+    this.cd.markForCheck();
   }
 }
 
