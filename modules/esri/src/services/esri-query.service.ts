@@ -3,7 +3,7 @@ import { chunkArray, getUuid } from '@val/common';
 import { Multipoint, Point } from 'esri/geometry';
 import Query from 'esri/tasks/support/Query';
 import { EMPTY, from, merge, Observable } from 'rxjs';
-import { expand, filter, finalize, map, retry, switchMap, take } from 'rxjs/operators';
+import { expand, filter, finalize, map, reduce, retry, switchMap, take } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
@@ -157,7 +157,9 @@ export class EsriQueryService {
       returnGeometry: false,
       outFields: ['geocode', 'pob']
     });
-    return this.query(layerId, [query], specialTxId, true);
+    return this.query(layerId, [query], specialTxId, true).pipe(
+      reduce((acc, result) => [...acc, ...result], [] as __esri.Graphic[])
+    );
   }
 
   public executeNativeQuery(layerId: string, query: __esri.Query, returnGeometry: boolean = false, outFields?: string[], alternateTxId?: string) : Observable<__esri.FeatureSet> {
