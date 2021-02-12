@@ -1,9 +1,8 @@
 import { Inject, Injectable } from '@angular/core';
+import { geodesicBuffer, union } from '@arcgis/core/geometry/geometryEngineAsync';
+import Graphic from '@arcgis/core/Graphic';
 import { filterArray } from '@val/common';
 import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService } from '@val/esri';
-import geometryEngineAsync from 'esri/geometry/geometryEngineAsync';
-import Graphic from 'esri/Graphic';
-import { SimpleFillSymbol } from 'esri/symbols';
 import { from, merge, Observable, of } from 'rxjs';
 import { map, reduce, switchMap, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
@@ -34,7 +33,7 @@ export class RenderingService {
     const result = {
       merged
     };
-    values.forEach(v => {
+    values.filter(v => v > 0).forEach(v => {
       if (result[v] == undefined) {
         result[v] = 1;
       } else {
@@ -75,9 +74,9 @@ export class RenderingService {
     });
   }
 
-  renderTradeAreas(defs: TradeAreaDrawDefinition[]) : Observable<__esri.GraphicsLayer[]> {
+  renderTradeAreas(defs: TradeAreaDrawDefinition[]) : Observable<__esri.FeatureLayer[]> {
     this.logger.debug.log('definitions for trade areas', defs);
-    const result: Observable<__esri.GraphicsLayer>[] = [];
+    const result: Observable<__esri.FeatureLayer>[] = [];
     const requestedLayerNames = new Set<string>(defs.map(d => d.layerName));
     const existingLayers = Array.from(this.renderedDefinitionMap.keys());
     existingLayers.forEach(l => {
@@ -88,55 +87,53 @@ export class RenderingService {
       }
     });
     defs.forEach(d => {
-      const symbol = new SimpleFillSymbol({
-        style: 'solid',
-        color: [0, 0, 0, 0],
-        outline: {
-          style: 'solid',
-          color: d.color,
-          width: 2
-        }
-      });
-      const currentValueMap = RenderingService.createValueMap(d.bufferedPoints.map(b => b.buffer), d.merge);
-      if (this.definitionNeedsRendered(currentValueMap, d.layerName) || this.config.isBatchMode) {
-        const pointTree = new QuadTree(d.bufferedPoints);
-        const chunks = pointTree.partition(100);
-        this.logger.info.log(`Generating radius graphics for ${chunks.length} chunks`);
-        const circleChunks: Observable<__esri.Polygon[]>[] = chunks.map(chunk => {
-          return from(geometryEngineAsync.geodesicBuffer(chunk.map(c => c.point), chunk.map(c => c.buffer), 'miles', d.merge)).pipe(
-            map(geoBuffer => Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer]),
-            filterArray(poly => poly != null)
+      const outline = this.esriFactory.createSimpleLineSymbol(d.color, 2);
+      const symbol = this.esriFactory.createSimpleFillSymbol([0, 0, 0, 0], outline);
+      const renderer = this.esriFactory.createSimpleRenderer(symbol);
+      const validBufferedPoints = d.bufferedPoints.filter(p => p.buffer > 0);
+      if (validBufferedPoints.length > 0) {
+        const currentValueMap = RenderingService.createValueMap(validBufferedPoints.map(b => b.buffer), d.merge);
+        if (this.definitionNeedsRendered(currentValueMap, d.layerName) || this.config.isBatchMode) {
+          const pointTree = new QuadTree(validBufferedPoints);
+          const chunks = pointTree.partition(100);
+          this.logger.info.log(`Generating radius graphics for ${chunks.length} chunks`);
+          const circleChunks: Observable<__esri.Polygon[]>[] = chunks.map(chunk => {
+            return from(geodesicBuffer(chunk.map(c => c.point), chunk.map(c => c.buffer), 'miles', d.merge)).pipe(
+              map(geoBuffer => Array.isArray(geoBuffer) ? geoBuffer : [geoBuffer]),
+              filterArray(poly => poly != null)
+            );
+          });
+
+          let currentRadiusLayer$: Observable<any> = merge(...circleChunks).pipe(
+            reduce((acc, curr) => [...acc, ...curr], []),
           );
-        });
 
-        let currentRadiusLayer$: Observable<any> = merge(...circleChunks).pipe(
-          reduce((acc, curr) => [...acc, ...curr], []),
-        );
-
-        if (d.merge) {
+          if (d.merge) {
+            currentRadiusLayer$ = currentRadiusLayer$.pipe(
+              tap(polys => this.logger.debug.log(`Radius rings generated. ${polys.length} chunks being unioned.`)),
+              switchMap(polys => from(union(polys))),
+              map(geoBuffer => [geoBuffer]),
+            );
+          }
+          let oid = 0;
           currentRadiusLayer$ = currentRadiusLayer$.pipe(
-            tap(polys => this.logger.debug.log(`Radius rings generated. ${polys.length} chunks being unioned.`)),
-            switchMap(polys => from(geometryEngineAsync.union(polys))),
-            map(geoBuffer => [geoBuffer]),
+            map(geometry => geometry.map(g => new Graphic({ geometry: g, attributes: { oid: oid++ } }))),
+            tap(() => this.logger.debug.log('Creating Radius Layer')),
+            tap(() => {
+              const currentLayer = this.esriLayerService.getLayer(d.layerName);
+              this.esriLayerService.removeLayer(currentLayer);
+            }),
+            map(graphics => this.esriLayerService.createClientLayer(d.groupName, d.layerName, graphics, 'oid', renderer, null, null))
           );
+          result.push(currentRadiusLayer$);
         }
-
-        currentRadiusLayer$ = currentRadiusLayer$.pipe(
-          map(geometry => geometry.map(g => new Graphic({ geometry: g, symbol: symbol }))),
-          tap(() => this.logger.debug.log('Creating Radius Layer')),
-          tap(() => {
-            const currentLayer = this.esriLayerService.getLayer(d.layerName);
-            this.esriLayerService.removeLayer(currentLayer);
-          }),
-          map(graphics => this.esriLayerService.createGraphicsLayer(d.groupName, d.layerName, graphics))
-        );
-        result.push(currentRadiusLayer$);
       }
     });
 
     if (result.length > 0) {
       return merge(...result).pipe(
-        reduce((acc, curr) => [...acc, curr], [])
+        reduce((acc, curr) => [...acc, curr], [] as __esri.FeatureLayer[]),
+        tap(layers => this.logger.debug.log('Generated Radius Layers', layers))
       );
     } else {
       return of([]);

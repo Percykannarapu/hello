@@ -1,13 +1,22 @@
 import { Injectable } from '@angular/core';
+import Color from '@arcgis/core/Color';
+import { union } from '@arcgis/core/geometry/geometryEngine';
+import Point from '@arcgis/core/geometry/Point';
+import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+import Query from '@arcgis/core/tasks/support/Query';
 import { Store } from '@ngrx/store';
 import { mapByExtended } from '@val/common';
-import { ColorPalette, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, FillPattern, getColorPalette, LayerGroupDefinition } from '@val/esri';
-import Color from 'esri/Color';
-import { Point } from 'esri/geometry';
-import geometryEngine from 'esri/geometry/geometryEngine';
-import { UniqueValueRenderer } from 'esri/renderers';
-import { SimpleFillSymbol } from 'esri/symbols';
-import Query from 'esri/tasks/support/Query';
+import {
+  ColorPalette,
+  EsriLayerService,
+  EsriMapService,
+  EsriQueryService,
+  EsriUtils,
+  FillPattern,
+  getColorPalette,
+  LayerGroupDefinition
+} from '@val/esri';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
@@ -336,7 +345,7 @@ export class ShadingService {
 
   private zoomOnStartup(graphics: __esri.Graphic[]) {
     if (!this.zoomedFirstTime) {
-      this.mapService.mapView.extent = geometryEngine.union(graphics.map(g => g.geometry)).extent;
+      this.mapService.mapView.extent = union(graphics.map(g => g.geometry)).extent;
       this.zoomedFirstTime = true;
     }
   }

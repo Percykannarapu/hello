@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import PrintParameters from 'esri/tasks/support/PrintParameters';
-import PrintTemplate from 'esri/tasks/support/PrintTemplate';
+import PrintParameters from '@arcgis/core/tasks/support/PrintParameters';
+import PrintTemplate from '@arcgis/core/tasks/support/PrintTemplate';
 import { EsriMapService } from './esri-map.service';
 
 @Injectable()

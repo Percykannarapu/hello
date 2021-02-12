@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@angular/core';
-import { chunkArray, getUuid } from '@val/common';
-import { Multipoint, Point } from 'esri/geometry';
-import Query from 'esri/tasks/support/Query';
+import Multipoint from '@arcgis/core/geometry/Multipoint';
+import Point from '@arcgis/core/geometry/Point';
+import Query from '@arcgis/core/tasks/support/Query';
+import { chunkArray, getUuid, isNumberArray, isStringArray } from '@val/common';
 import { EMPTY, from, merge, Observable } from 'rxjs';
 import { expand, filter, finalize, map, reduce, retry, switchMap, take } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
@@ -9,7 +10,6 @@ import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 
-type compositeData = string[] | number[] | __esri.PointProperties[];
 type pointInputs = __esri.PointProperties | __esri.PointProperties[];
 const SIMULTANEOUS_STREAMS = 3;
 
@@ -23,14 +23,6 @@ export class EsriQueryService {
               private layerService: EsriLayerService,
               private mapService: EsriMapService) {
     EsriQueryService.config = config;
-  }
-
-  private static dataIsString(d: compositeData) : d is string[] {
-    return d != null && typeof d[0] === 'string';
-  }
-
-  private static dataIsNumber(d: compositeData) : d is number[] {
-    return d != null && typeof d[0] === 'number';
   }
 
   private static calculateChunkSize(dataLength: number, returnGeometry: boolean, bufferInMiles: number = 0) : number {
@@ -56,19 +48,18 @@ export class EsriQueryService {
     if (outFields != null) {
       result.outFields = outFields;
     }
-    if (this.dataIsNumber(data)) {
+    if (isNumberArray(data)) {
       const condition = data.length === 1 ? `= ${data[0]}` : `IN (${data.join(',')})`;
       result.where = `${queryField} ${condition}`;
-    } else if (this.dataIsString(data)) {
+    } else if (isStringArray(data)) {
       const condition = data.length === 1 ? `= '${data[0]}'` : `IN ('${data.join(`','`)}')`;
       result.where = `${queryField} ${condition}`;
-    } else if (data.length === 1) {
-      result.geometry = new Point(data[0]);
     } else {
-      const multiPointData: number[][] = data.map(p => [Number(p.x), Number(p.y)]);
-      result.geometry = new Multipoint({
-        points: multiPointData,
-        spatialReference: { wkid: this.config.defaultSpatialRef }
+      result.geometry = data.length === 1
+        ? new Point(data[0])
+        : new Multipoint({
+          points: data.map(p => [Number(p.x), Number(p.y)]),
+          spatialReference: { wkid: this.config.defaultSpatialRef }
       });
     }
     return result;

@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
+import { geodesicLength } from '@arcgis/core/geometry/geometryEngine';
+import Polyline from '@arcgis/core/geometry/Polyline';
+import Query from '@arcgis/core/tasks/support/Query';
 import { Store } from '@ngrx/store';
 import { groupBy, mapBy } from '@val/common';
 import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
-import geometryEngine from 'esri/geometry/geometryEngine';
-import PolyLine from 'esri/geometry/Polyline';
-import Query from 'esri/tasks/support/Query';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
@@ -97,10 +97,10 @@ export class AppGeoService {
         : '';
       let distance = 0;
       if (EsriUtils.geometryIsPoint(closestSite.geometry)) {
-        const line = new PolyLine({
+        const line = new Polyline({
           paths: [[[edi.point.x, edi.point.y], [closestSite.geometry.x, closestSite.geometry.y]]]
         });
-        distance = geometryEngine.geodesicLength(line, 'miles');
+        distance = geodesicLength(line, 'miles');
       }
       newDetail.distance = distance;
       newDetail.geocode = edi.geocode;

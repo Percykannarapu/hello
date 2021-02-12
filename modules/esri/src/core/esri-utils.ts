@@ -1,6 +1,6 @@
-import * as lang from 'esri/core/lang';
-import geometryEngine from 'esri/geometry/geometryEngine';
-import Polyline from 'esri/geometry/Polyline';
+import * as lang from '@arcgis/core/core/lang';
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
+import Polyline from '@arcgis/core/geometry/Polyline';
 import { Observable } from 'rxjs';
 
 export interface TokenResponse {
@@ -130,10 +130,13 @@ export class EsriUtils {
     return lang.clone(original);
   }
 
-  public static setupWatch<T extends __esri.Accessor, K extends keyof T>(instance: T, prop: K) : Observable<WatchResult<T, K>> {
+  public static setupWatch<T extends __esri.Accessor, K extends keyof T>(instance: T, prop: K, startWithInitialValue: boolean = false) : Observable<WatchResult<T, K>> {
     return new Observable<WatchResult<T, K>>(observer => {
       let handle;
       try {
+        if (startWithInitialValue) {
+          observer.next({ newValue: instance[prop], oldValue: undefined, propName: prop, target: instance });
+        }
         handle = instance.watch(prop as string, (newValue, oldValue, propName: any, target: T) => {
           observer.next({newValue, oldValue, propName, target});
         });

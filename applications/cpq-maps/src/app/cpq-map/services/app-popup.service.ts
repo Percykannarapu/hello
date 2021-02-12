@@ -1,6 +1,6 @@
 import { ComponentFactoryResolver, ElementRef, Injectable, Injector } from '@angular/core';
+import PopupTemplate from '@arcgis/core/PopupTemplate';
 import { EsriLayerService, EsriMapService } from '@val/esri';
-import PopupTemplate from 'esri/PopupTemplate';
 import { take } from 'rxjs/operators';
 import { MapPopupComponent } from '../components/map-popup/map-popup.component';
 import { ConfigService } from './config.service';

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
+import Measurement from '@arcgis/core/widgets/Measurement';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
-import Measurement from 'esri/widgets/Measurement';
 import { MonoTypeOperatorFunction, Observable } from 'rxjs';
 import { concatMap, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriGraphicTypeCodes } from '../../core/esri.enums';

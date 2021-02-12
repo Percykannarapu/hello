@@ -1,11 +1,18 @@
 import { Inject, Injectable } from '@angular/core';
-import { Extent } from 'esri/geometry';
-import FeatureLayer from 'esri/layers/FeatureLayer';
-import GraphicsLayer from 'esri/layers/GraphicsLayer';
-import LabelClass from 'esri/layers/support/LabelClass';
-import { ClassBreaksRenderer, DotDensityRenderer, SimpleRenderer, UniqueValueRenderer } from 'esri/renderers';
-import { Font, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, TextSymbol } from 'esri/symbols';
-import SketchViewModel from 'esri/widgets/Sketch/SketchViewModel';
+import Extent from '@arcgis/core/geometry/Extent';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import LabelClass from '@arcgis/core/layers/support/LabelClass';
+import ClassBreaksRenderer from '@arcgis/core/renderers/ClassBreaksRenderer';
+import DotDensityRenderer from '@arcgis/core/renderers/DotDensityRenderer';
+import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
+import UniqueValueRenderer from '@arcgis/core/renderers/UniqueValueRenderer';
+import Font from '@arcgis/core/symbols/Font';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import TextSymbol from '@arcgis/core/symbols/TextSymbol';
+import SketchViewModel from '@arcgis/core/widgets/Sketch/SketchViewModel';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { AutoCastColor, FillPattern, LineStyle, MarkerStyles } from '../models/esri-types';
 import { LoggingService } from './logging.service';
@@ -124,6 +131,7 @@ export class EsriDomainFactoryService {
       font
     });
     const labelSetup: __esri.LabelClassProperties = {
+      deconflictionStrategy: 'static',
       symbol: textSymbol,
       labelPlacement: placement,
       labelExpressionInfo: {

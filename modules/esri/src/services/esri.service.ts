@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
+import Basemap from '@arcgis/core/Basemap';
 import { Store } from '@ngrx/store';
 import { isString, mapArray } from '@val/common';
-import Basemap from 'esri/Basemap';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import { distinctUntilChanged, filter, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { BoundaryConfiguration } from '../models/boundary-configuration';

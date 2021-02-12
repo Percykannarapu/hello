@@ -1,10 +1,9 @@
-
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 import { RfpUiEditWrap } from '../../val-modules/mediaexpress/models/RfpUiEditWrap';
 import { FullState } from '../state';
-import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
-import { Store } from '@ngrx/store';
-import { UpsertRfpUiEditDetail, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
+import { UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';
 
 @Injectable({

@@ -8,9 +8,6 @@ import { FieldMetaData } from '../../services/config.service';
 import { FullState } from '../../state';
 import { PopupGeoToggle, PopupNewGeoAdd } from '../../state/popup/popup.actions';
 
-type MapView = import('esri/views/MapView');
-type Feature = import ('esri/widgets/Feature');
-
 @Component({
   selector: 'cpq-map-popup',
   templateUrl: './map-popup.component.html',
@@ -20,9 +17,9 @@ export class MapPopupComponent implements OnInit, OnDestroy {
 
   GeoStatus = GeoStatus; // necessary for the template to use an enum
 
-  @Input() selectedFeature: Feature;
+  @Input() selectedFeature: __esri.Feature;
   @Input() fields: FieldMetaData[];
-  @Input() mapView: MapView;
+  @Input() mapView: __esri.MapView;
 
   @Output() closePopup = new EventEmitter<void>();
 

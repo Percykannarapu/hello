@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
+import Graphic from '@arcgis/core/Graphic';
 import { Store } from '@ngrx/store';
-import Graphic from 'esri/Graphic';
 import { EMPTY, from, Observable } from 'rxjs';
 import { finalize, map, reduce } from 'rxjs/operators';
 import { EsriGraphicTypeCodes } from '../core/esri.enums';

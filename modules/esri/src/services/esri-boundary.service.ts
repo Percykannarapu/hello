@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
+import FieldInfo from '@arcgis/core/popup/FieldInfo';
+import PopupTemplate from '@arcgis/core/PopupTemplate';
+import ActionButton from '@arcgis/core/support/actions/ActionButton';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import FieldInfo from 'esri/popup/FieldInfo';
-import PopupTemplate from 'esri/PopupTemplate';
-import ActionButton from 'esri/support/actions/ActionButton';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap } from 'rxjs/operators';
 import { BoundaryConfiguration, PopupDefinition } from '../models/boundary-configuration';

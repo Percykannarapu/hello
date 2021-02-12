@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { contains } from '@arcgis/core/geometry/geometryEngine';
 import { Store } from '@ngrx/store';
 import {
   filterArray,
@@ -13,7 +14,6 @@ import {
 import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import geometryEngine from 'esri/geometry/geometryEngine';
 import { SelectItem } from 'primeng/api';
 import { ConfirmationService } from 'primeng/components/common/confirmationservice';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
@@ -42,7 +42,6 @@ import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { BoundaryRenderingService } from './boundary-rendering.service';
-import Graphic = __esri.Graphic;
 
 const getHomeGeoKey = (analysisLevel: string) => `Home ${analysisLevel}`;
 const homeGeoColumnsSet = new Set(['Home ATZ', 'Home Zip Code', 'Home Carrier Route', 'Home County', 'Home DMA', 'Home DMA Name', 'Home Digital ATZ']);
@@ -870,12 +869,12 @@ export class AppLocationService {
       if (chunk.length > 0) {
         const points = toUniversalCoordinates(chunk);
         queries.push(this.queryService.queryPoint(layerId, points, true, ['geocode'], pipTransaction).pipe(
-          reduce((acc, result) => [...acc, ...result], [] as Graphic[]),
+          reduce((acc, result) => [...acc, ...result], [] as __esri.Graphic[]),
           map(graphics => {
             const result: [ImpGeofootprintLocation, string][] = [];
             chunk.forEach(loc => {
               for (const graphic of graphics) {
-                if (geometryEngine.contains(graphic.geometry, toUniversalCoordinates(loc) as __esri.Point)){
+                if (contains(graphic.geometry, toUniversalCoordinates(loc) as __esri.Point)){
                   result.push([loc, graphic.attributes['geocode']]);
                   break;
                 }

@@ -1,6 +1,8 @@
+import Extent from '@arcgis/core/geometry/Extent';
+import Multipoint from '@arcgis/core/geometry/Multipoint';
+import Point from '@arcgis/core/geometry/Point';
 import { toUniversalCoordinates } from '@val/common';
 import { defaultEsriAppSettings, EsriUtils } from '@val/esri';
-import { Extent, Multipoint, Point } from 'esri/geometry';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 
 export function quadPartitionLocations(locations: ImpGeofootprintLocation[], analysisLevel: string) : ImpGeofootprintLocation[][] {
@@ -33,6 +35,7 @@ export class QuadTree<T extends NonArray<Parameters<typeof toUniversalCoordinate
   private width: number = null;
 
   constructor(private locations: T[], private readonly extent?: __esri.Extent) {
+    if (locations.length === 0) return;
     if (extent == null) {
       const locationPoints: number[][] = toUniversalCoordinates(locations).map(uc => [uc.x, uc.y]);
       const multiPoint = new Multipoint({ points: locationPoints });

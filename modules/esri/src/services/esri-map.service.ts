@@ -1,13 +1,16 @@
 import { ElementRef, Inject, Injectable } from '@angular/core';
+import Basemap from '@arcgis/core/Basemap';
+import Circle from '@arcgis/core/geometry/Circle';
+import * as geometryEngine from '@arcgis/core/geometry/geometryEngine';
+import Multipoint from '@arcgis/core/geometry/Multipoint';
+import Point from '@arcgis/core/geometry/Point';
+import Polygon from '@arcgis/core/geometry/Polygon';
+import Graphic from '@arcgis/core/Graphic';
+import EsriMap from '@arcgis/core/Map';
+import MapView from '@arcgis/core/views/MapView';
+import Expand from '@arcgis/core/widgets/Expand';
 import { Store } from '@ngrx/store';
 import { calculateStatistics, expandRange, Statistics, UniversalCoordinates } from '@val/common';
-import Basemap from 'esri/Basemap';
-import { Point, Polygon, Extent } from 'esri/geometry';
-import Circle from 'esri/geometry/Circle';
-import Graphic from 'esri/Graphic';
-import EsriMap from 'esri/Map';
-import MapView from 'esri/views/MapView';
-import Expand from 'esri/widgets/Expand';
 import { BehaviorSubject, combineLatest, from, Observable, of, throwError } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken, esriZoomLocalStorageKey } from '../configuration';
@@ -16,8 +19,6 @@ import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
 import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { LoggingService } from './logging.service';
-import Multipoint from 'esri/geometry/Multipoint';
-import geometryEngine from 'esri/geometry/geometryEngine';
 
 function calculateExpandedStats(xData: number[], yData: number[], expansionAmount: number) : [Statistics, Statistics] {
   let xStats = calculateStatistics(xData);
@@ -207,7 +208,7 @@ export class EsriMapService {
     return new Multipoint({points: points});
   }
 
-  public bufferExtent(extent: Extent, distance: number) : Polygon  {
+  public bufferExtent(extent: __esri.Extent, distance: number) : Polygon  {
     const bufferedPolygon: Polygon = <Polygon> geometryEngine.geodesicBuffer(extent, distance, 'miles');
     return bufferedPolygon;
   }

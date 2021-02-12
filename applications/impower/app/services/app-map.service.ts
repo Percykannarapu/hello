@@ -1,16 +1,15 @@
 import { Injectable, NgZone } from '@angular/core';
+import { geodesicArea, geodesicLength } from '@arcgis/core/geometry/geometryEngine';
+import Point from '@arcgis/core/geometry/Point';
+import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
+import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
+import Home from '@arcgis/core/widgets/Home';
+import Legend from '@arcgis/core/widgets/Legend';
+import ScaleBar from '@arcgis/core/widgets/ScaleBar';
+import Search from '@arcgis/core/widgets/Search';
 import { Store } from '@ngrx/store';
 import { EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, selectors } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
-import { Point } from 'esri/geometry';
-import geometryEngine from 'esri/geometry/geometryEngine';
-import BasemapGallery from 'esri/widgets/BasemapGallery';
-import PortalBasemapsSource from 'esri/widgets/BasemapGallery/support/PortalBasemapsSource';
-import Home from 'esri/widgets/Home';
-import Legend from 'esri/widgets/Legend';
-import ScaleBar from 'esri/widgets/ScaleBar';
-import Search from 'esri/widgets/Search';
-// import LayerList from 'esri/widgets/LayerList';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
@@ -22,6 +21,8 @@ import { AppLoggingService } from './app-logging.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppRendererService } from './app-renderer.service';
 import { AppStateService, Season } from './app-state.service';
+
+// import LayerList from '@arcgis/core/widgets/LayerList';
 
 export interface GeoClickEvent {
   geocode: string;
@@ -71,14 +72,14 @@ export class AppMapService {
     this.mapService.createBasicWidget(Home, { viewpoint: homeView });
     this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'map-ui' });
     const source = new PortalBasemapsSource({
-      filterFunction: (b: __esri.Basemap) => this.config.portalBaseMapNames.filter(pb => pb.originalName === b.portalItem.title).length > 0,
+      filterFunction: (b: __esri.Basemap) => this.config.portalBaseMapNames.find(pb => pb.originalName === b.portalItem.title) != null,
       updateBasemapsCallback: (allBaseMaps: __esri.Basemap[]) => {
         const baseMapSortOrder = this.config.portalBaseMapNames.map(n => n.originalName);
         allBaseMaps.sort((a, b) => {
           return baseMapSortOrder.indexOf(a.portalItem.title) - baseMapSortOrder.indexOf(b.portalItem.title);
         });
         allBaseMaps.forEach(basemap => {
-          const currentConfig = this.config.portalBaseMapNames.filter(n => n.originalName === basemap.portalItem.title)[0];
+          const currentConfig = this.config.portalBaseMapNames.find(n => n.originalName === basemap.portalItem.title);
           if (currentConfig != null && currentConfig.newName !== currentConfig.originalName) {
             const handle = basemap.watch('loaded', (newValue, oldValue, propertyName, target) => {
               if (newValue) {
@@ -266,8 +267,8 @@ export class AppMapService {
 
   private measureThis() {
     const geom: any = this.mapService.mapView.popup.selectedFeature.geometry;
-    const distance: number = geometryEngine.geodesicLength(geom, 'miles');
-    const area: number = geometryEngine.geodesicArea(geom, 'square-miles');
+    const distance: number = geodesicLength(geom, 'miles');
+    const area: number = geodesicArea(geom, 'square-miles');
     const distanceStr: string = String(parseFloat(Math.round((distance * 100) / 100).toFixed(2)));
     const areaStr: string = String(parseFloat(Math.round((area * 100) / 100).toFixed(2)));
 

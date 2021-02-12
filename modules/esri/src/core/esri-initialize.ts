@@ -1,55 +1,32 @@
-import esriConfig from 'esri/config';
-import { EsriConfigOptions } from '../configuration';
+import config from '@arcgis/core/config';
+import IdentityManager from '@arcgis/core/identity/IdentityManager';
+import { from, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { EsriAuthenticationParams, EsriConfigOptions } from '../configuration';
+import { TokenResponse } from './esri-utils';
 
-export function setupEsriConfig(options: EsriConfigOptions) {
-  const DEFAULT_WORKER_URL = `https://js.arcgis.com/${options.version}/`;
-  const DEFAULT_LOADER_URL = `${DEFAULT_WORKER_URL}dojo/dojo-lite.js`;
-  const DEFAULT_CSS_URL = `${DEFAULT_WORKER_URL}esri/themes/light/main.css`;
+export function setupEsriConfig(options: EsriConfigOptions) : void {
+  config.portalUrl = options.portalUrl;
+  config.request.timeout = options.request.timeout;
+}
 
-  const topNode = document.querySelector('#top');
-  const cssLink = document.createElement('link');
-  cssLink.rel = 'stylesheet';
-  cssLink.href = DEFAULT_CSS_URL;
-  topNode.parentNode.insertBefore(cssLink, topNode);
+export function generateToken(authConfig: EsriAuthenticationParams) : Observable<TokenResponse> {
+  const serverInfo = { tokenServiceUrl: authConfig.tokenGenerator } as __esri.ServerInfo;
+  const userInfo = { username: authConfig.userName, password: authConfig.password };
+  return from(IdentityManager.generateToken(serverInfo, userInfo)).pipe(
+    map(response => ({ ...response, server: authConfig.tokenServer }))
+  );
+}
 
-  esriConfig.portalUrl = options.portalUrl;
-  esriConfig.request.timeout = options.request.timeout;
-  esriConfig.workers.loaderUrl = DEFAULT_LOADER_URL;
-  esriConfig.workers.loaderConfig = {
-    baseUrl: `${DEFAULT_WORKER_URL}dojo`,
-    packages: [
-      { name: 'esri', location: `${DEFAULT_WORKER_URL}esri` },
-      { name: 'dojo', location: `${DEFAULT_WORKER_URL}dojo` },
-      { name: 'dojox', location: `${DEFAULT_WORKER_URL}dojox` },
-      { name: 'dstore', location: `${DEFAULT_WORKER_URL}dstore` },
-      { name: 'moment', location: `${DEFAULT_WORKER_URL}moment` },
-      { name: '@dojo', location: `${DEFAULT_WORKER_URL}@dojo` },
-      {
-        name: 'cldrjs',
-        location: `${DEFAULT_WORKER_URL}cldrjs`,
-        main: 'dist/cldr'
-      },
-      {
-        name: 'globalize',
-        location: `${DEFAULT_WORKER_URL}globalize`,
-        main: 'dist/globalize'
-      },
-      {
-        name: 'maquette',
-        location: `${DEFAULT_WORKER_URL}maquette`,
-        main: 'dist/maquette.umd'
-      },
-      {
-        name: 'maquette-css-transitions',
-        location: `${DEFAULT_WORKER_URL}maquette-css-transitions`,
-        main: 'dist/maquette-css-transitions.umd'
-      },
-      {
-        name: 'maquette-jsx',
-        location: `${DEFAULT_WORKER_URL}maquette-jsx`,
-        main: 'dist/maquette-jsx.umd'
-      },
-      { name: 'tslib', location: `${DEFAULT_WORKER_URL}tslib`, main: 'tslib' }
-    ]
-  };
+export function displayInitializationError(err: any) : void {
+  const errorMsgElement = document.querySelector('#errorMsgElement');
+  let message = 'Application initialization failed';
+  if (err) {
+    if (err.message) {
+      message = message + ': ' + err.message;
+    } else {
+      message = message + ': ' + err;
+    }
+  }
+  errorMsgElement.textContent = message;
 }

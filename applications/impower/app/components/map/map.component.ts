@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import Viewpoint from '@arcgis/core/Viewpoint';
 import { select, Store } from '@ngrx/store';
 import { SelectedButtonTypeCodes, selectors } from '@val/esri';
-import Viewpoint from 'esri/Viewpoint';
 import { ConfirmationService } from 'primeng/api';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, take } from 'rxjs/operators';

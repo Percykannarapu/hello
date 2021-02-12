@@ -1,7 +1,7 @@
 import { ComponentFactoryResolver, Injectable, Injector } from '@angular/core';
+import Expand from '@arcgis/core/widgets/Expand';
 import { Store } from '@ngrx/store';
 import { EsriDomainFactoryService, EsriLabelLayerOptions, EsriLayerService, EsriMapService, EsriQueryService, EsriService } from '@val/esri';
-import Expand from 'esri/widgets/Expand';
 import { LegendComponent } from '../components/legend/legend.component';
 import { FullState } from '../state';
 import { MapUIState } from '../state/map-ui/map-ui.reducer';

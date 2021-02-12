@@ -2,6 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
+import { ImpClientLocationTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
 import { BaseModel, transient } from '../../api/models/BaseModel';
 import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
 import { ConsumerPurchasingFreq } from '../../mediaexpress/models/ConsumerPurchasingFreq';
@@ -207,9 +208,17 @@ export class ImpProject extends BaseModel
    }
 
    /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   public getImpGeofootprintLocations() : ReadonlyArray<ImpGeofootprintLocation> {
+   public getImpGeofootprintLocations() : ReadonlyArray<ImpGeofootprintLocation>;
+   public getImpGeofootprintLocations(activeOnly: boolean) : ReadonlyArray<ImpGeofootprintLocation>;
+   public getImpGeofootprintLocations(activeOnly: boolean, siteType: ImpClientLocationTypeCodes) : ReadonlyArray<ImpGeofootprintLocation>;
+   public getImpGeofootprintLocations(activeOnly: boolean = false, siteType?: ImpClientLocationTypeCodes) : ReadonlyArray<ImpGeofootprintLocation> {
       const _result: Array<ImpGeofootprintLocation> = new Array<ImpGeofootprintLocation>();
-      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => (_result.push(...impGeofootprintMaster.impGeofootprintLocations || [])));
+      (this.impGeofootprintMasters || []).forEach(impGeofootprintMaster => _result.push(...(impGeofootprintMaster.impGeofootprintLocations.filter(l => {
+        let filterResult = true;
+        if (activeOnly) filterResult = l.isActive;
+        if (siteType != null) filterResult = filterResult && ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === siteType;
+        return filterResult;
+      })) || []));
       return _result;
    }
 

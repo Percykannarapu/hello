@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
+import Color from '@arcgis/core/Color';
+import { geodesicBuffer } from '@arcgis/core/geometry/geometryEngine';
+import Point from '@arcgis/core/geometry/Point';
+import Graphic from '@arcgis/core/Graphic';
+import SimpleRenderer from '@arcgis/core/renderers/SimpleRenderer';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
+import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import { groupByExtended } from '@val/common';
 import { EsriDomainFactoryService, EsriLayerService, MapSymbols } from '@val/esri';
-import Color from 'esri/Color';
-import { Point } from 'esri/geometry';
-import geometryEngine from 'esri/geometry/geometryEngine';
-import Graphic from 'esri/Graphic';
-import { SimpleRenderer } from 'esri/renderers';
-import { SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol } from 'esri/symbols';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 
@@ -62,7 +64,7 @@ export class AppSiteService {
       }
     });
     const points = edits.map(e => new Point({ latitude: e.siteLat, longitude: e.siteLong }));
-    const buffer = geometryEngine.geodesicBuffer(points, radius, 'miles', false);
+    const buffer = geodesicBuffer(points, radius, 'miles', false);
     const bufferArray = Array.isArray(buffer) ? buffer : [buffer];
     return bufferArray.map(geometry => new Graphic({ geometry, symbol }));
   }

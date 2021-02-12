@@ -1,5 +1,5 @@
-import { Point } from 'esri/geometry';
-import Graphic from 'esri/Graphic';
+import Point from '@arcgis/core/geometry/Point';
+import Graphic from '@arcgis/core/Graphic';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 export const defaultLocationPopupFields = [

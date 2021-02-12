@@ -21,11 +21,18 @@
             "tsConfig": "applications/impower/tsconfig.app.json",
             "polyfills": "applications/impower/polyfills.ts",
             "resourcesOutputPath": "assets/resources",
-            "assets": [],
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "node_modules/@arcgis/core/assets",
+                "output": "/assets/"
+              }
+            ],
             "stylePreprocessorOptions": {
               "includePaths": []
             },
             "styles": [
+              "node_modules/@arcgis/core/assets/esri/themes/light/main.css",
               {
                 "input": "node_modules/font-awesome/css/font-awesome.css",
                 "bundleName": "font-awesome"
@@ -220,7 +227,7 @@
       }
     },
     "cpq-maps": {
-      "root": "applications/cpq-maps/",
+      "root": "applications/cpq-maps",
       "sourceRoot": "applications/cpq-maps/src",
       "projectType": "application",
       "prefix": "cpq",
@@ -230,7 +237,7 @@
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
             "customWebpackConfig": {
-              "path": "webpack-cpq.conf.js"
+              "path": "webpack.conf.js"
             },
             "outputPath": "dist/cpq-maps",
             "index": "applications/cpq-maps/src/index.html",
@@ -238,11 +245,18 @@
             "polyfills": "applications/cpq-maps/src/polyfills.ts",
             "tsConfig": "applications/cpq-maps/tsconfig.app.json",
             "es5BrowserSupport": true,
-            "assets": [],
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "node_modules/@arcgis/core/assets",
+                "output": "/assets/"
+              }
+            ],
             "stylePreprocessorOptions": {
               "includePaths": []
             },
             "styles": [
+              "node_modules/@arcgis/core/assets/esri/themes/light/main.css",
               "node_modules/font-awesome/css/font-awesome.css",
               "node_modules/primeng/resources/primeng.css",
               "node_modules/primeicons/primeicons.css",

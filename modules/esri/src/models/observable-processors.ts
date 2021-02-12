@@ -1,5 +1,5 @@
-import Geoprocessor from 'esri/tasks/Geoprocessor';
-import PrintTask from 'esri/tasks/PrintTask';
+import Geoprocessor from '@arcgis/core/tasks/Geoprocessor';
+import PrintTask from '@arcgis/core/tasks/PrintTask';
 import { from, Observable, ObservableInput, of, throwError } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 

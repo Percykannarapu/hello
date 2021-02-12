@@ -1,16 +1,19 @@
 import { Injectable } from '@angular/core';
+import Color from '@arcgis/core/Color';
+import Point from '@arcgis/core/geometry/Point';
+import Graphic from '@arcgis/core/Graphic';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import GroupLayer from '@arcgis/core/layers/GroupLayer';
+import Layer from '@arcgis/core/layers/Layer';
+import LabelClass from '@arcgis/core/layers/support/LabelClass';
+import Font from '@arcgis/core/symbols/Font';
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import TextSymbol from '@arcgis/core/symbols/TextSymbol';
 import { Store } from '@ngrx/store';
 import { UniversalCoordinates } from '@val/common';
-import Color from 'esri/Color';
-import { Point } from 'esri/geometry';
-import Graphic from 'esri/Graphic';
-import FeatureLayer from 'esri/layers/FeatureLayer';
-import GraphicsLayer from 'esri/layers/GraphicsLayer';
-import GroupLayer from 'esri/layers/GroupLayer';
-import Layer from 'esri/layers/Layer';
-import LabelClass from 'esri/layers/support/LabelClass';
-import { Font, SimpleMarkerSymbol, TextSymbol } from 'esri/symbols';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
 import { isSymbolTableElement, isSymbolTableElementInfo } from '../core/type-checks';
 import { MapSymbols } from '../models/esri-types';
@@ -25,11 +28,17 @@ import { LoggingService } from './logging.service';
 @Injectable()
 export class EsriLayerService {
 
+  private layersAreReady = new BehaviorSubject<boolean>(false);
+  private layerStatusSub: Subscription;
+  private layerStatusTracker = new Map<string, Observable<boolean>>();
+
   private legendShimmed: boolean = false;
   private popupsPermanentlyDisabled = new Set<__esri.Layer>();
   private layerNamesShowingInLegend = new Map<string, string>();
   private queryOnlyLayers = new Map<string, __esri.FeatureLayer>();
   private legendElementWatchHandles = new Map<string, IHandle>();
+
+  public layersAreReady$: Observable<boolean> = this.layersAreReady.asObservable();
 
   constructor(private mapService: EsriMapService,
               private domainFactory: EsriDomainFactoryService,
@@ -57,7 +66,8 @@ export class EsriLayerService {
       labelExpressionInfo: {
         expression: layerOptions.expression
       },
-      symbol: textSymbol
+      symbol: textSymbol,
+      deconflictionStrategy: 'static'
     })];
   }
 
@@ -104,10 +114,6 @@ export class EsriLayerService {
 
   public getLayerByUniqueId(layerUniqueId: string) : __esri.Layer {
     return this.mapService.mapView.map.allLayers.find(l => l.id === layerUniqueId);
-  }
-
-  public getLayersByFilter(filter: (l: __esri.Layer) => boolean) : __esri.Layer[] {
-    return this.mapService.mapView.map.allLayers.filter(filter).toArray();
   }
 
   public getFeatureLayer(layerName: string) : __esri.FeatureLayer {
@@ -169,7 +175,9 @@ export class EsriLayerService {
         this.logger.debug.log(`Removing layer "${layer.title}" from group "${parent.title}"`);
         parent.layers.remove(layer);
       } else {
+        this.layerStatusTracker.delete(layer.id);
         this.mapService.mapView.map.layers.remove(layer);
+        this.refreshLayerTracker();
       }
     }
   }
@@ -235,6 +243,7 @@ export class EsriLayerService {
           currentLayer.when().catch(reason => {
             subject.error({ message: `There was an error creating the '${layerTitle}' layer.`, data: reason });
           }).then(() => {
+            setTimeout(() => this.trackLayerStatus(currentLayer));
             subject.complete();
           });
         }).catch(reason => {
@@ -260,9 +269,10 @@ export class EsriLayerService {
     const group = this.createClientGroup(groupName, true, bottom);
     const layer: __esri.GraphicsLayer = new GraphicsLayer({ graphics: graphics, title: layerName });
     group.layers.unshift(layer);
-    if (addToLegend) {
-      layer.when().then(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: layerName, showDefaultSymbol: true })));
-    }
+    layer.when().then(() => {
+      if (addToLegend) this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: layerName, showDefaultSymbol: true }));
+      setTimeout(() => this.trackLayerStatus(layer));
+    });
     return layer;
   }
 
@@ -286,9 +296,10 @@ export class EsriLayerService {
 
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
     group.layers.add(layer);
-    if (addToLegend) {
-      layer.when().then(() => this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: legendHeader, showDefaultSymbol: EsriUtils.rendererIsSimple(renderer) })));
-    }
+    layer.when().then(() => {
+      if (addToLegend) this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: legendHeader, showDefaultSymbol: EsriUtils.rendererIsSimple(renderer) }));
+      setTimeout(() => this.trackLayerStatus(layer));
+    });
     return layer;
   }
 
@@ -342,7 +353,7 @@ export class EsriLayerService {
       if (layer != null && !this.layerNamesShowingInLegend.has(layerUniqueId)) {
         // can't use .push() here - a new array instance is needed to trigger the
         // internal mechanics to convert these to activeLayerInfos
-        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer, hideLayers: [], defaultSymbol: showDefaultSymbol } ];
+        legendRef.layerInfos = [ ...legendRef.layerInfos, { title, layer, hideLayers: [], defaultSymbol: showDefaultSymbol } as any ];
         this.layerNamesShowingInLegend.set(layerUniqueId, title);
       }
     }
@@ -399,5 +410,27 @@ export class EsriLayerService {
     this.queryOnlyLayers.set(queryId, result);
     this.mapService.mapView.map.add(result);
     return result;
+  }
+
+  private trackLayerStatus(layer: __esri.Layer) : void {
+    this.mapService.mapView.whenLayerView(layer).then(view => {
+      if (view != null) {
+        const watch$ = EsriUtils.setupWatch(view, 'updating', true).pipe(
+          map(result => !result.newValue),
+        );
+        this.layerStatusTracker.set(layer.id, watch$);
+        this.refreshLayerTracker();
+      }
+    });
+  }
+
+  private refreshLayerTracker() : void {
+    if (this.layerStatusSub) {
+      this.layerStatusSub.unsubscribe();
+    }
+    this.layerStatusSub = combineLatest(Array.from(this.layerStatusTracker.values())).pipe(
+      map(values => values.every(result => result)),
+      distinctUntilChanged()
+    ).subscribe(ready => this.layersAreReady.next(ready));
   }
 }

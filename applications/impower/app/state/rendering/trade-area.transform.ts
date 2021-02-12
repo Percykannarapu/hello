@@ -1,5 +1,5 @@
+import Point from '@arcgis/core/geometry/Point';
 import { groupByExtended, isConvertibleToNumber, toUniversalCoordinates } from '@val/common';
-import { Point } from 'esri/geometry';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
@@ -34,8 +34,8 @@ export function prepareRadiusTradeAreas(tradeAreas: ImpGeofootprintTradeArea[], 
     [ImpClientLocationTypeCodes.Site, TradeAreaMergeTypeCodes.parse(currentProject.taSiteMergeType)],
     [ImpClientLocationTypeCodes.Competitor, TradeAreaMergeTypeCodes.parse(currentProject.taCompetitorMergeType)]
   ]);
-  const usableTradeAreas = tradeAreas.filter(ta => ta.impGeofootprintLocation != null); // This filter is already applied to the observable that starts this process,
-                                                                                        // but the re-homegeocode process is breaking it somehow
+  const usableTradeAreas = tradeAreas.filter(ta => ta.impGeofootprintLocation != null && ta.taRadius > 0); // This filter is already applied to the observable that starts this process,
+                                                                                                           // but the re-homegeocode process is breaking it somehow
   const siteGroups = groupByExtended(usableTradeAreas, ta => ImpClientLocationTypeCodes.parseAsSuccessful(ta.impGeofootprintLocation.clientLocationTypeCode));
   siteGroups.forEach((tas, siteType) => {
     const mergeType = siteMergeMap.get(siteType);

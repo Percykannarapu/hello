@@ -1,6 +1,7 @@
 import { InjectionToken } from '@angular/core';
 import { LogLevels } from '@val/common';
 
+
 export interface EsriConfigOptions extends Partial<__esri.config> {
   version: string;
 }

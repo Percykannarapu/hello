@@ -1,20 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
 import { getUuid, groupByExtended, isConvertibleToNumber } from '@val/common';
-import { EsriMapService, EsriQueryService } from '@val/esri';
+import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
+import { User } from 'app/models/User';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
-import { Extent } from 'esri/geometry';
-import { Observable, of, race, timer } from 'rxjs';
-import { debounceTime, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { combineLatest, Observable, of, race, timer } from 'rxjs';
+import { filter, map, switchMap, take } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocationBySiteNum } from '../common/valassis-sorters';
-import { getMapAudienceIsFetching } from '../impower-datastore/state/transient/audience/audience.selectors';
 import { BatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
@@ -24,7 +24,6 @@ import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/Imp
 import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
 import { AppStateService } from './app-state.service';
-import { User } from 'app/models/User';
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +37,7 @@ export class BatchMapService {
   constructor(private geoService: ImpGeofootprintGeoService,
               private esriMapService: EsriMapService,
               private esriQueryService: EsriQueryService,
+              private esriLayerService: EsriLayerService,
               private config: AppConfig,
               private appStateService: AppStateService,
               private appMapService: AppMapService,
@@ -46,15 +46,17 @@ export class BatchMapService {
               private http: HttpClient) { }
 
   initBatchMapping(projectId: number) : void {
-    this.esriMapService.watchMapViewProperty('updating').pipe(
-      debounceTime(500),
-      withLatestFrom(this.store$.select(getMapAudienceIsFetching)),
-      map(([result, isFetching]) => !isFetching && !result.newValue)
-    ).subscribe(ready => this.store$.dispatch(new SetMapReady({ mapReady: ready })));
-
-    this.esriMapService.watchMapViewProperty('stationary').pipe(
-      filter(result => result.newValue),
-    ).subscribe(() => this.appStateService.refreshVisibleGeos());
+    const mapIsStationary$ = this.esriMapService.watchMapViewProperty('stationary').pipe(
+      map(result => result.newValue)
+    );
+    combineLatest([this.esriLayerService.layersAreReady$, mapIsStationary$]).pipe(
+      map(([ready, stationary]) => ready && stationary)
+    ).subscribe(mapReady => {
+      this.store$.dispatch(new SetMapReady({ mapReady }));
+      if (mapReady) {
+        this.appStateService.refreshVisibleGeos();
+      }
+    });
 
     this.appMapService.setupMap(true);
     this.store$.dispatch(new ProjectLoad({ projectId, isBatchMode: true }));
@@ -74,11 +76,7 @@ export class BatchMapService {
   }
 
   getBatchMapDetailsByUser(user: User){
-    /*this.logService.debug.log('TODO REMOVE user details=====:', user);
-    const mapPayload = {'email': user.email, 'userName': user.username};
-    return this.http.post(`${this.config.printServiceUrl}/jobdetails/username`, JSON.stringify(mapPayload));*/
     return this.http.get(`${this.config.printServiceUrl}/jobdetails/username?email=${user.email}&userName=${user.username}`);
-
   }
 
   getBatchMapDetailsById(jobId: number){
@@ -98,14 +96,13 @@ export class BatchMapService {
   }
 
   validateProjectReadiness(project: ImpProject) : boolean {
-    const notificationTitle = 'Batch Map Issue';
-    const projectNotSaved = 'The project must be saved before you can generate a batch map.';
-    let result = true;
     if (project.projectId == null) {
+      const notificationTitle = 'Batch Map Issue';
+      const projectNotSaved = 'The project must be saved before you can generate a batch map.';
       this.store$.dispatch(new ErrorNotification({ message: projectNotSaved, notificationTitle }));
-      result = false;
+      return false;
     }
-    return result;
+    return true;
   }
 
   startBatchMaps(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
@@ -114,11 +111,11 @@ export class BatchMapService {
       this.recordOriginalState(project);
       this.geoQueryId = getUuid();
     }
-    project.impGeofootprintMasters[0].impGeofootprintLocations.forEach(l => {
+    project.getImpGeofootprintLocations().forEach(l => {
       l.impGeofootprintTradeAreas.forEach(ta => {
-        if (ta.taType.toLowerCase() === TradeAreaTypeCodes.Custom.toLowerCase() && params.fitTo === FitTo.TA) {
+        if (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Custom && params.fitTo === FitTo.TA) {
           params.fitTo = FitTo.GEOS; //if the project has any custom trade areas we must fit to geos
-          this.logService.warn.log('Project has cutsom trade areas, but selected fit to TA, forcing fit to geos instead');
+          this.logService.warn.log('Project has custom trade areas, but selected fit to TA, forcing fit to geos instead');
         }
       });
     });
@@ -175,8 +172,7 @@ export class BatchMapService {
 
   private groupLocationsByAttribute(project: ImpProject, params: BatchMapQueryParams) : Map<string, Array<ImpGeofootprintLocation>>{
     let groupedSites: Map<string, Array<ImpGeofootprintLocation>>;
-    const clientLocations = project.getImpGeofootprintLocations()
-      .filter(loc => ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site && loc.isActive);
+    const clientLocations = project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site);
     if (clientLocations[0].hasOwnProperty(params.groupByAttribute)) {
       groupedSites = groupByExtended(clientLocations, item => item[params.groupByAttribute]);
     } else {
@@ -194,8 +190,7 @@ export class BatchMapService {
   }
 
   showAllSites(project: ImpProject, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    const locations = [ ...project.getImpGeofootprintLocations()
-      .filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
+    const locations = [ ...project.getImpGeofootprintLocations(false, ImpClientLocationTypeCodes.Site) ];
     locations.sort(LocationBySiteNum);
     const currentGeos = project.getImpGeofootprintGeos().filter(geo => geo.impGeofootprintLocation.isActive);
     const result = { siteNum: locations[locations.length - 1].locationNumber, isLastSite: true };
@@ -205,8 +200,7 @@ export class BatchMapService {
   }
 
   zoomToCurrentView(project: ImpProject, params: BatchMapQueryParams){
-    const locations = [ ...project.getImpGeofootprintLocations()
-      .filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
+    const locations = [ ...project.getImpGeofootprintLocations(false, ImpClientLocationTypeCodes.Site) ];
     locations.sort(LocationBySiteNum);
     const extent: ExtentPayload = {
       spatialReference: {
@@ -226,10 +220,9 @@ export class BatchMapService {
   }
 
   moveToSite(project: ImpProject, siteNum: string, params: BatchMapQueryParams) : Observable<{ siteNum: string, isLastSite: boolean }> {
-    const locations = [ ...project.getImpGeofootprintLocations()
-      .filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site) ];
-    const result = { siteNum: siteNum, isLastSite: true };
+    const locations = [ ...project.getImpGeofootprintLocations(false, ImpClientLocationTypeCodes.Site) ];
     locations.sort(LocationBySiteNum);
+    const result = { siteNum: siteNum, isLastSite: true };
     let currentGeosForZoom: ReadonlyArray<ImpGeofootprintGeo> = [];
     let currentSiteForZoom: ImpGeofootprintLocation;
     for (let i = 0; i < locations.length; ++i) {
@@ -252,8 +245,7 @@ export class BatchMapService {
         currentSiteForZoom = currentSite;
         currentGeosForZoom = currentSite.getImpGeofootprintGeos();
         if (params.hideNeighboringSites) {
-          const renderLocs = project.getImpGeofootprintLocations()
-            .filter(loc => ImpClientLocationTypeCodes.parse(loc.clientLocationTypeCode) === ImpClientLocationTypeCodes.Competitor);
+          const renderLocs = [...project.getImpGeofootprintLocations(false, ImpClientLocationTypeCodes.Competitor)];
           renderLocs.push(currentSite);
           this.store$.dispatch(new RenderLocations({ locations: renderLocs }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
@@ -307,11 +299,7 @@ export class BatchMapService {
 
   private forceMapUpdate() {
     const timeout = 120000; // 2 minutes
-    const mapReady$ = this.esriMapService.watchMapViewProperty('updating').pipe(
-      debounceTime(500),
-      map(result => result.newValue),
-      filter(result => !result),
-    );
+    const mapReady$ = this.esriLayerService.layersAreReady$.pipe(filter(ready => ready));
 
     const timeout$ = timer(timeout).pipe(
       map(() => false)

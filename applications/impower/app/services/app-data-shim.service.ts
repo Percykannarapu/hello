@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
 import { filterArray, groupBy, mapArray, mapByExtended } from '@val/common';
 import { BasicLayerSetup, EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
@@ -6,7 +7,6 @@ import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotif
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
-import { Extent } from 'esri/geometry';
 import { Observable } from 'rxjs';
 import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';

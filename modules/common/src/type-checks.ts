@@ -61,3 +61,11 @@ export function isFunction(value: any) : value is Function {
 export function isDate(value: any) : value is Date {
   return value instanceof Date;
 }
+
+export function isNumberArray(value: any) : value is number[] {
+  return !isNil(value) && isArray(value) && isValidNumber(value[0]);
+}
+
+export function isStringArray(value: any) : value is string[] {
+  return !isNil(value) && isArray(value) && isString(value[0]);
+}
