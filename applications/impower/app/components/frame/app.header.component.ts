@@ -7,11 +7,9 @@ import { UserService } from '../../services/user.service';
         <div class="impower-header-wrapper">
           <div class="impower-header">
             <div class="logo"></div>
-            <div class="announcement" *acsGrant="['IMPOWER_INTERNAL_FEATURES']">
+            <div class="announcement" *acsGrant="['IMPOWER_BASE_USER']">
               <span>
-                Please Note: Distribution has changed. Users should reference the
-                <a target="_blank" href="http://myvalassis/Sales%20%20Marketing/marketplanning/marketreach/2021%20Direct%20Mail%20Footprint/Forms/AllItems.aspx?InitialTabId=Ribbon.Library&VisibilityContext=WSSListAndLibrary">'2021 Zip-ATZ Closures-Reductions-ATZ Footprint ...' file</a>
-                to ensure all desired geographies and distribution methods are included.
+              Please note, due to the power outages in Texas, PDF map exports are currently unstable. It is likely that your map request will either not complete or will return unexpected results. These issues will continue until power is permanently restored.
               </span>
             </div>
             <div *ngIf="username" class="user">
