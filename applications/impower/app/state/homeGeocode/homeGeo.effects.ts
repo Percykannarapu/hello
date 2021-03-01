@@ -51,7 +51,7 @@ export class HomeGeoEffects {
             new ApplyTradeAreaOnEdit({ isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos})
           ]),
          catchError(err => of(
-          new ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo'}),
+          new ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo', additionalErrorInfo: err}),
           new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
         ))
       ))
