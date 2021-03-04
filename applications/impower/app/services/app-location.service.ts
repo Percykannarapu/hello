@@ -425,12 +425,12 @@ export class AppLocationService {
             const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
             // validate homegeo rules
 
-            if (loc.origPostalCode != null && loc.origPostalCode.length > 0 && (loc.locZip.substr(0, 5) !== loc.origPostalCode.substr(0, 5))) {
+            if (loc.origPostalCode != null && loc.origPostalCode.length > 0 && ( loc.locZip != null && loc.locZip.substr(0, 5) !== loc.origPostalCode.substr(0, 5))) {
               homeGeocodeIssue = 'Y';
               warningNotificationFlag = 'Y';
             }
             if (newHomeGeoToAnalysisLevelMap[key] !== 'Home DMA' && newHomeGeoToAnalysisLevelMap[key] !== 'Home County'
-              && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && loc.locZip.length > 0 && firstHomeGeoValue.substr(0, 5) !== loc.locZip.substr(0, 5)))){
+              && (firstHomeGeoValue.length === 0 || (firstHomeGeoValue.length > 0 && loc.locZip != null && loc.locZip.length > 0 && firstHomeGeoValue.substr(0, 5) !== loc.locZip.substr(0, 5)))){
                 homeGeocodeIssue = 'Y';
                 warningNotificationFlag = 'Y';
             }
@@ -629,7 +629,7 @@ export class AppLocationService {
         const locationsHomeGeoFuse: ImpGeofootprintLocation[] = [];
         const locationsForPIP: ImpGeofootprintLocation[] = [];
         locationsMap.get('needtoPipLocations').forEach(loc => {
-          if (loc.carrierRoute != null && loc.carrierRoute !== ''){
+          if (loc.carrierRoute != null && loc.carrierRoute !== '' && loc.locZip != null){
             loc.homePcr = loc.locZip.substr(0, 5) + loc.carrierRoute;
             locationsHomeGeoFuse.push(loc);
           }else{
@@ -646,7 +646,7 @@ export class AppLocationService {
                 if (result.rePipLocations.length > 0){
                     const row = {'ATZ': null, 'DTZ' : null, 'ZIP': null, 'DMA': null, 'COUNTY': null};
                     result.rePipLocations.forEach(loc => {
-                      attributesList.push(this.createArreibut(row, loc));
+                      attributesList.push(this.createAttribute(row, loc));
                   });
                 }
                 return attributesList;
@@ -673,7 +673,7 @@ export class AppLocationService {
                     if (res1.rePipLocations.length > 0){
                       const row = {'ATZ': null, 'DTZ' : null, 'ZIP': null, 'DMA': null, 'COUNTY': null};
                       res1.rePipLocations.forEach(loc => {
-                          attributesList.push(this.createArreibut(row, loc));
+                          attributesList.push(this.createAttribute(row, loc));
                       });
                       //attributesList.push(res1.rePipLocations.forEach(loc => this.createArreibut(row, loc)));
                     }
@@ -847,7 +847,7 @@ export class AppLocationService {
     pipResponse.forEach((geo: string, loc: ImpGeofootprintLocation) => {
       const row = responseMap.get(geo);
           if (row != null && row.length > 0){
-            attributesList.push(this.createArreibut(row[0], loc));
+            attributesList.push(this.createAttribute(row[0], loc));
             locMapBySiteNumber.delete(loc.locationNumber);
           }
           else pipAgianLocations.push(loc);
@@ -898,7 +898,7 @@ export class AppLocationService {
 
 
 
-  createArreibut(row: {}, loc: ImpGeofootprintLocation){
+  createAttribute(row: {}, loc: ImpGeofootprintLocation){
    const locHomeArributes: Map<string, string>  = new Map<string, string>();
    loc.impGeofootprintLocAttribs.forEach(attr => {
       if (homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue !== ''){
@@ -915,7 +915,7 @@ export class AppLocationService {
       'homeDigitalAtz':  locHomeArributes.has('Home Digital ATZ')   ?  locHomeArributes.get('Home Digital ATZ')    :   row ['DTZ'],
       'homeDmaName'   :  null,
       'siteNumber'    :  loc.locationNumber,
-      'abZip'         :  loc.locZip.substring(0, 5)
+      'abZip'         :  loc.locZip != null ? loc.locZip.substring(0, 5): null
     };
 
   }
