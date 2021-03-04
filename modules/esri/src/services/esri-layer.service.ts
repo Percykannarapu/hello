@@ -77,6 +77,10 @@ export class EsriLayerService {
     this.logger.debug.log('Clearing', groupName, 'layer');
     if (EsriUtils.layerIsGroup(group)) {
       this.logger.info.log('Group found, removing layers');
+      group.layers.forEach(l => {
+        this.layerStatusTracker.delete(l.id);
+      });
+      this.refreshLayerTracker();
       group.layers.removeAll();
       this.mapService.mapView.map.layers.remove(group);
     }
@@ -175,16 +179,22 @@ export class EsriLayerService {
         this.logger.debug.log(`Removing layer "${layer.title}" from group "${parent.title}"`);
         parent.layers.remove(layer);
       } else {
-        this.layerStatusTracker.delete(layer.id);
         this.mapService.mapView.map.layers.remove(layer);
-        this.refreshLayerTracker();
       }
+      this.layerStatusTracker.delete(layer.id);
+      this.refreshLayerTracker();
     }
   }
 
   public removeGroup(groupName: string) : void {
     const currentGroup = this.getPortalGroup(groupName);
     if (currentGroup != null) {
+      if (currentGroup.layers.length > 0) {
+        currentGroup.layers.forEach(l => {
+          this.layerStatusTracker.delete(l.id);
+        });
+        this.refreshLayerTracker();
+      }
       this.mapService.mapView.map.layers.remove(currentGroup);
     }
   }
@@ -428,9 +438,13 @@ export class EsriLayerService {
     if (this.layerStatusSub) {
       this.layerStatusSub.unsubscribe();
     }
-    this.layerStatusSub = combineLatest(Array.from(this.layerStatusTracker.values())).pipe(
-      map(values => values.every(result => result)),
-      distinctUntilChanged()
-    ).subscribe(ready => this.layersAreReady.next(ready));
+    if (this.layerStatusTracker.size > 0) {
+      this.layerStatusSub = combineLatest(Array.from(this.layerStatusTracker.values())).pipe(
+        map(values => values.every(result => result)),
+        distinctUntilChanged()
+      ).subscribe(ready => this.layersAreReady.next(ready));
+    } else {
+      this.layersAreReady.next(false);
+    }
   }
 }

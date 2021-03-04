@@ -45,7 +45,7 @@ export class RenderingEffects {
     concatMap(typeMap => [
       new StartBusyIndicator({ key: this.renderingKey, message: 'Rendering Trade Area Rings...' }),
       new RenderRadiusTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Radius) }),
-      new RenderAudienceTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Audience) })
+      // new RenderAudienceTradeAreas({ tradeAreas: typeMap.get(TradeAreaTypeCodes.Audience) })
     ])
   );
 
