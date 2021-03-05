@@ -423,15 +423,20 @@ export class EsriLayerService {
   }
 
   private trackLayerStatus(layer: __esri.Layer) : void {
-    this.mapService.mapView.whenLayerView(layer).then(view => {
-      if (view != null) {
-        const watch$ = EsriUtils.setupWatch(view, 'updating', true).pipe(
-          map(result => !result.newValue),
-        );
-        this.layerStatusTracker.set(layer.id, watch$);
-        this.refreshLayerTracker();
-      }
-    });
+    if (this.mapService.mapView.map.allLayers.includes(layer)) {
+      this.mapService.mapView.whenLayerView(layer).then(view => {
+          if (view != null) {
+            const watch$ = EsriUtils.setupWatch(view, 'updating', true).pipe(
+              map(result => !result.newValue),
+            );
+            this.layerStatusTracker.set(layer.id, watch$);
+            this.refreshLayerTracker();
+          }
+        });
+    } else {
+      this.layerStatusTracker.delete(layer.id);
+      this.refreshLayerTracker();
+    }
   }
 
   private refreshLayerTracker() : void {

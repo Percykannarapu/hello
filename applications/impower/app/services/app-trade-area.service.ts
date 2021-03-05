@@ -75,7 +75,6 @@ export class AppTradeAreaService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-      if (!this.appConfig.isBatchMode) {
         combineLatest([this.impTradeAreaService.storeObservable, this.impLocationService.storeObservable]).pipe(
           map(([ta]) => ta),
           filter(ta => ta != null),
@@ -83,7 +82,6 @@ export class AppTradeAreaService {
         ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
 
         this.setupAnalysisLevelGeoClearObservable();
-      }
     });
   }
 
