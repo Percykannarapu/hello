@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { getUuid, groupToEntity, mapArrayToEntity, mapByExtended } from '@val/common';
+import { getUuid, groupToEntity, mapArrayToEntity, mapByExtended, toUniversalCoordinates, groupByExtended, isConvertibleToNumber, filterArray } from '@val/common';
 import {
   ColorPalette,
   duplicatePoiConfiguration,
@@ -11,9 +11,13 @@ import {
   generateUniqueMarkerValues,
   getColorPalette,
   PoiConfiguration,
-  PoiConfigurationTypes
+  PoiConfigurationTypes,
+  EsriAppSettingsToken,
+  EsriAppSettings,
+  RadiiTradeAreaDrawDefinition,
+  EsriQuadTree
 } from '@val/esri';
-import { filter, take, withLatestFrom } from 'rxjs/operators';
+import { filter, take, withLatestFrom, map, reduce, tap, switchMap } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { extractUniqueAttributeValues } from '../common/model.transforms';
 import { FullAppState } from '../state/app.interfaces';
@@ -22,9 +26,19 @@ import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { createSiteGraphic, defaultLocationPopupFields } from '../state/rendering/location.transform';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
+import { TradeAreaDrawDefinition } from 'app/state/rendering/trade-area.transform';
+import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
+import Point from '@arcgis/core/geometry/Point';
+import { LoggingService } from '../../../../modules/esri/src/services/logging.service';
+import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { getTypedBatchQueryParams, BatchMapQueryParams } from 'app/state/shared/router.interfaces';
+
+
 
 @Injectable({
   providedIn: 'root'
@@ -37,6 +51,11 @@ export class PoiRenderingService {
               private appPrefService: AppProjectPrefService,
               private esriPoiService: EsriPoiService,
               private config: AppConfig,
+              private logger: LoggingService,
+              private impTradeAreaService: ImpGeofootprintTradeAreaService,
+              private impDomainFactory: ImpDomainFactoryService,
+              private impLocationService: ImpGeofootprintLocationService,
+              @Inject(EsriAppSettingsToken) private esriSettings: EsriAppSettings,
               private store$: Store<FullAppState>) {
     this.appStateService.applicationIsReady$.pipe(
       filter(ready => ready),
@@ -105,6 +124,13 @@ export class PoiRenderingService {
             const edits = this.prepareLayerEdits(result.features, newPoints);
             if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
               existingLayer.applyEdits(edits);
+              if (renderingSetup.visibleRadius){
+                const locType: ImpClientLocationTypeCodes = renderingSetup.dataKey === 'Site' ? ImpClientLocationTypeCodes.Site : ImpClientLocationTypeCodes.Competitor;
+                const tas  = this.applyRadiusTradeArea (renderingSetup['tradeAreas'], locType)
+                let newPoi = this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, renderingSetup);
+                newPoi = duplicatePoiConfiguration(newPoi);
+                this.esriPoiService.upsertPoiConfig(newPoi);
+              }
             }
             existingLayer.legendEnabled = newPoints.length > 0;
           });
@@ -181,6 +207,9 @@ export class PoiRenderingService {
       opacity: 1,
       visible: true,
       showLabels: true,
+      visibleRadius: false,
+      radiiTradeareaDefination: [],
+      radiiColor: [0, 0, 255, 1],
       labelDefinition: {
         color: [0, 0, 255, 1],
         haloColor: [255, 255, 255, 1],
@@ -204,6 +233,9 @@ export class PoiRenderingService {
       opacity: 1,
       visible: true,
       showLabels: true,
+      visibleRadius: false,
+      radiiTradeareaDefination: [],
+      radiiColor: [255, 0, 0, 1],
       labelDefinition: {
         color: [255, 0, 0, 1],
         haloColor: [255, 255, 255, 1],
@@ -217,5 +249,88 @@ export class PoiRenderingService {
       },
       symbolDefinition: { color: [255, 0, 0, 1], markerType: 'path', legendName: 'Competitors', outlineColor: [255, 255, 255, 1], size: 10 }
     }];
+  }
+
+  /*private createRadiiDefination(){
+    const radiiDefination: RadiiTradeAreaDrawDefinition[] = [];
+    const siteType = ImpClientLocationTypeCodes.Site;
+    const mergeType = TradeAreaMergeTypeCodes.NoMerge;
+    for (let i = 0; i < 4; ++i) {
+      const layerName = `Site Radii ${i +1}`;
+      const currentResult = new TradeAreaDrawDefinition(siteType, layerName, [0, 0, 255, 1] , mergeType !== TradeAreaMergeTypeCodes.NoMerge);
+      radiiDefination.push(currentResult);
+    }
+    return radiiDefination;
+  }*/
+
+  private toPoint(ta: ImpGeofootprintTradeArea, wkid: number) : __esri.Point {
+    const coordinates = toUniversalCoordinates(ta.impGeofootprintLocation);
+    return new Point({ spatialReference: { wkid }, ...coordinates });
+  }
+  
+
+  renderRadii (tradeAreas: ImpGeofootprintTradeArea[], siteType: SuccessfulLocationTypeCodes, wkid: number, definition: PoiConfiguration){
+    const result: RadiiTradeAreaDrawDefinition[] = [];
+    //const maxTaNum = Math.max(...tradeAreas.map(ta => ta.taNumber));
+    const layerGroups = groupByExtended(tradeAreas, ta => ta.taName);
+    layerGroups.forEach((layerTradeAreas, layerName) => {
+      const currentResult = new RadiiTradeAreaDrawDefinition(siteType, layerName, definition.radiiColor, true);
+      if (layerTradeAreas.length < 10000) {
+        if (layerTradeAreas.length > 7000) {
+          currentResult.merge = false;
+        }
+        layerTradeAreas.forEach(ta => {
+          if (isConvertibleToNumber(ta.taRadius)) {
+            const currentPoint = this.toPoint(ta, wkid);
+            currentResult.buffer.push(Number(ta.taRadius));
+            currentResult.centers.push(currentPoint);
+            currentResult.taNumber = ta.taNumber;
+            currentResult.bufferedPoints.push({
+              buffer: Number(ta.taRadius),
+              xcoord: ta.impGeofootprintLocation.xcoord,
+              ycoord: ta.impGeofootprintLocation.ycoord,
+              point: currentPoint
+            });
+          }
+        });
+        result.push(currentResult);
+      }
+    });
+    
+    definition.radiiTradeareaDefination = result;
+    //this.esriPoiService.upsertPoiConfig(definition);
+    return definition;
+  }
+
+  public applyRadiusTradeArea(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[], siteType: SuccessfulLocationTypeCodes)  {
+    const currentLocations = this.getLocations(siteType);
+    const tradeAreaFilter = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radii]);
+    /*const currentTradeAreas = this.impTradeAreaService.get()
+      .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
+                    tradeAreaFilter.has(TradeAreaTypeCodes.parse(ta.taType)));*/
+    
+    //this.deleteTradeAreas(currentTradeAreas);    
+    return this.applyRadiiTradeAreasToLocations(tradeAreas, currentLocations);            
+  }
+
+  public createRadiusTradeAreasForLocations(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = false) : ImpGeofootprintTradeArea[] {
+    const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+    if (tradeAreas != null && tradeAreas.length > 0) {
+      locations.forEach(location => {
+        tradeAreas.forEach(ta => {
+          newTradeAreas.push(this.impDomainFactory.createTradeArea(location, TradeAreaTypeCodes.Radii, ta.isActive, ta.tradeAreaNumber, ta.radius, attachToHierarchy));
+        });
+      });
+    }
+    return newTradeAreas;
+  }
+
+  public applyRadiiTradeAreasToLocations(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[], locations: ImpGeofootprintLocation[]) {
+    const newTradeAreas: ImpGeofootprintTradeArea[] = this.createRadiusTradeAreasForLocations(tradeAreas, locations);
+    return newTradeAreas;
+  }
+  private getLocations(siteType: SuccessfulLocationTypeCodes) : ImpGeofootprintLocation[] {
+    const locs: ImpGeofootprintLocation[] = [];
+    return this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType && loc.isActive);
   }
 }

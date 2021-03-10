@@ -1,7 +1,7 @@
 import { markerStyleDefaultSizes } from '../core/esri.enums';
 import { ColorPalette } from './color-palettes';
 import { duplicateLabel, duplicateMarker, LabelDefinition, MarkerSymbolDefinition, UniqueValueMarkerDefinition } from './common-configuration';
-import { markerStyleValues, RgbTuple } from './esri-types';
+import { markerStyleValues, RgbTuple, RgbaTuple } from './esri-types';
 
 export enum PoiConfigurationTypes {
   Simple = 'Simple',
@@ -9,6 +9,27 @@ export enum PoiConfigurationTypes {
   // ClassBreak = 'ClassBreak',
   // HeatMap = 'HeatMap'
 }
+
+export class RadiiTradeAreaDrawDefinition {
+  groupName: string;
+  layerName: string;
+  buffer: number[] = [];
+  centers: __esri.Point[] = [];
+  taNumber: number;
+
+  bufferedPoints: {
+    buffer: number;
+    xcoord: number;
+    ycoord: number;
+    point: __esri.Point;
+  }[] = [];
+
+  constructor(siteType: string, layerSuffix: string, public color: [number, number, number, number], public merge: boolean) {
+    this.groupName = `${siteType}s`;
+    this.layerName = `${siteType} - ${layerSuffix}`;
+  }
+}
+
 
 export interface BasePoiConfiguration {
   id: string;
@@ -20,9 +41,12 @@ export interface BasePoiConfiguration {
   minScale?: number;
   opacity?: number;
   visible?: boolean;
+  visibleRadius?: boolean;
   showLabels?: boolean;
   labelDefinition?: LabelDefinition;
+  radiiTradeareaDefination?: RadiiTradeAreaDrawDefinition[];
   refreshLegendOnRedraw?: boolean;
+  radiiColor?: RgbaTuple;
 }
 
 export interface SimplePoiConfiguration extends BasePoiConfiguration {

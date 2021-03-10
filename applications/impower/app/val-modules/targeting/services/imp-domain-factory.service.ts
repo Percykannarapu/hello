@@ -33,7 +33,8 @@ export class ImpDomainFactoryService {
         return 'Manual Entry';
       case TradeAreaTypeCodes.HomeGeo:
         return `${locationTypeCode} ${tradeAreaType}`;
-      case TradeAreaTypeCodes.Radius:
+      case TradeAreaTypeCodes.Radius: 
+      case TradeAreaTypeCodes.Radii:
         return `${locationTypeCode} ${tradeAreaType} ${taNumber}`;
     }
   }
@@ -312,7 +313,7 @@ export class ImpDomainFactoryService {
 
     // Determine the ta number to use
     let taNumber: number = 4;
-    if (tradeAreaType === TradeAreaTypeCodes.Radius) {
+    if (tradeAreaType === TradeAreaTypeCodes.Radius || tradeAreaType === TradeAreaTypeCodes.Radii) {
       taNumber = num;
     } else {
        // Retrieve the TA Number from a trade area of the same type if it exists

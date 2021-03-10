@@ -36,7 +36,8 @@ export enum TradeAreaTypeCodes {
   HomeGeo = 'HomeGeo',
   Audience = 'Audience',
   MustCover = 'MustCover',
-  Manual = 'Manual'
+  Manual = 'Manual',
+  Radii = 'Radii'
 }
 
 export enum ProjectPrefGroupCodes {

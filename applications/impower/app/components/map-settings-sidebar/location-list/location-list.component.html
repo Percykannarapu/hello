@@ -10,6 +10,8 @@
       <ng-container *ngSwitchCase="'Site'">
         <val-location-shader [configuration]="duplicatePoi(poi)" (applyConfiguration)="applyConfiguration($event)" [defaultColor]="[0, 0, 255, 1]"
                              [labelChoices]="siteLabels$ | async" [poiData]="sites$ | async"
+                             [maxTradeAreas]="maxTradeAreaCount"
+                             [maxRadius]="maxRadius"
                              [symbologyAttributes]="siteSymbologyAttributes$ | async"></val-location-shader>
       </ng-container>
       <ng-container *ngSwitchCase="'Competitor'">

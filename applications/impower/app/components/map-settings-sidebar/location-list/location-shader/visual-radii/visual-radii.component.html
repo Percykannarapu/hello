@@ -1,0 +1,31 @@
+<div class="component-root" [formGroup]="currentRoot">
+  
+  <div *ngIf="!readonly" class="radius-control">
+    <validated-text-input formControlName="radius" labelText="Radii {{radiusIdentifier}} (in miles)" [tabIndex]="tabIndex"></validated-text-input>
+  </div>
+  <div *ngIf="readonly" class="radius-control-static">
+    Provided in Upload
+  </div>
+  <div *ngIf="showAddNew" class="button-control">
+    <button pButton type="button" icon="pi pi-plus" class="val-squared-button" (click)="addNewClicked.emit()" ></button>
+  </div>
+  <div *ngIf="showDelete" class="button-control">
+    <button pButton type="button" icon="fa fa-trash-o" class="val-squared-button" (click)="deleteClicked.emit()"></button>
+  </div>
+  <div class="radius-validation">
+    <ng-container *ngIf="currentRoot.get('radius')">
+      <div *ngIf="currentRoot.hasError('required', 'radius')">
+        Required.
+      </div>
+      <div *ngIf="currentRoot.hasError('numeric', 'radius')">
+        Radius must be a numeric value.
+      </div>
+      <div *ngIf="currentRoot.hasError('greaterThan', 'radius')">
+        Radius must be > {{currentRoot.getError('greaterThan', 'radius')['greaterThan'] }}.
+      </div>
+      <div *ngIf="currentRoot.hasError('max', 'radius')">
+        Radius must be <= {{currentRoot.getError('max', 'radius')['max'] }}.
+      </div>
+    </ng-container>
+  </div>
+</div>

@@ -14,6 +14,12 @@ export interface LabelDefinition {
   where?: string;
 }
 
+export interface TradeAreaModel {
+  radius: number | null;
+  isActive: boolean;
+  tradeAreaNumber: number;
+}
+
 export function duplicateLabel(label: LabelDefinition) : LabelDefinition {
   if (label == null) return null;
   return { ...label, color: RgbTuple.duplicate(label.color), haloColor: RgbTuple.duplicate(label.haloColor) };

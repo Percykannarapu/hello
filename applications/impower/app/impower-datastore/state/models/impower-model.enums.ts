@@ -46,7 +46,8 @@ export enum TradeAreaTypeCodes {
   Custom = 'Custom',
   HomeGeo = 'HomeGeo',
   Audience = 'Audience',
-  Manual = 'Manual'
+  Manual = 'Manual',
+  Radii = 'Radii'
 }
 
 export namespace TradeAreaTypeCodes {

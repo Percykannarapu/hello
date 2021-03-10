@@ -202,6 +202,7 @@ import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjec
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 import { ImpowerHelpComponent } from './components/impower-help/impower-help.component';
+import { VisualRadiiComponent } from './components/map-settings-sidebar/location-list/location-shader/visual-radii/visual-radii.component';
 
 
 export function stateSanitizer(state: any) : any {
@@ -413,6 +414,7 @@ export function esriSetupFactory() : ForRootOptions {
     AudiencesCustomComponent,
     AudiencesOfflineComponent,
     ImpowerHelpComponent,
+    VisualRadiiComponent,
     //BatchMapDashboardComponent
 
   ],

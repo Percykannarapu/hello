@@ -2,11 +2,11 @@ import { Inject, Injectable } from '@angular/core';
 import { geodesicBuffer, union } from '@arcgis/core/geometry/geometryEngineAsync';
 import Graphic from '@arcgis/core/Graphic';
 import { filterArray } from '@val/common';
-import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService } from '@val/esri';
+import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQuadTree } from '@val/esri';
 import { from, merge, Observable, of } from 'rxjs';
 import { map, reduce, switchMap, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
-import { QuadTree } from '../../common/quad-tree';
+//import { QuadTree } from '../../common/quad-tree';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { TradeAreaDrawDefinition } from './trade-area.transform';
 
@@ -94,7 +94,7 @@ export class RenderingService {
       if (validBufferedPoints.length > 0) {
         const currentValueMap = RenderingService.createValueMap(validBufferedPoints.map(b => b.buffer), d.merge);
         if (this.definitionNeedsRendered(currentValueMap, d.layerName) || this.config.isBatchMode) {
-          const pointTree = new QuadTree(validBufferedPoints);
+          const pointTree = new EsriQuadTree(validBufferedPoints);
           const chunks = pointTree.partition(100);
           this.logger.info.log(`Generating radius graphics for ${chunks.length} chunks`);
           const circleChunks: Observable<__esri.Polygon[]>[] = chunks.map(chunk => {

@@ -9,6 +9,8 @@ export * from './src/core/esri.enums';
 export * from './src/core/esri.models';
 export * from './src/core/esri-utils';
 export * from './src/core/esri-arcade.utils';
+export * from './src/core/esri-quad-tree';
+
 
 export { ColorPalette, getColorPalette, getFillPalette } from './src/models/color-palettes';
 export * from './src/models/common-configuration';

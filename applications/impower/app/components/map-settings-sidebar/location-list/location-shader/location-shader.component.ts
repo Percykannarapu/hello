@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { rgbToHex } from '@val/common';
+import { FormBuilder, FormControl, FormGroup, Validators, FormArray } from '@angular/forms';
+import { rgbToHex, FormConfig, isConvertibleToNumber } from '@val/common';
 import {
   completeEsriFaces,
   duplicatePoiConfiguration,
@@ -8,12 +8,22 @@ import {
   PoiConfiguration,
   PoiConfigurationTypes,
   RgbaTuple,
-  RgbTuple
+  RgbTuple,
+  TradeAreaModel,
+  EsriPoiService
 } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { ValassisValidators } from '../../../../common/valassis-validators';
 import { ImpGeofootprintLocation } from '../../../../val-modules/targeting/models/ImpGeofootprintLocation';
+import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { takeUntil, filter, distinctUntilChanged } from 'rxjs/operators';
+import { AppLocationService } from 'app/services/app-location.service';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
+import { TradeAreaDrawDefinition } from 'app/state/rendering/trade-area.transform';
+import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
+import { DegreesPipe } from 'angular-pipes';
 
 @Component({
   selector: 'val-location-shader',
@@ -29,6 +39,12 @@ export class LocationShaderComponent implements OnDestroy {
   @Input() configuration: PoiConfiguration;
   @Output() applyConfiguration: EventEmitter<PoiConfiguration> = new EventEmitter<PoiConfiguration>();
 
+  @Input() maxTradeAreas: number;
+  @Input() maxRadius: number;
+
+  private currentTradeAreaCount: number;
+  private _currentTradeAreas: ImpGeofootprintTradeArea[] = [];
+
   public get symbologyAttributes() : SelectItem[] {
     return this._symbologyAttributes;
   }
@@ -41,6 +57,15 @@ export class LocationShaderComponent implements OnDestroy {
       return a.label.localeCompare(b.label);
     });
     this._symbologyAttributes = value;
+  }
+
+  @Input()
+  public set currentTradeAreas(value: ImpGeofootprintTradeArea[]) {
+    if (!(value.length === 0 && this._currentTradeAreas.length === 0)) {
+      this._currentTradeAreas = value;
+      this.currentTradeAreaCount = this._currentTradeAreas.length;
+      this.setupForm();
+    }
   }
 
   configForm: FormGroup;
@@ -56,8 +81,11 @@ export class LocationShaderComponent implements OnDestroy {
   private _symbologyAttributes: SelectItem[];
   private destroyed$ = new Subject<void>();
 
+  private cleanup$ = new Subject<void>();
+
   constructor(private fb: FormBuilder) {
     this.fontFaces = completeEsriFaces.map(f => ({ label: f, value: f }));
+    this.currentTradeAreaCount = this._currentTradeAreas == null || this._currentTradeAreas.length === 0 ? 1 : this._currentTradeAreas.length;
   }
 
   ngOnDestroy() : void {
@@ -84,11 +112,17 @@ export class LocationShaderComponent implements OnDestroy {
 
   protected setupForm() : void {
     const defaultLabelDefinition: Partial<LabelDefinition> = this.configuration.labelDefinition || {};
+    const tradeAreaSetups = this.setupDefaultRadiiTas();
+
+
     const formSetup: any = {
       layerName: new FormControl(this.configuration.layerName, [Validators.required]),
       poiType: new FormControl(this.configuration.poiType, [Validators.required]),
       opacity: new FormControl(this.configuration.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
       showLabels: new FormControl(this.configuration.showLabels || false, { updateOn: 'change' }),
+      visibleRadius: new FormControl(this.configuration.visibleRadius|| false, {updateOn: 'change'}),
+      tradeAreas: new FormArray(tradeAreaSetups),
+      radiiColor: new FormControl(this.configuration.radiiColor),
       labelDefinition: this.fb.group({
         isBold: new FormControl(defaultLabelDefinition.isBold || false, { updateOn: 'change' }),
         isItalic: new FormControl(defaultLabelDefinition.isItalic || false, { updateOn: 'change' }),
@@ -101,6 +135,7 @@ export class LocationShaderComponent implements OnDestroy {
       })
     };
     this.configForm = this.fb.group(formSetup);
+    this.setupRadiusValidations();
   }
 
   protected convertForm(form: FormGroup) : PoiConfiguration {
@@ -137,5 +172,107 @@ export class LocationShaderComponent implements OnDestroy {
 
   getLabelHalo(symbolDef: LabelDefinition) : string {
     return rgbToHex(symbolDef.haloColor || this.defaultHalo || [255, 255, 255, 1]);
+  }
+
+  deleteRadius(index: number) {
+    const formArray = this.configForm.get('tradeAreas') as FormArray;
+    //this.cleanup$.next();
+    formArray.removeAt(index);
+    this.currentTradeAreaCount -= 1;
+    //this.setupRadiusValidations();
+    if (index == 0) {
+      //this.addNewRadius();
+      //this.deleteTradeArea.emit(this.radiusForm.value);
+    }
+  }
+
+  addNewRadius(){
+    const formArray = this.configForm.get('tradeAreas') as FormArray;
+    const newControlValues: FormConfig<TradeAreaModel> = {
+      tradeAreaNumber: this.currentTradeAreaCount + 1,
+      isActive: false,
+      radius: null
+    };
+    formArray.insert(this.currentTradeAreaCount, this.fb.group(newControlValues));
+    this.currentTradeAreaCount += 1;
+    this.cleanup$.next();
+    this.setupRadiusValidations();
+
+  }
+
+  get tradeAreaControls() : FormGroup[] {
+    //console.log('remove the log:tradeAreaControls :::', this.configForm);
+    if (this.configForm != null && this.configForm.get('tradeAreas') != null && (this.configForm.get('tradeAreas') as FormArray).controls != null) {
+      return (this.configForm.get('tradeAreas') as FormArray).controls as FormGroup[];
+    }
+    return [];
+  }
+
+  private setupRadiusValidations() : void {
+    //const mergeAllOption = this.tradeAreaMergeTypes.filter(s => s.value === TradeAreaMergeTypeCodes.MergeAll)[0];
+    //mergeAllOption.disabled = this.currentTradeAreaCount < 2;
+    //if (this.currentTradeAreaCount === 1 && this.configForm.get('mergeType').value === TradeAreaMergeTypeCodes.MergeAll) {
+     // this.setFormValue('mergeType', TradeAreaMergeTypeCodes.MergeEach);
+    //}
+    for (let i = 0; i < this.currentTradeAreaCount; ++i) {
+      const prevRadius = this.configForm.get(`tradeAreas.${i - 1}.radius`);
+      const currentRadius = this.configForm.get(`tradeAreas.${i}.radius`);
+      const nextRadius = this.configForm.get(`tradeAreas.${i + 1}.radius`);
+      const minValue = prevRadius == null ? 0 : Number(prevRadius.value);
+      const maxValue = nextRadius == null || !isConvertibleToNumber(nextRadius.value) ? this.maxRadius : Number(nextRadius.value);
+      currentRadius.setValidators([Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(minValue), Validators.max(maxValue)]);
+      currentRadius.valueChanges.pipe(
+        takeUntil(this.destroyed$),
+        takeUntil(this.cleanup$),
+        filter(() => currentRadius.valid),
+        distinctUntilChanged()
+      ).subscribe(newRadius => {
+        const localPrev = this.configForm.get(`tradeAreas.${i - 1}.radius`);
+        const localIsActive = this.configForm.get(`tradeAreas.${i}.isActive`);
+        const localNext = this.configForm.get(`tradeAreas.${i + 1}.radius`);
+        localIsActive.setValue(true);
+        if (localNext != null) {
+          const afterNext = this.configForm.get(`tradeAreas.${i + 2}.radius`);
+          const localMax = afterNext == null ? this.maxRadius : Number(afterNext.value);
+          localNext.setValidators([Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(Number(newRadius)), Validators.max(localMax)]);
+          localNext.updateValueAndValidity();
+        }
+        if (localPrev != null) {
+          const beforePrev = this.configForm.get(`tradeAreas.${i - 2}.radius`);
+          const localMin = beforePrev == null ? 0 : Number(beforePrev.value);
+          localPrev.setValidators([Validators.required, ValassisValidators.numeric, ValassisValidators.greaterThan(localMin), Validators.max(Number(newRadius))]);
+          localPrev.updateValueAndValidity();
+        }
+      });
+    }
+  }
+
+  private setupDefaultRadiiTas(){
+    //const radiiTaDef = this.configuration.radiiTradeareaDefination;
+    const tradeAreaSetups = [];
+    
+    if(this.configuration.radiiTradeareaDefination != null && this.configuration.radiiTradeareaDefination.length > 0){
+      this.currentTradeAreaCount = this.configuration.radiiTradeareaDefination.length;
+      this.configuration.radiiTradeareaDefination.forEach(def => {
+        const currentTradeAreaSetup: FormConfig<TradeAreaModel> = {
+          tradeAreaNumber: def.taNumber,
+          isActive: true,
+          radius: def.buffer[0] || null
+        };
+        tradeAreaSetups.push(this.fb.group(currentTradeAreaSetup));
+       });
+    }
+    else
+      for (let i = 0; i < this.currentTradeAreaCount; ++i) {
+        const currentTA: Partial<ImpGeofootprintTradeArea> = this._currentTradeAreas[i] || {};
+        const currentTradeAreaSetup: FormConfig<TradeAreaModel> = {
+          tradeAreaNumber: `radii${i + 1}`,
+          isActive: currentTA.isActive || false,
+          radius: currentTA.taRadius || null
+        };
+        tradeAreaSetups.push(this.fb.group(currentTradeAreaSetup));
+      }
+
+     return tradeAreaSetups;   
   }
 }
