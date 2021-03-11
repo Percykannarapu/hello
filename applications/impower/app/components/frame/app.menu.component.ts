@@ -51,7 +51,7 @@ export class AppMenuComponent implements OnInit {
         { label: 'Save', id: 'saveProject', icon: 'ui-icon-save', command: () => this.saveProject() },
         { label: 'Projects', icon: 'ui-icon-storage',
           items: [
-            { label: 'Create New', icon: 'fa fa-files-o', command: () =>  this.createNewProject() },
+            { label: 'Create New', icon: 'fa fa-files-o', command: () =>  this.refreshPage() }, // temporarily re-wire create new button to refresh page 
             { label: 'Open Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
             { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.saveProject() }
           ]
@@ -100,6 +100,10 @@ export class AppMenuComponent implements OnInit {
 
     private exportToValassisDigital(){
       this.store$.dispatch(new ClientNmaeForValassisDigitalDialog());
+    }
+
+    public refreshPage(){
+      window.location.reload();
     }
 
     public createNewProject() {
