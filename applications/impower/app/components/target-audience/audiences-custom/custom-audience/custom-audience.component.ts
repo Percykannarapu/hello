@@ -58,7 +58,8 @@ export class CustomAudienceComponent implements OnInit {
             const worksheetName: string = wb.SheetNames[0];
             const ws: xlsx.WorkSheet = wb.Sheets[worksheetName];
             csvData  = xlsx.utils.sheet_to_csv(ws);
-            this.store$.dispatch(new FetchCustom({dataBuffer: csvData, fileName: name}));
+            if (this.validateDuplicateFile(csvData.split(/\r\n|\n|\r/)[0], name))
+               this.store$.dispatch(new FetchCustom({dataBuffer: csvData, fileName: name}));
           }
           catch (e) {
             this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
@@ -74,7 +75,8 @@ export class CustomAudienceComponent implements OnInit {
         reader.onload = () => {
           try {
             // TODO:  Will have to rework these try/catch/finally to happen from actions
-            this.store$.dispatch(new FetchCustom({dataBuffer: reader.result.toString(), fileName: name}));
+            if (this.validateDuplicateFile(csvData.split(/\r\n|\n|\r/)[0], name))
+                this.store$.dispatch(new FetchCustom({dataBuffer: reader.result.toString(), fileName: name}));
           }
           catch (e) {
             this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Upload Error', message: e}));
@@ -93,6 +95,18 @@ export class CustomAudienceComponent implements OnInit {
     this.audienceUploadEl.basicFileInput.nativeElement.value = '';
   }
 
+  public validateDuplicateFile(headerRow: string, fileName: string){
+    let isValid = true;
+    const headers = new Set( headerRow.split(','));
+    this.audiences.forEach(aud => {
+        if (headers.has(aud.audienceName)){
+          this.store$.dispatch(new ErrorNotification({notificationTitle: 'Audience Upload Error', message: `Field Name ${aud.audienceName} already exists in Selected Audiences. Please revise and upload again.`}));
+           isValid = false;
+        }
+    });
+    return isValid;
+  }
+
   public deleteCustomData(){
 
     this.confirmationService.confirm({
@@ -101,7 +115,6 @@ export class CustomAudienceComponent implements OnInit {
       icon: 'ui-icon-delete',
       accept: () => {
         this.deleteDataImpl();
-        // need to clean up the map vars at some point, too
       },
       reject: () => {}
     });
