@@ -22,8 +22,6 @@ import { AppProjectPrefService } from './app-project-pref.service';
 import { AppRendererService } from './app-renderer.service';
 import { AppStateService, Season } from './app-state.service';
 
-// import LayerList from '@arcgis/core/widgets/LayerList';
-
 export interface GeoClickEvent {
   geocode: string;
   geometry?: {
@@ -62,7 +60,7 @@ export class AppMapService {
 
     this.mapService.createBasicWidget(Legend, { }, 'top-right');
     // keep this here to aid in troubleshooting layer-related issues
-    // this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'left-column' });
+    // this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'map-ui' });
     if (isBatchMapping) {
       // if we're batch mapping, we want no widgets on the UI except for a custom legend
       this.mapService.mapView.ui.remove('zoom');

@@ -1,3 +1,4 @@
+import { isNil } from '@val/common';
 import { markerStyleDefaultSizes } from '../core/esri.enums';
 import { ColorPalette } from './color-palettes';
 import { duplicateLabel, duplicateMarker, LabelDefinition, MarkerSymbolDefinition, UniqueValueMarkerDefinition } from './common-configuration';
@@ -24,9 +25,18 @@ export class RadiiTradeAreaDrawDefinition {
     point: __esri.Point;
   }[] = [];
 
-  constructor(siteType: string, layerSuffix: string, public color: [number, number, number, number], public merge: boolean) {
-    this.groupName = `${siteType}s`;
+  constructor(private siteType: string, private layerSuffix: string, public color: [number, number, number, number], public merge: boolean) {
+    this.groupName = `${siteType} Visual Radii`;
     this.layerName = `${siteType} - ${layerSuffix}`;
+  }
+
+  clone() : RadiiTradeAreaDrawDefinition {
+    const result = new RadiiTradeAreaDrawDefinition(this.siteType, this.layerSuffix, Array.from(this.color) as [number, number, number, number], this.merge);
+    result.taNumber = this.taNumber;
+    result.buffer = Array.from(this.buffer);
+    result.centers = this.centers.map(c => c.clone());
+    result.bufferedPoints = this.bufferedPoints.map(p => ({...p, point: p.point.clone()}));
+    return result;
   }
 }
 
@@ -44,7 +54,7 @@ export interface BasePoiConfiguration {
   visibleRadius?: boolean;
   showLabels?: boolean;
   labelDefinition?: LabelDefinition;
-  radiiTradeareaDefination?: RadiiTradeAreaDrawDefinition[];
+  radiiTradeAreaDefinition?: RadiiTradeAreaDrawDefinition[];
   refreshLegendOnRedraw?: boolean;
   radiiColor?: RgbaTuple;
 }
@@ -59,10 +69,12 @@ function isSimple(config: PoiConfiguration) : config is SimplePoiConfiguration {
 }
 
 function duplicateSimple(config: SimplePoiConfiguration) : SimplePoiConfiguration {
+  const radiiDuplicate = isNil(config.radiiTradeAreaDefinition) ? null : config.radiiTradeAreaDefinition.map(r => r.clone());
   return {
     ...config,
     labelDefinition: duplicateLabel(config.labelDefinition),
-    symbolDefinition: duplicateMarker(config.symbolDefinition)
+    symbolDefinition: duplicateMarker(config.symbolDefinition),
+    radiiTradeAreaDefinition: radiiDuplicate
   };
 }
 
@@ -79,10 +91,12 @@ function isUnique(config: PoiConfiguration) : config is UniquePoiConfiguration {
 }
 
 function duplicateUnique(config: UniquePoiConfiguration) : UniquePoiConfiguration {
+  const radiiDuplicate = isNil(config.radiiTradeAreaDefinition) ? null : config.radiiTradeAreaDefinition.map(r => r.clone());
   return {
     ...config,
     labelDefinition: duplicateLabel(config.labelDefinition),
-    breakDefinitions: config.breakDefinitions.map(bd => duplicateMarker(bd))
+    breakDefinitions: config.breakDefinitions.map(bd => duplicateMarker(bd)),
+    radiiTradeAreaDefinition: radiiDuplicate
   };
 }
 

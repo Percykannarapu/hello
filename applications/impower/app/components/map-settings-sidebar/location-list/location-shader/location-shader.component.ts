@@ -10,7 +10,7 @@ import {
   RgbaTuple,
   RgbTuple,
   TradeAreaModel,
-  EsriPoiService
+  EsriPoiService, RadiiTradeAreaDrawDefinition
 } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
@@ -112,16 +112,13 @@ export class LocationShaderComponent implements OnDestroy {
 
   protected setupForm() : void {
     const defaultLabelDefinition: Partial<LabelDefinition> = this.configuration.labelDefinition || {};
-    const tradeAreaSetups = this.setupDefaultRadiiTas();
-
 
     const formSetup: any = {
       layerName: new FormControl(this.configuration.layerName, [Validators.required]),
       poiType: new FormControl(this.configuration.poiType, [Validators.required]),
       opacity: new FormControl(this.configuration.opacity, [Validators.required, Validators.min(0), Validators.max(1)]),
       showLabels: new FormControl(this.configuration.showLabels || false, { updateOn: 'change' }),
-      visibleRadius: new FormControl(this.configuration.visibleRadius|| false, {updateOn: 'change'}),
-      tradeAreas: new FormArray(tradeAreaSetups),
+      visibleRadius: new FormControl(this.configuration.visibleRadius || false, {updateOn: 'change'}),
       radiiColor: new FormControl(this.configuration.radiiColor),
       labelDefinition: this.fb.group({
         isBold: new FormControl(defaultLabelDefinition.isBold || false, { updateOn: 'change' }),
@@ -135,7 +132,26 @@ export class LocationShaderComponent implements OnDestroy {
       })
     };
     this.configForm = this.fb.group(formSetup);
-    this.setupRadiusValidations();
+
+    if (this.configuration.visibleRadius) {
+      const tradeAreaSetups = this.setupDefaultRadiiTas();
+      this.configForm.addControl('tradeAreas', this.fb.array(tradeAreaSetups));
+      this.setupRadiusValidations();
+    }
+    this.configForm.get('visibleRadius').valueChanges.pipe(
+      takeUntil(this.destroyed$),
+      distinctUntilChanged()
+    ).subscribe((showRadiiControls: boolean) => {
+      if (showRadiiControls) {
+        const tradeAreaSetups = this.setupDefaultRadiiTas();
+        this.configForm.addControl('tradeAreas', this.fb.array(tradeAreaSetups));
+        this.setupRadiusValidations();
+      } else {
+        this.cleanup$.next();
+        this.configForm.removeControl('tradeAreas');
+        this.configForm.updateValueAndValidity();
+      }
+    });
   }
 
   protected convertForm(form: FormGroup) : PoiConfiguration {
@@ -174,16 +190,17 @@ export class LocationShaderComponent implements OnDestroy {
     return rgbToHex(symbolDef.haloColor || this.defaultHalo || [255, 255, 255, 1]);
   }
 
+  getRadiusDescription(radiiDef: RadiiTradeAreaDrawDefinition[]) : string {
+    const radiiString = radiiDef.map(r => r.buffer[0]).join('/');
+    return `${radiiString} miles`;
+  }
+
   deleteRadius(index: number) {
     const formArray = this.configForm.get('tradeAreas') as FormArray;
-    //this.cleanup$.next();
     formArray.removeAt(index);
     this.currentTradeAreaCount -= 1;
-    //this.setupRadiusValidations();
-    if (index == 0) {
-      //this.addNewRadius();
-      //this.deleteTradeArea.emit(this.radiusForm.value);
-    }
+    this.cleanup$.next();
+    this.setupRadiusValidations();
   }
 
   addNewRadius(){
@@ -197,7 +214,6 @@ export class LocationShaderComponent implements OnDestroy {
     this.currentTradeAreaCount += 1;
     this.cleanup$.next();
     this.setupRadiusValidations();
-
   }
 
   get tradeAreaControls() : FormGroup[] {
@@ -250,10 +266,10 @@ export class LocationShaderComponent implements OnDestroy {
   private setupDefaultRadiiTas(){
     //const radiiTaDef = this.configuration.radiiTradeareaDefination;
     const tradeAreaSetups = [];
-    
-    if(this.configuration.radiiTradeareaDefination != null && this.configuration.radiiTradeareaDefination.length > 0){
-      this.currentTradeAreaCount = this.configuration.radiiTradeareaDefination.length;
-      this.configuration.radiiTradeareaDefination.forEach(def => {
+
+    if (this.configuration.radiiTradeAreaDefinition != null && this.configuration.radiiTradeAreaDefinition.length > 0){
+      this.currentTradeAreaCount = this.configuration.radiiTradeAreaDefinition.length;
+      this.configuration.radiiTradeAreaDefinition.forEach(def => {
         const currentTradeAreaSetup: FormConfig<TradeAreaModel> = {
           tradeAreaNumber: def.taNumber,
           isActive: true,
@@ -273,6 +289,6 @@ export class LocationShaderComponent implements OnDestroy {
         tradeAreaSetups.push(this.fb.group(currentTradeAreaSetup));
       }
 
-     return tradeAreaSetups;   
+     return tradeAreaSetups;
   }
 }

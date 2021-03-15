@@ -1,7 +1,7 @@
 <div class="component-root" [formGroup]="currentRoot">
-  
+
   <div *ngIf="!readonly" class="radius-control">
-    <validated-text-input formControlName="radius" labelText="Radii {{radiusIdentifier}} (in miles)" [tabIndex]="tabIndex"></validated-text-input>
+    <validated-text-input formControlName="radius" labelText="Radius {{radiusIdentifier}} (in miles)" [tabIndex]="tabIndex"></validated-text-input>
   </div>
   <div *ngIf="readonly" class="radius-control-static">
     Provided in Upload

@@ -215,7 +215,7 @@ export class PoiRenderingService {
       visible: true,
       showLabels: true,
       visibleRadius: false,
-      radiiTradeareaDefination: [],
+      radiiTradeAreaDefinition: [],
       radiiColor: [0, 0, 255, 1],
       labelDefinition: {
         color: [0, 0, 255, 1],
@@ -241,7 +241,7 @@ export class PoiRenderingService {
       visible: true,
       showLabels: true,
       visibleRadius: false,
-      radiiTradeareaDefination: [],
+      radiiTradeAreaDefinition: [],
       radiiColor: [255, 0, 0, 1],
       labelDefinition: {
         color: [255, 0, 0, 1],
@@ -262,7 +262,7 @@ export class PoiRenderingService {
     const coordinates = toUniversalCoordinates(ta.impGeofootprintLocation);
     return new Point({ spatialReference: { wkid }, ...coordinates });
   }
-  
+
 
   renderRadii (tradeAreas: ImpGeofootprintTradeArea[], siteType: SuccessfulLocationTypeCodes, wkid: number, definition: PoiConfiguration){
     const result: RadiiTradeAreaDrawDefinition[] = [];
@@ -291,16 +291,16 @@ export class PoiRenderingService {
         result.push(currentResult);
       }
     });
-    
-    definition.radiiTradeareaDefination = result;
+
+    definition.radiiTradeAreaDefinition = result;
     return definition;
   }
 
-  public applyRadiusTradeArea(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[], 
+  public applyRadiusTradeArea(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[],
                               siteType: SuccessfulLocationTypeCodes, locs?: ImpGeofootprintLocation[])  {
     const currentLocations = locs!= null && locs.length > 0 ? locs : this.getLocations(siteType);
     //const tradeAreaFilter = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radii]);
-    return this.applyRadiiTradeAreasToLocations(tradeAreas, currentLocations);            
+    return this.applyRadiiTradeAreasToLocations(tradeAreas, currentLocations);
   }
 
   public createRadiusTradeAreasForLocations(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[], locations: ImpGeofootprintLocation[], attachToHierarchy: boolean = false) : ImpGeofootprintTradeArea[] {
@@ -323,7 +323,7 @@ export class PoiRenderingService {
     const locs: ImpGeofootprintLocation[] = [];
     return this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType && loc.isActive);
   }
-  
+
   updateRadiiDefination(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]){
     sites = sites.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site);
     renderingSetups.forEach(def => {

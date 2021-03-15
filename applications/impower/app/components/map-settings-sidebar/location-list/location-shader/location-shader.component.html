@@ -40,6 +40,15 @@
       <label>Icon Opacity:</label>
       <strong>{{configuration.opacity}}</strong>
     </div>
+    <div>
+      <label>Visual Radii:</label>
+      <ng-container *ngIf="configuration.visibleRadius === true">
+        <strong>{{getRadiusDescription(configuration.radiiTradeAreaDefinition)}}</strong>
+      </ng-container>
+      <ng-container *ngIf="!configuration.visibleRadius">
+        <strong>Disabled</strong>
+      </ng-container>
+    </div>
   </div>
   <div class="poi-form-container" *ngIf="isEditing">
     <form novalidate autocomplete="off" [formGroup]="configForm" (ngSubmit)="apply(configForm)">
@@ -73,7 +82,7 @@
           </ng-container>
         </div>
       </div>
-      
+
       <validated-text-input formControlName="opacity" labelText="Icon Opacity" validationMessage="Must be a number between 0 and 1"></validated-text-input>
       <div class="label-setup">
           <div class="label-color-controls">
@@ -85,10 +94,10 @@
               </ng-container>
           </div>
       </div>
-      
-      
+
+
       <div *ngIf="configForm.get('visibleRadius').value === true">
-          
+
           <div formArrayName="tradeAreas">
               <div *ngFor="let t of tradeAreaControls; index as i; last as isLast; first as isFirst">
                   <val-visual-radii [formGroupName]="i.toString()" [tabIndex]="i"
@@ -96,7 +105,7 @@
                   (addNewClicked)="addNewRadius()" (deleteClicked)="deleteRadius(i)"></val-visual-radii>
               </div>
           </div>
-          
+
       </div>
       <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': configForm.dirty, 'ui-button-secondary': configForm.pristine }" [disabled]="!configForm.valid"></button>
       <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>

@@ -32,18 +32,8 @@ import { geodesicBuffer, union } from '@arcgis/core/geometry/geometryEngineAsync
 import { EsriQuadTree } from '../core/esri-quad-tree';
 import Graphic from '@arcgis/core/Graphic';
 
-
-
-
-
-interface ValueMap {
-  merged: boolean;
-  [key: number] : number;
-}
-
 @Injectable()
 export class EsriPoiService {
-  private renderedDefinitionMap = new Map<string, ValueMap>();
   allPoiConfigurations$: Observable<PoiConfiguration[]> = new BehaviorSubject<PoiConfiguration[]>([]);
   visiblePois$: Observable<Record<string, __esri.Graphic[]>> = new BehaviorSubject<Record<string, __esri.Graphic[]>>({});
 
@@ -120,11 +110,8 @@ export class EsriPoiService {
       withLatestFrom(this.store$.select(poiSelectors.popupFields)),
     ).subscribe(([configs, popupFields]) => {
       configs.forEach(config => {
-          this.updatePoiLayer(config, popupFields)
-          if (config.radiiTradeareaDefination!= null && config.radiiTradeareaDefination.length > 0){
-              this.disableRadiiLayers(config.radiiTradeareaDefination, config.visibleRadius);
-          }
-      })
+          this.updatePoiLayer(config, popupFields);
+      });
     });
   }
 
@@ -163,9 +150,7 @@ export class EsriPoiService {
         }
       });
     }
-    if(config.visibleRadius){
-      this.renderRadiiPoi(config.radiiTradeareaDefination, config.visibleRadius);
-    }
+    this.renderRadiiPoi(config.radiiTradeAreaDefinition || [], config.visibleRadius, config.groupName);
   }
 
   private createGeneralizedRenderer(config: PoiConfiguration) : __esri.Renderer {
@@ -249,59 +234,27 @@ export class EsriPoiService {
     );
   }
 
-  private static createValueMap(values: number[], merged: boolean) : ValueMap {
-    const result = {
-      merged
-    };
-    values.filter(v => v > 0).forEach(v => {
-      if (result[v] == undefined) {
-        result[v] = 1;
-      } else {
-        result[v]++;
-      }
-    });
-    return result;
-  }
-
-  private definitionNeedsRendered(newValueMap: ValueMap, newDefinitionName: string) : boolean {
-    let result = false;
-    if (this.renderedDefinitionMap.has(newDefinitionName)) {
-      const renderedValueMap = this.renderedDefinitionMap.get(newDefinitionName);
-      if (Object.keys(renderedValueMap).length === Object.keys(newValueMap).length) {
-        Object.keys(renderedValueMap).forEach(rk => {
-          result = result || (renderedValueMap[rk] !== newValueMap[rk]);
-        });
-      } else {
-        result = true;
-      }
-    } else {
-      result = true;
-    }
-    if (result) {
-      this.renderedDefinitionMap.set(newDefinitionName, newValueMap);
-    }
-    return result;
-  }
-
   disableRadiiLayers(defs: RadiiTradeAreaDrawDefinition[], visibleRadius: boolean){
     defs.forEach(def => {
       const currentLayer = this.layerService.getLayer(def.layerName);
-      if(currentLayer != null)
+      if (currentLayer != null)
         this.layerService.getLayer(def.layerName).visible = visibleRadius;
-    })
-   
+    });
   }
 
-  renderRadiiPoi(defs: RadiiTradeAreaDrawDefinition[], visibleRadius: boolean){
+  renderRadiiPoi(defs: RadiiTradeAreaDrawDefinition[], visibleRadius: boolean, groupName: string) {
+    const radiiGroupName = `${groupName} visual radii`;
     const result: Observable<__esri.FeatureLayer>[] = [];
-    defs.forEach(def =>{
-      const outline = this.domainFactory.createSimpleLineSymbol(def.color, 2);
-      const symbol = this.domainFactory.createSimpleFillSymbol([0, 0, 0, 0], outline);
-      const renderer = this.domainFactory.createSimpleRenderer(symbol);
-      const validBufferedPoints = def.bufferedPoints.filter(p => p.buffer > 0);
-      if (validBufferedPoints.length > 0) {
-        const currentValueMap = EsriPoiService.createValueMap(validBufferedPoints.map(b => b.buffer), def.merge);
-       // if (this.definitionNeedsRendered(currentValueMap, def.layerName) ) {
+    if (this.layerService.groupExists(radiiGroupName)) {
+      this.layerService.clearClientLayers(radiiGroupName);
+    }
+    if (visibleRadius) {
+      defs.forEach(def => {
+        const outline = this.domainFactory.createSimpleLineSymbol(def.color, 2);
+        const symbol = this.domainFactory.createSimpleFillSymbol([0, 0, 0, 0], outline);
+        const renderer = this.domainFactory.createSimpleRenderer(symbol);
+        const validBufferedPoints = def.bufferedPoints.filter(p => p.buffer > 0);
+        if (validBufferedPoints.length > 0) {
           const pointTree = new EsriQuadTree(validBufferedPoints);
           const chunks = pointTree.partition(100);
           //this.logger.info.log(`Generating radius graphics for ${chunks.length} chunks`);
@@ -332,14 +285,12 @@ export class EsriPoiService {
               const currentLayer = this.layerService.getLayer(def.layerName);
               this.layerService.removeLayer(currentLayer);
             }),
-            map(graphics => this.layerService.createClientLayer(def.groupName, def.layerName, graphics, 'oid', renderer, null, null))
+            map(graphics => this.layerService.createClientLayer(radiiGroupName, def.layerName, graphics, 'oid', renderer, null, null))
           );
           result.push(currentRadiusLayer$);
-
-       // }
-        
-      }
-    });
+        }
+      });
+    }
     if (result.length > 0) {
       return merge(...result).pipe(
         reduce((acc, curr) => [...acc, curr], [] as __esri.FeatureLayer[]),

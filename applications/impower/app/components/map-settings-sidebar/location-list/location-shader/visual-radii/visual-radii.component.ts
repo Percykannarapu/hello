@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { FormGroup, ControlContainer } from '@angular/forms';
-import { isString } from '@val/common';
+import { isConvertibleToInteger, isString } from '@val/common';
 
 @Component({
   selector: 'val-visual-radii',
@@ -8,8 +8,6 @@ import { isString } from '@val/common';
   styleUrls: ['./visual-radii.component.scss']
 })
 export class VisualRadiiComponent implements OnInit {
-
-  
 
   @Input() readonly: boolean;
   @Input() tabIndex: number;
@@ -22,7 +20,9 @@ export class VisualRadiiComponent implements OnInit {
   currentRoot: FormGroup;
 
   get radiusIdentifier() : number {
-    return this.currentRoot == null ? null : 1;
+    return this.controlContainer != null && isConvertibleToInteger(this.controlContainer.name)
+      ? Number(this.controlContainer.name) + 1
+      : 0;
   }
 
   constructor(private controlContainer: ControlContainer) { }
