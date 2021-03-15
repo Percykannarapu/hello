@@ -1,16 +1,9 @@
 <div class="component-root" [formGroup]="currentRoot">
 
-  <div *ngIf="!readonly" class="radius-control">
+  <div class="radius-control">
     <validated-text-input formControlName="radius" labelText="Radius {{radiusIdentifier}} (in miles)" [tabIndex]="tabIndex"></validated-text-input>
-  </div>
-  <div *ngIf="readonly" class="radius-control-static">
-    Provided in Upload
-  </div>
-  <div *ngIf="showAddNew" class="button-control">
-    <button pButton type="button" icon="pi pi-plus" class="val-squared-button" (click)="addNewClicked.emit()" ></button>
-  </div>
-  <div *ngIf="showDelete" class="button-control">
-    <button pButton type="button" icon="fa fa-trash-o" class="val-squared-button" (click)="deleteClicked.emit()"></button>
+    <button *ngIf="showAddNew" pButton type="button" icon="pi pi-plus" class="val-squared-button" (click)="addNewClicked.emit()" ></button>
+    <button *ngIf="showDelete" pButton type="button" icon="fa fa-trash-o" class="val-squared-button" (click)="deleteClicked.emit()"></button>
   </div>
   <div class="radius-validation">
     <ng-container *ngIf="currentRoot.get('radius')">

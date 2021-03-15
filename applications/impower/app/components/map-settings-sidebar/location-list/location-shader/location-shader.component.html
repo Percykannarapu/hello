@@ -101,7 +101,7 @@
           <div formArrayName="tradeAreas">
               <div *ngFor="let t of tradeAreaControls; index as i; last as isLast; first as isFirst">
                   <val-visual-radii [formGroupName]="i.toString()" [tabIndex]="i"
-                  [showAddNew]="isLast && (i < maxTradeAreas - 1)" [showDelete]="isLast"
+                  [showAddNew]="isLast && (i < maxTradeAreas - 1)" [showDelete]="isLast && !isFirst"
                   (addNewClicked)="addNewRadius()" (deleteClicked)="deleteRadius(i)"></val-visual-radii>
               </div>
           </div>

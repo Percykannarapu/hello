@@ -3,27 +3,25 @@
 .component-root {
   padding-left: 1em;
   display: flex;
-  > .active-flag {
+  > .radius-control {
     display: flex;
-    align-items: center;
-  }
-  > .radius-control,
-  > .radius-control-static {
-    flex: 2;
+    justify-content: flex-end;
+    flex: 3;
     padding-left: 1em;
-  }
-  > .radius-control-static {
-    align-self: center;
+    > validated-text-input {
+      flex: 1;
+    }
+    > button {
+      margin-left: 0.5em;
+      margin-right: 0.5em;
+    }
   }
   > .radius-validation {
-    flex: 3;
+    flex: 2;
     color: $inputErrorTextColor;
     display: flex;
     align-items: flex-end;
     padding-left: 1em;
     padding-bottom: 0.33em;
-  }
-  > .button-control {
-    padding-left: 1em;
   }
 }
