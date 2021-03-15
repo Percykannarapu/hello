@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { filterArray } from '@val/common';
+import { filterArray, toUniversalCoordinates } from '@val/common';
 import { BehaviorSubject, EMPTY, merge, Observable, from } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriUtils } from '../core/esri-utils';
@@ -121,7 +121,7 @@ export class EsriPoiService {
     ).subscribe(([configs, popupFields]) => {
       configs.forEach(config => {
           this.updatePoiLayer(config, popupFields)
-          if (config.radiiTradeareaDefination.length > 0){
+          if (config.radiiTradeareaDefination!= null && config.radiiTradeareaDefination.length > 0){
               this.disableRadiiLayers(config.radiiTradeareaDefination, config.visibleRadius);
           }
       })
@@ -295,15 +295,13 @@ export class EsriPoiService {
   renderRadiiPoi(defs: RadiiTradeAreaDrawDefinition[], visibleRadius: boolean){
     const result: Observable<__esri.FeatureLayer>[] = [];
     defs.forEach(def =>{
-      //const existingGroup = this.layerService.createClientGroup(def.groupName, true);
-      //const newFeatureLayer = this.domainFactory.createFeatureLayer(newPoints, 'objectId', fieldLookup);
       const outline = this.domainFactory.createSimpleLineSymbol(def.color, 2);
       const symbol = this.domainFactory.createSimpleFillSymbol([0, 0, 0, 0], outline);
       const renderer = this.domainFactory.createSimpleRenderer(symbol);
       const validBufferedPoints = def.bufferedPoints.filter(p => p.buffer > 0);
       if (validBufferedPoints.length > 0) {
         const currentValueMap = EsriPoiService.createValueMap(validBufferedPoints.map(b => b.buffer), def.merge);
-        if (this.definitionNeedsRendered(currentValueMap, def.layerName) ) {
+       // if (this.definitionNeedsRendered(currentValueMap, def.layerName) ) {
           const pointTree = new EsriQuadTree(validBufferedPoints);
           const chunks = pointTree.partition(100);
           //this.logger.info.log(`Generating radius graphics for ${chunks.length} chunks`);
@@ -338,16 +336,22 @@ export class EsriPoiService {
           );
           result.push(currentRadiusLayer$);
 
-        }
+       // }
         
       }
     });
     if (result.length > 0) {
       return merge(...result).pipe(
         reduce((acc, curr) => [...acc, curr], [] as __esri.FeatureLayer[]),
-        tap(layers => this.logger.debug.log('Generated Radius Layers', layers))
+        tap(layers => this.logger.debug.log('Generated Radii Layers', layers))
+        //tap(layers => this.zoomToRadiiTradeArea(defs))
       ).subscribe();
     }
 
+  }
+
+  zoomToRadiiTradeArea(definitions: RadiiTradeAreaDrawDefinition[]){
+    const coords = definitions[0].bufferedPoints.map(b => toUniversalCoordinates(b));
+    this.mapService.zoomToPoints(coords);
   }
 }

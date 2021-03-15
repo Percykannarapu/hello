@@ -45,6 +45,8 @@ import { getTypedBatchQueryParams, BatchMapQueryParams } from 'app/state/shared/
 })
 export class PoiRenderingService {
 
+  private batchMapParams: BatchMapQueryParams
+
   constructor(private appStateService: AppStateService,
               private layerService: EsriLayerService,
               private domainFactory: EsriDomainFactoryService,
@@ -81,9 +83,10 @@ export class PoiRenderingService {
 
   private setupVisibilityWatcher() : void {
     this.esriPoiService.visiblePois$.pipe(
-      withLatestFrom(this.esriPoiService.allPoiConfigurations$, this.store$.select(getBatchMode)),
+      withLatestFrom(this.esriPoiService.allPoiConfigurations$, this.store$.select(getTypedBatchQueryParams)),
       // filter(([, , isBatchMode]) => isBatchMode)
-    ).subscribe(([visiblePois, allConfigs]) => {
+    ).subscribe(([visiblePois, allConfigs, batchMapParams]) => {
+      this.batchMapParams = batchMapParams;
       const configsToUpdate = allConfigs.filter(c => visiblePois[c.featureLayerId] != null && visiblePois[c.featureLayerId].length > 0);
       if (configsToUpdate.length > 0) {
         this.updateConfigRenderers(visiblePois, configsToUpdate);
@@ -98,6 +101,10 @@ export class PoiRenderingService {
    */
   renderSites(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]) : void {
     const sitesByTypeCode: Record<string, ImpGeofootprintLocation[]> = groupToEntity(sites, s => s.clientLocationTypeCode);
+    if (this.config.isBatchMode && this.batchMapParams.hideNeighboringSites){
+      renderingSetups =  this.updateRadiiDefination(sites, renderingSetups);
+      this.esriPoiService.upsertPoiConfig(renderingSetups);
+    }
     this.renderPois(sitesByTypeCode, renderingSetups);
   }
 
@@ -124,9 +131,9 @@ export class PoiRenderingService {
             const edits = this.prepareLayerEdits(result.features, newPoints);
             if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
               existingLayer.applyEdits(edits);
-              if (renderingSetup.visibleRadius){
+              if (renderingSetup.visibleRadius && !this.config.isBatchMode){
                 const locType: ImpClientLocationTypeCodes = renderingSetup.dataKey === 'Site' ? ImpClientLocationTypeCodes.Site : ImpClientLocationTypeCodes.Competitor;
-                const tas  = this.applyRadiusTradeArea (renderingSetup['tradeAreas'], locType)
+                const tas  = this.applyRadiusTradeArea (renderingSetup['tradeAreas'], locType);
                 let newPoi = this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, renderingSetup);
                 newPoi = duplicatePoiConfiguration(newPoi);
                 this.esriPoiService.upsertPoiConfig(newPoi);
@@ -147,7 +154,7 @@ export class PoiRenderingService {
         updatedSetups.push(newSetup);
       }
     });
-    if (updatedSetups.length > 0) {
+    if (updatedSetups.length > 0 ) {
       this.esriPoiService.upsertPoiConfig(updatedSetups);
     }
   }
@@ -251,18 +258,6 @@ export class PoiRenderingService {
     }];
   }
 
-  /*private createRadiiDefination(){
-    const radiiDefination: RadiiTradeAreaDrawDefinition[] = [];
-    const siteType = ImpClientLocationTypeCodes.Site;
-    const mergeType = TradeAreaMergeTypeCodes.NoMerge;
-    for (let i = 0; i < 4; ++i) {
-      const layerName = `Site Radii ${i +1}`;
-      const currentResult = new TradeAreaDrawDefinition(siteType, layerName, [0, 0, 255, 1] , mergeType !== TradeAreaMergeTypeCodes.NoMerge);
-      radiiDefination.push(currentResult);
-    }
-    return radiiDefination;
-  }*/
-
   private toPoint(ta: ImpGeofootprintTradeArea, wkid: number) : __esri.Point {
     const coordinates = toUniversalCoordinates(ta.impGeofootprintLocation);
     return new Point({ spatialReference: { wkid }, ...coordinates });
@@ -298,18 +293,13 @@ export class PoiRenderingService {
     });
     
     definition.radiiTradeareaDefination = result;
-    //this.esriPoiService.upsertPoiConfig(definition);
     return definition;
   }
 
-  public applyRadiusTradeArea(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[], siteType: SuccessfulLocationTypeCodes)  {
-    const currentLocations = this.getLocations(siteType);
-    const tradeAreaFilter = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radii]);
-    /*const currentTradeAreas = this.impTradeAreaService.get()
-      .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
-                    tradeAreaFilter.has(TradeAreaTypeCodes.parse(ta.taType)));*/
-    
-    //this.deleteTradeAreas(currentTradeAreas);    
+  public applyRadiusTradeArea(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[], 
+                              siteType: SuccessfulLocationTypeCodes, locs?: ImpGeofootprintLocation[])  {
+    const currentLocations = locs!= null && locs.length > 0 ? locs : this.getLocations(siteType);
+    //const tradeAreaFilter = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radii]);
     return this.applyRadiiTradeAreasToLocations(tradeAreas, currentLocations);            
   }
 
@@ -332,5 +322,16 @@ export class PoiRenderingService {
   private getLocations(siteType: SuccessfulLocationTypeCodes) : ImpGeofootprintLocation[] {
     const locs: ImpGeofootprintLocation[] = [];
     return this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType && loc.isActive);
+  }
+  
+  updateRadiiDefination(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]){
+    sites = sites.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site);
+    renderingSetups.forEach(def => {
+      if (def.dataKey === 'Site'){
+        const tas = this.applyRadiusTradeArea(def['tradeAreas'], ImpClientLocationTypeCodes.Site, sites);
+        def = this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, def);
+      }
+    })
+    return renderingSetups;
   }
 }
