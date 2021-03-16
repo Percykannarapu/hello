@@ -134,8 +134,8 @@ export class PoiRenderingService {
               if (renderingSetup.visibleRadius && !this.config.isBatchMode){
                 const locType: ImpClientLocationTypeCodes = renderingSetup.dataKey === 'Site' ? ImpClientLocationTypeCodes.Site : ImpClientLocationTypeCodes.Competitor;
                 const tas  = this.applyRadiusTradeArea (renderingSetup['tradeAreas'], locType);
-                let newPoi = this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, renderingSetup);
-                newPoi = duplicatePoiConfiguration(newPoi);
+                this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, renderingSetup);
+                const newPoi = duplicatePoiConfiguration(renderingSetup);
                 this.esriPoiService.upsertPoiConfig(newPoi);
               }
             }
@@ -269,7 +269,8 @@ export class PoiRenderingService {
     //const maxTaNum = Math.max(...tradeAreas.map(ta => ta.taNumber));
     const layerGroups = groupByExtended(tradeAreas, ta => ta.taName);
     layerGroups.forEach((layerTradeAreas, layerName) => {
-      const currentResult = new RadiiTradeAreaDrawDefinition(siteType, layerName, definition.radiiColor, true);
+      const radiiDef = {groupName: `${String(siteType)} Visual Radii`, layerName: `${String(siteType)} - ${layerName}`, color: definition.radiiColor, merge: true};
+      const currentResult = new RadiiTradeAreaDrawDefinition(radiiDef);
       if (layerTradeAreas.length < 10000) {
         if (layerTradeAreas.length > 7000) {
           currentResult.merge = false;
@@ -293,7 +294,7 @@ export class PoiRenderingService {
     });
 
     definition.radiiTradeAreaDefinition = result;
-    return definition;
+    //return definition;
   }
 
   public applyRadiusTradeArea(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[],
@@ -328,8 +329,10 @@ export class PoiRenderingService {
     sites = sites.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site);
     renderingSetups.forEach(def => {
       if (def.dataKey === 'Site'){
+        //
         const tas = this.applyRadiusTradeArea(def['tradeAreas'], ImpClientLocationTypeCodes.Site, sites);
-        def = this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, def);
+        this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, def);
+        const newDef: PoiConfiguration = duplicatePoiConfiguration(def);
       }
     })
     return renderingSetups;

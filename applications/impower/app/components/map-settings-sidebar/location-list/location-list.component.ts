@@ -90,7 +90,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
     if (newPoi.visibleRadius){
       const tas  = this.appPoiService.applyRadiusTradeArea (definition['tradeAreas'], locType);
       //this.applyRadiusTradeArea(definition['tradeAreas'], ImpClientLocationTypeCodes.Site);
-       newPoi = this.appPoiService.renderRadii(tas, locType, this.esriSettings.defaultSpatialRef, newPoi);
+       this.appPoiService.renderRadii(tas, locType, this.esriSettings.defaultSpatialRef, newPoi);
     }
       
     this.esriPoiService.upsertPoiConfig(newPoi);

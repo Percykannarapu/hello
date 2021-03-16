@@ -25,20 +25,39 @@ export class RadiiTradeAreaDrawDefinition {
     point: __esri.Point;
   }[] = [];
 
-  constructor(private siteType: string, private layerSuffix: string, public color: [number, number, number, number], public merge: boolean) {
-    this.groupName = `${siteType} Visual Radii`;
-    this.layerName = `${siteType} - ${layerSuffix}`;
-  }
+  
+
+  constructor();
+  constructor(radiiDefinitation?: Partial<RadiiTradeAreaDrawDefinition>)
+  constructor(private siteType?: any, private layerSuffix?: string, public color?: [number, number, number, number], public merge?: boolean) {
+    /*if (siteType != null){
+      this.groupName = `${String(siteType)} Visual Radii`;
+      this.layerName = `${String(siteType)} - ${layerSuffix}`;
+    }
+    else{ */
+      Object.assign(this, siteType);
+   // }
+        
+}
 
   clone() : RadiiTradeAreaDrawDefinition {
-    const result = new RadiiTradeAreaDrawDefinition(this.siteType, this.layerSuffix, Array.from(this.color) as [number, number, number, number], this.merge);
+    //const result = new RadiiTradeAreaDrawDefinition(this.siteType, this.layerSuffix, Array.from(this.color) as [number, number, number, number], this.merge);
+    const result: RadiiTradeAreaDrawDefinition= null; //new RadiiTradeAreaDrawDefinition(); 
     result.taNumber = this.taNumber;
     result.buffer = Array.from(this.buffer);
     result.centers = this.centers.map(c => c.clone());
     result.bufferedPoints = this.bufferedPoints.map(p => ({...p, point: p.point.clone()}));
     return result;
   }
+
+  
+  public static radiiFactory = (json: string): RadiiTradeAreaDrawDefinition => {
+    const jsonObject = JSON.parse(json);
+    return new RadiiTradeAreaDrawDefinition(jsonObject);
+  }
 }
+
+
 
 
 export interface BasePoiConfiguration {
@@ -69,7 +88,7 @@ function isSimple(config: PoiConfiguration) : config is SimplePoiConfiguration {
 }
 
 function duplicateSimple(config: SimplePoiConfiguration) : SimplePoiConfiguration {
-  const radiiDuplicate = isNil(config.radiiTradeAreaDefinition) ? null : config.radiiTradeAreaDefinition.map(r => r.clone());
+  const radiiDuplicate = isNil(config.radiiTradeAreaDefinition) ? null : config.radiiTradeAreaDefinition.map(r => RadiiTradeAreaDrawDefinition.radiiFactory(JSON.stringify(r)));
   return {
     ...config,
     labelDefinition: duplicateLabel(config.labelDefinition),
@@ -91,7 +110,7 @@ function isUnique(config: PoiConfiguration) : config is UniquePoiConfiguration {
 }
 
 function duplicateUnique(config: UniquePoiConfiguration) : UniquePoiConfiguration {
-  const radiiDuplicate = isNil(config.radiiTradeAreaDefinition) ? null : config.radiiTradeAreaDefinition.map(r => r.clone());
+  const radiiDuplicate = isNil(config.radiiTradeAreaDefinition) ? null : config.radiiTradeAreaDefinition.map(r => RadiiTradeAreaDrawDefinition.radiiFactory(JSON.stringify(r)));
   return {
     ...config,
     labelDefinition: duplicateLabel(config.labelDefinition),

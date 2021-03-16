@@ -42,7 +42,7 @@
     </div>
     <div>
       <label>Visual Radii:</label>
-      <ng-container *ngIf="configuration.visibleRadius === true">
+      <ng-container *ngIf="configuration.visibleRadius === true && configuration.radiiTradeAreaDefinition != null">
         <strong>{{getRadiusDescription(configuration.radiiTradeAreaDefinition)}}</strong>
       </ng-container>
       <ng-container *ngIf="!configuration.visibleRadius">
