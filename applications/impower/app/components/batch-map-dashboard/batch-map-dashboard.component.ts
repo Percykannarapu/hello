@@ -32,13 +32,13 @@ export class BatchMapDashboardComponent implements OnInit {
     //{ field: 'expand',                   header: '  ',                   size: '3%'  },
     { field: 'projectId',                header: 'Project ID',           size: '8%'  },
     { field: 'projectName',              header: 'Project Name',         size: '15%' },
-    { field: 'userName',                 header: 'User Name',            size: '15%' },
     { field: 'pages',                    header: 'No of Pages',          size: '10%' },
     { field: 'pageSize',                 header: 'Page Size',            size: '10%' },
     { field: 'jobType',                  header: 'Job Type',             size: '18%' },
     { field: 'jobNumber',                header: 'Print job Number',     size: '15%' },
     { field: 'createDate',               header: 'Date/Time of request', size: '20%' },
     { field: 'elapsedTime',              header: 'Elapsed Time',         size: '12%' },
+    { field: 'queuePosition',            header: 'Queue Position',       size: '15%' },
     { field: 'status',                   header: 'Status',               size: '20%' },
     { field: 'url',                      header: 'URL',                  size: '20%' },
     //{ field: 'zipUrl',                   header: 'ZIPURL',               size: '15%' },
@@ -62,7 +62,7 @@ export class BatchMapDashboardComponent implements OnInit {
       this.showDialog = flag;
       if (flag){
          this.batMapService.getBatchMapDetailsByUser(this.userService.getUser()).subscribe((data) => {
-            const details: ImpPrintJob[] = data as ImpPrintJob[]; 
+            const details: ImpPrintJob[] = data as ImpPrintJob[];
             this.getPrintJobDetails(details);
           });
           this.cd.markForCheck();
@@ -74,7 +74,7 @@ export class BatchMapDashboardComponent implements OnInit {
       take(1),
     ).subscribe(() => {
       this.batMapService.getBatchMapDetailsByUser(this.userService.getUser()).subscribe((data) => {
-          const details: ImpPrintJob[] = data as ImpPrintJob[]; 
+          const details: ImpPrintJob[] = data as ImpPrintJob[];
           this.getPrintJobDetails(details);
         });
     });
@@ -82,12 +82,12 @@ export class BatchMapDashboardComponent implements OnInit {
 
   cancel(event: ImpPrintJob){
     this.batMapService.cancelBatchMapInProcess(event.jobId).subscribe((data) => {
-      const printJob = data as ImpPrintJob; 
+      const printJob = data as ImpPrintJob;
       this.printJobDetails.forEach((val) => {
           if (val.jobId == printJob.jobId){
-                val.refresh = printJob.status === 'inProgress' || printJob.status === 'Submitted' ? false : true;
+                val.refresh = printJob.status === 'Running' || printJob.status === 'Pending' ? false : true;
                 val.status = printJob.status;
-                val.jobNumShort = val.jobNumber.substring(0, 7); 
+                val.jobNumShort = val.jobNumber.substring(0, 7);
                 printJob.modifyDate = printJob.modifyDate == null ? printJob.createDate : printJob.modifyDate;
                 const duration = moment.duration(moment(printJob.modifyDate).diff(moment(printJob.createDate)));
                 val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
@@ -102,12 +102,12 @@ export class BatchMapDashboardComponent implements OnInit {
 
   refresh(event: ImpPrintJob){
     this.batMapService.getBatchMapDetailsById(event.jobId).subscribe((data) => {
-      const printJob = data as ImpPrintJob; 
+      const printJob = data as ImpPrintJob;
       this.printJobDetails.forEach((val) => {
           if (val.jobId == printJob.jobId){
-                val.refresh = printJob.status === 'inProgress' || printJob.status === 'Submitted' ? false : true;
+                val.refresh = printJob.status === 'Running' || printJob.status === 'Pending' ? false : true;
                 val.status = printJob.status;
-                val.jobNumShort = val.jobNumber.substring(0, 7); 
+                val.jobNumShort = val.jobNumber.substring(0, 7);
                 printJob.modifyDate = printJob.modifyDate == null ? printJob.createDate : printJob.modifyDate;
                 const duration = moment.duration(moment(printJob.modifyDate).diff(moment(printJob.createDate)));
                 val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
@@ -131,10 +131,10 @@ export class BatchMapDashboardComponent implements OnInit {
       if (val.jobType === 'One Site per Page')
           val.zipUrl = `${val.url}/zip`;
       else
-          val.zipUrl = null;  
-      
-      val.jobNumShort = val.jobNumber.substring(0, 7);    
-      val.refresh = val.status === 'inProgress' || val.status === 'Submitted' ? false : true;
+          val.zipUrl = null;
+
+      val.jobNumShort = val.jobNumber.substring(0, 7);
+      val.refresh = val.status === 'Running' || val.status === 'Pending' ? false : true;
       val.modifyDate = val.modifyDate == null ? val.createDate : val.modifyDate;
       const duration = moment.duration(moment(val.modifyDate).diff(moment(val.createDate)));
       val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
@@ -150,11 +150,11 @@ export class BatchMapDashboardComponent implements OnInit {
   }
 
   refreshButton(event: ImpPrintJob){
-    return event.status === 'inProgress' || event.status === 'Submitted' ? false : true;
+    return event.status === 'Running' || event.status === 'Pending' ? false : true;
   }
 
   isDisable(event: ImpPrintJob){
-    return event.status === 'inProgress' || event.status === 'Submitted' || event.status === 'Failed' || event.status == 'cancel' ? false : true;
+    return event.status === 'Running' || event.status === 'Pending' || event.status === 'Failed' || event.status == 'Canceled' ? false : true;
   }
 
   validateZipUrl(impPrintJob: ImpPrintJob){
@@ -223,7 +223,7 @@ export class BatchMapDashboardComponent implements OnInit {
       } );
     }else {
       this.printJobDetails = this.printJobDetails.sort((a, b) => {
-        return b[field] - a[field];  
+        return b[field] - a[field];
       } );
     }
     this.cd.markForCheck();
@@ -248,6 +248,7 @@ export interface ImpPrintJob {
   jobType;
   zipUrl;
   jobNumShort;
+  queuePosition;
 }
 
 

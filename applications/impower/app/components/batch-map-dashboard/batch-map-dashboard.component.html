@@ -30,7 +30,7 @@
               <ng-template pTemplate="body" let-rowData let-columns="columns">
                   <tr>
                     <td *ngFor="let col of columns" [ngSwitch]="col.field" [style.width]="col.size">
-  
+
                         <span *ngIf="col.field === 'elapsedTime'" pTooltip="{{rowData['elapsedTimeTooltip']}}">
                              {{rowData[col.field]}}
                         </span>
@@ -40,7 +40,7 @@
                         </span>
                         <span *ngIf="col.field ==='createDate'">
                             {{rowData[col.field]}}
-                        </span> 
+                        </span>
                         <span *ngIf="col.header === 'URL' &&  isDisable(rowData)">
                             <!-- <a href="{{rowData[col.field]}}" target="_blank">Pdf Download</a><br> -->
                              <!-- <a href="{{rowData['zipUrl']}}"  target="_blank">ZIP Download</a> -->
