@@ -286,6 +286,7 @@ export class BatchMapDialogComponent implements OnInit {
     const titlesByGroup: Array<TitlePayload> = result[1];
     const size: BatchMapSizes = <BatchMapSizes> dialogFields.pageSettingsControl;
     const fitTo: FitToPageOptions = <FitToPageOptions> dialogFields.fitTo;
+    const activeSites: number = this.getActiveSites().length;
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'deduped-shading' , dialogFields.deduplicated, dialogFields.deduplicated ? 1 : 0));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'neighbor-sites' , dialogFields.neighboringSites, null));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'fit-to' , fitTo, null));
@@ -362,9 +363,9 @@ export class BatchMapDialogComponent implements OnInit {
             }
           ]
         };
-        if (this.getActiveSites().length > 600){
+        if (activeSites > 600){
            this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
-        } else if (siteIds.length > 25 && !this.hasGrant){
+        } else if (activeSites > 25 && !this.hasGrant){
           this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'You cannot print maps with more than 25 pages. Please adjust sites and try again.'}));
         } else
           this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
@@ -413,11 +414,8 @@ export class BatchMapDialogComponent implements OnInit {
 
   private getSiteIds() : Array<string> {
     const siteIds: Array<string> = [];
-    this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.forEach(s => {
-      if (s.clientLocationTypeCode === ImpClientLocationTypeCodes.Site){
-        siteIds.push(s.locationNumber);
-      }
-    });
+    this.stateService.currentProject$.getValue().getImpGeofootprintLocations().filter(s => (s.clientLocationTypeCode === ImpClientLocationTypeCodes.Site))
+    .forEach(s => siteIds.push(s.locationNumber));
     return siteIds;
   }
 
