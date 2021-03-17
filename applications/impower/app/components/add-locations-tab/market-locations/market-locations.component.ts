@@ -349,12 +349,11 @@ export class MarketLocationsComponent implements OnInit {
     const newTA = this.factoryService.createTradeArea(loc, TradeAreaTypeCodes.Custom);
     // We need to query for the latitude and longitude of the new geos so all downstream things will still work, like printing
     return this.esriQueryService.queryAttributeIn(layerId, 'geocode', market.geocodes, false, ['geocode', 'latitude', 'longitude']).pipe(
-      map(graphics => {
-            graphics.forEach(g => {
-                const newGeo = this.factoryService.createGeo(newTA, g.getAttribute('geocode'), g.getAttribute('longitude'), g.getAttribute('latitude'), 0);
-            });
-            return newTA;
-          }));
+      reduce((tradeArea, graphics) => {
+        graphics.forEach(g => this.factoryService.createGeo(tradeArea, g.getAttribute('geocode'), g.getAttribute('longitude'), g.getAttribute('latitude'), 0));
+        return tradeArea;
+      }, newTA)
+    );
   }
 
   private reportError(errorHeader: string, errorMessage: string, errorObject: any, startTime: number) {

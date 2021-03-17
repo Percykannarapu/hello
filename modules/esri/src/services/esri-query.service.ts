@@ -4,11 +4,12 @@ import Point from '@arcgis/core/geometry/Point';
 import Query from '@arcgis/core/tasks/support/Query';
 import { chunkArray, getUuid, isNumberArray, isStringArray } from '@val/common';
 import { EMPTY, from, merge, Observable } from 'rxjs';
-import { expand, filter, finalize, map, reduce, retry, switchMap, take } from 'rxjs/operators';
+import { expand, filter, finalize, map, reduce, retry, switchMap, take, tap } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../configuration';
 import { EsriUtils } from '../core/esri-utils';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
+import { LoggingService } from './logging.service';
 
 type pointInputs = __esri.PointProperties | __esri.PointProperties[];
 const SIMULTANEOUS_STREAMS = 3;
@@ -21,7 +22,8 @@ export class EsriQueryService {
 
   constructor(@Inject(EsriAppSettingsToken) config: EsriAppSettings,
               private layerService: EsriLayerService,
-              private mapService: EsriMapService) {
+              private mapService: EsriMapService,
+              private logger: LoggingService) {
     EsriQueryService.config = config;
   }
 
@@ -170,7 +172,10 @@ export class EsriQueryService {
       observables.push(this.paginateEsriQuery(layerId, query, transactionId, isLongLivedQueryLayer));
     }
     const result$: Observable<__esri.FeatureSet> = merge(...observables, SIMULTANEOUS_STREAMS);
-    return result$.pipe(map(fs => fs.features));
+    return result$.pipe(
+      map(fs => fs.features),
+      tap(graphics => this.logger.debug.log(`Query returned ${graphics.length} results`))
+    );
   }
 
   private paginateEsriQuery(layerId: string, query: __esri.Query, transactionId: string, isLongLivedQueryLayer: boolean) : Observable<__esri.FeatureSet> {
