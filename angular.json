@@ -26,6 +26,27 @@
                 "glob": "**/*",
                 "input": "node_modules/@arcgis/core/assets",
                 "output": "/assets/"
+              },
+              {
+                "glob": "**/*",
+                "input": "applications/impower/assets/data",
+                "output": "/assets/data/"
+              },
+              {
+                "glob": "**/*",
+                "input": "applications/impower/assets/sample",
+                "output": "/assets/sample/"
+              },
+              {
+                "glob": "*",
+                "input": "applications/impower/assets",
+                "output": "/",
+                "ignore": ["**/*.scss"]
+              },
+              {
+                "glob": "silent-refresh.html",
+                "input": "applications/impower",
+                "output": "/"
               }
             ],
             "stylePreprocessorOptions": {
