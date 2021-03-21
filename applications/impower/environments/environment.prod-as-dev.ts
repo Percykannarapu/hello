@@ -43,8 +43,10 @@ export class EnvironmentData {
     },
     atz: {
       // boundary: 'fedd50a5759c45ccb41edd96713628f9',
-      boundary: '5d2988905256472bb6a86af5141d1912',
-      simplifiedBoundary: 'a975f431a654437e891a2a534e805894',
+        // boundary: '5d2988905256472bb6a86af5141d1912', -- 3/21/2021
+        // simplifiedBoundary: 'a975f431a654437e891a2a534e805894', -- 3/21/2021
+      boundary: 'f8e1b57f712d4144b8384e0399d038da',
+      simplifiedBoundary: '845911098c2d40828d9d356b4eff9d7a',
       centroid: '9f56b26cf3ea4b93bc65cb90f831cf24'
     },
     dtz: {
@@ -75,6 +77,8 @@ export class EnvironmentData {
   public static portalIdUpdates = {
     //hotfix after TDA Update
     'fedd50a5759c45ccb41edd96713628f9': EnvironmentData.layerIds.atz.boundary,
+    '5d2988905256472bb6a86af5141d1912': EnvironmentData.layerIds.atz.boundary,
+    'a975f431a654437e891a2a534e805894': EnvironmentData.layerIds.atz.simplifiedBoundary,
     '3e2a4a9836864cfca10d87d0160d2697': EnvironmentData.layerIds.zip.boundary,
     '53b17d3b6de5403889dba73fa767f8ec': EnvironmentData.layerIds.pcr.boundary,
 
