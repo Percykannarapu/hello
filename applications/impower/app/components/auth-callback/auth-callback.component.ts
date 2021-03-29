@@ -29,7 +29,7 @@ export class AuthCallbackComponent implements OnInit {
         const email: string = this.userService.getUser().email;
         const username: string = this.userService.getUser().username
         pendo.initialize({
-          vistor: {
+          visitor: {
             id: username,
             email: email
           },
