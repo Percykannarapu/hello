@@ -10,8 +10,7 @@ import { UserService } from '../../services/user.service';
             <div class="announcement" *acsGrant="['IMPOWER_INTERNAL_FEATURES']">
               <span>
                 Please Note: Distribution has changed. Users should reference the
-                <a target="_blank" href="http://myvalassis/Sales%20%20Marketing/marketplanning/marketreach/2021%20Direct%20Mail%20Footprint/Forms/AllItems.aspx?InitialTabId=Ribbon.Library&VisibilityContext=WSSListAndLibrary">'2021 Zip-ATZ Closures-Reductions-ATZ Footprint ...' file</a>
-                to ensure all desired geographies and distribution methods are included.
+                <a target="_blank" href="http://myvalassis/Sales%20%20Marketing/marketplanning/marketreach/2020%20Direct%20Mail%20Optimization/Forms/AllItems.aspx">'2021 Market Optimizations' file to ensure all desired geographies and distribution methods are included.</a>
               </span>
             </div>
             <div *ngIf="username" class="user">
