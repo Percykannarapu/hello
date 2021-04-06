@@ -10,3 +10,4 @@ export const getMapMoving = createSelector(getBatchMapSlice, state => state.movi
 export const getBatchMapDialog = createSelector(getBatchMapSlice, state => state.displayBatchMapDialog);
 export const getCurrentSiteNum = createSelector(getBatchMapSlice, state => state.currentSiteNum);
 export const getBatchMapStatusDialog = createSelector(getBatchMapSlice, state => state.displayBatchMapStatusDialog);
+export const getBatchMapAdminDialog = createSelector(getBatchMapSlice, state => state.adminDialog);

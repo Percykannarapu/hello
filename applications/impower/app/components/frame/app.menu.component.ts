@@ -11,7 +11,7 @@ import { MenuItem } from 'primeng/api';
 import { filter, take } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { OpenBatchMapDialog, OpenBatchMapStatusDialog } from '../../state/batch-map/batch-map.actions';
+import { OpenBatchMapDialog, OpenBatchMapStatusDialog, BatchMapAdminDialogOpen } from '../../state/batch-map/batch-map.actions';
 import {
   ClientNmaeForValassisDigitalDialog,
   DiscardAndCreateNew,
@@ -68,7 +68,8 @@ export class AppMenuComponent implements OnInit {
             { label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])  }
           ]
         },
-        { label: 'Batch Map Status', icon: 'pi pi-info', command: () => this.getBatchMapStatus(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])   }
+        { label: 'Batch Map Status', icon: 'pi pi-info', command: () => this.getBatchMapStatus(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])   },
+        { label: 'Admin Console', icon: 'pi pi-info', command: () => this.getAdminStats(), visible: this.userService.userHasGrants(['ACS_COMPONENT_MANAGE'], 'ANY')}
       ];
       this.isLoggedIn = true;
     });
@@ -78,6 +79,11 @@ export class AppMenuComponent implements OnInit {
       this.store$.dispatch(new OpenBatchMapStatusDialog());
 
     }
+
+    private getAdminStats(){
+       this.store$.dispatch(new BatchMapAdminDialogOpen());
+    }
+
     private saveProject(){
         this.stateService.closeOverlays();
         setTimeout(() => {

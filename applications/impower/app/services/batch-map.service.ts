@@ -15,7 +15,7 @@ import { combineLatest, Observable, of, race, timer } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { LocationBySiteNum } from '../common/valassis-sorters';
-import { BatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload, LocalAppState, SinglePageBatchMapPayload } from '../state/app.interfaces';
+import { BatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload, LocalAppState, SinglePageBatchMapPayload, PrintAdminPayload } from '../state/app.interfaces';
 import { ProjectLoad } from '../state/data-shim/data-shim.actions';
 import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -73,6 +73,12 @@ export class BatchMapService {
       payload.calls[0].args['printJobConfiguration'].siteIds = Array.from(requestedSiteIds);
     }
     return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);
+  }
+
+  requestPrintAdminStatus(payload: PrintAdminPayload): Observable<any>{
+    
+
+    return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);;
   }
 
   getBatchMapDetailsByUser(user: User){

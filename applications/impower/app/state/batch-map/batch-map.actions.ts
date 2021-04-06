@@ -11,7 +11,9 @@ export enum BatchMapActionTypes {
   CloseBatchMapDialog = '[Batch Map] Close Batch Map Dialog',
   SetCurrentSiteNum = '[Batch Map] Set Current Site Number',
   OpenBatchMapStatusDialog = '[Batch Map] Open Status Dialog',
-  CloseBatchMapStatusDialog = '[Batch Map] Close Status Dialog'
+  CloseBatchMapStatusDialog = '[Batch Map] Close Status Dialog',
+  BatchMapAdminDialogOpen = '[Batch Map] Admin Batch Map Dialog',
+  BatchMapAdminDialogClose = '[Batch Map] Admin Close Dialog'
 }
 
 export class CreateBatchMap implements Action {
@@ -59,5 +61,14 @@ export class CloseBatchMapStatusDialog implements Action{
   readonly type = BatchMapActionTypes.CloseBatchMapStatusDialog;
 }
 
+export class BatchMapAdminDialogOpen implements Action{
+  readonly type = BatchMapActionTypes.BatchMapAdminDialogOpen;
+}
+
+export class BatchMapAdminDialogClose implements Action{
+  readonly type = BatchMapActionTypes.BatchMapAdminDialogClose;
+}
+
 export type BatchMapActions = OpenBatchMapDialog | CloseBatchMapDialog | CreateBatchMap | SetBatchMode 
-            | MoveToSite | SiteMoved | SetMapReady | SetCurrentSiteNum | OpenBatchMapStatusDialog | CloseBatchMapStatusDialog;
+            | MoveToSite | SiteMoved | SetMapReady | SetCurrentSiteNum | OpenBatchMapStatusDialog | CloseBatchMapStatusDialog 
+            | BatchMapAdminDialogOpen | BatchMapAdminDialogClose;

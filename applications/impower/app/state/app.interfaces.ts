@@ -120,6 +120,14 @@ export interface CurrentPageBatchMapPayload {
   }];
 }
 
+export interface PrintAdminPayload{
+  calls:[{
+    service: string,
+    function: string,
+    args: {}
+  }]
+}
+
 export interface CrossBowSitesPayload {
   email: string;
   id: number;
