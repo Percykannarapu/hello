@@ -564,7 +564,7 @@ export class AppGeoService {
 
     // If no locations provided, pull them all
     if (locations == null || locations.length === 0)
-      locations = this.locationService.get();
+      locations = (this.locationService.get() || []).filter(l => ImpClientLocationTypeCodes.parse(l.clientLocationTypeCode) === ImpClientLocationTypeCodes.Site);
 
     // Determine which must covers are not in the list of geos
     const diff = this.impGeoService.mustCovers.filter(x => !geos.map(geo => geo.geocode).includes(x));
