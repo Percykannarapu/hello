@@ -259,6 +259,7 @@ export class AppDataShimService {
     const includeAnne = currentProject.isIncludeAnne;
     const includeSolo = currentProject.isIncludeSolo;
     const includePob = !currentProject.isExcludePob;
+    const allSelectedGeos = new Set(this.appStateService.uniqueSelectedGeocodes$.getValue());
     const geosByGeocode: Map<string, ImpGeofootprintGeo[]> = groupBy(geos, 'geocode');
 
     geosByGeocode.forEach((currentGeos, geocode) => {
@@ -294,7 +295,7 @@ export class AppDataShimService {
         }
         if (!ignore) {
           currentGeos.forEach(g => {
-            g.isActive = state && audiencePreSelected;
+            g.isActive = state && audiencePreSelected && allSelectedGeos.has(g.geocode);
             g['filterReasons'] = state ? (audiencePreSelected ? null : 'Under Audience TA threshold') : `Filtered because: ${filterReasons.join(', ')}`;
           });
         }

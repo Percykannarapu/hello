@@ -138,7 +138,7 @@ export class AppGeoService {
     } else if (this.appMapService.selectedButton === 1) {
       if (allSelectedGeos.has(geocode)) {
         this.deselectGeosByGeocode(geocode);
-      } else if (allIdentifiedGeos.has(geocode) && filterFlag) {
+      } else if (allIdentifiedGeos.has(geocode)) {
         this.reactivateGeosByGeocode(geocode);
       } else if (!(allIdentifiedGeos.has(geocode))) {
         (filterFlag !== null && filterFlag !== undefined) ? this.addGeoToManualTradeArea(geocode, geometry, filterFlag) : this.addGeoToManualTradeArea(geocode, geometry);
@@ -227,7 +227,8 @@ export class AppGeoService {
       filter(events => events != null && events.length > 0)
     ).subscribe(events => {
       events.forEach(event => {
-        (event.filterFlag !== null && event.filterFlag !== undefined) ? this.toggleGeoSelection(event.geocode, event.geometry, event.filterFlag) : this.toggleGeoSelection(event.geocode, event.geometry);
+        if (event.geometry.x != null && event.geometry.y != null)
+          (event.filterFlag !== null && event.filterFlag !== undefined) ? this.toggleGeoSelection(event.geocode, event.geometry, event.filterFlag) : this.toggleGeoSelection(event.geocode, event.geometry);
       });
     });
   }
