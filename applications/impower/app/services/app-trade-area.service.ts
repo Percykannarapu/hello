@@ -484,6 +484,7 @@ export class AppTradeAreaService {
     const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
     const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
     const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
+    const customTAGeoSet = new Set<string>();
     payload.forEach(record => {
       const loc = locationsByNumber.get(record.locNumber);
       if (loc != null){
@@ -496,8 +497,11 @@ export class AppTradeAreaService {
           }
         const newGeo = this.domainFactory.createGeo(currentTradeArea, record.geocode, layerData.x, layerData.y, distance);
         geosToAdd.push(newGeo);
+        customTAGeoSet.add(newGeo.geocode);
       }
     });
+    const geosToDelete = this.impGeoService.get().filter(geo => customTAGeoSet.has(geo.geocode));
+    this.appGeoService.deleteGeos(geosToDelete);
     this.uploadFailures = this.uploadFailures.concat(failedGeos);
     // stuff all the results into appropriate data stores
     this.impGeoService.add(geosToAdd);

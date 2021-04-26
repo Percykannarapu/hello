@@ -430,6 +430,7 @@ export class AppGeoService {
     const hhcField = season === Season.Summer ? 'hhld_s' : 'hhld_w';
     const geosToSave: ImpGeofootprintGeo[] = [];
     const allAttributes: GeoAttribute[] = [];
+    const uniqueIdentifiedGeocodeSet = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
     locationMap.forEach((attributes, location) => {
       const currentTas = location.impGeofootprintTradeAreas.filter(ta => tradeAreaSet.has(ta)).sort((a, b) => a.taRadius - b.taRadius);
       for (let i = 0; i < currentTas.length; ++i) {
@@ -440,7 +441,7 @@ export class AppGeoService {
           allAttributes.push(currentAttribute);
           const min = i === 0 ? -1 : currentTas[i - 1].taRadius;
           if (currentPoint.distance <= currentTas[i].taRadius && currentPoint.distance > min) {
-            if (!geoSet.has(currentAttribute.geocode)) {
+            if (!geoSet.has(currentAttribute.geocode) && !uniqueIdentifiedGeocodeSet.has(currentAttribute.geocode)) {
               const newGeo = this.domainFactory.createGeo(currentTas[i], currentAttribute.geocode, currentAttribute.longitude, currentAttribute.latitude, currentPoint.distance);
               geoSet.add(currentAttribute.geocode);
               newGeo.hhc = currentHHC;
@@ -487,25 +488,27 @@ export class AppGeoService {
         if (currentFeature == null) {
           result.invalidLocations.push(loc);
         } else {
-          if (!loc.getImpGeofootprintGeos().some(geo => geo.geocode === currentFeature.attributes['geocode'])) {
-            const geocodeDistance: number = EsriUtils.getDistance(currentFeature.attributes['longitude'], currentFeature.attributes['latitude'], loc.xcoord, loc.ycoord);
-            const existingTA = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO')[0];
-            const homeGeoTA = existingTA == null ? this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo) : existingTA;
-            if (JSON.parse(impProjectPref.largeVal)){
-              if (existingTA == null) result.newTradeAreas.push(homeGeoTA);
-              const newGeo = new ImpGeofootprintGeo({
-                xcoord: currentFeature.attributes['longitude'],
-                ycoord: currentFeature.attributes['latitude'],
-                geocode: currentFeature.attributes['geocode'],
-                hhc: currentFeature.attributes[hhcAttribute],
-                distance: geocodeDistance,
-                impGeofootprintLocation: homeGeoTA.impGeofootprintLocation,
-                impGeofootprintTradeArea: homeGeoTA,
-                isActive: homeGeoTA.isActive
-              });
-              homeGeoTA.impGeofootprintGeos.push(newGeo);
-              result.newGeos.push(newGeo);
-              newGeoAttributes.push(currentFeature.attributes);
+          if (!new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue()).has(loc.homeGeocode)){
+            if (!loc.getImpGeofootprintGeos().some(geo => geo.geocode === currentFeature.attributes['geocode'])) {
+              const geocodeDistance: number = EsriUtils.getDistance(currentFeature.attributes['longitude'], currentFeature.attributes['latitude'], loc.xcoord, loc.ycoord);
+              const existingTA = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO')[0];
+              const homeGeoTA = existingTA == null ? this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo) : existingTA;
+              if (JSON.parse(impProjectPref.largeVal)){
+                if (existingTA == null) result.newTradeAreas.push(homeGeoTA);
+                const newGeo = new ImpGeofootprintGeo({
+                  xcoord: currentFeature.attributes['longitude'],
+                  ycoord: currentFeature.attributes['latitude'],
+                  geocode: currentFeature.attributes['geocode'],
+                  hhc: currentFeature.attributes[hhcAttribute],
+                  distance: geocodeDistance,
+                  impGeofootprintLocation: homeGeoTA.impGeofootprintLocation,
+                  impGeofootprintTradeArea: homeGeoTA,
+                  isActive: homeGeoTA.isActive
+                });
+                homeGeoTA.impGeofootprintGeos.push(newGeo);
+                result.newGeos.push(newGeo);
+                newGeoAttributes.push(currentFeature.attributes);
+              }
             }
           }
         }
@@ -545,6 +548,7 @@ export class AppGeoService {
       return EMPTY;
 
     // Remove existing must cover trade areas
+    const uniqueIdentifiedGeocodeSet = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
     const tradeAreasToDelete = this.tradeAreaService.get().filter(ta => ta.taType === 'MUSTCOVER');
     tradeAreasToDelete.forEach(ta => {
       this.impGeoService.remove(ta.impGeofootprintGeos);
@@ -572,7 +576,7 @@ export class AppGeoService {
 
     // ensure mustcover are active
       this.impGeoService.get().forEach(geo => {
-      if (this.impGeoService.mustCovers.includes(geo.geocode))
+      if (this.impGeoService.mustCovers.includes(geo.geocode) && !uniqueIdentifiedGeocodeSet.has(geo.geocode))
       {
         geo.isActive = true;
       }
@@ -598,54 +602,55 @@ export class AppGeoService {
             results => {
               const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
               const newTradeAreas: ImpGeofootprintTradeArea[] = [];
+              
 
               results.forEach(geoAttrib => {
                 //this.logger.debug.log("### ensureMustCoversObs creating ImpGeo for " + geoAttrib.geocode + ", x: ", geoAttrib["longitude"], ", y: ", geoAttrib["latitude"]);
+                if (!uniqueIdentifiedGeocodeSet.has(geoAttrib.geocode)){
+                    // Assign to the nearest location
+                    let closestLocation: ImpGeofootprintLocation = locations[0];
+                    let minDistance: number = Number.MAX_VALUE;
+                    locations.forEach(loc => {
+                      const distanceToSite = EsriUtils.getDistance(geoAttrib['longitude'], geoAttrib['latitude'], loc.xcoord, loc.ycoord);
+                      if (distanceToSite < minDistance) {
+                        minDistance = distanceToSite;
+                        closestLocation = loc;
+                      }
+                      // this.logger.debug.log("### location: ", loc.locationName + ", loc x: ", loc.xcoord, ", loc y: ", loc.ycoord, ", geo x: ", result.xcoord, ", geo y: ", result.ycoord, ", distance: ", distanceToSite);
+                    });
+                    //this.logger.debug.log("### ensureMustCoversObs - closest location to ", geoAttrib.geocode, " is ", closestLocation.locationName, " at ", minDistance);
 
-                // Assign to the nearest location
-                let closestLocation: ImpGeofootprintLocation = locations[0];
-                let minDistance: number = Number.MAX_VALUE;
-                locations.forEach(loc => {
-                  const distanceToSite = EsriUtils.getDistance(geoAttrib['longitude'], geoAttrib['latitude'], loc.xcoord, loc.ycoord);
-                  if (distanceToSite < minDistance) {
-                    minDistance = distanceToSite;
-                    closestLocation = loc;
-                  }
-                  // this.logger.debug.log("### location: ", loc.locationName + ", loc x: ", loc.xcoord, ", loc y: ", loc.ycoord, ", geo x: ", result.xcoord, ", geo y: ", result.ycoord, ", distance: ", distanceToSite);
-                });
-                //this.logger.debug.log("### ensureMustCoversObs - closest location to ", geoAttrib.geocode, " is ", closestLocation.locationName, " at ", minDistance);
+                    // Assign to a new or existing MUSTCOVER trade area
+                    const mustCoverTA: ImpGeofootprintTradeArea[] = closestLocation.impGeofootprintTradeAreas.filter(ta => ta.taType.toUpperCase() === TradeAreaTypeCodes.MustCover.toUpperCase());
+                    if (mustCoverTA.length === 0) {
+                      const newTA = this.domainFactory.createTradeArea(closestLocation, TradeAreaTypeCodes.MustCover);
+                      newTA.taName = 'Must cover geographies not in an existing trade area';
+                      mustCoverTA.push(newTA);
+                      newTradeAreas.push(newTA);
+                    }
 
-                // Assign to a new or existing MUSTCOVER trade area
-                const mustCoverTA: ImpGeofootprintTradeArea[] = closestLocation.impGeofootprintTradeAreas.filter(ta => ta.taType.toUpperCase() === TradeAreaTypeCodes.MustCover.toUpperCase());
-                if (mustCoverTA.length === 0) {
-                  const newTA = this.domainFactory.createTradeArea(closestLocation, TradeAreaTypeCodes.MustCover);
-                  newTA.taName = 'Must cover geographies not in an existing trade area';
-                  mustCoverTA.push(newTA);
-                  newTradeAreas.push(newTA);
-                }
+                    // Initialize the TA list of geos if necessary
+                    if (mustCoverTA[0].impGeofootprintGeos == null)
+                      mustCoverTA[0].impGeofootprintGeos = [];
 
-                // Initialize the TA list of geos if necessary
-                if (mustCoverTA[0].impGeofootprintGeos == null)
-                  mustCoverTA[0].impGeofootprintGeos = [];
+                    // Create the geo that must be covered
+                    const newGeo = new ImpGeofootprintGeo({
+                      geocode: geoAttrib.geocode,
+                      xcoord: geoAttrib['longitude'],
+                      ycoord: geoAttrib['latitude'],
+                      impGeofootprintLocation: closestLocation,
+                      impGeofootprintTradeArea: mustCoverTA[0],
+                      distance: minDistance,
+                      isActive: true
+                    });
 
-                // Create the geo that must be covered
-                const newGeo = new ImpGeofootprintGeo({
-                  geocode: geoAttrib.geocode,
-                  xcoord: geoAttrib['longitude'],
-                  ycoord: geoAttrib['latitude'],
-                  impGeofootprintLocation: closestLocation,
-                  impGeofootprintTradeArea: mustCoverTA[0],
-                  distance: minDistance,
-                  isActive: true
-                });
-
-                // Add the geo to the trade area and list of geos
-                mustCoverTA[0].impGeofootprintGeos.push(newGeo);
-                impGeofootprintGeos.push(newGeo);
-                numNewGeos++;
-                newGeoList = newGeoList.concat((newGeoList === '') ? '' : ', ', newGeo.geocode);
+                    // Add the geo to the trade area and list of geos
+                    mustCoverTA[0].impGeofootprintGeos.push(newGeo);
+                    impGeofootprintGeos.push(newGeo);
+                    numNewGeos++;
+                    newGeoList = newGeoList.concat((newGeoList === '') ? '' : ', ', newGeo.geocode);
+              }
               });
-
               // Add any new trade areas created for must covers
               if (newTradeAreas.length > 0)
                 this.tradeAreaService.add(newTradeAreas);
