@@ -102,10 +102,16 @@ export class BatchMapService {
   }
 
   validateProjectReadiness(project: ImpProject) : boolean {
+    const notificationTitle = 'Batch Map Issue';
     if (project.projectId == null) {
-      const notificationTitle = 'Batch Map Issue';
       const projectNotSaved = 'The project must be saved before you can generate a batch map.';
       this.store$.dispatch(new ErrorNotification({ message: projectNotSaved, notificationTitle }));
+      return false;
+    }
+    this.logService.debug.log('location count for batchmap', project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length);
+    if (project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length == 0){
+      const noLocationFound = 'The project must have saved Locations to generate a batch map.';
+      this.store$.dispatch(new ErrorNotification({ message: noLocationFound, notificationTitle }));
       return false;
     }
     return true;
