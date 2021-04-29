@@ -11,14 +11,12 @@ import { LocalAppState } from '../state/app.interfaces';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from '../val-modules/targeting/models/ImpGeofootprintLocAttrib';
-import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
-import { ValAudienceTradeareaService } from './app-audience-tradearea.service';
 import { AppEditSiteService } from './app-editsite.service';
 import { AppGeoService } from './app-geo.service';
 import { AppLocationService } from './app-location.service';
@@ -44,7 +42,6 @@ interface TradeAreaDefinition {
                private impLocationService: ImpGeofootprintLocationService,
                private impTradeAreaService: ImpGeofootprintTradeAreaService,
                private appTradeAreaService: AppTradeAreaService,
-               private audienceTradeAreaService: ValAudienceTradeareaService,
                private impLocAttributeService: ImpGeofootprintLocAttribService,
                private appEditSiteService: AppEditSiteService,
                private impGeoService: ImpGeofootprintGeoService,
@@ -157,8 +154,6 @@ interface TradeAreaDefinition {
         }
         const tas = this.impTradeAreaService.get();
         const locations = payload.locations;
-        const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-
         const tradeAreas = this.appTradeAreaService.currentDefaults.get(ImpClientLocationTypeCodes.Site);
         const siteType = ImpClientLocationTypeCodes.markSuccessful(ImpClientLocationTypeCodes.parse(locations[0].clientLocationTypeCode));
         this.logger.debug.log('current defaults:::', tradeAreas, siteType);
@@ -201,16 +196,6 @@ interface TradeAreaDefinition {
    private tradeAreaApplyOnEdit() {
     if (this.customTradeAreaBuffer != null && this.customTradeAreaBuffer !== '') {
        this.appEditSiteService.customTradeArea({'data': this.customTradeAreaBuffer});
-    }
-
-    if (this.appTradeAreaService.tradeareaType == 'audience') {
-      this.audienceTradeAreaService.createAudienceTradearea()
-      .subscribe(null,
-      error => {
-        this.logger.error.log('Error while creating audience tradearea', error);
-        this.store$.dispatch(new ErrorNotification({ message: 'There was an error creating the Audience Trade Area' }));
-        this.store$.dispatch(new StopBusyIndicator({ key: 'AUDIENCETA' }));
-      });
     }
    }
 

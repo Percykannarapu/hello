@@ -46,7 +46,7 @@ export class StateModule {
     }
   }
 
-  static forRoot() : ModuleWithProviders {
+  static forRoot() : ModuleWithProviders<StateModule> {
     return {
       ngModule: StateModule
     };

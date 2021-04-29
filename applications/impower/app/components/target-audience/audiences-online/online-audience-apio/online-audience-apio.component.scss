@@ -1,34 +1,4 @@
-.search-controls {
+.val-folder-search {
   display: flex;
-}
-
-.narrow-layout .search-controls {
-  flex-direction: column;
-}
-
-.search-text {
-  flex: 1;
-  padding: 0 0.5em 0.5em 0;
-}
-
-.search-folder {
-  flex: 2;
-}
-
-.narrow-layout .search-folder {
-  flex: 1;
-}
-
-.search-source {
-  display: flex;
-  > * {
-    padding-right: 0.5em;
-  }
-  &:first-child {
-    padding: 0 0.5em 0.5em 0;
-  }
-}
-
-.narrow-layout .search-source {
-  flex-direction: column;
+  align-items: flex-end;
 }

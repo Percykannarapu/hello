@@ -21,8 +21,7 @@ import { ValassisValidators } from '../../../../common/valassis-validators';
 @Component({
   selector: 'val-composite-audience',
   templateUrl: './composite-audience.component.html',
-  styleUrls: ['./composite-audience.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./composite-audience.component.scss']
 })
 export class CompositeAudienceComponent implements OnInit, OnDestroy {
 
@@ -267,7 +266,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
     this.confirmationService.confirm({
       message: message,
       header: 'Delete Composite Variable',
-      icon: 'ui-icon-delete',
+      icon: 'pi pi-trash',
       accept: () => {
         this.varNames.delete(audience.audienceName);
         this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
@@ -307,7 +306,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
           if (current != null && current.audienceIdentifier === audience.id.toString()){
             currentRows.push({
               selectedAudienceList: current,
-              indexBase: current.selectedDataSet != null && current.selectedDataSet !== 'ALL' ? 
+              indexBase: current.selectedDataSet != null && current.selectedDataSet !== 'ALL' ?
                           current.selectedDataSet !== 'nationalScore' && current.selectedDataSet !== 'dmaScore' ? current.selectedDataSet :
                             current.selectedDataSet === 'nationalScore' ?  nationalBase : dmaBase : current.selectedDataSet === 'ALL' ? compositeBase : nationalBase,
               percent: audience.pct

@@ -30,7 +30,7 @@ export function reducer(state = initialState, action: reducerActions) : State {
     // primary actions
     case PersistentActionTypes.EntityCreateSuccessful:
     case PersistentActionTypes.EntityLoadSuccessful:
-      return adapter.addAll(action.payload.normalizedEntities.impProjects, state);
+      return adapter.setAll(action.payload.normalizedEntities.impProjects, state);
     case ImpProjectActionTypes.UpdateImpProject:
       return adapter.updateOne(action.payload.impProject, state);
 

@@ -1,12 +1,12 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification, SuccessNotification } from '@val/messaging';
-import { ExportCustomTAIssuesLog, DeleteCustomTAMustCoverGeosReset } from 'app/state/data-shim/data-shim.actions';
-import { projectIsReady, projectIsLoaded, deleteCustomTa } from 'app/state/data-shim/data-shim.selectors';
-import { ConfirmationService, SelectItem } from 'primeng/api';
-import { MessageService } from 'primeng/components/common/messageservice';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
+import { AppDiscoveryService } from 'app/services/app-discovery.service';
+import { DeleteCustomTAMustCoverGeosReset, ExportCustomTAIssuesLog } from 'app/state/data-shim/data-shim.actions';
+import { deleteCustomTa, projectIsReady } from 'app/state/data-shim/data-shim.selectors';
+import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { FileUpload } from 'primeng/fileupload';
-import { BehaviorSubject, Observable, of, EMPTY } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import { AppEditSiteService } from '../../../services/app-editsite.service';
@@ -18,7 +18,6 @@ import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modu
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { AppDiscoveryService } from 'app/services/app-discovery.service';
 
 
 interface TradeAreaDefinition {
@@ -41,8 +40,7 @@ const tradeAreaUpload: Parser<TradeAreaDefinition> = {
 
 @Component({
   selector: 'val-upload-tradeareas',
-  templateUrl: './upload-tradeareas.component.html',
-  styleUrls: ['./upload-tradeareas.component.scss']
+  templateUrl: './upload-tradeareas.component.html'
 })
 export class UploadTradeAreasComponent implements OnInit {
   public selectedSiteType: string = 'Site';

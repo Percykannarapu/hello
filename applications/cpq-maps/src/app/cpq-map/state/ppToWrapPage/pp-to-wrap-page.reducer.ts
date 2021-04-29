@@ -50,7 +50,7 @@ export function ppToWrapPageReducer(state = initialState, action: PpToWrapPageAc
     }
 
     case PpToWrapPageActionTypes.LoadPpToWrapPages: {
-      return adapter.addAll(action.payload.ppToWrapPages, state);
+      return adapter.setAll(action.payload.ppToWrapPages, state);
     }
 
     case PpToWrapPageActionTypes.ClearPpToWrapPages: {

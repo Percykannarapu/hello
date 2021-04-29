@@ -1,16 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
+import { toUniversalCoordinates } from '@val/common';
 import { EsriMapService } from '@val/esri';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import * as fromTransientSelectors from 'app/impower-datastore/state/transient/transient.reducer';
 import { GridGeoVar } from 'app/impower-datastore/state/transient/transient.reducer';
-import { ConfirmationService } from 'primeng/api';
-import { SelectItem } from 'primeng/components/common/selectitem';
+import { ConfirmationService, SelectItem } from 'primeng/api';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
-import { toUniversalCoordinates } from '../../../../../modules/common/src/coordinates';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { AppGeoService } from '../../services/app-geo.service';
 import { AppStateService } from '../../services/app-state.service';
@@ -156,7 +155,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
          this.confirmationService.confirm({
             message: 'Do you want to delete geocode: ' + geo.geocode + '?',
             header: 'Delete Geography Confirmation',
-            icon: 'ui-icon-trash',
+            icon: 'pi pi-trash',
             accept: () => {
                //const usageMetricName: ImpMetricName = new ImpMetricName({ namespace: 'targeting', section: 'location',
                //                                         target: 'single-' + this.selectedListType.toLowerCase(), action: 'delete' });

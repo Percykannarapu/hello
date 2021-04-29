@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator, SuccessNotification } from '@val/messaging';
+import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ExportMCIssuesLog, DeleteCustomTAMustCoverGeosReset } from 'app/state/data-shim/data-shim.actions';
 import { projectIsReady, deleteMustCover } from 'app/state/data-shim/data-shim.selectors';
 import { ImpProjectService } from 'app/val-modules/targeting/services/ImpProject.service';
@@ -24,8 +24,7 @@ interface CustomMCDefinition {
 
 @Component({
   selector: 'val-upload-must-cover',
-  templateUrl: './upload-must-cover.component.html',
-  styleUrls: ['./upload-must-cover.component.css']
+  templateUrl: './upload-must-cover.component.html'
 })
 export class UploadMustCoverComponent implements OnInit {
 
@@ -199,7 +198,7 @@ export class UploadMustCoverComponent implements OnInit {
             };
          }
       }
-      
+
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
       //this.isDisable = true;
@@ -218,7 +217,7 @@ export class UploadMustCoverComponent implements OnInit {
       this.confirmationService.confirm({
          message: 'Do you want to delete all the Must Cover geos?',
          header: 'Delete Must Cover Confirmation',
-         icon: 'ui-icon-delete',
+         icon: 'pi pi-trash',
 
          accept: () => {
             this.impGeofootprintGeoService.clearMustCovers();
@@ -248,7 +247,7 @@ export class UploadMustCoverComponent implements OnInit {
       });
       this.store$.dispatch(new ExportMCIssuesLog({uploadFailures: records}));
     }
-   
+
     switchAnalysisLevel(isDeleteMustCover: boolean){
        if (isDeleteMustCover){
          this.impGeofootprintGeoService.clearMustCovers();
@@ -258,5 +257,5 @@ export class UploadMustCoverComponent implements OnInit {
          this.fileAnalysisSelected = null;
          this.isDisable = true;
        }
-    } 
+    }
 }

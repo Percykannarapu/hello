@@ -5,7 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { EffectsModule } from '@ngrx/effects';
-import { RouterStateSerializer, StoreRouterConnectingModule } from '@ngrx/router-store';
+import { DefaultRouterStateSerializer, RouterStateSerializer, StoreRouterConnectingModule } from '@ngrx/router-store';
 import { Action, StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EsriModule } from '@val/esri';
@@ -13,19 +13,16 @@ import { MessagingModule } from '@val/messaging';
 import { NgStringPipesModule } from 'angular-pipes';
 import { CookieService } from 'ngx-cookie-service';
 import { AccordionModule } from 'primeng/accordion';
+import { ConfirmationService, MessageService, SharedModule } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ColorPickerModule } from 'primeng/colorpicker';
-import { ConfirmationService } from 'primeng/components/common/confirmationservice';
-import { MessageService } from 'primeng/components/common/messageservice';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ContextMenuModule } from 'primeng/contextmenu';
-import { DataGridModule } from 'primeng/datagrid';
-import { DataListModule } from 'primeng/datalist';
-import { DataScrollerModule } from 'primeng/datascroller';
 import { DialogModule } from 'primeng/dialog';
+import { DividerModule } from 'primeng/divider';
 import { DropdownModule } from 'primeng/dropdown';
 import { FieldsetModule } from 'primeng/fieldset';
 import { FileUploadModule } from 'primeng/fileupload';
@@ -33,10 +30,12 @@ import { InputMaskModule } from 'primeng/inputmask';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
+import { KeyFilterModule } from 'primeng/keyfilter';
 import { ListboxModule } from 'primeng/listbox';
 import { MegaMenuModule } from 'primeng/megamenu';
 import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
+import { MessageModule } from 'primeng/message';
 import { MessagesModule } from 'primeng/messages';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { OrderListModule } from 'primeng/orderlist';
@@ -51,7 +50,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { SharedModule } from 'primeng/shared';
 import { SidebarModule } from 'primeng/sidebar';
 import { SlideMenuModule } from 'primeng/slidemenu';
 import { SliderModule } from 'primeng/slider';
@@ -75,10 +73,10 @@ import { AppConfig } from './app.config';
 import { AppRoutes } from './app.routes';
 import { allInterceptorProviders } from './common/interceptors';
 import { AddLocationsTabComponent } from './components/add-locations-tab/add-locations-tab.component';
-import { BusinessSearchComponent } from './components/add-locations-tab/business-search/business-search.component';
 import { ManualEntryComponent } from './components/add-locations-tab/manual-entry/manual-entry.component';
 import { MarketLocationsComponent } from './components/add-locations-tab/market-locations/market-locations.component';
 import { UploadLocationsComponent } from './components/add-locations-tab/upload-locations/upload-locations.component';
+import { AdminDialogComponent } from './components/admin-dialog/admin-dialog.component';
 import { AuthCallbackComponent } from './components/auth-callback/auth-callback.component';
 import { BatchMapDashboardComponent } from './components/batch-map-dashboard/batch-map-dashboard.component';
 import { BatchMapDialogComponent } from './components/batch-map-dialog/batch-map-dialog.component';
@@ -110,9 +108,10 @@ import { ExportCrossbowSitesComponent } from './components/export-crossbow-sites
 import { FailedLocationsTabComponent } from './components/failed-locations-tab/failed-locations-tab.component';
 import { AppFooterComponent } from './components/frame/app.footer.component';
 import { AppHeaderComponent } from './components/frame/app.header.component';
-import { AppMenuComponent, AppSubMenuComponent } from './components/frame/app.menu.component';
+import { AppMenuComponent } from './components/frame/app.menu.component';
 import { GeofootprintGeoListComponent } from './components/geofootprint-geo-list/geofootprint-geo-list.component';
 import { GeofootprintGeoPanelComponent } from './components/geofootprint-geo-panel/geofootprint-geo-panel.component';
+import { ImpowerHelpComponent } from './components/impower-help/impower-help.component';
 import { ImpowerMainComponent } from './components/impower-main/impower-main.component';
 import { BoundaryListComponent } from './components/map-settings-sidebar/boundary-list/boundary-list.component';
 import { BoundaryShaderComponent } from './components/map-settings-sidebar/boundary-list/boundary-shader/boundary-shader.component';
@@ -120,6 +119,7 @@ import { LocationListComponent } from './components/map-settings-sidebar/locatio
 import { LocationShaderComponent } from './components/map-settings-sidebar/location-list/location-shader/location-shader.component';
 import { SimpleLocationShaderComponent } from './components/map-settings-sidebar/location-list/location-shader/simple-location-shader/simple-location-shader.component';
 import { UniqueValueLocationShaderComponent } from './components/map-settings-sidebar/location-list/location-shader/unique-value-location-shader/unique-value-location-shader.component';
+import { VisualRadiiComponent } from './components/map-settings-sidebar/location-list/location-shader/visual-radii/visual-radii.component';
 import { MapSettingsSidebarComponent } from './components/map-settings-sidebar/map-settings-sidebar.component';
 import { AddShaderButtonComponent } from './components/map-settings-sidebar/shader-list/add-shader-button/add-shader-button.component';
 import { OwnerSiteShaderComponent } from './components/map-settings-sidebar/shader-list/owner-site-shader/owner-site-shader.component';
@@ -133,7 +133,6 @@ import { UniqueVariableShaderComponent } from './components/map-settings-sidebar
 import { VariableShaderComponent } from './components/map-settings-sidebar/shader-list/variable-shader/variable-shader.component';
 import { MapComponent } from './components/map/map.component';
 import { MarketGeosComponent } from './components/market-geos/market-geos.component';
-import { PrintViewComponent } from './components/print-view/print-view.component';
 import { ProjectComponent } from './components/project-dashboard/project.component';
 import { SendSitesDigitalComponent } from './components/send-sites-digital/send-sites-digital.component';
 import { SiteListContainerComponent } from './components/site-list-container/site-list-container.component';
@@ -152,18 +151,12 @@ import { OnlineAudiencePixelComponent } from './components/target-audience/audie
 import { OnlineAudienceVlhComponent } from './components/target-audience/audiences-online/online-audience-vlh/online-audience-vlh.component';
 import { SelectedAudiencesComponent } from './components/target-audience/selected-audiences/selected-audiences.component';
 import { TargetAudienceComponent } from './components/target-audience/target-audience.component';
-import { AudienceTradeareaComponent } from './components/trade-area-tab/audience-tradearea/audience-tradearea.component';
 import { DistanceTradeAreaComponent } from './components/trade-area-tab/distance-trade-area/distance-trade-area.component';
 import { RadiusEntryComponent } from './components/trade-area-tab/distance-trade-area/radius-entry/radius-entry.component';
 import { TradeAreaTabComponent } from './components/trade-area-tab/trade-area-tab.component';
 import { UploadMustCoverComponent } from './components/trade-area-tab/upload-must-cover/upload-must-cover.component';
 import { UploadTradeAreasComponent } from './components/trade-area-tab/upload-tradeareas/upload-tradeareas.component';
 import { ImpowerDatastoreModule } from './impower-datastore/impower-datastore.module';
-import { PocComponent } from './poc/poc.component';
-import { PocMapComponent } from './poc/poc.map';
-import { SampleComponent } from './poc/sample/sample.component';
-import { ValAudienceTradeareaService } from './services/app-audience-tradearea.service';
-import { AppBusinessSearchService } from './services/app-business-search.service';
 import { AppDiscoveryService } from './services/app-discovery.service';
 import { AppEditSiteService } from './services/app-editsite.service';
 import { AppGeocodingService } from './services/app-geocoding.service';
@@ -201,9 +194,6 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
-import { ImpowerHelpComponent } from './components/impower-help/impower-help.component';
-import { VisualRadiiComponent } from './components/map-settings-sidebar/location-list/location-shader/visual-radii/visual-radii.component';
-import { AdminDialogComponent } from './components/admin-dialog/admin-dialog.component';
 
 
 export function stateSanitizer(state: any) : any {
@@ -251,7 +241,7 @@ export function esriSetupFactory() : ForRootOptions {
     EsriModule.forRoot(esriSetupFactory),
     StateModule.forRoot(),
     ImpowerDatastoreModule.forRoot(),
-    StoreRouterConnectingModule.forRoot(),
+    StoreRouterConnectingModule.forRoot({ serializer: DefaultRouterStateSerializer }),
     StoreDevtoolsModule.instrument({
       name: 'imPower Application',
       logOnly: environment.production,
@@ -272,9 +262,6 @@ export function esriSetupFactory() : ForRootOptions {
     ConfirmDialogModule,
     SharedModule,
     ContextMenuModule,
-    DataGridModule,
-    DataListModule,
-    DataScrollerModule,
     DialogModule,
     DropdownModule,
     FieldsetModule,
@@ -288,6 +275,7 @@ export function esriSetupFactory() : ForRootOptions {
     MenuModule,
     MenubarModule,
     MessagesModule,
+    MessageModule,
     MultiSelectModule,
     OrderListModule,
     OverlayPanelModule,
@@ -321,21 +309,19 @@ export function esriSetupFactory() : ForRootOptions {
     NgStringPipesModule,
     CardModule,
     SidebarModule,
-    ColorPickerModule
+    ColorPickerModule,
+    DividerModule,
+    KeyFilterModule
   ],
   declarations: [
     AppComponent,
     AppMenuComponent,
-    AppSubMenuComponent,
     AppHeaderComponent,
     AppFooterComponent,
     DashboardComponent,
-    PocComponent,
-    PocMapComponent,
     GeofootprintGeoListComponent,
     GeofootprintGeoPanelComponent,
     MessageComponent,
-    BusinessSearchComponent,
     ColorBoxComponent,
     SiteListComponent,
     DiscoveryInputComponent,
@@ -346,7 +332,6 @@ export function esriSetupFactory() : ForRootOptions {
     CustomAudienceComponent,
     TargetAudienceComponent,
     OnlineAudienceApioComponent,
-    AudienceTradeareaComponent,
     ProjectComponent,
     OnlineAudienceVlhComponent,
     OnlineAudiencePixelComponent,
@@ -354,26 +339,21 @@ export function esriSetupFactory() : ForRootOptions {
     DistanceTradeAreaComponent,
     SiteTypeSelectorComponent,
     AddLocationsTabComponent,
-    FailedGeocodeGridComponent,
     ManualEntryComponent,
     CampaignDetailsComponent,
     MapComponent,
-    SampleComponent,
     TableFilterNumericComponent,
     TableFilterLovComponent,
     SiteListContainerComponent,
     ConfirmationContainerComponent,
     ConfirmationDialogComponent,
     UploadMustCoverComponent,
-    EditLocationsComponent,
-    PrintViewComponent,
     BatchMapComponent,
     ImpowerMainComponent,
     MapSettingsSidebarComponent,
     BatchMapDialogComponent,
     CombinedAudienceComponent,
     EditCombinedAudiencesComponent,
-    FailedLocationsTabComponent,
     ExportCrossbowSitesComponent,
     ConnectFormDirective,
     ShaderListComponent,
@@ -417,8 +397,9 @@ export function esriSetupFactory() : ForRootOptions {
     ImpowerHelpComponent,
     VisualRadiiComponent,
     AdminDialogComponent,
-    //BatchMapDashboardComponent
-
+    FailedLocationsTabComponent,
+    FailedGeocodeGridComponent,
+    EditLocationsComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },
@@ -434,10 +415,10 @@ export function esriSetupFactory() : ForRootOptions {
     // from ngx-cookie-service
     CookieService,
     // from main application
-    AppBusinessSearchService, AppConfig, AppProjectService, AppMessagingService, AppRendererService,
+    AppConfig, AppProjectService, AppMessagingService, AppRendererService,
     AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
     AppLayerService, AppGeocodingService, AppTradeAreaService,
-    AppMapService, ValMetricsService, ValAudienceTradeareaService,
+    AppMapService, ValMetricsService,
     AppEditSiteService, BatchMapAuthService
   ],
   bootstrap: [AppComponent],

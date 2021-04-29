@@ -1,16 +1,22 @@
-<div class="ui-g" #dialogParent>
-  <div *ngIf="hasAudiences" class="ui-g-12 val-table-with-dropdowns">
-    <div class="ui-g ui-g-nopad" (click)="$event.stopPropagation()">
+<div #dialogParent class="p-grid">
 
+  <div *ngIf="hasAudiences" class="p-col-12 val-table-with-dropdowns">
+    <div>
       <p-table [value]="audiences$ | async" [rows]="10" [paginator]="true" [alwaysShowPaginator]="false" [autoLayout]="true">
         <ng-template pTemplate="header">
           <tr>
             <th>Move</th>
-            <th>Grid
+            <th>
+              <div class="centered">
+                Grid
                 <p-checkbox [(ngModel)]="gridFilter" binary="true" (click)="onSelectShowOnGrid(gridFilter)"></p-checkbox>
+              </div>
             </th>
-            <th *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']">GFP
+            <th *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']">
+              <div class="centered">
+                GFP
                 <p-checkbox [(ngModel)]="gfpFilter" binary="true" (click)="onSelectShowOnGFP(gfpFilter)"></p-checkbox>
+              </div>
             </th>
             <th *acsGrant="['IMPOWER_EXPORT_NATIONAL']">Nat'l Ex.</th>
             <th>Index Base</th>
@@ -22,50 +28,50 @@
         <ng-template pTemplate="body" let-audience>
           <tr>
             <td class="button-column">
-              <i (click)="onMoveUp(audience)" class="fa fa-arrow-up val-clickable" *ngIf="audience.sortOrder > 0"></i>
-              <i class="fa fa-arrow-up val-non-clickable" *ngIf="(audience.sortOrder === 0) && (audienceCount > 1)"></i>
-              <i (click)="onMoveDn(audience)" class="fa fa-arrow-down val-clickable" *ngIf="audience.sortOrder < (audienceCount - 1)"></i>
+              <ng-container *ngIf="audienceCount > 2">
+                <button pButton icon="pi pi-arrow-up" class="p-button-rounded p-button-xs p-button-text" *ngIf="audience.sortOrder > 0" (click)="onMoveUp(audience)"></button>
+                <button pButton icon="pi pi-arrow-down" class="p-button-rounded p-button-xs p-button-text" *ngIf="audience.sortOrder < (audienceCount - 1)" (click)="onMoveDn(audience)"></button>
+              </ng-container>
             </td>
             <td>
-              <div class="val-center-controls">
+              <div class="centered">
                 <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience.showOnGrid" binary="true" (onChange)="onShowGridSelected(audience)"></p-checkbox>
               </div>
             </td>
             <td *acsGrant="['IMPOWER_EXPORT_GEOFOOTPRINT']">
-              <div class="val-center-controls">
+              <div class="centered">
                 <p-checkbox [disabled]="audience.disableUISplit" [(ngModel)]="audience.exportInGeoFootprint" binary="true" (onChange)="onExportInGeoFootprintSelected(audience)"></p-checkbox>
               </div>
             </td>
             <td *acsGrant="['IMPOWER_EXPORT_NATIONAL']">
-              <div class="val-center-controls">
+              <div class="centered">
                 <p-checkbox *ngIf="audience.allowNationalExport" [(ngModel)]="audience.exportNationally" binary="true" (onChange)="onNationalSelected(audience)"></p-checkbox>
               </div>
             </td>
             <td>
               <p-dropdown
-                dropdownIcon="fa fa-caret-down"
                 *ngIf="audience.dataSetOptions != null && audience.dataSetOptions.length > 0"
                 [options]="audience.dataSetOptions"
                 [(ngModel)]="audience.selectedDataSet"
-                [autoWidth]="false"
                 (onChange)="onIndexBaseChange(audience)"></p-dropdown>
             </td>
             <td nowrap>
-              {{ audience.audienceName | truncate:35:'...' }}<i class="fa fa-comment" *ngIf="(audience.audienceName || '').length > 35" pTooltip="{{audience.audienceName}}"></i>
+              {{ audience.audienceName | truncate:35:'...' }}
+              <i class="pi pi-comment" *ngIf="(audience.audienceName || '').length > 35" pTooltip="{{audience.audienceName}}"></i>
             </td>
             <td nowrap>
-                <div *ngIf="(audience.audienceSourceType === 'Combined/Converted' || audience.audienceSourceType === 'Combined' || audience.audienceSourceType === 'Converted' || audience.audienceSourceType === 'Composite')"> 
-                    {{ audience.audienceSourceType }} 
+                <div *ngIf="(audience.audienceSourceType === 'Combined/Converted' || audience.audienceSourceType === 'Combined' || audience.audienceSourceType === 'Converted' || audience.audienceSourceType === 'Composite')">
+                    {{ audience.audienceSourceType }}
                  </div>
-                <div *ngIf="(audience.audienceSourceType === 'Custom');"> 
-                    {{ audience.audienceSourceType }}  <i class="fa fa-comment"  pTooltip="{{formatString(audience.audienceSourceName)}}" [escape]="false"> </i> 
-               </div> 
-               <div *ngIf="audience.audienceSourceType === 'Online' || audience.audienceSourceType === 'Offline'"> 
-                {{audience.audienceSourceType}}: {{audience.audienceSourceName}}  
+                <div *ngIf="(audience.audienceSourceType === 'Custom');">
+                    {{ audience.audienceSourceType }}  <i class="pi pi-comment"  pTooltip="{{formatString(audience.audienceSourceName)}}" [escape]="false"> </i>
+               </div>
+               <div *ngIf="audience.audienceSourceType === 'Online' || audience.audienceSourceType === 'Offline'">
+                {{audience.audienceSourceType}}: {{audience.audienceSourceName}}
               </div>
             </td>
             <td>
-              <i (click)="onRemove(audience)" class="fa fa-trash val-clickable"></i>
+              <button pButton icon="pi pi-trash" class="p-button-danger p-button-rounded p-button-sm p-button-text" (click)="onRemove(audience)"></button>
             </td>
           </tr>
         </ng-template>
@@ -73,26 +79,25 @@
     </div>
   </div>
 
-  <div *ngIf="hasAudiences" class="ui-g-12">
+  <div *ngIf="hasAudiences" class="p-col-12">
     <button pButton label="Apply Audience Selections" (click)="onApplyClicked()"></button>
   </div>
 
-  <div *ngIf="!hasAudiences" class="ui-g-12">
+  <div *ngIf="!hasAudiences" class="p-col-12">
     Please select or upload Audience Data from one of the other tabs.
   </div>
-
-  <p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" [responsive]="true" [appendTo]="dialogParent" styleClass="selected-audience-dialog">
-    <div>
-      <span>
-          {{dialogboxWarningmsg}}
-      </span>
-    </div>
-
-    <p-footer>
-      <div class="sa-footer-container">
-          <button type="button" (click)="closeDialog()" pButton label="OK"></button>
-      </div>
-  </p-footer>
- </p-dialog>
-
 </div>
+
+<p-dialog [header]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" [appendTo]="dialogParent" styleClass="selected-audience-dialog">
+  <div>
+    <span>
+      {{dialogboxWarningmsg}}
+    </span>
+  </div>
+
+  <p-footer>
+    <div class="sa-footer-container">
+      <button type="button" (click)="closeDialog()" pButton label="OK"></button>
+    </div>
+  </p-footer>
+</p-dialog>

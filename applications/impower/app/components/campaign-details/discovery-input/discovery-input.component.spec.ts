@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { DiscoveryInputComponent } from './discovery-input.component';
 
@@ -6,7 +6,7 @@ describe('DiscoveryInputComponent', () => {
   let component: DiscoveryInputComponent;
   let fixture: ComponentFixture<DiscoveryInputComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ DiscoveryInputComponent ]
     })

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ExportCrossbowSitesComponent } from './export-crossbow-sites.component';
 
@@ -6,7 +6,7 @@ describe('ExportCrossbowSitesComponent', () => {
   let component: ExportCrossbowSitesComponent;
   let fixture: ComponentFixture<ExportCrossbowSitesComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ ExportCrossbowSitesComponent ]
     })

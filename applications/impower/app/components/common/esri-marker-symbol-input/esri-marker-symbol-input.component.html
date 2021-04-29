@@ -1,34 +1,34 @@
-<div class="component-root" [formGroup]="currentRoot">
-  <span class="md-inputfield">
-    <p-dropdown [options]="markerTypes" [style]="{'width':'100%'}" id="marker-input-{{controlId}}" formControlName="markerType"
-                dropdownIcon="fa fa-caret-down" (onChange)="setDefaultPointSize($event)">
+<div class="component-root p-grid p-ai-end p-pt-4 p-pl-2" [formGroup]="currentRoot">
+  <div class="p-float-label p-col-6 p-col-nogutter">
+    <p-dropdown id="marker-input-{{controlId}}" [options]="markerTypes" formControlName="markerType" styleClass="p-col-12 p-col-nogutter"
+                (onChange)="setDefaultPointSize($event)">
       <ng-template let-selected pTemplate="selectedItem">
-        <div class="item-container">
-          <span [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
-          <span class="item-label">{{selected.label}}</span>
+        <div class="p-d-flex">
+          <span class="item-icon" [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
+          <span>{{selected.label}}</span>
         </div>
       </ng-template>
       <ng-template let-item pTemplate="item">
-        <div class="item-container">
-          <span [ngClass]="item.icon"></span>
-          <span class="item-label">{{item.label}}</span>
+        <div class="p-d-flex">
+          <span class="item-icon" [ngClass]="item.icon"></span>
+          <span>{{item.label}}</span>
         </div>
       </ng-template>
     </p-dropdown>
-    <label class="drop-down-label" for="marker-input-{{controlId}}">{{labelText}}</label>
-  </span>
+    <label for="marker-input-{{controlId}}">{{labelText}}</label>
+  </div>
 
-  <span class="size-control">
+  <div class="p-col p-col-nogutter p-ml-2">
     <validated-text-input labelText="Size" [validationMessage]="validationMessage" formControlName="size"></validated-text-input>
-  </span>
+  </div>
 
-  <span *ngIf="currentPalette != null" class="color-drop-down">
+  <div *ngIf="currentPalette != null" class="p-col p-col-nogutter p-ml-2">
     <val-extended-palette-picker [palette]="currentPalette" [reversePalette]="reversePalette" formControlName="color" labelText="Fill"></val-extended-palette-picker>
-  </span>
-  <span *ngIf="currentPalette == null" title="Fill">
+  </div>
+  <div *ngIf="currentPalette == null" title="Fill" class="p-ml-2">
     <val-extended-color-picker [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
-  </span>
-<!--  <span title="Halo">-->
-<!--    <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="outlineColor"></val-extended-color-picker>-->
-<!--  </span>-->
+  </div>
+  <div title="Halo" class="p-ml-2">
+    <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="outlineColor"></val-extended-color-picker>
+  </div>
 </div>

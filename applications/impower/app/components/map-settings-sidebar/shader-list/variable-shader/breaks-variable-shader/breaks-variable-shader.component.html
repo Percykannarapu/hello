@@ -82,11 +82,15 @@
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
   <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
-  <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+  <div class="p-pt-3">
+    <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+  </div>
   <dropdown-input labelText="Theme" formControlName="theme" [options]="allThemes"></dropdown-input>
   <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
-  <dropdown-input labelText="Break Type" [options]="breakTypes" [(ngModel)]="selectedBreakType" [ngModelOptions]="{standalone: true}"
-                  [includeUnselected]="true" (selectionChanged)="breakTypeChanged($event)"></dropdown-input>
+  <div class="p-pt-2">
+    <dropdown-input labelText="Break Type" [options]="breakTypes" [(ngModel)]="selectedBreakType" [ngModelOptions]="{standalone: true}"
+                    [includeUnselected]="true" (selectionChanged)="breakTypeChanged($event)"></dropdown-input>
+  </div>
   <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === true">
     <validated-text-input formControlName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be between 2 and 20"></validated-text-input>
     <boolean-input labelText="Dynamic Legend" formControlName="dynamicLegend"></boolean-input>
@@ -102,23 +106,23 @@
     </div>
   </ng-container>
   <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === false">
-    <div class="shader-menu">
-      <a href="#" (click)="addBreak()" *ngIf="classBreakCount < 10">add Class Break</a>
-      <span *ngIf="classBreakCount >= 10">&nbsp;</span>
+    <div class="p-d-flex p-jc-end">
+      <button pButton type="button" class="p-button-text p-button-sm" (click)="addBreak()" label="add Class Break" *ngIf="classBreakCount < 10"></button>
     </div>
-    <div class="class-break-list" formArrayName="breakDefinitions">
-      <div *ngFor="let x of breakDefinitions; first as isFirst; last as isLast; index as i">
-        <div class="break-container">
+    <div formArrayName="breakDefinitions">
+      <div *ngFor="let x of breakDefinitions; first as isFirst; last as isLast; index as i" class="p-d-flex p-pl-3 p-ai-end">
+        <div class="p-col p-col-nogutter">
           <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme" [reversePalette]="reverseTheme"
                                   [showMinValue]="!isFirst" [showMaxValue]="!isLast"></esri-class-break-input>
         </div>
-        <div class="delete-container">
-          <span class="fa fa-trash-o val-clickable" (click)="deleteBreak(i)" *ngIf="!(isLast || isFirst)"></span>
-        </div>
+        <button type="button" pButton icon="pi pi-trash" class="p-button-outlined p-button-rounded p-button-danger p-button-xs p-ml-2"
+                (click)="deleteBreak(i)" [ngClass]="{ 'hide-button': (isLast || isFirst) }"></button>
       </div>
     </div>
   </ng-container>
-  <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-  <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': parentForm.dirty, 'ui-button-secondary': parentForm.pristine }" [disabled]="!parentForm.valid" (click)="formSubmit()"></button>
-  <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
+  <div class="p-pt-2">
+    <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+  </div>
+  <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': parentForm.pristine }" [disabled]="!parentForm.valid" (click)="formSubmit()"></button>
+  <button type="button" pButton label="Cancel" class="p-button-outlined" (click)="cancelForm.emit()"></button>
 </div>

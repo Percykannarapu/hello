@@ -1,14 +1,11 @@
-<div class="ui-g">
-  <div class="ui-g-3">
+<div class="p-grid">
+  <div class="p-col-6">
+    <h6>CSV or Excel format required: Geocode, Field 1, Field 2, ...</h6>
     <p-fileUpload #audienceUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
-                  pTooltip="CSV or Excel format required: Geocode, Field 1, Field 2, ..." [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true">
+                  [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true">
     </p-fileUpload>
-    
   </div>
-  <div *ngIf="audiences.length > 0" class="ui-g-5">
-      <button pButton type="delete" label="Delete Custom Data" icon="ui-icon-delete" (click)= deleteCustomData($event)></button>
+  <div *ngIf="audiences.length > 0" class="p-col-6">
+      <button pButton label="Delete Custom Data" icon="pi pi-trash" (click)= deleteCustomData()></button>
   </div>
-  <div>
-      <p-confirmDialog icon="pi pi-exclamation-triangle" key="customData" appendTo="body" [closable]="false"></p-confirmDialog>
-   </div>
 </div>

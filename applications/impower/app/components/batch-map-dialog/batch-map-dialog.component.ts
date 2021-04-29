@@ -33,14 +33,18 @@ import { filter } from 'rxjs/operators';
 })
 export class BatchMapDialogComponent implements OnInit {
 
+  public get pageSettings() : SelectItem[] {
+    return this.hasFullPdfGrant ? this.fullPageSettings : this.limitedPageSettings;
+  }
+
   showBatchMapDialog$: Observable<boolean>;
   batchMapForm: FormGroup;
   currentProjectId: number;
   currentProjectName: string = '';
   numSites: number = 0;
-  pageSettings: SelectItem[];
+  fullPageSettings: SelectItem[];
   limitedPageSettings: SelectItem[];
-  hasGrant: boolean;
+  hasFullPdfGrant: boolean;
   siteLabels: SelectItem[];
   siteByGroupList: SelectItem[];
   mapBufferOptions: SelectItem[];
@@ -63,7 +67,7 @@ export class BatchMapDialogComponent implements OnInit {
     private tradeAreaService: ImpGeofootprintTradeAreaService,
     private appProjectPrefService: AppProjectPrefService,
     private userService: UserService) {
-      this.pageSettings = [
+      this.fullPageSettings = [
         {label: '8.5 x 11 (Letter)', value: BatchMapSizes.letter},
         {label: '8.5 x 14 (Legal)', value: BatchMapSizes.legal},
         {label: '11 x 17 (Tabloid)', value: BatchMapSizes.tabloid},
@@ -87,7 +91,7 @@ export class BatchMapDialogComponent implements OnInit {
         {label: '50%', value: 50}
       ];
       this.stateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onLoadFormData());
-      this.hasGrant = this.userService.userHasGrants(['IMPOWER_PDF_FULL']);
+      this.hasFullPdfGrant = this.userService.userHasGrants(['IMPOWER_PDF_FULL']);
     }
 
   initForm() {
@@ -108,7 +112,7 @@ export class BatchMapDialogComponent implements OnInit {
       subSubTitleInput: '',
       taTitle: '',
       enableTradeAreaShading: false,
-      sitesToinclude: 'allActiveSites'
+      sitesToInclude: 'allActiveSites'
     });
     this.batchMapForm.get('sitesByGroup').disable();
   }
@@ -119,7 +123,7 @@ export class BatchMapDialogComponent implements OnInit {
     if (projectPref != null) {
       projectPrefValue = (projectPref.largeVal != null) ? projectPref.largeVal : projectPref.val;
       const savedFormData = JSON.parse(projectPrefValue);
-     // if (savedFormData.sitesToinclude == 'allActiveSites' ){
+     // if (savedFormData.sitesToInclude == 'allActiveSites' ){
         this.batchMapForm.patchValue({
           title: savedFormData.title == null ? '' : savedFormData.title,
           subTitle: savedFormData.subTitle == null ? '' : savedFormData.subTitle,
@@ -136,7 +140,7 @@ export class BatchMapDialogComponent implements OnInit {
           subTitleInput: savedFormData.subTitleInput == null ? '' : savedFormData.subTitleInput,
           subSubTitleInput: savedFormData.subSubTitleInput == null ? '' : savedFormData.subSubTitleInput,
           enableTradeAreaShading: savedFormData.enableTradeAreaShading,
-          sitesToinclude: savedFormData.sitesToinclude == null ? 'allActiveSites' : savedFormData.sitesToinclude,
+          sitesToInclude: savedFormData.sitesToInclude == null ? 'allActiveSites' : savedFormData.sitesToInclude,
           taTitle: savedFormData.taTitle == null ? '' : savedFormData.taTitle,
         });
 
@@ -169,7 +173,7 @@ export class BatchMapDialogComponent implements OnInit {
         subTitleInput: '',
         subSubTitleInput: '',
         enableTradeAreaShading: false,
-        sitesToinclude: 'allActiveSites',
+        sitesToInclude: 'allActiveSites',
         taTitle: ''
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
@@ -197,7 +201,7 @@ export class BatchMapDialogComponent implements OnInit {
       if (value !== null) {
         if (value === 'user-defined') {
           this.batchMapForm.get('titleInput').enable();
-        } else if (this.batchMapForm.get('sitesToinclude').value !== 'currentMap') {
+        } else if (this.batchMapForm.get('sitesToInclude').value !== 'currentMap') {
           this.batchMapForm.get('titleInput').disable();
         }
       }
@@ -261,7 +265,7 @@ export class BatchMapDialogComponent implements OnInit {
         fitToFormControl.disable();
       }
     });
-    this.batchMapForm.get('sitesToinclude').valueChanges.subscribe(val => {
+    this.batchMapForm.get('sitesToInclude').valueChanges.subscribe(val => {
       if (val === 'currentMap')
         this.currentViewSetting();
       else
@@ -298,7 +302,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'sites-per-page' , sitesPerPage, null));
     this.store$.dispatch(new CreateMapExportUsageMetric('batch~map', 'total-pages' , siteIds.length.toString(), null));
 
-    if (dialogFields.sitesToinclude === 'currentMap'){
+    if (dialogFields.sitesToInclude === 'currentMap'){
       let extent = (this.stateService.currentProject$.getValue().impProjectPrefs || []).filter(pref => pref.pref === 'extent')[0].largeVal;
       extent = JSON.parse(extent);
       const title = this.batchMapForm.get('title').value;
@@ -365,7 +369,7 @@ export class BatchMapDialogComponent implements OnInit {
         };
         if (activeSites > 600){
            this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
-        } else if (activeSites > 25 && !this.hasGrant){
+        } else if (activeSites > 25 && !this.hasFullPdfGrant){
           this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'You cannot print maps with more than 25 pages. Please adjust sites and try again.'}));
         } else
           this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
@@ -401,7 +405,7 @@ export class BatchMapDialogComponent implements OnInit {
         };
         if (groupByExtended(this.getActiveSites(), l => l[dialogFields.sitesByGroup]).size > 600){
           this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
-        }else if (siteIdsByGroup.length > 25 && !this.hasGrant){
+        }else if (siteIdsByGroup.length > 25 && !this.hasFullPdfGrant){
           this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'You cannot print maps with more than 25 pages. Please adjust sites and try again.'}));
         } else
            this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
@@ -445,7 +449,7 @@ export class BatchMapDialogComponent implements OnInit {
     this.batchMapForm.get('subSubTitleInput').enable();
     const data = JSON.stringify(this.batchMapForm.value);
     this.appProjectPrefService.createPref('createsites', 'batchMapPayload', data, 'string');
-    if (this.batchMapForm.get('sitesToinclude').value === 'currentMap')
+    if (this.batchMapForm.get('sitesToInclude').value === 'currentMap')
         this.currentViewSetting();
     else
         this.activeSitesSetting();

@@ -54,10 +54,12 @@ export class ColorBoxComponent implements OnInit, OnDestroy {
      if (this.dialogSub) this.dialogSub.unsubscribe();
    }
 
-   public onShowOverlay(event: any) {
+   public onShowOverlay(event: MouseEvent, target?: any) {
      if (this.displayOverlay === 'true') {
        this.appStateService.closeOverlays(this.header);
-       this.overlayPanel.toggle(event);
+       this.overlayPanel.toggle(event, target);
+       event.stopPropagation();
+       event.stopImmediatePropagation();
        if (this.dialogSub) this.dialogSub.unsubscribe();
        this.dialogSub = this.store$.select(selectors.simpleMessageDisplay).pipe(
          distinctUntilChanged()

@@ -1,14 +1,14 @@
 /* tslint:disable:component-selector */
-import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ConfirmationPayload, ShowConfirmation } from '@val/messaging';
+import { ClearAllNotifications, ConfirmationPayload, ShowConfirmation } from '@val/messaging';
 import { AppStateService } from 'app/services/app-state.service';
 import { BatchMapService } from 'app/services/batch-map.service';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { MenuItem } from 'primeng/api';
-import { filter, take } from 'rxjs/operators';
+import { MenuItem, PrimeIcons } from 'primeng/api';
+import { Subject } from 'rxjs';
+import { filter, take, takeUntil } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { OpenBatchMapDialog, OpenBatchMapStatusDialog, BatchMapAdminDialogOpen } from '../../state/batch-map/batch-map.actions';
@@ -17,230 +17,203 @@ import {
   DiscardAndCreateNew,
   ExportApioNationalData,
   ExportGeofootprint,
-  ExportLocations,
+  ExportLocations, ImpowerHelpOpen,
   OpenExistingProjectDialog,
   OpenExportCrossbowSitesDialog,
   SaveAndCreateNew,
   SaveAndReloadProject
 } from '../../state/menu/menu.actions';
+import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { ImpowerMainComponent } from '../impower-main/impower-main.component';
 
 @Component({
-    selector: 'app-menu',
-    template: `<ul app-submenu [item]="model" [root]="true" class="ultima-menu ultima-main-menu clearfix" [reset]="reset" [visible]="isLoggedIn"></ul>`
+  selector: 'app-menu',
+  templateUrl: './app.menu.component.html',
+  encapsulation: ViewEncapsulation.None,
+  styleUrls: ['./app.menu.component.scss']
 })
-export class AppMenuComponent implements OnInit {
-    @Input() reset: boolean;
-    model: MenuItem[];
-    isLoggedIn: boolean = false;
+export class AppMenuComponent implements OnInit, OnDestroy {
 
-    constructor(private store$: Store<LocalAppState>,
-                private userService: UserService,
-                private stateService: AppStateService,
-                private locationService: ImpGeofootprintLocationService,
-                private batchService: BatchMapService) { }
+  model: MenuItem[];
+  isLoggedIn: boolean = false;
+  currentProject: ImpProject;
+
+  private destroyed$ = new Subject<void>();
+
+  constructor(private store$: Store<LocalAppState>,
+              private userService: UserService,
+              private stateService: AppStateService,
+              private locationService: ImpGeofootprintLocationService,
+              private batchService: BatchMapService) {
+  }
 
   ngOnInit() {
     this.model = [];
+
+    this.stateService.currentProject$.pipe(
+      takeUntil(this.destroyed$),
+      filter(project => project != null)
+    ).subscribe(project => {
+      this.currentProject = project;
+    });
+
     this.userService.userObservable.pipe(
       filter(user => user != null && user.username != null && user.username.length > 0),
       take(1)
     ).subscribe(() => {
       this.model = [
-        { label: 'Save', id: 'saveProject', icon: 'ui-icon-save', command: () => this.saveProject() },
-        { label: 'Projects', icon: 'ui-icon-storage',
+        {label: 'Save', id: 'saveProject', icon: PrimeIcons.SAVE, command: () => this.saveProject()},
+        {
+          label: 'Projects', icon: PrimeIcons.BOOK,
           items: [
-            { label: 'Create New', icon: 'fa fa-files-o', command: () =>  this.refreshPage() }, // temporarily re-wire create new button to refresh page 
-            { label: 'Open Existing', icon: 'fa fa-folder-open-o', command: () => this.store$.dispatch(new OpenExistingProjectDialog()) },
-            { label: 'Save', icon: 'fa fa-floppy-o', command: () => this.saveProject() }
+            {label: 'Create New', icon: PrimeIcons.FILE_O, command: () => this.refreshPage()}, // temporarily re-wire create new button to refresh page
+            {label: 'Open Existing', icon: PrimeIcons.FOLDER_OPEN, command: () => this.store$.dispatch(new OpenExistingProjectDialog())},
+            {label: 'Save', icon: PrimeIcons.SAVE, command: () => this.saveProject()}
           ]
         },
-        { label: 'Export', icon: 'ui-icon-file-download',
+        {
+          label: 'Export', icon: PrimeIcons.DOWNLOAD,
           items: [
-            { label: 'Export Geofootprint - All', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: false })), visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT']) },
-            { label: 'Export Geofootprint - Selected Only', icon: 'ui-icon-map', command: () => this.store$.dispatch(new ExportGeofootprint({ selectedOnly: true })), visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT']) },
-            { label: 'Export Sites', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Site) },
-            { label: 'Export Competitors', icon: 'ui-icon-store', command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor) },
-            { label: 'Export Online Audience National Data', icon: 'ui-icon-group', command: () => this.store$.dispatch(new ExportApioNationalData()), visible: this.userService.userHasGrants(['IMPOWER_EXPORT_NATIONAL']) },
-            { label: 'Send Custom Sites to Valassis Digital', icon: 'ui-icon-group', command: () => this.exportToValassisDigital(), visible: this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'])},
-            { label: 'Export Crossbow Sites', icon: 'ui-icon-store', command: () => this.store$.dispatch(new OpenExportCrossbowSitesDialog()) },
-            { label: 'Export Map PDFs', icon: 'fa fa-book', command: () => this.createBatchMap(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])  }
+            {
+              label: 'Export Geofootprint - All',
+              icon: PrimeIcons.TABLE,
+              styleClass: 'val-long-menu-link',
+              command: () => this.store$.dispatch(new ExportGeofootprint({selectedOnly: false})),
+              visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT'])
+            },
+            {
+              label: 'Export Geofootprint - Selected Only',
+              icon: PrimeIcons.TABLE,
+              styleClass: 'val-long-menu-link',
+              command: () => this.store$.dispatch(new ExportGeofootprint({selectedOnly: true})),
+              visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT'])
+            },
+            {
+              label: 'Export Sites',
+              icon: PrimeIcons.FILE_EXCEL,
+              styleClass: 'val-long-menu-link',
+              command: () => this.exportLocations(ImpClientLocationTypeCodes.Site)
+            },
+            {
+              label: 'Export Competitors',
+              icon: PrimeIcons.FILE_EXCEL,
+              styleClass: 'val-long-menu-link',
+              command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor)
+            },
+            {
+              label: 'Export Online Audience National Data',
+              icon: PrimeIcons.CLOUD_DOWNLOAD,
+              styleClass: 'val-long-menu-link',
+              command: () => this.store$.dispatch(new ExportApioNationalData()),
+              visible: this.userService.userHasGrants(['IMPOWER_EXPORT_NATIONAL'])
+            },
+            {
+              label: 'Send Custom Sites to Valassis Digital',
+              icon: PrimeIcons.SEND,
+              styleClass: 'val-long-menu-link',
+              command: () => this.exportToValassisDigital(),
+              visible: this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'])
+            },
+            {
+              label: 'Export Crossbow Sites',
+              icon: PrimeIcons.CLOUD_UPLOAD,
+              styleClass: 'val-long-menu-link',
+              command: () => this.store$.dispatch(new OpenExportCrossbowSitesDialog())
+            },
+            {
+              label: 'Export Map PDFs',
+              icon: PrimeIcons.FILE_PDF,
+              styleClass: 'val-long-menu-link',
+              command: () => this.createBatchMap(),
+              visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])
+            }
           ]
         },
-        { label: 'Batch Map Status', icon: 'pi pi-info', command: () => this.getBatchMapStatus(), visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])   },
-        { label: 'Admin Console', icon: 'pi pi-info', command: () => this.getAdminStats(), visible: this.userService.userHasGrants(['ACS_COMPONENT_MANAGE'], 'ANY')}
+        {
+          label: 'Batch Map Status',
+          icon: PrimeIcons.INFO_CIRCLE,
+          command: () => this.getBatchMapStatus(),
+          visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])
+        },
+        {
+          label: 'Admin Console',
+          icon: PrimeIcons.INFO_CIRCLE,
+          command: () => this.getAdminStats(),
+          visible: this.userService.userHasGrants(['ACS_COMPONENT_MANAGE'], 'ANY')
+        }
       ];
       this.isLoggedIn = true;
     });
   }
 
-    private getBatchMapStatus(){
-      this.store$.dispatch(new OpenBatchMapStatusDialog());
+  ngOnDestroy() : void {
+    this.destroyed$.next();
+  }
 
-    }
+  private getBatchMapStatus() {
+    this.store$.dispatch(new OpenBatchMapStatusDialog());
+
+  }
 
     private getAdminStats(){
        this.store$.dispatch(new BatchMapAdminDialogOpen());
     }
 
-    private saveProject(){
-        this.stateService.closeOverlays();
-        setTimeout(() => {
-            this.store$.dispatch(new SaveAndReloadProject());
-        }, 500);
-    }
+  private saveProject() {
+    this.stateService.closeOverlays();
+    setTimeout(() => {
+      this.store$.dispatch(new SaveAndReloadProject());
+    }, 500);
+  }
 
-    private exportLocations(locationType: SuccessfulLocationTypeCodes) : void {
-      this.store$.dispatch(new ExportLocations({ locationType }));
-    }
+  private exportLocations(locationType: SuccessfulLocationTypeCodes) {
+    this.store$.dispatch(new ExportLocations({locationType}));
+  }
 
-    private createBatchMap(){
-      const currentProject = this.stateService.currentProject$.getValue();
-      const isProjectSaved = this.batchService.validateProjectReadiness(currentProject);
-      if (isProjectSaved) {
-        this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map' , 'batch~map', this.locationService.get().length));
-        this.store$.dispatch(new OpenBatchMapDialog());
+  private createBatchMap() {
+    const currentProject = this.stateService.currentProject$.getValue();
+    const isProjectSaved = this.batchService.validateProjectReadiness(currentProject);
+    if (isProjectSaved) {
+      this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map', 'batch~map', this.locationService.get().length));
+      this.store$.dispatch(new OpenBatchMapDialog());
+    }
+  }
+
+  private exportToValassisDigital() {
+    this.store$.dispatch(new ClientNmaeForValassisDigitalDialog());
+  }
+
+  public refreshPage() {
+    window.location.reload();
+  }
+
+  public createNewProject() {
+    const payload: ConfirmationPayload = {
+      title: 'Save Work',
+      message: 'Would you like to save your work before proceeding?',
+      canBeClosed: false,
+      accept: {
+        result: new SaveAndCreateNew()
+      },
+      reject: {
+        result: new DiscardAndCreateNew()
       }
+    };
+    this.store$.dispatch(new ShowConfirmation(payload));
+  }
+
+  onClearMessages(event: MouseEvent) {
+    event.stopImmediatePropagation();
+    event.stopPropagation();
+    this.store$.dispatch(new ClearAllNotifications());
+  }
+
+  getHelpPopup(event: any) {
+    if (this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'])) {
+      const internal = 'http://myvalassis/da/ts/imPower%20Resources/Forms/AllItems.aspx';
+      window.open(internal, '_blank');
+    } else {
+      this.store$.dispatch(new ImpowerHelpOpen(event));
     }
-
-    private exportToValassisDigital(){
-      this.store$.dispatch(new ClientNmaeForValassisDigitalDialog());
-    }
-
-    public refreshPage(){
-      window.location.reload();
-    }
-
-    public createNewProject() {
-      const payload: ConfirmationPayload = {
-        title: 'Save Work',
-        message: 'Would you like to save your work before proceeding?',
-        canBeClosed: false,
-        accept: {
-          result: new SaveAndCreateNew()
-        },
-        reject: {
-          result: new DiscardAndCreateNew()
-        }
-      };
-      this.store$.dispatch(new ShowConfirmation(payload));
-    }
-}
-
-@Component({
-    selector: '[app-submenu]',
-    template: `
-      <ng-template ngFor let-child let-i="index" [ngForOf]="item">
-        <li [ngClass]="{'active-menuitem': isActive(i)}" [class]="child.badgeStyleClass" *ngIf="child.visible !== false">
-          <a [href]="child.url||'#'" (click)="itemClick($event,child,i)" (mouseenter)="onMouseEnter(i)"
-             class="ripplelink" *ngIf="!child.routerLink"
-             [attr.tabindex]="!visible ? '-1' : null" [attr.target]="child.target">
-            <i class="{{child.icon}}"></i>
-            <span>{{child.label}}</span>
-            <span class="menuitem-badge" *ngIf="child.badge">{{child.badge}}</span>
-            <i class="material-icons submenu-icon" *ngIf="child.items">keyboard_arrow_down</i>
-          </a>
-
-          <a (click)="itemClick($event,child,i)" (mouseenter)="onMouseEnter(i)" class="ripplelink" *ngIf="child.routerLink"
-             [routerLink]="child.routerLink" routerLinkActive="active-menuitem-routerlink"
-             [routerLinkActiveOptions]="{exact: true}" [attr.tabindex]="!visible ? '-1' : null" [attr.target]="child.target">
-            <i class="{{child.icon}}"></i>
-            <span>{{child.label}}</span>
-            <span class="menuitem-badge" *ngIf="child.badge">{{child.badge}}</span>
-            <i class="material-icons submenu-icon" *ngIf="child.items">keyboard_arrow_down</i>
-          </a>
-          <div class="layout-menu-tooltip">
-            <div class="layout-menu-tooltip-arrow"></div>
-            <div class="layout-menu-tooltip-text" [innerHTML]="child.label"></div>
-          </div>
-          <ul app-submenu [item]="child.items" *ngIf="child.items" [visible]="isActive(i)" [reset]="reset"
-              [@children]="(app.isSlim()||app.isHorizontal())&&root ? isActive(i) ?
-                    'visible' : 'hidden' : isActive(i) ? 'visibleAnimated' : 'hiddenAnimated'"></ul>
-        </li>
-      </ng-template>
-    `,
-    animations: [
-        trigger('children', [
-            state('hiddenAnimated', style({
-                height: '0px'
-            })),
-            state('visibleAnimated', style({
-                height: '*'
-            })),
-            state('visible', style({
-                height: '*'
-            })),
-            state('hidden', style({
-                height: '0px'
-            })),
-            transition('visibleAnimated => hiddenAnimated', animate('400ms cubic-bezier(0.86, 0, 0.07, 1)')),
-            transition('hiddenAnimated => visibleAnimated', animate('400ms cubic-bezier(0.86, 0, 0.07, 1)'))
-        ])
-    ]
-})
-export class AppSubMenuComponent {
-
-    @Input() item: MenuItem[];
-    @Input() root: boolean;
-    @Input() visible: boolean;
-    _reset: boolean;
-    activeIndex: number;
-
-    constructor(public app: ImpowerMainComponent) { }
-
-    itemClick(event: Event, item: MenuItem, index: number) {
-        if (this.root) {
-            this.app.menuHoverActive = !this.app.menuHoverActive;
-        }
-
-        // avoid processing disabled items
-        if (item.disabled) {
-            event.preventDefault();
-            return true;
-        }
-
-        // activate current item and deactivate active sibling if any
-        this.activeIndex = (this.activeIndex === index) ? null : index;
-
-        // execute command
-        if (item.command) {
-            item.command({ originalEvent: event, item: item });
-        }
-
-        // prevent hash change
-        if (item.items || (!item.url && !item.routerLink)) {
-            event.preventDefault();
-        }
-
-        // hide menu
-        if (!item.items) {
-            this.app.resetMenu = this.app.isHorizontal() || this.app.isSlim();
-            this.app.overlayMenuActive = false;
-            this.app.staticMenuMobileActive = false;
-            this.app.menuHoverActive = !this.app.menuHoverActive;
-        }
-    }
-
-    onMouseEnter(index: number) {
-        if (this.root && this.app.menuHoverActive && (this.app.isHorizontal() || this.app.isSlim())) {
-            this.activeIndex = index;
-        }
-    }
-
-    isActive(index: number) : boolean {
-        return this.activeIndex === index;
-    }
-
-    @Input() get reset() : boolean {
-        return this._reset;
-    }
-
-    set reset(val: boolean) {
-        this._reset = val;
-
-        if (this._reset && (this.app.isHorizontal() || this.app.isSlim())) {
-            this.activeIndex = null;
-        }
-    }
+  }
 }

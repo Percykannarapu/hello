@@ -50,7 +50,7 @@ export function cbxReportParamReducer(state = initialState, action: CbxReportPar
     }
 
     case CbxReportParamActionTypes.LoadCbxReportParams: {
-      return adapter.addAll(action.payload.cbxReportParams, state);
+      return adapter.setAll(action.payload.cbxReportParams, state);
     }
 
     case CbxReportParamActionTypes.ClearCbxReportParams: {

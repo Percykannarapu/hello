@@ -22,7 +22,7 @@ export function rfpUiEditWrapReducer(state = initialState, action: reducerAction
   switch (action.type) {
     case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.rfpUiEditWraps != null) {
-        return adapter.addAll(action.payload.normalizedEntities.rfpUiEditWraps, state);
+        return adapter.setAll(action.payload.normalizedEntities.rfpUiEditWraps, state);
       } else {
         return state;
       }
@@ -61,7 +61,7 @@ export function rfpUiEditWrapReducer(state = initialState, action: reducerAction
     }
 
     case RfpUiEditWrapActionTypes.LoadRfpUiEditWraps: {
-      return adapter.addAll(action.payload.rfpUiEditWraps, state);
+      return adapter.setAll(action.payload.rfpUiEditWraps, state);
     }
 
     case RfpUiEditWrapActionTypes.ClearRfpUiEditWraps: {

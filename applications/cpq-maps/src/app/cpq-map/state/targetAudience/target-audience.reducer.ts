@@ -26,7 +26,7 @@ export function targetAudienceReducer(state = initialState, action: reducerActio
       else
         return state;
     }
-    
+
     case TargetAudienceActionTypes.AddTargetAudience: {
       return adapter.addOne(action.payload.targetAudience, state);
     }
@@ -60,7 +60,7 @@ export function targetAudienceReducer(state = initialState, action: reducerActio
     }
 
     case TargetAudienceActionTypes.LoadTargetAudiences: {
-      return adapter.addAll(action.payload.targetAudiences, state);
+      return adapter.setAll(action.payload.targetAudiences, state);
     }
 
     case TargetAudienceActionTypes.ClearTargetAudiences: {

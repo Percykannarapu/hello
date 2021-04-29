@@ -1,7 +1,7 @@
 <div class="component-root">
   <span class="md-inputfield">
     <p-dropdown id="palette-input-{{controlId}}" [(ngModel)]="value" [options]="options"
-                [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"
+                [style]="{'width':'100%'}" [filter]="false"
                 (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
                 [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass">
       <ng-template let-selected pTemplate="selectedItem">

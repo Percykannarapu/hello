@@ -1,12 +1,22 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+  ViewEncapsulation
+} from '@angular/core';
 import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
 import { AppLocationService } from 'app/services/app-location.service';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { DAOBaseStatus } from 'app/val-modules/api/models/BaseModel';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ConfirmationService, SortMeta } from 'primeng/api';
-import { SelectItem } from 'primeng/components/common/selectitem';
+import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { BehaviorSubject } from 'rxjs';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
@@ -27,7 +37,6 @@ export interface GeocodeFailureGridField {
   templateUrl: './failed-geocode-grid.component.html',
   styleUrls: ['./failed-geocode-grid.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
 })
 export class FailedGeocodeGridComponent implements OnInit {
 
@@ -81,16 +90,16 @@ export class FailedGeocodeGridComponent implements OnInit {
   private _failedSites: ImpGeofootprintLocation[] = [];
   private edited = new Set<ImpGeofootprintLocation>();
   public  defaultLabel: string = 'All';
-
+  public headerFilter: boolean;
   public  selectedColumns: any[] = [];
   public  columnOptions: SelectItem[] = [];
   public  multiSortMeta: SortMeta[] = [];
 
   // Control table cell / header wrapping
-  private tableWrapOn: string = 'val-table val-tbody-wrap';
-  private tableWrapOff: string = 'val-table val-tbody-nowrap';
+  private tableWrapOn: string = 'val-table-wrap';
+  private tableWrapOff: string = 'val-table-no-wrap';
   public  tableWrapStyle: string = this.tableWrapOff;
-  public  tableWrapIcon: string = 'ui-icon-menu';
+  public  tableWrapIcon: string = 'pi pi-minus';
   public  tableHdrSlice: boolean = false;
 
   // Grid filter UI variables
@@ -336,12 +345,12 @@ export class FailedGeocodeGridComponent implements OnInit {
   public onToggleTableWrap() {
     if (this.tableWrapStyle === this.tableWrapOn) {
       this.tableWrapStyle = this.tableWrapOff;
-      this.tableWrapIcon = 'ui-icon-menu';
+      this.tableWrapIcon = 'pi pi-minus';
       //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
     }
     else {
       this.tableWrapStyle = this.tableWrapOn;
-      this.tableWrapIcon = 'ui-icon-wrap-text';
+      this.tableWrapIcon = 'pi pi-bars';
       //this.tableHdrSlice = false;
     }
   }

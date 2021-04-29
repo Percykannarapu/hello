@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { accumulateArrays, formatMilli } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, StartLiveIndicator, StopLiveIndicator, WarningNotification } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
@@ -16,16 +17,15 @@ import { Geocode } from 'app/state/homeGeocode/homeGeo.actions';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from 'app/val-modules/targeting/models/ImpGeofootprintLocAttrib';
 import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintGeo } from './../../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from 'app/val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
-import { finalize, map, mergeMap, reduce, tap } from 'rxjs/operators';
+import { reduce, tap } from 'rxjs/operators';
 import { DAOBaseStatus } from '../../../val-modules/api/models/BaseModel';
-import { accumulateArrays, formatMilli } from '@val/common';
+import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeofootprintGeo';
 
 class ContainerValue {
   id:       number;
@@ -45,8 +45,7 @@ class ContainerValue {
 
 @Component({
   selector: 'val-market-locations',
-  templateUrl: './market-locations.component.html',
-  styleUrls:  ['./market-locations.component.scss']
+  templateUrl: './market-locations.component.html'
 })
 export class MarketLocationsComponent implements OnInit {
   public  locationType: ImpClientLocationTypeCodes;

@@ -1,28 +1,30 @@
-<div class="ui-g dashboard no_vertical_space">
-    <!-- COLORBOX COMPONENTS -->
-    <div id= "campaignDetails" class="ui-g-12 ui-md-6 ui-lg-3">
-     <!-- Home for Blue Household Count Box Overlay -->
-     <val-color-box header="Campaign Details"
-                    boxStyle="campaign-details-colorbox"
-                    icon="done_all"
-                    [model]="metricMapBlue"
-                    [flags]="flagMapBlue"
-                    displayOverlay="true"
-                    #campaignColorBox (overlayClosed)= "onCampaignDetailsClose()">
-       <val-campaign-details #campaignDetailsComponent></val-campaign-details>
-     </val-color-box>
-   </div>
+<div class="dashboard p-d-flex p-flex-column p-flex-md-row">
+  <!-- COLORBOX COMPONENTS -->
+  <div id="campaignDetails">
+    <!-- Home for Blue Household Count Box Overlay -->
+    <val-color-box header="Campaign Details"
+                   boxStyle="val-campaign-details"
+                   icon="pi pi-check-square"
+                   [model]="metricMapBlue"
+                   [flags]="flagMapBlue"
+                   displayOverlay="true"
+                   #campaignColorBox (overlayClosed)="onCampaignDetailsClose()">
+      <div (click)="swallowClickEvent($event)">
+        <val-campaign-details #campaignDetailsComponent></val-campaign-details>
+      </div>
+    </val-color-box>
+  </div>
 
-   <div id ="locations" class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Green Sites Box Overlay -->
-      <!-- onSetDismissable(true) -->
-      <val-color-box header="Locations"
-                     boxStyle="locations-colorbox"
-                     icon="my_location"
-                     [model]="metricMapGreen"
-                     displayOverlay="true"
-                     #locationsColorBox>
-        <p-tabView [activeIndex]="index"  (onChange)="handleChange($event)">
+  <div id="locations">
+    <!-- Home for Green Sites Box Overlay -->
+    <val-color-box header="Locations"
+                   boxStyle="val-location-details"
+                   icon="pi pi-map-marker"
+                   [model]="metricMapGreen"
+                   displayOverlay="true"
+                   #locationsColorBox>
+      <div (click)="swallowClickEvent($event)">
+        <p-tabView [activeIndex]="index" (onChange)="handleChange($event)">
           <p-tabPanel header="Add Locations">
             <val-add-locations-tab></val-add-locations-tab>
           </p-tabPanel>
@@ -36,37 +38,40 @@
             <val-trade-area-tab>Loading Trade Areas...</val-trade-area-tab>
           </p-tabPanel>
         </p-tabView>
-      </val-color-box>
-    </div>
+      </div>
+    </val-color-box>
+  </div>
 
-    <div id="targetAudience" class="ui-g-12 ui-md-6 ui-lg-3">
-      <!-- Home for Target Audience Box Overlay -->
-      <val-color-box  header="Target Audience"
-                      boxStyle="target-audience-colorbox"
-                      icon="tune"
-                      [model]="metricMapPurple"
-                      [flags]="flagMapPurple"
-                      displayOverlay="true"
-                      #audienceColorBox>
+  <div id="targetAudience">
+    <!-- Home for Target Audience Box Overlay -->
+    <val-color-box header="Target Audience"
+                   boxStyle="val-audience-details"
+                   icon="pi pi-sliders-h"
+                   [model]="metricMapPurple"
+                   [flags]="flagMapPurple"
+                   displayOverlay="true"
+                   #audienceColorBox>
+      <div (click)="swallowClickEvent($event)">
         <val-target-audience></val-target-audience>
-      </val-color-box>
-    </div>
+      </div>
+    </val-color-box>
+  </div>
 
-    <div id="performance" class="ui-g-12 ui-md-6 ui-lg-3"
-         pTooltip="Predicted Response is the number of households expected to act on the offer received.
+  <div id="performance"
+       pTooltip="Predicted Response is the number of households expected to act on the offer received.
 
                    Predicted Topline Sales Generated is the sales likely to be generated from the recommended media.
 
                    Cost per Response is the estimated investment per predicted response.">
-      <!-- Home for Performance ColorBox Overlay -->
-      <val-color-box   header="Performance"
-                       boxStyle="colorboxPicker-blue"
-                       icon="send"
-                       [model]="metricMapTeal"
-                       [flags]="flagMapTeal"
-                       displayOverlay="false"
-                       #performanceColorBox>
-      </val-color-box>
-    </div>
-    <!-- COLORBOX COMPONENTS END -->
+    <!-- Home for Performance ColorBox Overlay -->
+    <val-color-box header="Performance"
+                   boxStyle="colorboxPicker-blue"
+                   icon="pi pi-directions"
+                   [model]="metricMapTeal"
+                   [flags]="flagMapTeal"
+                   displayOverlay="false"
+                   #performanceColorBox>
+    </val-color-box>
   </div>
+  <!-- COLORBOX COMPONENTS END -->
+</div>

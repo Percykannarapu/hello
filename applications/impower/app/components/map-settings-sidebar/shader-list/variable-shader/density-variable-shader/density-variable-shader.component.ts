@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { rgbToHex } from '@val/common';
 import { DotDensityShadingDefinition } from '@val/esri';
-import { VariableBaseComponent } from '../variable-base.component';
+import { VariableComponentBase } from '../variable-component.base';
 
 interface Rgb { r: number; g: number; b: number; }
 
@@ -19,7 +19,7 @@ function rgbToEsri(rgbColor: Rgb) : [number, number, number, number] {
   templateUrl: './density-variable-shader.component.html',
   styleUrls: ['./density-variable-shader.component.scss']
 })
-export class DensityVariableShaderComponent extends VariableBaseComponent<DotDensityShadingDefinition> {
+export class DensityVariableShaderComponent extends VariableComponentBase<DotDensityShadingDefinition> {
 
   get selectedDotColor() : Rgb {
     return esriToRgb(this.parentForm.get('dotColor').value || [0, 0, 64, 1]);

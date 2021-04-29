@@ -1,145 +1,152 @@
-<form #ElementRef novalidate  [formGroup]="discoveryForm" class="val-discovery-form">
-  <div class="ui-g">
-    <div class="ui-g-4">
-      <span class="md-inputfield">
-        <input id="projectId" type="text" pInputText class="val-full-width" formControlName="projectId">
-        <label for="projectId">imPower ID</label>
-      </span>
-    </div>
-    <div class="ui-g-8"></div>
-
-    <div class="ui-inputgroup ui-g-8">
-      <span class="md-inputfield">
-        <input id="projectName" type="text" formControlName="projectName" pInputText class="val-full-width">
-        <label for="projectName">imPower Project Name (required)</label>
-      </span>
+<form #ElementRef novalidate  [formGroup]="discoveryForm">
+  <div class="p-fluid">
+    <div class="p-grid" *ngIf="discoveryForm.get('projectId').value != null">
+      <div class="p-field p-col">
+        <span class="p-float-label">
+          <input id="projectId" type="text" pInputText class="val-full-width" formControlName="projectId">
+          <label for="projectId">imPower ID</label>
+        </span>
+      </div>
     </div>
 
-    <div class="ui-g-8">
-      <span class="md-inputfield" *acsGrant="['IMPOWER_INTERNAL_FEATURES'];">
-        <p-autoComplete id="projectTrackerLookup" inputStyleClass="val-full-width" styleClass="val-full-width"
-                        [minLength]="3" [dropdown]="false" [forceSelection] = "true" formControlName="selectedProjectTracker" field="display"
-                        [suggestions]="projectTrackerSuggestions" (completeMethod)="trackerSearchRequest.emit($event.query)">
-        </p-autoComplete>
-        <label for="projectTrackerLookup">Search for Project Tracker ID</label>
-      </span>
+    <div class="p-grid">
+      <div class="p-field p-col">
+        <span class="p-float-label">
+          <input id="projectName" type="text" formControlName="projectName" pInputText class="val-full-width">
+          <label for="projectName">imPower Project Name (required)</label>
+        </span>
+      </div>
     </div>
-    <div class="ui-g-4"></div>
-    <div class="ui-g-4">
-      <span class="md-inputfield" *ngIf="hasGrant">
-          <p-dropdown id="selectedAnalysisLevel" [options]="allAnalysisLevels" formControlName="selectedAnalysisLevel" styleClass="val-full-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down"></p-dropdown>
-        <label for="selectedAnalysisLevel">Analysis Level</label>
-      </span>
-      <span class="md-inputfield" *ngIf="!hasGrant">
-          <p-dropdown id="currentAnalysisLevel" [options]="limitedAnalysisLevels" formControlName="selectedAnalysisLevel" styleClass="val-full-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down"></p-dropdown>
+
+    <div class="p-grid" *acsGrant="['IMPOWER_INTERNAL_FEATURES'];">
+      <div class="p-field p-col">
+        <span class="p-float-label">
+          <p-autoComplete id="projectTrackerLookup" formControlName="selectedProjectTracker" field="display"
+                          [minLength]="3" [dropdown]="false" [forceSelection] = "true" [suggestions]="projectTrackerSuggestions"
+                          (completeMethod)="trackerSearchRequest.emit($event.query)">
+          </p-autoComplete>
+          <label for="projectTrackerLookup">Search for Project Tracker ID</label>
+        </span>
+      </div>
+    </div>
+
+    <div class="p-grid">
+      <div class="p-field p-col">
+        <span class="p-float-label" *ngIf="hasGrant">
+          <p-dropdown id="selectedAnalysisLevel" [options]="allAnalysisLevels" formControlName="selectedAnalysisLevel" placeholder="&nbsp;"></p-dropdown>
+          <label for="selectedAnalysisLevel">Analysis Level</label>
+        </span>
+        <span class="p-float-label" *ngIf="!hasGrant">
+          <p-dropdown id="currentAnalysisLevel" [options]="limitedAnalysisLevels" formControlName="selectedAnalysisLevel" placeholder="&nbsp;"></p-dropdown>
           <label for="currentAnalysisLevel">Analysis Level</label>
-    </span>
-    </div>
-    <div class="ui-g-8"></div>
-  </div>
-
-  <div class="ui-g">
-    <div class="ui-g-6">
-      <span class="md-inputfield">
-        <p-autoComplete id="radLookup" styleClass="val-full-width" inputStyleClass="val-full-width" dropdownIcon="fa fa-caret-down"
-                        [minLength]="3" [dropdown]="true" formControlName="selectedRadLookup" field="display"
-                        [suggestions]="radSuggestions" (completeMethod)="radSearchRequest.emit($event.query)">
-        </p-autoComplete>
-        <label for="radLookup">Performance Prediction Category-Product</label>
-      </span>
-    </div>
-  </div>
-
-  <div class="ui-g column-layout">
-    <div class="ui-g-6 ui-g-nopad left-column">
-      <div class="ui-g-12">
-        <label class="category">Counts</label>
+        </span>
       </div>
-      <div class="ui-g-12">
+    </div>
+
+    <div class="p-grid">
+      <div class="p-field p-col">
+        <span class="p-float-label">
+          <p-autoComplete id="radLookup" formControlName="selectedRadLookup" field="display"
+                          [minLength]="3" [dropdown]="true" [suggestions]="radSuggestions"
+                          (completeMethod)="radSearchRequest.emit($event.query)">
+          </p-autoComplete>
+          <label for="radLookup">Performance Prediction Category-Product</label>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-grid p-fluid">
+    <div class="p-col">
+      <div class="p-fluid">
+        <div class="p-field">
+          <h6>Counts</h6>
           <p-selectButton id="seasonsSelect" [options]="allSeasons" formControlName="selectedSeason"></p-selectButton>
+        </div>
       </div>
-      <div class="ui-g-12">
-        <label class="category">Apply Geography Filters</label>
-      </div>
-      <div class="ui-g-12">
-        <div class="ui-g-12">
-            <p-inputSwitch formControlName="forceHomeGeos"></p-inputSwitch>
-            <span class="switch-label">Force Home Geos?</span>
+
+      <div class="p-fluid">
+        <div class="p-field">
+          <h6>Apply Geography Filters</h6>
         </div>
-        <div class="ui-g-12">
-          <p-inputSwitch formControlName="includePob"></p-inputSwitch>
-          <span class="switch-label">Include POBs?</span>
+        <div class="p-field">
+          <p-inputSwitch inputId="forceHomeGeos" formControlName="forceHomeGeos"></p-inputSwitch>
+          <label for="forceHomeGeos">Force Home Geos?</label>
         </div>
-        <div class="ui-g-12">
-          <p-inputSwitch formControlName="includeValassis"></p-inputSwitch>
-          <span class="switch-label">Include Valassis geographies?</span>
+        <div class="p-field">
+          <p-inputSwitch inputId="includePob" formControlName="includePob"></p-inputSwitch>
+          <label for="includePob">Include POBs?</label>
         </div>
-        <div class="ui-g-12">
-          <p-inputSwitch formControlName="includeAnne"></p-inputSwitch>
-          <span class="switch-label">Include ANNE geographies?</span>
+        <div class="p-field">
+          <p-inputSwitch inputId="includeValassis" formControlName="includeValassis"></p-inputSwitch>
+          <label for="includeValassis">Include Valassis geographies?</label>
         </div>
-        <div class="ui-g-12">
-          <p-inputSwitch formControlName="includeSolo"></p-inputSwitch>
-          <span class="switch-label">Include Solo geographies?</span>
+        <div class="p-field">
+          <p-inputSwitch inputId="includeAnne" formControlName="includeAnne"></p-inputSwitch>
+          <label for="includeAnne">Include ANNE geographies?</label>
+        </div>
+        <div class="p-field">
+          <p-inputSwitch inputId="includeSolo" formControlName="includeSolo"></p-inputSwitch>
+          <label for="includeSolo">Include Solo geographies?</label>
         </div>
       </div>
     </div>
-
-    <div class="ui-g-6 ui-g-nopad right-column">
-      <div class="ui-g-12">
-        <label class="category">Budget</label>
-      </div>
-      <div class="ui-g-12 ui-g-nopad">
-        <div class="ui-g-11 ui-g-offset-1">
-          <span class="md-inputfield">
+    <p-divider layout="vertical"></p-divider>
+    <div class="p-col">
+      <h6>Budget</h6>
+      <div class="p-grid">
+        <div class="p-col-8 p-offset-2 p-field">
+          <span class="p-float-label">
             <input id="dollarBudget" type="text" formControlName="dollarBudget" pInputText>
             <label for="dollarBudget">Dollar Budget</label>
           </span>
         </div>
-        <div class="ui-g-11 ui-g-offset-1">
-          <span class="md-inputfield">
+        <div class="p-col-8 p-offset-2 p-field">
+          <span class="p-float-label">
             <input id="circBudget" type="text" formControlName="circulationBudget" pInputText>
             <label for="circBudget">Circ Budget</label>
           </span>
         </div>
       </div>
-      <div class="ui-g-12">
-        <label class="category">Select CPM Type</label>
-      </div>
-      <div class="ui-g-12 ui-g-nopad">
-        <div class="ui-g-12">
+
+      <h6>Select CPM Type</h6>
+      <div class="p-fluid">
+        <div class="p-field">
           <p-selectButton [options]="allCPMTypes" formControlName="cpmType"></p-selectButton>
         </div>
-        <ng-container *ngIf="discoveryForm.get('cpmType').value === cpmTypes.Blended">
-          <div class="ui-g-11 ui-g-offset-1">
-            <span class="md-inputfield">
-              <input id="cpm" type="text" formControlName="cpmBlended" pInputText>
-              <label for="cpm">CPM</label>
-            </span>
-          </div>
-        </ng-container>
-        <ng-container *ngIf="discoveryForm.get('cpmType').value === cpmTypes.OwnerGroup">
-          <div class="ui-g-11 ui-g-offset-1 ui-g-nopad">
-            <div class="ui-g-12">
-              <span class="md-inputfield">
+      </div>
+
+      <div class="p-grid">
+        <div class="p-col-8 p-offset-2">
+          <ng-container *ngIf="discoveryForm.get('cpmType').value === cpmTypes.Blended">
+            <div class="p-field">
+              <span class="p-float-label">
+                <input id="cpm" type="text" formControlName="cpmBlended" pInputText>
+                <label for="cpm">CPM</label>
+              </span>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="discoveryForm.get('cpmType').value === cpmTypes.OwnerGroup">
+            <div class="p-field">
+              <span class="p-float-label">
                 <input id="includeValassisCPM" type="text" formControlName="cpmValassis" pInputText>
                 <label for="includeValassisCPM">Valassis CPM</label>
               </span>
             </div>
-            <div class="ui-g-12">
-              <span class="md-inputfield">
+            <div class="p-field">
+              <span class="p-float-label">
                 <input id="includeAnneCPM" type="text" formControlName="cpmAnne" pInputText>
                 <label for="includeAnneCPM">ANNE CPM</label>
               </span>
             </div>
-            <div class="ui-g-12">
-              <span class="md-inputfield">
+            <div class="p-field">
+              <span class="p-float-label">
                 <input id="includeSoloCPM" type="text" formControlName="cpmSolo" pInputText>
                 <label for="includeSoloCPM">Solo CPM</label>
               </span>
             </div>
-          </div>
-        </ng-container>
+          </ng-container>
+        </div>
       </div>
     </div>
   </div>

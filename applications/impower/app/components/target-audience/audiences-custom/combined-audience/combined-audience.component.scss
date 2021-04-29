@@ -1,11 +1,10 @@
+@import "~assets/valassis-variables";
 .validation-messages {
   > span {
-    color: #e62a10;
+    color: $errorColor;
   }
 }
 
 .combined-audience-dialog{
-  width: 710px; 
-  top: 200px !important; 
-  left: unset !important; 
+  width: 33vw;
 }

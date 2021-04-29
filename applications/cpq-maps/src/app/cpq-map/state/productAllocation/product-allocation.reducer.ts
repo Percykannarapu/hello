@@ -22,7 +22,7 @@ export function productAllocationReducer(state = initialState, action: reducerAc
   switch (action.type) {
     case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.productAllocations != null)
-        return adapter.addAll(action.payload.normalizedEntities.productAllocations, state);
+        return adapter.setAll(action.payload.normalizedEntities.productAllocations, state);
       else
         return state;
     }
@@ -60,7 +60,7 @@ export function productAllocationReducer(state = initialState, action: reducerAc
     }
 
     case ProductAllocationActionTypes.LoadProductAllocations: {
-      return adapter.addAll(action.payload.productAllocations, state);
+      return adapter.setAll(action.payload.productAllocations, state);
     }
 
     case ProductAllocationActionTypes.ClearProductAllocations: {

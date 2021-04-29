@@ -1,23 +1,25 @@
 <!-- Color Box Overlay Container -->
-<p-overlayPanel #op class="{{boxStyle}}" [showCloseIcon]="true">
-  <ng-content></ng-content>
+<p-overlayPanel #op styleClass="{{boxStyle}}" [showCloseIcon]="true" [dismissable]="false">
+  <ng-template pTemplate>
+    <ng-content></ng-content>
+  </ng-template>
 </p-overlayPanel>
 
-<div class="ui-g-12 ui-g-nopad colorboxPicker shadow-box ui-shadow-3">
+<div class="colorboxPicker p-shadow-6" #cb>
   <div class="header">
     <span>{{header}}</span>
   </div>
   <div class="body">
-    <div class="icon" (click)="onShowOverlay($event)">
-      <span class="material-icons">{{icon}}</span>
+    <div class="icon" (click)="onShowOverlay($event, cb)">
+      <span class="{{icon}}"></span>
     </div>
-    <div class="metric" (click)="onShowOverlay($event)">
+    <div class="metric" (click)="onShowOverlay($event, cb)">
       <span class="name">{{metric}}{{isFlagged ? '&nbsp;*' : ''}}</span>
       <span class="value">{{metricValue}}</span>
     </div>
     <div class="spinner">
-      <span class="material-icons" (click)="onClick('Up')">keyboard_arrow_up</span>
-      <span class="material-icons" (click)="onClick('Down')">keyboard_arrow_down</span>
+      <span class="pi pi-chevron-up" (click)="onClick('Up')"></span>
+      <span class="pi pi-chevron-down" (click)="onClick('Down')"></span>
     </div>
   </div>
 </div>

@@ -19,14 +19,14 @@ import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { getDefaultClassBreaks, getDefaultUserBreaks } from '../../../../../models/class-break-defaults.model';
 import { FieldContentTypeCodes } from '../../../../../val-modules/targeting/targeting.enums';
-import { VariableBaseComponent } from '../variable-base.component';
+import { VariableComponentBase } from '../variable-component.base';
 
 @Component({
   selector: 'val-breaks-variable-shader',
   templateUrl: './breaks-variable-shader.component.html',
   styleUrls: ['./breaks-variable-shader.component.scss']
 })
-export class BreaksVariableShaderComponent extends VariableBaseComponent<ClassBreakShadingDefinition> implements OnInit {
+export class BreaksVariableShaderComponent extends VariableComponentBase<ClassBreakShadingDefinition> implements OnInit {
 
   breakTypes: SelectItem[];
   selectedBreakType: string;

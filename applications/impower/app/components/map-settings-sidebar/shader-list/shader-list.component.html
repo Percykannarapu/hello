@@ -5,15 +5,18 @@
                    [currentAnalysisLevel]="currentAnalysisLevel"
                    (addShader)="addNewShader($event)"></add-shader-button>
 
-<p-accordion>
+<p-accordion styleClass="p-mt-3">
   <p-accordionTab *ngFor="let def of shadingDefinitions" [selected]="currentOpenId === def.id" (selectedChange)="openDefinition(def)">
-    <p-header class="shader-header">
-      <span *ngIf="def.sourcePortalId != null">
-        <span class="fa" [class.fa-eye]="def.visible" [class.fa-eye-slash]="!def.visible" (click)="toggleVisibility($event, def)"></span>
-        {{def.layerName}}
-      </span>
-      <span class="fa fa-trash-o" (click)="deleteDefinition($event, def)" *ngIf="def.sourcePortalId != null && def.dataKey !== shadingTypes.Selection"></span>
-      <span *ngIf="def.sourcePortalId == null">New {{def.layerName == null ? 'Variable' : def.layerName}}</span>
+    <p-header class="p-col-12 p-col-nogutter" style="margin-right: -1.5rem">
+      <div class="p-d-flex p-jc-between p-pr-5 p-ai-center">
+        <div *ngIf="def.sourcePortalId != null" class="p-col p-col-nogutter">
+          <span class="pi" [class.pi-eye]="def.visible" [class.pi-eye-slash]="!def.visible" (click)="toggleVisibility($event, def)"></span>
+          {{def.layerName}}
+        </div>
+        <div *ngIf="def.sourcePortalId == null" class="p-col p-col-nogutter">New {{def.layerName == null ? 'Variable' : def.layerName}}</div>
+        <button type="button" pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-xs p-button-danger" title="Delete Layer"
+                (click)="deleteDefinition($event, def)" *ngIf="def.sourcePortalId != null && def.dataKey !== shadingTypes.Selection"></button>
+      </div>
     </p-header>
     <ng-container [ngSwitch]="def.dataKey">
       <val-selected-geo-shader *ngSwitchCase="shadingTypes.Selection" [definition]="duplicateDefinition(def)"

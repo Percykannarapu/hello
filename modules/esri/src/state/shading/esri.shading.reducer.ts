@@ -58,7 +58,7 @@ export const shadingReducer = createReducer(
     (state, action) => adapter.removeMany(action.ids, state)
   ),
   on(ShadingActions.loadShadingDefinitions,
-    (state, action) => adapter.addAll(action.shadingDefinitions, state)
+    (state, action) => adapter.setAll(action.shadingDefinitions, state)
   ),
   on(ShadingActions.clearShadingDefinitions,
     state => adapter.removeAll(state)

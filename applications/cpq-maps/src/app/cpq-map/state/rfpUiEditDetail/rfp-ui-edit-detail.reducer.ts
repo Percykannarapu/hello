@@ -22,7 +22,7 @@ export function rfpUiEditDetailreducer(state = initialState, action: reducerActi
   switch (action.type) {
     case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.rfpUiEditDetails != null)
-        return adapter.addAll(action.payload.normalizedEntities.rfpUiEditDetails, state);
+        return adapter.setAll(action.payload.normalizedEntities.rfpUiEditDetails, state);
       else
         return state;
     }
@@ -60,7 +60,7 @@ export function rfpUiEditDetailreducer(state = initialState, action: reducerActi
     }
 
     case RfpUiEditDetailActionTypes.LoadRfpUiEditDetails: {
-      return adapter.addAll(action.payload.rfpUiEditDetails, state);
+      return adapter.setAll(action.payload.rfpUiEditDetails, state);
     }
 
     case RfpUiEditDetailActionTypes.ClearRfpUiEditDetails: {

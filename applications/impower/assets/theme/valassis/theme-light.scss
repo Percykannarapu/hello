@@ -1,0 +1,17 @@
+@import "../../branding-variables";
+
+$primaryColor:$brandBlue;
+$primaryLightestColor: $babyBlue;
+$primaryMenuTextColor: $primaryColor;
+$primaryTextColor:$lightGray03;
+$accentColor:$paleYellow;
+$accentTextColor:$darkGray02;
+
+$emphasis-high: $darkGray03;
+$emphasis-medium: $midGray01;
+$emphasis-low: $midGray02;
+$emphasis-lower: $midGray03;
+
+$errorColor: $darkerRed;
+
+@import '../../sass/theme/theme_light';

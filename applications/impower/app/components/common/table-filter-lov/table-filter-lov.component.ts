@@ -8,7 +8,7 @@ import { map } from 'rxjs/operators';
 @Component({
   selector: 'val-table-filter-lov',
   templateUrl: './table-filter-lov.component.html',
-  styleUrls:  ['./table-filter-lov.component.css']
+  styleUrls: ['./table-filter-lov.component.scss']
 })
 export class TableFilterLovComponent implements OnInit {
   @Input() field: string;

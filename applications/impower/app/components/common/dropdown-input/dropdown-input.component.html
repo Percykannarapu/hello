@@ -1,33 +1,36 @@
-<div class="component-root flex-container">
-  <span class="md-inputfield" style="width: 100%">
-    <p-dropdown id="dropdown-input-{{controlId}}" [(ngModel)]="value" [options]="options"
-                [style]="{'width':'100%'}" [filter]="false" dropdownIcon="fa fa-caret-down"
-                (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
-                [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass">
-      <ng-template let-item pTemplate="selectedItem">
-        <ng-container *ngIf="allowTruncation">
-          <span [title]="item.label">
-            {{item.label | truncate:truncateLength:truncateSuffix}}
-          </span>
-        </ng-container>
-        <ng-container *ngIf="!allowTruncation">
-          {{item.label}}
-        </ng-container>
-      </ng-template>
-      <ng-template let-variable pTemplate="item">
-        <ng-container *ngIf="allowTruncation">
-          <span [title]="variable.label">
-            {{variable.label | truncate:truncateLength:truncateSuffix}}
-          </span>
-        </ng-container>
-        <ng-container *ngIf="!allowTruncation">
-          {{variable.label}}
-        </ng-container>
-      </ng-template>
-    </p-dropdown>
-    <label class="drop-down-label" for="dropdown-input-{{controlId}}">{{labelText}}</label>
-  </span>
-  <span class="ui-inputgroup-addon error-addon" *ngIf="hasErrors()">
-    <i class="ui-icon-error" title="{{validationMessage}}"></i>
-  </span>
+<div class="component-root p-fluid">
+  <div class="p-field">
+    <div class="p-inputgroup">
+      <div class="p-float-label">
+        <p-dropdown id="dropdown-input-{{controlId}}" [(ngModel)]="value" [options]="options" [filter]="false"
+                    (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
+                    [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass">
+          <ng-template let-item pTemplate="selectedItem">
+            <ng-container *ngIf="allowTruncation">
+              <span [title]="item.label">
+                {{item.label | truncate:truncateLength:truncateSuffix}}
+              </span>
+            </ng-container>
+            <ng-container *ngIf="!allowTruncation">
+              {{item.label}}
+            </ng-container>
+          </ng-template>
+          <ng-template let-variable pTemplate="item">
+            <ng-container *ngIf="allowTruncation">
+              <span [title]="variable.label">
+                {{variable.label | truncate:truncateLength:truncateSuffix}}
+              </span>
+            </ng-container>
+            <ng-container *ngIf="!allowTruncation">
+              {{variable.label}}
+            </ng-container>
+          </ng-template>
+        </p-dropdown>
+        <label for="dropdown-input-{{controlId}}">{{labelText}}</label>
+        <span class="p-inputgroup-addon error-addon" *ngIf="hasErrors()">
+          <i class="pi pi-exclamation-circle" title="{{validationMessage}}"></i>
+        </span>
+      </div>
+    </div>
+  </div>
 </div>

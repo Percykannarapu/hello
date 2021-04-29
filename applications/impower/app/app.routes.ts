@@ -13,4 +13,4 @@ export const routes: Routes = [
   {path: 'batch-map/:id', component: BatchMapComponent, canActivate: [BatchMapAuthService]}
 ];
 
-export const AppRoutes: ModuleWithProviders = RouterModule.forRoot(routes, { useHash: false });
+export const AppRoutes: ModuleWithProviders<RouterModule> = RouterModule.forRoot(routes, { useHash: false, relativeLinkResolution: 'legacy' });

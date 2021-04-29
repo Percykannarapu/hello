@@ -1,23 +1,23 @@
-<div class="component-root" [formGroup]="currentRoot">
-  <span class="md-inputfield">
-    <p-dropdown [options]="fillTypes" [style]="{'width':'100%'}" id="fill-input-{{controlId}}" formControlName="fillType" dropdownIcon="fa fa-caret-down">
+<div class="component-root p-d-flex p-ai-end p-pt-3" [formGroup]="currentRoot">
+  <div class="p-float-label p-col p-col-nogutter">
+    <p-dropdown [options]="fillTypes" id="fill-input-{{controlId}}" formControlName="fillType" styleClass="p-col-12 p-col-nogutter">
       <ng-template let-selected pTemplate="selectedItem">
-        <div class="item-container">
-          <span [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
-          <span class="item-label">{{selected.label}}</span>
+        <div class="p-d-flex">
+          <span class="item-icon" [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
+          <span>{{selected.label}}</span>
         </div>
       </ng-template>
       <ng-template let-item pTemplate="item">
-        <div class="item-container">
-          <span [ngClass]="item.icon"></span>
-          <span class="item-label">{{item.label}}</span>
+        <div class="p-d-flex">
+          <span class="item-icon" [ngClass]="item.icon"></span>
+          <span>{{item.label}}</span>
         </div>
       </ng-template>
     </p-dropdown>
-    <label class="drop-down-label" for="fill-input-{{controlId}}">{{labelText}}</label>
-  </span>
-  <span class="color-chip" *ngIf="showPicker">
+    <label for="fill-input-{{controlId}}">{{labelText}}</label>
+  </div>
+  <div *ngIf="showPicker" class="p-ml-2">
     <val-extended-palette-picker *ngIf="currentPalette != null" [palette]="currentPalette" [reversePalette]="reversePalette" formControlName="fillColor"></val-extended-palette-picker>
     <val-extended-color-picker *ngIf="currentPalette == null" [defaultColor]="defaultPickerColor" formControlName="fillColor"></val-extended-color-picker>
-  </span>
+  </div>
 </div>

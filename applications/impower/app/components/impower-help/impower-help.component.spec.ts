@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ImpowerHelpComponent } from './impower-help.component';
 
@@ -6,7 +6,7 @@ describe('ImpowerHelpComponent', () => {
   let component: ImpowerHelpComponent;
   let fixture: ComponentFixture<ImpowerHelpComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ ImpowerHelpComponent ]
     })

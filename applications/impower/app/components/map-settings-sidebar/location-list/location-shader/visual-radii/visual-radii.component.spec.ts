@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { VisualRadiiComponent } from './visual-radii.component';
 
@@ -6,7 +6,7 @@ describe('VisualRadiiComponent', () => {
   let component: VisualRadiiComponent;
   let fixture: ComponentFixture<VisualRadiiComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ VisualRadiiComponent ]
     })

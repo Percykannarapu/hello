@@ -19,7 +19,6 @@ import { LoggingService } from '../../../../val-modules/common/services/logging.
 @Component({
   selector: 'val-offline-audience-tda',
   templateUrl: './offline-audience-tda.component.html',
-  styleUrls: ['./offline-audience-tda.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OfflineAudienceTdaComponent implements OnInit, OnDestroy {
@@ -45,8 +44,8 @@ export class OfflineAudienceTdaComponent implements OnInit, OnDestroy {
     return {
       label: category.displayName,
       data: category,
-      expandedIcon: 'fa fa-folder-open',
-      collapsedIcon: 'fa fa-folder',
+      expandedIcon: 'pi pi-folder-open',
+      collapsedIcon: 'pi pi-folder',
       leaf: false,
       selectable: false,
       key: category.identifier,
@@ -58,7 +57,7 @@ export class OfflineAudienceTdaComponent implements OnInit, OnDestroy {
     return {
       label: variable.displayName,
       data: variable,
-      icon: 'fa fa-file-o',
+      icon: 'pi pi-file-o',
       leaf: true,
       key: variable.identifier
     };
@@ -84,7 +83,7 @@ export class OfflineAudienceTdaComponent implements OnInit, OnDestroy {
     const textFilter$ = this.searchTerm$.pipe(debounceTime(250));
     this.currentNodes$ = combineLatest([textFilter$, nodes$]).pipe(
       takeUntil(this.destroyed$),
-      map(([term, nodes]) => filterTreeNodesRecursive(term, nodes, n => n.label + ' ' + n.data.additionalSearchField))
+      map(([term, nodes]) => filterTreeNodesRecursive(term, nodes, n => n.label + ' ' + n.data.additionalSearchField)),
     );
 
     this.selectedNodes$ = combineLatest([this.store$.select(fromAudienceSelectors.getTdaAudiences), nodes$, this.selectedReset$]).pipe(

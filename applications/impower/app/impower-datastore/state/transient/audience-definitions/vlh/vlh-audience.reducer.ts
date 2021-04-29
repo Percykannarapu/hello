@@ -19,7 +19,7 @@ const initialState: State = adapter.getInitialState({
 const vlhAudienceReducer = createReducer(
   initialState,
   on(VlhAudienceActions.loadAudienceDefinitions,
-    (state, { definitions }) => adapter.addAll(definitions, { ...state, definitionsFetched: true })
+    (state, { definitions }) => adapter.setAll(definitions, { ...state, definitionsFetched: true })
   ),
   on(VlhAudienceActions.clearAudienceDefinitions,
      VlhAudienceActions.fetchAudienceDefinitions,

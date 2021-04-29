@@ -1,7 +1,7 @@
 <div class="variable-shader-root">
   <div class="shader-display" *ngIf="!isEditing">
-    <div class="shader-menu">
-      <a href="#" (click)="edit()">edit</a>
+    <div>
+      <button pButton type="button" class="p-button-text p-button-sm p-mb-2" (click)="edit()" label="edit"></button>
     </div>
     <ng-container [ngSwitch]="definition.shadingType">
       <val-ramp-variable-shader *ngSwitchCase="ConfigurationTypes.Ramp" [definition]="definition"

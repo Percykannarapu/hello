@@ -16,10 +16,8 @@ import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/i
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
 import { GridGeoVar } from 'app/impower-datastore/state/transient/transient.reducer';
-import { SortMeta } from 'primeng/api';
-import { SelectItem } from 'primeng/components/common/selectitem';
-import { FilterUtils } from 'primeng/components/utils/filterutils';
-import { ObjectUtils } from 'primeng/components/utils/objectutils';
+import { SortMeta, SelectItem, FilterService } from 'primeng/api';
+import { ObjectUtils } from 'primeng/utils';
 import { MultiSelect } from 'primeng/multiselect';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
@@ -34,7 +32,6 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
-import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 
 export interface ColMetric {
   tot:  number;
@@ -50,8 +47,7 @@ interface AttributeEntity { [geocode: string] : GeoAttribute; }
   selector: 'val-geofootprint-geo-list',
   templateUrl: './geofootprint-geo-list.component.html',
   styleUrls: ['./geofootprint-geo-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GeofootprintGeoListComponent implements OnInit, OnDestroy
 {
@@ -247,10 +243,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  columnOptions: SelectItem[] = [];
 
    // Control table cell / header wrapping
-   private tableWrapOn: string = 'val-table val-tbody-wrap';
-   private tableWrapOff: string = 'val-table val-tbody-nowrap';
+   private tableWrapOn: string = 'val-table-wrap';
+   private tableWrapOff: string = 'val-table-no-wrap';
    public  tableWrapStyle: string = this.tableWrapOff;
-   public  tableWrapIcon: string = 'ui-icon-menu';
+   public  tableWrapIcon: string = 'pi pi-minus';
    public  tableHdrSlice: boolean = false;
 
    // Private component variables
@@ -277,7 +273,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    // -----------------------------------------------------------
    constructor(private logger: LoggingService,
                private appStateService: AppStateService,
-               private impGeoService: ImpGeofootprintGeoService) { }
+               private filterService: FilterService) { }
 
    ngOnInit()
    {
@@ -354,8 +350,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
 
       // Setup a custom filter for the grid
-      FilterUtils['numericFilter'] = (value, f) : boolean => FilterData.numericFilter(value, f);
-      FilterUtils['distanceFilter'] = (value, f) : boolean => FilterData.numericFilter(value, f, 2);
+      this.filterService.register('numericFilter', (value, f) : boolean => FilterData.numericFilter(value, f));
+      this.filterService.register('distanceFilter', (value, f) : boolean => FilterData.numericFilter(value, f, 2));
 
       this.gridValues$ = Observable.create(observer => observer.next(this._geoGrid._value));
 
@@ -1171,13 +1167,13 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       if (this.tableWrapStyle === this.tableWrapOn)
       {
          this.tableWrapStyle = this.tableWrapOff;
-         this.tableWrapIcon = 'ui-icon-menu';
+         this.tableWrapIcon = 'pi pi-minus';
          //this.tableHdrSlice = true;  // Disabled to turn toggling of header wrapping off
       }
       else
       {
          this.tableWrapStyle = this.tableWrapOn;
-         this.tableWrapIcon = 'ui-icon-wrap-text';
+         this.tableWrapIcon = 'pi pi-bars';
          //this.tableHdrSlice = false;
       }
    }

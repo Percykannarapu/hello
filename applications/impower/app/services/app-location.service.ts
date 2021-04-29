@@ -14,8 +14,7 @@ import {
 import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { SelectItem } from 'primeng/api';
-import { ConfirmationService } from 'primeng/components/common/confirmationservice';
+import { ConfirmationService, SelectItem } from 'primeng/api';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
 import { filter, finalize, map, mergeMap, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { EnvironmentData } from '../../environments/environment';
@@ -352,7 +351,7 @@ export class AppLocationService {
       this.confirmationService.confirm({
         message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
         header: 'Define Trade Areas',
-        icon: 'ui-icon-project',
+        icon: 'pi pi-trash',
         accept: () => {
           this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
           this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);

@@ -1,7 +1,7 @@
 <div class="poi-display">
   <div *ngIf="!isEditing">
-    <div class="poi-menu">
-      <a href="#" (click)="edit()">edit</a>
+    <div>
+      <button pButton type="button" class="p-button-text p-button-sm p-mb-2" (click)="edit()" label="edit"></button>
     </div>
 
     <ng-container [ngSwitch]="configuration.poiType">
@@ -83,19 +83,16 @@
         </div>
       </div>
 
-      <validated-text-input formControlName="opacity" labelText="Icon Opacity" validationMessage="Must be a number between 0 and 1"></validated-text-input>
-      <div class="label-setup">
-          <div class="label-color-controls">
-              <boolean-input labelText="Visual Radii" formControlName="visibleRadius" pTooltip="Applied only to maps - does not impact geographic trade area selection"></boolean-input>
-              <ng-container *ngIf="configForm.get('visibleRadius').value === true">
-                  <span title="Fill Radii Color">
-                      <val-extended-color-picker [defaultColor]="defaultColor" formControlName="radiiColor"></val-extended-color-picker>
-                  </span>
-              </ng-container>
-          </div>
+      <div class="p-pt-2">
+        <validated-text-input formControlName="opacity" labelText="Icon Opacity" validationMessage="Must be a number between 0 and 1"></validated-text-input>
       </div>
 
-
+      <div class="p-d-flex p-ai-end">
+        <boolean-input labelText="Visual Radii" formControlName="visibleRadius" pTooltip="Applied only to maps - does not impact geographic trade area selection" tooltipPosition="left"></boolean-input>
+        <span *ngIf="configForm.get('visibleRadius').value === true" title="Fill Radii Color">
+          <val-extended-color-picker [defaultColor]="defaultColor" formControlName="radiiColor"></val-extended-color-picker>
+        </span>
+      </div>
       <div *ngIf="configForm.get('visibleRadius').value === true">
 
           <div formArrayName="tradeAreas">
@@ -107,8 +104,10 @@
           </div>
 
       </div>
-      <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': configForm.dirty, 'ui-button-secondary': configForm.pristine }" [disabled]="!configForm.valid"></button>
-      <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
+      <div class="p-pt-2">
+        <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': configForm.pristine }" [disabled]="!configForm.valid"></button>
+        <button type="button" pButton label="Cancel" class="p-ml-2 p-button-outlined" (click)="cancel()"></button>
+      </div>
     </form>
   </div>
 </div>

@@ -60,7 +60,7 @@ export function mediaPlanPrefReducer(state = initialState, action: reducerAction
     }
 
     case MediaPlanPrefActionTypes.LoadMediaPlanPrefs: {
-      return adapter.addAll(action.payload.mediaPlanPrefs, state);
+      return adapter.setAll(action.payload.mediaPlanPrefs, state);
     }
 
     case MediaPlanPrefActionTypes.ClearMediaPlanPrefs: {

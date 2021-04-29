@@ -50,7 +50,7 @@ export function reducer(state = initialState, action: GeoAttributeActions) : Sta
     }
 
     case GeoAttributeActionTypes.LoadGeoAttributes: {
-      return adapter.addAll(action.payload.geoAttributes, state);
+      return adapter.setAll(action.payload.geoAttributes, state);
     }
 
     case GeoAttributeActionTypes.ClearGeoAttributes: {

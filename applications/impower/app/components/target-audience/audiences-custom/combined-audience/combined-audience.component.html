@@ -1,59 +1,54 @@
-<div class="ui-g">
-    <val-edit-combined-audiences [editAudiences]="combinedAudiences$ | async" 
-                                 (onEdit)="onEdit($event)"
-                                 (onDelete)="onDelete($event)">
-    </val-edit-combined-audiences>
-</div>
-<form novalidate  [formGroup]="audienceForm" autocomplete="off" (ngSubmit) = "onSubmit(audienceForm.value)">
-<div class="ui-g">
-<div class="ui-g-12" >
-    <input type="hidden" formControlName="audienceId">  
-</div>
-<div class="ui-g-12" >
-    <span class="md-inputfield">
-      <input id="audienceName" type="text" formControlName="audienceName" pInputText size="40">
-        <label for="nameInput">New Audience Name (required)</label>
-    </span>
-    <span class="validation-messages"> 
-        <span *ngIf="isDuplicateName" >
-            Duplicate audience name, please rename your variable
-            </span>
-        </span>
-</div>
-<div class="ui-g-12"> 
-<p-listbox [options]="groupedAudiences$ | async" formControlName="audienceList" [listStyle]="{'max-height':'250px'}" [style]="{width:'40em'}" multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
-<span class="validation-messages">
-    <span *ngIf="showError">
-        Only percent variables can be combined, please fix your selection
-        </span>
-    </span>
-</div>
-<div class="ui-g-12">
-    <span class="md-inputfield">
-      <p-dropdown [options]="allIndexValues" optionLabel="label" formControlName="selectedIndex" styleClass="val-min-width" placeholder="&nbsp;" dropdownIcon="fa fa-caret-down" ></p-dropdown>
-      <label for="selectedIndex">Select Index Base</label>
+<val-edit-combined-audiences [editAudiences]="combinedAudiences$ | async"
+                             (onEdit)="onEdit($event)"
+                             (onDelete)="onDelete($event)">
+</val-edit-combined-audiences>
+<form novalidate  [formGroup]="audienceForm" autocomplete="off" (ngSubmit)="onSubmit(audienceForm.value)">
+  <input type="hidden" formControlName="audienceId">
+
+  <div class="p-grid p-fluid">
+    <div class="p-col-12">
+      <span class="p-float-label">
+        <input id="audienceName" type="text" formControlName="audienceName" pInputText size="40">
+        <label for="audienceName">New Audience Name (required)</label>
+      </span>
+      <span class="validation-messages">
+        <span *ngIf="isDuplicateName">Duplicate audience name, please rename your variable</span>
+      </span>
+    </div>
+    <div class="p-col-12">
+      <p-listbox [options]="groupedAudiences$ | async" formControlName="audienceList" [listStyle]="{'max-height':'250px'}" [style]="{width:'40em'}" multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
+      <span class="validation-messages">
+        <span *ngIf="showError">Only percent variables can be combined, please fix your selection</span>
+      </span>
+    </div>
+    <div class="p-col-6">
+      <span class="p-float-label">
+        <p-dropdown id="selectedIndex" [options]="allIndexValues" optionLabel="label" formControlName="selectedIndex" placeholder="&nbsp;"></p-dropdown>
+        <label for="selectedIndex">Select Index Base</label>
+      </span>
+    </div>
+  </div>
+
+  <div class="p-grid">
+    <div class="p-col-4" #dialogParent>
+      <button type="submit" pButton icon="pi pi-send" label="Create Variable" [disabled]= "audienceForm.invalid || isDisabled()"></button>
+    </div>
+    <div class="p-col-8" *ngIf="hasAudienceSelections">
+      <button type="button" (click)="resetForm()" pButton label="Clear Selections"></button>
+    </div>
+  </div>
+</form>
+
+<p-dialog [header]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" [appendTo]="dialogParent" styleClass="combined-audience-dialog">
+  <div>
+    <span>
+      {{dialogboxWarningmsg}}
     </span>
   </div>
 
-<div class="ui-g-4" #dialogParent>
-    <button type="submit" pButton icon="ui-icon-send" label="Create Variable" [disabled]= "audienceForm.invalid || isDisabled()" ></button>
-</div>
-<div *ngIf="hasAudienceSelections" class="ui-g-8">
-    <button type="button" (click)="resetForm()" pButton label="Clear Selections"></button>
-</div> 
-
-<p-dialog [(header)]="dialogboxHeader" [(visible)]="showDialog" [modal]="false" [responsive]="true" [appendTo]="dialogParent" styleClass= "combined-audience-dialog">
-    <div>
-      <span>
-          {{dialogboxWarningmsg}}
-      </span>
+  <p-footer>
+    <div class="sa-footer-container">
+      <button type="button" (click)="closeDialog()" pButton label="OK"></button>
     </div>
-
-    <p-footer>
-      <div class="sa-footer-container">
-          <button type="button" (click)="closeDialog()" pButton label="OK"></button>
-      </div>
   </p-footer>
- </p-dialog>
-</div>
-</form>
+</p-dialog>

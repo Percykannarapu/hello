@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ColorPalette, RampShadingDefinition } from '@val/esri';
-import { VariableBaseComponent } from '../variable-base.component';
+import { VariableComponentBase } from '../variable-component.base';
 
 @Component({
   selector: 'val-ramp-variable-shader',
   templateUrl: './ramp-variable-shader.component.html'
 })
-export class RampVariableShaderComponent extends VariableBaseComponent<RampShadingDefinition> {
+export class RampVariableShaderComponent extends VariableComponentBase<RampShadingDefinition> {
 
   constructor() { super(); }
 

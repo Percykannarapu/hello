@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { mapArray } from '@val/common';
@@ -264,7 +264,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
           this.confirmationService.confirm({
             message: message,
             header: 'Delete Combined Variable',
-            icon: 'ui-icon-delete',
+            icon: 'pi pi-trash',
             accept: () => {
               this.varNames.delete(audience.audienceName);
               this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);

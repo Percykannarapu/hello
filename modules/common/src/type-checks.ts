@@ -30,6 +30,10 @@ export function isNil(value: any) : value is (null | undefined) {
   return isNull(value) || isUndefined(value);
 }
 
+export function isNotNil<T>(value: null | undefined | T) : value is T {
+  return !isNull(value) && !isUndefined(value);
+}
+
 export function isEmpty(value: any) : value is (null | undefined | '') {
   return isNil(value) || (isString(value) && value.trim().length === 0);
 }

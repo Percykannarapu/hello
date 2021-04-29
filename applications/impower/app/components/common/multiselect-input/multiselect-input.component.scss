@@ -1,57 +1,21 @@
 @import "~assets/valassis-variables";
 
-:host(.ng-touched.ng-invalid) {
-  .md-inputfield {
-    input {
-      background-image: linear-gradient(to bottom, $inputInvalidBorderColor, $inputInvalidBorderColor),
-      linear-gradient(to bottom, $inputInvalidBorderColor, $inputInvalidBorderColor);
-
-      &:focus ~ label,
-      ~ label {
-        color: $inputErrorTextColor;
-      }
-
-      ~ span.ui-inputgroup-addon {
-        border-bottom-color: $inputInvalidBorderColor;
-        i {
-          color: $inputErrorTextColor;
-        }
-      }
-    }
-  }
-}
-
-.multiselect-component-root {
-  margin-top: 1.4em;
-}
-
-.multiselect-component-root .md-inputfield {
-  top: -.25em;
-  > label {
-    top: -0.3em;
-  }
-  > .ui-inputwrapper-filled {
-    top: -5.0em;
-  }
-  > .ui-inputwrapper-filled ~ label.drop-down-label {
-    top: -1.2em;
-  }
-  .ui-multiselect-trigger {
-    top: -1em;
-  }
-  .ui-multiselect-trigger  > .ui-inputwrapper-filled {
-    top: -1em;
-  }
-}
-
 .error-addon i {
-  color: $inputErrorTextColor;
-  vertical-align: bottom;
-  margin-top: -0.1em;
+  color: $errorColor;
 }
 
-.flex-container {
-  display: flex;
-  flex-flow: flex start;
-  justify-content: space-around;
+p-multiSelect {
+  width: 100%;
+}
+
+// applies the float label style when the default is showing,
+// otherwise, the float label and placeholder text overlap each other
+label.always-float {
+  top: 0.25rem !important;
+  background: transparent;
+  font-size: 12px;
+  color: $brandBlue;
+  padding: 2px 4px;
+  margin-top: 0;
+  margin-left: -4px;
 }

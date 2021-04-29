@@ -24,7 +24,7 @@ export function reducer(state = initialState, action: reducerActions) : State {
   switch (action.type) {
     case PersistentActionTypes.EntityLoadSuccessful:
     case PersistentActionTypes.EntityCreateSuccessful:
-      return adapter.addAll(action.payload.normalizedEntities.impGeofootprintLocAttribs, state);
+      return adapter.setAll(action.payload.normalizedEntities.impGeofootprintLocAttribs, state);
     case ImpGeofootprintLocAttribActionTypes.AddImpGeofootprintLocAttrib: {
       return adapter.addOne(action.payload.impGeofootprintLocAttrib, state);
     }

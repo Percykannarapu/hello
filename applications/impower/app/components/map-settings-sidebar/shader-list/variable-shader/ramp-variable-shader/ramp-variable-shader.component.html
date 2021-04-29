@@ -23,10 +23,14 @@
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
   <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
-  <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+  <div class="p-pt-3">
+    <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
+  </div>
   <dropdown-input formControlName="theme" labelText="Theme" [options]="numericThemes"></dropdown-input>
   <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
-  <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-  <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': parentForm.dirty, 'ui-button-secondary': parentForm.pristine }" [disabled]="!parentForm.valid"></button>
-  <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
+  <div class="p-pt-2">
+    <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+  </div>
+  <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': parentForm.pristine }" [disabled]="!parentForm.valid"></button>
+  <button type="button" pButton label="Cancel" class="p-button-outlined" (click)="cancelForm.emit()"></button>
 </div>

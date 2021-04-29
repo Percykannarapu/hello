@@ -1,6 +1,6 @@
 .login-body {
     padding: 1px;
-    background:  url("../images/login/login.png") top left no-repeat #f7f7f7;
+    background: url("~assets/layout/images/login/login.png") top left no-repeat #f7f7f7;
     background-size: 100% auto;
     height: auto;
 }
@@ -56,7 +56,7 @@
 
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
     .login-body {
-        background: url("../images/login/login2x.png") top left no-repeat #f7f7f7;
+        background: url("~assets/layout/images/login/login2x.png") top left no-repeat #f7f7f7;
         background-size: 100% auto;
     }
 }

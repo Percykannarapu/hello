@@ -4,7 +4,7 @@ import { AbstractControl, ValidatorFn } from '@angular/forms';
 
 @Injectable()
 export class AppEditSiteService {
-  data: any;
+  data: any = null;
   private editLocationData: BehaviorSubject<any> = new BehaviorSubject<any>(this.data);
   public editLocationData$: Observable<any> = this.editLocationData.asObservable();
 
@@ -43,9 +43,9 @@ export class AppEditSiteService {
             return {
               latLon: 'Latitude is limited to +/- 90'
             };
-          }          
-        return null; 
-      }  
+          }
+        return null;
+      }
         if (Number.isNaN(lat) || Number.isNaN(lon)) {
           return {
             latLon: 'Value must be numeric'

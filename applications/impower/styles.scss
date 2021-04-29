@@ -1,241 +1,199 @@
 /* You can add global styles to this file, and also import other style files */
-@import "assets/valassis-variables";
-@import "assets/sass/variables";
-@import "assets/sass/theme/variables";
-@import "assets/sass/mixins";
+@import "~assets/valassis-variables";
+@import "~assets/sass/theme/extensions/_mixins.scss";
+@import "~assets/sass/theme/designer/mixins";
 
 body {
   overflow-x: hidden;
 }
 
-.impower.splash-screen {
-  background: url("~assets/layout/images/valassis-splash-logo.png") no-repeat center;
+.impower {
+  &.splash-screen {
+    background: url("~assets/val/images/valassis-splash-logo.png") no-repeat center;
+    height: 95vh;
+  }
+  > .splash-loader-container {
+    top: 60%;
+    margin-left: -45px;
+  }
 }
 
-.impower > .splash-loader-container {
-  top: 60%;
-  margin-left: -45px;
+.val-campaign-details {
+  width: 50vw;
 }
 
-li.val-hidden-by-search {
-  display: none;
+.val-location-details {
+  width: 50vw;
 }
 
-.val-centered {
+.val-audience-details {
+  width: 55vw;
+}
+
+.val-table-caption {
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.val-text-center {
-  text-align: center;
-}
-
-.val-text-right {
-  text-align: end;
-}
-
-.val-toast {
-  &.val-main {
-    top: ($valHeaderHeight + 3px) !important;
-  }
-  &.val-login {
-    top: ($valTitleHeight + 3px) !important;
-  }
-  span.pi.ui-toast-icon {
-    font-size: 2em;
+  justify-content: space-between;
+  > * {
+    display: inline-flex;
   }
 }
 
-.campaign-details-colorbox .ui-overlaypanel {
-  width: 50%;
-}
-
-.locations-colorbox .ui-overlaypanel {
-  width: 50%;
-}
-
-.target-audience-colorbox .ui-overlaypanel {
-  width: 50%;
-}
-
-// widen the main menu so the full National Extract text can fit on one line
-.layout-menu ul.ultima-menu > li > ul {
-  width: 310px !important;
-}
-
-// when a p-dataTable has drop downs, you need to apply this class, as well as set overflow: visible on the p-column with the drop-down
-.val-table-with-dropdowns div.ui-datatable {
-  overflow: visible;
-}
-
-// when controls are placed inside the primeng grid components, they can be expanded to fill the full width of the cell they are in
-.val-full-width {
-  width: 100% !important;
-}
-
-.val-min-width {
-  width: 40% !important;
-}
-
-.val-flush-to-edges {
-  .ui-panel-content.ui-widget-content {
-    padding: 0 !important;
+.val-table-wrap {
+  table tr > td {
+    white-space: normal !important;
   }
 }
 
-.val-grid-no-pad {
-  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
+.val-table-no-wrap {
+  table tr > td {
+    white-space: nowrap !important;
+  }
+}
+
+.val-table-with-dropdowns {
+  .p-datatable-wrapper {
+    overflow: visible !important;
+  }
+}
+
+.dialog-overflow {
+  overflow: visible !important;
+}
+
+// Global changes for primeng components
+.p-messages.val-no-message-padding {
+  .p-message-wrapper {
     padding: 0;
   }
 }
 
-.val-grid-no-pad-top {
-  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
-    padding-top: 0;
+.val-no-content-padding {
+  .p-panel-content {
+    padding: 0 !important;
   }
 }
 
-.val-grid-no-pad-bottom {
-  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
-    padding-bottom: 0;
+div.val-toast {
+  top: 125px !important;
+  .p-toast-detail {
+    white-space: pre-line;
   }
 }
 
-.val-grid-no-pad-left {
-  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
-    padding-left: 0;
+.p-field p-inputSwitch + label {
+  padding-left: 1rem;
+}
+
+table {
+  tr {
+    td,
+    th {
+      .p-button-icon-only,
+      .p-button-rounded {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+      }
+    }
   }
-}
-
-.val-grid-no-pad-right {
-  .ui-g-1, .ui-g-2, .ui-g-3, .ui-g-4, .ui-g-5, .ui-g-6, .ui-g-7, .ui-g-8, .ui-g-9, .ui-g-10, .ui-g-11, .ui-g-12 {
-    padding-right: 0;
-  }
-}
-
-.val-thin-toolbar .ui-toolbar {
-  padding: .45em 0 0 .25px;
-  vertical-align: top;
-}
-
-.val-audience-tree {
-  padding: 0;
-  .ui-tree {
-    width: 100%;
-    min-height: 15em;
-    max-height: 20em;
-    overflow-x: hidden !important;
-    overflow-y: auto;
-  }
-}
-
-.val-audience-wrapper {
-  padding-top: 1em;
-}
-
-.form-wrapper .field-list .field {
-  position: relative;
-  margin: -20px 0px 24px;
-}
-
-.val-icon-button.ui-button {
-  padding: 0.002em 0 0.002em 0;
-  height: 2em;
-  line-height: 1.25em; }
-
-.val-icon-button.ui-button.ui-button-text,
-.val-icon-button.ui-button .ui-button-text,
-.val-icon-button.ui-button.ui-button-text-icon-left {
-  padding-left: 0.9em;
-  padding-right: 0.25em;
-  line-height: 1.25em;
-}
-
-.val-icon-button.ui-button {
-  padding: 0.002em 0 0.002em 0;
-  height: 2em;
-  line-height: 1.25em; }
-
-.val-short-square-button.ui-button.ui-button-icon-only {
-  -moz-border-radius: 4%;
-  -webkit-border-radius: 4%;
-  border-radius: 4%;
-  width: 1em;
-  height: 1em;
-  padding: 0.7em;
-}
-
-.val-tbody-nowrap .ui-table .ui-table-tbody > tr > td
-{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.val-clickable {
-  padding: 0.5em;
-  cursor: pointer;
-  border-radius: 50%;
-  &:hover {
-    color: $lightGray04;
-    background-color: $primaryDarkColor;
-  }
-}
-
-.val-non-clickable {
-  padding: 0.5em;
-  border-radius: 50%;
-  color: #00000000;
-}
-
-.val-center-controls {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 body {
-  .ui-button {
-    &.ui-button-icon-only {
-      &.val-toolbar-button {
-        padding: 0;
-        border: none;
-        width: 20px;
-        height: 20px;
-        border-radius: 0;
+  .p-inputgroup {
+    input.ng-touched.ng-invalid {
+      @include invalid-filled-input();
+      ~span.p-inputgroup-addon {
+        @include invalid-filled-input();
+        i {
+          color: $errorColor
+        }
       }
     }
-    &.val-filter-button {
-      font-size: 0.75em;
-      border: none;
-      background-color: $blueBird;
-      color: $lightGray04;
-      height: 2em;
-      padding: 0 0.5em;
-      box-shadow: 0 1px 2.5px 0 rgba(0, 0, 0, 0.26), 0 1px 5px 0 rgba(0, 0, 0, 0.16);
-      margin: 0 5px;
-      &:enabled:not(:focus):hover {
-        background-color: $brandBlue;
+    .p-float-label {
+      input.ng-touched.ng-invalid + label {
+        color: $errorColor
       }
-      > .ui-button-text {
-        line-height: 0.75em;
-      }
-    }
-  }
-
-  .ui-dialog.load-project-dialog {
-    .ui-dialog-content {
-      padding: 0 0.5em;
     }
   }
 }
 
-#mapPanel .ui-toolbar {
-  padding-top: 5px;
-  padding-bottom: 5px;
+.p-tree {
+  padding: 0.75rem 0;
+  min-height: 25vh;
+  max-height: 33vh;
+  overflow: auto;
+  .p-treenode {
+    .p-checkbox.p-checkbox-disabled {
+      display: none;
+    }
+  }
+  .val-hidden-by-search {
+      display: none;
+  }
 }
+
+.p-tooltip {
+  cursor: none !important;
+}
+
+// hack for primeng regression
+// https://github.com/primefaces/primeng/issues/9453
+.p-accordion-tab:not(.p-accordion-tab-active) {
+  .p-toggleable-content {
+    height: 0;
+    overflow: hidden;
+  }
+}
+
+.p-accordion-tab.p-accordion-tab-active {
+  .p-toggleable-content {
+    height: auto !important;
+  }
+}
+// end hack
+
+// adding an additional feature to PrimeNg : xs buttons
+.p-button {
+  &.p-button-xs {
+    @include scaledFontSize(1.15rem, $scaleXS);
+    @include scaledPadding($buttonPadding, $scaleXS);
+
+    &.p-button-icon-only {
+      width: $buttonIconOnlyWidth * $scaleXS;
+      height: $buttonIconOnlyWidth *  $scaleXS;
+    }
+    .p-button-icon {
+      @include scaledFontSize(1.15rem, $scaleXS);
+    }
+  }
+}
+
+// overriding float label position
+.p-float-label {
+  margin-top: 0.5rem;
+}
+
+.p-float-label input:focus ~ label,
+.p-float-label input.p-filled ~ label,
+.p-float-label textarea:focus ~ label,
+.p-float-label textarea.p-filled ~ label,
+.p-float-label .p-inputwrapper-focus ~ label,
+.p-float-label .p-inputwrapper-filled ~ label {
+  top: -1rem !important;
+}
+
+.p-input-filled {
+  .p-float-label {
+    input:focus ~ label,
+    input.p-filled ~ label,
+    textarea:focus ~ label,
+    textarea.p-filled ~ label,
+    .p-inputwrapper-focus ~ label,
+    .p-inputwrapper-filled ~ label {
+      top: -1rem !important;
+    }
+  }
+}
+
 
 // esri styling overrides
 body {
@@ -258,7 +216,7 @@ body {
       }
     }
     .esri-attribution {
-      padding-right: 10px;
+      padding-right: 20px;
     }
     .esri-expand__content--expanded {
       z-index: 100;
@@ -298,8 +256,7 @@ body {
         }
       }
       .esri-attribution {
-        @include transition(background-color .3s);
-
+        transition: background-color .3s;
         background-color: rgba(255, 255, 255, 0.65);
         &:hover {
           background-color: rgba(255, 255, 255, 0.9);
@@ -307,44 +264,4 @@ body {
       }
     }
   }
-}
-
-// val-important-element style for tabs
-// usage ex: <p-tabPanel header="Attention!" headerStyleClass="val-important-element">
-.ui-tabview {
-  > ul.ui-tabview-nav {
-    > li.val-important-element {
-      background-color: $valImportantElementBgColor !important;
-      .ui-tabview-title {
-        color: $valImportantElementColor;
-      }
-      &.ui-state-active{
-        background-color: $valImportantElementBgColorActive !important;
-        .ui-tabview-title {
-          color: $valImportantElementColorActive;
-        }
-      }
-    }
-  }
-}
-
-// Eraser button - red without outline default, white with red outline on hover
-.ui-button.ui-state-default.ui-button-red-emphasis, .ui-buttonset.ui-button-red-emphasis > .ui-button.ui-state-default  {
-  color: $brandRed;
-  border-color: darken($brandRed, 15%);
-
-  &:enabled:hover {
-      background-color: $brandRed;
-      color: $lightGray04;
-  }
-
-  &:enabled:focus {
-      outline: 0 none;
-      background-color: lighten($brandRed,10%);
-  }
-}
-
-// Allows \n in toast messages for multiple line messages
-.ui-toast-detail {
-  white-space: pre-line;
 }

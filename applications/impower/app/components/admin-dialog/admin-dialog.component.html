@@ -1,11 +1,11 @@
 <p-dialog styleClass="load-project-dialog" [(visible)]="showDialog" (visibleChange)="closeDialog()" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true" [style]="{ width: '1500px' }">
-    <p-header middle="ui-panel-title">
+    <p-header>
       Admin Dashboard
     </p-header>
 
     <div class="dialog-main">
         <div class="dialog-body">
-            <p-panel [collapsed]="collapsed" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
+            <p-panel [toggleable]="true" [style]="{'margin-bottom':'20px'}">
                 <p-header>
                     Admin interface
                 </p-header>
@@ -51,17 +51,17 @@
                                 <span >
                                     {{rowData[col.field]}}
                                 </span>
-                              
+
                              <span *ngIf="col.header === 'Cancel'  && rowData.showCancel">
                                 <button  (click)="cancel(rowData)" label="cancel"  pButton style="margin: auto; display: block"></button>
                              </span>
                           </td>
                       </ng-container>
-                      
+
                     </tr>
                   </ng-template>
                 </p-treeTable>
             </p-panel>
         </div>
     </div>
-</p-dialog>    
+</p-dialog>

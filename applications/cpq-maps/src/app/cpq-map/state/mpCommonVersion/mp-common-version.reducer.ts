@@ -50,7 +50,7 @@ export function mpCommonVersionReducer(state = initialState, action: MpCommonVer
     }
 
     case MpCommonVersionActionTypes.LoadMpCommonVersions: {
-      return adapter.addAll(action.payload.mpCommonVersions, state);
+      return adapter.setAll(action.payload.mpCommonVersions, state);
     }
 
     case MpCommonVersionActionTypes.ClearMpCommonVersions: {

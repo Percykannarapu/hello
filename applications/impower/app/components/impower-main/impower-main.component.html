@@ -1,46 +1,33 @@
-<div class="layout-wrapper" [ngClass]="{'layout-compact':layoutCompact}" (click)="onLayoutClick()">
+<div>
+  <div>
+    <div (click)="closeOverlays()">
+      <val-app-header></val-app-header>
 
-  <div class="layout-container menu-layout-static menu-layout-horizontal"
-       [ngClass]="{ 'layout-menu-overlay-active': overlayMenuActive,
-            'layout-menu-static-inactive': staticMenuDesktopInactive,
-            'layout-menu-static-active': staticMenuMobileActive }">
-
-    <val-app-header></val-app-header>
-
-    <div class="layout-menu" [ngClass]="{'layout-menu-dark':darkMenu}" (click)="onMenuClick()">
-      <div class="menu-controls">
-        <app-menu [reset]="resetMenu"></app-menu>
+      <div class="layout-menu p-shadow-3">
+        <app-menu></app-menu>
       </div>
-      <div class="menu-addons">
-        <div *ngIf="currentProject && currentProject.projectId > 0" class="val-project-name" title="{{ currentProject.projectId }} - {{ currentProject.projectName }}">
-            {{ currentProject.projectId }} - {{ currentProject.projectName | truncate:30:' ...' }}
+
+      <div class="layout-main">
+        <div class="main-content">
+          <div class="primary-content">
+            <val-dashboard></val-dashboard>
+            <val-map></val-map>
+            <val-geofootprint-geo-panel></val-geofootprint-geo-panel>
+          </div>
+          <div class="side-panel-content">
+            <val-map-settings-sidebar></val-map-settings-sidebar>
+          </div>
         </div>
-        <p-button label="Help" icon="pi pi-fw pi-question" (onClick)="getHelpPopup($event)"></p-button>
-        <p-button label="Clear&nbsp;Messages" (onClick)="onClearMessages()"></p-button>
+        <val-app-footer></val-app-footer>
       </div>
     </div>
 
-    <div class="layout-main">
-      <div class="main-content">
-        <div class="primary-content">
-          <val-dashboard></val-dashboard>
-          <val-map></val-map>
-          <val-geofootprint-geo-panel></val-geofootprint-geo-panel>
-        </div>
-        <div class="side-panel-content">
-          <val-map-settings-sidebar></val-map-settings-sidebar>
-        </div>
-      </div>
-      <val-app-footer></val-app-footer>
-    </div>
-
-    <p-confirmDialog icon="fa fa-question-circle" [style]="{ width: '500px' }"></p-confirmDialog>
+    <p-confirmDialog icon="pi pi-question-circle" [style]="{ width: '500px' }"></p-confirmDialog>
     <val-project></val-project>
     <val-busy-indicator></val-busy-indicator>
     <val-confirmation-dialog></val-confirmation-dialog>
     <val-simple-message></val-simple-message>
     <val-export-crossbow-sites></val-export-crossbow-sites>
-    <val-print-view></val-print-view>
     <val-batch-map-dialog *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']"></val-batch-map-dialog>
     <val-send-sites-digital></val-send-sites-digital>
     <val-batch-map-dashboard *acsGrant="['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED']"></val-batch-map-dashboard>
@@ -49,5 +36,5 @@
     <div class="layout-mask"></div>
   </div>
 
-  <p-toast styleClass="val-toast val-main" [baseZIndex]="1004" [autoZIndex]="false"></p-toast>
+  <p-toast styleClass="val-toast" [baseZIndex]="1004" [autoZIndex]="false"></p-toast>
 </div>

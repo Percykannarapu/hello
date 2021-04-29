@@ -14,7 +14,7 @@ import { LocalAppState } from '../../../state/app.interfaces';
 })
 export class AudiencesOnlineComponent implements OnInit, OnDestroy {
 
-  activeAccordion = -1;
+  activeAccordion: any = null;
   reservedAudiences$: Observable<Set<number>>;
   private destroyed$ = new Subject<void>();
 
@@ -29,7 +29,7 @@ export class AudiencesOnlineComponent implements OnInit, OnDestroy {
     this.appStateService.clearUI$.pipe(
       takeUntil(this.destroyed$),
     ).subscribe(() => {
-      this.activeAccordion = -1;
+      this.activeAccordion = null;
     });
     this.reservedAudiences$ = this.store$.select(fromAudienceSelectors.getCreatedAudiences).pipe(
       takeUntil(this.destroyed$),
@@ -38,9 +38,4 @@ export class AudiencesOnlineComponent implements OnInit, OnDestroy {
       map(audienceIds => new Set<number>(audienceIds))
     );
   }
-
-  onAccordionChange(e: { index: number }) {
-    this.activeAccordion = e.index;
-  }
-
 }

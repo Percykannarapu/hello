@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { DebugElement } from '@angular/core';
 import { TableFilterLovComponent } from './table-filter-lov.component';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -8,7 +8,7 @@ describe('TableFilterLovComponent', () => {
   let fixture: ComponentFixture<TableFilterLovComponent>;
   let de: DebugElement;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [MultiSelectModule],
       declarations: [ TableFilterLovComponent ],

@@ -1,1 +1,7 @@
-<p-multiSelect appendTo="body" [options]="uniqueValues$ | async" [defaultLabel]="defaultLabel" [ngStyle]="{'width':'100%'}" (onChange)="onChangeEvent($event.value)" (onPanelShow)="onShowEvent()" (onPanelHide)="onHideEvent()"></p-multiSelect>
+<p-multiSelect [options]="uniqueValues$ | async"
+               [defaultLabel]="defaultLabel"
+               selectedItemsLabel="{0} items selected"
+               (onChange)="onChangeEvent($event.value)"
+               (onPanelShow)="onShowEvent()"
+               (onPanelHide)="onHideEvent()">
+</p-multiSelect>

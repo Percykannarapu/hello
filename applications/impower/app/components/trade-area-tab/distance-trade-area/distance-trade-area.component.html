@@ -1,13 +1,11 @@
 <div class="component-root">
   <form novalidate autocomplete="off" [formGroup]="radiusForm" (submit)="formSubmitted.emit(radiusForm.value)">
-    <ul class="distance-validation">
-      <li *ngIf="radiusForm.hasError('required', 'analysisLevel')">
-        You must select an Analysis Level before applying a trade area to Sites
-      </li>
-      <li *ngIf="radiusForm.hasError('required', 'hasLocations')">
-        You must add at least 1 {{locationType}} before applying a trade area.
-      </li>
-    </ul>
+    <div class="p-d-flex p-flex-column p-ai-stretch">
+      <p-message *ngIf="radiusForm.hasError('required', 'analysisLevel')" class="p-mb-2" severity="error"
+                 text="You must select an Analysis Level before applying a trade area to {{locationType}}s"></p-message>
+      <p-message *ngIf="radiusForm.hasError('required', 'hasLocations')" class="p-mb-2" severity="error"
+                 text="You must add at least 1 {{locationType}} before applying a trade area."></p-message>
+    </div>
     <div formArrayName="tradeAreas">
       <div *ngFor="let t of tradeAreaControls; index as i; last as isLast; first as isFirst">
         <val-radius-entry [formGroupName]="i.toString()" [tabIndex]="i" [readonly]="radiusForm.get('isReadOnly').value"
@@ -15,11 +13,11 @@
                           (addNewClicked)="addNewRadius()" (deleteClicked)="deleteRadius(i)"></val-radius-entry>
       </div>
     </div>
-    <div class="distance-buttons">
-      <div>
+    <div class="p-grid p-pt-4">
+      <div class="p-col">
         <p-selectButton title="Merge Type" [options]="tradeAreaMergeTypes" formControlName="mergeType" [tabindex]="maxTradeAreas"></p-selectButton>
       </div>
-      <div>
+      <div class="p-col p-d-flex p-jc-end">
         <button pButton label="Apply" type="submit" [disabled]="radiusForm.invalid" [tabIndex]="maxTradeAreas + 1"></button>
       </div>
     </div>

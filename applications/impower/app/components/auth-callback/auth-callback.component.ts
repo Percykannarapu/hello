@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AppLoggingService } from 'app/services/app-logging.service';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from 'app/state/app.interfaces';
+import { environment } from '../../../environments/environment';
 declare let pendo: any;
 
 @Component({
@@ -27,18 +28,19 @@ export class AuthCallbackComponent implements OnInit {
       if (this.authService.isLoggedIn()) {
         //Initialize Pendo
         const email: string = this.userService.getUser().email;
-        const username: string = this.userService.getUser().username
-        pendo.initialize({
-          visitor: {
-            id: username,
-            email: email
-          },
-          account: {
-            id: 'imPower',
-            name: 'prod'
-          }
-
-        })
+        const username: string = this.userService.getUser().username;
+        if (environment.production) {
+          pendo.initialize({
+            visitor: {
+              id: username,
+              email: email
+            },
+            account: {
+              id: 'imPower',
+              name: 'prod'
+            }
+          });
+        }
 
         this.router.navigate(['/']);
       }

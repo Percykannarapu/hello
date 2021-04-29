@@ -4,14 +4,14 @@ import { FormConfig } from '@val/common';
 import { ColorPalette, UniqueShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { GfpOwnerForm } from '../../../../state/forms/forms.interfaces';
-import { ShaderBaseComponent } from '../shader-base.component';
+import { ShaderComponentBase } from '../shader-component.base';
 
 @Component({
   selector: 'val-owner-site-shader',
   templateUrl: './owner-site-shader.component.html',
   styleUrls: ['./owner-site-shader.component.scss']
 })
-export class OwnerSiteShaderComponent extends ShaderBaseComponent<UniqueShadingDefinition> {
+export class OwnerSiteShaderComponent extends ShaderComponentBase<UniqueShadingDefinition> {
 
   @Input() labelChoices: SelectItem[];
 

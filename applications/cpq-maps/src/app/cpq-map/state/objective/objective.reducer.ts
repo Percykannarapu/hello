@@ -50,7 +50,7 @@ export function objectiveReducer(state = initialState, action: ObjectiveActions)
     }
 
     case ObjectiveActionTypes.LoadObjectives: {
-      return adapter.addAll(action.payload.objectives, state);
+      return adapter.setAll(action.payload.objectives, state);
     }
 
     case ObjectiveActionTypes.ClearObjectives: {

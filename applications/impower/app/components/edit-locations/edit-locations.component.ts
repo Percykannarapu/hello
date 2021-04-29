@@ -50,6 +50,7 @@ export class EditLocationsComponent implements OnInit, OnChanges {
               private restService: RestDataService,
               private cd: ChangeDetectorRef,
               private usageService: UsageService) { }
+
   ngOnChanges(change: SimpleChanges) {
     if  (this.displayData) {
       this.editLocationsForm.reset();

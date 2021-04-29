@@ -46,7 +46,7 @@ const reducer = createReducer(
     (state, action) => adapter.removeMany(action.ids, state)
   ),
   on(BoundaryActions.loadBoundaries,
-    (state, action) => adapter.addAll(action.boundaries, state)
+    (state, action) => adapter.setAll(action.boundaries, state)
   ),
   on(BoundaryActions.clearBoundaries,
     state => adapter.removeAll(state)

@@ -1,63 +1,69 @@
-<p-dialog styleClass="load-project-dialog" [(visible)]="showDialog" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true" [style]="{ width: '1000px' }">
+<p-dialog [(visible)]="showDialog" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true" [style]="{ width: '90vw' }">
     <p-header>
       Existing Projects
     </p-header>
-    <div class="dialog-main">
-      <div class="dialog-body">
-        <div class="ui-g-12 ui-g-nopad search-bar">
-          <label>View for:</label>
-          <p-radioButton name="filterGroup" value="myProject" label="My Projects"
-                         [ngModel]="triggerDataFilter$.getValue()" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
-          <p-radioButton name="filterGroup" value="allProjects" label="All Projects"
-                         [ngModel]="triggerDataFilter$.getValue()" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
-          <p-dropdown [options]="timeSpans" [(ngModel)]="selectedTimeSpan" [style]="{'width':'150px'}" (ngModelChange)="refreshData()" dropdownIcon="fa fa-caret-down">
-          </p-dropdown>
+      <div class="p-grid">
+        <div class="p-col-12 p-grid p-jc-between">
+          <div class="p-col p-d-flex p-ai-center p-jc-between">
+            <label>View:</label>
+            <p-radioButton name="filterGroup" value="myProject" label="My Projects"
+                           [ngModel]="triggerDataFilter$.getValue()" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
+            <p-radioButton name="filterGroup" value="allProjects" label="All Projects"
+                           [ngModel]="triggerDataFilter$.getValue()" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
+          </div>
+          <div class="p-col p-d-flex p-jc-end">
+            <p-dropdown [options]="timeSpans" [(ngModel)]="selectedTimeSpan" (ngModelChange)="refreshData()"></p-dropdown>
+          </div>
         </div>
-        <div class="ui-g-12 ui-g-nopad val-tbody-nowrap">
-
+        <div class="p-col-12 val-table-no-wrap">
           <p-table #projGrid [columns]="allColumns"
                    [value]="currentProjectData$ | async"
                    [(selection)]="selectedRow"
                    selectionMode="single"
                    dataKey="projectId"
                    [resizableColumns]="false"
-                   columnResizeMode="expand"
                    [reorderableColumns]="false"
-                   [responsive]="true"
                    [paginator]="true" [rows]="10"
                    sortField="modifyDate" sortOrder="-1">
             <ng-template pTemplate="caption">
-              <div class="ui-g ui-g-nopad">
-                <div class="ui-g-4 ui-g-nopad grid-caption-left-group">
-                  <div class="ui-inputgroup">
-                    <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
-                    <span class="md-inputfield">
-                      <input id="projectSearch" type="text" pInputText size="30" (input)="projGrid.filterGlobal($event.target.value, 'contains')">
+              <div class="val-table-caption">
+                <div class="p-col">
+                  <div class="p-inputgroup">
+                    <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
+                    <div class="p-float-label">
+                      <input id="projectSearch" type="text" pInputText (input)="projGrid.filterGlobal($event.target.value, 'contains')">
                       <label for="projectSearch">Search Projects</label>
-                    </span>
+                    </div>
                   </div>
                 </div>
-                <div class="ui-g-4 ui-g-nopad grid-caption-center-group">
+                <div class="p-col p-d-flex p-jc-center">
                   <label>Projects: {{dataLength}}</label>
                 </div>
-                <div class="ui-g=4 ui-g-nopad grid-caption-right-group">
-                  <div>
-                    <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" dropdownIcon="fa fa-caret-down"></p-multiSelect>
-                  </div>
+                <div class="p-col p-d-flex p-jc-end">
+                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} items selected"></p-multiSelect>
                 </div>
               </div>
             </ng-template>
 
-            <ng-template pTemplate="header" class="ui-g ui-g-nopad">
+            <ng-template pTemplate="header">
               <tr>
                 <th *ngFor="let col of selectedColumns" [pSortableColumn]="col.field" [style.width]="col.size">
                   {{col.header}}
                   <p-sortIcon [field]="col.field"></p-sortIcon>
                 </th>
               </tr>
+              <tr *ngIf="(currentProjectData$ | async)?.length && gettingData">
+                <th [colSpan]="selectedColumns.length">
+                  <div class="p-col-12 p-d-flex p-flex-column p-jc-center p-ai-center">
+                    <i class="pi pi-spi pi-spinner"></i>
+                    Refreshing data, please wait...
+                  </div>
+                </th>
+              </tr>
             </ng-template>
+
             <ng-template pTemplate="body" let-project>
-              <tr [pSelectableRow]="project" (dblclick)="onDoubleClick(project)">
+              <tr [pSelectableRow]="project" (dblclick)="onDoubleClick(project, $event)">
                 <td *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
                   <div *ngSwitchCase="'modifyDate'">
                     {{project[col.field] | date:'short' }}
@@ -68,15 +74,16 @@
                 </td>
               </tr>
             </ng-template>
+
             <ng-template pTemplate="emptymessage" let-columns>
-              <tr class="empty-grid">
+              <tr>
                 <td [attr.colspan]="columns.length">
-                  <div class="ui-g-12" *ngIf="gettingData">
-                    <h4>Loading...</h4>
-                    <p-progressSpinner></p-progressSpinner>
+                  <div class="p-col-12 p-d-flex p-flex-column p-jc-center p-ai-center" *ngIf="gettingData">
+                    <h5>Loading...</h5>
+                    <p-progressSpinner strokeWidth="3" [style]="{ width: '50px', height: '50px' }"></p-progressSpinner>
                   </div>
-                  <div class="ui-g-12" *ngIf="!gettingData">
-                    <h4>No results</h4>
+                  <div class="p-col-12 p-d-flex p-jc-center" *ngIf="!gettingData">
+                    <h5>No results</h5>
                   </div>
                 </td>
               </tr>
@@ -85,16 +92,15 @@
         </div>
       </div>
 
-      <div class="dialog-buttons">
-        <div class="ui-g-1">
-          <button pButton type="button" (click)="loadProject(selectedRow.projectId)" label="Load" [disabled]="selectedRow == null"></button>
+      <div class="p-grid">
+        <div class="p-col-1 p-fluid">
+          <button pButton type="button" label="Load" class="p-button-outlined" (click)="loadProject(selectedRow.projectId)" [disabled]="selectedRow == null"></button>
         </div>
-        <div class="ui-g-1">
-          <button pButton type="button" (click)="cloneProject(selectedRow.projectId)" label="Clone" [disabled]="selectedRow == null"></button>
+        <div class="p-col-1 p-fluid">
+          <button pButton type="button" label="Clone" class="p-button-outlined" (click)="cloneProject(selectedRow.projectId)" [disabled]="selectedRow == null"></button>
         </div>
-        <div class="ui-g-1">
-          <button pButton type="button" (click)="deActivateProject(selectedRow.projectId)" label="Remove" [(disabled)]="selectedRow == null || isDisable"></button>
+        <div class="p-col-1 p-fluid">
+          <button pButton type="button" label="Remove" class="p-button-outlined" (click)="deActivateProject(selectedRow.projectId)" [disabled]="selectedRow == null || isDisable"></button>
         </div>
       </div>
-    </div>
 </p-dialog>

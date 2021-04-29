@@ -44,7 +44,7 @@ html {
             vertical-align: middle;
             width: 200px;
             height: 30px;
-            background: url("../images/logo2x.png") top left no-repeat;
+            background: url("~assets/layout/images/logo2x.png") top left no-repeat;
             background-size: 200px 30px;
         }
 
@@ -186,7 +186,7 @@ html {
             width: 250px;
             height: 145px;
             text-align: center;
-            background: url("../images/profile-bg.png") top left no-repeat;
+            background: url("~assets/layout/images/profile-bg.png") top left no-repeat;
             background-size: 250px 145px;
             @include shadow(0 2px 5px 0 rgba(0,0,0,0.16));
 
@@ -234,7 +234,7 @@ html {
             background-color: $darkMenuBgColor;
 
             .profile {
-                background-image: url("../images/profile-bg-dark.png");
+                background-image: url("~assets/layout/images/profile-bg-dark.png");
 
                 .profile-name {
                     color: $darkMenuColor;
@@ -1421,7 +1421,7 @@ html {
                                 vertical-align: middle;
                                 width: 24px;
                                 height: 24px;
-                                background: url("../images/avatar.png") top left no-repeat;
+                                background: url("~assets/layout/images/avatar.png") top left no-repeat;
                                 background-size: 24px 24px;
                                 margin-right: 14px;
                             }

@@ -1,8 +1,11 @@
+import { Injectable } from '@angular/core';
 import { RouterStateSnapshot } from '@angular/router';
 import { RouterStateSerializer } from '@ngrx/router-store';
 import { RouterStateUrl } from './router.interfaces';
 
+@Injectable()
 export class CustomSerializer implements RouterStateSerializer<RouterStateUrl> {
+
   serialize(routerState: RouterStateSnapshot) : RouterStateUrl {
     let route = routerState.root;
     while (route.firstChild) {
@@ -17,4 +20,5 @@ export class CustomSerializer implements RouterStateSerializer<RouterStateUrl> {
     // instead of the entire snapshot
     return { url, params, queryParams };
   }
+
 }

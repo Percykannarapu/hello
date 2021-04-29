@@ -50,7 +50,7 @@ export function cbxReportTypeReducer(state = initialState, action: CbxReportType
     }
 
     case CbxReportTypeActionTypes.LoadCbxReportTypes: {
-      return adapter.addAll(action.payload.cbxReportTypes, state);
+      return adapter.setAll(action.payload.cbxReportTypes, state);
     }
 
     case CbxReportTypeActionTypes.ClearCbxReportTypes: {

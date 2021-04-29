@@ -45,7 +45,7 @@ export class OnlineAudienceVlhComponent implements OnInit, OnDestroy {
     return {
       label: variable.categoryName,
       data: variable,
-      icon: 'fa fa-file-o',
+      icon: 'pi pi-file-o',
       leaf: true,
       key: `${variable.digLookup.get('vlh')}`
     };
@@ -72,17 +72,19 @@ export class OnlineAudienceVlhComponent implements OnInit, OnDestroy {
     const textFilter$ = this.searchTerm$.pipe(debounceTime(250));
     this.currentNodes$ = combineLatest([textFilter$, nodes$]).pipe(
       takeUntil(this.destroyed$),
-      map(([term, nodes]) => filterTreeNodesRecursive(term, nodes, n => n.data.categoryName))
+      map(([term, nodes]) => filterTreeNodesRecursive(term, nodes, n => n.data.categoryName)),
     );
 
     this.selectedNodes$ = combineLatest([this.store$.select(fromAudienceSelectors.getVlhAudiences), nodes$, this.selectedReset$]).pipe(
       takeUntil(this.destroyed$),
-      map(([selected]) => selected.map(s => ({ key: s.audienceIdentifier })))
-    );
+      map(([selected]) => selected.map(s => ({ key: s.audienceIdentifier }))),
+   );
 
     this.appStateService.clearUI$.pipe(
       takeUntil(this.destroyed$),
-    ).subscribe(() =>  this.searchTerm$.next(''));
+    ).subscribe(() =>  {
+      this.searchTerm$.next('');
+    });
   }
 
   public selectVariable(event: TreeNode) : void {

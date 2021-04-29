@@ -85,7 +85,7 @@ export function reducer(
     }
 
     case AudienceActionTypes.LoadAudiences: {
-      return adapter.addAll(action.payload.audiences, state);
+      return adapter.setAll(action.payload.audiences, state);
     }
 
     case AudienceActionTypes.ClearAudiences: {

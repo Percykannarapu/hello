@@ -64,8 +64,8 @@ export class OnlineAudienceApioComponent implements OnInit, OnDestroy {
     return {
       label: variable.taxonomyParsedName,
       data: variable,
-      expandedIcon: 'fa fa-folder-open',
-      collapsedIcon: 'fa fa-folder',
+      expandedIcon: 'pi pi-folder-open',
+      collapsedIcon: 'pi pi-folder',
       leaf: false,
       selectable: false,
       children: children,
@@ -77,7 +77,7 @@ export class OnlineAudienceApioComponent implements OnInit, OnDestroy {
     return {
       label: variable.categoryName,
       data: variable,
-      icon: 'fa fa-file-o',
+      icon: 'pi pi-file-o',
       leaf: true,
       key: `${variable.digLookup.get(sourceName)}`
     };

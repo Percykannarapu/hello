@@ -1,11 +1,20 @@
-.validation-messages {
-  > span {
-    color: #e62a10;
-  }
+@import "~assets/valassis-variables";
+
+.validation-error {
+  color: $errorColor;
 }
 
-.composite-audience-dialog{
-  width: 710px; 
-  top: 200px !important; 
-  left: unset !important; 
+.composite-audience-dialog {
+  width: 33vw;
 }
+
+.input-wrapper {
+  padding-bottom: 7px;
+}
+
+.button-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+

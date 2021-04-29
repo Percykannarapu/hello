@@ -40,7 +40,7 @@ export class MessagingModule {
     }
   }
 
-  static forRoot(notificationProvider: Type<NotificationProvider> = NullNotificationService) : ModuleWithProviders {
+  static forRoot(notificationProvider: Type<NotificationProvider> = NullNotificationService) : ModuleWithProviders<MessagingModule> {
     return {
       ngModule: MessagingModule,
       providers: [

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, resolveFieldData } from '@val/common';
+import { filterArray, groupByExtended, resolveFieldData } from '@val/common';
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintLocAttribService } from 'app/val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
@@ -8,7 +8,6 @@ import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { filter, map, startWith, take } from 'rxjs/operators';
-import { groupByExtended } from '../../../../../modules/common/src/utils';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppLocationService } from '../../services/app-location.service';
 import { AppStateService } from '../../services/app-state.service';
@@ -191,10 +190,10 @@ export class SiteListComponent implements OnInit {
   public  isSelectedToolTip: string = this.filterAllTip;
 
   // Control table cell / header wrapping
-  private tableWrapOn: string = 'val-table val-tbody-wrap';
-  private tableWrapOff: string = 'val-table val-tbody-nowrap';
+  private tableWrapOn: string = 'val-table-wrap';
+  private tableWrapOff: string = 'val-table-no-wrap';
   public  tableWrapStyle: string = this.tableWrapOff;
-  public  tableWrapIcon: string = 'ui-icon-menu';
+  public  tableWrapIcon: string = 'pi pi-minus';
 
   // Control table sorting
   public  multiSortMeta: Array<SortMeta>;
@@ -341,7 +340,7 @@ export class SiteListComponent implements OnInit {
     this.confirmationService.confirm({
         message: 'Do you want to delete this record?',
         header: 'Delete Confirmation',
-        icon: 'ui-icon-trash',
+        icon: 'pi pi-trash',
         accept: () => {
           this.onDeleteLocations.emit({locations: [row], metricText: metricText, selectedListType: this.selectedListType});
           this.logger.debug.log('remove successful');
@@ -353,13 +352,13 @@ export class SiteListComponent implements OnInit {
   }
 
   onDeleteSelectedLocations(){
-    const locsForDelete: ImpGeofootprintLocation[] = this.currentAllSitesBS$.getValue().filter(site => 
+    const locsForDelete: ImpGeofootprintLocation[] = this.currentAllSitesBS$.getValue().filter(site =>
                          this.selectedLocationsForDelete.has(site.locationNumber));
        // const metricText = AppLocationService.createMetricTextForLocation(row);
         this.confirmationService.confirm({
             message: 'Do you want to delete this record?',
             header: 'Delete Confirmation',
-            icon: 'ui-icon-trash',
+            icon: 'pi pi-trash',
             accept: () => {
                 this.onDeleteLocations.emit({locations: locsForDelete, metricText: 'selected locations for delete', selectedListType: this.selectedListType});
                 this.logger.debug.log('remove successful');
@@ -367,18 +366,18 @@ export class SiteListComponent implements OnInit {
             reject: () => {
                 this.logger.debug.log('cancelled remove');
             }
-        });                     
+        });
   }
 
   onSelectLoc(row: ImpGeofootprintLocation){
-    
+
     if (!this.selectedLocationsForDelete.has(row.locationNumber)){
       this.selectedLocationsForDelete.add(row.locationNumber);
-      row.isSelected = true;   
+      row.isSelected = true;
     }
     else{
-      this.selectedLocationsForDelete.delete(row.locationNumber); 
-      row.isSelected = false;     
+      this.selectedLocationsForDelete.delete(row.locationNumber);
+      row.isSelected = false;
     }
   }
 
@@ -621,11 +620,11 @@ export class SiteListComponent implements OnInit {
   public onToggleTableWrap() {
     if (this.tableWrapStyle === this.tableWrapOn) {
       this.tableWrapStyle = this.tableWrapOff;
-      this.tableWrapIcon = 'ui-icon-menu';
+      this.tableWrapIcon = 'pi pi-minus';
     }
     else {
       this.tableWrapStyle = this.tableWrapOn;
-      this.tableWrapIcon = 'ui-icon-wrap-text';
+      this.tableWrapIcon = 'pi pi-bars';
     }
   }
 

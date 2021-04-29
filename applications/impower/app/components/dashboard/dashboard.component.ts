@@ -15,8 +15,7 @@ import { ColorBoxComponent } from '../color-box/color-box.component';
 @Component({
   selector: 'val-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
     chartData: any;
@@ -165,4 +164,8 @@ export class DashboardComponent implements OnInit {
          this.index = e.index;
     }
 
+    swallowClickEvent(ev: MouseEvent) : void {
+      ev.stopPropagation();
+      ev.stopImmediatePropagation();
+    }
 }

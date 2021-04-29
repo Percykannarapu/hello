@@ -67,7 +67,7 @@ export function reducer(state = initialState, action: GeoVarActions) : State {
     }
 
     case GeoVarActionTypes.LoadGeoVars: {
-      return adapter.addAll(action.payload.geoVars, state);
+      return adapter.setAll(action.payload.geoVars, state);
     }
 
     case GeoVarActionTypes.ClearGeoVars: {

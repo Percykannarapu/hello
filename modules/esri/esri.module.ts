@@ -71,8 +71,7 @@ const PUBLIC_COMPONENTS = [
     EsriLabelConfigComponent,
     ...PUBLIC_COMPONENTS,
   ],
-  exports: PUBLIC_COMPONENTS,
-  entryComponents: [EsriGeographyPopupComponent]
+  exports: PUBLIC_COMPONENTS
 })
 export class EsriModule {
 
@@ -82,7 +81,7 @@ export class EsriModule {
     }
   }
 
-  static forRoot(optionFactory: () => ForRootOptions = () => null) : ModuleWithProviders {
+  static forRoot(optionFactory: () => ForRootOptions = () => null) : ModuleWithProviders<EsriModule> {
     return {
       ngModule: EsriModule,
       providers: [

@@ -4,7 +4,7 @@ import { ConfigurationTypes, shaderConfigTypeFriendlyNames, ShadingDefinition } 
 import { SelectItem } from 'primeng/api';
 import { Audience } from '../../../../impower-datastore/state/transient/audience/audience.model';
 import { FieldContentTypeCodes } from '../../../../val-modules/targeting/targeting.enums';
-import { ShaderBaseComponent } from '../shader-base.component';
+import { ShaderComponentBase } from '../shader-component.base';
 
 @Component({
   selector: 'val-variable-shader',
@@ -12,7 +12,7 @@ import { ShaderBaseComponent } from '../shader-base.component';
   styleUrls: ['./variable-shader.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class VariableShaderComponent extends ShaderBaseComponent<ShadingDefinition> {
+export class VariableShaderComponent extends ShaderComponentBase<ShadingDefinition> {
   private _audiences: Audience[];
   public get audiences() : Audience[] {
     return this._audiences;

@@ -1,6 +1,6 @@
 /* tslint:disable:component-selector */
-import { Component, EventEmitter, forwardRef, Input, Output, ɵCompiler_compileModuleSync__POST_R3__, ViewEncapsulation, ViewChildren, QueryList, Optional, Self } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, NgControl } from '@angular/forms';
+import { Component, EventEmitter, Input, Optional, Output, QueryList, Self, ViewChildren } from '@angular/core';
+import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { getUuid } from '@val/common';
 import { SelectItem } from 'primeng/api';
 import { MultiSelect } from 'primeng/multiselect';
@@ -9,14 +9,6 @@ import { MultiSelect } from 'primeng/multiselect';
   selector: 'multiselect-input',
   templateUrl: './multiselect-input.component.html',
   styleUrls:  ['./multiselect-input.component.scss'],
-  // encapsulation: ViewEncapsulation.None,
-  // providers: [
-  //   {
-  //     provide: NG_VALUE_ACCESSOR,
-  //     useExisting: forwardRef(() => MultiselectInputComponent),
-  //     multi: true
-  //   }
-  // ]
 })
 export class MultiselectInputComponent implements ControlValueAccessor  {
   @Output() selectionChanged: EventEmitter<any> = new EventEmitter<any>();

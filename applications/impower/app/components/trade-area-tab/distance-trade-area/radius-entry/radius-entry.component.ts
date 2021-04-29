@@ -1,11 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ControlContainer, FormGroup } from '@angular/forms';
-import { isString } from '@val/common';
 
 @Component({
   selector: 'val-radius-entry',
-  templateUrl: './radius-entry.component.html',
-  styleUrls: ['./radius-entry.component.scss']
+  templateUrl: './radius-entry.component.html'
 })
 export class RadiusEntryComponent implements OnInit {
   get radiusIdentifier() : number {
@@ -28,13 +26,11 @@ export class RadiusEntryComponent implements OnInit {
     this.currentRoot = this.controlContainer.control as FormGroup;
   }
 
-  getValidationMessage() : string {
-    const errorObject = this.currentRoot == null ? null : this.currentRoot.get('radius').errors;
-    if (errorObject == null || (this.currentRoot != null && this.currentRoot.get('radius').untouched)) {
-      return null;
-    } else {
-      const validationErrors: string[] = Object.values(errorObject).filter(v => isString(v));
-      return validationErrors.join('<br/>');
-    }
+  hasError(errorCode: string) : boolean {
+    return this.currentRoot.hasError(errorCode, 'radius');
+  }
+
+  getError(errorCode: string) : string {
+    return this.currentRoot.getError(errorCode, 'radius')[errorCode];
   }
 }

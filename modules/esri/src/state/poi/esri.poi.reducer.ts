@@ -40,7 +40,7 @@ export const poiReducer = createReducer(
     (state, action) => adapter.removeMany(action.ids, state)
   ),
   on(PoiActions.loadPois,
-    (state, action) => adapter.addAll(action.pois, state)
+    (state, action) => adapter.setAll(action.pois, state)
   ),
   on(PoiActions.clearPois,
     state => adapter.removeAll(state)

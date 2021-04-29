@@ -10,12 +10,10 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMerge
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from 'app/state/app.interfaces';
-import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 
 @Component({
   selector: 'val-distance-trade-area',
-  templateUrl: './distance-trade-area.component.html',
-  styleUrls: ['./distance-trade-area.component.scss']
+  templateUrl: './distance-trade-area.component.html'
 })
 export class DistanceTradeAreaComponent implements OnInit, OnDestroy {
   @Input()

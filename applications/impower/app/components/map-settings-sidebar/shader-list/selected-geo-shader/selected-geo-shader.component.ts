@@ -4,14 +4,14 @@ import { FormConfig, rgbToHex } from '@val/common';
 import { FillSymbolDefinition, fillTypeFriendlyNames, SimpleShadingDefinition } from '@val/esri';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { GfpSelectionForm } from '../../../../state/forms/forms.interfaces';
-import { ShaderBaseComponent } from '../shader-base.component';
+import { ShaderComponentBase } from '../shader-component.base';
 
 @Component({
   selector: 'val-selected-geo-shader',
   templateUrl: './selected-geo-shader.component.html',
   styleUrls: ['./selected-geo-shader.component.scss']
 })
-export class SelectedGeoShaderComponent extends ShaderBaseComponent<SimpleShadingDefinition> {
+export class SelectedGeoShaderComponent extends ShaderComponentBase<SimpleShadingDefinition> {
 
   get currentFillColorInHex() : string {
     return rgbToHex(this.definition.defaultSymbolDefinition.fillColor);

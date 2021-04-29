@@ -9,7 +9,6 @@ import { LocalAppState } from '../../../state/app.interfaces';
 @Component({
   selector: 'val-audiences-offline',
   templateUrl: './audiences-offline.component.html',
-  styleUrls: ['./audiences-offline.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AudiencesOfflineComponent implements OnInit, OnDestroy {

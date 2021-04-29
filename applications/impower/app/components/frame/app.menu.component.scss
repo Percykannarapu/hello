@@ -1,0 +1,22 @@
+@import "~assets/valassis-variables";
+
+a.val-long-menu-link {
+  > span.p-menuitem-text {
+    white-space: nowrap;
+  }
+}
+
+.menu-addons {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  > * {
+    padding-right: 0.5em;
+  }
+  .val-project-name {
+    color: $darkGray03;
+    font-weight: bold;
+    font-size: 1.25em;
+    white-space: nowrap;
+  }
+}

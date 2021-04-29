@@ -1,5 +1,10 @@
 @import "~assets/valassis-variables";
 
+.layout-menu {
+  padding-top: $valTitleHeight;
+  width: 100%;
+}
+
 .layout-main {
   width: 100%;
   .main-content {
@@ -11,29 +16,7 @@
     }
     .side-panel-content {
       width: 1.3em;
-      padding-top: $valSidebarButtonPadding;
-    }
-  }
-}
-
-.layout-menu {
-  display: flex;
-  justify-content: space-between;
-  .menu-controls {
-    display: flex;
-  }
-  .menu-addons {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    > * {
-      padding-right: 0.5em;
-    }
-    .val-project-name {
-      color: $darkGray03;
-      font-weight: bold;
-      font-size: 1.25em;
-      white-space: nowrap;
+      padding-top: 40vh;
     }
   }
 }

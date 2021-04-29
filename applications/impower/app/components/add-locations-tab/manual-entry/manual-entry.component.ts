@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { FormConfig } from '@val/common';
 import { AppEditSiteService } from 'app/services/app-editsite.service';
-import { MenuItem } from 'primeng/api';
+import { MenuItem, PrimeIcons } from 'primeng/api';
 import { ValGeocodingRequest } from '../../../models/val-geocoding-request.model';
 import { FullAppState } from '../../../state/app.interfaces';
 import { resetNamedForm, updateNamedForm } from '../../../state/forms/forms.actions';
@@ -44,12 +44,12 @@ export class ManualEntryComponent implements OnInit {
     };
     this.manualEntryForm = this.fb.group(formSetup, { updateOn: 'blur' });
     this.loadItems = [
-      { label: 'VPW', icon: 'ui-icon-map', command: () => this.loadVPW() },
-      { label: 'Sky Zone', icon: 'ui-icon-map', command: () => this.loadData(Presets.SkyZone) },
-      { label: 'Tecumseh', icon: 'ui-icon-map', command: () => this.loadData(Presets.Tecumseh), title: 'Use 20 mile TA to get geos from all owner group types' },
-      { label: 'Madison', icon: 'ui-icon-map', command: () => this.loadData(Presets.Madison), title: 'Has duplicate location attributes' },
-      { label: `Nancy's`, icon: 'ui-icon-map', command: () => this.loadData(Presets.Nancy), title: 'Close to VPW, for testing overlapping radii' },
-      { label: `Erin's`, icon: 'ui-icon-map', command: () => this.loadData(Presets.Erin), title: 'Very close to VPW, for testing overlapping radii' }
+      { label: 'VPW', icon: PrimeIcons.MAP_MARKER, command: () => this.loadVPW() },
+      { label: 'Sky Zone', icon: PrimeIcons.MAP_MARKER, command: () => this.loadData(Presets.SkyZone) },
+      { label: 'Tecumseh', icon: PrimeIcons.MAP_MARKER, command: () => this.loadData(Presets.Tecumseh), title: 'Use 20 mile TA to get geos from all owner group types' },
+      { label: 'Madison', icon: PrimeIcons.MAP_MARKER, command: () => this.loadData(Presets.Madison), title: 'Has duplicate location attributes' },
+      { label: `Nancy's`, icon: PrimeIcons.MAP_MARKER, command: () => this.loadData(Presets.Nancy), title: 'Close to VPW, for testing overlapping radii' },
+      { label: `Erin's`, icon: PrimeIcons.MAP_MARKER, command: () => this.loadData(Presets.Erin), title: 'Very close to VPW, for testing overlapping radii' }
     ];
   }
 

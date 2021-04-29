@@ -154,9 +154,9 @@ export class MarketGeosComponent implements OnInit {
 
   // Grid Variables
   public containerGridColumns: any[] =
-    [{field: 'state', header: 'State', width: '5em',   styleClass: '', filterMatchMode: 'contains' },
-     {field: 'id',    header: 'Id',    width: '10em',  styleClass: '', filterMatchMode: 'contains' },
-     {field: 'code',  header: 'Code',  width: '10em',  styleClass: '', filterMatchMode: 'contains' },
+    [{field: 'state', header: 'State', width: '6rem',   styleClass: '', filterMatchMode: 'contains' },
+     {field: 'id',    header: 'Id',    width: '10rem',  styleClass: '', filterMatchMode: 'contains' },
+     {field: 'code',  header: 'Code',  width: '10rem',  styleClass: '', filterMatchMode: 'contains' },
      {field: 'name',  header: 'Name',  width: '',      styleClass: '', filterMatchMode: 'contains' },
     ];
   public selectedColumns: any[] = [];
@@ -182,10 +182,10 @@ export class MarketGeosComponent implements OnInit {
   public  globalSearch: string;
 
   // Control table cell / header wrapping
-  private tableWrapOn: string = 'val-table val-tbody-wrap';
-  private tableWrapOff: string = 'val-table val-tbody-nowrap';
+  private tableWrapOn: string = 'val-table-wrap';
+  private tableWrapOff: string = 'val-table-no-wrap';
   public  tableWrapStyle: string = this.tableWrapOff;
-  public  tableWrapIcon: string = 'ui-icon-menu';
+  public  tableWrapIcon: string = 'pi pi-minus';
 
   // Control table sorting
   public  multiSortMeta: Array<SortMeta>;
@@ -589,11 +589,11 @@ export class MarketGeosComponent implements OnInit {
   public onToggleTableWrap() {
     if (this.tableWrapStyle === this.tableWrapOn) {
       this.tableWrapStyle = this.tableWrapOff;
-      this.tableWrapIcon = 'ui-icon-menu';
+      this.tableWrapIcon = 'pi pi-minus';
     }
     else {
       this.tableWrapStyle = this.tableWrapOn;
-      this.tableWrapIcon = 'ui-icon-wrap-text';
+      this.tableWrapIcon = 'pi pi-bars';
     }
   }
 

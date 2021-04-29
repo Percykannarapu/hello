@@ -1,19 +1,13 @@
-<p-accordion [activeIndex]="activeAccordion" (onOpen)="onAccordionChange($event)">
-  <div *acsGrant="['VARIABLE_CATEGORY_INMARKET', 'VARIABLE_CATEGORY_INTEREST']; type 'ANY'">
-    <p-accordionTab header="Interest and In-Market" [transitionOptions]="'0ms'">
+<p-accordion [(activeIndex)]="activeAccordion">
+    <p-accordionTab header="Interest and In-Market" *acsGrant="['VARIABLE_CATEGORY_INMARKET', 'VARIABLE_CATEGORY_INTEREST']">
       <val-online-audience-apio [reservedAudienceIds]="reservedAudiences$ | async"></val-online-audience-apio>
     </p-accordionTab>
-  </div>
 
-  <div *acsGrant="['VARIABLE_CATEGORY_VISIT_LIKELIHOOD'];">
-    <p-accordionTab header="Visit Likelihood" [transitionOptions]="'0ms'">
+    <p-accordionTab header="Visit Likelihood" *acsGrant="['VARIABLE_CATEGORY_VISIT_LIKELIHOOD']">
       <val-online-audience-vlh [reservedAudienceIds]="reservedAudiences$ | async"></val-online-audience-vlh>
     </p-accordionTab>
-  </div>
 
-  <div *acsGrant="['VARIABLE_CATEGORY_PIXEL']; ">
-    <p-accordionTab header="Pixel Data" [transitionOptions]="'0ms'">
+    <p-accordionTab header="Pixel Data" *acsGrant="['VARIABLE_CATEGORY_PIXEL']">
       <val-online-audience-pixel [reservedAudienceIds]="reservedAudiences$ | async"></val-online-audience-pixel>
     </p-accordionTab>
-  </div>
 </p-accordion>

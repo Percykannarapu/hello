@@ -45,7 +45,7 @@ export class ImpowerDatastoreModule {
     }
   }
 
-  static forRoot() : ModuleWithProviders {
+  static forRoot() : ModuleWithProviders<ImpowerDatastoreModule> {
     return {
       ngModule: ImpowerDatastoreModule
     };

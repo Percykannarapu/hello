@@ -6,7 +6,7 @@ import { Audience } from 'app/impower-datastore/state/transient/audience/audienc
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { RemoveVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { AppLoggingService } from 'app/services/app-logging.service';
-import { ConfirmationService } from 'primeng/components/common/confirmationservice';
+import { ConfirmationService } from 'primeng/api';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 import { AppStateService } from '../../../services/app-state.service';
@@ -169,7 +169,7 @@ export class SelectedAudiencesComponent implements OnInit {
    this.confirmationService.confirm({
     message: message,
     header: 'Delete Confirmation',
-    icon: 'ui-icon-delete',
+    icon: 'pi pi-trash',
     accept: () => {
       this.varService.addDeletedAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);
       this.varService.removeAudience(audience.audienceSourceType, audience.audienceSourceName, audience.audienceIdentifier);

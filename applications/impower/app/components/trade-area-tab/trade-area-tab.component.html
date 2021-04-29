@@ -1,5 +1,5 @@
-<p-accordion (onOpen)="onTabOpen($event)" [(activeIndex)]="index">
-  <p-accordionTab header="Distance" [transitionOptions]="'0ms'">
+<p-accordion [(activeIndex)]="index">
+  <p-accordionTab header="Distance">
     <val-site-type-selector label="Define for:">
       <site-content>
         <val-distance-trade-area [currentTradeAreas]="(siteTradeAreas$ | async)"
@@ -29,20 +29,10 @@
       </competitor-content>
     </val-site-type-selector>
   </p-accordionTab>
-  <!--<p-accordionTab header="Audience" [transitionOptions]="'0ms'">
-      <val-audience-tradearea [currentAudienceTAConfig]="(audienceTAConfig$ | async)"
-                              [currentAudiences]="(currentAudiences$ | async)"
-                              [currentLocationsCount]="(currentLocationsCount$ | async)"
-                              (updatedFormData)="onUpdatedAudienceTAData($event)"
-                              (runAudienceTA)="onRunAudienceTA($event)">
-        Loading Audience Trade Areas...</val-audience-tradearea>
-    </p-accordionTab> -->
-  <p-accordionTab header="{{customTaText}}" [transitionOptions]="'0ms'">
-    <val-upload-tradeareas
-       (isCustomTAExists) = isCustomTa($event)>Loading...</val-upload-tradeareas>
+  <p-accordionTab header="{{customTaText}}">
+    <val-upload-tradeareas (isCustomTAExists)=isCustomTa($event)></val-upload-tradeareas>
   </p-accordionTab>
-  <p-accordionTab  header="{{mustCoverText}}" [transitionOptions]="'0ms'">
-    <val-upload-must-cover
-      (isMustCoverExists) = isMustCover($event)></val-upload-must-cover>
+  <p-accordionTab  header="{{mustCoverText}}">
+    <val-upload-must-cover (isMustCoverExists)=isMustCover($event)></val-upload-must-cover>
   </p-accordionTab>
 </p-accordion>

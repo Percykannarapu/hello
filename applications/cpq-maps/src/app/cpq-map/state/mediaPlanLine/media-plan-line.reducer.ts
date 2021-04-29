@@ -22,7 +22,7 @@ export function mediaPlanLineReducer(state = initialState, action: reducerAction
   switch (action.type) {
     case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.lines != null)
-        return adapter.addAll(action.payload.normalizedEntities.lines, state);
+        return adapter.setAll(action.payload.normalizedEntities.lines, state);
       else
         return state;
     }
@@ -60,7 +60,7 @@ export function mediaPlanLineReducer(state = initialState, action: reducerAction
     }
 
     case MediaPlanLineActionTypes.LoadMediaPlanLines: {
-      return adapter.addAll(action.payload.mediaPlanLines, state);
+      return adapter.setAll(action.payload.mediaPlanLines, state);
     }
 
     case MediaPlanLineActionTypes.ClearMediaPlanLines: {

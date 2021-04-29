@@ -22,7 +22,7 @@ export function mediaPlanCommonMbuReducer(state = initialState, action: reducerA
   switch (action.type) {
     case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.commonMbus != null)
-        return adapter.addAll(action.payload.normalizedEntities.commonMbus, state);
+        return adapter.setAll(action.payload.normalizedEntities.commonMbus, state);
       else
         return state;
     }
@@ -60,7 +60,7 @@ export function mediaPlanCommonMbuReducer(state = initialState, action: reducerA
     }
 
     case MediaPlanCommonMbuActionTypes.LoadMediaPlanCommonMbus: {
-      return adapter.addAll(action.payload.mediaPlanCommonMbus, state);
+      return adapter.setAll(action.payload.mediaPlanCommonMbus, state);
     }
 
     case MediaPlanCommonMbuActionTypes.ClearMediaPlanCommonMbus: {

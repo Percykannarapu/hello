@@ -1,13 +1,17 @@
-<div class="ui-g-12">
-  <div *ngIf="isLoading">Uploading file...</div>
-  <div *ngIf="!isLoading">&nbsp;</div>
-  <p-fileUpload #fileUpload mode="basic" class="file-upload-align"
-                name="data[]" accept=".csv,.xlsx,.xls" [chooseLabel]="label"
-                pTooltip="CSV or Excel format required" [customUpload]="true"
-                (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isLoading">
-  </p-fileUpload>
-</div>
-<div class="ui-g-12">
-  <a target="_self" href="./assets/sample/sample.csv" download="Sample.csv"><i class="fa fa-download" aria-hidden="true"></i>&nbsp;Get a sample Upload Template</a>
+<div class="p-grid">
+  <p-message severity="info" text="CSV or Excel format required"></p-message>
+  <div class="p-col-12">
+    <div *ngIf="isLoading">Uploading file...</div>
+    <div *ngIf="!isLoading">&nbsp;</div>
+    <p-fileUpload #fileUpload mode="basic" class="file-upload-align" name="data[]"
+                  accept=".csv,.xlsx,.xls" [chooseLabel]="label" [customUpload]="true"
+                  (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isLoading">
+    </p-fileUpload>
+  </div>
+  <div class="p-col-12">
+    <a target="_self" href="./assets/sample/sample.csv" download="Sample.csv">
+      <i class="pi pi-download" aria-hidden="true"></i>&nbsp;Get a sample Upload Template
+    </a>
+  </div>
 </div>
 

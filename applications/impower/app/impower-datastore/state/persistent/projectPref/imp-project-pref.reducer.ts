@@ -22,7 +22,7 @@ export function reducer(state = initialState, action: reducerActions) : State {
   switch (action.type) {
     case PersistentActionTypes.EntityLoadSuccessful:
     case PersistentActionTypes.EntityCreateSuccessful:
-      return adapter.addAll(action.payload.normalizedEntities.impProjectPrefs, state);
+      return adapter.setAll(action.payload.normalizedEntities.impProjectPrefs, state);
     case ImpProjectPrefActionTypes.AddImpProjectPref: {
       return adapter.addOne(action.payload.impProjectPref, state);
     }

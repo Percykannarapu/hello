@@ -11,8 +11,7 @@ import { LocalAppState } from '../../state/app.interfaces';
 
 @Component({
   selector: 'val-send-sites-digital',
-  templateUrl: './send-sites-digital.component.html',
-  styleUrls: ['./send-sites-digital.component.scss']
+  templateUrl: './send-sites-digital.component.html'
 })
 export class SendSitesDigitalComponent implements OnInit {
 

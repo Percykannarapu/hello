@@ -1,12 +1,5 @@
 @import "~assets/valassis-variables";
 
 .error-icon {
-  color: $brandRed;
-}
-
-/*
-  The styles below here fix various color and alignment issues on only this form
- */
-span.ui-inputgroup-addon {
-  border-style: none;
+  color: $errorColor;
 }

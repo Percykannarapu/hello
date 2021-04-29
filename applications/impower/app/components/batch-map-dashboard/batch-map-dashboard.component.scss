@@ -1,8 +1,10 @@
-.ui-panel-title{
-  vertical-align: middle !important;
-}
+:host ::ng-deep {
+  .p-dialog {
+    width: 90vw;
+    max-height: 50vh;
+  }
 
-.copyButton {
-  background-color: #070404 !important;
-  color: rgb(22, 23, 95) !important;
+  .table-wrapper {
+    min-width: 1500px;
+  }
 }

@@ -10,10 +10,9 @@ import { AppStateService } from '../../../services/app-state.service';
 })
 export class AudiencesCustomComponent implements OnInit, OnDestroy {
 
-  activeTabIndex = 0;
-  activeCustomAccordion = -1;
+  public activeCustomAccordion: any = null;
 
-  destroyed$ = new Subject<void>();
+  private destroyed$ = new Subject<void>();
 
   constructor(private appStateService: AppStateService) { }
 
@@ -25,12 +24,7 @@ export class AudiencesCustomComponent implements OnInit, OnDestroy {
     this.appStateService.clearUI$.pipe(
       takeUntil(this.destroyed$),
     ).subscribe(() => {
-      this.activeTabIndex = 0;
-      this.activeCustomAccordion = -1;
+      this.activeCustomAccordion = null;
     });
-  }
-
-  onCustomAccordionChange(e: { index: number }){
-    this.activeCustomAccordion = e.index;
   }
 }

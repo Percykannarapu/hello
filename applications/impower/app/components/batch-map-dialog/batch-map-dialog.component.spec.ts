@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { BatchMapDialogComponent } from './batch-map-dialog.component';
 
@@ -6,7 +6,7 @@ describe('BatchMapDialogComponent', () => {
   let component: BatchMapDialogComponent;
   let fixture: ComponentFixture<BatchMapDialogComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ BatchMapDialogComponent ]
     })

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { isNil } from '@val/common';
+import { isArray, isNil } from '@val/common';
 import { User } from 'app/models/User';
 import { LocalAppState } from 'app/state/app.interfaces';
 import { CreateApplicationUsageMetric } from 'app/state/usage/targeting-usage.actions';
@@ -93,9 +93,10 @@ export class AuthService implements CanActivate{
       return throwError('OIDC User cannot be null');
     }
     this.logger.debug.log('App User retrieved from onelogin', oidcUser);
-    return this.userService.fetchUserRecord(oidcUser.profile.params.sAmAccountName).pipe(
+    const valUserName = isArray(oidcUser.profile.params) ? oidcUser.profile.params[0].sAmAccountName : oidcUser.profile.params.sAmAccountName;
+    return this.userService.fetchUserRecord(valUserName).pipe(
       tap(appUser => {
-        appUser.username = oidcUser.profile.params.sAmAccountName;
+        appUser.username = valUserName;
         appUser.displayName = oidcUser.profile.name;
         appUser.email = oidcUser.profile.email;
         this.userService.setUser(appUser);

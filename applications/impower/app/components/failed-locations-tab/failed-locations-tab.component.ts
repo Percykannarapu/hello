@@ -13,8 +13,7 @@ import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpG
 
 @Component({
   selector: 'val-failed-locations-tab',
-  templateUrl: './failed-locations-tab.component.html',
-  styleUrls: ['./failed-locations-tab.component.css']
+  templateUrl: './failed-locations-tab.component.html'
 })
 export class FailedLocationsTabComponent implements OnInit {
 

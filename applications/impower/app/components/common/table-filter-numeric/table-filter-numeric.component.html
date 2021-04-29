@@ -1,37 +1,37 @@
-<p-overlayPanel #filterOP [showCloseIcon]="true" [dismissable]="true" [style]="{width: '500px'}" [appendTo]="'body'" (onShow)="onShow()">
-  <div class="ui-g">
-    <h4 class="ui-g-12">{{fieldHeader}}: {{rangeStr}}</h4>
+<p-overlayPanel #filterOP [showCloseIcon]="true" [dismissable]="true" (onShow)="onShow()">
+  <div class="p-grid">
+    <h4 class="p-col-12">{{fieldHeader}}: {{rangeStr}}</h4>
   </div>
-  <div class="ui-g filter-container">
-    <div class="ui-g-3">
-      <p-dropdown dropdownIcon="fa fa-caret-down" [options]="rangeOperators" [(ngModel)]="filterData.rangeOperator" optionLabel="name" (onChange)="onChange('rangeOperator', $event)"></p-dropdown>
+  <div class="p-grid filter-container">
+    <div class="p-col-3">
+      <p-dropdown [options]="rangeOperators" [(ngModel)]="filterData.rangeOperator" optionLabel="name" (onChange)="onChange('rangeOperator', $event)"></p-dropdown>
     </div>
-    <div class="ui-g-4">
-      <input type="number" pInputText [(ngModel)]="filterData.lowValue" style="width:100%;" (input)="onChange('lowValue', $event)"/>
+    <div class="p-col-4">
+      <input type="number" pInputText [(ngModel)]="filterData.lowValue" (input)="onChange('lowValue', $event)"/>
     </div>
-    <div *ngIf="filterData.rangeOperator.code==='between'" class="ui-g-1" style="text-align: center; margin: auto; padding-bottom: 5px;">
+    <div *ngIf="filterData.rangeOperator.code==='between'" class="p-col-1">
       and
     </div>
-    <div *ngIf="filterData.rangeOperator.code==='between'" class="ui-g-4">
-      <input type="number" pInputText [(ngModel)]="filterData.highValue" style="width:100%;" (input)="onChange('highValue', $event)"/>
+    <div *ngIf="filterData.rangeOperator.code==='between'" class="p-col-4">
+      <input type="number" pInputText [(ngModel)]="filterData.highValue" (input)="onChange('highValue', $event)"/>
     </div>
-    <div class="ui-g-12 tf-button-background">
+    <div class="p-col-12 tf-button-background">
       <div *ngIf="filterData.rangeOperator.code==='between'">
         <label class="tf-label">Clear:</label>
-        <button pButton type="button" label="All" (click)="clearFilter('all')" class="val-filter-button" pTooltip="Clear filters and return all rows" ></button>
-        <button pButton type="button" label="Min" (click)="clearFilter('min')" class="val-filter-button" pTooltip="Clear minimum filter"></button>
-        <button pButton type="button" label="Max" (click)="clearFilter('max')" class="val-filter-button" pTooltip="Clear maximum filter"></button>
+        <button pButton type="button" label="All" (click)="clearFilter('all')" class="p-button-xs" pTooltip="Clear filters and return all rows" ></button>
+        <button pButton type="button" label="Min" (click)="clearFilter('min')" class="p-button-xs" pTooltip="Clear minimum filter"></button>
+        <button pButton type="button" label="Max" (click)="clearFilter('max')" class="p-button-xs" pTooltip="Clear maximum filter"></button>
       </div>
       <div *ngIf="filterData.rangeOperator.code!=='between'">
         <label class="tf-label">Clear:</label>
-        <button pButton type="button" label="All" (click)="clearFilter('all')" class="val-filter-button" pTooltip="Clear filters and return all rows" ></button>
-        <button pButton type="button" label="Value" (click)="clearFilter('min')" class="val-filter-button" pTooltip="Clear filter value"></button>
+        <button pButton type="button" label="All" (click)="clearFilter('all')" class="p-button-xs" pTooltip="Clear filters and return all rows" ></button>
+        <button pButton type="button" label="Value" (click)="clearFilter('min')" class="p-button-xs" pTooltip="Clear filter value"></button>
       </div>
     </div>
   </div>
 </p-overlayPanel>
 
 <div class="val-table">
-  <button type="text" pButton label="{{rangeLbl}}" pTooltip="{{rangeStr}}" (click)="onClick(filterOP, $event, filterTarget)" class="val-filter-button"></button>
+  <button pButton label="{{rangeLbl}}" pTooltip="{{rangeStr}}" (click)="onClick(filterOP, $event, filterTarget)" class="p-button-xs"></button>
   <div #filterTarget></div>
 </div>

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { DebugElement } from '@angular/core';
 import { TableFilterNumericComponent } from './table-filter-numeric.component';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
@@ -12,7 +12,7 @@ describe('TableFilterNumericComponent', () => {
   let fixture: ComponentFixture<TableFilterNumericComponent>;
   let de: DebugElement;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [ FormsModule, ButtonModule, DropdownModule, OverlayPanelModule, TooltipModule],
       declarations: [ TableFilterNumericComponent ]

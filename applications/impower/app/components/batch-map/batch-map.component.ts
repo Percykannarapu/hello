@@ -26,7 +26,7 @@ export class BatchMapComponent implements OnInit, OnDestroy {
   currentSiteNumber: string;
   lastError: string = null;
   debounceTime = 5000;
-  @ViewChild('gotoSpecificSiteInput', {static: false}) specificSiteRef: ElementRef;
+  @ViewChild('gotoSpecificSiteInput') specificSiteRef: ElementRef;
 
   private typedParams$: Observable<BatchMapQueryParams>;
   private destroyed$ = new Subject<void>();

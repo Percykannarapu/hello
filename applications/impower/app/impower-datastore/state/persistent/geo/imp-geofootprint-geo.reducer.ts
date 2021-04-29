@@ -30,7 +30,7 @@ export function reducer(state = initialState, action: reducerActions) : State {
   switch (action.type) {
     case PersistentActionTypes.EntityLoadSuccessful:
     case PersistentActionTypes.EntityCreateSuccessful:
-      return adapter.addAll(action.payload.normalizedEntities.impGeofootprintGeos, state);
+      return adapter.setAll(action.payload.normalizedEntities.impGeofootprintGeos, state);
     case ImpGeofootprintGeoActionTypes.AddImpGeofootprintGeo: {
       return adapter.addOne(action.payload.impGeofootprintGeo, state);
     }

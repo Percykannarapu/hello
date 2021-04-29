@@ -1,18 +1,14 @@
 <div class="sidebar-control">
   <a href="#" (click)="sideNavVisible = true">
-    <span class="fa fa-chevron-up">
-      <span class="ui-widget">&nbsp;Map Settings</span>
-    </span>
+    <i class="pi pi-chevron-up"></i>&nbsp;Map Settings
   </a>
 </div>
-<p-sidebar [(visible)]="sideNavVisible" position="right" styleClass="ui-sidebar-md transparent-back" [showCloseIcon]="false">
+<p-sidebar [(visible)]="sideNavVisible" position="right" [showCloseIcon]="false" [style]="{ 'width': '30vw' }">
   <div class="sidebar-content-wrapper">
-    <div class="sidebar-content-tab">
+    <div class="sidebar-content-tab" [ngClass]="{ 'visible-nav-margin': sideNavVisible }">
       <div class="sidebar-control">
         <a href="#" (click)="sideNavVisible = false">
-          <span class="fa fa-chevron-down">
-            <span class="ui-widget">&nbsp;Map Settings</span>
-          </span>
+          <i class="pi pi-chevron-down"></i>&nbsp;Map Settings
         </a>
       </div>
     </div>

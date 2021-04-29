@@ -1,7 +1,7 @@
 <div class="boundary-display">
   <div *ngIf="!isEditing">
-    <div class="boundary-menu">
-      <a href="#" (click)="edit()">edit</a>
+    <div>
+      <button pButton type="button" class="p-button-text p-button-sm p-mb-2" (click)="edit()" label="edit"></button>
     </div>
     <div *ngIf="configuration.centroidPortalId != null">
       <label>Centroids:</label>
@@ -42,51 +42,49 @@
       <strong>{{configuration.opacity}}</strong>
     </div>
   </div>
-  <div class="boundary-form-container" *ngIf="isEditing">
+  <div *ngIf="isEditing">
     <form novalidate autocomplete="off" [formGroup]="configForm" (ngSubmit)="apply(configForm)">
-      <div class="toggle-container">
-        <span *ngIf="configuration.centroidPortalId != null">
+      <div class="p-grid">
+        <div class="p-col-6" *ngIf="configuration.centroidPortalId != null">
           <boolean-input labelText="Show Centroids?" formControlName="showCentroids"></boolean-input>
-        </span>
-        <span *ngIf="configuration.hasPOBs">
+        </div>
+        <div class="p-col-6" *ngIf="configuration.hasPOBs">
           <boolean-input labelText="Show POBs?" formControlName="showPOBs"></boolean-input>
-        </span>
-      </div>
-      <div class="toggle-container">
-        <span>
+        </div>
+        <div class="p-col-6">
           <boolean-input labelText="Show Labels?" formControlName="showLabels"></boolean-input>
-        </span>
-        <span>
+        </div>
+        <div class="p-col-6">
           <boolean-input labelText="Show Popups?" formControlName="showPopups"></boolean-input>
-        </span>
+        </div>
       </div>
-      <div *ngIf="configForm.get('showLabels').value === true" class="label-controls">
+      <div *ngIf="configForm.get('showLabels').value === true" class="p-pl-4">
         <ng-container *ngIf="configuration.hhcLabelDefinition != null">
           <boolean-input labelText="Show HH Counts on Labels?" formControlName="showHouseholdCounts"></boolean-input>
         </ng-container>
         <ng-container formGroupName="labelDefinition">
-          <div class="label-font-container">
-            <div class="label-font-controls">
-              <!--<dropdown-input labelText="Font" [options]="fontFaces" formControlName="family"></dropdown-input>-->
-              <!--<boolean-input labelText="Bold" formControlName="isBold"></boolean-input>-->
-              <!--<boolean-input labelText="Italic" formControlName="isItalic"></boolean-input>-->
-              <validated-text-input labelText="Font size (in points)" validationMessage="Font size must be between 6 and 48 pts" formControlName="size"></validated-text-input>
-            </div>
-            <div class="label-color-controls">
-              <span>Label Color:</span>
-              <span title="Fill Color">
-                <val-extended-color-picker [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
-              </span>
-              <!--<span title="Halo Color">-->
-              <!--  <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="haloColor"></val-extended-color-picker>-->
-              <!--</span>-->
-            </div>
+          <div class="p-pt-2 p-d-flex p-ai-end">
+            <!--<dropdown-input labelText="Font" [options]="fontFaces" formControlName="family"></dropdown-input>-->
+            <!--<boolean-input labelText="Bold" formControlName="isBold"></boolean-input>-->
+            <!--<boolean-input labelText="Italic" formControlName="isItalic"></boolean-input>-->
+            <validated-text-input labelText="Font size (in points)" validationMessage="Font size must be between 6 and 48 pts" formControlName="size"></validated-text-input>
+            <span class="p-ml-2">Label Color:</span>
+            <span title="Fill Color" class="p-ml-2">
+              <val-extended-color-picker [defaultColor]="defaultColor" formControlName="color"></val-extended-color-picker>
+            </span>
+            <!--<span title="Halo Color">-->
+            <!--  <val-extended-color-picker [defaultColor]="defaultHalo" formControlName="haloColor"></val-extended-color-picker>-->
+            <!--</span>-->
           </div>
         </ng-container>
       </div>
-      <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-      <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': configForm.dirty, 'ui-button-secondary': configForm.pristine }" [disabled]="!configForm.valid"></button>
-      <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
+      <div class="p-pt-3">
+        <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+      </div>
+      <div class="p-pt-2">
+        <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': configForm.pristine }" [disabled]="!configForm.valid"></button>
+        <button type="button" pButton label="Cancel" class="p-ml-2 p-button-outlined" (click)="cancel()"></button>
+      </div>
     </form>
   </div>
 </div>

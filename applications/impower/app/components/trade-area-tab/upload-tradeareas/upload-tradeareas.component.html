@@ -1,126 +1,104 @@
-<div class="ui-g">
-    <div class="ui-g-12">
-      <div class="ui-g-12">
-        <div class="ui-g-1">
-          <label>Define for:</label>
-        </div>
-        <div class="ui-g-1">
-          <p-radioButton name="uploadListType" value="Site" label="Sites" [(ngModel)]="selectedSiteType"></p-radioButton>
-        </div>
-        <div class="ui-g-2">
-          <p-radioButton name="uploadListType" value="Competitor" label="Competitors" [(ngModel)]="selectedSiteType"></p-radioButton>
-        </div>
-      </div>
-      <div  *ngIf="!(currentAnalysisLevel$ | async)" class="valassis-brand-label">  
-          • &nbsp;You must select an Analysis Level, within the Discovery tab, before uploading a custom trade area file
-       </div>
-      <br>
-      &nbsp;
-      <div class="ui-g-12">
-        
-          <span class="md-inputfield">
-            <p-dropdown id="analysisLevel"
-                        [options]="fileAnalysisLevels"
-                        [autoWidth]="false"
-                        [style]="{ width:'40%' }"
-                        placeholder="&nbsp;"
-                        [(ngModel)]="fileAnalysisSelected"
-                        (ngModelChange)="onFileAnalysisChange($event)"
-                        dropdownIcon="fa fa-caret-down"
-                        [disabled]="!(currentAnalysisLevel$ | async)">
-            </p-dropdown>
-            <label for="analysisLevel">Analysis Level of upload file</label>
-          </span>
-        
-      </div>
-      <div class="ui-g-12">
-        <div class="ui-g-3">
-          <p-fileUpload #tradeAreaUpload mode="basic" class="file-upload-align" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File" 
-                        [pTooltip]="tooltip" [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true" [disabled]="isDisable" title="">
-          </p-fileUpload>
-        </div>
-        <div class="ui-g-3">
-          <button pButton type="button" label="Delete Custom TA"  [disabled]="!disableDeleteBtn()" (click)="deleteCustomTradeArea()" ></button>
-       </div>
-       <div class="ui-g-6"></div>
+<div>
+  <div class="p-col-12">
+    <div class="p-d-flex p-jc-between p-col-6">
+        <label>Define for:</label>
+        <p-radioButton name="uploadListType" value="Site" label="Sites" [(ngModel)]="selectedSiteType"></p-radioButton>
+        <p-radioButton name="uploadListType" value="Competitor" label="Competitors" [(ngModel)]="selectedSiteType"></p-radioButton>
+    </div>
+    <p-message *ngIf="!(currentAnalysisLevel$ | async)" severity="error"
+               text="You must select an Analysis Level, within the Discovery tab, before uploading a custom trade area file"></p-message>
+    <div class="p-d-flex p-col-6 p-fluid">
+      <div class="p-float-label p-col-9">
+        <p-dropdown id="analysisLevel" placeholder="&nbsp;"
+                    [options]="fileAnalysisLevels"
+                    [(ngModel)]="fileAnalysisSelected"
+                    (ngModelChange)="onFileAnalysisChange($event)"
+                    [disabled]="!(currentAnalysisLevel$ | async)">
+        </p-dropdown>
+        <label for="analysisLevel">Analysis Level of upload file</label>
       </div>
     </div>
-    <div>
-        <p-confirmDialog icon="pi pi-exclamation-triangle" key="delete" appendTo="body"></p-confirmDialog>
-    </div>
-    <div *ngIf="uploadFailures.length > 0" class="ui-g-7">
-      <div class="upload-label">
-            Below is a list of geocodes that are either invalid or un-reachable by Valassis media
+    <div class="p-d-flex p-jc-between p-col-6">
+      <div>
+        <p-fileUpload #tradeAreaUpload mode="basic" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
+                      [customUpload]="true" (uploadHandler)="onUploadClick($event)" [auto]="true" [disabled]="isDisable"
+                      title="">
+        </p-fileUpload>
       </div>
-      <p-table [value]="uploadFailures" [paginator]="true" [rows]="5" width="80%">
-        <ng-template pTemplate="caption">
-          <div class="ui-g"> 
-            <div  class="ui-g-9 ui-g-nopad grid-caption-center-group">  
-              {{(uploadFailures.length) || 0}} {{fileAnalysisLabel}} failures out of {{totalUploadedRowCount}} rows
-            </div>
-            <div class="ui-g-3 ui-g-nopad grid-caption-right-group" align="right">
-                <button type="button" pButton icon="fa fa-file-o" iconPos="left" label="Export" pTooltip="Custom TA Issues Log" class="val-icon-button" (click)="rollDownIssuesLog()" style="margin-left: 0.65em;white-space: nowrap"></button>
-            </div>
-          </div>
-        </ng-template>
-        <ng-template pTemplate="header" width="80%">
-          <tr>
-            <th width="10%">Geocode</th>
-            <th width="10%">Number</th>
-            <th width="30%">Reason</th>
-           
-            <th width="15%">Resubmit</th>
-            <th width="15%">Remove</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-rowData width="80%">
-          <tr>
-            <td pEditableColumn width="10%"> 
-                  <p-cellEditor>
-                      <ng-template pTemplate="input">
-                        <input pInputText type="text" [(ngModel)]="rowData.geocode">
-                      </ng-template>
-                      <ng-template pTemplate="output">
-                        {{rowData.geocode}}
-                      </ng-template>
-                    </p-cellEditor>
-            </td>
-            <td pEditableColumn width="10%">
-                    <p-cellEditor>
-                        <ng-template pTemplate="input">
-                          <input pInputText type="text" [(ngModel)]="rowData.store">
-                        </ng-template>
-                        <ng-template pTemplate="output">
-                          {{rowData.store}}
-                        </ng-template>
-                      </p-cellEditor>
-            </td>
-            <td pEditableColumn width="30%">
-                <p-cellEditor>
-                    <ng-template pTemplate="input">
-                      <input pInputText type="text" [(ngModel)]="rowData.message">
-                    </ng-template>
-                    <ng-template pTemplate="output">
-                      {{rowData.message}}
-                    </ng-template>
-                  </p-cellEditor>
-            </td>
-            
-            <td width="15%">
-              <div class="val-centered">
-                <button (click)="onResubmit(rowData)" icon="ui-icon-refresh" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
-              </div>
-            </td>
-            <td width="15%"> 
-              <div class="val-centered" >
-                <button (click)="onRemove(rowData)" icon="ui-icon-delete" pButton style="margin: auto; display: block; width:25px;height:25px"></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-    <div>
-        <p-confirmDialog icon="pi pi-exclamation-triangle" key="analysisLevelChange" appendTo="body" [closable]="false"></p-confirmDialog>
+      <div>
+        <button pButton type="button" class="p-button-outlined" label="Delete Custom TA" [disabled]="!disableDeleteBtn()" (click)="deleteCustomTradeArea()"></button>
+      </div>
     </div>
   </div>
+
+  <div *ngIf="uploadFailures.length > 0">
+    <p-message severity="error" styleClass="p-mb-2" text="Below is a list of geocodes that are either invalid or un-reachable by Valassis media"></p-message>
+    <p-table [value]="uploadFailures" [paginator]="true" [rows]="5">
+      <ng-template pTemplate="caption">
+        <div class="val-table-caption">
+          <div class="p-col p-d-flex p-jc-center">
+            {{(uploadFailures.length) || 0}} {{fileAnalysisLabel}} failures out of {{totalUploadedRowCount}} rows
+          </div>
+          <div class="p-col p-d-flex p-jc-end">
+            <button type="button" pButton icon="pi pi-file-o" iconPos="left" label="Export" pTooltip="Custom TA Issues Log"
+                    (click)="rollDownIssuesLog()"></button>
+          </div>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="p-col-1">Geocode</th>
+          <th class="p-col-1">Number</th>
+          <th class="p-col-6">Reason</th>
+          <th class="p-col-2">
+            <span class="p-d-flex p-jc-center">Resubmit</span>
+          </th>
+          <th class="p-col-2">
+            <span class="p-d-flex p-jc-center">Remove</span>
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowData>
+        <tr>
+          <td pEditableColumn>
+            <p-cellEditor>
+              <ng-template pTemplate="input">
+                <input pInputText type="text" [(ngModel)]="rowData.geocode">
+              </ng-template>
+              <ng-template pTemplate="output">
+                {{rowData.geocode}}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+          <td pEditableColumn>
+            <p-cellEditor>
+              <ng-template pTemplate="input">
+                <input pInputText type="text" [(ngModel)]="rowData.store">
+              </ng-template>
+              <ng-template pTemplate="output">
+                {{rowData.store}}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+          <td>
+            {{rowData.message}}
+          </td>
+          <td>
+            <div class="p-d-flex p-jc-center">
+              <button pButton (click)="onResubmit(rowData)" icon="pi pi-refresh" class="p-button-icon-only p-button-outlined p-button-rounded"></button>
+            </div>
+          </td>
+          <td>
+            <div class="p-d-flex p-jc-center">
+              <button pButton (click)="onRemove(rowData)" icon="pi pi-trash" class="p-button-icon-only p-button-outlined p-button-rounded"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</div>
+
+<p-confirmDialog icon="pi pi-exclamation-triangle" key="delete"></p-confirmDialog>
+<p-confirmDialog icon="pi pi-exclamation-triangle" key="analysisLevelChange" [closable]="false"></p-confirmDialog>

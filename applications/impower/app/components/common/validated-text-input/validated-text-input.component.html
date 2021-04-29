@@ -1,11 +1,11 @@
-<div class="ui-inputgroup component-root">
-  <span class="md-inputfield">
+<div class="p-inputgroup">
+  <span class="p-float-label">
     <input pInputText id="text-input-{{controlId}}" autocomplete="off" [(ngModel)]="value"
            [disabled]="isDisabled || readOnly" [readOnly]="readOnly" (blur)="propagateTouch(value)"
            [class]="inputClass" />
-    <span class="ui-inputgroup-addon" *ngIf="hasErrors()">
-      <i class="ui-icon-error" title="{{validationMessage}}"></i>
-    </span>
-    <label class="validation-float-label" for="text-input-{{controlId}}">{{labelText}}</label>
+    <label for="text-input-{{controlId}}">{{labelText}}</label>
+  </span>
+  <span class="p-inputgroup-addon" *ngIf="hasErrors()">
+    <i class="pi pi-exclamation-circle" title="{{validationMessage}}"></i>
   </span>
 </div>

@@ -3,14 +3,14 @@ import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { FormConfig } from '@val/common';
 import { ColorPalette, UniqueShadingDefinition } from '@val/esri';
 import { GfpOwnerForm } from '../../../../state/forms/forms.interfaces';
-import { ShaderBaseComponent } from '../shader-base.component';
+import { ShaderComponentBase } from '../shader-component.base';
 
 @Component({
   selector: 'val-owner-trade-area-shader',
   templateUrl: './owner-trade-area-shader.component.html',
   styleUrls: ['./owner-trade-area-shader.component.scss']
 })
-export class OwnerTradeAreaShaderComponent extends ShaderBaseComponent<UniqueShadingDefinition> {
+export class OwnerTradeAreaShaderComponent extends ShaderComponentBase<UniqueShadingDefinition> {
 
   constructor(private fb: FormBuilder) { super(); }
 

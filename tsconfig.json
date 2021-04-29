@@ -3,12 +3,12 @@
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
+    "emitDecoratorMetadata": false,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es5",
+    "target": "es2015",
     "skipLibCheck": true,
     "lib": ["dom", "ES2018"],
-    "module": "esnext"
+    "module": "es2020"
   }
 }

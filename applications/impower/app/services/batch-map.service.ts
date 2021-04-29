@@ -75,10 +75,8 @@ export class BatchMapService {
     return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);
   }
 
-  requestPrintAdminStatus(payload: PrintAdminPayload): Observable<any>{
-    
-
-    return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);;
+  requestPrintAdminStatus(payload: PrintAdminPayload) : Observable<any>{
+    return this.http.put(`${this.config.printServiceUrl}/api/service/`, payload);
   }
 
   getBatchMapDetailsByUser(user: User){

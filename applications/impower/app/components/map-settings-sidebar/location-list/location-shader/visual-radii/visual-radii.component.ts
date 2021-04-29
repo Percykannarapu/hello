@@ -9,7 +9,6 @@ import { isConvertibleToInteger, isString } from '@val/common';
 })
 export class VisualRadiiComponent implements OnInit {
 
-  @Input() readonly: boolean;
   @Input() tabIndex: number;
   @Input() showAddNew: boolean;
   @Input() showDelete: boolean;
@@ -31,14 +30,11 @@ export class VisualRadiiComponent implements OnInit {
     this.currentRoot = this.controlContainer.control as FormGroup;
   }
 
-  getValidationMessage() : string {
-    const errorObject = this.currentRoot == null ? null : this.currentRoot.get('radius').errors;
-    if (errorObject == null || (this.currentRoot != null && this.currentRoot.get('radius').untouched)) {
-      return null;
-    } else {
-      const validationErrors: string[] = Object.values(errorObject).filter(v => isString(v));
-      return validationErrors.join('<br/>');
-    }
+  hasError(errorCode: string) : boolean {
+    return this.currentRoot.hasError(errorCode, 'radius');
   }
 
+  getError(errorCode: string) : string {
+    return this.currentRoot.getError(errorCode, 'radius')[errorCode];
+  }
 }

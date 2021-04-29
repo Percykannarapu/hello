@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { duplicateShadingDefinition, EsriShadingService, isArcadeCapableShadingDefinition, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
@@ -19,9 +19,7 @@ import { ImpGeofootprintTradeArea } from '../../../val-modules/targeting/models/
 
 @Component({
   selector: 'val-shader-list',
-  templateUrl: './shader-list.component.html',
-  styleUrls: ['./shader-list.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  templateUrl: './shader-list.component.html'
 })
 export class ShaderListComponent implements OnInit, OnDestroy {
 

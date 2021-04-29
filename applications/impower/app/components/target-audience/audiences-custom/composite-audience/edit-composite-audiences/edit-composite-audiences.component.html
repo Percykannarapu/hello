@@ -1,35 +1,36 @@
-<div class="ui-g-12" *ngIf="editAudiences != null && editAudiences.length > 0">
+<div *ngIf="editAudiences != null && editAudiences.length > 0">
   List of created Audiences
-  &nbsp;
-    <p-table [columns]="audienceList" [value]="editAudiences" [scrollable]="true" [resizableColumns]="true" scrollHeight="20em" [alwaysShowPaginator]="false" [style]="{width:'40em'}">
-        <ng-template pTemplate="colgroup" let-columns>
-            <colgroup>
-                <col *ngFor="let col of columns" [style.width]="col.width">
-            </colgroup>
-        </ng-template>
-        <ng-template pTemplate="header" let-columns >
-            <tr>
-                <th *ngFor="let col of columns" pResizableColumn>
-                    {{col.header}}
-                </th>
-                <th style="width: 4em">Edit</th>
-                <th style="width: 4em">Delete</th>
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-audience let-columns="columns">
-             <tr [pSelectableRow]="audience">
-                
-                <td *ngFor="let col of columns" class="ui-resizable-column">
-                        {{audience[col.field]}} 
-                        <span class="fa fa-comment"  pTooltip="{{formatString(audience.combinedVariableNames)}}" [escape]="false"> </span> 
-                </td>
-                <td>
-                    <i class="fa fa-pencil val-clickable" (click)="onEditAudience(audience)" ></i>
-                </td>
-                <td>
-                    <i class="val-clickable fa fa-trash" (click)="onDeleteAudience(audience)"></i>
-                </td>
-            </tr>
-        </ng-template>
-    </p-table>
+  <p-table [columns]="audienceList" [value]="editAudiences" [scrollable]="true" [resizableColumns]="true"
+           [alwaysShowPaginator]="false">
+    <ng-template pTemplate="colgroup" let-columns>
+      <colgroup>
+        <col *ngFor="let col of columns" [style.width]="col.width">
+      </colgroup>
+      <col>
+      <col>
+    </ng-template>
+    <ng-template pTemplate="header" let-columns>
+      <tr>
+        <th *ngFor="let col of columns" pResizableColumn>
+          {{col.header}}
+        </th>
+        <th>Edit</th>
+        <th>Delete</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-audience let-columns="columns">
+      <tr [pSelectableRow]="audience">
+        <td *ngFor="let col of columns">
+          {{audience[col.field]}}
+          <span class="pi pi-comment" pTooltip="{{formatString(audience.combinedVariableNames)}}" [escape]="false"> </span>
+        </td>
+        <td>
+          <button type="button" pButton icon="pi pi-pencil" class="p-button-outlined p-button-rounded" (click)="onEditAudience(audience)"></button>
+        </td>
+        <td>
+          <button type="button" pButton icon="pi pi-trash" class="p-button-outlined p-button-rounded" (click)="onDeleteAudience(audience)"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
 </div>

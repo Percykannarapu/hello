@@ -1,29 +1,27 @@
-<div class="map-panel-wrapper">
-  <p-panel id="mapPanel" header="Map" [toggleable]="true" class="val-flush-to-edges" expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up" [transitionOptions]="'0ms'">
-    <div id="outerMapDiv" class="val-flush-to-edges">
-      <val-esri-map-panel [mapHeight]="mapHeight$ | async" baseMap="streets-vector"
-                          (viewChanged)="onViewExtentChanged($event)" (selectedButton)="fnSelectedButton($event)"
-                          [showLabelConfigButton]="false" [toolbarButtons]="toolbarButtons" [showAlternateZoomChoice]="true">
-        <additional-toolbar-buttons>
-          &nbsp;&nbsp;&nbsp;&nbsp;
-          <button  label="Clear All"  pButton (click)="onClearSelections()"  title="Clear All Selections"></button>
-          &nbsp;
-          <button  label="Revert"     pButton (click)="onRevert()"   title="Revert to Trade Area" ></button>
-          &nbsp;
-          <button  label="Zoom to TA" pButton (click)="onZoom()"  title="Zoom to TA"></button>
-          &nbsp;&nbsp;
-        </additional-toolbar-buttons>
-        <additional-toolbar-group>
-          <div class="ui-g-12 ui-g-nopad analysis-wrapper">
-            <div *ngIf="currentAnalysisLevel$ | async as currentAnalysisLevel; else noAnalysisLevel">
-              <strong>Analysis Level = {{currentAnalysisLevel}}</strong>
-            </div>
-            <ng-template #noAnalysisLevel>
-              <div><strong>No Analysis Level Selected</strong></div>
-            </ng-template>
+<p-panel header="Map" styleClass="val-no-content-padding" expandIcon="pi pi-chevron-down" collapseIcon="pi pi-chevron-up" [toggleable]="true" [transitionOptions]="'0ms'">
+  <div id="outerMapDiv">
+    <val-esri-map-panel [mapHeight]="mapHeight$ | async" baseMap="streets-vector"
+                        (viewChanged)="onViewExtentChanged($event)" (selectedButton)="fnSelectedButton($event)"
+                        [showLabelConfigButton]="false" [toolbarButtons]="toolbarButtons" [showAlternateZoomChoice]="true">
+      <additional-toolbar-buttons>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button  label="Clear All"  pButton class="p-button-outlined" (click)="onClearSelections()"  title="Clear All Selections"></button>
+        &nbsp;
+        <button  label="Revert"     pButton class="p-button-outlined" (click)="onRevert()"   title="Revert to Trade Area" ></button>
+        &nbsp;
+        <button  label="Zoom to TA" pButton class="p-button-outlined" (click)="onZoom()"  title="Zoom to TA"></button>
+        &nbsp;&nbsp;
+      </additional-toolbar-buttons>
+      <additional-toolbar-group>
+        <div class="p-col-12 analysis-wrapper">
+          <div *ngIf="currentAnalysisLevel$ | async as currentAnalysisLevel; else noAnalysisLevel">
+            <strong>Analysis Level = {{currentAnalysisLevel}}</strong>
           </div>
-        </additional-toolbar-group>
-      </val-esri-map-panel>
-    </div>
-  </p-panel>
-</div>
+          <ng-template #noAnalysisLevel>
+            <div><strong>No Analysis Level Selected</strong></div>
+          </ng-template>
+        </div>
+      </additional-toolbar-group>
+    </val-esri-map-panel>
+  </div>
+</p-panel>

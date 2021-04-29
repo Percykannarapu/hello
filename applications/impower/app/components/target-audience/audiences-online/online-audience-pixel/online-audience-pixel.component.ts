@@ -47,7 +47,7 @@ export class OnlineAudiencePixelComponent implements OnInit, OnDestroy {
     return {
       label: variable.categoryName,
       data: variable,
-      icon: `fa ${selectable ? 'fa fa-file-o' : 'fa fa-lock'}`,
+      icon: `pi ${selectable ? 'pi-file-o' : 'pi-lock'}`,
       type: selectable ? undefined : 'disabled',
       selectable: selectable,
       leaf: true,

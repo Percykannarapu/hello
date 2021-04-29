@@ -19,7 +19,7 @@ const initialState: State = adapter.getInitialState({
 const pixelAudienceReducer = createReducer(
   initialState,
   on(PixelAudienceActions.loadAudienceDefinitions,
-    (state, action) => adapter.addAll(action.definitions, { ...state, definitionsFetched: true })
+    (state, action) => adapter.setAll(action.definitions, { ...state, definitionsFetched: true })
   ),
   on(PixelAudienceActions.clearAudienceDefinitions,
      PixelAudienceActions.fetchAudienceDefinitions,

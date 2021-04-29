@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { DeleteAudiences, FetchCustom } from 'app/impower-datastore/state/transient/audience/audience.actions';
@@ -22,6 +22,7 @@ import { ProjectPrefGroupCodes } from '../../../../val-modules/targeting/targeti
   templateUrl: './custom-audience.component.html'
 })
 export class CustomAudienceComponent implements OnInit {
+
   private readonly spinnerId = 'CUSTOM_UPLOAD';
   public audiences: Audience[] = [];
   public currentAnalysisLevel$: Observable<string>;
@@ -112,7 +113,7 @@ export class CustomAudienceComponent implements OnInit {
     this.confirmationService.confirm({
       message: 'Are you sure you want to delete all custom data?',
       header: 'Delete Custom Data',
-      icon: 'ui-icon-delete',
+      icon: 'pi pi-trash',
       accept: () => {
         this.deleteDataImpl();
       },

@@ -1,7 +1,7 @@
 <p-dialog  [(visible)]="dialogVisible" [header]="title" [closeOnEscape]="canBeClosed" [closable]="canBeClosed">
   <span>{{message}}</span>
   <p-footer>
-    <button type="button" pButton icon="pi pi-check" (click)="accepted.emit()" [label]="acceptLabel"></button>
-    <button type="button" pButton icon="pi pi-times" (click)="rejected.emit()" [label]="rejectLabel" ></button>
+    <button type="button" pButton icon="pi pi-check" class="p-button-outlined" (click)="accepted.emit()" [label]="acceptLabel"></button>
+    <button type="button" pButton icon="pi pi-times" class="p-button-outlined" (click)="rejected.emit()" [label]="rejectLabel"></button>
   </p-footer>
 </p-dialog>

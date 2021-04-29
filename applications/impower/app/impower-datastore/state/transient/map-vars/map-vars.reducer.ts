@@ -64,7 +64,7 @@ export function reducer(state = initialState, action: MapVarActions) : State {
     }
 
     case MapVarActionTypes.LoadMapVars: {
-      return adapter.addAll(action.payload.mapVars, state);
+      return adapter.setAll(action.payload.mapVars, state);
     }
 
     case MapVarActionTypes.ClearMapVars: {

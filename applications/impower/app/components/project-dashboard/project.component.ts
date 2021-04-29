@@ -30,8 +30,7 @@ const timeSpanFriendlyNames: Record<TimeSpanType, string> = {
 
 @Component({
   selector: 'val-project',
-  templateUrl: './project.component.html',
-  styleUrls: ['./project.component.scss']
+  templateUrl: './project.component.html'
 })
 export class ProjectComponent implements OnInit, OnDestroy {
 
@@ -107,7 +106,7 @@ export class ProjectComponent implements OnInit, OnDestroy {
       this.currentProjectData$ = combineLatest([this.triggerDataFilter$, this.allProjectData$]).pipe(
         map(([filterType, data]) => {
           const result = filterType === 'myProject' ? data.filter(p => p.modifyUser === this.userService.getUser().userId && p.isActive) : data.filter(p => p.isActive);
-          this.isDisable = filterType === 'myProject' ? false : true;
+          this.isDisable = filterType !== 'myProject';
           return [filterType, result] as [FilterType, Partial<ImpProject>[]];
         }),
         tap(([filterType, data]) => this.recordMetrics(filterType, data.length)),
@@ -142,8 +141,9 @@ export class ProjectComponent implements OnInit, OnDestroy {
     this.triggerDataRefresh$.next();
   }
 
-  public onDoubleClick(data: { projectId: number }) {
+  public onDoubleClick(data: { projectId: number }, event: MouseEvent) {
     if (this.config.environmentName === 'DEV') {
+      event.preventDefault();
       this.loadProject(data.projectId);
     }
   }
@@ -193,13 +193,13 @@ export class ProjectComponent implements OnInit, OnDestroy {
   }
 
   deActivateProject(projectId: number){
-    
+
 
     this.confirmationService.confirm({
          message: 'Are you sure you want to remove this project?',
          header: 'Delete Project',
-         icon: 'ui-icon-delete',
-      accept: () => {   
+         icon: 'pi pi-trash',
+      accept: () => {
         const key = 'DEACTIVATE_PROJECT';
         this.store$.dispatch(new StartBusyIndicator({ key, message: `Deactivating project ${projectId}`}));
         this.restService.delete(this.deActivateProjectUrl, projectId).subscribe(() => {

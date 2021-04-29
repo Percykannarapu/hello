@@ -19,7 +19,7 @@ const initialState: State = adapter.getInitialState({
 const inMarketAudienceReducer = createReducer(
   initialState,
   on(InMarketAudienceActions.loadAudienceDefinitions,
-    (state, action) => adapter.addAll(action.definitions, { ...state, definitionsFetched: true })
+    (state, action) => adapter.setAll(action.definitions, { ...state, definitionsFetched: true })
   ),
   on(InMarketAudienceActions.clearAudienceDefinitions,
      InMarketAudienceActions.fetchAudienceDefinitions,

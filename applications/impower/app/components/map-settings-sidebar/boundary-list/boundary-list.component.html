@@ -2,7 +2,7 @@
   <p-accordionTab *ngFor="let boundary of boundaryConfigurations" [selected]="currentOpenId === boundary.id" (selectedChange)="openConfiguration(boundary)">
     <p-header class="boundary-header">
       <span>
-        <span class="fa" [class.fa-eye]="boundary.visible" [class.fa-eye-slash]="!boundary.visible" (click)="toggleVisibility($event, boundary)"></span>
+        <span class="pi" [class.pi-eye]="boundary.visible" [class.pi-eye-slash]="!boundary.visible" (click)="toggleVisibility($event, boundary)"></span>
         {{boundary.layerName}}
       </span>
     </p-header>

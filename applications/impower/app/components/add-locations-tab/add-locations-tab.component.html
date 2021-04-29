@@ -1,6 +1,6 @@
-<p-accordion [(activeIndex)]="index" (onOpen)="onTabOpen($event)">
-  <p-accordionTab header="Upload" [transitionOptions]="'0ms'">
-    <val-site-type-selector label="Add as:">
+<p-accordion>
+  <p-accordionTab header="Upload">
+    <val-site-type-selector label="Upload as:">
       <site-content>
         <val-upload-locations label="Select Site File" (upload)="onUpload($event, siteTypes.Site)"></val-upload-locations>
       </site-content>
@@ -9,7 +9,7 @@
       </competitor-content>
     </val-site-type-selector>
   </p-accordionTab>
-  <p-accordionTab header="Manually Add" [transitionOptions]="'0ms'">
+  <p-accordionTab header="Manually Add">
     <val-site-type-selector label="Add as:">
       <site-content>
         <val-manual-entry #manualSiteEntry [showLoadButtons]="!isProd" (submitSite)="manuallyGeocode($event, siteTypes.Site)"></val-manual-entry>
@@ -19,19 +19,7 @@
       </competitor-content>
     </val-site-type-selector>
   </p-accordionTab>
-  <p-accordionTab header="Select Markets Locations" [transitionOptions]="'0ms'">
+  <p-accordionTab header="Select Markets Locations">
     <val-market-locations></val-market-locations>
   </p-accordionTab>
-
-  <!--<p-accordionTab header="Business Search" [transitionOptions]="'0ms'">
-    <val-business-search #businessSearch
-                         [allCategories]="searchCategories$ | async"
-                         [searchResults]="searchResults$ | async"
-                         [currentLocationCount]="totalCount$ | async"
-                         [resultLimit]="businessSearchLimit"
-                         (addResultsToProject)="onAddBusiness($event)"
-                         (searchForBusinesses)="onBusinessSearch($event)">
-      Loading business search component...
-    </val-business-search>
-  </p-accordionTab> -->
 </p-accordion>

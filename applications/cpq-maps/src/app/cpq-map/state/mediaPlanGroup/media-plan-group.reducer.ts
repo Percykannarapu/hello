@@ -60,7 +60,7 @@ export function mediaPlanGroupReducer(state = initialState, action: reducerActio
     }
 
     case MediaPlanGroupActionTypes.LoadMediaPlanGroups: {
-      return adapter.addAll(action.payload.mediaPlanGroups, state);
+      return adapter.setAll(action.payload.mediaPlanGroups, state);
     }
 
     case MediaPlanGroupActionTypes.ClearMediaPlanGroups: {

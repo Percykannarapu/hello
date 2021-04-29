@@ -1,7 +1,7 @@
 <div class="shader-display">
   <div *ngIf="!isEditing">
-    <div class="shader-menu">
-      <a href="#" (click)="edit()">edit</a>
+    <div>
+      <button pButton type="button" class="p-button-text p-button-sm p-mb-2" (click)="edit()" label="edit"></button>
     </div>
     <div>
       <label>Legend Name:</label>
@@ -27,8 +27,8 @@
       <dropdown-input formControlName="theme" labelText="Theme" [options]="textThemes"></dropdown-input>
       <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
       <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-      <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': shaderForm.dirty, 'ui-button-secondary': shaderForm.pristine }" [disabled]="!shaderForm.valid"></button>
-      <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
+      <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': shaderForm.pristine }" [disabled]="!shaderForm.valid"></button>
+      <button type="button" pButton label="Cancel" class="p-button-outlined" (click)="cancel()"></button>
     </form>
   </div>
 </div>

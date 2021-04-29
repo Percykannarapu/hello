@@ -1,125 +1,128 @@
 <!-- valConnectForm="marketLocation" [debounce]="0" -->
 <form novalidate autocomplete="off" [formGroup]="marketGeosFormGroup">
-  <!-- Form input fields-->
-  <div class="ui-g-9">
-    <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" (selectionChanged)="onMarketChange($event)" [includeUnselected]="true" validationMessage="At least one state should be picked with this market"></dropdown-input>
-  </div>
-  <div class="ui-g-3">
-    <multiselect-input #msStates id="mlf_states" formControlName="states" labelText="States" defaultLabel="All" [options]="stateItems" (selectionChanged)="onStatesChange($event)" [includeUnselected]="false"></multiselect-input>
-  </div>
-  <!-- Clear, Query and Create buttons -->
-  <div class="ui-g-12 ui-g-nopad">
-    <div class="ui-g-4">
-      <button (click)="clear()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
+  <div class="p-grid">
+    <!-- Form input fields-->
+    <div class="p-col-9">
+      <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" (selectionChanged)="onMarketChange($event)" [includeUnselected]="true" validationMessage="At least one state should be picked with this market"></dropdown-input>
     </div>
-    <div class="ui-g-4">
-      <button (click)="onSubmit(marketGeosFormGroup.value)" type="submit" type="button" label="Get Markets" icon="ui-icon-search" pButton class="ui-g-12" [disabled]="marketGeosFormGroup.invalid"></button>
+    <div class="p-col-3">
+      <multiselect-input #msStates id="mlf_states" formControlName="states" labelText="States" defaultLabel="All" [options]="stateItems" (selectionChanged)="onStatesChange($event)" [includeUnselected]="false"></multiselect-input>
     </div>
-    <div class="ui-g-4">
-      <div class="ui-g-11 ui-g-nopad">
-        <button (click)="getGeographies()" label="Create Market Locations" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="!canCreate"></button>
-      </div>
-      <div *ngIf="isFetchingGeos" class="ui-g-1 ui-g-nopad" style="text-align: center;">
-        <p-progressSpinner [style]="{width: '30px', height: '30px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
+  </div>
+  <div class="p-grid p-fluid">
+    <!-- Clear, Query and Create buttons -->
+    <div class="p-col">
+      <button (click)="clear()" label="Clear" icon="pi pi-times" class="p-button-outlined" pButton></button>
+    </div>
+    <div class="p-col">
+      <button (click)="onSubmit(marketGeosFormGroup.value)" label="Get Markets" icon="pi pi-search" class="p-button-outlined" pButton [disabled]="marketGeosFormGroup.invalid"></button>
+    </div>
+    <div class="p-col">
+      <div class="p-grid">
+        <div class="p-col-10">
+          <button (click)="getGeographies()" label="Create Market Locations" icon="pi pi-send" class="p-button-outlined" pButton [disabled]="!canCreate"></button>
+        </div>
+        <div class="p-col-2" *ngIf="isFetchingGeos">
+          <p-progressSpinner [style]="{width: '30px', height: '30px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
+        </div>
       </div>
     </div>
   </div>
 </form>
 
-<div id="containerValuesGrid" class="ui-g-12">
+<div id="containerValuesGrid">
   <p-table #containersGrid
            class="{{tableWrapStyle}}"
            [columns]="containerGridColumns"
            [value]="containerValues$ | async"
            [selection]="containerValuesSelected$ | async"
-           [resizableColumns]="true" columnResizeMode="expand"
+           [resizableColumns]="false"
            [reorderableColumns]="false"
            sortMode="multiple" [multiSortMeta]="multiSortMeta"
-           [responsive]="true"
-           [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,25,50,100,200,500,1000]"
+           [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]"
            [alwaysShowPaginator]="true"
            (onRowUnselect)="onRowSelect($event, false)"
            (onRowSelect)="onRowSelect($event, true)"
            (onFilter)="onFilter($event)">
 
     <ng-template pTemplate="caption">
-      <div class="ui-g ui-g-nopad">
-        <div class="ui-g-4 ui-g-nopad grid-caption-left-group" align="left">
-          <div class="ui-inputgroup">
-            <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
-            <span class="md-inputfield">
-              <input id="containerSearch" type="text" pInputText size="30" [(ngModel)]="globalSearch" (input)="containersGrid.filterGlobal($event.target.value, 'contains')">
+      <div class="val-table-caption">
+        <div style="flex: 1;">
+          <div class="p-inputgroup">
+            <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
+            <span class="p-float-label">
+              <input id="containerSearch" type="text" pInputText [(ngModel)]="globalSearch" (input)="containersGrid.filterGlobal($event.target.value, 'contains')">
               <label for="containerSearch">Filter Markets</label>
             </span>
-            <div>
-            <button pButton type="button" icon="fa fa-eraser" pTooltip="Clear Filters" (click)="onClickResetFilters()" class="ui-button-red-emphasis" style="width: 1em"></button>
-            </div>
+          </div>
+          <div style="display: flex; align-items: center; margin-left: 0.25rem;">
+            <button pButton type="button" icon="esri-icon-erase" pTooltip="Clear Filters" (click)="onClickResetFilters()" class="p-button-rounded p-button-outlined p-button-inverse"></button>
           </div>
         </div>
-        <div class="ui-g-4 ui-g-nopad grid-caption-center-group">
-          <label pTooltip="Selected {{activeContainerValuesCount$ | async}} / {{allContainerValuesCount$ | async}} market values" tooltipPosition="top">Market Values</label>
+        <div style="flex: 2; justify-content: center">
+          <h6 pTooltip="Selected {{activeContainerValuesCount$ | async}} / {{allContainerValuesCount$ | async}} market values" tooltipPosition="top">Market Values</h6>
         </div>
-        <div class="ui-g-4 ui-g-nopad grid-caption-right-group" align="right">
-          <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" dropdownIcon="fa fa-caret-down"></p-multiSelect>
-          <button type="button" pButton icon="{{tableWrapIcon}}" iconPos="left" pTooltip="Toggle to Word Wrap" (click)="onToggleTableWrap()" class="val-icon-button" style="margin-left: 0.25em;"></button>
+        <div style="flex: 1;">
+          <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} items selected"></p-multiSelect>
+          <button type="button" pButton icon="{{tableWrapIcon}}" pTooltip="Toggle to Word Wrap" (click)="onToggleTableWrap()" class="p-button-rounded p-button-outlined p-button-inverse" style="margin-left: 0.25rem;"></button>
         </div>
       </div>
     </ng-template>
 
-    <ng-template pTemplate="colgroup" let-columns>
+    <ng-template pTemplate="colgroup">
       <colgroup>
-        <col style="width: 30px; padding-left: 0.4em">
+        <col style="width: 2.6rem;">
         <col *ngFor="let col of selectedColumns" [style.width]="col.width">
       </colgroup>
     </ng-template>
 
-    <ng-template pTemplate="header" class="ui-g ui-g-nopad">
+    <ng-template pTemplate="header">
       <tr>
-        <th style="width: 30px; padding-left: 0.4em"><p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectContainerValues(headerFilter)" class="val-table-hdr" pTooltip="{{getHeaderSelectTooltip()}}"> </p-checkbox></th>
-        <th *ngFor="let col of selectedColumns" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
+        <th>
+          <p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectContainerValues(headerFilter)" pTooltip="{{getHeaderSelectTooltip()}}"> </p-checkbox>
+        </th>
+        <th *ngFor="let col of selectedColumns" [pSortableColumn]="col.field">
           {{col.header}}
           <p-sortIcon [field]="col.field"></p-sortIcon>
         </th>
       </tr>
-      <tr class="second-header">
-        <th class="button-column-hdr" style="font-size: 1em; padding: 0.4em 0 0 0.4em">
-          <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" class="val-toolbar-button" (click)="onFilterBySelection()"></button>
+      <tr>
+        <th>
+          <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" (click)="onFilterBySelection()"></button>
         </th>
         <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="overflow: visible">
-          <p-multiSelect #filterMs *ngSwitchCase="'state'" appendTo="body" [options]="uniqueState$ | async" defaultLabel="All" [ngStyle]="{'width':'100%'}" (onChange)="containersGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-          <input *ngSwitchCase="'id'"   pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
-          <input *ngSwitchCase="'code'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
-          <input *ngSwitchCase="'name'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''" [ngStyle]="{'width':'100%'}">
-          <input *ngSwitchDefault pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, 'contains')" [ngStyle]="{'width':'100%'}">
+          <p-multiSelect *ngSwitchCase="'state'" #filterMs [options]="uniqueState$ | async" defaultLabel="All" (onChange)="containersGrid.filter($event.value, col.field, 'in');" panelStyle="width: 10em;"></p-multiSelect>
+          <input *ngSwitchCase="'id'"   pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''">
+          <input *ngSwitchCase="'code'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''">
+          <input *ngSwitchCase="'name'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''">
+          <input *ngSwitchDefault pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, 'contains')">
         </th>
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="body" let-container let-columns="selectedColumns">
+    <ng-template pTemplate="body" let-container>
       <tr [pSelectableRow]="container">
-        <td style="width: 30px; padding-left: 0.4em">
+        <td>
           <p-checkbox [(ngModel)]="container.isActive" binary="true" (click)="onSelectContainerValue(container)" pTooltip="{{getSelectionTooltip(container)}}" tooltipPosition="left"></p-checkbox>
         </td>
-        <td *ngFor="let col of selectedColumns" class="ui-resizable-column" [class]="col.styleClass">
+        <td *ngFor="let col of selectedColumns" [class]="col.styleClass">
           {{container[col.field]}}
         </td>
       </tr>
     </ng-template>
 
     <ng-template pTemplate="emptymessage" let-columns>
-      <tr class="empty-grid">
-        <td style="width: 30px; padding-left: 0.4em">&nbsp;</td>
-        <td [attr.colspan]="columns.length">
-          <div class="ui-g-12">
-            <div *ngIf="!isFetchingData">
-              <h4>No market values</h4>
-            </div>
+      <tr>
+        <td [attr.colspan]="columns.length + 1">
+          <div style="display: flex; justify-content: center; align-items: center">
+            <h6 *ngIf="!isFetchingData">No market values</h6>
+
             <div *ngIf="isFetchingData">
-              <div class="ui-g-1">
+              <div>
                 <p-progressSpinner [style]="{width: '50px', height: '50px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
               </div>
-              <div  class="ui-g-11">
-                <h4>Fetching container values</h4>
+              <div>
+                <h6>Fetching container values</h6>
               </div>
             </div>
           </div>

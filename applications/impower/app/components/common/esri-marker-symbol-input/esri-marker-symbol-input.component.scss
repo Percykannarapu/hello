@@ -1,55 +1,35 @@
 .component-root {
-  padding-top: 1em;
-  padding-bottom: 0.2em;
-  display: flex;
-  align-items: flex-end;
-  > span {
-    padding-bottom: 0.5em;
-    padding-left: 0.5em;
-    &.size-control {
-      flex: 1;
-      padding-bottom: unset;
-      min-width: 4em;
+  span.item-icon {
+    margin-right: 0.5rem;
+    width: 15px;
+    height: 15px;
+
+    &.path {
+      background: url('~assets/val/images/markers/star.png') center no-repeat;
     }
-    &.md-inputfield {
-      padding-left: unset;
-      flex: 3;
+
+    &.circle {
+      background: url('~assets/val/images/markers/circle.png') center no-repeat;
     }
-    &.color-drop-down {
-      flex: 1;
+
+    &.cross {
+      background: url('~assets/val/images/markers/cross.png') center no-repeat;
     }
-    .item-container {
-      display: flex;
-      align-items: center;
-      .item-label {
-        flex: 1;
-      }
-      span:first-child:not(.item-label) {
-        margin-right: 0.5rem;
-        width: 15px;
-        height: 15px;
-        &.path {
-          background: url('~assets/layout/images/markers/star.png') center no-repeat;
-        }
-        &.circle {
-          background: url('~assets/layout/images/markers/circle.png') center no-repeat;
-        }
-        &.cross {
-          background: url('~assets/layout/images/markers/cross.png') center no-repeat;
-        }
-        &.diamond {
-          background: url('~assets/layout/images/markers/diamond.png') center no-repeat;
-        }
-        &.square {
-          background: url('~assets/layout/images/markers/square.png') center no-repeat;
-        }
-        &.triangle {
-          background: url('~assets/layout/images/markers/triangle.png') center no-repeat;
-        }
-        &.x {
-          background: url('~assets/layout/images/markers/x.png') center no-repeat;
-        }
-      }
+
+    &.diamond {
+      background: url('~assets/val/images/markers/diamond.png') center no-repeat;
+    }
+
+    &.square {
+      background: url('~assets/val/images/markers/square.png') center no-repeat;
+    }
+
+    &.triangle {
+      background: url('~assets/val/images/markers/triangle.png') center no-repeat;
+    }
+
+    &.x {
+      background: url('~assets/val/images/markers/x.png') center no-repeat;
     }
   }
 }

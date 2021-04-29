@@ -1,12 +1,10 @@
-<div class="ui-g ui-g-nopad">
-  <div id="failedLocGrid" class="ui-g-12">
-    <val-failed-geocode-grid
-      *ngIf="hasFailures$ | async"
-      [failedSites]="failures$ | async"
-      [totalCount]="totalCount$ | async"
-      (remove)="remove($event)"
-      (resubmit)="resubmit($event)"
-      (accept)="accept($event)">
-    </val-failed-geocode-grid>
-  </div>
+<div class="p-col-12 p-col-nogutter">
+  <val-failed-geocode-grid
+    *ngIf="hasFailures$ | async"
+    [failedSites]="failures$ | async"
+    [totalCount]="totalCount$ | async"
+    (remove)="remove($event)"
+    (resubmit)="resubmit($event)"
+    (accept)="accept($event)">
+  </val-failed-geocode-grid>
 </div>

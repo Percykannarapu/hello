@@ -64,8 +64,8 @@ export class FilterData {
 export class TableFilterNumericComponent implements OnInit {
    @Input()  fieldHeader: string;
    @Input()  fieldName: string;
-   @Input()  minValue: number;
-   @Input()  maxValue: number;
+   @Input()  minValue: number = Number.MIN_VALUE;
+   @Input()  maxValue: number = Number.MAX_VALUE;
    @Input()  operatorType: string;
    @Output() filterApplied = new EventEmitter<FilterData>();
    @Output() filterCleared = new EventEmitter<FilterData>();

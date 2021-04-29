@@ -17,40 +17,32 @@
       margin: 0 18px;
       width: 137px;
       height: 47px;
-      background: url('~assets/layout/images/valassis-header-logo.png') center no-repeat;
+      background: url('~assets/val/images/valassis-header-logo.png') center no-repeat;
     }
     > .announcement {
-      max-width: 800px;
-      padding: 0.1em 0.5em;
-      background-color: $darkerRed;
-      border-radius: 5px;
-      box-shadow: 2px 2px 3px $darkGray01;
-      span {
-        color: $lightGray03;
-        font-weight: bold;
-        > a {
-          color: $lightGray03;
-          outline: $lightGray03 dotted 1px;
-          &:hover {
-            color: $blueBird;
-          }
-        }
-      }
+      max-width: 45vw;
     }
     > .user {
       display: flex;
       align-items: center;
       padding: 15px;
     }
-  }
-}
-
-@media (max-width: 1024px) {
-  .impower-header-wrapper {
-    .impower-header {
-      > .announcement {
-        display: none;
+    .message > a {
+      color: $midGray02;
+      outline: $midGray04 dotted 1px;
+      &:hover {
+        color: $blueBird;
       }
     }
   }
 }
+
+//@media (max-width: 1024px) {
+//  .impower-header-wrapper {
+//    .impower-header {
+//      > .announcement {
+//        display: none;
+//      }
+//    }
+//  }
+//}

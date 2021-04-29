@@ -18,7 +18,7 @@ const initialState: State = adapter.getInitialState({
 const TdaAudienceReducer = createReducer(
   initialState,
   on(TdaAudienceActions.loadAudienceCategories,
-    (state, action) => adapter.addAll(action.categories, state)
+    (state, action) => adapter.setAll(action.categories, state)
   ),
   on(TdaAudienceActions.loadAudienceDefinitions,
     (state, action) => adapter.addMany(action.definitions, { ...state, definitionsFetched: true })

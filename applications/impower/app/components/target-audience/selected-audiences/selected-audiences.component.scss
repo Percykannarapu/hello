@@ -7,6 +7,13 @@ tr > td.button-column {
   width: 100%;
 }
 
+.centered {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 p-table {
   width: 100%;
 }
@@ -19,7 +26,7 @@ p-table {
 
 
 .selected-audience-dialog{
-  width: 710px; 
-  top: 200px !important; 
-  left: unset !important; 
+  width: 710px;
+  top: 200px !important;
+  left: unset !important;
 }

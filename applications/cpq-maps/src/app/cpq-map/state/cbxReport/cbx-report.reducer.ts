@@ -22,7 +22,7 @@ export function cbxReportReducer(state = initialState, action: reducerActions) :
   switch (action.type) {
     case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.reports != null)
-        return adapter.addAll(action.payload.normalizedEntities.reports, state);
+        return adapter.setAll(action.payload.normalizedEntities.reports, state);
       else
         return state;
     }
@@ -60,7 +60,7 @@ export function cbxReportReducer(state = initialState, action: reducerActions) :
     }
 
     case CbxReportActionTypes.LoadCbxReports: {
-      return adapter.addAll(action.payload.cbxReports, state);
+      return adapter.setAll(action.payload.cbxReports, state);
     }
 
     case CbxReportActionTypes.ClearCbxReports: {

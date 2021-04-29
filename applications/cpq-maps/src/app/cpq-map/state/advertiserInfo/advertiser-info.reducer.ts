@@ -22,7 +22,7 @@ export function advertiserInfoReducer(state = initialState, action: reducerActio
   switch (action.type) {
     case InitActionTypes.GetMediaPlanDataSucceeded:
       if (action.payload.normalizedEntities.advertiserInfos != null)
-        return adapter.addAll(action.payload.normalizedEntities.advertiserInfos, state);
+        return adapter.setAll(action.payload.normalizedEntities.advertiserInfos, state);
       else return state;
     case AdvertiserInfoActionTypes.AddAdvertiserInfo: {
       return adapter.addOne(action.payload.advertiserInfo, state);
@@ -57,7 +57,7 @@ export function advertiserInfoReducer(state = initialState, action: reducerActio
     }
 
     case AdvertiserInfoActionTypes.LoadAdvertiserInfos: {
-      return adapter.addAll(action.payload.advertiserInfos, state);
+      return adapter.setAll(action.payload.advertiserInfos, state);
     }
 
     case AdvertiserInfoActionTypes.ClearAdvertiserInfos: {

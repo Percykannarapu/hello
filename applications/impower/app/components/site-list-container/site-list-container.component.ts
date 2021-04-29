@@ -1,14 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { toUniversalCoordinates } from '@val/common';
 import { EsriMapService } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 import { ConfirmationService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { toUniversalCoordinates } from '../../../../../modules/common/src/coordinates';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
-import { ValAudienceTradeareaService } from '../../services/app-audience-tradearea.service';
 import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
 import { AppLocationService } from '../../services/app-location.service';
@@ -29,7 +28,6 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../v
 @Component({
   selector: 'val-site-list-container',
   templateUrl: './site-list-container.component.html',
-  styleUrls: ['./site-list-container.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SiteListContainerComponent implements OnInit {
@@ -54,7 +52,6 @@ export class SiteListContainerComponent implements OnInit {
       private geocoderService: AppGeocodingService,
       private appStateService: AppStateService,
       private appTradeAreaService: AppTradeAreaService,
-      private audienceTradeAreaService: ValAudienceTradeareaService,
       private esriMapService: EsriMapService,
       private confirmationService: ConfirmationService,
       private store$: Store<LocalAppState>,
@@ -129,7 +126,7 @@ export class SiteListContainerComponent implements OnInit {
     editedLocation.locationName = siteOrSites['name'];
     editedLocation.marketName = siteOrSites['Market'];
     editedLocation.marketCode = siteOrSites['Market Code'];
-    this.impGeofootprintLocationService.update(oldData, editedLocation);    
+    this.impGeofootprintLocationService.update(oldData, editedLocation);
 
     let ifRadiusChanged: boolean = false;
     if (newLocation.impGeofootprintTradeAreas !== null && newLocation.impGeofootprintTradeAreas.length > 0)

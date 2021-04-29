@@ -1,7 +1,7 @@
 <div>
   <div class="shader-display" *ngIf="!isEditing">
-    <div class="shader-menu">
-      <a href="#" (click)="edit()">edit</a>
+    <div>
+      <button pButton type="button" class="p-button-text p-button-sm p-mb-2" (click)="edit()" label="edit"></button>
     </div>
     <div>
       <label>Legend Name:</label>
@@ -23,9 +23,11 @@
     <form novalidate autocomplete="off" [formGroup]="shaderForm" (ngSubmit)="apply(shaderForm)">
       <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
       <esri-fill-symbol-input labelText="Overlay Type" [defaultSolidColor]="[0, 255, 0, 1]" formGroupName="defaultSymbolDefinition"></esri-fill-symbol-input>
-      <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-      <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': shaderForm.dirty, 'ui-button-secondary': shaderForm.pristine }" [disabled]="!shaderForm.valid"></button>
-      <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancel()"></button>
+      <div class="p-pt-2">
+        <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
+      </div>
+      <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': shaderForm.pristine }" [disabled]="!shaderForm.valid"></button>
+      <button type="button" pButton label="Cancel" class="p-button-outlined" (click)="cancel()"></button>
     </form>
   </div>
 </div>

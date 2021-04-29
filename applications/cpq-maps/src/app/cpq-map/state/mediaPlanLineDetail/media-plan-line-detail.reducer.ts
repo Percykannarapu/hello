@@ -50,7 +50,7 @@ export function mediaPlanLineDetailReducer(state = initialState, action: MediaPl
     }
 
     case MediaPlanLineDetailActionTypes.LoadMediaPlanLineDetails: {
-      return adapter.addAll(action.payload.mediaPlanLineDetails, state);
+      return adapter.setAll(action.payload.mediaPlanLineDetails, state);
     }
 
     case MediaPlanLineDetailActionTypes.ClearMediaPlanLineDetails: {

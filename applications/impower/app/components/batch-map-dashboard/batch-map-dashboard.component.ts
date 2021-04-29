@@ -1,19 +1,18 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Observable, of, from } from 'rxjs';
-import { Store } from '@ngrx/store';
-import { LocalAppState } from 'app/state/app.interfaces';
-import { getBatchMapStatusDialog, getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
-import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { HttpClient } from '@angular/common/http';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
 import { AppStateService } from 'app/services/app-state.service';
-import { filter, take, switchMap } from 'rxjs/operators';
-import { CloseBatchMapStatusDialog } from 'app/state/batch-map/batch-map.actions';
-import moment from 'moment';
 import { BatchMapService } from 'app/services/batch-map.service';
 import { UserService } from 'app/services/user.service';
-import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-
+import { LocalAppState } from 'app/state/app.interfaces';
+import { CloseBatchMapStatusDialog } from 'app/state/batch-map/batch-map.actions';
+import { getBatchMapStatusDialog } from 'app/state/batch-map/batch-map.selectors';
+import { RestDataService } from 'app/val-modules/common/services/restdata.service';
+import moment from 'moment';
+import { Observable } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
 
 @Component({
   selector: 'val-batch-map-dashboard',
@@ -41,7 +40,6 @@ export class BatchMapDashboardComponent implements OnInit {
     { field: 'queuePosition',            header: 'Queue Position',       size: '15%' },
     { field: 'status',                   header: 'Status',               size: '20%' },
     { field: 'url',                      header: 'URL',                  size: '20%' },
-    //{ field: 'zipUrl',                   header: 'ZIPURL',               size: '15%' },
     { field: 'refresh',                  header: 'Refresh',              size: '8%' },
     { field: 'cancel',                   header: 'Cancel',               size: '12%' }
   ];
@@ -85,14 +83,14 @@ export class BatchMapDashboardComponent implements OnInit {
       const printJob = data as ImpPrintJob;
       this.printJobDetails.forEach((val) => {
           if (val.jobId == printJob.jobId){
-                val.refresh = printJob.status === 'Running' || printJob.status === 'Pending' ? false : true;
+                val.refresh = !(printJob.status === 'Running' || printJob.status === 'Pending');
                 val.status = printJob.status;
                 val.jobNumShort = val.jobNumber.substring(0, 7);
                 printJob.modifyDate = printJob.modifyDate == null ? printJob.createDate : printJob.modifyDate;
                 const duration = moment.duration(moment(printJob.modifyDate).diff(moment(printJob.createDate)));
                 val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
                 val.elapsedTime = `${duration.asMinutes().toFixed()} minutes`;
-                val.createDate = moment(printJob.createDate).format('MM/DD/YY hh:mm a');
+                val.createDate = printJob.createDate;
                 val.userName = printJob.userName.split('@')[0];
           }
       });
@@ -105,14 +103,14 @@ export class BatchMapDashboardComponent implements OnInit {
       const printJob = data as ImpPrintJob;
       this.printJobDetails.forEach((val) => {
           if (val.jobId == printJob.jobId){
-                val.refresh = printJob.status === 'Running' || printJob.status === 'Pending' ? false : true;
+                val.refresh = !(printJob.status === 'Running' || printJob.status === 'Pending');
                 val.status = printJob.status;
                 val.jobNumShort = val.jobNumber.substring(0, 7);
                 printJob.modifyDate = printJob.modifyDate == null ? printJob.createDate : printJob.modifyDate;
                 const duration = moment.duration(moment(printJob.modifyDate).diff(moment(printJob.createDate)));
                 val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
                 val.elapsedTime = `${duration.asMinutes().toFixed()} minutes`;
-                val.createDate = moment(printJob.createDate).format('MM/DD/YY hh:mm a');
+                val.createDate = printJob.createDate;
                 val.userName = printJob.userName.split('@')[0];
           }
       });
@@ -134,12 +132,11 @@ export class BatchMapDashboardComponent implements OnInit {
           val.zipUrl = null;
 
       val.jobNumShort = val.jobNumber.substring(0, 7);
-      val.refresh = val.status === 'Running' || val.status === 'Pending' ? false : true;
+      val.refresh = !(val.status === 'Running' || val.status === 'Pending');
       val.modifyDate = val.modifyDate == null ? val.createDate : val.modifyDate;
       const duration = moment.duration(moment(val.modifyDate).diff(moment(val.createDate)));
       val.elapsedTimeTooltip = `hours: ${duration.get('hours')} minutes: ${duration.get('minutes')} seconds: ${duration.get('seconds')}`;
       val.elapsedTime = `${duration.asMinutes().toFixed()} minutes`;
-      val.createDate = moment(val.createDate).format('MM/DD/YY hh:mm a');
       val.userName = val.userName.split('@')[0];
     });
     this.cd.markForCheck();
@@ -150,11 +147,11 @@ export class BatchMapDashboardComponent implements OnInit {
   }
 
   refreshButton(event: ImpPrintJob){
-    return event.status === 'Running' || event.status === 'Pending' ? false : true;
+    return !(event.status === 'Running' || event.status === 'Pending');
   }
 
   isDisable(event: ImpPrintJob){
-    return event.status === 'Running' || event.status === 'Pending' || event.status === 'Failed' || event.status == 'Canceled' ? false : true;
+    return !(event.status === 'Running' || event.status === 'Pending' || event.status === 'Failed' || event.status == 'Canceled');
   }
 
   validateZipUrl(impPrintJob: ImpPrintJob){
@@ -199,34 +196,6 @@ export class BatchMapDashboardComponent implements OnInit {
       selBox.select();
       document.execCommand('copy');
       document.body.removeChild(selBox);
-  }
-
-  convertMS(ms: number) {
-    let d, h, m, s;
-    s = Math.floor(ms / 1000);
-    m = Math.floor(s / 60);
-    s = s % 60;
-    h = Math.floor(m / 60);
-    m = m % 60;
-    d = Math.floor(h / 24);
-    h = h % 24;
-    h += d * 24;
-    return h + ':' + m + ':' + s + '  H : M: S';
-  }
-
-  customSort(event: any){
-    const Moment = require('moment');
-    const field = event['field'];
-    if (field === 'createDate'){
-      this.printJobDetails = this.printJobDetails.sort((a, b) => {
-        return new Moment(new Date(b.createDate)) - new Moment(new Date(a.createDate));
-      } );
-    }else {
-      this.printJobDetails = this.printJobDetails.sort((a, b) => {
-        return b[field] - a[field];
-      } );
-    }
-    this.cd.markForCheck();
   }
 }
 

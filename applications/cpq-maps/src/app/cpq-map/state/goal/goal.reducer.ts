@@ -50,7 +50,7 @@ export function goalReducer(state = initialState, action: GoalActions) : GoalSta
     }
 
     case GoalActionTypes.LoadGoals: {
-      return adapter.addAll(action.payload.goals, state);
+      return adapter.setAll(action.payload.goals, state);
     }
 
     case GoalActionTypes.ClearGoals: {

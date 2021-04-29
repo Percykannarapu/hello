@@ -101,7 +101,7 @@ export class CpqMapModule {
     }
   }
 
-  static forRoot() : ModuleWithProviders {
+  static forRoot() : ModuleWithProviders<CpqMapModule> {
     return {
       ngModule: CpqMapModule
     };

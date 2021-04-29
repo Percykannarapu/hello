@@ -2,7 +2,7 @@
   <p-accordionTab *ngFor="let poi of poiConfigurations" [selected]="currentOpenId === poi.id" (selectedChange)="openConfiguration(poi)">
     <p-header class="poi-header">
       <span>
-        <span class="fa" [class.fa-eye]="poi.visible" [class.fa-eye-slash]="!poi.visible" (click)="toggleVisibility($event, poi)"></span>
+        <span class="pi" [class.pi-eye]="poi.visible" [class.pi-eye-slash]="!poi.visible" (click)="toggleVisibility($event, poi)"></span>
         {{poi.layerName}}
       </span>
     </p-header>

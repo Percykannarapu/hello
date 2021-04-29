@@ -11,8 +11,7 @@ import { openExportCrossbowSitesFlag } from '../../state/menu/menu.selectors';
 
 @Component({
   selector: 'val-export-crossbow-sites',
-  templateUrl: './export-crossbow-sites.component.html',
-  styleUrls: ['./export-crossbow-sites.component.scss']
+  templateUrl: './export-crossbow-sites.component.html'
 })
 
 export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {

@@ -1,82 +1,74 @@
   <form novalidate autocomplete="off" valConnectForm="addLocation" [debounce]="0"
         [formGroup]="manualEntryForm" (submit)="onSubmit(manualEntryForm.value)">
-      <div class="ui-g-6">
-        <div class="ui-inputgroup">
-          <span class="md-inputfield">
-            <input pInputText id="numberInput" class="ui-g-12" formControlName="number" autocomplete="off" />
-            <span class="ui-inputgroup-addon" *ngIf="!hasErrors('number')">&nbsp;</span>
-            <span class="ui-inputgroup-addon" *ngIf="hasErrors('number')">
-              <i class="ui-icon-error error-icon" title="Site Number is required"></i>
+    <div class="p-grid">
+      <div class="p-col-6">
+        <div class="p-inputgroup">
+          <div class="p-float-label">
+            <input pInputText id="numberInput" formControlName="number" autocomplete="off" />
+            <label for="numberInput">Number (required)</label>
+            <span class="p-inputgroup-addon" *ngIf="hasErrors('number')">
+              <i class="pi pi-exclamation-circle" title="Site Number is required"></i>
             </span>
-            <label class="validation-float-label" for="numberInput">Number (required)</label>
-          </span>
+          </div>
         </div>
       </div>
-      <div class="ui-g-6"></div>
-      <div class="ui-g-10">
-        <span class="md-inputfield">
-          <input pInputText id="nameInput" class="ui-g-12" formControlName="name" autocomplete="off" />
+      <div class="p-col-10 p-fluid">
+        <span class="p-float-label">
+          <input pInputText id="nameInput" formControlName="name" autocomplete="off" />
           <label for="nameInput">Name</label>
         </span>
       </div>
-      <div class="ui-g-2"></div>
-      <div class="ui-g-10">
-        <span class="md-inputfield">
-          <input pInputText id="streetInput" class="ui-g-12" formControlName="street" autocomplete="off" />
+      <div class="p-col-10 p-fluid">
+        <span class="p-float-label">
+          <input pInputText id="streetInput" formControlName="street" autocomplete="off" />
           <label for="streetInput">Street</label>
         </span>
       </div>
-      <div class="ui-g-2"></div>
-      <div class="ui-g-6">
-        <span class="md-inputfield">
-          <input pInputText id="cityInput" class="ui-g-12" formControlName="city" autocomplete="off" />
+      <div class="p-col-6 p-fluid">
+        <span class="p-float-label">
+          <input pInputText id="cityInput" formControlName="city" autocomplete="off" />
           <label for="cityInput">City</label>
         </span>
       </div>
-      <div class="ui-g-2">
-        <span class="md-inputfield">
-          <input pInputText id="stateInput" class="ui-g-12" formControlName="state" autocomplete="off" />
+      <div class="p-col-2 p-fluid">
+        <span class="p-float-label">
+          <input pInputText id="stateInput" formControlName="state" autocomplete="off" />
           <label for="stateInput">State</label>
         </span>
       </div>
-      <div class="ui-g-2">
-        <span class="md-inputfield">
-          <input pInputText id="zipInput" class="ui-g-12" formControlName="zip" autocomplete="off" />
+      <div class="p-col-2 p-fluid">
+        <span class="p-float-label">
+          <input pInputText id="zipInput" formControlName="zip" autocomplete="off" />
           <label for="zipInput">ZIP Code</label>
         </span>
       </div>
-      <div class="ui-g-2"></div>
-      <div class="ui-g-8">
-        <span class="md-inputfield">
-          <input pInputText id="marketInput" class="ui-g-12" formControlName="Market" autocomplete="off" />
+      <div class="p-col-8 p-fluid">
+        <span class="p-float-label">
+          <input pInputText id="marketInput" formControlName="Market" autocomplete="off" />
           <label for="marketInput">Market</label>
         </span>
       </div>
-      <div class="ui-g-4"></div>
-      <div class="ui-g-12 ui-g-nopad">
-          <div class="ui-g-4">
-             <div class="ui-inputgroup">
-                <span class="md-inputfield">
-                   <input pInputText id="latlongInput" class="ui-g-12" formControlName="coord" autocomplete="off" />
-                   <span class="ui-inputgroup-addon" *ngIf="!hasErrors('coord')">&nbsp;</span>
-                   <span class="ui-inputgroup-addon" *ngIf="hasErrors('coord')">
-                     <i class="ui-icon-error error-icon" [title]="coord.errors['latLon']"></i>
-                   </span>
-                   <label for="latlongInput">Latitude (Y), Longitude(X)</label>
-                </span>
-             </div>
+      <div class="p-col-5 p-fluid">
+        <div class="p-inputgroup">
+          <div class="p-float-label">
+            <input pInputText id="latlongInput" formControlName="coord" autocomplete="off" />
+            <label for="latlongInput">Latitude (Y), Longitude (X)</label>
+            <span class="p-inputgroup-addon" *ngIf="hasErrors('coord')">
+              <i class="pi pi-exclamation-circle error-icon" [title]="coord.errors['latLon']"></i>
+            </span>
           </div>
-          <div class="ui-g-4"></div>
-       </div>
-      <div class="ui-g-12 ui-g-nopad">
-         <div class="ui-g-4">
-            <button (click)="clear()" type="button" label="Clear" icon="ui-icon-close" pButton class="ui-g-12"></button>
-         </div>
-         <div class="ui-g-4">
-            <button type="submit" label="Submit" icon="ui-icon-send" pButton class="ui-g-12" [disabled]="manualEntryForm.invalid"></button>
-         </div>
-         <div class="ui-g-4" *ngIf="showLoadButtons">
-            <p-splitButton styleClass="ui-g-nopad" label="Load Presets" icon="ui-icon-map" (onClick)="loadVPW()" [model]="loadItems"></p-splitButton>
-         </div>
+        </div>
       </div>
+    </div>
+    <div class="p-grid p-fluid">
+      <div class="p-col">
+        <button (click)="clear()" type="button" label="Clear" icon="pi pi-times" pButton class="p-button-outlined"></button>
+      </div>
+      <div class="p-col">
+        <button type="submit" label="Submit" icon="pi pi-send" pButton class="p-button-outlined" [disabled]="manualEntryForm.invalid"></button>
+      </div>
+      <div class="p-col" *ngIf="showLoadButtons">
+        <p-splitButton class="p-button-outlined" label="Load Presets" icon="pi pi-directions" (onClick)="loadVPW()" [model]="loadItems"></p-splitButton>
+      </div>
+    </div>
   </form>

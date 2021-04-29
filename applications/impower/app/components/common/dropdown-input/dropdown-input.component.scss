@@ -1,38 +1,9 @@
 @import "~assets/valassis-variables";
 
-:host(.ng-touched.ng-invalid) {
-  .md-inputfield {
-    input {
-      background-image: linear-gradient(to bottom, $inputInvalidBorderColor, $inputInvalidBorderColor),
-      linear-gradient(to bottom, $inputInvalidBorderColor, $inputInvalidBorderColor);
-
-      &:focus ~ label,
-      ~ label {
-        color: $inputErrorTextColor;
-      }
-
-      ~ span.ui-inputgroup-addon {
-        border-bottom-color: $inputInvalidBorderColor;
-        i {
-          color: $inputErrorTextColor;
-        }
-      }
-    }
-  }
-}
-
 .error-addon i {
-    color: $inputErrorTextColor;
-    vertical-align: bottom;
+  color: $errorColor;
 }
 
-.component-root {
-  margin-top: 1em;
-  padding-bottom: 0.5em;
-}
-
-.flex-container {
-  display: flex; /* or inline-flex */
-  flex-flow: flex start;
-  justify-content: space-around;
+p-dropdown {
+  width: 100%;
 }

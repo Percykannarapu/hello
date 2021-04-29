@@ -37,6 +37,6 @@
   <validated-text-input formControlName="dotValue" labelText="Value of one Dot" validationMessage="Dot value must be greater than 1"></validated-text-input>
   <validated-text-input formControlName="legendUnits" labelText="Legend Units (i.e. Households)" validationMessage="Required"></validated-text-input>
   <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
-  <button type="submit" pButton label="Apply" [ngClass]="{ 'ui-button-primary': parentForm.dirty, 'ui-button-secondary': parentForm.pristine }" [disabled]="!parentForm.valid"></button>
-  <button type="button" pButton label="Cancel" class="ui-button-secondary" (click)="cancelForm.emit()"></button>
+  <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': parentForm.pristine }" [disabled]="!parentForm.valid"></button>
+  <button type="button" pButton label="Cancel" class="p-button-outlined" (click)="cancelForm.emit()"></button>
 </div>

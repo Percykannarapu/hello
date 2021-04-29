@@ -22,7 +22,7 @@ export function rfpUiReviewreducer(state = initialState, action: reducerActions)
   switch (action.type) {
     case InitActionTypes.GetMediaPlanDataSucceeded: {
       if (action.payload.normalizedEntities.rfpUiReviews != null) {
-        return adapter.addAll(action.payload.normalizedEntities.rfpUiReviews, state);
+        return adapter.setAll(action.payload.normalizedEntities.rfpUiReviews, state);
       } else {
         return state;
       }
@@ -61,7 +61,7 @@ export function rfpUiReviewreducer(state = initialState, action: reducerActions)
     }
 
     case RfpUiReviewActionTypes.LoadRfpUiReviews: {
-      return adapter.addAll(action.payload.rfpUiReviews, state);
+      return adapter.setAll(action.payload.rfpUiReviews, state);
     }
 
     case RfpUiReviewActionTypes.ClearRfpUiReviews: {

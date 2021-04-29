@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { BatchMapComponent } from './batch-map.component';
 
@@ -6,7 +6,7 @@ describe('PrintMapComponent', () => {
   let component: BatchMapComponent;
   let fixture: ComponentFixture<BatchMapComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ BatchMapComponent ]
     })

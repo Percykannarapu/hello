@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { UploadMustCoverComponent } from './upload-must-cover.component';
 
@@ -6,7 +6,7 @@ describe('UploadMustCoverComponent', () => {
   let component: UploadMustCoverComponent;
   let fixture: ComponentFixture<UploadMustCoverComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ UploadMustCoverComponent ]
     })
