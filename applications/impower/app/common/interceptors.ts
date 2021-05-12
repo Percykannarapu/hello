@@ -26,6 +26,13 @@ export class ContentInterceptor implements HttpInterceptor {
           clone = clone.clone({headers: clone.headers.set('Content-Type', 'application/json')});
         }
     }
+    if ( clone.url.includes(this.appConfig.valServiceBase) && clone.responseType === 'blob') {
+      clone = clone.clone({ headers: clone.headers.set('Accept', 'application/octet-stream') });
+
+      if (!(clone.headers.get('Content-Type') || clone.headers.get('content-type'))) {
+        clone = clone.clone({headers: clone.headers.set('Content-Type', 'application/json')});
+      }
+  }
     return next.handle(clone);
   }
 }

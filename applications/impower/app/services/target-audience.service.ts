@@ -33,6 +33,7 @@ import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-d
 import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { AppStateService } from './app-state.service';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 
 export type audienceSource = (analysisLevel: string, identifiers: string[], geocodes: string[], isForShading: boolean, transactionId: number, audience?: AudienceDataDefinition) => Observable<ImpGeofootprintVar[]>;
 export type nationalSource = (analysisLevel: string, identifier: string, transactionId: number) => Observable<any[]>;
@@ -73,6 +74,7 @@ export class TargetAudienceService implements OnDestroy {
               private projectVarService: ImpProjectVarService,
               private domainFactory: ImpDomainFactoryService,
               private logger: LoggingService,
+              private http: HttpClient,
               private store$: Store<LocalAppState>) {
 
     this.newSelectedGeos$ = this.appStateService.uniqueIdentifiedGeocodes$.pipe(
@@ -286,29 +288,23 @@ export class TargetAudienceService implements OnDestroy {
             reqInput.push(inputData);
           }
         });
-        this.restService.post('v1/targeting/base/geoinfo/digitallookuppcr', reqInput)
-          .subscribe({
-            next: res => {
-              const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 13);
-              const fileName = `NatlExtract_${analysisLevel}_${projectId}_${fmtDate}.csv`.replace(/\//g, '_');
-              const downloadUrl = `${EnvironmentData.impowerBaseUrl}nationalextract/${res.payload}`;
-              originalFileName = res.payload;
-              const element = window.document.createElement('a');
-              document.body.appendChild(element);
-              element.href = downloadUrl;
+        const headers = new HttpHeaders({
+          'Accept': 'blob'
+        });
 
-              element['download'] = fileName;
-              element.target = '_blank';
-
-              element.click();
-            },
-            complete: () => {
-              this.store$.dispatch(new StopBusyIndicator({ key }));
-              this.restService.get(`v1/targeting/base/geoinfo/deletefile/${originalFileName}`).subscribe(res => {
-                this.logger.debug.log(res.payload);
-              });
-            }
-          });
+        const uri = `${this.config.valServiceBase}v1/targeting/base/geoinfo/digitallookuppcr`;
+        this.http.post(uri, reqInput, 
+          { responseType: 'blob', 
+            headers: headers
+      }).subscribe((data: any) => {
+          const newBlob = new Blob([data], { type: 'application/csv' });
+          const uri = window.URL.createObjectURL(newBlob);
+          const link = document.createElement('a');
+          link.href = uri;
+          link.download = `${projectId}_PCR_NationalData.csv`;
+          link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+          this.store$.dispatch(new StopBusyIndicator({ key }));
+        });
       } else {
         this.getNationalData(audiences, analysisLevel).subscribe(
           data => convertedData.push(...data),
