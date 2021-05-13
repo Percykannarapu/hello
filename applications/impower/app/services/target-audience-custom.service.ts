@@ -390,12 +390,14 @@ export class TargetAudienceCustomService {
       const qResult = new Set(result);
       const fields = header.split(',');
       const records: string[] = [];
+      const headerIdentifiers: any = customAudienceDataParser.columnParsers[0].headerIdentifier;
+      const fieldGeoHeader = fields.filter(field => headerIdentifiers.indexOf(field.toUpperCase()) >= 0);
       records.push(header + '\n');
        data.parsedData.forEach(record => {
          if (!qResult.has(record.geocode)){
            let row = '';
           for (let i = 0; i <= fields.length - 1; i++ ){
-            row = fields[i].toLocaleUpperCase() === 'GEOCODE' ? row + `${record.geocode},` : row + `${record[fields[i]]},`;
+            row = fields[i].toUpperCase() === fieldGeoHeader[0].toUpperCase() ? row + `${record.geocode},` : row + `${record[fields[i]]},`;
           }
           records.push(row.substring(0, row.length - 1) + '\n');
          }
