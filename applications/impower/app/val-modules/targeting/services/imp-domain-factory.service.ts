@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { AppConfig } from 'app/app.config';
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
 import { ImpClientLocationTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
 import { AudienceDataDefinition } from '../../../models/audience-data.model';
@@ -22,7 +23,8 @@ import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 export class ImpDomainFactoryService {
 
   constructor(private userService: UserService,
-              private logger: LoggingService) {}
+              private logger: LoggingService,
+              private config: AppConfig) {}
 
   private static createTradeAreaName(locationTypeCode: string, tradeAreaType: TradeAreaTypeCodes, taNumber: number) : string {
     switch (tradeAreaType) {
@@ -312,7 +314,7 @@ export class ImpDomainFactoryService {
     const existingTradeAreas = new Set(parent.impGeofootprintTradeAreas.map(ta => ta.taNumber));
 
     // Determine the ta number to use
-    let taNumber: number = 4;
+    let taNumber: number = this.config.maxRadiusTradeAreas + 1;
     if (tradeAreaType === TradeAreaTypeCodes.Radius || tradeAreaType === TradeAreaTypeCodes.Radii) {
       taNumber = num;
     } else {
