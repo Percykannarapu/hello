@@ -14,9 +14,8 @@ export class DataShimExportEffects {
   @Effect()
   exportGeofootprint$ = this.actions$.pipe(
     ofType<ExportGeofootprint>(DataShimActionTypes.ExportGeofootprint),
-    toPayload(),
     withLatestFrom(this.dataShimService.currentProject$),
-    switchMap(([payload, project]) => this.appExportService.exportGeofootprint(payload.selectedOnly, project).pipe(
+    switchMap(([action, project]) => this.appExportService.exportGeofootprint(action.payload.selectedOnly, project).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );
@@ -24,8 +23,7 @@ export class DataShimExportEffects {
   @Effect()
   exportDigital$ = this.actions$.pipe(
     ofType<ExportLocations>(DataShimActionTypes.ExportLocations),
-    toPayload(),
-    filter(p => p.isDigitalExport),
+    filter(action => action.payload.isDigitalExport),
     withLatestFrom(this.dataShimService.currentProject$),
     switchMap(([, project]) => this.appExportService.exportValassisDigital(project).pipe(
       catchError(err => of(this.processError(err))),
@@ -35,10 +33,9 @@ export class DataShimExportEffects {
   @Effect()
   exportLocations$ = this.actions$.pipe(
     ofType<ExportLocations>(DataShimActionTypes.ExportLocations),
-    toPayload(),
-    filter(p => !p.isDigitalExport),
+    filter(action => !action.payload.isDigitalExport),
     withLatestFrom(this.dataShimService.currentProject$),
-    switchMap(([payload, project]) => this.appExportService.exportLocations(payload.locationType, project).pipe(
+    switchMap(([action, project]) => this.appExportService.exportLocations(action.payload.locationType, project).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );
@@ -46,8 +43,7 @@ export class DataShimExportEffects {
   @Effect()
   exportHGCIssuesLog$ = this.actions$.pipe(
     ofType<ExportHGCIssuesLog>(DataShimActionTypes.ExportHGCIssuesLog),
-    toPayload(),
-    switchMap(p => this.appExportService.exportHomeGeoReport(p.locationType).pipe(
+    switchMap(action => this.appExportService.exportHomeGeoReport(action.payload.locationType).pipe(
       catchError(err => of(this.processError(err))),
     )),
   );
@@ -64,17 +60,15 @@ export class DataShimExportEffects {
   @Effect({ dispatch: false })
   exportCustomTAIssuesLog$ = this.actions$.pipe(
     ofType<ExportCustomTAIssuesLog>(DataShimActionTypes.ExportCustomTAIssuesLog),
-    toPayload(),
-    map(p => this.appExportService.exportCustomTAIssuesLog(p.uploadFailures))
+    map(action => this.appExportService.exportCustomTAIssuesLog(action.payload.uploadFailures))
   );
 
   @Effect({ dispatch: false })
   exportMCIssuesLog$ = this.actions$.pipe(
     ofType<ExportMCIssuesLog>(DataShimActionTypes.ExportMCIssuesLog),
-    toPayload(),
-    map(p => this.appExportService.exportMCIssuesLog(p.uploadFailures))
+    map(action => this.appExportService.exportMCIssuesLog(action.payload.uploadFailures))
   );
-  
+
 
   constructor(private actions$: Actions,
               private dataShimService: AppDataShimService,

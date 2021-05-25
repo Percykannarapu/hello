@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { geodesicBuffer, union } from '@arcgis/core/geometry/geometryEngineAsync';
 import Graphic from '@arcgis/core/Graphic';
 import { filterArray } from '@val/common';
-import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactoryService, EsriLayerService, EsriMapService, EsriQuadTree } from '@val/esri';
+import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactory, EsriLayerService, EsriMapService, EsriQuadTree } from '@val/esri';
 import { from, merge, Observable, of } from 'rxjs';
 import { map, reduce, switchMap, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
@@ -24,7 +24,6 @@ export class RenderingService {
 
   constructor(private esriLayerService: EsriLayerService,
               private esriMapService: EsriMapService,
-              private esriFactory: EsriDomainFactoryService,
               private logger: LoggingService,
               private config: AppConfig,
               @Inject(EsriAppSettingsToken) private esriAppSettings: EsriAppSettings) { }
@@ -87,9 +86,9 @@ export class RenderingService {
       }
     });
     defs.forEach(d => {
-      const outline = this.esriFactory.createSimpleLineSymbol(d.color, 2);
-      const symbol = this.esriFactory.createSimpleFillSymbol([0, 0, 0, 0], outline);
-      const renderer = this.esriFactory.createSimpleRenderer(symbol);
+      const outline = EsriDomainFactory.createSimpleLineSymbol(d.color, 2);
+      const symbol = EsriDomainFactory.createSimpleFillSymbol([0, 0, 0, 0], outline);
+      const renderer = EsriDomainFactory.createSimpleRenderer(symbol);
       const validBufferedPoints = d.bufferedPoints.filter(p => p.buffer > 0);
       if (validBufferedPoints.length > 0) {
         const currentValueMap = RenderingService.createValueMap(validBufferedPoints.map(b => b.buffer), d.merge);

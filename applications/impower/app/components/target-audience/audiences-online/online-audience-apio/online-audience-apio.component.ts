@@ -11,16 +11,16 @@ import { debounceTime, map, share, takeUntil } from 'rxjs/operators';
 import { filterTreeNodesRecursive, treeNodeSortBuilder } from '../../../../common/treenode-utils';
 import * as fromInMarket from '../../../../impower-datastore/state/transient/audience-definitions/in-market/in-market-audience.reducer';
 import * as fromInterest from '../../../../impower-datastore/state/transient/audience-definitions/interest/interest-audience.reducer';
+import { DeleteAudience } from '../../../../impower-datastore/state/transient/audience/audience.actions';
 import { OnlineAudienceDescription } from '../../../../models/audience-categories.model';
-import { OnlineSourceTypes } from '../../../../models/audience-enums';
-import { TargetAudienceOnlineService } from '../../../../services/target-audience-online.service';
+import { AudienceDataDefinition } from '../../../../models/audience-data.model';
+import { OnlineSourceNames, OnlineSourceTypes } from '../../../../models/audience-enums';
+import { createOnlineAudienceInstance } from '../../../../models/audience-factories';
 import { UnifiedAudienceDefinitionService } from '../../../../services/unified-audience-definition.service';
+import { UnifiedAudienceService } from '../../../../services/unified-audience.service';
+import { CreateAudienceUsageMetric } from '../../../../state/usage/targeting-usage.actions';
 import { LoggingService } from '../../../../val-modules/common/services/logging.service';
-
-const sourceNameMap = {
-  [OnlineSourceTypes.Interest]: 'interest',
-  [OnlineSourceTypes.InMarket]: 'in_market'
-};
+import { FieldContentTypeCodes } from '../../../../val-modules/targeting/targeting.enums';
 
 @Component({
   selector: 'val-online-audience-apio',
@@ -32,8 +32,8 @@ export class OnlineAudienceApioComponent implements OnInit, OnDestroy {
 
   @Input() reservedAudienceIds: Set<number>;
 
-  public currentNodes$: Observable<TreeNode[]>;
-  public currentSelectedNodes$: Observable<TreeNode[]>;
+  public currentNodes$: Observable<TreeNode<OnlineAudienceDescription>[]>;
+  public currentSelectedNodes$: Observable<TreeNode<OnlineAudienceDescription>[]>;
 
   public loading$: Observable<boolean>;
   public searchTerm$: Subject<string> = new BehaviorSubject<string>(null);
@@ -46,19 +46,19 @@ export class OnlineAudienceApioComponent implements OnInit, OnDestroy {
   private destroyed$ = new Subject<void>();
   private selectedReset$ = new BehaviorSubject<void>(null);
 
-  constructor(private audienceService: TargetAudienceOnlineService,
-              private appStateService: AppStateService,
-              private definitionService: UnifiedAudienceDefinitionService,
+  constructor(private appStateService: AppStateService,
               private logger: LoggingService,
-              private store$: Store<LocalAppState>) {}
+              private store$: Store<LocalAppState>,
+              private definitionService: UnifiedAudienceDefinitionService,
+              private audienceService: UnifiedAudienceService) {}
 
-  private static asTreeNode(variable: OnlineAudienceDescription, sourceType: OnlineSourceTypes) : TreeNode {
-    const sourceName = sourceNameMap[sourceType];
+  private static asTreeNode(variable: OnlineAudienceDescription, sourceType: OnlineSourceTypes) : TreeNode<OnlineAudienceDescription> {
+    const sourceName = OnlineSourceNames[sourceType];
     if (variable.isLeaf) return this.asLeaf(variable, sourceName);
     return this.asFolder(variable, sourceType, sourceName);
   }
 
-  private static asFolder(variable: OnlineAudienceDescription, sourceType: OnlineSourceTypes, sourceName: string) : TreeNode {
+  private static asFolder(variable: OnlineAudienceDescription, sourceType: OnlineSourceTypes, sourceName: string) : TreeNode<OnlineAudienceDescription> {
     const children = variable.children.map(child => this.asTreeNode(child, sourceType));
     children.sort(treeNodeSortBuilder(n => n.label, CommonSort.GenericString));
     return {
@@ -73,7 +73,7 @@ export class OnlineAudienceApioComponent implements OnInit, OnDestroy {
     };
   }
 
-  private static asLeaf(variable: OnlineAudienceDescription, sourceName: string) : TreeNode {
+  private static asLeaf(variable: OnlineAudienceDescription, sourceName: string) : TreeNode<OnlineAudienceDescription> {
     return {
       label: variable.categoryName,
       data: variable,
@@ -142,15 +142,17 @@ export class OnlineAudienceApioComponent implements OnInit, OnDestroy {
 
   }
 
-  public trackByKey(index: number, node: TreeNode) : string {
+  public trackByKey(index: number, node: TreeNode<OnlineAudienceDescription>) : string {
     return node.key;
   }
 
-  public selectVariable(event: TreeNode) : void {
-    this.audienceService.addAudience(event.data, this.selectedSource$.getValue());
+  public selectVariable(event: TreeNode<OnlineAudienceDescription>) : void {
+    const model = this.createModelInstance(event.data);
+    this.usageMetricCheckUncheckApio(true, event.data);
+    this.audienceService.addAudience(model);
   }
 
-  public removeVariable(event: TreeNode) : void {
+  public removeVariable(event: TreeNode<OnlineAudienceDescription>) : void {
     let isDependent: boolean;
     switch (this.selectedSource$.getValue()) {
       case OnlineSourceTypes.InMarket:
@@ -166,11 +168,25 @@ export class OnlineAudienceApioComponent implements OnInit, OnDestroy {
       this.store$.dispatch(new ShowSimpleMessageBox({ message, header }));
       this.selectedReset$.next();
     } else {
-      this.audienceService.removeAudience(event.data, this.selectedSource$.getValue());
+      const model = this.createModelInstance(event.data);
+      this.usageMetricCheckUncheckApio(false, event.data);
+      this.store$.dispatch(new DeleteAudience ({ id: model.audienceIdentifier }));
     }
   }
 
   public onSourceChanged(source: OnlineSourceTypes) {
     this.selectedSource$.next(source);
+  }
+
+  private usageMetricCheckUncheckApio(isChecked: boolean, audience: OnlineAudienceDescription) {
+    const source = this.selectedSource$.getValue();
+    const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
+    const metricText = audience.digLookup.get(OnlineSourceNames[source]) + '~' + audience.taxonomyParsedName.replace('~', ':') + '~' + source + '~' + currentAnalysisLevel;
+    this.store$.dispatch(new CreateAudienceUsageMetric('online', isChecked ? 'checked' : 'unchecked', metricText));
+  }
+
+  private createModelInstance(data: OnlineAudienceDescription) : AudienceDataDefinition {
+    const digId = data.digLookup.get(OnlineSourceNames[this.selectedSource$.getValue()]);
+    return createOnlineAudienceInstance(data.categoryName, `${digId}`, FieldContentTypeCodes.Index, this.selectedSource$.getValue());
   }
 }

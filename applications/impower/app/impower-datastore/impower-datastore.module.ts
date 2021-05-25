@@ -10,23 +10,23 @@ import { InterestAudienceEffects } from './state/transient/audience-definitions/
 import { PixelAudienceEffects } from './state/transient/audience-definitions/pixel/pixel-audience.effects';
 import { TdaAudienceEffects } from './state/transient/audience-definitions/tda/tda-audience.effects';
 import { VlhAudienceEffects } from './state/transient/audience-definitions/vlh/vlh-audience.effects';
-import { AudiencesEffects } from './state/transient/audience/audience.effects';
 import { GeoAttributesEffects } from './state/transient/geo-attributes/geo-attributes.effects';
 import { GeoVarsEffects } from './state/transient/geo-vars/geo-vars.effects';
-import { TransientEffects } from './state/transient/transient.effects';
+import { MapVarsEffects } from './state/transient/map-vars/map-vars.effects';
+import { TransactionsEffects } from './state/transient/transactions/transactions.effects';
 
 const allEffects = [
   PersistentEffects,
-  TransientEffects,
-  AudiencesEffects,
   GeoAttributesEffects,
-  GeoVarsEffects,
   InterestAudienceEffects,
   InMarketAudienceEffects,
   VlhAudienceEffects,
   PixelAudienceEffects,
   TdaAudienceEffects,
-  AudienceDefinitionsEffects
+  AudienceDefinitionsEffects,
+  GeoVarsEffects,
+  MapVarsEffects,
+  TransactionsEffects
 ];
 
 @NgModule({

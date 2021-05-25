@@ -1,10 +1,13 @@
 import { Injectable } from '@angular/core';
+import { Dictionary } from '@ngrx/entity';
 import { Action, Store } from '@ngrx/store';
+import { mapArrayToEntity } from '@val/common';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { RestResponse } from 'app/models/RestResponse';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { Observable } from 'rxjs';
 import { AppConfig } from '../app.config';
+import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { CrossBowSitesPayload, LocalAppState } from '../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
 import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actions';
@@ -17,7 +20,7 @@ import { EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, ImpGeofootprintLocationService }
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { TradeAreaDefinition } from './app-trade-area.service';
-import { TargetAudienceService } from './target-audience.service';
+import { UnifiedAudienceService } from './unified-audience.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for exporting data
@@ -31,14 +34,14 @@ export class AppExportService {
 
   readonly crossbowUrl: string = 'v1/targeting/base/targetingprofile';
 
-  constructor(private impGeofootprintLocationService: ImpGeofootprintLocationService,
+  constructor(private config: AppConfig,
+              private impGeofootprintLocationService: ImpGeofootprintLocationService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
-              private targetAudienceService: TargetAudienceService,
               private impProjectService: ImpProjectService,
+              private logger: LoggingService,
               private restService: RestDataService,
               private store$: Store<LocalAppState>,
-              private config: AppConfig,
-              private logger: LoggingService) { }
+              private audienceService: UnifiedAudienceService) { }
 
   exportGeofootprint(selectedOnly: boolean, currentProject: ImpProject) : Observable<Action> {
     return new Observable(observer => {
@@ -48,13 +51,21 @@ export class AppExportService {
           this.validateProjectForExport(currentProject, 'exporting a Geofootprint');
           const storeFilter: (geo: ImpGeofootprintGeo) => boolean = selectedOnly ? (geo => geo.isActive === true) : null;
           const filename = this.impGeofootprintGeoService.getFileName(currentProject.methAnalysis, currentProject.projectId);
-          this.impGeofootprintGeoService.exportStore(filename, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, currentProject.methAnalysis, storeFilter);
-          const metricValue = this.impGeofootprintGeoService.get().length;
-          const metricText = selectedOnly ? 'includeSelectedGeography' : 'includeAllGeography';
-          observer.next(new StopBusyIndicator({ key: 'GFP_Export' }));
-          observer.next(new CreateLocationUsageMetric('geofootprint', 'export', metricText, metricValue));
-          observer.next(new CreateGaugeMetric({ gaugeAction: 'location-geofootprint-export' }));
-          observer.complete();
+          this.audienceService.requestGeofootprintExportData(currentProject.methAnalysis).subscribe({
+            error: err => {
+              observer.next(new StopBusyIndicator({ key: 'GFP_Export' }));
+              observer.error(err);
+            },
+            next: geoVars => {
+              this.impGeofootprintGeoService.exportStore(filename, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, currentProject.methAnalysis, geoVars, storeFilter);
+              const metricValue = this.impGeofootprintGeoService.get().length;
+              const metricText = selectedOnly ? 'includeSelectedGeography' : 'includeAllGeography';
+              observer.next(new StopBusyIndicator({ key: 'GFP_Export' }));
+              observer.next(new CreateLocationUsageMetric('geofootprint', 'export', metricText, metricValue));
+              observer.next(new CreateGaugeMetric({ gaugeAction: 'location-geofootprint-export' }));
+              observer.complete();
+            }
+          });
         } catch (err) {
           observer.next(new StopBusyIndicator({ key: 'GFP_Export' }));
           observer.error(err);
@@ -113,7 +124,7 @@ export class AppExportService {
   exportNationalExtract(currentProject: ImpProject) : Observable<void> {
     return new Observable(observer => {
       try {
-        this.targetAudienceService.exportNationalExtract(currentProject.methAnalysis, currentProject.projectId);
+        this.audienceService.requestNationalExtractData(currentProject);
         observer.complete();
       } catch (err) {
         observer.error(err);

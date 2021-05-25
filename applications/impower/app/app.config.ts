@@ -39,7 +39,8 @@ export class AppConfig implements LoggingConfiguration {
 
   public serviceUrlFragments = {
     populateGeoCacheUrl: 'v1/targeting/base/chunkedgeos/populateChunkedGeos',
-    deleteGeoCacheUrl: 'v1/targeting/base/chunkedgeos/deleteChunks/'
+    deleteGeoCacheUrl: 'v1/targeting/base/chunkedgeos/deleteChunks/',
+    unifiedAudienceUrl: 'v1/targeting/base/geoinfo/varlookup',
   };
 
   public analysisLevelToLayerKey(analysisLevel: string) : string {

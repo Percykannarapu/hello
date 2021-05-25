@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { isValidNumber } from '@val/common';
+import { isNotNil, isValidNumber } from '@val/common';
 import { Observable, of, throwError } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { RestResponse } from '../models/RestResponse';
@@ -10,7 +10,6 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
-import { ImpProjectVarService } from '../val-modules/targeting/services/ImpProjectVar.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 
@@ -18,24 +17,21 @@ import { AppLoggingService } from './app-logging.service';
 export class AppProjectService {
 
   public currentProject$: Observable<ImpProject>;
-  public currentNullableProject$: Observable<ImpProject>;
+  public currentNullableProject$: Observable<ImpProject | null>;
 
   private currentProjectRef: ImpProject;
 
   constructor(private impProjectService: ImpProjectService,
               private impProjectPrefService: ImpProjectPrefService,
-              private impProjectVarService: ImpProjectVarService,
               private impMasterService: ImpGeofootprintMasterService,
               private impLocationService: ImpGeofootprintLocationService,
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
               private restService: RestDataService) {
     this.currentNullableProject$ = this.impProjectService.storeObservable.pipe(
-      map(projects => projects == null || projects.length === 0 ? null : projects[0])
+      map(projects => projects?.[0])
     );
-    this.currentProject$ = this.currentNullableProject$.pipe(
-      filter(project => project != null)
-    );
+    this.currentProject$ = this.currentNullableProject$.pipe(filter(isNotNil));
 
     this.currentProject$.subscribe(project => this.currentProjectRef = project);
   }
@@ -45,7 +41,7 @@ export class AppProjectService {
   }
 
   save(project?: ImpProject) : Observable<number> {
-    const projectToSave = project == null ? this.impProjectService.get()[0] : project;
+    const projectToSave = project == null ? this.currentProjectRef : project;
     if (projectToSave == null) return of(null as number);
     this.cleanupProject(projectToSave);
     return this.saveImpl(projectToSave).pipe(
@@ -74,7 +70,6 @@ export class AppProjectService {
     this.impProjectService.startTx();
     this.impProjectService.clearAll();
     this.impProjectPrefService.clearAll();
-    this.impProjectVarService.clearAll();
     this.impMasterService.clearAll();
   }
 

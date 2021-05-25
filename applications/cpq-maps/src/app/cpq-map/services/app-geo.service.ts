@@ -4,7 +4,7 @@ import Polyline from '@arcgis/core/geometry/Polyline';
 import Query from '@arcgis/core/tasks/support/Query';
 import { Store } from '@ngrx/store';
 import { groupBy, mapBy } from '@val/common';
-import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
+import { EsriLayerService, EsriQueryService, EsriUtils, isPoint } from '@val/esri';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
@@ -96,7 +96,7 @@ export class AppGeoService {
           : currentAvailsData.ownerGroup
         : '';
       let distance = 0;
-      if (EsriUtils.geometryIsPoint(closestSite.geometry)) {
+      if (isPoint(closestSite.geometry)) {
         const line = new Polyline({
           paths: [[[edi.point.x, edi.point.y], [closestSite.geometry.x, closestSite.geometry.y]]]
         });

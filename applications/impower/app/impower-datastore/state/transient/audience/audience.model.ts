@@ -1,5 +1,4 @@
-import { AudienceTradeAreaConfig } from 'app/models/audience-data.model';
-import { VarSpecs } from 'app/services/target-audience-unified.service';
+import { VarSpecs } from 'app/models/audience-data.model';
 import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 
 export interface Audience {
@@ -10,13 +9,10 @@ export interface Audience {
   disableUISplit?: boolean;
   exportNationally: boolean;
   allowNationalExport: boolean;
-  nationalCsvTransform?: (fieldName: string) => { name: string, field: string }[];
   selectedDataSet?: string;
   dataSetOptions?: { label: string, value: string }[];
   audienceSourceName: string;
   audienceSourceType: 'Online' | 'Offline' | 'Custom' | 'Combined' | 'Converted' | 'Combined/Converted' | 'Composite'  ;
-  secondaryId?: string;
-  audienceTAConfig?: AudienceTradeAreaConfig;
   fieldconte: FieldContentTypeCodes;
   requiresGeoPreCaching: boolean;
   sortOrder: number;
@@ -24,5 +20,5 @@ export interface Audience {
   isComposite?: boolean;
   combinedAudiences?: Array<string>;
   combinedVariableNames?: string;
-  compositeSource?: Array<VarSpecs>;
+  compositeSource?: Array<VarSpecs> | Array<string>;
 }

@@ -2,9 +2,6 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
-import { ClearAudienceStats } from 'app/impower-datastore/state/transient/audience/audience.actions';
-import { ClearGeoVars } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.actions';
-import { ClearMapVars } from 'app/impower-datastore/state/transient/map-vars/map-vars.actions';
 import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { BehaviorSubject, combineLatest, merge, Observable } from 'rxjs';
@@ -301,14 +298,10 @@ export class AppTradeAreaService {
     this.logger.info.log('Clearing all Geos');
     this.impTradeAreaService.startTx();
     this.impLocAttrService.remove(attrs);
-    this.store$.dispatch( new ClearMapVars());
-    this.store$.dispatch( new ClearGeoVars());
-    this.store$.dispatch( new ClearAudienceStats());
     this.impVarService.clearAll();
     this.appGeoService.clearAll();
     const removeTradeAreas = allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType)));
     removeTradeAreas.length > 0 ? this.deleteTradeAreas(removeTradeAreas) : this.impTradeAreaService.makeDirty();
-    //this.impTradeAreaService.remove(allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType))));
     this.impTradeAreaService.stopTx();
   }
 

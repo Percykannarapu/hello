@@ -1,7 +1,7 @@
 import { ComponentFactoryResolver, Injectable, Injector } from '@angular/core';
 import Expand from '@arcgis/core/widgets/Expand';
 import { Store } from '@ngrx/store';
-import { EsriDomainFactoryService, EsriLabelLayerOptions, EsriLayerService, EsriMapService, EsriQueryService, EsriService } from '@val/esri';
+import { EsriDomainFactory, EsriLabelLayerOptions, EsriLayerService, EsriMapService, EsriQueryService, EsriService } from '@val/esri';
 import { LegendComponent } from '../components/legend/legend.component';
 import { FullState } from '../state';
 import { MapUIState } from '../state/map-ui/map-ui.reducer';
@@ -16,7 +16,7 @@ export class AppLayerService {
    constructor(private esriLayerService: EsriLayerService,
                private esriMapService: EsriMapService,
                private queryService: EsriQueryService,
-               private esriFactory: EsriDomainFactoryService,
+               private esriFactory: EsriDomainFactory,
                private esri: EsriService,
                private store$: Store<FullState>,
                private configService: ConfigService,

@@ -1,31 +1,27 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, mapBy, mapByExtended, groupByExtended } from '@val/common';
-import { combineLatest, Observable, of } from 'rxjs';
-import { filter, map, tap, switchMap } from 'rxjs/operators';
+import { filterArray } from '@val/common';
+import { SuccessNotification } from '@val/messaging';
+import { AppGeoService } from 'app/services/app-geo.service';
+import { AppTradeAreaService } from 'app/services/app-trade-area.service';
+import { ImpGeofootprintGeo } from 'app/val-modules/targeting/models/ImpGeofootprintGeo';
+import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { ConfirmationService } from 'primeng/api';
+import { combineLatest, Observable } from 'rxjs';
+import { filter, map, tap } from 'rxjs/operators';
 import { User } from '../../models/User';
 import { ValDiscoveryUIModel } from '../../models/val-discovery.model';
 import { AppDiscoveryService, ProjectTrackerUIModel, RadLookupUIModel } from '../../services/app-discovery.service';
 import { AppLoggingService } from '../../services/app-logging.service';
 import { AppStateService } from '../../services/app-state.service';
-import { TargetAudienceService } from '../../services/target-audience.service';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
-import { CalculateMetrics, DeleteCustomTAGeos, DeleteMustCoverGeos, DeleteCustomData } from '../../state/data-shim/data-shim.actions';
+import { CalculateMetrics, DeleteCustomData, DeleteCustomTAGeos, DeleteMustCoverGeos } from '../../state/data-shim/data-shim.actions';
 import { CreateProjectUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpProjectService } from '../../val-modules/targeting/services/ImpProject.service';
 import { DiscoveryInputComponent } from './discovery-input/discovery-input.component';
-import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ConfirmationService } from 'primeng/api';
-import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { AppTradeAreaService } from 'app/services/app-trade-area.service';
-import { ImpGeofootprintGeo } from 'app/val-modules/targeting/models/ImpGeofootprintGeo';
-import { AppGeoService } from 'app/services/app-geo.service';
-import { projectIsReady } from 'app/state/data-shim/data-shim.selectors';
-import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
-import { SuccessNotification } from '@val/messaging';
-import { ImpProjectPref } from 'app/val-modules/targeting/models/ImpProjectPref';
 
 @Component({
   selector: 'val-campaign-details',
@@ -37,7 +33,6 @@ export class CampaignDetailsComponent implements OnInit {
   currentDiscoveryData$: Observable<ValDiscoveryUIModel>;
   currentRadSuggestions$: Observable<RadLookupUIModel[]>;
   currentProjectTrackerSuggestions$: Observable<ProjectTrackerUIModel[]>;
-  onlineAudienceExists$: Observable<boolean>;
 
   private previousForm: ValDiscoveryUIModel = null;
   private usageTargetMap: { [key: string] : string };
@@ -52,7 +47,6 @@ export class CampaignDetailsComponent implements OnInit {
               private impProjectService: ImpProjectService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private logger: AppLoggingService,
-              private targetAudienceService: TargetAudienceService,
               private confirmationService: ConfirmationService,
               private impGeofootprintTradeAreaService: ImpGeofootprintTradeAreaService,
               private appGeoService: AppGeoService,
@@ -69,11 +63,6 @@ export class CampaignDetailsComponent implements OnInit {
         );
     this.currentRadSuggestions$ = this.appDiscoveryService.radSearchSuggestions$;
     this.currentProjectTrackerSuggestions$ = this.appDiscoveryService.trackerSearchSuggestions$;
-
-    this.onlineAudienceExists$ = this.targetAudienceService.allAudiencesBS$.pipe(
-      filterArray(audience => audience.audienceSourceType === 'Online'),
-      map(audiences => audiences.length > 0 )
-    );
 
 
     // this maps the form control names to the equivalent usage metric name
@@ -101,7 +90,7 @@ export class CampaignDetailsComponent implements OnInit {
 
     if (currentProject != null) {
       this.validateSwitchAnalysisLevel(currentProject, newValues);
-      
+
     }
     this.previousForm = new ValDiscoveryUIModel({ ...newValues });
   }
@@ -139,41 +128,41 @@ export class CampaignDetailsComponent implements OnInit {
     if (oldAnalysislevel != null && oldAnalysislevel !== newValues.selectedAnalysisLevel){
         const header = 'Change Analysis Level Confirmation';
         //oldAnalysislevel = currentProject.projectId != null && oldAnalysislevel == null ? newValues.selectedAnalysisLevel : oldAnalysislevel;
-        const isMustCoverExists = this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0;
-        const isCustomTaExists = this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0;
-        const isCustomDataExixts = this.targetAudienceService.allAudiencesBS$.value.filter(aud => aud.audienceSourceType === 'Custom').length > 0;
-        if (!isMustCoverExists && !isCustomTaExists && !isCustomDataExixts){
+        const mustCoverExists = this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0;
+        const customTaExists = this.impGeofootprintTradeAreaService.get().filter(ta => ta.taType === 'CUSTOM').length > 0;
+        const customDataExists = false; //this.targetAudienceService.allAudiencesBS$.value.filter(aud => aud.audienceSourceType === 'Custom').length > 0;
+        if (!mustCoverExists && !customTaExists && !customDataExists){
           this.updateDiscoveryForm(newValues, currentProject);
         }
         else {
           let customType = '';
           const customTaGeos: ImpGeofootprintGeo[] = [];
-          if (isCustomTaExists){
-            customType = 'Custom Trade Area';  
+          if (customTaExists){
+            customType = 'Custom Trade Area';
             this.impGeofootprintTradeAreaService.get().forEach(ta => { if (ta.taType === 'CUSTOM') customTaGeos.push(...ta.impGeofootprintGeos); });
           }
-          if (isMustCoverExists)
-            customType = isCustomTaExists ? customType + '/Must Cover' : customType + 'Must Cover';
-          if (isCustomDataExixts)
-            customType = isMustCoverExists || isCustomTaExists ? customType + '/Custom Data' : customType + 'Custom Data';
-          
+          if (mustCoverExists)
+            customType = customTaExists ? customType + '/Must Cover' : customType + 'Must Cover';
+          if (customDataExists)
+            customType = mustCoverExists || customTaExists ? customType + '/Custom Data' : customType + 'Custom Data';
+
           const customMessage = `You have ${customType} geographies uploaded at a different analysis level which will be deleted upon changing levels. Do you want to continue?`;
-          
+
           this.confirmationService.confirm({
             header: header,
             message: customMessage,
             key: 'mustCoverKey',
             accept: () => {
-                if (isMustCoverExists)
+                if (mustCoverExists)
                   this.store$.dispatch(new DeleteMustCoverGeos({deleteMustCover: true}));
-                if (isCustomTaExists)  
+                if (customTaExists)
                   this.store$.dispatch(new DeleteCustomTAGeos({ deleteCustomTa: true }));
-                if (isCustomDataExixts)
-                  this.store$.dispatch(new DeleteCustomData({ deleteCustomData: true }));  
-                
+                if (customDataExists)
+                  this.store$.dispatch(new DeleteCustomData({ deleteCustomData: true }));
+
                 newValues.forceHomeGeos = true;
                 this.updateDiscoveryForm(newValues, currentProject);
-                this.store$.dispatch(new SuccessNotification({message: `All ${customType} geographies related to the previously selected Analysis Level have been deleted.`, 
+                this.store$.dispatch(new SuccessNotification({message: `All ${customType} geographies related to the previously selected Analysis Level have been deleted.`,
                                                               notificationTitle: 'Change Analysis Level Cleanup'}));
             },
             reject: () => {

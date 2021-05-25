@@ -1,6 +1,7 @@
 // tslint:disable:no-bitwise
 
-import { isConvertibleToNumber, isFunction, isNil, isNull, isUndefined } from './type-checks';
+import { Dictionary } from '@ngrx/entity';
+import { isConvertibleToNumber, isEmpty, isFunction, isNil, isNull, isUndefined } from './type-checks';
 
 /**
  * Splits an array into chunks of a maximum size
@@ -53,7 +54,7 @@ export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelec
  */
 export function groupByExtended<T, K, R>(items: T[] | ReadonlyArray<T>, keySelector: (item: T) => K, valueSelector?: (item: T, index: number) => R) : Map<K, (T | R)[]> {
   const result = new Map<K, (T | R)[]>();
-  if (items == null || items.length === 0) return result;
+  if (isEmpty(items)) return result;
   const tx: ((item: T, idx: number) => T | R) = valueSelector != null ? valueSelector : (i) => i;
   let idx = 0;
   for (const i of items) {
@@ -474,14 +475,14 @@ export function rgbToHex(color: number[], withAlpha: boolean = true) : string {
  * @param items
  */
 export function arrayToSet<T>(items: T[] | ReadonlyArray<T>) : Set<T>;
-export function arrayToSet<T>(items: T[] | ReadonlyArray<T>, filter?: (item: T) => boolean) : Set<T>;
+export function arrayToSet<T>(items: T[] | ReadonlyArray<T>, filter: (item: T) => boolean) : Set<T>;
+export function arrayToSet<T, R>(items: T[] | ReadonlyArray<T>, filter: (item: T) => boolean, valueSelector: (item: T) => R) : Set<R>;
 export function arrayToSet<T, R>(items: T[] | ReadonlyArray<T>, filter?: (item: T) => boolean, valueSelector?: (item: T) => R) : Set<T | R> {
-  if (isUndefined(items)) return undefined;
-  if (isNull(items)) return null;
   const result = new Set<T | R>();
+  if (isNil(items)) return result;
   const len = items.length;
-  const effectiveFilter = filter || (() => true);
-  const effectiveSelector = valueSelector || ((i) => i);
+  const effectiveFilter = filter ?? (() => true);
+  const effectiveSelector = valueSelector ?? ((i) => i);
   for (let i = 0; i < len; ++i) {
     const currentItem = items[i];
     if (effectiveFilter(currentItem)) result.add(effectiveSelector(currentItem));
@@ -496,4 +497,23 @@ export function arrayToSet<T, R>(items: T[] | ReadonlyArray<T>, filter?: (item: 
 export function toNullOrNumber(value: any) : number | null {
   if (!isNil(value) && isConvertibleToNumber(value)) return Number(value);
   return null;
+}
+
+export function mergeSets<T>(setA: Set<T>, setB: Set<T>) : Set<T> {
+  if (isNil(setA) || setA.size === 0) return setB;
+  if (isNil(setB) || setB.size === 0) return setA;
+  return new Set(function*() { yield* setA; yield* setB; }());
+}
+
+export function convertKeys<T>(data: Record<string, T>, processor: (key: string) => string) : Record<string, T>;
+export function convertKeys<T>(data: Record<string, T>, processor: (key: string) => number) : Record<number, T>;
+export function convertKeys<T>(data: Record<number, T>, processor: (key: number) => string) : Record<string, T>;
+export function convertKeys<T>(data: Record<number, T>, processor: (key: number) => number) : Record<number, T>;
+export function convertKeys<T>(data: Record<any, T>, processor: (key: keyof typeof data) => string | number) : Record<string | number, T> {
+  const result = {};
+  Object.entries(data).forEach(([key, value]) => {
+    const newKey = processor(key);
+    result[newKey] = value;
+  });
+  return result;
 }

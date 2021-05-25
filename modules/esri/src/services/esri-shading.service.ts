@@ -3,7 +3,8 @@ import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map, pairwise, startWith, take, tap, withLatestFrom } from 'rxjs/operators';
-import { EsriUtils } from '../core/esri-utils';
+import { EsriDomainFactory } from '../core/esri-domain.factory';
+import { isComplexRenderer, isFeatureLayer } from '../core/type-checks';
 import { FillSymbolDefinition } from '../models/common-configuration';
 import { ConfigurationTypes, RampProperties, ShadingDefinition } from '../models/shading-configuration';
 import { AppState } from '../state/esri.reducers';
@@ -20,7 +21,6 @@ import {
   upsertShadingDefinitions
 } from '../state/shading/esri.shading.actions';
 import { shadingSelectors } from '../state/shading/esri.shading.selectors';
-import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 
 const hideLegendHeaderTypes = new Set<ConfigurationTypes>([ConfigurationTypes.Simple, ConfigurationTypes.DotDensity]);
@@ -31,8 +31,7 @@ export class EsriShadingService {
   private layersInFlight = new Set<string>();
 
   constructor(private layerService: EsriLayerService,
-              private store$: Store<AppState>,
-              private domainFactory: EsriDomainFactoryService) {}
+              private store$: Store<AppState>) {}
 
   initializeShadingWatchers() : void {
     this.setupLayerCreationWatcher();
@@ -130,14 +129,14 @@ export class EsriShadingService {
   private updateLayerFilter(config: ShadingDefinition, newFeatureCsv: string) : void {
     const layer = this.layerService.getLayerByUniqueId(config.destinationLayerUniqueId);
     const query = newFeatureCsv.length > 0 ? `${config.filterField} IN (${newFeatureCsv})` : '1 = 0';
-    if (EsriUtils.layerIsFeature(layer)) {
+    if (isFeatureLayer(layer)) {
       layer.definitionExpression = query;
     }
   }
 
   private updateGeneralizedShadingLayer(config: ShadingDefinition, newFeatureCsv?: string) : void {
     const layer = this.layerService.getLayerByUniqueId(config.destinationLayerUniqueId);
-    if (EsriUtils.layerIsFeature(layer)) {
+    if (isFeatureLayer(layer)) {
       const props: Partial<__esri.FeatureLayer> = {
         renderer: this.createGeneralizedRenderer(config),
         visible: config.visible,
@@ -154,17 +153,14 @@ export class EsriShadingService {
         props.definitionExpression = null;
       }
       layer.when().then(() => {
-        const rendererIsComplex = EsriUtils.rendererIsNotSimple(props.renderer);
-        if (config.refreshLegendOnRedraw && rendererIsComplex) {
+        if (config.refreshLegendOnRedraw && isComplexRenderer(props.renderer)) {
           this.layerService.removeLayerFromLegend(config.destinationLayerUniqueId);
-          layer.set(props);
           setTimeout(() => {
             const layerName = hideLegendHeaderTypes.has(config.shadingType) ? null : config.layerName;
-            this.layerService.addLayerToLegend(config.destinationLayerUniqueId, layerName, !rendererIsComplex);
+            this.layerService.addLayerToLegend(config.destinationLayerUniqueId, layerName, false);
           }, 0);
-        } else {
-          layer.set(props);
         }
+        layer.set(props);
       });
     }
   }
@@ -209,7 +205,7 @@ export class EsriShadingService {
           symbol: this.createSymbolFromDefinition(d)
         }));
         classBreaks.reverse();
-        const breaksRenderer = this.domainFactory.createClassBreakRenderer(defaultSymbol, classBreaks);
+        const breaksRenderer = EsriDomainFactory.createClassBreakRenderer(defaultSymbol, classBreaks);
         breaksRenderer.valueExpression = config.arcadeExpression;
         return breaksRenderer;
       case ConfigurationTypes.DotDensity:
@@ -218,18 +214,18 @@ export class EsriShadingService {
           color: config.dotColor,
           label: config.layerName
         }];
-        const dotDensityRenderer = this.domainFactory.createDotDensityRenderer(defaultSymbol.outline, config.dotValue, dotAttributes);
+        const dotDensityRenderer = EsriDomainFactory.createDotDensityRenderer(defaultSymbol.outline, config.dotValue, dotAttributes);
         dotDensityRenderer.legendOptions = {
           unit: config.legendUnits
         };
         return dotDensityRenderer;
       case ConfigurationTypes.Simple:
-        const simpleResult = this.domainFactory.createSimpleRenderer(defaultSymbol);
+        const simpleResult = EsriDomainFactory.createSimpleRenderer(defaultSymbol);
         simpleResult.label = defaultLabel;
         return simpleResult;
       case ConfigurationTypes.Unique:
         const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.filter(b => !b.isHidden).map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
-        const result = this.domainFactory.createUniqueValueRenderer(defaultSymbol, uniqueValues);
+        const result = EsriDomainFactory.createUniqueValueRenderer(defaultSymbol, uniqueValues);
         result.defaultLabel = defaultLabel;
         result.valueExpression = config.arcadeExpression;
         return result;
@@ -241,7 +237,7 @@ export class EsriShadingService {
           valueExpression: config.arcadeExpression,
           stops
         };
-        return this.domainFactory.createSimpleRenderer(defaultSymbol, visVar);
+        return EsriDomainFactory.createSimpleRenderer(defaultSymbol, visVar);
       default:
         return null;
     }
@@ -249,8 +245,8 @@ export class EsriShadingService {
 
   private createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {
     const currentDef: FillSymbolDefinition = { fillColor: [0, 0, 0, 0], fillType: 'solid', outlineColor: [0, 0, 0, 0], outlineWidth: 1, ...(def || {}) };
-    const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor, currentDef.outlineWidth);
-    return this.domainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
+    const outline = EsriDomainFactory.createSimpleLineSymbol(currentDef.outlineColor, currentDef.outlineWidth);
+    return EsriDomainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
   }
 
   private deleteRenderingLayers(ids: string[]) {

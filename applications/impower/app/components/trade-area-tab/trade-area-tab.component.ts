@@ -1,24 +1,18 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { AppLoggingService } from 'app/services/app-logging.service';
+import { TradeAreaTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, takeUntil } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
-import { AppGeoService } from '../../services/app-geo.service';
-import { AppLocationService } from '../../services/app-location.service';
 import { AppProjectService } from '../../services/app-project.service';
 import { AppStateService } from '../../services/app-state.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
-import { TargetAudienceService } from '../../services/target-audience.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel } from './distance-trade-area/distance-trade-area-ui.model';
-import { TradeAreaTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
-import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 
 @Component({
   selector: 'val-trade-area-tab',
@@ -54,13 +48,7 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
   constructor(private stateService: AppStateService,
               private appProjectService: AppProjectService,
               private tradeAreaService: AppTradeAreaService,
-              private appLocationService: AppLocationService,
               private config: AppConfig,
-              private targetAudienceService: TargetAudienceService,
-              private locationService: ImpGeofootprintLocationService,
-              private appGeoService: AppGeoService,
-              private geoService: ImpGeofootprintGeoService,
-              private logger: AppLoggingService,
               private impTradeAreaService: ImpGeofootprintTradeAreaService,
               private store$: Store<LocalAppState>) { }
 
@@ -110,7 +98,7 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
     const currentTradeAreas = this.impTradeAreaService.get()
       .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
                     tradeAreaFilter.has(TradeAreaTypeCodes.parse(ta.taType)));
-    this.tradeAreaService.deleteTradeAreas(currentTradeAreas);                
+    this.tradeAreaService.deleteTradeAreas(currentTradeAreas);
   }
 
   private applyTradeAreaChanges(newModel: DistanceTradeAreaUiModel, siteType: SuccessfulLocationTypeCodes) : void {

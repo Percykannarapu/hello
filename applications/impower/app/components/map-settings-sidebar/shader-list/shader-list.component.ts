@@ -5,13 +5,13 @@ import { SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
-import { GetAllMappedVariables } from '../../../impower-datastore/state/transient/transient.actions';
 import { OfflineAudienceDefinition } from '../../../models/audience-categories.model';
+import { createOfflineAudienceInstance } from '../../../models/audience-factories';
 import { GfpShaderKeys } from '../../../models/ui-enums';
 import { AppLocationService } from '../../../services/app-location.service';
 import { AppRendererService } from '../../../services/app-renderer.service';
-import { TargetAudienceTdaService } from '../../../services/target-audience-tda.service';
 import { UnifiedAudienceDefinitionService } from '../../../services/unified-audience-definition.service';
+import { UnifiedAudienceService } from '../../../services/unified-audience.service';
 import { FullAppState } from '../../../state/app.interfaces';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -42,10 +42,10 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   constructor(private locationService: AppLocationService,
               private appRenderService: AppRendererService,
               private esriShaderService: EsriShadingService,
-              private tdaService: TargetAudienceTdaService,
-              private definitionService: UnifiedAudienceDefinitionService,
+              private logger: LoggingService,
               private store$: Store<FullAppState>,
-              private logger: LoggingService) { }
+              private definitionService: UnifiedAudienceDefinitionService,
+              private audienceService: UnifiedAudienceService) { }
 
   ngOnInit() : void {
     this.siteLabels$ = this.locationService.siteLabelOptions$;
@@ -74,8 +74,9 @@ export class ShaderListComponent implements OnInit, OnDestroy {
   addNewShader({ dataKey, layerName }: { dataKey: string, layerName?: string }) {
     this.definitionService.getRawTdaDefinition(dataKey).pipe(
       filter(data => data != null),
-      map(data => new OfflineAudienceDefinition(data))
-    ).subscribe(audience => this.tdaService.addAudience(audience, false));
+      map(data => new OfflineAudienceDefinition(data)),
+      map(aud => createOfflineAudienceInstance(aud.displayName, aud.identifier, aud.fieldconte, false))
+    ).subscribe(audience => this.audienceService.addAudience(audience));
     const newShader = this.appRenderService.createNewShader(dataKey, layerName) as ShadingDefinition;
     newShader.sortOrder = Math.max(...this.shadingDefinitions.map(s => s.sortOrder), this.shadingDefinitions.length) + 1;
     this.esriShaderService.addShader(newShader);
@@ -102,10 +103,6 @@ export class ShaderListComponent implements OnInit, OnDestroy {
     }
     this.logger.debug.log('Applying Definition changes. New values:', newDef);
     this.esriShaderService.upsertShader(newDef);
-    setTimeout(() => {
-      const additionalGeos = this.geos.map(g => g.geocode);
-      this.store$.dispatch(new GetAllMappedVariables({ analysisLevel: this.currentAnalysisLevel, additionalGeos }));
-    }, 1000);
   }
 
   onCustomAudienceSelected(selected: boolean, definition: ShadingDefinition) : void {

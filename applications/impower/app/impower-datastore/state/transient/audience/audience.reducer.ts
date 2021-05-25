@@ -1,23 +1,11 @@
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
+import { TypedAction } from '@ngrx/store/src/models';
+import { clearTransientDataActionType } from '../transient.actions';
 import { AudienceActions, AudienceActionTypes } from './audience.actions';
 import { Audience } from './audience.model';
 
-export interface Stats {
-  fetchTimes: any;
-  counts: any;
-  totalGeoVars: number;
-  totalMapVars: number;
-  totalGeoVarTime: string;
-  totalMapVarTime: string;
-  totalAudTATime: string;
-}
-
 export interface State extends EntityState<Audience> {
-  scratch: {
-    outstandingVarFetches: number;
-  };
-  stats: Stats;
-  mapIsFetching: boolean;
+  ids: string[];
 }
 
 function sortBySeq(e1: Audience, e2: Audience) {
@@ -29,29 +17,28 @@ export const adapter: EntityAdapter<Audience> = createEntityAdapter<Audience>({
   sortComparer: sortBySeq
 });
 
-export const initialStatState = {
-  fetchTimes: {},
-  counts: {},
-  totalGeoVars: 0,
-  totalMapVars: 0,
-  totalGeoVarTime: '',
-  totalMapVarTime: '',
-  totalAudTATime: ''
-};
+export const initialState: State = adapter.getInitialState() as State;
 
-export const initialState: State = adapter.getInitialState({
-  scratch: {
-    outstandingVarFetches: 0,
-  },
-  stats: { ...initialStatState, fetchTimes: {}, counts: {} },
-  mapIsFetching: false
-});
+function swapAudiencePositions(state: State, audienceId: string, swapOffset: number) : State {
+  const currentPosition = state.ids.indexOf(audienceId);
+  const newPosition = currentPosition + swapOffset;
+  if (newPosition < 0 || newPosition >= state.ids.length) {
+    return state;
+  } else {
+    const neighborId = state.ids[newPosition];
+    return adapter.updateMany([
+      { id: audienceId, changes: { sortOrder: newPosition }},
+      { id: neighborId, changes: { sortOrder: currentPosition }}
+    ], state);
+  }
+}
 
-export function reducer(
-  state = initialState,
-  action: AudienceActions
-) : State {
+export function reducer(state = initialState, action: AudienceActions | TypedAction<typeof clearTransientDataActionType>) : State {
   switch (action.type) {
+    case AudienceActionTypes.MoveAudienceUp:
+      return swapAudiencePositions(state, action.payload.audienceIdentifier, -1);
+    case AudienceActionTypes.MoveAudienceDn:
+      return swapAudiencePositions(state, action.payload.audienceIdentifier, 1);
     case AudienceActionTypes.AddAudience: {
       return adapter.addOne(action.payload.audience, state);
     }
@@ -88,36 +75,9 @@ export function reducer(
       return adapter.setAll(action.payload.audiences, state);
     }
 
+    case clearTransientDataActionType:
     case AudienceActionTypes.ClearAudiences: {
       return adapter.removeAll(state);
-    }
-
-    // case AudienceActionTypes.ApplyAudiencesRecordStart: {
-    //   return {...state, scratch: {...state.scratch, applyAudiencesStart: performance.now()}};
-    // }
-
-    case AudienceActionTypes.ApplyAudiencesRecordStats: {
-      return {...state, stats: action.payload.stats};
-    }
-
-    case AudienceActionTypes.ClearAudienceStats: {
-      return { ...state, stats: { ...initialStatState, fetchTimes: {}, counts: {} } };
-    }
-
-    case AudienceActionTypes.FetchCountIncrement: {
-      return {...state, scratch: {...state.scratch, outstandingVarFetches: state.scratch.outstandingVarFetches + 1}};
-    }
-
-    case AudienceActionTypes.FetchCountDecrement: {
-      return {...state, scratch: {...state.scratch, outstandingVarFetches: (state.scratch.outstandingVarFetches > 0) ? state.scratch.outstandingVarFetches - 1 : 0}};
-    }
-
-    case AudienceActionTypes.FetchMapVar: {
-      return { ...state, mapIsFetching: true };
-    }
-
-    case AudienceActionTypes.FetchMapVarCompleted : {
-      return { ...state, mapIsFetching: false };
     }
 
     default: {

@@ -73,7 +73,7 @@ export class EsriQueryService {
       next: null
     };
     if (featureSet.exceededTransferLimit) {
-      const nextQuery = EsriUtils.clone(query);
+      const nextQuery = query.clone();
       nextQuery.num = featureSet.features.length;
       nextQuery.start = (query.start || 0) + featureSet.features.length;
       result.next = nextQuery;

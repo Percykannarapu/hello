@@ -34,8 +34,8 @@ export function isNotNil<T>(value: null | undefined | T) : value is T {
   return !isNull(value) && !isUndefined(value);
 }
 
-export function isEmpty(value: any) : value is (null | undefined | '') {
-  return isNil(value) || (isString(value) && value.trim().length === 0);
+export function isEmpty(value: any) : value is (null | undefined | '' | []) {
+  return isNil(value) || (isString(value) && value.trim().length === 0) || (isArray(value) && value.length === 0);
 }
 
 export function isNumber(value: any) : value is number {

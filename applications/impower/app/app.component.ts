@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EsriMapService } from '@val/esri';
 import { BehaviorSubject } from 'rxjs';
 import { AppConfig } from './app.config';
+import { geoTransactionId, mapTransactionId } from './impower-datastore/state/transient/transactions/transactions.reducer';
 import { AuthService } from './services/auth.service';
 import { FullAppState } from './state/app.interfaces';
 
@@ -18,27 +18,30 @@ export class AppComponent implements OnInit {
 
   constructor(private store$: Store<FullAppState>,
               private config: AppConfig,
-              private authService: AuthService,
-              private mapService: EsriMapService) {
+              private authService: AuthService) {
   }
 
-  // @HostListener('window:beforeunload')
-  // cleanupTransactions() {
-  //   const geoId = this.geoTransaction$.getValue();
-  //   const mapId = this.mapTransaction$.getValue();
-  //   const authValue = this.authService.getAuthorizationHeaderValue();
-  //   const deleteUrl = this.config.valServiceBase + this.config.serviceUrlFragments.deleteGeoCacheUrl;
-  //
-  //   if (geoId != null) {
-  //     fetch(deleteUrl + geoId, { method: 'DELETE', keepalive: true, headers: { Authorization: authValue } });
-  //   }
-  //   if (mapId != null) {
-  //     fetch(deleteUrl + mapId, { method: 'DELETE', keepalive: true, headers: { Authorization: authValue } });
-  //   }
-  // }
+  @HostListener('window:beforeunload', ['$event'])
+  cleanupTransactions(e: BeforeUnloadEvent) {
+    const geoId = this.geoTransaction$.getValue();
+    const mapId = this.mapTransaction$.getValue();
+    const authValue = this.authService.getAuthorizationHeaderValue();
+    const deleteUrl = this.config.valServiceBase + this.config.serviceUrlFragments.deleteGeoCacheUrl;
+    const fetchParams = { method: 'DELETE', keepalive: true, headers: { Authorization: authValue } };
+
+    if (geoId != null) {
+      fetch(deleteUrl + geoId, fetchParams).catch(console.error);
+    }
+    if (mapId != null) {
+      fetch(deleteUrl + mapId, fetchParams).catch(console.error);
+    }
+    // this is needed so the web browser doesn't bother the user with the "Are you sure you want to leave?" prompt
+    // see https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers/onbeforeunload#example
+    delete e.returnValue;
+  }
 
   public ngOnInit() : void {
-    // this.store$.select(getMapTransactionId).subscribe(this.mapTransaction$);
-    // this.store$.select(getGeoTransactionId).subscribe(this.geoTransaction$);
+    this.store$.select(mapTransactionId).subscribe(this.mapTransaction$);
+    this.store$.select(geoTransactionId).subscribe(this.geoTransaction$);
   }
 }

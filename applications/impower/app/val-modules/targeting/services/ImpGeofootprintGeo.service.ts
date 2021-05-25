@@ -17,11 +17,11 @@ import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
 
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
+import { getAudiencesInFootprint } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
-import * as fromGeoVarSelectors from 'app/impower-datastore/state/transient/geo-vars/geo-vars.selectors';
+import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
 import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
 
 import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
@@ -39,7 +39,6 @@ import { TransactionManager } from '../../common/services/TransactionManager.ser
 
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
-import { ImpGeofootprintVar } from '../models/ImpGeofootprintVar';
 
 interface CustomMCDefinition {
   Number: number;
@@ -74,14 +73,12 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    // this is intended to be a cache of the attributes and geos used for the geofootprint export
    private attributeCache: { [geocode: string] : GeoAttribute } = {};
-   private varCache: Map<string, ImpGeofootprintVar[]> = new Map<string, ImpGeofootprintVar[]>();
-
    public  currentMustCoverFileName: string;
    public  mustCovers: string[] = [];
    public  allMustCoverBS$ = new BehaviorSubject<string[]>([]);
    private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
    private exportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
-   private geoVarsBS$ = new BehaviorSubject<Dictionary<GeoVar>>({});
+   private geoVarsBS$ = new BehaviorSubject<Dictionary<DynamicVariable>>({});
    private uploadFailuresSub: BehaviorSubject<CustomMCDefinition[]> = new BehaviorSubject<CustomMCDefinition[]>([]);
    public uploadFailuresObs$: Observable<CustomMCDefinition[]> = this.uploadFailuresSub.asObservable();
    public uploadFailures: CustomMCDefinition[] = [];
@@ -100,7 +97,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.store$.pipe(select(selectGeoAttributeEntities)).subscribe(attributes => this.attributeCache = attributes);
       this.store$.select(fromAudienceSelectors.allAudiences).subscribe(this.allAudiencesBS$);
       this.store$.select(fromAudienceSelectors.getAudiencesInFootprint).subscribe(this.exportAudiencesBS$);
-      this.store$.select(fromGeoVarSelectors.getGeoVarEntities).subscribe(this.geoVarsBS$);
     }
 
    load(items: ImpGeofootprintGeo[]) : void {
@@ -177,7 +173,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          // Prune out just the deletes and unchanged from the parents and children
          removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
 
-         return Observable.create(observer => {
+         return new Observable(observer => {
             this.postDBRemoves('Targeting', 'ImpGeofootprintGeo', 'v1', removesPayload)
                 .subscribe(postResultCode => {
                      this.logger.debug.log('post completed, calling completeDBRemoves');
@@ -347,11 +343,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       return (p1.geocode !== p2.geocode);
    }
 
-   public pl(msg) {
-      this.logger.debug.log(msg);
-      return msg;
-   }
-
    public invokePartitionBy(arr, index)
    {
       if (index >= arr.length - 1)
@@ -401,7 +392,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       let varValue: any;
       const truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
-      varValue = (geo != null && geo.impGeofootprintLocation != null)
+      varValue = (geo?.impGeofootprintLocation != null)
                   ? '"' + geo.impGeofootprintLocation.locAddress + ', ' +
                           geo.impGeofootprintLocation.locCity    + ', ' +
                           geo.impGeofootprintLocation.locState   + ' ' +
@@ -458,7 +449,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
   public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, audience: Audience, header: string) {
     let result = '';
-    const locNum = geo.impGeofootprintLocation.locationNumber;
     const currentAttribute = state.attributeCache[geo.geocode];
     if (currentAttribute != null) {
       const value = currentAttribute[header];
@@ -466,8 +456,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
         return value.toString();
       }
     }
-
-    const exportAudiences = state.exportAudiencesBS$.getValue();
 
     if (audience != null) {
       const geoVar = state.geoVarsBS$.value[geo.geocode];
@@ -491,11 +479,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
               break;
           }
         }
-        else if (geoVar[`${locNum}:${audience.audienceIdentifier}`] != null){
-          result = geoVar[`${locNum}:${audience.audienceIdentifier}`].toString();
-        }
-        else
-          result = '';
       }
     }
 
@@ -521,7 +504,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // EXPORT METHODS
    // -----------------------------------------------------------
-   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, analysisLevel: string, filter?: (geo: ImpGeofootprintGeo) => boolean)
+   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, analysisLevel: string, geoVars: Dictionary<DynamicVariable>, filter?: (geo: ImpGeofootprintGeo) => boolean)
    {
       this.analysisLevelForExport = analysisLevel;
       this.logger.debug.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
@@ -537,6 +520,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
       const exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = this.getExportFormat (exportFormat);
 
+      this.geoVarsBS$.next(geoVars);
       this.addAdditionalExportColumns(exportColumns, 17);
 
       if (filename == null)

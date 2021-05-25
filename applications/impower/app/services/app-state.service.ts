@@ -1,16 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray, isConvertibleToNumber, mapArrayToEntity } from '@val/common';
+import { filterArray, isConvertibleToNumber } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, startWith, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import * as ValSort from '../common/valassis-sorters';
-import { ApplyAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
-import { RequestAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
-import { ClearGeoVars } from '../impower-datastore/state/transient/geo-vars/geo-vars.actions';
+import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { ChangeAnalysisLevel } from '../state/app.actions';
 import { FullAppState } from '../state/app.interfaces';
 import { layersAreReady, projectIsReady } from '../state/data-shim/data-shim.selectors';
@@ -86,8 +83,6 @@ export class AppStateService {
   private hasCompetitorProvidedTradeAreas = new BehaviorSubject<boolean>(false);
   public hasCompetitorProvidedTradeAreas$: CachedObservable<boolean> = this.hasCompetitorProvidedTradeAreas;
 
-  public projectVarsDict$: CachedObservable<any> = new BehaviorSubject<any>(null);
-
   private getVisibleGeos$ = new Subject<void>();
 
   private isCollapsed = new BehaviorSubject<boolean>(false);
@@ -98,7 +93,6 @@ export class AppStateService {
               private locationService: ImpGeofootprintLocationService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
               private geoService: ImpGeofootprintGeoService,
-              private projectVarService: ImpProjectVarService,
               private esriMapService: EsriMapService,
               private esriLayerService: EsriLayerService,
               private esriQueryService: EsriQueryService,
@@ -114,7 +108,6 @@ export class AppStateService {
       this.setupApplicationReadyObservable();
       this.setupProjectObservables();
       this.setupProvidedTaObservables();
-      this.setupProjectVarObservables();
     });
   }
 
@@ -278,9 +271,7 @@ export class AppStateService {
       }),
       filter(newGeos => newGeos.size > 0),
     ).subscribe(geoSet => {
-      this.store$.dispatch(new RequestAttributes({ geocodes: geoSet }));
-      this.store$.dispatch(new ClearGeoVars());
-      this.store$.dispatch(new ApplyAudiences({analysisLevel: this.analysisLevel$.getValue()}));
+      this.store$.dispatch(new GetLayerAttributes({ geocodes: geoSet }));
     });
   }
 
@@ -317,13 +308,6 @@ export class AppStateService {
       filterArray(loc => isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3)),
       map(locs => locs.length > 0)
     ).subscribe(flag => this.hasCompetitorProvidedTradeAreas.next(flag));
-  }
-
-  private setupProjectVarObservables() : void {
-    this.projectVarService.storeObservable.pipe(
-      filterArray(pvar => pvar.isActive),
-      map(pvars => mapArrayToEntity(pvars,  pvar => pvar.varPk)),
-    ).subscribe(this.projectVarsDict$ as BehaviorSubject<any>);
   }
 
   getCollapseObservable() {

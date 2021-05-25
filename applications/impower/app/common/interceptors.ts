@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppConfig } from '../app.config';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { ReducerManager } from '@ngrx/store';
 
 @Injectable()
 export class ContentInterceptor implements HttpInterceptor {

@@ -1,3 +1,5 @@
+import { isString } from '@val/common';
+
 type identifierType = string | RegExp | ((header: string) => boolean);
 
 export interface ParseRule {
@@ -104,8 +106,8 @@ export class FileService {
         }
       }
     }
-    if (!parser.fileValidator(result.parsedData)) { 
-      // for ( let i = 0 ; i < dataRows.length; i++) 
+    if (!parser.fileValidator(result.parsedData)) {
+      // for ( let i = 0 ; i < dataRows.length; i++)
       //     result.failedRows.push(dataRows[i]);
       // result.failedRows.push(null);
       return null;
@@ -187,5 +189,20 @@ export class FileService {
       return matchFunc(parser.headerIdentifier);
     }
     return false;
+  }
+
+  public static downloadFile(filename: string, data: string | string[]) {
+    const dataString: string = isString(data) ? data : data.join('\n');
+    const blob = new Blob(['\ufeff', dataString]);
+    const url = URL.createObjectURL(blob);
+    // create and auto-click a link that downloads the CSV file
+    const element = window.document.createElement('a');
+    document.body.appendChild(element);
+    element.style.cssText = 'display: none';
+    element['download'] = filename;
+    element.target = '_blank';
+    element.href = url;
+    element.click();
+    element.remove();
   }
 }

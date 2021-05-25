@@ -2,13 +2,16 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { ResetMapState } from '@val/esri';
-import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import { RehydrateAfterLoad } from 'app/impower-datastore/state/transient/transient.actions';
-import { AppTradeAreaService } from 'app/services/app-trade-area.service';
 import { of } from 'rxjs';
 import { catchError, concatMap, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
-import { GeoAttributeActionTypes, ProcessGeoAttributes, RehydrateAttributesComplete, RequestAttributesComplete } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import {
+  GeoAttributeActionTypes,
+  GetLayerAttributesComplete,
+  ProcessGeoAttributes
+} from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
+import { selectGeoAttributeEntities } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { AppDataShimService } from '../../services/app-data-shim.service';
+import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { FullAppState } from '../app.interfaces';
 import { getBatchMode } from '../batch-map/batch-map.selectors';
 import {
@@ -28,6 +31,7 @@ import {
   RollDownGeosComplete,
   TradeAreaRollDownGeos
 } from './data-shim.actions';
+import { projectIsLoaded } from './data-shim.selectors';
 
 @Injectable({ providedIn: 'root' })
 export class DataShimEffects {
@@ -50,7 +54,6 @@ export class DataShimEffects {
     switchMap(() => this.appDataShimService.save().pipe(
       tap(projectId => this.appDataShimService.updateProjectWithId(projectId)),
       concatMap(projectId => [
-        new ProcessGeoAttributes({ applyFilters: false }),
         new ProjectSaveSuccess({ projectId })
       ]),
       catchError(err => of(new ProjectSaveFailure({ err })))
@@ -73,8 +76,7 @@ export class DataShimEffects {
   projectLoad$ = this.actions$.pipe(
     ofType<ProjectLoad>(DataShimActionTypes.ProjectLoad),
     switchMap(action => this.appDataShimService.load(action.payload.projectId).pipe(
-      withLatestFrom(this.appDataShimService.currentGeocodeSet$),
-      map(([analysisLevel, geocodes]) => new RehydrateAfterLoad({ ...action.payload, geocodes, analysisLevel })),
+      map(() => new ProjectLoadSuccess({ projectId: action.payload.projectId })),
       catchError(err => of(new ProjectLoadFailure({ err }))),
     )),
   );
@@ -94,25 +96,17 @@ export class DataShimEffects {
 
   @Effect()
   requestSuccess$ = this.actions$.pipe(
-    ofType<RequestAttributesComplete>(GeoAttributeActionTypes.RequestAttributesComplete),
-    map(() => new ProcessGeoAttributes({ prepGeos: true, applyFilters: true }))
-  );
-
-  @Effect()
-  rehydrateSuccess$ = this.actions$.pipe(
-    ofType<RehydrateAttributesComplete>(GeoAttributeActionTypes.RehydrateAttributesComplete),
-    concatMap(action => [new ProcessGeoAttributes({ prepGeos: true }), new ProjectLoadSuccess(action.payload)])
+    ofType<GetLayerAttributesComplete>(GeoAttributeActionTypes.GetLayerAttributesComplete),
+    map(() => new ProcessGeoAttributes())
   );
 
   @Effect()
   processGeoAttributes$ = this.actions$.pipe(
     ofType<ProcessGeoAttributes>(GeoAttributeActionTypes.ProcessGeoAttributes),
-    withLatestFrom(this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
-    tap(([action, attrs, geos, project]) => {
-      if (action.payload.prepGeos === true) {
-        this.appDataShimService.prepGeoFields(geos, attrs, project);
-      }
-      if (action.payload.applyFilters === true) {
+    withLatestFrom(this.store$.pipe(select(projectIsLoaded)), this.store$.pipe(select(selectGeoAttributeEntities)), this.appDataShimService.currentGeos$, this.appDataShimService.currentProject$),
+    tap(([, isLoaded, attrs, geos, project]) => {
+      this.appDataShimService.prepGeoFields(geos, attrs, project);
+      if (isLoaded) {
         this.appDataShimService.filterGeos(geos, attrs, project);
       }
     }),
@@ -125,12 +119,6 @@ export class DataShimEffects {
     withLatestFrom(this.store$.select(getBatchMode)),
     tap(([, isBatch]) => this.appDataShimService.onLoadSuccess(isBatch)),
     map(() => new ProjectLoadFinish())
-  );
-
-  @Effect({ dispatch: false })
-  ProjectLoadFinish$ = this.actions$.pipe(
-    ofType(DataShimActionTypes.ProjectLoadFinish),
-    tap(() => this.appDataShimService.onLoadFinished())
   );
 
   filterableGeos$ = this.appDataShimService.currentGeos$.pipe(

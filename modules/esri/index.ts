@@ -20,7 +20,7 @@ export * from './src/models/boundary-configuration';
 export * from './src/models/esri-types';
 export * from './src/models/esri-sort';
 
-export * from './src/services/esri-domain-factory.service';
+export * from './src/core/esri-domain.factory';
 export * from './src/services/esri-geoprocessor.service';
 export * from './src/services/esri-layer.service';
 export * from './src/services/esri-map.service';

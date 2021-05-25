@@ -63,7 +63,6 @@ export function dataShimReducer(state = initialState, action: DataShimActions) :
         projectIsLoading: false,
       };
     case DataShimActionTypes.ProjectCreateNewComplete:
-    //case DataShimActionTypes.ProjectLoadSuccess:
     case DataShimActionTypes.ProjectLoadFinish:
       return {
         ...state,
@@ -90,7 +89,7 @@ export function dataShimReducer(state = initialState, action: DataShimActions) :
         ...state,
         deleteCustomTa: false,
         deleteMustCover: false,
-      };        
+      };
     default:
       return state;
   }

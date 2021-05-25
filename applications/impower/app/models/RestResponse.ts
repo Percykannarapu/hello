@@ -1,5 +1,5 @@
-export interface RestResponse {
-    payload:    any;
-    exception:  string;
+export interface RestResponse<T = any> {
+    payload: T;
+    exception: string;
     returnCode: number;
 }

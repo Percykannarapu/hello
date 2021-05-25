@@ -1,6 +1,8 @@
-import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
-import { GeoAttribute } from './geo-attributes.model';
+import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
+import { TypedAction } from '@ngrx/store/src/models';
+import { clearTransientDataActionType } from '../transient.actions';
 import { GeoAttributeActions, GeoAttributeActionTypes } from './geo-attributes.actions';
+import { GeoAttribute } from './geo-attributes.model';
 
 export interface State extends EntityState<GeoAttribute> {
   // additional entities state properties
@@ -15,7 +17,7 @@ export const initialState: State = adapter.getInitialState({
   // additional entity state properties
 });
 
-export function reducer(state = initialState, action: GeoAttributeActions) : State {
+export function reducer(state = initialState, action: GeoAttributeActions | TypedAction<typeof clearTransientDataActionType>) : State {
   switch (action.type) {
     case GeoAttributeActionTypes.AddGeoAttribute: {
       return adapter.addOne(action.payload.geoAttribute, state);
@@ -29,6 +31,7 @@ export function reducer(state = initialState, action: GeoAttributeActions) : Sta
       return adapter.addMany(action.payload.geoAttributes, state);
     }
 
+    case GeoAttributeActionTypes.GetLayerAttributesComplete:
     case GeoAttributeActionTypes.UpsertGeoAttributes: {
       return adapter.upsertMany(action.payload.geoAttributes, state);
     }
@@ -53,6 +56,7 @@ export function reducer(state = initialState, action: GeoAttributeActions) : Sta
       return adapter.setAll(action.payload.geoAttributes, state);
     }
 
+    case clearTransientDataActionType:
     case GeoAttributeActionTypes.ClearGeoAttributes: {
       return adapter.removeAll(state);
     }

@@ -14,10 +14,11 @@ import { calculateStatistics, expandRange, Statistics, UniversalCoordinates } fr
 import { BehaviorSubject, combineLatest, from, Observable, of, throwError } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken, esriZoomLocalStorageKey } from '../configuration';
+import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { EsriUtils, WatchResult } from '../core/esri-utils';
+import { isPolygon } from '../core/type-checks';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
-import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { LoggingService } from './logging.service';
 
 function calculateExpandedStats(xData: number[], yData: number[], expansionAmount: number) : [Statistics, Statistics] {
@@ -37,8 +38,7 @@ export class EsriMapService {
   public mapView: __esri.MapView;
   public widgetMap: Map<string, __esri.Widget> = new Map<string, __esri.Widget>();
 
-  constructor(private domainService: EsriDomainFactoryService,
-              private logger: LoggingService,
+  constructor(private logger: LoggingService,
               private store$: Store<AppState>,
               @Inject(EsriAppSettingsToken) private config: EsriAppSettings) {}
 
@@ -82,13 +82,13 @@ export class EsriMapService {
 
   zoomToPolys(polys: __esri.Graphic[], bufferPercent: number = 0.1) : Observable<void> {
     const xData = polys.reduce((p, c) => {
-      if (EsriUtils.geometryIsPolygon(c.geometry)) {
+      if (isPolygon(c.geometry)) {
         p.push(c.geometry.extent.xmax, c.geometry.extent.xmin);
       }
       return p;
     }, [] as number[]);
     const yData = polys.reduce((p, c) => {
-      if (EsriUtils.geometryIsPolygon(c.geometry)) {
+      if (isPolygon(c.geometry)) {
         p.push(c.geometry.extent.ymax, c.geometry.extent.ymin);
       }
       return p;
@@ -121,7 +121,7 @@ export class EsriMapService {
           zoom: 11
         };
       } else {
-        const polyExtent = this.domainService.createExtent(xStats, yStats);
+        const polyExtent = EsriDomainFactory.createExtent(xStats, yStats);
         target = Polygon.fromExtent(polyExtent);
       }
       return from(this.mapView.goTo(target, options));

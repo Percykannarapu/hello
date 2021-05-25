@@ -8,7 +8,7 @@ import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import SimpleLineSymbol from '@arcgis/core/symbols/SimpleLineSymbol';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import { groupByExtended } from '@val/common';
-import { EsriDomainFactoryService, EsriLayerService, MapSymbols } from '@val/esri';
+import { EsriDomainFactory, EsriLayerService, MapSymbols } from '@val/esri';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
 
@@ -17,8 +17,7 @@ import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEdit
 })
 export class AppSiteService {
 
-  constructor(private layerService: EsriLayerService,
-              private esriFactory: EsriDomainFactoryService) { }
+  constructor(private layerService: EsriLayerService) { }
 
   createSiteFeatureLayer(edits: RfpUiEdit[], details: RfpUiEditDetail[], radius: number, groupName: string, layerName: string) : void {
     const siteGraphics = this.createSiteGraphics(edits, details, radius);
@@ -33,7 +32,7 @@ export class AppSiteService {
         })
       })
     });
-    const label = this.esriFactory.createLabelClass(new Color([0, 0, 255, 1]), '$feature.siteName');
+    const label = EsriDomainFactory.createLabelClass(new Color([0, 0, 255, 1]), '$feature.siteName');
     this.layerService.createClientLayer(groupName, layerName, siteGraphics, 'OBJECTID', renderer, null, [label], true);
   }
 

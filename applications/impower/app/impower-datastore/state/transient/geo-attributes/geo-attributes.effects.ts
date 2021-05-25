@@ -4,19 +4,15 @@ import { select, Store } from '@ngrx/store';
 import { selectors } from '@val/esri';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { of } from 'rxjs';
-import { catchError, concatMap, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { FullAppState } from '../../../../state/app.interfaces';
 import { FeatureLoaderService } from '../../../services/feature-loader.service';
 import {
   GeoAttributeActions,
   GeoAttributeActionTypes,
-  RehydrateAttributes,
-  RehydrateAttributesComplete,
-  RehydrateAttributesFailure,
-  RequestAttributeFailure,
-  RequestAttributes,
-  RequestAttributesComplete,
-  UpsertGeoAttributes
+  GetLayerAttributes,
+  GetLayerAttributesComplete,
+  GetLayerAttributesFailure
 } from './geo-attributes.actions';
 
 const boundaryAttributes = ['cl2i00', 'cl0c00', 'cl2prh', 'tap049', 'hhld_w', 'hhld_s', 'num_ip_addrs', 'geocode', 'pob', 'owner_group_primary', 'cov_frequency', 'dma_name', 'cov_desc', 'city_name'];
@@ -26,29 +22,17 @@ export class GeoAttributesEffects {
 
   @Effect()
   requestAttributes$ = this.actions$.pipe(
-    ofType<RequestAttributes>(GeoAttributeActionTypes.RequestAttributes),
+    ofType<GetLayerAttributes>(GeoAttributeActionTypes.GetLayerAttributes),
     withLatestFrom(this.store$.pipe(select(selectors.getEsriSelectedLayer))),
     switchMap(([action, layerId]) => this.featureLoaderService.loadAttributesFromFeatures(layerId, action.payload.geocodes, boundaryAttributes).pipe(
-      concatMap(results => [new UpsertGeoAttributes({ geoAttributes: results }),
-                                   new RequestAttributesComplete()]),
-      catchError(err => of(new RequestAttributeFailure({ err })))
-    ))
-  );
-
-  @Effect()
-  rehydrateAttributes$ = this.actions$.pipe(
-    ofType<RehydrateAttributes>(GeoAttributeActionTypes.RehydrateAttributes),
-    withLatestFrom(this.store$.pipe(select(selectors.getEsriSelectedLayer))),
-    switchMap(([action, layerId]) => this.featureLoaderService.loadAttributesFromFeatures(layerId, action.payload.geocodes, boundaryAttributes).pipe(
-      concatMap(results => [new UpsertGeoAttributes({ geoAttributes: results }),
-                                   new RehydrateAttributesComplete({ projectId: action.payload.projectId })]),
-      catchError(err => of(new RehydrateAttributesFailure({ err })))
+      map(results => new GetLayerAttributesComplete({ geoAttributes: results })),
+      catchError(err => of(new GetLayerAttributesFailure({ err })))
     ))
   );
 
   @Effect()
   excessiveAttributeBusy$ = this.actions$.pipe(
-    ofType<RequestAttributes | RehydrateAttributes>(GeoAttributeActionTypes.RequestAttributes, GeoAttributeActionTypes.RehydrateAttributes),
+    ofType<GetLayerAttributes>(GeoAttributeActionTypes.GetLayerAttributes),
     map(action => action.payload.geocodes.size),
     filter(size => size > 2000),
     map(size => new StartBusyIndicator({ key: this.busyKey, message: `Retrieving HH Counts for ${size.toLocaleString()} geos`}))
@@ -56,8 +40,7 @@ export class GeoAttributesEffects {
 
   @Effect()
   excessiveAttributeStop$ = this.actions$.pipe(
-    ofType(GeoAttributeActionTypes.RequestAttributesComplete, GeoAttributeActionTypes.RequestAttributesFailure,
-           GeoAttributeActionTypes.RehydrateAttributesComplete, GeoAttributeActionTypes.RehydrateAttributesFailure),
+    ofType(GeoAttributeActionTypes.GetLayerAttributesComplete, GeoAttributeActionTypes.GetLayerAttributesFailure),
     map(() => new StopBusyIndicator({ key: this.busyKey }))
   );
 

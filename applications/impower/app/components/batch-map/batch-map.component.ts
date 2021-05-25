@@ -6,7 +6,6 @@ import { combineLatest, Observable, Subject } from 'rxjs';
 import { debounceTime, filter, map, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import * as StackTrace from 'stacktrace-js';
 import { AppConfig } from '../../app.config';
-import { getMapAudienceIsFetching } from '../../impower-datastore/state/transient/audience/audience.selectors';
 import { BatchMapService } from '../../services/batch-map.service';
 import { FullAppState } from '../../state/app.interfaces';
 import { MoveToSite, SetBatchMode } from '../../state/batch-map/batch-map.actions';
@@ -62,12 +61,17 @@ export class BatchMapComponent implements OnInit, OnDestroy {
       filter(([, id]) => id != null)
     ).subscribe(([, id]) => this.batchMapService.initBatchMapping(id));
 
-    combineLatest([this.store$.select(getBatchMapReady), this.store$.select(getMapMoving), this.store$.select(getMapAudienceIsFetching), this.store$.select(getTypedBatchQueryParams)]).pipe(
-      tap(([, , , params]) => params.height > 2000 ? this.debounceTime = 20000 : 5000),
-      map(([ready, moving, fetching]) => ready && !moving && !fetching),
-      debounceTime(this.debounceTime),
-      takeUntil(this.destroyed$)
+    combineLatest([
+      this.store$.select(getBatchMapReady),
+      this.store$.select(getMapMoving),
+      this.store$.select(getTypedBatchQueryParams)
+    ]).pipe(
+        tap(([, , params]) => params.height > 2000 ? this.debounceTime = 20000 : 5000),
+        map(([ready, moving]) => ready && !moving),
+        debounceTime(this.debounceTime),
+        takeUntil(this.destroyed$)
     ).subscribe(ready => this.zone.run(() => this.mapViewIsReady = ready));
+
     this.store$.select(getNextSiteNumber).pipe(
       takeUntil(this.destroyed$)
     ).subscribe(siteNum => this.zone.run(() => this.nextSiteNumber = siteNum));
@@ -83,7 +87,6 @@ export class BatchMapComponent implements OnInit, OnDestroy {
     );
     this.config.isBatchMode = true;
     this.store$.dispatch(new SetBatchMode());
-    // this.store$.dispatch(new CreateNewProject());
     this.esriRendererService.initializeShadingWatchers();
   }
 

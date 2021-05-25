@@ -5,12 +5,11 @@ import { EsriMapService } from '@val/esri';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
-import * as fromTransientSelectors from 'app/impower-datastore/state/transient/transient.reducer';
-import { GridGeoVar } from 'app/impower-datastore/state/transient/transient.reducer';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { GridGeoVar, selectGridGeoVars } from '../../impower-datastore/state/transient/transient.selectors';
 import { AppGeoService } from '../../services/app-geo.service';
 import { AppStateService } from '../../services/app-state.service';
 import { FullAppState } from '../../state/app.interfaces';
@@ -22,7 +21,6 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpProjectVarService } from '../../val-modules/targeting/services/ImpProjectVar.service';
 
 export interface FlatGeo {
    fgId: number;
@@ -38,7 +36,6 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    // Data store observables
    public  nonNullProject$: Observable<ImpProject>;
    public  gridAudiences$: Observable<Audience[]>;
-   public  allProjectVars$: Observable<ImpProjectVar[]>;
    public  allLocations$: Observable<ImpGeofootprintLocation[]>;
    public  allGeos$: Observable<ImpGeofootprintGeo[]>;
    public  allMustCovers$: Observable<string[]>;
@@ -70,8 +67,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
-   constructor(private impProjectVarService: ImpProjectVarService,
-               private impGeofootprintGeoService: ImpGeofootprintGeoService,
+   constructor(private impGeofootprintGeoService: ImpGeofootprintGeoService,
                private impGeofootprintLocationService: ImpGeofootprintLocationService,
                private appStateService: AppStateService,
                private esriMapService: EsriMapService,
@@ -88,13 +84,6 @@ export class GeofootprintGeoPanelComponent implements OnInit {
                                        map(project => Object.create(project))
                                       //,tap(data => { this.logger.debug.log("OBSERVABLE FIRED: appStateService"); })
                                       );
-
-      this.allProjectVars$ = this.impProjectVarService.storeObservable
-                                 .pipe(map(pvars => Array.from(pvars)),
-                                       tap(pvars => {
-                                      // this.logger.debug.log("OBSERVABLE FIRED: allProjectVars");
-                                         // PB COL_ORDER this.setVariableOrderFromProjectVars(pvars);
-                                      }));
 
       this.allLocations$  = this.impGeofootprintLocationService.storeObservable
                                 .pipe(map(locs => Array.from(locs)),
@@ -126,7 +115,7 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       this.store$.select(fromAudienceSelectors.getAudiencesInGrid).subscribe(this.gridAudiencesBS$);
       this.gridAudiences$ = this.store$.select(fromAudienceSelectors.getAudiencesInGrid);
 
-      this.allVars$ = this.store$.pipe(select(fromTransientSelectors.selectGridGeoVars));
+      this.allVars$ = this.store$.pipe(select(selectGridGeoVars));
     }
 
    public rankGeographies() {

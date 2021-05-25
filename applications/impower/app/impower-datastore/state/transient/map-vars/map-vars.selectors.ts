@@ -10,4 +10,3 @@ export const getMapVarIds = createSelector(mapVarSlice, fromMapVars.selectIds);
 export const getMapVarEntities = createSelector(mapVarSlice, fromMapVars.selectEntities);
 export const getMapVars = createSelector(mapVarSlice, fromMapVars.selectAll);
 
-export const getAllMappedAudienceIds = createSelector(mapVarSlice, state => state.mappedAudienceIds);

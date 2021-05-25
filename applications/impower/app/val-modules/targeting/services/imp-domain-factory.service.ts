@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AppConfig } from 'app/app.config';
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
 import { ImpClientLocationTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
-import { AudienceDataDefinition } from '../../../models/audience-data.model';
+import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
@@ -35,7 +35,7 @@ export class ImpDomainFactoryService {
         return 'Manual Entry';
       case TradeAreaTypeCodes.HomeGeo:
         return `${locationTypeCode} ${tradeAreaType}`;
-      case TradeAreaTypeCodes.Radius: 
+      case TradeAreaTypeCodes.Radius:
       case TradeAreaTypeCodes.Radii:
         return `${locationTypeCode} ${tradeAreaType} ${taNumber}`;
     }
@@ -84,51 +84,49 @@ export class ImpDomainFactoryService {
     return result;
   }
 
-  createProjectVar(parent: ImpProject, varPk: number, audience: AudienceDataDefinition, isActive: boolean = true, duplicatePksOverwrite: boolean = true) : ImpProjectVar {
+  createProjectVar(parent: ImpProject, varPk: number, audience: Audience) : ImpProjectVar {
     if (parent == null) throw new Error('Project Var factory requires a valid Project instance');
     if (audience == null) throw new Error('Project Var factory requires a valid audience instance');
+    const combinedTypes = new Set(['COMBINED', 'COMBINED/CONVERTED', 'CONVERTED', 'COMPOSITE']);
     const isCustom = audience.audienceSourceType === 'Custom';
+    const isComposite = combinedTypes.has(audience.audienceSourceType.toUpperCase());
+    const combinedExpression =
+      audience.combinedAudiences?.length > 0
+        ? JSON.stringify(audience.combinedAudiences)
+        : audience.compositeSource?.length > 0
+        ? JSON.stringify(audience.compositeSource)
+        : '';
+    const isOffline = audience.audienceSourceType === 'Offline';
     const source =   audience.audienceSourceType + '_' + audience.audienceSourceName;
-    let existingVar: ImpProjectVar;
+    const result = new ImpProjectVar({
+      baseStatus: DAOBaseStatus.INSERT,
+      varPk
+    });
 
-    if (isCustom) {
-      existingVar = parent.impProjectVars.find(pv => pv.fieldname === audience.audienceName);
-    } else {
-      existingVar = parent.impProjectVars.find(pv => pv.varPk === varPk);
-    }
-
-    if (existingVar != null && !duplicatePksOverwrite) throw new Error('A duplicate Project Var addition was attempted');
-    if (existingVar == null) {
-      existingVar = new ImpProjectVar({
-        baseStatus: DAOBaseStatus.INSERT,
-        varPk
-      });
-      parent.impProjectVars.push(existingVar);
-    } else {
-      if (existingVar.baseStatus === DAOBaseStatus.UNCHANGED) existingVar.baseStatus = DAOBaseStatus.UPDATE;
-    }
-    existingVar.dirty = true;
-    existingVar.isIncludedInGeoGrid = audience.showOnGrid;
-    existingVar.isIncludedInGeofootprint = audience.exportInGeoFootprint;
-    existingVar.isNationalExtract = audience.exportNationally;
-    existingVar.indexBase = audience.selectedDataSet;
-    existingVar.fieldname = audience.audienceName;
-    existingVar.fieldconte = (audience.fieldconte != null) ? audience.fieldconte : FieldContentTypeCodes.Char;
-    existingVar.source = source;
-    existingVar.isCustom = isCustom;
-    existingVar.isString = false;
-    existingVar.isNumber = false;
-    existingVar.isUploaded = isCustom;
-    existingVar.isActive = true;
-    existingVar.uploadFileName = isCustom ? audience.audienceSourceName : '';
-    existingVar.sortOrder = audience.sortOrder; // audience.audienceCounter;
-    existingVar.customVarExprDisplay = (source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' || source.toUpperCase() === 'COMPOSITE_TDA')
-                                       ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
-    existingVar.customVarExprQuery = (source.toUpperCase() === 'OFFLINE_TDA' ? 'Offline' : ((source.toUpperCase() === 'COMBINED_TDA' || source.toUpperCase() === 'COMBINED/CONVERTED_TDA' || source.toUpperCase() === 'CONVERTED_TDA' ||
-                                    source.toUpperCase() === 'COMPOSITE_TDA') ?
-                                        (audience.combinedAudiences.length > 0 ? JSON.stringify(audience.combinedAudiences) :  audience.compositeSource.length > 0 ? JSON.stringify(audience.compositeSource) : '' ) : 'Online' + `/${audience.audienceSourceName}/${varPk}`));
-    existingVar.impProject = parent;
-    return existingVar;
+    result.dirty = true;
+    result.isIncludedInGeoGrid = audience.showOnGrid;
+    result.isIncludedInGeofootprint = audience.exportInGeoFootprint;
+    result.isNationalExtract = audience.exportNationally;
+    result.indexBase = audience.selectedDataSet;
+    result.fieldname = audience.audienceName;
+    result.fieldconte = (audience.fieldconte != null) ? audience.fieldconte : FieldContentTypeCodes.Char;
+    result.source = source;
+    result.isCustom = isCustom;
+    result.isString = false;
+    result.isNumber = false;
+    result.isUploaded = isCustom;
+    result.isActive = true;
+    result.uploadFileName = isCustom ? audience.audienceSourceName : '';
+    result.sortOrder = audience.sortOrder;
+    result.customVarExprDisplay = isComposite ? `${audience.combinedVariableNames}` : `${audience.audienceName} (${audience.audienceSourceName})`;
+    result.customVarExprQuery =
+      isOffline
+        ? 'Offline'
+        : isComposite
+          ? combinedExpression
+          : `Online/${audience.audienceSourceName}/${varPk}`;
+    result.impProject = parent;
+    return result;
   }
 
    createProjectPref(parent: ImpProject, group: string, pref: string, type: string, value: string, forceLOB: boolean = true, isActive: boolean = true, overwriteDuplicate: boolean = true) : ImpProjectPref {

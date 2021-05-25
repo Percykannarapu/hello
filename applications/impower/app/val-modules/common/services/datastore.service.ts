@@ -2,6 +2,7 @@ import { groupBy } from '@val/common';
 import { BehaviorSubject, EMPTY, Observable, Subject, throwError } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { FileService } from './file.service';
 import { LoggingService } from './logging.service';
 import { RestDataService } from './restdata.service';
 import { TransactionManager } from './TransactionManager.service';
@@ -854,20 +855,7 @@ export class DataStore<T>
          throw Error('exportCsv requires csvData to continue');
       }
 
-      // Encode the csvData into a gigantic string
-      const csvString: string = csvData.reduce((accumulator, currentValue) => accumulator + currentValue + '\n', '');
-
-      const blob = new Blob(['\ufeff', csvString]);
-      const url = URL.createObjectURL(blob);
-      // create and autoclick a link that downloads the CSV file
-      const element = window.document.createElement('a');
-      document.body.appendChild(element);
-      element.style.cssText = 'display: none';
-      element['download'] = filename;
-      element.target = '_blank';
-      element.href = url;
-      element.click();
-      element.remove();
+     FileService.downloadFile(filename, csvData);
    }
 
 }

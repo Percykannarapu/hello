@@ -58,16 +58,16 @@ export class RestDataService
    // -----------------------------------------------------------------------------------
    // HTTP METHODS
    // -----------------------------------------------------------------------------------
-   public get(url: string) : Observable<RestResponse>
+   public get<T = any>(url: string) : Observable<RestResponse<T>>
    {
       this.logger.debug.log('RestDataService - get - returning observable for: ' + this.baseUrl + url);
-      return this.http.get<RestResponse>(this.baseUrl + url);
+      return this.http.get<RestResponse<T>>(this.baseUrl + url);
    }
 
-   public getMessagePack(url: string) : Observable<RestResponse>
+   public getMessagePack<T = any>(url: string) : Observable<RestResponse<T>>
    {
       return this.http.get(this.baseUrl + url, { responseType: 'arraybuffer' }).pipe(
-        map(response => [performance.now(), decode(response) as RestResponse] as const),
+        map(response => [performance.now(), decode(response) as RestResponse<T>] as const),
         tap(([startTime]) => this.logger.info.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
         map(([, response]) => response),
         tap(response => this.logger.debug.log('Deserialized payload', response)),
@@ -80,20 +80,20 @@ export class RestDataService
       );
    }
 
-   public patch(url: string, payload: any) : Observable<RestResponse>
+   public patch<T = any>(url: string, payload: any) : Observable<RestResponse<T>>
    {
-      return this.http.patch<RestResponse>(this.baseUrl + url, payload);
+      return this.http.patch<RestResponse<T>>(this.baseUrl + url, payload);
    }
 
-   public post(url: string, payload: any) : Observable<RestResponse>
+   public post<T = any>(url: string, payload: any) : Observable<RestResponse<T>>
    {
-      return this.http.post<RestResponse>(this.baseUrl + url, payload);
+      return this.http.post<RestResponse<T>>(this.baseUrl + url, payload);
    }
 
-   public postCSV(url: string, payload: any) : Observable<RestResponse>
+   public postCSV<T = any>(url: string, payload: any) : Observable<RestResponse<T>>
    {
       const csvHeaders = new HttpHeaders({'Content-Type': 'text/csv' });
-      return this.http.post<RestResponse>(this.baseUrl + url, payload, {headers: csvHeaders});
+      return this.http.post<RestResponse<T>>(this.baseUrl + url, payload, {headers: csvHeaders});
    }
 
    private packPayload(payload: any) : ArrayBuffer {
@@ -104,13 +104,13 @@ export class RestDataService
      return packed;
    }
 
-   public postMessagePack(url: string, payload: any) : Observable<RestResponse>
+   public postMessagePack<T = any>(url: string, payload: any) : Observable<RestResponse<T>>
    {
      this.logger.debug.log('Preparing to POST data...');
      const pack = this.packPayload(payload);
      return this.rawPostArrayBuffer(this.baseUrl + url, pack).pipe(
        map(response => [response, performance.now()] as const),
-       map(([response, startTime]) => [decode(response) as RestResponse, startTime] as const),
+       map(([response, startTime]) => [decode(response) as RestResponse<T>, startTime] as const),
        tap(([, startTime]) => this.logger.debug.log('Deserialization time: ', formatMilli(performance.now() - startTime))),
        map(([response]) => response),
        catchError((err: HttpErrorResponse) => {
@@ -175,19 +175,19 @@ export class RestDataService
       });
    }
 
-   public put(url: string, id: number, itemToUpdate: any) : Observable<RestResponse>
+   public put<T = any>(url: string, id: number, itemToUpdate: any) : Observable<RestResponse<T>>
    {
-      return this.http.put<RestResponse>(this.baseUrl + url + id, itemToUpdate);
+      return this.http.put<RestResponse<T>>(this.baseUrl + url + id, itemToUpdate);
    }
 
-   public delete(url: string, id: number) : Observable<RestResponse>
+   public delete<T = any>(url: string, id: number) : Observable<RestResponse<T>>
    {
-      return this.http.delete<RestResponse>(this.baseUrl + url + id);
+      return this.http.delete<RestResponse<T>>(this.baseUrl + url + id);
    }
 
    public jsonp(url: string, callbackParam: string) : Observable<any>
    {
-      return this.http.jsonp(url, callbackParam);
+      return this.http.jsonp<any>(url, callbackParam);
    }
 
   private getExtensionCodec() : ExtensionCodec {

@@ -10,8 +10,6 @@ export const getGeoVarIds = createSelector(geoVarSlice, fromGeoVars.selectIds);
 export const getGeoVarEntities = createSelector(geoVarSlice, fromGeoVars.selectEntities);
 export const getGeoVars = createSelector(geoVarSlice, fromGeoVars.selectAll);
 
-export const getTransactionId = createSelector(geoVarSlice, state => state.transactionId);
-
 export const getGeoVarCount = createSelector(allGeoVars, geoVars => {
   let count = 0;
   for (let i = 0; i < geoVars.length; i++)

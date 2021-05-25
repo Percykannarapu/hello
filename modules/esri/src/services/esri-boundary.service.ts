@@ -6,6 +6,7 @@ import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap } from 'rxjs/operators';
+import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { BoundaryConfiguration, PopupDefinition } from '../models/boundary-configuration';
 import { FillSymbolDefinition, LabelDefinition } from '../models/common-configuration';
 import { RgbTuple } from '../models/esri-types';
@@ -13,7 +14,6 @@ import { loadBoundaries, updateBoundaries, updateBoundary, upsertBoundaries, ups
 import { boundarySelectors } from '../state/boundary/esri.boundary.selectors';
 import { AppState } from '../state/esri.reducers';
 import { selectors } from '../state/esri.selectors';
-import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 
 @Injectable()
@@ -27,8 +27,7 @@ export class EsriBoundaryService {
   private _popupThisContext: any = null;
 
   constructor(private layerService: EsriLayerService,
-              private store$: Store<AppState>,
-              private domainFactory: EsriDomainFactoryService) {
+              private store$: Store<AppState>) {
     this.store$.select(selectors.getMapReady).pipe(
       filter(ready => ready),
       take(1)
@@ -162,7 +161,7 @@ export class EsriBoundaryService {
           minScale: minScale,
           labelsVisible: config.showLabels,
           labelingInfo: labels,
-          renderer: this.domainFactory.createSimpleRenderer(defaultSymbol),
+          renderer: EsriDomainFactory.createSimpleRenderer(defaultSymbol),
           opacity: config.opacity,
           definitionExpression: layerQuery,
           visible: config.visible,
@@ -222,7 +221,7 @@ export class EsriBoundaryService {
   private createLabelFromDefinition(currentDef: LabelDefinition, layerOpacity: number) : __esri.LabelClass {
     const weight = currentDef.isBold ? 'bold' : 'normal';
     const style = currentDef.isItalic ? 'italic' : 'normal';
-    const font = this.domainFactory.createFont(currentDef.size, weight, style, currentDef.family);
+    const font = EsriDomainFactory.createFont(currentDef.size, weight, style, currentDef.family);
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     const attributes = {};
     if (currentDef.where != null) {
@@ -230,13 +229,13 @@ export class EsriBoundaryService {
     }
     const color = RgbTuple.withAlpha(currentDef.color, layerOpacity);
     const haloColor = RgbTuple.withAlpha(currentDef.haloColor, layerOpacity);
-    return this.domainFactory.createExtendedLabelClass(color, haloColor, arcade, font, 'always-horizontal', attributes);
+    return EsriDomainFactory.createExtendedLabelClass(color, haloColor, arcade, font, 'always-horizontal', attributes);
   }
 
   private createSymbolFromDefinition(def: FillSymbolDefinition) : __esri.SimpleFillSymbol {
     const currentDef = def || { fillColor: [0, 0, 0, 0], fillType: 'solid' };
-    const outline = this.domainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0], currentDef.outlineWidth);
-    return this.domainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
+    const outline = EsriDomainFactory.createSimpleLineSymbol(currentDef.outlineColor || [0, 0, 0, 0], currentDef.outlineWidth);
+    return EsriDomainFactory.createSimpleFillSymbol(currentDef.fillColor, outline, currentDef.fillType);
   }
 
   private createPopupTemplate(target: __esri.FeatureLayer, config: BoundaryConfiguration) : __esri.PopupTemplate {

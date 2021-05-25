@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { simpleFlatten } from '@val/common';
+import { isStringArray, simpleFlatten } from '@val/common';
 import { Observable, Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import * as fromAudienceSelectors from '../../../impower-datastore/state/transient/audience/audience.selectors';
@@ -33,7 +33,7 @@ export class AudiencesOnlineComponent implements OnInit, OnDestroy {
     });
     this.reservedAudiences$ = this.store$.select(fromAudienceSelectors.getCreatedAudiences).pipe(
       takeUntil(this.destroyed$),
-      map(audiences => audiences.map(a => a.compositeSource != null ? a.compositeSource.map(cs => cs.id) : [])),
+      map(audiences => audiences.map(a => isStringArray(a.compositeSource) ? a.compositeSource.map(cs => Number(cs)) : a.compositeSource.map(cs => cs.id))),
       map(ids => simpleFlatten(ids)),
       map(audienceIds => new Set<number>(audienceIds))
     );

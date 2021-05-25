@@ -8,22 +8,21 @@ import {
   Output,
   QueryList,
   ViewChild,
-  ViewChildren,
-  ViewEncapsulation
+  ViewChildren
 } from '@angular/core';
 import { distinctArray, mapArray, resolveFieldData, roundTo } from '@val/common';
 import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
-import { GridGeoVar } from 'app/impower-datastore/state/transient/transient.reducer';
-import { SortMeta, SelectItem, FilterService } from 'primeng/api';
-import { ObjectUtils } from 'primeng/utils';
+import { FilterService, SelectItem, SortMeta } from 'primeng/api';
 import { MultiSelect } from 'primeng/multiselect';
 import { Table } from 'primeng/table';
+import { ObjectUtils } from 'primeng/utils';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { filter, map, publishReplay, refCount, tap } from 'rxjs/operators';
 import { FieldContentTypeCodes } from '../../impower-datastore/state/models/impower-model.enums';
+import { DynamicVariable } from '../../impower-datastore/state/transient/dynamic-variable.model';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { GridGeoVar } from '../../impower-datastore/state/transient/transient.selectors';
 import { AppStateService } from '../../services/app-state.service';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
@@ -105,7 +104,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    }
 
    @Input('impGeofootprintVars')
-   set geoVars(val: GeoVar[]) {
+   set geoVars(val: GridGeoVar) {
      this.allVarsBS$.next(val);
    }
 
@@ -155,7 +154,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private allGeosBS$        = new BehaviorSubject<ImpGeofootprintGeo[]>([]);
    private allMustCoversBS$  = new BehaviorSubject<string[]>([]);
    private allAttributesBS$  = new BehaviorSubject<AttributeEntity>(null);
-   private allVarsBS$        = new BehaviorSubject<GeoVar[]>([]);
+   private allVarsBS$        = new BehaviorSubject<GridGeoVar>(null);
    private varColOrderBS$    = new BehaviorSubject<Map<string, number>>(new Map<string, number>());
    private listCollapse$: Observable<boolean>;
 
@@ -167,7 +166,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    private allGeos$: Observable<ImpGeofootprintGeo[]>;
    private allMustCovers$: Observable<string[]>;
    private allAttributes$: Observable<AttributeEntity>;
-   private allVars$: Observable<GeoVar[]>;
+   private allVars$: Observable<GridGeoVar>;
 
    // FlatGeo grid observables
    public  allImpGeofootprintGeos$: Observable<FlatGeo[]>;
@@ -307,25 +306,33 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Remember that combineLatest is going to fire the pipe for each subscriber to allImpGeofootprintGeos$.  In the template, we have two | async values:
       // displayedImpGeofootprintGeos$ and selectedImpGeofootprintGeos$, which creates two subscribers.  This would fire createComposite twice, which is an expensive
       // operation.  The publishReplay is allows it to run once for the first subscriber, then the other uses the result of that.
-      type createCompositeTuple = [ImpProject, Audience[], ImpProjectVar[], ImpGeofootprintGeo[], string[], AttributeEntity, GridGeoVar, Map<string, number>, boolean];
+      type createCompositeTuple = [ImpProject, Audience[], ImpGeofootprintGeo[], string[], AttributeEntity, GridGeoVar, Map<string, number>, boolean];
 
-      this.allImpGeofootprintGeos$ = combineLatest<createCompositeTuple, createCompositeTuple>
-        (this.projectBS$, this.allAudiences$, this.allProjectVars$, this.allGeos$, this.allMustCovers$, this.allAttributesBS$, this.allVars$, this.varColOrderBS$, this.listCollapse$, this.allLocations$)
-        .pipe(tap(x => this.setGridTotals()),
-              tap(x => this.syncHeaderFilter()),
-              map(([discovery, audiences, projectVars, geos, mustCovers, attributes, vars, varColOrder]: createCompositeTuple) => {
-                if (!this.gridUpdateFlag) {
-                  return this.createComposite(discovery, audiences, projectVars, geos, mustCovers, attributes, vars, varColOrder);
-                }
-                return [];
-              }),
+     this.allImpGeofootprintGeos$ = combineLatest<createCompositeTuple>([
+       this.projectBS$,
+       this.allAudiences$,
+       this.allGeos$,
+       this.allMustCovers$,
+       this.allAttributesBS$,
+       this.allVars$,
+       this.varColOrderBS$,
+       this.listCollapse$,
+       this.allLocations$]).pipe(
+         tap(() => this.setGridTotals()),
+         tap(() => this.syncHeaderFilter()),
+         map(([discovery, audiences, geos, mustCovers, attributes, vars, varColOrder]) => {
+           if (!this.gridUpdateFlag) {
+             return this.createComposite(discovery, audiences, geos, mustCovers, attributes, vars, varColOrder);
+           }
+           return [];
+         }),
 
-              // Share the latest emitted value by creating a new behaviorSubject on the result of createComposite (The previous operator in the pipe)
-              // Allows the first subscriber to run pipe and all other subscribers get the result of that
-              publishReplay(1),
-              refCount()       // Keeps track of all of the subscribers and tells publishReply to clean itself up
-              //,tap(geoData => this.loggger.debug("OBSERVABLE FIRED: allImpGeofootprintGeos$ - Geo Data changed (combineLatest)", geoData))
-        );
+         // Share the latest emitted value by creating a new behaviorSubject on the result of createComposite (The previous operator in the pipe)
+         // Allows the first subscriber to run pipe and all other subscribers get the result of that
+         publishReplay(1),
+         refCount()       // Keeps track of all of the subscribers and tells publishReply to clean itself up
+         //,tap(geoData => this.loggger.debug("OBSERVABLE FIRED: allImpGeofootprintGeos$ - Geo Data changed (combineLatest)", geoData))
+       );
 
       this.displayedImpGeofootprintGeos$ = this.allImpGeofootprintGeos$
                                                   .pipe(map((AllGeos) => {
@@ -491,7 +498,7 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
     * createComposite produces a list of FlatGeos.  These are a flattened view of the geographies,
     * having pivoted up the variables and attributes to their respective geographies.
     */
-   createComposite(project: ImpProject, audiences: Audience[], projectVars: ImpProjectVar[], geos: ImpGeofootprintGeo[], mustCovers: string[],
+   createComposite(project: ImpProject, audiences: Audience[], geos: ImpGeofootprintGeo[], mustCovers: string[],
                    geoAttributes: AttributeEntity, gridGeoVars: GridGeoVar, varColOrder: Map<string, number>, collapsed?: boolean) : FlatGeo[]
    {
       if (geos == null || geos.length === 0) {
@@ -500,9 +507,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       }
       this.logger.debug.log('createComposite:',
                   ' geos:' , (geos.length),
-                  ' must covers:' , ((mustCovers != null) ? mustCovers.length : null),
-                  ' projectVars: ', ((projectVars != null) ? projectVars.length : null),
-                  ' geo vars:' , ((gridGeoVars != null) ? gridGeoVars.geoVars.length : null),
+                  ' must covers:' , mustCovers?.length,
+                  ' geo vars:' , gridGeoVars?.geoVars
       );
       // DEBUG: See additional parameters
       // this.logger.debug.log('createComposite: varColOrder: ', varColOrder
@@ -513,12 +519,14 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       let max: number;
       let fgId = 0; // fgId is a fabricated flat geo id used by turbo grid to uniquely identify a row for filtering and selection
       const geoGridData: FlatGeo[] = [];
+      const varPkSet = new Set<string>();
       this.flatGeoGridExtraColumns = [];
 
       this.variableRanges = new Map<string, number[]>();
       audiences.forEach(audience => {
         this.variableRanges.set(audience.audienceIdentifier, [null, null]);
         this.uniqueTextVals.set(audience.audienceIdentifier, null);
+        varPkSet.add(audience.audienceIdentifier);
       });
 
       gridGeoVars.ranges.forEach((value, varPk) => {
@@ -586,15 +594,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                                            matchMode: 'contains', styleClass: colStyleClass, sortOrder: audience.sortOrder, sourceType: audience.audienceSourceType});
       });
 
-      // For every geo, create a FlatGeo to pivot up the variables and attributes
-      const varPkSet = new Set<number>();
-      projectVars.forEach(pv => varPkSet.add(pv.varPk));
-
       // Geocodes whose site count tooltip needs to be fixed
       const fixGeos = new Set<String>();
 
       geos.filter(geo => geo.impGeofootprintLocation && geo.impGeofootprintTradeArea && geo.impGeofootprintLocation.isActive && geo.impGeofootprintTradeArea.isActive).forEach(geo => {
-         const gridGeo: FlatGeo = new Object() as FlatGeo;
+         const gridGeo: FlatGeo = {} as FlatGeo;
          gridGeo.geo = geo;
          gridGeo.fgId = fgId++;
 
@@ -675,9 +679,6 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
                const pk = varPk.substr(n + 1);
                if (location == null || location === '' || gridGeo.geo.impGeofootprintLocation.locationNumber === location)
                   gridGeo[pk] = varValue;
-
-               // Hack to prevent empty columns because geovars structure isn't getting cleared out on new project
-               const pv = projectVars.filter(findPv => findPv.varPk.toString() === varPk);
                }
          }
          else{

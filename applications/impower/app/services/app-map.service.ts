@@ -8,7 +8,7 @@ import Legend from '@arcgis/core/widgets/Legend';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
 import Search from '@arcgis/core/widgets/Search';
 import { Store } from '@ngrx/store';
-import { EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, selectors } from '@val/esri';
+import { EsriDomainFactory, EsriLayerService, EsriMapService, EsriQueryService, EsriUtils, isPortalFeatureLayer, selectors } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -69,27 +69,7 @@ export class AppMapService {
     // setup the map widgets
     this.mapService.createBasicWidget(Home, { viewpoint: homeView });
     this.mapService.createHiddenWidget(Search, {}, { expandIconClass: 'esri-icon-search', expandTooltip: 'Search', group: 'map-ui' });
-    const source = new PortalBasemapsSource({
-      filterFunction: (b: __esri.Basemap) => this.config.portalBaseMapNames.find(pb => pb.originalName === b.portalItem.title) != null,
-      updateBasemapsCallback: (allBaseMaps: __esri.Basemap[]) => {
-        const baseMapSortOrder = this.config.portalBaseMapNames.map(n => n.originalName);
-        allBaseMaps.sort((a, b) => {
-          return baseMapSortOrder.indexOf(a.portalItem.title) - baseMapSortOrder.indexOf(b.portalItem.title);
-        });
-        allBaseMaps.forEach(basemap => {
-          const currentConfig = this.config.portalBaseMapNames.find(n => n.originalName === basemap.portalItem.title);
-          if (currentConfig != null && currentConfig.newName !== currentConfig.originalName) {
-            const handle = basemap.watch('loaded', (newValue, oldValue, propertyName, target) => {
-              if (newValue) {
-                (target as __esri.Basemap).title = currentConfig.newName;
-                handle.remove();
-              }
-            });
-          }
-        });
-        return allBaseMaps;
-      }
-    });
+    const source = EsriDomainFactory.createPortalBasemapSource(this.config.portalBaseMapNames);
     this.mapService.createHiddenWidget(BasemapGallery, { source }, { expandIconClass: 'esri-icon-basemap', expandTooltip: 'Basemap Gallery', group: 'map-ui' }, 'bottom-left');
     this.mapService.createBasicWidget(ScaleBar, { unit: 'dual' }, 'bottom-left');
 
@@ -251,7 +231,7 @@ export class AppMapService {
       x: Number(selectedFeature.attributes.longitude),
       y: Number(selectedFeature.attributes.latitude)
     };
-    if (EsriUtils.layerIsPortalFeature(selectedFeature.layer)) {
+    if (isPortalFeatureLayer(selectedFeature.layer)) {
         if (selectedFeature.layer.portalItem.id === portalId){
           this.selectSingleGeocode(geocode, geometry);
         }

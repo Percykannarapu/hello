@@ -1,23 +1,27 @@
 import { Injectable } from '@angular/core';
 import Extent from '@arcgis/core/geometry/Extent';
 import { Store } from '@ngrx/store';
-import { filterArray, groupBy, mapArray, mapByExtended } from '@val/common';
+import { CommonSort, filterArray, groupBy, isEmpty, isNotNil, mapArray, mapByExtended } from '@val/common';
 import { BasicLayerSetup, EsriBoundaryService, EsriMapService, EsriService, InitialEsriState } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator, SuccessNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpProjectVarService } from 'app/val-modules/targeting/services/ImpProjectVar.service';
 import { Observable } from 'rxjs';
 import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
-import { RehydrateAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
+import { LoadAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
+import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
+import { createExistingAudienceInstance } from '../models/audience-factories';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { LayerSetupComplete } from '../state/data-shim/data-shim.actions';
 import { ClearTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
 import { AppGeoService } from './app-geo.service';
 import { AppLayerService } from './app-layer.service';
 import { AppLocationService } from './app-location.service';
@@ -28,9 +32,9 @@ import { AppRendererService } from './app-renderer.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 import { BoundaryRenderingService } from './boundary-rendering.service';
+import { CustomDataService } from './custom-data.service';
 import { PoiRenderingService } from './poi-rendering.service';
-import { TargetAudienceCustomService } from './target-audience-custom.service';
-import { TargetAudienceService } from './target-audience.service';
+import { UnifiedAudienceService } from './unified-audience.service';
 
 /**
  * This service is a temporary shim to aggregate the operations needed for saving & loading data
@@ -54,10 +58,10 @@ export class AppDataShimService {
               private appLocationService: AppLocationService,
               private appTradeAreaService: AppTradeAreaService,
               private appGeoService: AppGeoService,
+              private audienceService: UnifiedAudienceService,
+              private customDataService: CustomDataService,
               private appStateService: AppStateService,
               private appLayerService: AppLayerService,
-              private targetAudienceService: TargetAudienceService,
-              private targetAudienceCustomService: TargetAudienceCustomService,
               private metricService: ValMetricsService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
               private appRendererService: AppRendererService,
@@ -69,7 +73,7 @@ export class AppDataShimService {
               private store$: Store<FullAppState>,
               private logger: AppLoggingService,
               private mapService: EsriMapService,
-              private impProjVarService: ImpProjectVarService,
+              private domainFactory: ImpDomainFactoryService,
               private impGeofootprintLocationService: ImpGeofootprintLocationService) {
     this.currentProject$ = this.appProjectService.currentProject$;
     this.currentGeos$ = this.appGeoService.currentGeos$;
@@ -108,25 +112,37 @@ export class AppDataShimService {
   }
 
   private onLoad(project: ImpProject) : void {
-    this.processCustomVarPks(project);
+    const audiences: Audience[] = [];
+    const customAudiences: Audience[] = [];
+    project.impProjectVars.forEach(pv => {
+      if (isNotNil(pv) && pv.isActive) {
+        const currentAudience = createExistingAudienceInstance(pv);
+        if (isNotNil(currentAudience)) {
+          audiences.push(currentAudience as Audience);
+          if (currentAudience.audienceSourceType === 'Custom') customAudiences.push(currentAudience as Audience);
+        } else {
+          this.logger.warn.log('A project var could not be converted into an audience instance', pv);
+        }
+      }
+    });
+    if (!isEmpty(audiences)) {
+      // sort and re-number the audiences to ensure we don't have any duplicates from old code
+      audiences.sort((a, b) => CommonSort.GenericNumber(a.sortOrder, b.sortOrder)).forEach((v, i) => v.sortOrder = i);
+      this.store$.dispatch(new LoadAudiences({ audiences }));
+      if (!isEmpty(customAudiences)) {
+        const customDataSourceNames = new Set<string>(customAudiences.map(a => a.audienceSourceName));
+        const customDataPrefsToLoad = project.impProjectPrefs.filter(p => p.prefGroup === ProjectPrefGroupCodes.CustomVar && customDataSourceNames.has(p.pref));
+        customDataPrefsToLoad.forEach(pref => {
+          const currentAudiences = customAudiences.filter(c => c.audienceSourceName === pref.pref);
+          this.customDataService.reloadCustomVarData(pref.largeVal ?? pref.val, currentAudiences);
+        });
+      }
+    }
   }
 
   private dispatchPostLoadActions() : void {
+    this.audienceService.setupAudienceListeners();
     this.store$.dispatch(new LayerSetupComplete());
-    this.store$.dispatch(new RehydrateAudiences());
-  }
-
-  private processCustomVarPks(project: ImpProject) : void {
-    const maxVarPk = (project.impProjectVars || []).reduce((result, projectVar) => {
-      const sourceParts = projectVar.source.split('_');
-      if (sourceParts.length > 0 && (sourceParts[0].toLowerCase() === 'combined' || sourceParts[0].toLowerCase() === 'converted' ||
-                                     sourceParts[0].toLowerCase() === 'combined/converted' || sourceParts[0].toLowerCase() === 'custom' || sourceParts[0].toLowerCase() === 'composite')) {
-        return Math.max(projectVar.varPk, result);
-      } else {
-        return result;
-      }
-    }, 0);
-    this.impProjVarService.currStoreId = maxVarPk + 1;
   }
 
   private setupEsriInitialState(project: ImpProject) : Observable<ImpProject> {
@@ -207,15 +223,12 @@ export class AppDataShimService {
     }
   }
 
-  onLoadFinished() : void {
-
-  }
-
   createNew() : number {
     this.clearAll();
     const projectId = this.appProjectService.createNew();
     this.esriService.loadInitialState({}, [], this.poiRenderingService.getConfigurations(), this.boundaryRenderingService.getConfigurations());
     this.store$.dispatch(new LayerSetupComplete());
+    this.audienceService.setupAudienceListeners();
     return projectId;
   }
 
@@ -229,15 +242,16 @@ export class AppDataShimService {
   }
 
   clearAll() : void {
+    this.audienceService.teardownAudienceListeners();
     this.appProjectService.clearAll();
     this.appLocationService.clearAll();
     this.appTradeAreaService.clearAll();
     this.appGeoService.clearAll();
     this.appProjectService.finalizeClear();
-    this.targetAudienceService.clearAll();
     this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
     this.store$.dispatch(new ClearTradeAreas());
+    this.store$.dispatch(clearTransientData());
   }
 
   calcMetrics(geocodes: string[], attribute: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {
@@ -344,5 +358,7 @@ export class AppDataShimService {
     }
     return null;
   }
+
+
 
 }

@@ -24,9 +24,12 @@ p-table {
   justify-content: flex-end;
 }
 
-
 .selected-audience-dialog{
   width: 710px;
   top: 200px !important;
   left: unset !important;
+}
+
+.button-column > .p-button:disabled.p-button-text {
+  opacity: 0.1;
 }

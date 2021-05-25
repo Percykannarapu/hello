@@ -8,13 +8,16 @@ import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { debounceTime, map, share, takeUntil } from 'rxjs/operators';
 import { filterTreeNodesRecursive, treeNodeSortBuilder } from '../../../../common/treenode-utils';
 import * as fromVlh from '../../../../impower-datastore/state/transient/audience-definitions/vlh/vlh-audience.reducer';
+import { DeleteAudience } from '../../../../impower-datastore/state/transient/audience/audience.actions';
 import * as fromAudienceSelectors from '../../../../impower-datastore/state/transient/audience/audience.selectors';
 import { OnlineAudienceDescription } from '../../../../models/audience-categories.model';
-import { OnlineSourceTypes } from '../../../../models/audience-enums';
-import { TargetAudienceOnlineService } from '../../../../services/target-audience-online.service';
-import { TargetAudienceService } from '../../../../services/target-audience.service';
+import { OnlineSourceNames, OnlineSourceTypes } from '../../../../models/audience-enums';
+import { createOnlineAudienceInstance } from '../../../../models/audience-factories';
 import { UnifiedAudienceDefinitionService } from '../../../../services/unified-audience-definition.service';
+import { UnifiedAudienceService } from '../../../../services/unified-audience.service';
 import { LocalAppState } from '../../../../state/app.interfaces';
+import { CreateAudienceUsageMetric } from '../../../../state/usage/targeting-usage.actions';
+import { FieldContentTypeCodes } from '../../../../val-modules/targeting/targeting.enums';
 
 const UnSelectableLimit = 1000;
 
@@ -28,21 +31,20 @@ export class OnlineAudiencePixelComponent implements OnInit, OnDestroy {
 
   @Input() reservedAudienceIds: Set<number> = new Set<number>();
 
-  public currentNodes$: Observable<TreeNode[]>;
-  public selectedNodes$: Observable<TreeNode[]>;
+  public currentNodes$: Observable<TreeNode<OnlineAudienceDescription>[]>;
+  public selectedNodes$: Observable<TreeNode<OnlineAudienceDescription>[]>;
   public loading$: Observable<boolean>;
   public searchTerm$ = new BehaviorSubject<string>(null);
 
   private destroyed$ = new Subject<void>();
   private selectedReset$ = new BehaviorSubject<void>(null);
 
-  constructor(private audienceService: TargetAudienceOnlineService,
-              private parentAudienceService: TargetAudienceService,
+  constructor(private appStateService: AppStateService,
+              private store$: Store<LocalAppState>,
               private definitionService: UnifiedAudienceDefinitionService,
-              private appStateService: AppStateService,
-              private store$: Store<LocalAppState>) {}
+              private audienceService: UnifiedAudienceService) {}
 
-  private static asTreeNode(variable: OnlineAudienceDescription) : TreeNode {
+  private static asTreeNode(variable: OnlineAudienceDescription) : TreeNode<OnlineAudienceDescription> {
     const selectable: boolean = (isConvertibleToNumber(variable.taxonomy) && Number(variable.taxonomy) > UnSelectableLimit);
     return {
       label: variable.categoryName,
@@ -90,11 +92,13 @@ export class OnlineAudiencePixelComponent implements OnInit, OnDestroy {
     ).subscribe(() =>  this.searchTerm$.next(''));
   }
 
-  public selectVariable(event: TreeNode) : void {
-    this.audienceService.addAudience(event.data, OnlineSourceTypes.Pixel);
+  public selectVariable(event: TreeNode<OnlineAudienceDescription>) : void {
+    const model = createOnlineAudienceInstance(event.data.categoryName, `${event.data.digLookup.get(OnlineSourceNames[OnlineSourceTypes.Pixel])}`, FieldContentTypeCodes.Index, OnlineSourceTypes.Pixel);
+    this.usageMetricCheckUncheckApio(true, event.data);
+    this.audienceService.addAudience(model);
   }
 
-  public removeVariable(event: TreeNode) : void {
+  public removeVariable(event: TreeNode<OnlineAudienceDescription>) : void {
     const isDependent = this.reservedAudienceIds.has(Number(event.key));
     if (isDependent) {
       const header = 'Invalid Delete';
@@ -102,7 +106,9 @@ export class OnlineAudiencePixelComponent implements OnInit, OnDestroy {
       this.store$.dispatch(new ShowSimpleMessageBox({ message, header }));
       this.selectedReset$.next();
     } else {
-      this.audienceService.removeAudience(event.data, OnlineSourceTypes.Pixel);
+      const model = createOnlineAudienceInstance(event.data.categoryName, `${event.data.digLookup.get(OnlineSourceNames[OnlineSourceTypes.Pixel])}`, FieldContentTypeCodes.Index, OnlineSourceTypes.Pixel);
+      this.usageMetricCheckUncheckApio(false, event.data);
+      this.store$.dispatch(new DeleteAudience ({ id: model.audienceIdentifier }));
     }
   }
 
@@ -110,7 +116,13 @@ export class OnlineAudiencePixelComponent implements OnInit, OnDestroy {
     return isConvertibleToNumber(number) ?  Number(number).toLocaleString() : 'n/a';
   }
 
-  public trackByKey(index: number, node: TreeNode) : string {
+  public trackByKey(index: number, node: TreeNode<OnlineAudienceDescription>) : string {
     return node.key;
+  }
+
+  private usageMetricCheckUncheckApio(isChecked: boolean, audience: OnlineAudienceDescription) {
+    const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
+    const metricText = audience.digLookup.get(OnlineSourceNames[OnlineSourceTypes.Pixel]) + '~' + audience.categoryName + '~' + OnlineSourceTypes.Pixel + '~' + currentAnalysisLevel;
+    this.store$.dispatch(new CreateAudienceUsageMetric('online', isChecked ? 'checked' : 'unchecked', metricText));
   }
 }

@@ -3,10 +3,10 @@ import Graphic from '@arcgis/core/Graphic';
 import { Store } from '@ngrx/store';
 import { EMPTY, from, Observable } from 'rxjs';
 import { finalize, map, reduce } from 'rxjs/operators';
+import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { EsriGraphicTypeCodes } from '../core/esri.enums';
 import { AppState } from '../state/esri.reducers';
 import { StartSketchView } from '../state/map/esri.map-button.actions';
-import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 import { EsriQueryService } from './esri-query.service';
@@ -15,7 +15,6 @@ import { EsriQueryService } from './esri-query.service';
 export class EsriMapInteractionService {
 
   constructor(private mapService: EsriMapService,
-              private domainFactory: EsriDomainFactoryService,
               private queryService: EsriQueryService,
               private layerService: EsriLayerService,
               private store$: Store<AppState>) {}
@@ -27,7 +26,7 @@ export class EsriMapInteractionService {
   }
 
   startSketchModel(graphicType: EsriGraphicTypeCodes) : Observable<__esri.Geometry> {
-    const model = this.domainFactory.createSketchViewModel(this.mapService.mapView);
+    const model = EsriDomainFactory.createSketchViewModel(this.mapService.mapView);
     const result: Observable<__esri.Geometry> = new Observable(observer => {
       const drawingHandler = model.on('create', event => {
         if (event.state === 'complete') {

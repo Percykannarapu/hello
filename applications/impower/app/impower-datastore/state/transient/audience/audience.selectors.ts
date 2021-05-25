@@ -8,31 +8,16 @@ export const audienceSlice = createSelector(transientSlice, state => state.audie
 export const allAudiences = createSelector(audienceSlice, fromAudience.selectAll);
 export const allAudienceEntities = createSelector(audienceSlice, fromAudience.selectEntities);
 
+export const fetchableAudiences = createSelector(allAudiences, (audiences) => audiences.filter(audience => audience.audienceSourceType !== 'Custom'));
+export const customAudiences = createSelector(allAudiences, (audiences) => audiences.filter(audience => audience.audienceSourceType === 'Custom'));
+
 export const getAudiencesInFootprint = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportInGeoFootprint));
+export const getFetchableAudiencesInFootprint = createSelector(fetchableAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportInGeoFootprint));
+export const getCustomAudiencesInFootprint = createSelector(customAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportInGeoFootprint));
 export const getAudiencesInGrid = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.showOnGrid));
-export const getAudiencesNationalExtract = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportNationally));
-export const getAudiencesAppliable = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.audienceTAConfig == null));
-
-export const selectAudienceIds = createSelector(audienceSlice, fromAudience.selectIds);
-export const selectAudienceEntities = createSelector(audienceSlice, fromAudience.selectEntities);
-export const selectAudiences = createSelector(audienceSlice, fromAudience.selectAll);
-
-export const getOutstandingVarFetches = createSelector(audienceSlice, state => state.scratch.outstandingVarFetches);
-
-export const getAllAudiences = createSelector(allAudienceEntities, entities => {
-  return Object.keys(entities).map(id => entities[id]);
-});
-
-// Get an array of audiences matching the audience name
-export const getAudienceByName = createSelector(allAudiences, (audiences: Audience[], props) => audiences.filter(audience => audience.audienceName === props.audienceName));
-
-// Get the audienceIdentifier for the first audience matching the name
-export const getAudienceIdFromName = createSelector(allAudiences, (audiences: Audience[], props) => {
-  const aud = audiences.find(audience => audience.audienceName === props.audienceName);
-  return (aud != null) ? aud.audienceIdentifier : null;
-});
-
-export const getMapAudienceIsFetching = createSelector(audienceSlice, state => state.mapIsFetching);
+export const getFetchableAudiencesInGrid = createSelector(fetchableAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.showOnGrid));
+export const getCustomAudiencesInGrid = createSelector(customAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.showOnGrid));
+export const getAudiencesInExtract = createSelector(allAudiences, (audiences: Audience[]) => audiences.filter(audience => audience.exportNationally));
 
 const allDigitalAudiences = createSelector(allAudiences, (audiences) => audiences.filter(a => a.audienceSourceType === 'Online'));
 export const getInterestAudiences = createSelector(allDigitalAudiences, (audiences) => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.Interest));
@@ -43,4 +28,7 @@ export const getTdaAudiences = createSelector(allAudiences, (audiences) => audie
 
 const createdSources = new Set(['Combined', 'Converted', 'Combined/Converted', 'Composite']);
 export const getCreatedAudiences = createSelector(allAudiences, (audiences) => audiences.filter(a => createdSources.has(a.audienceSourceType)));
-
+const preAssignedPks = new Set(['Online', 'Offline']);
+const assignedPkAudiences = createSelector(allAudiences, audiences => audiences.filter(a => !preAssignedPks.has(a.audienceSourceType)));
+export const getMaxAssignedPk = createSelector(assignedPkAudiences, audiences => audiences.reduce((p, c) => Math.max(p, Number(c.audienceIdentifier)), 0));
+export const getMaxSortOrder = createSelector(allAudiences, audiences => audiences.reduce((p, c) => Math.max(p, c.sortOrder), -1));

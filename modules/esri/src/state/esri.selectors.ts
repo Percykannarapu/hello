@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { isPortalFeatureLayer } from '../core/type-checks';
 import { AppState, EsriState } from './esri.reducers';
-import { EsriUtils } from '../core/esri-utils';
 
 const getEsriState = createFeatureSelector<AppState, EsriState>('esri');
 const getEsriInitState = createSelector(getEsriState, state => state.init);
@@ -23,7 +23,7 @@ const selectedLayerFeatures = (selectedFeatures: __esri.Graphic[], selectedLayer
   if (selectedFeatures == null || selectedLayerId == null || selectedFeatures.length === 0 ) return null;
   const filteredFeatures: __esri.Graphic[] = [];
   selectedFeatures.forEach(feature => {
-    if (EsriUtils.layerIsPortalFeature(feature.layer) && feature.layer.portalItem.id === selectedLayerId)
+    if (isPortalFeatureLayer(feature.layer) && feature.layer.portalItem.id === selectedLayerId)
       filteredFeatures.push(feature) ;
   });
   return filteredFeatures;

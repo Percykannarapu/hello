@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { filterArray, groupByExtended, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, groupByExtended, isNotNil, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../common/quad-tree';
 import {
@@ -14,6 +14,7 @@ import {
   UpsertGeoAttributes
 } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { CacheGeos, GeoTransactionType, RemoveGeoCache } from '../impower-datastore/state/transient/transactions/transactions.actions';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
@@ -602,7 +603,7 @@ export class AppGeoService {
             results => {
               const impGeofootprintGeos: ImpGeofootprintGeo[] = [];
               const newTradeAreas: ImpGeofootprintTradeArea[] = [];
-              
+
 
               results.forEach(geoAttrib => {
                 //this.logger.debug.log("### ensureMustCoversObs creating ImpGeo for " + geoAttrib.geocode + ", x: ", geoAttrib["longitude"], ", y: ", geoAttrib["latitude"]);

@@ -280,6 +280,7 @@ export class AppLocationService {
   }
 
   clearAll() : void {
+    this.impLocationService.currStoreId = 0;
     this.cachedTradeAreas = [];
     this.impLocationService.clearAll();
     this.impLocAttributeService.clearAll();

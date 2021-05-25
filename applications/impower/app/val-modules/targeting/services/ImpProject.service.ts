@@ -23,7 +23,6 @@ import { TransactionManager } from '../../common/services/TransactionManager.ser
 import { ImpProject } from '../models/ImpProject';
 import { ImpGeofootprintMasterService } from './ImpGeofootprintMaster.service';
 import { ImpProjectPrefService } from './ImpProjectPref.service';
-import { ImpProjectVarService } from './ImpProjectVar.service';
 
 const restUrl = 'v1/targeting/base/';
 const dataUrl = restUrl + 'impproject/load';
@@ -37,7 +36,6 @@ export class ImpProjectService extends DataStore<ImpProject>
                private appConfig: AppConfig,
                private userService: UserService,
                private impProjectPrefService: ImpProjectPrefService,
-               private impProjectVarService: ImpProjectVarService,
                private impGeofootprintMasterService: ImpGeofootprintMasterService,
                logger: LoggingService)
    {
@@ -48,7 +46,6 @@ export class ImpProjectService extends DataStore<ImpProject>
      // load the data stores
      this.transactionManager.startTransaction();
      super.load(items);
-     this.impProjectVarService.load(simpleFlatten(items.map(p => p.impProjectVars)));
      this.impProjectPrefService.load(simpleFlatten(items.map(p => p.impProjectPrefs)));
      this.impGeofootprintMasterService.load(simpleFlatten(items.map(p => p.impGeofootprintMasters)));
      this.transactionManager.stopTransaction();
@@ -113,7 +110,8 @@ export class ImpProjectService extends DataStore<ImpProject>
 
       // TODO: Pretty sure I can use the filterOp below
       result.forEach (project => {
-         project.impGeofootprintMasters = this.impGeofootprintMasterService.prune(project.impGeofootprintMasters, master => master.projectId === project.projectId && (master.baseStatus === DAOBaseStatus.UNCHANGED || master.baseStatus === DAOBaseStatus.DELETE));
+         project.impGeofootprintMasters = this.impGeofootprintMasterService.prune(project.impGeofootprintMasters,
+             master => master.projectId === project.projectId && (master.baseStatus === DAOBaseStatus.UNCHANGED || master.baseStatus === DAOBaseStatus.DELETE));
       });
 
       return result;
@@ -161,7 +159,7 @@ export class ImpProjectService extends DataStore<ImpProject>
          // Prune out just the deletes and unchanged from the parents and children
          removesPayload = this.prune(removesPayload, ta => ta.baseStatus == DAOBaseStatus.DELETE || ta.baseStatus === DAOBaseStatus.UNCHANGED);
 
-         return Observable.create(observer => {
+         return new Observable(observer => {
             this.postDBRemoves('Targeting', 'ImpProject', 'v1', removesPayload)
                .subscribe(postResultCode => {
                   console.log('post completed, calling completeDBRemoves');

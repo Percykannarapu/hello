@@ -4,12 +4,12 @@ import { getUuid, groupToEntity, mapArrayToEntity, mapByExtended, toUniversalCoo
 import {
   ColorPalette,
   duplicatePoiConfiguration,
-  EsriDomainFactoryService,
+  EsriDomainFactory,
   EsriLayerService,
   EsriPoiService,
-  EsriUtils,
   generateUniqueMarkerValues,
   getColorPalette,
+  isFeatureLayer,
   PoiConfiguration,
   PoiConfigurationTypes,
   EsriAppSettingsToken,
@@ -49,7 +49,6 @@ export class PoiRenderingService {
 
   constructor(private appStateService: AppStateService,
               private layerService: EsriLayerService,
-              private domainFactory: EsriDomainFactoryService,
               private appPrefService: AppProjectPrefService,
               private esriPoiService: EsriPoiService,
               private config: AppConfig,
@@ -115,7 +114,7 @@ export class PoiRenderingService {
       const newPoints = newLocations.map((l, i) => createSiteGraphic(l, i));
       if (renderingSetup.featureLayerId != null) {
         const existingLayer = this.layerService.getLayerByUniqueId(renderingSetup.featureLayerId);
-        if (EsriUtils.layerIsFeature(existingLayer)) {
+        if (isFeatureLayer(existingLayer)) {
           if (renderingSetup.poiType === PoiConfigurationTypes.Unique) {
             const newSetup = duplicatePoiConfiguration(renderingSetup);
             const existingValues = new Set<string>(renderingSetup.breakDefinitions.map(b => b.value));
@@ -130,7 +129,7 @@ export class PoiRenderingService {
           existingLayer.queryFeatures().then(result => {
             const edits = this.prepareLayerEdits(result.features, newPoints);
             if (edits.hasOwnProperty('addFeatures') || edits.hasOwnProperty('deleteFeatures') || edits.hasOwnProperty('updateFeatures')) {
-              existingLayer.applyEdits(edits);
+              existingLayer.applyEdits(edits).catch(console.error);
               if (renderingSetup.visibleRadius && !this.config.isBatchMode){
                 const locType: ImpClientLocationTypeCodes = renderingSetup.dataKey === 'Site' ? ImpClientLocationTypeCodes.Site : ImpClientLocationTypeCodes.Competitor;
                 const tas  = this.applyRadiusTradeArea (renderingSetup['tradeAreas'], locType);
@@ -145,7 +144,7 @@ export class PoiRenderingService {
       } else if (newPoints.length > 0) {
         const existingGroup = this.layerService.createClientGroup(renderingSetup.groupName, true);
         const fieldLookup = mapByExtended(defaultLocationPopupFields, item => item.fieldName, item => ({ label: item.label, visible: item.visible }));
-        const newFeatureLayer = this.domainFactory.createFeatureLayer(newPoints, 'objectId', fieldLookup);
+        const newFeatureLayer = EsriDomainFactory.createFeatureLayer(newPoints, 'objectId', fieldLookup);
         newFeatureLayer.visible = false;
         existingGroup.add(newFeatureLayer);
         this.esriPoiService.setPopupFields(defaultLocationPopupFields.filter(f => f.visible !== false).map(f => f.fieldName));

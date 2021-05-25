@@ -14,14 +14,24 @@ import { Store } from '@ngrx/store';
 import { UniversalCoordinates } from '@val/common';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
+import { EsriDomainFactory } from '../core/esri-domain.factory';
 import { EsriUtils } from '../core/esri-utils';
-import { isSymbolTableElement, isSymbolTableElementInfo } from '../core/type-checks';
+import {
+  isFeatureLayer,
+  isGraphicsLayer,
+  isGroupLayer,
+  isPortalFeatureLayer,
+  isSimpleFillSymbol,
+  isSimpleLineSymbol,
+  isSimpleRenderer,
+  isSymbolTableElement,
+  isSymbolTableElementInfo
+} from '../core/type-checks';
 import { MapSymbols } from '../models/esri-types';
 import { AppState } from '../state/esri.reducers';
 import { CopyCoordinatesToClipboard } from '../state/map/esri.map.actions';
 import { EsriLabelConfiguration, EsriLabelLayerOptions } from '../state/map/esri.map.reducer';
 import { addLayerToLegend } from '../state/shading/esri.shading.actions';
-import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriMapService } from './esri-map.service';
 import { LoggingService } from './logging.service';
 
@@ -41,7 +51,6 @@ export class EsriLayerService {
   public layersAreReady$: Observable<boolean> = this.layersAreReady.asObservable();
 
   constructor(private mapService: EsriMapService,
-              private domainFactory: EsriDomainFactoryService,
               private store$: Store<AppState>,
               private logger: LoggingService) {}
 
@@ -50,7 +59,7 @@ export class EsriLayerService {
     const textSymbol: __esri.TextSymbol = new TextSymbol();
     const offset = layerOptions.fontSizeOffset || 0;
     const font = new Font({ family: 'arial', size: (fontSize + offset), weight: 'bold' });
-    if (EsriUtils.rendererIsSimple(layer.renderer) && EsriUtils.symbolIsSimpleFill(layer.renderer.symbol) && EsriUtils.symbolIsSimpleLine(layer.renderer.symbol.outline)) {
+    if (isSimpleRenderer(layer.renderer) && isSimpleFillSymbol(layer.renderer.symbol) && isSimpleLineSymbol(layer.renderer.symbol.outline)) {
       textSymbol.color = layer.renderer.symbol.outline.color;
     } else {
       textSymbol.color = new Color({a: 1, r: 255, g: 255, b: 255});
@@ -75,7 +84,7 @@ export class EsriLayerService {
     if (this.mapService.mapView == null || this.mapService.mapView.map == null || this.mapService.mapView.map.layers == null) return;
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
     this.logger.debug.log('Clearing', groupName, 'layer');
-    if (EsriUtils.layerIsGroup(group)) {
+    if (isGroupLayer(group)) {
       this.logger.info.log('Group found, removing layers');
       group.layers.forEach(l => {
         this.layerStatusTracker.delete(l.id);
@@ -88,17 +97,17 @@ export class EsriLayerService {
 
   public groupExists(groupName: string) : boolean {
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
-    return EsriUtils.layerIsGroup(group);
+    return isGroupLayer(group);
   }
 
   public portalGroupExists(groupName: string) : boolean {
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName && l.id === `portal-${groupName}`);
-    return EsriUtils.layerIsGroup(group);
+    return isGroupLayer(group);
   }
 
   public getGroup(groupName: string) : __esri.GroupLayer {
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName);
-    if (EsriUtils.layerIsGroup(group)) {
+    if (isGroupLayer(group)) {
       return group;
     }
     return null;
@@ -106,7 +115,7 @@ export class EsriLayerService {
 
   public getPortalGroup(groupName: string) : __esri.GroupLayer {
     const group = this.mapService.mapView.map.layers.find(l => l.title === groupName && l.id === `portal-${groupName}`);
-    if (EsriUtils.layerIsGroup(group)) {
+    if (isGroupLayer(group)) {
       return group;
     }
     return null;
@@ -122,7 +131,7 @@ export class EsriLayerService {
 
   public getFeatureLayer(layerName: string) : __esri.FeatureLayer {
     const layer = this.mapService.mapView.map.allLayers.find(l => l.title === layerName);
-    if (EsriUtils.layerIsFeature(layer)) {
+    if (isFeatureLayer(layer)) {
       return layer;
     }
     return null;
@@ -130,7 +139,7 @@ export class EsriLayerService {
 
   public getGraphicsLayer(layerName: string) : __esri.GraphicsLayer {
     const layer = this.getLayer(layerName);
-    if (EsriUtils.layerIsGraphics(layer)) {
+    if (isGraphicsLayer(layer)) {
       return layer;
     }
     return null;
@@ -152,7 +161,7 @@ export class EsriLayerService {
   public getPortalLayerById(portalId: string) : __esri.FeatureLayer {
     const result = this.getPortalLayersById(portalId).filter(l => {
       const parent = l['parent'];
-      return !(EsriUtils.layerIsGroup(parent) && parent.title.toLowerCase().includes('shading'));
+      return !(isGroupLayer(parent) && parent.title.toLowerCase().includes('shading'));
     });
     if (result.length > 1) {
       this.logger.warn.log('Expecting a single layer in getPortalLayerById, got multiple. Returning first instance only');
@@ -163,8 +172,8 @@ export class EsriLayerService {
   public getPortalLayersById(portalId: string) : __esri.FeatureLayer[] {
     const result = [];
     for (const l of this.mapService.mapView.map.allLayers.toArray()) {
-      if (EsriUtils.layerIsFeature(l)) {
-        if (EsriUtils.layerIsPortalFeature(l) && l.portalItem.id === portalId && !l.title.startsWith('Query Layer')) result.push(l);
+      if (isFeatureLayer(l)) {
+        if (isPortalFeatureLayer(l) && l.portalItem.id === portalId && !l.title.startsWith('Query Layer')) result.push(l);
         if (l.url != null && l.url.startsWith(portalId) && !l.title.startsWith('Query Layer')) result.push(l);
       }
     }
@@ -175,7 +184,7 @@ export class EsriLayerService {
     if (layer != null) {
       const parent = (layer as any).parent;
       this.removeLayerFromLegend(layer.id);
-      if (EsriUtils.layerIsGroup(parent)) {
+      if (isGroupLayer(parent)) {
         this.logger.debug.log(`Removing layer "${layer.title}" from group "${parent.title}"`);
         parent.layers.remove(layer);
       } else {
@@ -293,7 +302,7 @@ export class EsriLayerService {
     const group = this.createClientGroup(groupName, true);
     const popupEnabled = popupTemplate != null;
     const labelsVisible = labelInfo != null && labelInfo.length > 0;
-    const layer = this.domainFactory.createFeatureLayer(sourceGraphics, oidFieldName, null);
+    const layer = EsriDomainFactory.createFeatureLayer(sourceGraphics, oidFieldName, null);
     const props = {
       popupEnabled: popupEnabled,
       popupTemplate: popupTemplate,
@@ -307,7 +316,7 @@ export class EsriLayerService {
     if (!popupEnabled) this.popupsPermanentlyDisabled.add(layer);
     group.layers.add(layer);
     layer.when().then(() => {
-      if (addToLegend) this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: legendHeader, showDefaultSymbol: EsriUtils.rendererIsSimple(renderer) }));
+      if (addToLegend) this.store$.dispatch(addLayerToLegend({ layerUniqueId: layer.id, title: legendHeader, showDefaultSymbol: isSimpleRenderer(renderer) }));
       setTimeout(() => this.trackLayerStatus(layer));
     });
     return layer;
@@ -319,7 +328,7 @@ export class EsriLayerService {
     currentView.map.allLayers
       .filter(l => !this.popupsPermanentlyDisabled.has(l))
       .forEach(l => {
-        if (EsriUtils.layerIsFeature(l)) l.popupEnabled = popupsEnabled;
+        if (isFeatureLayer(l)) l.popupEnabled = popupsEnabled;
       });
   }
 

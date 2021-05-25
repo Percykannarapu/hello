@@ -1,29 +1,9 @@
 import { ComponentFactoryResolver, ComponentRef, Injectable, Injector } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { EsriGeographyPopupComponent, NodeVariable, PopupDefinition } from '@val/esri';
-import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { GeoVar } from 'app/impower-datastore/state/transient/geo-vars/geo-vars.model';
-import { MapVar } from 'app/impower-datastore/state/transient/map-vars/map-vars.model';
-import { FullAppState } from 'app/state/app.interfaces';
-import { ImpProjectVar } from 'app/val-modules/targeting/models/ImpProjectVar';
+import { EsriGeographyPopupComponent, PopupDefinition } from '@val/esri';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ValMetricsService } from './app-metrics.service';
 import { AppStateService } from './app-state.service';
-import { TargetAudienceService } from './target-audience.service';
-
-const convertToNodeVariable = (mapVar: MapVar | GeoVar, audience: Audience, impVar: ImpProjectVar) : NodeVariable => {
-  const fieldType = audience.fieldconte.toUpperCase();
-  const digits: number = fieldType === 'RATIO' || fieldType === 'PERCENT' ? 2 : 0;
-
-  return {
-    value: audience.audienceSourceType === 'Combined' ? audience.combinedAudiences.map(val => mapVar[val] as number).reduce((a, b) => a + b, 0) : mapVar[audience.audienceIdentifier],
-    digitRounding: digits,
-    isNumber: impVar.isNumber,
-    name: audience.audienceSourceType === 'Combined' ? audience.audienceName : impVar.customVarExprDisplay
-  };
-};
 
 @Injectable({
   providedIn: 'root'
@@ -33,13 +13,10 @@ export class AppComponentGeneratorService {
   private cachedGeoPopup: Map<string, ComponentRef<EsriGeographyPopupComponent>> =  new Map<string, ComponentRef<EsriGeographyPopupComponent>>();
 
   constructor(private appStateService: AppStateService,
-              private targetAudienceService: TargetAudienceService,
-              private impGeofootprintVarService: ImpGeofootprintVarService,
               private logger: LoggingService,
               private resolver: ComponentFactoryResolver,
               private injector: Injector,
-              private valMetricsService: ValMetricsService,
-              private store$: Store<FullAppState>) {
+              private valMetricsService: ValMetricsService) {
     this.appStateService.refreshDynamicContent$.subscribe(() => this.updateDynamicComponents());
   }
 

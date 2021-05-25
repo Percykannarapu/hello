@@ -3,13 +3,9 @@ import { Action } from '@ngrx/store';
 import { GeoAttribute } from './geo-attributes.model';
 
 export enum GeoAttributeActionTypes {
-  RequestAttributes = '[GeoAttribute] Request Attributes',
-  RequestAttributesComplete = '[GeoAttribute] Request Complete',
-  RequestAttributesFailure = '[GeoAttribute] Request Failed',
-
-  RehydrateAttributes = '[GeoAttribute] Rehydrate Attributes',
-  RehydrateAttributesComplete = '[GeoAttribute] Rehydrate Complete',
-  RehydrateAttributesFailure = '[GeoAttribute] Rehydrate Failed',
+  GetLayerAttributes = '[GeoAttribute] Get Attributes',
+  GetLayerAttributesComplete = '[GeoAttribute] Get Attribute Complete',
+  GetLayerAttributesFailure = '[GeoAttribute] Get Attribute Failed',
 
   LoadGeoAttributes = '[GeoAttribute] Load GeoAttributes',
   AddGeoAttribute = '[GeoAttribute] Add GeoAttribute',
@@ -25,32 +21,18 @@ export enum GeoAttributeActionTypes {
   ProcessGeoAttributes = '[GeoAttribute] Process Geo Attributes'
 }
 
-export class RequestAttributes implements Action {
-  readonly type = GeoAttributeActionTypes.RequestAttributes;
+export class GetLayerAttributes implements Action {
+  readonly type = GeoAttributeActionTypes.GetLayerAttributes;
   constructor(public payload: { geocodes: Set<string> }) {}
 }
 
-export class RequestAttributesComplete implements Action {
-    readonly type = GeoAttributeActionTypes.RequestAttributesComplete;
+export class GetLayerAttributesComplete implements Action {
+  readonly type = GeoAttributeActionTypes.GetLayerAttributesComplete;
+  constructor(public payload: { geoAttributes: GeoAttribute[] }) {}
 }
 
-export class RequestAttributeFailure implements Action {
-  readonly type = GeoAttributeActionTypes.RequestAttributesFailure;
-  constructor(public payload: { err: any }) {}
-}
-
-export class RehydrateAttributes implements Action {
-  readonly type = GeoAttributeActionTypes.RehydrateAttributes;
-  constructor(public payload: { projectId: number, geocodes: Set<string> }) {}
-}
-
-export class RehydrateAttributesComplete implements Action {
-  readonly type = GeoAttributeActionTypes.RehydrateAttributesComplete;
-  constructor(public payload: { projectId: number }) {}
-}
-
-export class RehydrateAttributesFailure implements Action {
-  readonly type = GeoAttributeActionTypes.RehydrateAttributesFailure;
+export class GetLayerAttributesFailure implements Action {
+  readonly type = GeoAttributeActionTypes.GetLayerAttributesFailure;
   constructor(public payload: { err: any }) {}
 }
 
@@ -114,7 +96,6 @@ export class ClearGeoAttributes implements Action {
 
 export class ProcessGeoAttributes implements Action {
   readonly type = GeoAttributeActionTypes.ProcessGeoAttributes;
-  constructor(public payload: { prepGeos?: boolean, applyFilters?: boolean }) {}
 }
 
 export type GeoAttributeActions =
@@ -128,10 +109,7 @@ export type GeoAttributeActions =
   | DeleteGeoAttribute
   | DeleteGeoAttributes
   | ClearGeoAttributes
-  | RequestAttributes
-  | RequestAttributesComplete
-  | RequestAttributeFailure
-  | RehydrateAttributes
-  | RehydrateAttributesFailure
-  | RehydrateAttributesComplete
+  | GetLayerAttributes
+  | GetLayerAttributesComplete
+  | GetLayerAttributesFailure
   | ProcessGeoAttributes;

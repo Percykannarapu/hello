@@ -48,4 +48,3 @@ Thumbs.db
 
 # Sensitive secrets
 .env
-/applications/impower/environments/esri-secrets.ts

@@ -4,7 +4,8 @@ import { Store } from '@ngrx/store';
 import { filterArray, toUniversalCoordinates } from '@val/common';
 import { BehaviorSubject, EMPTY, merge, Observable, from } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
-import { EsriUtils } from '../core/esri-utils';
+import { EsriDomainFactory } from '../core/esri-domain.factory';
+import { isFeatureLayer, isUniqueValueRenderer } from '../core/type-checks';
 import { LabelDefinition, MarkerSymbolDefinition } from '../models/common-configuration';
 import { MapSymbols, RgbTuple } from '../models/esri-types';
 import { PoiConfiguration, PoiConfigurationTypes, SimplePoiConfiguration, UniquePoiConfiguration, RadiiTradeAreaDrawDefinition } from '../models/poi-configuration';
@@ -23,7 +24,6 @@ import {
   upsertPois
 } from '../state/poi/esri.poi.actions';
 import { poiSelectors } from '../state/poi/esri.poi.selectors';
-import { EsriDomainFactoryService } from './esri-domain-factory.service';
 import { EsriLayerService } from './esri-layer.service';
 import { EsriMapService } from './esri-map.service';
 import { EsriQueryService } from './esri-query.service';
@@ -41,8 +41,7 @@ export class EsriPoiService {
               private mapService: EsriMapService,
               private queryService: EsriQueryService,
               private store$: Store<AppState>,
-              private logger: LoggingService,
-              private domainFactory: EsriDomainFactoryService) {
+              private logger: LoggingService) {
     this.store$.select(selectors.getMapReady).pipe(
       filter(ready => ready),
       take(1)
@@ -118,7 +117,7 @@ export class EsriPoiService {
   private updatePoiLayer(config: PoiConfiguration, popupFields: string[]) : void {
     const layer = this.layerService.getLayerByUniqueId(config.featureLayerId);
     const visibleFieldSet = new Set(popupFields);
-    if (EsriUtils.layerIsFeature(layer)) {
+    if (isFeatureLayer(layer)) {
       layer.when().then(() => {
         const popupTemplate = layer.createPopupTemplate();
         popupTemplate.title = `${config.dataKey}: {locationName}`;
@@ -137,7 +136,7 @@ export class EsriPoiService {
           labelsVisible: config.showLabels,
           labelingInfo: this.createLabelFromDefinition(config)
         };
-        if (EsriUtils.rendererIsUnique(props.renderer)) {
+        if (isUniqueValueRenderer(props.renderer)) {
           this.layerService.removeLayerFromLegend(config.featureLayerId);
           layer.set(props);
           setTimeout(() => {
@@ -157,12 +156,12 @@ export class EsriPoiService {
     switch (config.poiType) {
       case PoiConfigurationTypes.Simple:
         const simpleSymbol = this.createSymbolFromDefinition(config.symbolDefinition);
-        const simpleRenderer = this.domainFactory.createSimpleRenderer(simpleSymbol);
+        const simpleRenderer = EsriDomainFactory.createSimpleRenderer(simpleSymbol);
         simpleRenderer.label = config.symbolDefinition.legendName || config.layerName || config.groupName;
         return simpleRenderer;
       case PoiConfigurationTypes.Unique:
         const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.filter(b => !b.isHidden).map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
-        const uniqueRenderer = this.domainFactory.createUniqueValueRenderer(null, uniqueValues);
+        const uniqueRenderer = EsriDomainFactory.createUniqueValueRenderer(null, uniqueValues);
         uniqueRenderer.field = config.featureAttribute;
         return uniqueRenderer;
     }
@@ -175,11 +174,11 @@ export class EsriPoiService {
       outlineColor = currentDef.color;
       outlineSize = currentDef.markerType === 'x' ? 4 : 2;
     }
-    const outline = this.domainFactory.createSimpleLineSymbol(outlineColor, outlineSize);
+    const outline = EsriDomainFactory.createSimpleLineSymbol(outlineColor, outlineSize);
     const path = currentDef.markerType === 'path' ? MapSymbols.STAR : undefined;
     const sizeMultiple = currentDef.markerType === 'path' ? 1.4 : 1;
     const markerSize = (currentDef.size || 10) * sizeMultiple;
-    return this.domainFactory.createSimpleMarkerSymbol(currentDef.color, outline, currentDef.markerType, path, markerSize);
+    return EsriDomainFactory.createSimpleMarkerSymbol(currentDef.color, outline, currentDef.markerType, path, markerSize);
   }
 
   private createLabelFromDefinition(config: PoiConfiguration) : __esri.LabelClass[] {
@@ -197,7 +196,7 @@ export class EsriPoiService {
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     const color = !currentDef.usesStaticColor ? config.symbolDefinition.color : currentDef.color;
     const haloColor = !currentDef.usesStaticColor ? config.symbolDefinition.outlineColor : currentDef.haloColor;
-    return this.domainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font);
+    return EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font);
   }
 
   private createMultiLabel(config: UniquePoiConfiguration) : __esri.LabelClass[] {
@@ -209,7 +208,7 @@ export class EsriPoiService {
       const where = `${config.featureAttribute} = '${bd.value}'`;
       const color = !currentDef.usesStaticColor ? bd.color : currentDef.color;
       const haloColor = !currentDef.usesStaticColor ? bd.outlineColor : currentDef.haloColor;
-      result.push(this.domainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font, 'below-center', { where }));
+      result.push(EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font, 'below-center', { where }));
     });
     return result;
   }
@@ -217,13 +216,13 @@ export class EsriPoiService {
   private createLabelFont(currentDef: LabelDefinition) : __esri.Font {
     const weight = currentDef.isBold ? 'bold' : 'normal';
     const style = currentDef.isItalic ? 'italic' : 'normal';
-    return this.domainFactory.createFont(currentDef.size, weight, style, currentDef.family);
+    return EsriDomainFactory.createFont(currentDef.size, weight, style, currentDef.family);
   }
 
   private queryForVisiblePois(configs: PoiConfiguration[]) : Observable<Record<string, __esri.Graphic[]>> {
     const allPois = configs.map(config => {
       const layer = this.layerService.getLayerByUniqueId(config.featureLayerId);
-      if (!EsriUtils.layerIsFeature(layer)) return EMPTY;
+      if (!isFeatureLayer(layer)) return EMPTY;
       return this.queryService.queryLayerView(layer, this.mapService.mapView.extent, true).pipe(
         reduce((a, c) => [ ...a, ...c ] , [] as __esri.Graphic[]),
         map(graphics => ({ [config.featureLayerId]: graphics }))
@@ -250,9 +249,9 @@ export class EsriPoiService {
     }
     if (visibleRadius) {
       defs.forEach(def => {
-        const outline = this.domainFactory.createSimpleLineSymbol(def.color, 2);
-        const symbol = this.domainFactory.createSimpleFillSymbol([0, 0, 0, 0], outline);
-        const renderer = this.domainFactory.createSimpleRenderer(symbol);
+        const outline = EsriDomainFactory.createSimpleLineSymbol(def.color, 2);
+        const symbol = EsriDomainFactory.createSimpleFillSymbol([0, 0, 0, 0], outline);
+        const renderer = EsriDomainFactory.createSimpleRenderer(symbol);
         const validBufferedPoints = def.bufferedPoints.filter(p => p.buffer > 0);
         if (validBufferedPoints.length > 0) {
           const pointTree = new EsriQuadTree(validBufferedPoints);

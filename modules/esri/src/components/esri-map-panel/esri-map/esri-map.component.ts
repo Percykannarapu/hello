@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Ng
 import { select, Store } from '@ngrx/store';
 import { combineLatest } from 'rxjs';
 import { filter, map, startWith, take } from 'rxjs/operators';
-import { LoggingService } from '../../../services/logging.service';
 import { EsriUtils } from '../../../core/esri-utils';
 import { EsriMapService } from '../../../services/esri-map.service';
+import { LoggingService } from '../../../services/logging.service';
 import { AppState } from '../../../state/esri.reducers';
 import { selectors } from '../../../state/esri.selectors';
 import { Authenticate } from '../../../state/init/esri.init.actions';

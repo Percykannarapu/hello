@@ -170,7 +170,6 @@ import { AppTradeAreaService } from './services/app-trade-area.service';
 import { AuthService } from './services/auth.service';
 import { BatchMapAuthService } from './services/batch-map-auth-service';
 import { RadService } from './services/rad.service';
-import { TargetAudienceService } from './services/target-audience.service';
 import { UsageService } from './services/usage.service';
 import { UserService } from './services/user.service';
 import { appMetaReducers, appReducer } from './state/app.reducer';
@@ -191,7 +190,6 @@ import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/service
 import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
-import { ImpProjectVarService } from './val-modules/targeting/services/ImpProjectVar.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 
@@ -406,7 +404,7 @@ export function esriSetupFactory() : ForRootOptions {
     ...allInterceptorProviders,
     // from val-modules
     { provide: LoggingConfigurationToken, useClass: AppConfig },
-    ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpProjectVarService, ImpClientLocationService,
+    ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpClientLocationService,
     ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
     ImpGeofootprintLocAttribService, AppDiscoveryService, ImpMetricNameService,
     MetricService, RestDataService, TransactionManager,
@@ -416,7 +414,7 @@ export function esriSetupFactory() : ForRootOptions {
     CookieService,
     // from main application
     AppConfig, AppProjectService, AppMessagingService, AppRendererService,
-    AuthService, RadService, UsageService, UserService, ImpRadLookupService, TargetAudienceService,
+    AuthService, RadService, UsageService, UserService, ImpRadLookupService,
     AppLayerService, AppGeocodingService, AppTradeAreaService,
     AppMapService, ValMetricsService,
     AppEditSiteService, BatchMapAuthService
