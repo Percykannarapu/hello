@@ -59,6 +59,7 @@ import { StepsModule } from 'primeng/steps';
 import { TableModule } from 'primeng/table';
 import { TabMenuModule } from 'primeng/tabmenu';
 import { TabViewModule } from 'primeng/tabview';
+import { TagModule } from 'primeng/tag';
 import { TieredMenuModule } from 'primeng/tieredmenu';
 import { ToastModule } from 'primeng/toast';
 import { ToggleButtonModule } from 'primeng/togglebutton';
@@ -295,6 +296,7 @@ export function esriSetupFactory() : ForRootOptions {
     TableModule,
     TabMenuModule,
     TabViewModule,
+    TagModule,
     TieredMenuModule,
     ToastModule,
     ToggleButtonModule,

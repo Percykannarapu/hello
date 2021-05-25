@@ -30,16 +30,28 @@
         </div>
       </div>
     </ng-template>
+
+    <ng-template pTemplate="colgroup">
+      <colgroup>
+        <col class="select-column">
+        <col class="static-column">
+        <col class="static-column">
+        <col class="static-column">
+        <col *ngFor="let col of selectedColumns" [style.width]="col.width">
+        <col class="static-column">
+      </colgroup>
+    </ng-template>
+
     <ng-template pTemplate="header">
       <tr>
-        <th style="width: 3rem">
+        <th>
           <p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectSites(headerFilter)" class="val-table-hdr"
                       pTooltip="{{getSelectButtonText(false)}}"></p-checkbox>
         </th>
         <th>Google&reg; Map</th>
         <th>Resubmit Address</th>
         <th>Accept XY</th>
-        <th *ngFor="let column of selectedColumns" [style.width]="column.width" [pSortableColumn]="column.field">
+        <th *ngFor="let column of selectedColumns" [pSortableColumn]="column.field">
           {{column.header}}
           <p-sortIcon [field]="column.field"></p-sortIcon>
         </th>
@@ -95,7 +107,7 @@
                                 (filterApplied)="failureGrid.filter($event, col.field, 'in');"
                                 (filterCleared)="onFilterRemoved($event)"></val-table-filter-lov>
         </th>
-        <th class="button-column-hdr">
+        <th>
           <button (click)="onRemoveSelected()" icon="pi pi-trash" class="p-button-outlined p-button-rounded p-button-danger" pButton
                   pTooltip="Remove {{numSelectedSites}} selected locations" [disabled]="!hasSelectedSites"></button>
         </th>
@@ -103,7 +115,7 @@
     </ng-template>
     <ng-template pTemplate="body" let-site>
       <tr [pSelectableRow]="site">
-        <td style="width: 3rem">
+        <td>
           <p-checkbox [(ngModel)]="site['isActive']" binary="true" (click)="setHasSelectedSites()"
                       pTooltip="{{site['isActive'] ? 'Unselect' : 'Select'}} site" tooltipPosition="right"></p-checkbox>
         </td>
@@ -119,7 +131,7 @@
                   pButton></button>
         </td>
         <ng-container *ngFor="let column of selectedColumns">
-          <td *ngIf="column.isEditable && column.field !== 'isActive'" pEditableColumn [style.width]="column.width" [ngSwitch]="column.field">
+          <td *ngIf="column.isEditable && column.field !== 'isActive'" pEditableColumn [ngSwitch]="column.field">
             <ng-container *ngSwitchCase="'coordinates'">
               <p-cellEditor>
                 <ng-template pTemplate="input">
@@ -141,7 +153,7 @@
               </p-cellEditor>
             </ng-container>
           </td>
-          <td *ngIf="!column.isEditable" [style.width]="column.width">
+          <td *ngIf="!column.isEditable">
             {{ site[column.field] }}
           </td>
         </ng-container>

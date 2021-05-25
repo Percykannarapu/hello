@@ -8,7 +8,6 @@ import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/m
 import { BehaviorSubject, combineLatest, merge, Observable, Subscription } from 'rxjs';
 import { concatMap, debounceTime, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
-import { EnvironmentData } from '../../environments/environment';
 import { AppConfig } from '../app.config';
 import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
 import { AddAudience } from '../impower-datastore/state/transient/audience/audience.actions';
@@ -182,7 +181,6 @@ export class UnifiedAudienceService {
       const key = 'NATIONAL_EXTRACT';
       this.store$.dispatch(new StartBusyIndicator({key, message: 'Downloading National Data'}));
       if (analysisLevel === 'PCR') {
-        let originalFileName = '';
         audiences.forEach(audience => {
           const numericId = Number(audience.audienceIdentifier);
           const duplicateCategories = reqInput.filter(inputMap => inputMap['source'] == audience.audienceSourceName);
