@@ -20,7 +20,7 @@ export const environment: EnvironmentData = {
   logLevel: LogLevels.WARN,
   esri: {
     // portalServer: 'https://impowerqa.valassis.com/',
-    portalServer: 'https://gis.valassislab.com/',
+    portalServer: 'https://valvcsimpor1vm.val.vlss.local/',
     username: process.env.ESRI_USERNAME,
     password: process.env.ESRI_PASSWORD
   },
@@ -53,25 +53,25 @@ export const environment: EnvironmentData = {
 
 layerIds: {
   zip: {
-    boundary: '23a54308e914496aa24d94a9b36776a0',
-    centroid: '88120ac630d746239b133296e87b8e1f',
-    serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_Very_Simplified/FeatureServer/0'
+    boundary: 'b1d2b37add4d470ca32bfd9f40d91b9f',
+    centroid: 'f0dd4c98bd3843c2b7ed16f04040ff13',
+    serviceUrl: 'https://valvcsimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ZIP_Top_Vars_Very_Simplified/FeatureServer/0'
   },
   atz: {
-    boundary: 'c0ee701ee95f4bbdbc15ded2a37ca802',
-    centroid: 'fd4b078fc2424dd5a48af860dc421431',
-    serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_Very_Simplified/FeatureServer/0'
+    boundary: 'dac5cea6976a42ceb3f0498d2c901447',
+    centroid: '7bde296c08254ed78460accd00c8af49',
+    serviceUrl: 'https://valvcsimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/ATZ_Top_Vars_Very_Simplified/FeatureServer/0'
   },
   dtz: {
-    boundary: 'a4449b3ee55442af881f6ac660ca8163',
-    centroid: '377018a24ba14afa9e02e56110b3a568',
+    boundary: '9230ad1f421847f08d6bf0ae2f8ba00f',
+    centroid: 'ae57986ce91144e98a65208ef8ae5a1d',
     serviceUrl: ''
   },
   wrap: {
-    boundary: '12bae62392eb47aeb887b6509da557b5',
+    boundary: '8dbaa84192c94b5eab3f4e685ba93af7',
     centroid: undefined,
-    serviceUrl: 'https://gis.valassislab.com/arcgis-server/rest/services/Hosted/Wrap_Top_Vars_Very_Simplified/FeatureServer/0'
+    serviceUrl: 'https://valvcsimpor1vm.val.vlss.local/arcgis-server/rest/services/Hosted/Wrap_Top_Vars_Very_Simplified/FeatureServer/0'
   }
 },
-portalUrl: 'https://gis.valassislab.com',
+portalUrl: 'https://valvcsimpor1vm.val.vlss.local',
 };
