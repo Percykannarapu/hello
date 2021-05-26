@@ -62,7 +62,7 @@ export class AppMapService {
     // this.mapService.createHiddenWidget(LayerList, {}, { expandIconClass: 'esri-icon-layer-list', expandTooltip: 'Layer List', group: 'map-ui' });
     if (isBatchMapping) {
       // if we're batch mapping, we want no widgets on the UI except for a custom legend
-      //this.mapService.mapView.ui.remove('zoom');
+      this.mapService.mapView.ui.remove('zoom');
       return;
     }
     // setup the map widgets
