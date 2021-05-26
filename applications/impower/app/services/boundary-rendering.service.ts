@@ -128,17 +128,17 @@ export class BoundaryRenderingService {
       },
       wrap: {
         minScale: 4622342,
-        batchMinScale: 9244684,
+        batchMinScale: undefined,
         defaultFontSize: 12
       },
       zip: {
         minScale: 1155600,
-        batchMinScale: 2311200,
+        batchMinScale: 6933600,
         defaultFontSize: 12
       },
       atz: {
         minScale: 1155600,
-        batchMinScale: 2311200,
+        batchMinScale: 4622342,
         defaultFontSize: 10
       },
       dtz: {

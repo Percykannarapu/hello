@@ -2,7 +2,6 @@ import { Injectable, NgZone } from '@angular/core';
 import { geodesicArea, geodesicLength } from '@arcgis/core/geometry/geometryEngine';
 import Point from '@arcgis/core/geometry/Point';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
-import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import Home from '@arcgis/core/widgets/Home';
 import Legend from '@arcgis/core/widgets/Legend';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
