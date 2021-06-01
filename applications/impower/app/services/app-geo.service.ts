@@ -16,7 +16,7 @@ import {
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { CacheGeos, GeoTransactionType, RemoveGeoCache } from '../impower-datastore/state/transient/transactions/transactions.actions';
 import { ProjectFilterChanged } from '../models/ui-enums';
-import { FullAppState } from '../state/app.interfaces';
+import { FullAppState, MustCoverPref } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
 import { deleteCustomTa, deleteMustCover, projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
@@ -724,7 +724,12 @@ export class AppGeoService {
         //prefs.forEach(pref => this.logger.debug.log("### MUSTCOVER pref: " + pref.pref + " = " + pref.val));
         prefs.forEach(mustCoverPref => {
           const prefsVal = mustCoverPref.val == null ? mustCoverPref.largeVal : mustCoverPref.val;
-          newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(prefsVal)];
+          if(mustCoverPref.pref !== 'Must Cover Manual'){
+            newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(prefsVal)];
+          } else {
+            const manualPrefs: MustCoverPref = JSON.parse(prefsVal);
+            newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(manualPrefs.fileContents)];
+          }
         });
         this.impGeoService.setMustCovers(newMustCovers);
       }

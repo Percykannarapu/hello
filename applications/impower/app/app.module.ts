@@ -311,7 +311,8 @@ export function esriSetupFactory() : ForRootOptions {
     SidebarModule,
     ColorPickerModule,
     DividerModule,
-    KeyFilterModule
+    KeyFilterModule,
+    InputTextareaModule
   ],
   declarations: [
     AppComponent,

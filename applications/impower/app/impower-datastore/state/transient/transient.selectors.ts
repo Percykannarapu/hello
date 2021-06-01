@@ -33,7 +33,6 @@ export const selectGridGeoVars = createSelector(
   (audiences, geoVars, customVars) => {
     const result: GridGeoVar = { geoVars: null, ranges: new Map<string, MinMax>(), lov: new Map<string, string[]>(), numVars: 0 };
     const mergedVars = mergeVariablesToEntity(geoVars, customVars);
-    console.log('Inside selector.', mergedVars);
     const transformedEntity = transformEntity(mergedVars, (varName, val) => {
         if ((audiences.hasOwnProperty(varName) && audiences[varName].showOnGrid))
           result.numVars++;

@@ -10,7 +10,7 @@ import { Injectable } from '@angular/core';
 import { Dictionary } from '@ngrx/entity';
 
 import { select, Store } from '@ngrx/store';
-import { roundTo } from '@val/common';
+import { isString, roundTo } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 
 import { ErrorNotification, WarningNotification } from '@val/messaging';
@@ -591,19 +591,17 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    // -----------------------------------------------------------
    // MUST COVER METHODS
    // -----------------------------------------------------------
-   public parseMustCoverFile(dataBuffer: string, fileName: string, analysisLevel: string, isResubmit: boolean, fileAnalysisLevel: string = null) : Observable<any> {
+   public parseMustCoverFile(dataBuffer: string | string[], fileName: string, analysisLevel: string, isResubmit: boolean, fileAnalysisLevel: string = null) : Observable<any> {
     //console.debug("### parseMustCoverFile fired");
-    const rows: string[] = dataBuffer.split(/\r\n|\n|\r/);
+    const rows: string[] = isString(dataBuffer) ?  dataBuffer.split(/\r\n|\n|\r/) : dataBuffer;
     const header: string = rows.shift();
-    const errorTitle: string = 'Must Cover Geographies Upload';
-
+    const errorTitle: string = fileName === 'manual' ? 'Must Cover Geographies Manually Add' :'Must Cover Geographies Upload' ;
 
     //const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
     try {
        // Parse the file data
        const data: ParseResponse<UploadMustCoverData> = FileService.parseDelimitedData(header, rows, mustCoverUpload);
-
        // Gather metrics about the upload
        const failCount = data.failedRows.length;
        const successCount = data.parsedData.length;
@@ -620,8 +618,12 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
 
           if (uniqueGeos.size !== data.parsedData.length) {
-             this.store$.dispatch(new WarningNotification({message: 'The upload file contains duplicate geocodes. Processing will continue, though you may want to re-evaluate the upload file.',
-                                                           notificationTitle: 'Must Cover Upload'}));
+               if(fileName === 'manual')
+                   this.store$.dispatch(new WarningNotification({message: 'Manually added geos contain duplicate geocodes. Processing will continue, though you may want to re-evaluate the geos in the manual add section.',
+                                                           notificationTitle: 'Must Cover Manual'}));
+               else 
+                    this.store$.dispatch(new WarningNotification({message: 'The upload file contains duplicate geocodes. Processing will continue, though you may want to re-evaluate the upload file.',
+                                                            notificationTitle: 'Must Cover Upload'}));
              //this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
           }
 
@@ -692,8 +694,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.allMustCoverBS$.next(this.mustCovers);
    }
 
-   public setMustCovers(newMustCovers: string[], append: boolean = false)
-   {
+   public setMustCovers(newMustCovers: string[], append: boolean = false) {
       this.logger.debug.log('setMustCovers Fired - ' + (newMustCovers != null ? newMustCovers.length : null) + ' new must covers');
       if (newMustCovers != null && newMustCovers.length != 0)
       {

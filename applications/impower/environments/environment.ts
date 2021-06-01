@@ -51,7 +51,7 @@ export class EnvironmentData {
       centroid: 'b58a024badbc4b63bce258aceaab7f31'
     },
     dtz: {
-      boundary: '45aedd8bb4d845bb999c287d76009372',
+      boundary: '5e81da421ebf402e98d64622f84b3603',
       simplifiedBoundary: undefined,
       centroid: 'e44e37afe10d4145b5e09d1a9027003b'
     },

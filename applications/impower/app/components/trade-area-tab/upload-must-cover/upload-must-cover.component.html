@@ -14,15 +14,31 @@
         <label for="analysisLevel">Analysis Level of upload file</label>
       </div>
     </div>
-    <div class="p-d-flex p-jc-between p-col-6">
-      <div>
-        <p-fileUpload #mustCoverUpload mode="basic" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
-                      [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isDisable" title="">
-        </p-fileUpload>
+    <div class="p-d-flex">
+      <div class="p-col">
+        <p-radioButton name="mustCoverGroup" value="Upload" label="Upload Must Covers" [(ngModel)]="currentSelection" (ngModelChange)="onSelectionChange($event)" inputId="upload" 
+                                             [disabled] = "!(fileAnalysisSelected != null) || !(currentAnalysisLevel$ | async)"></p-radioButton>
       </div>
-      <div>
-        <button pButton type="button" class="p-button-outlined" label="Delete Must Covers" [disabled]="!disableDeleteBtn()" (click)="deleteMustCovers()"></button>
-      </div>
+      <div class="p-col">
+        <p-radioButton name="mustCoverGroup" value="Manually Add" label="Enter Must Covers" [(ngModel)]="currentSelection" (ngModelChange)="onSelectionChange($event)" inputId="paste" 
+                                             [disabled] = "!(fileAnalysisSelected != null) || !(currentAnalysisLevel$ | async)"></p-radioButton>
+     </div>
+    </div>
+
+    <div class="p-d-flex p-jc-between">
+        <div class="p-col">
+          <p-fileUpload #mustCoverUpload mode="basic" name="data[]" accept=".csv,.xlsx,.xls" chooseLabel="Select File"
+            [customUpload]="true" (uploadHandler)="uploadFile($event)" [auto]="true" [disabled]="isDisable" title="">
+          </p-fileUpload>
+        </div>
+        <div class="p-col">
+          <textarea [rows]="5" [cols]="30" autoResize= "false" class="text-area" type="text" [(ngModel)]="mustCoverGeos" [pTooltip]="tooltip" [disabled]="isUpload"></textarea>
+          <button pButton type="button" label="Submit Must Covers"  (click)="validateMustCovers()" [disabled] = "!(mustCoverGeos != null && mustCoverGeos.length > 0)" ></button>
+        </div>
+    </div>
+    <hr>
+    <div class="p-d-flex p-jc-between p-col">
+        <button pButton type="button" label="Delete Must Covers"  [disabled]="!disableDeleteBtn()" (click)="deleteMustCovers()" ></button>
     </div>
 
     <div *ngIf="impGeofootprintGeoService.uploadFailures.length > 0" >

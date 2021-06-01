@@ -12,16 +12,16 @@ import { filter } from 'rxjs/operators';
 import * as xlsx from 'xlsx';
 import { AppProjectPrefService } from '../../../services/app-project-pref.service';
 import { AppStateService } from '../../../services/app-state.service';
-import { LocalAppState } from '../../../state/app.interfaces';
+import { LocalAppState,MustCoverPref } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
 import { AppDiscoveryService } from 'app/services/app-discovery.service';
+import { AppLoggingService } from 'app/services/app-logging.service';
 
 interface CustomMCDefinition {
   Number: number;
   geocode: string;
 }
-
 @Component({
   selector: 'val-upload-must-cover',
   templateUrl: './upload-must-cover.component.html'
@@ -30,15 +30,17 @@ export class UploadMustCoverComponent implements OnInit {
 
    private readonly spinnerId = 'MUST_COVERS_UPLOAD';
    public isDisable: boolean = true;
+   public isUpload: boolean = true;
    public tooltip;
    public currentAnalysisLevel$: Observable<string>;
    public totalUploadedRowCount = 0;
    private fileName: string;
-   //public isMustCoverExists: boolean;
+   public currentSelection: 'Upload' | 'Manually Add';
 
    allAnalysisLevels: SelectItem[] = [];
    fileAnalysisLevels: SelectItem[] = [];
    fileAnalysisSelected: string;
+   mustCoverGeos: string;
    fileAnalysisLabel: string;
    @Output() isMustCoverExists = new EventEmitter<boolean>();
 
@@ -51,8 +53,12 @@ export class UploadMustCoverComponent implements OnInit {
               , private impProjectPrefService: ImpProjectPrefService
               , private impProjectService: ImpProjectService
               , private appDiscoveryService: AppDiscoveryService
-              , private store$: Store<LocalAppState>) {
+              , private store$: Store<LocalAppState>
+              , private logger: AppLoggingService
+              ) {
                 this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
+                this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onProjectLoad());
+                this.appStateService.clearUI$.subscribe(() => this.onReset());
               }
 
    ngOnInit() {
@@ -87,7 +93,7 @@ export class UploadMustCoverComponent implements OnInit {
 
     this.impGeofootprintGeoService.allMustCoverBS$.subscribe(geos => {
          if (geos.length > 0)
-          this.processMuctCovers(geos);
+          this.processMustCovers(geos);
     });
 
     this.currentAnalysisLevel$.subscribe(val => {
@@ -107,13 +113,13 @@ export class UploadMustCoverComponent implements OnInit {
       }
     });
 
-    this.store$.select(projectIsReady).subscribe((flag) => {
-      if (flag){
-         this.fileAnalysisSelected = null;
-            this.isDisable = true;
-            this.impGeofootprintGeoService.uploadFailures = [];
-      }
-    });
+   //  this.store$.select(projectIsReady).subscribe((flag) => {
+   //    if (flag){
+   //       this.fileAnalysisSelected = null;
+   //          this.isDisable = true;
+   //          this.impGeofootprintGeoService.uploadFailures = [];
+   //    }
+   //  });
 
     this.store$.select(deleteMustCover).subscribe(isDeleteMustCover => this.switchAnalysisLevel(isDeleteMustCover));
    }
@@ -123,7 +129,23 @@ export class UploadMustCoverComponent implements OnInit {
      csvData = csvData + data.geocode;
      this.onRemove(data);
     this.parseMustcovers(csvData, this.fileName, true, data);
+   }
 
+   public onReset(){
+      this.fileAnalysisSelected = null;
+      this.mustCoverGeos = null;
+   }
+
+   public onProjectLoad(){
+      const projectPref = this.appProjectPrefService.getPref('Must Cover Manual');
+      if(projectPref != null){
+         const mustCoverFormData : MustCoverPref = JSON.parse(projectPref.largeVal);
+         // console.log('mustCoverFormData::', mustCoverFormData);
+         this.isUpload = false;
+         this.fileAnalysisSelected = mustCoverFormData.fileAnalysisLevel;
+         this.currentSelection = 'Manually Add';
+         this.mustCoverGeos = mustCoverFormData.fileContents;
+      }
    }
 
    public onRemove(data: CustomMCDefinition){
@@ -133,14 +155,23 @@ export class UploadMustCoverComponent implements OnInit {
 
 
    private parseMustcovers(dataBuffer: string, fileName: string, isResubmit: boolean = false, customMCDefinition?: CustomMCDefinition){
-    //let uniqueGeos: string[] = [];
     const analysisLevel = this.appStateService.analysisLevel$.getValue();
     this.impGeofootprintGeoService.parseMustCoverFile(dataBuffer, fileName, analysisLevel, isResubmit, this.fileAnalysisSelected).subscribe();
    }
 
-   private processMuctCovers(geos: string[]){
-      const mustcovetText =  'Must Cover Upload';
-      this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcovetText + name, geos.join(', '));
+   private processMustCovers(geos: string[]){
+      const mustcoverText =  this.isUpload ? 'Must Cover Upload' : 'Must Cover Manual'; 
+      const prefItems : MustCoverPref = {
+         fileName: this.isUpload ? this.fileName : 'manual',
+         fileContents: geos.join(', '),
+         fileAnalysisLevel: this.fileAnalysisSelected,
+      };
+
+      if(mustcoverText === 'Must Cover Manual')
+         this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcoverText, JSON.stringify(prefItems));
+      else 
+      this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcoverText + name, geos.join(', '));
+
       //ensure mustcover are active
       const uniqueGeoSet = new Set(geos);
       this.impGeofootprintGeoService.get().forEach(geo => {
@@ -158,7 +189,6 @@ export class UploadMustCoverComponent implements OnInit {
       this.fileName = event.files[0].name ? event.files[0].name.toLowerCase() : null;
       const key = this.spinnerId;
       const project = this.appStateService.currentProject$.getValue();
-      //let uniqueGeos: string[] = [];
       if (name != null) {
          this.store$.dispatch(new StartBusyIndicator({ key, message: 'Loading Must Cover Data'}));
          if (this.fileName.includes('.xlsx') || this.fileName.includes('.xls')) {
@@ -201,12 +231,11 @@ export class UploadMustCoverComponent implements OnInit {
 
       this.mustCoverUploadEl.clear();
       this.mustCoverUploadEl.basicFileInput.nativeElement.value = ''; // workaround for https://github.com/primefaces/primeng/issues/4816
-      //this.isDisable = true;
       //this.fileAnalysisSelected = null;
    }
 
    onFileAnalysisChange(event: any) : void {
-      this.isDisable = false;
+      this.isDisable = true;
       this.fileAnalysisSelected = event;
       this.fileAnalysisLabel = this.allAnalysisLevels.filter(analysis => analysis.value === this.fileAnalysisSelected)[0].label;
       this.tooltip = 'CSV or Excel format, required field is Geocode';
@@ -226,8 +255,8 @@ export class UploadMustCoverComponent implements OnInit {
             this.impGeofootprintGeoService.uploadFailures = [];
             /*if (this.impGeofootprintGeoService.uploadFailures.length > 0)
                this.isMustCoverExists = true;*/
-            this.fileAnalysisSelected = null;
             this.isDisable = true;
+            this.mustCoverGeos = null;
          },
          reject: () => {
             this.isMustCoverExists.emit(true);
@@ -235,8 +264,46 @@ export class UploadMustCoverComponent implements OnInit {
       });
    }
 
-   disableDeleteBtn(){
-      return this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0 ;
+   public onSelectionChange(data: 'Upload' | 'Manually Add') {
+      this.currentSelection = data;
+      if(this.currentSelection === 'Manually Add'){
+         this.isUpload = false;
+         this.isDisable = true;
+      } else{
+         this.isDisable = false;
+         this.isUpload = true;
+      }
+   }
+
+   validateMustCovers(){
+      let geos : string[] = ["geocode"];
+      let manualFailures: string[] = [];
+      const analysisLevel = this.appStateService.analysisLevel$.getValue();
+      const manualMustCoverGeos = this.mustCoverGeos.split(/,|,\s|\r\n|\n|\r/);
+      manualMustCoverGeos.forEach(geo => {
+         geo.replace(" ","");
+         if(this.fileAnalysisSelected === 'ZIP' && geo.match(/^[0-9]{5}$/) || (this.fileAnalysisSelected === 'ATZ' && geo.match(/^[0-9]{5}|[0-9]{5}[A-Z]{1}?[0-9]{1}?$/)) ||
+               (this.fileAnalysisSelected === 'Digital ATZ' && geo.match(/^[0-9]{5,9}?$/)) || (this.fileAnalysisSelected === 'PCR' && geo.match(/^[0-9]{5}[A-Z]{1}[0-9]{3}$/)) ||
+                  (this.fileAnalysisSelected === 'WRAP_MKT_ID' && geo.match(/^[A-Z]{1,8}$/)) || (this.fileAnalysisSelected === 'COUNTY' && geo.match(/^[a-zA-Z ]*$/)) ||
+                   (this.fileAnalysisSelected === 'STATE' && geo.match(/^[A-Za-z]{2}$/)) || (this.fileAnalysisSelected === 'DMA' && geo.match(/^[0-9]{4}$/)) || 
+                     (this.fileAnalysisSelected === 'INFOSCAN_CODE' && geo.match(/^[0-9]{3}$/)) || (this.fileAnalysisSelected === 'SCANTRACK_CODE')){
+            geos.push(geo);
+         }
+         else
+            manualFailures.push(geo);
+      });
+      if(manualFailures.length > 0)
+         this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: 'Invalid Geos, Please check and try again'}));
+
+      this.processMustCovers(geos);
+      this.impGeofootprintGeoService.parseMustCoverFile(geos, 'manual', analysisLevel, false, this.fileAnalysisSelected).subscribe();
+      geos = [];
+      manualFailures = [];
+      
+   }
+
+   disableDeleteBtn() {
+      return this.impGeofootprintGeoService.allMustCoverBS$.value.length > 0 || (this.mustCoverGeos?.length > 0) ;
    }
 
    rollDownIssuesLog(){

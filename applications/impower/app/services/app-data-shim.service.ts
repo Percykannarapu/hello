@@ -334,7 +334,7 @@ export class AppDataShimService {
     }
     if (rollDownType === 'MUSTCOVER'){
       uploadFailures =  this.impGeofootprintGeoService.uploadFailures.map(geo => geo.geocode);
-       titleText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload';
+       titleText = isResubmit ? 'Must Cover Resubmit' : 'Must Cover Upload/Manually Add';
     }
 
     if (isResubmit && new Set(uploadFailures).has(resubmitGeo[0])){

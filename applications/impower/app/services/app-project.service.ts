@@ -42,6 +42,7 @@ export class AppProjectService {
 
   save(project?: ImpProject) : Observable<number> {
     const projectToSave = project == null ? this.currentProjectRef : project;
+    console.log('projectToSave::', projectToSave);
     if (projectToSave == null) return of(null as number);
     this.cleanupProject(projectToSave);
     return this.saveImpl(projectToSave).pipe(

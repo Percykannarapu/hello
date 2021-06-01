@@ -132,7 +132,6 @@ export class ImpDomainFactoryService {
    createProjectPref(parent: ImpProject, group: string, pref: string, type: string, value: string, forceLOB: boolean = true, isActive: boolean = true, overwriteDuplicate: boolean = true) : ImpProjectPref {
       if (parent == null) throw new Error('Project Pref factory requires a valid Project instance');
       if (pref == null) throw new Error('Project Preferences cannot have a null pref (Key)');
-
       const existingPref = parent.impProjectPrefs.find(impPref => impPref.prefGroup === group && impPref.pref === pref);
       if (existingPref == null) {
          const result = new ImpProjectPref({
@@ -143,8 +142,8 @@ export class ImpDomainFactoryService {
             prefGroup:     group,
             prefType:      type,
             pref:          pref,
-            val:           (value.length <= 4000 && !forceLOB) ? value : null,
-            largeVal:      (value.length > 4000 || forceLOB) ? value : null,
+            val:           (value?.length <= 4000 && !forceLOB) ? value : null,
+            largeVal:      (value?.length > 4000 || forceLOB) ? value : null,
             isActive:      isActive,
             impProject:    parent // Set transient property
       });

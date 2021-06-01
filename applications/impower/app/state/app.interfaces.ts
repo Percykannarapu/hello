@@ -154,3 +154,9 @@ export interface ExtentPayload{
 export interface SpatialReference{
   wkid: number;
 }
+
+export interface MustCoverPref {
+  fileName: string;
+  fileContents: string;
+  fileAnalysisLevel: string;
+}
