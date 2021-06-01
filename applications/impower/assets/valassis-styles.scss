@@ -68,6 +68,10 @@ th .p-multiselect {
   @extend .p-button
 }
 
+.p-dialog-mask-scrollblocker {
+  overflow-y: auto;
+}
+
 .p-confirm-dialog-reject {
   @extend .p-button-outlined
 }

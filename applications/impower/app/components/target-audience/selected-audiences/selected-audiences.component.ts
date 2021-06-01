@@ -31,7 +31,7 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
   audiences$ = new BehaviorSubject<Audience[]>([]);
   gridAudiences$ = new BehaviorSubject<Audience[]>([]);
   audienceCount: number = 0;
-  gridAll: boolean = true;
+  gridAll: boolean = false;
   gfpAll: boolean = false;
 
   public showDialog: boolean = false;
