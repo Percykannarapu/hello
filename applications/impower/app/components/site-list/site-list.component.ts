@@ -252,9 +252,9 @@ export class SiteListComponent implements OnInit {
     site.Group = this.selectedRowData.loc.groupName;
     site.Description = this.selectedRowData.loc.description;
     if (site.RADIUS1 === undefined) {
-      site.RADIUS1 = this.selectedRowData['radius1'];
-      site.RADIUS2 = this.selectedRowData['radius2'];
-      site.RADIUS3 = this.selectedRowData['radius3'];
+      site.RADIUS1 = this.selectedRowData.loc.radius1;
+      site.RADIUS2 = this.selectedRowData.loc.radius2;
+      site.RADIUS3 = this.selectedRowData.loc.radius3;
     }
     site.previousAddress1 = this.selectedRowData.loc.origAddress1;
     site.previousCity = this.selectedRowData.loc.origCity;

@@ -179,26 +179,30 @@ export class ImpDomainFactoryService {
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
       clientIdentifierId: 123, // Mandatory field, stubbing
-      locationName: res.Name != null ? res.Name.trim() : '',
-      marketName: res.Market != null ? res.Market.trim() : '',
-      marketCode: res['Market Code'] != null ? res['Market Code'].trim() : '',
-      description: res['Description'] != null ? res['Description'].trim() : '',
-      groupName: res['Group'] != null ? res['Group'].trim() : '',
+      locationName: res.Name != null ? res.Name?.trim() : '',
+      marketName: res.Market != null ? res.Market?.trim() : '',
+      marketCode: res['Market Code'] != null ? res['Market Code']?.trim() : '',
+      description: res['Description'] != null ? res['Description']?.trim() : '',
+      groupName: res['Group'] != null ? res['Group']?.trim() : '',
       locAddress: res.Address,
       locCity: res.City,
       locState: res.State,
       locZip: res.ZIP,
       xcoord: Number(res.Longitude),
       ycoord: Number(res.Latitude),
-      origAddress1: (res['Original Address'] != null || isLocationEdit) ? ((!res['previousAddress1']) ? res['Original Address'].trim() : res['previousAddress1'].trim()) : '' ,
-      origCity: (res['Original City'] != null || isLocationEdit) ? ((!res['previousCity']) ? res['Original City'].trim() : res['previousCity'].trim()) : '' ,
-      origState: (res['Original State'] != null || isLocationEdit) ? ((!res['previousState']) ? res['Original State'].trim() : res['previousState'].trim()) : '' ,
+      origAddress1: (res['Original Address'] != null || isLocationEdit)
+        ? ((!res['previousAddress1'])
+          ? res['Original Address']?.trim()
+          : res['previousAddress1']?.trim())
+        : '' ,
+      origCity: (res['Original City'] != null || isLocationEdit) ? ((!res['previousCity']) ? res['Original City']?.trim() : res['previousCity']?.trim()) : '' ,
+      origState: (res['Original State'] != null || isLocationEdit) ? ((!res['previousState']) ? res['Original State']?.trim() : res['previousState']?.trim()) : '' ,
       origPostalCode: (res['Original ZIP'] != null || isLocationEdit)
                         ?  ((!res['previousZip'])
                                 ? (res['Original ZIP'] != null)
-                                        ? res['Original ZIP'].trim()
+                                        ? res['Original ZIP']?.trim()
                                         : ''
-                                : res['previousZip'].trim())
+                                : res['previousZip']?.trim())
                         : '' ,
       recordStatusCode: res['Geocode Status'],
       geocoderMatchCode: res['Match Code'],

@@ -131,28 +131,29 @@ export class SiteListContainerComponent implements OnInit {
     editedLocation.marketCode = siteOrSites['Market Code'];
     this.impGeofootprintLocationService.update(oldData, editedLocation);
 
-    let ifRadiusChanged: boolean = false;
-    if (newLocation.impGeofootprintTradeAreas !== null && newLocation.impGeofootprintTradeAreas.length > 0) {
-      const newRadius: number[] = [siteOrSites.RADIUS1, siteOrSites.RADIUS2, siteOrSites.RADIUS3];
-      editedLocation.radius1 = newRadius[0];
-      editedLocation.radius2 = newRadius[1];
-      editedLocation.radius3 = newRadius[2];
-      for (let i = 0; i < newLocation.impGeofootprintTradeAreas.length; i++) {
-         const index = editedLocation.impGeofootprintTradeAreas[i].taNumber - 1;
-         if (editedLocation.impGeofootprintTradeAreas[i].taType === 'RADIUS' &&
-             editedLocation.impGeofootprintTradeAreas[i].taRadius !== newRadius[index]) {
-            ifRadiusChanged = true;
-            editedLocation.impGeofootprintTradeAreas[i].taRadius = newRadius[index];
-         }
-      }
-      if (ifRadiusChanged)
-      {
-         const tradeAreaModels = editedLocation.impGeofootprintTradeAreas.filter(ta => ta.taRadius != null);
-         const transformedAreas = tradeAreaModels.map(ta => ({ radius: Number(ta.taRadius), selected: ta.isActive, taNumber: ta.taNumber }));
-         this.appTradeAreaService.deleteTradeAreas(editedLocation.impGeofootprintTradeAreas);
-         this.appTradeAreaService.applyRadiusTradeAreasToLocations(transformedAreas, [editedLocation]);
-      }
-    }
+    // this radius editing stuff has a bit of work to go before it's ready for use
+    // let ifRadiusChanged: boolean = false;
+    // if (newLocation.impGeofootprintTradeAreas !== null && newLocation.impGeofootprintTradeAreas.length > 0) {
+    //   const newRadius: number[] = [siteOrSites.RADIUS1, siteOrSites.RADIUS2, siteOrSites.RADIUS3];
+    //   editedLocation.radius1 = newRadius[0];
+    //   editedLocation.radius2 = newRadius[1];
+    //   editedLocation.radius3 = newRadius[2];
+    //   for (let i = 0; i < newLocation.impGeofootprintTradeAreas.length; i++) {
+    //      const index = editedLocation.impGeofootprintTradeAreas[i].taNumber - 1;
+    //      if (editedLocation.impGeofootprintTradeAreas[i].taType === 'RADIUS' &&
+    //          editedLocation.impGeofootprintTradeAreas[i].taRadius !== newRadius[index]) {
+    //         ifRadiusChanged = true;
+    //         editedLocation.impGeofootprintTradeAreas[i].taRadius = newRadius[index];
+    //      }
+    //   }
+    //   if (ifRadiusChanged)
+    //   {
+    //      const tradeAreaModels = editedLocation.impGeofootprintTradeAreas.filter(ta => ta.taRadius != null);
+    //      const transformedAreas = tradeAreaModels.map(ta => ({ radius: Number(ta.taRadius), selected: ta.isActive, taNumber: ta.taNumber }));
+    //      this.appTradeAreaService.deleteTradeAreas(editedLocation.impGeofootprintTradeAreas);
+    //      this.appTradeAreaService.applyRadiusTradeAreasToLocations(transformedAreas, [editedLocation]);
+    //   }
+    // }
 
     if ((ifAddressChanged || ifLatLongChanged) && anyChangeInHomeGeoFields) {
       this.confirmationService.confirm({

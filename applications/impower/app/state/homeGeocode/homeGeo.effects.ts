@@ -20,7 +20,7 @@ export class HomeGeoEffects {
            new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
         ]),
         catchError(err =>
-          of(new ErrorNotification({message: 'System encountered an error processing your request.  Please try again', notificationTitle: 'Geocoding'}),
+          of(new ErrorNotification({message: 'System encountered an error processing your request.  Please try again', notificationTitle: 'Geocoding', additionalErrorInfo: err}),
              new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'})
             )
         )
