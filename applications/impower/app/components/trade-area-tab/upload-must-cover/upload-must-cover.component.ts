@@ -57,7 +57,10 @@ export class UploadMustCoverComponent implements OnInit {
               , private logger: AppLoggingService
               ) {
                 this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
-                this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => this.onProjectLoad());
+                this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => {
+                   this.impGeofootprintGeoService.uploadFailures = [];
+                   this.onProjectLoad();
+                  });
                 this.appStateService.clearUI$.subscribe(() => this.onReset());
               }
 
@@ -113,13 +116,13 @@ export class UploadMustCoverComponent implements OnInit {
       }
     });
 
-   //  this.store$.select(projectIsReady).subscribe((flag) => {
-   //    if (flag){
-   //       this.fileAnalysisSelected = null;
-   //          this.isDisable = true;
-   //          this.impGeofootprintGeoService.uploadFailures = [];
-   //    }
-   //  });
+    /* this.store$.select(projectIsReady).subscribe((flag) => {
+      if (flag){
+         this.fileAnalysisSelected = null;
+            this.isDisable = true;
+            this.impGeofootprintGeoService.uploadFailures = [];
+      }
+    }); */
 
     this.store$.select(deleteMustCover).subscribe(isDeleteMustCover => this.switchAnalysisLevel(isDeleteMustCover));
    }
@@ -140,7 +143,6 @@ export class UploadMustCoverComponent implements OnInit {
       const projectPref = this.appProjectPrefService.getPref('Must Cover Manual');
       if(projectPref != null){
          const mustCoverFormData : MustCoverPref = JSON.parse(projectPref.largeVal);
-         // console.log('mustCoverFormData::', mustCoverFormData);
          this.isUpload = false;
          this.fileAnalysisSelected = mustCoverFormData.fileAnalysisLevel;
          this.currentSelection = 'Manually Add';
@@ -235,7 +237,7 @@ export class UploadMustCoverComponent implements OnInit {
    }
 
    onFileAnalysisChange(event: any) : void {
-      this.isDisable = true;
+      this.isDisable = this.currentSelection != null && this.currentSelection === 'Manually Add' ? true : false;
       this.fileAnalysisSelected = event;
       this.fileAnalysisLabel = this.allAnalysisLevels.filter(analysis => analysis.value === this.fileAnalysisSelected)[0].label;
       this.tooltip = 'CSV or Excel format, required field is Geocode';
