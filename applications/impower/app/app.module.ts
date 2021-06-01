@@ -194,7 +194,6 @@ import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProje
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
 import { TargetingModule } from './val-modules/targeting/targeting.module';
 
-
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
     return {};

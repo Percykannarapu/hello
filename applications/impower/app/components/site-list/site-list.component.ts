@@ -74,7 +74,7 @@ export class SiteListComponent implements OnInit {
   }
 
   @Output()
-  onToggleLocations: EventEmitter<{sites: ImpGeofootprintLocation[], isActive: boolean}> = new EventEmitter<{sites: null, isActive: false}>();
+  onToggleLocations = new EventEmitter<{sites: ImpGeofootprintLocation[], isActive: boolean}>();
 
   @Output()
   onDeleteLocations: EventEmitter<any> = new EventEmitter<any>();
@@ -166,7 +166,7 @@ export class SiteListComponent implements OnInit {
   public flatSiteGridColumnsLength: number = this.flatSiteGridColumns.length;
   public selectedColumns: any[] = [];
   public displayData: any;
-  public selectedRowData: any;
+  public selectedRowData: FlatSite;
   @ViewChild('locGrid', { static: true }) public _locGrid: Table;
 
   public showDialog: boolean = false;
@@ -249,18 +249,19 @@ export class SiteListComponent implements OnInit {
   }
 
   manuallyGeocode(site: ValGeocodingRequest, siteType) {
-    site.Group = this.selectedRowData.groupName;
-    site.Description = this.selectedRowData.description;
+    site.Group = this.selectedRowData.loc.groupName;
+    site.Description = this.selectedRowData.loc.description;
     if (site.RADIUS1 === undefined) {
-      site.RADIUS1 = this.selectedRowData.radius1;
-      site.RADIUS2 = this.selectedRowData.radius2;
-      site.RADIUS3 = this.selectedRowData.radius3;
+      site.RADIUS1 = this.selectedRowData['radius1'];
+      site.RADIUS2 = this.selectedRowData['radius2'];
+      site.RADIUS3 = this.selectedRowData['radius3'];
     }
-    site.previousAddress1 = this.selectedRowData.origAddress1;
-    site.previousCity = this.selectedRowData.origCity;
-    site.previousState = this.selectedRowData.origState;
-    site.previousZip = this.selectedRowData.origPostalCode;
-    this.editLocations.emit({site: site, siteType: siteType, oldData: this.selectedRowData});
+    site.previousAddress1 = this.selectedRowData.loc.origAddress1;
+    site.previousCity = this.selectedRowData.loc.origCity;
+    site.previousState = this.selectedRowData.loc.origState;
+    site.previousZip = this.selectedRowData.loc.origPostalCode;
+    const oldData = this.currentAllSitesBS$.getValue().filter(l => l.locationNumber === this.selectedRowData.loc.locationNumber)[0];
+    this.editLocations.emit({site: site, siteType: siteType, oldData });
   }
 
   public onListTypeChange(data: 'Site' | 'Competitor') {
@@ -311,22 +312,22 @@ export class SiteListComponent implements OnInit {
       marketName: row.marketName,
       marketCode: row.marketCode,
       coord: row.ycoord + ',' + row.xcoord,
-      homeZip: locAttribs.filter(la => la.attributeCode === 'Home Zip Code').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue : '',
-      homeAtz: locAttribs.filter(la => la.attributeCode === 'Home ATZ').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue : '',
-      homeDigitalAtz: locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue : '',
+      homeZip: locAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0]?.attributeValue ?? '',
+      homeAtz: locAttribs.filter(la => la.attributeCode === 'Home ATZ')[0]?.attributeValue ?? '',
+      homeDigitalAtz: locAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0]?.attributeValue ?? '',
       homePcr: locAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length === 1 ? locAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue : '',
       radius1: rowFlat['radius1'],
       radius2: rowFlat['radius2'],
       radius3: rowFlat['radius3']
     };
-    this.selectedRowData = row;
+    this.selectedRowData = rowFlat;
     this.showDialog = true;
   }
 
   public onDialogHide() {
     this.showDialog = false;
     this.displayData = '';
-    this.selectedRowData = '';
+    this.selectedRowData = null;
   }
 
   /**

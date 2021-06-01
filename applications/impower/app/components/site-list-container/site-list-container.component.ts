@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { toUniversalCoordinates } from '@val/common';
+import { isEmpty, toUniversalCoordinates } from '@val/common';
 import { EsriMapService } from '@val/esri';
 import { ErrorNotification, StopBusyIndicator } from '@val/messaging';
 import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
@@ -106,21 +106,24 @@ export class SiteListContainerComponent implements OnInit {
     }
    }
 
-   private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData, resubmit?: boolean) {
+   private processEditRequests(siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes, oldData) {
     const newLocation: ValGeocodingRequest = oldData;
     const attrbs: ImpGeofootprintLocAttrib[] = oldData.impGeofootprintLocAttribs;
     const ifAddressChanged: boolean = (oldData.locState != siteOrSites['state'] || oldData.locZip != siteOrSites['zip'] || oldData.locCity != siteOrSites['city'] || oldData.locAddress != siteOrSites['street']);
     const ifLatLongChanged: boolean = newLocation.xcoord != siteOrSites['longitude'] || newLocation.ycoord != siteOrSites['latitude'];
-    const homeZipFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Zip Code').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue != siteOrSites['Home Zip Code']) :
-    ((siteOrSites['Home Zip Code'] === '' || siteOrSites['Home Zip Code'] === null) ? false : true));
-    const homeAtzFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home ATZ').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue != siteOrSites['Home ATZ']) :
-    ((siteOrSites['Home ATZ'] === '' || siteOrSites['Home ATZ'] === null) ? false : true));
-    const homeDigitalAtzFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue != siteOrSites['Home Digital ATZ']) :
-    ((siteOrSites['Home Digital ATZ'] === '' || siteOrSites['Home Digital ATZ'] === null) ? false : true));
-    const homeCarrierRouteFlag: boolean = (attrbs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0 ? (attrbs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']) :
-    ((siteOrSites['Home Carrier Route'] === '' || siteOrSites['Home Carrier Route'] === null) ? false : true));
-    const anyChangeinHomeGeoFields: boolean = homeZipFlag || homeAtzFlag || homeDigitalAtzFlag || homeCarrierRouteFlag;
-
+    const homeZipFlag: boolean = attrbs.filter(la => la.attributeCode === 'Home Zip Code').length > 0
+      ? attrbs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue != siteOrSites['Home Zip Code']
+      : !isEmpty(siteOrSites['Home Zip Code']);
+    const homeAtzFlag: boolean = attrbs.filter(la => la.attributeCode === 'Home ATZ').length > 0
+      ? attrbs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue != siteOrSites['Home ATZ']
+      : !isEmpty(siteOrSites['Home ATZ']);
+    const homeDigitalAtzFlag: boolean = attrbs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0
+      ? attrbs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue != siteOrSites['Home Digital ATZ']
+      : !isEmpty(siteOrSites['Home Digital ATZ']);
+    const homeCarrierRouteFlag: boolean = attrbs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0
+      ? attrbs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue != siteOrSites['Home Carrier Route']
+      : !isEmpty(siteOrSites['Home Carrier Route']);
+    const anyChangeInHomeGeoFields: boolean = homeZipFlag || homeAtzFlag || homeDigitalAtzFlag || homeCarrierRouteFlag;
     const editedLocation: ImpGeofootprintLocation = oldData;
     editedLocation.locationNumber = siteOrSites['number'];
     editedLocation.locationName = siteOrSites['name'];
@@ -129,8 +132,7 @@ export class SiteListContainerComponent implements OnInit {
     this.impGeofootprintLocationService.update(oldData, editedLocation);
 
     let ifRadiusChanged: boolean = false;
-    if (newLocation.impGeofootprintTradeAreas !== null && newLocation.impGeofootprintTradeAreas.length > 0)
-    {
+    if (newLocation.impGeofootprintTradeAreas !== null && newLocation.impGeofootprintTradeAreas.length > 0) {
       const newRadius: number[] = [siteOrSites.RADIUS1, siteOrSites.RADIUS2, siteOrSites.RADIUS3];
       editedLocation.radius1 = newRadius[0];
       editedLocation.radius2 = newRadius[1];
@@ -147,21 +149,12 @@ export class SiteListContainerComponent implements OnInit {
       {
          const tradeAreaModels = editedLocation.impGeofootprintTradeAreas.filter(ta => ta.taRadius != null);
          const transformedAreas = tradeAreaModels.map(ta => ({ radius: Number(ta.taRadius), selected: ta.isActive, taNumber: ta.taNumber }));
-         //this.appTradeAreaService.applyRadiusTradeArea(transformedAreas, siteType);
-
-         // const currentLocations = this.getLocations(siteType);
-         // const tradeAreaFilter = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radius, TradeAreaTypeCodes.HomeGeo]);
-         // const currentTradeAreas = this.impTradeAreaService.get()
-         //   .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
-         //                 tradeAreaFilter.has(TradeAreaTypeCodes.parse(ta.taType)));
-
          this.appTradeAreaService.deleteTradeAreas(editedLocation.impGeofootprintTradeAreas);
          this.appTradeAreaService.applyRadiusTradeAreasToLocations(transformedAreas, [editedLocation]);
-         //return;
       }
     }
 
-    if ((ifAddressChanged || ifLatLongChanged) && anyChangeinHomeGeoFields) {
+    if ((ifAddressChanged || ifLatLongChanged) && anyChangeInHomeGeoFields) {
       this.confirmationService.confirm({
         message: 'Geocoding and/or Home Geocoding is required and will override any changes made to the Home Geocode fields.',
         header: 'Edit Warning',
@@ -174,15 +167,14 @@ export class SiteListContainerComponent implements OnInit {
           this.geocodeAndHomegeocode(oldData, siteOrSites, siteType);
         }
       });
-    } else if (!ifAddressChanged && !ifLatLongChanged && anyChangeinHomeGeoFields) {
-      const editedLocation = this.impGeofootprintLocationService.get().filter(l => l.locationNumber === oldData.locationNumber);
+    } else if (!ifAddressChanged && !ifLatLongChanged && anyChangeInHomeGeoFields) {
       const attributeList = [{'homeAtz': siteOrSites['Home ATZ'],
       'homeDtz': siteOrSites['Home Digital ATZ'],
       'homePcr': siteOrSites['Home Carrier Route'],
       'homeZip': siteOrSites['Home Zip Code'],
       'siteNumber': siteOrSites.number,
-      'geocoderZip': editedLocation[0].locZip.substring(0, 5),
-      'abZip': editedLocation[0].locZip.substring(0, 5)}];
+      'geocoderZip': editedLocation.locZip.substring(0, 5),
+      'abZip': editedLocation.locZip.substring(0, 5)}];
       const analysisLevel: string = this.appStateService.analysisLevel$.getValue();
       const editedTags: string[] = [];
       const tagToField = {
@@ -197,51 +189,50 @@ export class SiteListContainerComponent implements OnInit {
         'pcr': 'homePcr',
         'dtz': 'homeDtz'
       };
-      if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code').length > 0) {
-         if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== attributeList[0].homeZip
-            || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== '') {
+      if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code').length > 0) {
+         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== attributeList[0].homeZip
+            || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== '') {
             editedTags.push('zip');
          }
       } else if (attributeList[0].homeZip !== '' && homeZipFlag) {
-         this.domainFactory.createLocationAttribute(editedLocation[0], 'Home Zip Code', attributeList[0].homeZip);
+         this.domainFactory.createLocationAttribute(editedLocation, 'Home Zip Code', attributeList[0].homeZip);
       }
-      if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ').length > 0) {
-         if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== attributeList[0].homeAtz
-            || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== '') {
+      if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ').length > 0) {
+         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== attributeList[0].homeAtz
+            || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home ATZ')[0].attributeValue !== '') {
             editedTags.push('atz');
          }
       } else if (attributeList[0].homeAtz !== '' && homeAtzFlag) {
-         this.domainFactory.createLocationAttribute(editedLocation[0], 'Home ATZ', attributeList[0].homeAtz);
+         this.domainFactory.createLocationAttribute(editedLocation, 'Home ATZ', attributeList[0].homeAtz);
       }
-      if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0) {
-         if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== attributeList[0].homePcr
-            || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== '') {
+      if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route').length > 0) {
+         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== attributeList[0].homePcr
+            || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Carrier Route')[0].attributeValue !== '') {
             editedTags.push('pcr');
          }
       } else if (attributeList[0].homePcr !== '' && homeCarrierRouteFlag) {
-         this.domainFactory.createLocationAttribute(editedLocation[0], 'Home Carrier Route', attributeList[0].homePcr);
+         this.domainFactory.createLocationAttribute(editedLocation, 'Home Carrier Route', attributeList[0].homePcr);
       }
-      if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0) {
-         if (editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== attributeList[0].homeDtz
-            || editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== '') {
+      if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0) {
+         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== attributeList[0].homeDtz
+            || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== '') {
             editedTags.push('dtz');
          }
       } else if (attributeList[0].homeDtz !== '' && homeDigitalAtzFlag) {
-         this.domainFactory.createLocationAttribute(editedLocation[0], 'Home Digital ATZ', attributeList[0].homeDtz);
+         this.domainFactory.createLocationAttribute(editedLocation, 'Home Digital ATZ', attributeList[0].homeDtz);
       }
       editedTags.forEach(tag => {
-        editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];
+        editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];
       });
       if (analysisLevel != null) {
-         //  const attrValue = editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()])[0].attributeValue;
-         const attr = editedLocation[0].impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()]);
-          editedLocation[0].homeGeocode = attr.length > 0 ? attr[0].attributeValue : '';
+         //  const attrValue = editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()])[0].attributeValue;
+         const attr = editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[analysisLevel.toLowerCase()]);
+          editedLocation.homeGeocode = attr.length > 0 ? attr[0].attributeValue : '';
       }
-      this.impGeofootprintLocationService.update(oldData, editedLocation[0]);
+      this.impGeofootprintLocationService.update(oldData, editedLocation);
       this.appLocationService.processHomeGeoAttributes(attributeList, this.impGeofootprintLocationService.get().filter(l => l.locationNumber === oldData.locationNumber));
       // this.store$.dispatch(new ValidateEditedHomeGeoAttributes({oldData, siteOrSites, siteType, editedTags, attributeList}));
-    }
-    else {
+    } else {
       if ((!siteOrSites['latitude'] && !siteOrSites['longitude']) || ifAddressChanged) {
           siteOrSites['latitude'] = null;
           siteOrSites['longitude'] = null;
@@ -259,6 +250,7 @@ export class SiteListContainerComponent implements OnInit {
         this.impGeofootprintLocationService.update(oldData, editedLocation);
       }*/
     }
+    console.log('Current Project', this.appStateService.currentProject$.getValue());
   }
 
   private geocodeAndHomegeocode(oldData: ImpGeofootprintLocation, siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes) : void {
@@ -287,12 +279,6 @@ export class SiteListContainerComponent implements OnInit {
          this.appEditSiteService.sendCustomData({'data': dataBuffer});
      }
      this.siteListService.deleteLocations(matchingLocation);
-  }
-
-  private handleError(errorHeader: string, errorMessage: string, errorObject: any) {
-    this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-    this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
-    this.logger.error.log(errorMessage, errorObject);
   }
 
   public onToggleLocations(event: any) {
