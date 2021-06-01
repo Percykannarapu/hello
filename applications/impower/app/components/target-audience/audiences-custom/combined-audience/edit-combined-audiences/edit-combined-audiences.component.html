@@ -1,5 +1,6 @@
 <div *ngIf="editAudiences != null && editAudiences.length > 0">
   List of created Audiences
+  <br>
     <p-table [columns]="audienceList" [value]="editAudiences" [scrollable]="true" [resizableColumns]="true" scrollHeight="20em" [alwaysShowPaginator]="false" [style]="{width:'40em'}">
         <ng-template pTemplate="colgroup" let-columns>
             <colgroup>
@@ -26,7 +27,7 @@
                   <button type="button" pButton icon="pi pi-pencil" class="p-button-outlined p-button-rounded" (click)="onEditAudiences(audience)"></button>
                 </td>
                 <td>
-                  <button type="button" pButton icon="pi pi-pencil" class="p-button-outlined p-button-rounded" (click)="onDeleteAudiences(audience)"></button>
+                  <button type="button" pButton icon="pi pi-trash" class="p-button-outlined p-button-rounded" (click)="onDeleteAudiences(audience)"></button>
                 </td>
             </tr>
         </ng-template>
