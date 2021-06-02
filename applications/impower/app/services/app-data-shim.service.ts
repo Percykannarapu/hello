@@ -11,6 +11,7 @@ import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operator
 import { AppConfig } from '../app.config';
 import { LoadAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
+import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
 import { createExistingAudienceInstance } from '../models/audience-factories';
@@ -146,11 +147,13 @@ export class AppDataShimService {
   }
 
   private setupEsriInitialState(project: ImpProject) : Observable<ImpProject> {
-    const geocodes = new Set(project.getImpGeofootprintGeos().reduce((p, c) => {
-      if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive) p.push(c.geocode);
-      return p;
-    }, [] as string[]));
-    const sortedGeocodes = Array.from(geocodes);
+    const geocodes = new Set<string>();
+    const activeGeocodes = new Set<string>();
+    project.getImpGeofootprintGeos().forEach(c => {
+      geocodes.add(c.geocode);
+      if (c.impGeofootprintLocation.isActive && c.impGeofootprintTradeArea.isActive && c.isActive) activeGeocodes.add(c.geocode);
+    });
+    const sortedGeocodes = Array.from(activeGeocodes);
     sortedGeocodes.sort();
     const state: InitialEsriState = {
       shading: {
@@ -203,6 +206,7 @@ export class AppDataShimService {
       withLatestFrom(this.esriBoundaryService.allVisibleBoundaryConfigs$),
       filter(([loaded, visible]) => loaded.length === visible.length),
       take(1),
+      tap(() => this.store$.dispatch(new GetLayerAttributes({ geocodes }))),
       map(() => project)
     );
   }
