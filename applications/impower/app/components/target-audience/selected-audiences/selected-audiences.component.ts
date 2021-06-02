@@ -32,7 +32,7 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
   gridAudiences$ = new BehaviorSubject<Audience[]>([]);
   audienceCount: number = 0;
   gridAll: boolean = false;
-  gfpAll: boolean = false;
+  gfpAll: boolean = true;
 
   public showDialog: boolean = false;
   public dialogMessage: string = '';
@@ -154,8 +154,8 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
     this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportInGeoFootprint: newValue } }}));
   }
 
-  onIndexBaseChange(audience: Audience, newValue: { label: string, value: string }) {
-    this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { selectedDataSet: newValue.value } }}));
+  onIndexBaseChange(audience: Audience, newValue: string) {
+    this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { selectedDataSet: newValue } }}));
   }
 
   public formatString(audienceSourceType: string) : string {

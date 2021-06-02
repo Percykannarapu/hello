@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { convertKeys, isEmpty, mapByExtended } from '@val/common';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AudienceDataDefinition, UnifiedPayload, UnifiedResponse, VarListItem } from '../../models/audience-data.model';
@@ -21,16 +21,20 @@ export class AudienceFetchService {
               private notificationService: AppMessagingService,
               private restService: RestDataService) { }
 
-  public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number) : Observable<DynamicVariable[]> {
-    const requestPayload = this.convertAudiencesToUnifiedPayload(audiences, allAudiences, analysisLevel, txId);
-    return this.restService.post<UnifiedResponse>(this.config.serviceUrlFragments.unifiedAudienceUrl, [requestPayload]).pipe(
-      map(response => response.payload),
-      tap(payload => {
-        if (!isEmpty(payload?.issues?.ERROR)) this.notificationService.showErrorNotification(payload.issues.ERROR.join('\n'));
-        if (!isEmpty(payload?.issues?.WARN)) this.notificationService.showWarningNotification(payload.issues.WARN.join('\n'));
-      }),
-      map(payload => payload.rows.map(r => ({ geocode: r.geocode, ...convertKeys(r.variables, k => k.split('_')[0]) })))
-    );
+public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number) : Observable<DynamicVariable[]> {
+    if(txId != null && !isEmpty(audiences)){
+     const requestPayload = this.convertAudiencesToUnifiedPayload(audiences, allAudiences, analysisLevel, txId);
+      return this.restService.post<UnifiedResponse>(this.config.serviceUrlFragments.unifiedAudienceUrl, [requestPayload]).pipe(
+        map(response => response.payload),
+        tap(payload => {
+          if (!isEmpty(payload?.issues?.ERROR)) this.notificationService.showErrorNotification(payload.issues.ERROR.join('\n'));
+          if (!isEmpty(payload?.issues?.WARN)) this.notificationService.showWarningNotification(payload.issues.WARN.join('\n'));
+        }),
+        map(payload => payload.rows.map(r => ({ geocode: r.geocode, ...convertKeys(r.variables, k => k.split('_')[0]) })))
+      );
+    } else {
+       return of([]);
+      }
   }
 
   private convertAudiencesToUnifiedPayload(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number) : UnifiedPayload {
