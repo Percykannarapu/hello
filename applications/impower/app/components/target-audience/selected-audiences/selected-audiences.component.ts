@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CommonSort } from '@val/common';
 import {
   DeleteAudience,
   MoveAudienceDn,
@@ -12,8 +11,8 @@ import { Audience } from 'app/impower-datastore/state/transient/audience/audienc
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { AppLoggingService } from 'app/services/app-logging.service';
 import { ConfirmationService } from 'primeng/api';
-import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
-import { debounceTime, filter, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { filter, takeUntil, tap } from 'rxjs/operators';
 import { FetchGeoVars } from '../../../impower-datastore/state/transient/geo-vars/geo-vars.actions';
 import { geoTransactionId } from '../../../impower-datastore/state/transient/transactions/transactions.reducer';
 import { AppStateService } from '../../../services/app-state.service';
@@ -52,9 +51,8 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.store$.select(fromAudienceSelectors.allAudiences).pipe(
+      tap(audiences => this.audienceCount = audiences?.length ?? 0),
       filter(audiences => audiences != null),
-      tap(audiences => this.audienceCount = audiences.length),
-      // tap(audiences => audiences.sort((a, b) => CommonSort.GenericNumber(a.sortOrder, b.sortOrder))),
       takeUntil(this.destroyed$)
     ).subscribe(this.audiences$);
     this.store$.select(fromAudienceSelectors.getAudiencesInExtract).pipe(takeUntil(this.destroyed$)).subscribe(this.nationalAudiences$);
@@ -73,7 +71,8 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
   }
 
   public onApplyClicked() {
-    this.store$.dispatch(new FetchGeoVars({ audiences: this.gridAudiences$.getValue(), txId: this.geoTxId$.getValue() }));
+    const audiences = this.gridAudiences$.getValue().filter(a => a.audienceSourceType !== 'Custom');
+    this.store$.dispatch(new FetchGeoVars({ audiences, txId: this.geoTxId$.getValue() }));
   }
 
   public closeDialog() {
