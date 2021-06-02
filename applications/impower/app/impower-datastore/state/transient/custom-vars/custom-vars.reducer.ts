@@ -2,7 +2,7 @@ import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
 import { isEmpty } from '@val/common';
 import { DynamicVariable, mergeVariables } from '../dynamic-variable.model';
-import { clearTransientData } from '../transient.actions';
+import * as fromTransientActions from '../transient.actions';
 import * as CustomVarActions from './custom-vars.actions';
 
 export interface State extends EntityState<DynamicVariable> {
@@ -34,9 +34,12 @@ export const reducer = createReducer(
     (state, action) => adapter.setAll(action.customVars, state)
   ),
   on(CustomVarActions.clearCustomVars,
-    clearTransientData,
     state => adapter.removeAll(state)
   ),
+  on(fromTransientActions.clearTransientData, (state, action) => {
+    if (action.fullEntityWipe) adapter.removeAll(state);
+    return state;
+  })
 );
 
 export const {

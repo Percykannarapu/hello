@@ -9,15 +9,14 @@ export interface DynamicVariable {
 export function mergeVariables(entities: Dictionary<DynamicVariable>, varsToMerge: DynamicVariable[]) : DynamicVariable[] {
   const result: DynamicVariable[] = [];
   groupBy(varsToMerge, 'geocode').forEach((currentVars, geocode) => {
-    const mergedVars: DynamicVariable = Object.assign({}, ...currentVars);
-    const newKeys = Object.keys(mergedVars);
+    const mergedNewVars: DynamicVariable = Object.assign({}, ...currentVars);
     const existingVars = entities[geocode];
     if (isNotNil(existingVars)) {
-      const oldKeys = new Set(Object.keys(existingVars));
-      if (!newKeys.every(k => oldKeys.has(k))) result.push(mergedVars);
+      const fullyMerged: DynamicVariable = Object.assign({}, existingVars, mergedNewVars);
+      result.push(fullyMerged);
     } else {
       // new geocode - data needs adding
-      result.push(mergedVars);
+      result.push(mergedNewVars);
     }
   });
   return result;

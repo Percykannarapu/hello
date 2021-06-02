@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
-import { filterArray, groupByExtended, isNotNil, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { filterArray, groupByExtended, mergeArrayMaps, simpleFlatten, toUniversalCoordinates } from '@val/common';
 import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../common/quad-tree';
 import {
@@ -14,7 +14,6 @@ import {
   UpsertGeoAttributes
 } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
-import { CacheGeos, GeoTransactionType, RemoveGeoCache } from '../impower-datastore/state/transient/transactions/transactions.actions';
 import { ProjectFilterChanged } from '../models/ui-enums';
 import { FullAppState, MustCoverPref } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
@@ -56,7 +55,6 @@ export class AppGeoService {
 
   currentGeos$: Observable<ImpGeofootprintGeo[]>;
 
-  private validAnalysisLevel$: Observable<string>;
   public allMustCovers$: Observable<string[]>;
   private processingMustCovers: boolean = false;
 
@@ -75,7 +73,6 @@ export class AppGeoService {
               private store$: Store<FullAppState>,
               private logger: AppLoggingService,
               private confirmationService: ConfirmationService) {
-    this.validAnalysisLevel$ = this.appStateService.analysisLevel$.pipe(filter(al => al != null && al.length > 0));
     this.currentGeos$ = this.impGeoService.storeObservable;
     this.allMustCovers$ = this.impGeoService.allMustCoverBS$.asObservable();
 
@@ -191,7 +188,7 @@ export class AppGeoService {
     root$.pipe(
       filterArray(ta => ta.impGeofootprintLocation.clientLocationTypeCode === ImpClientLocationTypeCodes.Site),
       filter(tradeAreas => tradeAreas.length > 0),
-      withLatestFrom(this.appStateService.season$, this.validAnalysisLevel$)
+      withLatestFrom(this.appStateService.season$, this.appStateService.analysisLevel$)
     ).subscribe(([tradeAreas, season, al]) => this.selectAndPersistRadiusGeos(tradeAreas, season, al));
 
     root$.pipe(
@@ -217,7 +214,7 @@ export class AppGeoService {
         loc.impGeofootprintLocAttribs.filter(a => a.attributeCode === 'Invalid Home Geo' && a.attributeValue === 'Y').length === 0 &&
         loc.getImpGeofootprintGeos().filter(geo => geo.geocode === loc.homeGeocode).length === 0 &&
         loc.clientLocationTypeCode === 'Site'),
-      withLatestFrom(this.appStateService.season$, this.validAnalysisLevel$),
+      withLatestFrom(this.appStateService.season$, this.appStateService.analysisLevel$),
     ).subscribe(([locations, season, analysisLevel]) => {
      // this.selectAndPersistHomeGeos(locations, analysisLevel, season);
     });
@@ -724,7 +721,7 @@ export class AppGeoService {
         //prefs.forEach(pref => this.logger.debug.log("### MUSTCOVER pref: " + pref.pref + " = " + pref.val));
         prefs.forEach(mustCoverPref => {
           const prefsVal = mustCoverPref.val == null ? mustCoverPref.largeVal : mustCoverPref.val;
-          if(mustCoverPref.pref !== 'Must Cover Manual'){
+          if (mustCoverPref.pref !== 'Must Cover Manual') {
             newMustCovers = [...newMustCovers, ...this.impGeoService.parseMustCoverString(prefsVal)];
           } else {
             const manualPrefs: MustCoverPref = JSON.parse(prefsVal);

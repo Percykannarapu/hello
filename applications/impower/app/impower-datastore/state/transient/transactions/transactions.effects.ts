@@ -7,7 +7,7 @@ import { catchError, filter, map, mergeMap, switchMap, take, tap, withLatestFrom
 import { AppLoggingService } from '../../../../services/app-logging.service';
 import { FullAppState } from '../../../../state/app.interfaces';
 import { GeoCacheService } from '../../../services/geo-cache.service';
-import { clearTransientDataActionType } from '../transient.actions';
+import * as fromTransientActions from '../transient.actions';
 import * as fromActions from './transactions.actions';
 import { GeoTransactionType } from './transactions.actions';
 import { actionedTransactionId, geoTransactionId, mapTransactionId } from './transactions.reducer';
@@ -46,7 +46,7 @@ export class TransactionsEffects {
   ));
 
   clearCache$ = createEffect(() => this.actions$.pipe(
-    ofType(clearTransientDataActionType),
+    ofType(fromTransientActions.clearTransientData.type),
     withLatestFrom(this.store$.select(geoTransactionId), this.store$.select(mapTransactionId)),
     map(txIds => txIds.filter(isNotNil)),
     filter(txIds => !isEmpty(txIds)),

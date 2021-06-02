@@ -1,6 +1,6 @@
-import { createAction } from '@ngrx/store';
+import { createAction, props } from '@ngrx/store';
 
-export const clearTransientDataActionType = '[Transient/API] Clear Data';
 export const clearTransientData = createAction(
-  clearTransientDataActionType
+  '[Transient/API] Clear Data',
+  props<{ fullEntityWipe: boolean }>()
 );

@@ -1,6 +1,6 @@
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
-import { TypedAction } from '@ngrx/store/src/models';
-import { clearTransientDataActionType } from '../transient.actions';
+import { createReducer, on } from '@ngrx/store';
+import * as fromTransientActions from '../transient.actions';
 import { GeoAttributeActions, GeoAttributeActionTypes } from './geo-attributes.actions';
 import { GeoAttribute } from './geo-attributes.model';
 
@@ -17,7 +17,11 @@ export const initialState: State = adapter.getInitialState({
   // additional entity state properties
 });
 
-export function reducer(state = initialState, action: GeoAttributeActions | TypedAction<typeof clearTransientDataActionType>) : State {
+const transientReducer = createReducer(initialState,
+  on(fromTransientActions.clearTransientData, state => adapter.removeAll(state))
+);
+
+export function reducer(state = initialState, action: GeoAttributeActions) : State {
   switch (action.type) {
     case GeoAttributeActionTypes.AddGeoAttribute: {
       return adapter.addOne(action.payload.geoAttribute, state);
@@ -56,13 +60,12 @@ export function reducer(state = initialState, action: GeoAttributeActions | Type
       return adapter.setAll(action.payload.geoAttributes, state);
     }
 
-    case clearTransientDataActionType:
     case GeoAttributeActionTypes.ClearGeoAttributes: {
       return adapter.removeAll(state);
     }
 
     default: {
-      return state;
+      return transientReducer(state, action);
     }
   }
 }

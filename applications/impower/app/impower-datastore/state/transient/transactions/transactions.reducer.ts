@@ -1,5 +1,6 @@
 import { Action, createReducer, createSelector, on } from '@ngrx/store';
 import { transientSlice } from '../../impower-datastore.selectors';
+import * as fromTransientActions from '../transient.actions';
 import * as Actions from './transactions.actions';
 import { GeoTransactionType } from './transactions.actions';
 
@@ -36,7 +37,7 @@ const transactionReducer = createReducer(
         default:
           return { ...state, mapTxId: null, geofootprintTxId: null };
       }
-    })
+    }),
 );
 
 export function reducer(state: State | undefined, action: Action) {

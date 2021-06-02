@@ -1,8 +1,8 @@
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
-import { TypedAction } from '@ngrx/store/src/models';
-import { clearTransientDataActionType } from '../transient.actions';
+import { createReducer, on } from '@ngrx/store';
 import { AudienceActions, AudienceActionTypes } from './audience.actions';
 import { Audience } from './audience.model';
+import * as fromTransientActions from '../transient.actions';
 
 export interface State extends EntityState<Audience> {
   ids: string[];
@@ -33,7 +33,14 @@ function swapAudiencePositions(state: State, audienceId: string, swapOffset: num
   }
 }
 
-export function reducer(state = initialState, action: AudienceActions | TypedAction<typeof clearTransientDataActionType>) : State {
+const audienceReducer = createReducer(initialState,
+  on(fromTransientActions.clearTransientData, (state, action) => {
+    if (action.fullEntityWipe) return adapter.removeAll(state);
+    return state;
+  })
+);
+
+export function reducer(state = initialState, action: AudienceActions) : State {
   switch (action.type) {
     case AudienceActionTypes.MoveAudienceUp:
       return swapAudiencePositions(state, action.payload.audienceIdentifier, -1);
@@ -75,13 +82,12 @@ export function reducer(state = initialState, action: AudienceActions | TypedAct
       return adapter.setAll(action.payload.audiences, state);
     }
 
-    case clearTransientDataActionType:
     case AudienceActionTypes.ClearAudiences: {
       return adapter.removeAll(state);
     }
 
     default: {
-      return state;
+      return audienceReducer(state, action);
     }
   }
 }

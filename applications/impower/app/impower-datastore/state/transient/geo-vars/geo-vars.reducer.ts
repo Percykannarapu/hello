@@ -1,8 +1,8 @@
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
-import { TypedAction } from '@ngrx/store/src/models';
+import { createReducer, on } from '@ngrx/store';
 import { isEmpty } from '@val/common';
 import { DynamicVariable, mergeVariables } from '../dynamic-variable.model';
-import { clearTransientDataActionType } from '../transient.actions';
+import * as fromTransientActions from '../transient.actions';
 import { GeoVarActions, GeoVarActionTypes } from './geo-vars.actions';
 
 export interface State extends EntityState<DynamicVariable> {}
@@ -14,7 +14,11 @@ export const adapter: EntityAdapter<DynamicVariable> = createEntityAdapter<Dynam
 
 export const initialState: State = adapter.getInitialState();
 
-export function reducer(state = initialState, action: GeoVarActions | TypedAction<typeof clearTransientDataActionType>) : State {
+const transientReducer = createReducer(initialState,
+  on(fromTransientActions.clearTransientData, state => adapter.removeAll(state))
+);
+
+export function reducer(state = initialState, action: GeoVarActions) : State {
   switch (action.type) {
     case GeoVarActionTypes.FetchGeoVarsComplete: {
       const mergedEntities = mergeVariables(state.entities, action.payload.geoVars);
@@ -25,14 +29,13 @@ export function reducer(state = initialState, action: GeoVarActions | TypedActio
       }
     }
 
-    case clearTransientDataActionType:
     case GeoVarActionTypes.FetchGeoVarsFailed:
     case GeoVarActionTypes.ClearGeoVars: {
       return adapter.removeAll(state);
     }
 
     default: {
-      return state;
+      return transientReducer(state, action);
     }
   }
 }

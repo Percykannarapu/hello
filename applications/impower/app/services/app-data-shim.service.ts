@@ -255,7 +255,7 @@ export class AppDataShimService {
     this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
     this.store$.dispatch(new ClearTradeAreas());
-    this.store$.dispatch(clearTransientData());
+    this.store$.dispatch(clearTransientData({ fullEntityWipe: true }));
   }
 
   calcMetrics(geocodes: string[], attribute: { [geocode: string] : GeoAttribute }, project: ImpProject) : void {

@@ -5,6 +5,7 @@ import { EsriService } from '@val/esri';
 import { EMPTY, of } from 'rxjs';
 import { AppConfig } from '../app.config';
 import { ErrorNotification } from '@val/messaging';
+import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
 import { AppActionTypes, ChangeAnalysisLevel } from './app.actions';
 import { AppStateService } from '../services/app-state.service';
 import { catchError, filter, switchMap, tap } from 'rxjs/operators';
@@ -22,6 +23,7 @@ export class AppEffects {
   @Effect({ dispatch: false })
   selectLayer$ = this.actions$.pipe(
     ofType<ChangeAnalysisLevel>(AppActionTypes.ChangeAnalysisLevel),
+    tap(() => this.store$.dispatch(clearTransientData({ fullEntityWipe: false }))),
     filter(action => action.payload.analysisLevel != null),
     switchMap(action => of(this.config.getLayerIdForAnalysisLevel(action.payload.analysisLevel)).pipe(
       tap(layerId => this.esri.setSelectedLayer(layerId)),
