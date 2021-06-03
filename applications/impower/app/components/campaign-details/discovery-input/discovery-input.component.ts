@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/api';
 import { debounceTime, map } from 'rxjs/operators';
@@ -46,6 +46,7 @@ export class DiscoveryInputComponent implements OnInit {
 
   constructor(private fb: FormBuilder,
               private store$: Store<FullAppState>,
+              private cd: ChangeDetectorRef,
               private userService: UserService) { }
 
   ngOnInit() : void {
@@ -125,6 +126,11 @@ export class DiscoveryInputComponent implements OnInit {
     } else {
       this.discoveryForm.controls['selectedAnalysisLevel'].setValue(analysisLevel, { emitEvent: false });
     }
+  }
+
+  doOnSelect(event: any){
+    this.projectTrackerSuggestions = [];
+    this.cd.markForCheck();
   }
 
  onFormClose(){
