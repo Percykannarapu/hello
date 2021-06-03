@@ -32,7 +32,7 @@
           </p-fileUpload>
         </div>
         <div class="p-col">
-          <textarea [rows]="5" [cols]="30" autoResize= "false" class="text-area" type="text" [(ngModel)]="mustCoverGeos" [pTooltip]="tooltip" [disabled]="isUpload"></textarea>
+          <textarea [rows]="5" [cols]="30" autoResize= "false" class="text-area" type="text" [(ngModel)]="mustCoverGeos" [pTooltip]="manualToolTip" [disabled]="isUpload"></textarea>
           <button pButton type="button" label="Submit Must Covers"  (click)="validateMustCovers()" [disabled] = "!(mustCoverGeos != null && mustCoverGeos.length > 0)" ></button>
         </div>
     </div>
