@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { convertKeys, isEmpty, mapByExtended } from '@val/common';
+import { convertKeys, isEmpty, mapByExtended, toNullOrNumber } from '@val/common';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
@@ -21,20 +21,20 @@ export class AudienceFetchService {
               private notificationService: AppMessagingService,
               private restService: RestDataService) { }
 
-public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number) : Observable<DynamicVariable[]> {
-    if(txId != null && !isEmpty(audiences)){
-     const requestPayload = this.convertAudiencesToUnifiedPayload(audiences, allAudiences, analysisLevel, txId);
+  public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number) : Observable<DynamicVariable[]> {
+    if (txId != null && !isEmpty(audiences)) {
+      const requestPayload = this.convertAudiencesToUnifiedPayload(audiences, allAudiences, analysisLevel, txId);
       return this.restService.post<UnifiedResponse>(this.config.serviceUrlFragments.unifiedAudienceUrl, [requestPayload]).pipe(
         map(response => response.payload),
         tap(payload => {
           if (!isEmpty(payload?.issues?.ERROR)) this.notificationService.showErrorNotification(payload.issues.ERROR.join('\n'));
           if (!isEmpty(payload?.issues?.WARN)) this.notificationService.showWarningNotification(payload.issues.WARN.join('\n'));
         }),
-        map(payload => payload.rows.map(r => ({ geocode: r.geocode, ...convertKeys(r.variables, k => k.split('_')[0]) })))
+        map(payload => payload.rows.map(r => ({geocode: r.geocode, ...convertKeys(r.variables, k => k.split('_')[0])})))
       );
     } else {
-       return of([]);
-      }
+      return of([]);
+    }
   }
 
   private convertAudiencesToUnifiedPayload(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number) : UnifiedPayload {
@@ -67,9 +67,10 @@ public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], an
         } else if (!isEmpty(a.compositeSource)) {
           currentListItem = createCompositeVarListItem(a as AudienceDataDefinition, rootIds.has(Number(a.audienceIdentifier)));
           currentListItem.compositeSource.forEach(spec => {
-            if (!existingIds.has(spec.id)) {
-              existingIds.add(spec.id);
-              additionalAudiences.push(allAudienceMap.get(spec.id));
+            const specId = toNullOrNumber(spec.id);
+            if (!existingIds.has(specId)) {
+              existingIds.add(specId);
+              additionalAudiences.push(allAudienceMap.get(specId));
             }
           });
         }

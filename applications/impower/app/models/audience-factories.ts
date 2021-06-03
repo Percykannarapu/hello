@@ -139,7 +139,9 @@ export function createCompositeAudienceInstance(name: string, indexBase: string,
 
 const baseConverter = {
   nationalScore: 'NAT',
-  dmaScore: 'DMA'
+  dmaScore: 'DMA',
+  DMA: 'DMA',
+  NAT: 'NAT'
 };
 
 export function createCombinedVarListItem(audience: AudienceDataDefinition, includeInResponse: boolean) : VarListItem {
