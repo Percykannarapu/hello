@@ -2,7 +2,7 @@
                               (onEdit)="onEdit($event)"
                               (onDelete)="onDelete($event)">
 </val-edit-composite-audiences>
-
+<br>
 <form novalidate [formGroup]="compositeForm" autocomplete="off" (ngSubmit)="onSubmit(compositeForm.value)">
   <input type="hidden" formControlName="compositeAudienceId">
   <div class="p-grid p-fluid">

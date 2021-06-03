@@ -179,7 +179,7 @@ export function createAudienceVarListItem(audience: AudienceDataDefinition, incl
     ? 'SRC'
     : audience.audienceSourceType === 'Online'
       ? baseConverter[audience.selectedDataSet]
-      : 'NAT';
+      : 'VAL';
   return {
     id: Number(audience.audienceIdentifier),
     desc: audience.audienceName,
