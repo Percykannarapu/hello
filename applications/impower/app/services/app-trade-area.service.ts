@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toUniversalCoordinates } from '@val/common';
+import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toNullOrNumber, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
@@ -481,7 +481,7 @@ export class AppTradeAreaService {
     payload.forEach(record => {
       const loc = locationsByNumber.get(record.locNumber);
       if (loc != null){
-        const layerData = {x: record.x, y: record.y};
+        const layerData = { x: toNullOrNumber(record.x), y: toNullOrNumber(record.y) };
         const distance = EsriUtils.getDistance(layerData.x, layerData.y, loc.xcoord, loc.ycoord);
         let currentTradeArea = loc.impGeofootprintTradeAreas.filter(current => current.taType.toUpperCase() === TradeAreaTypeCodes.Custom.toUpperCase())[0];
           if (currentTradeArea == null) {
