@@ -21,24 +21,24 @@ export class AppComponent implements OnInit {
               private authService: AuthService) {
   }
 
-  @HostListener('window:beforeunload', ['$event'])
-  cleanupTransactions(e: BeforeUnloadEvent) {
-    const geoId = this.geoTransaction$.getValue();
-    const mapId = this.mapTransaction$.getValue();
-    const authValue = this.authService.getAuthorizationHeaderValue();
-    const deleteUrl = this.config.valServiceBase + this.config.serviceUrlFragments.deleteGeoCacheUrl;
-    const fetchParams = { method: 'DELETE', keepalive: true, headers: { Authorization: authValue } };
-
-    if (geoId != null) {
-      fetch(deleteUrl + geoId, fetchParams).catch(console.error);
-    }
-    if (mapId != null) {
-      fetch(deleteUrl + mapId, fetchParams).catch(console.error);
-    }
-    // this is needed so the web browser doesn't bother the user with the "Are you sure you want to leave?" prompt
-    // see https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers/onbeforeunload#example
-    delete e.returnValue;
-  }
+  // @HostListener('window:beforeunload', ['$event'])
+  // cleanupTransactions(e: BeforeUnloadEvent) {
+  //   const geoId = this.geoTransaction$.getValue();
+  //   const mapId = this.mapTransaction$.getValue();
+  //   const authValue = this.authService.getAuthorizationHeaderValue();
+  //   const deleteUrl = this.config.valServiceBase + this.config.serviceUrlFragments.deleteGeoCacheUrl;
+  //   const fetchParams = { method: 'DELETE', keepalive: true, headers: { Authorization: authValue } };
+  //
+  //   if (geoId != null) {
+  //     fetch(deleteUrl + geoId, fetchParams).catch(console.error);
+  //   }
+  //   if (mapId != null) {
+  //     fetch(deleteUrl + mapId, fetchParams).catch(console.error);
+  //   }
+  //   // this is needed so the web browser doesn't bother the user with the "Are you sure you want to leave?" prompt
+  //   // see https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers/onbeforeunload#example
+  //   delete e.returnValue;
+  // }
 
   public ngOnInit() : void {
     this.store$.select(mapTransactionId).subscribe(this.mapTransaction$);

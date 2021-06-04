@@ -314,7 +314,7 @@ export class AppRendererService {
         this.appPrefService.createPref('esri', 'map-shading-defs', JSON.stringify(shadingDefinitions));
       }
     }
-    return shadingDefinitions;
+    return shadingDefinitions.filter(sd => !isEmpty(sd.dataKey));
   }
 
   private createShadingDefinitionsFromLegacy(project: ImpProject) : ShadingDefinition[] {

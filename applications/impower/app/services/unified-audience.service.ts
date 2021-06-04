@@ -6,7 +6,7 @@ import { arrayToSet, isConvertibleToNumber, isEmpty, isNil, isNotNil, mapByExten
 import { EsriService } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { BehaviorSubject, combineLatest, merge, Observable, Subscription } from 'rxjs';
-import { concatMap, debounceTime, filter, map, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { concatMap, debounceTime, filter, map, pairwise, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import { AppConfig } from '../app.config';
 import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
@@ -102,27 +102,43 @@ export class UnifiedAudienceService {
     });
     this.listenerSubs.add(gridSub);
 
-    const mapVarSub = combineLatest([this.store$.select(mapTransactionId), this.store$.select(getFetchableMappedAudiences)])
-    .subscribe(([txId, audiences]) => {
-      if (isNotNil(txId)) {
-        this.store$.dispatch(new FetchMapVars({ audiences, txId }));
+    const mapAudienceSub = this.store$.select(getFetchableMappedAudiences).pipe(
+      startWith([] as Audience[]),
+      pairwise(),
+      filter(([p, c]) => p.length !== c.length),
+      map(([, c]) => c),
+      withLatestFrom(this.store$.select(mapTransactionId), this.store$.select(mapTransactionId))
+    ).subscribe(([audiences, mapTxId, geoTxId]) => {
+      if (isNotNil(mapTxId) && !isEmpty(audiences)) {
+        this.store$.dispatch(new FetchMapVars({ audiences, txId: mapTxId }));
+      }
+      if (isNotNil(geoTxId) && !isEmpty(audiences)) {
+        this.store$.dispatch(new FetchMapVars({ audiences, txId: geoTxId }));
       }
       if (isEmpty(audiences)) {
         this.store$.dispatch(new ClearMapVars());
       }
     });
-    this.listenerSubs.add(mapVarSub);
+    this.listenerSubs.add(mapAudienceSub);
 
-    const mapGeoSub = combineLatest([this.store$.select(geoTransactionId), this.store$.select(getFetchableMappedAudiences)])
-      .subscribe(([txId, audiences]) => {
-        if (isNotNil(txId)) {
+    const mapTxSub = this.store$.select(mapTransactionId).pipe(
+      withLatestFrom(this.store$.select(getFetchableMappedAudiences))
+    ).subscribe(([txId, audiences]) => {
+      if (isNotNil(txId) && !isEmpty(audiences)) {
+        this.store$.dispatch(new FetchMapVars({ audiences, txId }));
+      }
+    });
+    this.listenerSubs.add(mapTxSub);
+
+    const mapGeoSub = this.store$.select(geoTransactionId).pipe(
+      withLatestFrom(this.store$.select(getFetchableMappedAudiences))
+    ).subscribe(([txId, audiences]) => {
+        if (isNotNil(txId) && !isEmpty(audiences)) {
           this.store$.dispatch(new FetchMapVars({ audiences, txId }));
         }
       });
     this.listenerSubs.add(mapGeoSub);
   }
-
-
 
   public teardownAudienceListeners() : void {
     if (this.listenerSubs) this.listenerSubs.unsubscribe();
@@ -146,7 +162,7 @@ export class UnifiedAudienceService {
   public requestGeofootprintExportData(analysisLevel: string) : Observable<Dictionary<DynamicVariable>> {
     return this.store$.select(geoTransactionId).pipe(
       withLatestFrom(this.store$.select(allAudiences), this.store$.select(getFetchableAudiencesInFootprint)),
-      switchMap(([txId, audiences, gfpAudiences]) => this.fetchService.getCachedAudienceData(gfpAudiences, audiences, analysisLevel, txId)),
+      switchMap(([txId, audiences, gfpAudiences]) => this.fetchService.getCachedAudienceData(gfpAudiences, audiences, analysisLevel, txId, true)),
       concatMap((fetchedVars) => this.store$.select(allCustomVarEntities).pipe(
         take(1),
         map(customEntity => mergeVariablesToEntity(customEntity, fetchedVars))
@@ -206,7 +222,8 @@ export class UnifiedAudienceService {
             headers: headers
           }).subscribe((data: any) => {
             const filename = `${projectId}_PCR_NationalData.csv`;
-            FileService.downloadFile(filename, data);
+            //FileService.downloadFile(filename, data);
+            FileService.downLoadCsvFile(filename, data);
             this.store$.dispatch(new StopBusyIndicator({ key }));
         });
       } else {

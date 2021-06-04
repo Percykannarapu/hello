@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { isEmpty } from '@val/common';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { of } from 'rxjs';
 import { catchError, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AppLoggingService } from '../../../../services/app-logging.service';
@@ -18,7 +19,9 @@ export class GeoVarsEffects {
     ofType(GeoVarActionTypes.FetchGeoVars),
     withLatestFrom(this.store$.select(fetchableAudiences), this.appStateService.analysisLevel$),
     filter(([action, , analysisLevel]) => !isEmpty(action.payload.audiences) && action.payload.txId != null && !isEmpty(analysisLevel)),
-    switchMap(([action, allAudiences, analysisLevel]) => this.audienceService.getCachedAudienceData(action.payload.audiences, allAudiences, analysisLevel, action.payload.txId).pipe(
+    tap(() => this.store$.dispatch(new StartBusyIndicator({ key: this.key , message: 'Retrieving Audience Data for Grid' }) )),
+    switchMap(([action, allAudiences, analysisLevel]) => this.audienceService.getCachedAudienceData(action.payload.audiences, allAudiences, analysisLevel, action.payload.txId, false).pipe(
+      tap(() => this.store$.dispatch(new StopBusyIndicator({ key: this.key }))),
       map(geoVars => new FetchGeoVarsComplete({ geoVars })),
       catchError(err => of(new FetchGeoVarsFailed({ err })))
     ))
@@ -28,6 +31,8 @@ export class GeoVarsEffects {
     ofType(GeoVarActionTypes.FetchGeoVarsFailed),
     tap(action => this.logger.error.log('There was an error fetching grid data', action.payload.err))
   ), { dispatch: false });
+
+  private key = 'AUDIENCE_FETCH_SPINNER';
 
   constructor(private actions$: Actions<GeoVarActions>,
               private logger: AppLoggingService,

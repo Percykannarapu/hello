@@ -18,7 +18,7 @@ export class MapVarsEffects {
     ofType(MapVarActionTypes.FetchMapVars),
     withLatestFrom(this.store$.select(fetchableAudiences), this.appStateService.analysisLevel$),
     filter(([action, , analysisLevel]) => !isEmpty(action.payload.audiences) && action.payload.txId != null && !isEmpty(analysisLevel)),
-    switchMap(([action, allAudiences, analysisLevel]) => this.audienceService.getCachedAudienceData(action.payload.audiences, allAudiences, analysisLevel, action.payload.txId).pipe(
+    switchMap(([action, allAudiences, analysisLevel]) => this.audienceService.getCachedAudienceData(action.payload.audiences, allAudiences, analysisLevel, action.payload.txId, true).pipe(
       map(mapVars => new FetchMapVarsComplete({ mapVars })),
       catchError(err => of(new FetchMapVarsFailed({ err })))
     ))

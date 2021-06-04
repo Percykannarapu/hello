@@ -205,4 +205,13 @@ export class FileService {
     element.click();
     element.remove();
   }
+
+  public static downLoadCsvFile(fileName: string, data: any){
+    const newBlob = new Blob([data], { type: 'application/csv' });
+    const uri = window.URL.createObjectURL(newBlob);
+    const link = document.createElement('a');
+    link.href = uri;
+    link.download = fileName;
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  }
 }

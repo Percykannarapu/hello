@@ -21,14 +21,28 @@ export class AudienceFetchService {
               private notificationService: AppMessagingService,
               private restService: RestDataService) { }
 
-  public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number) : Observable<DynamicVariable[]> {
+  public getCachedAudienceData(audiences: Audience[], allAudiences: Audience[], analysisLevel: string, txId: number, silent: boolean) : Observable<DynamicVariable[]> {
     if (txId != null && !isEmpty(audiences)) {
       const requestPayload = this.convertAudiencesToUnifiedPayload(audiences, allAudiences, analysisLevel, txId);
       return this.restService.post<UnifiedResponse>(this.config.serviceUrlFragments.unifiedAudienceUrl, [requestPayload]).pipe(
         map(response => response.payload),
         tap(payload => {
-          if (!isEmpty(payload?.issues?.ERROR)) this.notificationService.showErrorNotification(payload.issues.ERROR.join('\n'));
-          if (!isEmpty(payload?.issues?.WARN)) this.notificationService.showWarningNotification(payload.issues.WARN.join('\n'));
+          let notify = false;
+          if (!isEmpty(payload?.issues?.ERROR)) {
+            console.groupCollapsed('%cAdditional Audience Fetch Error Info', 'color: red');
+            console.error(payload.issues.ERROR);
+            console.groupEnd();
+            notify = true;
+          }
+          if (!isEmpty(payload?.issues?.WARN)) {
+            console.groupCollapsed('%cAdditional Audience Fetch Error Info', 'color: yellow');
+            console.warn(payload.issues.WARN);
+            console.groupEnd();
+            notify = true;
+          }
+          if (notify && !silent) {
+            this.notificationService.showWarningNotification('There was an issue pulling audience data, please check your grid to ensure it has all the data you need.');
+          }
         }),
         map(payload => payload.rows.map(r => ({geocode: r.geocode, ...convertKeys(r.variables, k => k.split('_')[0])})))
       );

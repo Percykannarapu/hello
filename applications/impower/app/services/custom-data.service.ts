@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { arrayToSet, isConvertibleToNumber, mapByExtended } from '@val/common';
+import { arrayToSet, isConvertibleToNumber, isString, mapByExtended } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { map, reduce } from 'rxjs/operators';
@@ -146,9 +146,9 @@ export class CustomDataService {
       const currentResult: DynamicVariable = { geocode: currentRow.geocode };
       columnNames.forEach(column => {
         const columnAudience = existingAudienceMap.get(column) ?? newAudienceMap.get(column);
-        if (columnAudience?.fieldconte === FieldContentTypeCodes.Index) {
+        if (columnAudience?.fieldconte === FieldContentTypeCodes.Index && isConvertibleToNumber(currentRow[column])) {
           currentResult[columnAudience.audienceIdentifier] = Number(currentRow[column]);
-        } else if (columnAudience?.fieldconte === FieldContentTypeCodes.Char) {
+        } else if (columnAudience?.fieldconte === FieldContentTypeCodes.Char || isString(currentRow[column])) {
           currentResult[columnAudience.audienceIdentifier] = `${currentRow[column]}`;
         } else {
           parseErrors.push([column, currentRow]);
