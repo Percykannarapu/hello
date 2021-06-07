@@ -25,6 +25,8 @@ body .p-sidebar.transparent-back {
   }
   p-tabView {
     flex: 1;
+    padding-right: 0.75rem;
+    overflow-y: auto;
     .p-tabview.p-widget-content {
       display: flex;
       flex-direction: column;
