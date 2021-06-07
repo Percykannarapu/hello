@@ -6,7 +6,7 @@
       <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" (selectionChanged)="onMarketChange($event)" [includeUnselected]="true" validationMessage="At least one state should be picked with this market"></dropdown-input>
     </div>
     <div class="p-col-3">
-      <multiselect-input #msStates id="mlf_states" formControlName="states" labelText="States" defaultLabel="All" [options]="stateItems" (selectionChanged)="onStatesChange($event)" [includeUnselected]="false"></multiselect-input>
+      <multiselect-input #msStates id="mlf_states" formControlName="states" defaultLabel="All States" [options]="stateItems" (selectionChanged)="onStatesChange($event)" [includeUnselected]="false"></multiselect-input>
     </div>
   </div>
   <div class="p-grid p-fluid">
