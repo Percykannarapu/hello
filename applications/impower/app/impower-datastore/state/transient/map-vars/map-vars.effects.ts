@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { isEmpty } from '@val/common';
+import { isEmpty, isNotNil } from '@val/common';
 import { of } from 'rxjs';
-import { catchError, filter, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, tap, withLatestFrom } from 'rxjs/operators';
 import { AppLoggingService } from '../../../../services/app-logging.service';
 import { AppStateService } from '../../../../services/app-state.service';
 import { FullAppState } from '../../../../state/app.interfaces';
@@ -17,8 +17,8 @@ export class MapVarsEffects {
   fetch$ = createEffect(() => this.actions$.pipe(
     ofType(MapVarActionTypes.FetchMapVars),
     withLatestFrom(this.store$.select(fetchableAudiences), this.appStateService.analysisLevel$),
-    filter(([action, , analysisLevel]) => !isEmpty(action.payload.audiences) && action.payload.txId != null && !isEmpty(analysisLevel)),
-    switchMap(([action, allAudiences, analysisLevel]) => this.audienceService.getCachedAudienceData(action.payload.audiences, allAudiences, analysisLevel, action.payload.txId, true).pipe(
+    filter(([action, , analysisLevel]) => !isEmpty(action.payload.audiences) && isNotNil(action.payload.txId) && !isEmpty(analysisLevel)),
+    mergeMap(([action, allAudiences, analysisLevel]) => this.audienceService.getCachedAudienceData(action.payload.audiences, allAudiences, analysisLevel, action.payload.txId, true).pipe(
       map(mapVars => new FetchMapVarsComplete({ mapVars })),
       catchError(err => of(new FetchMapVarsFailed({ err })))
     ))

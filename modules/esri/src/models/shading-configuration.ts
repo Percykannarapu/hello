@@ -42,6 +42,7 @@ export interface ShadingDefinitionBase {
   filterField: string;
   isCustomAudienceShader: boolean;
   refreshLegendOnRedraw?: boolean;
+  shaderNeedsDataFetched?: boolean;
 }
 
 function duplicateBase(def: ShadingDefinitionBase) : ShadingDefinitionBase {

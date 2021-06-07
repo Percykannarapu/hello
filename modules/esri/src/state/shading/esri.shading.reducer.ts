@@ -2,6 +2,7 @@ import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
 import { ShadingDefinition } from '../../models/shading-configuration';
 import { loadInitialState } from '../esri.actions';
+import { firstTimeShaderDataLoadComplete } from './esri.shading.actions';
 import * as ShadingActions from './esri.shading.actions';
 
 export interface EsriShadingState extends EntityState<ShadingDefinition> {
@@ -66,6 +67,12 @@ export const shadingReducer = createReducer(
   on(ShadingActions.resetShading,
     () => ({ ...initialState })
   ),
+  on(ShadingActions.firstTimeShaderDataLoadComplete,
+    (state, action) => {
+    const dataKeySet = new Set(action.dataKeys);
+    const shadersToUpdate = (state.ids as string[]).map(id => state.entities[id]).filter(s => dataKeySet.has(s.dataKey) && s.shaderNeedsDataFetched);
+    return adapter.updateMany(shadersToUpdate.map(sd => ({ id: sd.id, changes: { shaderNeedsDataFetched: false }})), state);
+  }),
 );
 
 export const {

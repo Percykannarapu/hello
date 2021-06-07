@@ -242,6 +242,7 @@ export function esriSetupFactory() : ForRootOptions {
     StoreRouterConnectingModule.forRoot({ serializer: DefaultRouterStateSerializer }),
     StoreDevtoolsModule.instrument({
       name: 'imPower Application',
+      maxAge: 25,
       logOnly: environment.production,
       actionsBlocklist: ['Usage', 'Map View Changed'],
       stateSanitizer: stateSanitizer,

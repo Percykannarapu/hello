@@ -180,6 +180,7 @@ export class AppDataShimService {
       } else {
         sd.sourcePortalId = this.appConfig.getRefreshedLayerId(sd.sourcePortalId);
       }
+      sd.shaderNeedsDataFetched = false;
     });
     boundaryConfigurations.forEach(bc => {
       // just in case stuff was saved with a destination id

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Dictionary } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
 import { arrayToSet, isConvertibleToNumber, isEmpty, isNil, isNotNil, mapByExtended } from '@val/common';
-import { EsriService } from '@val/esri';
+import { EsriService, firstTimeShaderDataLoadComplete } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { BehaviorSubject, combineLatest, merge, Observable, Subscription } from 'rxjs';
 import { concatMap, debounceTime, filter, map, pairwise, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
@@ -26,7 +26,7 @@ import { ClearGeoVars, FetchGeoVars } from '../impower-datastore/state/transient
 import { ClearMapVars, FetchMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.actions';
 import { CacheGeos, GeoTransactionType } from '../impower-datastore/state/transient/transactions/transactions.actions';
 import { geoTransactionId, mapTransactionId } from '../impower-datastore/state/transient/transactions/transactions.reducer';
-import { getFetchableMappedAudiences } from '../impower-datastore/state/transient/transient.selectors';
+import { getFetchableMappedAudiences, getFirstTimeShadedAudiences } from '../impower-datastore/state/transient/transient.selectors';
 import { AudienceDataDefinition, OnlineBulkDownloadDataResponse } from '../models/audience-data.model';
 import { FullAppState } from '../state/app.interfaces';
 import { CreateAudienceUsageMetric } from '../state/usage/targeting-usage.actions';
@@ -138,6 +138,21 @@ export class UnifiedAudienceService {
         }
       });
     this.listenerSubs.add(mapGeoSub);
+
+    const layerCreationSub = this.store$.select(getFirstTimeShadedAudiences).pipe(
+      withLatestFrom(this.store$.select(mapTransactionId), this.store$.select(geoTransactionId))
+    ).subscribe(([audiences, mapTxId, geoTxId]) => {
+      if (isNotNil(mapTxId) && !isEmpty(audiences)) {
+        this.store$.dispatch(new FetchMapVars({ audiences, txId: mapTxId }));
+      }
+      if (isNotNil(geoTxId) && !isEmpty(audiences)) {
+        this.store$.dispatch(new FetchMapVars({ audiences, txId: geoTxId }));
+      }
+      if (!isEmpty(audiences)) {
+        this.store$.dispatch(firstTimeShaderDataLoadComplete({ dataKeys: audiences.map(a => a.audienceIdentifier) }));
+      }
+    });
+    this.listenerSubs.add(layerCreationSub);
   }
 
   public teardownAudienceListeners() : void {

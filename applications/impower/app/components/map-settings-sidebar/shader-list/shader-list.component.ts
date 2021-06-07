@@ -91,12 +91,18 @@ export class ShaderListComponent implements OnInit, OnDestroy {
     const newDef: ShadingDefinition = duplicateShadingDefinition(definition);
     this.appRenderService.updateForAnalysisLevel(newDef, this.currentAnalysisLevel);
     switch (newDef.dataKey) {
+      case GfpShaderKeys.Selection:
+        // do nothing
+        break;
       case GfpShaderKeys.OwnerSite:
         this.appRenderService.updateForOwnerSite(newDef, this.geos, new Set<string>(this.geos.map(g => g.geocode)));
         break;
       case GfpShaderKeys.OwnerTA:
         this.appRenderService.updateForOwnerTA(newDef, this.geos, this.tradeAreas, new Set<string>(this.geos.map(g => g.geocode)));
         break;
+      default:
+        // a variable shader has been selected
+        newDef.shaderNeedsDataFetched = true;
     }
     if (isArcadeCapableShadingDefinition(newDef)) {
       newDef.arcadeExpression = null;
