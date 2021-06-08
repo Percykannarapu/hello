@@ -128,21 +128,22 @@ export class SelectedAudiencesComponent implements OnInit, OnDestroy {
   }
 
   onNationalSelected(audience: Audience, newValue: boolean) {
-    if (newValue) {
-      if (this.appStateService.analysisLevel$.getValue() === 'PCR' && this.nationalAudiences$.value.length > 1) {
+   
+      if (this.appStateService.analysisLevel$.getValue() === 'PCR' && this.nationalAudiences$.value.length == 1) {
         this.dialogHeader = 'Selected Audiences Error';
         this.dialogMessage = 'Only 1 variable can be selected at one time for PCR level National exports.';
         this.showDialog = true;
-        return;
+        this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportNationally: false } }}));
       }
-      if (this.nationalAudiences$.value.length > 5) {
+     else if (this.nationalAudiences$.value.length == 5) {
         this.dialogHeader = 'Selected Audiences Error';
         this.dialogMessage = 'Only 5 variables can be selected at one time for the National export.';
         this.showDialog = true;
-        return;
+        this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportNationally: false } }}));
       }
-    }
-    this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportNationally: newValue } }}));
+      else{
+        this.store$.dispatch(new UpdateAudience({ audience: { id: audience.audienceIdentifier, changes: { exportNationally: newValue } }}));
+      }
   }
 
   onShowGridSelected(audience: Audience, newValue: boolean) {
