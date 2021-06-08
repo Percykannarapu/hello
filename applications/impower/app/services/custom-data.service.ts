@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { arrayToSet, isConvertibleToNumber, isString, mapByExtended } from '@val/common';
+import { arrayToSet, isConvertibleToNumber, isEmpty, isString, mapByExtended } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { map, reduce } from 'rxjs/operators';
@@ -115,7 +115,7 @@ export class CustomDataService {
   private createAudiences(data: CustomDataRow[], fileName: string, existingAudiences: Audience[]) : AudienceDataDefinition[] {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     const audienceMap: Map<string, Audience> = mapByExtended(existingAudiences, a => a.audienceName);
-    const columnNames = Object.keys(data[0]).filter(k => k !== 'geocode' && typeof data[0][k] !== 'function');
+    const columnNames = Object.keys(data[0]).filter(k => k !== 'geocode' && !isEmpty(k) && typeof data[0][k] !== 'function');
     const result: AudienceDataDefinition[] = [];
     let nextPk = this.audienceService.getNextVarPk();
     for (const column of columnNames) {
@@ -138,7 +138,7 @@ export class CustomDataService {
   private parseAllData(data: CustomDataRow[], existingAudiences: Audience[], newAudiences: AudienceDataDefinition[]) : DynamicVariable[] {
     const existingAudienceMap: Map<string, Audience> = mapByExtended(existingAudiences, a => a.audienceName);
     const newAudienceMap: Map<string, AudienceDataDefinition> = mapByExtended(newAudiences, a => a.audienceName);
-    const columnNames = Object.keys(data[0]).filter(k => k !== 'geocode' && typeof data[0][k] !== 'function');
+    const columnNames = Object.keys(data[0]).filter(k => k !== 'geocode' && !isEmpty(k) && typeof data[0][k] !== 'function');
     const result: DynamicVariable[] = [];
     const parseErrors: any[] = [];
     for (let i = 0; i < data.length; ++i) {
