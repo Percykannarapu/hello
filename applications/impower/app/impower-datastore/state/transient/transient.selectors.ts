@@ -1,7 +1,8 @@
 import { Dictionary } from '@ngrx/entity';
 import { createSelector } from '@ngrx/store';
-import { groupEntityToArray, transformEntity } from '@val/common';
+import { groupEntityToArray, isEmpty, transformEntity } from '@val/common';
 import { shadingSelectors } from '@val/esri';
+import { customAudiences } from './audience/audience.selectors';
 import * as fromAudienceSel from './audience/audience.selectors';
 import { DynamicVariable, mergeVariablesToEntity } from './dynamic-variable.model';
 import * as fromGeoVarsSel from './geo-vars/geo-vars.selectors';
@@ -27,11 +28,12 @@ export interface GridGeoVar {
  * data set for filters and totals.
  */
 export const selectGridGeoVars = createSelector(
-  fromAudienceSel.allAudienceEntities,
+  fromAudienceSel.getAudiencesInGrid,
   fromGeoVarsSel.allGeoVarEntities,
   fromCustomVars.allCustomVars,
   (audiences, geoVars, customVars) => {
     const result: GridGeoVar = { geoVars: null, ranges: new Map<string, MinMax>(), lov: new Map<string, string[]>(), numVars: 0 };
+    if (isEmpty(audiences)) return result;
     const mergedVars = mergeVariablesToEntity(geoVars, customVars);
     const transformedEntity = transformEntity(mergedVars, (varName, val) => {
         if ((audiences.hasOwnProperty(varName) && audiences[varName].showOnGrid))
@@ -107,6 +109,24 @@ export const getAllMappedAudiences = createSelector(
 export const getFetchableMappedAudiences = createSelector(
   fromAudienceSel.fetchableAudiences,
   shadingSelectors.layerDataKeys,
+  (allAudiences, mappedIds) => {
+    const idSet = new Set(mappedIds);
+    return allAudiences.filter(a => idSet.has(a.audienceIdentifier));
+  }
+);
+
+export const getFirstTimeShadedAudiences = createSelector(
+  fromAudienceSel.fetchableAudiences,
+  shadingSelectors.layerDefsForDataFetch,
+  (allAudiences, mappedIds) => {
+    const idSet = new Set(mappedIds);
+    return allAudiences.filter(a => idSet.has(a.audienceIdentifier));
+  }
+);
+
+export const getFirstTimeCustomShadedAudiences = createSelector(
+  fromAudienceSel.customAudiences,
+  shadingSelectors.layerDefsForDataFetch,
   (allAudiences, mappedIds) => {
     const idSet = new Set(mappedIds);
     return allAudiences.filter(a => idSet.has(a.audienceIdentifier));

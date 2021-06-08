@@ -68,3 +68,8 @@ export const clearShadingDefinitions = createAction(
 export const resetShading = createAction(
   '[Esri.Shading] Reset Shading'
 );
+
+export const firstTimeShaderDataLoadComplete = createAction(
+  '[Esri.Shading] First Time Shading Data Load Complete',
+  props<{ dataKeys: string[] }>()
+);

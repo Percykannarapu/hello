@@ -32,7 +32,7 @@ import { Audience } from '../impower-datastore/state/transient/audience/audience
 import { allCustomVars } from '../impower-datastore/state/transient/custom-vars/custom-vars.selectors';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { getMapVars } from '../impower-datastore/state/transient/map-vars/map-vars.selectors';
-import { getAllMappedAudiences } from '../impower-datastore/state/transient/transient.selectors';
+import { getAllMappedAudiences, getFirstTimeCustomShadedAudiences } from '../impower-datastore/state/transient/transient.selectors';
 import { GfpShaderKeys } from '../models/ui-enums';
 import { FullAppState } from '../state/app.interfaces';
 import { getBatchMode } from '../state/batch-map/batch-map.selectors';
@@ -210,17 +210,32 @@ export class AppRendererService {
   }
 
   private setupMapVarWatcher(geoDataStore: Observable<ImpGeofootprintGeo[]>) {
-    combineLatest([this.store$.select(getMapVars), this.store$.select(allCustomVars)]).pipe(
-      filter(mapVars => mapVars.length > 0),
+    this.store$.select(getMapVars).pipe(
+      filter(mapVars => !isEmpty(mapVars)),
       withLatestFrom(
+        this.store$.select(allCustomVars),
         this.store$.select(shadingSelectors.visibleLayerDefs),
         this.appStateService.uniqueIdentifiedGeocodeSet$,
         this.store$.select(getAllMappedAudiences),
         this.esriService.visibleFeatures$,
         geoDataStore
       )
-    ).subscribe(([[mapVars, customVars], layerDefs, geocodes, audiences, features, geos]) => {
-      const visibleGeos = new Set(features.map(f => f.attributes.geocode));
+    ).subscribe(([mapVars, customVars, layerDefs, geocodes, audiences, features, geos]) => {
+      const visibleGeos = new Set<string>(features.map(f => f.attributes.geocode));
+      this.updateAudiences(mapVars, customVars, visibleGeos, layerDefs, geocodes, audiences, geos, null);
+    });
+    this.store$.select(getFirstTimeCustomShadedAudiences).pipe(
+      filter(audiences => !isEmpty(audiences)),
+      withLatestFrom(
+        this.store$.select(getMapVars),
+        this.store$.select(allCustomVars),
+        this.store$.select(shadingSelectors.visibleLayerDefs),
+        this.appStateService.uniqueIdentifiedGeocodeSet$,
+        this.esriService.visibleFeatures$,
+        geoDataStore
+      )
+    ).subscribe(([audiences, mapVars, customVars, layerDefs, geocodes, features, geos]) => {
+      const visibleGeos = new Set<string>(features.map(f => f.attributes.geocode));
       this.updateAudiences(mapVars, customVars, visibleGeos, layerDefs, geocodes, audiences, geos, null);
     });
   }
@@ -269,6 +284,7 @@ export class AppRendererService {
       });
     }
     if (shadersForUpsert.length > 0) {
+      shadersForUpsert.forEach(s => s.shaderNeedsDataFetched = false);
       this.esriShaderService.upsertShader(shadersForUpsert);
     }
   }
@@ -355,7 +371,8 @@ export class AppRendererService {
       filterByFeaturesOfInterest: true,
       filterField: 'geocode',
       shadingType: ConfigurationTypes.Simple,
-      isCustomAudienceShader: false
+      isCustomAudienceShader: false,
+      shaderNeedsDataFetched: false
     };
     this.updateForAnalysisLevel(result, analysisLevel);
     return result;
@@ -379,7 +396,8 @@ export class AppRendererService {
       filterByFeaturesOfInterest: isFiltered,
       filterField: 'geocode',
       shadingType: isNumeric ? ConfigurationTypes.Ramp : ConfigurationTypes.Unique,
-      theme
+      theme,
+      shaderNeedsDataFetched: true
     };
     if (result.shadingType === ConfigurationTypes.Unique) {
       result.secondaryDataKey = null;
@@ -447,10 +465,6 @@ export class AppRendererService {
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
       const sortedSiteEntries = Array.from(allSiteEntries);
       sortedSiteEntries.sort(sorter);
-      // const shouldGenerateArcade = !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
-      // if (shouldGenerateArcade) {
-      //   definition.arcadeExpression = createTextArcade(data, sortedSiteEntries);
-      // }
       definition.arcadeExpression = createTextArcade(data, sortedSiteEntries);
       definition.breakDefinitions = generateUniqueValues(sortedSiteEntries, colorPalette, fillPalette, true, activeSiteEntries);
     }
@@ -533,10 +547,6 @@ export class AppRendererService {
       const fillPalette = getFillPalette(definition.theme, definition.reverseTheme);
       const sortedTAEntries = Array.from(allTAEntries);
       sortedTAEntries.sort(ValSort.TradeAreaByTypeString);
-      // const shouldGenerateArcade = !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
-      // if (shouldGenerateArcade) {
-      //   definition.arcadeExpression = createTextArcade(data, sortedTAEntries);
-      // }
       definition.arcadeExpression = createTextArcade(data, sortedTAEntries);
       definition.breakDefinitions = generateUniqueValues(sortedTAEntries, colorPalette, fillPalette, true, activeTAEntries);
     }
@@ -591,10 +601,6 @@ export class AppRendererService {
         arcadeGenerator = () => createDataArcade(mapVarDictionary);
       }
       definition.arcadeExpression = arcadeGenerator();
-      // const shouldGenerateArcade = definition.isCustomAudienceShader || !definition.filterByFeaturesOfInterest || isEmpty(definition.arcadeExpression);
-      // if (shouldGenerateArcade) {
-      //   definition.arcadeExpression = arcadeGenerator();
-      // }
     }
 
     switch (definition.shadingType) {

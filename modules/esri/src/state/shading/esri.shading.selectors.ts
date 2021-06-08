@@ -15,6 +15,7 @@ const getEsriShadingDefsForCreate = createSelector(getEsriShadingDefs, layers =>
 const getEsriShadingDefsForUpdate = createSelector(getEsriShadingDefs, layers => layers.filter(l => l.destinationLayerUniqueId != null));
 const getEsriShadingLayerIds = createSelector(getEsriShadingDefsForUpdate, layers => layers.map(l => l.destinationLayerUniqueId));
 const getEsriShadingDataKeys = createSelector(getVisibleLayerDefs, layers => layers.map(l => l.dataKey));
+const getEsriShadingLayersForFetch = createSelector(getVisibleLayerDefs, layers => layers.filter(l => l.shaderNeedsDataFetched).map(l => l.dataKey));
 
 function shadingDefinitionIsReady(def: ShadingDefinition) : boolean {
   switch (def.shadingType) {
@@ -40,5 +41,6 @@ export const shadingSelectors = {
   layerDefsToCreate: getEsriShadingDefsForCreate,
   layerDefsForUpdate: getEsriShadingDefsForUpdate,
   layerUniqueIds: getEsriShadingLayerIds,
-  layerDataKeys: getEsriShadingDataKeys
+  layerDataKeys: getEsriShadingDataKeys,
+  layerDefsForDataFetch: getEsriShadingLayersForFetch
 };
