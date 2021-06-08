@@ -145,13 +145,13 @@ export class MetricService
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'CL2I00', action: actionName });
             counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('Median Household Income').replace(/[^\w.\s]/g, ''))));
         }
-        if (audienceMap.has('% \'17 HHs Families with Related Children < 18 Yrs')){
+        if (audienceMap.has('% CY HHs Families with Related Children < 18 Yrs')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'CL0C00', action: actionName });
-            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('% \'17 HHs Families with Related Children < 18 Yrs').replace(/[^\w.\s]/g, ''))));
+            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('% CY HHs Families with Related Children < 18 Yrs').replace(/[^\w.\s]/g, ''))));
         }
-        if (audienceMap.has('% \'17 Pop Hispanic or Latino')){
+        if (audienceMap.has('% CY Pop Hispanic or Latino')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'CL2PRH', action: actionName });
-            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('% \'17 Pop Hispanic or Latino').replace(/[^\w.\s]/g, ''))));
+            counterMetrics.push(new CounterMetrics(usageMetricName, null , Number(audienceMap.get('% CY Pop Hispanic or Latino').replace(/[^\w.\s]/g, ''))));
         }
         if (audienceMap.has('Casual Dining: 10+ Times Past 30 Days')){
             usageMetricName = new ImpMetricName({ namespace: 'targeting', section: 'audience-colorbox', target: 'TAP049', action: actionName });
@@ -190,8 +190,8 @@ export class MetricService
      this.add('CAMPAIGN', 'Progress to Budget', '0');
 
      this.add('AUDIENCE', 'Median Household Income', '0');
-     this.add('AUDIENCE', '% \'17 HHs Families with Related Children < 18 Yrs', '0');
-     this.add('AUDIENCE', '% \'17 Pop Hispanic or Latino', '0');
+     this.add('AUDIENCE', '% CY HHs Families with Related Children < 18 Yrs', '0');
+     this.add('AUDIENCE', '% CY Pop Hispanic or Latino', '0');
      this.add('AUDIENCE', 'Casual Dining: 10+ Times Past 30 Days', '0');
 
      this.add('PERFORMANCE', 'Predicted Response', '0');

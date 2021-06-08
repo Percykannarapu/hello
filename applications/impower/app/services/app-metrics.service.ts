@@ -188,7 +188,7 @@ export class ValMetricsService implements OnDestroy {
       metricValue: { income: 0, hhc: 0 },
       metricDefault: { income: 0, hhc: 0 },
       metricCategory: 'AUDIENCE',
-      metricFriendlyName: '% \'17 HHs Families with Related Children < 18 Yrs',
+      metricFriendlyName: '% CY HHs Families with Related Children < 18 Yrs',
       valueCalc: t => {
         const hh = this.isWinter ? 'hhld_w' : 'hhld_s';
         if (t['cl0c00'] != null) {
@@ -221,7 +221,7 @@ export class ValMetricsService implements OnDestroy {
       metricValue: { income: 0, hhc: 0 },
       metricDefault: { income: 0, hhc: 0 },
       metricCategory: 'AUDIENCE',
-      metricFriendlyName: '% \'17 Pop Hispanic or Latino',
+      metricFriendlyName: '% CY Pop Hispanic or Latino',
       valueCalc: t => {
         const hh = this.isWinter ? 'hhld_w' : 'hhld_s';
         if (t['cl2prh'] != null) {
