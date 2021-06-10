@@ -475,6 +475,7 @@ export class AppGeoService {
       invalidLocations: []
     };
     const impProjectPref = this.appStateService.currentProject$.getValue().impProjectPrefs.filter(pref => pref.prefGroup === 'project-flags' && pref.pref === 'FORCE_HOMEGEO')[0];
+    const forceHomeGeoFlag = JSON.parse(impProjectPref.largeVal);
     const newGeoAttributes: GeoAttribute[] = [];
     const hhcAttribute = season === Season.Summer ? 'hhld_s' : 'hhld_w';
     const homeFeatureMap = groupByExtended(homeFeatures, f => f.attributes['geocode']);
@@ -486,27 +487,25 @@ export class AppGeoService {
         if (currentFeature == null) {
           result.invalidLocations.push(loc);
         } else {
-          if (!new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue()).has(loc.homeGeocode)){
-            if (!loc.getImpGeofootprintGeos().some(geo => geo.geocode === currentFeature.attributes['geocode'])) {
-              const geocodeDistance: number = EsriUtils.getDistance(currentFeature.attributes['longitude'], currentFeature.attributes['latitude'], loc.xcoord, loc.ycoord);
-              const existingTA = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO')[0];
-              const homeGeoTA = existingTA == null ? this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo) : existingTA;
-              if (JSON.parse(impProjectPref.largeVal)){
-                if (existingTA == null) result.newTradeAreas.push(homeGeoTA);
-                const newGeo = new ImpGeofootprintGeo({
-                  xcoord: currentFeature.attributes['longitude'],
-                  ycoord: currentFeature.attributes['latitude'],
-                  geocode: currentFeature.attributes['geocode'],
-                  hhc: currentFeature.attributes[hhcAttribute],
-                  distance: geocodeDistance,
-                  impGeofootprintLocation: homeGeoTA.impGeofootprintLocation,
-                  impGeofootprintTradeArea: homeGeoTA,
-                  isActive: homeGeoTA.isActive
-                });
-                homeGeoTA.impGeofootprintGeos.push(newGeo);
-                result.newGeos.push(newGeo);
-                newGeoAttributes.push(currentFeature.attributes);
-              }
+          if (!loc.getImpGeofootprintGeos().some(geo => geo.geocode === currentFeature.attributes['geocode'])) {
+            const geocodeDistance: number = EsriUtils.getDistance(currentFeature.attributes['longitude'], currentFeature.attributes['latitude'], loc.xcoord, loc.ycoord);
+            const existingTA = loc.impGeofootprintTradeAreas.filter(ta => ta.taType === 'HOMEGEO')[0];
+            const homeGeoTA = existingTA == null ? this.domainFactory.createTradeArea(loc, TradeAreaTypeCodes.HomeGeo) : existingTA;
+            if (forceHomeGeoFlag){
+              if (existingTA == null) result.newTradeAreas.push(homeGeoTA);
+              const newGeo = new ImpGeofootprintGeo({
+                xcoord: currentFeature.attributes['longitude'],
+                ycoord: currentFeature.attributes['latitude'],
+                geocode: currentFeature.attributes['geocode'],
+                hhc: currentFeature.attributes[hhcAttribute],
+                distance: geocodeDistance,
+                impGeofootprintLocation: homeGeoTA.impGeofootprintLocation,
+                impGeofootprintTradeArea: homeGeoTA,
+                isActive: homeGeoTA.isActive
+              });
+              homeGeoTA.impGeofootprintGeos.push(newGeo);
+              result.newGeos.push(newGeo);
+              newGeoAttributes.push(currentFeature.attributes);
             }
           }
         }

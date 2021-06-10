@@ -5,6 +5,7 @@ import { map, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { AudienceDataDefinition, UnifiedPayload, UnifiedResponse, VarListItem } from '../../models/audience-data.model';
 import { createAudienceVarListItem, createCombinedVarListItem, createCompositeVarListItem } from '../../models/audience-factories';
+import { AppLoggingService } from '../../services/app-logging.service';
 import { AppMessagingService } from '../../services/app-messaging.service';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { Audience } from '../state/transient/audience/audience.model';
@@ -18,6 +19,7 @@ export class AudienceFetchService {
   private combinedSourceTypes = new Set(['Combined', 'Converted', 'Combined/Converted', 'Composite']);
 
   constructor(private config: AppConfig,
+              private logger: AppLoggingService,
               private notificationService: AppMessagingService,
               private restService: RestDataService) { }
 
@@ -29,19 +31,27 @@ export class AudienceFetchService {
         tap(payload => {
           let notify = false;
           if (!isEmpty(payload?.issues?.ERROR)) {
-            console.groupCollapsed('%cAdditional Audience Fetch Error Info', 'color: red');
-            console.error(payload.issues.ERROR);
-            console.groupEnd();
+            this.logger.error.groupCollapsed('Additional Audience Fetch Error Info');
+            this.logger.error.log(payload.issues.ERROR);
+            this.logger.error.groupEnd();
             notify = true;
           }
           if (!isEmpty(payload?.issues?.WARN)) {
-            console.groupCollapsed('%cAdditional Audience Fetch Error Info', 'color: yellow');
-            console.warn(payload.issues.WARN);
-            console.groupEnd();
             notify = true;
+            if (payload.issues.WARN[0] === 'No variable values were found') {
+              const title = payload.issues.WARN.shift();
+              const message = payload.issues.WARN.join('\n');
+              this.notificationService.showWarningNotification(message, title);
+            } else {
+              this.logger.warn.toggleLevelIgnore(); // ensures warnings get logged in production
+              this.logger.warn.groupCollapsed('Additional Audience Fetch Warning Info');
+              this.logger.warn.log(payload.issues.WARN);
+              this.logger.warn.groupCollapsed();
+              this.logger.warn.toggleLevelIgnore();
+            }
           }
           if (notify && !silent) {
-            this.notificationService.showWarningNotification('There was an issue pulling audience data, please check your grid to ensure it has all the data you need.');
+            this.notificationService.showWarningNotification('There was an issue pulling audience data, please check to ensure it has all the data you need.');
           }
         }),
         map(payload => payload.rows.map(r => ({geocode: r.geocode, ...convertKeys(r.variables, k => k.split('_')[0])})))
