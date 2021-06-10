@@ -177,6 +177,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
         audienceName: audienceFields.audienceName,
         selectedDataSet: audienceFields.selectedIndex != null && audienceFields.selectedIndex !== '' ? audienceFields.selectedIndex.value : '',
         combinedAudiences: (isCombineConverted || isCombined) ? combinedAudIds : [],
+        audienceSourceType: isCombined ? 'Combined' : (isCombineConverted ? 'Combined/Converted' : 'Converted'),
         combinedVariableNames: combinedVariableNames.join('~'),
         compositeSource: !(isCombined || isCombineConverted) ? convertSource : [],
       };
