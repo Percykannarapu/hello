@@ -177,7 +177,7 @@ export class UnifiedAudienceService {
   public requestGeofootprintExportData(analysisLevel: string) : Observable<Dictionary<DynamicVariable>> {
     return this.store$.select(geoTransactionId).pipe(
       withLatestFrom(this.store$.select(allAudiences), this.store$.select(getFetchableAudiencesInFootprint)),
-      switchMap(([txId, audiences, gfpAudiences]) => this.fetchService.getCachedAudienceData(gfpAudiences, audiences, analysisLevel, txId, true)),
+      switchMap(([txId, audiences, gfpAudiences]) => this.fetchService.getCachedAudienceData(gfpAudiences, audiences, analysisLevel, txId, false)),
       concatMap((fetchedVars) => this.store$.select(allCustomVarEntities).pipe(
         take(1),
         map(customEntity => mergeVariablesToEntity(customEntity, fetchedVars))

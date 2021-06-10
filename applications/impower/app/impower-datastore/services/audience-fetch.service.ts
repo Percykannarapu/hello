@@ -51,7 +51,7 @@ export class AudienceFetchService {
             }
           }
           if (notify && !silent) {
-            this.notificationService.showWarningNotification('There was an issue pulling audience data, please check to ensure it has all the data you need.');
+            this.notificationService.showWarningNotification('There was an issue pulling audience data, please check to ensure you have all the data you need.');
           }
         }),
         map(payload => payload.rows.map(r => ({geocode: r.geocode, ...convertKeys(r.variables, k => k.split('_')[0])})))
