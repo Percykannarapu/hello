@@ -16,7 +16,7 @@ export type groupCall = (groupTitle?: string, ...optionalParams: any[]) => void;
 export class Logger {
 
   get group() : groupCall {
-    if (this.loggerLevel >= this.appLevel) {
+    if (this.loggerLevel >= this.appLevel || this.ignoreLogLevel) {
       return console.group.bind(console, `%c${this.title}`, `color: ${this.titleColor}`, '-');
     } else {
       return noop;
@@ -24,7 +24,7 @@ export class Logger {
   }
 
   get groupCollapsed() : groupCall {
-    if (this.loggerLevel >= this.appLevel) {
+    if (this.loggerLevel >= this.appLevel || this.ignoreLogLevel) {
       return console.groupCollapsed.bind(console, `%c${this.title}`, `color: ${this.titleColor}`, '-');
     } else {
       return noop;
@@ -32,7 +32,7 @@ export class Logger {
   }
 
   get groupEnd() : () => void {
-    if (this.loggerLevel >= this.appLevel) {
+    if (this.loggerLevel >= this.appLevel || this.ignoreLogLevel) {
       return console.groupEnd.bind(console);
     } else {
       return noop;
@@ -40,7 +40,7 @@ export class Logger {
   }
 
   get log() : logCall {
-    if (this.loggerLevel >= this.appLevel) {
+    if (this.loggerLevel >= this.appLevel || this.ignoreLogLevel) {
       return this.logBind.bind(console, `%c${this.title}`, `color: ${this.titleColor}`, '-');
     } else {
       return noop;
@@ -48,7 +48,7 @@ export class Logger {
   }
 
   get table() : (...data: any[]) => void {
-    if (this.loggerLevel >= this.appLevel) {
+    if (this.loggerLevel >= this.appLevel || this.ignoreLogLevel) {
       return console.table.bind(console);
     } else {
       return noop;
@@ -56,7 +56,7 @@ export class Logger {
   }
 
   get count() : (countTitle?: string) => void {
-    if (this.loggerLevel >= this.appLevel) {
+    if (this.loggerLevel >= this.appLevel || this.ignoreLogLevel) {
       return console.count.bind(console);
     } else {
       return noop;
@@ -64,7 +64,7 @@ export class Logger {
   }
 
   get countReset() : (countTitle?: string) => void {
-    if (this.loggerLevel >= this.appLevel) {
+    if (this.loggerLevel >= this.appLevel || this.ignoreLogLevel) {
       // @ts-ignore
       return console.countReset.bind(console);
     } else {
@@ -72,6 +72,12 @@ export class Logger {
     }
   }
 
+  private ignoreLogLevel = false;
+
   constructor(private titleColor: string, private title: string, private loggerLevel: LogLevels, private appLevel: LogLevels,
               private logBind: logCall) {}
+
+  toggleLevelIgnore() : void {
+    this.ignoreLogLevel = !this.ignoreLogLevel;
+  }
 }
