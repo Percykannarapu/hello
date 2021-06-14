@@ -1,12 +1,12 @@
-import { ImpProjectPayload } from '../payload-models/imp-project-payload';
-import { ImpProjectState } from '../state/models/imp-project-state';
-import { ImpProjectVarState } from '../state/models/imp-project-var-state';
-import { ImpProjectPrefState } from '../state/models/imp-project-pref-state';
-import { ImpGeofootprintMasterState } from '../state/models/imp-geofootprint-master-state';
-import { ImpGeofootprintLocationState } from '../state/models/imp-geofootprint-location-state';
-import { ImpGeofootprintLocAttribState } from '../state/models/imp-geofootprint-loc-attrib-state';
-import { ImpGeofootprintTradeAreaState } from '../state/models/imp-geofootprint-trade-area-state';
-import { ImpGeofootprintGeoState } from '../state/models/imp-geofootprint-geo-state';
+import { ImpProjectPayload } from '../../../worker-shared/data-model/payloads/imp-project-payload';
+import { ImpGeofootprintGeoState } from '../../../worker-shared/data-model/state/imp-geofootprint-geo-state';
+import { ImpGeofootprintLocAttribState } from '../../../worker-shared/data-model/state/imp-geofootprint-loc-attrib-state';
+import { ImpGeofootprintLocationState } from '../../../worker-shared/data-model/state/imp-geofootprint-location-state';
+import { ImpGeofootprintMasterState } from '../../../worker-shared/data-model/state/imp-geofootprint-master-state';
+import { ImpGeofootprintTradeAreaState } from '../../../worker-shared/data-model/state/imp-geofootprint-trade-area-state';
+import { ImpProjectPrefState } from '../../../worker-shared/data-model/state/imp-project-pref-state';
+import { ImpProjectState } from '../../../worker-shared/data-model/state/imp-project-state';
+import { ImpProjectVarState } from '../../../worker-shared/data-model/state/imp-project-var-state';
 import { NormalizedPayload } from '../services/normalized-payload';
 import { simpleFlatten } from '@val/common';
 

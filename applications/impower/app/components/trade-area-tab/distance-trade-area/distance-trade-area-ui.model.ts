@@ -1,4 +1,4 @@
-import { TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
+import { TradeAreaMergeTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
 
 export interface DistanceTradeAreaUiModel {
   tradeAreas: TradeAreaModel[];

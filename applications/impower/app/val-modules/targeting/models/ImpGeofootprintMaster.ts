@@ -2,17 +2,15 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, transient } from './../../api/models/BaseModel';
+import { BaseModel, transient } from '../../api/models/BaseModel';
 import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from './ImpGeofootprintLocAttrib';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
-import { ImpGeofootprintVar } from './ImpGeofootprintVar';
 import { ImpProject } from './ImpProject';
 
 export class ImpGeofootprintMaster extends BaseModel
 {
-
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<ImpGeofootprintMaster>) {
@@ -44,52 +42,6 @@ export class ImpGeofootprintMaster extends BaseModel
    /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
    @transient public impProject:                ImpProject;                     /// Captures Project information from the UI
 
-   /**
-    * Produces a map of this classes fields and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getFields () : Map<string, string>
-   {
-      return new Map([
-         ['cgmId',                      'number'],
-         ['summaryInd',                 'number'],
-         ['allowDuplicate',             'number'],
-         ['createdDate',                'number'],
-         ['status',                     'string'],
-         ['methAnalysis',               'string'],
-         ['methSeason',                 'string'],
-         ['activeLocationCount',        'number'],
-         ['totalLocationCount',         'number'],
-         ['isMarketBased',              'boolean'],
-         ['isActive',                   'boolean']
-         ]);
-   }
-
-   /**
-    * Produces a map of this classes relationships and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getRelationships () : Map<string, string>
-   {
-      return new Map([
-         // MANY TO ONE RELATIONSHIP MEMBERS
-         ['impProject',                 'ImpProject'],
-
-         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
-         ['impProject',                 'ImpProject'],
-
-         // TRANSITORY ONE TO MANY RELATIONSHIP MEMBERS
-         ['impGeofootprintGeo',         'Array<ImpGeofootprintGeo>'],
-         ['impGeofootprintLocAttrib',   'Array<ImpGeofootprintLocAttrib>'],
-         ['impGeofootprintTradeArea',   'Array<ImpGeofootprintTradeArea>'],
-         ['impGeofootprintVar',         'Array<ImpGeofootprintVar>'],
-      ]);
-   }
-
 
    // -------------------------------------------
    // TRANSITORY ONE TO MANY RELATIONSHIP GETTERS
@@ -113,14 +65,6 @@ export class ImpGeofootprintMaster extends BaseModel
    getImpGeofootprintTradeAreas() : ReadonlyArray<ImpGeofootprintTradeArea> {
       const _result: Array<ImpGeofootprintTradeArea> = new Array<ImpGeofootprintTradeArea>();
       (this.impGeofootprintLocations || []).forEach(impGeofootprintLocation => (_result.push(...impGeofootprintLocation.impGeofootprintTradeAreas || [])));
-      return _result;
-   }
-
-   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   getImpGeofootprintVars() : ReadonlyArray<ImpGeofootprintVar> {
-      const _result: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
-      (this.impGeofootprintLocations || []).forEach(impGeofootprintLocation => (impGeofootprintLocation.impGeofootprintTradeAreas || [])
-                                         .forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintVars || []))));
       return _result;
    }
 
@@ -162,12 +106,4 @@ export class ImpGeofootprintMaster extends BaseModel
       // Set the isComplete flag indicating the load is complete
       this.setTreeProperty('isComplete', true);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

@@ -1,9 +1,9 @@
+import { FieldContentTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import {
   isOfflineCategory,
   OfflineResponse,
   OnlineAudienceDefinition
 } from '../impower-datastore/state/transient/audience-definitions/audience-definitions.model';
-import { FieldContentTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 export class OnlineAudienceDescription {
   private childMap: Map<string | number, OnlineAudienceDescription> = new Map<string | number, OnlineAudienceDescription>();

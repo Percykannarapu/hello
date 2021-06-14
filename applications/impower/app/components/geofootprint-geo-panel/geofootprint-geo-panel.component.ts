@@ -18,7 +18,6 @@ import { LoggingService } from '../../val-modules/common/services/logging.servic
 import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
 import { ImpGeofootprintGeoService } from '../../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 
@@ -120,10 +119,10 @@ export class GeofootprintGeoPanelComponent implements OnInit {
 
    public rankGeographies() {
       // Rank the geos by distance
-      this.impGeofootprintGeoService.calculateGeoRanks();
+      // this.impGeofootprintGeoService.calculateGeoRanks();
 
       // Sort the geos
-      this.impGeofootprintGeoService.sort(this.impGeofootprintGeoService.defaultSort);
+      // this.impGeofootprintGeoService.sort(this.impGeofootprintGeoService.defaultSort);
 
       // DEBUG: See that ranking is working
       //this.logger.debug.log("Rank > 0 Geos:"); this.impGeofootprintGeoService.get().filter(geo => geo.rank > 0).forEach(geo => this.logger.debug.log("geo: ", geo));

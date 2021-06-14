@@ -5,6 +5,7 @@ import { UserService } from 'app/services/user.service';
 import { combineLatest, Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
@@ -17,7 +18,6 @@ import { Geocode } from '../../state/homeGeocode/homeGeo.actions';
 import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { ManualEntryComponent } from './manual-entry/manual-entry.component';
 import { siteListUpload } from './upload.rules';
 

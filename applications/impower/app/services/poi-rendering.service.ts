@@ -1,9 +1,12 @@
-import { Injectable, Inject } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
+import Point from '@arcgis/core/geometry/Point';
 import { Store } from '@ngrx/store';
-import { getUuid, groupToEntity, mapArrayToEntity, mapByExtended, toUniversalCoordinates, groupByExtended, isConvertibleToNumber, filterArray } from '@val/common';
+import { getUuid, groupByExtended, groupToEntity, isConvertibleToNumber, mapArrayToEntity, mapByExtended, toUniversalCoordinates } from '@val/common';
 import {
   ColorPalette,
   duplicatePoiConfiguration,
+  EsriAppSettings,
+  EsriAppSettingsToken,
   EsriDomainFactory,
   EsriLayerService,
   EsriPoiService,
@@ -12,12 +15,16 @@ import {
   isFeatureLayer,
   PoiConfiguration,
   PoiConfigurationTypes,
-  EsriAppSettingsToken,
-  EsriAppSettings,
-  RadiiTradeAreaDrawDefinition,
-  EsriQuadTree
+  RadiiTradeAreaDrawDefinition
 } from '@val/esri';
-import { filter, take, withLatestFrom, map, reduce, tap, switchMap } from 'rxjs/operators';
+import { BatchMapQueryParams, getTypedBatchQueryParams } from 'app/state/shared/router.interfaces';
+import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
+import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
+import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
+import { filter, take, withLatestFrom } from 'rxjs/operators';
+import { LoggingService } from '../../../../modules/esri/src/services/logging.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { extractUniqueAttributeValues } from '../common/model.transforms';
 import { FullAppState } from '../state/app.interfaces';
@@ -26,18 +33,8 @@ import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { createSiteGraphic, defaultLocationPopupFields } from '../state/rendering/location.transform';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
-import { TradeAreaDrawDefinition } from 'app/state/rendering/trade-area.transform';
-import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
-import Point from '@arcgis/core/geometry/Point';
-import { LoggingService } from '../../../../modules/esri/src/services/logging.service';
-import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
-import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { getTypedBatchQueryParams, BatchMapQueryParams } from 'app/state/shared/router.interfaces';
-
 
 
 @Injectable({
@@ -45,7 +42,7 @@ import { getTypedBatchQueryParams, BatchMapQueryParams } from 'app/state/shared/
 })
 export class PoiRenderingService {
 
-  private batchMapParams: BatchMapQueryParams
+  private batchMapParams: BatchMapQueryParams;
 
   constructor(private appStateService: AppStateService,
               private layerService: EsriLayerService,
@@ -298,7 +295,7 @@ export class PoiRenderingService {
 
   public applyRadiusTradeArea(tradeAreas: { tradeAreaNumber: number, isActive: boolean, radius: number }[],
                               siteType: SuccessfulLocationTypeCodes, locs?: ImpGeofootprintLocation[])  {
-    const currentLocations = locs!= null && locs.length > 0 ? locs : this.getLocations(siteType);
+    const currentLocations = locs != null && locs.length > 0 ? locs : this.getLocations(siteType);
     //const tradeAreaFilter = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Radii]);
     return this.applyRadiiTradeAreasToLocations(tradeAreas, currentLocations);
   }
@@ -333,7 +330,7 @@ export class PoiRenderingService {
         this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, def);
         const newDef: PoiConfiguration = duplicatePoiConfiguration(def);
       }
-    })
+    });
     return renderingSetups;
   }
 }

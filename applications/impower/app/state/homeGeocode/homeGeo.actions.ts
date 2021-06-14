@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
+import { SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 
 export enum HomeGeoActionTypes {

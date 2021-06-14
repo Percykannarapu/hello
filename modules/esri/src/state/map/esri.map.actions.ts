@@ -18,9 +18,9 @@ export enum EsriMapActionTypes {
   HideLabels = '[Esri Map] Hide Labels on Map',
   ShowLabels = '[Esri Map] Show Labels on Map',
 
-  PrintMap = '[Esri Map] Print Map',
-  PrintJobComplete = '[Esri Map] Print Job Complete',
-  PrintMapFailure = '[Esri Map] Print Job Failed',
+  // PrintMap = '[Esri Map] Print Map',
+  // PrintJobComplete = '[Esri Map] Print Job Complete',
+  // PrintMapFailure = '[Esri Map] Print Job Failed',
 
   SetLayerLabelExpressions = '[Esri Map] Set Layer Label Expressions',
 
@@ -98,20 +98,20 @@ export class ResetMapState implements Action {
     readonly type = EsriMapActionTypes.ResetMapState;
 }
 
-export class PrintMap implements Action{
-  readonly type = EsriMapActionTypes.PrintMap;
-  constructor(public payload: { templateOptions: {title: string, author: string, customTextElements: any }, serviceUrl: string}){}
-}
+// export class PrintMap implements Action{
+//   readonly type = EsriMapActionTypes.PrintMap;
+//   constructor(public payload: { templateOptions: {title: string, author: string, customTextElements: any }, serviceUrl: string}){}
+// }
 
-export class PrintJobComplete implements Action {
-  readonly type = EsriMapActionTypes.PrintJobComplete;
-  constructor(public payload: { result: any }) {}
-}
+// export class PrintJobComplete implements Action {
+//   readonly type = EsriMapActionTypes.PrintJobComplete;
+//   constructor(public payload: { result: any }) {}
+// }
 
-export class PrintMapFailure implements Action {
-  readonly type = EsriMapActionTypes.PrintMapFailure;
-  constructor(public payload: { err: any }) {}
-}
+// export class PrintMapFailure implements Action {
+//   readonly type = EsriMapActionTypes.PrintMapFailure;
+//   constructor(public payload: { err: any }) {}
+// }
 
 export type EsriMapActions =
   InitializeMap
@@ -130,7 +130,7 @@ export type EsriMapActions =
   | ShowLabels
   | SetLayerLabelExpressions
   | ResetMapState
-  | PrintMap
-  | PrintJobComplete
-  | PrintMapFailure
+//  | PrintMap
+//  | PrintJobComplete
+//  | PrintMapFailure
   ;

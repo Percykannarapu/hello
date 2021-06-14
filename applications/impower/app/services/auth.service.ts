@@ -65,7 +65,7 @@ export class AuthService implements CanActivate{
   }
 
   getAuthorizationHeaderValue() : string {
-    return `${this.oidcUser.token_type} ${this.oidcUser.id_token}`;
+    return `${this.oidcUser?.token_type} ${this.oidcUser?.id_token}`;
   }
 
   startAuthentication() : Promise<void> {

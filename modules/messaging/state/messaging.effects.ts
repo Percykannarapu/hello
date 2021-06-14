@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { toPayload } from '@val/common';
 import { tap } from 'rxjs/operators';
-import { LoggingService } from '../../../applications/impower/app/val-modules/common/services/logging.service';
 import { NotificationProvider, NotificationProviderToken } from '../core/notification-provider.interface';
 import { ErrorNotification, InfoNotification, MessagingActionTypes, SuccessNotification, WarningNotification } from './messaging.actions';
 

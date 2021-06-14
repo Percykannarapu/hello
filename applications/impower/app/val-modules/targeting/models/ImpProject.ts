@@ -2,12 +2,8 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { ImpClientLocationTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
-import { BaseModel, transient } from '../../api/models/BaseModel';
-import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
-import { ConsumerPurchasingFreq } from '../../mediaexpress/models/ConsumerPurchasingFreq';
-import { Goal } from '../../mediaexpress/models/Goal';
-import { Objective } from '../../mediaexpress/models/Objective';
+import { ImpClientLocationTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
+import { BaseModel } from '../../api/models/BaseModel';
 import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintLocAttrib } from './ImpGeofootprintLocAttrib';
@@ -86,114 +82,6 @@ export class ImpProject extends BaseModel
    public impProjectPrefs:             Array<ImpProjectPref> = new Array<ImpProjectPref>();
    public impProjectVars:              Array<ImpProjectVar> = new Array<ImpProjectVar>();
    // ----------------------------------------------------------------------------
-
-   // -------------------------------------------
-   // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
-   // -------------------------------------------
-   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public clientIdentifierType:        ClientIdentifierType;            /// Cbx Client Identifier Types
-
-   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public consumerPurchasingFreq:      ConsumerPurchasingFreq;          /// Cbx Consumer Purchasing Freqs
-
-   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public goal:                        Goal;                            /// Cbx Goals
-
-   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public objective:                   Objective;                       /// Cbx Objectives
-
-   /**
-    * Produces a map of this classes fields and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getFields () : Map<string, string>
-   {
-      return new Map([
-         ['projectId',                    'number'],
-         ['createUser',                   'number'],
-         ['createDate',                   'number'],
-         ['modifyUser',                   'number'],
-         ['modifyDate',                   'number'],
-         ['industryCategoryCode',         'string'],
-         ['projectName',                  'string'],
-         ['description',                  'string'],
-         ['methAnalysis',                 'string'],
-         ['ihwFrom',                      'Date'],
-         ['ihwTo',                        'Date'],
-         ['ihd',                          'Date'],
-         ['totalBudget',                  'number'],
-         ['clientIdentifierId',           'number'],
-         ['clientIdentifierName',         'string'],
-         ['customerNumber',               'string'],
-         ['preferredIhDate',              'Date'],
-         ['afterIhdIsPreferred',          'number'],
-         ['sfdcRfpId',                    'string'],
-         ['sfdcRfpName',                  'string'],
-         ['sfdcMediaPlanId',              'string'],
-         ['sdfcNotificationId',           'string'],
-         ['isValidated',                  'boolean'],
-         ['isSingleDate',                 'boolean'],
-         ['isMustCover',                  'boolean'],
-         ['isExcludePob',                 'boolean'],
-         ['isDollarBudget',               'boolean'],
-         ['isCircBudget',                 'boolean'],
-         ['isRunAvail',                   'boolean'],
-         ['isHardPdi',                    'boolean'],
-         ['isActive',                     'boolean'],
-         ['isIncludeValassis',            'boolean'],
-         ['isIncludeAnne',                'boolean'],
-         ['isIncludeSolo',                'boolean'],
-         ['isIncludeNonWeekly',           'boolean'],
-         ['projectTrackerId',             'number'],
-         ['estimatedBlendedCpm',          'number'],
-         ['smValassisCpm',                'number'],
-         ['smAnneCpm',                    'number'],
-         ['smSoloCpm',                    'number'],
-         ['radProduct',                   'string'],
-         ['taSiteMergeType',              'string'],
-         ['taCompetitorMergeType',        'string'],
-         ['audTaMinRadiu',                'number'],
-         ['audTaMaxRadiu',                'number'],
-         ['audTaVarPk',                   'number'],
-         ['audTaVarSource',               'string'],
-         ['audTaVarWeight',               'number'],
-         ['audTaIndexBase',               'string'],
-         ['audTaIsMustCover',             'number']
-         ]);
-   }
-
-   /**
-    * Produces a map of this classes relationships and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getRelationships () : Map<string, string>
-   {
-      return new Map([
-         // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierType',         'ClientIdentifierType'],
-         ['consumerPurchasingFreq',       'ConsumerPurchasingFreq'],
-         ['goal',                         'Goal'],
-         ['objective',                    'Objective'],
-
-         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierType',         'ClientIdentifierType'],
-         ['consumerPurchasingFreq',       'ConsumerPurchasingFreq'],
-         ['goal',                         'Goal'],
-         ['objective',                    'Objective'],
-
-         // TRANSITORY ONE TO MANY RELATIONSHIP MEMBERS
-         ['impGeofootprintGeo',           'Array<ImpGeofootprintGeo>'],
-         ['impGeofootprintLocation',      'Array<ImpGeofootprintLocation>'],
-         ['impGeofootprintLocAttrib',     'Array<ImpGeofootprintLocAttrib>'],
-         ['impGeofootprintTradeArea',     'Array<ImpGeofootprintTradeArea>'],
-         ['impGeofootprintVar',           'Array<ImpGeofootprintVar>'],
-      ]);
-   }
-
 
    // -------------------------------------------
    // TRANSITORY ONE TO MANY RELATIONSHIP GETTERS
@@ -286,12 +174,4 @@ export class ImpProject extends BaseModel
       // Set the isComplete flag indicating the load is complete
       this.setTreeProperty('isComplete', true);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

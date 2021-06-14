@@ -76,7 +76,8 @@
             "aot": false,
             "extractLicenses": false,
             "vendorChunk": true,
-            "buildOptimizer": false
+            "buildOptimizer": false,
+            "webWorkerTsConfig": "applications/impower/tsconfig.worker.json"
           },
           "configurations": {
             "qa": {
@@ -229,7 +230,8 @@
           "options": {
             "tsConfig": [
               "applications/impower/tsconfig.app.json",
-              "applications/impower/tsconfig.spec.json"
+              "applications/impower/tsconfig.spec.json",
+              "applications/impower/tsconfig.worker.json"
             ],
             "exclude": [
               "**/node_modules/**"

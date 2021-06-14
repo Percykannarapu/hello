@@ -1,9 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { TradeAreaTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, takeUntil } from 'rxjs/operators';
+import {
+  ImpClientLocationTypeCodes,
+  SuccessfulLocationTypeCodes,
+  TradeAreaMergeTypeCodes, TradeAreaTypeCodes
+} from '../../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../../app.config';
 import { AppProjectService } from '../../services/app-project.service';
 import { AppStateService } from '../../services/app-state.service';
@@ -11,7 +15,6 @@ import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { CreateTradeAreaUsageMetric } from '../../state/usage/targeting-usage.actions';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel } from './distance-trade-area/distance-trade-area-ui.model';
 
 @Component({

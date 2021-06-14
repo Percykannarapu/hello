@@ -9,6 +9,7 @@ import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/servic
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { filter, take, takeUntil } from 'rxjs/operators';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { UserService } from '../../services/user.service';
 import { LocalAppState } from '../../state/app.interfaces';
 import { OpenBatchMapDialog, OpenBatchMapStatusDialog, BatchMapAdminDialogOpen } from '../../state/batch-map/batch-map.actions';
@@ -24,7 +25,6 @@ import {
   SaveAndReloadProject
 } from '../../state/menu/menu.actions';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 @Component({
   selector: 'app-menu',
@@ -78,14 +78,14 @@ export class AppMenuComponent implements OnInit, OnDestroy {
               label: 'Export Geofootprint - All',
               icon: PrimeIcons.TABLE,
               styleClass: 'val-long-menu-link',
-              command: () => this.store$.dispatch(new ExportGeofootprint({selectedOnly: false})),
+              command: () => this.exportGeofootprint(false),
               visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT'])
             },
             {
               label: 'Export Geofootprint - Selected Only',
               icon: PrimeIcons.TABLE,
               styleClass: 'val-long-menu-link',
-              command: () => this.store$.dispatch(new ExportGeofootprint({selectedOnly: true})),
+              command: () => this.exportGeofootprint(true),
               visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT'])
             },
             {
@@ -139,7 +139,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
           label: 'Admin Console',
           icon: PrimeIcons.INFO_CIRCLE,
           command: () => this.getAdminStats(),
-          visible: this.userService.userHasGrants(['ACS_COMPONENT_MANAGE'], 'ANY')
+          visible: this.userService.userHasGrants(['ACS_COMPONENT_MANAGE'])
         }
       ];
       this.isLoggedIn = true;
@@ -164,6 +164,10 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.store$.dispatch(new SaveAndReloadProject());
     }, 500);
+  }
+
+  private exportGeofootprint(selectedOnly: boolean) {
+    this.store$.dispatch(new ExportGeofootprint({ selectedOnly }));
   }
 
   private exportLocations(locationType: SuccessfulLocationTypeCodes) {

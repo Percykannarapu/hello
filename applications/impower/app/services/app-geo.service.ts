@@ -5,7 +5,8 @@ import { EsriLayerService, EsriQueryService, EsriUtils } from '@val/esri';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { ConfirmationService } from 'primeng/api';
 import { combineLatest, EMPTY, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, reduce, take, withLatestFrom } from 'rxjs/operators';
+import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../common/quad-tree';
 import {
@@ -28,8 +29,6 @@ import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/Imp
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppMapService } from './app-map.service';
 import { AppProjectPrefService } from './app-project-pref.service';
@@ -63,7 +62,6 @@ export class AppGeoService {
               private locationService: ImpGeofootprintLocationService,
               private locationAttrService: ImpGeofootprintLocAttribService,
               private tradeAreaService: ImpGeofootprintTradeAreaService,
-              private varService: ImpGeofootprintVarService,
               private impGeoService: ImpGeofootprintGeoService,
               private appProjectPrefService: AppProjectPrefService,
               private layerService: EsriLayerService,
@@ -105,6 +103,14 @@ export class AppGeoService {
       this.appStateService.clearUI$.subscribe(() => {
         // Clear must covers
         this.impGeoService.clearMustCovers();
+      });
+
+      this.impGeoService.storeObservable.pipe(
+        debounceTime(250)
+      ).subscribe(() => {
+        this.impGeoService.calculateGeoRanks();
+        this.logger.debug.tableArray('Geo Rank and Owner data', this.impGeoService.get(), null,
+            g => ({ geocode: g.geocode, rank: g.rank, dist: g.distance, owner: g.ownerSite, attachedTo: g.impGeofootprintLocation.locationNumber }));
       });
     });
   }
@@ -383,12 +389,9 @@ export class AppGeoService {
       tradeAreasToDelete.push(...forcedTradeAreas);
     }
     const geosToDelete = simpleFlatten(tradeAreasToClear.map(ta => ta.impGeofootprintGeos));
-    const varsToDelete = simpleFlatten(tradeAreasToClear.map(ta => ta.impGeofootprintVars));
 
     this.deleteGeos(geosToDelete);
-    this.varService.remove(varsToDelete);
     tradeAreasToClear.forEach(ta => {
-      ta.impGeofootprintVars = [];
       ta.impGeofootprintGeos = [];
       ta['isComplete'] = false;
     });

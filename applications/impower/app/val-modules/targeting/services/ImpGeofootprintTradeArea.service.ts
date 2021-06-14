@@ -12,14 +12,13 @@
 import { Injectable } from '@angular/core';
 import { simpleFlatten } from '@val/common';
 import { EMPTY, Observable } from 'rxjs';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { DataStore } from '../../common/services/datastore.service';
 import { LoggingService } from '../../common/services/logging.service';
 import { RestDataService } from '../../common/services/restdata.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
 import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpGeofootprintGeoService } from './ImpGeofootprintGeo.service';
-import { ImpGeofootprintVarService } from './ImpGeofootprintVar.service';
 
 const dataUrl = 'v1/targeting/base/impgeofootprinttradearea/load';
 
@@ -29,7 +28,6 @@ export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTr
    constructor(transactionManager: TransactionManager,
                restDataService: RestDataService,
                public impGeofootprintGeoService: ImpGeofootprintGeoService,
-               public impGeofootprintVarService: ImpGeofootprintVarService,
                logger: LoggingService)
    {
       super(restDataService, dataUrl, logger, transactionManager, 'ImpGeofootprintTradeArea');
@@ -43,7 +41,6 @@ export class ImpGeofootprintTradeAreaService extends DataStore<ImpGeofootprintTr
         ta.impProject = ta.impGeofootprintMaster.impProject;
       });
       // load data stores
-      this.impGeofootprintVarService.load(simpleFlatten(items.map(ta => ta.impGeofootprintVars)));
       this.impGeofootprintGeoService.load(simpleFlatten(items.map(ta => ta.impGeofootprintGeos)));
       super.load(items);
     }

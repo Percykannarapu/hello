@@ -10,7 +10,7 @@
  **/
 import { Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { DataStore } from '../../common/services/datastore.service';
 import { LoggingService } from '../../common/services/logging.service';
 import { RestDataService } from '../../common/services/restdata.service';
@@ -33,7 +33,7 @@ export class ImpGeofootprintLocAttribService extends DataStore<ImpGeofootprintLo
 
       items.forEach(item => {
       if (item.attributeCode === 'Home PCR') item.attributeCode = 'Home Carrier Route';
-      if(item.attributeCode === 'Home ZIP') item.attributeCode = 'Home Zip Code';
+      if (item.attributeCode === 'Home ZIP') item.attributeCode = 'Home Zip Code';
      });
       super.load(items);
    }

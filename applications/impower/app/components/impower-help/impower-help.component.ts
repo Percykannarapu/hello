@@ -1,12 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { openImpowerHelpDialog, openExistingDialogFlag } from 'app/state/menu/menu.selectors';
 import { AppStateService } from 'app/services/app-state.service';
-import { filter, take } from 'rxjs/operators';
 import { LocalAppState } from 'app/state/app.interfaces';
+import { openImpowerHelpDialog } from 'app/state/menu/menu.selectors';
 import { MenuItem } from 'primeng/api';
 import { OverlayPanel } from 'primeng/overlaypanel';
+import { Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'val-impower-help',

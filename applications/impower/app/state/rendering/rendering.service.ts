@@ -6,7 +6,6 @@ import { EsriAppSettings, EsriAppSettingsToken, EsriDomainFactory, EsriLayerServ
 import { from, merge, Observable, of } from 'rxjs';
 import { map, reduce, switchMap, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
-//import { QuadTree } from '../../common/quad-tree';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
 import { TradeAreaDrawDefinition } from './trade-area.transform';
 

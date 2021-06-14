@@ -28,7 +28,7 @@ export class ImpGeofootprintGeo extends BaseModel
    // ----------------------------------
    public isDeduped:     number;         /// 1 = deduped, 0 = not deduped
    public rank:          number;         /// Rank used to calculate dupes
-   public ownerSite:     string;         /// Site number which owns a geo when shared 
+   public ownerSite:     string;         /// Site number which owns a geo when shared
 
    // -------------------------------------------
    // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
@@ -51,56 +51,6 @@ export class ImpGeofootprintGeo extends BaseModel
      super();
      Object.assign(this, data);
    }
-
-   /**
-    * Produces a map of this classes fields and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getFields () : Map<string, string>
-   {
-      return new Map([
-         ['ggId',                          'number'],
-         ['geocode',                       'string'],
-         ['geoSortOrder',                  'number'],
-         ['hhc',                           'number'],
-         ['xcoord',                        'number'],
-         ['ycoord',                        'number'],
-         ['distance',                      'number'],
-         ['isActive',                      'boolean']
-         ]);
-   }
-
-   /**
-    * Produces a map of this classes relationships and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getRelationships () : Map<string, string>
-   {
-      return new Map([
-         // MANY TO ONE RELATIONSHIP MEMBERS
-         ['impGeofootprintLocation',       'ImpGeofootprintLocation'],
-         ['impGeofootprintMaster',         'ImpGeofootprintMaster'],
-         ['impGeofootprintTradeArea',      'ImpGeofootprintTradeArea'],
-         ['impProject',                    'ImpProject'],
-
-         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
-         ['impGeofootprintLocation',       'ImpGeofootprintLocation'],
-         ['impGeofootprintMaster',         'ImpGeofootprintMaster'],
-         ['impGeofootprintTradeArea',      'ImpGeofootprintTradeArea'],
-         ['impProject',                    'ImpProject'],
-      ]);
-   }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
 
   // Set tree property and push it down the hierarchy
   public setTreeProperty(propName: string, propValue: any)

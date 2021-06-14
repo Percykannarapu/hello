@@ -6,6 +6,7 @@ import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { BehaviorSubject, combineLatest, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import * as ValSort from '../common/valassis-sorters';
 import { FullAppState } from '../state/app.interfaces';
@@ -18,8 +19,6 @@ import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/Imp
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintVarService } from '../val-modules/targeting/services/ImpGeofootprintVar.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppGeoService } from './app-geo.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppProjectPrefService } from './app-project-pref.service';
@@ -53,7 +52,6 @@ export class AppTradeAreaService {
               private impLocationService: ImpGeofootprintLocationService,
               private impLocAttrService: ImpGeofootprintLocAttribService,
               private impGeoService:  ImpGeofootprintGeoService,
-              private impVarService: ImpGeofootprintVarService,
               private stateService: AppStateService,
               private appGeoService: AppGeoService,
               private appConfig: AppConfig,
@@ -133,7 +131,6 @@ export class AppTradeAreaService {
     this.currentDefaults.set(ImpClientLocationTypeCodes.Site, []);
     this.currentDefaults.set(ImpClientLocationTypeCodes.Competitor, []);
     this.impTradeAreaService.clearAll();
-    this.impVarService.clearAll();
   }
 
   private applyRadiusTradeAreaOnAnalysisChange(data: ImpGeofootprintLocation[]) : void{
@@ -167,13 +164,9 @@ export class AppTradeAreaService {
     locations.forEach(loc => loc.impGeofootprintTradeAreas = loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
     // delete from the data stores
     const geosToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintGeos));
-    const varsToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintVars));
     tradeAreas.forEach(ta => {
       ta.impGeofootprintLocation = null;
-      ta.impGeofootprintVars = [];
     });
-    varsToRemove.forEach(v => v.impGeofootprintTradeArea = null);
-    if (varsToRemove.length > 0) this.impVarService.remove(varsToRemove);
     this.appGeoService.deleteGeos(geosToRemove);
     this.impTradeAreaService.remove(tradeAreas);
   }
@@ -286,7 +279,6 @@ export class AppTradeAreaService {
     const allTradeAreas = this.impTradeAreaService.get();
     allTradeAreas.forEach(ta => {
       ta.impGeofootprintGeos = [];
-      ta.impGeofootprintVars = [];
       if (TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius) ta['isComplete'] = undefined;
     });
     const allLocations = this.impLocationService.get();
@@ -298,7 +290,6 @@ export class AppTradeAreaService {
     this.logger.info.log('Clearing all Geos');
     this.impTradeAreaService.startTx();
     this.impLocAttrService.remove(attrs);
-    this.impVarService.clearAll();
     this.appGeoService.clearAll();
     const removeTradeAreas = allTradeAreas.filter(ta => tradeAreasToRemove.has(TradeAreaTypeCodes.parse(ta.taType)));
     removeTradeAreas.length > 0 ? this.deleteTradeAreas(removeTradeAreas) : this.impTradeAreaService.makeDirty();

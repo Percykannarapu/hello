@@ -1,4 +1,4 @@
-import { isString } from '@val/common';
+import { isEmpty, isString } from '@val/common';
 
 type identifierType = string | RegExp | ((header: string) => boolean);
 
@@ -191,27 +191,35 @@ export class FileService {
     return false;
   }
 
-  public static downloadFile(filename: string, data: string | string[]) {
-    const dataString: string = isString(data) ? data : data.join('\n');
+  public static downloadDelimitedFile(filename: string, data: string | string[], rowDelimiter: string = '\n') : string {
+    const dataString: string = isString(data) ? data : data.join(rowDelimiter);
     const blob = new Blob(['\ufeff', dataString]);
     const url = URL.createObjectURL(blob);
-    // create and auto-click a link that downloads the CSV file
+    this.downloadUrl(url, filename);
+    return dataString;
+  }
+
+  public static downloadRawCsv(fileName: string, data: any) {
+    const newBlob = new Blob([data], { type: 'application/csv' });
+    const uri = window.URL.createObjectURL(newBlob);
+    this.downloadUrl(uri, fileName);
+  }
+
+  public static downloadUrl(url: string, filename?: string, revokeBlob: boolean = true) {
+    // create and auto-click a link that downloads the file
     const element = window.document.createElement('a');
-    document.body.appendChild(element);
+    if (isEmpty(filename)) {
+      const routeParts = url.split(/[\s/]+/);
+      filename = routeParts[routeParts.length - 1];
+    }
+    window.document.body.appendChild(element);
     element.style.cssText = 'display: none';
     element['download'] = filename;
     element.target = '_blank';
     element.href = url;
     element.click();
     element.remove();
-  }
+    if (revokeBlob) URL.revokeObjectURL(url);
 
-  public static downLoadCsvFile(fileName: string, data: any){
-    const newBlob = new Blob([data], { type: 'application/csv' });
-    const uri = window.URL.createObjectURL(newBlob);
-    const link = document.createElement('a');
-    link.href = uri;
-    link.download = fileName;
-    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   }
 }

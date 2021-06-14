@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { isEmpty, isNotNil } from '@val/common';
+import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { combineLatest, of } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { AppLoggingService } from '../../../../services/app-logging.service';
@@ -15,21 +16,33 @@ import { actionedTransactionId, geoTransactionId, mapTransactionId } from './tra
 @Injectable()
 export class TransactionsEffects {
 
+  private geoCacheWaitKey = 'GEO_CACHE_SPINNER';
+  private mapCacheWaitKey = 'MAP_CACHE_SPINNER';
+  private message = 'Caching Geos';
+
   cacheGfpGeos$ = createEffect(() => this.actions$.pipe(
     ofType(fromActions.CacheGeos),
     filter(action => action.geoType === GeoTransactionType.Geofootprint),
     switchMap(action => combineLatest([of(action), this.store$.select(actionedTransactionId, action)]).pipe(take(1))),
+    tap(([action]) => {
+      if (action.showSpinner) this.store$.dispatch(new StartBusyIndicator({key: this.geoCacheWaitKey, message: this.message}));
+    }),
     switchMap(([action, txId]) => this.geoCacheService.refreshCache(action.geos, txId).pipe(
+      tap(() => this.store$.dispatch(new StopBusyIndicator({ key: this.geoCacheWaitKey }))),
       map(transactionId => fromActions.CacheGeosComplete({ transactionId, geoType: action.geoType })),
       catchError(err => of(fromActions.CacheGeosFailure({ err, geoType: action.geoType })))
-    ))
+    )),
   ));
 
   cacheMapGeos$ = createEffect(() => this.actions$.pipe(
     ofType(fromActions.CacheGeos),
     filter(action => action.geoType === GeoTransactionType.Map),
     switchMap(action => combineLatest([of(action), this.store$.select(actionedTransactionId, action)]).pipe(take(1))),
+    tap(([action]) => {
+      if (action.showSpinner) this.store$.dispatch(new StartBusyIndicator({key: this.mapCacheWaitKey, message: this.message}));
+    }),
     switchMap(([action, txId]) => this.geoCacheService.refreshCache(action.geos, txId).pipe(
+      tap(() => this.store$.dispatch(new StopBusyIndicator({ key: this.mapCacheWaitKey }))),
       map(transactionId => fromActions.CacheGeosComplete({ transactionId, geoType: action.geoType })),
       catchError(err => of(fromActions.CacheGeosFailure({ err, geoType: action.geoType })))
     ))

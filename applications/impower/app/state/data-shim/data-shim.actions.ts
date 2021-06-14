@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 import { TradeAreaDefinition } from 'app/services/app-trade-area.service';
+import { SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { ProjectFilterChanged } from '../../models/ui-enums';
-import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 export enum DataShimActionTypes {
   ProjectSaveSuccess = '[Application Data Shim] Project Saved Successfully',
@@ -177,7 +177,7 @@ export class DeleteCustomData implements Action{
 export class DeleteCustomTAMustCoverGeosReset implements Action{
   readonly type = DataShimActionTypes.DeleteCustomTAMustCoverGeosReset;
   constructor(public payload: {resetFlag: boolean}){}
-  
+
 }
 
 export type DataShimActions =

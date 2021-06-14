@@ -6,6 +6,7 @@ import { AppStateService } from 'app/services/app-state.service';
 import { TreeNode } from 'primeng/api';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { debounceTime, map, share, takeUntil } from 'rxjs/operators';
+import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { filterTreeNodesRecursive, treeNodeSortBuilder } from '../../../../common/treenode-utils';
 import * as fromVlh from '../../../../impower-datastore/state/transient/audience-definitions/vlh/vlh-audience.reducer';
 import { DeleteAudience } from '../../../../impower-datastore/state/transient/audience/audience.actions';
@@ -18,7 +19,6 @@ import { UnifiedAudienceService } from '../../../../services/unified-audience.se
 import { LocalAppState } from '../../../../state/app.interfaces';
 import { CreateAudienceUsageMetric } from '../../../../state/usage/targeting-usage.actions';
 import { LoggingService } from '../../../../val-modules/common/services/logging.service';
-import { FieldContentTypeCodes } from '../../../../val-modules/targeting/targeting.enums';
 
 @Component({
   selector: 'val-online-audience-vlh',

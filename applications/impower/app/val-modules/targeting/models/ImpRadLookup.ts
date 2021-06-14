@@ -16,7 +16,7 @@ export class ImpRadLookup
    public grossMargin:  number;
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
-   constructor(data?:Partial<ImpRadLookup>) {
+   constructor(data?: Partial<ImpRadLookup>) {
       Object.assign(this, data);
    }
 

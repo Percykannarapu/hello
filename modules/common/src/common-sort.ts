@@ -1,9 +1,15 @@
 import { isConvertibleToNumber } from './type-checks';
 
+function matchingState(a: boolean, b: boolean) : boolean {
+  return (a && b) || (!a && !b);
+}
+
 export class CommonSort {
 
   public static GenericNumber = (a: number, b: number) => a - b;
+  public static GenericNumberReverse = (a: number, b: number) => b - a;
   public static GenericString = (a: string, b: string) => a.localeCompare(b);
+  public static GenericBoolean = (a: boolean, b: boolean) => matchingState(a, b) ? 0 : a ? -1 : 1;
 
   public static StringsAsNumbers(a: string, b: string) {
     if (isConvertibleToNumber(a) && isConvertibleToNumber(b)) {

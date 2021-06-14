@@ -11,7 +11,6 @@ import {
   ViewChildren
 } from '@angular/core';
 import { distinctArray, mapArray, resolveFieldData, roundTo } from '@val/common';
-import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import { FilterService, SelectItem, SortMeta } from 'primeng/api';
 import { MultiSelect } from 'primeng/multiselect';
@@ -19,8 +18,7 @@ import { Table } from 'primeng/table';
 import { ObjectUtils } from 'primeng/utils';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { filter, map, publishReplay, refCount, tap } from 'rxjs/operators';
-import { FieldContentTypeCodes } from '../../impower-datastore/state/models/impower-model.enums';
-import { DynamicVariable } from '../../impower-datastore/state/transient/dynamic-variable.model';
+import { FieldContentTypeCodes, ImpClientLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { GeoAttribute } from '../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { GridGeoVar } from '../../impower-datastore/state/transient/transient.selectors';
 import { AppStateService } from '../../services/app-state.service';

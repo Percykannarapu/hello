@@ -5,7 +5,6 @@ import { Store } from '@ngrx/store';
 import { getUuid, groupByExtended, isConvertibleToNumber } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
-import { ImpClientLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { User } from 'app/models/User';
 import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
@@ -13,6 +12,7 @@ import { LoggingService } from 'app/val-modules/common/services/logging.service'
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { combineLatest, Observable, of, race, timer } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
+import { ImpClientLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { LocationBySiteNum } from '../common/valassis-sorters';
 import { BatchMapPayload, CurrentPageBatchMapPayload, ExtentPayload, LocalAppState, SinglePageBatchMapPayload, PrintAdminPayload } from '../state/app.interfaces';
@@ -21,7 +21,6 @@ import { RenderLocations, RenderTradeAreas } from '../state/rendering/rendering.
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppMapService } from './app-map.service';
 import { AppStateService } from './app-state.service';
 

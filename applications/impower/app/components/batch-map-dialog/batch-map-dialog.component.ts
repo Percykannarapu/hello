@@ -21,10 +21,10 @@ import { getBatchMapDialog } from 'app/state/batch-map/batch-map.selectors';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
 import { SelectItem } from 'primeng/api';
 import { Observable, of } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { ImpClientLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 
 @Component({
   selector: 'val-batch-map-dialog',

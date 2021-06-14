@@ -1,4 +1,4 @@
-import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
+import { FieldContentTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 
 export interface AudienceDataDefinition {
   audienceName: string;

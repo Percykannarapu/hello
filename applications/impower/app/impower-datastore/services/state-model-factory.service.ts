@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-
+import { DAOBaseStatus, TradeAreaTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
+import { ImpGeofootprintMasterState } from '../../../worker-shared/data-model/state/imp-geofootprint-master-state';
+import { ImpProjectPrefState } from '../../../worker-shared/data-model/state/imp-project-pref-state';
+import { ImpProjectState } from '../../../worker-shared/data-model/state/imp-project-state';
+import { ImpProjectVarState } from '../../../worker-shared/data-model/state/imp-project-var-state';
 import { AudienceDataDefinition } from '../../models/audience-data.model';
 import { UserService } from '../../services/user.service';
-import { ImpGeofootprintMasterState } from '../state/models/imp-geofootprint-master-state';
-import { ImpProjectPrefState } from '../state/models/imp-project-pref-state';
-import { ImpProjectState } from '../state/models/imp-project-state';
-import { ImpProjectVarState } from '../state/models/imp-project-var-state';
-import { DAOBaseStatus, TradeAreaTypeCodes } from '../state/models/impower-model.enums';
 
 @Injectable({
   providedIn: 'root'
@@ -39,9 +38,9 @@ export class StateModelFactoryService {
       projectId: StateModelFactoryService.getNextId(),
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
-      createDate: new Date(Date.now()),
+      createDate: Date.now(),
       createUser: this.userService.getUser().userId,
-      modifyDate: new Date(Date.now()),
+      modifyDate: Date.now(),
       modifyUser: this.userService.getUser().userId,
       isActive: true,
       isIncludeAnne: true,
@@ -114,7 +113,7 @@ export class StateModelFactoryService {
       projectId: parentId,
       dirty: true,
       baseStatus: DAOBaseStatus.INSERT,
-      createdDate: new Date(Date.now()),
+      createdDate: Date.now(),
       methSeason: null,
       status: 'SUCCESS',
       summaryInd: 0,

@@ -23,7 +23,12 @@ export class FeatureLoaderService {
       // this code ensures we return an "empty" result for a geocode that was not found via the query
       map(newAttributes => {
         const newGeos = new Set(newAttributes.map(a => a.geocode));
-        const missingGeos = geoArray.reduce((a, c) => newGeos.has(c) ? a : [...a, { geocode: c, hhld_s: 0, hhld_w: 0 }], []);
+        const missingGeos = geoArray.reduce((a, c) => {
+          if (!newGeos.has(c)) {
+            a.push({geocode: c, hhld_s: 0, hhld_w: 0});
+          }
+          return a;
+        }, []);
         newAttributes.push(...missingGeos);
         return newAttributes;
       })

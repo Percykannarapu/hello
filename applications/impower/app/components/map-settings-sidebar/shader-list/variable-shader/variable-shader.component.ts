@@ -2,8 +2,8 @@ import { Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angu
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { ConfigurationTypes, shaderConfigTypeFriendlyNames, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
+import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { Audience } from '../../../../impower-datastore/state/transient/audience/audience.model';
-import { FieldContentTypeCodes } from '../../../../val-modules/targeting/targeting.enums';
 import { ShaderComponentBase } from '../shader-component.base';
 
 @Component({

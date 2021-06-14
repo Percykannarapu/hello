@@ -1,6 +1,5 @@
 import { Action } from '@ngrx/store';
-import { SuccessfulLocationTypeCodes } from '../../val-modules/targeting/targeting.enums';
-import { type } from 'os';
+import { SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 
 export enum MenuActionTypes {
   SaveAndReloadProject = '[Application Menu] Save and Reload Project',
@@ -132,7 +131,7 @@ export type MenuActions =
   ClosePrintViewDialog|
   ClientNmaeForValassisDigitalDialog|
   CloseclientNmaeForValassisDigitalDialog |
-  ImpowerHelpOpen; 
+  ImpowerHelpOpen;
 
 export type PrintActions = PrintMapSuccess;
 

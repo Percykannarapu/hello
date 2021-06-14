@@ -1,7 +1,8 @@
 import { groupBy } from '@val/common';
 import { BehaviorSubject, EMPTY, Observable, Subject, throwError } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
+import { ColumnDefinition } from '../../../../worker-shared/core-interfaces';
 import { FileService } from './file.service';
 import { LoggingService } from './logging.service';
 import { RestDataService } from './restdata.service';
@@ -14,14 +15,6 @@ export type callbackType<T> = (dataArray: T[]) => boolean;      // Callback take
 export type callbackElementType<T> = (data: T) => boolean;      // Callback takes in an instance of data and returns a boolean
 export type callbackMutationType<T> = (dataArray: T[]) => T[];  // Callback takes in an array of data and returns an array of data
 export type callbackSuccessType<T> = (boolean) => boolean;      // Callback takes in a boolean and returns a boolean
-
-type headerHandlerType<T> = (state: any) => any;         // Register export variable handlers
-type variableHandlerType<T> = (state: any, data: T, header: string|number) => any;         // Register export variable handlers
-
-export interface ColumnDefinition<T> {
-   header: number | string | headerHandlerType<T>;
-   row:    number | string | variableHandlerType<T>;
-}
 
 export enum InTransaction {
    false,   // Notifications processed normally
@@ -154,10 +147,10 @@ export class DataStore<T>
       return groupBy(this._dataStore, fieldName);
     }
 
-    public denseRank(items, sortFn, partitionFn)
+    public denseRank(items: T[], sortFn: (a: T, b: T) => number, partitionFn: (a: T, b: T) => boolean)
     {
-      return items.sort((a, b) => sortFn(a, b))
-                  .reduce((a, x, i, s) => {
+      items.sort((a, b) => sortFn(a, b));
+      return items.reduce((a, x, i, s) => {
                      // If this is the first row processed, initialize rank to 0
                      if (i === 0)
                      {
@@ -761,7 +754,7 @@ export class DataStore<T>
 
    public length()
    {
-      return (this._dataStore != null) ? this._dataStore.length : 0;
+      return this?._dataStore?.length ?? 0;
    }
 
    //
@@ -855,7 +848,7 @@ export class DataStore<T>
          throw Error('exportCsv requires csvData to continue');
       }
 
-     FileService.downloadFile(filename, csvData);
+     FileService.downloadDelimitedFile(filename, csvData);
    }
 
 }

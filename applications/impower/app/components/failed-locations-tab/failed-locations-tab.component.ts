@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { selectors } from '@val/esri';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
 import { AppLocationService } from 'app/services/app-location.service';
 import { FullAppState } from 'app/state/app.interfaces';
@@ -9,6 +8,7 @@ import { Geocode, HomeGeocode } from 'app/state/homeGeocode/homeGeo.actions';
 import { CreateLocationUsageMetric } from 'app/state/usage/targeting-usage.actions';
 import { combineLatest, Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 @Component({

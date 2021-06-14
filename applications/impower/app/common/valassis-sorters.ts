@@ -1,5 +1,5 @@
 import { CommonSort, isConvertibleToNumber, toNullOrNumber } from '@val/common';
-import { TradeAreaTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 
 // Location Sorters
 export function LocationBySiteNum(a: { locationNumber: string }, b: { locationNumber: string }) {
@@ -25,8 +25,32 @@ export function TradeAreaByTypeString(a: string, b: string) {
 }
 
 // Geo Sorters
-export function GeoByDistance(a: { distance: number }, b: { distance: number }) {
-  return CommonSort.NullableSortWrapper(toNullOrNumber(a.distance), toNullOrNumber(b.distance), CommonSort.GenericNumber);
+interface GeoSortSurrogate {
+  geocode: string;
+  distance: number;
+  hhc: number;
+  impGeofootprintLocation: { locationNumber: string, homeGeocode: string };
+}
+
+export function GeosByHomeGeoPriority(a: GeoSortSurrogate, b: GeoSortSurrogate) {
+  const isHomeGeoA: boolean = (a?.geocode === a?.impGeofootprintLocation?.homeGeocode);
+  const isHomeGeoB: boolean = (b?.geocode === b?.impGeofootprintLocation?.homeGeocode);
+  return CommonSort.GenericBoolean(isHomeGeoA, isHomeGeoB);
+}
+
+export function PrettyGeoSort(a: GeoSortSurrogate, b: GeoSortSurrogate) {
+  return LocationBySiteNum(a?.impGeofootprintLocation, b?.impGeofootprintLocation)
+    || CommonSort.NullableSortWrapper(toNullOrNumber(a?.distance), toNullOrNumber(b?.distance), CommonSort.GenericNumber)
+    || CommonSort.NullableSortWrapper(toNullOrNumber(a?.hhc), toNullOrNumber(b?.hhc), CommonSort.GenericNumberReverse)
+    || CommonSort.NullableSortWrapper(a?.geocode, b?.geocode, CommonSort.GenericString);
+}
+
+export function RankGeoSort(a: GeoSortSurrogate, b: GeoSortSurrogate) {
+  return CommonSort.NullableSortWrapper(a?.geocode, b?.geocode, CommonSort.GenericString)
+    || GeosByHomeGeoPriority(a, b)
+    || CommonSort.NullableSortWrapper(toNullOrNumber(a?.distance), toNullOrNumber(b?.distance), CommonSort.GenericNumber)
+    || CommonSort.NullableSortWrapper(toNullOrNumber(a?.hhc), toNullOrNumber(b?.hhc), CommonSort.GenericNumberReverse)
+    || LocationBySiteNum(a?.impGeofootprintLocation, b?.impGeofootprintLocation);
 }
 
 //---------------------------------
@@ -63,3 +87,4 @@ function getTradeAreaTypesFromString(legendString: string) : { taRadius: number,
   }
   return { taType: TradeAreaTypeCodes.HomeGeo, taRadius: 0 };
 }
+

@@ -11,7 +11,7 @@
 import { Injectable } from '@angular/core';
 import { simpleFlatten } from '@val/common';
 import { EMPTY, Observable } from 'rxjs';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
+import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { DataStore } from '../../common/services/datastore.service';
 import { LoggingService } from '../../common/services/logging.service';
 import { RestDataService } from '../../common/services/restdata.service';

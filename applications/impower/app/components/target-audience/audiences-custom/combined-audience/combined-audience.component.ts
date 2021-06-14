@@ -10,11 +10,11 @@ import { CreateAudienceUsageMetric } from 'app/state/usage/targeting-usage.actio
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
-import { AddAudience, DeleteAudience, UpsertAudience } from '../../../../impower-datastore/state/transient/audience/audience.actions';
+import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
+import { DeleteAudience, UpsertAudience } from '../../../../impower-datastore/state/transient/audience/audience.actions';
 import { VarSpecs } from '../../../../models/audience-data.model';
 import { createCombinedAudienceInstance } from '../../../../models/audience-factories';
 import { UnifiedAudienceService } from '../../../../services/unified-audience.service';
-import { FieldContentTypeCodes } from '../../../../val-modules/targeting/targeting.enums';
 
 @Component({
   selector: 'val-combined-audience',

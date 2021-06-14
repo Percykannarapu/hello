@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, transient } from './../../api/models/BaseModel';
+import { BaseModel, transient } from '../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
@@ -67,58 +67,4 @@ export class ImpGeofootprintLocAttrib extends BaseModel
       // Set the isComplete flag indicating the load is complete
       this.setTreeProperty('isComplete', true);
    }
-
-   /**
-    * Produces a map of this classes fields and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getFields () : Map<string, string>
-   {
-      return new Map([
-         ['locAttributeId',               'number'],
-         ['createUser',                   'number'],
-         ['createDate',                   'number'],
-         ['modifyUser',                   'number'],
-         ['modifyDate',                   'number'],
-         ['attributeCode',                'string'],
-         ['attributeType',                'string'],
-         ['attributeValue',               'string'],
-         ['formatMask',                   'string'],
-         ['isActive',                     'boolean']
-         ]);
-   }
-
-   /**
-    * Produces a map of this classes relationships and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getRelationships () : Map<string, string>
-   {
-      return new Map([
-         // MANY TO ONE RELATIONSHIP MEMBERS
-         ['impGeofootprintLocation',      'ImpGeofootprintLocation'],
-         ['impGeofootprintMaster',        'ImpGeofootprintMaster'],
-         ['impProject',                   'ImpProject'],
-
-         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
-         ['impGeofootprintLocation',      'ImpGeofootprintLocation'],
-         ['impGeofootprintMaster',        'ImpGeofootprintMaster'],
-         ['impProject',                   'ImpProject'],
-      ]);
-   }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   // public toString = () => JSON.stringify(this, null, '   ');
-   public toString() {
-      return JSON.stringify(this, null, '   ');
-   }
-
 }

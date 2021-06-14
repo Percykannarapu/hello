@@ -12,11 +12,11 @@ import { ConfirmationService } from 'primeng/api';
 import { FileUpload } from 'primeng/fileupload';
 import { Observable } from 'rxjs';
 import * as xlsx from 'xlsx';
+import { ProjectPrefGroupCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { clearCustomVars } from '../../../../impower-datastore/state/transient/custom-vars/custom-vars.actions';
 import { AppProjectPrefService } from '../../../../services/app-project-pref.service';
 import { CustomDataService } from '../../../../services/custom-data.service';
 import { LocalAppState } from '../../../../state/app.interfaces';
-import { ProjectPrefGroupCodes } from '../../../../val-modules/targeting/targeting.enums';
 
 @Component({
   selector: 'val-custom-audience',
@@ -92,6 +92,7 @@ export class CustomAudienceComponent implements OnInit {
     } finally {
       if (fileData != null)
         this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, fileName, fileData);
+
     }
   }
 

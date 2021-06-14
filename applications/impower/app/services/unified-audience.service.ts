@@ -42,6 +42,7 @@ import { AppStateService } from './app-state.service';
 })
 export class UnifiedAudienceService {
 
+  private startupCacheSent: boolean = false;
   private listenerSubs: Subscription;
   private maxCurrentPk$ = new BehaviorSubject(0);
   private maxCurrentSortOrder$ = new BehaviorSubject(-1);
@@ -80,7 +81,11 @@ export class UnifiedAudienceService {
 
     // set up transaction handler for GFP geos
     const geoCacheSub = this.appStateService.uniqueIdentifiedGeocodeSet$.pipe(debounceTime(250))
-      .subscribe(geos => this.store$.dispatch(CacheGeos({ geos, geoType: GeoTransactionType.Geofootprint })));
+      .subscribe(geos => {
+        const showSpinner = !this.startupCacheSent && geos.size > 0;
+        if (showSpinner) this.startupCacheSent = true;
+        this.store$.dispatch(CacheGeos(geos, GeoTransactionType.Geofootprint, showSpinner));
+      });
     this.listenerSubs.add(geoCacheSub);
 
     // set up transaction handler for Map geos
@@ -88,7 +93,7 @@ export class UnifiedAudienceService {
       debounceTime(250)
     ).subscribe(features => {
       const geos = arrayToSet(features, f => isNotNil(f?.attributes?.geocode), f => f.attributes.geocode);
-      this.store$.dispatch(CacheGeos({ geos, geoType: GeoTransactionType.Map }));
+      this.store$.dispatch(CacheGeos(geos, GeoTransactionType.Map));
     });
     this.listenerSubs.add(mapCacheSub);
 
@@ -159,6 +164,7 @@ export class UnifiedAudienceService {
     if (this.listenerSubs) this.listenerSubs.unsubscribe();
     this.maxCurrentPk$.next(0);
     this.maxCurrentSortOrder$.next(-1);
+    this.startupCacheSent = false;
   }
 
   public getNextVarPk() : number {
@@ -176,6 +182,7 @@ export class UnifiedAudienceService {
 
   public requestGeofootprintExportData(analysisLevel: string) : Observable<Dictionary<DynamicVariable>> {
     return this.store$.select(geoTransactionId).pipe(
+      take(1),
       withLatestFrom(this.store$.select(allAudiences), this.store$.select(getFetchableAudiencesInFootprint)),
       switchMap(([txId, audiences, gfpAudiences]) => this.fetchService.getCachedAudienceData(gfpAudiences, audiences, analysisLevel, txId, false)),
       concatMap((fetchedVars) => this.store$.select(allCustomVarEntities).pipe(
@@ -237,8 +244,7 @@ export class UnifiedAudienceService {
             headers: headers
           }).subscribe((data: any) => {
             const filename = `${projectId}_PCR_NationalData.csv`;
-            //FileService.downloadFile(filename, data);
-            FileService.downLoadCsvFile(filename, data);
+            FileService.downloadRawCsv(filename, data);
             this.store$.dispatch(new StopBusyIndicator({ key }));
         });
       } else {

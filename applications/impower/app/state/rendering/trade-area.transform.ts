@@ -1,8 +1,12 @@
 import Point from '@arcgis/core/geometry/Point';
 import { groupByExtended, isConvertibleToNumber, toUniversalCoordinates } from '@val/common';
+import {
+  ImpClientLocationTypeCodes,
+  SuccessfulLocationTypeCodes,
+  TradeAreaMergeTypeCodes
+} from '../../../worker-shared/data-model/impower.data-model.enums';
 import { ImpGeofootprintTradeArea } from '../../val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../val-modules/targeting/targeting.enums';
 
 export class TradeAreaDrawDefinition {
   groupName: string;

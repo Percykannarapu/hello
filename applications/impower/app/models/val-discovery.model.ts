@@ -1,8 +1,8 @@
 import { toNullOrNumber } from '@val/common';
+import { ProjectCpmTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../services/app-discovery.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
-import { ProjectCpmTypeCodes } from '../val-modules/targeting/targeting.enums';
 
 export class ValDiscoveryUIModel {
   projectId: number;

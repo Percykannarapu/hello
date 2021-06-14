@@ -1,24 +1,13 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  QueryList,
-  ViewChild,
-  ViewChildren,
-  ViewEncapsulation
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { WarningNotification } from '@val/messaging';
 import { AppLocationService } from 'app/services/app-location.service';
 import { LocalAppState } from 'app/state/app.interfaces';
-import { DAOBaseStatus } from 'app/val-modules/api/models/BaseModel';
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { BehaviorSubject } from 'rxjs';
+import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { TableFilterLovComponent } from '../table-filter-lov/table-filter-lov.component';

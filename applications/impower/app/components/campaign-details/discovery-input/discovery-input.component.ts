@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { SelectItem } from 'primeng/api';
 import { debounceTime, map } from 'rxjs/operators';
+import { ProjectCpmTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { ValDiscoveryUIModel } from '../../../models/val-discovery.model';
-import { ProjectCpmTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { ProjectTrackerUIModel, RadLookupUIModel } from '../../../services/app-discovery.service';
 import { Store } from '@ngrx/store';
 import { FullAppState } from 'app/state/app.interfaces';
@@ -94,7 +94,7 @@ export class DiscoveryInputComponent implements OnInit {
       cpmAnne: new FormControl({ value: null }, { updateOn: 'blur' }),
       cpmSolo: new FormControl({ value: null }, { updateOn: 'blur' })
     });
-    
+
     this.discoveryForm.valueChanges.pipe(
       debounceTime(250),
       map(formData => new ValDiscoveryUIModel(formData))

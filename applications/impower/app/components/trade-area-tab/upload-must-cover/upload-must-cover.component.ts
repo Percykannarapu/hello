@@ -10,11 +10,11 @@ import { FileUpload } from 'primeng/fileupload';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import * as xlsx from 'xlsx';
+import { ProjectPrefGroupCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { AppProjectPrefService } from '../../../services/app-project-pref.service';
 import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState,MustCoverPref } from '../../../state/app.interfaces';
 import { ImpGeofootprintGeoService } from '../../../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { ProjectPrefGroupCodes } from '../../../val-modules/targeting/targeting.enums';
 import { AppDiscoveryService } from 'app/services/app-discovery.service';
 import { AppLoggingService } from 'app/services/app-logging.service';
 

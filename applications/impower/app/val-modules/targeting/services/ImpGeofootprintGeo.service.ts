@@ -8,37 +8,30 @@
  **/
 import { Injectable } from '@angular/core';
 import { Dictionary } from '@ngrx/entity';
-
-import { select, Store } from '@ngrx/store';
-import { isString, roundTo } from '@val/common';
+import { Store } from '@ngrx/store';
+import { isEmpty, isNil, isString } from '@val/common';
 import { EsriQueryService } from '@val/esri';
-
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
-
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
-import { getAudiencesInFootprint } from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
-
-import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-variable.model';
 import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
-
-import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
-
-import { map } from 'rxjs/operators';
-import { FieldContentTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
-import { GeoAttribute } from '../../../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
+import { BehaviorSubject, EMPTY, Observable, throwError } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { WorkerProcessReturnType, WorkerResponse, WorkerResult } from '../../../../worker-shared/core-interfaces';
+import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
+import { GeoFootprintExportFormats, GeoFootprintExportWorkerPayload } from '../../../../worker-shared/payload-interfaces';
+import { PrettyGeoSort, RankGeoSort } from '../../../common/valassis-sorters';
+import { WorkerFactory } from '../../../common/worker-factory';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
-import { ColumnDefinition, DataStore } from '../../common/services/datastore.service';
+import { DataStore } from '../../common/services/datastore.service';
 import { FileService, Parser, ParseResponse, ParseRule } from '../../common/services/file.service';
 import { LoggingService } from '../../common/services/logging.service';
 import { RestDataService } from '../../common/services/restdata.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
-
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
-import { ImpGeofootprintLocAttrib } from '../models/ImpGeofootprintLocAttrib';
+import { ImpProject } from '../models/ImpProject';
 
 interface CustomMCDefinition {
   Number: number;
@@ -46,12 +39,6 @@ interface CustomMCDefinition {
 }
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
-
-export enum EXPORT_FORMAT_IMPGEOFOOTPRINTGEO {
-   default,
-   alteryx,
-   custom
-}
 
 interface UploadMustCoverData {
    geocode: string;
@@ -69,37 +56,34 @@ const mustCoverUpload: Parser<UploadMustCoverData> = {
 @Injectable()
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 {
-   private analysisLevelForExport: string;
+   private tempLocationId = 0;
+   private tempTradeAreaId = 0;
 
    // this is intended to be a cache of the attributes and geos used for the geofootprint export
-   private attributeCache: { [geocode: string] : GeoAttribute } = {};
    public  currentMustCoverFileName: string;
    public  mustCovers: string[] = [];
    public  allMustCoverBS$ = new BehaviorSubject<string[]>([]);
    private allAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
    private exportAudiencesBS$ = new BehaviorSubject<Audience[]>([]);
-   private geoVarsBS$ = new BehaviorSubject<Dictionary<DynamicVariable>>({});
    private uploadFailuresSub: BehaviorSubject<CustomMCDefinition[]> = new BehaviorSubject<CustomMCDefinition[]>([]);
    public uploadFailuresObs$: Observable<CustomMCDefinition[]> = this.uploadFailuresSub.asObservable();
    public uploadFailures: CustomMCDefinition[] = [];
-   private isMarket: boolean = true;
    public sharedGeos = new Map<string, string>();
-
 
    constructor(restDataService: RestDataService,
                projectTransactionManager: TransactionManager,
                private appConfig: AppConfig,
                private esriQueryService: EsriQueryService,
-              // private appProjectPrefService: AppProjectPrefService,
                private store$: Store<LocalAppState>, logger: LoggingService)
    {
       super(restDataService, dataUrl, logger, projectTransactionManager, 'ImpGeofootprintGeo');
-      this.store$.pipe(select(selectGeoAttributeEntities)).subscribe(attributes => this.attributeCache = attributes);
       this.store$.select(fromAudienceSelectors.allAudiences).subscribe(this.allAudiencesBS$);
       this.store$.select(fromAudienceSelectors.getAudiencesInFootprint).subscribe(this.exportAudiencesBS$);
     }
 
    load(items: ImpGeofootprintGeo[]) : void {
+      this.tempTradeAreaId = 0;
+      this.tempLocationId = 0;
       // fix up fields that aren't part of convertToModel()
       items.forEach(geo => {
         geo.impGeofootprintLocation = geo.impGeofootprintTradeArea.impGeofootprintLocation;
@@ -194,144 +178,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
          this.store$.dispatch(new WarningNotification({ message, notificationTitle: title}));
    }
 
-   // -----------------------------------------------------------
-   // EXPORT COLUMN HANDLER METHODS
-   // -----------------------------------------------------------
-   public exportVarGeoHeader(state: ImpGeofootprintGeoService)
-   {
-      const analysisLevel = (state.analysisLevelForExport != null) ? state.analysisLevelForExport.toUpperCase() : 'ATZ';
-
-      let varValue: any;
-
-      switch (analysisLevel)
-      {
-         case 'ATZ':         varValue = 'VALATZ'; break;
-         case 'ZIP':         varValue = 'VALZI';  break;
-         case 'PCR':         varValue = 'VALCR';  break;
-         case 'DIGITAL ATZ': varValue = 'VALDIG'; break;
-      }
-      if (varValue == null)
-         this.logger.error.log ('Couldn\'t set varValue for analysisLevel: ' + analysisLevel);
-
-      return varValue;
-   }
-
-   public rank(arr, f) {
-      return arr
-      .map((x, i) => [x, i])
-      .sort((a, b) => f(a[0], b[0]))
-      .reduce((a, x, i, s) => (a[x[1]] = i > 0 && f(s[i - 1][0], x[0]) === 0 ? a[s[i - 1][1]] : i + 1, a), []);
-   }
-
-   public defaultSort (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) : number
-   {
-      if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
-      {
-         this.logger.warn.log('sort criteria is null - a:', a, ', b: ', b);
-         return 0;
-      }
-
-      if (a.impGeofootprintLocation.locationNumber === b.impGeofootprintLocation.locationNumber)
-      {
-         if (a.distance === b.distance)
-         {
-            if (a.hhc === b.hhc)
-                  // We need a tie breaker at this point, look to the address it belongs to next
-                if (a.impGeofootprintLocation.locAddress === b.impGeofootprintLocation.locAddress)
-                   return 0;
-                else {
-                   if (a.impGeofootprintLocation.locAddress > b.impGeofootprintLocation.locAddress)
-                      return 1;
-                   else
-                      return -1;
-                }
-
-            else
-               if (a.hhc > b.hhc)
-                  return -1;
-               else
-                  return  1;
-         }
-         else {
-            if (a.distance > b.distance)
-               return 1;
-            else
-               return -1;
-         }
-      }
-      else
-         if (a.impGeofootprintLocation.locationNumber > b.impGeofootprintLocation.locationNumber)
-            return 1;
-         else
-            return -1;
-   }
-
-
-   // This is written deliberately verbose as I want to eventually genericize this
-   public sortGeos (a: ImpGeofootprintGeo, b: ImpGeofootprintGeo) : number
-   {
-      if (a == null || b == null || a.impGeofootprintLocation == null || b.impGeofootprintLocation == null)
-      {
-         this.logger.warn.log('sort criteria is null - a:', a, ', b: ', b);
-         return 0;
-      }
-
-      if (a.geocode === b.geocode)
-      {
-         const isHomeGeoA: boolean = (a.geocode === a.impGeofootprintLocation.homeGeocode);
-         const isHomeGeoB: boolean = (b.geocode === b.impGeofootprintLocation.homeGeocode);
-
-         // If both a and b are home geos or both are not, disregard homegeo for comparison
-         if ((isHomeGeoA && isHomeGeoB) || (!isHomeGeoA  && !isHomeGeoB))
-         {
-            if (roundTo(a.distance, 2) === roundTo(b.distance, 2))
-            {
-               if (a.hhc === b.hhc)
-               {
-                  if (a.impGeofootprintLocation != null && b.impGeofootprintLocation != null)
-                  {
-                     // We need a tie breaker at this point, look to the address it belongs to next
-                     if (a.impGeofootprintLocation.locationNumber === b.impGeofootprintLocation.locationNumber)
-                        return 0;
-                     else
-                     {
-                        if (a.impGeofootprintLocation.locationNumber > b.impGeofootprintLocation.locationNumber)
-                           return 1;
-                        else
-                           return -1;
-                     }
-                  }
-                  else
-                     return 0;
-               }
-               else
-                  if (a.hhc > b.hhc)
-                     return -1;
-                  else
-                     return  1;
-            }
-            else
-            {
-               if (a.distance > b.distance)
-                  return 1;
-               else
-                  return -1;
-            }
-         }
-         else
-            // Either a or b is a home geo, but not both
-            if (isHomeGeoA)
-               return -1;
-            else
-               return  1;
-      }
-      else
-         if (a.geocode > b.geocode)
-            return 1;
-         else
-            return -1;
-   }
-
    public partitionGeos (p1: ImpGeofootprintGeo, p2: ImpGeofootprintGeo) : boolean
    {
       if (p1 == null || p2 == null)
@@ -355,11 +201,23 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
    {
       const geos = this.get();
 
-      this.logger.debug.log('Calculating geo ranks for ', (geos != null) ? geos.length : 0, ' rows');
-      this.denseRank(geos,  this.sortGeos, this.partitionGeos);
-      this.logger.debug.log('Ranked ', (geos != null) ? geos.length : 0, ' geos');
+      this.logger.debug.log('Calculating geo ranks for ', this.length(), ' rows');
+      this.denseRank(geos,  RankGeoSort, this.partitionGeos);
+      this.logger.debug.log('Ranked ', this.length(), ' geos');
 
       for (const geo of geos) {
+         if (isNil(geo.gtaId)) {
+           if (isNil(geo.impGeofootprintTradeArea.gtaId)) {
+             geo.impGeofootprintTradeArea.gtaId = --this.tempTradeAreaId;
+           }
+           geo.gtaId = geo.impGeofootprintTradeArea.gtaId;
+         }
+         if (isNil(geo.glId)) {
+           if (isNil(geo.impGeofootprintLocation.glId)) {
+             geo.impGeofootprintLocation.glId = --this.tempLocationId;
+           }
+           geo.glId = geo.impGeofootprintLocation.glId;
+         }
          if (geo.rank === 0){
             geo.isDeduped = 1;
             if (geo.impGeofootprintTradeArea != null && geo.impGeofootprintTradeArea.impGeofootprintLocation != null)
@@ -371,7 +229,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.assignOwnerSite(geos);
    }
 
-   public assignOwnerSite(geos: ImpGeofootprintGeo[]){
+   private assignOwnerSite(geos: ImpGeofootprintGeo[]){
       if (this.sharedGeos != null && this.sharedGeos.size > 0){
       for (const geo of geos){
             geo.ownerSite = this.sharedGeos.get(geo.geocode);
@@ -379,214 +237,36 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       }
    }
 
-   public sort(comparatorMethod)
-   {
-     return this.get().sort((a, b) => comparatorMethod(a, b));
-   }
-
-  public exportMustCoverFlag(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo) {
-    return  (state.mustCovers != null && state.mustCovers.includes(geo.geocode)) ? '1' : '0' ;
-  }
-
-  public exportVarStreetAddress(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
-   {
-      let varValue: any;
-      const truncZip = (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : ' ';
-      varValue = (geo?.impGeofootprintLocation != null)
-                  ? '"' + geo.impGeofootprintLocation.locAddress + ', ' +
-                          geo.impGeofootprintLocation.locCity    + ', ' +
-                          geo.impGeofootprintLocation.locState   + ' ' +
-                          truncZip + '"'
-                  : null;
-      return varValue;
-   }
-
-   public exportVarTruncateZip(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
-   {
-      return (geo.impGeofootprintLocation != null && geo.impGeofootprintLocation.locZip != null) ? geo.impGeofootprintLocation.locZip.slice(0, 5) : null;
-   }
-
-   public exportVarIsHomeGeocode(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
-   {
-      return (geo.impGeofootprintLocation != null && geo.geocode === geo.impGeofootprintLocation.homeGeocode) ? 1 : 0;
-   }
-
-   public exportVarOwnerTradeArea(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo)
-   {
-      let varValue: any;
-
-      if (geo != null && geo.impGeofootprintTradeArea != null)
-      {
-         if (geo.impGeofootprintLocation != null && geo.geocode === geo.impGeofootprintLocation.homeGeocode && (geo.impGeofootprintTradeArea.taType === 'RADIUS' || geo.impGeofootprintTradeArea.taType === 'HOMEGEO'))
-         {
-            varValue = 'Trade Area 1';
-         }
-         else
-         {
-            switch (geo.impGeofootprintTradeArea.taType)
-            {
-               case 'RADIUS':
-                  varValue = 'Trade Area ' + geo.impGeofootprintTradeArea.taNumber;
-                  break;
-               case 'HOMEGEO':
-                  varValue = 'Forced Home Geo';
-                  break;
-               case 'AUDIENCE':
-                  varValue = 'Audience Trade Area';
-                  break;
-               case 'MANUAL':
-                  varValue = 'Manual Trade Area';
-                  break;
-               default:
-                  varValue = 'Custom';
-            }
-         }
-      }
-      else
-         return null;
-      return varValue;
-   }
-
-  public exportVarAttributes(state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, audience: Audience, header: string) {
-    let result = '';
-    const currentAttribute = state.attributeCache[geo.geocode];
-    if (currentAttribute != null) {
-      const value = currentAttribute[header];
-      if (value != null) {
-        return value.toString();
-      }
+  public exportStore(filename: string, exportFormat: GeoFootprintExportFormats, project: ImpProject, geoVars: Dictionary<DynamicVariable>, selectedOnly: boolean) : Observable<WorkerResult> {
+    this.logger.debug.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
+    if (this.length() === 0) {
+      return throwError('You must add sites and select geographies prior to exporting the geofootprint');
+    } else {
+      const geos = this.get();
+      geos.sort(PrettyGeoSort);
+      const payload: GeoFootprintExportWorkerPayload = {
+        rows: geos,
+        format: exportFormat,
+        activeOnly: selectedOnly,
+        outputType: WorkerProcessReturnType.BlobUrl,
+        analysisLevel: project.methAnalysis,
+        audienceData: geoVars,
+        mustCovers: this.mustCovers,
+        allAudiences: this.allAudiencesBS$.getValue(),
+        exportedAudiences: this.exportAudiencesBS$.getValue(),
+        locations: project.getImpGeofootprintLocations().map(loc => ({ ...loc, impGeofootprintTradeAreas: [] })),
+        tradeAreas: project.getImpGeofootprintTradeAreas().map(ta => ({ ...ta, impGeofootprintLocation: null, impGeofootprintGeos: [], impGeofootprintMaster: null, impProject: null }))
+      };
+      if (isEmpty(filename)) filename = this.getFileName(project.methAnalysis, project.projectId);
+      const worker = WorkerFactory.createGeoExportWorker();
+      return worker.start(payload).pipe(
+        tap((result: WorkerResponse<string>) => {
+          this.logger.debug.log('Location Export response received from Web Worker: ', result);
+          if (result.rowsProcessed > 0) FileService.downloadUrl(result.value, filename);
+        })
+      );
     }
-
-    if (audience != null) {
-      const geoVar = state.geoVarsBS$.value[geo.geocode];
-      if (geoVar != null) {
-        if (geoVar[audience.audienceIdentifier] != null) {
-          switch (audience.fieldconte) {
-            case FieldContentTypeCodes.Char:
-              result = geoVar[audience.audienceIdentifier].toString();
-              break;
-
-            case FieldContentTypeCodes.Percent:
-              result = geoVar[audience.audienceIdentifier].toString();
-              break;
-
-            case FieldContentTypeCodes.Ratio:
-              result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(2);
-              break;
-
-            default:
-              result = Number.parseFloat(geoVar[audience.audienceIdentifier].toString()).toFixed(0);
-              break;
-          }
-        }
-      }
-    }
-
-    return result;
   }
-
-   public addAdditionalExportColumns(exportColumns: ColumnDefinition<ImpGeofootprintGeo>[], insertAtPos: number)
-   {
-      const aGeo = this.get()[0];
-      if (aGeo == null) return;
-      // const currentProject = aGeo.impGeofootprintLocation.impProject;  //DEFECT FIX : export feature - accessing project details from GeoFootPrintLocation
-      // const orderColumnNames = [];
-
-      this.exportAudiencesBS$.value.forEach(impVar => {
-        // If more than one variable has this audience name, add the source name to the header
-        const dupeNameCount = (this.allAudiencesBS$.getValue() != null) ? this.allAudiencesBS$.getValue().filter(aud => aud.audienceName === impVar.audienceName).length : 0;
-        const header = (dupeNameCount > 1 && impVar.audienceSourceType !== 'Composite') ? impVar.audienceName + ' (' + impVar.audienceSourceName + ')' : impVar.audienceName;
-        const closure = (state: ImpGeofootprintGeoService, geo: ImpGeofootprintGeo, h: string) => this.exportVarAttributes(state, geo, impVar, h);
-        exportColumns.splice(insertAtPos++, 0, { header: header, row: closure });
-      });
-   }
-
-   // -----------------------------------------------------------
-   // EXPORT METHODS
-   // -----------------------------------------------------------
-   public exportStore(filename: string, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, analysisLevel: string, geoVars: Dictionary<DynamicVariable>, filter?: (geo: ImpGeofootprintGeo) => boolean)
-   {
-      this.analysisLevelForExport = analysisLevel;
-      this.logger.debug.log('ImpGeofootprintGeo.service.exportStore - fired - dataStore.length: ' + this.length());
-      let geos: ImpGeofootprintGeo[] = this.get();
-      if (filter != null) geos = geos.filter(filter);
-
-      if (geos.length === 0) {
-         this.store$.dispatch(new ErrorNotification({ message: 'You must add sites and select geographies prior to exporting the geofootprint', notificationTitle: 'Error Exporting Geofootprint' }));
-         return; // need to return here so we don't create an invalid usage metric later in the function since the export failed
-      }
-
-      this.isMarket = this.get().some(geo => (geo.impGeofootprintLocation.marketName != null && geo.impGeofootprintLocation.marketName !== '') || (geo.impGeofootprintLocation.marketCode != null &&  geo.impGeofootprintLocation.marketCode !== ''));
-
-      const exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = this.getExportFormat (exportFormat);
-
-      this.geoVarsBS$.next(geoVars);
-      this.addAdditionalExportColumns(exportColumns, 17);
-
-      if (filename == null)
-         filename = this.getFileName(analysisLevel);
-
-      // This is for now, it replaces the data store with a sorted / ranked version
-      this.calculateGeoRanks();
-      geos.sort((a, b) => {
-            const aOwner: any = a.impGeofootprintLocation.locationNumber;
-            const bOwner: any = b.impGeofootprintLocation.locationNumber;
-            return  aOwner - bOwner || a.distance - b.distance;
-      });
-
-      this.downloadExport(filename, this.prepareCSV(exportColumns, geos));
-   }
-
-   private getExportFormat (exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTGEO) : ColumnDefinition<ImpGeofootprintGeo>[]
-   {
-      const exportColumns: ColumnDefinition<ImpGeofootprintGeo>[] = [];
-
-      switch (exportFormat)
-      {
-         case EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx:
-            this.logger.debug.log ('setExportFormat - alteryx');
-            exportColumns.push({ header: this.exportVarGeoHeader(this),  row: (state, data) => data.geocode});
-            exportColumns.push({ header: 'Site Name',                    row: (state, data) => data.impGeofootprintLocation.locationName});
-            exportColumns.push({ header: 'Site Description',             row: (state, data) => data.impGeofootprintLocation.description});
-            exportColumns.push({ header: 'Site Street',                  row: (state, data) => data.impGeofootprintLocation.locAddress});
-            exportColumns.push({ header: 'Site City',                    row: (state, data) => data.impGeofootprintLocation.locCity});
-            exportColumns.push({ header: 'Site State',                   row: (state, data) => data.impGeofootprintLocation.locState});
-            exportColumns.push({ header: 'Zip',                          row: this.exportVarTruncateZip});
-            exportColumns.push({ header: 'Site Address',                 row: this.exportVarStreetAddress});
-            exportColumns.push({ header: 'Market',                       row: (state, data) => (this.isMarket) ? data.impGeofootprintLocation.marketName : this.getAttributeValue(data, 'Home DMA Name')});
-                                                                                                //data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA Name')[0].attributeValue});
-            exportColumns.push({ header: 'Market Code',                  row: (state, data) => (this.isMarket) ? data.impGeofootprintLocation.marketCode : this.getAttributeValue(data, 'Home DMA')});
-                                                                                                //data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === 'Home DMA')[0].attributeValue});
-            exportColumns.push({ header: 'Group Name',                   row: (state, data) => data.impGeofootprintLocation.groupName});
-            exportColumns.push({ header: 'Passes Filter',                row: 1});
-            exportColumns.push({ header: 'Distance',                     row: (state, data) => +data.distance.toFixed(2)});
-            exportColumns.push({ header: 'Is User Home Geocode',         row: this.exportVarIsHomeGeocode});
-            exportColumns.push({ header: 'Is Final Home Geocode',        row: this.exportVarIsHomeGeocode});
-            exportColumns.push({ header: 'Is Must Cover',                row: this.exportMustCoverFlag});
-            exportColumns.push({ header: 'Owner Trade Area',             row: this.exportVarOwnerTradeArea});
-            exportColumns.push({ header: 'Owner Site',                   row: (state, data) => data.impGeofootprintLocation.locationNumber});
-            exportColumns.push({ header: 'Include in Deduped Footprint', row: (state, data) => data.isDeduped}); // 1});
-            exportColumns.push({ header: 'Base Count',                   row: null});
-            exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive === true ? 1 : 0});
-
-         break;
-
-         // No format specified, derive from the object - IMPLEMENT (Will eventually have an export from NgRx)
-         default:
-            this.logger.debug.log ('setExportFormat - default');
-            exportColumns.push({ header: this.exportVarGeoHeader(this),  row: (state, data) => data.geocode});
-            exportColumns.push({ header: 'Site Name',                    row: (state, data) => data.impGeofootprintLocation.locationName});
-            exportColumns.push({ header: 'Site Description',             row: (state, data) => data.impGeofootprintLocation.description});
-            exportColumns.push({ header: 'Site Street',                  row: (state, data) => data.impGeofootprintLocation.locAddress});
-            exportColumns.push({ header: 'Site City',                    row: (state, data) => data.impGeofootprintLocation.locCity});
-            exportColumns.push({ header: 'Site State',                   row: (state, data) => data.impGeofootprintLocation.locState});
-            exportColumns.push({ header: 'Zip',                          row: this.exportVarTruncateZip});
-            exportColumns.push({ header: 'Base Count',                   row: null});
-            exportColumns.push({ header: 'Is Selected?',                 row: (state, data) => data.isActive});
-            break;
-      }
-      return exportColumns;
-   }
 
    // -----------------------------------------------------------
    // MUST COVER METHODS
@@ -595,7 +275,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
     //console.debug("### parseMustCoverFile fired");
     const rows: string[] = isString(dataBuffer) ?  dataBuffer.split(/\r\n|\n|\r/) : dataBuffer;
     const header: string = rows.shift();
-    const errorTitle: string = fileName === 'manual' ? 'Must Cover Geographies Manually Add' :'Must Cover Geographies Upload' ;
+    const errorTitle: string = fileName === 'manual' ? 'Must Cover Geographies Manually Add' : 'Must Cover Geographies Upload' ;
 
     //const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
@@ -618,10 +298,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
           const uniqueGeos = new Set(data.parsedData.map(d => d.geocode));
 
           if (uniqueGeos.size !== data.parsedData.length) {
-               if(fileName === 'manual')
+               if (fileName === 'manual')
                    this.store$.dispatch(new WarningNotification({message: 'Manually added geos contain duplicate geocodes. Processing will continue, though you may want to re-evaluate the geos in the manual add section.',
                                                            notificationTitle: 'Must Cover Manual'}));
-               else 
+               else
                     this.store$.dispatch(new WarningNotification({message: 'The upload file contains duplicate geocodes. Processing will continue, though you may want to re-evaluate the upload file.',
                                                             notificationTitle: 'Must Cover Upload'}));
              //this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
@@ -740,14 +420,6 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
       this.setMustCovers(successGeo, true);
       this.logger.debug.log ('Uploaded ', this.mustCovers.length, ' must cover geographies');
       return errorGeo.map(geo => geo.geocode);
-   }
-
-   private getAttributeValue(data: ImpGeofootprintGeo, attributeCode: string){
-     const locAttribute: ImpGeofootprintLocAttrib[] = data.impGeofootprintLocation.impGeofootprintLocAttribs.filter(attr => attr.attributeCode === attributeCode);
-     if (locAttribute != null && locAttribute.length > 0){
-        return locAttribute[0].attributeValue;
-     }
-     return '';
    }
 
 }

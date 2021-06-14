@@ -1,5 +1,5 @@
 import { Dictionary } from '@ngrx/entity';
-import { groupBy, isNil, isNotNil, mapArrayToEntity } from '@val/common';
+import { groupBy, isNil, isNotNil } from '@val/common';
 
 export interface DynamicVariable {
   geocode: string;                   // must have a geocode

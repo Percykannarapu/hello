@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { ImpProjectPayload } from '../payload-models/imp-project-payload';
 import { EMPTY, Observable } from 'rxjs';
+import { ImpProjectPayload } from '../../../worker-shared/data-model/payloads/imp-project-payload';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { map } from 'rxjs/operators';
 import { normalize } from '../normalizer/payload-to-state.normalizer';
 import { ImpowerPersistentState } from '../state/persistent/persistent.reducer';
 import { NormalizedPayload } from './normalized-payload';
-import { denormalize } from '../normalizer/state-to-payload.denormalizer';
+// import { denormalize } from '../normalizer/state-to-payload.denormalizer';
 import { StateModelFactoryService } from './state-model-factory.service';
 
 @Injectable({
@@ -56,6 +56,7 @@ export class ImpowerLoaderService {
   }
 
   denormalizeProject(state: ImpowerPersistentState) : ImpProjectPayload {
-    return denormalize(state);
+    // return denormalize(state);
+    return null;
   }
 }

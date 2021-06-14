@@ -1,6 +1,6 @@
-import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
-import { FormGroup, ControlContainer } from '@angular/forms';
-import { isConvertibleToInteger, isString } from '@val/common';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ControlContainer, FormGroup } from '@angular/forms';
+import { isConvertibleToInteger } from '@val/common';
 
 @Component({
   selector: 'val-visual-radii',

@@ -3,7 +3,12 @@ import { groupByExtended } from '@val/common';
 
 export function deleteChildrenByParentId<T, S extends EntityState<T>>(childAdapter: EntityAdapter<T>, childState: S, parentIds: number[], parentSelector: IdSelector<T>) : S {
   const parentSet = new Set(parentIds);
-  const childrenToRemove = Object.values(childState.entities).reduce((a, e) => parentSet.has(parentSelector(e) as number) ? [...a, childAdapter.selectId(e)] : a, []);
+  const childrenToRemove = Object.values(childState.entities).reduce((a, e) => {
+    if (parentSet.has(parentSelector(e) as number)) {
+      a.push(childAdapter.selectId(e));
+    }
+    return a;
+  }, []);
   if (childrenToRemove.length === 0) return childState;
   if (childrenToRemove.length === 1) return childAdapter.removeOne(childrenToRemove[0], childState);
   return childAdapter.removeMany(childrenToRemove, childState);

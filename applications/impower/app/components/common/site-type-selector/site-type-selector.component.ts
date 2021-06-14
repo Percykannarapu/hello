@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { getUuid } from '@val/common';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { AppStateService } from 'app/services/app-state.service';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
 
 @Component({
   selector: 'val-site-type-selector',

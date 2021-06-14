@@ -4,6 +4,7 @@ import { chunkArray } from '@val/common';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
 import { merge, Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { ValGeocodingResponse } from '../models/val-geocoding-response.model';
@@ -13,7 +14,6 @@ import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.action
 import { FileService, Parser, ParseResponse } from '../val-modules/common/services/file.service';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppStateService } from './app-state.service';
 
 @Injectable()

@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, transient } from '../../api/models/BaseModel';
 import { ImpProject } from './ImpProject';
 
 export class ImpProjectVar extends BaseModel
@@ -67,61 +67,4 @@ export class ImpProjectVar extends BaseModel
       // Set the isComplete flag indicating the load is complete
       this.setTreeProperty('isComplete', true);
    }
-
-   /**
-    * Produces a map of this classes fields and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getFields () : Map<string, string>
-   {
-      return new Map([
-         ['pvId',                        'number'],
-         ['varPk',                       'number'],
-         ['source',                      'string'],
-         ['indexBase',                   'string'],
-         ['sortOrder',                   'number'],
-         ['fieldname',                   'string'],
-         ['isShadedOnMap',               'boolean'],
-         ['isIncludedInGeoGrid',         'boolean'],
-         ['isIncludedInGeofootprint',    'boolean'],
-         ['isNationalExtract',           'boolean'],
-         ['isCustom',                    'boolean'],
-         ['isString',                    'boolean'],
-         ['isNumber',                    'boolean'],
-         ['isUploaded',                  'boolean'],
-         ['uploadFileName',              'string'],
-         ['customVarExprDisplay',        'string'],
-         ['customVarExprQuery',          'string'],
-         ['fieldconte',                  'string'],
-         ['decimal',                     'string'],
-         ['isActive',                    'boolean']
-         ]);
-   }
-
-   /**
-    * Produces a map of this classes relationships and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getRelationships () : Map<string, string>
-   {
-      return new Map([
-         // MANY TO ONE RELATIONSHIP MEMBERS
-         ['impProject',                  'ImpProject'],
-
-         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
-         ['impProject',                  'ImpProject'],
-      ]);
-   }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

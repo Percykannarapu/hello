@@ -176,8 +176,6 @@ import { UserService } from './services/user.service';
 import { appMetaReducers, appReducer } from './state/app.reducer';
 import { CustomSerializer } from './state/shared/router.serializer';
 import { StateModule } from './state/state.module';
-import { ImpClientLocationService } from './val-modules/client/services/ImpClientLocation.service';
-import { MessageComponent } from './val-modules/common/components/message.component';
 import { LoggingConfigurationToken } from './val-modules/common/services/logging.service';
 import { MetricService } from './val-modules/common/services/metric.service';
 import { RestDataService } from './val-modules/common/services/restdata.service';
@@ -188,11 +186,9 @@ import { ImpGeofootprintLocationService } from './val-modules/targeting/services
 import { ImpGeofootprintLocAttribService } from './val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintMasterService } from './val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpGeofootprintVarService } from './val-modules/targeting/services/ImpGeofootprintVar.service';
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
-import { TargetingModule } from './val-modules/targeting/targeting.module';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -304,7 +300,6 @@ export function esriSetupFactory() : ForRootOptions {
     TooltipModule,
     TreeModule,
     TreeTableModule,
-    TargetingModule,
     CommonModule,
     NgStringPipesModule,
     CardModule,
@@ -322,7 +317,6 @@ export function esriSetupFactory() : ForRootOptions {
     DashboardComponent,
     GeofootprintGeoListComponent,
     GeofootprintGeoPanelComponent,
-    MessageComponent,
     ColorBoxComponent,
     SiteListComponent,
     DiscoveryInputComponent,
@@ -407,8 +401,8 @@ export function esriSetupFactory() : ForRootOptions {
     ...allInterceptorProviders,
     // from val-modules
     { provide: LoggingConfigurationToken, useClass: AppConfig },
-    ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService, ImpClientLocationService,
-    ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService, ImpGeofootprintVarService,
+    ImpProjectService, ImpGeofootprintMasterService, ImpProjectPrefService,
+    ImpGeofootprintLocationService, ImpGeofootprintTradeAreaService, ImpGeofootprintGeoService,
     ImpGeofootprintLocAttribService, AppDiscoveryService, ImpMetricNameService,
     MetricService, RestDataService, TransactionManager,
     // from primeng

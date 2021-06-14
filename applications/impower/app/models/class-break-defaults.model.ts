@@ -1,5 +1,5 @@
 import { ClassBreakFillDefinition, ColorPalette, FillSymbolDefinition, getColorPalette, getFillPalette, RgbTuple } from '@val/esri';
-import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
+import { FieldContentTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 
 const indexDefaults: Partial<ClassBreakFillDefinition>[] = [
   { minValue: null, maxValue: 80, legendName: 'Below 80' },

@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { LocalAppState } from 'app/state/app.interfaces';
-import { Store } from '@ngrx/store';
-import { LoggingService } from 'app/val-modules/common/services/logging.service';
-import { UserService } from './user.service';
-import { RestDataService } from 'app/val-modules/common/services/restdata.service';
-import { Observable, from, of } from 'rxjs';
-import { AppConfig } from 'app/app.config';
-import { CookieService } from 'ngx-cookie-service';
 import { CanActivate, Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { AppConfig } from 'app/app.config';
+import { LocalAppState } from 'app/state/app.interfaces';
+import { LoggingService } from 'app/val-modules/common/services/logging.service';
+import { RestDataService } from 'app/val-modules/common/services/restdata.service';
+import { CookieService } from 'ngx-cookie-service';
+import { Observable, of } from 'rxjs';
+import { UserService } from './user.service';
 
 @Injectable()
 export class BatchMapAuthService implements CanActivate {
@@ -57,7 +57,7 @@ export class BatchMapAuthService implements CanActivate {
     if (this.cookieService.check('ACS_USERNAME'))
       acsUsername = this.cookieService.get('ACS_USERNAME');
     else
-      this.logger.error.log('unable to find ACS username in cookies')
+      this.logger.error.log('unable to find ACS username in cookies');
     if (this.cookieService.check('ACS_PASSWORD'))
       acsPassword = this.cookieService.get('ACS_PASSWORD');
     else

@@ -2,16 +2,12 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
+import { TradeAreaTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { BaseModel, transient } from '../../api/models/BaseModel';
-import { ImpClientLocation } from '../../client/models/ImpClientLocation';
-import { ImpClientLocationType } from '../../client/models/ImpClientLocationType';
-import { ClientIdentifierType } from '../../mediaexpress/models/ClientIdentifierType';
-import { TradeAreaTypeCodes } from '../targeting.enums';
 import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
 import { ImpGeofootprintLocAttrib } from './ImpGeofootprintLocAttrib';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpGeofootprintTradeArea } from './ImpGeofootprintTradeArea';
-import { ImpGeofootprintVar } from './ImpGeofootprintVar';
 import { ImpProject } from './ImpProject';
 
 export class ImpGeofootprintLocation extends BaseModel
@@ -60,7 +56,7 @@ export class ImpGeofootprintLocation extends BaseModel
    public homeCountyFip:             string;         /// 5 digit FIPS County code e.g. 26163 for WAYNE county in Michigan
    public homeDmaCode:               string;         /// 5 digit Designated Metropolitan Area e.g. 0505 for Detroit MI
    public carrierRoute:              string;
-   public isSelected:                boolean;  
+   public isSelected:                boolean;
 
    // ----------------------------------------------------------------------------
    // ONE TO MANY RELATIONSHIP MEMBERS
@@ -72,15 +68,6 @@ export class ImpGeofootprintLocation extends BaseModel
    // -------------------------------------------
    // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
    // -------------------------------------------
-   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public clientIdentifierType:        ClientIdentifierType;             /// Cbx Client Identifier Types
-
-   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public impClientLocation:           ImpClientLocation;                /// Client Library Repository of Client Locations
-
-   /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
-   @transient public impClientLocationType:       ImpClientLocationType;            /// Client Library - Client Location Types (CLIENT, COMPETITOR etc.)
-
    /** @description Transient property that will not persist with the model. Updates are allowed as it is a reference to the parent */
    @transient public impGeofootprintMaster:       ImpGeofootprintMaster;            /// Geofootprint master table for IMPower.
 
@@ -101,14 +88,6 @@ export class ImpGeofootprintLocation extends BaseModel
       });
       return result;
    }
-
-   /** @description Transient property that will not persist with the model. Updates are allowed, but not inserts & deletes */
-   getImpGeofootprintVars(): ReadonlyArray<ImpGeofootprintVar> {
-      let _result: Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
-      (this.impGeofootprintTradeAreas||[]).forEach(impGeofootprintTradeArea => (_result.push(...impGeofootprintTradeArea.impGeofootprintVars||[])));
-      return _result;
-   }
-
 
    // Can construct without params or as ({fieldA: 'xyz', fieldB: 123});
    constructor(data?: Partial<ImpGeofootprintLocation>) {
@@ -159,94 +138,4 @@ export class ImpGeofootprintLocation extends BaseModel
       // Set the isComplete flag indicating the load is complete
       this.setTreeProperty('isComplete', true);
    }
-
-   /**
-    * Produces a map of this classes fields and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getFields () : Map<string, string>
-   {
-      return new Map([
-         ['glId',                         'number'],
-         ['clientIdentifierId',           'number'],
-         ['locationIdDisplay',            'string'],
-         ['locationName',                 'string'],
-         ['marketName',                   'string'],
-         ['groupName',                    'string'],
-         ['xcoord',                       'number'],
-         ['ycoord',                       'number'],
-         ['homeGeocode',                  'string'],
-         ['homeGeoName',                  'string'],
-         ['geoProfileId',                 'number'],
-         ['geoProfileTypeAbbr',           'string'],
-         ['origAddress1',                 'string'],
-         ['origCity',                     'string'],
-         ['origState',                    'string'],
-         ['origPostalCode',               'string'],
-         ['locFranchisee',                'string'],
-         ['locAddress',                   'string'],
-         ['locCity',                      'string'],
-         ['locState',                     'string'],
-         ['locZip',                       'string'],
-         ['locSortOrder',                 'number'],
-         ['geocoderMatchCode',            'string'],
-         ['geocoderLocationCode',         'string'],
-         ['recordStatusCode',             'string'],
-         ['isActive',                     'boolean'],
-         ['locationNumber',               'string'],
-         ['marketCode',                   'string'],
-         ['description',                  'string'],
-         ['homeZip',                      'string'],
-         ['homeAtz',                      'string'],
-         ['homeDigitalAtz',               'string'],
-         ['homePcr',                      'string'],
-         ['radius1',                      'number'],
-         ['radius2',                      'number'],
-         ['radius3',                      'number'],
-         ['homeCountyFip',                'string'],
-         ['homeDmaCode',                  'string']
-         ]);
-   }
-
-   /**
-    * Produces a map of this classes relationships and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getRelationships () : Map<string, string>
-   {
-      return new Map([
-         // MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierType',         'ClientIdentifierType'],
-         ['impClientLocation',            'ImpClientLocation'],
-         ['impClientLocationType',        'ImpClientLocationType'],
-         ['impGeofootprintMaster',        'ImpGeofootprintMaster'],
-         ['impProject',                   'ImpProject'],
-
-         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
-         ['clientIdentifierType',         'ClientIdentifierType'],
-         ['impClientLocation',            'ImpClientLocation'],
-         ['impClientLocationType',        'ImpClientLocationType'],
-         ['impGeofootprintMaster',        'ImpGeofootprintMaster'],
-         ['impProject',                   'ImpProject'],
-
-         // TRANSITORY ONE TO MANY RELATIONSHIP MEMBERS
-         ['impGeofootprintGeo',           'Array<ImpGeofootprintGeo>'],
-         ['impGeofootprintVar',           'Array<ImpGeofootprintVar>'],
-      ]);
-   }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   // public toString = () => JSON.stringify(this, null, '   ');
-   public toString() {
-      return `GFPLocation (num: ${this.locationNumber == null ? 'null' : this.locationNumber}, type: ${this.clientLocationTypeCode == null ? 'null' : this.clientLocationTypeCode} )`;
-   }
-
 }

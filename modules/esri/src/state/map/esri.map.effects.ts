@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { select, Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { catchError, concatMap, filter, map, mergeMap, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriAppSettings, EsriAppSettingsToken } from '../../configuration';
 import { SelectedButtonTypeCodes } from '../../core/esri.enums';
 import { EsriGeoprocessorService } from '../../services/esri-geoprocessor.service';
@@ -12,7 +12,16 @@ import { EsriMapService } from '../../services/esri-map.service';
 import { EsriPrintingService } from '../../services/esri-printing-service';
 import { AppState } from '../esri.reducers';
 import { internalSelectors, selectors } from '../esri.selectors';
-import { CopyCoordinatesToClipboard, EsriMapActionTypes, FeaturesSelected, InitializeMap, InitializeMapFailure, InitializeMapSuccess, MapClicked, PrintJobComplete, PrintMap, PrintMapFailure, SetPopupVisibility, } from './esri.map.actions';
+import {
+  CopyCoordinatesToClipboard,
+  EsriMapActionTypes,
+  FeaturesSelected,
+  InitializeMap,
+  InitializeMapFailure,
+  InitializeMapSuccess,
+  MapClicked,
+  SetPopupVisibility,
+} from './esri.map.actions';
 
 @Injectable()
 export class EsriMapEffects {
@@ -62,17 +71,17 @@ export class EsriMapEffects {
     tap(([, labelConfig, layerConfig]) => this.layerService.setLabels(labelConfig, layerConfig))
   );
 
-  @Effect()
-  handlePrintMap$ = this.actions$.pipe(
-    ofType<PrintMap>(EsriMapActionTypes.PrintMap),
-    map((action) => ({ printParams: this.printingService.createPrintPayload(action.payload.templateOptions), serviceUrl: action.payload.serviceUrl})),
-    switchMap((params) => this.geoprocessorService.processPrintJob(params.serviceUrl, params.printParams).pipe(
-      concatMap(response => [
-        new PrintJobComplete({result: response})
-      ]),
-      catchError(err => of(new PrintMapFailure({ err })))
-    )),
-  );
+  // @Effect()
+  // handlePrintMap$ = this.actions$.pipe(
+  //   ofType<PrintMap>(EsriMapActionTypes.PrintMap),
+  //   map((action) => ({ printParams: this.printingService.createPrintPayload(action.payload.templateOptions), serviceUrl: action.payload.serviceUrl})),
+  //   switchMap((params) => this.geoprocessorService.processPrintJob(params.serviceUrl, params.printParams).pipe(
+  //     concatMap(response => [
+  //       new PrintJobComplete({result: response})
+  //     ]),
+  //     catchError(err => of(new PrintMapFailure({ err })))
+  //   )),
+  // );
 
   constructor(private actions$: Actions,
               private store$: Store<AppState>,

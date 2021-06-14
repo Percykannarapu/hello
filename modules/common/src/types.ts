@@ -1,8 +1,13 @@
-// fixes Array.isArray not typing a readonly array as an array
 declare global {
+
+  // fixes Array.isArray not typing a readonly array as an array
   interface ArrayConstructor {
     isArray(arg: any) : arg is ReadonlyArray<any>;
   }
+
+  // interface Object {
+  //   hasOwnProperty<V extends PropertyKey>(v: V) : this is this & { [_ in V]: any };
+  // }
 }
 
 /**

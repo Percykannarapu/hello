@@ -1,5 +1,5 @@
 import { isStringArray } from '@val/common';
-import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
+import { FieldContentTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { ImpProjectVar } from '../val-modules/targeting/models/ImpProjectVar';
 import { AudienceDataDefinition, VarListItem, VarSpecs } from './audience-data.model';
 

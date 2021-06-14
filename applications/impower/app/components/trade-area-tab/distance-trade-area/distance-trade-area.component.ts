@@ -4,9 +4,13 @@ import { FormConfig, isConvertibleToNumber, isFunction } from '@val/common';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, filter, takeUntil } from 'rxjs/operators';
+import {
+  ImpClientLocationTypeCodes,
+  SuccessfulLocationTypeCodes,
+  TradeAreaMergeTypeCodes
+} from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { ValassisValidators } from '../../../common/valassis-validators';
 import { ImpGeofootprintTradeArea } from '../../../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../../../val-modules/targeting/targeting.enums';
 import { DistanceTradeAreaUiModel, TradeAreaModel } from './distance-trade-area-ui.model';
 import { Store } from '@ngrx/store';
 import { LocalAppState } from 'app/state/app.interfaces';

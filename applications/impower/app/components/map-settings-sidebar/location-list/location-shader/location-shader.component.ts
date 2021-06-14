@@ -1,29 +1,23 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators, FormArray } from '@angular/forms';
-import { rgbToHex, FormConfig, isConvertibleToNumber } from '@val/common';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormConfig, isConvertibleToNumber, rgbToHex } from '@val/common';
 import {
   completeEsriFaces,
   duplicatePoiConfiguration,
   LabelDefinition,
   PoiConfiguration,
   PoiConfigurationTypes,
+  RadiiTradeAreaDrawDefinition,
   RgbaTuple,
   RgbTuple,
-  TradeAreaModel,
-  EsriPoiService, RadiiTradeAreaDrawDefinition
+  TradeAreaModel
 } from '@val/esri';
+import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
+import { distinctUntilChanged, filter, takeUntil } from 'rxjs/operators';
 import { ValassisValidators } from '../../../../common/valassis-validators';
 import { ImpGeofootprintLocation } from '../../../../val-modules/targeting/models/ImpGeofootprintLocation';
-import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { takeUntil, filter, distinctUntilChanged } from 'rxjs/operators';
-import { AppLocationService } from 'app/services/app-location.service';
-import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
-import { TradeAreaDrawDefinition } from 'app/state/rendering/trade-area.transform';
-import { ImpClientLocationTypeCodes } from 'app/val-modules/targeting/targeting.enums';
-import { DegreesPipe } from 'angular-pipes';
 
 @Component({
   selector: 'val-location-shader',

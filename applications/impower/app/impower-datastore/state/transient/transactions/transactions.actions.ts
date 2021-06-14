@@ -7,7 +7,7 @@ export enum GeoTransactionType {
 
 export const CacheGeos = createAction(
   '[Transient] Cache Geos',
-  props<{ geos: Set<string>, geoType: GeoTransactionType }>()
+  (geos: Set<string>, geoType: GeoTransactionType, showSpinner: boolean = false ) => ({ geos, geoType, showSpinner })
 );
 
 export const CacheGeosComplete = createAction(

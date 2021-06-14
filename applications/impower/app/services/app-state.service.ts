@@ -5,6 +5,11 @@ import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { selectGeoAttributeEntities } from 'app/impower-datastore/state/transient/geo-attributes/geo-attributes.selectors';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, startWith, take, tap, throttleTime, withLatestFrom } from 'rxjs/operators';
+import {
+  ImpClientLocationTypeCodes,
+  SuccessfulLocationTypeCodes,
+  TradeAreaMergeTypeCodes, TradeAreaTypeCodes
+} from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import * as ValSort from '../common/valassis-sorters';
 import { GetLayerAttributes } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
@@ -19,12 +24,6 @@ import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import {
-  ImpClientLocationTypeCodes,
-  SuccessfulLocationTypeCodes,
-  TradeAreaMergeTypeCodes,
-  TradeAreaTypeCodes
-} from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 import { AppProjectService } from './app-project.service';
 

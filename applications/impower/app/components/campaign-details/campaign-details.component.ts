@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filterArray } from '@val/common';
 import { SuccessNotification } from '@val/messaging';
 import { AppGeoService } from 'app/services/app-geo.service';
 import { AppTradeAreaService } from 'app/services/app-trade-area.service';

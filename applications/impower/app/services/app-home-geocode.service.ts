@@ -6,6 +6,7 @@ import { Geocode, PersistLocations } from 'app/state/homeGeocode/homeGeo.actions
 import { ConfirmationService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { reduce, tap } from 'rxjs/operators';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { LocalAppState } from '../state/app.interfaces';
 import { LoggingService } from '../val-modules/common/services/logging.service';
@@ -16,7 +17,6 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppEditSiteService } from './app-editsite.service';
 import { AppGeoService } from './app-geo.service';
 import { AppLocationService } from './app-location.service';

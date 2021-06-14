@@ -4,9 +4,9 @@ import { arrayToSet, isConvertibleToNumber, isEmpty, isNotNil, isString, mapByEx
 import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { map, reduce } from 'rxjs/operators';
+import { FieldContentTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { customAudienceDataParser, CustomDataRow } from '../common/file-parsing-rules';
-import { FieldContentTypeCodes } from '../impower-datastore/state/models/impower-model.enums';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import { mergeCustomVars } from '../impower-datastore/state/transient/custom-vars/custom-vars.actions';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
@@ -105,7 +105,7 @@ export class CustomDataService {
           const fileName = `Custom Data ${currentAnalysisLevel} Issues Log.csv`;
           const geoMessage = records.length === 2 ? 'An Invalid Geo exists' : 'Invalid Geos exist';
           this.store$.dispatch(new WarningNotification({ message: `${geoMessage} in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
-          FileService.downloadFile(fileName, records);
+          FileService.downloadDelimitedFile(fileName, records);
         }
       });
       return true;

@@ -12,7 +12,7 @@ import { ConfirmationService, SelectItem } from 'primeng/api';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ValassisValidators } from '../../../../common/valassis-validators';
-import { AddAudience, DeleteAudience, UpsertAudience } from '../../../../impower-datastore/state/transient/audience/audience.actions';
+import { DeleteAudience, UpsertAudience } from '../../../../impower-datastore/state/transient/audience/audience.actions';
 import { VarSpecs } from '../../../../models/audience-data.model';
 import { createCompositeAudienceInstance } from '../../../../models/audience-factories';
 import { UnifiedAudienceService } from '../../../../services/unified-audience.service';

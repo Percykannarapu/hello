@@ -2,7 +2,6 @@ import { Dictionary } from '@ngrx/entity';
 import { createSelector } from '@ngrx/store';
 import { groupEntityToArray, isEmpty, transformEntity } from '@val/common';
 import { shadingSelectors } from '@val/esri';
-import { customAudiences } from './audience/audience.selectors';
 import * as fromAudienceSel from './audience/audience.selectors';
 import { DynamicVariable, mergeVariablesToEntity } from './dynamic-variable.model';
 import * as fromGeoVarsSel from './geo-vars/geo-vars.selectors';

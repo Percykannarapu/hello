@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
 import { AppConfig } from 'app/app.config';
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
-import { ImpClientLocationTypeCodes } from '../../../impower-datastore/state/models/impower-model.enums';
+import {
+  DAOBaseStatus,
+  FieldContentTypeCodes,
+  ImpClientLocationTypeCodes,
+  TradeAreaTypeCodes
+} from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
 import { ValGeocodingResponse } from '../../../models/val-geocoding-response.model';
 import { UserService } from '../../../services/user.service';
-import { DAOBaseStatus } from '../../api/models/BaseModel';
 import { LoggingService } from '../../common/services/logging.service';
 import { ImpGeofootprintGeo } from '../models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../models/ImpGeofootprintLocation';
@@ -15,7 +19,6 @@ import { ImpGeofootprintTradeArea } from '../models/ImpGeofootprintTradeArea';
 import { ImpProject } from '../models/ImpProject';
 import { ImpProjectPref } from '../models/ImpProjectPref';
 import { ImpProjectVar } from '../models/ImpProjectVar';
-import { FieldContentTypeCodes, TradeAreaTypeCodes } from '../targeting.enums';
 
 @Injectable({
   providedIn: 'root'

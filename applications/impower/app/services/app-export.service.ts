@@ -1,24 +1,21 @@
 import { Injectable } from '@angular/core';
-import { Dictionary } from '@ngrx/entity';
 import { Action, Store } from '@ngrx/store';
-import { mapArrayToEntity } from '@val/common';
-import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
+import { StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
 import { RestResponse } from 'app/models/RestResponse';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { Observable } from 'rxjs';
+import { concatMap, filter, map, switchMap, tap } from 'rxjs/operators';
+import { WorkerResult, WorkerStatus } from '../../worker-shared/core-interfaces';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
+import { GeoFootprintExportFormats, LocationExportFormats } from '../../worker-shared/payload-interfaces';
 import { AppConfig } from '../app.config';
-import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
 import { CrossBowSitesPayload, LocalAppState } from '../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
 import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actions';
-import { LoggingService } from '../val-modules/common/services/logging.service';
-import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
-import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
+import { FileService } from '../val-modules/common/services/file.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
-import { EXPORT_FORMAT_IMPGEOFOOTPRINTGEO, ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
-import { EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
-import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
+import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { TradeAreaDefinition } from './app-trade-area.service';
 import { UnifiedAudienceService } from './unified-audience.service';
 
@@ -37,88 +34,46 @@ export class AppExportService {
   constructor(private config: AppConfig,
               private impGeofootprintLocationService: ImpGeofootprintLocationService,
               private impGeofootprintGeoService: ImpGeofootprintGeoService,
-              private impProjectService: ImpProjectService,
-              private logger: LoggingService,
               private restService: RestDataService,
               private store$: Store<LocalAppState>,
               private audienceService: UnifiedAudienceService) { }
 
   exportGeofootprint(selectedOnly: boolean, currentProject: ImpProject) : Observable<Action> {
-    return new Observable(observer => {
-      this.store$.dispatch(new StartBusyIndicator({ key: 'GFP_Export', message: 'Exporting Geofootprint' }));
-      setTimeout(() => {
-        try {
-          this.validateProjectForExport(currentProject, 'exporting a Geofootprint');
-          const storeFilter: (geo: ImpGeofootprintGeo) => boolean = selectedOnly ? (geo => geo.isActive === true) : null;
-          const filename = this.impGeofootprintGeoService.getFileName(currentProject.methAnalysis, currentProject.projectId);
-          this.audienceService.requestGeofootprintExportData(currentProject.methAnalysis).subscribe({
-            error: err => {
-              observer.next(new StopBusyIndicator({ key: 'GFP_Export' }));
-              observer.error(err);
-            },
-            next: geoVars => {
-              this.impGeofootprintGeoService.exportStore(filename, EXPORT_FORMAT_IMPGEOFOOTPRINTGEO.alteryx, currentProject.methAnalysis, geoVars, storeFilter);
-              const metricValue = this.impGeofootprintGeoService.get().length;
-              const metricText = selectedOnly ? 'includeSelectedGeography' : 'includeAllGeography';
-              observer.next(new StopBusyIndicator({ key: 'GFP_Export' }));
-              observer.next(new CreateLocationUsageMetric('geofootprint', 'export', metricText, metricValue));
-              observer.next(new CreateGaugeMetric({ gaugeAction: 'location-geofootprint-export' }));
-              observer.complete();
-            }
-          });
-        } catch (err) {
-          observer.next(new StopBusyIndicator({ key: 'GFP_Export' }));
-          observer.error(err);
-        }
-      });
-    });
+    this.validateProjectForExport(currentProject, 'exporting a Geofootprint');
+    const metricText = selectedOnly ? 'includeSelectedGeography' : 'includeAllGeography';
+    const key = 'GFP_Export';
+    this.store$.dispatch(new StartBusyIndicator({ key, message: 'Exporting Geofootprint' }));
+    return this.audienceService.requestGeofootprintExportData(currentProject.methAnalysis).pipe(
+      switchMap(geoVars => this.impGeofootprintGeoService.exportStore(null, GeoFootprintExportFormats.alteryx, currentProject, geoVars, selectedOnly)),
+      filter(result => result.rowsProcessed > 0),
+      concatMap(result => ([
+        new StopBusyIndicator({ key }),
+        new CreateLocationUsageMetric('geofootprint', 'export', metricText, result.rowsProcessed),
+        new CreateGaugeMetric({ gaugeAction: 'location-geofootprint-export' })
+      ]))
+    );
   }
 
   exportLocations(siteType: SuccessfulLocationTypeCodes, currentProject: ImpProject) : Observable<CreateUsageMetric> {
-    return new Observable(observer => {
-      try {
-        const pluralType = `${siteType}s`;
-        const filename = this.impGeofootprintLocationService.getFileName(currentProject.projectId, pluralType);
-        const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.alteryx, filename, currentProject);
-        observer.next(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, metricValue));
-        observer.complete();
-      } catch (err) {
-        observer.error(err);
-      }
-    });
+    return this.locationExportImpl(siteType, LocationExportFormats.alteryx, null, currentProject).pipe(
+      map(result => new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, result.rowsProcessed))
+    );
   }
 
-  exportHomeGeoReport(siteType: SuccessfulLocationTypeCodes) : Observable<CreateUsageMetric> {
-    const currentProject = this.impProjectService.get();
-    return new Observable(observer => {
-      try {
-        const filename = 'Home Geo Issues Log.csv';
-        const metricValue = this.locationExportImpl(siteType, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues, filename, currentProject[0], true);
-        observer.next(new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, metricValue));
-        observer.complete();
-      } catch (err) {
-        observer.error(err);
-      }
-    });
+  exportHomeGeoReport(siteType: SuccessfulLocationTypeCodes, currentProject: ImpProject) : Observable<CreateUsageMetric> {
+    const filename = 'Home Geo Issues Log.csv';
+    return this.locationExportImpl(siteType, LocationExportFormats.homeGeoIssues, filename, currentProject).pipe(
+      map(result => new CreateLocationUsageMetric(`${siteType.toLowerCase()}-list`, 'export', null, result.rowsProcessed))
+    );
   }
 
   exportValassisDigital(currentProject: ImpProject) : Observable<CreateUsageMetric> {
-    return new Observable(observer => {
-      try {
-        //this.validateValDigitalProjectForExport(currentProject, 'sending site list to Valassis Digital');
-        const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
-        const filename = 'visit_locations_' + currentProject.projectId + '_' + this.config.environmentName + '_' + fmtDate + '.csv';
-        const metricValue = this.locationExportImpl(ImpClientLocationTypeCodes.Site, EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital, filename, currentProject);
-        const metricText = 'clientName=' + currentProject.clientIdentifierName.trim() + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;
-        /*const clientIdentifierName = currentProject.clientIdentifierName != null ? currentProject.clientIdentifierName.trim() : null;
-        const metricText = 'clientName=' + clientIdentifierName + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;*/
-        observer.next(new CreateLocationUsageMetric('vlh-site-list', 'send', metricText, metricValue));
-        observer.complete();
-      } catch (err) {
-        observer.error(err);
-      }
-    });
-
+    const fmtDate: string = new Date().toISOString().replace(/\D/g, '').slice(0, 8);
+    const filename = 'visit_locations_' + currentProject.projectId + '_' + this.config.environmentName + '_' + fmtDate + '.csv';
+    const metricText = 'clientName=' + currentProject.clientIdentifierName.trim() + '~' + 'projectTrackerId=' + currentProject.projectTrackerId + '~' + 'fileName=' + filename;
+    return this.locationExportImpl(ImpClientLocationTypeCodes.Site, LocationExportFormats.digital, filename, currentProject).pipe(
+      map(result => new CreateLocationUsageMetric('vlh-site-list', 'send', metricText, result.rowsProcessed))
+    );
   }
 
   exportNationalExtract(currentProject: ImpProject) : Observable<void> {
@@ -134,19 +89,16 @@ export class AppExportService {
 
   getPrivateCrossbowProfiles(payload: CrossBowSitesPayload) : Observable<RestResponse> {
     const userIdUrl: string = this.crossbowUrl + '/search?q=targetingProfileSearch' + `&userId=${payload.id}`;
-    // const userIdUrl: string = this.crossbowUrl + '/search?q=targetingProfileSearch' + `&userId=13660`;
     return this.restService.get(userIdUrl);
   }
 
   getGroups(payload: CrossBowSitesPayload) : Observable<RestResponse> {
     const groupsUrl: string = this.crossbowUrl + '/search?q=targetingGroupSearch' + `&userId=${payload.id}`;
-    // const groupsUrl: string = this.crossbowUrl + `/search?q=targetingGroupSearch&userId=13660`;
     return this.restService.get(groupsUrl);
   }
 
   getGroupProfiles(payload: CrossBowSitesPayload) : Observable<RestResponse> {
     const groupProfileUrl: string = this.crossbowUrl + '/search?q=targetingProfileSearch' + `&groupId=${payload.groupId}`;
-    // const groupProfileUrl: string = this.crossbowSitesUrl + '/search?q=targetingProfileSearch' + `&groupId=30`;
     return this.restService.get(groupProfileUrl);
   }
 
@@ -155,67 +107,41 @@ export class AppExportService {
     return this.restService.get(sitesUrl);
   }
 
-  private locationExportImpl(siteType: SuccessfulLocationTypeCodes, exportFormat: EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION, filename: string, currentProject: ImpProject, homeGeoIssueOnly: boolean = false) : number {
-    const storeFilter: (loc: ImpGeofootprintLocation) => boolean =
-            loc => loc.clientLocationTypeCode === siteType && (!homeGeoIssueOnly || loc.impGeofootprintLocAttribs.some(a => a.attributeCode === 'Home Geocode Issue' && a.attributeValue === 'Y'));
-            const pluralType = `${siteType}s`;
-    const isDigital = exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.digital;
-    const metricCount =  this.impGeofootprintLocationService.get().filter(storeFilter).length;
-   if (metricCount === 0 && exportFormat === EXPORT_FORMAT_IMPGEOFOOTPRINTLOCATION.homeGeoIssues ){
-    this.store$.dispatch(new ErrorNotification({ message: 'There are no home geocoding issues to report.', notificationTitle: 'Home Geocode Issues Log' }));
-    } else {
-    this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, isDigital, storeFilter, pluralType.toUpperCase());
-    }
-    return metricCount;
+  private locationExportImpl(siteType: SuccessfulLocationTypeCodes, exportFormat: LocationExportFormats, filename: string, currentProject: ImpProject) : Observable<WorkerResult> {
+    const key = 'Site_Export';
+    this.store$.dispatch(new StartBusyIndicator({ key, message: `Exporting ${siteType}s` }));
+    return this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, siteType).pipe(
+      tap(result => {
+        if (result.status === WorkerStatus.Complete && result.rowsProcessed === 0 && exportFormat === LocationExportFormats.homeGeoIssues) {
+          this.store$.dispatch(new WarningNotification({
+            message: 'There are no home geocoding issues to report.',
+            notificationTitle: 'Home Geocode Issues Log'
+          }));
+        }
+        this.store$.dispatch(new StopBusyIndicator({ key }));
+      })
+    );
   }
 
-
-  /*private validateValDigitalProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
-    const message = `Please save your project before ${exportDescription}`;
+  private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
+    const message = `The project must be saved before ${exportDescription}`;
     if (currentProject.projectId == null) {
       throw message;
     }
-  }*/
-
-  private validateProjectForExport(currentProject: ImpProject, exportDescription: string) : void {
-     const message = `The project must be saved before ${exportDescription}`;
-    if (currentProject.projectId == null) {
-      throw message;
-       }
   }
 
   public exportCustomTAIssuesLog(uploadFailures: TradeAreaDefinition[]){
-    //this.logger.info.log('uploadFailures ====>', uploadFailures);
     const header = 'Site #, Geocode, Reason';
     const records: string[] = [];
-    records.push(header +  '\n');
+    records.push(header);
     uploadFailures.forEach(record => {
-        records.push(`${record.store}, ${record.geocode}, ${record.message}` + '\n');
+        records.push(`${record.store}, ${record.geocode}, ${record.message}`);
     });
-    this.downloadCSV(records, 'Custom TA Issues Log.csv');
+    FileService.downloadDelimitedFile('Custom TA Issues Log.csv', records);
   }
 
   public exportMCIssuesLog(records: string[]){
-    this.downloadCSV(records, 'Must Cover Issues Log.csv');
-  }
-
-  private downloadCSV(records: string[], fileName: string){
-    const a = document.createElement('a');
-    const blob = new Blob(records, { type: 'text/csv' });
-    a.href = window.URL.createObjectURL(blob);
-    a['download'] = fileName;
-    a.click();
-  }
-
-  public downloadPDF(result: string){
-    this.logger.info.log('Opening PDF from', result);
-    const url = result;
-    const fileName = url.split(/[\s/]+/);
-    const link = document.createElement('a');
-    link.target = '_blank';
-    link.href = url;
-    link.download = fileName[fileName.length - 1];
-    link.dispatchEvent(new MouseEvent('click'));
+    FileService.downloadDelimitedFile('Must Cover Issues Log.csv', records);
   }
 
 }

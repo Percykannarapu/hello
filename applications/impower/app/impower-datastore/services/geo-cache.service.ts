@@ -16,9 +16,9 @@ export class GeoCacheService {
   public refreshCache(geos: Set<string>, txId: number) : Observable<number> {
     const deleteCall = isNotNil(txId) ? this.removeCache(txId) : of(null);
     const cacheCall = geos?.size > 0 ? this.cacheGeos(geos) : EMPTY;
-    return concat(deleteCall, cacheCall).pipe(
+    return concat(cacheCall, deleteCall).pipe(
       map(result => toNullOrNumber(result)),
-      last()
+      last(result => isNotNil(result), null)
     );
   }
 

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { isConvertibleToNumber, mapBy } from '@val/common';
+import { arrayToSet, isConvertibleToNumber, mapBy } from '@val/common';
 import { filter, map, take } from 'rxjs/operators';
 import { LocalState } from '../../state';
 import { NumericVariableShadingMethod, ShadingType, VarDefinition } from '../../state/app.interfaces';
@@ -121,13 +121,12 @@ export class GridComponent implements OnInit {
   }
 
   onHeaderCheckbox(event: { checked: boolean }) {
-    const ids = this.filteredIds == null ? new Set<number>(this.rows.map(r => r.id)) : new Set(this.filteredIds);
+    const ids = arrayToSet(this.filteredIds ?? this.rows.map(r => r.id));
     const geos = this.rows.reduce((a, c) => {
       if (ids.has(c.id) && c.isSelected !== event.checked) {
-        return [...a, c.selectionIdentifier];
-      } else {
-        return a;
+        a.push(c.selectionIdentifier);
       }
+      return a;
     }, []);
     this.store$.dispatch(new GridGeosToggle({ geos: geos }));
     this.store$.dispatch(new InitializeMapUI());

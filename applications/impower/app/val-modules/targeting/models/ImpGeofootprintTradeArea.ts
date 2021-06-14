@@ -2,12 +2,11 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, transient } from '../../api/models/BaseModel';
 import { ImpGeofootprintLocation } from './ImpGeofootprintLocation';
 import { ImpGeofootprintMaster } from './ImpGeofootprintMaster';
 import { ImpProject } from './ImpProject';
 import { ImpGeofootprintGeo } from './ImpGeofootprintGeo';
-import { ImpGeofootprintVar } from './ImpGeofootprintVar';
 
 export class ImpGeofootprintTradeArea extends BaseModel
 {
@@ -28,7 +27,6 @@ export class ImpGeofootprintTradeArea extends BaseModel
    // ONE TO MANY RELATIONSHIP MEMBERS
    // ----------------------------------------------------------------------------
    public impGeofootprintGeos:      Array<ImpGeofootprintGeo> = new Array<ImpGeofootprintGeo>();
-   public impGeofootprintVars:      Array<ImpGeofootprintVar> = new Array<ImpGeofootprintVar>();
    // ----------------------------------------------------------------------------
 
    // -------------------------------------------
@@ -63,7 +61,6 @@ export class ImpGeofootprintTradeArea extends BaseModel
       this[propName] = propValue;
       // Ask the children to set the tree property
       this.impGeofootprintGeos.forEach(fe => fe.setTreeProperty(propName, propValue));
-      this.impGeofootprintVars.forEach(fe => fe.setTreeProperty(propName, propValue));
    }
 
    // Removes a tree property from this level down
@@ -72,75 +69,21 @@ export class ImpGeofootprintTradeArea extends BaseModel
       delete this[propName];
       // Ask the children to remove the tree property
       this.impGeofootprintGeos.forEach(fe => fe.removeTreeProperty(propName   ));
-      this.impGeofootprintVars.forEach(fe => fe.removeTreeProperty(propName   ));
    }
 
    // Convert JSON objects into Models
    public convertToModel()
    {
       // Convert JSON objects into models
-      this.impGeofootprintGeos = (this.impGeofootprintGeos||[]).map(ma => new ImpGeofootprintGeo(ma));
-      this.impGeofootprintVars = (this.impGeofootprintVars||[]).map(ma => new ImpGeofootprintVar(ma));
+      this.impGeofootprintGeos = (this.impGeofootprintGeos || []).map(ma => new ImpGeofootprintGeo(ma));
 
       // Push this as transient parent to children
       this.impGeofootprintGeos.forEach(fe => fe.impGeofootprintTradeArea = this);
-      this.impGeofootprintVars.forEach(fe => fe.impGeofootprintTradeArea = this);
 
       // Ask the children to convert into models
       this.impGeofootprintGeos.forEach(fe => fe.convertToModel());
-      this.impGeofootprintVars.forEach(fe => fe.convertToModel());
 
       // Set the isComplete flag indicating the load is complete
       this.setTreeProperty('isComplete', true);
    }
-
-   /**
-    * Produces a map of this classes fields and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getFields () : Map<string, string>
-   {
-      return new Map([
-         ['gtaId',                         'number'],
-         ['taNumber',                      'number'],
-         ['taName',                        'string'],
-         ['taRadius',                      'number'],
-         ['taMinHhc',                      'number'],
-         ['taUseMinHhcInd',                'number'],
-         ['taType',                        'string'],
-         ['taOverrideInd',                 'number'],
-         ['isActive',                      'boolean']
-         ]);
-   }
-
-   /**
-    * Produces a map of this classes relationships and data types.
-    * Used instead of reflection, which has limitations.
-    *
-    * @returns Map<field, type>
-    */
-   public static getRelationships () : Map<string, string>
-   {
-      return new Map([
-         // MANY TO ONE RELATIONSHIP MEMBERS
-         ['impGeofootprintLocation',       'ImpGeofootprintLocation'],
-         ['impGeofootprintMaster',         'ImpGeofootprintMaster'],
-         ['impProject',                    'ImpProject'],
-
-         // TRANSITORY MANY TO ONE RELATIONSHIP MEMBERS
-         ['impGeofootprintLocation',       'ImpGeofootprintLocation'],
-         ['impGeofootprintMaster',         'ImpGeofootprintMaster'],
-         ['impProject',                    'ImpProject'],
-      ]);
-   }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

@@ -8,6 +8,7 @@ import { LocalAppState } from 'app/state/app.interfaces';
 import { TreeNode } from 'primeng/api';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
 import { debounceTime, map, share, takeUntil } from 'rxjs/operators';
+import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { filterTreeNodesRecursive, treeNodeSortBuilder } from '../../../../common/treenode-utils';
 import * as fromInMarket from '../../../../impower-datastore/state/transient/audience-definitions/in-market/in-market-audience.reducer';
 import * as fromInterest from '../../../../impower-datastore/state/transient/audience-definitions/interest/interest-audience.reducer';
@@ -20,7 +21,6 @@ import { UnifiedAudienceDefinitionService } from '../../../../services/unified-a
 import { UnifiedAudienceService } from '../../../../services/unified-audience.service';
 import { CreateAudienceUsageMetric } from '../../../../state/usage/targeting-usage.actions';
 import { LoggingService } from '../../../../val-modules/common/services/logging.service';
-import { FieldContentTypeCodes } from '../../../../val-modules/targeting/targeting.enums';
 
 @Component({
   selector: 'val-online-audience-apio',

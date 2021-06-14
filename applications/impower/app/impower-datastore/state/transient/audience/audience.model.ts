@@ -1,5 +1,5 @@
 import { VarSpecs } from 'app/models/audience-data.model';
-import { FieldContentTypeCodes } from 'app/val-modules/targeting/targeting.enums';
+import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 
 export interface Audience {
   audienceIdentifier: string;

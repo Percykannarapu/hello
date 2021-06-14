@@ -18,6 +18,7 @@ import { ConfirmationService, SelectItem } from 'primeng/api';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
 import { filter, finalize, map, mergeMap, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { EnvironmentData } from '../../environments/environment';
+import { ImpClientLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { quadPartitionLocations } from '../common/quad-tree';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
@@ -35,7 +36,6 @@ import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-d
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintLocAttribService } from '../val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
 import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-import { ImpClientLocationTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppGeocodingService } from './app-geocoding.service';
 import { AppProjectPrefService } from './app-project-pref.service';
 import { AppStateService } from './app-state.service';
@@ -915,7 +915,7 @@ export class AppLocationService {
       'homeDigitalAtz':  locHomeArributes.has('Home Digital ATZ')   ?  locHomeArributes.get('Home Digital ATZ')    :   row ['DTZ'],
       'homeDmaName'   :  null,
       'siteNumber'    :  loc.locationNumber,
-      'abZip'         :  loc.locZip != null ? loc.locZip.substring(0, 5): null
+      'abZip'         :  loc.locZip != null ? loc.locZip.substring(0, 5) : null
     };
 
   }

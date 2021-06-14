@@ -1,11 +1,3 @@
-export enum DAOBaseStatus
-{
-  UNCHANGED = 'UNCHANGED',
-  UPDATE = 'UPDATE',
-  INSERT = 'INSERT',
-  DELETE = 'DELETE',
-}
-
 /**
  * Allows decorating properties with @transient to be omitted from JSON.stringify
  * as well as other enumerable things such as for...in loop and Object.keys().
@@ -13,6 +5,8 @@ export enum DAOBaseStatus
  * @param key The property name to make transient.
  * @summary transient fields are read-only and are not persisted with the model.
  */
+import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
+
 export function transient(target: any, key: string) : void {
    if (target.transients == null) target.transients = [];
    target.transients.push(key);
@@ -38,5 +32,4 @@ export class BaseModel
          });
       });
    }
-
 }

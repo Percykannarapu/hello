@@ -5,11 +5,20 @@ import { groupByExtended, skipUntilNonZeroBecomesZero } from '@val/common';
 import { EsriAppSettings, EsriAppSettingsToken, EsriPoiService, selectors } from '@val/esri';
 import { StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { concatMap, filter, map, tap, withLatestFrom } from 'rxjs/operators';
+import { TradeAreaTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { AppStateService } from '../../services/app-state.service';
 import { PoiRenderingService } from '../../services/poi-rendering.service';
-import { TradeAreaTypeCodes } from '../../val-modules/targeting/targeting.enums';
 import { FullAppState } from '../app.interfaces';
-import { ClearTradeAreas, RenderAudienceTradeAreas, RenderAudienceTradeAreasComplete, RenderingActionTypes, RenderLocations, RenderRadiusTradeAreas, RenderRadiusTradeAreasComplete, RenderTradeAreas } from './rendering.actions';
+import {
+  ClearTradeAreas,
+  RenderAudienceTradeAreas,
+  RenderAudienceTradeAreasComplete,
+  RenderingActionTypes,
+  RenderLocations,
+  RenderRadiusTradeAreas,
+  RenderRadiusTradeAreasComplete,
+  RenderTradeAreas
+} from './rendering.actions';
 import { RenderingService } from './rendering.service';
 import { prepareAudienceTradeAreas, prepareRadiusTradeAreas } from './trade-area.transform';
 

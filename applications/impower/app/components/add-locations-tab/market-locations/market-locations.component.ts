@@ -4,7 +4,6 @@ import { accumulateArrays, formatMilli } from '@val/common';
 import { EsriQueryService } from '@val/esri';
 import { ErrorNotification, StartLiveIndicator, StopLiveIndicator, WarningNotification } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from 'app/impower-datastore/state/models/impower-model.enums';
 import { ValGeocodingRequest } from 'app/models/val-geocoding-request.model';
 import { AppGeocodingService } from 'app/services/app-geocoding.service';
 import { AppLocationService } from 'app/services/app-location.service';
@@ -24,7 +23,12 @@ import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/servic
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { reduce, tap } from 'rxjs/operators';
-import { DAOBaseStatus } from '../../../val-modules/api/models/BaseModel';
+import {
+  DAOBaseStatus,
+  ImpClientLocationTypeCodes,
+  SuccessfulLocationTypeCodes,
+  TradeAreaTypeCodes
+} from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { ImpGeofootprintGeo } from '../../../val-modules/targeting/models/ImpGeofootprintGeo';
 
 class ContainerValue {

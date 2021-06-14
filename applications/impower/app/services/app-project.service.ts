@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { isNotNil, isValidNumber } from '@val/common';
 import { Observable, of, throwError } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
+import {
+  ImpClientLocationTypeCodes,
+  SuccessfulLocationTypeCodes,
+  TradeAreaMergeTypeCodes
+} from '../../worker-shared/data-model/impower.data-model.enums';
 import { RestResponse } from '../models/RestResponse';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -10,7 +15,6 @@ import { ImpGeofootprintLocationService } from '../val-modules/targeting/service
 import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from '../val-modules/targeting/services/ImpProjectPref.service';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaMergeTypeCodes } from '../val-modules/targeting/targeting.enums';
 import { AppLoggingService } from './app-logging.service';
 
 @Injectable()
@@ -123,8 +127,6 @@ export class AppProjectService {
       ta.glId = undefined;
       ta.cgmId = undefined;
       ta.projectId = undefined;
-      // remove geovars
-      ta.impGeofootprintVars = [];
     });
     localProject.getImpGeofootprintGeos().forEach(geo => {
       geo.ggId = undefined;

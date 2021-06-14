@@ -8,6 +8,7 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Observable } from 'rxjs';
 import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { ProjectPrefGroupCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { LoadAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
@@ -22,7 +23,6 @@ import { ClearTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
-import { ProjectPrefGroupCodes } from '../val-modules/targeting/targeting.enums';
 import { AppGeoService } from './app-geo.service';
 import { AppLayerService } from './app-layer.service';
 import { AppLocationService } from './app-location.service';
