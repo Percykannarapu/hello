@@ -12,6 +12,7 @@ import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
 import { isEmpty, isString, simpleFlatten } from '@val/common';
 import { ErrorNotification, SuccessNotification } from '@val/messaging';
+import { LocationBySiteNum } from 'app/common/valassis-sorters';
 import { EMPTY, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { WorkerProcessReturnType, WorkerResponse, WorkerResult } from '../../../../worker-shared/core-interfaces';
@@ -194,6 +195,7 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       if (this.length() === 0) {
         return throwError('You must add sites or competitors prior to exporting');
       } else {
+        this.get().sort(LocationBySiteNum);
         const payload: LocationExportWorkerPayload = {
           rows: this.get(),
           format: exportFormat,
