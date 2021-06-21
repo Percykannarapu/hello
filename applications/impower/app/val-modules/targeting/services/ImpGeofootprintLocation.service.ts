@@ -195,9 +195,8 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
       if (this.length() === 0) {
         return throwError('You must add sites or competitors prior to exporting');
       } else {
-        this.get().sort(LocationBySiteNum);
         const payload: LocationExportWorkerPayload = {
-          rows: this.get(),
+          rows: this.get().sort(LocationBySiteNum),
           format: exportFormat,
           siteType: siteType,
           currentProject: {
