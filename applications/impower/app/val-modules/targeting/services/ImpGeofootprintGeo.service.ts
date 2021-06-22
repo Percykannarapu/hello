@@ -19,9 +19,13 @@ import { DynamicVariable } from 'app/impower-datastore/state/transient/dynamic-v
 import { MustCoverRollDownGeos, RollDownGeosComplete } from 'app/state/data-shim/data-shim.actions';
 import { BehaviorSubject, EMPTY, Observable, throwError } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { WorkerProcessReturnType, WorkerResponse, WorkerResult } from '../../../../worker-shared/core-interfaces';
+import { WorkerResponse, WorkerResult } from '../../../../worker-shared/common/core-interfaces';
 import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
-import { GeoFootprintExportFormats, GeoFootprintExportWorkerPayload } from '../../../../worker-shared/payload-interfaces';
+import {
+  GeoFootprintExportFormats,
+  GeoFootprintExportWorkerPayload,
+  WorkerProcessReturnType
+} from '../../../../worker-shared/export-workers/payloads';
 import { PrettyGeoSort, RankGeoSort } from '../../../common/valassis-sorters';
 import { WorkerFactory } from '../../../common/worker-factory';
 import { LocalAppState } from '../../../state/app.interfaces';

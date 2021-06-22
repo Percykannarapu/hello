@@ -2,7 +2,6 @@ import { groupBy } from '@val/common';
 import { BehaviorSubject, EMPTY, Observable, Subject, throwError } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
-import { ColumnDefinition } from '../../../../worker-shared/core-interfaces';
 import { FileService } from './file.service';
 import { LoggingService } from './logging.service';
 import { RestDataService } from './restdata.service';
@@ -755,86 +754,6 @@ export class DataStore<T>
    public length()
    {
       return this?._dataStore?.length ?? 0;
-   }
-
-   //
-   //  EXPORT METHODS
-   //
-   // So there is more work to do here to utilize sourceData.
-   // The export variable handlers would have no access to this sourcedata parameter.
-   // Would need to make it a member of the service.  Not sure how I feel about that.
-   // Multiple exports at the same time could clobber both of them.
-   // Add additional state that can be passed to them?  Is that even possible?
-   public prepareCSV(columns: ColumnDefinition<T>[], sourceData?: Array<T>) : string[]
-   {
-      // Set the input Array
-      const csvSource: Array<T> = (sourceData == null) ? this._dataStore : sourceData;
-
-      this.logger.debug.log(this.storeName, 'datastore.service.prepareCSV fired - with ' + csvSource.length + ' rows of store data');
-
-      if (csvSource.length < 1) {
-         throw new Error('prepareCSV - No data provided to export');
-      }
-
-      // Initialize Output Array
-      const csvData: string[] = new Array<string>();
-      let row: string;
-      let field: any;
-
-      // Write Headers
-      let fieldsForRow: string[] = [];
-
-      for (const column of columns)
-      {
-         if (typeof column.header === 'string' && column.header.includes(',')) {
-           field = `"${column.header}"`;
-         } else {
-           field = column.header;
-         }
-         // Add the header surround in double quotes if not already
-         fieldsForRow.push(field);
-       //  row += (field != null) ? ((field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"')) + ',' : ',';
-      }
-      row = fieldsForRow.join(',');
-
-      // If we have built headers, push it to the result
-      if (row !== '')
-         csvData.push(row);
-
-      // For every row of data in the data store
-      for (const data of csvSource)
-      {
-         // Begin a new line for every row of data
-         row = '';
-         fieldsForRow = [];
-
-         // Loop through each column determining its final value
-         for (const column of columns)
-         {
-            if (typeof(column.row) === 'string' || typeof(column.row) === 'number' || column.row == null)
-               field = column.row;
-            else
-            if (typeof(column.row) === 'function')
-               field = column.row(this, data, column.header.toString());
-            else
-            {
-               this.logger.warn.log('column: ' + column.header + ' = ' + column.row + ' (Unrecognized Type: ' + typeof(column.row) + ')');
-               field = column.row;
-            }
-
-            // If we have a string, enclose it with double quotes if it isn't already
-            if (field != null && typeof(field) === 'string')
-               field = (field.slice(0, 1) === '"' ? '' : '"') + field + (field.slice(-1) === '"' ? '' : '"');
-
-            // Add the final value in field to the row
-            fieldsForRow.push(field);
-         }
-         row = fieldsForRow.join(',');
-         // If we have built a row, push it to the result
-         if (row !== '')
-            csvData.push(row);
-      }
-      return csvData;
    }
 
    public downloadExport(filename: string, csvData: string[])

@@ -1,0 +1,34 @@
+<div>
+  <div class="p-grid">
+    <div class="p-col-6">
+      <val-search-input #searchInput (resultChanged)="onSearch($event)"></val-search-input>
+    </div>
+    <div class="p-col-4 p-d-flex">
+      <p-checkbox label="Include folder in search" binary="true"
+                  *ngIf="showFolderCheckbox"
+                  [ngModel]="includeFolder$ | async"
+                  (onChange)="includeFolder$.next($event.checked)"></p-checkbox>
+    </div>
+    <div class="p-col-2 p-d-flex p-ai-end p-jc-end">
+      <button type="button" pButton label="refresh" class="p-button-link p-button-sm" (click)="forceRefresh()"></button>
+    </div>
+  </div>
+  <p-tree selectionMode="checkbox" loadingIcon="pi pi-spin pi-spinner"
+          [loading]="loading"
+          [value]="currentNodes"
+          [selection]="selectedNodes$ | async"
+          [trackBy]="trackByKey"
+          (onNodeSelect)="nodeSelect($event.node)"
+          (onNodeUnselect)="nodeDeselect($event.node)"
+          (onNodeExpand)="openNode($event.node)"
+          (onNodeCollapse)="closeNode($event.node)">
+    <ng-template let-node pTemplate="default">
+      <ng-container *ngIf="node.escaped">
+        <span [innerHTML]="node.label"></span>
+      </ng-container>
+      <ng-container *ngIf="!node.escaped">
+        <span>{{node.label}}</span>
+      </ng-container>
+    </ng-template>
+  </p-tree>
+</div>

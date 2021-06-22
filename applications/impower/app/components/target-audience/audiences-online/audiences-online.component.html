@@ -3,8 +3,10 @@
       <val-online-audience-apio [reservedAudienceIds]="reservedAudiences$ | async"></val-online-audience-apio>
     </p-accordionTab>
 
-    <p-accordionTab header="Visit Likelihood" *acsGrant="['VARIABLE_CATEGORY_VISIT_LIKELIHOOD']">
-      <val-online-audience-vlh [reservedAudienceIds]="reservedAudiences$ | async"></val-online-audience-vlh>
+    <p-accordionTab header="Visit Likelihood" *acsGrant="['VARIABLE_CATEGORY_VISIT_LIKELIHOOD']" [cache]="false">
+      <ng-template pTemplate="content">
+        <val-online-audience-vlh [reservedAudienceIds]="reservedAudiences$ | async"></val-online-audience-vlh>
+      </ng-template>
     </p-accordionTab>
 
     <p-accordionTab header="Pixel Data" *acsGrant="['VARIABLE_CATEGORY_PIXEL']">

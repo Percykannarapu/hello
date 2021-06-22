@@ -2,31 +2,12 @@
   <h6>
     Pixel Id - First Fire Date - Fire Count are listed below
   </h6>
-  <div class="p-grid">
-    <div class="p-col-6">
-      <div class="p-inputgroup">
-        <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
-        <span class="p-float-label">
-          <input pInputText id="pixelSearch" (keyup)="searchTerm$.next($event.target.value)" [ngModel]="searchTerm$ | async"/>
-          <label for="pixelSearch">Search</label>
-        </span>
-      </div>
-    </div>
-  </div>
-  <p-tree selectionMode="checkbox" loadingIcon="pi pi-spin pi-spinner"
-          [loading]="loading$ | async"
-          [value]="currentNodes$ | async"
-          [selection]="selectedNodes$ | async"
-          [trackBy]="trackByKey"
-          (onNodeSelect)="selectVariable($event.node)"
-          (onNodeUnselect)="removeVariable($event.node)">
-    <ng-template let-node pTemplate="disabled">
-      <span class="unselectable">
-        {{node.data.categoryName}}&nbsp;&nbsp;&nbsp;{{node.data.categoryDescription}}&nbsp;&nbsp;&nbsp;{{formatCount(node.data.taxonomy)}}
-      </span>
-    </ng-template>
-    <ng-template let-node pTemplate="default">
-      {{node.data.categoryName}}&nbsp;&nbsp;&nbsp;{{node.data.categoryDescription}}&nbsp;&nbsp;&nbsp;{{formatCount(node.data.taxonomy)}}
-    </ng-template>
-  </p-tree>
+  <val-brokered-treeview [showFolderCheckbox]="false"
+                         [selectedAudiences$]="selectedAudiences$"
+                         [brokers]="[pixelBroker]"
+                         currentBrokerId="{{pixelBroker.workerId}}"
+                         [audienceGenerator]="createAudience"
+                         [audiencePkGetter]="getPk"
+                         [reservedAudienceIds]="reservedAudienceIds">
+  </val-brokered-treeview>
 </div>

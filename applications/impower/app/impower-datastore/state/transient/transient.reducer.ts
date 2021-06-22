@@ -1,5 +1,4 @@
 import { Action, ActionReducer, ActionReducerMap, combineReducers } from '@ngrx/store';
-import * as fromDefinitions from './audience-definitions/audience-definitions.reducer';
 import * as fromAudience from './audience/audience.reducer';
 import * as fromCustomVars from './custom-vars/custom-vars.reducer';
 import * as fromGeoAttribute from './geo-attributes/geo-attributes.reducer';
@@ -13,7 +12,6 @@ export interface ImpowerTransientState {
   geoVars: fromGeoVars.State;
   mapVars: fromMapVars.State;
   geoAttributes: fromGeoAttribute.State;
-  audienceDefinitions: fromDefinitions.State;
   transactions: fromTransactions.State;
 }
 
@@ -23,7 +21,6 @@ const transientReducers: ActionReducerMap<ImpowerTransientState> = {
   geoVars: fromGeoVars.reducer,
   mapVars: fromMapVars.reducer,
   geoAttributes: fromGeoAttribute.reducer,
-  audienceDefinitions: fromDefinitions.reducer,
   transactions: fromTransactions.reducer,
 };
 

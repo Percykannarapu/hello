@@ -1,21 +1,8 @@
-<div>
-  <div class="p-grid">
-    <div class="p-col-6">
-      <div class="p-inputgroup">
-        <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
-        <span class="p-float-label">
-          <input pInputText id="tdaSearch" (keyup)="searchTerm$.next($event.target.value)" [ngModel]="searchTerm$ | async"/>
-          <label for="tdaSearch">Search</label>
-        </span>
-      </div>
-    </div>
-  </div>
-  <p-tree selectionMode="checkbox" loadingIcon="pi pi-spin pi-spinner"
-          [loading]="loading$ | async"
-          [value]="currentNodes$ | async"
-          [selection]="selectedNodes$ | async"
-          [trackBy]="trackByKey"
-          (onNodeSelect)="selectVariable($event.node)"
-          (onNodeUnselect)="removeVariable($event.node)">
-  </p-tree>
-</div>
+<val-brokered-treeview [showFolderCheckbox]="true"
+                       [selectedAudiences$]="selectedAudiences$"
+                       [brokers]="[tdaBroker]"
+                       currentBrokerId="{{tdaBroker.workerId}}"
+                       [audienceGenerator]="createAudience"
+                       [audiencePkGetter]="getPk"
+                       [reservedAudienceIds]="reservedAudienceIds">
+</val-brokered-treeview>

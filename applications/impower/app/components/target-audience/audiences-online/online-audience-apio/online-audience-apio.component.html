@@ -1,31 +1,26 @@
 <div>
   <div class="p-grid">
-    <div class="p-col-6">
-      <div class="p-inputgroup">
-        <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
-        <span class="p-float-label">
-          <input pInputText id="apioSearch" (keyup)="searchTerm$.next($event.target.value)" [ngModel]="searchTerm$ | async"/>
-          <label for="apioSearch">Search</label>
-        </span>
+    <div class="p-col-8 p-grid">
+      <div *acsGrant="['VARIABLE_CATEGORY_INTEREST']" class="p-col-6">
+        <p-radioButton label="Interest (rolling 12 months)" name="sourceType"
+                       [ngModel]="selectedSource$ | async"
+                       [value]="SourceType.Interest"
+                       (onClick)="selectedSource$.next(SourceType.Interest)"></p-radioButton>
+      </div>
+      <div *acsGrant="['VARIABLE_CATEGORY_INMARKET']" class="p-col-6">
+        <p-radioButton label="In-Market (rolling 7 days)" name="sourceType"
+                       [ngModel]="selectedSource$ | async"
+                       [value]="SourceType.InMarket"
+                       (onClick)="selectedSource$.next(SourceType.InMarket)"></p-radioButton>
       </div>
     </div>
-    <div class="p-col-6 val-folder-search">
-      <p-checkbox  [ngModel]="includeFolder$ | async" binary="true" (onChange)="includeFolder$.next($event.checked)" label="Include folder in search"></p-checkbox>
-    </div>
   </div>
-  <div class="p-grid">
-    <div *acsGrant="['VARIABLE_CATEGORY_INTEREST']" class="p-col-4">
-      <p-radioButton name="sourceType" [ngModel]="selectedSource$ | async" label="Interest (rolling 12 months)" [value]="SourceType.Interest" (onClick)="onSourceChanged(SourceType.Interest)"></p-radioButton>
-    </div>
-    <div *acsGrant="['VARIABLE_CATEGORY_INMARKET']" class="p-col-4">
-      <p-radioButton name="sourceType" [ngModel]="selectedSource$ | async" label="In-Market (rolling 7 days)" [value]="SourceType.InMarket" (onClick)="onSourceChanged(SourceType.InMarket)"></p-radioButton>
-    </div>
-  </div>
-  <p-tree loadingIcon="pi pi-spin pi-spinner" selectionMode="checkbox"
-          [loading]="loading$ | async"
-          [value]="currentNodes$ | async"
-          [selection]="currentSelectedNodes$ | async"
-          [trackBy]="trackByKey"
-          (onNodeSelect)="selectVariable($event.node)"
-          (onNodeUnselect)="removeVariable($event.node)"></p-tree>
+  <val-brokered-treeview [showFolderCheckbox]="true"
+                         [selectedAudiences$]="selectedAudiences$"
+                         [brokers]="brokers"
+                         [currentBrokerId]="currentBrokerId"
+                         [audienceGenerator]="createAudience"
+                         [audiencePkGetter]="getPk"
+                         [reservedAudienceIds]="reservedAudienceIds">
+  </val-brokered-treeview>
 </div>

@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
-import { exportLocations } from '../worker-shared/location-export.state';
-import { LocationExportWorkerPayload } from '../worker-shared/payload-interfaces';
+import { exportLocations } from '../worker-shared/export-workers/location-export.state';
+import { LocationExportWorkerPayload } from '../worker-shared/export-workers/payloads';
 
 interface Payload { data: LocationExportWorkerPayload; }
 

@@ -1,4 +1,5 @@
 import { createSelector } from '@ngrx/store';
+import { isStringArray } from '@val/common';
 import { OnlineSourceTypes } from '../../../../models/audience-enums';
 import { transientSlice } from '../../impower-datastore.selectors';
 import * as fromAudience from '../audience/audience.reducer';
@@ -22,12 +23,14 @@ export const getAudiencesInExtract = createSelector(allAudiences, (audiences: Au
 const allDigitalAudiences = createSelector(allAudiences, (audiences) => audiences.filter(a => a.audienceSourceType === 'Online'));
 export const getInterestAudiences = createSelector(allDigitalAudiences, (audiences) => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.Interest));
 export const getInMarketAudiences = createSelector(allDigitalAudiences, (audiences) => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.InMarket));
+export const getInterestAndMarketAudiences = createSelector(allDigitalAudiences, audiences => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.InMarket || a.audienceSourceName === OnlineSourceTypes.Interest));
 export const getVlhAudiences = createSelector(allDigitalAudiences, (audiences) => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.VLH));
 export const getPixelAudiences = createSelector(allDigitalAudiences, (audiences) => audiences.filter(a => a.audienceSourceName === OnlineSourceTypes.Pixel));
 export const getTdaAudiences = createSelector(allAudiences, (audiences) => audiences.filter(a => a.audienceSourceType === 'Offline'));
 
 const createdSources = new Set(['Combined', 'Converted', 'Combined/Converted', 'Composite']);
 export const getCreatedAudiences = createSelector(allAudiences, (audiences) => audiences.filter(a => createdSources.has(a.audienceSourceType)));
+export const getReservedIds = createSelector(getCreatedAudiences, audiences => new Set(audiences.flatMap(a => isStringArray(a.compositeSource) ? a.compositeSource.map(cs => Number(cs)) : a.compositeSource.map(cs => cs.id))));
 const preAssignedPks = new Set(['Online', 'Offline']);
 const assignedPkAudiences = createSelector(allAudiences, audiences => audiences.filter(a => !preAssignedPks.has(a.audienceSourceType)));
 export const getMaxAssignedPk = createSelector(assignedPkAudiences, audiences => audiences.reduce((p, c) => Math.max(p, Number(c.audienceIdentifier)), 0));

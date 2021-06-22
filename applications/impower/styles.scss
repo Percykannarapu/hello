@@ -170,6 +170,9 @@ body {
 // overriding float label position
 .p-float-label {
   margin-top: 0.5rem;
+  &.val-full-size-float {
+    margin-top: unset;
+  }
 }
 
 .p-float-label input:focus ~ label,

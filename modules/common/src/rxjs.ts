@@ -1,4 +1,3 @@
-import { Action } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { filter, map, pairwise, startWith } from 'rxjs/operators';
 
@@ -20,19 +19,6 @@ export const distinctArray = <T>() => (source$: Observable<T[]>) : Observable<T[
     map(itemSet => Array.from(itemSet))
   );
 };
-
-export type ActionWithPayload<T> = Action & { payload: T };
-/**
- * @deprecated Use Action & Effect Creators to eliminate the need for this helper
- */
-export function toPayload<T, U>() : (source$: Observable<ActionWithPayload<T>>) => Observable<T>;
-export function toPayload<T, U>(selector: (payload: T) => U) : (source$: Observable<ActionWithPayload<T>>) => Observable<U>;
-export function toPayload<T, U>(selector?: (payload: T) => U) : (source$: Observable<ActionWithPayload<T>>) => Observable<T | U> {
-  return source$ => source$.pipe(
-    map(action => action.payload),
-    map(payload => selector != null ? selector(payload) : payload)
-  );
-}
 
 /**
  * Filters an rxjs pipeline to prevent the flow of events until a non-zero value drops back down to 0.

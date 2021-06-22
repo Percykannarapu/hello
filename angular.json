@@ -94,6 +94,10 @@
                 {
                   "replace": "applications/impower/environments/environment.ts",
                   "with": "applications/impower/environments/environment.qa.ts"
+                },
+                {
+                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
+                  "with": "applications/impower/worker-shared/common/env/server-urls.qa.ts"
                 }
               ]
             },
@@ -111,6 +115,10 @@
                 {
                   "replace": "applications/impower/environments/environment.ts",
                   "with": "applications/impower/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
+                  "with": "applications/impower/worker-shared/common/env/server-urls.prod.ts"
                 }
               ]
             },
@@ -128,6 +136,10 @@
                 {
                   "replace": "applications/impower/environments/environment.ts",
                   "with": "applications/impower/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
+                  "with": "applications/impower/worker-shared/common/env/server-urls.prod.ts"
                 }
               ]
             },
@@ -136,6 +148,10 @@
                 {
                   "replace": "applications/impower/environments/environment.ts",
                   "with": "applications/impower/environments/environment.local-fuse.ts"
+                },
+                {
+                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
+                  "with": "applications/impower/worker-shared/common/env/server-urls.local.ts"
                 }
               ]
             },
@@ -161,6 +177,10 @@
                 {
                   "replace": "applications/impower/environments/environment.ts",
                   "with": "applications/impower/environments/environment.prod-as-dev.ts"
+                },
+                {
+                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
+                  "with": "applications/impower/worker-shared/common/env/server-urls.prod.ts"
                 }
               ]
             }

@@ -1,5 +1,6 @@
 import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
+import { serverEnv } from '../worker-shared/common/env/server-urls';
 
 export const environment = {
   production: true,
@@ -14,7 +15,7 @@ export class EnvironmentData {
   // The name of the environment
   public static environmentName = 'QA';
 
-  public static fuseBaseUrl = 'https://impowerqa.valassis.com/services/';
+  public static fuseBaseUrl = serverEnv.middlewareBase;
   public static impowerBaseUrl = 'https://impowerqa.valassis.com/';
   public static printServiceUrl = 'https://impowerpdf.valassisdigital.io';
 

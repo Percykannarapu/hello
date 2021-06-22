@@ -1,15 +1,13 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { isStringArray, simpleFlatten } from '@val/common';
 import { Observable, Subject } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import * as fromAudienceSelectors from '../../../impower-datastore/state/transient/audience/audience.selectors';
 import { LocalAppState } from '../../../state/app.interfaces';
 
 @Component({
   selector: 'val-audiences-offline',
-  templateUrl: './audiences-offline.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  templateUrl: './audiences-offline.component.html'
 })
 export class AudiencesOfflineComponent implements OnInit, OnDestroy {
 
@@ -23,11 +21,6 @@ export class AudiencesOfflineComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.reservedAudiences$ = this.store$.select(fromAudienceSelectors.getCreatedAudiences).pipe(
-      takeUntil(this.destroyed$),
-      map(audiences => audiences.map(a => isStringArray(a.compositeSource) ? a.compositeSource.map(cs => Number(cs)) : a.compositeSource.map(cs => cs.id))),
-      map(ids => simpleFlatten(ids)),
-      map(audienceIds => new Set<number>(audienceIds))
-    );
+    this.reservedAudiences$ = this.store$.select(fromAudienceSelectors.getReservedIds).pipe(takeUntil(this.destroyed$));
   }
 }

@@ -1,16 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { isStringArray, simpleFlatten } from '@val/common';
 import { Observable, Subject } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import * as fromAudienceSelectors from '../../../impower-datastore/state/transient/audience/audience.selectors';
 import { AppStateService } from '../../../services/app-state.service';
 import { LocalAppState } from '../../../state/app.interfaces';
 
 @Component({
   selector: 'val-audiences-online',
-  templateUrl: './audiences-online.component.html',
-  styleUrls: ['./audiences-online.component.scss']
+  templateUrl: './audiences-online.component.html'
 })
 export class AudiencesOnlineComponent implements OnInit, OnDestroy {
 
@@ -31,11 +29,6 @@ export class AudiencesOnlineComponent implements OnInit, OnDestroy {
     ).subscribe(() => {
       this.activeAccordion = null;
     });
-    this.reservedAudiences$ = this.store$.select(fromAudienceSelectors.getCreatedAudiences).pipe(
-      takeUntil(this.destroyed$),
-      map(audiences => audiences.map(a => isStringArray(a.compositeSource) ? a.compositeSource.map(cs => Number(cs)) : a.compositeSource.map(cs => cs.id))),
-      map(ids => simpleFlatten(ids)),
-      map(audienceIds => new Set<number>(audienceIds))
-    );
+    this.reservedAudiences$ = this.store$.select(fromAudienceSelectors.getReservedIds).pipe(takeUntil(this.destroyed$));
   }
 }

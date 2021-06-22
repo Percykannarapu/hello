@@ -189,6 +189,8 @@ import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/service
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
+import { SearchInputComponent } from './components/common/search-input/search-input.component';
+import { BrokeredTreeviewComponent } from './components/common/brokered-treeview/brokered-treeview.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -394,7 +396,9 @@ export function esriSetupFactory() : ForRootOptions {
     AdminDialogComponent,
     FailedLocationsTabComponent,
     FailedGeocodeGridComponent,
-    EditLocationsComponent
+    EditLocationsComponent,
+    SearchInputComponent,
+    BrokeredTreeviewComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

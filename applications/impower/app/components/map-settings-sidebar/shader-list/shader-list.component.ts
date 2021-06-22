@@ -1,16 +1,15 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { isString } from '@val/common';
 import { duplicateShadingDefinition, EsriShadingService, isArcadeCapableShadingDefinition, ShadingDefinition } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Observable, Subject } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { FieldContentTypeCodes } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { Audience } from '../../../impower-datastore/state/transient/audience/audience.model';
-import { OfflineAudienceDefinition } from '../../../models/audience-categories.model';
 import { createOfflineAudienceInstance } from '../../../models/audience-factories';
 import { GfpShaderKeys } from '../../../models/ui-enums';
 import { AppLocationService } from '../../../services/app-location.service';
 import { AppRendererService } from '../../../services/app-renderer.service';
-import { UnifiedAudienceDefinitionService } from '../../../services/unified-audience-definition.service';
 import { UnifiedAudienceService } from '../../../services/unified-audience.service';
 import { FullAppState } from '../../../state/app.interfaces';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
@@ -44,7 +43,6 @@ export class ShaderListComponent implements OnInit, OnDestroy {
               private esriShaderService: EsriShadingService,
               private logger: LoggingService,
               private store$: Store<FullAppState>,
-              private definitionService: UnifiedAudienceDefinitionService,
               private audienceService: UnifiedAudienceService) { }
 
   ngOnInit() : void {
@@ -71,13 +69,16 @@ export class ShaderListComponent implements OnInit, OnDestroy {
     if (event != null) event.stopPropagation();
   }
 
-  addNewShader({ dataKey, layerName }: { dataKey: string, layerName?: string }) {
-    this.definitionService.getRawTdaDefinition(dataKey).pipe(
-      filter(data => data != null),
-      map(data => new OfflineAudienceDefinition(data)),
-      map(aud => createOfflineAudienceInstance(aud.displayName, aud.identifier, aud.fieldconte, false))
-    ).subscribe(audience => this.audienceService.addAudience(audience));
-    const newShader = this.appRenderService.createNewShader(dataKey, layerName) as ShadingDefinition;
+  addNewShader({ dataKey, layerName }: { dataKey: string | { displayName: string, identifier: string, fieldconte: FieldContentTypeCodes }, layerName?: string }) {
+    let shaderKey: string;
+    if (!isString(dataKey)) {
+      shaderKey = dataKey.identifier;
+      const audience = createOfflineAudienceInstance(dataKey.displayName, dataKey.identifier, dataKey.fieldconte, false);
+      this.audienceService.addAudience(audience);
+    } else {
+      shaderKey = dataKey;
+    }
+    const newShader = this.appRenderService.createNewShader(shaderKey, layerName) as ShadingDefinition;
     newShader.sortOrder = Math.max(...this.shadingDefinitions.map(s => s.sortOrder), this.shadingDefinitions.length) + 1;
     this.esriShaderService.addShader(newShader);
     this.currentOpenId = newShader.id;

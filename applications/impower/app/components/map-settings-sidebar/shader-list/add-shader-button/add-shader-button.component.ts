@@ -1,7 +1,14 @@
 /* tslint:disable:component-selector */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MenuItem } from 'primeng/api';
+import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { GfpShaderKeys } from '../../../../models/ui-enums';
+
+interface InlineAudience {
+  displayName: string;
+  identifier: string;
+  fieldconte: FieldContentTypeCodes;
+}
 
 @Component({
   selector: 'add-shader-button',
@@ -24,21 +31,25 @@ export class AddShaderButtonComponent {
     return this.buttonMenu().some(m => m.visible);
   }
 
-  @Output() addShader = new EventEmitter<{ dataKey: string, layerName?: string }>();
+  @Output() addShader = new EventEmitter<{ dataKey: string | InlineAudience, layerName?: string }>();
 
   constructor() { }
 
   private buttonMenu() : MenuItem[] {
-    const ATZIndicatorVarPk = '40683';
+    const atzIndicator: InlineAudience = {
+      identifier: '40683',
+      displayName: 'ATZ Indicator',
+      fieldconte: FieldContentTypeCodes.Char
+    };
     return [
       { label: 'Add Owner Site Shading', command: () => this.add(GfpShaderKeys.OwnerSite, 'Owner Site'), visible: this.locationCount > 0 && this.geoCount > 0 },
       { label: 'Add Owner TA Shading', command: () => this.add(GfpShaderKeys.OwnerTA, 'Owner Trade Area'), visible: this.tradeAreaCount > 0 && this.geoCount > 0 },
-      // { label: 'Add ATZ Indicator Shading', command: () => this.add(ATZIndicatorVarPk, 'ATZ Indicator'), visible: this.currentAnalysisLevel != null && this.currentAnalysisLevel.toLowerCase() === 'atz' },
+      // { label: 'Add ATZ Indicator Shading', command: () => this.add(atzIndicator, 'ATZ Indicator'), visible: this.currentAnalysisLevel != null && this.currentAnalysisLevel.toLowerCase() === 'atz' },
       { label: 'Add Variable Shading', command: () => this.add(''), visible: this.audienceCount > 0 }
     ];
   }
 
-  private add(dataKey: string, layerName?: string) : void {
+  private add(dataKey: string | InlineAudience, layerName?: string) : void {
     this.addShader.emit({ dataKey, layerName });
   }
 }

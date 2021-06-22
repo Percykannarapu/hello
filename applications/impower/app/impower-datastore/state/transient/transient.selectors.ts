@@ -63,7 +63,7 @@ export const selectGridGeoVars = createSelector(
       });
 
 
-
+    // todo: when this is moved to web worker, eliminate the groupEntityToArray util function
     const entityMap: Map<string, any> = groupEntityToArray(Object.keys(mergedVars).map(key => mergedVars[key]),
       (k) => {
         if (k === 'geocode')

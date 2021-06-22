@@ -5,6 +5,7 @@
 
 import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
+import { serverEnv } from '../worker-shared/common/env/server-urls';
 
 export const environment = {
   production: false,
@@ -19,7 +20,7 @@ export class EnvironmentData {
   // The name of the environment
   public static environmentName = 'LOCAL';
 
-  public static fuseBaseUrl = 'http://localhost:9191/cxf/services/';
+  public static fuseBaseUrl = serverEnv.middlewareBase;
   public static impowerBaseUrl = 'http://localhost:4200/';
   public static printServiceUrl = 'http://localhost:9128';
 

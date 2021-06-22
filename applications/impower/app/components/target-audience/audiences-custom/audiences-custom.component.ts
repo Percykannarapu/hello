@@ -5,8 +5,7 @@ import { AppStateService } from '../../../services/app-state.service';
 
 @Component({
   selector: 'val-audiences-custom',
-  templateUrl: './audiences-custom.component.html',
-  styleUrls: ['./audiences-custom.component.scss']
+  templateUrl: './audiences-custom.component.html'
 })
 export class AudiencesCustomComponent implements OnInit, OnDestroy {
 
