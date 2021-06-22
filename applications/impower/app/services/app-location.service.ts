@@ -16,7 +16,7 @@ import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ConfirmationService, SelectItem } from 'primeng/api';
 import { BehaviorSubject, combineLatest, EMPTY, forkJoin, merge, Observable, of } from 'rxjs';
-import { filter, finalize, map, mergeMap, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, finalize, map, mergeMap, reduce, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import { EnvironmentData } from '../../environments/environment';
 import { ImpClientLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
@@ -136,6 +136,8 @@ export class AppLocationService {
   }
 
   private initializeSubscriptions() {
+    const projectReady$ = this.store$.select(projectIsReady).pipe(distinctUntilChanged());
+
     const allLocations$ = this.impLocationService.storeObservable.pipe(
       filter(locations => locations != null)
     );
@@ -183,20 +185,19 @@ export class AppLocationService {
 
     this.activeClientLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, ImpClientLocationTypeCodes.Site));
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, ImpClientLocationTypeCodes.Competitor));
-    this.appStateService.analysisLevel$
-      .pipe(
-        withLatestFrom(this.appStateService.applicationIsReady$),
+    this.appStateService.analysisLevel$.pipe(
+        withLatestFrom(projectReady$),
         filter(([level, isReady]) => level != null && level.length > 0 && isReady)
       ).subscribe(([analysisLevel]) => {
       this.setPrimaryHomeGeocode(analysisLevel);
       this.appTradeAreaService.onAnalysisLevelChange();
     });
 
-    combineLatest([locationsWithHomeGeos$, this.appStateService.applicationIsReady$]).pipe(
+    combineLatest([locationsWithHomeGeos$, projectReady$]).pipe(
       filter(([locations, isReady]) => locations.length > 0 && isReady)
     ).subscribe(() => this.confirmationBox());
 
-    combineLatest([locationsWithoutRadius$, this.appStateService.applicationIsReady$]).pipe(
+    combineLatest([locationsWithoutRadius$, projectReady$]).pipe(
       filter(([locations, isReady]) => locations.length > 0 && isReady)
     ).subscribe(([locations]) => this.appTradeAreaService.onLocationsWithoutRadius(locations));
   }
