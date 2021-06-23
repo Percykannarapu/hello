@@ -65,6 +65,9 @@ export interface BatchMapPayload {
         groupByAttribute?: string;
         projectName: string;
         jobType: string;
+        enableLabel?: boolean;
+        enableSymbol?: boolean;
+        enableTaBoundaries?: boolean;
       }
     }
   }];

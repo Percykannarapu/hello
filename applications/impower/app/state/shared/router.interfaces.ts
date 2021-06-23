@@ -30,6 +30,9 @@ export interface BatchMapQueryParams {
   ymin: number;
   xmax: number;
   ymax: number;
+  labels: boolean;
+  symbols: boolean;
+  tradeAreaBoundaries: boolean;
 }
 
 const defaultBatchQueryParams: BatchMapQueryParams = {
@@ -47,7 +50,10 @@ const defaultBatchQueryParams: BatchMapQueryParams = {
   xmin: null,
   ymin: null,
   xmax: null,
-  ymax: null
+  ymax: null,
+  labels: true,
+  symbols: true,
+  tradeAreaBoundaries: true,
 };
 
 const getRouterSlice = (state: LocalAppState) => state.router;
@@ -65,6 +71,9 @@ export const getTypedBatchQueryParams = createSelector(getRouteQueryParams, stat
     if (state.hideNeighboringSites != null) result.hideNeighboringSites = strToBool(state.hideNeighboringSites);
     if (state.duplicated != null) result.duplicated = strToBool(state.duplicated);
     if (isConvertibleToNumber(state.buffer)) result.buffer = Number(state.buffer);
+    if (state.labels != null) result.labels = strToBool(state.labels);
+    if (state.symbols != null) result.symbols = strToBool(state.symbols);
+    if (state.tradeAreaBoundaries != null) result.tradeAreaBoundaries = strToBool(state.tradeAreaBoundaries);
   }
   return result;
 });

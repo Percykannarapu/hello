@@ -58,6 +58,9 @@ export class BatchMapDialogComponent implements OnInit {
   enableTradeAreaShading: boolean;
   disableTradeArea: boolean;
   sitesCount$: Observable<number> = of(0);
+  enableTradeAreaBoundaries: boolean;
+  enableLabels: boolean;
+  enableSymbols: boolean;
 
   constructor(private store$: Store<LocalAppState>,
     private fb: FormBuilder,
@@ -112,7 +115,10 @@ export class BatchMapDialogComponent implements OnInit {
       subSubTitleInput: '',
       taTitle: '',
       enableTradeAreaShading: false,
-      sitesToInclude: 'allActiveSites'
+      sitesToInclude: 'allActiveSites',
+      enableLabels: true,
+      enableSymbols: true,
+      enableTradeAreaBoundaries: true
     });
     this.batchMapForm.get('sitesByGroup').disable();
   }
@@ -142,6 +148,9 @@ export class BatchMapDialogComponent implements OnInit {
           enableTradeAreaShading: savedFormData.enableTradeAreaShading,
           sitesToInclude: savedFormData.sitesToInclude == null ? 'allActiveSites' : savedFormData.sitesToInclude,
           taTitle: savedFormData.taTitle == null ? '' : savedFormData.taTitle,
+          enableLabels: savedFormData.enableLabels == null ? true : savedFormData.enableLabels,
+          enableSymbols: savedFormData.enableSymbols == null ? true : savedFormData.enableSymbols,
+          enableTradeAreaBoundaries: savedFormData.enableTradeAreaBoundaries == null ? true : savedFormData.enableTradeAreaBoundaries
         });
 
       if (savedFormData.fitTo == '' || savedFormData.fitTo == null) {
@@ -174,7 +183,10 @@ export class BatchMapDialogComponent implements OnInit {
         subSubTitleInput: '',
         enableTradeAreaShading: false,
         sitesToInclude: 'allActiveSites',
-        taTitle: ''
+        taTitle: '',
+        enableLabels: true,
+        enableSymbols: true,
+        enableTradeAreaBoundaries: true
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
         const fitToFormControl = this.batchMapForm.get('fitTo');
@@ -227,8 +239,14 @@ export class BatchMapDialogComponent implements OnInit {
     this.batchMapForm.get('neighboringSites').valueChanges.subscribe(val => {
       if (val === 'include') {
         this.batchMapForm.get('enableTradeAreaShading').enable();
+        this.batchMapForm.get('enableLabels').enable();
+        this.batchMapForm.get('enableSymbols').enable();
+        this.batchMapForm.get('enableTradeAreaBoundaries').enable();
       } else if (val === 'exclude') {
         this.batchMapForm.get('enableTradeAreaShading').disable();
+        this.batchMapForm.get('enableLabels').disable();
+        this.batchMapForm.get('enableSymbols').disable();
+        this.batchMapForm.get('enableTradeAreaBoundaries').disable();
       }
     });
     this.batchMapForm.get('sitesPerPage').valueChanges.subscribe(val => {
@@ -361,7 +379,10 @@ export class BatchMapDialogComponent implements OnInit {
                   duplicated: !(dialogFields.deduplicated),
                   buffer: dialogFields.buffer,
                   projectName: this.currentProjectName,
-                  jobType: 'One Site per Page'
+                  jobType: 'One Site per Page',
+                  enableLabel: dialogFields.enableLabels,
+                  enableSymbol: dialogFields.enableSymbols,
+                  enableTaBoundaries: dialogFields.enableTradeAreaBoundaries
                 }
               }
             }

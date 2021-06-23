@@ -9,6 +9,7 @@ import { TradeAreaTypeCodes } from '../../../worker-shared/data-model/impower.da
 import { AppStateService } from '../../services/app-state.service';
 import { PoiRenderingService } from '../../services/poi-rendering.service';
 import { FullAppState } from '../app.interfaces';
+import { getTypedBatchQueryParams } from '../shared/router.interfaces';
 import {
   ClearTradeAreas,
   RenderAudienceTradeAreas,
@@ -62,9 +63,9 @@ export class RenderingEffects {
   renderRadii$ = this.actions$.pipe(
     ofType<RenderRadiusTradeAreas>(RenderingActionTypes.RenderRadiusTradeAreas),
     filter(action => action.payload.tradeAreas != null && action.payload.tradeAreas.length > 0),
-    withLatestFrom(this.appStateService.currentProject$),
-    map(([action, currentProject]) => prepareRadiusTradeAreas(action.payload.tradeAreas, currentProject, this.esriSettings.defaultSpatialRef)),
-    concatMap(definitions => this.renderingService.renderTradeAreas(definitions)),
+    withLatestFrom(this.appStateService.currentProject$, this.store$.select(getTypedBatchQueryParams)),
+    map(([action, currentProject, params]) => [prepareRadiusTradeAreas(action.payload.tradeAreas, currentProject, this.esriSettings.defaultSpatialRef), params] as const),
+    concatMap(([definitions, params]) => this.renderingService.renderTradeAreas(definitions, params)),
     concatMap(() => [
       new RenderRadiusTradeAreasComplete(),
       new StopBusyIndicator({ key: this.renderingKey })

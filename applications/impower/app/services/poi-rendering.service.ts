@@ -15,7 +15,8 @@ import {
   isFeatureLayer,
   PoiConfiguration,
   PoiConfigurationTypes,
-  RadiiTradeAreaDrawDefinition
+  RadiiTradeAreaDrawDefinition,
+  SimplePoiConfiguration
 } from '@val/esri';
 import { BatchMapQueryParams, getTypedBatchQueryParams } from 'app/state/shared/router.interfaces';
 import { ImpGeofootprintTradeArea } from 'app/val-modules/targeting/models/ImpGeofootprintTradeArea';
@@ -97,10 +98,11 @@ export class PoiRenderingService {
    */
   renderSites(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]) : void {
     const sitesByTypeCode: Record<string, ImpGeofootprintLocation[]> = groupToEntity(sites, s => s.clientLocationTypeCode);
-    if (this.config.isBatchMode && this.batchMapParams.hideNeighboringSites){
+    if (this.config.isBatchMode){
       renderingSetups =  this.updateRadiiDefination(sites, renderingSetups);
       this.esriPoiService.upsertPoiConfig(renderingSetups);
     }
+   
     this.renderPois(sitesByTypeCode, renderingSetups);
   }
 
@@ -323,11 +325,15 @@ export class PoiRenderingService {
 
   updateRadiiDefination(sites: ImpGeofootprintLocation[], renderingSetups: PoiConfiguration[]){
     sites = sites.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site);
-    renderingSetups.forEach(def => {
+    renderingSetups.forEach((def: SimplePoiConfiguration) => {
       if (def.dataKey === 'Site'){
-        //
-        const tas = this.applyRadiusTradeArea(def['tradeAreas'], ImpClientLocationTypeCodes.Site, sites);
-        this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, def);
+        def.symbolDefinition.size = this.batchMapParams.symbols ? def.symbolDefinition.size : 0;
+        def.showLabels = this.batchMapParams.labels;
+        if (this.batchMapParams.hideNeighboringSites){
+          const tas = this.applyRadiusTradeArea(def['tradeAreas'], ImpClientLocationTypeCodes.Site, sites);
+          this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, def);
+        }
+        
         const newDef: PoiConfiguration = duplicatePoiConfiguration(def);
       }
     });

@@ -177,7 +177,7 @@ export class EsriPoiService {
     const outline = EsriDomainFactory.createSimpleLineSymbol(outlineColor, outlineSize);
     const path = currentDef.markerType === 'path' ? MapSymbols.STAR : undefined;
     const sizeMultiple = currentDef.markerType === 'path' ? 1.4 : 1;
-    const markerSize = (currentDef.size || 10) * sizeMultiple;
+    const markerSize = (currentDef.size ?? 10) * sizeMultiple;
     return EsriDomainFactory.createSimpleMarkerSymbol(currentDef.color, outline, currentDef.markerType, path, markerSize);
   }
 

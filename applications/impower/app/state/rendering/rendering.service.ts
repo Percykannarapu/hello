@@ -7,6 +7,7 @@ import { from, merge, Observable, of } from 'rxjs';
 import { map, reduce, switchMap, tap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import { LoggingService } from '../../val-modules/common/services/logging.service';
+import { BatchMapQueryParams } from '../shared/router.interfaces';
 import { TradeAreaDrawDefinition } from './trade-area.transform';
 
 interface ValueMap {
@@ -72,7 +73,7 @@ export class RenderingService {
     });
   }
 
-  renderTradeAreas(defs: TradeAreaDrawDefinition[]) : Observable<__esri.FeatureLayer[]> {
+  renderTradeAreas(defs: TradeAreaDrawDefinition[], params?: BatchMapQueryParams) : Observable<__esri.FeatureLayer[]> {
     this.logger.debug.log('definitions for trade areas', defs);
     const result: Observable<__esri.FeatureLayer>[] = [];
     const requestedLayerNames = new Set<string>(defs.map(d => d.layerName));
@@ -131,7 +132,13 @@ export class RenderingService {
     if (result.length > 0) {
       return merge(...result).pipe(
         reduce((acc, curr) => [...acc, curr], [] as __esri.FeatureLayer[]),
-        tap(layers => this.logger.debug.log('Generated Radius Layers', layers))
+        tap(layers => {
+          this.logger.debug.log('Generated Radius Layers', layers);
+          if (this.config.isBatchMode){
+            layers.forEach(layer => layer.visible = params ? params.tradeAreaBoundaries : true);
+          }
+         
+        })
       );
     } else {
       return of([]);

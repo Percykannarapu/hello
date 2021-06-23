@@ -70,7 +70,7 @@ export class AdminDialogComponent implements OnInit {
   ngOnInit() {
     this.store$.select(getBatchMapAdminDialog).subscribe(flag => {
       this.showDialog = flag;
-      if(flag){
+      if (flag){
         this.batchMapService.requestPrintAdminStatus(this.printAdminPayload()).subscribe(payload => {
           //this.loadAdminPayload(data1['results'][0].result);
           const mapPayload = payload['results'][0].result as Record<string, any>;
@@ -79,7 +79,7 @@ export class AdminDialogComponent implements OnInit {
         });
       }
 
-    })
+    });
   }
 
   closeDialog (){
@@ -99,7 +99,7 @@ export class AdminDialogComponent implements OnInit {
         }
 
         if (key === 'pendingJobs')    
-            inProcessResult.push(this.buildRootNode(payload[key], 'Pending Jobs')) 
+            inProcessResult.push(this.buildRootNode(payload[key], 'Pending Jobs')); 
           
     });
     this.statsData = [this.buildStatsTreeNode(stats)]; 
@@ -107,20 +107,20 @@ export class AdminDialogComponent implements OnInit {
     this.cd.markForCheck();
   }
 
-  private buildStatsTreeNode(statsData: any[]): TreeNode{
+  private buildStatsTreeNode(statsData: any[]) : TreeNode{
       const statsNodeTree: any [] = [];
     return {
-      data:{
+      data: {
         name: 'Stats',
         value: ''
       },
       leaf: false,
       expanded : false,
       children:  statsData.map(s => this.buildNodes(s.name, s.value, true ))
-    }
+    };
   }
 
-  private buildRootNode(inProcessJobs: ImpAdminJob[], header: string): TreeNode{
+  private buildRootNode(inProcessJobs: ImpAdminJob[], header: string) : TreeNode{
     
     return {
       data : {
@@ -130,15 +130,15 @@ export class AdminDialogComponent implements OnInit {
       leaf: false,
       expanded: false,
       children: this.getTreeNodes( inProcessJobs, header)
-    }
+    };
   }
 
-  private getTreeNodes( value: ImpAdminJob[], header: string): TreeNode []{
+  private getTreeNodes( value: ImpAdminJob[], header: string) : TreeNode []{
     const treeNodes: TreeNode[] = [];
     /*Object.keys(value).map(key => {
       treeNodes.push(this.buildTableTree(key, value[key], true));
     });*/
-    value.forEach(record => treeNodes.push(this.buildTableTree(record, true)))
+    value.forEach(record => treeNodes.push(this.buildTableTree(record, true)));
   return treeNodes;
 }
 
@@ -146,7 +146,7 @@ export class AdminDialogComponent implements OnInit {
     return event.data;
   }
 
-  buildTableTree(value: ImpAdminJob, isLeaf: boolean = true): TreeNode {
+  buildTableTree(value: ImpAdminJob, isLeaf: boolean = true) : TreeNode {
     return {
       data: {
         jobId: value.jobId,
@@ -165,10 +165,10 @@ export class AdminDialogComponent implements OnInit {
         //shortJobId: value.jobId.substring(0, 7)
       },
       leaf: isLeaf
-    }
+    };
   }
 
-  buildNodes(key: string, value: any, isLeaf: boolean = true): TreeNode{
+  buildNodes(key: string, value: any, isLeaf: boolean = true) : TreeNode{
     return {
       data: {
         name: this.statsNames[key],
@@ -198,7 +198,7 @@ export class AdminDialogComponent implements OnInit {
         this.getDataTree(mapPayload);
         this.cd.markForCheck();
       });
-    })
+    });
   }
 
   copy(val: string){
