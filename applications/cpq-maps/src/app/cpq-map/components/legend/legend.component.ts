@@ -3,7 +3,7 @@ import { Store } from '@ngrx/store';
 import { pad } from '@val/common';
 import { combineLatest, Subject } from 'rxjs';
 import { map, takeUntil, tap } from 'rxjs/operators';
-import { LocalState } from '../../state';
+import { LocalState } from '../../state/index';
 import { LegendData } from '../../state/app.interfaces';
 import { localSelectors } from '../../state/app.selectors';
 

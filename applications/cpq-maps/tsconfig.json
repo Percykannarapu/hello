@@ -1,9 +1,8 @@
 {
-  "extends": "./../../tsconfig",
+  "extends": "./../../tsconfig.json",
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
-    "rootDir": "./src",
     "paths": {
       "@val/esri": ["../../modules/esri"],
       "@val/common": ["../../modules/common"],

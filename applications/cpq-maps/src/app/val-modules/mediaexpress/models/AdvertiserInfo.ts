@@ -2,10 +2,10 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
 import { Goal } from './Goal';
 import { MediaPlanGroup } from './MediaPlanGroup';
-import { Objective } from '../../mediaexpress/models/Objective';
+import { Objective } from './Objective';
 import { AmProfile } from '../../targeting/models/AmProfile';
 import { MediaPlan } from './MediaPlan';
 import { MediaPlanCommonMbu } from './MediaPlanCommonMbu';
@@ -220,12 +220,4 @@ export class AdvertiserInfo extends BaseModel
          ['targetAudiencePref',           'Array<TargetAudiencePref>'],
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

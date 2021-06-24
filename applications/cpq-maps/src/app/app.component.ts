@@ -2,7 +2,7 @@ import { Component, ElementRef, OnInit } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { selectors } from '@val/esri';
 import { filter, take } from 'rxjs/operators';
-import { FullState } from './cpq-map/state';
+import { FullState } from './cpq-map/state/index';
 import { ApplicationStartup } from './cpq-map/state/init/init.actions';
 
 @Component({
@@ -16,6 +16,7 @@ export class AppComponent implements OnInit {
               private store$: Store<FullState>) {}
 
   ngOnInit() {
+
     const el = this.elementRef.nativeElement;
     const groupId = Number(el.getAttribute('groupId'));
     const mediaPlanId = Number(el.getAttribute('mediaPlanId'));
@@ -24,7 +25,7 @@ export class AppComponent implements OnInit {
     const threshold: string = el.getAttribute('threshold');
     const promoDateFrom: Date = new Date(Number(el.getAttribute('promoDateFrom')));
     const promoDateTo: Date = new Date(Number(el.getAttribute('promoDateTo')));
-
+    console.log('Inside root init');
     this.store$.pipe(
       select(selectors.getMapReady),
       filter(ready => ready),

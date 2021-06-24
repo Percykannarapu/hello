@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
 import { AmProfile } from './AmProfile';
 
 export class AmSite extends BaseModel
@@ -112,12 +112,4 @@ export class AmSite extends BaseModel
          ['amProfile',         'AmProfile'],
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

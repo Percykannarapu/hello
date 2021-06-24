@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
 import { AdvertiserInfo } from './AdvertiserInfo';
 import { MediaPlan } from './MediaPlan';
 
@@ -68,12 +68,4 @@ export class MediaPlanGroup extends BaseModel
       return new Map([
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

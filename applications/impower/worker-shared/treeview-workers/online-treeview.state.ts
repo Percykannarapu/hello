@@ -118,7 +118,9 @@ export class OnlineTreeviewState implements TreeviewState<TreeviewPayload, TreeV
         nodes: []
       }
     };
-    await this.setup(payload.forceRefresh, payload.fetchHeaders);
+    if (payload.initPayload) {
+      await this.setup(payload.forceRefresh, payload.fetchHeaders);
+    }
     if (isNil(payload.rootId) && isEmpty(payload.searchTerm)) {
       const audienceData = await this.queryEngine.getAudiencesByParentId(null);
       result.value.nodes = this.convertAudiences(audienceData);

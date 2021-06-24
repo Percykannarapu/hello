@@ -11,22 +11,13 @@ import { EsriModule } from '@val/esri';
 import { MessagingModule } from '@val/messaging';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
-import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
-import { InputSwitchModule } from 'primeng/inputswitch';
-import { InputTextModule } from 'primeng/inputtext';
-import { MessagesModule } from 'primeng/messages';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SidebarModule } from 'primeng/sidebar';
-import { SpinnerModule } from 'primeng/spinner';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { environment } from '../../environments/environment';
-import { AppConfig } from '../app.config';
-import { RestDataService } from '../val-modules/common/services/restdata.service';
-import { DevToolsComponent } from './components/dev-tools/dev-tools.component';
 import { GridComponent } from './components/grid/grid.component';
 import { HeaderBarComponent } from './components/header-bar/header-bar.component';
 import { LegendComponent } from './components/legend/legend.component';
@@ -47,34 +38,35 @@ export function esriOptionsFactory() {
     portalServerRootUrl: environment.esri.portalServer,
     auth: {
       userName: environment.esri.username,
-      password: environment.esri.password,
-      referer: window.location.origin
+      password: environment.esri.password
     }
   };
 }
 
 @NgModule({
   imports: [
-    DialogModule,
-    SpinnerModule,
+    BrowserModule,
+    BrowserAnimationsModule,
+    CommonModule,
+    FormsModule,
+    HttpClientModule,
     CheckboxModule,
-    InputSwitchModule,
     TableModule,
     RadioButtonModule,
-    CardModule,
-    BrowserModule,
-    FormsModule,
-    BrowserAnimationsModule,
     DropdownModule,
     ButtonModule,
     SidebarModule,
-    CommonModule,
-    InputTextModule,
-    HttpClientModule,
-    MessagesModule,
     ToastModule,
     MessagingModule.forRoot(AppMessagingService),
-    StoreModule.forRoot(reducers, {metaReducers}),
+    StoreModule.forRoot(reducers, {
+      metaReducers,
+      runtimeChecks: {
+        strictStateImmutability: false,
+        strictActionImmutability: false,
+        strictStateSerializability: false,
+        strictActionSerializability: false
+      }
+    }),
     EffectsModule.forRoot([AppEffects, InitEffects, PopupEffects, MapUIEffects, GridEffects]),
     StoreDevtoolsModule.instrument({
       name: 'CPQ Maps Application',
@@ -82,13 +74,9 @@ export function esriOptionsFactory() {
     }),
     EsriModule.forRoot(esriOptionsFactory),
   ],
-  declarations: [CpqMapComponent, DevToolsComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent, LegendComponent, MapPopupComponent],
+  declarations: [CpqMapComponent, GridComponent, MapControlsComponent, HeaderBarComponent, ShadingConfigComponent, LegendComponent, MapPopupComponent],
   exports: [CpqMapComponent],
-  providers: [
-    RestDataService,
-    AppConfig,
-    MessageService,
-  ],
+  providers: [ MessageService ],
   entryComponents: [MapPopupComponent, LegendComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

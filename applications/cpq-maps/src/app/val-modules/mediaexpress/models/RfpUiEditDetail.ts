@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
 export class RfpUiEditDetail extends BaseModel
 {
    public mediaPlanId:           number;         /// The pk of cbx_media_plans
@@ -195,12 +195,4 @@ export class RfpUiEditDetail extends BaseModel
       return new Map([
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

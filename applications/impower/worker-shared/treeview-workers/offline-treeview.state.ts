@@ -38,7 +38,9 @@ export class OfflineTreeviewState implements TreeviewState<TreeviewPayload, Tree
         nodes: []
       }
     };
-    await this.setup(payload.forceRefresh, payload.fetchHeaders);
+    if (payload.initPayload) {
+      await this.setup(payload.forceRefresh, payload.fetchHeaders);
+    }
     if (isNil(payload.rootId) && isEmpty(payload.searchTerm)) {
       const categories = await this.queryEngine.getAllCategories();
       result.value.nodes = this.convertCategories(categories);

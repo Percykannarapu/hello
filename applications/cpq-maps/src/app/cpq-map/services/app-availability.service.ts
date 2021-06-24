@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { RestDataService } from '../../val-modules/common/services/restdata.service';
 import { AvailabilityDetailResponse } from '../models/availability-detail-response';
-import { FullState } from '../state';
+import { FullState } from '../state/index';
 import { localSelectors } from '../state/app.selectors';
 
 export enum GeoStatus {

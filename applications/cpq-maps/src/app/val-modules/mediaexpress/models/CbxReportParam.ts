@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
 import { CbxReport } from './CbxReport';
 
 export class CbxReportParam extends BaseModel
@@ -90,12 +90,4 @@ export class CbxReportParam extends BaseModel
          ['mpReportRun',       'MpReportRun'],
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

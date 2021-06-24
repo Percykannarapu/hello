@@ -21,7 +21,7 @@ import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { RfpUiEdit } from '../../val-modules/mediaexpress/models/RfpUiEdit';
 import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEditDetail';
-import { LocalState } from '../state';
+import { LocalState } from '../state/index';
 import { LegendData, NumericVariableShadingMethod, ShadingType, VarDefinition, VariableRanges } from '../state/app.interfaces';
 import { SetVariableShading } from '../state/map-ui/map-ui.actions';
 import { MapUIState } from '../state/map-ui/map-ui.reducer';

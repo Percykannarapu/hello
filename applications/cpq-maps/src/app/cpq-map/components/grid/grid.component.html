@@ -4,9 +4,12 @@
              [resizableColumns]="true" [selection]="selectedRows" (onRowSelect)="onChangeRowSelection($event)"
              (onRowUnselect)="onChangeRowSelection($event)" (onHeaderCheckboxToggle)="onHeaderCheckbox($event)">
       <ng-template pTemplate="caption">
-        <div class="ui-inputgroup">
-          <span class="ui-inputgroup-addon"><i class="esri-icon-search"></i></span>
-          <input type="text" size="25" pInputText placeholder="Search" (input)="dt.filterGlobal($event.target.value, 'contains')">
+        <div class="p-inputgroup">
+          <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
+          <div class="p-float-label">
+            <input #searchInput id="gridFilter" type="text" size="25" (input)="dt.filterGlobal(searchInput.value, 'contains')">
+            <label for="gridFilter">Search</label>
+          </div>
         </div>
       </ng-template>
       <ng-template pTemplate="emptymessage">

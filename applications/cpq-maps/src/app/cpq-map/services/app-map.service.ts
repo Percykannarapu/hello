@@ -1,17 +1,25 @@
 import { Injectable } from '@angular/core';
 import Color from '@arcgis/core/Color';
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery';
-import PortalBasemapsSource from '@arcgis/core/widgets/BasemapGallery/support/PortalBasemapsSource';
 import Home from '@arcgis/core/widgets/Home';
 import LayerList from '@arcgis/core/widgets/LayerList';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
 import Search from '@arcgis/core/widgets/Search';
 import { select, Store } from '@ngrx/store';
 import { simpleFlatten } from '@val/common';
-import { EsriLabelLayerOptions, EsriLayerService, EsriMapService, EsriService, EsriUtils, LayerDefinition, selectors } from '@val/esri';
+import {
+  EsriDomainFactory,
+  EsriLabelLayerOptions,
+  EsriLayerService,
+  EsriMapService,
+  EsriService,
+  isSimpleRenderer,
+  LayerDefinition,
+  selectors
+} from '@val/esri';
 import { merge, Observable } from 'rxjs';
 import { distinctUntilChanged, finalize, map, reduce, tap } from 'rxjs/operators';
-import { FullState } from '../state';
+import { FullState } from '../state/index';
 import { ConfigService } from './config.service';
 
 @Injectable({

@@ -2,8 +2,8 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
-import { AdvertiserInfo } from '../../mediaexpress/models/AdvertiserInfo';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
+import { AdvertiserInfo } from './AdvertiserInfo';
 
 export class Objective extends BaseModel
 {
@@ -98,12 +98,4 @@ export class Objective extends BaseModel
          ['impProject',      'Array<ImpProject>'],
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

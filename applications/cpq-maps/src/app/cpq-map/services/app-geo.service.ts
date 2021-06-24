@@ -11,7 +11,7 @@ import { RfpUiEditDetail } from '../../val-modules/mediaexpress/models/RfpUiEdit
 import { RfpUiEditWrap } from '../../val-modules/mediaexpress/models/RfpUiEditWrap';
 import { RfpUiReview } from '../../val-modules/mediaexpress/models/RfpUiReview';
 import { AvailabilityDetailResponse } from '../models/availability-detail-response';
-import { FullState } from '../state';
+import { FullState } from '../state/index';
 import { VarDefinition } from '../state/app.interfaces';
 import { UpdateRfpUiEditDetails, UpsertRfpUiEditDetails } from '../state/rfpUiEditDetail/rfp-ui-edit-detail.actions';
 import { UpdateRfpUiEditWraps, UpsertRfpUiEditWraps } from '../state/rfpUiEditWrap/rfp-ui-edit-wrap.actions';

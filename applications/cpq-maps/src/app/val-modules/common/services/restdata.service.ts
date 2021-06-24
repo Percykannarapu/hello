@@ -5,7 +5,9 @@ import { AppConfig } from '../../../app.config';
 import { RestResponse } from '../../../cpq-map/models/RestResponse';
 import { LoggingService } from './logging.service';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class RestDataService
 {
    public baseUrl: string;

@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
 import { ProductAllocation } from './ProductAllocation';
 
 export class PpToWrapPage extends BaseModel
@@ -97,12 +97,4 @@ export class PpToWrapPage extends BaseModel
          ['wrapPagePosition',         'WrapPagePosition'],
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

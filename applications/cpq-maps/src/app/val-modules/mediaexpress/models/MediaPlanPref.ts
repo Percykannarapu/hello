@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
 import { MediaPlan } from './MediaPlan';
 
 export class MediaPlanPref extends BaseModel
@@ -90,12 +90,4 @@ export class MediaPlanPref extends BaseModel
          ['mediaPlan',        'MediaPlan'],
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

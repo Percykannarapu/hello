@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
 import { AdvertiserInfo } from './AdvertiserInfo';
 import { PpToWrapPage } from './PpToWrapPage';
 
@@ -118,12 +118,4 @@ export class ProductAllocation extends BaseModel
          ['wrapPagePriority',         'WrapPagePriority'],
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

@@ -5,7 +5,7 @@ import {
   MetaReducer
 } from '@ngrx/store';
 import { environment } from '../../../environments/environment';
-import { LocalState } from './';
+import { LocalState } from './index';
 import { mapUIReducer } from './map-ui/map-ui.reducer';
 import { sharedReducer } from './shared/shared.reducers';
 import { advertiserInfoReducer } from './advertiserInfo/advertiser-info.reducer';

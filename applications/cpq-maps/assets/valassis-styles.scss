@@ -1,0 +1,135 @@
+.p-input-filled {
+  .p-float-label {
+    .p-inputtext.p-multiselect-filter {
+      padding: $inputPadding;
+      padding-right: 1.75rem;
+      padding-left: 0.25rem;
+    }
+  }
+}
+
+.p-inputgroup .p-inputtext.p-multiselect-filter {
+  width: 100% !important;
+}
+
+.p-button.p-button-inverse, .p-buttonset.p-button-inverse > .p-button, .p-splitbutton.p-button-inverse > .p-button {
+  &.p-button-outlined {
+    background-color: transparent;
+    color: $inverseButtonBg;
+    border: $outlinedButtonBorder;
+
+    &:enabled:hover {
+      background: rgba($inverseButtonBg, $textButtonHoverBgOpacity);
+      color: $inverseButtonBg;
+      border: $outlinedButtonBorder;
+    }
+
+    &:enabled:active {
+      background: rgba($inverseButtonBg, $textButtonActiveBgOpacity);
+      color: $inverseButtonBg;
+      border: $outlinedButtonBorder;
+    }
+  }
+
+  &.p-button-text {
+    background-color: transparent;
+    color: $inverseButtonBg;
+    border-color: transparent;
+
+    &:enabled:hover {
+      background: rgba($inverseButtonBg, $textButtonHoverBgOpacity);
+      border-color: transparent;
+      color: $inverseButtonBg;
+    }
+
+    &:enabled:active {
+      background: rgba($inverseButtonBg, $textButtonActiveBgOpacity);
+      border-color: transparent;
+      color: $inverseButtonBg;
+    }
+  }
+}
+
+th .p-inputtext {
+  padding-top: 0;
+  padding-bottom: 0;
+  width: 100%;
+}
+
+th .p-multiselect {
+  width: 100%;
+  .p-multiselect-label {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+.p-confirm-dialog-accept {
+  @extend .p-button
+}
+
+.p-dialog-mask-scrollblocker {
+  overflow-y: auto;
+}
+
+.p-confirm-dialog-reject {
+  @extend .p-button-outlined
+}
+
+// splash screen
+$offset: 187;
+$duration: 1.4s;
+
+.splash-screen {
+  width: 100%;
+  min-height: 100%;
+  background-color: #3F51B5;
+  position: absolute;
+}
+
+.splash-loader-container {
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -32px;
+  margin-top: -32px;
+}
+
+.splash-loader {
+  animation: rotator $duration linear infinite;
+}
+
+@keyframes rotator {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(270deg); }
+}
+
+.splash-path {
+  stroke-dasharray: $offset;
+  stroke-dashoffset: 0;
+  transform-origin: center;
+  animation:
+    dash $duration ease-in-out infinite,
+    colors ($duration*4) ease-in-out infinite;
+}
+
+@keyframes colors {
+  0% { stroke: #4285F4; }
+  25% { stroke: #DE3E35; }
+  50% { stroke: #F7C223; }
+  75% { stroke: #1B9A59; }
+  100% { stroke: #4285F4; }
+}
+
+@keyframes dash {
+  0% { stroke-dashoffset: $offset; }
+  50% {
+    stroke-dashoffset: $offset/4;
+    transform:rotate(135deg);
+  }
+  100% {
+    stroke-dashoffset: $offset;
+    transform:rotate(450deg);
+  }
+}

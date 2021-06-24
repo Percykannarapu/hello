@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { arrayToSet, isConvertibleToNumber, mapBy } from '@val/common';
 import { filter, map, take } from 'rxjs/operators';
-import { LocalState } from '../../state';
+import { LocalState } from '../../state/index';
 import { NumericVariableShadingMethod, ShadingType, VarDefinition } from '../../state/app.interfaces';
 import { localSelectors } from '../../state/app.selectors';
 import { GridGeosToggle } from '../../state/grid/grid.actions';

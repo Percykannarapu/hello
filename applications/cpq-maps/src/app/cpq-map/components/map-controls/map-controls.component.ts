@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { LocalState } from '../../state';
+import { LocalState } from '../../state/index';
 import { GridSize } from '../../state/app.interfaces';
 import { withLatestFrom, filter } from 'rxjs/operators';
 import { localSelectors } from '../../state/app.selectors';

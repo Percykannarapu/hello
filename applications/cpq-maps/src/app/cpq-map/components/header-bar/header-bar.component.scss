@@ -1,4 +1,4 @@
-@import '~src/assets/valassis-variables';
+@import '~assets/valassis-variables';
 
 .header-container {
   display: flex;
@@ -6,7 +6,7 @@
   justify-content: space-between;
   color: $textColor;
   background-color: $bodyBgColor;
-  border: 1px solid $contentBorderColor;
+  border: 1px solid $midGray03;
   font-size: 12px;
   padding: 0.2em 1em;
   .header-calc-values {

@@ -62,7 +62,7 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
     if (isNil(this.audiencePkGetter)) throw new Error('audiencePkGetter is not set in Brokered Treeview component.');
     if (isEmpty(this.brokers)) throw new Error('No broker is set in Brokered Treeview component.');
 
-    const initialPayload = this.createWorkerPayload(null, false, null);
+    const initialPayload = this.createWorkerPayload(null, false, null, false, true);
     this.brokers.forEach(broker => {
       broker.start(initialPayload).pipe(
         takeUntil(this.destroyed$),
@@ -186,7 +186,7 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
     this.store$.dispatch(new CreateAudienceUsageMetric(audience.audienceSourceType.toLowerCase(), isChecked ? 'checked' : 'unchecked', metricText));
   }
 
-  private createWorkerPayload(searchTerm: string, includeFolder: boolean, rootId: number, forceRefresh: boolean = false) : TreeviewPayload {
+  private createWorkerPayload(searchTerm: string, includeFolder: boolean, rootId: number, forceRefresh: boolean = false, initPayload: boolean = false) : TreeviewPayload {
     return {
       fetchHeaders: {
         Authorization: this.authService.getAuthorizationHeaderValue()
@@ -194,7 +194,8 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
       forceRefresh,
       searchTerm,
       rootId,
-      includeFolder
+      includeFolder,
+      initPayload
     };
   }
 }

@@ -5,7 +5,7 @@ import { take } from 'rxjs/operators';
 import { AvailabilityDetailResponse } from '../../models/availability-detail-response';
 import { AppAvailabilityService, GeoStatus } from '../../services/app-availability.service';
 import { FieldMetaData } from '../../services/config.service';
-import { FullState } from '../../state';
+import { FullState } from '../../state/index';
 import { PopupGeoToggle, PopupNewGeoAdd } from '../../state/popup/popup.actions';
 
 @Component({

@@ -2,84 +2,71 @@
 // /assets/sass/overrides/*_variables.scss
 @import "branding-variables";
 
-$fontSize: 14px;
+$valTitleHeight: 65px;
+$scaleXS: 0.65;
 
-$transparent: #00000000;
-$primaryColor: $blueBird;
-$primaryDarkColor: $brandBlue;
-$primaryLightColor: $babyBlue;
-$bodyBgColor: $lightGray04;
+// added feature variables
+$inverseButtonBg: $lightGray01;
+
+// Branding overrides
+$primaryColor: $brandBlue;
+$errorColor: $darkerRed;
+$bodyBgColor: $lightGray01;
+$panelHeaderBg: $lightGray03;
+$panelContentBg: $lightGray04;
 $textColor: $midGray01;
-$contentBorderColor: $midGray03;
-$contentBgColor: $lightGray04;
-$accentColor: $paleYellow;
-$accentDarkColor: darken($paleYellow, 10%);
-$accentLightColor: $primaryYellow;
-$accentTextColor: $midGray01;
-$hoverBgColor: $primaryLightColor;
-$dividerColor: $lightGray01;
-$inputBorderColor: $midGray04;
-$inputInvalidBorderColor: $brandRed;
-$inputErrorTextColor: $brandRed;
-$inputGroupBorderColor: $midGray04;
-$inputGroupTextColor: $midGray02;
-$inputListPadding: 0;
-$headerBgColor: $lightGray04;
-$headerTextColor: $darkGray01;
-$headerIconColor: $midGray01;
-$headerFontWeight: bold;
-$buttonTextColor: $brandBlue;
-$radioButtonBorderColor: $midGray04;
-$accordionHeaderBgColor: $lightGray04;
-$accordionHeaderTextColor: $midGray01;
-$accordionHeaderHoverBgColor: $hoverBgColor;
-$accordionHeaderHoverTextColor: $midGray01;
-$radioButtonBorderColor: $midGray02;
-$horizontalLightMenuRouterLinkActiveColor: $midGray01;
-$horizontalLayoutMenuItemTextColor: $midGray01;
-$horizontalLayoutMenuItemHoverBgColor: $hoverBgColor;
-$layoutMenuItemIconColor: $textColor;
+$inputErrorBorderColor: $darkerRed;
+$horizontalMenuBg: $lightGray04;
+$inputBg:transparent;
+$inputFilledBg:transparent;
+$inputFilledHoverBg:$lightGray03;
+$inputFilledFocusBg:$lightGray03;
+$toggleButtonBg: $lightGray04;
+$toggleButtonHoverBg: $lightGray01;
+$toggleButtonBorder: $midGray03;
+$toggleButtonHoverBorderColor: $midGray02;
+$toggleButtonActiveBg: $darkGray03;
+$toggleButtonActiveBorderColor: $darkGray03;
+$toggleButtonTextActiveColor: $lightGray04;
+$toggleButtonActiveHoverBg: $midGray01;
+$toggleButtonActiveHoverBorderColor: $midGray01;
+$accordionHeaderBg: $lightGray04;
+$accordionHeaderHoverBg: $lightGray01;
+$accordionHeaderActiveBg: $darkGray03;
+$accordionHeaderTextActiveColor: $lightGray01;
+$accordionHeaderActiveHoverBg: $midGray02;
+$accordionHeaderTextActiveHoverColor: $lightGray04;
+$tableHeaderBg: $darkGray02;
+$tableHeaderTextColor: $midGray04;
+$tableHeaderCellBg: $barelyBlue;
+$tableHeaderCellHighlightBg: $babyBlue;
 
-$letterSpacing: normal;
+$dialogHeaderBg: linear-gradient($midGray04, $midGray02);
+$dialogHeaderTextColor: $lightGray04;
 
-$valTitleHeight: 55px;
-$valHeaderHeight: 90px;
-$valReversedTextColor: $lightGray04;
-$valReversedDisabledColor: $midGray03;
-$valDeselectedTextColor: $midGray01;
-$valBackgroundGrey: $lightGray01;
-
-$valSelectedTableRowBgColor: darken($primaryLightColor, 5%);
-$valSelectedOddRowBgColor: $primaryLightColor;
-$valTableHeaderSecondaryBgColor: $barelyBlue;
-$valTableHeaderBgColor: $primaryLightColor;
-$valTableHeaderHoverBgColor: $pendingBlue;
-$valTableCaptionBgColor: $darkGray02;
-$valTableCaptionTextColor: $lightGray01;
-$valTableCaptionMutedTextColor: $midGray02;
-
-$valSuccessBgColor: #8BC34A;
-$valSuccessTextColor: darken(#8BC34A, 20%);
-$valTooltipTextColor: $darkGray03;
-$valTooltipBgColor: $paleYellow;
-
-// sidebar tab settings
-$valSidebarButtonPadding: 21em;
-
-// grid variables
-$dividerLightColor: $lightGray03;
-$tableBodyRowBgColor: $lightGray02;
-$tableOddRowBgColor: $lightGray04;
-$tableHeaderCellBgColor: $valTableHeaderBgColor;
-
-$dataTableCellPadding: 0 0.5em;
-$dataTableHeaderPadding: 0 0.5em;
-
-$inputHeaderPadding: 0.5em;
-$listItemPadding: 0 0.5em;
-$contentPadding: 0 0.5em;
-
-$valImportantElementBgColor: darken($darkerRed, 10%);
-$valImportantElementBgColorActive: $darkerRed;
-$valImportantElementColor: $paleYellow;
-$valImportantElementColorActive: darken($primaryYellow, 20%);
+// Other overrides
+$inputPadding: 0.1rem 0.5rem;
+$inlineSpacing: 0.25rem;
+$disabledOpacity: .25;
+$menuWidth: 20rem;
+$horizontalMenuPadding: 0.5rem;
+$buttonPadding: 0.5rem 0.75rem;
+$buttonIconOnlyPadding: 0.5rem;
+$buttonIconOnlyWidth: 2.5rem;
+$textButtonHoverBgOpacity: .1;
+$tableHeaderCellBorder: 1px solid $midGray03;
+$tableBodyCellBorder: 1px solid $midGray03;
+$tableHeaderCellBorderWidth: 0 1px 0 1px;
+$tableBodyCellBorderWidth: 1px;
+$paginatorElementHeight: 1.5rem;
+$paginatorElementWidth: 1.5rem;
+$panelHeaderFontWeight: normal;
+$inputListItemPadding: 0.5rem 1rem;
+$fieldMargin: 0.5rem;
+$treeNodeContentPadding: 0;
+$tableBodyCellPadding: 0.05rem 0.25rem;
+$inputListHeaderPadding: 0 1rem;
+$paginatorPadding: 0 0.5rem;
+$tableHeaderCellPadding: 0 0.25rem;
+$dialogContentPadding: 0.5rem 1.25rem 1.25rem 1.25rem;
+$treeNodePadding: 0 0.25rem;

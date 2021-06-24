@@ -2,7 +2,7 @@
  **
  ** Generated from VAL_BASE_GEN - v1.06
  **/
-import { BaseModel, DAOBaseStatus, transient } from './../../api/models/BaseModel';
+import { BaseModel, DAOBaseStatus, transient } from '../../api/models/BaseModel';
 import { AdvertiserInfo } from './AdvertiserInfo';
 import { MediaPlan } from './MediaPlan';
 import { MediaPlanCommonMbu } from './MediaPlanCommonMbu';
@@ -230,12 +230,4 @@ export class MediaPlanLine extends BaseModel
          ['mediaPlanLineDetail',      'Array<MediaPlanLineDetail>'],
       ]);
    }
-
-   /**
-    * Returns the class as a string.
-    *
-    * @returns A string containing the class data.
-    */
-   public toString = () => JSON.stringify(this, null, '   ');
-
 }

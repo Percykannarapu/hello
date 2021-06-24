@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RfpUiEditDetail } from 'src/app/val-modules/mediaexpress/models/RfpUiEditDetail';
-import { FullState } from '../state';
+import { FullState } from '../state/index';
 
 @Injectable({
   providedIn: 'root'

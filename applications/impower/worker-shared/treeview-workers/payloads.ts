@@ -11,4 +11,5 @@ export interface TreeviewPayload {
   searchTerm: string;
   rootId: number;
   includeFolder: boolean;
+  initPayload: boolean;
 }

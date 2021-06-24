@@ -273,6 +273,9 @@
             "customWebpackConfig": {
               "path": "webpack.conf.js"
             },
+            "allowedCommonJsDependencies": [
+              "moment"
+            ],
             "outputPath": "dist/cpq-maps",
             "index": "applications/cpq-maps/src/index.html",
             "main": "applications/cpq-maps/src/main.ts",
@@ -290,18 +293,26 @@
             },
             "styles": [
               "node_modules/@arcgis/core/assets/esri/themes/light/main.css",
-              "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/primeng/resources/primeng.css",
-              "node_modules/primeicons/primeicons.css",
-              "applications/cpq-maps/src/assets/layout/css/layout-valassis-blue.scss",
-              "applications/cpq-maps/src/assets/theme/theme-valassis-blue.scss",
+              {
+                "input": "node_modules/primeflex/primeflex.scss",
+                "bundleName": "primeflex"
+              },
+              {
+                "input": "node_modules/primeng/resources/primeng.css",
+                "bundleName": "primeng-core"
+              },
+              {
+                "input": "node_modules/primeicons/primeicons.css",
+                "bundleName": "primeng-icons"
+              },
+              "applications/cpq-maps/assets/theme/valassis/theme-light.scss",
+              "applications/cpq-maps/assets/layout/css/layout-light.scss",
               "applications/cpq-maps/src/styles.scss"
             ],
             "scripts": [],
             "optimization": false,
             "outputHashing": "none",
             "sourceMap": true,
-            "extractCss": true,
             "namedChunks": true,
             "aot": false,
             "extractLicenses": false,
@@ -374,7 +385,7 @@
             "karmaConfig": "applications/cpq-maps/karma.conf.js",
             "stylePreprocessorOptions": {
               "includePaths": [
-                "applications/cpq-maps/src/assets"
+                "applications/cpq-maps/assets"
               ]
             },
             "styles": [
@@ -383,7 +394,7 @@
             "scripts": [],
             "assets": [
               "applications/cpq-maps/src/favicon.ico",
-              "applications/cpq-maps/src/assets"
+              "applications/cpq-maps/assets"
             ]
           }
         },

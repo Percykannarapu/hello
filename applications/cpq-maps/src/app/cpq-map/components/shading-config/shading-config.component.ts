@@ -4,7 +4,7 @@ import { mapBy } from '@val/common';
 import { SelectItem } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { filter, withLatestFrom } from 'rxjs/operators';
-import { FullState } from '../../state';
+import { FullState } from '../../state/index';
 import { NumericVariableShadingMethod, ShadingType, VarDefinition, VariableRanges } from '../../state/app.interfaces';
 import { localSelectors } from '../../state/app.selectors';
 import { CalculateEqualIntervals, SetAnneShading, SetClassBreakValues, SetNonVariableShading, SetShadingType, SetSoloShading, SetVariableShading } from '../../state/map-ui/map-ui.actions';
