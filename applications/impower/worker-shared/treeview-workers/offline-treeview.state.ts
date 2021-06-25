@@ -22,8 +22,8 @@ export class OfflineTreeviewState implements TreeviewState<TreeviewPayload, Tree
     this.queryEngine = new OfflineQuery();
   }
 
-  private async setup(forceRefresh: boolean, fetchHeaders: { Authorization: string }) {
-    if (forceRefresh || timestampIsExpired(this.queryEngine.currentTimeStamp, 12)) {
+  private async setup(forceRefresh: boolean, initPayload: boolean, fetchHeaders: { Authorization: string }) {
+    if (forceRefresh || (initPayload && timestampIsExpired(this.queryEngine.currentTimeStamp, 12))) {
       await this.queryEngine.initialize(forceRefresh, fetchHeaders).toPromise();
     }
   }
@@ -38,9 +38,7 @@ export class OfflineTreeviewState implements TreeviewState<TreeviewPayload, Tree
         nodes: []
       }
     };
-    if (payload.initPayload) {
-      await this.setup(payload.forceRefresh, payload.fetchHeaders);
-    }
+    await this.setup(payload.forceRefresh, payload.initPayload, payload.fetchHeaders);
     if (isNil(payload.rootId) && isEmpty(payload.searchTerm)) {
       const categories = await this.queryEngine.getAllCategories();
       result.value.nodes = this.convertCategories(categories);

@@ -3,7 +3,7 @@
  ** Generated from VAL_ENTITY_GEN - v2.01
  **/
 
-import { ImpMetricName } from './ImpMetricName';
+import { ImpMetricName } from '../../app/val-modules/metrics/models/ImpMetricName';
 
 export class ImpMetricTimer
 {

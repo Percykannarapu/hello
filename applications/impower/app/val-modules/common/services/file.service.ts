@@ -35,7 +35,7 @@ export interface Parser<T> {
   headerValidator?: (found: ParseRule[]) => boolean;
   dataValidator?: (currentRow: T) => boolean;
   fileValidator?: (allData: T[]) => boolean;
-  createNullParser?: (header: string, isUnique: boolean) => ParseRule;
+  createNullParser: (header: string, isUnique: boolean) => ParseRule;
 }
 
 export class FileService {

@@ -6,7 +6,7 @@ import { ErrorNotification, WarningNotification } from '@val/messaging';
 import { map, reduce } from 'rxjs/operators';
 import { FieldContentTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
-import { customAudienceDataParser, CustomDataRow } from '../common/file-parsing-rules';
+import { customAudienceFileParser, CustomDataRow } from '../common/file-parsing-rules';
 import { Audience } from '../impower-datastore/state/transient/audience/audience.model';
 import { mergeCustomVars } from '../impower-datastore/state/transient/custom-vars/custom-vars.actions';
 import { DynamicVariable } from '../impower-datastore/state/transient/dynamic-variable.model';
@@ -54,7 +54,7 @@ export class CustomDataService {
   private parseFileData(buffer: string, isLoad: boolean) : CustomDataRow[] {
     const rows: string[] = buffer.split(/\r\n|\n|\r/);
     const header: string = rows.shift();
-    const data: ParseResponse<CustomDataRow> = FileService.parseDelimitedData(header, rows, customAudienceDataParser);
+    const data: ParseResponse<CustomDataRow> = FileService.parseDelimitedData(header, rows, customAudienceFileParser);
     const failCount = data.failedRows.length;
     const successCount = data.parsedData.length;
     if (failCount > 0) {
@@ -89,7 +89,7 @@ export class CustomDataService {
         const qResult = new Set(result);
         const fields = header.split(',');
         const records: string[] = [];
-        const headerIdentifiers: any = customAudienceDataParser.columnParsers[0].headerIdentifier;
+        const headerIdentifiers: any = customAudienceFileParser.columnParsers[0].headerIdentifier;
         const fieldGeoHeader = fields.filter(field => headerIdentifiers.indexOf(field.toUpperCase()) >= 0);
         records.push(header + '\n');
         data.forEach(record => {

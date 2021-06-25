@@ -3,10 +3,8 @@
   "compilerOptions": {
     "outDir": "../../out-tsc/impower-app"
   },
-  "exclude": [
-    "test.ts",
-    "**/*.spec.ts",
-    "./not-used",
-    "./workers"
+  "files": [
+    "main.ts",
+    "polyfills.ts"
   ]
 }

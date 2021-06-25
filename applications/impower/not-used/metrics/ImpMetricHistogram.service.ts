@@ -1,4 +1,4 @@
-/** A METRICS domain data service representing the table: IMPOWER.IMP_METRIC_GAUGES
+/** A METRICS domain data service representing the table: IMPOWER.IMP_METRIC_HISTOGRAMS
  **
  ** This class contains code operates against data in its data store.
  ** See the contents of val-modules/common/services/datastore.service.ts to see built in
@@ -6,20 +6,20 @@
  **
  ** NOTE: This class is generated only once and may be updated by developers.
  **
- ** ImpMetricGauge.service.ts generated from VAL_ENTITY_GEN - v2.01
+ ** ImpMetricHistogram.service.ts generated from VAL_ENTITY_GEN - v2.01
  **/
 
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DataStore } from '../../common/services/datastore.service';
-import { LoggingService } from '../../common/services/logging.service';
-import { RestDataService } from '../../common/services/restdata.service';
-import { ImpMetricGauge } from '../models/ImpMetricGauge';
+import { DataStore } from '../../app/val-modules/common/services/datastore.service';
+import { LoggingService } from '../../app/val-modules/common/services/logging.service';
+import { RestDataService } from '../../app/val-modules/common/services/restdata.service';
+import { ImpMetricHistogram } from './ImpMetricHistogram';
 
-const dataUrl = 'v1/metrics/base/impmetricgauge/search?q=impMetricGauge';
+const dataUrl = 'v1/metrics/base/impmetrichistogram/search?q=impMetricHistogram';
 
 @Injectable()
-export class ImpMetricGaugeService extends DataStore<ImpMetricGauge>
+export class ImpMetricHistogramService extends DataStore<ImpMetricHistogram>
 {
    constructor(private restDataService: RestDataService, logger: LoggingService) {super(restDataService, dataUrl, logger); }
 

@@ -5,7 +5,7 @@
 
 import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
-import { serverEnv } from '../worker-shared/common/env/server-urls';
+import { serverEnv } from './server-urls';
 
 export const environment = {
   production: false,

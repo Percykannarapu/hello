@@ -9,34 +9,16 @@ import { FileUpload } from 'primeng/fileupload';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
+import { TradeAreaDataRow, tradeAreaFileParser } from '../../../common/file-parsing-rules';
 import { AppEditSiteService } from '../../../services/app-editsite.service';
 import { AppGeoService } from '../../../services/app-geo.service';
 import { AppStateService } from '../../../services/app-state.service';
 import { AppTradeAreaService } from '../../../services/app-trade-area.service';
 import { LocalAppState } from '../../../state/app.interfaces';
-import { FileService, Parser, ParseResponse, ParseRule } from '../../../val-modules/common/services/file.service';
+import { FileService, ParseResponse } from '../../../val-modules/common/services/file.service';
 import { LoggingService } from '../../../val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from '../../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeAreaService } from '../../../val-modules/targeting/services/ImpGeofootprintTradeArea.service';
-
-
-interface TradeAreaDefinition {
-  store: string;
-  geocode: string;
-  message: string;
-}
-
-const tradeAreaUpload: Parser<TradeAreaDefinition> = {
-  columnParsers: [
-    { headerIdentifier: ['STORE', 'SITE', 'LOC', 'Site #', 'NUMBER'], outputFieldName: 'store', required: true},
-    { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true},
-  ],
-  //headerValidator: (found: ParseRule[]) => found.length === 2,
-
-  createNullParser: (header: string, isUnique?: boolean) : ParseRule => {
-    return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data};
-  }
-};
 
 @Component({
   selector: 'val-upload-tradeareas',
@@ -45,7 +27,7 @@ const tradeAreaUpload: Parser<TradeAreaDefinition> = {
 export class UploadTradeAreasComponent implements OnInit {
   public selectedSiteType: string = 'Site';
   public impGeofootprintLocations: ImpGeofootprintLocation[];
-  public uploadFailures: TradeAreaDefinition[] = [];
+  public uploadFailures: TradeAreaDataRow[] = [];
   public totalUploadedRowCount = 0;
   //public isCustomTAExists: boolean;
   public isDisable: boolean = true;
@@ -141,13 +123,13 @@ export class UploadTradeAreasComponent implements OnInit {
     this.store$.select(deleteCustomTa).subscribe(isDeleteCustomTA => this.switchAnalysisLevel(isDeleteCustomTA));
   }
 
-  public onResubmit(data: TradeAreaDefinition) {
+  public onResubmit(data: TradeAreaDataRow) {
     this.onRemove(data);
     data.message = null;
     this.processUploadedTradeArea([data], true);
   }
 
-  public onRemove(data: TradeAreaDefinition) {
+  public onRemove(data: TradeAreaDataRow) {
     this.totalUploadedRowCount -= 1;
     this.uploadFailures = this.uploadFailures.filter(f => f !== data);
   }
@@ -215,7 +197,7 @@ export class UploadTradeAreasComponent implements OnInit {
         if (duplicateRows.length > 0) {
           this.store$.dispatch(new WarningNotification({ message: 'The upload file contains duplicate rows. Processing will continue, though you may want to re-evaluate the upload file.', notificationTitle: 'Custom TA Upload' }));
         }
-          const data: ParseResponse<TradeAreaDefinition> = FileService.parseDelimitedData(header, uniqueRows, tradeAreaUpload);
+          const data: ParseResponse<TradeAreaDataRow> = FileService.parseDelimitedData(header, uniqueRows, tradeAreaFileParser);
           if (data != null) {
             const failedCount = data.failedRows ? data.failedRows.length : 0;
             const successCount = data.parsedData ? data.parsedData.length : 0;
@@ -256,7 +238,7 @@ export class UploadTradeAreasComponent implements OnInit {
     //!this.isDisable ? 'Please select an Analysis Level before uploading a Custom TA file' : 'CSV or Excel format, required fields are Site #, Geocode';
   }
 
-  private processUploadedTradeArea(data: TradeAreaDefinition[], isResubmit: boolean = false) : void {
+  private processUploadedTradeArea(data: TradeAreaDataRow[], isResubmit: boolean = false) : void {
     this.totalUploadedRowCount += data.length;
     this.tradeAreaService.applyCustomTradeArea(data, this.fileAnalysisSelected, isResubmit);
   }
