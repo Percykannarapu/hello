@@ -17,7 +17,9 @@
       </span>
     </div>
     <div class="p-col-12">
-      <p-listbox [options]="groupedAudiences$ | async" formControlName="audienceList" [listStyle]="{'max-height':'250px'}" [style]="{width:'40em'}" multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
+      <span class="listbox-item">
+          <p-listbox [options]="groupedAudiences$ | async" formControlName="audienceList" [listStyle]="{'max-height':'250px'}" [style]="{width:'40em'}" multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
+      </span>
       <span class="validation-messages">
         <span *ngIf="showError">Only percent variables can be combined, please fix your selection</span>
       </span>

@@ -37,6 +37,7 @@
             color: $inputListItemTextColor;
             transition: $listItemTransition;
             border-radius: $inputListItemBorderRadius;
+            user-select: none;
 
             &.p-highlight {
                 color: $highlightTextColor;

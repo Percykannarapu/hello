@@ -133,3 +133,10 @@ $duration: 1.4s;
     transform:rotate(450deg);
   }
 }
+
+.listbox-item{
+  .p-listbox .p-listbox-list .p-listbox-item {
+  user-select: text;
+  }
+}
+
