@@ -1,5 +1,6 @@
 import Point from '@arcgis/core/geometry/Point';
 import Graphic from '@arcgis/core/Graphic';
+import { removeNonAlphaNumerics } from '@val/common';
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 
 export const defaultLocationPopupFields = [
@@ -41,7 +42,7 @@ export function createSiteGraphic(site: ImpGeofootprintLocation, oid: number) : 
   }
 
   site.impGeofootprintLocAttribs.forEach(attr => {
-    graphic.attributes[attr.attributeCode] = attr.attributeValue;
+    graphic.attributes[removeNonAlphaNumerics(attr.attributeCode)] = attr.attributeValue;
   });
 
   return graphic;

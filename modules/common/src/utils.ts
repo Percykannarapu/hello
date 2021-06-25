@@ -207,3 +207,7 @@ export function encloseInQuotes(inputValue: any) : any {
   }
   return inputValue;
 }
+
+export function removeNonAlphaNumerics(value: string) : string {
+  return value.replace(/\W/g, '_');
+}

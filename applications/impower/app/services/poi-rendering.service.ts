@@ -1,7 +1,16 @@
 import { Inject, Injectable } from '@angular/core';
 import Point from '@arcgis/core/geometry/Point';
 import { Store } from '@ngrx/store';
-import { getUuid, groupByExtended, groupToEntity, isConvertibleToNumber, mapArrayToEntity, mapByExtended, toUniversalCoordinates } from '@val/common';
+import {
+  getUuid,
+  groupByExtended,
+  groupToEntity,
+  isConvertibleToNumber,
+  mapArrayToEntity,
+  mapByExtended,
+  removeNonAlphaNumerics,
+  toUniversalCoordinates
+} from '@val/common';
 import {
   ColorPalette,
   duplicatePoiConfiguration,
@@ -102,7 +111,7 @@ export class PoiRenderingService {
       renderingSetups =  this.updateRadiiDefination(sites, renderingSetups);
       this.esriPoiService.upsertPoiConfig(renderingSetups);
     }
-   
+
     this.renderPois(sitesByTypeCode, renderingSetups);
   }
 
@@ -177,7 +186,7 @@ export class PoiRenderingService {
     renderingSetups.forEach(config => {
       if (config.poiType === PoiConfigurationTypes.Unique) {
         const currentPois = poisByFeatureId[config.featureLayerId];
-        const existingFeatures = new Set<string>(currentPois.map(poi => poi.attributes[config.featureAttribute]));
+        const existingFeatures = new Set<string>(currentPois.map(poi => poi.attributes[removeNonAlphaNumerics(config.featureAttribute)]));
         config.breakDefinitions.forEach(b => b.isHidden = !existingFeatures.has(b.value));
         updatedSetups.push(duplicatePoiConfiguration(config));
       }
@@ -333,7 +342,7 @@ export class PoiRenderingService {
           const tas = this.applyRadiusTradeArea(def['tradeAreas'], ImpClientLocationTypeCodes.Site, sites);
           this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, def);
         }
-        
+
         const newDef: PoiConfiguration = duplicatePoiConfiguration(def);
       }
     });

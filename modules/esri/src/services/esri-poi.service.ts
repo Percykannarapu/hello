@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Update } from '@ngrx/entity';
 import { Store } from '@ngrx/store';
-import { filterArray, toUniversalCoordinates } from '@val/common';
+import { filterArray, removeNonAlphaNumerics, toUniversalCoordinates } from '@val/common';
 import { BehaviorSubject, EMPTY, merge, Observable, from } from 'rxjs';
 import { filter, map, reduce, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
@@ -162,7 +162,7 @@ export class EsriPoiService {
       case PoiConfigurationTypes.Unique:
         const uniqueValues: __esri.UniqueValueInfoProperties[] = config.breakDefinitions.filter(b => !b.isHidden).map(u => ({ label: u.legendName, value: u.value, symbol: this.createSymbolFromDefinition(u) }));
         const uniqueRenderer = EsriDomainFactory.createUniqueValueRenderer(null, uniqueValues);
-        uniqueRenderer.field = config.featureAttribute;
+        uniqueRenderer.field = removeNonAlphaNumerics(config.featureAttribute);
         return uniqueRenderer;
     }
   }
@@ -205,7 +205,7 @@ export class EsriPoiService {
     const font = this.createLabelFont(currentDef);
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     config.breakDefinitions.forEach(bd => {
-      const where = `${config.featureAttribute} = '${bd.value}'`;
+      const where = `${removeNonAlphaNumerics(config.featureAttribute)} = '${bd.value}'`;
       const color = !currentDef.usesStaticColor ? bd.color : currentDef.color;
       const haloColor = !currentDef.usesStaticColor ? bd.outlineColor : currentDef.haloColor;
       result.push(EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font, 'below-center', { where }));
