@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { contains } from '@arcgis/core/geometry/geometryEngine';
 import { Store } from '@ngrx/store';
 import {
+  CommonSort,
   filterArray,
   getUuid,
   groupByExtended,
-  isConvertibleToNumber,
+  isConvertibleToNumber, isEmpty, isNotNil,
   mapBy,
   mapByExtended,
-  simpleFlatten,
+  simpleFlatten, toNullOrNumber,
   toUniversalCoordinates
 } from '@val/common';
 import { EsriGeoprocessorService, EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
@@ -298,28 +299,32 @@ export class AppLocationService {
   public persistLocationsAndAttributes(data: ImpGeofootprintLocation[], isEdit?: boolean, isResubmit?: boolean, oldData?: ImpGeofootprintLocation) : void {
     const newTradeAreas: ImpGeofootprintTradeArea[] = [];
     data.forEach(l => {
-      let radius2 = 0;
-      let radius1 = 0;
-      let radius3 = 0;
+      const radiiDeduper = new Set<number>();
       const tradeAreas: { radius: number, selected: boolean, taNumber: number }[] = [];
-      if (l.locationNumber == null || l.locationNumber.length === 0 ){
+      if (isEmpty(l.locationNumber)) {
         l.locationNumber = this.impLocationService.getNextLocationNumber().toString();
       }
-      if (isConvertibleToNumber(l.radius1) && Number(l.radius1) > 0) {
-         radius2 = l.radius2 == null ? Infinity : l.radius2 ;
-         radius3 = l.radius3 == null ? Infinity : l.radius3 ;
-         radius1 = Math.min(l.radius1, radius2, radius3);
-         tradeAreas.push({ radius: radius1, selected: true, taNumber: 1 });
+      l.radius1 = toNullOrNumber(l.radius1);
+      l.radius2 = toNullOrNumber(l.radius2);
+      l.radius3 = toNullOrNumber(l.radius3);
+      if (l.radius1 > 0) radiiDeduper.add(l.radius1);
+      if (l.radius2 > 0) radiiDeduper.add(l.radius2);
+      if (l.radius3 > 0) radiiDeduper.add(l.radius3);
+      if (radiiDeduper.size > 0) {
+        const radii = Array.from(radiiDeduper);
+        radii.sort(CommonSort.GenericNumber);
+        for (let i = 0; i < 3; ++i) {
+          const taNumber = i + 1;
+          const currentRadius = radii[i];
+          if (isNotNil(currentRadius)) {
+            tradeAreas.push({ radius: currentRadius, selected: true, taNumber });
+          }
+          l[`radius${taNumber}`] = currentRadius ?? null; // converts an undefined into a null
+        }
+        if (tradeAreas.length > 0) {
+          newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, [l], false));
+        }
       }
-      if (isConvertibleToNumber(l.radius3) && Number(l.radius3) > 0) {
-         radius3 = Math.max(l.radius1, l.radius2, l.radius3);
-         tradeAreas.push({ radius: radius3, selected: true, taNumber: 3 });
-      }
-      if (isConvertibleToNumber(l.radius2) && Number(l.radius2) > 0) {
-         radius2 = l.radius3 == null ? Math.max(l.radius1, l.radius2) : [l.radius1, l.radius2, l.radius3].filter(rad => rad != radius1 && rad != radius3)[0];
-         tradeAreas.push({ radius: Number(radius2), selected: true, taNumber: 2 });
-      }
-      newTradeAreas.push(...this.appTradeAreaService.createRadiusTradeAreasForLocations(tradeAreas, [l], false));
     });
 
     if (this.appStateService.analysisLevel$.getValue() == null && newTradeAreas.length !== 0 ) {
