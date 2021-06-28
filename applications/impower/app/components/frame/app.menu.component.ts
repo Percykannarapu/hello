@@ -1,7 +1,7 @@
 /* tslint:disable:component-selector */
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ClearAllNotifications, ConfirmationPayload, ShowConfirmation } from '@val/messaging';
+import { ClearAllNotifications, ConfirmationPayload, ErrorNotification, ShowConfirmation, SuccessNotification } from '@val/messaging';
 import { AppStateService } from 'app/services/app-state.service';
 import { BatchMapService } from 'app/services/batch-map.service';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
@@ -126,6 +126,12 @@ export class AppMenuComponent implements OnInit, OnDestroy {
               styleClass: 'val-long-menu-link',
               command: () => this.createBatchMap(),
               visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])
+            },
+            {
+              label: 'Copy All Geos to Clipboard',
+              icon: PrimeIcons.COPY,
+              styleClass: 'val-long-menu-link',
+              command: () => this.copyGeosToClipboard(),
             }
           ]
         },
@@ -181,6 +187,17 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       this.store$.dispatch(new CreateMapExportUsageMetric('targeting', 'map', 'batch~map', this.locationService.get().length));
       this.store$.dispatch(new OpenBatchMapDialog());
     }
+  }
+
+  private copyGeosToClipboard() {
+    const currentGeos = this.stateService.uniqueSelectedGeocodes$.getValue();
+    currentGeos.sort();
+    const clipString = currentGeos.join(', ');
+    window.navigator.clipboard.writeText(clipString).then(() => {
+      this.store$.dispatch(new SuccessNotification({ message: `Copied ${currentGeos.length} geos to the clipboard`, sticky: false, life: 5000 }));
+    }).catch(err => {
+      this.store$.dispatch(new ErrorNotification({ message: 'There was an error trying to copy the data to your system clipboard.', additionalErrorInfo: err }));
+    });
   }
 
   private exportToValassisDigital() {

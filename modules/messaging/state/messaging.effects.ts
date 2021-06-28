@@ -10,7 +10,7 @@ export class MessagingEffects {
   @Effect({ dispatch: false })
   errorNotifier$ = this.actions$.pipe(
     ofType<ErrorNotification>(MessagingActionTypes.ErrorNotification),
-    tap(a => this.notifications.showErrorNotification(a.payload.message, a.payload.notificationTitle, a.payload.sticky)),
+    tap(a => this.notifications.showErrorNotification(a.payload.message, a.payload.notificationTitle, a.payload.sticky, a.payload.life)),
     tap(a => {
       if (a.payload['additionalErrorInfo'] != null) {
         console.groupCollapsed('%cAdditional Error Info - ' + a.payload.notificationTitle, 'color: red');
@@ -23,7 +23,7 @@ export class MessagingEffects {
   @Effect({ dispatch: false })
   warnNotifier$ = this.actions$.pipe(
     ofType<WarningNotification>(MessagingActionTypes.WarningNotification),
-    tap(a => this.notifications.showWarningNotification(a.payload.message, a.payload.notificationTitle, a.payload.sticky))
+    tap(a => this.notifications.showWarningNotification(a.payload.message, a.payload.notificationTitle, a.payload.sticky, a.payload.life))
   );
 
   @Effect({ dispatch: false })
@@ -35,7 +35,7 @@ export class MessagingEffects {
   @Effect({ dispatch: false })
   successNotifier$ = this.actions$.pipe(
     ofType<SuccessNotification>(MessagingActionTypes.SuccessNotification),
-    tap(a => this.notifications.showSuccessNotification(a.payload.message, a.payload.notificationTitle, a.payload.sticky))
+    tap(a => this.notifications.showSuccessNotification(a.payload.message, a.payload.notificationTitle, a.payload.sticky, a.payload.life))
   );
 
   @Effect({ dispatch: false })
