@@ -16,7 +16,8 @@
             },
             "allowedCommonJsDependencies": [
               "xlsx",
-              "moment"
+              "moment",
+              "stacktrace-js"
             ],
             "outputPath": "dist/impower",
             "index": "applications/impower/index.html",
@@ -81,7 +82,7 @@
           },
           "configurations": {
             "qa": {
-              "polyfills": "applications/impower/polyfills.deploy.ts",
+              "polyfills": "applications/impower/polyfills.ts",
               "optimization": true,
               "outputHashing": "bundles",
               "sourceMap": true,
@@ -96,13 +97,13 @@
                   "with": "applications/impower/environments/environment.qa.ts"
                 },
                 {
-                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
-                  "with": "applications/impower/worker-shared/common/env/server-urls.qa.ts"
+                  "replace": "applications/impower/environments/server-urls.ts",
+                  "with": "applications/impower/environments/server-urls.qa.ts"
                 }
               ]
             },
             "production": {
-              "polyfills": "applications/impower/polyfills.deploy.ts",
+              "polyfills": "applications/impower/polyfills.ts",
               "optimization": true,
               "outputHashing": "bundles",
               "sourceMap": false,
@@ -117,13 +118,13 @@
                   "with": "applications/impower/environments/environment.prod.ts"
                 },
                 {
-                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
-                  "with": "applications/impower/worker-shared/common/env/server-urls.prod.ts"
+                  "replace": "applications/impower/environments/server-urls.ts",
+                  "with": "applications/impower/environments/server-urls.prod.ts"
                 }
               ]
             },
             "prod-win": {
-              "polyfills": "applications/impower/polyfills.deploy.ts",
+              "polyfills": "applications/impower/polyfills.ts",
               "optimization": true,
               "outputHashing": "bundles",
               "sourceMap": false,
@@ -138,8 +139,8 @@
                   "with": "applications/impower/environments/environment.prod.ts"
                 },
                 {
-                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
-                  "with": "applications/impower/worker-shared/common/env/server-urls.prod.ts"
+                  "replace": "applications/impower/environments/server-urls.ts",
+                  "with": "applications/impower/environments/server-urls.prod.ts"
                 }
               ]
             },
@@ -150,13 +151,13 @@
                   "with": "applications/impower/environments/environment.local-fuse.ts"
                 },
                 {
-                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
-                  "with": "applications/impower/worker-shared/common/env/server-urls.local.ts"
+                  "replace": "applications/impower/environments/server-urls.ts",
+                  "with": "applications/impower/environments/server-urls.local.ts"
                 }
               ]
             },
             "dev-server": {
-              "polyfills": "applications/impower/polyfills.deploy.ts",
+              "polyfills": "applications/impower/polyfills.ts",
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": true,
@@ -179,8 +180,8 @@
                   "with": "applications/impower/environments/environment.prod-as-dev.ts"
                 },
                 {
-                  "replace": "applications/impower/worker-shared/common/env/server-urls.ts",
-                  "with": "applications/impower/worker-shared/common/env/server-urls.prod.ts"
+                  "replace": "applications/impower/environments/server-urls.ts",
+                  "with": "applications/impower/environments/server-urls.prod.ts"
                 }
               ]
             }

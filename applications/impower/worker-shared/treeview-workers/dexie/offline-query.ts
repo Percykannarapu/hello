@@ -2,7 +2,7 @@ import { isNil } from '@val/common';
 import Dexie from 'dexie';
 import { BehaviorSubject, EMPTY, from, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, tap } from 'rxjs/operators';
-import { serverEnv } from '../../common/env/server-urls';
+import { serverEnv } from '../../../environments/server-urls';
 import { fetchGet } from '../../common/fetch-helpers';
 import { fixupOffline, OfflineAudienceResponse, OfflineCategoryResponse, RestResponse } from '../../data-model/custom/treeview';
 import { TDASchema } from './schemas';

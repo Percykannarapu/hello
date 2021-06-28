@@ -2,7 +2,7 @@ import { CommonSort, groupByExtended, isConvertibleToNumber, isEmpty, isNil, map
 import Dexie from 'dexie';
 import { PrimeIcons } from 'primeng/api';
 import { WorkerResponse, WorkerStatus } from '../common/core-interfaces';
-import { serverEnv } from '../common/env/server-urls';
+import { serverEnv } from '../../environments/server-urls';
 import { OnlineAudienceDefinition, ValassisTreeNode } from '../data-model/custom/treeview';
 import { OnlineQuery } from './dexie/online-query';
 import { InMarketSchema, InterestSchema, PixelSchema, VLHSchema } from './dexie/schemas';
@@ -102,8 +102,8 @@ export class OnlineTreeviewState implements TreeviewState<TreeviewPayload, TreeV
     this.queryEngine = new OnlineQuery(schema, fullUrl, dataIsNested, additionalLeafFilter);
   }
 
-  private async setup(forceRefresh: boolean, fetchHeaders: { Authorization: string }) {
-    if (forceRefresh || timestampIsExpired(this.queryEngine.currentTimeStamp, 12)) {
+  private async setup(forceRefresh: boolean, initPayload: boolean, fetchHeaders: { Authorization: string }) {
+    if (forceRefresh || (initPayload && timestampIsExpired(this.queryEngine.currentTimeStamp, 12))) {
       await this.queryEngine.initialize(forceRefresh, fetchHeaders).toPromise();
     }
   }
@@ -118,9 +118,7 @@ export class OnlineTreeviewState implements TreeviewState<TreeviewPayload, TreeV
         nodes: []
       }
     };
-    if (payload.initPayload) {
-      await this.setup(payload.forceRefresh, payload.fetchHeaders);
-    }
+    await this.setup(payload.forceRefresh, payload.initPayload, payload.fetchHeaders);
     if (isNil(payload.rootId) && isEmpty(payload.searchTerm)) {
       const audienceData = await this.queryEngine.getAudiencesByParentId(null);
       result.value.nodes = this.convertAudiences(audienceData);

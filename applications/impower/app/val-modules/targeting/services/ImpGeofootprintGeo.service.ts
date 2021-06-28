@@ -26,11 +26,12 @@ import {
   GeoFootprintExportWorkerPayload,
   WorkerProcessReturnType
 } from '../../../../worker-shared/export-workers/payloads';
+import { MustCoverDataRow, mustCoverFileParser } from '../../../common/file-parsing-rules';
 import { PrettyGeoSort, RankGeoSort } from '../../../common/valassis-sorters';
 import { WorkerFactory } from '../../../common/worker-factory';
 import { LocalAppState } from '../../../state/app.interfaces';
 import { DataStore } from '../../common/services/datastore.service';
-import { FileService, Parser, ParseResponse, ParseRule } from '../../common/services/file.service';
+import { FileService, ParseResponse } from '../../common/services/file.service';
 import { LoggingService } from '../../common/services/logging.service';
 import { RestDataService } from '../../common/services/restdata.service';
 import { TransactionManager } from '../../common/services/TransactionManager.service';
@@ -43,19 +44,6 @@ interface CustomMCDefinition {
 }
 
 const dataUrl = 'v1/targeting/base/impgeofootprintgeo/search?q=impGeofootprintGeo';
-
-interface UploadMustCoverData {
-   geocode: string;
-}
-
-const mustCoverUpload: Parser<UploadMustCoverData> = {
-   columnParsers: [
-      { headerIdentifier: ['GEO', 'ATZ', 'PCR', 'ZIP', 'DIG', 'ROUTE', 'GEOCODE', 'GEOGRAPHY'], outputFieldName: 'geocode', required: true}
-   ],
-   createNullParser: (header: string, isUnique?: boolean) : ParseRule => {
-      return { headerIdentifier: '', outputFieldName: header, dataProcess: data => data};
-    }
-};
 
 @Injectable()
 export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
@@ -285,7 +273,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
     try {
        // Parse the file data
-       const data: ParseResponse<UploadMustCoverData> = FileService.parseDelimitedData(header, rows, mustCoverUpload);
+       const data: ParseResponse<MustCoverDataRow> = FileService.parseDelimitedData(header, rows, mustCoverFileParser);
        // Gather metrics about the upload
        const failCount = data.failedRows.length;
        const successCount = data.parsedData.length;

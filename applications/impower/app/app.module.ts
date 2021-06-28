@@ -10,7 +10,7 @@ import { Action, StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EsriModule } from '@val/esri';
 import { MessagingModule } from '@val/messaging';
-import { NgStringPipesModule } from 'angular-pipes';
+import { NgTruncatePipeModule } from 'angular-pipes';
 import { CookieService } from 'ngx-cookie-service';
 import { AccordionModule } from 'primeng/accordion';
 import { ConfirmationService, MessageService, SharedModule } from 'primeng/api';
@@ -303,7 +303,7 @@ export function esriSetupFactory() : ForRootOptions {
     TreeModule,
     TreeTableModule,
     CommonModule,
-    NgStringPipesModule,
+    NgTruncatePipeModule,
     CardModule,
     SidebarModule,
     ColorPickerModule,

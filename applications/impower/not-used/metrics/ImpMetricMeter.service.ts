@@ -11,10 +11,10 @@
 
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DataStore } from '../../common/services/datastore.service';
-import { LoggingService } from '../../common/services/logging.service';
-import { RestDataService } from '../../common/services/restdata.service';
-import { ImpMetricMeter } from '../models/ImpMetricMeter';
+import { DataStore } from '../../app/val-modules/common/services/datastore.service';
+import { LoggingService } from '../../app/val-modules/common/services/logging.service';
+import { RestDataService } from '../../app/val-modules/common/services/restdata.service';
+import { ImpMetricMeter } from './ImpMetricMeter';
 
 const dataUrl = 'v1/metrics/base/impmetricmeter/search?q=impMetricMeter';
 

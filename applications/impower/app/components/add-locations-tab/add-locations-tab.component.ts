@@ -6,6 +6,7 @@ import { combineLatest, Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
+import { siteListFileParser } from '../../common/file-parsing-rules';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
@@ -19,7 +20,6 @@ import { CreateLocationUsageMetric } from '../../state/usage/targeting-usage.act
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintLocationService } from '../../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ManualEntryComponent } from './manual-entry/manual-entry.component';
-import { siteListUpload } from './upload.rules';
 
 @Component({
   selector: 'val-add-locations-tab',
@@ -77,7 +77,7 @@ export class AddLocationsTabComponent implements OnInit {
     this.impGeofootprintLocationService.get().filter(loc => loc.clientLocationTypeCode == siteType).forEach(site => {
       this.geocoderService.duplicateKeyMap.get(siteType).add(site.locationNumber);
     });
-    const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListUpload);
+    const requests = this.geocoderService.createRequestsFromRaw(csvData, siteType, siteListFileParser);
     const hasUserGrant = this.userService.userHasGrants(['IMPOWER_UNRESTRICTED_SITES']);
     this.logger.debug.log('File Upload valid count', requests.length);
     if (requests.length > 0){
