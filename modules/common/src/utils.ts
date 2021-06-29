@@ -211,3 +211,7 @@ export function encloseInQuotes(inputValue: any) : any {
 export function removeNonAlphaNumerics(value: string) : string {
   return value.replace(/\W/g, '_');
 }
+
+export function removeNonAsciiChars(value: string) : string {
+  return value.replace(/[^\x00-\x7F]/g, '').replace(/&nbsp;/gi, ' ');
+}

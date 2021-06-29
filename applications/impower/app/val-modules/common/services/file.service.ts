@@ -77,8 +77,8 @@ export class FileService {
     const invalidColumns: T = {} as T;
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
-      // replace commas embedded inside nested quotes, then remove the quotes.
-      const csvRow = dataRows[i].replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').replace(/"/g, '');
+      // replace commas embedded inside nested quotes, then remove the quotes. and replace non ASCII char
+      const csvRow = dataRows[i].replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').replace(/"/g, '').replace(/[^\x00-\x7F]/g, '');
       const columns = csvRow.split(parser.columnDelimiter);
       if (columns.length !== parseEngine.length) {
         result.failedRows.push(dataRows[i]);

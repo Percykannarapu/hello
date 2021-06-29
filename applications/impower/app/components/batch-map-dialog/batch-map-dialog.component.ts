@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { groupByExtended } from '@val/common';
+import { groupByExtended, removeNonAsciiChars } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
 import { AppLocationService } from 'app/services/app-location.service';
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
@@ -298,9 +298,9 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   onSubmit(dialogFields: any) {
-    this.input['title'] = (dialogFields['titleInput'] === null) ? this.currentProjectName : dialogFields['titleInput'];
-    this.input['subTitle'] = dialogFields['subTitleInput'];
-    this.input['subSubTitle'] = dialogFields['subSubTitleInput'];
+    this.input['title'] = (dialogFields['titleInput'] === null) ? this.currentProjectName : removeNonAsciiChars(dialogFields['titleInput']);
+    this.input['subTitle'] = removeNonAsciiChars(dialogFields['subTitleInput']);
+    this.input['subSubTitle'] = removeNonAsciiChars(dialogFields['subSubTitleInput']);
     const siteIds: string[] = this.getSiteIds();
     const titles: Array<TitlePayload> = this.getTitles(siteIds);
     const result = this.getTitlesByGroup(siteIds);
@@ -344,7 +344,7 @@ export class BatchMapDialogComponent implements OnInit {
                 xmax: extent['xmax'].toString(),
                 ymin: extent['ymin'].toString(),
                 ymax: extent['ymax'].toString(),
-                taName: this.batchMapForm.get('taTitle').value || '',
+                taName: removeNonAsciiChars(this.batchMapForm.get('taTitle').value) || '',
                 projectName: this.currentProjectName,
                 jobType: 'Current Map'
               }
@@ -479,9 +479,9 @@ export class BatchMapDialogComponent implements OnInit {
 
   getSinglePageMapPayload(size: BatchMapSizes, layout: string, siteId: string, fitTo: FitToPageOptions, buffer: number) : SinglePageBatchMapPayload{
     const location = this.stateService.currentProject$.getValue().impGeofootprintMasters[0].impGeofootprintLocations.filter(loc => loc.locationNumber === siteId);
-    const title = this.batchMapForm.get('title').value;
-    const subTitle = this.batchMapForm.get('subTitle').value;
-    const subSubTitle = this.batchMapForm.get('subSubTitle').value;
+    const title = removeNonAsciiChars(this.batchMapForm.get('title').value);
+    const subTitle = removeNonAsciiChars(this.batchMapForm.get('subTitle').value);
+    const subSubTitle = removeNonAsciiChars(this.batchMapForm.get('subSubTitle').value);
     const formData: SinglePageBatchMapPayload = {
       calls: [
         {
