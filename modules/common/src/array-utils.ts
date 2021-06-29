@@ -384,3 +384,8 @@ export function arrayToSet<T, R>(items: AnyArray<T>, filter?: (item: T) => boole
   }
   return result;
 }
+
+export function arrayDedupe<T, R>(items: AnyArray<T>, keySelector: (item: T) => R) : T[] {
+  const result = mapByExtended(items, keySelector);
+  return Array.from(result.values());
+}

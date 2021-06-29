@@ -1,4 +1,4 @@
-import { groupByExtended, isEmpty, isNil, toNullOrNumber } from '@val/common';
+import { arrayDedupe, groupByExtended, isEmpty, isNil, toNullOrNumber } from '@val/common';
 import { PrimeIcons } from 'primeng/api';
 import { WorkerResponse, WorkerStatus } from '../common/core-interfaces';
 import { OfflineAudienceResponse, OfflineCategoryResponse, ValassisTreeNode } from '../data-model/custom/treeview';
@@ -47,12 +47,13 @@ export class OfflineTreeviewState implements TreeviewState<TreeviewPayload, Tree
       result.value.nodes = this.convertAudiences(lazyChildren);
     } else {
       const searchChildren = await this.queryEngine.searchAudiences(payload.searchTerm, payload.includeFolder, payload.rootId);
+      const dedupedChildren = arrayDedupe(searchChildren, def => def.pk);
       if (isNil(payload.rootId)) {
-        const resultGroups = groupByExtended(searchChildren, a => a.parentPk);
+        const resultGroups = groupByExtended(dedupedChildren, a => a.parentPk);
         const searchParents = await this.queryEngine.filterCategories(Array.from(resultGroups.keys()));
         result.value.nodes = this.buildSearchResults(searchParents, resultGroups);
       } else {
-        result.value.nodes = this.convertAudiences(searchChildren);
+        result.value.nodes = this.convertAudiences(dedupedChildren);
       }
     }
 

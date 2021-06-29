@@ -1,6 +1,7 @@
-import { CommonSort, groupByExtended, isConvertibleToNumber, isEmpty, isNil, mapByExtended, toNullOrNumber } from '@val/common';
+import { arrayDedupe, CommonSort, groupByExtended, isConvertibleToNumber, isEmpty, isNil, mapBy, mapByExtended, toNullOrNumber } from '@val/common';
 import Dexie from 'dexie';
 import { PrimeIcons } from 'primeng/api';
+import { mapTo } from 'rxjs/operators';
 import { WorkerResponse, WorkerStatus } from '../common/core-interfaces';
 import { serverEnv } from '../../environments/server-urls';
 import { OnlineAudienceDefinition, ValassisTreeNode } from '../data-model/custom/treeview';
@@ -127,9 +128,10 @@ export class OnlineTreeviewState implements TreeviewState<TreeviewPayload, TreeV
       result.value.nodes = this.convertAudiences(lazyChildren);
     } else {
       const searchChildren = await this.queryEngine.searchAudiences(payload.searchTerm, payload.includeFolder, payload.rootId);
-      const allParentIds = new Set(searchChildren.flatMap(child => child.familyIds));
+      const dedupedChildren = arrayDedupe(searchChildren, def => def.digCategoryId);
+      const allParentIds = new Set(dedupedChildren.flatMap(child => child.familyIds));
       const allParents = await this.queryEngine.getAudiencesByFamily(Array.from(allParentIds));
-      result.value.nodes = this.buildSearchResults(allParents, searchChildren, payload.rootId);
+      result.value.nodes = this.buildSearchResults(allParents, dedupedChildren, payload.rootId);
     }
     return result;
   }

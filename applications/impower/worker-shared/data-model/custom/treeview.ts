@@ -123,6 +123,12 @@ function createTagArray(value: string, splitter: RegExp) : string[] {
     }
     return a;
   }, [] as string[]);
+  validTags.push(value.toLowerCase());
+  let currentTags = Array.from(rawTags);
+  while (currentTags.length > 1) {
+    validTags.push(currentTags.join(' ').toLowerCase());
+    currentTags = currentTags.slice(1);
+  }
   const dedupedTags = new Set(validTags);
   return Array.from(dedupedTags);
 }
