@@ -19,7 +19,7 @@ import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/servic
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
 import { AppEditSiteService } from './app-editsite.service';
 import { AppGeoService } from './app-geo.service';
-import { AppLocationService } from './app-location.service';
+import { AppLocationService, HomeGeoQueryResult } from './app-location.service';
 import { AppStateService } from './app-state.service';
 import { AppTradeAreaService } from './app-trade-area.service';
 
@@ -121,14 +121,14 @@ interface TradeAreaDefinition {
                totalLocs: payload.locations};
    }
 
-   queryHomeGeocode(payload: { LocMap: Map<string, ImpGeofootprintLocation[]>, isLocationEdit: boolean}){
+   queryHomeGeocode(payload: { LocMap: Map<string, any[]>, isLocationEdit: boolean}){
      this.logger.debug.log('queryHomeGeocode for PIP');
      return this.appLocationService.queryAllHomeGeos(payload.LocMap);
    }
 
-  processHomeGeoAttributes(payload: {attributes: any[], totalLocs: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
+  processHomeGeoAttributes(payload: {attributes: HomeGeoQueryResult[], totalLocs: ImpGeofootprintLocation[], reCalculateHomeGeos: boolean, isLocationEdit: boolean}){
     this.logger.debug.log('process geo attributes:::');
-    const attributesBySiteNumber: Map<any, any> = mapBy(payload.attributes, 'siteNumber');
+    const attributesBySiteNumber: Map<string, HomeGeoQueryResult> = mapBy(payload.attributes, 'siteNumber');
     const locs = payload.totalLocs.filter(loc => attributesBySiteNumber.has(loc.locationNumber));
 
     // this.impProjectService.startTx();

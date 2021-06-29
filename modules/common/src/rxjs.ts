@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { filter, map, pairwise, startWith } from 'rxjs/operators';
+import { filter, map, pairwise, reduce, startWith } from 'rxjs/operators';
 
 export const filterArray = <T>(callbackFn: (value: T, index: number, array: T[]) => boolean) => (source$: Observable<T[]>) : Observable<T[]> => {
   return source$.pipe(
@@ -45,5 +45,16 @@ export function skipUntilFalseBecomesTrue() : (source$: Observable<boolean>) => 
     pairwise(),
     filter(([prev, curr]) => !prev && curr),
     map(([, curr]) => curr)
+  );
+}
+
+/**
+ * Reduces an rxjs pipeline with multiple return values (from a merge operation, for example)
+ * This operation is for use with array responses from each of the individual streams that need to be
+ * accumulated into a single array via an array concat operation.
+ */
+export function reduceConcat<T>() : (source$: Observable<T[]>) => Observable<T[]> {
+  return source$ => source$.pipe(
+    reduce((acc, val) => acc.concat(val), [] as T[])
   );
 }

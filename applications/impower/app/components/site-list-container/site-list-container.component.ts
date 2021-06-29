@@ -11,7 +11,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../.
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppEditSiteService } from '../../services/app-editsite.service';
 import { AppGeocodingService } from '../../services/app-geocoding.service';
-import { AppLocationService } from '../../services/app-location.service';
+import { AppLocationService, HomeGeoQueryResult } from '../../services/app-location.service';
 import { AppStateService } from '../../services/app-state.service';
 import { AppTradeAreaService } from '../../services/app-trade-area.service';
 import { LocalAppState } from '../../state/app.interfaces';
@@ -169,13 +169,17 @@ export class SiteListContainerComponent implements OnInit {
         }
       });
     } else if (!ifAddressChanged && !ifLatLongChanged && anyChangeInHomeGeoFields) {
-      const attributeList = [{'homeAtz': siteOrSites['Home ATZ'],
-      'homeDtz': siteOrSites['Home Digital ATZ'],
-      'homePcr': siteOrSites['Home Carrier Route'],
-      'homeZip': siteOrSites['Home Zip Code'],
-      'siteNumber': siteOrSites.number,
-      'geocoderZip': editedLocation.locZip.substring(0, 5),
-      'abZip': editedLocation.locZip.substring(0, 5)}];
+      const attributeList: HomeGeoQueryResult[] = [{
+        homeAtz: siteOrSites['Home ATZ'],
+        homeDigitalAtz: siteOrSites['Home Digital ATZ'],
+        homePcr: siteOrSites['Home Carrier Route'],
+        homeZip: siteOrSites['Home Zip Code'],
+        homeDma: siteOrSites['Home DMA'],
+        homeCounty: siteOrSites['Home County'],
+        homeDmaName: siteOrSites['Home DMA Name'],
+        siteNumber: siteOrSites.number,
+        abZip: editedLocation.locZip.substring(0, 5)
+      }];
       const analysisLevel: string = this.appStateService.analysisLevel$.getValue();
       const editedTags: string[] = [];
       const tagToField = {
@@ -188,7 +192,7 @@ export class SiteListContainerComponent implements OnInit {
         'zip': 'homeZip',
         'atz': 'homeAtz',
         'pcr': 'homePcr',
-        'dtz': 'homeDtz'
+        'dtz': 'homeDigitalAtz'
       };
       if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code').length > 0) {
          if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Zip Code')[0].attributeValue !== attributeList[0].homeZip
@@ -215,12 +219,12 @@ export class SiteListContainerComponent implements OnInit {
          this.domainFactory.createLocationAttribute(editedLocation, 'Home Carrier Route', attributeList[0].homePcr);
       }
       if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ').length > 0) {
-         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== attributeList[0].homeDtz
+         if (editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== attributeList[0].homeDigitalAtz
             || editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === 'Home Digital ATZ')[0].attributeValue !== '') {
             editedTags.push('dtz');
          }
-      } else if (attributeList[0].homeDtz !== '' && homeDigitalAtzFlag) {
-         this.domainFactory.createLocationAttribute(editedLocation, 'Home Digital ATZ', attributeList[0].homeDtz);
+      } else if (attributeList[0].homeDigitalAtz !== '' && homeDigitalAtzFlag) {
+         this.domainFactory.createLocationAttribute(editedLocation, 'Home Digital ATZ', attributeList[0].homeDigitalAtz);
       }
       editedTags.forEach(tag => {
         editedLocation.impGeofootprintLocAttribs.filter(la => la.attributeCode === tagToField[tag])[0].attributeValue = attributeList[0][tagToFieldName[tag]];

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Actions, Effect, ofType } from '@ngrx/effects';
+import { act, Actions, Effect, ofType } from '@ngrx/effects';
 import { ErrorNotification, InfoNotification, StopBusyIndicator, SuccessNotification } from '@val/messaging';
 import { AppLocationService } from 'app/services/app-location.service';
 import { of } from 'rxjs';
@@ -94,7 +94,7 @@ export class HomeGeoEffects {
       ofType<ValidateEditedHomeGeoAttributes>(HomeGeoActionTypes.ValidateEditedHomeGeoAttributes),
       switchMap(action => this.appLocationService.validateHomeGeoAttributesOnEdit(action.payload.attributeList, action.payload.editedTags).pipe(
          map(val => {
-            if (val.filter(item => item.length > 0).length === val.length){
+            if (val.length === action.payload.editedTags.length) {
                return new SaveOnValidationSuccess({ oldData: action.payload.oldData, editedTags: action.payload.editedTags, attributeList: action.payload.attributeList });
             } else {
                return new InfoNotification({ notificationTitle: 'Invalid HomeGeos', message: 'There are invalid values for one/more HomeGeoFields. Please provide valid values instead', sticky: false, life: 5000 });
