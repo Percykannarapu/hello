@@ -140,3 +140,12 @@ $duration: 1.4s;
   }
 }
 
+.dropdown-copy{
+  .p-component, .p-component * {
+    box-sizing: border-box;
+    user-select: text;
+  }
+}
+
+
+

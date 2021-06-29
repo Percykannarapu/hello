@@ -30,7 +30,7 @@
       <tbody formArrayName="audienceRows">
       <ng-container *ngFor="let aud of audienceRows.controls; index as i">
         <tr [formGroupName]="i" class="p-fluid">
-          <td>
+          <td class="dropdown-copy">
             <dropdown-input [options]="filteredAudiences$ | async" [includeUnselected]="true"
                             formControlName="selectedAudienceList"></dropdown-input>
           </td>
