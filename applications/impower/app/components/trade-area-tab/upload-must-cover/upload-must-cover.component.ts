@@ -60,7 +60,7 @@ export class UploadMustCoverComponent implements OnInit {
                 this.currentAnalysisLevel$ = this.appStateService.analysisLevel$;
                 this.appStateService.applicationIsReady$.pipe(filter(ready => ready)).subscribe(() => {
                    this.impGeofootprintGeoService.uploadFailures = [];
-                   this.onProjectLoad();
+                  //  this.onProjectLoad();
                   });
                 this.appStateService.clearUI$.subscribe(() => this.onReset());
               }
@@ -140,16 +140,16 @@ export class UploadMustCoverComponent implements OnInit {
       this.mustCoverGeos = null;
    }
 
-   public onProjectLoad(){
-      const projectPref = this.appProjectPrefService.getPref('Must Cover Manual');
-      if(projectPref != null){
-         const mustCoverFormData : MustCoverPref = JSON.parse(projectPref.largeVal);
+   /* public onProjectLoad(){
+      const manualProjectPref = this.appProjectPrefService.getPref('Must Cover Manual');
+      if(manualProjectPref != null){
+         const mustCoverFormData : MustCoverPref = JSON.parse(manualProjectPref.largeVal);
          this.isUpload = false;
          this.fileAnalysisSelected = mustCoverFormData.fileAnalysisLevel;
          this.currentSelection = 'Manually Add';
          this.mustCoverGeos = mustCoverFormData.fileContents;
       }
-   }
+   } */
 
    public onRemove(data: CustomMCDefinition){
     this.totalUploadedRowCount -= 1;
