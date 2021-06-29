@@ -238,7 +238,7 @@ export class UploadMustCoverComponent implements OnInit {
    }
 
    onFileAnalysisChange(event: any) : void {
-      this.isDisable = this.currentSelection != null && this.currentSelection === 'Manually Add' ? true : false;
+      this.isDisable = this.currentSelection == null || (this.currentSelection != null && this.currentSelection === 'Manually Add') ? true : false;
       this.fileAnalysisSelected = event;
       this.fileAnalysisLabel = this.allAnalysisLevels.filter(analysis => analysis.value === this.fileAnalysisSelected)[0].label;
       this.tooltip = 'CSV or Excel format, required field is Geocode';
