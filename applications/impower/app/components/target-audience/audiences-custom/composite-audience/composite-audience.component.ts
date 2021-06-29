@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { isString, mapArray } from '@val/common';
+import { isEmpty, isString, mapArray } from '@val/common';
 import { Audience } from 'app/impower-datastore/state/transient/audience/audience.model';
 import * as fromAudienceSelectors from 'app/impower-datastore/state/transient/audience/audience.selectors';
 import { allAudiences } from 'app/impower-datastore/state/transient/audience/audience.selectors';
@@ -144,21 +144,21 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   onSubmit(audienceFields: any) {
     const compositeAudIds: VarSpecs[] = [];
     const weights: number[] = [];
-    let total: number;
+    let total: number = 0;
     const selectedVariableNames: string[] = [];
     if (audienceFields.audienceRows.length > 0) {
       audienceFields.audienceRows.forEach(selectedRow => {
         this.indexTypes.add(selectedRow.indexBase);
-        weights.push(selectedRow.percent);
-        selectedVariableNames.push(selectedRow.selectedAudienceList.audienceName + '-' + selectedRow.indexBase + '-' + selectedRow.percent);
+        if(!isEmpty(selectedRow.percent))
+          weights.push(selectedRow.percent);
+        selectedVariableNames.push(selectedRow.selectedAudienceList?.audienceName + '-' + selectedRow.indexBase + '-' + selectedRow.percent);
         compositeAudIds.push({
-          id: Number(selectedRow.selectedAudienceList.audienceIdentifier),
+          id: Number(selectedRow.selectedAudienceList?.audienceIdentifier),
           pct: Number(selectedRow.percent),
           base: selectedRow.indexBase != null ? selectedRow.indexBase : 'NAT'
         });
       });
     }
-
     if (weights.length > 0) {
       total = weights.reduce((p, c) => p + Number(c), 0);
     }
@@ -190,6 +190,7 @@ export class CompositeAudienceComponent implements OnInit, OnDestroy {
   }
 
   addRow(newRow?: any) {
+    this.showError = false;
     //TODO: introduces memory leak
     const audienceArray = this.compositeForm.controls.audienceRows as FormArray;
     const arraylen = audienceArray.length;
