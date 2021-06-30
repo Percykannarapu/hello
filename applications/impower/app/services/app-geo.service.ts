@@ -557,6 +557,10 @@ export class AppGeoService {
     const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site);
     const tradeAreasToDelete = this.tradeAreaService.get().filter(ta => ta.taType.toUpperCase() === TradeAreaTypeCodes.MustCover.toUpperCase());
     tradeAreasToDelete.forEach(ta => {
+      ta.impGeofootprintGeos.forEach(mcg => {
+        uniqueGeos.delete(mcg.geocode);
+        activeUniqueGeos.delete(mcg.geocode);
+      });
       this.impGeoService.remove(ta.impGeofootprintGeos);
       const index = ta.impGeofootprintLocation.impGeofootprintTradeAreas.indexOf(ta);
       ta.impGeofootprintLocation.impGeofootprintTradeAreas.splice(index, 1);
