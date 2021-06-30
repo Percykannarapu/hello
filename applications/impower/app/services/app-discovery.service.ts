@@ -3,7 +3,7 @@ import { Store } from '@ngrx/store';
 import { filterByFields, formatDateForFuse, mapArray, mapBy } from '@val/common';
 import { ErrorNotification } from '@val/messaging';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, map, take, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, take, tap } from 'rxjs/operators';
 import { LocalAppState } from '../state/app.interfaces';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpMetricName } from '../val-modules/metrics/models/ImpMetricName';
@@ -95,6 +95,10 @@ export class AppDiscoveryService {
     this.radCategoryCodeByName = mapBy(this.radCategoryCodes, 'name', (r) => r.code);
     this.radCategoryNameByCode = mapBy(this.radCategoryCodes, 'code', (r) => r.name);
     this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => this.setSelectedValues(project));
+    this.appStateService.currentProject$.pipe(
+      map(p => this.getForcedHomeGeoFlag(p)),
+      distinctUntilChanged(),
+    ).subscribe(() => this.selectForceHomeGeo(this.appStateService.currentProject$.getValue()));
     this.store$.select(deleteCustomTa).subscribe(flag => {
         this.deleteCustomTAflag = flag;
     });
@@ -103,7 +107,6 @@ export class AppDiscoveryService {
   private setSelectedValues(project: ImpProject) {
       this.selectRadProduct(project);
       this.selectProjectTracker(project);
-      this.selectForceHomeGeo(project);
   }
 
   private selectRadProduct(project: ImpProject) {
@@ -134,11 +137,15 @@ export class AppDiscoveryService {
     }
   }
 
-  private selectForceHomeGeo(project: ImpProject){
-   const impProjectPref = project.impProjectPrefs.filter(pref => pref.prefGroup === 'project-flags' && pref.pref === 'FORCE_HOMEGEO')[0];
-   if (impProjectPref != null && !this.deleteCustomTAflag){
-    this.store$.dispatch( new ForceHomeGeos({isForceHomeGeo : JSON.parse(impProjectPref.largeVal)}));
-   }
+  private getForcedHomeGeoFlag(project: ImpProject) : boolean {
+    const impProjectPref = project?.impProjectPrefs?.filter(pref => pref.prefGroup === 'project-flags' && pref.pref === 'FORCE_HOMEGEO')?.[0];
+    return JSON.parse(impProjectPref?.largeVal ?? 'false');
+  }
+
+  private selectForceHomeGeo(project: ImpProject) {
+    if (!this.deleteCustomTAflag) {
+      this.store$.dispatch(new ForceHomeGeos({isForceHomeGeo: this.getForcedHomeGeoFlag(project)}));
+    }
   }
 
   private getProjectTrackerData(searchString) : Observable<ProjectTrackerUIModel[]> {

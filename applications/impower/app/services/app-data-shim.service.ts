@@ -17,11 +17,12 @@ import { GeoAttribute } from '../impower-datastore/state/transient/geo-attribute
 import { clearTransientData } from '../impower-datastore/state/transient/transient.actions';
 import { createExistingAudienceInstance } from '../models/audience-factories';
 import { ProjectFilterChanged } from '../models/ui-enums';
-import { FullAppState } from '../state/app.interfaces';
+import { FullAppState, MustCoverPref } from '../state/app.interfaces';
 import { LayerSetupComplete } from '../state/data-shim/data-shim.actions';
 import { ClearTradeAreas } from '../state/rendering/rendering.actions';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
+import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { AppGeoService } from './app-geo.service';
 import { AppLayerService } from './app-layer.service';
@@ -213,11 +214,11 @@ export class AppDataShimService {
   }
 
   onLoadSuccess(isBatch: boolean) : void {
+    const project: ImpProject = this.appStateService.currentProject$.getValue();
     this.impGeofootprintGeoService.uploadFailures = [];
     this.appTradeAreaService.setCurrentDefaults();
-    this.appGeoService.reloadMustCovers();
+    this.reloadMustCovers(project);
     if (!isBatch) {
-      const project: ImpProject = this.appStateService.currentProject$.getValue();
       const extent = (project.impProjectPrefs || []).filter(pref => pref.pref === 'extent')[0];
       if (extent != null) {
         const parsedJson = JSON.parse(extent.largeVal || extent.val);
@@ -364,6 +365,27 @@ export class AppDataShimService {
     return null;
   }
 
-
+  private reloadMustCovers(project: ImpProject) : void {
+    try {
+      const prefs: ImpProjectPref[] = project.impProjectPrefs.filter(pref => pref.prefGroup === 'MUSTCOVER');
+      if (!isEmpty(prefs)) {
+        const newMustCovers = prefs.reduce((acc, mustCoverPref) => {
+          const prefsVal = mustCoverPref.val ?? mustCoverPref.largeVal;
+          if (mustCoverPref.pref !== 'Must Cover Manual') {
+            acc = acc.concat(this.impGeofootprintGeoService.parseMustCoverString(prefsVal));
+          } else {
+            const manualPrefs: MustCoverPref = JSON.parse(prefsVal);
+            acc = acc.concat(this.impGeofootprintGeoService.parseMustCoverString(manualPrefs.fileContents));
+          }
+          return acc;
+        }, [] as string[]);
+        this.impGeofootprintGeoService.setMustCovers(newMustCovers);
+      }
+    } catch (e) {
+      this.logger.error.groupCollapsed('Error loading must covers');
+      this.logger.error.log(e);
+      this.logger.error.groupEnd();
+    }
+  }
 
 }
