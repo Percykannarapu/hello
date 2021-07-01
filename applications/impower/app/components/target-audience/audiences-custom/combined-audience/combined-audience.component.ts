@@ -75,7 +75,7 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
       map(aud => {
         this.allAudiences = aud;
         return aud.filter(a => (a.audienceSourceType === 'Offline' || a.audienceSourceType === 'Combined') &&
-          (a.fieldconte === 'PERCENT' || a.fieldconte === 'INDEX' || a.fieldconte === 'MEDIAN' || a.fieldconte === 'COUNT'));
+          (a.fieldconte === 'PERCENT' || a.fieldconte === 'INDEX' || a.fieldconte === 'MEDIAN'));
       }),
       tap(audiences => this.hasAudienceSelections = audiences.length > 0),
       map(audList => audList.sort((a, b) => a.audienceName.localeCompare(b.audienceName))),
