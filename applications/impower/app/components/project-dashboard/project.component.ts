@@ -2,9 +2,10 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { formatDateForFuse } from '@val/common';
 import { ConfirmationPayload, ShowConfirmation, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
-import { SelectItem, ConfirmationService } from 'primeng/api';
+import { ConfirmationService, SelectItem } from 'primeng/api';
 import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
-import { filter, map, switchMap, take, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, map, shareReplay, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { ValassisTreeNode } from '../../../worker-shared/data-model/custom/treeview';
 import { AppConfig } from '../../app.config';
 import { AppStateService } from '../../services/app-state.service';
 import { UserService } from '../../services/user.service';
@@ -34,15 +35,6 @@ const timeSpanFriendlyNames: Record<TimeSpanType, string> = {
 })
 export class ProjectComponent implements OnInit, OnDestroy {
 
-  public get showDialog() : boolean {
-    return this._showDialog;
-  }
-
-  public set showDialog(value: boolean) {
-    this.onDialogHide(value);
-    this._showDialog = value;
-  }
-
   private readonly projectSearchUrl = 'v1/targeting/base/impprojectsview/search?q=impProjectsByDateRange';
   private readonly cloneProjectUrl =  'v1/targeting/base/clone/cloneproject';
   private readonly deActivateProjectUrl = 'v1/targeting/base/deactivate/project/';
@@ -51,18 +43,15 @@ export class ProjectComponent implements OnInit, OnDestroy {
   private triggerDataRefresh$ = new Subject<void>();
   private destroyed$ = new Subject<void>();
 
-  private _showDialog: boolean = false;
-
+  public dialogIsVisible$: Observable<boolean>;
   public triggerDataFilter$ = new BehaviorSubject<FilterType>('myProject');
   public timeSpans: SelectItem[];
-  public selectedTimeSpan: TimeSpanType;
-
-  public allProjectData$: Observable<Partial<ImpProject>[]>;
+  public selectedTimeSpan$ = new BehaviorSubject<TimeSpanType>('sixMonths');
   public currentProjectData$: Observable<Partial<ImpProject>[]>;
   public selectedRow: Partial<ImpProject> = null;
   public dataLength: number;
 
-  isDisable = false;
+  public deleteButtonDisabled = false;
 
   public gettingData: boolean;
 
@@ -77,6 +66,8 @@ export class ProjectComponent implements OnInit, OnDestroy {
     { field: 'modifyDate',               header: 'Last Modified Date',   size: '20%' }
   ];
 
+  public trackByProjectId = (index: number, project: ImpProject) => project.projectId;
+
   constructor(private restService: RestDataService,
               private userService: UserService,
               private stateService: AppStateService,
@@ -87,39 +78,38 @@ export class ProjectComponent implements OnInit, OnDestroy {
       label: timeSpanFriendlyNames[ts],
       value: ts
     }));
-    this.selectedTimeSpan = 'sixMonths';
     for (const column of this.allColumns) {
       this.columnOptions.push({ label: column.header, value: column });
       this.selectedColumns.push(column);
     }
   }
 
-  ngOnInit() {
+  public ngOnInit() {
+    this.dialogIsVisible$ = this.store$.select(openExistingDialogFlag);
     this.stateService.applicationIsReady$.pipe(
       filter(isReady => isReady),
       take(1),
     ).subscribe(() => {
-      this.allProjectData$ = this.triggerDataRefresh$.pipe(
+      this.stateService.allLocationCount$.pipe(
+        takeUntil(this.destroyed$)
+      ).subscribe(count => this.hasExistingData = count > 0);
+
+      const allProjectData$ = combineLatest([this.selectedTimeSpan$, this.triggerDataRefresh$]).pipe(
         takeUntil(this.destroyed$),
-        switchMap(() => this.getData())
+        switchMap(([timeSpan]) => this.getData(timeSpan)),
+        shareReplay()
       );
-      this.currentProjectData$ = combineLatest([this.triggerDataFilter$, this.allProjectData$]).pipe(
+
+      this.currentProjectData$ = combineLatest([this.triggerDataFilter$, allProjectData$]).pipe(
+        takeUntil(this.destroyed$),
         map(([filterType, data]) => {
           const result = filterType === 'myProject' ? data.filter(p => p.modifyUser === this.userService.getUser().userId && p.isActive) : data.filter(p => p.isActive);
-          this.isDisable = filterType !== 'myProject';
+          this.deleteButtonDisabled = filterType !== 'myProject';
           return [filterType, result] as [FilterType, Partial<ImpProject>[]];
         }),
         tap(([filterType, data]) => this.recordMetrics(filterType, data.length)),
         map(([, data]) => data)
       );
-      this.store$.select(openExistingDialogFlag).pipe(
-        takeUntil(this.destroyed$),
-        withLatestFrom(this.stateService.allLocationCount$)
-      ).subscribe(([flag, locationCount]) => {
-        this._showDialog = flag;
-        this.hasExistingData = locationCount > 0;
-        if (this._showDialog) this.triggerDataRefresh$.next();
-      });
     });
   }
 
@@ -127,17 +117,11 @@ export class ProjectComponent implements OnInit, OnDestroy {
     this.destroyed$.next();
   }
 
-  private getData() : Observable<Partial<ImpProject>[]> {
-    const dates = this.getDates();
-    const query = `${this.projectSearchUrl}&&updatedDateFrom=${formatDateForFuse(dates.start)}&&updatedDateTo=${formatDateForFuse(dates.end)}`;
-    this.gettingData = true;
-    return this.restService.get(query).pipe(
-      map((result) => result.payload.rows as Partial<ImpProject>[]),
-
-    );
+  public hideDialog() : void {
+    this.store$.dispatch(new CloseExistingProjectDialog());
   }
 
-  refreshData() : void {
+  public refreshData() : void {
     this.triggerDataRefresh$.next();
   }
 
@@ -167,34 +151,18 @@ export class ProjectComponent implements OnInit, OnDestroy {
     }
   }
 
-  private recordMetrics(filterType: FilterType, dataLength: number) : void {
-    this.dataLength = dataLength;
-    const metricText  = `userFilter=${filterType}~timeFilter=${this.selectedTimeSpan}`;
-    this.store$.dispatch(new CreateProjectUsageMetric('project', 'search', metricText, dataLength));
-    this.gettingData = false;
-  }
-
-  onDialogHide(newFlagValue: boolean) : void {
-    if (newFlagValue === false && newFlagValue != this._showDialog) {
-      // the field has changed from true to false
-      this.store$.dispatch(new CloseExistingProjectDialog());
-    }
-  }
-
   public cloneProject(projectId: number){
     const payload = { 'projectId': projectId, 'userId' : this.userService.getUser().userId };
     const key = 'CLONE_PROJECT';
     this.store$.dispatch(new StartBusyIndicator({ key, message: `Cloning project ${projectId}`}));
 
     this.restService.post(this.cloneProjectUrl, payload).subscribe(() => {
-      this.triggerDataRefresh$.next();
+      this.refreshData();
       this.store$.dispatch(new StopBusyIndicator({ key }));
     });
   }
 
   deActivateProject(projectId: number){
-
-
     this.confirmationService.confirm({
          message: 'Are you sure you want to remove this project?',
          header: 'Delete Project',
@@ -203,17 +171,33 @@ export class ProjectComponent implements OnInit, OnDestroy {
         const key = 'DEACTIVATE_PROJECT';
         this.store$.dispatch(new StartBusyIndicator({ key, message: `Deactivating project ${projectId}`}));
         this.restService.delete(this.deActivateProjectUrl, projectId).subscribe(() => {
-        this.refreshData();
-        this.store$.dispatch(new StopBusyIndicator({ key }));
+          this.refreshData();
+          this.store$.dispatch(new StopBusyIndicator({ key }));
         });
       }
     });
   }
 
-  private getDates() : { start: Date, end: Date } {
+  private getData(timeSpan: TimeSpanType) : Observable<Partial<ImpProject>[]> {
+    const dates = this.getDates(timeSpan);
+    const query = `${this.projectSearchUrl}&&updatedDateFrom=${formatDateForFuse(dates.start)}&&updatedDateTo=${formatDateForFuse(dates.end)}`;
+    this.gettingData = true;
+    return this.restService.get(query).pipe(
+      map((result) => result.payload.rows as Partial<ImpProject>[]),
+    );
+  }
+
+  private recordMetrics(filterType: FilterType, dataLength: number) : void {
+    this.dataLength = dataLength;
+    const metricText  = `userFilter=${filterType}~timeFilter=${this.selectedTimeSpan$.getValue()}`;
+    this.store$.dispatch(new CreateProjectUsageMetric('project', 'search', metricText, dataLength));
+    this.gettingData = false;
+  }
+
+  private getDates(timeSpan: TimeSpanType) : { start: Date, end: Date } {
     const start = new Date();
     const end = new Date();
-    switch (this.selectedTimeSpan) {
+    switch (timeSpan) {
       case 'sixMonths':
         start.setMonth(start.getMonth() - 6, 1);
         break;

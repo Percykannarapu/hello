@@ -1,10 +1,8 @@
-<div class="p-d-flex val-search-input-root">
-  <div class="p-inputgroup">
-    <button type="button" pButton class="p-button-icon-only" icon="pi pi-times" (click)="reset()" pTooltip="Clear the search input"></button>
-    <div class="p-float-label val-full-size-float">
-      <input #search id="search-{{controlId}}" pInputText type="text" [ngModel]="searchText$ | async" (ngModelChange)="searchText$.next(search.value)">
-      <label for="search-{{controlId}}">{{label}}</label>
-    </div>
-    <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
+<div class="p-inputgroup">
+  <button type="button" pButton class="p-button-icon-only" icon="pi pi-times" (click)="reset()" pTooltip="Clear the search input"></button>
+  <div class="p-float-label val-full-size-float">
+    <input #search id="search-{{controlId}}" pInputText type="text" [ngModel]="searchText$ | async" (ngModelChange)="searchText$.next(search.value)">
+    <label for="search-{{controlId}}">{{label}}</label>
   </div>
+  <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
 </div>

@@ -1,4 +1,31 @@
-.val-search-input-root {
+@import "~assets/valassis-variables";
+
+val-search-input {
+  display: flex;
   padding-bottom: 0.25rem;
   padding-top: 0.5rem;
+}
+
+.p-datatable {
+  .p-datatable-header {
+    val-search-input {
+      display: flex;
+      padding-bottom: 0.25rem;
+      padding-top: 0.25rem;
+      .p-button {
+        background-color: $blueBird;
+      }
+      .p-inputgroup-addon {
+        color: $tableHeaderTextColor;
+      }
+      .p-float-label {
+        > .p-inputtext:not(:hover) + label {
+          color: $tableHeaderTextColor;
+        }
+        > .p-inputtext:focus:hover + label {
+          color: $babyBlue;
+        }
+      }
+    }
+  }
 }

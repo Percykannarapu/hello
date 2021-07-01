@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { getUuid, isNotNil } from '@val/common';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, takeUntil } from 'rxjs/operators';
@@ -6,7 +6,8 @@ import { debounceTime, distinctUntilChanged, filter, map, takeUntil } from 'rxjs
 @Component({
   selector: 'val-search-input',
   templateUrl: './search-input.component.html',
-  styleUrls: ['./search-input.component.scss']
+  styleUrls: ['./search-input.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class SearchInputComponent implements OnInit, OnDestroy {
 

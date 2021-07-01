@@ -1,4 +1,10 @@
-<p-dialog [(visible)]="showDialog" [modal]="true" [draggable]="true" [closable]="true" [closeOnEscape]="true" [style]="{ width: '90vw' }">
+<p-dialog [visible]="dialogIsVisible$ | async"
+          (visibleChange)="hideDialog()"
+          [modal]="true" [draggable]="true"
+          [closable]="true" [closeOnEscape]="true"
+          (onShow)="refreshData()"
+          class="dialog-overflow"
+          [style]="{ width: '90vw' }">
     <p-header>
       Existing Projects
     </p-header>
@@ -7,12 +13,12 @@
           <div class="p-col p-d-flex p-ai-center p-jc-between">
             <label>View:</label>
             <p-radioButton name="filterGroup" value="myProject" label="My Projects"
-                           [ngModel]="triggerDataFilter$.getValue()" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
+                           [ngModel]="triggerDataFilter$ | async" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
             <p-radioButton name="filterGroup" value="allProjects" label="All Projects"
-                           [ngModel]="triggerDataFilter$.getValue()" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
+                           [ngModel]="triggerDataFilter$ | async" (ngModelChange)="triggerDataFilter$.next($event)"></p-radioButton>
           </div>
           <div class="p-col p-d-flex p-jc-end">
-            <p-dropdown [options]="timeSpans" [(ngModel)]="selectedTimeSpan" (ngModelChange)="refreshData()"></p-dropdown>
+            <p-dropdown [options]="timeSpans" [ngModel]="selectedTimeSpan$ | async" (ngModelChange)="selectedTimeSpan$.next($event)"></p-dropdown>
           </div>
         </div>
         <div class="p-col-12 val-table-no-wrap">
@@ -21,27 +27,20 @@
                    [(selection)]="selectedRow"
                    selectionMode="single"
                    dataKey="projectId"
+                   [rowTrackBy]="trackByProjectId"
                    [resizableColumns]="false"
                    [reorderableColumns]="false"
                    [paginator]="true" [rows]="10"
-                   sortField="modifyDate" sortOrder="-1">
+                   sortField="modifyDate" [sortOrder]="-1">
             <ng-template pTemplate="caption">
-              <div class="val-table-caption">
-                <div class="p-col">
-                  <div class="p-inputgroup">
-                    <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
-                    <div class="p-float-label">
-                      <input id="projectSearch" type="text" pInputText (input)="projGrid.filterGlobal($event.target.value, 'contains')">
-                      <label for="projectSearch">Search Projects</label>
-                    </div>
-                  </div>
-                </div>
-                <div class="p-col p-d-flex p-jc-center">
-                  <label>Projects: {{dataLength}}</label>
-                </div>
-                <div class="p-col p-d-flex p-jc-end">
-                  <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} items selected"></p-multiSelect>
-                </div>
+              <div>
+                <val-search-input (resultChanged)="projGrid.filterGlobal($event, 'contains')"></val-search-input>
+              </div>
+              <div class="p-d-flex p-jc-center">
+                <label>Projects: {{dataLength}}</label>
+              </div>
+              <div class="p-d-flex p-jc-end">
+                <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} items selected"></p-multiSelect>
               </div>
             </ng-template>
 
@@ -55,7 +54,7 @@
               <tr *ngIf="(currentProjectData$ | async)?.length && gettingData">
                 <th [colSpan]="selectedColumns.length">
                   <div class="p-col-12 p-d-flex p-flex-column p-jc-center p-ai-center">
-                    <i class="pi pi-spi pi-spinner"></i>
+                    <i class="pi pi-spin pi-spinner"></i>
                     Refreshing data, please wait...
                   </div>
                 </th>
@@ -69,7 +68,7 @@
                     {{project[col.field] | date:'short' }}
                   </div>
                   <div *ngSwitchDefault [title]="project[col.field]">
-                    {{project[col.field]}}
+                    {{project[col.field] | truncate:30:' ...'}}
                   </div>
                 </td>
               </tr>
@@ -100,7 +99,7 @@
           <button pButton type="button" label="Clone" class="p-button-outlined" (click)="cloneProject(selectedRow.projectId)" [disabled]="selectedRow == null"></button>
         </div>
         <div class="p-col-1 p-fluid">
-          <button pButton type="button" label="Remove" class="p-button-outlined" (click)="deActivateProject(selectedRow.projectId)" [disabled]="selectedRow == null || isDisable"></button>
+          <button pButton type="button" label="Remove" class="p-button-outlined" (click)="deActivateProject(selectedRow.projectId)" [disabled]="selectedRow == null || deleteButtonDisabled"></button>
         </div>
       </div>
 </p-dialog>
