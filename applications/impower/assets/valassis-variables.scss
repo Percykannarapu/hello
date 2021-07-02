@@ -36,11 +36,10 @@ $accordionHeaderActiveBg: $darkGray03;
 $accordionHeaderTextActiveColor: $lightGray01;
 $accordionHeaderActiveHoverBg: $midGray02;
 $accordionHeaderTextActiveHoverColor: $lightGray04;
-$tableHeaderBg: $darkGray02;
-$tableHeaderTextColor: $midGray04;
+$tableHeaderBg: $midGray01;
+$tableHeaderTextColor: $lightGray01;
 $tableHeaderCellBg: $barelyBlue;
 $tableHeaderCellHighlightBg: $babyBlue;
-
 $dialogHeaderBg: linear-gradient($midGray04, $midGray02);
 $dialogHeaderTextColor: $lightGray04;
 
@@ -67,6 +66,7 @@ $treeNodeContentPadding: 0;
 $tableBodyCellPadding: 0.05rem 0.25rem;
 $inputListHeaderPadding: 0 1rem;
 $paginatorPadding: 0 0.5rem;
+$tableHeaderPadding: 0.75rem 1rem;
 $tableHeaderCellPadding: 0 0.25rem;
 $dialogContentPadding: 0.5rem 1.25rem 1.25rem 1.25rem;
 $treeNodePadding: 0 0.25rem;
