@@ -44,7 +44,7 @@ export class AddShaderButtonComponent {
     return [
       { label: 'Add Owner Site Shading', command: () => this.add(GfpShaderKeys.OwnerSite, 'Owner Site'), visible: this.locationCount > 0 && this.geoCount > 0 },
       { label: 'Add Owner TA Shading', command: () => this.add(GfpShaderKeys.OwnerTA, 'Owner Trade Area'), visible: this.tradeAreaCount > 0 && this.geoCount > 0 },
-      // { label: 'Add ATZ Indicator Shading', command: () => this.add(atzIndicator, 'ATZ Indicator'), visible: this.currentAnalysisLevel != null && this.currentAnalysisLevel.toLowerCase() === 'atz' },
+      { label: 'Add ATZ Indicator Shading', command: () => this.add(atzIndicator, 'ATZ Indicator'), visible: this.currentAnalysisLevel != null && this.currentAnalysisLevel.toLowerCase() === 'atz' },
       { label: 'Add Variable Shading', command: () => this.add(''), visible: this.audienceCount > 0 }
     ];
   }
