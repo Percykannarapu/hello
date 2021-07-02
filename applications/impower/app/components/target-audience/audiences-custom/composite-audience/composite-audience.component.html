@@ -3,7 +3,7 @@
                               (onDelete)="onDelete($event)">
 </val-edit-composite-audiences>
 <br>
-<form novalidate [formGroup]="compositeForm" autocomplete="off" (ngSubmit)="onSubmit(compositeForm.value)">
+<form novalidate [formGroup]="compositeForm" autocomplete="off" (submit)="onSubmit(compositeForm.value)">
   <input type="hidden" formControlName="compositeAudienceId">
   <div class="p-grid p-fluid">
     <div class="p-col-12">
@@ -43,7 +43,7 @@
             <dropdown-input [options]="allIndexValues" [includeUnselected]="true" formControlName="indexBase"></dropdown-input>
           </td>
           <td class="p-d-flex p-jc-center">
-            <button pButton icon="pi pi-trash" class="p-button-danger p-button-outlined p-button-raised p-button-rounded p-button-sm"
+            <button pButton icon="pi pi-trash" type="button" class="p-button-danger p-button-outlined p-button-raised p-button-rounded p-button-sm"
                     (click)="onRemove(i)"></button>
           </td>
         </tr>
@@ -52,7 +52,7 @@
       <tfoot>
       <tr>
         <td>
-          <button pButton icon="pi pi-plus-circle" label="Add Row" class="p-col-3 p-button-text" (click)="addRow()"></button>
+          <button pButton type="button" icon="pi pi-plus-circle" label="Add Row" class="p-col-3 p-button-text" (click)="addRow()"></button>
         </td>
       </tr>
       </tfoot>
