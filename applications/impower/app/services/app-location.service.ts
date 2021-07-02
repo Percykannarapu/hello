@@ -441,11 +441,11 @@ export class AppLocationService {
     locations.forEach(loc => {
       const currentAttributes = attributesBySiteNumber.get(`${loc.locationNumber}`);
       if (currentAttributes != null){
-        Object.keys(currentAttributes).filter(key => key.startsWith('home') && key != 'homeDmaName').forEach(key => {
+        Object.keys(currentAttributes).filter(key => key.startsWith('home') && key !== 'homeDmaName' && key !== 'homeDigitalAtz').forEach(key => {
           if (newHomeGeoToAnalysisLevelMap[key] != null) {
             // the service might return multiple values for a home geo (in case of overlapping geos)
             // as csv. For now, we're only taking the first result.
-            const firstHomeGeoValue = `${currentAttributes[key]}`.split(',')[0];
+            const firstHomeGeoValue = currentAttributes[key]?.split(',')[0] ?? '';
             // validate homegeo rules
 
             if (loc.origPostalCode != null && loc.origPostalCode.length > 0 && ( loc.locZip != null && loc.locZip.substr(0, 5) !== loc.origPostalCode.substr(0, 5))) {

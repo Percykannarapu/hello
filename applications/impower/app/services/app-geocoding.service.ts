@@ -119,7 +119,7 @@ export class AppGeocodingService {
             this.store$.dispatch(resetNamedForm({path: 'addLocation'}));
           }
           if (failCount > 0) {
-            this.store$.dispatch(new ErrorNotification({notificationTitle: 'Geocoding Error', message: 'Refer to the interactive geocoding tab.  Accept XY for center of ZIP code or modify the address and resubmit.'}));
+            this.store$.dispatch(new ErrorNotification({notificationTitle: 'Geocoding Error', message: 'Refer to the interactive geocoding tab. Accept XY for center of ZIP code or modify the address and resubmit.'}));
           } else if (successCount > 0) {
             this.store$.dispatch(new SuccessNotification({message: 'Geocoding Success'}));
           }
