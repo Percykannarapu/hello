@@ -298,9 +298,9 @@ export class BatchMapDialogComponent implements OnInit {
   }
 
   onSubmit(dialogFields: any) {
-    this.input['title'] = (dialogFields['titleInput'] === null) ? this.currentProjectName : removeNonAsciiChars(dialogFields['titleInput']);
-    this.input['subTitle'] = removeNonAsciiChars(dialogFields['subTitleInput']);
-    this.input['subSubTitle'] = removeNonAsciiChars(dialogFields['subSubTitleInput']);
+    this.input['title'] = (dialogFields['titleInput'] == null) ? this.currentProjectName : removeNonAsciiChars(dialogFields['titleInput']);
+    this.input['subTitle'] = dialogFields['subTitleInput'] == null ? '' : removeNonAsciiChars(dialogFields['subTitleInput']);
+    this.input['subSubTitle'] = dialogFields['subSubTitleInput'] == null ? '' : removeNonAsciiChars(dialogFields['subSubTitleInput']);
     const siteIds: string[] = this.getSiteIds();
     const titles: Array<TitlePayload> = this.getTitles(siteIds);
     const result = this.getTitlesByGroup(siteIds);
@@ -344,7 +344,7 @@ export class BatchMapDialogComponent implements OnInit {
                 xmax: extent['xmax'].toString(),
                 ymin: extent['ymin'].toString(),
                 ymax: extent['ymax'].toString(),
-                taName: removeNonAsciiChars(this.batchMapForm.get('taTitle').value) || '',
+                taName: removeNonAsciiChars(this.batchMapForm.get('taTitle').value || '') ,
                 projectName: this.currentProjectName,
                 jobType: 'Current Map'
               }
