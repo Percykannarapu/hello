@@ -11,6 +11,7 @@ import { RestResponse } from '../models/RestResponse';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
+import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { ImpGeofootprintMasterService } from '../val-modules/targeting/services/ImpGeofootprintMaster.service';
 import { ImpProjectService } from '../val-modules/targeting/services/ImpProject.service';
@@ -29,6 +30,7 @@ export class AppProjectService {
               private impProjectPrefService: ImpProjectPrefService,
               private impMasterService: ImpGeofootprintMasterService,
               private impLocationService: ImpGeofootprintLocationService,
+              private impGeoService: ImpGeofootprintGeoService,
               private domainFactory: ImpDomainFactoryService,
               private logger: AppLoggingService,
               private restService: RestDataService) {
@@ -157,5 +159,6 @@ export class AppProjectService {
       this.currentProjectRef.projectId = id;
       this.impProjectService.makeDirty();
     }
+    this.impGeoService.calculateGeoRanks();
   }
 }

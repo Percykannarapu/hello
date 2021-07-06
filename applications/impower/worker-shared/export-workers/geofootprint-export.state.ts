@@ -46,7 +46,6 @@ class GeoFootprintExportState implements ExportState<ImpGeofootprintGeoPayload> 
         p[t.gtaId] = t;
         return p;
       }, {});
-      console.log(this.locations);
       this.mustCovers = new Set<string>(this.data.mustCovers);
       this.filteredRows = this.data.rows.reduce((p, g) => {
         const passesFilter = !this.data.activeOnly || g.isActive;
