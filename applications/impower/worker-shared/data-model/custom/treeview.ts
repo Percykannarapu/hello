@@ -88,7 +88,7 @@ function fixupPk<T extends { pk: number }>(response: T) : T {
 
 export function fixupOnline(audience: Partial<OnlineAudienceDefinition>) : OnlineAudienceDefinition {
   const result = fixupIds(audience);
-  result.searchTags = createTagArray(result.categoryName, /[\s\/]+/);
+  result.searchTags = createTagArray(result.categoryName, /[\s\/~]+/);
   result.folderSearchTags = createTagArray(result.taxonomy.replace(result.categoryName, ''), /[\s\/]+/);
   // set everyone to root level - the audience init code will deal with nested data later
   result.parentId = -1;
