@@ -244,9 +244,9 @@ export class BatchMapDialogComponent implements OnInit {
         this.batchMapForm.get('enableTradeAreaBoundaries').enable();
       } else if (val === 'exclude') {
         this.batchMapForm.get('enableTradeAreaShading').disable();
-        this.batchMapForm.get('enableLabels').disable();
-        this.batchMapForm.get('enableSymbols').disable();
-        this.batchMapForm.get('enableTradeAreaBoundaries').disable();
+        this.batchMapForm.get('enableLabels').enable();
+        this.batchMapForm.get('enableSymbols').enable();
+        this.batchMapForm.get('enableTradeAreaBoundaries').enable();
       }
     });
     this.batchMapForm.get('sitesPerPage').valueChanges.subscribe(val => {
@@ -289,6 +289,13 @@ export class BatchMapDialogComponent implements OnInit {
       else
        this.activeSitesSetting();
     });
+    this.batchMapForm.get('enableSymbols').valueChanges.subscribe(val => {
+      if (!val){
+        this.batchMapForm.get('enableLabels').disable();
+        }else{
+        this.batchMapForm.get('enableLabels').enable();
+       }
+      });
     this.store$.select(getBatchMapDialog).subscribe(flag => {
       if (flag){
         this.sitesCount$ = of(this.getActiveSites().length);

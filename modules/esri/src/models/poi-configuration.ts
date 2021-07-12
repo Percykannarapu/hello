@@ -76,6 +76,9 @@ export interface BasePoiConfiguration {
   radiiTradeAreaDefinition?: RadiiTradeAreaDrawDefinition[];
   refreshLegendOnRedraw?: boolean;
   radiiColor?: RgbaTuple;
+  siteNumber?: string;
+  isBatchMap?: boolean;
+  showSymbols?: boolean;
 }
 
 export interface SimplePoiConfiguration extends BasePoiConfiguration {

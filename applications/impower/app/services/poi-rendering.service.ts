@@ -38,7 +38,7 @@ import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeC
 import { AppConfig } from '../app.config';
 import { extractUniqueAttributeValues } from '../common/model.transforms';
 import { FullAppState } from '../state/app.interfaces';
-import { getBatchMode } from '../state/batch-map/batch-map.selectors';
+import { getBatchMode, getCurrentSiteNum } from '../state/batch-map/batch-map.selectors';
 import { projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { createSiteGraphic, defaultLocationPopupFields } from '../state/rendering/location.transform';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
@@ -97,6 +97,12 @@ export class PoiRenderingService {
       if (configsToUpdate.length > 0) {
         this.updateConfigRenderers(visiblePois, configsToUpdate);
       }
+    });
+    this.store$.select(getCurrentSiteNum).pipe(
+      withLatestFrom(this.store$.select(projectIsReady), this.store$.select(getBatchMode), this.esriPoiService.allPoiConfigurations$),
+      filter(([siteNumber, ready, isBatchMode, configs]) => ready && isBatchMode && siteNumber != null)
+    ).subscribe(([siteNumber, , , configs]) => {
+      this.UpdateBatchMapLabelsSymbols(siteNumber, configs);
     });
   }
 
@@ -336,16 +342,27 @@ export class PoiRenderingService {
     sites = sites.filter(loc => loc.clientLocationTypeCode === ImpClientLocationTypeCodes.Site);
     renderingSetups.forEach((def: SimplePoiConfiguration) => {
       if (def.dataKey === 'Site'){
-        def.symbolDefinition.size = this.batchMapParams.symbols ? def.symbolDefinition.size : 0;
-        def.showLabels = this.batchMapParams.labels;
         if (this.batchMapParams.hideNeighboringSites){
           const tas = this.applyRadiusTradeArea(def['tradeAreas'], ImpClientLocationTypeCodes.Site, sites);
           this.renderRadii(tas, ImpClientLocationTypeCodes.Site, this.esriSettings.defaultSpatialRef, def);
         }
-
         const newDef: PoiConfiguration = duplicatePoiConfiguration(def);
       }
     });
     return renderingSetups;
+  }
+
+  UpdateBatchMapLabelsSymbols(siteNumber: string, configs: PoiConfiguration[]){
+    configs.forEach(def => {
+      if (def.dataKey === 'Site'){
+          const loc = this.getLocations(ImpClientLocationTypeCodes.Site).filter(site => site.locationNumber == siteNumber)[0];
+          def.siteNumber = loc.locationNumber;
+          def.isBatchMap = true;
+          def.showLabels = this.batchMapParams.labels;
+          def.showSymbols = this.batchMapParams.symbols;
+          duplicatePoiConfiguration(def);
+        }
+    });
+    this.esriPoiService.upsertPoiConfig(configs);
   }
 }
