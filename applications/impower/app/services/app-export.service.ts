@@ -4,7 +4,7 @@ import { StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val
 import { RestResponse } from 'app/models/RestResponse';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { Observable } from 'rxjs';
-import { concatMap, filter, map, switchMap, tap } from 'rxjs/operators';
+import { concatMap, filter, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { WorkerResult, WorkerStatus } from '../../worker-shared/common/core-interfaces';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { GeoFootprintExportFormats, LocationExportFormats } from '../../worker-shared/export-workers/payloads';
@@ -118,8 +118,8 @@ export class AppExportService {
             notificationTitle: 'Home Geocode Issues Log'
           }));
         }
-        this.store$.dispatch(new StopBusyIndicator({ key }));
-      })
+      }),
+      finalize(() => this.store$.dispatch(new StopBusyIndicator({ key })))
     );
   }
 

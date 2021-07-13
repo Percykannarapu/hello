@@ -11,7 +11,7 @@
 import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
 import { isEmpty, isString, simpleFlatten } from '@val/common';
-import { ErrorNotification, SuccessNotification } from '@val/messaging';
+import { ErrorNotification, StopBusyIndicator, SuccessNotification } from '@val/messaging';
 import { LocationBySiteNum } from 'app/common/valassis-sorters';
 import { EMPTY, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -141,10 +141,10 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
             // Parent is not being removed, only children already marked for removal will be deleted
             {
                this.impGeoFootprintLocAttribService.performDBRemoves(
-                 this.impGeoFootprintLocAttribService.filterBy(attrib => attrib.glId === loc.glId  && attrib.baseStatus === DAOBaseStatus.DELETE, (attrib) => this.impGeoFootprintLocAttribService.getTreeRemoveCount(attrib), false, true, true),
+               this.impGeoFootprintLocAttribService.filterBy(attrib => attrib.glId === loc.glId  && attrib.baseStatus === DAOBaseStatus.DELETE, (attrib) => this.impGeoFootprintLocAttribService.getTreeRemoveCount(attrib), false, true, true),
                  false, false);
                this.impGeofootprintTradeAreaService.performDBRemoves(
-                 this.impGeofootprintTradeAreaService.filterBy(ta => ta.glId === loc.glId          && ta.baseStatus     === DAOBaseStatus.DELETE, (ta)     => this.impGeofootprintTradeAreaService.getTreeRemoveCount(ta),     false, true, true),
+               this.impGeofootprintTradeAreaService.filterBy(ta => ta.glId === loc.glId && ta.baseStatus === DAOBaseStatus.DELETE, (ta) => this.impGeofootprintTradeAreaService.getTreeRemoveCount(ta),false, true, true),
                  false, false);
             }
          }
