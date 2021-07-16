@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { DeepPartial, rgbToHex } from '@val/common';
+import { DeepPartial } from '@val/common';
 import { applyBoundaryChanges, applyLabelChanges, BoundaryConfiguration, completeEsriFaces, LabelDefinition, RgbaTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
 import { Subject } from 'rxjs';
@@ -82,20 +82,5 @@ export class BoundaryShaderComponent implements OnDestroy {
       })
     };
     this.configForm = this.fb.group(formSetup);
-  }
-
-  getFontWeight(labelDef: LabelDefinition) : string {
-    const fontItems: string[] = [];
-    if (labelDef.isBold) fontItems.push('Bold');
-    if (labelDef.isItalic) fontItems.push('Italic');
-    return fontItems.length > 0 ? fontItems.join(' ') : 'Regular';
-  }
-
-  getLabelColor(symbolDef: LabelDefinition) : string {
-    return rgbToHex(symbolDef.color || this.configuration.symbolDefinition.outlineColor || [0, 0, 0, 1]);
-  }
-
-  getLabelHalo(symbolDef: LabelDefinition) : string {
-    return rgbToHex(symbolDef.haloColor || this.defaultHalo || [255, 255, 255, 1]);
   }
 }

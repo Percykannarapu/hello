@@ -1,12 +1,12 @@
 <!-- valConnectForm="marketLocation" [debounce]="0" -->
 <form novalidate autocomplete="off" [formGroup]="marketGeosFormGroup">
-  <div class="p-grid">
+  <div class="p-grid p-ai-end">
     <!-- Form input fields-->
-    <div class="p-col-9">
-      <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" (selectionChanged)="onMarketChange($event)" [includeUnselected]="true" validationMessage="At least one state should be picked with this market"></dropdown-input>
+    <div class="p-col-9 p-pt-0">
+      <dropdown-input id="mlf_market" formControlName="market" labelText="Market Type" [options]="marketTypeItems" (selectionChanged)="onMarketChange()" [includeUnselected]="true" validationMessage="At least one state should be picked with this market"></dropdown-input>
     </div>
-    <div class="p-col-3">
-      <multiselect-input #msStates id="mlf_states" formControlName="states" defaultLabel="All States" [options]="stateItems" (selectionChanged)="onStatesChange($event)" [includeUnselected]="false"></multiselect-input>
+    <div class="p-col-3 p-pt-0">
+      <multiselect-input #msStates id="mlf_states" formControlName="states" labelText="States" defaultLabel="All States" [options]="stateItems" (selectionChanged)="onStatesChange()" [includeUnselected]="false"></multiselect-input>
     </div>
   </div>
   <div class="p-grid p-fluid">
@@ -20,7 +20,7 @@
     <div class="p-col">
       <div class="p-grid">
         <div class="p-col-10">
-          <button (click)="getGeographies()" label="Create Market Locations" icon="pi pi-send" class="p-button-outlined" pButton [disabled]="!canCreate"></button>
+          <button (click)="getGeographies()" label="Create Market Locations" icon="pi pi-send" class="p-button-outlined" pButton [disabled]="marketGeosFormGroup.invalid || (activeContainerValuesCount$ | async) == 0"></button>
         </div>
         <div class="p-col-2" *ngIf="isFetchingGeos">
           <p-progressSpinner [style]="{width: '30px', height: '30px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
@@ -30,104 +30,111 @@
   </div>
 </form>
 
-<div id="containerValuesGrid">
-  <p-table #containersGrid
-           class="{{tableWrapStyle}}"
-           [columns]="containerGridColumns"
-           [value]="containerValues$ | async"
-           [selection]="containerValuesSelected$ | async"
-           [resizableColumns]="false"
-           [reorderableColumns]="false"
-           sortMode="multiple" [multiSortMeta]="multiSortMeta"
-           [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]"
-           [alwaysShowPaginator]="true"
-           (onRowUnselect)="onRowSelect($event, false)"
-           (onRowSelect)="onRowSelect($event, true)"
-           (onFilter)="onFilter($event)">
+<p-table #containersGrid
+         [columns]="containerGridColumns"
+         [value]="containerValues$ | async"
+         [selection]="containerValuesSelected$ | async"
+         dataKey="gridKey"
+         [rowTrackBy]="trackByKey"
+         sortMode="multiple" [multiSortMeta]="multiSortMeta"
+         [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20]"
+         [showCurrentPageReport]="true" currentPageReportTemplate="{totalRecords} entries"
+         (onFilter)="onFilter()">
 
-    <ng-template pTemplate="caption">
-      <div class="val-table-caption">
-        <div style="flex: 1;">
-          <div class="p-inputgroup">
-            <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
-            <span class="p-float-label">
-              <input id="containerSearch" type="text" pInputText [(ngModel)]="globalSearch" (input)="containersGrid.filterGlobal($event.target.value, 'contains')">
-              <label for="containerSearch">Filter Markets</label>
-            </span>
-          </div>
-          <div style="display: flex; align-items: center; margin-left: 0.25rem;">
-            <button pButton type="button" icon="esri-icon-erase" pTooltip="Clear Filters" (click)="onClickResetFilters()" class="p-button-rounded p-button-outlined p-button-inverse"></button>
-          </div>
-        </div>
-        <div style="flex: 2; justify-content: center">
-          <h6 pTooltip="Selected {{activeContainerValuesCount$ | async}} / {{allContainerValuesCount$ | async}} market values" tooltipPosition="top">Market Values</h6>
-        </div>
-        <div style="flex: 1;">
-          <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} items selected"></p-multiSelect>
-          <button type="button" pButton icon="{{tableWrapIcon}}" pTooltip="Toggle to Word Wrap" (click)="onToggleTableWrap()" class="p-button-rounded p-button-outlined p-button-inverse" style="margin-left: 0.25rem;"></button>
-        </div>
+  <ng-template pTemplate="caption">
+    <div class="val-flex-layout p-ai-end">
+      <div class="p-jc-between p-ai-end">
+        <val-search-input #globalSearch (resultChanged)="containersGrid.filterGlobal($event, 'contains')"></val-search-input>
+        <button pButton type="button" icon="pi pi-filter-slash" pTooltip="Clear All Filters" class="p-button-rounded p-button-outlined p-button-inverse"
+                (click)="clearFilters(containersGrid, globalSearch)">
+        </button>
       </div>
-    </ng-template>
+      <div class="p-jc-center">
+        <label>Market Values: {{allContainerValuesCount$ | async}} ({{activeContainerValuesCount$ | async}} selected)</label>
+      </div>
+      <div class="p-jc-end">
+        <p-multiSelect defaultLabel="Choose Columns" [options]="columnOptions" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} items selected"></p-multiSelect>
+      </div>
+    </div>
+  </ng-template>
 
-    <ng-template pTemplate="colgroup">
-      <colgroup>
-        <col style="width: 2.6rem;">
-        <col *ngFor="let col of selectedColumns" [style.width]="col.width">
-      </colgroup>
-    </ng-template>
+  <ng-template pTemplate="colgroup">
+    <colgroup>
+      <col *ngFor="let col of selectedColumns" [style.width]="col.width">
+    </colgroup>
+  </ng-template>
 
-    <ng-template pTemplate="header">
-      <tr>
-        <th>
-          <p-checkbox [(ngModel)]="headerFilter" binary="true" (click)="onSelectContainerValues(headerFilter)" pTooltip="{{getHeaderSelectTooltip()}}"> </p-checkbox>
+  <ng-template pTemplate="header">
+    <tr>
+      <ng-container *ngFor="let col of selectedColumns">
+        <th *ngIf="col.header == null">
+          <div class="p-d-flex p-jc-center">
+            <button pButton type="button" class="p-button-text"
+                    [pTooltip]="allVisibleRowsSelected ? 'Deselect all rows' : 'Select all rows'"
+                    [icon]="allVisibleRowsSelected ? 'pi pi-check-circle' : 'pi pi-circle-off'"
+                    (click)="selectVisibleRows(!allVisibleRowsSelected)"></button>
+          </div>
         </th>
-        <th *ngFor="let col of selectedColumns" [pSortableColumn]="col.field">
-          {{col.header}}
-          <p-sortIcon [field]="col.field"></p-sortIcon>
+        <th *ngIf="col.header != null" [pSortableColumn]="col.field" [title]="col.header">
+          <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
+            <div class="p-text-truncate">
+              {{col.header}}
+            </div>
+            <p-sortIcon [field]="col.field"></p-sortIcon>
+          </div>
         </th>
-      </tr>
-      <tr>
-        <th>
-          <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" (click)="onFilterBySelection()"></button>
-        </th>
-        <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field" style="overflow: visible">
-          <p-multiSelect *ngSwitchCase="'state'" #filterMs [options]="uniqueState$ | async" defaultLabel="All" (onChange)="containersGrid.filter($event.value, col.field, 'in');" panelStyle="width: 10em;"></p-multiSelect>
-          <input *ngSwitchCase="'id'"   pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''">
-          <input *ngSwitchCase="'code'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''">
-          <input *ngSwitchCase="'name'" pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, col.filterMatchMode)" [value]="(containersGrid.filters != null && containersGrid.filters[col.field]) ? containersGrid.filters[col.field].value : ''">
-          <input *ngSwitchDefault pInputText type="text" (input)="containersGrid.filter($event.target.value, col.field, 'contains')">
-        </th>
-      </tr>
-    </ng-template>
+      </ng-container>
+    </tr>
+    <tr>
+      <th *ngFor="let col of selectedColumns" [ngSwitch]="col.validatorType" [pTooltip]="col.tooltip">
+        <div *ngSwitchCase="'boolean'" class="p-d-flex p-jc-center">
+          <p-columnFilter type="boolean" [field]="col.field"></p-columnFilter>
+        </div>
+        <p-columnFilter *ngSwitchCase="'stateMulti'" matchMode="in" [field]="col.field" [showMenu]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <p-multiSelect [options]="uniqueState$ | async" [ngModel]="value" (ngModelChange)="filter($event)"></p-multiSelect>
+          </ng-template>
+        </p-columnFilter>
+        <p-columnFilter *ngSwitchDefault matchMode="contains" [field]="col.field" [showMenu]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <input type="text" pInputText [ngModel]="value" (ngModelChange)="filter($event)">
+          </ng-template>
+        </p-columnFilter>
+      </th>
+    </tr>
+  </ng-template>
 
-    <ng-template pTemplate="body" let-container>
-      <tr [pSelectableRow]="container">
-        <td>
-          <p-checkbox [(ngModel)]="container.isActive" binary="true" (click)="onSelectContainerValue(container)" pTooltip="{{getSelectionTooltip(container)}}" tooltipPosition="left"></p-checkbox>
+  <ng-template pTemplate="body" let-container>
+    <tr [pSelectableRow]="container">
+      <ng-container *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
+        <td *ngSwitchCase="'isActive'">
+          <div class="p-d-flex p-jc-center">
+            <p-checkbox [(ngModel)]="container[col.field]" binary="true" (click)="onSelectContainerValue()"></p-checkbox>
+          </div>
         </td>
-        <td *ngFor="let col of selectedColumns" [class]="col.styleClass">
+        <td *ngSwitchDefault class="p-text-truncate" [title]="container[col.field]">
           {{container[col.field]}}
         </td>
-      </tr>
-    </ng-template>
+      </ng-container>
+    </tr>
+  </ng-template>
 
-    <ng-template pTemplate="emptymessage" let-columns>
-      <tr>
-        <td [attr.colspan]="columns.length + 1">
-          <div style="display: flex; justify-content: center; align-items: center">
-            <h6 *ngIf="!isFetchingData">No market values</h6>
+  <ng-template pTemplate="emptymessage" let-columns>
+    <tr>
+      <td [attr.colspan]="columns.length">
+        <div class="p-d-flex p-jc-center p-ai-center">
+          <h6 *ngIf="!isFetchingData" class="p-mt-4 p-mb-4">No market values</h6>
 
-            <div *ngIf="isFetchingData">
-              <div>
-                <p-progressSpinner [style]="{width: '50px', height: '50px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
-              </div>
-              <div>
-                <h6>Fetching container values</h6>
-              </div>
+          <div *ngIf="isFetchingData">
+            <div>
+              <p-progressSpinner [style]="{width: '50px', height: '50px'}" strokeWidth="8" fill="#EEEEEE" animationDuration=".8s"></p-progressSpinner>
+            </div>
+            <div>
+              <h6>Fetching container values</h6>
             </div>
           </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</div>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>

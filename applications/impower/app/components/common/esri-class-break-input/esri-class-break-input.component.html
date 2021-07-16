@@ -1,31 +1,29 @@
-<div class="p-d-flex p-ai-end">
-  <div [formGroup]="currentRoot" class="p-d-flex p-col p-col-nogutter">
-    <div *ngIf="usesCalculatedValues" class="p-col p-col-nogutter">
-      <div *ngIf="showCalculatedValue" [title]="calculatedValueMessage">
-        <ng-container *ngIf="calculatedValueMessage.length <= 17">
-          {{calculatedValueMessage}}
-        </ng-container>
-        <ng-container *ngIf="calculatedValueMessage.length > 17">
-          {{calculatedValueMessage | truncate:14:'...'}}
-        </ng-container>
+<div class="p-d-flex p-flex-column p-ai-stretch class-break-root">
+  <div [formGroup]="currentRoot" class="p-d-flex p-ai-baseline">
+    <div *ngIf="usesCalculatedValues" class="p-col-6">
+      <div *ngIf="showCalculatedValue" [title]="calculatedValueMessage" class="p-text-truncate">
+        {{calculatedValueMessage}}
       </div>
     </div>
-    <div *ngIf="!usesCalculatedValues" class="p-d-flex p-col p-col-nogutter">
-      <div class="p-col-6 p-col-nogutter">
+    <div *ngIf="!usesCalculatedValues" class="p-d-flex p-col-6">
+      <div class="p-col-6">
         <validated-text-input *ngIf="showMinValue" formControlName="minValue" labelText="min" [readOnly]="true"></validated-text-input>
+        <validated-text-input *ngIf="!showMinValue" labelText="" [readOnly]="true"></validated-text-input>
       </div>
-      <div class="p-col-6 p-col-nogutter">
+      <div class="p-col-6">
         <validated-text-input *ngIf="showMaxValue" formControlName="maxValue" labelText="max"></validated-text-input>
       </div>
     </div>
-    <div class="p-col p-col-nogutter p-ml-1">
+    <div class="p-col-6 p-ml-1">
       <validated-text-input formControlName="legendName" labelText="Legend"></validated-text-input>
     </div>
   </div>
-  <div [formGroup]="currentRoot.parent" class="p-d-flex p-col p-col-nogutter p-ml-1">
-    <esri-fill-symbol-input labelText="Overlay Type" [currentPalette]="currentPalette" [formGroupName]="formGroupName"
-                            [reversePalette]="reversePalette" *ngIf="breakType === 'fill'" [defaultSolidColor]="defaultColor"></esri-fill-symbol-input>
-    <esri-marker-symbol-input labelText="Symbol" [currentPalette]="currentPalette" [formGroupName]="formGroupName" [defaultHalo]="defaultHalo"
-                              [reversePalette]="reversePalette" *ngIf="breakType === 'marker'" [defaultColor]="defaultColor"></esri-marker-symbol-input>
+  <div [formGroup]="currentRoot.parent" class="p-d-flex p-mr-1">
+    <esri-fill-symbol-input labelText="Overlay Type" class="p-col-12"
+                            [currentPalette]="currentPalette" [formGroupName]="formGroupName" [reversePalette]="reversePalette"
+                            *ngIf="breakType === 'fill'" [defaultSolidColor]="defaultColor"></esri-fill-symbol-input>
+    <esri-marker-symbol-input labelText="Symbol" class="p-col-12"
+                              [currentPalette]="currentPalette" [formGroupName]="formGroupName" [defaultHalo]="defaultHalo" [reversePalette]="reversePalette"
+                              *ngIf="breakType === 'marker'" [defaultColor]="defaultColor"></esri-marker-symbol-input>
   </div>
 </div>

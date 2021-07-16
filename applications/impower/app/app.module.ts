@@ -87,6 +87,7 @@ import { DiscoveryInputComponent } from './components/campaign-details/discovery
 import { ColorBoxComponent } from './components/color-box/color-box.component';
 import { AcsGrantDirective } from './components/common/acs-grant.directive';
 import { BooleanInputComponent } from './components/common/boolean-input/boolean-input.component';
+import { BrokeredTreeviewComponent } from './components/common/brokered-treeview/brokered-treeview.component';
 import { ConfirmationContainerComponent } from './components/common/confirmation-dialog/confirmation-container.component';
 import { ConfirmationDialogComponent } from './components/common/confirmation-dialog/confirmation-dialog.component';
 import { ConnectFormDirective } from './components/common/connect-form.directive';
@@ -99,6 +100,8 @@ import { ExtendedPalettePickerComponent } from './components/common/extended-pal
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { MultiselectInputComponent } from './components/common/multiselect-input/multiselect-input.component';
 import { PaletteColorPickerComponent } from './components/common/palette-color-picker/palette-color-picker.component';
+import { EsriRgb2HexPipe } from './components/common/pipes/esri-rgb-2-hex.pipe';
+import { SearchInputComponent } from './components/common/search-input/search-input.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
 import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
 import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
@@ -189,8 +192,6 @@ import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/service
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
-import { SearchInputComponent } from './components/common/search-input/search-input.component';
-import { BrokeredTreeviewComponent } from './components/common/brokered-treeview/brokered-treeview.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -398,7 +399,8 @@ export function esriSetupFactory() : ForRootOptions {
     FailedGeocodeGridComponent,
     EditLocationsComponent,
     SearchInputComponent,
-    BrokeredTreeviewComponent
+    BrokeredTreeviewComponent,
+    EsriRgb2HexPipe
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },
@@ -418,7 +420,8 @@ export function esriSetupFactory() : ForRootOptions {
     AuthService, RadService, UsageService, UserService, ImpRadLookupService,
     AppLayerService, AppGeocodingService, AppTradeAreaService,
     AppMapService, ValMetricsService,
-    AppEditSiteService, BatchMapAuthService
+    AppEditSiteService, BatchMapAuthService,
+    EsriRgb2HexPipe
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

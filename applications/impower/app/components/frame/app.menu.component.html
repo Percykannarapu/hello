@@ -1,9 +1,9 @@
 <p-menubar *ngIf="isLoggedIn" [model]="model" styleClass="p-d-flex p-jc-between">
-  <div class="menu-addons">
-    <div *ngIf="currentProject && currentProject.projectId > 0" class="val-project-name" title="{{ currentProject.projectId }} - {{ currentProject.projectName }}">
-      {{ currentProject.projectId }} - {{ currentProject.projectName | truncate:30:' ...' }}
+    <div *ngIf="currentProject?.projectId > 0" class="val-project-name p-pr-2 p-text-truncate" title="{{ currentProject.projectId }} - {{ currentProject.projectName }}">
+      {{ currentProject.projectId }} - {{ currentProject.projectName }}
     </div>
-    <p-button label="Help" icon="pi pi-fw pi-question" styleClass="p-button-outlined" (onClick)="getHelpPopup($event)"></p-button>
-    <p-button label="Clear&nbsp;Messages" styleClass="p-button-outlined" (onClick)="onClearMessages($event)"></p-button>
-  </div>
+    <p-button label="Help" icon="pi pi-question" styleClass="p-button-outlined" class="p-pr-2"
+              (onClick)="getHelpPopup($event)"></p-button>
+    <p-button label="Clear&nbsp;Messages" styleClass="p-button-outlined" class="p-pr-2"
+              (onClick)="onClearMessages($event)"></p-button>
 </p-menubar>

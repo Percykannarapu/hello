@@ -1,7 +1,8 @@
 <div class="p-col-12">
-  <div id="geoGrid" class="{{tableWrapStyle}}">
+  <div id="geoGrid">
     <p-table #geoGrid
              dataKey="fgId"
+             [rowTrackBy]="trackByFgId"
              [columns]="selectedColumns"
              [globalFilterFields]="selectedColumns"
              [value]="displayedImpGeofootprintGeos$ | async"
@@ -11,31 +12,19 @@
              [reorderableColumns]="true"
              scrollable="true"
              sortMode="multiple" [multiSortMeta]="multiSortMeta"
-             [paginator]="true" [rows]="25" [rowsPerPageOptions]="[25,50,100,250,500,1000]"
+             [paginator]="true" [rows]="25" [rowsPerPageOptions]="[25,50,100]"
              (onRowSelect)="onClickSelectGeocode($event, true)"
              (onRowUnselect)="onClickSelectGeocode($event, false)"
              (onFilter)="onFilter($event)">
 
-      <!-- This keeps header and detail widths in sync -->
-      <ng-template pTemplate="colgroup">
-        <colgroup>
-          <col class="select-column">
-          <col class="select-column">
-          <col *ngFor="let col of selectedColumns" [style.width]="col.width">
-        </colgroup>
-      </ng-template>
-
       <!-- Caption is the area just above the column headers -->
       <ng-template pTemplate="caption">
-        <div class="val-table-caption">
-          <div class="p-col">
-            <div class="p-inputgroup">
-              <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
-              <div class="p-float-label">
-                <input id="gridFilter" type="text" pInputText size="15" (input)="geoGrid.filterGlobal($event.target.value, 'contains')">
-                <label for="gridFilter">Filter Geographies</label>
-              </div>
-            </div>
+        <div class="val-flex-layout p-ai-end p-pt-3">
+          <div class="p-jc-between p-ai-end">
+            <val-search-input #globalSearch (resultChanged)="geoGrid.filterGlobal($event, 'contains')"></val-search-input>
+            <button pButton type="button" icon="pi pi-filter-slash" pTooltip="Clear All Filters" class="p-button-rounded p-button-outlined p-button-inverse"
+                    (click)="clearFilters(geoGrid, globalSearch)">
+            </button>
             <div class="p-d-flex p-flex-column p-jc-start p-ai-center export-controls">
               <span>Export</span>
               <div class="p-d-flex p-flex-row">
@@ -46,7 +35,7 @@
               </div>
             </div>
           </div>
-          <div class="p-col p-d-flex p-jc-center">
+          <div class="p-jc-center">
             <label *ngIf="geoGrid.filteredValue != null" [escape]="false"
                    pTooltip="<table>
                                    <tr><td style='text-align:right;'>Selected Geos:</td><td>{{gridStats.numGeosActive}}</td></tr>
@@ -62,39 +51,42 @@
               Locations: {{gridStats.numLocsActive}} of {{gridStats.numLocs}}, Geos: {{gridStats.numGeos}}
             </label>
           </div>
-          <div class="p-col p-d-flex p-jc-end p-ai-end">
-            <p-multiSelect defaultLabel="Choose Columns" selectedItemsLabel="{0} columns" [options]="columnOptions" [(ngModel)]="selectedColumns"></p-multiSelect>
-            <span style="margin-left: 0.5rem">
-              <label style="margin-right: 0.25rem">Remove Dupes</label>
-              <p-inputSwitch (onChange)="onClickDedupeToggle($event, geoGrid)" [(ngModel)]="dedupeGrid"></p-inputSwitch>
-            </span>
-            <button type="button" pButton icon="{{tableWrapIcon}}" title="Toggle Word Wrap" style="margin-left: 0.5rem"
-                    class="p-button-outlined p-button-rounded p-button-inverse" (click)="onToggleTableWrap()"></button>
+          <div class="p-jc-end">
+            <boolean-input labelText="Remove Dupes" [ngModel]="dedupeGrid" (ngModelChange)="onClickDedupeToggle($event)"></boolean-input>
+            <multiselect-input [options]="columnOptions" [(ngModel)]="selectedColumns" class="p-pl-2"></multiselect-input>
           </div>
         </div>
       </ng-template>
 
-      <ng-template pTemplate="header" let-selectedColumns>
+      <!-- This keeps header and detail widths in sync -->
+      <ng-template pTemplate="colgroup">
+        <colgroup>
+          <col class="select-column">
+          <col class="select-column">
+          <col *ngFor="let col of selectedColumns" [style.width]="col.width">
+        </colgroup>
+      </ng-template>
+
+      <ng-template pTemplate="header">
         <tr>
           <th>
             <p-checkbox [(ngModel)]="headerFilter" binary="true" (onChange)="applyHeaderFilter()"></p-checkbox>
           </th>
-          <th></th>
+          <th>&nbsp;</th>
           <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
-            <div *ngIf="tableHdrSlice === true">{{col.header | slice:0:20}}</div>
-            <div *ngIf="tableHdrSlice === false">{{col.header}}</div>
-            <p-sortIcon [field]="col.field"></p-sortIcon>
+            <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
+              <div class="p-text-truncate" [title]="col.header">
+                {{col.header}}
+              </div>
+              <p-sortIcon field="{{col.field}}"></p-sortIcon>
+            </div>
           </th>
         </tr>
         <tr>
           <th>
-              <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}"
-                      (click)="onFilterSelected()"></button>
+              <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" (click)="onFilterSelected()"></button>
           </th>
-          <th>
-            <button pButton type="button" icon="esri-icon-erase" pTooltip="Clear Filters" (click)="onClickResetFilters()" class="p-button-rounded p-button-outlined p-button-icon-only p-button-danger p-button-sm"></button>
-          </th>
-
+          <th>&nbsp;</th>
           <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
             <input *ngSwitchCase="'geo.impGeofootprintLocation.locationNumber'" pInputText type="text"
                    (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
@@ -198,7 +190,7 @@
             <i (click)="onClickDeleteGeo(flatGeo)" class="pi pi-trash" pTooltip="Permanently Remove Geo" tooltipPosition="right"></i>
           </td>
 
-          <td *ngFor="let col of selectedColumns" [class]="col.styleClass" [ngSwitch]="col.field">
+          <td *ngFor="let col of selectedColumns" [class]="col.styleClass" [ngSwitch]="col.field" class="val-truncate-all">
             <!-- Add ZoomTo / HomeGeo Icon to Geocode -->
             <div *ngSwitchCase="'geo.geocode'" class="p-d-flex p-jc-between">
               <div pTooltip="{{flatGeo['tooltip']}}">
@@ -237,7 +229,7 @@
               <div *ngIf="col.matchType == 'numeric' && col.sourceType == 'Custom'">{{flatGeo[col.field] | number:'1.2-2'}}</div>
               <div *ngIf="col.matchType == 'numeric' && col.sourceType != 'Custom' && col.decimals == 2">{{flatGeo[col.field] | number:'1.2-2'}}</div>
               <div *ngIf="col.matchType == 'numeric' && col.sourceType != 'Custom' && col.decimals == 0">{{flatGeo[col.field] | number:'1.0-0'}}</div>
-              <div *ngIf="col.matchType != 'numeric'">{{flatGeo[col.field]}}</div>
+              <div *ngIf="col.matchType != 'numeric'" [title]="flatGeo[col.field]">{{flatGeo[col.field]}}</div>
             </div>
           </td>
         </tr>

@@ -1,22 +1,24 @@
-<div class="component-root p-d-flex p-ai-end p-pt-3" [formGroup]="currentRoot">
-  <div class="p-float-label p-col p-col-nogutter">
-    <p-dropdown [options]="fillTypes" id="fill-input-{{controlId}}" formControlName="fillType" styleClass="p-col-12 p-col-nogutter">
-      <ng-template let-selected pTemplate="selectedItem">
-        <div class="p-d-flex">
-          <span class="item-icon" [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
-          <span>{{selected.label}}</span>
-        </div>
-      </ng-template>
-      <ng-template let-item pTemplate="item">
-        <div class="p-d-flex">
-          <span class="item-icon" [ngClass]="item.icon"></span>
-          <span>{{item.label}}</span>
-        </div>
-      </ng-template>
-    </p-dropdown>
-    <label for="fill-input-{{controlId}}">{{labelText}}</label>
+<div class="p-inputgroup p-d-flex" [formGroup]="currentRoot">
+  <div class="p-col-8 p-col-nogutter p-pt-4">
+    <div class="p-float-label">
+      <p-dropdown [options]="fillTypes" id="fill-input-{{controlId}}" formControlName="fillType" styleClass="p-col-12 p-col-nogutter">
+        <ng-template let-selected pTemplate="selectedItem">
+          <div class="p-d-flex">
+            <span class="item-icon" [ngClass]="selected.icon" *ngIf="selected.icon != null"></span>
+            <span>{{selected.label}}</span>
+          </div>
+        </ng-template>
+        <ng-template let-item pTemplate="item">
+          <div class="p-d-flex">
+            <span class="item-icon" [ngClass]="item.icon"></span>
+            <span>{{item.label}}</span>
+          </div>
+        </ng-template>
+      </p-dropdown>
+      <label for="fill-input-{{controlId}}">{{labelText}}</label>
+    </div>
   </div>
-  <div *ngIf="showPicker" class="p-ml-2">
+  <div *ngIf="showPicker" class="p-col-4 p-col-nogutter p-ml-2">
     <val-extended-palette-picker *ngIf="currentPalette != null" [palette]="currentPalette" [reversePalette]="reversePalette" formControlName="fillColor"></val-extended-palette-picker>
     <val-extended-color-picker *ngIf="currentPalette == null" [defaultColor]="defaultPickerColor" formControlName="fillColor"></val-extended-color-picker>
   </div>

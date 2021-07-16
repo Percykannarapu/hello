@@ -7,8 +7,7 @@ import { MultiSelect } from 'primeng/multiselect';
 
 @Component({
   selector: 'multiselect-input',
-  templateUrl: './multiselect-input.component.html',
-  styleUrls:  ['./multiselect-input.component.scss'],
+  templateUrl: './multiselect-input.component.html'
 })
 export class MultiselectInputComponent implements ControlValueAccessor  {
   @Output() selectionChanged: EventEmitter<any> = new EventEmitter<any>();
@@ -45,7 +44,6 @@ export class MultiselectInputComponent implements ControlValueAccessor  {
   propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};
 
-//  constructor() {}
   constructor(@Optional() @Self() private controlContainer: NgControl) {
     if (this.controlContainer != null) {
       this.controlContainer.valueAccessor = this;

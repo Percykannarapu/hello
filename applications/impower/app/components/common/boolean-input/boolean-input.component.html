@@ -1,5 +1,13 @@
 <div class="component-root">
-  <p-inputSwitch inputId="boolean-input-{{controlId}}" [disabled]="isDisabled"
-                 [(ngModel)]="value" [readonly]="readOnly" [tabindex]="tabIndex"></p-inputSwitch>
-  <label class="switch-label" for="boolean-input-{{controlId}}">{{labelText}}</label>
+  <span style="height: 2rem;" [ngSwitch]="displayType">
+    <ng-container *ngSwitchCase="'slider'">
+      <p-inputSwitch inputId="boolean-input-{{controlId}}" [disabled]="isDisabled"
+                     [(ngModel)]="value" [readonly]="readOnly" [tabindex]="tabIndex"></p-inputSwitch>
+      <label class="switch-label p-pl-2" for="boolean-input-{{controlId}}">{{labelText}}</label>
+    </ng-container>
+    <ng-container *ngSwitchCase="'checkbox'">
+            <p-checkbox binary="true" [label]="labelText" [disabled]="isDisabled"
+                        [(ngModel)]="value" [readonly]="readOnly" [tabindex]="tabIndex"></p-checkbox>
+    </ng-container>
+  </span>
 </div>

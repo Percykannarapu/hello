@@ -102,7 +102,7 @@ export class MarketLocationsComponent implements OnInit {
   public onGetGeosError(event: any)
   {
     this.logger.error.log('onGetGeoErrors errored', event);
-//  this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
+    this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
   }
 
   private getQueryField(marketCode: string) : string

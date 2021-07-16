@@ -1,11 +1,11 @@
-export class RadData {
-    public radId: number;
-    public category: string;
-    public product: string;
-    public source: number;
-    public responseRate: number;
-    public noOfCoupon: number;
-    public avgTicket: number;
-    public estCpm: number;
-    public grossMargin: number;
+export interface RadData {
+    radId: number;
+    category: string;
+    product: string;
+    source: number;
+    responseRate: number;
+    noOfCoupon: number;
+    avgTicket: number;
+    estCpm: number;
+    grossMargin: number;
 }

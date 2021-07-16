@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, forwardRef, Input, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { getUuid, isNotNil, rgbToHex } from '@val/common';
+import { getUuid, isNotNil } from '@val/common';
 import { RgbaTuple, RgbTuple } from '@val/esri';
 import { OverlayPanel } from 'primeng/overlaypanel';
 import { BehaviorSubject } from 'rxjs';
@@ -34,11 +34,10 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor, After
 
   controlId = getUuid();
   isDisabled: boolean;
-  hexValue: string;
 
   rgbValue$ = new BehaviorSubject<Rgb | null>(tupleToRgb(this.defaultColor));
 
-  private esriValue: RgbaTuple;
+  esriValue: RgbaTuple;
 
   onChange = (value: any) => {};
   onTouch = () => {};
@@ -61,7 +60,6 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor, After
   writeValue(obj: RgbaTuple) : void {
     if (obj != null) {
       this.esriValue = obj;
-      this.hexValue = rgbToHex(this.esriValue);
       this.rgbValue$.next(tupleToRgb(this.esriValue));
     }
   }
@@ -100,7 +98,6 @@ export class ExtendedColorPickerComponent implements ControlValueAccessor, After
   setValue(newValue: Rgb) {
     const defaultAlpha = this.esriValue?.[3] ?? this.defaultColor?.[3] ?? 1;
     this.esriValue = [newValue.r, newValue.g, newValue.b, defaultAlpha];
-    this.hexValue = rgbToHex(this.esriValue);
     this.rgbValue$.next(newValue);
     this.onChange(this.esriValue);
     this.onTouch();

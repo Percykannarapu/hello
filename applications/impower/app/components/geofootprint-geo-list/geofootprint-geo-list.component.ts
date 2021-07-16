@@ -27,8 +27,10 @@ import { ImpGeofootprintGeo } from '../../val-modules/targeting/models/ImpGeofoo
 import { ImpGeofootprintLocation } from '../../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 import { ImpProjectVar } from '../../val-modules/targeting/models/ImpProjectVar';
+import { SearchInputComponent } from '../common/search-input/search-input.component';
 import { FilterData, TableFilterNumericComponent } from '../common/table-filter-numeric/table-filter-numeric.component';
 import { FlatGeo } from '../geofootprint-geo-panel/geofootprint-geo-panel.component';
+import { FlatSite } from '../site-list/site-list.component';
 
 export interface ColMetric {
   tot:  number;
@@ -265,6 +267,8 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
    public  dupeCount: number = 0;
    public  dupeMsg: string;
 
+   trackByFgId = (index: number, rowData: FlatGeo) => rowData.fgId;
+
    // -----------------------------------------------------------
    // LIFECYCLE METHODS
    // -----------------------------------------------------------
@@ -290,12 +294,11 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       // Whenever the project changes, update the grid export file name
       this.project$.pipe(filter(p => p != null)).subscribe(project => {
          this._geoGrid.exportFilename = 'geo-grid' + ((project.projectId != null) ? '-' + project.projectId.toString() : '') + '-export';
-
-         // In the event of a project load, clear the grid filters
-         if (this.lastProjectId !== project.projectId) {
-            this.lastProjectId = project.projectId;
-            this.onClickResetFilters();
-         }
+        // In the event of a project load, clear the grid filters
+        if (this.lastProjectId !== project.projectId) {
+          this.lastProjectId = project.projectId;
+          this.clearFilters(this._geoGrid);
+        }
       });
 
       // createComposite subscriptions
@@ -963,9 +966,10 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
             this.logger.debug.log('No geos to set');
    }
 
-   onClickDedupeToggle(event: any, geoGrid)
+   onClickDedupeToggle(newValue: boolean)
    {
-      this.onDedupeToggle.emit(event);
+      this.dedupeGrid = newValue;
+      this.onDedupeToggle.emit();
    }
 
    onFilter(event: any)
@@ -1012,32 +1016,29 @@ export class GeofootprintGeoListComponent implements OnInit, OnDestroy
       this.onForceRedraw.emit();
    }
 
-   /**
-    * Clears out the filters from the grid and reset the filter components
-    */
-   onClickResetFilters()
-   {
-      // Clear the multi select filters
-      if (this.msFilters)
-         this.msFilters.forEach(ms => {
-            ms.value = null;
-            ms.valuesAsString = this.defaultLabel;
-         });
+  clearFilters(table: Table, searchWidget?: SearchInputComponent) : void {
+    const currentSort = Array.from(this.multiSortMeta ?? []);
+    // Clear the multi select filters
+    if (this.msFilters)
+      this.msFilters.forEach(ms => {
+        ms.value = null;
+        ms.valuesAsString = this.defaultLabel;
+      });
 
-      // Clear the custom numeric filters
-      if (this.nmFilters)
-         this.nmFilters.forEach(nm => {
-            nm.clearFilter('');
-         });
+    // Clear the custom numeric filters
+    if (this.nmFilters)
+      this.nmFilters.forEach(nm => {
+        nm.clearFilter('');
+      });
 
-      // Reset the grid and grid filters
-      this._geoGrid.reset();
-      this.onFilter(null);
+    table.reset();
+    searchWidget?.reset();
 
-      // Reset the row selection filter
-      this.isSelectedFilterState = this.filterAllIcon;
-      this.isSelectedToolTip = this.filterAllTip;
-   }
+    // Reset the row selection filter
+    this.isSelectedFilterState = this.filterAllIcon;
+    this.isSelectedToolTip = this.filterAllTip;
+    this.multiSortMeta = currentSort;
+  }
 
    onRemoveFilter(filterName: string) {
       this.logger.debug.log('-'.padEnd(80, '-'));

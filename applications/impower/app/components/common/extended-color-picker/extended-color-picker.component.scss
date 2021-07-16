@@ -1,6 +1,13 @@
 @import "~assets/valassis-variables";
 
 body {
+  val-extended-palette-picker {
+    val-extended-color-picker {
+      .color-swatch {
+        margin-top: 0;
+      }
+    }
+  }
   val-extended-color-picker {
     .color-swatch {
       display: inline-block;
@@ -10,6 +17,7 @@ body {
       border-radius: 3px;
       transition: box-shadow .3s;
       box-shadow: 2px 2px 3px $darkGray01;
+      margin-top: 1.5rem;
       &:hover {
         box-shadow: none;
       }

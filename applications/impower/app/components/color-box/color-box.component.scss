@@ -4,14 +4,12 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  line-height: 18px;
   background-color: $brandBlue;
 
   .header {
     align-self: center;
-    span {
-      font-size: 100%;
-      color: $lightGray04;
-    }
+    color: $lightGray04;
   }
   .body {
     cursor: pointer;

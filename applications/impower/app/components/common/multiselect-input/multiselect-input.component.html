@@ -1,18 +1,14 @@
-<div class="component-root p-fluid">
-  <div class="p-field">
-    <div class="p-inputgroup">
-      <div class="p-float-label">
-        <p-multiSelect id="multiselect-input-{{controlId}}" [(ngModel)]="value" [options]="options" [defaultLabel]="defaultLabel"
-                       [styleClass]="inputClass" [filter]="true" filterBy="label,value.name"
-                       (onChange)="selectionChanged.emit($event.value)" (onPanelShow)="onPanelShow.emit($event)"
-                       (onPanelHide)="onPanelHide.emit($event)" [disabled]="isDisabled || readOnly" [tabindex]="tabIndex"
-                       selectedItemsLabel="{0} items selected">
-        </p-multiSelect>
-        <label [ngClass]="{ 'always-float': defaultLabel != null }" for="multiselect-input-{{controlId}}">{{labelText}}</label>
-        <span class="p-inputgroup-addon error-addon" *ngIf="hasErrors()">
-          <i class="pi pi-exclamation-circle" title="{{validationMessage}}"></i>
-        </span>
-      </div>
-    </div>
+<div class="p-inputgroup p-pt-4">
+  <div class="p-float-label">
+    <p-multiSelect id="multiselect-input-{{controlId}}" [(ngModel)]="value" [options]="options" [placeholder]="defaultLabel"
+                   [styleClass]="inputClass" [filter]="true" filterBy="label,value.name"
+                   (onChange)="selectionChanged.emit($event.value)" (onPanelShow)="onPanelShow.emit($event)"
+                   (onPanelHide)="onPanelHide.emit($event)" [disabled]="isDisabled || readOnly" [tabindex]="tabIndex"
+                   selectedItemsLabel="{0} items selected" [class]="includeUnselected ? '' : 'p-inputwrapper-filled'">
+    </p-multiSelect>
+    <label for="multiselect-input-{{controlId}}">{{labelText}}</label>
+    <span class="p-inputgroup-addon error-addon" *ngIf="hasErrors()">
+      <i class="pi pi-exclamation-circle" title="{{validationMessage}}"></i>
+    </span>
   </div>
 </div>

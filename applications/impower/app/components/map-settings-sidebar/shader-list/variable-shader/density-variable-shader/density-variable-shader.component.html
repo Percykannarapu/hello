@@ -13,7 +13,7 @@
   </div>
   <div>
     <label>Dot Color:</label>
-    <span class="color-chip" [ngStyle]="{ 'background-color': currentDotColorInHex }"></span>
+    <span class="color-chip" [ngStyle]="{ 'background-color': definition.dotColor | esriRgb2Hex }"></span>
   </div>
   <div>
     <label>Dot Value:</label>
@@ -32,8 +32,10 @@
 <div *ngIf="isEditing" [formGroup]="parentForm">
   <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
   <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
-  <label class="shader-control-label">Dot Color</label>
-  <p-colorPicker [(ngModel)]="selectedDotColor" format="rgb" [ngModelOptions]="{standalone: true}"></p-colorPicker>
+  <div class="p-pb-2">
+    <label class="shader-control-label">Dot Color:</label>
+    <val-extended-color-picker formControlName="dotColor" [defaultColor]="[0,0,64,1]"></val-extended-color-picker>
+  </div>
   <validated-text-input formControlName="dotValue" labelText="Value of one Dot" validationMessage="Dot value must be greater than 1"></validated-text-input>
   <validated-text-input formControlName="legendUnits" labelText="Legend Units (i.e. Households)" validationMessage="Required"></validated-text-input>
   <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>

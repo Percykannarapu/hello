@@ -29,7 +29,6 @@ import { ImpProject } from '../../val-modules/targeting/models/ImpProject';
 @Component({
   selector: 'app-menu',
   templateUrl: './app.menu.component.html',
-  encapsulation: ViewEncapsulation.None,
   styleUrls: ['./app.menu.component.scss']
 })
 export class AppMenuComponent implements OnInit, OnDestroy {

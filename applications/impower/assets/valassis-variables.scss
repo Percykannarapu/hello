@@ -8,6 +8,10 @@ $scaleXS: 0.65;
 // added feature variables
 $inverseButtonBg: $lightGray01;
 
+// splash screen
+$offset: 187;
+$duration: 1.4s;
+
 // Branding overrides
 $primaryColor: $brandBlue;
 $errorColor: $darkerRed;
@@ -66,7 +70,7 @@ $treeNodeContentPadding: 0;
 $tableBodyCellPadding: 0.05rem 0.25rem;
 $inputListHeaderPadding: 0 1rem;
 $paginatorPadding: 0 0.5rem;
-$tableHeaderPadding: 0.75rem 1rem;
+$tableHeaderPadding: 0 1rem 0.75rem 1rem;
 $tableHeaderCellPadding: 0 0.25rem;
 $dialogContentPadding: 0.5rem 1.25rem 1.25rem 1.25rem;
 $treeNodePadding: 0 0.25rem;

@@ -3,29 +3,7 @@ import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'val-app-header',
-  template: `
-    <div class="impower-header-wrapper">
-      <div class="impower-header">
-        <div class="logo"></div>
-        <div class="announcement" *acsGrant="['IMPOWER_INTERNAL_FEATURES']">
-          <p-messages severity="error" styleClass="val-no-message-padding p-shadow-4">
-            <ng-template pTemplate>
-              <div class="p-p-2 p-d-flex p-ai-center">
-                <i class="pi pi-exclamation-circle p-mr-2" style="font-size: 2rem"></i>
-                <span class="message">
-                  Please Note: Distribution has changed. Users should reference the <a target="_blank" [href]="linkAddress">'{{linkName}}' file</a>
-                  to ensure all desired geographies and distribution methods are included.
-                </span>
-              </div>
-            </ng-template>
-          </p-messages>
-        </div>
-        <div *ngIf="username" class="user">
-          <span>Welcome, {{username}}</span>
-        </div>
-      </div>
-    </div>
-  `,
+  templateUrl: './app.header.component.html',
   styleUrls: ['./app.header.component.scss']
 })
 export class AppHeaderComponent implements OnInit {

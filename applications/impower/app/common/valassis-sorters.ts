@@ -40,16 +40,16 @@ export function GeosByHomeGeoPriority(a: GeoSortSurrogate, b: GeoSortSurrogate) 
 
 export function PrettyGeoSort(a: GeoSortSurrogate, b: GeoSortSurrogate) {
   return LocationBySiteNum(a?.impGeofootprintLocation, b?.impGeofootprintLocation)
-    || CommonSort.NullableSortWrapper(toNullOrNumber(a?.distance), toNullOrNumber(b?.distance), CommonSort.GenericNumber)
-    || CommonSort.NullableSortWrapper(toNullOrNumber(a?.hhc), toNullOrNumber(b?.hhc), CommonSort.GenericNumberReverse)
-    || CommonSort.NullableSortWrapper(a?.geocode, b?.geocode, CommonSort.GenericString);
+    || CommonSort.NullableNumber(toNullOrNumber(a?.distance), toNullOrNumber(b?.distance))
+    || CommonSort.NullableNumberReverse(toNullOrNumber(a?.hhc), toNullOrNumber(b?.hhc))
+    || CommonSort.NullableString(a?.geocode, b?.geocode);
 }
 
 export function RankGeoSort(a: GeoSortSurrogate, b: GeoSortSurrogate) {
-  return CommonSort.NullableSortWrapper(a?.geocode, b?.geocode, CommonSort.GenericString)
+  return CommonSort.NullableString(a?.geocode, b?.geocode)
     || GeosByHomeGeoPriority(a, b)
-    || CommonSort.NullableSortWrapper(toNullOrNumber(a?.distance), toNullOrNumber(b?.distance), CommonSort.GenericNumber)
-    || CommonSort.NullableSortWrapper(toNullOrNumber(a?.hhc), toNullOrNumber(b?.hhc), CommonSort.GenericNumberReverse)
+    || CommonSort.NullableNumber(toNullOrNumber(a?.distance), toNullOrNumber(b?.distance))
+    || CommonSort.NullableNumberReverse(toNullOrNumber(a?.hhc), toNullOrNumber(b?.hhc))
     || LocationBySiteNum(a?.impGeofootprintLocation, b?.impGeofootprintLocation);
 }
 

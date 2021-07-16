@@ -1,11 +1,9 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { rgbToHex } from '@val/common';
 import {
   ColorPalette,
   generateUniqueMarkerValues,
   getColorPalette,
-  MarkerSymbolDefinition,
   markerTypeFriendlyNames,
   RgbaTuple,
   UniquePoiConfiguration,
@@ -33,17 +31,10 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
   @Input() poiData: ImpGeofootprintLocation[] = [];
   @Input() featureAttributeChoices: SelectItem[] = [];
 
+  breakDefinitions: FormGroup[] = [];
   showUniqueValueUI: boolean = false;
-
-  get breakDefinitions() : FormGroup[] {
-    const breaks = this.parentForm.get('breakDefinitions') as FormArray;
-    if (breaks != null) return (breaks.controls || []) as FormGroup[];
-    return [];
-  }
-
-  get currentTheme() : ColorPalette {
-    return ColorPalette.Symbology;
-  }
+  markerNames = markerTypeFriendlyNames;
+  themes = ColorPalette;
 
   private destroyed$ = new Subject<void>();
 
@@ -64,18 +55,6 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
     this.destroyed$.next();
   }
 
-  getMarkerDescription(symbolDef: MarkerSymbolDefinition) : string {
-    return markerTypeFriendlyNames[symbolDef.markerType];
-  }
-
-  getMarkerColor(symbolDef: MarkerSymbolDefinition) : string {
-    return rgbToHex(symbolDef.color || this.defaultColor || [0, 0, 0, 1]);
-  }
-
-  getMarkerHalo(symbolDef: MarkerSymbolDefinition) : string {
-    return rgbToHex(symbolDef.outlineColor || this.defaultHalo || [255, 255, 255, 1]);
-  }
-
   private setupForm() : void {
     this.parentForm.addControl(
       'featureAttribute',
@@ -94,7 +73,8 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
     const newBreaks = generateUniqueMarkerValues(extractUniqueAttributeValues(this.poiData, featureAttribute), getColorPalette(ColorPalette.Symbology, false));
     const configBreaks = this.configuration.breakDefinitions || [];
     const currentBreaks = configBreaks.length > 0 && useExisting ? configBreaks : newBreaks;
-    this.addOrSetControl('breakDefinitions', this.getDefaultUniqueSymbolFormControl(currentBreaks));
+    this.breakDefinitions = this.getDefaultUniqueSymbolFormControl(currentBreaks);
+    this.addOrSetControl('breakDefinitions', this.fb.array(this.breakDefinitions));
     this.showUniqueValueUI = true;
     this.cd.markForCheck();
   }
@@ -107,8 +87,8 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getDefaultUniqueSymbolFormControl(breakDefinitions: UniqueValueMarkerDefinition[]) : FormArray {
-    return this.fb.array(breakDefinitions.map(bd => {
+  private getDefaultUniqueSymbolFormControl(breakDefinitions: UniqueValueMarkerDefinition[]) : FormGroup[] {
+    return breakDefinitions.map(bd => {
       return this.fb.group({
         value: new FormControl(bd.value),
         legendName: new FormControl(bd.legendName, [Validators.required]),
@@ -117,6 +97,6 @@ export class UniqueValueLocationShaderComponent implements OnInit, OnDestroy {
         size: new FormControl(bd.size || 10, [Validators.required, ValassisValidators.numeric]),
         markerType: new FormControl(bd.markerType, { updateOn: 'change' })
       });
-    }));
+    });
   }
 }

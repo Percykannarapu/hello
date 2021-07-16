@@ -31,6 +31,7 @@ export class BrokeredTreeviewComponent implements OnInit, OnDestroy, OnChanges {
   @Input() selectedAudiences$: Observable<Audience[]>;
   @Input() currentBrokerId: string;
   @Input() showFolderCheckbox: boolean;
+  @Input() scrollHeight: string = '25vh';
 
   @ViewChild('searchInput', {static: true}) searchInput: SearchInputComponent;
   public includeFolder$ = new BehaviorSubject(false);

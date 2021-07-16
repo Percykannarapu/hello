@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
 import { StartBusyIndicator, StopBusyIndicator, WarningNotification } from '@val/messaging';
-import { RestResponse } from 'app/models/RestResponse';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { Observable } from 'rxjs';
 import { concatMap, filter, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { WorkerResult, WorkerStatus } from '../../worker-shared/common/core-interfaces';
+import { RestPayload, RestResponse } from '../../worker-shared/data-model/core.interfaces';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { GeoFootprintExportFormats, LocationExportFormats } from '../../worker-shared/export-workers/payloads';
 import { AppConfig } from '../app.config';
+import { CrossbowProfileResponse } from '../models/crossbow.model';
 import { CrossBowSitesPayload, LocalAppState } from '../state/app.interfaces';
 import { CreateLocationUsageMetric } from '../state/usage/targeting-usage.actions';
 import { CreateGaugeMetric, CreateUsageMetric } from '../state/usage/usage.actions';
@@ -87,22 +88,22 @@ export class AppExportService {
     });
   }
 
-  getPrivateCrossbowProfiles(payload: CrossBowSitesPayload) : Observable<RestResponse> {
+  getPrivateCrossbowProfiles(payload: CrossBowSitesPayload) : Observable<RestResponse<RestPayload<CrossbowProfileResponse>>> {
     const userIdUrl: string = this.crossbowUrl + '/search?q=targetingProfileSearch' + `&userId=${payload.id}`;
     return this.restService.get(userIdUrl);
   }
 
-  getGroups(payload: CrossBowSitesPayload) : Observable<RestResponse> {
+  getGroups(payload: CrossBowSitesPayload) : Observable<RestResponse<any>> {
     const groupsUrl: string = this.crossbowUrl + '/search?q=targetingGroupSearch' + `&userId=${payload.id}`;
     return this.restService.get(groupsUrl);
   }
 
-  getGroupProfiles(payload: CrossBowSitesPayload) : Observable<RestResponse> {
+  getGroupProfiles(payload: CrossBowSitesPayload) : Observable<RestResponse<RestPayload<CrossbowProfileResponse>>> {
     const groupProfileUrl: string = this.crossbowUrl + '/search?q=targetingProfileSearch' + `&groupId=${payload.groupId}`;
     return this.restService.get(groupProfileUrl);
   }
 
-  getCrossbowSites(payload: CrossBowSitesPayload) : Observable<RestResponse> {
+  getCrossbowSites(payload: CrossBowSitesPayload) : Observable<RestResponse<any>> {
     const sitesUrl: string = this.crossbowUrl + '/search?q=targetingProfileSites' + `&profileId=${payload.profileId}&siteType=0`;
     return this.restService.get(sitesUrl);
   }

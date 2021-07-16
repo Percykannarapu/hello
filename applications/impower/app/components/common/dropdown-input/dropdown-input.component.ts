@@ -6,10 +6,10 @@ import { SelectItem } from 'primeng/api';
 
 @Component({
   selector: 'dropdown-input',
-  templateUrl: './dropdown-input.component.html',
-  styleUrls: ['./dropdown-input.component.scss']
+  templateUrl: './dropdown-input.component.html'
 })
 export class DropdownInputComponent implements ControlValueAccessor {
+
   @Output() selectionChanged: EventEmitter<any> = new EventEmitter<any>();
 
   @Input() labelText: string;
@@ -18,10 +18,8 @@ export class DropdownInputComponent implements ControlValueAccessor {
   @Input() tabIndex: number;
   @Input() readOnly: boolean = false;
   @Input() inputClass: string;
-  @Input() allowTruncation: boolean = false;
-  @Input() truncateLength: number = 75;
-  @Input() truncateSuffix: string = '...';
   @Input() validationMessage: string;
+  @Input() validationMessageKey: string;
 
   controlId = getUuid();
   isDisabled: boolean;
@@ -34,6 +32,10 @@ export class DropdownInputComponent implements ControlValueAccessor {
     this.propagateTouch(value);
     this.propagateChange(value);
     this.writeValue(value);
+  }
+
+  get validationOutput() : string {
+    return this.validationMessage ?? this.controlContainer?.control?.errors?.[this.validationMessageKey] ?? null;
   }
 
   private _value: any;
@@ -66,7 +68,7 @@ export class DropdownInputComponent implements ControlValueAccessor {
   hasErrors() : boolean {
     if (this.controlContainer != null) {
       const control = this.controlContainer.control;
-      return control.touched && !control.valid && (this.validationMessage != null);
+      return control.root.touched && !control.valid && (this.validationOutput != null);
     }
     return false;
   }

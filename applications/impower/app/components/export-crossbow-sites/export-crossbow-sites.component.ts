@@ -6,6 +6,7 @@ import { UserService } from 'app/services/user.service';
 import { CloseExportCrossbowSitesDialog } from 'app/state/menu/menu.actions';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { filter, take } from 'rxjs/operators';
+import { CrossbowProfile } from '../../models/crossbow.model';
 import { CrossBowSitesPayload, LocalAppState } from '../../state/app.interfaces';
 import { openExportCrossbowSitesFlag } from '../../state/menu/menu.selectors';
 
@@ -25,7 +26,7 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
   public isGroupFlag: boolean = false;
   public selectedColumns: any[] = [];
   public profileId: number = -1;
-  public profileData: any[] = [];
+  public profileData: CrossbowProfile[] = [];
   public user = this.userService.getUser();
   public payload: CrossBowSitesPayload = {
     email: `${this.user.email}@valassis.com`,
@@ -84,7 +85,7 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
 
   public onProfileTypeChange(value: 'mine' | 'group') {
 
-    this.isGroupFlag = value === 'group' ? true : false;
+    this.isGroupFlag = value === 'group';
     this.selectedProfileType = value;
     if (this.selectedProfileType === 'group'){
       this.exportService.getGroups(this.payload).subscribe((data) => {
@@ -98,7 +99,7 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
     } else {
       this.exportService.getPrivateCrossbowProfiles(this.payload).subscribe((data) => {
         this.selectedGroup = null;
-        this.profileData = data.payload.rows;
+        this.profileData = data.payload.rows.map(r => new CrossbowProfile(r));
         this.cd.markForCheck();
       });
     }
@@ -108,17 +109,13 @@ export class ExportCrossbowSitesComponent implements OnInit, AfterViewInit {
     this.selectedGroup = groupId;
     this.payload.groupId = groupId;
     this.exportService.getGroupProfiles(this.payload).subscribe({
-      next: data => this.profileData = data.payload.rows,
+      next: data => this.profileData = data.payload.rows.map(r => new CrossbowProfile(r)),
       complete: () => this.onProfileTypeChange(this.selectedProfileType)
     });
   }
 
   public onFilter() : void {
     this.cd.markForCheck();
-  }
-
-  public onClick(profileId: number) {
-
   }
 
   public onExport(profileId: number) : void {

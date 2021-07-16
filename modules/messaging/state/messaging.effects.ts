@@ -14,7 +14,8 @@ export class MessagingEffects {
     tap(a => {
       if (a.payload['additionalErrorInfo'] != null) {
         console.groupCollapsed('%cAdditional Error Info - ' + a.payload.notificationTitle, 'color: red');
-        console.error(a.payload.message, a.payload['additionalErrorInfo']);
+        console.error(a.payload.message);
+        console.error(a.payload['additionalErrorInfo']);
         console.groupEnd();
       }
     })

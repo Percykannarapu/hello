@@ -204,7 +204,7 @@ export class EsriPoiService {
     else{
       return EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font);
     }
-    
+
   }
 
   private createMultiLabel(config: UniquePoiConfiguration) : __esri.LabelClass[] {
@@ -213,7 +213,8 @@ export class EsriPoiService {
     const font = this.createLabelFont(currentDef);
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     config.breakDefinitions.forEach(bd => {
-      let where = `${removeNonAlphaNumerics(config.featureAttribute)} = '${bd.value}'`;
+      const escapedValue = bd.value.replace(/'/gi, `''`);
+      let where = `${removeNonAlphaNumerics(config.featureAttribute)} = '${escapedValue}'`;
       const color = !currentDef.usesStaticColor ? bd.color : currentDef.color;
       const haloColor = !currentDef.usesStaticColor ? bd.outlineColor : currentDef.haloColor;
       if (config.isBatchMap && !config.showLabels){

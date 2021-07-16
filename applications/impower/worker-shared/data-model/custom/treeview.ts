@@ -6,18 +6,6 @@ export interface ValassisTreeNode<T = any> extends TreeNode<T> {
   escaped?: boolean;
 }
 
-export interface RestResponse<T> {
-  payload: {
-    page: number;
-    pageSize: number;
-    records: number;
-    rows: T[];
-    total: number;
-  };
-  exception: string;
-  returnCode: number;
-}
-
 export interface OfflineCategoryResponse {
   '@ref': number;
   pk: number;

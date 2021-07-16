@@ -1,7 +1,7 @@
 <div>
   <div class="shader-display" *ngIf="!isEditing">
-    <div>
-      <button pButton type="button" class="p-button-text p-button-sm p-mb-2" (click)="edit()" label="edit"></button>
+    <div class="main-shader-menu">
+      <button pButton type="button" class="p-button-text p-button-sm" (click)="edit()" label="edit"></button>
     </div>
     <div>
       <label>Legend Name:</label>
@@ -10,8 +10,9 @@
     <div>
       <label>Overlay Type:</label>
       <span>
-        <strong>{{currentFriendlyFillType}}</strong>
-        <span class="color-chip" [ngStyle]="{ 'background-color': currentFillColorInHex }" *ngIf="definition.defaultSymbolDefinition.fillType === 'solid'"></span>
+        <strong>{{fillTypes[definition.defaultSymbolDefinition.fillType]}}</strong>
+        <span *ngIf="definition.defaultSymbolDefinition.fillType === 'solid'" class="color-chip"
+              [ngStyle]="{ 'background-color': definition.defaultSymbolDefinition.fillColor | esriRgb2Hex }"></span>
       </span>
     </div>
     <div>
@@ -19,15 +20,17 @@
       <strong>{{definition.opacity}}</strong>
     </div>
   </div>
-  <div class="shader-form-container" *ngIf="isEditing">
-    <form novalidate autocomplete="off" [formGroup]="shaderForm" (ngSubmit)="apply(shaderForm)">
-      <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
-      <esri-fill-symbol-input labelText="Overlay Type" [defaultSolidColor]="[0, 255, 0, 1]" formGroupName="defaultSymbolDefinition"></esri-fill-symbol-input>
-      <div class="p-pt-2">
+  <div *ngIf="isEditing">
+    <form novalidate autocomplete="off" [formGroup]="shaderForm" (ngSubmit)="apply(shaderForm)" class="p-d-flex p-flex-column p-ai-stretch">
+      <div class="p-d-flex p-flex-column p-ai-stretch">
+        <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
+        <esri-fill-symbol-input labelText="Overlay Type" [defaultSolidColor]="[0, 255, 0, 1]" formGroupName="defaultSymbolDefinition"></esri-fill-symbol-input>
         <validated-text-input formControlName="opacity" labelText="Opacity" validationMessage="Opacity must be a number between 0 and 1"></validated-text-input>
       </div>
-      <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': shaderForm.pristine }" [disabled]="!shaderForm.valid"></button>
-      <button type="button" pButton label="Cancel" class="p-button-outlined" (click)="cancel()"></button>
+      <div class="p-d-flex p-pt-1">
+        <button type="submit" pButton label="Apply" [ngClass]="{ 'p-button-outlined': shaderForm.pristine }" [disabled]="!shaderForm.valid"></button>
+        <button type="button" pButton label="Cancel" class="p-button-outlined p-ml-2" (click)="cancel()"></button>
+      </div>
     </form>
   </div>
 </div>

@@ -1,6 +1,6 @@
-<div class="p-inputgroup">
-  <button type="button" pButton class="p-button-icon-only" icon="pi pi-times" (click)="reset()" pTooltip="Clear the search input"></button>
-  <div class="p-float-label val-full-size-float">
+<div class="p-inputgroup p-pt-4">
+  <button type="button" pButton class="p-button-icon-only p-button-sm" icon="pi pi-times" (click)="reset()" pTooltip="Clear the search input"></button>
+  <div class="p-float-label">
     <input #search id="search-{{controlId}}" pInputText type="text" [ngModel]="searchText$ | async" (ngModelChange)="searchText$.next(search.value)">
     <label for="search-{{controlId}}">{{label}}</label>
   </div>

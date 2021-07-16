@@ -1,3 +1,5 @@
+// noinspection CommaExpressionJS
+
 import { isConvertibleToNumber, isFunction, isNil, isString } from './type-checks';
 
 export function transformEntity(entity: Record<any, any>, valueSelector: (field: string, item: any) => any, keySelector?: (key: string) => string) : Record<any, any> {
@@ -92,7 +94,6 @@ export function getUuid() : string {
     (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
   );
 }
-
 // tslint:enable:no-bitwise
 
 export function dedupeSimpleSet<T>(newValues: Set<T>, previousValues: Set<T>) : Set<T> {
@@ -130,56 +131,12 @@ export function strToBool(value: string) : boolean {
   return /^true$|^t$|^yes$|^y$|^1$/.test(lcValue);
 }
 
-function HSBtoRGB(hsb: { h: number, s: number, b: number }) {
-  let rgb = {
-    r: null, g: null, b: null
-  };
-  let h: number = hsb.h;
-  const s: number = hsb.s * 255 / 100;
-  const v: number = hsb.b * 255 / 100;
-  if (s == 0) {
-    rgb = {
-      r: v,
-      g: v,
-      b: v
-    };
-  }
-  else {
-    const t1: number = v;
-    const t2: number = (255 - s) * v / 255;
-    const t3: number = (t1 - t2) * (h % 60) / 60;
-    if (h == 360) h = 0;
-    if (h < 60) {rgb.r = t1;	rgb.b = t2; rgb.g = t2 + t3; }
-    else if (h < 120) {rgb.g = t1; rgb.b = t2;	rgb.r = t1 - t3; }
-    else if (h < 180) {rgb.g = t1; rgb.r = t2;	rgb.b = t2 + t3; }
-    else if (h < 240) {rgb.b = t1; rgb.r = t2;	rgb.g = t1 - t3; }
-    else if (h < 300) {rgb.b = t1; rgb.g = t2;	rgb.r = t2 + t3; }
-    else if (h < 360) {rgb.r = t1; rgb.g = t2;	rgb.b = t1 - t3; }
-    else {rgb.r = 0; rgb.g = 0;	rgb.b = 0; }
-  }
-  return [Math.round(rgb.r), Math.round(rgb.g), Math.round(rgb.b)];
-}
-
-export function hsbToHex(hsb, withAlpha: boolean = true) {
-  return rgbToHex(HSBtoRGB(hsb));
-}
-
-export function rgbToHex(color: number[], withAlpha: boolean = true) : string {
-  const red = pad(Number(color[0]).toString(16), 2);
-  const green = pad(Number(color[1]).toString(16), 2);
-  const blue = pad(Number(color[2]).toString(16), 2);
-  //const alpha = color.length > 3 ? pad(Number(color[3]).toString(16), 2) : 'FF';
-  const hexColor = `#${red}${green}${blue}`;
-  return withAlpha ? `${hexColor}ff` : hexColor;
-}
-
 /**
  * Converts a value to a number if it is parsable as a number, otherwise returns null
  * @param value - the value to convert
  */
 export function toNullOrNumber(value: any) : number | null {
-  if (!isNil(value) && isConvertibleToNumber(value)) return Number(value);
-  return null;
+  return isConvertibleToNumber(value) ? Number(value) : null;
 }
 
 export function mergeSets<T>(setA: Set<T>, setB: Set<T>) : Set<T> {
@@ -201,11 +158,13 @@ export function convertKeys<T>(data: Record<any, T>, processor: (key: keyof type
   return result;
 }
 
-export function encloseInQuotes(inputValue: any) : any {
-  if (!isNil(inputValue) && isString(inputValue)) {
+export function encloseInQuotes(inputValue: any) : string {
+  if (isNil(inputValue)) return inputValue;
+  if (isString(inputValue)) {
     return (inputValue.slice(0, 1) === '"' ? '' : '"') + inputValue + (inputValue.slice(-1) === '"' ? '' : '"');
+  } else {
+    return `"${inputValue}"`;
   }
-  return inputValue;
 }
 
 export function removeNonAlphaNumerics(value: string) : string {

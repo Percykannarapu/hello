@@ -6,15 +6,15 @@
 </p-overlayPanel>
 
 <div class="colorboxPicker p-shadow-6" #cb>
-  <div class="header">
-    <span>{{header}}</span>
+  <div class="header p-text-truncate" [title]="header">
+    {{header}}
   </div>
   <div class="body">
     <div class="icon" (click)="onShowOverlay($event, cb)">
       <span class="{{icon}}"></span>
     </div>
-    <div class="metric" (click)="onShowOverlay($event, cb)">
-      <span class="name">{{metric}}{{isFlagged ? '&nbsp;*' : ''}}</span>
+    <div class="metric p-text-truncate" (click)="onShowOverlay($event, cb)" title="{{metric}}{{isFlagged ? '&nbsp;*' : ''}}">
+      {{metric}}{{isFlagged ? '&nbsp;*' : ''}}
       <span class="value">{{metricValue}}</span>
     </div>
     <div class="spinner">

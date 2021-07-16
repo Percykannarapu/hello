@@ -2,16 +2,12 @@
 
 val-search-input {
   display: flex;
-  padding-bottom: 0.25rem;
-  padding-top: 0.5rem;
 }
 
 .p-datatable {
   .p-datatable-header {
     val-search-input {
       display: flex;
-      padding-bottom: 0.25rem;
-      padding-top: 0.25rem;
       .p-button {
         background-color: $blueBird;
       }

@@ -2,9 +2,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { RestResponse } from '../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../app.config';
-import { RestResponse } from '../models/RestResponse';
-import { User } from '../models/User';
+import { User, UserResponse } from '../models/User';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 
@@ -98,10 +98,10 @@ export class UserService {
    * @param username The username to look up from the Fuse service
    * @returns An Observable<RestResponse>
    */
-  private _fetchUserRecord(username: string) : Observable<RestResponse> {
+  private _fetchUserRecord(username: string) : Observable<RestResponse<UserResponse>> {
     const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + RestDataService.getConfig().oauthToken);
     const url: string = this.config.valServiceBase + 'v1/targeting/base/targetingcatalogquery/lookupCrossbowUserByLoginName/' + username;
-    return this.httpClient.get<RestResponse>(url, {headers: headers});
+    return this.httpClient.get<RestResponse<UserResponse>>(url, {headers: headers});
   }
 
   /**

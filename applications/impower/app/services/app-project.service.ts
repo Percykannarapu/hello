@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { isNotNil, isValidNumber } from '@val/common';
 import { Observable, of, throwError } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
+import { RestResponse } from '../../worker-shared/data-model/core.interfaces';
 import {
   ImpClientLocationTypeCodes,
   SuccessfulLocationTypeCodes,
   TradeAreaMergeTypeCodes
 } from '../../worker-shared/data-model/impower.data-model.enums';
-import { RestResponse } from '../models/RestResponse';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
@@ -57,13 +57,13 @@ export class AppProjectService {
     );
   }
 
-  private saveImpl(project: ImpProject, useMsgPack: boolean = true) : Observable<RestResponse> {
+  private saveImpl(project: ImpProject, useMsgPack: boolean = true) : Observable<RestResponse<number>> {
     const endpoint = useMsgPack ? 'impprojectmsgpack' : 'impproject';
     const saveUrl = `v1/targeting/base/${endpoint}/deleteSave`;
     if (useMsgPack) {
-      return this.restService.postMessagePack(saveUrl, project);
+      return this.restService.postMessagePack<number>(saveUrl, project);
     } else {
-      return this.restService.post(saveUrl, project);
+      return this.restService.post<number>(saveUrl, project);
     }
   }
 

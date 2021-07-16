@@ -45,8 +45,8 @@
             <td><ng-container *ngIf="!isLast">{{defBreak.maxValue}}</ng-container></td>
             <td>{{defBreak.legendName}}</td>
             <td>
-              {{getFillName(defBreak.fillType)}}
-              <span class="color-chip" [ngStyle]="{ 'background-color': getHexColor(defBreak.fillColor) }" *ngIf="defBreak.fillType === 'solid'"></span>
+              {{fillTypes[defBreak.fillType]}}
+              <span class="color-chip" [ngStyle]="{ 'background-color': defBreak.fillColor | esriRgb2Hex }" *ngIf="defBreak.fillType === 'solid'"></span>
             </td>
           </tr>
         </tbody>
@@ -70,8 +70,8 @@
           <td *ngIf="!(isFirst || isLast)">&nbsp;</td>
           <td>{{defBreak.legendName}}</td>
           <td>
-            {{getFillName(defBreak.fillType)}}
-            <span class="color-chip" [ngStyle]="{ 'background-color': getHexColor(defBreak.fillColor) }" *ngIf="defBreak.fillType === 'solid'"></span>
+            {{fillTypes[defBreak.fillType]}}
+            <span class="color-chip" [ngStyle]="{ 'background-color': defBreak.fillColor | esriRgb2Hex }" *ngIf="defBreak.fillType === 'solid'"></span>
           </td>
         </tr>
         </tbody>
@@ -82,15 +82,11 @@
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
   <validated-text-input formControlName="layerName" labelText="Legend Name (required)" validationMessage="Legend Name is required"></validated-text-input>
-  <div class="p-pt-3">
-    <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
-  </div>
+  <dropdown-input formControlName="filterByFeaturesOfInterest" labelText="Extent" [options]="allExtents"></dropdown-input>
   <dropdown-input labelText="Theme" formControlName="theme" [options]="allThemes"></dropdown-input>
   <boolean-input labelText="Reverse Theme?" formControlName="reverseTheme"></boolean-input>
-  <div class="p-pt-2">
-    <dropdown-input labelText="Break Type" [options]="breakTypes" [(ngModel)]="selectedBreakType" [ngModelOptions]="{standalone: true}"
+  <dropdown-input labelText="Break Type" [options]="breakTypes" [(ngModel)]="selectedBreakType" [ngModelOptions]="{standalone: true}"
                     [includeUnselected]="true" (selectionChanged)="breakTypeChanged($event)"></dropdown-input>
-  </div>
   <ng-container *ngIf="parentForm.get('dynamicallyAllocate').value === true">
     <validated-text-input formControlName="dynamicAllocationSlots" labelText="Number of Breaks" validationMessage="Breaks must be between 2 and 20"></validated-text-input>
     <boolean-input labelText="Dynamic Legend" formControlName="dynamicLegend"></boolean-input>
@@ -110,7 +106,7 @@
       <button pButton type="button" class="p-button-text p-button-sm" (click)="addBreak()" label="add Class Break" *ngIf="classBreakCount < 10"></button>
     </div>
     <div formArrayName="breakDefinitions">
-      <div *ngFor="let x of breakDefinitions; first as isFirst; last as isLast; index as i" class="p-d-flex p-pl-3 p-ai-end">
+      <div *ngFor="let x of breakDefinitions; first as isFirst; last as isLast; index as i" class="p-d-flex p-pl-3 p-ai-center">
         <div class="p-col p-col-nogutter">
           <esri-class-break-input [formGroupName]="i.toString()" [currentPalette]="currentTheme" [reversePalette]="reverseTheme"
                                   [showMinValue]="!isFirst" [showMaxValue]="!isLast"></esri-class-break-input>

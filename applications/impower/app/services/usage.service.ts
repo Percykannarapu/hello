@@ -2,8 +2,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
+import { RestResponse } from '../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../app.config';
-import { RestResponse } from '../models/RestResponse';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { RestDataService } from '../val-modules/common/services/restdata.service';
 import { ImpMetricCounter } from '../val-modules/metrics/models/ImpMetricCounter';
@@ -159,7 +159,7 @@ export class UsageService {
    * @param metricName The object of type UsageMetricName containing the namepsace, section, target, and action
    * @param metricTypeCode The type of ImpMetricName to create; COUNTER, TIMER, HISTOGRAM
    */
-  private createMetricName(metricName: ImpMetricName, metricTypeCode: string) : Observable<RestResponse> {
+  private createMetricName(metricName: ImpMetricName, metricTypeCode: string) : Observable<RestResponse<number>> {
     const impMetricName: ImpMetricName = new ImpMetricName();
     const now = new Date(Date.now());
     impMetricName['dirty'] = true;
@@ -176,7 +176,7 @@ export class UsageService {
     impMetricName.target = metricName.target;
 
     // send the new metric name to Fuse for persistence
-    return this.restClient.post('v1/metrics/base/impmetricname/save', JSON.stringify(impMetricName));
+    return this.restClient.post<number>('v1/metrics/base/impmetricname/save', JSON.stringify(impMetricName));
   }
 
   /**
@@ -185,7 +185,7 @@ export class UsageService {
    * @param metricText The data that will be saved with this counter
    * @param metricValue The number that will be saved on this counter
    */
-  private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
+  private _createCounterMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse<any>> {
     const currentProject = this.stateService.currentProject$.getValue();
     //if (RestDataService.getConfig() == null || currentProject == null) return EMPTY;
 
@@ -218,7 +218,7 @@ export class UsageService {
    * @param metricText The data that will be saved with this counter
    * @param metricValue The number that will be saved on this counter
    */
-  private _createGaugeMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse> {
+  private _createGaugeMetric(metricName: number, metricText: string, metricValue: number) : Observable<RestResponse<any>> {
     if (RestDataService.getConfig() == null) return EMPTY;
 
     const impProjectId = this.stateService.projectId$.getValue();

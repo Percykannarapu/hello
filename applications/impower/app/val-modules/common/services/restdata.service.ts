@@ -4,8 +4,8 @@ import { decode, encode, ExtensionCodec } from '@msgpack/msgpack';
 import { formatMilli, isDate, isFunction } from '@val/common';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
+import { RestResponse, ServiceError } from '../../../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../../../app.config';
-import { RestResponse } from '../../../models/RestResponse';
 import { LoggingService } from './logging.service';
 
 /**
@@ -87,7 +87,9 @@ export class RestDataService
 
    public post<T = any>(url: string, payload: any) : Observable<RestResponse<T>>
    {
-      return this.http.post<RestResponse<T>>(this.baseUrl + url, payload);
+      return this.http.post<RestResponse<T>>(this.baseUrl + url, payload).pipe(
+        tap({ error: err => new ServiceError(err, this.baseUrl + url, payload) })
+      );
    }
 
    public postCSV<T = any>(url: string, payload: any) : Observable<RestResponse<T>>

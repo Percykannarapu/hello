@@ -1,4 +1,4 @@
-<span class="color-swatch" [ngStyle]="{ 'background-color': hexValue, 'height': swatchHeight + 'px' }" (click)="openPicker($event)"></span>
+<span class="color-swatch" [ngStyle]="{ 'background-color': esriValue | esriRgb2Hex, 'height': swatchHeight + 'px' }" (click)="openPicker($event)"></span>
 
 <p-overlayPanel #picker [dismissable]="true" appendTo="body">
   <div class="picker-container" (click)="haltClickPropagation($event)">

@@ -4,7 +4,8 @@ import { BehaviorSubject, EMPTY, from, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, tap } from 'rxjs/operators';
 import { serverEnv } from '../../../environments/server-urls';
 import { fetchGet } from '../../common/fetch-helpers';
-import { fixupOffline, OfflineAudienceResponse, OfflineCategoryResponse, RestResponse } from '../../data-model/custom/treeview';
+import { RestPayload, RestResponse } from '../../data-model/core.interfaces';
+import { fixupOffline, OfflineAudienceResponse, OfflineCategoryResponse } from '../../data-model/custom/treeview';
 import { TDASchema } from './schemas';
 import { timestampIsExpired } from './utils';
 
@@ -32,7 +33,7 @@ export class OfflineQuery {
 
   initialize(forceRefresh: boolean, fetchHeaders: { Authorization: string }) : Observable<void> {
     const refresh$ = from(this.refresh.toCollection().first());
-    const categoryRefresh$ = fetchGet<RestResponse<OfflineCategoryResponse>>(serverEnv.middlewareBase + categoryUrl, fetchHeaders).pipe(
+    const categoryRefresh$ = fetchGet<RestResponse<RestPayload<OfflineCategoryResponse>>>(serverEnv.middlewareBase + categoryUrl, fetchHeaders).pipe(
       map(response => response.payload.rows),
       tap(() => this.categoriesForRemoval.clear()),
       switchMap(categories => this.fetchAudiences(categories, fetchHeaders).pipe(
@@ -81,7 +82,7 @@ export class OfflineQuery {
   }
 
   private fetchAudiences(categories: OfflineCategoryResponse[], fetchHeaders: { Authorization: string }) : Observable<OfflineAudienceResponse[]> {
-    const audienceRequests$ = categories.map(category => fetchGet<RestResponse<OfflineAudienceResponse>>(`${serverEnv.middlewareBase + audienceUrl}${category.tablename}`, fetchHeaders).pipe(
+    const audienceRequests$ = categories.map(category => fetchGet<RestResponse<RestPayload<OfflineAudienceResponse>>>(`${serverEnv.middlewareBase + audienceUrl}${category.tablename}`, fetchHeaders).pipe(
       map(response => response.payload.rows.map(row => fixupOffline(category, row))),
       tap(rows => rows.length === 0 ? this.categoriesForRemoval.add(category.pk) : null)
     ));
