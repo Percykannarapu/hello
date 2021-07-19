@@ -259,6 +259,8 @@ export class BatchMapService {
           this.store$.dispatch(new RenderLocations({ locations: renderLocs }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         }
+        else if (!params.tradeAreaBoundaries)
+            this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));
       } else {
         this.processOtherSite(currentSite, params);
