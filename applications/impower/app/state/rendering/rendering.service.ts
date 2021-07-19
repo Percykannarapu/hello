@@ -132,14 +132,7 @@ export class RenderingService {
     if (result.length > 0) {
       return merge(...result).pipe(
         reduce((acc, curr) => [...acc, curr], [] as __esri.FeatureLayer[]),
-        tap(layers => {
-          this.logger.debug.log('Generated Radius Layers', layers);
-          if (this.config.isBatchMode){
-            layers.forEach(layer => layer.visible = params ? params.tradeAreaBoundaries : true);
-          }
-         
-        })
-      );
+        tap(layers => this.logger.debug.log('Generated Radius Layers', layers)));
     } else {
       return of([]);
     }
