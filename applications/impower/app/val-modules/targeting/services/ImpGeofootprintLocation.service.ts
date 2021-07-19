@@ -240,11 +240,11 @@ export class ImpGeofootprintLocationService extends DataStore<ImpGeofootprintLoc
        let notification: Action;
        const site = recordCount > 1 ? 'sites' : 'site';
        if (res.returnCode === 200) {
-         notification = new SuccessNotification({ notificationTitle, message: `Sent ${recordCount} ${site} to Valassis Digital successfully for ${project.clientIdentifierName.trim()}. \n
+         notification = SuccessNotification({ notificationTitle, message: `Sent ${recordCount} ${site} to Valassis Digital successfully for ${project.clientIdentifierName.trim()}. \n
                 ◼ Data will be returned by 9:00 AM tomorrow if submitted by 5:00 PM ET.
                 ◼ Custom VLH data will be removed 90 days after submit date`});
        } else {
-         notification = new ErrorNotification({ notificationTitle, message: `Error sending ${recordCount} ${site} to Valassis Digital for ${project.clientIdentifierName.trim()}`});
+         notification = ErrorNotification({ notificationTitle, message: `Error sending ${recordCount} ${site} to Valassis Digital for ${project.clientIdentifierName.trim()}`});
        }
        this.store$.dispatch(notification);
      });

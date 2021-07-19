@@ -8,6 +8,7 @@ import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/Im
 import { ImpGeofootprintLocationService } from 'app/val-modules/targeting/services/ImpGeofootprintLocation.service';
 import { Observable } from 'rxjs';
 import { filter, map, switchMap, take, tap, withLatestFrom } from 'rxjs/operators';
+import { MessageCenterService } from '../../../../modules/messaging/core/message-center.service';
 import { ProjectPrefGroupCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../app.config';
 import { LoadAudiences } from '../impower-datastore/state/transient/audience/audience.actions';
@@ -74,6 +75,7 @@ export class AppDataShimService {
               private appConfig: AppConfig,
               private store$: Store<FullAppState>,
               private logger: AppLoggingService,
+              private messageCenter: MessageCenterService,
               private mapService: EsriMapService,
               private domainFactory: ImpDomainFactoryService,
               private impGeofootprintLocationService: ImpGeofootprintLocationService) {
@@ -241,7 +243,7 @@ export class AppDataShimService {
   validateProject(project: ImpProject) : boolean {
     const errors = this.appProjectService.validateProject(project);
     if (errors.length > 0) {
-      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Invalid Project', message: errors.join('\n') }));
+      this.store$.dispatch(ErrorNotification({ notificationTitle: 'Invalid Project', message: errors.join('\n') }));
       return false;
     }
     return true;
@@ -256,6 +258,7 @@ export class AppDataShimService {
     this.appProjectService.finalizeClear();
     this.appLayerService.clearClientLayers();
     this.appStateService.clearUserInterface();
+    this.messageCenter.clearMessages();
     this.store$.dispatch(new ClearTradeAreas());
     this.store$.dispatch(clearTransientData({ fullEntityWipe: true }));
   }
@@ -344,14 +347,14 @@ export class AppDataShimService {
     }
 
     if (isResubmit && new Set(uploadFailures).has(resubmitGeo[0])){
-      this.store$.dispatch(new ErrorNotification({ message: 'The resubmitted geocode is not valid, please try again', notificationTitle: titleText}));
+      this.store$.dispatch(ErrorNotification({ message: 'The resubmitted geocode is not valid, please try again', notificationTitle: titleText}));
     }
     else if (!isResubmit && uploadFailures.length > 0){
-      this.store$.dispatch(new WarningNotification({ message: 'The upload file contains invalid geocodes, please refer to the failure grid for a list.', notificationTitle: titleText }));
-      this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: titleText}));
+      this.store$.dispatch(WarningNotification({ message: 'The upload file contains invalid geocodes, please refer to the failure grid for a list.', notificationTitle: titleText }));
+      this.store$.dispatch(SuccessNotification({ message: 'Completed', notificationTitle: titleText}));
     }
     else
-      this.store$.dispatch(new SuccessNotification({ message: 'Completed', notificationTitle: titleText}));
+      this.store$.dispatch(SuccessNotification({ message: 'Completed', notificationTitle: titleText}));
   }
 
   private getLayerSetupInfo(currentBoundaryId: string) : BasicLayerSetup {

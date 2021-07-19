@@ -82,7 +82,7 @@ export class AddLocationsTabComponent implements OnInit {
     this.logger.debug.log('File Upload valid count', requests.length);
     if (requests.length > 0){
       if (requests.length > 2000 && !hasUserGrant){
-        this.store$.dispatch(new ErrorNotification({ message: 'You are limited to 2,000 sites per analysis. Please reduce your site list and try again', notificationTitle: 'Location Upload Error' }));
+        this.store$.dispatch(ErrorNotification({ message: 'You are limited to 2,000 sites per analysis. Please reduce your site list and try again', notificationTitle: 'Location Upload Error' }));
       } else {
         this.validateHomeDmaIfExists(requests);
         this.processSiteRequests(requests, siteType);
@@ -101,7 +101,7 @@ export class AddLocationsTabComponent implements OnInit {
     //validate Manually added geocodes
     const locations = this.impGeofootprintLocationService.get();
     if (locations.filter(loc => loc.locationNumber === site.number.trim() || loc.locationNumber.toLowerCase() === site.number.toLowerCase()).length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor){
-      this.store$.dispatch(new ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
+      this.store$.dispatch(ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
       this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
     } else {
       const mktValue = site.Market != null ? `~Market=${site.Market}` : '';

@@ -344,7 +344,7 @@ export class AppLocationService {
     });
 
     if (this.appStateService.analysisLevel$.getValue() == null && newTradeAreas.length !== 0 ) {
-      this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Location Upload Error', message: 'Please select an Analysis Level prior to uploading locations with defined radii values.'}));
+      this.store$.dispatch(ErrorNotification({ notificationTitle: 'Location Upload Error', message: 'Please select an Analysis Level prior to uploading locations with defined radii values.'}));
       this.geocodingService.clearDuplicates();
     } else {
       this.cachedTradeAreas = newTradeAreas;
@@ -514,7 +514,7 @@ export class AppLocationService {
         });
     }
     if (warningNotificationFlag === 'Y'){
-      this.store$.dispatch(new WarningNotification({ notificationTitle: 'Home Geocode Warning', message: 'Issues found while calculating Home Geocodes, please check the Locations Grid.' }));
+      this.store$.dispatch(WarningNotification({ notificationTitle: 'Home Geocode Warning', message: 'Issues found while calculating Home Geocodes, please check the Locations Grid.' }));
     }
     this.impLocAttributeService.add(impAttributesToAdd);
   }

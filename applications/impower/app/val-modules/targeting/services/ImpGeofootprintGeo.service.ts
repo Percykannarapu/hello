@@ -165,9 +165,9 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
    private reportError(title: string, message: string, isError: Boolean = true) : void {
       if (isError)
-         this.store$.dispatch(new ErrorNotification({ message, notificationTitle: title}));
+         this.store$.dispatch(ErrorNotification({ message, notificationTitle: title}));
       else
-         this.store$.dispatch(new WarningNotification({ message, notificationTitle: title}));
+         this.store$.dispatch(WarningNotification({ message, notificationTitle: title}));
    }
 
    public partitionGeos (p1: ImpGeofootprintGeo, p2: ImpGeofootprintGeo) : boolean
@@ -291,10 +291,10 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
 
           if (uniqueGeos.size !== data.parsedData.length) {
                if (fileName === 'manual')
-                   this.store$.dispatch(new WarningNotification({message: 'Manually added geos contain duplicate geocodes. Processing will continue, though you may want to re-evaluate the geos in the manual add section.',
+                   this.store$.dispatch(WarningNotification({message: 'Manually added geos contain duplicate geocodes. Processing will continue, though you may want to re-evaluate the geos in the manual add section.',
                                                            notificationTitle: 'Must Cover Manual'}));
                else
-                    this.store$.dispatch(new WarningNotification({message: 'The upload file contains duplicate geocodes. Processing will continue, though you may want to re-evaluate the upload file.',
+                    this.store$.dispatch(WarningNotification({message: 'The upload file contains duplicate geocodes. Processing will continue, though you may want to re-evaluate the upload file.',
                                                             notificationTitle: 'Must Cover Upload'}));
              //this.reportError(errorTitle, 'Warning: The upload file did contain duplicate geocodes. Processing will continue, but consider evaluating and resubmiting the file.');
           }
@@ -332,7 +332,7 @@ export class ImpGeofootprintGeoService extends DataStore<ImpGeofootprintGeo>
        }
       }
       catch (e) {
-        this.store$.dispatch(new ErrorNotification({ message: 'Geocode is a required column in the upload file', notificationTitle: 'Must Cover Upload' }));
+        this.store$.dispatch(ErrorNotification({ message: 'Geocode is a required column in the upload file', notificationTitle: 'Must Cover Upload' }));
       }
       return EMPTY;
     }

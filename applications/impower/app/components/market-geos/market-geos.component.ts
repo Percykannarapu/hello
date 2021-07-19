@@ -242,7 +242,7 @@ export class MarketGeosComponent implements OnInit {
   private populateStatesDropdown() {
     this.marketService.getContainerData('state').pipe(
       tap({ next: value => {
-          if ((value?.length ?? 0) === 0) this.store$.dispatch(new ErrorNotification({ message: 'No States Found To Populate Dropdown'}));
+          if ((value?.length ?? 0) === 0) this.store$.dispatch(ErrorNotification({ message: 'No States Found To Populate Dropdown'}));
         }, error: this.tapError })
     ).subscribe(containerValues => this.stateItems = containerValues?.map(cv => ({ label: cv.name, value: cv.state })));
   }
@@ -312,7 +312,7 @@ export class MarketGeosComponent implements OnInit {
     const message = err.message ?? 'There was an unspecified error during Market Geo processing';
     this.isFetchingData = false;
     this.isFetchingGeos = false;
-    this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Error processing Market Geos', additionalErrorInfo: err }));
+    this.store$.dispatch(ErrorNotification({ message, notificationTitle: 'Error processing Market Geos', additionalErrorInfo: err }));
     this.onError.emit({ returnCode: err.response?.returnCode, issues: err.response?.payload?.issues });
   }
 

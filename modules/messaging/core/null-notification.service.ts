@@ -6,7 +6,7 @@ export class NullNotificationService implements NotificationProvider {
 
   constructor() { }
 
-  clearAllNotifications() : void {
+  hideAllNotifications() : void {
   }
 
   showErrorNotification(message: string, title?: string, sticky?: boolean) : void {

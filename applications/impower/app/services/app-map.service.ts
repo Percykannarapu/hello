@@ -235,7 +235,7 @@ export class AppMapService {
           this.selectSingleGeocode(geocode, geometry);
         }
         else{
-          this.store$.dispatch(new ErrorNotification({message: 'You are attempting to add or remove a geo at the wrong analysis level', notificationTitle: 'Invalid Add/Remove'}));
+          this.store$.dispatch(ErrorNotification({message: 'You are attempting to add or remove a geo at the wrong analysis level', notificationTitle: 'Invalid Add/Remove'}));
         }
     }
 

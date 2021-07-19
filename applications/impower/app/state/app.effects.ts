@@ -28,7 +28,7 @@ export class AppEffects {
     switchMap(action => of(this.config.getLayerIdForAnalysisLevel(action.payload.analysisLevel)).pipe(
       tap(layerId => this.esri.setSelectedLayer(layerId)),
       catchError(err => {
-        this.store$.dispatch(new ErrorNotification({ message: 'Could not set Layer Id based on Analysis Level', additionalErrorInfo: err }));
+        this.store$.dispatch(ErrorNotification({ message: 'Could not set Layer Id based on Analysis Level', additionalErrorInfo: err }));
         return EMPTY;
       })
     ))

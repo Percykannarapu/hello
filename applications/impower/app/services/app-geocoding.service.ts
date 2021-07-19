@@ -37,9 +37,9 @@ export class AppGeocodingService {
       const data: ParseResponse<ValGeocodingRequest> = FileService.parseDelimitedData(header, dataRows, parser, this.duplicateKeyMap.get(siteType));
       if (data != null && (data.duplicateHeaders.length > 0 || data.invalidColLengthHeaders.length > 0)){
         if (data.duplicateHeaders.length > 0)
-            this.store$.dispatch(new ErrorNotification({ message: 'The upload file contains duplicate headers, please fix the file and upload again.', notificationTitle: 'Duplicate Headers' }));
+            this.store$.dispatch(ErrorNotification({ message: 'The upload file contains duplicate headers, please fix the file and upload again.', notificationTitle: 'Duplicate Headers' }));
         if (data.invalidColLengthHeaders.length > 0)
-            this.store$.dispatch(new ErrorNotification({ message: 'Column headers must be 30 characters or less, please fix the file and upload again.', notificationTitle: 'Invalid Headers' }));
+            this.store$.dispatch(ErrorNotification({ message: 'Column headers must be 30 characters or less, please fix the file and upload again.', notificationTitle: 'Invalid Headers' }));
         //throw new Error();
         data.parsedData = [];
       }
@@ -47,30 +47,30 @@ export class AppGeocodingService {
 
         Object.keys(data.invalidRowHeaders).map((headerCol) => {
           //this.logger.info.log('index values====>', record[headerCol], headerCol);
-          this.store$.dispatch(new ErrorNotification({message: `The ${headerCol} column cannot exceed ${data.invalidRowHeaders[headerCol]} characters per site`, notificationTitle: 'Invalid Upload Data'}));
+          this.store$.dispatch(ErrorNotification({message: `The ${headerCol} column cannot exceed ${data.invalidRowHeaders[headerCol]} characters per site`, notificationTitle: 'Invalid Upload Data'}));
         });
         data.parsedData = [];
         //throw new Error();
       }
       if (data == null ) {
-        this.store$.dispatch(new ErrorNotification({ message: `Please define radii values >0 and <= 50 for all ${siteType}s.`, notificationTitle: 'Location Upload Error' }));
+        this.store$.dispatch(ErrorNotification({ message: `Please define radii values >0 and <= 50 for all ${siteType}s.`, notificationTitle: 'Location Upload Error' }));
       } else {
         if (data.failedRows.length > 0) {
           this.logger.error.log('There were errors parsing the following rows in the CSV: ', data.failedRows);
           const failedString = '\n \u0007 ' + data.failedRows.join('\n\n\u0007 ');
-          this.store$.dispatch(new ErrorNotification({ message: `There were ${data.failedRows.length} rows in the uploaded file that could not be read. \n ${failedString}`, notificationTitle: 'Location Upload Error' }));
+          this.store$.dispatch(ErrorNotification({ message: `There were ${data.failedRows.length} rows in the uploaded file that could not be read. \n ${failedString}`, notificationTitle: 'Location Upload Error' }));
         } else {
           const siteNumbers = [];
           data.parsedData.forEach(siteReq => siteNumbers.push(siteReq.number));
           if ( siteNumbers.filter((val, index, self) => self.indexOf(val) !== index ).length > 0  && siteType !== ImpClientLocationTypeCodes.Competitor){
-            this.store$.dispatch(new ErrorNotification({ message: 'Duplicate Site Numbers exist in your upload file.', notificationTitle: 'Location Upload Error' }));
+            this.store$.dispatch(ErrorNotification({ message: 'Duplicate Site Numbers exist in your upload file.', notificationTitle: 'Location Upload Error' }));
             result = [];
             return result;
           }
           if (data.duplicateKeys.length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor) {
             const topDuplicateNumbers = data.duplicateKeys.slice(0, 5).join(', ');
             const dupeMessage = data.duplicateKeys.length > 5 ? `${topDuplicateNumbers} (+ ${data.duplicateKeys.length - 5} more)` : topDuplicateNumbers;
-            this.store$.dispatch(new ErrorNotification({ message: `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`, notificationTitle: 'Location Upload Error' }));
+            this.store$.dispatch(ErrorNotification({ message: `There were ${data.duplicateKeys.length} duplicate store numbers in the uploaded file: ${dupeMessage}`, notificationTitle: 'Location Upload Error' }));
           } else {
             result = data.parsedData.map(d => new ValGeocodingRequest(d));
             result.map(r => r.number).forEach(n => {
@@ -80,7 +80,7 @@ export class AppGeocodingService {
         }
       }
     } catch (e) {
-      this.store$.dispatch(new ErrorNotification({ message: `${e}`, notificationTitle: 'Geocoding Error' }));
+      this.store$.dispatch(ErrorNotification({ message: `${e}`, notificationTitle: 'Geocoding Error' }));
     }
     return result;
   }
@@ -119,9 +119,9 @@ export class AppGeocodingService {
             this.store$.dispatch(resetNamedForm({path: 'addLocation'}));
           }
           if (failCount > 0) {
-            this.store$.dispatch(new ErrorNotification({notificationTitle: 'Geocoding Error', message: 'Refer to the interactive geocoding tab. Accept XY for center of ZIP code or modify the address and resubmit.'}));
+            this.store$.dispatch(ErrorNotification({notificationTitle: 'Geocoding Error', message: 'Refer to the interactive geocoding tab. Accept XY for center of ZIP code or modify the address and resubmit.'}));
           } else if (successCount > 0) {
-            this.store$.dispatch(new SuccessNotification({message: 'Geocoding Success'}));
+            this.store$.dispatch(SuccessNotification({message: 'Geocoding Success'}));
           }
         }
       }),

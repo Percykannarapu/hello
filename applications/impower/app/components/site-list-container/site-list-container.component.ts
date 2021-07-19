@@ -94,7 +94,7 @@ export class SiteListContainerComponent implements OnInit {
      this.oldData = oldData;
     const locations = this.appStateService.currentProject$.getValue().getImpGeofootprintLocations();
     if (locations.filter(loc => loc.locationNumber === site.number).length > 0 && oldData.locationNumber != site.number && siteType !== ImpClientLocationTypeCodes.Competitor){
-      this.store$.dispatch(new ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
+      this.store$.dispatch(ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
       this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
     } else {
       const mktValue = site.Market != null ? `~Market=${site.Market}` : '';

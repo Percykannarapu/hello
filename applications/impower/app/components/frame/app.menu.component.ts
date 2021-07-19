@@ -1,7 +1,7 @@
 /* tslint:disable:component-selector */
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ClearAllNotifications, ConfirmationPayload, ErrorNotification, ShowConfirmation, SuccessNotification } from '@val/messaging';
+import { HideAllNotifications, ConfirmationPayload, ErrorNotification, ShowConfirmation, SuccessNotification } from '@val/messaging';
 import { AppStateService } from 'app/services/app-state.service';
 import { BatchMapService } from 'app/services/batch-map.service';
 import { CreateMapExportUsageMetric } from 'app/state/usage/targeting-usage.actions';
@@ -63,7 +63,8 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       this.model = [
         {label: 'Save', id: 'saveProject', icon: PrimeIcons.SAVE, command: () => this.saveProject()},
         {
-          label: 'Projects', icon: PrimeIcons.BOOK,
+          label: 'Projects',
+          icon: PrimeIcons.BOOK,
           items: [
             {label: 'Create New', icon: PrimeIcons.FILE_O, command: () => this.refreshPage()}, // temporarily re-wire create new button to refresh page
             {label: 'Open Existing', icon: PrimeIcons.FOLDER_OPEN, command: () => this.store$.dispatch(new OpenExistingProjectDialog())},
@@ -71,65 +72,58 @@ export class AppMenuComponent implements OnInit, OnDestroy {
           ]
         },
         {
-          label: 'Export', icon: PrimeIcons.DOWNLOAD,
+          label: 'Export',
+          icon: PrimeIcons.DOWNLOAD,
+          styleClass: 'val-export-menu',
           items: [
             {
               label: 'Export Geofootprint - All',
               icon: PrimeIcons.TABLE,
-              styleClass: 'val-long-menu-link',
               command: () => this.exportGeofootprint(false),
               visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT'])
             },
             {
               label: 'Export Geofootprint - Selected Only',
               icon: PrimeIcons.TABLE,
-              styleClass: 'val-long-menu-link',
               command: () => this.exportGeofootprint(true),
               visible: this.userService.userHasGrants(['IMPOWER_EXPORT_GEOFOOTPRINT'])
             },
             {
               label: 'Export Sites',
               icon: PrimeIcons.FILE_EXCEL,
-              styleClass: 'val-long-menu-link',
               command: () => this.exportLocations(ImpClientLocationTypeCodes.Site)
             },
             {
               label: 'Export Competitors',
               icon: PrimeIcons.FILE_EXCEL,
-              styleClass: 'val-long-menu-link',
               command: () => this.exportLocations(ImpClientLocationTypeCodes.Competitor)
             },
             {
               label: 'Export Online Audience National Data',
               icon: PrimeIcons.CLOUD_DOWNLOAD,
-              styleClass: 'val-long-menu-link',
               command: () => this.store$.dispatch(new ExportApioNationalData()),
               visible: this.userService.userHasGrants(['IMPOWER_EXPORT_NATIONAL'])
             },
             {
               label: 'Send Custom Sites to Valassis Digital',
               icon: PrimeIcons.SEND,
-              styleClass: 'val-long-menu-link',
               command: () => this.exportToValassisDigital(),
               visible: this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'])
             },
             {
               label: 'Export Crossbow Sites',
               icon: PrimeIcons.CLOUD_UPLOAD,
-              styleClass: 'val-long-menu-link',
               command: () => this.store$.dispatch(new OpenExportCrossbowSitesDialog())
             },
             {
               label: 'Export Map PDFs',
               icon: PrimeIcons.FILE_PDF,
-              styleClass: 'val-long-menu-link',
               command: () => this.createBatchMap(),
               visible: this.userService.userHasGrants(['IMPOWER_PDF_FULL', 'IMPOWER_PDF_LIMITED'])
             },
             {
               label: 'Copy All Geos to Clipboard',
               icon: PrimeIcons.COPY,
-              styleClass: 'val-long-menu-link',
               command: () => this.copyGeosToClipboard(),
             }
           ]
@@ -193,9 +187,9 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     currentGeos.sort();
     const clipString = currentGeos.join(', ');
     window.navigator.clipboard.writeText(clipString).then(() => {
-      this.store$.dispatch(new SuccessNotification({ message: `Copied ${currentGeos.length} geos to the clipboard`, sticky: false, life: 5000 }));
+      this.store$.dispatch(SuccessNotification({ message: `Copied ${currentGeos.length} geos to the clipboard`, sticky: false, life: 5000 }));
     }).catch(err => {
-      this.store$.dispatch(new ErrorNotification({ message: 'There was an error trying to copy the data to your system clipboard.', additionalErrorInfo: err }));
+      this.store$.dispatch(ErrorNotification({ message: 'There was an error trying to copy the data to your system clipboard.', additionalErrorInfo: err }));
     });
   }
 
@@ -220,20 +214,5 @@ export class AppMenuComponent implements OnInit, OnDestroy {
       }
     };
     this.store$.dispatch(new ShowConfirmation(payload));
-  }
-
-  onClearMessages(event: MouseEvent) {
-    event.stopImmediatePropagation();
-    event.stopPropagation();
-    this.store$.dispatch(new ClearAllNotifications());
-  }
-
-  getHelpPopup(event: any) {
-    if (this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'])) {
-      const internal = 'http://myvalassis/da/ts/imPower%20Resources/Forms/AllItems.aspx';
-      window.open(internal, '_blank');
-    } else {
-      this.store$.dispatch(new ImpowerHelpOpen(event));
-    }
   }
 }

@@ -215,7 +215,7 @@ export class ValAudienceTradeareaService {
  //        }
  // //      this.logger.debug.log('growlMessage::::', growlMessage);
  //        for (let i = 0; i < growlMessage.length; i++) {
- //          this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Audience Trade Area Error', message: growlMessage[i] }));
+ //          this.store$.dispatch(ErrorNotification({ notificationTitle: 'Audience Trade Area Error', message: growlMessage[i] }));
  //        }
  //        this.store$.dispatch(new StopBusyIndicator({ key }));
  //        return Observable.create(o => o.next(false));
@@ -253,7 +253,7 @@ export class ValAudienceTradeareaService {
  //          this.parseResponse(response, audienceTAConfig.audienceName);
  //          if (this.taResponses.size < 1) {
  //            this.logger.warn.log('No data found when running audience trade area:', this.audienceTAConfig);
- //            this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: 'No data was found for your input parameters' }));
+ //            this.store$.dispatch(WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: 'No data was found for your input parameters' }));
  //            this.store$.dispatch(new StopBusyIndicator({ key }));
  //            this.audienceTaSubject.next(true);
  //            return;
@@ -284,7 +284,7 @@ export class ValAudienceTradeareaService {
  //            for (const failedLoc of this.failedLocations) {
  //              warningMessage += failedLoc.locationNumber + '\n';
  //            }
- //            this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: warningMessage }));
+ //            this.store$.dispatch(WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: warningMessage }));
  //            this.failedLocations = [];
  //          }
  //          this.appTradeAreaService.insertTradeAreas(newTradeAreas);
@@ -517,7 +517,7 @@ export class ValAudienceTradeareaService {
   // private createGeos(audienceTAConfig, location: ImpGeofootprintLocation) : ImpGeofootprintGeo[] {
   //   // DE2124: if a location got no data back from the service we need to skip it
   //   if (!this.taResponses.has(location.locationNumber)) {
-  //     this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: `Location number ${location.locationNumber} has no available data, unable to create Audience TA for this location` }));
+  //     this.store$.dispatch(WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: `Location number ${location.locationNumber} has no available data, unable to create Audience TA for this location` }));
   //     return;
   //   }
   //   const newGeos: ImpGeofootprintGeo[] = new Array<ImpGeofootprintGeo>();

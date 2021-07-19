@@ -230,11 +230,11 @@ export class TargetAudienceService {
   //   } else {
   //     const notificationTitle = 'National Extract Export';
   //     if (audiences.length === 0) {
-  //       this.store$.dispatch(new ErrorNotification({ notificationTitle, message: 'A variable must be selected for a national extract before exporting.' }));
+  //       this.store$.dispatch(ErrorNotification({ notificationTitle, message: 'A variable must be selected for a national extract before exporting.' }));
   //     } else if (analysisLevel == null || analysisLevel.length === 0) {
-  //       this.store$.dispatch(new ErrorNotification({ notificationTitle, message: 'An Analysis Level must be selected for a national extract before exporting.' }));
+  //       this.store$.dispatch(ErrorNotification({ notificationTitle, message: 'An Analysis Level must be selected for a national extract before exporting.' }));
   //     } else {
-  //       this.store$.dispatch(new ErrorNotification({ notificationTitle, message: 'The project must be saved before exporting a national extract.' }));
+  //       this.store$.dispatch(ErrorNotification({ notificationTitle, message: 'The project must be saved before exporting a national extract.' }));
   //     }
   //   }
   // }
@@ -349,7 +349,7 @@ export class TargetAudienceService {
   //   }, err => {
   //     this.logger.error.log('There was an error retrieving data from the server. Additional info:', err);
   //     this.store$.dispatch(new StopBusyIndicator({ key }));
-  //     this.store$.dispatch(new ErrorNotification({ notificationTitle, message: errorMessage }));
+  //     this.store$.dispatch(ErrorNotification({ notificationTitle, message: errorMessage }));
   //   }, () => {
   //     this.store$.dispatch(new StopBusyIndicator({ key }));
   //   });

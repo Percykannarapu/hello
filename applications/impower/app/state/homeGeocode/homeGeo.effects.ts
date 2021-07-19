@@ -32,7 +32,7 @@ export class HomeGeoEffects {
            new HomeGeocode({locations, isLocationEdit: action.payload.isLocationEdit, reCalculateHomeGeos: action.payload.reCalculateHomeGeos}),
         ]),
         catchError(err =>
-          of(new ErrorNotification({message: 'System encountered an error processing your request.  Please try again', notificationTitle: 'Geocoding', additionalErrorInfo: err}),
+          of(ErrorNotification({message: 'System encountered an error processing your request.  Please try again', notificationTitle: 'Geocoding', additionalErrorInfo: err}),
              new StopBusyIndicator({key: 'ADD_LOCATION_TAB_SPINNER'})
             )
         )
@@ -58,12 +58,12 @@ export class HomeGeoEffects {
       switchMap(locMap => this.appHomeGeocodingService.queryHomeGeocode(locMap).pipe(
          concatMap(attributes => [
             new ProcessHomeGeoAttributes({attributes, totalLocs: locMap.totalLocs, isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos}),
-            new SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
+            SuccessNotification({ notificationTitle: 'Home Geo', message: 'Home Geo calculation is complete.' }),
             new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
             new ApplyTradeAreaOnEdit({ isLocationEdit: locMap.isLocationEdit, reCalculateHomeGeos: locMap.reCalculateHomeGeos})
           ]),
          catchError(err => of(
-          new ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo', additionalErrorInfo: err}),
+          ErrorNotification({message: 'Error HomeGeocoding', notificationTitle: 'Home Geo', additionalErrorInfo: err}),
           new StopBusyIndicator({ key: 'HomeGeoCalcKey' }),
         ))
       ))
@@ -97,7 +97,7 @@ export class HomeGeoEffects {
             if (val.length === action.payload.editedTags.length) {
                return new SaveOnValidationSuccess({ oldData: action.payload.oldData, editedTags: action.payload.editedTags, attributeList: action.payload.attributeList });
             } else {
-               return new InfoNotification({ notificationTitle: 'Invalid HomeGeos', message: 'There are invalid values for one/more HomeGeoFields. Please provide valid values instead', sticky: false, life: 5000 });
+               return InfoNotification({ notificationTitle: 'Invalid HomeGeos', message: 'There are invalid values for one/more HomeGeoFields. Please provide valid values instead', sticky: false, life: 5000 });
             }
          })
       ))

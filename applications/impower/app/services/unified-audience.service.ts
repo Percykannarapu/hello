@@ -198,17 +198,17 @@ export class UnifiedAudienceService {
     const notificationTitle = 'National Extract Export';
     const audiences = this.nationalAudiences$.getValue();
     if (isEmpty(audiences)) {
-      this.store$.dispatch(new ErrorNotification({
+      this.store$.dispatch(ErrorNotification({
         notificationTitle,
         message: 'A variable must be selected for a national extract before exporting.'
       }));
     } else if (isEmpty(project.methAnalysis)) {
-      this.store$.dispatch(new ErrorNotification({
+      this.store$.dispatch(ErrorNotification({
         notificationTitle,
         message: 'An Analysis Level must be selected for a national extract before exporting.'
       }));
     } else if (isNil(project.projectId)) {
-      this.store$.dispatch(new ErrorNotification({
+      this.store$.dispatch(ErrorNotification({
         notificationTitle,
         message: 'The project must be saved before exporting a national extract.'
       }));

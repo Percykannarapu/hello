@@ -272,7 +272,7 @@ export class AppDiscoveryService {
   public updateTrackerSuggestions(searchTerm: string) {
     this.getProjectTrackerData(searchTerm).subscribe(items => {
         if (items.length === 0) {
-          this.store$.dispatch(new ErrorNotification({ message: 'No Project Tracker ID Found'}));
+          this.store$.dispatch(ErrorNotification({ message: 'No Project Tracker ID Found'}));
         } else {
           const foundItems = items.filter(filterByFields(searchTerm, ['projectId', 'projectName', 'targetor']));
           this.currentTrackerSuggestions.next(foundItems);

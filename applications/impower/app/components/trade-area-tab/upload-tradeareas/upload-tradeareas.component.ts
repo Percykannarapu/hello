@@ -195,7 +195,7 @@ export class UploadTradeAreasComponent implements OnInit {
       }
       try {
         if (duplicateRows.length > 0) {
-          this.store$.dispatch(new WarningNotification({ message: 'The upload file contains duplicate rows. Processing will continue, though you may want to re-evaluate the upload file.', notificationTitle: 'Custom TA Upload' }));
+          this.store$.dispatch(WarningNotification({ message: 'The upload file contains duplicate rows. Processing will continue, though you may want to re-evaluate the upload file.', notificationTitle: 'Custom TA Upload' }));
         }
           const data: ParseResponse<TradeAreaDataRow> = FileService.parseDelimitedData(header, uniqueRows, tradeAreaFileParser);
           if (data != null) {
@@ -217,16 +217,16 @@ export class UploadTradeAreasComponent implements OnInit {
           }
          /*else {
           this.store$.dispatch(new StopBusyIndicator({ key}));
-          this.store$.dispatch(new WarningNotification({ message: 'The upload file contains duplicate rows. Processing will continue, though you may want to re-evaluate the upload file.', notificationTitle: 'Custom TA Upload' }));
+          this.store$.dispatch(WarningNotification({ message: 'The upload file contains duplicate rows. Processing will continue, though you may want to re-evaluate the upload file.', notificationTitle: 'Custom TA Upload' }));
         }*/
       } catch (e) {
           this.logger.debug.log('There was an error parsing the uploaded data', e);
           this.store$.dispatch(new StopBusyIndicator({ key}));
-          this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
+          this.store$.dispatch(ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
       }
     } else {
       this.store$.dispatch(new StopBusyIndicator({ key}));
-      this.store$.dispatch(new ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
+      this.store$.dispatch(ErrorNotification({ message: 'Site # and Geocode are required columns in the upload file.', notificationTitle: 'Custom TA Upload' }));
     }
   }
 

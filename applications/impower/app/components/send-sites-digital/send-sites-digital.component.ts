@@ -46,7 +46,7 @@ export class SendSitesDigitalComponent implements OnInit {
     const impProject: ImpProject  = this.stateService.currentProject$.getValue();
     if (impProject.projectId == null){
       const notificationTitle = 'Export Error';
-      this.store$.dispatch(new ErrorNotification({notificationTitle, message: 'The project must be saved before sending the custom site list to Valassis Digital'}));
+      this.store$.dispatch(ErrorNotification({notificationTitle, message: 'The project must be saved before sending the custom site list to Valassis Digital'}));
       this.closeDialog();
     }
     else if (impProject.projectTrackerId != null){

@@ -15,6 +15,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { AccordionModule } from 'primeng/accordion';
 import { ConfirmationService, MessageService, SharedModule } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -24,6 +25,7 @@ import { ContextMenuModule } from 'primeng/contextmenu';
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
 import { DropdownModule } from 'primeng/dropdown';
+import { DynamicDialogModule } from 'primeng/dynamicdialog';
 import { FieldsetModule } from 'primeng/fieldset';
 import { FileUploadModule } from 'primeng/fileupload';
 import { InputMaskModule } from 'primeng/inputmask';
@@ -310,7 +312,9 @@ export function esriSetupFactory() : ForRootOptions {
     ColorPickerModule,
     DividerModule,
     KeyFilterModule,
-    InputTextareaModule
+    InputTextareaModule,
+    BadgeModule,
+    DynamicDialogModule
   ],
   declarations: [
     AppComponent,
@@ -400,7 +404,7 @@ export function esriSetupFactory() : ForRootOptions {
     EditLocationsComponent,
     SearchInputComponent,
     BrokeredTreeviewComponent,
-    EsriRgb2HexPipe
+    EsriRgb2HexPipe,
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

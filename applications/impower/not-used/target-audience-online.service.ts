@@ -189,7 +189,7 @@ export class TargetAudienceOnlineService {
   //       let msg = 'The following audience selections are no longer available, and have been removed from the Selected Audiences grid: \n\n';
   //       projectVars.forEach(v => msg += `● ${v.fieldname}`);
   //
-  //       this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Issues', message: msg}));
+  //       this.store$.dispatch(WarningNotification({ notificationTitle: 'Audience Issues', message: msg}));
   //     }
   // }
   //

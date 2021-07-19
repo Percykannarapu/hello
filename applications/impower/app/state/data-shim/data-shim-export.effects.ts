@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { isNil, isNotNil, isString } from '@val/common';
-import { ErrorNotification, MessagingActionTypes } from '@val/messaging';
+import { isNil, isString } from '@val/common';
+import { ErrorNotification, isErrorNotification } from '@val/messaging';
 import { of } from 'rxjs';
 import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { AppDataShimService } from '../../services/app-data-shim.service';
@@ -83,15 +83,15 @@ export class DataShimExportEffects {
               private dataShimService: AppDataShimService,
               private appExportService: AppExportService) {}
 
-  private processError(additionalErrorInfo: any, notificationTitle: string = 'Export Error') : ErrorNotification {
+  private processError(additionalErrorInfo: any, notificationTitle: string = 'Export Error') : ReturnType<typeof ErrorNotification> {
     let message = 'There was an error exporting the file';
     if (isNil(additionalErrorInfo)) {
-      return new ErrorNotification({ notificationTitle, message });
+      return ErrorNotification({ notificationTitle, message });
     } else {
-      if (additionalErrorInfo.hasOwnProperty('type') && additionalErrorInfo['type'] === MessagingActionTypes.ErrorNotification) {
+      if (isErrorNotification(additionalErrorInfo)) {
         return additionalErrorInfo;
       } else if (isString(additionalErrorInfo)) {
-        return new ErrorNotification({ message: additionalErrorInfo, notificationTitle });
+        return ErrorNotification({ message: additionalErrorInfo, notificationTitle });
       } else {
         if (additionalErrorInfo.hasOwnProperty('message')) {
           message = additionalErrorInfo.message;
@@ -99,7 +99,7 @@ export class DataShimExportEffects {
         if (additionalErrorInfo.hasOwnProperty('title')) {
           notificationTitle = additionalErrorInfo.title;
         }
-        return new ErrorNotification({ message, notificationTitle, additionalErrorInfo });
+        return ErrorNotification({ message, notificationTitle, additionalErrorInfo });
       }
     }
   }

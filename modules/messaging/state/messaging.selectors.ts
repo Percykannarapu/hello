@@ -16,3 +16,7 @@ export const simpleMessageHeader = createSelector(simpleMessageSlice, state => s
 export const simpleMessageMessage = createSelector(simpleMessageSlice, state => state.message);
 export const simpleMessageButton = createSelector(simpleMessageSlice, state => state.button);
 export const simpleMessageDisplay = createSelector(simpleMessageSlice, state => state.display);
+
+const messageCenterSlice = createSelector(messagingStateSlice, state => state?.messageCenter);
+export const getMessageData = createSelector(messageCenterSlice, state => state?.messageQueue ?? []);
+export const getMessageCount = createSelector(messageCenterSlice, state => state?.messageQueue?.length ?? 0);

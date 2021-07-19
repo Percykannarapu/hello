@@ -134,9 +134,9 @@
 
       <ng-template pTemplate="emptymessage" let-columns>
         <tr>
-          <td colspan="3">&nbsp;</td>
-          <td [attr.colspan]="columns.length">
-            <h5 style="padding-top: 1rem;">No locations added.  Use the "Add Locations" tab above.</h5>
+          <td colspan="4" style="border-right-width: 0">&nbsp;</td>
+          <td [attr.colspan]="columns.length" class="p-pt-3" style="border-left-width: 0">
+            <h5>No locations added.  Use the "Add Locations" tab above.</h5>
           </td>
         </tr>
       </ng-template>

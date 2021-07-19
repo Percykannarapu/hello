@@ -1,4 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
+@import "~assets/theme/valassis/theme-light";
 @import "~assets/valassis-variables";
 
 body {
@@ -15,6 +16,23 @@ body {
 
 .val-audience-details {
   width: 55vw;
+}
+
+// widths for specific menus
+.p-menu {
+  &.val-message-center-menu {
+    width: 13rem;
+  }
+  &.val-add-shader-menu {
+    width: 15rem;
+  }
+}
+.val-export-menu {
+  p-menubarSub {
+    .p-submenu-list {
+      width: 20rem;
+    }
+  }
 }
 
 .val-flex-layout {
@@ -113,6 +131,60 @@ table {
   100% {
     stroke-dashoffset: $offset;
     transform:rotate(450deg);
+  }
+}
+
+.val-content-button {
+  &.p-button {
+    min-width: unset;
+    &.p-button-text {
+      color: $textColor;
+    }
+    .p-badge {
+      width: .5rem;
+      min-width: .5rem;
+      height: .5rem;
+      transform: translate(0%, -25%);
+    }
+  }
+  .p-button-label {
+    display: none;
+  }
+}
+
+.val-table-dialog {
+  .p-dialog-content {
+    overflow: visible;
+  }
+  .p-datepicker {
+    width: 20rem;
+  }
+}
+
+tr {
+  &.val-info-row {
+    td {
+      background-color: $infoMessageBg;
+      color: $infoMessageTextColor;
+    }
+  }
+  &.val-success-row {
+    td {
+      background-color: $successMessageBg;
+      color: $successMessageTextColor;
+    }
+  }
+  &.val-warn-row {
+    td {
+      background-color: $warningMessageBg;
+      color: $warningMessageTextColor;
+    }
+  }
+  &.val-error-row {
+    td {
+      background-color: $errorMessageBg;
+      color: $errorMessageTextColor;
+    }
   }
 }
 

@@ -7,5 +7,5 @@ export interface NotificationProvider {
   showWarningNotification(message: string, title?: string, sticky?: boolean, life?: number) : void;
   showInfoNotification(message: string, title?: string, sticky?: boolean, life?: number) : void;
   showSuccessNotification(message: string, title?: string, sticky?: boolean, life?: number) : void;
-  clearAllNotifications() : void;
+  hideAllNotifications() : void;
 }

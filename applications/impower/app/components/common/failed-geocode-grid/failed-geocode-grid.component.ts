@@ -213,7 +213,7 @@ export class FailedGeocodeGridComponent implements OnInit {
     if (inelligibleSites.length > 0) {
       let inelligibleSiteMsg = 'The following sites were not\n accepted due to missing\n coordinates:\n\n';
       inelligibleSites.forEach(site => inelligibleSiteMsg += site.locationNumber + ' - ' + site.origAddress1 + ' \n');
-      this.store$.dispatch(new WarningNotification({ notificationTitle: 'Interactive Geocoding Warning', message: inelligibleSiteMsg }));
+      this.store$.dispatch(WarningNotification({ notificationTitle: 'Interactive Geocoding Warning', message: inelligibleSiteMsg }));
     }
   }
 

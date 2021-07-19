@@ -114,7 +114,7 @@ export class AppExportService {
     return this.impGeofootprintLocationService.exportStore(filename, exportFormat, currentProject, siteType).pipe(
       tap(result => {
         if (result.status === WorkerStatus.Complete && result.rowsProcessed === 0 && exportFormat === LocationExportFormats.homeGeoIssues) {
-          this.store$.dispatch(new WarningNotification({
+          this.store$.dispatch(WarningNotification({
             message: 'There are no home geocoding issues to report.',
             notificationTitle: 'Home Geocode Issues Log'
           }));
