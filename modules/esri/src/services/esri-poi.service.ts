@@ -133,7 +133,8 @@ export class EsriPoiService {
           minScale: config.minScale,
           popupEnabled: true,
           popupTemplate,
-          labelsVisible: config.showLabels,
+          labelsVisible: config.isBatchMap ? true : config.showLabels,
+          definitionExpression: config.isBatchMap && !config.showSymbols ? `locationNumber = '${config.siteNumber}'` : '',
           labelingInfo: this.createLabelFromDefinition(config)
         };
         if (isUniqueValueRenderer(props.renderer)) {
@@ -196,7 +197,14 @@ export class EsriPoiService {
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     const color = !currentDef.usesStaticColor ? config.symbolDefinition.color : currentDef.color;
     const haloColor = !currentDef.usesStaticColor ? config.symbolDefinition.outlineColor : currentDef.haloColor;
-    return EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font);
+    if (config.isBatchMap && !config.showLabels){
+      const where = `locationNumber = '${config.siteNumber}'`;
+      return EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font, 'below-center', {where});
+    }
+    else{
+      return EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font);
+    }
+
   }
 
   private createMultiLabel(config: UniquePoiConfiguration) : __esri.LabelClass[] {
@@ -205,9 +213,13 @@ export class EsriPoiService {
     const font = this.createLabelFont(currentDef);
     const arcade = currentDef.customExpression || `$feature.${currentDef.featureAttribute}`;
     config.breakDefinitions.forEach(bd => {
-      const where = `${removeNonAlphaNumerics(config.featureAttribute)} = '${bd.value}'`;
+      const escapedValue = bd.value.replace(/'/gi, `''`);
+      let where = `${removeNonAlphaNumerics(config.featureAttribute)} = '${escapedValue}'`;
       const color = !currentDef.usesStaticColor ? bd.color : currentDef.color;
       const haloColor = !currentDef.usesStaticColor ? bd.outlineColor : currentDef.haloColor;
+      if (config.isBatchMap && !config.showLabels){
+        where = where + ` and locationNumber = '${config.siteNumber}'`;
+      }
       result.push(EsriDomainFactory.createExtendedLabelClass(RgbTuple.withAlpha(color, config.opacity), RgbTuple.withAlpha(haloColor, config.opacity), arcade, font, 'below-center', { where }));
     });
     return result;

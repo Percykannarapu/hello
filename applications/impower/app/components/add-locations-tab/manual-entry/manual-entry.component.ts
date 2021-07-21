@@ -23,10 +23,6 @@ export class ManualEntryComponent implements OnInit {
   manualEntryForm: FormGroup;
   loadItems: MenuItem[];
 
-  get latitude() { return this.manualEntryForm.get('latitude'); }
-  get longitude() { return this.manualEntryForm.get('longitude'); }
-  get coord() { return this.manualEntryForm.get('coord'); }
-
   constructor(private fb: FormBuilder,
               private appEditSiteService: AppEditSiteService,
               private store$: Store<FullAppState>) {}
@@ -55,11 +51,6 @@ export class ManualEntryComponent implements OnInit {
 
   clear() : void {
     this.store$.dispatch(resetNamedForm({ path: 'addLocation' }));
-  }
-
-  hasErrors(controlKey: string) : boolean {
-    const control = this.manualEntryForm.get(controlKey);
-    return (control.dirty || control.touched) && (control.errors != null);
   }
 
   onSubmit(formData: any) {

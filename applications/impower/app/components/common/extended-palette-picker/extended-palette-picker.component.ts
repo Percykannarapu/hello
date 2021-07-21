@@ -1,8 +1,9 @@
 import { AfterViewInit, Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { getUuid, rgbToHex } from '@val/common';
+import { getUuid } from '@val/common';
 import { ColorPalette, getColorPalette, RgbaTuple, RgbTuple } from '@val/esri';
 import { SelectItem } from 'primeng/api';
+import { EsriRgb2HexPipe } from '../pipes/esri-rgb-2-hex.pipe';
 
 @Component({
   selector: 'val-extended-palette-picker',
@@ -76,7 +77,7 @@ export class ExtendedPalettePickerComponent implements ControlValueAccessor, Aft
   propagateChange = (value: any) => this.writeValue(value);
   propagateTouch = (_: any) => {};
 
-  constructor() {}
+  constructor(private rgb2HexPipe: EsriRgb2HexPipe) {}
 
   ngAfterViewInit() {
   }
@@ -88,13 +89,13 @@ export class ExtendedPalettePickerComponent implements ControlValueAccessor, Aft
       options = [{
         title: 'color',
         value: RgbTuple.withAlpha([0, 0, 0], 1),
-        label: rgbToHex([0, 0, 0])
+        label: this.rgb2HexPipe.transform([0, 0, 0])
       }];
     } else {
       options = colors.map(tuple => ({
         title: 'color',
         value: RgbTuple.withAlpha(tuple, 1),
-        label: rgbToHex(tuple)
+        label: this.rgb2HexPipe.transform(tuple)
       }));
     }
     if (this._allowCustom) {

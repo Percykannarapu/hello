@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { rgbToHex } from '@val/common';
 import {
   ClassBreakFillDefinition,
   ClassBreakShadingDefinition,
@@ -11,7 +10,6 @@ import {
   fillTypeFriendlyNames,
   getColorPalette,
   getFillPalette,
-  RgbaTuple,
   RgbTuple
 } from '@val/esri';
 import { SelectItem } from 'primeng/api';
@@ -67,6 +65,8 @@ export class BreaksVariableShaderComponent extends VariableComponentBase<ClassBr
     }
   }
 
+  fillTypes = fillTypeFriendlyNames;
+
   private classBreakCleanup$ = new Subject<void>();
   private userBreakCleanup$ = new Subject<void>();
   classBreakCount = 0;
@@ -85,10 +85,6 @@ export class BreaksVariableShaderComponent extends VariableComponentBase<ClassBr
     if (isFirst) return `Lowest`;
     if (isLast) return `Highest`;
     return `${prefix} ${index + 1}`;
-  }
-
-  public getHexColor(esriColor: RgbaTuple) : string {
-    return rgbToHex(esriColor);
   }
 
   public getFillName(esriFillType: FillPattern) : string {

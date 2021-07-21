@@ -1,0 +1,80 @@
+<p-table #messageTable
+  [dataKey]="entityId"
+  [rowTrackBy]="trackByEntityId"
+  [value]="messages$ | async"
+  [columns]="messageColumns"
+  [paginator]="true"
+  [rows]="10"
+  [rowsPerPageOptions]="[10,20]"
+  [showCurrentPageReport]="true"
+  currentPageReportTemplate="{totalRecords} entries"
+  [sortField]="entityDefaultSortField"
+  [sortOrder]="entityDefaultSortOrder">
+
+  <ng-template pTemplate="colgroup">
+    <colgroup>
+      <col *ngFor="let col of messageColumns" [style.width]="col.width">
+    </colgroup>
+  </ng-template>
+
+  <ng-template pTemplate="header">
+    <tr>
+      <ng-container *ngFor="let col of messageColumns">
+        <th *ngIf="col.sortable" [pSortableColumn]="col.field" [title]="col.header">
+          <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
+            <div class="p-text-truncate">
+              {{col.header}}
+            </div>
+            <p-sortIcon [field]="col.field"></p-sortIcon>
+          </div>
+        </th>
+        <th *ngIf="!col.sortable" [title]="col.header">
+          <div class="p-pt-1 p-pb-1 p-text-truncate">
+              {{col.header}}
+          </div>
+        </th>
+      </ng-container>
+    </tr>
+    <tr>
+      <th *ngFor="let col of messageColumns" [ngSwitch]="col.filterType">
+        <p-columnFilter *ngSwitchCase="'date'" type="date" [field]="col.field"></p-columnFilter>
+        <p-columnFilter *ngSwitchCase="'severityMulti'" matchMode="in" [field]="col.field" [showMenu]="false" #severityFilter>
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <p-multiSelect [options]="severities" [ngModel]="value" (ngModelChange)="filter($event)"></p-multiSelect>
+          </ng-template>
+        </p-columnFilter>
+        <p-columnFilter *ngSwitchCase="'text'" matchMode="contains" [field]="col.field" [showMenu]="false">
+          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+            <input type="text" pInputText [ngModel]="value" (ngModelChange)="filter($event)">
+          </ng-template>
+        </p-columnFilter>
+      </th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-message>
+    <tr class="val-{{message.severity}}-row">
+      <td *ngFor="let col of messageColumns" class="p-text-truncate" [title]="message[col.field]" [ngSwitch]="col.field">
+        <ng-container *ngSwitchCase="'timeStamp'">
+          {{message[col.field] | date:'MM/dd/YY hh:mm:ss a'}}
+        </ng-container>
+        <ng-container *ngSwitchCase="'otherData'">
+          <ng-container *ngIf="message[col.field] != null">
+            <button pButton class="p-button-text p-button-plain" icon="pi pi-clone" label="Copy to your clipboard"
+                    (click)="copyToClipboard(message[col.field])" *ngIf="hasObjectData(message[col.field])">
+            </button>
+            <ng-container *ngIf="!hasObjectData(message[col.field])">
+              {{message[col.field]}}
+            </ng-container>
+          </ng-container>
+        </ng-container>
+        <ng-container *ngSwitchDefault>
+          {{message[col.field]}}
+        </ng-container>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
+<div class="p-pt-3 p-d-flex p-jc-end">
+  <button type="button" pButton icon="pi pi-trash" label="Remove Messages" (click)="removeMessages()"></button>
+</div>

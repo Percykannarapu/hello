@@ -201,7 +201,7 @@ interface TradeAreaDefinition {
 
    public handleError(errorHeader: string, errorMessage: string, errorObject: any) {
       this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-      this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
+      this.store$.dispatch(ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
       this.logger.error.log(errorMessage, errorObject);
     }
 

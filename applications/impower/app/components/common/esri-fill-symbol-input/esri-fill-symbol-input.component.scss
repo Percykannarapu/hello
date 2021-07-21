@@ -1,31 +1,29 @@
-.component-root {
-  span.item-icon {
-    margin-right: 0.5em;
-    width: 20px;
-    height: 20px;
+.item-icon {
+  margin-right: 0.5rem;
+  width: 20px;
+  height: 20px;
 
-    &.backward-diagonal {
-      background: url('~assets/val/images/fills/backward-diagonal.png') center no-repeat;
-    }
+  &.backward-diagonal {
+    background: url('~assets/val/images/fills/backward-diagonal.png') center no-repeat;
+  }
 
-    &.forward-diagonal {
-      background: url('~assets/val/images/fills/forward-diagonal.png') center no-repeat;
-    }
+  &.forward-diagonal {
+    background: url('~assets/val/images/fills/forward-diagonal.png') center no-repeat;
+  }
 
-    &.diagonal-cross {
-      background: url('~assets/val/images/fills/diagonal-cross.png') center no-repeat;
-    }
+  &.diagonal-cross {
+    background: url('~assets/val/images/fills/diagonal-cross.png') center no-repeat;
+  }
 
-    &.cross {
-      background: url('~assets/val/images/fills/fill-cross.png') center no-repeat;
-    }
+  &.cross {
+    background: url('~assets/val/images/fills/fill-cross.png') center no-repeat;
+  }
 
-    &.horizontal {
-      background: url('~assets/val/images/fills/horizontal.png') center no-repeat;
-    }
+  &.horizontal {
+    background: url('~assets/val/images/fills/horizontal.png') center no-repeat;
+  }
 
-    &.vertical {
-      background: url('~assets/val/images/fills/vertical.png') center no-repeat;
-    }
+  &.vertical {
+    background: url('~assets/val/images/fills/vertical.png') center no-repeat;
   }
 }

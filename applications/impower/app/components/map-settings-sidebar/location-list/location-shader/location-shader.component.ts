@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { FormConfig, isConvertibleToNumber, rgbToHex } from '@val/common';
+import { FormConfig, isConvertibleToNumber } from '@val/common';
 import {
   completeEsriFaces,
   duplicatePoiConfiguration,
@@ -119,7 +119,7 @@ export class LocationShaderComponent implements OnDestroy {
         isItalic: new FormControl(defaultLabelDefinition.isItalic || false, { updateOn: 'change' }),
         usesStaticColor: new FormControl(defaultLabelDefinition.usesStaticColor || false, { updateOn: 'change' }),
         family: new FormControl(defaultLabelDefinition.family || 'Noto Sans', { updateOn: 'change', validators: [Validators.required] }),
-        size: new FormControl(defaultLabelDefinition.size || 12, [Validators.required, ValassisValidators.numeric, Validators.min(6), Validators.max(48)]),
+        size: new FormControl(defaultLabelDefinition.size ?? 12, [Validators.required, ValassisValidators.numeric, Validators.min(6), Validators.max(48)]),
         color: new FormControl(defaultLabelDefinition.color),
         haloColor: new FormControl(defaultLabelDefinition.haloColor),
         featureAttribute: new FormControl(defaultLabelDefinition.featureAttribute, { updateOn: 'change', validators: [Validators.required] })
@@ -166,22 +166,7 @@ export class LocationShaderComponent implements OnDestroy {
 
   getLabelDescription(labelDef: LabelDefinition) : string {
     const foundItem = (this.labelChoices || []).filter(l => l.value === labelDef.featureAttribute)[0];
-    return foundItem == null ? 'n/a' : foundItem.label;
-  }
-
-  getFontWeight(labelDef: LabelDefinition) : string {
-    const fontItems: string[] = [];
-    if (labelDef.isBold) fontItems.push('Bold');
-    if (labelDef.isItalic) fontItems.push('Italic');
-    return fontItems.length > 0 ? fontItems.join(' ') : 'Regular';
-  }
-
-  getLabelColor(symbolDef: LabelDefinition) : string {
-    return rgbToHex(symbolDef.color || this.defaultColor || [0, 0, 0, 1]);
-  }
-
-  getLabelHalo(symbolDef: LabelDefinition) : string {
-    return rgbToHex(symbolDef.haloColor || this.defaultHalo || [255, 255, 255, 1]);
+    return foundItem?.label ?? 'n/a';
   }
 
   getRadiusDescription(radiiDef: RadiiTradeAreaDrawDefinition[]) : string {

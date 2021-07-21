@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, take, tap, withLatestFrom } from 'rxjs/operators';
+import { RestPayload, RestResponse } from '../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../app.config';
 import { RadData } from '../models/RadData';
-import { RestResponse } from '../models/RestResponse';
 import { LoggingService } from '../val-modules/common/services/logging.service';
 import { MetricMessage, MetricService } from '../val-modules/common/services/metric.service';
 import { ImpProject } from '../val-modules/targeting/models/ImpProject';
@@ -145,25 +145,11 @@ export class RadService {
   public fetchRadData(user: any) {
     //const token: string = this.authService.getOauthToken();
     //const headers: HttpHeaders = new HttpHeaders().set('Authorization', 'Bearer ' + token);
-    this.httpClient.get<RestResponse>(this.radUrl).subscribe(resp => this.parseResponse(resp), error => this.handleError(error));
+    this.httpClient.get<RestResponse<RestPayload<RadData>>>(this.radUrl).subscribe(resp => this.parseResponse(resp), error => this.handleError(error));
   }
 
-  private parseResponse(resp: RestResponse) {
-    this.radData = new Array<RadData>();
-    for (const row of resp.payload.rows) {
-
-      const radData: RadData = new RadData();
-      radData.radId = row.radId;
-      radData.category = row.category;
-      radData.product = row.product;
-      radData.source = row.source;
-      radData.responseRate = row.responseRate;
-      radData.noOfCoupon = row.noOfCoupon;
-      radData.avgTicket = row.avgTicket;
-      radData.estCpm = row.estCpm;
-      radData.grossMargin = row.grossMargin;
-      this.radData.push(radData);
-    }
+  private parseResponse(resp: RestResponse<RestPayload<RadData>>) {
+    this.radData = Array.from(resp.payload.rows);
   }
 
   private handleError(error: Error) {

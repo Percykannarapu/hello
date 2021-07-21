@@ -60,7 +60,7 @@ export class CustomDataService {
     if (failCount > 0) {
       this.logger.error.log('There were errors parsing the following rows in the CSV: ', data.failedRows);
       const message = `There ${failCount > 1 ? 'were' : 'was'} ${failCount} row${failCount > 1 ? 's' : ''} in the uploaded file that could not be read.`;
-      this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
+      this.store$.dispatch(ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
     }
     if (successCount > 0) {
       let isValid = true;
@@ -79,7 +79,7 @@ export class CustomDataService {
     const uniqueGeos = arrayToSet(data.map(d => d.geocode));
     if (uniqueGeos.size !== data.length) {
       const message = 'The file should contain unique geocodes. Please remove duplicates and resubmit the file.';
-      this.store$.dispatch(new ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
+      this.store$.dispatch(ErrorNotification({ message, notificationTitle: 'Custom Audience Upload'}));
       return false;
     } else {
       this.esriQueryService.queryAttributeIn(portalLayerId, 'geocode', Array.from(uniqueGeos), false, outfields).pipe(
@@ -104,7 +104,7 @@ export class CustomDataService {
         if (records.length > 1) {
           const fileName = `Custom Data ${currentAnalysisLevel} Issues Log.csv`;
           const geoMessage = records.length === 2 ? 'An Invalid Geo exists' : 'Invalid Geos exist';
-          this.store$.dispatch(new WarningNotification({ message: `${geoMessage} in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
+          this.store$.dispatch(WarningNotification({ message: `${geoMessage} in the upload file, please check provided issues log`, notificationTitle: 'Custom Aud Upload Warning'}));
           FileService.downloadDelimitedFile(fileName, records);
         }
       });

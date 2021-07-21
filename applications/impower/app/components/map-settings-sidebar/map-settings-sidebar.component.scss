@@ -13,44 +13,63 @@ body .p-sidebar.transparent-back {
   padding: 0;
 }
 
+body .p-sidebar-content {
+  overflow-y: unset;
+}
+
+$tab-width: 2.2rem;
+
 .sidebar-content-wrapper {
   display: flex;
   height: 100vh;
+  margin-left: -$tab-width;
   .sidebar-content-tab {
-    width: 2.2em;
+    width: $tab-width;
     padding-top: 50vh;
   }
-  .visible-nav-margin {
-    margin-left: -2.2em;
-  }
-  p-tabView {
-    flex: 1;
-    padding-right: 0.75rem;
-    overflow-y: auto;
-    .p-tabview.p-widget-content {
-      display: flex;
-      flex-direction: column;
-      padding: 0 0 1em 1em;
-      height: 100%;
-      > ul {
-        margin-right: 1em;
-        flex: 0;
-      }
-      > .p-tabview-panels {
-        flex: 1;
-        margin-top: 1em;
-        overflow-x: auto;
+  .sidebar-content-main {
+    display: inline-block;
+    width: 100%;
+    height: 100vh;
+    .visible-nav-margin {
+      margin-left: -$tab-width;
+    }
+    p-tabView {
+      flex: 1;
+      padding-right: 0.75rem;
+      overflow-y: auto;
+
+      .p-tabview.p-component {
+        display: flex;
+        flex-direction: column;
+        padding: 0 0 1em 1em;
+        height: 100%;
+        > ul {
+          margin-right: 1em;
+          flex: 0;
+        }
+        > .p-tabview-panels {
+          flex: 1;
+          margin-top: 1em;
+          overflow-x: auto;
+
+          .main-shader-menu {
+            border-bottom: 1px solid $midGray03;
+            margin-bottom: 0.5rem;
+          }
+
+          .p-tabview-panel {
+            margin-right: 1rem;
+          }
+        }
       }
     }
-  }
-  button.p-button.p-button-primary {
-    background-color: $blueBird;
-    color: $lightGray03;
-    border-color: $darkGray01;
-    transition: box-shadow .3s;
-    box-shadow: 2px 2px 3px $darkGray03;
-    &:hover {
-      box-shadow: none;
+    button[type=submit].p-button {
+      transition: box-shadow .3s;
+      box-shadow: 2px 2px 3px $darkGray03;
+      &:hover {
+        box-shadow: none;
+      }
     }
   }
 }

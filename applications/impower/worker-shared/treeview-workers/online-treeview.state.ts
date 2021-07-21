@@ -1,9 +1,8 @@
-import { arrayDedupe, CommonSort, groupByExtended, isConvertibleToNumber, isEmpty, isNil, mapBy, mapByExtended, toNullOrNumber } from '@val/common';
+import { arrayDedupe, CommonSort, groupByExtended, isConvertibleToNumber, isEmpty, isNil, mapByExtended, toNullOrNumber } from '@val/common';
 import Dexie from 'dexie';
 import { PrimeIcons } from 'primeng/api';
-import { mapTo } from 'rxjs/operators';
-import { WorkerResponse, WorkerStatus } from '../common/core-interfaces';
 import { serverEnv } from '../../environments/server-urls';
+import { WorkerResponse, WorkerStatus } from '../common/core-interfaces';
 import { OnlineAudienceDefinition, ValassisTreeNode } from '../data-model/custom/treeview';
 import { OnlineQuery } from './dexie/online-query';
 import { InMarketSchema, InterestSchema, PixelSchema, VLHSchema } from './dexie/schemas';

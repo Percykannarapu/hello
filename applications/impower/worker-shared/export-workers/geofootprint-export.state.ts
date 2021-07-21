@@ -147,7 +147,8 @@ class GeoFootprintExportState implements ExportState<ImpGeofootprintGeoPayload> 
   public getLocationAddress(state: GeoFootprintExportState, geo: ImpGeofootprintGeoPayload) {
     const currentLoc = state.locations[geo.glId];
     const zip5 = this.getLocationZip5(state, geo);
-    return `${currentLoc?.locAddress}, ${currentLoc?.locCity}, ${currentLoc?.locState} ${zip5}`;
+    const optionalAddressComponents = [currentLoc?.locAddress, currentLoc?.locCity, currentLoc?.locState].filter(c => !isEmpty(c));
+    return `${optionalAddressComponents.join(', ')} ${zip5}`.trim();
   }
 
   public getLocationZip5(state: GeoFootprintExportState, geo: ImpGeofootprintGeoPayload) {

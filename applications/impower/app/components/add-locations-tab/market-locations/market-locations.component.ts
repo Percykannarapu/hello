@@ -102,7 +102,7 @@ export class MarketLocationsComponent implements OnInit {
   public onGetGeosError(event: any)
   {
     this.logger.error.log('onGetGeoErrors errored', event);
-//  this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
+    this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
   }
 
   private getQueryField(marketCode: string) : string
@@ -181,7 +181,7 @@ export class MarketLocationsComponent implements OnInit {
     this.logger.info.groupEnd();
 
     if (existingMkts !== '') {
-      this.store$.dispatch(new WarningNotification({ message: existingMkts, notificationTitle: 'These locations already exist' }));
+      this.store$.dispatch(WarningNotification({ message: existingMkts, notificationTitle: 'These locations already exist' }));
       marketList = marketList.filter(market => !existingIds.includes(market.id == null ? market.code : market.id.toString()));
     }
 
@@ -256,7 +256,7 @@ export class MarketLocationsComponent implements OnInit {
         else {
           const dupeLocMsg = 'A location for market: ' + market.code + ' - ' + market.name + ' already exists';
           this.logger.warn.log(dupeLocMsg);
-          this.store$.dispatch(new WarningNotification({ message: dupeLocMsg, notificationTitle: 'Duplicate Location' }));
+          this.store$.dispatch(WarningNotification({ message: dupeLocMsg, notificationTitle: 'Duplicate Location' }));
         }
       }
       );
@@ -326,7 +326,7 @@ export class MarketLocationsComponent implements OnInit {
     //validate Manually added geocodes
     const locations = this.impGeofootprintLocationService.get();
 /* PB       if (locations.filter(loc => loc.locationNumber === site.number).length > 0 && siteType !== ImpClientLocationTypeCodes.Competitor){
-      this.store$.dispatch(new ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
+      this.store$.dispatch(ErrorNotification({ message: 'Site Number already exist on the project.', notificationTitle: 'Geocoding Error' }));
       this.geocoderService.duplicateKeyMap.get(siteType).add(site.number);
     }
     else*/ {
@@ -362,7 +362,7 @@ export class MarketLocationsComponent implements OnInit {
   private reportError(errorHeader: string, errorMessage: string, errorObject: any, startTime: number) {
     this.logger.error.log(errorHeader + ' (', formatMilli(performance.now() - startTime), ')', errorObject);
     this.store$.dispatch(new StopLiveIndicator({ key: this.busyKey }));
-    this.store$.dispatch(new ErrorNotification({ message: errorMessage, notificationTitle: errorHeader, additionalErrorInfo: errorObject }));
+    this.store$.dispatch(ErrorNotification({ message: errorMessage, notificationTitle: errorHeader, additionalErrorInfo: errorObject }));
   }
 
 }

@@ -161,7 +161,7 @@ export class CampaignDetailsComponent implements OnInit {
 
                 newValues.forceHomeGeos = true;
                 this.updateDiscoveryForm(newValues, currentProject);
-                this.store$.dispatch(new SuccessNotification({message: `All ${customType} geographies related to the previously selected Analysis Level have been deleted.`,
+                this.store$.dispatch(SuccessNotification({message: `All ${customType} geographies related to the previously selected Analysis Level have been deleted.`,
                                                               notificationTitle: 'Change Analysis Level Cleanup'}));
             },
             reject: () => {

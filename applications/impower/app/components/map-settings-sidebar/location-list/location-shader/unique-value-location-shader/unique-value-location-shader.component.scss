@@ -3,6 +3,7 @@
 .class-break-table {
   table {
     border-spacing: 0;
+    table-layout: fixed;
     width: 100%;
     padding-left: 2em;
     > thead {
@@ -28,7 +29,7 @@
 }
 
 .class-break-list {
-  padding-left: 1em;
+  padding-left: 0.5em;
 }
 
 .theme-controls {

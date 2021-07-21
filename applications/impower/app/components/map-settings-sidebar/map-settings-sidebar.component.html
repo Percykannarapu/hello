@@ -3,7 +3,7 @@
     <i class="pi pi-chevron-up"></i>&nbsp;Map Settings
   </a>
 </div>
-<p-sidebar [(visible)]="sideNavVisible" position="right" [showCloseIcon]="false" [style]="{ 'width': '30vw', 'padding-right': '0'}">
+<p-sidebar [(visible)]="sideNavVisible" position="right" [showCloseIcon]="false" [style]="{ 'width': '30vw', 'padding-right': '0' }">
   <div class="sidebar-content-wrapper">
     <div class="sidebar-content-tab" [ngClass]="{ 'visible-nav-margin': sideNavVisible }">
       <div class="sidebar-control">
@@ -12,24 +12,26 @@
         </a>
       </div>
     </div>
-    <p-tabView>
-      <p-tabPanel header="Shading">
-        <val-shader-list
-          [shadingDefinitions]="shadingDefinitions$ | async"
-          [audiences]="audiences$ | async"
-          [geos]="geos$ | async"
-          [tradeAreas]="tradeAreas$ | async"
-          [locationCount]="locationCount$ | async"
-          [tradeAreaCount]="tradeAreaCount$ | async"
-          [currentAnalysisLevel]="analysisLevel$ | async"></val-shader-list>
-      </p-tabPanel>
-      <p-tabPanel header="Locations">
-        <val-location-list [poiConfigurations]="poiConfigurations$ | async"></val-location-list>
-      </p-tabPanel>
-      <p-tabPanel header="Boundaries">
-        <val-boundary-list [boundaryConfigurations]="boundaryConfigurations$ | async"></val-boundary-list>
-      </p-tabPanel>
-    </p-tabView>
+    <div class="sidebar-content-main">
+      <p-tabView>
+        <p-tabPanel header="Shading">
+          <val-shader-list
+            [shadingDefinitions]="shadingDefinitions$ | async"
+            [audiences]="audiences$ | async"
+            [geos]="geos$ | async"
+            [tradeAreas]="tradeAreas$ | async"
+            [locationCount]="locationCount$ | async"
+            [tradeAreaCount]="tradeAreaCount$ | async"
+            [currentAnalysisLevel]="analysisLevel$ | async"></val-shader-list>
+        </p-tabPanel>
+        <p-tabPanel header="Locations">
+          <val-location-list [poiConfigurations]="poiConfigurations$ | async"></val-location-list>
+        </p-tabPanel>
+        <p-tabPanel header="Boundaries">
+          <val-boundary-list [boundaryConfigurations]="boundaryConfigurations$ | async"></val-boundary-list>
+        </p-tabPanel>
+      </p-tabView>
+    </div>
   </div>
 </p-sidebar>
 

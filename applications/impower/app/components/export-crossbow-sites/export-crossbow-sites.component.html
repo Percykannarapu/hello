@@ -2,83 +2,83 @@
   <p-header>
     Export Crossbow Site List
   </p-header>
-  <div>
-    <div class="p-col-6 p-d-flex p-jc-between p-ai-center">
-      <span>Profile Type:</span>
-      <p-radioButton name="profileTypeName" value="mine" label="Mine" [(ngModel)]="selectedProfileType"
-                     (ngModelChange)="onProfileTypeChange($event)"></p-radioButton>
-      <p-radioButton name="profileTypeName" value="group" label="Group" [(ngModel)]="selectedProfileType"
-                     (ngModelChange)="onProfileTypeChange($event)"></p-radioButton>
-      <p-dropdown [options]="groups" placeholder="Select a Group" [(ngModel)]="selectedGroup" (ngModelChange)="onSelectingGroup($event)"
-                  [disabled]="!isGroupFlag">
-      </p-dropdown>
+  <div class="p-d-flex p-flex-column p-pb-3">
+    <div class="p-d-flex p-jc-between p-pb-3">
+      <div class="p-d-flex p-ai-center p-jc-between">
+        <label class="p-pr-3">Profile Type:</label>
+        <p-radioButton name="profileTypeName" value="mine" label="Mine" class="p-pr-3"
+                       [(ngModel)]="selectedProfileType" (ngModelChange)="onProfileTypeChange($event)"></p-radioButton>
+        <p-radioButton name="profileTypeName" value="group" label="Group" class="p-pr-3"
+                       [(ngModel)]="selectedProfileType" (ngModelChange)="onProfileTypeChange($event)"></p-radioButton>
+      </div>
+      <div class="p-d-flex p-jc-end">
+        <p-dropdown [options]="groups" placeholder="Select a Group" [ngModel]="selectedGroup" (ngModelChange)="onSelectingGroup($event)"
+                    [disabled]="!isGroupFlag">
+        </p-dropdown>
+      </div>
     </div>
 
-    <div class="p-col-12">
-      <p-table #profileGrid [columns]="columns"
-               [value]="profileData"
-               [(selection)]="row"
-               selectionMode="single"
-               dataKey="profileId"
-               [resizableColumns]="false"
-               [reorderableColumns]="false"
-               [paginator]="true" [rows]="10"
-               (onFilter)="onFilter()">
+    <p-table #profileGrid [columns]="columns"
+             [value]="profileData"
+             [(selection)]="row"
+             selectionMode="single"
+             dataKey="profileId"
+             [resizableColumns]="false"
+             [reorderableColumns]="false"
+             [paginator]="true" [rows]="10"
+             (onFilter)="onFilter()"
+             sortField="modifiedDate" [sortOrder]="-1">
 
-        <ng-template pTemplate="caption">
-          <div class="val-table-caption">
-            <div class="p-col">
-              <div class="p-inputgroup">
-                <span class="p-inputgroup-addon"><i class="pi pi-search"></i></span>
-                <div class="p-float-label">
-                  <input id="projectSearch" type="text" pInputText size="30"
-                         (input)="profileGrid.filterGlobal($event.target.value, 'contains')">
-                  <label for="projectSearch">Search Profiles</label>
-                </div>
-              </div>
-            </div>
-            <div class="p-col p-d-flex p-jc-center">
-              <label>Projects: {{profileData.length}}</label>
-            </div>
+      <ng-template pTemplate="caption">
+        <div class="val-flex-layout p-ai-end">
+          <div>
+            <val-search-input (resultChanged)="profileGrid.filterGlobal($event, 'contains')" style="flex-basis: 75%"></val-search-input>
           </div>
-        </ng-template>
+          <div class="p-jc-center">
+            <label>Projects: {{profileData?.length || 0}}</label>
+          </div>
+        </div>
+      </ng-template>
 
-        <ng-template pTemplate="header">
-          <tr>
-            <th *ngFor="let col of selectedColumns" [pSortableColumn]="col.field" [style.width]="col.size">
-              {{col.header}}
+      <ng-template pTemplate="header">
+        <tr>
+          <th *ngFor="let col of selectedColumns" [pSortableColumn]="col.field" [style.width]="col.size" [title]="col.header">
+            <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
+              <div class="p-text-truncate">
+                {{col.header}}
+              </div>
               <p-sortIcon [field]="col.field"></p-sortIcon>
-            </th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-profile>
-          <tr [pSelectableRow]="profile" (dblclick)="onClick(profile.profileId)">
-            <td *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
-              <div *ngSwitchCase="'modifiedDate'">
-                {{profile[col.field] | date:'short' }}
-              </div>
-              <div *ngSwitchDefault [title]="profile[col.field]">
-                {{profile[col.field]}}
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage" let-columns>
-          <tr>
-            <td [attr.colspan]="columns.length">
-              <div class="p-col-12 p-d-flex p-jc-center p-ai-center">
-                <h5>No Profiles found.</h5>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
+            </div>
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-profile>
+        <tr [pSelectableRow]="profile">
+          <td *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
+            <div *ngSwitchCase="'modifiedDate'" class="p-text-truncate" [title]="profile[col.field] | date:'short'">
+              {{profile[col.field] | date:'short' }}
+            </div>
+            <div *ngSwitchDefault [title]="profile[col.field]" class="p-text-truncate">
+              {{profile[col.field]}}
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+          <td [attr.colspan]="columns.length">
+            <div class="p-col-12 p-d-flex p-jc-center p-ai-center">
+              <h5>No Profiles found.</h5>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
   <p-footer>
-    <div class="p-d-flex p-jc-between">
-      <button pButton type="button" class="p-button-outlined" (click)="onCancel()" label="Cancel"></button>
-      <button pButton type="button" class="p-button-outlined" (click)="onExport(row.profileId)" label="Export" [disabled]="row == null"></button>
+    <div class="p-d-flex">
+      <button pButton type="button" class="p-button-outlined p-mr-1" (click)="onExport(row.profileId)" label="Export" [disabled]="row == null"></button>
+      <button pButton type="button" class="p-button-outlined p-mr-1" (click)="onCancel()" label="Cancel"></button>
     </div>
   </p-footer>
 </p-dialog>

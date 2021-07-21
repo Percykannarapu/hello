@@ -1,3 +1,7 @@
+@import "~assets/valassis-variables";
+@import "~assets/sass/theme/extensions/mixins";
+@import "~assets/sass/theme/designer/mixins";
+
 .p-input-filled {
   .p-float-label {
     .p-inputtext.p-multiselect-filter {
@@ -50,20 +54,6 @@
   }
 }
 
-th .p-inputtext {
-  padding-top: 0;
-  padding-bottom: 0;
-  width: 100%;
-}
-
-th .p-multiselect {
-  width: 100%;
-  .p-multiselect-label {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-}
-
 .p-confirm-dialog-accept {
   @extend .p-button
 }
@@ -76,61 +66,183 @@ th .p-multiselect {
   @extend .p-button-outlined
 }
 
-// splash screen
-$offset: 187;
-$duration: 1.4s;
+form.ng-touched {
+  .p-inputgroup {
+    .p-float-label {
+      p-dropdown.ng-invalid {
+        .p-dropdown {
+          @include invalid-filled-input-wrapper();
+          .p-dropdown-trigger-icon {
+            color: $errorColor;
+          }
+        }
+        + label {
+          color: $errorColor;
+        }
+      }
+      input.ng-invalid {
+        @include invalid-filled-input();
 
-.splash-screen {
-  width: 100%;
-  min-height: 100%;
-  background-color: #3F51B5;
-  position: absolute;
-}
+        + label {
+          color: $errorColor;
+        }
+      }
+      ~ span.p-inputgroup-addon {
+        @include invalid-filled-input();
 
-.splash-loader-container {
-  text-align: center;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-left: -32px;
-  margin-top: -32px;
-}
-
-.splash-loader {
-  animation: rotator $duration linear infinite;
-}
-
-@keyframes rotator {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(270deg); }
-}
-
-.splash-path {
-  stroke-dasharray: $offset;
-  stroke-dashoffset: 0;
-  transform-origin: center;
-  animation:
-    dash $duration ease-in-out infinite,
-    colors ($duration*4) ease-in-out infinite;
-}
-
-@keyframes colors {
-  0% { stroke: #4285F4; }
-  25% { stroke: #DE3E35; }
-  50% { stroke: #F7C223; }
-  75% { stroke: #1B9A59; }
-  100% { stroke: #4285F4; }
-}
-
-@keyframes dash {
-  0% { stroke-dashoffset: $offset; }
-  50% {
-    stroke-dashoffset: $offset/4;
-    transform:rotate(135deg);
+        i {
+          color: $errorColor;
+        }
+      }
+    }
   }
-  100% {
-    stroke-dashoffset: $offset;
-    transform:rotate(450deg);
+  .ng-invalid {
+    > .p-inputgroup {
+      .p-float-label {
+        p-dropdown {
+          .p-dropdown {
+            @include invalid-filled-input-wrapper();
+            .p-dropdown-trigger-icon {
+              color: $errorColor;
+            }
+          }
+          + label {
+            color: $errorColor;
+          }
+        }
+        input {
+          @include invalid-filled-input();
+
+          + label {
+            color: $errorColor;
+          }
+        }
+        ~ span.p-inputgroup-addon {
+          @include invalid-filled-input();
+
+          i {
+            color: $errorColor
+          }
+        }
+      }
+    }
+  }
+}
+
+// adding an additional feature to PrimeNg : xs buttons
+.p-button {
+  &.p-button-xs {
+    @include scaledFontSize(1.15rem, $scaleXS);
+    @include scaledPadding($buttonPadding, $scaleXS);
+
+    &.p-button-icon-only {
+      width: $buttonIconOnlyWidth * $scaleXS;
+      height: $buttonIconOnlyWidth *  $scaleXS;
+    }
+    .p-button-icon {
+      @include scaledFontSize(1.15rem, $scaleXS);
+    }
+  }
+}
+
+// overriding float label position
+.p-float-label {
+  margin-top: unset;
+}
+
+.p-float-label input:focus ~ label,
+.p-float-label input.p-filled ~ label,
+.p-float-label textarea:focus ~ label,
+.p-float-label textarea.p-filled ~ label,
+.p-float-label .p-inputwrapper-focus ~ label,
+.p-float-label .p-inputwrapper-filled ~ label {
+  top: -1rem !important;
+}
+
+.p-input-filled {
+  .p-float-label {
+    input:focus ~ label,
+    input.p-filled ~ label,
+    textarea:focus ~ label,
+    textarea.p-filled ~ label,
+    .p-inputwrapper-focus ~ label,
+    .p-inputwrapper-filled ~ label {
+      top: -1rem !important;
+    }
+  }
+}
+
+.p-inputgroup .p-float-label {
+  p-dropdown {
+    width: 100%;
+    .p-dropdown {
+      width: 100%;
+      height: 2rem;
+      align-items: center;
+    }
+  }
+  p-multiSelect {
+    width: 100%;
+    .p-multiselect {
+      width: 100%;
+      height: 2rem;
+      align-items: center;
+    }
+  }
+}
+
+// hack for primeng regression
+// https://github.com/primefaces/primeng/issues/9453
+.p-accordion-tab:not(.p-accordion-tab-active) {
+  .p-toggleable-content {
+    height: 0;
+    overflow: hidden;
+  }
+}
+
+.p-accordion-tab.p-accordion-tab-active {
+  .p-toggleable-content {
+    height: auto !important;
+  }
+}
+// end hack
+
+.p-datatable {
+  .p-datatable-header {
+    .p-multiselect:not(:hover) {
+      .p-multiselect-trigger {
+        color: $tableHeaderTextColor;
+      }
+    }
+    .p-multiselect:hover {
+      .p-multiselect-label {
+        color: $textColor;
+      }
+    }
+  }
+}
+
+.p-tree {
+  padding: 0.75rem 0;
+  .p-treenode {
+    .p-checkbox.p-checkbox-disabled {
+      display: none;
+    }
+  }
+}
+
+.p-tooltip {
+  cursor: none !important;
+}
+
+.p-field p-inputSwitch + label {
+  padding-left: 1rem;
+}
+
+.p-toast.p-toast-top-right {
+  top: 125px !important;
+  .p-toast-detail {
+    white-space: pre-line;
   }
 }
 
@@ -147,5 +259,9 @@ $duration: 1.4s;
   }
 }
 
-
+p-checkbox {
+  label {
+    cursor: pointer;
+  }
+}
 

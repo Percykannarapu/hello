@@ -11,7 +11,7 @@ import Font from '@arcgis/core/symbols/Font';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
 import TextSymbol from '@arcgis/core/symbols/TextSymbol';
 import { Store } from '@ngrx/store';
-import { UniversalCoordinates } from '@val/common';
+import { isEmpty, isNotNil, UniversalCoordinates } from '@val/common';
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { EsriDomainFactory } from '../core/esri-domain.factory';
@@ -380,7 +380,7 @@ export class EsriLayerService {
 
   removeLayerFromLegend(layerUniqueId: string) : void {
     const legendRef = this.mapService.widgetMap.get('esri.widgets.Legend') as __esri.Legend;
-    if (legendRef != null) {
+    if (isNotNil(legendRef) && !isEmpty(layerUniqueId)) {
       this.layerNamesShowingInLegend.delete(layerUniqueId);
       this.cleanupLegendWatch(layerUniqueId);
       legendRef.layerInfos = legendRef.layerInfos.filter(li => li.layer.id !== layerUniqueId);

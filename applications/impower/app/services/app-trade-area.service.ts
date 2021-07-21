@@ -176,7 +176,8 @@ export class AppTradeAreaService {
   }
 
   public applyRadiusTradeArea(tradeAreas: { radius: number, selected: boolean, taNumber: number }[], siteType: SuccessfulLocationTypeCodes) : void {
-    if (tradeAreas == null || tradeAreas.length === 0) {
+    const effectiveTradeAreas = tradeAreas?.filter(ta => isConvertibleToNumber(ta.radius) && Number(ta.radius) > 0) ?? [];
+    if (effectiveTradeAreas.length === 0) {
       this.logger.error.log('Invalid Trade Area request', { tradeAreas, siteType });
       throw new Error('Invalid Trade Area request');
     }
@@ -186,22 +187,23 @@ export class AppTradeAreaService {
       .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
                     tradeAreaFilter.has(TradeAreaTypeCodes.parse(ta.taType)));
     this.deleteTradeAreas(currentTradeAreas);
-    this.currentDefaults.set(siteType, tradeAreas); // reset the defaults that get applied to new locations
-    this.applyRadiusTradeAreasToLocations(tradeAreas, currentLocations);
+    this.currentDefaults.set(siteType, effectiveTradeAreas); // reset the defaults that get applied to new locations
+    this.applyRadiusTradeAreasToLocations(effectiveTradeAreas, currentLocations);
   }
 
   public reOrderGeosInTradeAreas(tradeAreas: { radius: number, selected: boolean, taNumber: number }[], siteType: SuccessfulLocationTypeCodes) : void {
-    if (tradeAreas == null || tradeAreas.length === 0) {
+    const effectiveTradeAreas = tradeAreas?.filter(ta => isConvertibleToNumber(ta.radius) && Number(ta.radius) > 0) ?? [];
+    if (effectiveTradeAreas.length === 0) {
       this.logger.error.log('Invalid Trade Area request', { tradeAreas, siteType });
       throw new Error('Invalid Trade Area request');
     }
-    this.currentDefaults.set(siteType, tradeAreas);
+    this.currentDefaults.set(siteType, effectiveTradeAreas);
 
     const currentTradeAreas = this.impTradeAreaService.get()
       .filter(ta => ImpClientLocationTypeCodes.parse(ta.impGeofootprintLocation.clientLocationTypeCode) === siteType &&
                     TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.Radius);
     currentTradeAreas.forEach(current => {
-      const newTA = tradeAreas.filter(ta => ta.taNumber === current.taNumber)[0];
+      const newTA = effectiveTradeAreas.filter(ta => ta.taNumber === current.taNumber)[0];
       current.isActive = newTA != null ? newTA.selected : false;
     });
     if (siteType === ImpClientLocationTypeCodes.Site) {
@@ -506,11 +508,11 @@ export class AppTradeAreaService {
         const tas: { radius: number, selected: boolean, taNumber: number }[] = [];
         const radiusSet = new Set<Number>();
         value.impGeofootprintTradeAreas.forEach(ta => {
-          radiusSet.add(Number(ta.taRadius));
+          if (isConvertibleToNumber(ta.taRadius) && Number(ta.taRadius) > 0) radiusSet.add(Number(ta.taRadius));
         });
-        const radiusArray = Array.from(radiusSet);
-        radiusArray.sort(CommonSort.GenericNumber);
         if (radiusSet.size > 0){
+          const radiusArray = Array.from(radiusSet);
+          radiusArray.sort(CommonSort.GenericNumber);
           radiusArray.forEach((radius, i) => {
             tas.push({ radius: Number(radius), selected: true, taNumber: i + 1 });
           });

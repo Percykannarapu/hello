@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
-import { FormConfig, rgbToHex } from '@val/common';
+import { FormConfig } from '@val/common';
 import { FillSymbolDefinition, fillTypeFriendlyNames, SimpleShadingDefinition } from '@val/esri';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { GfpSelectionForm } from '../../../../state/forms/forms.interfaces';
@@ -13,12 +13,7 @@ import { ShaderComponentBase } from '../shader-component.base';
 })
 export class SelectedGeoShaderComponent extends ShaderComponentBase<SimpleShadingDefinition> {
 
-  get currentFillColorInHex() : string {
-    return rgbToHex(this.definition.defaultSymbolDefinition.fillColor);
-  }
-  get currentFriendlyFillType() : string {
-    return fillTypeFriendlyNames[this.definition.defaultSymbolDefinition.fillType];
-  }
+  fillTypes = fillTypeFriendlyNames;
 
   constructor(private fb: FormBuilder) {
     super();

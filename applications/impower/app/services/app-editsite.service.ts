@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { isEmpty, isNil, toNullOrNumber } from '@val/common';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AbstractControl, ValidatorFn } from '@angular/forms';
 
@@ -31,25 +32,23 @@ export class AppEditSiteService {
   public latLonValidator() : ValidatorFn {
     return (c: AbstractControl) => {
       const enteredValue = c.value as string;
-      if (enteredValue == null || enteredValue.length === 0) {
+      if (isEmpty(enteredValue)) {
         return null;
       }
       const coords = enteredValue.split(',');
       if (coords.length === 2) {
-        const lat = coords[0] ? Number(coords[0]) : NaN;
-        const lon = coords[1] ? Number(coords[1]) : NaN;
-        if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
-          if ( lat < -90 || lat > 90 ) {
-            return {
-              latLon: 'Latitude is limited to +/- 90'
-            };
-          }
-        return null;
-      }
-        if (Number.isNaN(lat) || Number.isNaN(lon)) {
+        const lat = toNullOrNumber(coords[0]);
+        const lon = toNullOrNumber(coords[1]);
+        if (isNil(lat) || isNil(lon)) {
           return {
-            latLon: 'Value must be numeric'
+            latLon: 'Both Lat & Long values must be numeric'
           };
+        } else if (lat < -90 || lat > 90) {
+          return {
+            latLon: 'Latitude is limited to +/- 90'
+          };
+        } else {
+          return null;
         }
       } else if (coords.length != 2) {
         return {

@@ -3,7 +3,8 @@ import Dexie from 'dexie';
 import { BehaviorSubject, EMPTY, from, Observable } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { fetchGet } from '../../common/fetch-helpers';
-import { fixupOnline, OnlineAudienceDefinition, RestResponse } from '../../data-model/custom/treeview';
+import { RestPayload, RestResponse } from '../../data-model/core.interfaces';
+import { fixupOnline, OnlineAudienceDefinition } from '../../data-model/custom/treeview';
 import { timestampIsExpired } from './utils';
 
 function fixupBrokenLineage(audience: OnlineAudienceDefinition) : OnlineAudienceDefinition {
@@ -99,7 +100,7 @@ export class OnlineQuery {
 
   initialize(forceRefresh: boolean, fetchHeaders: { Authorization: string }) : Observable<void> {
     const refresh$ = from(this.refresh.toCollection().first());
-    const getAudiences$ = fetchGet<RestResponse<OnlineAudienceDefinition>>(this.resourceUrl, fetchHeaders).pipe(
+    const getAudiences$ = fetchGet<RestResponse<RestPayload<OnlineAudienceDefinition>>>(this.resourceUrl, fetchHeaders).pipe(
       map(response => response.payload.rows.map(row => fixupOnline(row))),
       map(audiences => this.isNestedAudience ? fixupNestedData(audiences) : audiences),
       map(audiences => isNil(this.leafFilter) ? audiences : audiences.filter(this.leafFilter)),

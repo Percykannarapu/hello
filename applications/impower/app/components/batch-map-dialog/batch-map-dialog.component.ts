@@ -244,9 +244,9 @@ export class BatchMapDialogComponent implements OnInit {
         this.batchMapForm.get('enableTradeAreaBoundaries').enable();
       } else if (val === 'exclude') {
         this.batchMapForm.get('enableTradeAreaShading').disable();
-        this.batchMapForm.get('enableLabels').disable();
-        this.batchMapForm.get('enableSymbols').disable();
-        this.batchMapForm.get('enableTradeAreaBoundaries').disable();
+        this.batchMapForm.get('enableLabels').enable();
+        this.batchMapForm.get('enableSymbols').enable();
+        this.batchMapForm.get('enableTradeAreaBoundaries').enable();
       }
     });
     this.batchMapForm.get('sitesPerPage').valueChanges.subscribe(val => {
@@ -289,6 +289,13 @@ export class BatchMapDialogComponent implements OnInit {
       else
        this.activeSitesSetting();
     });
+    this.batchMapForm.get('enableSymbols').valueChanges.subscribe(val => {
+      if (!val){
+        this.batchMapForm.get('enableLabels').disable();
+        }else{
+        this.batchMapForm.get('enableLabels').enable();
+       }
+      });
     this.store$.select(getBatchMapDialog).subscribe(flag => {
       if (flag){
         this.sitesCount$ = of(this.getActiveSites().length);
@@ -389,9 +396,9 @@ export class BatchMapDialogComponent implements OnInit {
           ]
         };
         if (activeSites > 600){
-           this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
+           this.store$.dispatch(ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
         } else if (activeSites > 25 && !this.hasFullPdfGrant){
-          this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'You cannot print maps with more than 25 pages. Please adjust sites and try again.'}));
+          this.store$.dispatch(ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'You cannot print maps with more than 25 pages. Please adjust sites and try again.'}));
         } else
           this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
       } else if (dialogFields.sitesPerPage === 'sitesGroupedBy') {
@@ -425,9 +432,9 @@ export class BatchMapDialogComponent implements OnInit {
           ]
         };
         if (groupByExtended(this.getActiveSites(), l => l[dialogFields.sitesByGroup]).size > 600){
-          this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
+          this.store$.dispatch(ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'PDF map outputs may not exceed 600 pages. Please set up your maps accordingly.'}));
         }else if (siteIdsByGroup.length > 25 && !this.hasFullPdfGrant){
-          this.store$.dispatch(new ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'You cannot print maps with more than 25 pages. Please adjust sites and try again.'}));
+          this.store$.dispatch(ErrorNotification({notificationTitle: 'Batch Map Limit', message: 'You cannot print maps with more than 25 pages. Please adjust sites and try again.'}));
         } else
            this.store$.dispatch(new CreateBatchMap({ templateFields: formData}));
       }

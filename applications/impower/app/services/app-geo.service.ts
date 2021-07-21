@@ -16,14 +16,13 @@ import {
 } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
-import { FullAppState, MustCoverPref } from '../state/app.interfaces';
+import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
 import { deleteCustomTa, deleteMustCover, projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -112,9 +111,9 @@ export class AppGeoService {
 
       this.impGeoService.storeObservable.pipe(
         debounceTime(250)
-      ).subscribe(() => {
+      ).subscribe((geos: ImpGeofootprintGeo[]) => {
         this.impGeoService.calculateGeoRanks();
-        this.logger.debug.tableArray('Geo Rank and Owner data', this.impGeoService.get(), null,
+        this.logger.debug.tableArray('Geo Rank and Owner data', geos, null,
             g => ({ geocode: g.geocode, rank: g.rank, dist: g.distance, owner: g.ownerSite, attachedTo: g.impGeofootprintLocation.locationNumber }));
       });
     });
@@ -348,11 +347,11 @@ export class AppGeoService {
           const message = result.invalidLocations.length > 1
             ? `There are ${result.invalidLocations.length} locations that have invalid Home Geocodes`
             : `There is ${result.invalidLocations.length} location that has an invalid Home Geocode`;
-          this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: result.invalidLocations }));
+          this.store$.dispatch(ErrorNotification({ notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: result.invalidLocations }));
         }
         this.store$.dispatch(new StopBusyIndicator({key}));
       }, err => {
-        this.store$.dispatch(new ErrorNotification({
+        this.store$.dispatch(ErrorNotification({
           notificationTitle: 'Home Geocode Error',
           message: 'There was a fatal error during home geocode processing. See console for more details.',
           additionalErrorInfo: err
@@ -365,7 +364,7 @@ export class AppGeoService {
       const message = locationsMissingHomeGeo.length > 1
         ? `There are ${locationsMissingHomeGeo.length} locations that have missing Home Geocodes`
         : `There is ${locationsMissingHomeGeo.length} location that has a missing Home Geocode`;
-      this.store$.dispatch(new ErrorNotification({notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: locationsMissingHomeGeo}));
+      this.store$.dispatch(ErrorNotification({notificationTitle: 'Home Geocode Error', message , additionalErrorInfo: locationsMissingHomeGeo}));
     }
     if (locationsWithHomeGeo.length === 0) this.store$.dispatch(new StopBusyIndicator({key}));
   }
@@ -670,7 +669,7 @@ export class AppGeoService {
       }
       , err => {
         this.logger.error.log('Error in ensureMustCovers(): ', err);
-        this.store$.dispatch(new ErrorNotification({message: 'There was an error creating must covers'}));
+        this.store$.dispatch(ErrorNotification({message: 'There was an error creating must covers'}));
         this.store$.dispatch(new StopBusyIndicator({key: key}));
       }
       , () => {

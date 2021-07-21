@@ -18,6 +18,7 @@ import { getUuid } from '@val/common';
 export class BooleanInputComponent implements ControlValueAccessor {
   private _value: boolean;
 
+  @Input() displayType: 'slider' | 'checkbox' = 'slider';
   @Input() labelText: string;
   @Input() tabIndex: number;
   @Input() readOnly: boolean = false;

@@ -1,35 +1,34 @@
-.component-root {
-  span.item-icon {
-    margin-right: 0.5rem;
-    width: 15px;
-    height: 15px;
+.item-icon {
+  margin-right: 0.5rem;
+  width: 15px;
+  height: 15px;
 
-    &.path {
-      background: url('~assets/val/images/markers/star.png') center no-repeat;
-    }
+  &.path {
+    background: url('~assets/val/images/markers/star.png') center no-repeat;
+  }
 
-    &.circle {
-      background: url('~assets/val/images/markers/circle.png') center no-repeat;
-    }
+  &.circle {
+    background: url('~assets/val/images/markers/circle.png') center no-repeat;
+  }
 
-    &.cross {
-      background: url('~assets/val/images/markers/cross.png') center no-repeat;
-    }
+  &.cross {
+    background: url('~assets/val/images/markers/cross.png') center no-repeat;
+  }
 
-    &.diamond {
-      background: url('~assets/val/images/markers/diamond.png') center no-repeat;
-    }
+  &.diamond {
+    background: url('~assets/val/images/markers/diamond.png') center no-repeat;
+  }
 
-    &.square {
-      background: url('~assets/val/images/markers/square.png') center no-repeat;
-    }
+  &.square {
+    background: url('~assets/val/images/markers/square.png') center no-repeat;
+  }
 
-    &.triangle {
-      background: url('~assets/val/images/markers/triangle.png') center no-repeat;
-    }
+  &.triangle {
+    background: url('~assets/val/images/markers/triangle.png') center no-repeat;
+  }
 
-    &.x {
-      background: url('~assets/val/images/markers/x.png') center no-repeat;
-    }
+  &.x {
+    background: url('~assets/val/images/markers/x.png') center no-repeat;
   }
 }
+

@@ -88,7 +88,7 @@ export class CustomAudienceComponent implements OnInit {
         this.customDataService.parseCustomVarData(fileData, fileName, this.audiences);
       }
     } catch (e) {
-      this.store$.dispatch(new ErrorNotification({notificationTitle: 'Audience Upload Error', message: e}));
+      this.store$.dispatch(ErrorNotification({notificationTitle: 'Audience Upload Error', message: e}));
     } finally {
       if (fileData != null)
         this.appProjectPrefService.createPref(ProjectPrefGroupCodes.CustomVar, fileName, fileData);
@@ -101,7 +101,7 @@ export class CustomAudienceComponent implements OnInit {
     const headers = new Set(headerRow.split(','));
     this.audiences.forEach(aud => {
       if (headers.has(aud.audienceName)) {
-        this.store$.dispatch(new ErrorNotification({
+        this.store$.dispatch(ErrorNotification({
           notificationTitle: 'Audience Upload Error',
           message: `Field Name ${aud.audienceName} already exists in Selected Audiences. Please revise and upload again.`
         }));

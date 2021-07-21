@@ -1,15 +1,13 @@
 <div>
   <div class="p-grid">
-    <div class="p-col-6">
+    <div class="p-col-6 p-pt-0">
       <val-search-input #searchInput (resultChanged)="onSearch($event)"></val-search-input>
     </div>
-    <div class="p-col-4 p-d-flex">
-      <p-checkbox label="Include folder in search" binary="true"
-                  *ngIf="showFolderCheckbox"
-                  [ngModel]="includeFolder$ | async"
-                  (onChange)="includeFolder$.next($event.checked)"></p-checkbox>
+    <div class="p-col-4 p-pt-0 p-d-flex">
+      <boolean-input *ngIf="showFolderCheckbox" labelText="Include folder in search" displayType="checkbox"
+                     [ngModel]="includeFolder$ | async" (ngModelChange)="includeFolder$.next($event)"></boolean-input>
     </div>
-    <div class="p-col-2 p-d-flex p-ai-end p-jc-end">
+    <div class="p-col-2 p-pt-0 p-d-flex p-ai-end p-jc-end">
       <button type="button" pButton label="refresh" class="p-button-link p-button-sm" (click)="forceRefresh()"></button>
     </div>
   </div>
@@ -17,6 +15,7 @@
           [loading]="loading"
           [value]="currentNodes"
           [selection]="selectedNodes$ | async"
+          [scrollHeight]="scrollHeight"
           [trackBy]="trackByKey"
           (onNodeSelect)="nodeSelect($event.node)"
           (onNodeUnselect)="nodeDeselect($event.node)"

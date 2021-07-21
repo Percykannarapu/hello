@@ -1,5 +1,5 @@
 /* tslint:disable:component-selector */
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { FieldContentTypeCodes } from '../../../../../worker-shared/data-model/impower.data-model.enums';
 import { GfpShaderKeys } from '../../../../models/ui-enums';
@@ -15,7 +15,7 @@ interface InlineAudience {
   templateUrl: './add-shader-button.component.html',
   styleUrls: ['./add-shader-button.component.scss']
 })
-export class AddShaderButtonComponent {
+export class AddShaderButtonComponent implements OnChanges {
 
   @Input() audienceCount: number;
   @Input() geoCount: number;
@@ -23,19 +23,19 @@ export class AddShaderButtonComponent {
   @Input() locationCount: number;
   @Input() currentAnalysisLevel: string;
 
-  get buttonOptions() : MenuItem[] {
-    return this.buttonMenu();
-  }
-
-  get buttonEnabled() : boolean {
-    return this.buttonMenu().some(m => m.visible);
-  }
+  buttonOptions: MenuItem[];
+  buttonEnabled: boolean = false;
 
   @Output() addShader = new EventEmitter<{ dataKey: string | InlineAudience, layerName?: string }>();
 
   constructor() { }
 
-  private buttonMenu() : MenuItem[] {
+  public ngOnChanges(changes: SimpleChanges) : void {
+    this.buttonOptions = this.createButtonMenu();
+    this.buttonEnabled = this.buttonOptions.some(m => m.visible);
+  }
+
+  private createButtonMenu() : MenuItem[] {
     const atzIndicator: InlineAudience = {
       identifier: '40683',
       displayName: 'ATZ Indicator',
@@ -44,7 +44,7 @@ export class AddShaderButtonComponent {
     return [
       { label: 'Add Owner Site Shading', command: () => this.add(GfpShaderKeys.OwnerSite, 'Owner Site'), visible: this.locationCount > 0 && this.geoCount > 0 },
       { label: 'Add Owner TA Shading', command: () => this.add(GfpShaderKeys.OwnerTA, 'Owner Trade Area'), visible: this.tradeAreaCount > 0 && this.geoCount > 0 },
-      { label: 'Add ATZ Indicator Shading', command: () => this.add(atzIndicator, 'ATZ Indicator'), visible: this.currentAnalysisLevel != null && this.currentAnalysisLevel.toLowerCase() === 'atz' },
+      { label: 'Add ATZ Indicator Shading', command: () => this.add(atzIndicator, 'ATZ Indicator'), visible: this.currentAnalysisLevel?.toLowerCase() === 'atz' },
       { label: 'Add Variable Shading', command: () => this.add(''), visible: this.audienceCount > 0 }
     ];
   }

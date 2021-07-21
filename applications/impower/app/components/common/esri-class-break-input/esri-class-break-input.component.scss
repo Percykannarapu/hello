@@ -1,24 +1,8 @@
 @import "~assets/valassis-variables";
 
-.component-root {
-  display: flex;
-  align-items: flex-end;
-
-  .min-values, .max-values {
-    flex: 1
-  }
-  .calculated-value-message {
-    flex: 2;
-    padding-bottom: 1em;
-    font-size: 12px;
-    white-space: nowrap;
-    max-width: 100px;
-  }
-  .legend-values {
-    padding: 0 0.5em 0.2em;
-    flex: 2
-  }
-  .symbol-values {
-    flex: 4
-  }
+.class-break-root {
+  border: 1px solid $midGray03;
+  border-radius: 3px;
+  margin-top: 0.5rem;
+  padding-bottom: 0.25rem;
 }

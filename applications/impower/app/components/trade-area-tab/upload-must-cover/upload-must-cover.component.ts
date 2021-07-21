@@ -163,7 +163,7 @@ export class UploadMustCoverComponent implements OnInit {
    }
 
    private processMustCovers(geos: string[]){
-      const mustcoverText =  this.isUpload ? 'Must Cover Upload' : 'Must Cover Manual'; 
+      const mustcoverText =  this.isUpload ? 'Must Cover Upload' : 'Must Cover Manual';
       const prefItems : MustCoverPref = {
          fileName: this.isUpload ? this.fileName : 'manual',
          fileContents: geos.join(', '),
@@ -172,7 +172,7 @@ export class UploadMustCoverComponent implements OnInit {
 
       if(mustcoverText === 'Must Cover Manual')
          this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcoverText, JSON.stringify(prefItems));
-      else 
+      else
       this.appProjectPrefService.createPref(ProjectPrefGroupCodes.MustCover, mustcoverText + name, geos.join(', '));
 
       //ensure mustcover are active
@@ -206,7 +206,7 @@ export class UploadMustCoverComponent implements OnInit {
                   this.totalUploadedRowCount = csvData.split(/\r\n|\n|\r/).length - 2;
                }
                catch (e) {
-                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
+                  this.store$.dispatch(ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
                }
                finally {
                   this.store$.dispatch(new StopBusyIndicator({ key: key }));
@@ -221,7 +221,7 @@ export class UploadMustCoverComponent implements OnInit {
                 this.totalUploadedRowCount = reader.result.toString().split(/\r\n|\n/).length - 2;
                }
                catch (e) {
-                  this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
+                  this.store$.dispatch(ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: e}));
                }
                finally {
                   this.store$.dispatch(new StopBusyIndicator({ key: key }));
@@ -288,7 +288,7 @@ export class UploadMustCoverComponent implements OnInit {
          if(this.fileAnalysisSelected === 'ZIP' && geo.match(/^\s*[0-9]{5}\s*$/) || (this.fileAnalysisSelected === 'ATZ' && geo.match(/^\s*[0-9]{5}|[0-9]{5}[A-Z]{1}?[0-9]{1}?\s*$/)) ||
                (this.fileAnalysisSelected === 'Digital ATZ' && geo.match(/^\s*[0-9]{5,9}?$\s*/)) || (this.fileAnalysisSelected === 'PCR' && geo.match(/^\s*[0-9]{5}[A-Z]{1}[0-9]{3}\s*$/)) ||
                   (this.fileAnalysisSelected === 'WRAP_MKT_ID' && geo.match(/^\s*[A-Z]{1,8}\s*$/)) || (this.fileAnalysisSelected === 'COUNTY' && geo.match(/^\s*[a-zA-Z ]*\s*$/)) ||
-                   (this.fileAnalysisSelected === 'STATE' && geo.match(/^\s*[A-Za-z]{2}\s*$/)) || (this.fileAnalysisSelected === 'DMA' && geo.match(/^\s*[0-9]{4}\s*$/)) || 
+                   (this.fileAnalysisSelected === 'STATE' && geo.match(/^\s*[A-Za-z]{2}\s*$/)) || (this.fileAnalysisSelected === 'DMA' && geo.match(/^\s*[0-9]{4}\s*$/)) ||
                      (this.fileAnalysisSelected === 'INFOSCAN_CODE' && geo.match(/^\s*[0-9]{3}\s*$/)) || (this.fileAnalysisSelected === 'SCANTRACK_CODE' && geo.match(/^\s*[0-9]{2}\s*$/) )){
             geos.push(geo);
          }
@@ -296,13 +296,13 @@ export class UploadMustCoverComponent implements OnInit {
             manualFailures.push(geo);
       });
       if(manualFailures.length > 0)
-         this.store$.dispatch(new ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: 'Invalid Geos, Please check and try again'}));
+         this.store$.dispatch(ErrorNotification({ notificationTitle: 'Must Cover Upload Error', message: 'Invalid Geos, Please check and try again'}));
 
       this.processMustCovers(geos);
       this.impGeofootprintGeoService.parseMustCoverFile(geos, 'manual', analysisLevel, false, this.fileAnalysisSelected).subscribe();
       geos = [];
       manualFailures = [];
-      
+
    }
 
    disableDeleteBtn() {

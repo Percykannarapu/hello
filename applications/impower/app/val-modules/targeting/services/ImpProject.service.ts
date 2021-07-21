@@ -12,9 +12,9 @@ import { Injectable } from '@angular/core';
 import { simpleFlatten } from '@val/common';
 import { EMPTY, Observable } from 'rxjs';
 import { map, reduce, tap } from 'rxjs/operators';
+import { RestResponse } from '../../../../worker-shared/data-model/core.interfaces';
 import { DAOBaseStatus } from '../../../../worker-shared/data-model/impower.data-model.enums';
 import { AppConfig } from '../../../app.config';
-import { RestResponse } from '../../../models/RestResponse';
 import { UserService } from '../../../services/user.service';
 import { DataStore } from '../../common/services/datastore.service';
 import { LoggingService } from '../../common/services/logging.service';
@@ -37,8 +37,7 @@ export class ImpProjectService extends DataStore<ImpProject>
                private userService: UserService,
                private impProjectPrefService: ImpProjectPrefService,
                private impGeofootprintMasterService: ImpGeofootprintMasterService,
-               logger: LoggingService)
-   {
+               logger: LoggingService) {
       super(restDataService, dataUrl, logger, transactionManager, 'ImpProject');
    }
 
@@ -69,12 +68,12 @@ export class ImpProjectService extends DataStore<ImpProject>
      );
    }
 
-   private loadPackedFromServer(id: number) : Observable<RestResponse> {
-     return this.rest.getMessagePack(`${packUrl}/${id}`);
+   private loadPackedFromServer(id: number) : Observable<RestResponse<ImpProject>> {
+     return this.rest.getMessagePack<ImpProject>(`${packUrl}/${id}`);
    }
 
-   private loadStringifiedFromServer(id: number) : Observable<RestResponse> {
-     return this.rest.get(`${dataUrl}/${id}`);
+   private loadStringifiedFromServer(id: number) : Observable<RestResponse<ImpProject>> {
+     return this.rest.get<ImpProject>(`${dataUrl}/${id}`);
    }
 
    // Get a count of DB removes from children of these parents

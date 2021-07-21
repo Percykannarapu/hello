@@ -16,11 +16,20 @@
         </thead>
         <tbody>
         <tr *ngFor="let defBreak of configuration.breakDefinitions">
-          <td [title]="defBreak.value">{{defBreak.value | truncate:15:'...'}}</td>
-          <td [title]="defBreak.legendName">{{defBreak.legendName | truncate:20:'...'}}</td>
+          <td [title]="defBreak.value" class="p-text-truncate">
+            {{defBreak.value}}
+          </td>
+          <td [title]="defBreak.legendName" class="p-text-truncate">
+            {{defBreak.legendName}}
+          </td>
           <td>
-            {{getMarkerDescription(defBreak)}}
-            <span class="color-chip" [ngStyle]="{ 'background-color': getMarkerColor(defBreak), 'border': getMarkerHalo(defBreak) + ' 2px solid' }"></span>
+            <span [ngStyle]="{
+                                'background-color': (defBreak.color || defaultColor || [0, 0,  0, 1]) | esriRgb2Hex,
+                                'border-color': (defBreak.outlineColor || defaultHalo || [255, 255, 255, 1]) | esriRgb2Hex
+                             }"
+                  class="color-chip">
+            </span>
+            {{markerNames[defBreak.markerType]}}
           </td>
         </tr>
         </tbody>
@@ -30,15 +39,16 @@
 </div>
 
 <div *ngIf="isEditing" [formGroup]="parentForm">
-  <dropdown-input formControlName="featureAttribute" labelText="Attribute" [options]="featureAttributeChoices" [includeUnselected]="true"></dropdown-input>
-  <validated-text-input formControlName="layerName" labelText="Legend Header (required)" validationMessage="Legend Header is required"></validated-text-input>
+  <dropdown-input formControlName="featureAttribute" labelText="Attribute" validationMessage="Attribute based symbology requires an Attribute to be selected"
+                  [options]="featureAttributeChoices" [includeUnselected]="true"></dropdown-input>
+  <validated-text-input formControlName="layerName" labelText="Legend Header" validationMessage="Legend Header is required"></validated-text-input>
   <ng-container *ngIf="parentForm.get('featureAttribute').value != null && !showUniqueValueUI">
     Reading data...
   </ng-container>
   <ng-container *ngIf="showUniqueValueUI">
     <div class="class-break-list" formArrayName="breakDefinitions">
       <div *ngFor="let x of breakDefinitions; index as i" class="break-container">
-        <esri-class-break-input breakType="marker" [formGroupName]="i.toString()" [currentPalette]="currentTheme"
+        <esri-class-break-input breakType="marker" [formGroupName]="i.toString()" [currentPalette]="themes.Symbology"
                                 [calculatedValueMessage]="x.get('value').value" [usesCalculatedValues]="true" [defaultHalo]="defaultHalo"></esri-class-break-input>
       </div>
     </div>

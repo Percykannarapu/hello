@@ -140,7 +140,7 @@ export class AudienceTradeareaComponent {
   //
   // public onClickApply() {
   //   if (this.stateService.analysisLevel$.getValue() === 'PCR')
-  //     this.store$.dispatch(new WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: 'Audience Trade Area not available at PCR level' }));
+  //     this.store$.dispatch(WarningNotification({ notificationTitle: 'Audience Trade Area Warning', message: 'Audience Trade Area not available at PCR level' }));
   //   else
   //     this.runAudienceTA.emit(true);
   //   this.tradeareaService.tradeareaType = 'audience';

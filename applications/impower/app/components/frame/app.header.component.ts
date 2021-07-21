@@ -1,44 +1,77 @@
 import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { HideAllNotifications, MessageCenterData } from '@val/messaging';
+import { MenuItem, PrimeIcons } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { MessageCenterComponent } from '../../../../../modules/messaging/components/message-center/message-center.component';
+import { MessageCenterService } from '../../../../../modules/messaging/core/message-center.service';
 import { UserService } from '../../services/user.service';
+import { FullAppState } from '../../state/app.interfaces';
+import { ImpowerHelpOpen } from '../../state/menu/menu.actions';
 
 @Component({
   selector: 'val-app-header',
-  template: `
-    <div class="impower-header-wrapper">
-      <div class="impower-header">
-        <div class="logo"></div>
-        <div class="announcement" *acsGrant="['IMPOWER_INTERNAL_FEATURES']">
-          <p-messages severity="error" styleClass="val-no-message-padding p-shadow-4">
-            <ng-template pTemplate>
-              <div class="p-p-2 p-d-flex p-ai-center">
-                <i class="pi pi-exclamation-circle p-mr-2" style="font-size: 2rem"></i>
-                <span class="message">
-                  Please Note: Distribution has changed. Users should reference the <a target="_blank" [href]="linkAddress">'{{linkName}}' file</a>
-                  to ensure all desired geographies and distribution methods are included.
-                </span>
-              </div>
-            </ng-template>
-          </p-messages>
-        </div>
-        <div *ngIf="username" class="user">
-          <span>Welcome, {{username}}</span>
-        </div>
-      </div>
-    </div>
-  `,
-  styleUrls: ['./app.header.component.scss']
+  templateUrl: './app.header.component.html',
+  styleUrls: ['./app.header.component.scss'],
+  providers: [DialogService]
 })
 export class AppHeaderComponent implements OnInit {
 
   username: string;
-  linkAddress = 'http://myvalassis/Sales%20%20Marketing/marketplanning/marketreach/2020%20Direct%20Mail%20Optimization/Forms/AllItems.aspx';
-  linkName = '2021 Market Optimizations';
+  helpLinkAddress = 'http://myvalassis/da/ts/imPower%20Resources/Forms/AllItems.aspx';
+  marketLinkAddress = 'http://myvalassis/Sales%20%20Marketing/marketplanning/marketreach/2020%20Direct%20Mail%20Optimization/Forms/AllItems.aspx';
+  marketLinkName = '2021 Market Optimizations';
 
-  constructor(private userService: UserService) {}
+  messageCenterMenu: MenuItem[];
+  messageTip$: Observable<string>;
+  messageCount$: Observable<number>;
+
+  constructor(private dialogService: DialogService,
+              private messageCenter: MessageCenterService,
+              private store$: Store<FullAppState>,
+              private userService: UserService) {}
 
   ngOnInit() {
     this.userService.userObservable.subscribe(user => {
       this.username = user.displayName ?? user.username ?? user.email;
     });
+    this.messageCenterMenu = [
+      { label: 'Show Message Center', icon: PrimeIcons.INBOX, command: () => this.showMessageCenter() },
+      { separator: true },
+      { label: 'Success Messages', icon: PrimeIcons.CHECK_CIRCLE, command: () => this.showMessageCenter('success') },
+      { label: 'Warning Messages', icon: PrimeIcons.INFO_CIRCLE, command: () => this.showMessageCenter('warn') },
+      { label: 'Error Messages', icon: PrimeIcons.TIMES_CIRCLE, command: () => this.showMessageCenter('error') },
+      { separator: true },
+      { label: 'Clear All Messages', icon: PrimeIcons.TRASH, command: () => this.clearAllMessages() },
+    ];
+    this.messageCount$ = this.messageCenter.getMessageCount();
+    this.messageTip$ = this.messageCount$.pipe(
+      map(value => `${value > 0 ? value : 'No'} ${value === 1 ? 'message' : 'messages'} waiting`)
+    );
+  }
+
+  showMessageCenter(severity?: MessageCenterData['severity']) : void {
+    this.dialogService.open(MessageCenterComponent, {
+      data: {
+        severity
+      },
+      header: 'Message Center',
+      width: '67vw',
+      styleClass: 'val-table-dialog'
+    });
+  }
+
+  clearAllMessages() : void {
+    this.messageCenter.clearMessages();
+  }
+
+  showHelp(e: any) : void {
+    if (this.userService.userHasGrants(['IMPOWER_INTERNAL_FEATURES'])) {
+      window.open(this.helpLinkAddress, '_blank');
+    } else {
+      this.store$.dispatch(new ImpowerHelpOpen(e));
+    }
   }
 }

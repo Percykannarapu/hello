@@ -3,22 +3,10 @@
     display: inline;
     padding-right: 1em;
   }
-}
-
-.shader-form-container {
-  form {
-    margin-top: 0.5em;
-    button {
-      margin-top: 0.5em;
-      margin-right: 1em;
-    }
+  .color-chip {
+    display: inline-block;
+    width: 20px;
+    height: 15px;
+    margin-left: 0.5em;
   }
-  padding: 0.5em;
-}
-
-.color-chip {
-  display: inline-block;
-  width: 20px;
-  height: 15px;
-  margin-left: 0.5em;
 }

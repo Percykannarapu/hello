@@ -1,10 +1,14 @@
 <p-accordion>
   <p-accordionTab *ngFor="let poi of poiConfigurations" [selected]="currentOpenId === poi.id" (selectedChange)="openConfiguration(poi)">
     <p-header class="poi-header">
-      <span>
-        <span class="pi" [class.pi-eye]="poi.visible" [class.pi-eye-slash]="!poi.visible" (click)="toggleVisibility($event, poi)"></span>
-        {{poi.layerName}}
-      </span>
+      <div>
+        <span class="pi" pTooltip="{{poi.visible? 'Hide' : 'Show'}} this layer" tooltipPosition="left"
+              [class.pi-eye]="poi.visible" [class.pi-eye-slash]="!poi.visible" (click)="toggleVisibility($event, poi)">
+        </span>
+        <span [ngStyle]="{ 'font-style': poi.visible ? null : 'italic' }">
+          {{poi.layerName}}<ng-container *ngIf="!poi.visible">&nbsp;(hidden)</ng-container>
+        </span>
+      </div>
     </p-header>
     <ng-container [ngSwitch]="poi.dataKey">
       <ng-container *ngSwitchCase="'Site'">

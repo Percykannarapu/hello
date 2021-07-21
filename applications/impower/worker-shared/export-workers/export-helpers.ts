@@ -81,13 +81,11 @@ function createCsvData<TEntity>(stateInstance: ExportState<TEntity>) : string[] 
 
     // Loop through each column determining its final value
     for (const column of columns) {
-      if (isString(column.row) || isNumber(column.row) || isNil(column.row)) {
-        currentCell = encloseInQuotes(column.row);
-      } else if (isFunction(column.row)) {
-        currentCell = encloseInQuotes(column.row(stateInstance, data, column.header));
+      const currentValue = isFunction(column.row) ? column.row(stateInstance, data, column.header) : column.row;
+      if (!isNil(currentValue) && isString(currentValue)) {
+        currentCell = encloseInQuotes(currentValue);
       } else {
-        console.warn('column: ' + column.header + ' = ' + column.row + ' (Unrecognized Type: ' + typeof (column.row) + ')');
-        currentCell = column.row;
+        currentCell = currentValue;
       }
       currentRow.push(currentCell);
     }

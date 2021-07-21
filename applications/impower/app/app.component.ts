@@ -8,8 +8,7 @@ import { FullAppState } from './state/app.interfaces';
 
 @Component({
     selector: 'val-app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.scss'],
+    templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit {
 
@@ -41,7 +40,7 @@ export class AppComponent implements OnInit {
   // }
 
   public ngOnInit() : void {
-    this.store$.select(mapTransactionId).subscribe(this.mapTransaction$);
-    this.store$.select(geoTransactionId).subscribe(this.geoTransaction$);
+    // this.store$.select(mapTransactionId).subscribe(this.mapTransaction$);
+    // this.store$.select(geoTransactionId).subscribe(this.geoTransaction$);
   }
 }

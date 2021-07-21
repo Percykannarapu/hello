@@ -6,6 +6,10 @@ function matchingState(a: boolean, b: boolean) : boolean {
 
 export class CommonSort {
 
+  public static NullableNumber = (a: number | null, b: number | null, nullSortsLast: boolean = true) => CommonSort.NullableSortWrapper(a, b, CommonSort.GenericNumber, nullSortsLast);
+  public static NullableNumberReverse = (a: number | null, b: number | null, nullSortsLast: boolean = true) => CommonSort.NullableSortWrapper(a, b, CommonSort.GenericNumberReverse, nullSortsLast);
+  public static NullableString = (a: string | null, b: string | null, nullSortsLast: boolean = true) => CommonSort.NullableSortWrapper(a, b, CommonSort.GenericString, nullSortsLast);
+
   public static GenericNumber = (a: number, b: number) => a - b;
   public static GenericNumberReverse = (a: number, b: number) => b - a;
   public static GenericString = (a: string, b: string) => a.localeCompare(b);
@@ -15,7 +19,7 @@ export class CommonSort {
     if (isConvertibleToNumber(a) && isConvertibleToNumber(b)) {
       return Number(a) - Number(b);
     } else {
-      return CommonSort.NullableSortWrapper(a, b, CommonSort.GenericString);
+      return CommonSort.NullableString(a, b);
     }
   }
 

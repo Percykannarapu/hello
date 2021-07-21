@@ -1,36 +1,23 @@
-<div class="component-root p-fluid">
-  <div class="p-field">
-    <div class="p-inputgroup">
-      <div class="p-float-label">
-        <p-dropdown id="dropdown-input-{{controlId}}" [(ngModel)]="value" [options]="options" [filter]="false"
-                    (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
-                    [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass">
-          <ng-template let-item pTemplate="selectedItem">
-            <ng-container *ngIf="allowTruncation">
-              <span [title]="item.label">
-                {{item.label | truncate:truncateLength:truncateSuffix}}
-              </span>
-            </ng-container>
-            <ng-container *ngIf="!allowTruncation">
-              {{item.label}}
-            </ng-container>
-          </ng-template>
-          <ng-template let-variable pTemplate="item">
-            <ng-container *ngIf="allowTruncation">
-              <span [title]="variable.label">
-                {{variable.label | truncate:truncateLength:truncateSuffix}}
-              </span>
-            </ng-container>
-            <ng-container *ngIf="!allowTruncation">
-              {{variable.label}}
-            </ng-container>
-          </ng-template>
-        </p-dropdown>
-        <label for="dropdown-input-{{controlId}}">{{labelText}}</label>
-        <span class="p-inputgroup-addon error-addon" *ngIf="hasErrors()">
-          <i class="pi pi-exclamation-circle" title="{{validationMessage}}"></i>
-        </span>
-      </div>
-    </div>
+<div class="p-inputgroup p-pt-4">
+  <div class="p-float-label">
+    <p-dropdown id="dropdown-input-{{controlId}}" [(ngModel)]="value" [options]="options" [filter]="false"
+                (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
+                [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass"
+                [class]="includeUnselected ? '' : 'p-inputwrapper-filled'">
+      <ng-template let-item pTemplate="selectedItem">
+        <div [title]="item.label" class="p-text-truncate">
+          {{ item.label }}
+        </div>
+      </ng-template>
+      <ng-template let-variable pTemplate="item">
+        <div [title]="variable.label" class="p-text-truncate">
+          {{ variable.label }}
+        </div>
+      </ng-template>
+    </p-dropdown>
+    <label for="dropdown-input-{{controlId}}">{{labelText}}</label>
   </div>
+  <span class="p-inputgroup-addon" *ngIf="hasErrors()">
+    <i class="pi pi-exclamation-circle" title="{{validationOutput}}"></i>
+  </span>
 </div>

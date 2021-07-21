@@ -8,6 +8,7 @@ import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/m
 import { BehaviorSubject, combineLatest, merge, Observable, Subscription } from 'rxjs';
 import { concatMap, debounceTime, filter, map, pairwise, startWith, switchMap, take, withLatestFrom } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
+import { RestPayload } from '../../worker-shared/data-model/core.interfaces';
 import { AppConfig } from '../app.config';
 import { AudienceFetchService } from '../impower-datastore/services/audience-fetch.service';
 import { AddAudience } from '../impower-datastore/state/transient/audience/audience.actions';
@@ -197,17 +198,17 @@ export class UnifiedAudienceService {
     const notificationTitle = 'National Extract Export';
     const audiences = this.nationalAudiences$.getValue();
     if (isEmpty(audiences)) {
-      this.store$.dispatch(new ErrorNotification({
+      this.store$.dispatch(ErrorNotification({
         notificationTitle,
         message: 'A variable must be selected for a national extract before exporting.'
       }));
     } else if (isEmpty(project.methAnalysis)) {
-      this.store$.dispatch(new ErrorNotification({
+      this.store$.dispatch(ErrorNotification({
         notificationTitle,
         message: 'An Analysis Level must be selected for a national extract before exporting.'
       }));
     } else if (isNil(project.projectId)) {
-      this.store$.dispatch(new ErrorNotification({
+      this.store$.dispatch(ErrorNotification({
         notificationTitle,
         message: 'The project must be saved before exporting a national extract.'
       }));
@@ -322,7 +323,7 @@ export class UnifiedAudienceService {
     });
     const observables: Observable<OnlineBulkDownloadDataResponse[]>[] = [];
     if (reqInput.length > 0) {
-      observables.push( this.restService.post<{ rows: OnlineBulkDownloadDataResponse[] }>('v1/targeting/base/geoinfo/digitallookup', reqInput).pipe(
+      observables.push( this.restService.post<RestPayload<OnlineBulkDownloadDataResponse>>('v1/targeting/base/geoinfo/digitallookup', reqInput).pipe(
        map(response => response.payload.rows)
      ));
     }

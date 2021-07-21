@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { AppState, ClearAllNotifications } from '@val/messaging';
+import { AppState, HideAllNotifications } from '@val/messaging';
 import { AppConfig } from 'app/app.config';
 import { AppExportService } from 'app/services/app-export.service';
 import { AppStateService } from 'app/services/app-state.service';
@@ -31,7 +31,6 @@ export class MenuEffects {
     withLatestFrom(this.dataShimService.currentProject$),
     filter(([action, project]) => this.dataShimService.validateProject(project)),
     concatMap(() => [
-      new ClearAllNotifications(),
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=Yes'),
       new fromDataShims.ProjectSaveAndNew(),
     ]),
@@ -41,7 +40,6 @@ export class MenuEffects {
   discardAndCreateNew$ = this.actions$.pipe(
     ofType(MenuActionTypes.DiscardAndCreateNew),
     concatMap(() => [
-      new ClearAllNotifications(),
       new CreateProjectUsageMetric('project', 'new', 'SaveExisting=No'),
       new fromDataShims.CreateNewProject(),
     ])
@@ -53,7 +51,6 @@ export class MenuEffects {
     withLatestFrom(this.dataShimService.currentProject$),
     filter(([action, project]) => this.dataShimService.validateProject(project)),
     concatMap(() => [
-      new ClearAllNotifications(),
       new fromDataShims.ProjectSave(),
     ])
   );
@@ -64,7 +61,6 @@ export class MenuEffects {
     withLatestFrom(this.dataShimService.currentProject$),
     filter(([action, project]) => this.dataShimService.validateProject(project)),
     concatMap(([action]) => [
-      new ClearAllNotifications(),
       new fromDataShims.ProjectSaveAndLoad({ projectId: action.payload.projectToLoad }),
       new CloseExistingProjectDialog(),
     ]),
@@ -74,7 +70,6 @@ export class MenuEffects {
   discardThenLoad$ = this.actions$.pipe(
     ofType<DiscardThenLoadProject>(MenuActionTypes.DiscardThenLoadProject),
     concatMap(action => [
-      new ClearAllNotifications(),
       new fromDataShims.ProjectLoad({ projectId: action.payload.projectToLoad }),
       new CloseExistingProjectDialog(),
     ])
@@ -115,7 +110,7 @@ export class MenuEffects {
   // handlePrintSuccess$ = this.actions$.pipe(
   //    ofType<PrintMapSuccess>(PrintActionTypes.PrintMapSuccess),
   //     tap(action =>  this.exportService.downloadPDF(action.payload.url)),
-  //     tap(() => this.store$.dispatch(new SuccessNotification({message: 'The Current View PDF was generated successfully in a new tab' })))
+  //     tap(() => this.store$.dispatch(SuccessNotification({message: 'The Current View PDF was generated successfully in a new tab' })))
   //  );
   //
   // @Effect()
@@ -126,7 +121,7 @@ export class MenuEffects {
   //    concatMap(([action, analysisLevel]) => [
   //     new StopBusyIndicator({ key: 'Map Book'}),
   //     new ClosePrintViewDialog(),
-  //     new ErrorNotification({message: 'There was an error generating current view map book' })
+  //     ErrorNotification({message: 'There was an error generating current view map book' })
   //    ])
   // );
   //

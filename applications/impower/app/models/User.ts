@@ -1,5 +1,10 @@
 import { UserRole } from './UserRole';
 
+export interface UserResponse {
+  userId: number;
+  accessRights: UserRole[];
+}
+
 export class User {
     public userId: number;
     public username: string;

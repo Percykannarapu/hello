@@ -1,7 +1,7 @@
 <div class="variable-shader-root">
   <div class="shader-display" *ngIf="!isEditing">
-    <div>
-      <button pButton type="button" class="p-button-text p-button-sm p-mb-2" (click)="edit()" label="edit"></button>
+    <div class="main-shader-menu">
+      <button pButton type="button" class="p-button-text p-button-sm" (click)="edit()" label="edit"></button>
     </div>
     <ng-container [ngSwitch]="definition.shadingType">
       <val-ramp-variable-shader *ngSwitchCase="ConfigurationTypes.Ramp" [definition]="definition"
@@ -19,9 +19,9 @@
       <dropdown-input formControlName="dataKey" labelText="Audience" [options]="allAudiences" [allowTruncation]="true"
                       (selectionChanged)="variableSelectionChanged($event)" [includeUnselected]="true"></dropdown-input>
       <dropdown-input formControlName="shadingType" labelText="Shading Style" [options]="allShaders" [includeUnselected]="allShaders.length > 1"
-                      *ngIf="shaderForm.get('dataKey').value != null && shaderForm.get('dataKey').value !== ''"></dropdown-input>
+                      *ngIf="shaderForm.get('dataKey')?.value !== ''"></dropdown-input>
 
-      <div *ngIf="shaderForm.get('dataKey').value != null && shaderForm.get('dataKey').value !== '' && shaderForm.get('shadingType').value != null && shaderForm.get('shadingType').value !== ''">
+      <div *ngIf="shaderForm.get('dataKey')?.value !== '' && shaderForm.get('shadingType')?.value !== ''">
         <ng-container [ngSwitch]="shaderForm.get('shadingType').value">
           <val-ramp-variable-shader *ngSwitchCase="ConfigurationTypes.Ramp" [definition]="definition" [currentAudience]="currentAudience"
                                     [parentForm]="shaderForm" [isEditing]="true" (cancelForm)="cancel()"></val-ramp-variable-shader>

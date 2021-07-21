@@ -102,13 +102,13 @@ export class BatchMapService {
     const notificationTitle = 'Batch Map Issue';
     if (project.projectId == null) {
       const projectNotSaved = 'The project must be saved before you can generate a batch map.';
-      this.store$.dispatch(new ErrorNotification({ message: projectNotSaved, notificationTitle }));
+      this.store$.dispatch(ErrorNotification({ message: projectNotSaved, notificationTitle }));
       return false;
     }
     this.logService.debug.log('location count for batchmap', project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length);
     if (project.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site).length == 0){
       const noLocationFound = 'The project must have saved Locations to generate a batch map.';
-      this.store$.dispatch(new ErrorNotification({ message: noLocationFound, notificationTitle }));
+      this.store$.dispatch(ErrorNotification({ message: noLocationFound, notificationTitle }));
       return false;
     }
     return true;
@@ -259,6 +259,8 @@ export class BatchMapService {
           this.store$.dispatch(new RenderLocations({ locations: renderLocs }));
           this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         }
+        else if (!params.tradeAreaBoundaries)
+            this.store$.dispatch(new RenderTradeAreas( { tradeAreas: currentSite.impGeofootprintTradeAreas.filter(ta => ta.isActive) }));
         this.store$.dispatch(new SetCurrentSiteNum({ currentSiteNum: currentSite.locationNumber }));
       } else {
         this.processOtherSite(currentSite, params);

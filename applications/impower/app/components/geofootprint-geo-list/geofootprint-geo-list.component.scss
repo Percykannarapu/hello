@@ -9,3 +9,11 @@
     margin-left: 0.1rem;
   }
 }
+
+.val-truncate-all {
+  * {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

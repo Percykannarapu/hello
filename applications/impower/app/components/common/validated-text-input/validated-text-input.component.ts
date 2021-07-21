@@ -1,16 +1,16 @@
 /* tslint:disable:component-selector */
-import { Component, Input, Optional, Self } from '@angular/core';
-import { ControlValueAccessor, NgControl } from '@angular/forms';
+import { AfterViewInit, Component, Input, Optional, Self, ViewChild } from '@angular/core';
+import { ControlValueAccessor, NgControl, NgModel } from '@angular/forms';
 import { getUuid } from '@val/common';
 
 @Component({
   selector: 'validated-text-input',
   templateUrl: './validated-text-input.component.html',
-  styleUrls: ['./validated-text-input.component.scss']
 })
 export class ValidatedTextInputComponent implements ControlValueAccessor {
 
   @Input() validationMessage: string;
+  @Input() validationMessageKey: string;
   @Input() labelText: string;
   @Input() tabIndex: number;
   @Input() inputClass: string;
@@ -37,7 +37,11 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
   }
 
   get touchOnChange() : boolean {
-    return this.controlContainer != null && this.controlContainer.control != null && this.controlContainer.control.updateOn === 'change';
+    return this.controlContainer?.control?.updateOn === 'change';
+  }
+
+  get validationOutput() : string {
+    return this.validationMessage ?? this.controlContainer?.control?.errors?.[this.validationMessageKey] ?? null;
   }
 
   private _value: string;
@@ -55,7 +59,7 @@ export class ValidatedTextInputComponent implements ControlValueAccessor {
   hasErrors() : boolean {
     if (this.controlContainer != null) {
       const control = this.controlContainer.control;
-      return control.touched && !control.valid && (this.validationMessage != null);
+      return control.root.touched && !control.valid && (this.validationOutput != null);
     }
     return false;
   }

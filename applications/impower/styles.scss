@@ -1,21 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
+@import "~assets/theme/valassis/theme-light";
 @import "~assets/valassis-variables";
-@import "~assets/sass/theme/extensions/_mixins.scss";
-@import "~assets/sass/theme/designer/mixins";
 
 body {
   overflow-x: hidden;
-}
-
-.impower {
-  &.splash-screen {
-    background: url("~assets/val/images/valassis-splash-logo.png") no-repeat center;
-    height: 95vh;
-  }
-  > .splash-loader-container {
-    top: 60%;
-    margin-left: -45px;
-  }
 }
 
 .val-campaign-details {
@@ -30,24 +18,28 @@ body {
   width: 55vw;
 }
 
-.val-table-caption {
+// widths for specific menus
+.p-menu {
+  &.val-message-center-menu {
+    width: 13rem;
+  }
+  &.val-add-shader-menu {
+    width: 15rem;
+  }
+}
+.val-export-menu {
+  p-menubarSub {
+    .p-submenu-list {
+      width: 20rem;
+    }
+  }
+}
+
+.val-flex-layout {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
   > * {
-    display: inline-flex;
-  }
-}
-
-.val-table-wrap {
-  table tr > td {
-    white-space: normal !important;
-  }
-}
-
-.val-table-no-wrap {
-  table tr > td {
-    white-space: nowrap !important;
+    flex: 1;
+    display: flex;
   }
 }
 
@@ -63,7 +55,6 @@ body {
   }
 }
 
-// Global changes for primeng components
 .p-messages.val-no-message-padding {
   .p-message-wrapper {
     padding: 0;
@@ -74,17 +65,6 @@ body {
   .p-panel-content {
     padding: 0 !important;
   }
-}
-
-div.val-toast {
-  top: 125px !important;
-  .p-toast-detail {
-    white-space: pre-line;
-  }
-}
-
-.p-field p-inputSwitch + label {
-  padding-left: 1rem;
 }
 
 table {
@@ -100,122 +80,113 @@ table {
   }
 }
 
-body {
-  .p-inputgroup {
-    input.ng-touched.ng-invalid {
-      @include invalid-filled-input();
-      ~span.p-inputgroup-addon {
-        @include invalid-filled-input();
-        i {
-          color: $errorColor
-        }
-      }
-    }
-    .p-float-label {
-      input.ng-touched.ng-invalid + label {
-        color: $errorColor
-      }
-    }
-  }
-  .p-datatable {
-    .p-datatable-header {
-      display: flex;
-      align-items: center;
-      > div {
-        flex: 1;
-      }
-      .p-multiselect:not(:hover) {
-        .p-multiselect-trigger {
-          color: $tableHeaderTextColor;
-        }
-      }
-      .p-multiselect:hover {
-        .p-multiselect-label {
-          color: $textColor;
-        }
-      }
-    }
+.splash-container {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  > .valassis-logo {
+    display: inline-block;
+    margin: 1rem;
+    background: url("~assets/val/images/valassis-splash-logo.png") no-repeat center;
+    width: 200px;
+    height: 69px;
   }
 }
 
-.p-tree {
-  padding: 0.75rem 0;
-  min-height: 25vh;
-  max-height: 33vh;
-  overflow: auto;
-  .p-treenode {
-    .p-checkbox.p-checkbox-disabled {
-      display: none;
+.splash-loader {
+  animation: rotator $duration linear infinite;
+}
+
+@keyframes rotator {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(270deg); }
+}
+
+.splash-path {
+  stroke-dasharray: $offset;
+  stroke-dashoffset: 0;
+  transform-origin: center;
+  animation:
+    dash $duration ease-in-out infinite,
+    colors ($duration*4) ease-in-out infinite;
+}
+
+@keyframes colors {
+  0% { stroke: #4285F4; }
+  25% { stroke: #DE3E35; }
+  50% { stroke: #F7C223; }
+  75% { stroke: #1B9A59; }
+  100% { stroke: #4285F4; }
+}
+
+@keyframes dash {
+  0% { stroke-dashoffset: $offset; }
+  50% {
+    stroke-dashoffset: $offset/4;
+    transform:rotate(135deg);
+  }
+  100% {
+    stroke-dashoffset: $offset;
+    transform:rotate(450deg);
+  }
+}
+
+.val-content-button {
+  &.p-button {
+    min-width: unset;
+    &.p-button-text {
+      color: $textColor;
     }
-  }
-}
-
-.p-tooltip {
-  cursor: none !important;
-}
-
-// hack for primeng regression
-// https://github.com/primefaces/primeng/issues/9453
-.p-accordion-tab:not(.p-accordion-tab-active) {
-  .p-toggleable-content {
-    height: 0;
-    overflow: hidden;
-  }
-}
-
-.p-accordion-tab.p-accordion-tab-active {
-  .p-toggleable-content {
-    height: auto !important;
-  }
-}
-// end hack
-
-// adding an additional feature to PrimeNg : xs buttons
-.p-button {
-  &.p-button-xs {
-    @include scaledFontSize(1.15rem, $scaleXS);
-    @include scaledPadding($buttonPadding, $scaleXS);
-
-    &.p-button-icon-only {
-      width: $buttonIconOnlyWidth * $scaleXS;
-      height: $buttonIconOnlyWidth *  $scaleXS;
-    }
-    .p-button-icon {
-      @include scaledFontSize(1.15rem, $scaleXS);
+    .p-badge {
+      width: .5rem;
+      min-width: .5rem;
+      height: .5rem;
+      transform: translate(0%, -25%);
     }
   }
-}
-
-// overriding float label position
-.p-float-label {
-  margin-top: 0.5rem;
-  &.val-full-size-float {
-    margin-top: unset;
+  .p-button-label {
+    display: none;
   }
 }
 
-.p-float-label input:focus ~ label,
-.p-float-label input.p-filled ~ label,
-.p-float-label textarea:focus ~ label,
-.p-float-label textarea.p-filled ~ label,
-.p-float-label .p-inputwrapper-focus ~ label,
-.p-float-label .p-inputwrapper-filled ~ label {
-  top: -1rem !important;
+.val-table-dialog {
+  .p-dialog-content {
+    overflow: visible;
+  }
+  .p-datepicker {
+    width: 20rem;
+  }
 }
 
-.p-input-filled {
-  .p-float-label {
-    input:focus ~ label,
-    input.p-filled ~ label,
-    textarea:focus ~ label,
-    textarea.p-filled ~ label,
-    .p-inputwrapper-focus ~ label,
-    .p-inputwrapper-filled ~ label {
-      top: -1rem !important;
+tr {
+  &.val-info-row {
+    td {
+      background-color: $infoMessageBg;
+      color: $infoMessageTextColor;
+    }
+  }
+  &.val-success-row {
+    td {
+      background-color: $successMessageBg;
+      color: $successMessageTextColor;
+    }
+  }
+  &.val-warn-row {
+    td {
+      background-color: $warningMessageBg;
+      color: $warningMessageTextColor;
+    }
+  }
+  &.val-error-row {
+    td {
+      background-color: $errorMessageBg;
+      color: $errorMessageTextColor;
     }
   }
 }
-
 
 // esri styling overrides
 body {
