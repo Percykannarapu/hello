@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { isConvertibleToNumber } from '@val/common';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, take, takeUntil } from 'rxjs/operators';
@@ -108,13 +109,16 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
     // always update the merge type - other code elsewhere deals with dupe notifications
     this.appProjectService.updateMergeType(newModel.mergeType, siteType);
 
+    const tradeAreaModels = newModel.tradeAreas.filter(ta => isConvertibleToNumber(ta.radius) && Number(ta.radius) > 0);
+    if (tradeAreaModels.length === 0) return;
+
     // decide which updates have to run
     const currentTradeAreas = siteType === ImpClientLocationTypeCodes.Site ? this.siteTradeAreas$.getValue() : this.competitorTradeAreas$.getValue();
     let fullUpdate = false;
     let reshuffleOnly = false;
-    if (newModel.tradeAreas.length === currentTradeAreas.length) {
+    if (tradeAreaModels.length === currentTradeAreas.length) {
       currentTradeAreas.forEach(ta => {
-        const currentFormValue = newModel.tradeAreas.filter(nm => nm.tradeAreaNumber === ta.taNumber)[0];
+        const currentFormValue = tradeAreaModels.filter(nm => nm.tradeAreaNumber === ta.taNumber)[0];
         if (currentFormValue == null) {
           // a trade area was deleted or re-numbered.
           // this may only apply to legacy projects where trade areas could be created out of order
@@ -131,7 +135,6 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
       fullUpdate = true;
     }
 
-    const tradeAreaModels = newModel.tradeAreas.filter(ta => ta.radius != null);
     const transformedAreas = tradeAreaModels.map(ta => ({ radius: Number(ta.radius), selected: ta.isActive, taNumber: ta.tradeAreaNumber }));
     if (fullUpdate) {
       const metricText = tradeAreaModels.map(ta => `TA${ta.tradeAreaNumber} ${ta.radius} Miles`).join('~');
