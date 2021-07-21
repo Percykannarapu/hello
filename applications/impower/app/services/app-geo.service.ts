@@ -16,14 +16,13 @@ import {
 } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.actions';
 import { GeoAttribute } from '../impower-datastore/state/transient/geo-attributes/geo-attributes.model';
 import { ProjectFilterChanged } from '../models/ui-enums';
-import { FullAppState, MustCoverPref } from '../state/app.interfaces';
+import { FullAppState } from '../state/app.interfaces';
 import { FiltersChanged } from '../state/data-shim/data-shim.actions';
 import { deleteCustomTa, deleteMustCover, projectIsReady } from '../state/data-shim/data-shim.selectors';
 import { InTransaction } from '../val-modules/common/services/datastore.service';
 import { ImpGeofootprintGeo } from '../val-modules/targeting/models/ImpGeofootprintGeo';
 import { ImpGeofootprintLocation } from '../val-modules/targeting/models/ImpGeofootprintLocation';
 import { ImpGeofootprintTradeArea } from '../val-modules/targeting/models/ImpGeofootprintTradeArea';
-import { ImpProjectPref } from '../val-modules/targeting/models/ImpProjectPref';
 import { ImpDomainFactoryService } from '../val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintGeoService } from '../val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ImpGeofootprintLocationService } from '../val-modules/targeting/services/ImpGeofootprintLocation.service';
@@ -112,9 +111,9 @@ export class AppGeoService {
 
       this.impGeoService.storeObservable.pipe(
         debounceTime(250)
-      ).subscribe(() => {
+      ).subscribe((geos: ImpGeofootprintGeo[]) => {
         this.impGeoService.calculateGeoRanks();
-        this.logger.debug.tableArray('Geo Rank and Owner data', this.impGeoService.get(), null,
+        this.logger.debug.tableArray('Geo Rank and Owner data', geos, null,
             g => ({ geocode: g.geocode, rank: g.rank, dist: g.distance, owner: g.ownerSite, attachedTo: g.impGeofootprintLocation.locationNumber }));
       });
     });
