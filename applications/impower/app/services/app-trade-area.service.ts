@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toNullOrNumber, toUniversalCoordinates } from '@val/common';
+import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, toNullOrNumber, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
 import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
@@ -22,7 +22,7 @@ import { ImpGeofootprintTradeAreaService } from '../val-modules/targeting/servic
 import { AppGeoService } from './app-geo.service';
 import { AppLoggingService } from './app-logging.service';
 import { AppProjectPrefService } from './app-project-pref.service';
-import { AppStateService } from './app-state.service';
+import { AppStateService, Season } from './app-state.service';
 
 export class TradeAreaDefinition {
   store: string;
@@ -163,7 +163,7 @@ export class AppTradeAreaService {
     // remove from the hierarchy
     locations.forEach(loc => loc.impGeofootprintTradeAreas = loc.impGeofootprintTradeAreas.filter(ta => !tradeAreaSet.has(ta)));
     // delete from the data stores
-    const geosToRemove = simpleFlatten(tradeAreas.map(ta => ta.impGeofootprintGeos));
+    const geosToRemove = tradeAreas.flatMap(ta => ta.impGeofootprintGeos);
     tradeAreas.forEach(ta => {
       ta.impGeofootprintLocation = null;
     });
@@ -378,12 +378,12 @@ export class AppTradeAreaService {
      * wherefield  should depend on file analysis level
      * hhcField should depend on current analysis level
      */
-  public rollDownService(geos: string[], fileAnalysisLevel: string){
+  public rollDownService(geos: string[], fileAnalysisLevel: string) {
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
     const usTable = UsTableMap[currentAnalysisLevel];
     const selectField = currentAnalysisLevel === 'Digital ATZ' ? 'DTZ' : currentAnalysisLevel;
     const whereField = fileAnalysisLevel === 'Digital ATZ' ? 'DTZ' : fileAnalysisLevel;
-    const seasonField = 'HHLD_S'; //TODO: need to get the value from discovey tab
+    const seasonField = `HHLD_${this.stateService.season$.getValue() === Season.Summer ? 'S' : 'W'}`;
     const tab14TableName = currentAnalysisLevel === 'Digital ATZ' ? 'VAL_DIGTAB14' : `CL_${currentAnalysisLevel}TAB14`;
 
     const chunked_arr = [];
@@ -426,7 +426,6 @@ export class AppTradeAreaService {
       });
     }
     else{
-      const analysisLevel = fileAnalysisLevel === 'WRAP_MKT_ID' ? 'Wrap Zone' : fileAnalysisLevel === 'INFOSCAN_CODE' ? 'Infoscan' : fileAnalysisLevel;
       matchedTradeAreas.forEach(ta => {
          if ( !payloadByGeocode.has(ta.geocode)){
             //ta.message = 'Invalid/unreachable Geo';

@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { mapBy, simpleFlatten } from '@val/common';
+import { isEmpty, mapBy, simpleFlatten } from '@val/common';
 import { ErrorNotification, StartBusyIndicator, StopBusyIndicator } from '@val/messaging';
 import { Geocode, PersistLocations } from 'app/state/homeGeocode/homeGeo.actions';
 import { ConfirmationService } from 'primeng/api';
 import { Observable } from 'rxjs';
 import { reduce, tap } from 'rxjs/operators';
-import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes, TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 import { ValGeocodingRequest } from '../models/val-geocoding-request.model';
 import { LocalAppState } from '../state/app.interfaces';
 import { LoggingService } from '../val-modules/common/services/logging.service';
@@ -199,39 +199,22 @@ interface TradeAreaDefinition {
     }
    }
 
-   public handleError(errorHeader: string, errorMessage: string, errorObject: any) {
-      this.store$.dispatch(new StopBusyIndicator({ key: this.spinnerKey }));
-      this.store$.dispatch(ErrorNotification({ message: errorMessage, notificationTitle: errorHeader }));
-      this.logger.error.log(errorMessage, errorObject);
+  public handleError(errorHeader: string, errorMessage: string, errorObject: any) {
+    this.store$.dispatch(new StopBusyIndicator({key: this.spinnerKey}));
+    this.store$.dispatch(ErrorNotification({message: errorMessage, notificationTitle: errorHeader}));
+    this.logger.error.log(errorMessage, errorObject);
+  }
+
+  public forceHomeGeos(isForceHomeGeo: boolean) {
+    const currentProject = this.impProjectService.get()[0];
+    if (isForceHomeGeo) {
+      const clientSites = Array.from(currentProject.getImpGeofootprintLocations(true, ImpClientLocationTypeCodes.Site) ?? []);
+      if (!isEmpty(clientSites) && !isEmpty(currentProject.methAnalysis)) {
+        this.appGeoService.selectAndPersistHomeGeos(clientSites, currentProject.methAnalysis, this.appStateService.season$.getValue());
+      }
+    } else {
+      const tradeAreas = currentProject.getImpGeofootprintTradeAreas().filter(ta => TradeAreaTypeCodes.parse(ta.taType) === TradeAreaTypeCodes.HomeGeo);
+      this.appTradeAreaService.deleteTradeAreas(tradeAreas);
     }
-
-    public forceHomeGeos(isForceHomeGeo: boolean){
-        const geosSet: Set<string> = new Set();
-      this.impProjectService.get()[0].getImpGeofootprintTradeAreas().forEach(ta => {
-          if (ta.taType === 'HOMEGEO' && ta.isActive !== isForceHomeGeo){
-              ta.isActive = isForceHomeGeo;
-              ta.impGeofootprintGeos.forEach(geo => {
-                geosSet.add(geo.geocode);
-                geo.isActive = isForceHomeGeo;
-              });
-
-          }
-        });
-        if (geosSet.size > 0){
-          /*this.impGeoService.get().forEach(geo => {
-            if (geosSet.has(geo.geocode))
-                  geo.isActive = isForceHomeGeo;
-          });*/
-          const geostodelete = this.impGeoService.get().filter(geo => geosSet.has(geo.geocode));
-          this.appGeoService.deleteGeos(geostodelete);
-
-          this.impTradeAreaService.makeDirty();
-
-        }
-        if (this.impLocationService.get().length > 0 && this.appStateService.analysisLevel$.getValue() != null)
-            this.appGeoService.selectAndPersistHomeGeos(this.impLocationService.get(),
-                            this.appStateService.analysisLevel$.getValue(), this.appStateService.season$.getValue());
-          this.impGeoService.makeDirty();
-          this.impLocationService.makeDirty();
-    }
- }
+  }
+}
