@@ -255,7 +255,6 @@ export class SiteListContainerComponent implements OnInit {
         this.impGeofootprintLocationService.update(oldData, editedLocation);
       }*/
     }
-    console.log('Current Project', this.appStateService.currentProject$.getValue());
   }
 
   private geocodeAndHomegeocode(oldData: ImpGeofootprintLocation, siteOrSites: ValGeocodingRequest, siteType: SuccessfulLocationTypeCodes) : void {

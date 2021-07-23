@@ -35,7 +35,7 @@ export const defaultEsriAppSettings: EsriAppSettings = {
     layers: []
   },
   defaultViewParams: {
-    center: { longitude: -98.5795, latitude: 39.8282 },
+    center: { longitude: -98.5795, latitude: 39.8282, type: 'point' },
     zoom: 4,
     highlightOptions : {
       color: [0, 255, 0, 1],
