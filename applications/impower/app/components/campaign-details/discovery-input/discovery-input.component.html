@@ -110,6 +110,8 @@
       </div>
 
       <h6>Select CPM Type</h6>
+      <p-message text="Postage/delivery increases and short-term service fees are not accounted for in CPM for certain product and delivery methods"
+                   severity="info"></p-message>
       <div class="p-fluid">
         <div class="p-field">
           <p-selectButton [options]="allCPMTypes" formControlName="cpmType"></p-selectButton>
