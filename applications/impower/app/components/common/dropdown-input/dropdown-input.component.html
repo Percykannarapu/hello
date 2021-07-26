@@ -1,5 +1,5 @@
 <div class="p-inputgroup p-pt-4">
-  <div class="p-float-label">
+  <div class="p-float-label" (click)="stopPropagation($event)">
     <p-dropdown id="dropdown-input-{{controlId}}" [(ngModel)]="value" [options]="options" [filter]="false"
                 (onChange)="selectionChanged.emit($event.value)" [autoDisplayFirst]="!includeUnselected"
                 [disabled]="isDisabled || readOnly" [tabindex]="tabIndex" [styleClass]="inputClass"

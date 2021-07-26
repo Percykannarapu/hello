@@ -72,4 +72,13 @@ export class DropdownInputComponent implements ControlValueAccessor {
     }
     return false;
   }
+  
+  stopPropagation(event: MouseEvent) {
+    event.target.addEventListener('click', (e) => {
+        const cellText = document.getSelection();
+        if (cellText.type === 'Range') e.stopPropagation();
+    });
+  }
+
+  
 }
