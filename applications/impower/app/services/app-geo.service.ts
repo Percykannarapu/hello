@@ -296,8 +296,7 @@ export class AppGeoService {
 
   public selectAndPersistHomeGeos(locations: ImpGeofootprintLocation[], analysisLevel: string, season: Season) : void {
     const key = 'selectAndPersistHomeGeos';
-    const currentAnalysisLevel = this.appStateService.analysisLevel$.getValue();
-    this.store$.dispatch(new StartBusyIndicator({key, message: `Selecting Home ${currentAnalysisLevel}s...`}));
+    this.store$.dispatch(new StartBusyIndicator({key, message: `Selecting Home ${analysisLevel}s...`}));
 
     const primaryTradeAreaTypes = new Set<TradeAreaTypeCodes>([TradeAreaTypeCodes.Audience, TradeAreaTypeCodes.Custom]);
     const locs = locations.filter(loc => loc.impGeofootprintTradeAreas.some(ta => primaryTradeAreaTypes.has(TradeAreaTypeCodes.parse(ta.taType)) ||
@@ -307,7 +306,7 @@ export class AppGeoService {
         loc.clientLocationTypeCode === 'Site');
 
     this.logger.debug.log('Firing home geo selection', locs.length);
-    const layerId = this.config.getLayerIdForAnalysisLevel(currentAnalysisLevel, true);
+    const layerId = this.config.getLayerIdForAnalysisLevel(analysisLevel, true);
     const locationsWithHomeGeo: ImpGeofootprintLocation[] = [];
     const locationsMissingHomeGeo: ImpGeofootprintLocation[] = [];
     locs.forEach(loc => {

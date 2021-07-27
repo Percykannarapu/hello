@@ -15,7 +15,7 @@ import { AppStateService } from './app-state.service';
 import { ImpGeofootprintTradeAreaService } from 'app/val-modules/targeting/services/ImpGeofootprintTradeArea.service';
 import { ImpGeofootprintGeoService } from 'app/val-modules/targeting/services/ImpGeofootprintGeo.service';
 import { ForceHomeGeos } from 'app/state/homeGeocode/homeGeo.actions';
-import { deleteCustomTa } from 'app/state/data-shim/data-shim.selectors';
+import { deleteCustomTa, projectIsReady } from 'app/state/data-shim/data-shim.selectors';
 
 export class RadLookupUIModel extends ImpRadLookup {
   get display() : string {
@@ -94,13 +94,18 @@ export class AppDiscoveryService {
     ];
     this.radCategoryCodeByName = mapBy(this.radCategoryCodes, 'name', (r) => r.code);
     this.radCategoryNameByCode = mapBy(this.radCategoryCodes, 'code', (r) => r.name);
-    this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => this.setSelectedValues(project));
-    this.appStateService.currentProject$.pipe(
-      map(p => this.getForcedHomeGeoFlag(p)),
-      distinctUntilChanged(),
-    ).subscribe(() => this.selectForceHomeGeo(this.appStateService.currentProject$.getValue()));
-    this.store$.select(deleteCustomTa).subscribe(flag => {
+    this.appStateService.applicationIsReady$.pipe(
+      filter(ready => ready),
+      take(1)
+    ).subscribe(() => {
+      this.appStateService.currentProject$.pipe(filter(p => p != null)).subscribe(project => this.setSelectedValues(project));
+      this.appStateService.currentProject$.pipe(
+        map(p => this.getForcedHomeGeoFlag(p)),
+        distinctUntilChanged(),
+      ).subscribe(() => this.selectForceHomeGeo(this.appStateService.currentProject$.getValue()));
+      this.store$.select(deleteCustomTa).subscribe(flag => {
         this.deleteCustomTAflag = flag;
+      });
     });
   }
 
