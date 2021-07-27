@@ -67,9 +67,9 @@ export class CombinedAudienceComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.allIndexValues = [
+      {label: 'None', value: ''},
       {label: 'DMA', value: 'DMA'},
       {label: 'National', value: 'NAT'},
-      {label: 'None', value: ''}
     ];
     this.groupedAudiences$ = this.store$.select(allAudiences).pipe(
       filter(audiences => audiences != null),
