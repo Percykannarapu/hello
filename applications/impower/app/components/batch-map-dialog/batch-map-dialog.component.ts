@@ -156,7 +156,7 @@ export class BatchMapDialogComponent implements OnInit {
       if (savedFormData.fitTo == '' || savedFormData.fitTo == null) {
         this.tradeAreaService.storeObservable.subscribe((tas) => {
           const fitToFormControl = this.batchMapForm.get('fitTo');
-          if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
+          if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS' || ta.taType === 'CUSTOM' || ta.taType === 'MUSTCOVER').length > 0) {
             this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta });
             fitToFormControl.enable();
           } else {
@@ -190,7 +190,7 @@ export class BatchMapDialogComponent implements OnInit {
       });
       this.tradeAreaService.storeObservable.subscribe((tas) => {
         const fitToFormControl = this.batchMapForm.get('fitTo');
-        if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
+        if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS' || ta.taType === 'CUSTOM' || ta.taType === 'MUSTCOVER').length > 0) {
           this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
           fitToFormControl.enable();
         } else {
@@ -275,7 +275,7 @@ export class BatchMapDialogComponent implements OnInit {
     });
     this.tradeAreaService.storeObservable.subscribe((tas) => {
       const fitToFormControl = this.batchMapForm.get('fitTo');
-      if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS').length > 0) {
+      if (tas.length > 0 && tas.filter(ta => ta.taType === 'RADIUS' || ta.taType === 'CUSTOM' || ta.taType === 'MUSTCOVER').length > 0) {
         this.batchMapForm.patchValue({ fitTo: FitToPageOptions.ta});
         fitToFormControl.enable();
       } else {
