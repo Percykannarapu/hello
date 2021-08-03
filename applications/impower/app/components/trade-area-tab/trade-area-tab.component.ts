@@ -114,7 +114,7 @@ export class TradeAreaTabComponent implements OnInit, OnDestroy {
 
     // decide which updates have to run
     const currentTradeAreas = siteType === ImpClientLocationTypeCodes.Site ? this.siteTradeAreas$.getValue() : this.competitorTradeAreas$.getValue();
-    let fullUpdate = false;
+    let fullUpdate = tradeAreaModels.every(ta => !ta.isActive);
     let reshuffleOnly = false;
     if (tradeAreaModels.length === currentTradeAreas.length) {
       currentTradeAreas.forEach(ta => {
