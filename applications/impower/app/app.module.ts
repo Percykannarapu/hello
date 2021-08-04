@@ -69,6 +69,7 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeModule } from 'primeng/tree';
 import { TreeTableModule } from 'primeng/treetable';
+import { TriStateCheckboxModule } from 'primeng/tristatecheckbox';
 import { ForRootOptions } from '../../../modules/esri/esri-module-factories';
 import { environment, EnvironmentData } from '../environments/environment';
 import { AppComponent } from './app.component';
@@ -102,6 +103,7 @@ import { ExtendedPalettePickerComponent } from './components/common/extended-pal
 import { FailedGeocodeGridComponent } from './components/common/failed-geocode-grid/failed-geocode-grid.component';
 import { MultiselectInputComponent } from './components/common/multiselect-input/multiselect-input.component';
 import { PaletteColorPickerComponent } from './components/common/palette-color-picker/palette-color-picker.component';
+import { AnyToBoolPipe } from './components/common/pipes/boolean-pipes';
 import { EsriRgb2HexPipe } from './components/common/pipes/esri-rgb-2-hex.pipe';
 import { SearchInputComponent } from './components/common/search-input/search-input.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
@@ -194,6 +196,7 @@ import { ImpGeofootprintTradeAreaService } from './val-modules/targeting/service
 import { ImpProjectService } from './val-modules/targeting/services/ImpProject.service';
 import { ImpProjectPrefService } from './val-modules/targeting/services/ImpProjectPref.service';
 import { ImpRadLookupService } from './val-modules/targeting/services/ImpRadLookup.service';
+import { BooleanColumnFilterComponent } from './components/common/boolean-column-filter/boolean-column-filter.component';
 
 export function stateSanitizer(state: any) : any {
   if (environment.sanitizeState) {
@@ -314,7 +317,8 @@ export function esriSetupFactory() : ForRootOptions {
     KeyFilterModule,
     InputTextareaModule,
     BadgeModule,
-    DynamicDialogModule
+    DynamicDialogModule,
+    TriStateCheckboxModule
   ],
   declarations: [
     AppComponent,
@@ -405,6 +409,8 @@ export function esriSetupFactory() : ForRootOptions {
     SearchInputComponent,
     BrokeredTreeviewComponent,
     EsriRgb2HexPipe,
+    AnyToBoolPipe,
+    BooleanColumnFilterComponent
   ],
   providers: [
     { provide: RouterStateSerializer, useClass: CustomSerializer },

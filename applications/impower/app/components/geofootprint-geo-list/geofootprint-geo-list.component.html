@@ -4,18 +4,14 @@
              dataKey="fgId"
              [rowTrackBy]="trackByFgId"
              [columns]="selectedColumns"
-             [globalFilterFields]="selectedColumns"
-             [value]="displayedImpGeofootprintGeos$ | async"
+             [value]="allImpGeofootprintGeos$ | async"
              [selection]="selectedImpGeofootprintGeos$ | async"
              [resizableColumns]="true"
              columnResizeMode="expand"
-             [reorderableColumns]="true"
              scrollable="true"
-             sortMode="multiple" [multiSortMeta]="multiSortMeta"
+             sortMode="multiple" [multiSortMeta]="initialSort"
              [paginator]="true" [rows]="25" [rowsPerPageOptions]="[25,50,100]"
-             (onRowSelect)="onClickSelectGeocode($event, true)"
-             (onRowUnselect)="onClickSelectGeocode($event, false)"
-             (onFilter)="onFilter($event)">
+             (onFilter)="onFilter()" (onSort)="trackSortMeta($event)">
 
       <!-- Caption is the area just above the column headers -->
       <ng-template pTemplate="caption">
@@ -29,9 +25,9 @@
               <span>Export</span>
               <div class="p-d-flex p-flex-row">
                 <button type="button" pButton icon="pi pi-file-o" label="{{exportAllButtonText}}" pTooltip="{{exportAllButtonTip}}"
-                        (click)="geoGrid.exportCSV()" class="p-button-outlined p-button-inverse"></button>
+                        (click)="exportCsv(false)" class="p-button-outlined p-button-inverse"></button>
                 <button type="button" pButton icon="pi pi-file" label="Selected" pTooltip="Export all selected geos, regardless of filtering"
-                        (click)="geoGrid.exportCSV({selectionOnly:true})" class="p-button-outlined p-button-inverse"></button>
+                        (click)="exportCsv(true)" class="p-button-outlined p-button-inverse"></button>
               </div>
             </div>
           </div>
@@ -70,12 +66,17 @@
       <ng-template pTemplate="header">
         <tr>
           <th>
-            <p-checkbox [(ngModel)]="headerFilter" binary="true" (onChange)="applyHeaderFilter()"></p-checkbox>
+            <div class="p-d-flex p-jc-center">
+              <button pButton type="button" class="p-button-text"
+                      [pTooltip]="allVisibleRowsSelected ? 'Deselect all rows' : 'Select all rows'"
+                      [icon]="allVisibleRowsSelected ? 'pi pi-check-circle' : 'pi pi-circle-off'"
+                      (click)="selectVisibleRows(!allVisibleRowsSelected)"></button>
+            </div>
           </th>
           <th>&nbsp;</th>
-          <th *ngFor="let col of selectedColumns" [class]="" pResizableColumn pReorderableColumn [pSortableColumn]="col.field">
+          <th *ngFor="let col of selectedColumns" pResizableColumn pReorderableColumn [pSortableColumn]="col.field" [title]="col.header">
             <div class="p-d-flex p-jc-between p-pt-1 p-pb-1">
-              <div class="p-text-truncate" [title]="col.header">
+              <div class="p-text-truncate">
                 {{col.header}}
               </div>
               <p-sortIcon field="{{col.field}}"></p-sortIcon>
@@ -84,113 +85,49 @@
         </tr>
         <tr>
           <th>
-              <button pButton type="button" icon="{{isSelectedFilterState}}" pTooltip="{{isSelectedToolTip}}" (click)="onFilterSelected()"></button>
+            <div class="p-d-flex p-jc-center">
+              <p-columnFilter type="boolean" field="geo.isActive"></p-columnFilter>
+            </div>
           </th>
           <th>&nbsp;</th>
-          <th *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
-            <input *ngSwitchCase="'geo.impGeofootprintLocation.locationNumber'" pInputText type="text"
-                   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
-                   [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''">
-            <input *ngSwitchCase="'geo.impGeofootprintLocation.locationName'" pInputText type="text"
-                   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
-                   [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''">
-            <input *ngSwitchCase="'geo.impGeofootprintLocation.locAddress'" pInputText type="text"
-                   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
-                   [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''">
-            <input *ngSwitchCase="'geo.impGeofootprintLocation.locZip'" pInputText type="text"
-                   (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
-                   [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''">
-            <input *ngSwitchCase="'home_geo'" pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
-                   [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''">
-            <input *ngSwitchCase="'geo.geocode'" pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
-                   [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''">
-            <input *ngSwitchCase="'city_name'" pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
-                   [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''">
-            <input *ngSwitchCase="'pob'" pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
-                   [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''">
-            <input *ngSwitchCase="'geo.isDeduped'" pInputText type="number" (input)="geoGrid.filter($event.target.value, col.field, col.matchMode)"
-                   [value]="(geoGrid.filters != null && geoGrid.filters[col.field]) ? geoGrid.filters[col.field].value : ''">
-
-            <div *ngSwitchCase="'geo.distance'">
-              <val-table-filter-numeric #filterNm fieldHeader="Distance" fieldName="geo.distance"
-                                        (filterApplied)="geoGrid.filter($event, 'geo.distance', 'distanceFilter')"
-                                        (filterCleared)="onRemoveFilter('geo.distance')" [minValue]="distanceRanges[0]"
-                                        [maxValue]="distanceRanges[1]"></val-table-filter-numeric>
-            </div>
-            <div *ngSwitchCase="'geo.hhc'">
-              <val-table-filter-numeric #filterNm fieldName="HHC" (filterApplied)="geoGrid.filter($event, 'geo.hhc', 'numericFilter')"
-                                        (filterCleared)="onRemoveFilter('geo.hhc')" [minValue]="hhcRanges[0]"
-                                        [maxValue]="hhcRanges[1]"></val-table-filter-numeric>
-            </div>
-            <div *ngSwitchCase="'allocHhc'">
-              <val-table-filter-numeric #filterNm fieldName="Allocated HHC" (filterApplied)="geoGrid.filter($event, 'allocHhc', 'numericFilter')"
-                                        (filterCleared)="onRemoveFilter('allocHhc')" [minValue]="allocHhcRanges[0]"
-                                        [maxValue]="allocHhcRanges[1]"></val-table-filter-numeric>
-            </div>
-            <div *ngSwitchCase="'cpm'">
-              <val-table-filter-numeric #filterNm fieldName="cpm" (filterApplied)="geoGrid.filter($event, 'cpm', 'numericFilter')"
-                                        (filterCleared)="onRemoveFilter('cpm')" [minValue]="cpmRanges[0]"
-                                        [maxValue]="cpmRanges[1]"></val-table-filter-numeric>
-            </div>
-            <div *ngSwitchCase="'investment'">
-              <val-table-filter-numeric #filterNm fieldName="Investment" (filterApplied)="geoGrid.filter($event, 'investment', 'numericFilter')"
-                                        (filterCleared)="onRemoveFilter('investment')" [minValue]="investmentRanges[0]"
-                                        [maxValue]="investmentRanges[1]"></val-table-filter-numeric>
-            </div>
-            <div *ngSwitchCase="'allocInvestment'">
-              <val-table-filter-numeric #filterNm fieldName="Allocated Investment"
-                                        (filterApplied)="geoGrid.filter($event, 'allocInvestment', 'numericFilter')"
-                                        (filterCleared)="onRemoveFilter('allocInvestment')" [minValue]="allocInvestmentRanges[0]"
-                                        [maxValue]="allocInvestmentRanges[1]"></val-table-filter-numeric>
-            </div>
-
-            <p-multiSelect #filterMs *ngSwitchCase="'geo.impGeofootprintLocation.locCity'" appendTo="body" [options]="uniqueCity$ | async"
-                           [defaultLabel]="defaultLabel" [ngStyle]="{'width':'100%'}"
-                           (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-            <p-multiSelect #filterMs *ngSwitchCase="'geo.impGeofootprintLocation.locState'" appendTo="body" [options]="uniqueState$ | async"
-                           defaultLabel="All" [ngStyle]="{'width':'100%'}"
-                           (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-            <p-multiSelect #filterMs *ngSwitchCase="'geo.impGeofootprintLocation.marketName'" appendTo="body" [options]="uniqueMarket$ | async"
-                           defaultLabel="All" [ngStyle]="{'width':'100%'}"
-                           (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-            <p-multiSelect #filterMs *ngSwitchCase="'ownergroup'" appendTo="body" [options]="uniqueOwnerGroup$ | async" defaultLabel="All"
-                           [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-            <p-multiSelect #filterMs *ngSwitchCase="'coveragedescription'" appendTo="body" [options]="uniqueCoverageDesc$ | async" defaultLabel="All"
-                           [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-            <p-multiSelect #filterMs *ngSwitchCase="'dma'" appendTo="body" [options]="uniqueDma$ | async" defaultLabel="All"
-                           [ngStyle]="{'width':'100%'}" (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-
-            <input *ngSwitchCase="'Delete'" pInputText type="text">
-
-            <div *ngSwitchDefault>
-              <div [ngSwitch]="col.matchType">
-                <div *ngSwitchCase="'numeric'">
-                  <val-table-filter-numeric #filterNm fieldName="{{col.header}}" (filterApplied)="geoGrid.filter($event, col.field, 'numericFilter')"
-                                            (filterCleared)="onRemoveFilter(col.field)" operatorType="{{col.matchOper}}"
-                                            [minValue]="variableRanges.get(col.field)[0]"
-                                            [maxValue]="variableRanges.get(col.field)[1]"></val-table-filter-numeric>
-                </div>
-                <div *ngSwitchCase="'text'">
-                  <p-multiSelect #filterMs appendTo="body" [options]="uniqueTextVals.get(col.field)" defaultLabel="All" [ngStyle]="{'width':'100%'}"
-                                 (onChange)="geoGrid.filter($event.value, col.field, 'in');"></p-multiSelect>
-                </div>
-                <input *ngSwitchDefault pInputText type="text" (input)="geoGrid.filter($event.target.value, col.field, 'contains')">
-              </div>
-            </div>
+          <th *ngFor="let col of selectedColumns" [ngSwitch]="col.filterType">
+            <p-columnFilter *ngSwitchCase="'multi'" matchMode="in" field="{{col.field}}" [showMenu]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <p-multiSelect [options]="createMultiOptionList(col.field) | async" [ngModel]="value" (ngModelChange)="filter($event)" appendTo="body"></p-multiSelect>
+              </ng-template>
+            </p-columnFilter>
+            <val-boolean-column-filter *ngSwitchCase="'bool10'" [field]="col.field" class="p-d-flex p-jc-center"></val-boolean-column-filter>
+            <val-boolean-column-filter *ngSwitchCase="'dedupe'" [field]="col.field" constraint="gridDedupeFilter" class="p-d-flex p-jc-center"></val-boolean-column-filter>
+            <val-boolean-column-filter *ngSwitchCase="'boolYN'" [field]="col.field" trueValue="Y" falseValue="N" class="p-d-flex p-jc-center"></val-boolean-column-filter>
+            <p-columnFilter *ngSwitchCase="'numeric'" type="numeric" [field]="col.field" display="menu" [showOperator]="false" operator="or">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <input type="text" pInputText [ngModel]="value" (ngModelChange)="filter($event)">
+              </ng-template>
+            </p-columnFilter>
+            <p-columnFilter *ngSwitchDefault matchMode="contains" field="{{col.field}}" [showMenu]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <input type="text" pInputText [ngModel]="value" (ngModelChange)="filter($event)">
+              </ng-template>
+            </p-columnFilter>
           </th>
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-flatGeo let-selectedColumns="columns">
+      <ng-template pTemplate="body" let-flatGeo>
         <tr [pSelectableRow]="flatGeo" [ngClass]="flatGeo['home_geo']==1 ? 'home-geo' : null">
           <td>
-            <p-tableCheckbox [value]="flatGeo" pTooltip="{{flatGeo['sitesTooltip']}}" tooltipPosition="right"></p-tableCheckbox>
+            <div class="p-d-flex p-jc-center">
+              <p-checkbox [ngModel]="flatGeo.geo.isActive" (ngModelChange)="onClickSelectGeocode(flatGeo.geo)"
+                          [binary]="true" pTooltip="{{flatGeo['sitesTooltip']}}" tooltipPosition="right"></p-checkbox>
+            </div>
           </td>
           <td>
-            <i (click)="onClickDeleteGeo(flatGeo)" class="pi pi-trash" pTooltip="Permanently Remove Geo" tooltipPosition="right"></i>
+            <div class="p-d-flex p-jc-center">
+              <button pButton type="button" class="p-button-text" pTooltip="Permanently Remove Geo" tooltipPosition="right"
+                      icon="pi pi-trash" (click)="onClickDeleteGeo(flatGeo)"></button>
+            </div>
           </td>
-
-          <td *ngFor="let col of selectedColumns" [class]="col.styleClass" [ngSwitch]="col.field" class="val-truncate-all">
+          <td *ngFor="let col of selectedColumns" [ngSwitch]="col.field" class="val-truncate-all">
             <!-- Add ZoomTo / HomeGeo Icon to Geocode -->
             <div *ngSwitchCase="'geo.geocode'" class="p-d-flex p-jc-between">
               <div pTooltip="{{flatGeo['tooltip']}}">
@@ -226,28 +163,26 @@
 
             <!-- Display all other columns -->
             <div *ngSwitchDefault>
-              <div *ngIf="col.matchType == 'numeric' && col.sourceType == 'Custom'">{{flatGeo[col.field] | number:'1.2-2'}}</div>
-              <div *ngIf="col.matchType == 'numeric' && col.sourceType != 'Custom' && col.decimals == 2">{{flatGeo[col.field] | number:'1.2-2'}}</div>
-              <div *ngIf="col.matchType == 'numeric' && col.sourceType != 'Custom' && col.decimals == 0">{{flatGeo[col.field] | number:'1.0-0'}}</div>
-              <div *ngIf="col.matchType != 'numeric'" [title]="flatGeo[col.field]">{{flatGeo[col.field]}}</div>
+              <div *ngIf="col.filterType == 'numeric'">{{flatGeo[col.field] | number:col.digitsInfo}}</div>
+              <div *ngIf="col.filterType != 'numeric'" [title]="flatGeo[col.field]">{{flatGeo[col.field]}}</div>
             </div>
           </td>
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="footer" let-columns>
+      <ng-template pTemplate="footer">
         <tr>
           <td>&nbsp;</td>
           <td>&nbsp;</td>
-          <td *ngFor="let col of columns" [ngSwitch]="col.field" [class]="col.styleClass">
-            <div *ngSwitchCase="'geo.distance'" [escape]="false" [class]="col.styleClass"
+          <td *ngFor="let col of selectedColumns" [ngSwitch]="col.field">
+            <div *ngSwitchCase="'geo.distance'" [escape]="false"
                  pTooltip="<table>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('distance').avg | number:'1.2-2'}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('distance').min | number:'1.2-2'}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('distance').max | number:'1.2-2'}}</td></tr></table>">
               {{gridTotals.get('distance').avg | number:'1.2-2'}}
             </div>
-            <div *ngSwitchCase="'geo.hhc'" [escape]="false" [class]="col.styleClass"
+            <div *ngSwitchCase="'geo.hhc'" [escape]="false"
                  pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('hhc').tot | number:'1.0-0'}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('hhc').avg | number:'1.0-0'}}</td></tr>
@@ -255,7 +190,7 @@
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('hhc').max | number:'1.0-0'}}</td></tr></table>">
               {{gridTotals.get('hhc').tot | number:'1.0-0'}}
             </div>
-            <div *ngSwitchCase="'allocHhc'" [escape]="false" [class]="col.styleClass"
+            <div *ngSwitchCase="'allocHhc'" [escape]="false"
                  pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('allocHhc').tot | number:'1.0-0'}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('allocHhc').avg | number:'1.0-0'}}</td></tr>
@@ -263,14 +198,14 @@
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('allocHhc').max | number:'1.0-0'}}</td></tr></table>">
               {{gridTotals.get('allocHhc').tot | number:'1.0-0'}}
             </div>
-            <div *ngSwitchCase="'cpm'" [escape]="false" [class]="col.styleClass"
+            <div *ngSwitchCase="'cpm'" [escape]="false"
                  pTooltip="<table>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('cpm').avg | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Min:</td><td>{{gridTotals.get('cpm').min | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('cpm').max | currency}}</td></tr></table>">
               {{gridTotals.get('cpm').avg | currency}}
             </div>
-            <div *ngSwitchCase="'investment'" [escape]="false" [class]="col.styleClass"
+            <div *ngSwitchCase="'investment'" [escape]="false"
                  pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('investment').tot | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('investment').avg | currency}}</td></tr>
@@ -278,7 +213,7 @@
                                   <tr><td style='text-align:right;'>Max:</td><td>{{gridTotals.get('investment').max | currency}}</td></tr></table>">
               {{gridTotals.get('investment').tot | currency}}
             </div>
-            <div *ngSwitchCase="'allocInvestment'" [escape]="false" [class]="col.styleClass"
+            <div *ngSwitchCase="'allocInvestment'" [escape]="false"
                  pTooltip="<table>
                                   <tr><td style='text-align:right;'>Total:</td><td>{{gridTotals.get('allocInvestment').tot | currency}}</td></tr>
                                   <tr><td style='text-align:right;'>Average:</td><td>{{gridTotals.get('allocInvestment').avg | currency}}</td></tr>

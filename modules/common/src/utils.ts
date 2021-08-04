@@ -18,6 +18,23 @@ export function transformEntity(entity: Record<any, any>, valueSelector: (field:
   return newEntity;
 }
 
+export function entityToMap<T, R>(entity: Record<string, T>,
+                                  valueTransform?: (key: string, value: T, entity: Record<string, T>) => R,
+                                  keyTransform?: (key: string, value: T, entity: Record<string, T>) => string,
+                                  filter?:  (key: string, value: T, entity: Record<string, T>) => boolean) : Map<string, R> {
+  const usableVx = valueTransform ?? ((k, v) => v as unknown as R);
+  const usableKx = keyTransform ?? (k => k);
+  const usableFilter = filter ?? (() => true);
+  const result = new Map<string, R>();
+  if (isNil(entity)) return result;
+  for (const [key, value] of Object.entries(entity)) {
+    const newKey = usableKx(key, value, entity);
+    const newValue = usableVx(key, value, entity);
+    if (usableFilter(key, value, entity)) result.set(newKey, newValue);
+  }
+  return result;
+}
+
 export function resolveFieldData(data: any, field: Function | string) : any {
   if (data && field) {
     if (isFunction(field)) {

@@ -9,14 +9,11 @@
       [impGeofootprintGeos]="allGeos$ | async"
       [mustCoverGeos]="allMustCovers$ | async"
       [impGeofootprintVars]="allVars$ | async"
-      [variableColOrder]="variableColOrder"
       (onZoomGeo)="onZoomGeo($event)"
       (onDeleteGeo)="onDeleteGeo($event)"
       (onSelectGeo)="onSelectGeo($event)"
-      (onDedupeToggle)="onDedupeToggle($event)"
       (onSetAllGeos)="onSetAllGeos($event)"
       (onSetFilteredGeos)="onSetFilteredGeos($event)"
-      (onForceRedraw)="onForceRedraw()"
     >
     </val-geofootprint-geo-list>
   </p-panel>
