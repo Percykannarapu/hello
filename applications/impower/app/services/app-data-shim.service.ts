@@ -282,13 +282,12 @@ export class AppDataShimService {
     const includeAnne = currentProject.isIncludeAnne;
     const includeSolo = currentProject.isIncludeSolo;
     const includePob = !currentProject.isExcludePob;
-    const allSelectedGeos = new Set(this.appStateService.uniqueSelectedGeocodes$.getValue());
+    const allSelectedGeos = new Set(this.appStateService.uniqueIdentifiedGeocodes$.getValue());
     const geosByGeocode: Map<string, ImpGeofootprintGeo[]> = groupBy(geos, 'geocode');
 
     geosByGeocode.forEach((currentGeos, geocode) => {
       const currentAttribute = geoAttributes[geocode];
       if (currentAttribute != null) {
-        const audiencePreSelected = currentAttribute.hasOwnProperty('preSelectedForAudience') ? currentAttribute['preSelectedForAudience'] as boolean : true;
         const filterReasons: string[] = [];
         let ignore: boolean = (filterType != null);
         let state: boolean;
@@ -318,8 +317,8 @@ export class AppDataShimService {
         }
         if (!ignore) {
           currentGeos.forEach(g => {
-            g.isActive = state && audiencePreSelected && allSelectedGeos.has(g.geocode);
-            g['filterReasons'] = state ? (audiencePreSelected ? null : 'Under Audience TA threshold') : `Filtered because: ${filterReasons.join(', ')}`;
+            g.isActive = state && allSelectedGeos.has(g.geocode);
+            g['filterReasons'] = state ? '' :`Filtered because: ${filterReasons.join(', ')}`;
           });
         }
       }

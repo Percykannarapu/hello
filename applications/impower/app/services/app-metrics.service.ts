@@ -296,7 +296,7 @@ export class ValMetricsService implements OnDestroy {
       })
     );
     const validProject$ = this.stateService.currentProject$.pipe(filter(p => p != null));
-    return combineLatest(geoOwnerTypes$, validProject$).pipe(
+    return combineLatest([geoOwnerTypes$, validProject$]).pipe(
       map(([attributes, project]) => {
         if (isConvertibleToNumber(project.estimatedBlendedCpm)) {
           return false;
@@ -313,7 +313,7 @@ export class ValMetricsService implements OnDestroy {
     if (project == null || attributes == null) return;
     this.currentProject = project;
     this.isWinter = project.impGeofootprintMasters[0].methSeason === 'W';
-
+    console.log('inside updateDefinitions:::', this.metricDefinitions);
     for (const definition of this.metricDefinitions) {
       const values: any[] = [];
       definition.metricValue = definition.metricDefault;
