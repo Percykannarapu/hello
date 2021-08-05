@@ -313,7 +313,6 @@ export class ValMetricsService implements OnDestroy {
     if (project == null || attributes == null) return;
     this.currentProject = project;
     this.isWinter = project.impGeofootprintMasters[0].methSeason === 'W';
-    console.log('inside updateDefinitions:::', this.metricDefinitions);
     for (const definition of this.metricDefinitions) {
       const values: any[] = [];
       definition.metricValue = definition.metricDefault;
