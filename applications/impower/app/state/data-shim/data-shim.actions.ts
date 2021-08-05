@@ -1,6 +1,6 @@
 import { Action } from '@ngrx/store';
 import { TradeAreaDefinition } from 'app/services/app-trade-area.service';
-import { SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
+import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
 import { ProjectFilterChanged } from '../../models/ui-enums';
 
 export enum DataShimActionTypes {
@@ -133,7 +133,8 @@ export class LayerSetupComplete implements Action {
 export class TradeAreaRollDownGeos implements Action {
   readonly type = DataShimActionTypes.TradeAreaRollDownGeos;
   constructor(public payload: { geos: string[], queryResult:  Map<string, {latitude: number, longitude: number}>,
-                                fileAnalysisLevel: string, matchedTradeAreas: TradeAreaDefinition[], isResubmit: boolean
+                                fileAnalysisLevel: string, matchedTradeAreas: TradeAreaDefinition[], isResubmit: boolean,
+                                siteType: SuccessfulLocationTypeCodes
                               }) {}
 }
 

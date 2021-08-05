@@ -321,7 +321,7 @@ export class AppTradeAreaService {
     return this.impLocationService.get().filter(loc => loc.clientLocationTypeCode === siteType);
   }
 
-  public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null, isResubmit: boolean = false, siteType: string = 'Site'){
+  public applyCustomTradeArea(data: TradeAreaDefinition[], fileAnalysisLevel: string = null, isResubmit: boolean = false, siteType: SuccessfulLocationTypeCodes = ImpClientLocationTypeCodes.Site){
     this.uploadFailures = [];
     const currentAnalysisLevel = this.stateService.analysisLevel$.getValue();
 
@@ -361,14 +361,14 @@ export class AppTradeAreaService {
               this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geos),
                                                               queryResult: queryResult,
                                                               fileAnalysisLevel: fileAnalysisLevel,
-                                                              matchedTradeAreas: Array.from(matchedTradeAreas), isResubmit: isResubmit}));
+                                                              matchedTradeAreas: Array.from(matchedTradeAreas), isResubmit: isResubmit, siteType}));
           });
         }else {
         this.logger.debug.log('file analysis level', fileAnalysisLevel);
         this.store$.dispatch(new TradeAreaRollDownGeos({geos: Array.from(geosToQuery),
                                                         queryResult: queryResult,
                                                         fileAnalysisLevel: fileAnalysisLevel,
-                                                        matchedTradeAreas: Array.from(matchedTradeAreas), isResubmit: isResubmit}));
+                                                        matchedTradeAreas: Array.from(matchedTradeAreas), isResubmit: isResubmit, siteType}));
       }
   }
 
@@ -464,10 +464,10 @@ export class AppTradeAreaService {
     return { failedGeos, payload };
   }
 
-  public persistRolldownTAGeos(payload: any[], failedGeos: any[]){
+  public persistRolldownTAGeos(payload: any[], failedGeos: any[], siteType: SuccessfulLocationTypeCodes){
     const geosToAdd: ImpGeofootprintGeo[] = [];
     const tradeAreasToAdd: ImpGeofootprintTradeArea[] = [];
-    const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get();
+    const allLocations: ImpGeofootprintLocation[] = this.impLocationService.get().filter(site => site.clientLocationTypeCode === siteType);
     const locationsByNumber: Map<string, ImpGeofootprintLocation> = mapBy(allLocations, 'locationNumber');
     const customTAGeoSet = new Set<string>();
     payload.forEach(record => {
