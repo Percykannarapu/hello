@@ -1,0 +1,5 @@
+<p-columnFilter type="boolean" [field]="field" [matchMode]="constraint">
+  <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+    <p-triStateCheckbox [ngModel]="value | anyToBool" (ngModelChange)="filter($event == null ? null : $event ? trueValue : falseValue)"></p-triStateCheckbox>
+  </ng-template>
+</p-columnFilter>

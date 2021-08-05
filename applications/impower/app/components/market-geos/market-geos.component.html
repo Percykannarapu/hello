@@ -86,7 +86,7 @@
       </ng-container>
     </tr>
     <tr>
-      <th *ngFor="let col of selectedColumns" [ngSwitch]="col.validatorType" [pTooltip]="col.tooltip">
+      <th *ngFor="let col of selectedColumns" [ngSwitch]="col.filterType" [pTooltip]="col.tooltip">
         <div *ngSwitchCase="'boolean'" class="p-d-flex p-jc-center">
           <p-columnFilter type="boolean" [field]="col.field"></p-columnFilter>
         </div>

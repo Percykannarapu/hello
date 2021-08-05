@@ -55,9 +55,6 @@ export class GeofootprintGeoPanelComponent implements OnInit {
    public  uniqueCoverageDesc$: Observable<SelectItem[]>;
    public  uniqueDma$: Observable<SelectItem[]>;
 
-   // Target Audience Variable Column Order
-   public  variableColOrder: Map<string, number> = new Map<string, number>();
-
    // Miscellaneous variables
    public  numGeosActive: number = 0;
    public  numGeosInactive: number = 0;
@@ -220,15 +217,9 @@ export class GeofootprintGeoPanelComponent implements OnInit {
       }
    }
 
-   public onDedupeToggle(event: any) {
-      // This is just to cause createComposite to fire and rebuild the grid
-      this.variableColOrder = Object.create(this.variableColOrder);
-   }
-
    public onSetAllGeos(event: any) {
       if (event != null)
       {
-         const eventGeos: ImpGeofootprintGeo[] = event.geos;
          this.impGeofootprintGeoService.get().forEach(geo => geo.isActive = event.value);
          this.impGeofootprintGeoService.makeDirty();
       }
@@ -241,10 +232,6 @@ export class GeofootprintGeoPanelComponent implements OnInit {
          this.impGeofootprintGeoService.get().filter(geo => eventGeos.includes(geo)).forEach(geo => { geo.isActive = event.value; this.logger.debug.log('set geo: ' + geo.geocode + ' isActive = ' + geo.isActive); });
          this.impGeofootprintGeoService.makeDirty();
       }
-   }
-
-   public onForceRedraw() {
-      this.impGeofootprintGeoService.makeDirty();
    }
 
   public triggerCollapseOnToggle(collapsed: boolean) {

@@ -110,11 +110,11 @@ export class MarketGeosComponent implements OnInit {
 
   // Grid Variables
   public containerGridColumns: GridColumn<ContainerValue>[] = [
-    {field: 'isActive', header: null,    width: '5%',  validatorType: 'boolean', tooltip: 'Filter by selection' },
-    {field: 'state',    header: 'State', width: '20%', validatorType: 'stateMulti' },
-    {field: 'id',       header: 'Id',    width: '20%', validatorType: 'text' },
-    {field: 'code',     header: 'Code',  width: '20%', validatorType: 'text' },
-    {field: 'name',     header: 'Name',  width: '35%', validatorType: 'text' },
+    {field: 'isActive', header: null,    width: '5%',  filterType: 'boolean', tooltip: 'Filter by selection' },
+    {field: 'state',    header: 'State', width: '20%', filterType: 'stateMulti' },
+    {field: 'id',       header: 'Id',    width: '20%', filterType: 'text' },
+    {field: 'code',     header: 'Code',  width: '20%', filterType: 'text' },
+    {field: 'name',     header: 'Name',  width: '35%', filterType: 'text' },
   ];
   public selectedColumns: GridColumn<ContainerValue>[] = [];
   public columnOptions: SelectItem[] = [];

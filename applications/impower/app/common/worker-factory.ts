@@ -23,7 +23,7 @@ export class WorkerFactory {
   public static createLocationExportWorker() : ObservableWorker<LocationExportWorkerPayload, string | string[]> {
     const workerId = getUuid();
     if (this.browserCheck()) {
-      const workerInstance = new Worker('workers/location-export.worker', {type: 'module'});
+      const workerInstance = new Worker('workers/location-export.worker', {type: 'module', name: 'location-export-worker'});
       return new ObservableWebWorker<LocationExportWorkerPayload, string | string[]>(workerInstance, workerId);
     } else {
       return new ObservableWorkerFallback(exportLocations, false, workerId);
@@ -33,7 +33,7 @@ export class WorkerFactory {
   public static createGeoExportWorker() : ObservableWorker<GeoFootprintExportWorkerPayload, string> {
     const workerId = getUuid();
     if (this.browserCheck()) {
-      const workerInstance = new Worker('workers/geo-export.worker', {type: 'module'});
+      const workerInstance = new Worker('workers/geo-export.worker', {type: 'module', name: 'geo-export-worker'});
       return new ObservableWebWorker<GeoFootprintExportWorkerPayload, string>(workerInstance, workerId);
     } else {
       return new ObservableWorkerFallback(exportGeoFootprint, false, workerId);
@@ -43,7 +43,7 @@ export class WorkerFactory {
   public static createOfflineTreeviewWorker() : ObservableWorker<TreeviewPayload, TreeViewResponse> {
     const workerId = getUuid();
     if (this.browserCheck()) {
-      const workerInstance = new Worker('workers/offline-treeview.worker', {type: 'module'});
+      const workerInstance = new Worker('workers/offline-treeview.worker', {type: 'module', name: 'offline-cache'});
       return new ObservableWebWorker<TreeviewPayload, TreeViewResponse>(workerInstance, workerId);
     } else {
       return new ObservableWorkerFallback(requestTreeNodes, true, workerId);
@@ -53,7 +53,7 @@ export class WorkerFactory {
   public static createInterestTreeviewWorker() : ObservableWorker<TreeviewPayload, TreeViewResponse> {
     const workerId = getUuid();
     if (this.browserCheck()) {
-      const workerInstance = new Worker('workers/interest-treeview.worker', {type: 'module'});
+      const workerInstance = new Worker('workers/interest-treeview.worker', {type: 'module', name: 'interest-cache'});
       return new ObservableWebWorker<TreeviewPayload, TreeViewResponse>(workerInstance, workerId);
     } else {
       return new ObservableWorkerFallback(requestInterestTreeNodes, true, workerId);
@@ -63,7 +63,7 @@ export class WorkerFactory {
   public static createInMarketTreeviewWorker() : ObservableWorker<TreeviewPayload, TreeViewResponse> {
     const workerId = getUuid();
     if (this.browserCheck()) {
-      const workerInstance = new Worker('workers/inmarket-treeview.worker', {type: 'module'});
+      const workerInstance = new Worker('workers/inmarket-treeview.worker', {type: 'module', name: 'inmarket-cache'});
       return new ObservableWebWorker<TreeviewPayload, TreeViewResponse>(workerInstance, workerId);
     } else {
       return new ObservableWorkerFallback(requestInMarketTreeNodes, true, workerId);
@@ -73,7 +73,7 @@ export class WorkerFactory {
   public static createVlhTreeviewWorker() : ObservableWorker<TreeviewPayload, TreeViewResponse> {
     const workerId = getUuid();
     if (this.browserCheck()) {
-      const workerInstance = new Worker('workers/vlh-treeview.worker', {type: 'module'});
+      const workerInstance = new Worker('workers/vlh-treeview.worker', {type: 'module', name: 'vlh-cache'});
       return new ObservableWebWorker<TreeviewPayload, TreeViewResponse>(workerInstance, workerId);
     } else {
       return new ObservableWorkerFallback(requestVlhTreeNodes, true, workerId);
@@ -83,7 +83,7 @@ export class WorkerFactory {
   public static createPixelTreeviewWorker() : ObservableWorker<TreeviewPayload, TreeViewResponse> {
     const workerId = getUuid();
     if (this.browserCheck()) {
-      const workerInstance = new Worker('workers/pixel-treeview.worker', {type: 'module'});
+      const workerInstance = new Worker('workers/pixel-treeview.worker', {type: 'module', name: 'pixel-cache'});
       return new ObservableWebWorker<TreeviewPayload, TreeViewResponse>(workerInstance, workerId);
     } else {
       return new ObservableWorkerFallback(requestPixelTreeNodes, true, workerId);
