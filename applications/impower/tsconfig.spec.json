@@ -1,7 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../out-tsc/impower-spec"
+    "outDir": "../../out-tsc/impower-spec",
+    "types": [
+      "jasmine"
+    ]
   },
   "paths": {
     "@val/esri": ["../../modules/esri"],

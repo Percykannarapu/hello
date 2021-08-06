@@ -6,7 +6,7 @@ import { strToBool } from '@val/common';
 })
 export class AnyToBoolPipe implements PipeTransform {
 
-  transform(value: any) : boolean {
+  transform(value: any) : boolean | null {
     return value == null ? null : strToBool(`${value}`);
   }
 

@@ -120,9 +120,8 @@ export class BatchMapDashboardComponent implements OnInit {
 
 
   private getPrintJobDetails(data: ImpPrintJob[]){
-    const Moment = require('moment');
     this.printJobDetails = data.sort((a, b) => {
-      return new Moment(new Date(b.createDate)) - new Moment(new Date(a.createDate));
+      return b.createDate - a.createDate;
     } );
     data.forEach((val) => {
       val.url = `${this.config.printServiceUrl}/printjob/${val.jobNumber}`;

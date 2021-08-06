@@ -108,7 +108,6 @@ import { EsriRgb2HexPipe } from './components/common/pipes/esri-rgb-2-hex.pipe';
 import { SearchInputComponent } from './components/common/search-input/search-input.component';
 import { SiteTypeSelectorComponent } from './components/common/site-type-selector/site-type-selector.component';
 import { TableFilterLovComponent } from './components/common/table-filter-lov/table-filter-lov.component';
-import { TableFilterNumericComponent } from './components/common/table-filter-numeric/table-filter-numeric.component';
 import { ValidatedTextInputComponent } from './components/common/validated-text-input/validated-text-input.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { EditLocationsComponent } from './components/edit-locations/edit-locations.component';
@@ -348,7 +347,6 @@ export function esriSetupFactory() : ForRootOptions {
     ManualEntryComponent,
     CampaignDetailsComponent,
     MapComponent,
-    TableFilterNumericComponent,
     TableFilterLovComponent,
     SiteListContainerComponent,
     ConfirmationContainerComponent,

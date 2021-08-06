@@ -19,12 +19,11 @@ export class ConfirmationDialogComponent {
   }
   @Input() title: string;
   @Input() message: string;
-  @Input() acceptLabel: string;
-  @Input() rejectLabel: string;
-  @Input() canBeClosed: boolean;
+  @Input() acceptLabel: string = 'OK';
+  @Input() rejectLabel: string = 'Cancel';
+  @Input() canBeClosed: boolean = true;
 
   @Output() closed = new EventEmitter();
   @Output() accepted = new EventEmitter();
   @Output() rejected = new EventEmitter();
-
 }

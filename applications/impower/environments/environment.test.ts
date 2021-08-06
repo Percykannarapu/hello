@@ -2,7 +2,7 @@
 // The build system defaults to the dev environment which uses `environment.ts`, but if you do
 // `ng build -c prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `angular.json`
-// in the projects->esri-angular-first-look->architect->build->configurations section.
+// in the projects->impower->architect->build->configurations section.
 
 import { LogLevels } from '@val/common';
 import { AllLayerIds } from '@val/esri';
@@ -10,8 +10,8 @@ import { serverEnv } from './server-urls';
 
 export const environment = {
   production: false,
-  serverBuild: true,
-  logLevel: LogLevels.INFO,
+  serverBuild: false,
+  logLevel: LogLevels.DEBUG,
   sanitizeActions: false,
   sanitizeState: false,
 };
@@ -21,13 +21,13 @@ export class EnvironmentData {
   public static environmentName = 'DEV';
 
   public static fuseBaseUrl = serverEnv.middlewareBase;
-  public static impowerBaseUrl = 'https://impowerdev.valassis.com/';
-  public static printServiceUrl = 'http://tx1dapim040131p.tx1.prod.maxpoint.mgt:9128';
+  public static impowerBaseUrl = 'http://localhost:4200/';
+  public static printServiceUrl = 'https://impowerpdf.test.valassisdigital.net';
 
   public static esri = {
     portalServer:  'https://impowerqa.valassis.com/',
-    userName: process.env.ESRI_USERNAME,
-    password: process.env.ESRI_PASSWORD
+    userName: null,
+    password: null
   };
 
   public static layerIds: AllLayerIds = {

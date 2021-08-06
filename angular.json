@@ -213,49 +213,63 @@
             }
           }
         },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "browserTarget": "impower:build"
-          }
-        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "main": "applications/impower/test.ts",
-            "karmaConfig": "./karma.conf.js",
             "polyfills": "applications/impower/polyfills.ts",
             "tsConfig": "applications/impower/tsconfig.spec.json",
+            "karmaConfig": "./karma.conf.js",
             "scripts": [
               "node_modules/moment/moment.js"
             ],
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "applications/impower/assets"
-              ]
+              "includePaths": []
             },
             "styles": [
-              "node_modules/primeng/resources/primeng.min.css",
-              "node_modules/primeicons/primeicons.css",
-              "applications/impower/assets/layout/css/layout-valassis-blue.scss",
-              "applications/impower/assets/theme/theme-valassis-blue.scss",
+              "node_modules/@arcgis/core/assets/esri/themes/light/main.css",
+              {
+                "input": "node_modules/font-awesome/css/font-awesome.css",
+                "bundleName": "font-awesome"
+              },
+              {
+                "input": "node_modules/primeflex/primeflex.scss",
+                "bundleName": "primeflex"
+              },
+              {
+                "input": "node_modules/primeng/resources/primeng.css",
+                "bundleName": "primeng-core"
+              },
+              {
+                "input": "node_modules/primeicons/primeicons.css",
+                "bundleName": "primeng-icons"
+              },
+              "applications/impower/assets/theme/valassis/theme-light.scss",
+              "applications/impower/assets/layout/css/layout-light.scss",
               "applications/impower/styles.scss"
             ],
             "assets": [
-              "applications/impower/assets"
-            ]
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "applications/impower/tsconfig.app.json",
-              "applications/impower/tsconfig.spec.json",
-              "applications/impower/tsconfig.worker.json"
+              {
+                "glob": "**/*",
+                "input": "node_modules/@arcgis/core/assets",
+                "output": "/assets/"
+              },
+              {
+                "glob": "**/*",
+                "input": "applications/impower/assets/val",
+                "output": "/assets/"
+              },
+              {
+                "glob": "*",
+                "input": "applications/impower/assets/root",
+                "output": "/"
+              }
             ],
-            "exclude": [
-              "**/node_modules/**"
+            "fileReplacements": [
+              {
+                "replace": "applications/impower/environments/environment.ts",
+                "with": "applications/impower/environments/environment.test.ts"
+              }
             ]
           }
         }
@@ -371,44 +385,42 @@
             }
           }
         },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "browserTarget": "cpq-maps:build"
-          }
-        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "main": "applications/cpq-maps/src/test.ts",
+            "karmaConfig": "applications/cpq-maps/karma.conf.js",
             "polyfills": "applications/cpq-maps/src/polyfills.ts",
             "tsConfig": "applications/cpq-maps/tsconfig.spec.json",
-            "karmaConfig": "applications/cpq-maps/karma.conf.js",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "node_modules/@arcgis/core/assets",
+                "output": "/assets/"
+              }
+            ],
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "applications/cpq-maps/assets"
-              ]
+              "includePaths": []
             },
             "styles": [
-              "applications/cpq-maps/src/styles.css"
+              "node_modules/@arcgis/core/assets/esri/themes/light/main.css",
+              {
+                "input": "node_modules/primeflex/primeflex.scss",
+                "bundleName": "primeflex"
+              },
+              {
+                "input": "node_modules/primeng/resources/primeng.css",
+                "bundleName": "primeng-core"
+              },
+              {
+                "input": "node_modules/primeicons/primeicons.css",
+                "bundleName": "primeng-icons"
+              },
+              "applications/cpq-maps/assets/theme/valassis/theme-light.scss",
+              "applications/cpq-maps/assets/layout/css/layout-light.scss",
+              "applications/cpq-maps/src/styles.scss"
             ],
-            "scripts": [],
-            "assets": [
-              "applications/cpq-maps/src/favicon.ico",
-              "applications/cpq-maps/assets"
-            ]
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "applications/cpq-maps/tsconfig.app.json",
-              "applications/cpq-maps/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "scripts": []
           }
         }
       }

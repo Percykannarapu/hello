@@ -12,6 +12,8 @@ import { debounceTime, distinctUntilChanged, filter, map, takeUntil } from 'rxjs
 export class SearchInputComponent implements OnInit, OnDestroy {
 
   @Input()
+  public debounceValue: number = 250;
+  @Input()
   public label = 'Search';
   @Output()
   public resultChanged = new EventEmitter<string>();
@@ -25,7 +27,7 @@ export class SearchInputComponent implements OnInit, OnDestroy {
   ngOnInit() : void {
     this.searchText$.pipe(
       takeUntil(this.destroyed$),
-      debounceTime(250),
+      debounceTime(this.debounceValue),
       filter(isNotNil),
       map(term => term.trim()),
       distinctUntilChanged(),
