@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CommonSort, filterArray, groupBy, isConvertibleToNumber, mapBy, simpleFlatten, toNullOrNumber, toUniversalCoordinates } from '@val/common';
 import { EsriMapService, EsriQueryService, EsriUtils } from '@val/esri';
+import { getBatchMode } from 'app/state/batch-map/batch-map.selectors';
 import { TradeAreaRollDownGeos } from 'app/state/data-shim/data-shim.actions';
+import { getTypedBatchQueryParams } from 'app/state/shared/router.interfaces';
 import { RestDataService } from 'app/val-modules/common/services/restdata.service';
 import { BehaviorSubject, combineLatest, merge, Observable } from 'rxjs';
 import { filter, map, reduce, switchMap, take, withLatestFrom } from 'rxjs/operators';
@@ -70,9 +72,11 @@ export class AppTradeAreaService {
       filter(ready => ready),
       take(1)
     ).subscribe(() => {
-        combineLatest([this.impTradeAreaService.storeObservable, this.impLocationService.storeObservable]).pipe(
+        combineLatest([this.impTradeAreaService.storeObservable, this.impLocationService.storeObservable, 
+                       this.store$.select(getTypedBatchQueryParams), this.store$.select(getBatchMode)]).pipe(
+          //map(([ta]) => ta),
+          filter(([ta, , batchMapParams, batchMap]) => (ta != null && !batchMap) || (batchMap && batchMapParams.tradeAreaBoundaries)),
           map(([ta]) => ta),
-          filter(ta => ta != null),
           filterArray(ta => ta.impGeofootprintLocation != null && ta.impGeofootprintLocation.isActive && ta.isActive),
         ).subscribe(tradeAreas => this.store$.dispatch(new RenderTradeAreas({ tradeAreas })));
 

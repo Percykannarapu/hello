@@ -6,7 +6,8 @@ import { getUuid, groupByExtended, isConvertibleToNumber } from '@val/common';
 import { EsriLayerService, EsriMapService, EsriQueryService } from '@val/esri';
 import { ErrorNotification } from '@val/messaging';
 import { User } from 'app/models/User';
-import { SetCurrentSiteNum, SetMapReady } from 'app/state/batch-map/batch-map.actions';
+import { ForceMapUpdate, SetCurrentSiteNum, SetMapReady, ResetForceMapUpdate } from 'app/state/batch-map/batch-map.actions';
+import { getForceMapUpdate } from 'app/state/batch-map/batch-map.selectors';
 import { BatchMapQueryParams, FitTo } from 'app/state/shared/router.interfaces';
 import { LoggingService } from 'app/val-modules/common/services/logging.service';
 import { ImpGeofootprintLocation } from 'app/val-modules/targeting/models/ImpGeofootprintLocation';
@@ -48,10 +49,11 @@ export class BatchMapService {
     const mapIsStationary$ = this.esriMapService.watchMapViewProperty('stationary').pipe(
       map(result => result.newValue)
     );
-    combineLatest([this.esriLayerService.layersAreReady$, mapIsStationary$]).pipe(
-      map(([ready, stationary]) => ready && stationary)
+    combineLatest([this.esriLayerService.layersAreReady$, mapIsStationary$, this.store$.select(getForceMapUpdate)]).pipe(
+      map(([ready, stationary, forceMapUpdate]) => ready && stationary && forceMapUpdate)
     ).subscribe(mapReady => {
-      this.store$.dispatch(new SetMapReady({ mapReady }));
+      //this.store$.dispatch(new SetMapReady({ mapReady }));
+      this.forceMapUpdate();
       if (mapReady) {
         this.appStateService.refreshVisibleGeos();
       }
@@ -173,7 +175,8 @@ export class BatchMapService {
       return p.concat(c.getImpGeofootprintGeos());
     }, [] as ImpGeofootprintGeo[]);
     this.geoService.update(null, null);
-    this.forceMapUpdate();
+    //this.forceMapUpdate();
+    this.store$.dispatch(new ForceMapUpdate());
     return this.setMapLocation(geosToMap, params, sitesToMap, project).pipe(
       map(() => result)
     );
@@ -203,6 +206,7 @@ export class BatchMapService {
     locations.sort(LocationBySiteNum);
     const currentGeos = project.getImpGeofootprintGeos().filter(geo => geo.impGeofootprintLocation.isActive);
     const result = { siteNum: locations[locations.length - 1].locationNumber, isLastSite: true };
+    this.store$.dispatch(new ForceMapUpdate());
     return this.setMapLocation(currentGeos, params, locations, project).pipe(
       map(() => result)
     );
@@ -225,6 +229,7 @@ export class BatchMapService {
     // this.esriMapService.zoomToPoints([coords]);
     // this.esriMapService.zoomToPoints([this.esriMapService.mapView.extent.center]);
     this.esriMapService.mapView.zoom =  this.esriMapService.mapView.zoom + 1 ;
+    this.store$.dispatch(new ForceMapUpdate());
     return of({ siteNum: locations[locations.length - 1].locationNumber, isLastSite: true });
   }
 
@@ -270,7 +275,8 @@ export class BatchMapService {
       return of(result);
     } else {
       this.geoService.update(null, null);
-      this.forceMapUpdate();
+      //this.forceMapUpdate();
+      this.store$.dispatch(new ForceMapUpdate());
       return this.setMapLocation(currentGeosForZoom, params, [currentSiteForZoom], project).pipe(
         map(() => result)
       );
@@ -308,7 +314,7 @@ export class BatchMapService {
     }
   }
 
-  private forceMapUpdate() {
+  public forceMapUpdate() {
     const timeout = 120000; // 2 minutes
     const mapReady$ = this.esriLayerService.layersAreReady$.pipe(filter(ready => ready));
 
@@ -318,7 +324,10 @@ export class BatchMapService {
 
     race(mapReady$, timeout$).pipe(
       take(1)
-      ).subscribe(() => this.store$.dispatch(new SetMapReady({ mapReady: true })));
+      ).subscribe(() => {
+        this.store$.dispatch(new SetMapReady({ mapReady: true }));
+        this.store$.dispatch(new ResetForceMapUpdate());
+      });
   }
 
   private recordOriginalState(project: ImpProject) : void {
