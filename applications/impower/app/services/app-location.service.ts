@@ -371,10 +371,17 @@ export class AppLocationService {
 
   private confirmationBox() : void {
     if (!isEmpty(this.cachedTradeAreas)) {
+      const distinctSiteIds = new Set(this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation?.locationNumber));
+      let message = 'Your site list includes radii values.  Do you want to define your trade area with those values?';
+      if (distinctSiteIds.size === 1) {
+        // editing a single site - change message
+        message = 'Do you want to reapply the radius uploaded with this site?';
+      }
       this.confirmationService.confirm({
-        message: 'Your site list includes radii values.  Do you want to define your trade area with those values?',
+        message,
         header: 'Define Trade Areas',
         icon: PrimeIcons.PLUS_CIRCLE,
+        acceptLabel: 'Use Uploaded Values',
         accept: () => {
           this.cachedTradeAreas.forEach(ta => ta.impGeofootprintLocation.impGeofootprintTradeAreas.push(ta));
           this.appTradeAreaService.insertTradeAreas(this.cachedTradeAreas);
@@ -382,6 +389,7 @@ export class AppLocationService {
           this.cachedTradeAreas = [];
           this.appTradeAreaService.tradeareaType = 'distance';
         },
+        rejectLabel: 'Ignore Uploaded Values',
         reject: () => {
           const currentLocations = this.cachedTradeAreas.map(ta => ta.impGeofootprintLocation);
           this.appTradeAreaService.tradeareaType = '';
