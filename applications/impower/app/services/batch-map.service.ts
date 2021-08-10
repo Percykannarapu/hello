@@ -50,10 +50,10 @@ export class BatchMapService {
       map(result => result.newValue)
     );
     combineLatest([this.esriLayerService.layersAreReady$, mapIsStationary$, this.store$.select(getForceMapUpdate)]).pipe(
-      map(([ready, stationary, forceMapUpdate]) => ready && stationary && forceMapUpdate)
-    ).subscribe(mapReady => {
+      map(([ready, stationary, forceMapUpdate]) => [ready && stationary, forceMapUpdate] as const)
+    ).subscribe(([mapReady, forceMapUpdate]) => {
       //this.store$.dispatch(new SetMapReady({ mapReady }));
-      this.forceMapUpdate();
+      if (forceMapUpdate) this.forceMapUpdate();
       if (mapReady) {
         this.appStateService.refreshVisibleGeos();
       }
