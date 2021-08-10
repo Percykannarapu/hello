@@ -1,4 +1,4 @@
-import { isEmpty, isString } from '@val/common';
+import { isEmpty, isString, removeNonAsciiChars } from '@val/common';
 
 type identifierType = string | RegExp | ((header: string) => boolean);
 
@@ -77,8 +77,8 @@ export class FileService {
     const invalidColumns: T = {} as T;
     for (let i = 0; i < dataRows.length; ++i) {
       if (dataRows[i].length === 0) continue; // skip empty rows
-      // replace commas embedded inside nested quotes, then remove the quotes. and replace non ASCII char
-      const csvRow = dataRows[i].replace(/,(?!(([^"]*"){2})*[^"]*$)/g, '').replace(/"/g, '').replace(/[^\x00-\x7F]/g, '');
+      const csvRow = dataRows[i].replace(/,(?!(([^"]*"){2})*[^"]*$)/g, String.fromCharCode(0x1E)) // replace quote embedded commas with RECORD_SEP
+                                .replace(/"/g, '');                                          // remove quotes
       const columns = csvRow.split(parser.columnDelimiter);
       if (columns.length !== parseEngine.length) {
         result.failedRows.push(dataRows[i]);
@@ -86,7 +86,8 @@ export class FileService {
         const dataResult: T = {} as T;
         let emptyRowCheck = '';
         for (let j = 0; j < columns.length; ++j) {
-          const currentColumnValue = parseEngine[j].dataProcess(columns[j].trim());
+          const rawColumnValue = columns[j].replace(/[\x1E]/g, ','); // put commas back, if they were there to begin with
+          const currentColumnValue = parseEngine[j].dataProcess(removeNonAsciiChars(rawColumnValue.trim()));
           dataResult[parseEngine[j].outputFieldName] = currentColumnValue;
           emptyRowCheck += currentColumnValue.toString().trim();
           if (parseEngine[j].mustBeUnique === true) {
