@@ -1,9 +1,30 @@
 import { CommonSort, isConvertibleToNumber, toNullOrNumber } from '@val/common';
 import { TradeAreaTypeCodes } from '../../worker-shared/data-model/impower.data-model.enums';
 
+// Generic grid sorters
+export function FieldNameAsNumber(fieldName: string, a: {}, b: {}, reverse: boolean = false) {
+  if (reverse) {
+    return CommonSort.NullableNumberReverse(a[fieldName], b[fieldName]);
+  } else {
+    return CommonSort.NullableNumber(a[fieldName], b[fieldName]);
+  }
+}
+
+export function FieldNameAsString(fieldName: string, a: {}, b: {}, reverse: boolean = false) {
+  if (reverse) {
+    return CommonSort.NullableStringReverse(a[fieldName], b[fieldName]);
+  } else {
+    return CommonSort.NullableString(a[fieldName], b[fieldName]);
+  }
+}
+
 // Location Sorters
-export function LocationBySiteNum(a: { locationNumber: string }, b: { locationNumber: string }) {
-  return CommonSort.StringsAsNumbers(a.locationNumber, b.locationNumber);
+export function LocationBySiteNum(a: { locationNumber: string }, b: { locationNumber: string }, reverse: boolean = false) {
+  if (reverse) {
+    return CommonSort.StringsAsNumbersReverse(a.locationNumber, b.locationNumber);
+  } else {
+    return CommonSort.StringsAsNumbers(a.locationNumber, b.locationNumber);
+  }
 }
 
 // Trade Area Sorters

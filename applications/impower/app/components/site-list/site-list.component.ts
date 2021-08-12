@@ -4,11 +4,13 @@ import { arrayToSet, filterArray, groupByExtended, isNotNil, isString, resolveFi
 import { AppProjectPrefService } from 'app/services/app-project-pref.service';
 import { ImpDomainFactoryService } from 'app/val-modules/targeting/services/imp-domain-factory.service';
 import { ImpGeofootprintLocAttribService } from 'app/val-modules/targeting/services/ImpGeofootprintLocAttrib.service';
-import { ConfirmationService, SelectItem, SortMeta } from 'primeng/api';
+import { ConfirmationService, SelectItem, SortEvent, SortMeta } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { filter, map, startWith, take, tap } from 'rxjs/operators';
 import { ImpClientLocationTypeCodes, SuccessfulLocationTypeCodes } from '../../../worker-shared/data-model/impower.data-model.enums';
+import { LocationGridColumn } from '../../common/ui-helpers';
+import { FieldNameAsNumber, FieldNameAsString, LocationBySiteNum } from '../../common/valassis-sorters';
 import { ValGeocodingRequest } from '../../models/val-geocoding-request.model';
 import { AppLocationService } from '../../services/app-location.service';
 import { AppStateService } from '../../services/app-state.service';
@@ -119,24 +121,24 @@ export class SiteListComponent implements OnInit {
 
   private selectedLocationsForDelete = new Set();
 
-  public flatSiteGridColumns =
-    [{field: 'locationNumber',       header: 'Number',              width: '7em',   filterType: null, allowAsSymbolAttribute: true },
+  public flatSiteGridColumns: LocationGridColumn[] =
+    [{field: 'locationNumber',       header: 'Number',              width: '7em',   filterType: null, sortType: 'locNum', allowAsSymbolAttribute: true },
      {field: 'locationName',         header: 'Name',                width: '20em',  filterType: null, allowAsSymbolAttribute: true },
      {field: 'locAddress',           header: 'Address',             width: '20em',  filterType: null },
      {field: 'locCity',              header: 'City',                width: '10em',  filterType: 'multi' },
      {field: 'locState',             header: 'State',               width: '5em',   filterType: 'multi' },
      {field: 'locZip',               header: 'ZIP',                 width: '7em',   filterType: null },
      {field: 'marketName',           header: 'Market',              width: '8em',   filterType: 'multi', allowAsSymbolAttribute: true },
-     {field: 'marketCode',           header: 'Market Code',         width: '9em',   filterType: 'multi', allowAsSymbolAttribute: true },
-     {field: 'totalHHC',             header: 'Total HHC',           width: '8em',   filterType: null },
-     {field: 'totalAllocatedHHC',    header: 'Total Allocated HHC', width: '8em',   filterType: null },
+     {field: 'marketCode',           header: 'Market Code',         width: '9em',   filterType: 'multi', sortType: 'number', allowAsSymbolAttribute: true },
+     {field: 'totalHHC',             header: 'Total HHC',           width: '8em',   filterType: null, sortType: 'number' },
+     {field: 'totalAllocatedHHC',    header: 'Total Allocated HHC', width: '8em',   filterType: null, sortType: 'number' },
      {field: 'description',          header: 'Description',         width: '10em',  filterType: null },
      {field: 'groupName',            header: 'Group',               width: '8em',   filterType: null, allowAsSymbolAttribute: true },
-     {field: 'radius1',              header: 'Radius 1',            width: '7em',   filterType: null },
-     {field: 'radius2',              header: 'Radius 2',            width: '7em',   filterType: null },
-     {field: 'radius3',              header: 'Radius 3',            width: '7em',   filterType: null },
-     {field: 'ycoord',               header: 'Latitude',            width: '8em',   filterType: null },
-     {field: 'xcoord',               header: 'Longitude',           width: '8em',   filterType: null },
+     {field: 'radius1',              header: 'Radius 1',            width: '7em',   filterType: null, sortType: 'number' },
+     {field: 'radius2',              header: 'Radius 2',            width: '7em',   filterType: null, sortType: 'number' },
+     {field: 'radius3',              header: 'Radius 3',            width: '7em',   filterType: null, sortType: 'number' },
+     {field: 'ycoord',               header: 'Latitude',            width: '8em',   filterType: null, sortType: 'number' },
+     {field: 'xcoord',               header: 'Longitude',           width: '8em',   filterType: null, sortType: 'number' },
      {field: 'recordStatusCode',     header: 'Geocode Status',      width: '10em',  filterType: 'multi' },
      {field: 'Home Geocode Issue',   header: 'Home Geocode Issue',  width: '5em',   filterType: null },
      {field: 'Home Zip Code',        header: 'Home ZIP',            width: '8em',   filterType: 'multi' },
@@ -154,7 +156,7 @@ export class SiteListComponent implements OnInit {
      {field: 'origPostalCode',       header: 'Original ZIP',        width: '8em',   filterType: null },
     ];
   public flatSiteGridColumnsLength: number = this.flatSiteGridColumns.length;
-  public selectedColumns = [];
+  public selectedColumns: LocationGridColumn[] = [];
   public displayData: any;
   public selectedRowData: FlatSite;
   @ViewChild('locGrid', { static: true }) public _locGrid: Table;
@@ -673,4 +675,32 @@ export class SiteListComponent implements OnInit {
     );
   }
 
+  customSort(event: SortEvent) : void {
+    let sortFn = (a: any, b: any) => 0;
+    if (event.mode === 'single') {
+      sortFn = this.addSortCallback(sortFn, event.field, event.order);
+    } else {
+      event.multiSortMeta.forEach(meta => {
+        sortFn = this.addSortCallback(sortFn, meta.field, meta.order);
+      });
+    }
+    event.data.sort(sortFn);
+  }
+
+  private addSortCallback(currentCallback: (a: any, b: any) => number, fieldName: string, order: number) : (a: any, b: any) => number {
+    const sortType = this.flatSiteGridColumns.filter(c => c.field === fieldName)?.[0]?.sortType;
+    let result: (a: any, b: any) => number;
+    switch (sortType) {
+      case 'locNum':
+        result = (a, b) => currentCallback(a, b) || (LocationBySiteNum(a, b) * order);
+        break;
+      case 'number':
+        result = (a, b) => currentCallback(a, b) || (FieldNameAsNumber(fieldName, a, b) * order);
+        break;
+      default:
+        result = (a, b) => currentCallback(a, b) || (FieldNameAsString(fieldName, a, b) * order);
+        break;
+    }
+    return result;
+  }
 }

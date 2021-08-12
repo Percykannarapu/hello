@@ -159,26 +159,23 @@ export class AppLocationService {
       filter(locations => locations != null)
     );
 
-    const allActiveLocations$ = this.impLocationService.storeObservable.pipe(
-      filter(locations => locations != null),
+    const allActiveLocations$ = allLocations$.pipe(
       filterArray(loc => loc.isActive)
     );
 
     const allLocationsWithType$ = allLocations$.pipe(
-      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0),
+      filterArray(l => !isEmpty(l.clientLocationTypeCode)),
     );
 
     const activeLocationsWithType$ = allActiveLocations$.pipe(
-      filterArray(l => l.clientLocationTypeCode != null && l.clientLocationTypeCode.length > 0),
+      filterArray(l => !isEmpty(l.clientLocationTypeCode)),
     );
 
-    const locationsWithHomeGeos$ = activeLocationsWithType$.pipe(
-      filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue.length > 0)),
+    const locationsWithRadius$ = activeLocationsWithType$.pipe(
       filterArray(loc => isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3) )
     );
 
     const locationsWithoutRadius$ = activeLocationsWithType$.pipe(
-      filterArray(loc => loc.impGeofootprintLocAttribs.some(attr => homeGeoColumnsSet.has(attr.attributeCode) && attr.attributeValue != null && attr.attributeValue.length > 0)),
       filterArray(loc => !(isConvertibleToNumber(loc.radius1) || isConvertibleToNumber(loc.radius2) || isConvertibleToNumber(loc.radius3)) )
     );
 
@@ -204,13 +201,13 @@ export class AppLocationService {
     this.activeCompetitorLocations$.pipe(map(sites => sites.length)).subscribe(l => this.setCounts(l, ImpClientLocationTypeCodes.Competitor));
     this.appStateService.analysisLevel$.pipe(
         withLatestFrom(projectReady$),
-        filter(([level, isReady]) => level != null && level.length > 0 && isReady)
+        filter(([level, isReady]) => !isEmpty(level) && isReady)
       ).subscribe(([analysisLevel]) => {
       this.setPrimaryHomeGeocode(analysisLevel);
       this.appTradeAreaService.onAnalysisLevelChange();
     });
 
-    combineLatest([locationsWithHomeGeos$, projectReady$]).pipe(
+    combineLatest([locationsWithRadius$, projectReady$]).pipe(
       filter(([locations, isReady]) => locations.length > 0 && isReady)
     ).subscribe(() => this.confirmationBox());
 

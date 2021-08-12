@@ -24,6 +24,7 @@
              [resizableColumns]="true" columnResizeMode="expand"
              [reorderableColumns]="false"
              sortMode="multiple" [multiSortMeta]="multiSortMeta"
+             [customSort]="true" (sortFunction)="customSort($event)"
              [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20]"
              [alwaysShowPaginator]="false"
              (onRowUnselect)="onRowSelect($event, false)"
